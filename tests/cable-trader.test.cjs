@@ -203,7 +203,7 @@ test('people/residences, hubs, and cable set are causal controls', () => {
   });
 });
 
-test('presentation keeps the map concise and renders tiny residence and traveler nodes', () => {
+test('presentation keeps the map concise with tiny residences and bounded cable travelers', () => {
   const { selectedConfig, simulation } = simulationFor();
   const playback = { status: 'running', day: 180 };
   const views = presentation.createViews({ config: selectedConfig, simulation, playback });
@@ -328,7 +328,7 @@ test('v4 contribution validates thousands of residences, hubs, journeys, and sup
   assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('actor:')));
   assert.ok(residences.role === 'context' && residences.importance < 0.75 && residences.aggregationKey === null);
   assert.ok(contribution.presentation.layers.filter((row) => row.id.startsWith('actor:'))
-    .every((row) => row.role === 'context' && row.importance < 0.75));
+    .every((row) => row.role === 'event' && row.importance >= 0.75));
   const composition = compositorModule.createCompositor().compose(contribution.presentation, {
     viewport: { width: 1200, height: 800 },
     project: (source, geometry, layer) => {
@@ -339,9 +339,12 @@ test('v4 contribution validates thousands of residences, hubs, journeys, and sup
   });
   assert.equal(composition.receipt.visibleLayerCount, contribution.presentation.layers.length);
   assert.equal(composition.receipt.suppressedLayerIds.length, 0);
-  assert.equal(composition.receipt.labelCount, 0);
+  assert.ok(composition.receipt.labelCount > 0);
   assert.equal(composition.primitives.filter((row) => row.id === 'residences').length, 1);
   assert.ok(composition.primitives.find((row) => row.id === 'residences').style.radiusPx < 3);
+  assert.ok(composition.primitives.filter((row) => row.id.startsWith('actor:'))
+    .every((row) => row.style.radiusPx >= 3));
+  assert.ok(composition.labels.some((row) => row.id.startsWith('actor:')));
   assert.ok(contribution.state.measures.some((row) => row.kind === 'cable-supply'));
   assert.ok(contribution.state.measures.some((row) => row.kind === 'cable-demand'));
   assert.ok(contribution.inspections.some((row) => row.label === 'Global supply and demand'));

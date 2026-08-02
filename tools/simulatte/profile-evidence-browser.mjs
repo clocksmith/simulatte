@@ -6,6 +6,7 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import { spawn } from 'node:child_process';
 import { CdpClient, findChrome } from './run-browser-smoke.mjs';
+import { encodeRgbaPng } from './profile-evidence-png.mjs';
 import { createStaticSiteServer } from './static-site-server.mjs';
 import {
   canonicalJson,
@@ -132,13 +133,36 @@ async function waitForDevtools(port, child) {
 }
 
 async function stopChild(child) {
-  if (!child || child.exitCode !== null) return;
+  if (!child || child.exitCode !== null || child.signalCode !== null) return;
+  let resolveExit;
+  const exited = new Promise((resolve) => { resolveExit = resolve; });
+  child.once('exit', resolveExit);
   child.kill('SIGTERM');
-  await Promise.race([
-    new Promise((resolve) => child.once('exit', resolve)),
-    new Promise((resolve) => setTimeout(resolve, 1000)),
+  const stopped = await Promise.race([
+    exited.then(() => true),
+    new Promise((resolve) => setTimeout(() => resolve(false), 2000)),
   ]);
-  if (child.exitCode === null) child.kill('SIGKILL');
+  if (stopped || child.exitCode !== null || child.signalCode !== null) return;
+  child.kill('SIGKILL');
+  await exited;
+}
+
+async function waitForReloadedDocument(client, previousTimeOrigin) {
+  const deadline = Date.now() + 60000;
+  while (Date.now() < deadline) {
+    try {
+      const evaluated = await client.send('Runtime.evaluate', {
+        expression: 'performance.timeOrigin',
+        returnByValue: true,
+      });
+      const currentTimeOrigin = evaluated.result?.value;
+      if (Number.isFinite(currentTimeOrigin) && currentTimeOrigin !== previousTimeOrigin) return currentTimeOrigin;
+    } catch {
+      // The previous execution context is expected to disappear during reload.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error('profile evidence host timeout at page-reload-document');
 }
 
 function unfilterPng(raw, width, height, channels) {
@@ -621,6 +645,7 @@ function browserProbeExpression(run, seedIndex) {
     const expectedFocusId = ${JSON.stringify(run.tier === 'city')} && sourceIntentId && ['overview', 'compare'].includes(viewDecision.mode)
       ? 'plugin:' + viewDecision.source + ':' + sourceIntentId
       : null;
+    const performanceCompletedAt = performance.now();
     frameSamplerActive = false;
     cancelAnimationFrame(frameSamplerId);
     clearInterval(memorySamplerId);
@@ -694,7 +719,7 @@ function browserProbeExpression(run, seedIndex) {
         },
         performance: {
           frameCount: Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || progressiveStates.length),
-          elapsedMs: performance.now() - started,
+          elapsedMs: performanceCompletedAt - started,
           firstMeaningfulFrame,
           framePacing: {
             status: frameIntervals.length > 1 ? 'pass' : 'fail',
@@ -787,16 +812,19 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       30000,
       'screenshot',
     );
-    const screenshot = Buffer.from(screenshotResult.data, 'base64');
-    const screenshotSha256 = sha256Bytes(screenshot);
-    const screenshotDirectory = path.join(outputDirectory, 'screenshots', 'sha256');
-    fs.mkdirSync(screenshotDirectory, { recursive: true });
-    const screenshotPath = path.join(screenshotDirectory, `${screenshotSha256}.png`);
-    if (!fs.existsSync(screenshotPath)) fs.writeFileSync(screenshotPath, screenshot);
+    const pageScreenshot = Buffer.from(screenshotResult.data, 'base64');
+    const pageScreenshotSha256 = sha256Bytes(pageScreenshot);
+    const pageScreenshotDirectory = path.join(outputDirectory, 'screenshots', 'page', 'sha256');
+    fs.mkdirSync(pageScreenshotDirectory, { recursive: true });
+    const pageScreenshotPath = path.join(pageScreenshotDirectory, `${pageScreenshotSha256}.png`);
+    if (!fs.existsSync(pageScreenshotPath)) fs.writeFileSync(pageScreenshotPath, pageScreenshot);
     const captured = compactCapturedEvidence(evaluated.result.value);
-    const reloaded = client.once('Page.loadEventFired');
+    const beforeReloadOrigin = await client.send('Runtime.evaluate', {
+      expression: 'performance.timeOrigin',
+      returnByValue: true,
+    });
     await withTimeout(client.send('Page.reload', { ignoreCache: false }), 30000, 'page-reload');
-    await withTimeout(reloaded, 30000, 'page-reload-load');
+    await waitForReloadedDocument(client, beforeReloadOrigin.result.value);
     const beforeRunReceipt = captured.runtime.runReceipt;
     const reload = await withTimeout(client.send('Runtime.evaluate', {
       expression: `(async () => {
@@ -844,6 +872,25 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       captured.integrity.status = 'contradictory';
       captured.integrity.contradictions.push(reload.result.value.reason);
     }
+    const renderCapture = await withTimeout(client.send('Runtime.evaluate', {
+      expression: `(async () => {
+        const capture = document.getElementById('autonomy-canvas')?.__simulatteCaptureRenderPixels;
+        return typeof capture === 'function' ? capture() : null;
+      })()`,
+      awaitPromise: true,
+      returnByValue: true,
+    }), 30000, 'render-pixel-readback');
+    if (renderCapture.exceptionDetails) {
+      throw new Error(renderCapture.exceptionDetails.exception?.description || renderCapture.exceptionDetails.text);
+    }
+    const renderPixels = renderCapture.result.value;
+    if (!renderPixels) throw new Error('profile_evidence_render_readback_unavailable');
+    const screenshot = encodeRgbaPng(renderPixels);
+    const screenshotSha256 = sha256Bytes(screenshot);
+    const screenshotDirectory = path.join(outputDirectory, 'screenshots', 'canvas', 'sha256');
+    fs.mkdirSync(screenshotDirectory, { recursive: true });
+    const screenshotPath = path.join(screenshotDirectory, `${screenshotSha256}.png`);
+    if (!fs.existsSync(screenshotPath)) fs.writeFileSync(screenshotPath, screenshot);
     captured.evidence.interactionCoverage = {
       expected: run.interactionPath,
       observed: captured.evidence.lifecycle,
@@ -851,10 +898,21 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     };
     captured.evidence.console = consoleRows;
     captured.evidence.consoleErrors = consoleErrors;
+    captured.evidence.pageScreenshot = {
+      sha256: pageScreenshotSha256,
+      path: path.relative(outputDirectory, pageScreenshotPath),
+      byteLength: pageScreenshot.length,
+      pageUrl: captured.evidence.deployment?.pageUrl || null,
+    };
     captured.evidence.screenshot = {
+      kind: 'webgpu-canvas-readback',
       sha256: screenshotSha256,
       path: path.relative(outputDirectory, screenshotPath),
       byteLength: screenshot.length,
+      width: renderPixels?.width || null,
+      height: renderPixels?.height || null,
+      sourceFormat: renderPixels?.sourceFormat || null,
+      sourceFrameCount: renderPixels?.sourceFrameCount ?? null,
       buildId: sourceIdentity.build.buildId,
       servedBuildId: captured.evidence.deployment?.servedBuildId || null,
       pageUrl: captured.evidence.deployment?.pageUrl || null,
@@ -885,7 +943,7 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
   } finally {
     if (client) await client.close();
     await stopChild(chrome);
-    fs.rmSync(profileDirectory, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+    fs.rmSync(profileDirectory, { recursive: true, force: true, maxRetries: 50, retryDelay: 100 });
   }
 }
 
@@ -904,4 +962,5 @@ export {
   createEvidenceServer,
   findChrome,
   inspectPng,
+  waitForReloadedDocument,
 };

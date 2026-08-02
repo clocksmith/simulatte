@@ -1,0 +1,41 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "c39e9fe4a73b637b8582e8c8c27a65263d22019cd5f0f6c1b1033b8fbe70fcf0",
+  "claimInventorySha256": "5a93a5095160b0a3816974671f447923f0370bd8fa302f9bb7abc7254d3f1a61",
+  "releaseIdentitySha256": "562b88dfa4bfc015ccf31a1d7a544a44333fc5b64f9c96151a7deeaefcb1210c",
+  "sourceIdentity": {
+    "buildId": "c9c1ce649aa9d6094300deef876dce4aa2cd2752-014f378366d8",
+    "commitSha": "e6f7fe56b231b2bd1b31ef17903700e11bf7e3c2",
+    "worktreeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "totalRuns": 1,
+  "requiredRuns": 94,
+  "passedRuns": 0,
+  "capturePass": false,
+  "coverageComplete": false,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "totalRuns": 1,
+      "passedRuns": 0,
+      "failureCounts": {
+        "claim_evidence_unresolved": 1
+      }
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-834c989c1925190c1808",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "everyday-exchange",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "988b2f9870c46ffb831ea0accf9ba545500ce282b1069ec068c311f4a58fb269",
+      "receiptPath": "receipts/sha256/988b2f9870c46ffb831ea0accf9ba545500ce282b1069ec068c311f4a58fb269.json",
+      "pass": false,
+      "failures": [
+        "claim_evidence_unresolved"
+      ]
+    }
+  ]
+}

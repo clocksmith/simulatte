@@ -9,6 +9,7 @@ const ROOT = path.resolve(__dirname, '..');
 const CONTRACT_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-contract.mjs')).href;
 const BROWSER_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-browser.mjs')).href;
 const RUNNER_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/run-profile-evidence.mjs')).href;
+const PNG_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-png.mjs')).href;
 const INVENTORY_PATH = path.join(ROOT, 'public/data/application-profiles/profile-claim-inventory-v1.json');
 
 function settledComparisonReceipt() {
@@ -60,6 +61,23 @@ function settledComparisonReceipt() {
     },
   };
 }
+
+test('render readback encodes exact RGBA bytes as a bounded PNG', async () => {
+  const { encodeRgbaPng } = await import(PNG_URL);
+  const png = encodeRgbaPng({
+    width: 2,
+    height: 1,
+    format: 'rgba8unorm',
+    rgbaBase64: Buffer.from([255, 0, 0, 255, 0, 255, 0, 255]).toString('base64'),
+  });
+  assert.equal(png.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+  assert.equal(png.readUInt32BE(16), 2);
+  assert.equal(png.readUInt32BE(20), 1);
+  assert.throws(
+    () => encodeRgbaPng({ width: 2, height: 1, format: 'rgba8unorm', rgbaBase64: 'AA==' }),
+    /render_byte_length_invalid/
+  );
+});
 
 function playbackReceipt(run) {
   return {
@@ -199,6 +217,7 @@ async function fixture({ profileId = null } = {}) {
         },
       },
       screenshot: {
+        kind: 'webgpu-canvas-readback',
         sha256: 'c'.repeat(64),
         path: 'screenshots/c.png',
         buildId: buildIdentity.buildId,
@@ -438,6 +457,14 @@ test('first meaningful frame evidence binds the budget to the start action and p
   receipt.evidence.performance.firstMeaningfulFrame.navigationAtMs = 0.5;
   validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
   assert.ok(validation.failures.includes('first_meaningful_frame_invalid'));
+});
+
+test('deployment evidence rejects page captures in place of WebGPU canvas pixels', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture();
+  receipt.evidence.screenshot.kind = 'page-capture-fallback';
+  const validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('deployment_screenshot_binding_invalid'));
+  assert.ok(validation.failures.includes('claim_evidence_unresolved'));
 });
 
 test('declared profile performance budgets fail closed on latency, pacing, and heap regressions', async () => {
@@ -760,6 +787,19 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.match(source, /withTimeout\(client\.send\('Runtime\.evaluate'/);
   assert.match(source, /180000, 'browser-probe'/);
   assert.match(source, /if \(client\) await client\.close\(\)/);
+});
+
+test('reload evidence waits for a different browser document instead of a delayed load event', async () => {
+  const browser = await import(BROWSER_URL);
+  const origins = [100, 100, 200];
+  const client = {
+    async send(method) {
+      assert.equal(method, 'Runtime.evaluate');
+      return { result: { value: origins.shift() } };
+    },
+  };
+  assert.equal(await browser.waitForReloadedDocument(client, 100), 200);
+  assert.equal(origins.length, 0);
 });
 
 test('release scripts and CI consume the same public profile claim evidence runner', () => {

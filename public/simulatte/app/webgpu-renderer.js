@@ -99,7 +99,13 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     if (minimapCanvas && !minimapContext) throw rendererError('webgpu_minimap_context_missing', 'Follow minimap did not provide a WebGPU context');
     if (labelCanvas && !semanticLabels?.draw) throw rendererError('semantic_label_runtime_missing', 'Semantic label canvas requires the label overlay runtime');
     const format = navigator.gpu.getPreferredCanvasFormat();
-    context.configure({ device, format, alphaMode: 'opaque', colorSpace: 'srgb' });
+    context.configure({
+      device,
+      format,
+      alphaMode: 'opaque',
+      colorSpace: 'srgb',
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
+    });
     minimapContext?.configure({ device, format, alphaMode: 'opaque', colorSpace: 'srgb' });
     const shader = device.createShaderModule({ label: 'autonomy-map-shader', code: SHADER });
     const compilation = await shader.getCompilationInfo();
@@ -262,9 +268,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         { width: canvas.width, height: canvas.height },
       ) || null;
       const encoder = device.createCommandEncoder({ label: 'autonomy-map-frame' });
+      const currentTexture = context.getCurrentTexture();
       encodeScene(encoder, {
         label: 'autonomy-map-pass',
-        context,
+        resolveTarget: currentTexture.createView(),
         targets: state.renderTargets,
         bindGroup,
         clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
@@ -278,7 +285,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         writeUniforms(device, minimapUniformBuffer, minimapCamera, minimapCanvas, seconds, state.pluginScene.sun);
         encodeScene(encoder, {
           label: 'autonomy-minimap-pass',
-          context: minimapContext,
+          resolveTarget: minimapContext.getCurrentTexture().createView(),
           targets: state.minimapTargets,
           bindGroup: minimapBindGroup,
           clearValue: { r: 0.003, g: 0.012, b: 0.022, a: 1 },
@@ -297,12 +304,12 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       canvas.dataset.dynamicVertexCount = String(state.dynamicData.length / geometry.FLOATS_PER_VERTEX);
     }
 
-    function encodeScene(encoder, { label, context: renderContext, targets, bindGroup: sceneBindGroup, clearValue }) {
+    function encodeScene(encoder, { label, resolveTarget, targets, bindGroup: sceneBindGroup, clearValue }) {
       const pass = encoder.beginRenderPass({
         label,
         colorAttachments: [{
           view: targets.color.createView(),
-          resolveTarget: renderContext.getCurrentTexture().createView(),
+          resolveTarget,
           clearValue,
           loadOp: 'clear',
           storeOp: 'discard',
@@ -323,6 +330,77 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         pass.draw(state.dynamicData.length / geometry.FLOATS_PER_VERTEX);
       }
       pass.end();
+    }
+
+    async function capturePixels() {
+      if (state.isDestroyed) throw rendererError('webgpu_capture_disposed', 'Cannot capture a disposed renderer');
+      if (!state.latestSnapshot) throw rendererError('webgpu_capture_state_missing', 'Cannot capture before a simulation state is rendered');
+      resizeCanvas(canvas, device, format, state);
+      const pose = cameraApi.advanceCamera(
+        state,
+        state.latestSnapshot,
+        worldModel,
+        canvas.width / canvas.height,
+        performance.now(),
+      );
+      const camera = cameraForPose(pose, canvas);
+      const seconds = resolvedSimulationTimeSeconds(state.latestSnapshot, state.pluginSimulationTimeSeconds);
+      writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun);
+      const currentTexture = context.getCurrentTexture();
+      const encoder = device.createCommandEncoder({ label: 'autonomy-evidence-frame' });
+      encodeScene(encoder, {
+        label: 'autonomy-evidence-pass',
+        resolveTarget: currentTexture.createView(),
+        targets: state.renderTargets,
+        bindGroup,
+        clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
+      });
+      const rowBytes = canvas.width * 4;
+      const bytesPerRow = Math.ceil(rowBytes / 256) * 256;
+      const readback = device.createBuffer({
+        label: 'autonomy-evidence-readback',
+        size: bytesPerRow * canvas.height,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+      });
+      encoder.copyTextureToBuffer(
+        { texture: currentTexture },
+        { buffer: readback, bytesPerRow, rowsPerImage: canvas.height },
+        { width: canvas.width, height: canvas.height, depthOrArrayLayers: 1 },
+      );
+      device.queue.submit([encoder.finish()]);
+      const rgba = new Uint8Array(rowBytes * canvas.height);
+      let mapped = false;
+      try {
+        await readback.mapAsync(GPUMapMode.READ);
+        mapped = true;
+        const bytes = new Uint8Array(readback.getMappedRange());
+        for (let y = 0; y < canvas.height; y += 1) {
+          rgba.set(bytes.subarray(y * bytesPerRow, y * bytesPerRow + rowBytes), y * rowBytes);
+        }
+        if (format.startsWith('bgra')) {
+          for (let index = 0; index < rgba.length; index += 4) {
+            const blue = rgba[index];
+            rgba[index] = rgba[index + 2];
+            rgba[index + 2] = blue;
+          }
+        }
+      } finally {
+        if (mapped) readback.unmap();
+        readback.destroy();
+      }
+      let binary = '';
+      for (let offset = 0; offset < rgba.length; offset += 32768) {
+        binary += String.fromCharCode(...rgba.subarray(offset, offset + 32768));
+      }
+      return Object.freeze({
+        schema: 'simulatte.autonomyRenderPixels.v1',
+        width: canvas.width,
+        height: canvas.height,
+        format: 'rgba8unorm',
+        sourceFormat: format,
+        sourceFrameCount: state.frameCount,
+        rgbaBase64: btoa(binary),
+      });
     }
 
     function animationFrame(timestamp) {
@@ -418,6 +496,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
     function destroy() {
       state.isDestroyed = true;
+      delete canvas.__simulatteCaptureRenderPixels;
       if (state.animationFrame !== null) cancelAnimationFrame(state.animationFrame);
       staticBuffer.destroy();
       state.dynamicBuffer?.destroy();
@@ -431,6 +510,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       device.destroy();
     }
 
+    canvas.__simulatteCaptureRenderPixels = capturePixels;
     state.animationFrame = requestAnimationFrame(animationFrame);
     return {
       render,
@@ -440,6 +520,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       cameraTargets,
       cameraState,
       setPluginPresentations,
+      capturePixels,
       receipt,
       destroy,
       device,

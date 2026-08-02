@@ -497,6 +497,7 @@ function selectorResult(receipt, selector, context) {
     && expected.every((step) => actual.observed.includes(step));
   if (selector.operator === 'deployment-bound-screenshot') return actual?.status === 'pass'
     && actual.servedBuildId === receipt.sourceIdentity?.build?.buildId
+    && receipt.evidence?.screenshot?.kind === 'webgpu-canvas-readback'
     && receipt.evidence?.screenshot?.buildId === actual.servedBuildId
     && receipt.evidence?.screenshot?.servedBuildId === actual.servedBuildId
     && receipt.evidence?.screenshot?.pageUrl === actual.pageUrl;
@@ -649,6 +650,7 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
     deployment?.status !== 'pass'
     || deployment.servedBuildId !== sourceIdentity.build.buildId
     || deployment.route !== run.route
+    || screenshot?.kind !== 'webgpu-canvas-readback'
     || screenshot?.buildId !== sourceIdentity.build.buildId
     || screenshot?.servedBuildId !== deployment.servedBuildId
     || screenshot?.pageUrl !== deployment.pageUrl

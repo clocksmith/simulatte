@@ -17,7 +17,8 @@
       }
       const width = Math.max(24, measure(label.text));
       const box = labelBox(anchor, width, viewport);
-      if (placed.some((row) => overlaps(row.box, box))) {
+      const exclusions = Array.isArray(viewport.exclusionBoxes) ? viewport.exclusionBoxes : [];
+      if (placed.some((row) => overlaps(row.box, box)) || exclusions.some((row) => overlaps(row, box))) {
         suppressedIds.push(label.id);
         continue;
       }
@@ -44,7 +45,7 @@
     const result = layout(
       labels,
       viewProjection,
-      { width, height, scale },
+      { width, height, scale, exclusionBoxes: exclusionBoxes(canvas, width, height) },
       (text) => context.measureText(String(text)).width + 6 * scale,
     );
     result.labels.forEach((label) => {
@@ -108,6 +109,27 @@
 
   function defaultMeasure(text) {
     return String(text).length * 7;
+  }
+
+  function exclusionBoxes(canvas, width, height) {
+    const canvasRect = canvas.getBoundingClientRect?.();
+    const document = canvas.ownerDocument;
+    if (!canvasRect?.width || !canvasRect?.height || !document?.querySelectorAll) return [];
+    const scaleX = width / canvasRect.width;
+    const scaleY = height / canvasRect.height;
+    return [...document.querySelectorAll('[data-semantic-label-exclusion]')].flatMap((element) => {
+      if (element.hidden) return [];
+      const style = document.defaultView?.getComputedStyle?.(element);
+      if (style?.display === 'none' || style?.visibility === 'hidden') return [];
+      const rect = element.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return [];
+      return [{
+        x: (rect.left - canvasRect.left) * scaleX,
+        y: (rect.top - canvasRect.top) * scaleY,
+        width: rect.width * scaleX,
+        height: rect.height * scaleY,
+      }];
+    });
   }
 
   function emptyReceipt(labels) {

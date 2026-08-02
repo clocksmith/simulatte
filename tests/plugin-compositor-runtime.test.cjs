@@ -574,6 +574,25 @@ test('City semantic labels project through the camera and suppress screen collis
   assert.deepEqual(result.suppressedIds, ['second']);
 });
 
+test('City semantic labels stay out of declared interface overlays', () => {
+  const identity = new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1,
+  ]);
+  const result = semanticLabelOverlay.layout([
+    { id: 'covered', text: 'Covered', point: { x: 0, y: 0, heightM: 0 } },
+  ], identity, {
+    width: 400,
+    height: 300,
+    scale: 1,
+    exclusionBoxes: [{ x: 190, y: 130, width: 120, height: 40 }],
+  });
+  assert.deepEqual(result.labels, []);
+  assert.deepEqual(result.suppressedIds, ['covered']);
+});
+
 function tierDrawingTrace(timeSeconds, { depthOrder = false } = {}) {
   const trace = [];
   const ctx = {

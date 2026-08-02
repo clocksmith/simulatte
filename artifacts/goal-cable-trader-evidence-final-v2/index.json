@@ -1,0 +1,107 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "c39e9fe4a73b637b8582e8c8c27a65263d22019cd5f0f6c1b1033b8fbe70fcf0",
+  "claimInventorySha256": "5a93a5095160b0a3816974671f447923f0370bd8fa302f9bb7abc7254d3f1a61",
+  "releaseIdentitySha256": "e08c1766da9f1c5610fc953cab3ccc1d507ae650590fefe64c0ba5aa3f492e24",
+  "sourceIdentity": {
+    "buildId": "c9c1ce649aa9d6094300deef876dce4aa2cd2752-014f378366d8",
+    "commitSha": "e6f7fe56b231b2bd1b31ef17903700e11bf7e3c2",
+    "worktreeSha256": "0adb4abe766e3a193d22a4a7d9c5ebfd297e014db5539894081e719e1dde78cd"
+  },
+  "totalRuns": 8,
+  "requiredRuns": 94,
+  "passedRuns": 8,
+  "capturePass": true,
+  "coverageComplete": false,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "totalRuns": 8,
+      "passedRuns": 8,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-834c989c1925190c1808",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "everyday-exchange",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "cf0b8af1872914ae1edb452c27eae24fd31f42a1ea6257f4ef09f411f9146380",
+      "receiptPath": "receipts/sha256/cf0b8af1872914ae1edb452c27eae24fd31f42a1ea6257f4ef09f411f9146380.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-a2d7136b8b3ee9c3911e",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "everyday-exchange",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "be7b3765870fc8c268ef3d26a94b7ae2669d6cd94a44d1fcfbc2908e6db97e02",
+      "receiptPath": "receipts/sha256/be7b3765870fc8c268ef3d26a94b7ae2669d6cd94a44d1fcfbc2908e6db97e02.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-752916a7375e5980ddbc",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "device-upgrade-cycle",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "edaf27a4e114caff25d4982dc3d190df167a158f35c664184fc979d75c64e12b",
+      "receiptPath": "receipts/sha256/edaf27a4e114caff25d4982dc3d190df167a158f35c664184fc979d75c64e12b.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-cd42786159149f543291",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "device-upgrade-cycle",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "95a86f55e4bcc7fa2a6f649fb7872844fd6e69de36f76f57ef4411e5879e3944",
+      "receiptPath": "receipts/sha256/95a86f55e4bcc7fa2a6f649fb7872844fd6e69de36f76f57ef4411e5879e3944.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-50dba7754d74b0c142e2",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "move-in-cycle",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "0365775589f456f0763a94d43cb787c5da5b4d2ee98429f9203f20f666af6bf6",
+      "receiptPath": "receipts/sha256/0365775589f456f0763a94d43cb787c5da5b4d2ee98429f9203f20f666af6bf6.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-2b8f28aeec00d8282ae4",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "move-in-cycle",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "49ae55bdbd7ead5dd04f3f2ad6afe3741c52f5280b9463bc1e02585278f95e0f",
+      "receiptPath": "receipts/sha256/49ae55bdbd7ead5dd04f3f2ad6afe3741c52f5280b9463bc1e02585278f95e0f.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-7b657743c6739da50f12",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "office-cleanout-cycle",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "4054ff408fe22ec2818df6def78f4d376b70945ff8a8de312fdd3beb531a676a",
+      "receiptPath": "receipts/sha256/4054ff408fe22ec2818df6def78f4d376b70945ff8a8de312fdd3beb531a676a.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-dac6571b042ae861a8ac",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "office-cleanout-cycle",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "322d25c06792a9d7b7195e0e93bdb76ffd063ccaaa7f979eb4ea316370fa651a",
+      "receiptPath": "receipts/sha256/322d25c06792a9d7b7195e0e93bdb76ffd063ccaaa7f979eb4ea316370fa651a.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

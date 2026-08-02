@@ -1,0 +1,69 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "c39e9fe4a73b637b8582e8c8c27a65263d22019cd5f0f6c1b1033b8fbe70fcf0",
+  "claimInventorySha256": "5a93a5095160b0a3816974671f447923f0370bd8fa302f9bb7abc7254d3f1a61",
+  "releaseIdentitySha256": "562b88dfa4bfc015ccf31a1d7a544a44333fc5b64f9c96151a7deeaefcb1210c",
+  "sourceIdentity": {
+    "buildId": "c9c1ce649aa9d6094300deef876dce4aa2cd2752-014f378366d8",
+    "commitSha": "e6f7fe56b231b2bd1b31ef17903700e11bf7e3c2",
+    "worktreeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "totalRuns": 1,
+  "requiredRuns": 94,
+  "passedRuns": 0,
+  "capturePass": false,
+  "coverageComplete": false,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "totalRuns": 1,
+      "passedRuns": 0,
+      "failureCounts": {
+        "runtime_path_mismatch": 1,
+        "platform_clock_receipt_invalid": 1,
+        "platform_view_receipt_invalid": 1,
+        "platform_compositor_receipt_missing": 1,
+        "visual_evidence_missing": 1,
+        "first_meaningful_frame_invalid": 1,
+        "frame_pacing_evidence_invalid": 1,
+        "memory_evidence_invalid": 1,
+        "deterministic_replay_invalid": 1,
+        "interaction_coverage_invalid": 1,
+        "deployment_screenshot_binding_invalid": 1,
+        "settlement_receipt_missing": 1,
+        "plugin_playback_reload_not_restored": 1,
+        "claim_evidence_unresolved": 1,
+        "receipt_contradictory": 1
+      }
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-834c989c1925190c1808",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "everyday-exchange",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "2d90ef6845de65da7b43bd7f6c4006e02ccf73d9e2241b7f5bd6eb4fc658ed99",
+      "receiptPath": "receipts/sha256/2d90ef6845de65da7b43bd7f6c4006e02ccf73d9e2241b7f5bd6eb4fc658ed99.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "visual_evidence_missing",
+        "first_meaningful_frame_invalid",
+        "frame_pacing_evidence_invalid",
+        "memory_evidence_invalid",
+        "deterministic_replay_invalid",
+        "interaction_coverage_invalid",
+        "deployment_screenshot_binding_invalid",
+        "settlement_receipt_missing",
+        "plugin_playback_reload_not_restored",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    }
+  ]
+}

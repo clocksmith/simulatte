@@ -78,9 +78,9 @@
             });
           })();
         </script>
-        <section id="plugin-map-ui" class="plugin-map-ui" aria-label="Experience view"></section>
+        <section id="plugin-map-ui" class="plugin-map-ui" aria-label="Experience view" data-semantic-label-exclusion></section>
 
-        <div class="runtime-anchor">
+        <div class="runtime-anchor" data-semantic-label-exclusion>
           <div class="runtime-toolbar">
             <button id="runtime-toggle" class="status-pill sim-surface" type="button" aria-label="Runtime status and details" aria-controls="runtime-details" aria-expanded="false">
               <span class="status-dot" aria-hidden="true"></span>
@@ -135,7 +135,7 @@
 
         <a id="experience-doc-link" class="sim-text-link experience-doc-link" target="_blank" rel="noopener noreferrer" hidden>Experience docs</a>
 
-        <section id="experience-summary" class="experience-summary sim-surface" aria-live="polite" hidden>
+        <section id="experience-summary" class="experience-summary sim-surface" aria-live="polite" data-semantic-label-exclusion hidden>
           <header>
             <span id="experience-summary-state" class="sim-label">Ready</span>
             <strong id="experience-summary-title"></strong>
@@ -155,7 +155,7 @@
           <p id="experience-summary-comparison" class="experience-summary-comparison"></p>
         </section>
 
-        <div id="camera-controls" class="camera-controls" aria-label="View controls">
+        <div id="camera-controls" class="camera-controls" aria-label="View controls" data-semantic-label-exclusion>
           <div class="camera-focus-anchor">
             <button id="camera-focus-button" class="sim-action" type="button" aria-controls="camera-focus-popover" aria-expanded="false">Focus</button>
             <div id="camera-focus-popover" class="camera-focus-popover sim-popover" hidden>
@@ -177,7 +177,7 @@
           </div>
         </div>
 
-        <section id="journey-hud" class="journey-hud sim-surface" role="button" tabindex="0" aria-label="Journey progress. Open decision details." title="Open decision details">
+        <section id="journey-hud" class="journey-hud sim-surface" role="button" tabindex="0" aria-label="Journey progress. Open decision details." title="Open decision details" data-semantic-label-exclusion>
           <div class="journey-progress" aria-hidden="true"><span id="journey-progress-fill"></span></div>
           <div class="journey-hud-line">
             <strong id="metric-state">active</strong>
@@ -194,10 +194,10 @@
           </div>
         </section>
 
-        <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false">Controls</button>
+        <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false" data-semantic-label-exclusion>Controls</button>
 
 
-        <section class="mission-dock sim-surface" aria-label="Mission">
+        <section class="mission-dock sim-surface" aria-label="Mission" data-semantic-label-exclusion>
           <label id="mission-field" class="mission-field" for="mission-input">
             <span class="sr-only">Describe a mission</span>
             <textarea id="mission-input" rows="2" spellcheck="false" aria-describedby="mission-error" placeholder="Where should the agent go?"></textarea>

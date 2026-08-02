@@ -61,7 +61,7 @@
       "path": "./circulation-simulation.js"
     },
     {
-      "integrity": "sha384-47134353125387990efa6dc7d076f21c693ce089bd8b790a4218a0d721cf3d7acf75f65fe0267d10e3be9a9c9e072061",
+      "integrity": "sha384-a7f3fc8f7ab1dc7ed76877a393a195fc5579ab3c85aab81d95a82e17208399bfce747931019f0908f7109bbed5f0fa44",
       "path": "./v4-contribution.js"
     }
   ],

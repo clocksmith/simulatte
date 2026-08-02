@@ -212,8 +212,8 @@
             'ratio',
             [0, 1]
           ),
-          role: 'context',
-          importance: 0.7,
+          role: 'event',
+          importance: 0.82,
           aggregationKey: null,
           provenance,
         }),

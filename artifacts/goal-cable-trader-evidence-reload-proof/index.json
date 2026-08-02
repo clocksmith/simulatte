@@ -1,0 +1,37 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "c39e9fe4a73b637b8582e8c8c27a65263d22019cd5f0f6c1b1033b8fbe70fcf0",
+  "claimInventorySha256": "5a93a5095160b0a3816974671f447923f0370bd8fa302f9bb7abc7254d3f1a61",
+  "releaseIdentitySha256": "e08c1766da9f1c5610fc953cab3ccc1d507ae650590fefe64c0ba5aa3f492e24",
+  "sourceIdentity": {
+    "buildId": "c9c1ce649aa9d6094300deef876dce4aa2cd2752-014f378366d8",
+    "commitSha": "e6f7fe56b231b2bd1b31ef17903700e11bf7e3c2",
+    "worktreeSha256": "0adb4abe766e3a193d22a4a7d9c5ebfd297e014db5539894081e719e1dde78cd"
+  },
+  "totalRuns": 1,
+  "requiredRuns": 94,
+  "passedRuns": 1,
+  "capturePass": true,
+  "coverageComplete": false,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "totalRuns": 1,
+      "passedRuns": 1,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-752916a7375e5980ddbc",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "device-upgrade-cycle",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "f0717e414e60a3252cc275e88d609fe2c24a7604e445020905fdd689728d5574",
+      "receiptPath": "receipts/sha256/f0717e414e60a3252cc275e88d609fe2c24a7604e445020905fdd689728d5574.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}
