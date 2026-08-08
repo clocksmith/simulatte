@@ -1629,6 +1629,37 @@ test('renderer resolves the camera runtime at use time and rejects incomplete AP
   );
 });
 
+test('city renderer keeps static map layers in stable depth bands and pulses only dynamic signals', () => {
+  assert.deepEqual(gpuGeometry.SURFACE_LAYERS, {
+    land: 0,
+    park: 0.08,
+    street: 0.18,
+    facility: 0.28,
+    grid: 0.38,
+  });
+  const layers = Object.values(gpuGeometry.SURFACE_LAYERS);
+  assert.equal(new Set(layers).size, layers.length);
+  assert.ok(layers.every((value, index) => index === 0 || value - layers[index - 1] >= 0.08));
+  assert.match(rendererApi.SHADER, /input\.emissive > 0\.8/);
+  assert.match(rendererApi.SHADER, /select\(1\.0, 0\.82 \+ 0\.18 \* sin/);
+});
+
+test('city ribbons use continuous joins for open and closed map paths', () => {
+  const openWriter = gpuGeometry.createWriter();
+  gpuGeometry.addRibbon(openWriter, [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }], 2, 0.18, [1, 1, 1, 1]);
+  const openVertices = openWriter.finish();
+  assert.equal(openVertices.length / gpuGeometry.FLOATS_PER_VERTEX, 12);
+  assert.ok([...openVertices].every(Number.isFinite));
+
+  const closedWriter = gpuGeometry.createWriter();
+  gpuGeometry.addRibbon(closedWriter, [
+    { x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 },
+  ], 2, 0.18, [1, 1, 1, 1]);
+  const closedVertices = closedWriter.finish();
+  assert.equal(closedVertices.length / gpuGeometry.FLOATS_PER_VERTEX, 24);
+  assert.ok([...closedVertices].every(Number.isFinite));
+});
+
 test('autonomy runtime logs bounded structured events and deployment revalidates governed data', () => {
   let time = 100;
   const rows = [];

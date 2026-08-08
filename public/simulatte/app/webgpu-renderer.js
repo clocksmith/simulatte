@@ -74,7 +74,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
   let fresnel = fresnelBase + (vec3<f32>(1.0) - fresnelBase) * pow(1.0 - max(dot(viewDirection, halfDirection), 0.0), 5.0);
   let specular = fresnel * pow(max(dot(normal, halfDirection), 0.0), specularPower) * mix(1.3, 0.18, roughness);
   let rim = pow(1.0 - max(dot(normal, viewDirection), 0.0), 3.0) * 0.08;
-  let pulse = 0.82 + 0.18 * sin(uniforms.timeViewport.x * 2.4 + input.worldPosition.x * 0.018 - input.worldPosition.z * 0.012);
+  // Static roads, buildings, and grid lines must remain temporally stable.
+  // Only high-emissive dynamic signals are allowed to pulse; animating every
+  // map fragment makes thin geometry shimmer as the camera moves.
+  let pulse = select(1.0, 0.82 + 0.18 * sin(uniforms.timeViewport.x * 2.4 + input.worldPosition.x * 0.018 - input.worldPosition.z * 0.012), input.emissive > 0.8);
   let diffuseColor = input.color.rgb * (0.2 + diffuse * 0.74) * (1.0 - metallic * 0.38);
   let lit = diffuseColor + specular + input.color.rgb * rim + input.color.rgb * input.emissive * pulse;
   let toneMapped = lit / (lit + vec3<f32>(0.85));

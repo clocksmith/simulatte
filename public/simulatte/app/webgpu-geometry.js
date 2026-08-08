@@ -9,6 +9,15 @@
   const FLOATS_PER_VERTEX = actorGeometry.FLOATS_PER_VERTEX;
   const DENSE_PLUGIN_ACTOR_THRESHOLD = 12;
   const DEFAULT_MATERIAL = Object.freeze([0.02, 0.78]);
+  // Overview cameras expose depth-buffer precision limits. Keep every map
+  // surface in an explicit band so thin layers do not fight while panning.
+  const SURFACE_LAYERS = Object.freeze({
+    land: 0,
+    park: 0.08,
+    street: 0.18,
+    facility: 0.28,
+    grid: 0.38,
+  });
   const COLORS = Object.freeze({
     water: [0.014, 0.042, 0.078, 1],
     land: [0.052, 0.12, 0.125, 1],
@@ -53,19 +62,19 @@
       color: COLORS.water,
       emissive: 0.08,
     });
-    for (const row of world.renderGeometry.land) addFlatPolygon(writer, row.outerRing, 0, COLORS.land, 0.05);
+    for (const row of world.renderGeometry.land) addFlatPolygon(writer, row.outerRing, SURFACE_LAYERS.land, COLORS.land, 0.05);
     for (const park of world.renderGeometry.parks) {
-      addFlatPolygon(writer, park.outerRing, 0.1, COLORS.park, 0.18);
+      addFlatPolygon(writer, park.outerRing, SURFACE_LAYERS.park, COLORS.park, 0.18);
       addRibbon(writer, park.outerRing, 3.2, 0.24, COLORS.parkPerimeter, 0.9);
     }
     for (const street of world.renderGeometry.streets) {
-      addRibbon(writer, street.geometry, street.widthM, 0.06, isMajorStreet(street.highway) ? COLORS.roadMajor : COLORS.road, 0.03);
+      addRibbon(writer, street.geometry, street.widthM, SURFACE_LAYERS.street, isMajorStreet(street.highway) ? COLORS.roadMajor : COLORS.road, 0.03);
     }
     for (const facility of world.renderGeometry.bikeFacilities) {
-      addRibbon(writer, facility.geometry, facility.laneType === 'protected' ? 2.1 : 1.35, 0.16, COLORS[facility.laneType] || COLORS.connector, 0.55);
+      addRibbon(writer, facility.geometry, facility.laneType === 'protected' ? 2.1 : 1.35, SURFACE_LAYERS.facility, COLORS[facility.laneType] || COLORS.connector, 0.55);
     }
     for (const building of world.renderGeometry.buildings) addBuilding(writer, building);
-    addGrid(writer, bounds, 100);
+    addGrid(writer, bounds, 100, SURFACE_LAYERS.grid);
     return writer.finish();
   }
 
@@ -232,18 +241,40 @@
   }
 
   function addRibbon(writer, points, width, height, color, emissive = 0) {
+    const source = [...points];
+    if (source.length < 2) return;
+    const closed = source.length > 2 && distance2(source[0], source.at(-1)) < 0.001;
+    const path = closed ? source.slice(0, -1) : openRing(source);
+    if (path.length < 2) return;
     const half = width / 2;
-    for (let index = 1; index < points.length; index += 1) {
-      const start = points[index - 1];
-      const end = points[index];
-      const length = Math.hypot(end.x - start.x, end.y - start.y);
-      if (!length) continue;
-      const nx = -(end.y - start.y) / length * half;
-      const ny = (end.x - start.x) / length * half;
-      const a = [start.x + nx, height, -start.y - ny];
-      const b = [start.x - nx, height, -start.y + ny];
-      const c = [end.x - nx, height, -end.y + ny];
-      const d = [end.x + nx, height, -end.y - ny];
+    const left = [];
+    const right = [];
+    for (let index = 0; index < path.length; index += 1) {
+      const point = path[index];
+      const previous = path[(index + path.length - 1) % path.length];
+      const next = path[(index + 1) % path.length];
+      const incoming = normalize2(point.x - previous.x, point.y - previous.y);
+      const outgoing = normalize2(next.x - point.x, next.y - point.y);
+      const startTangent = closed || index > 0 ? incoming : outgoing;
+      const endTangent = closed || index < path.length - 1 ? outgoing : incoming;
+      const startNormal = { x: -startTangent.y, y: startTangent.x };
+      const endNormal = { x: -endTangent.y, y: endTangent.x };
+      const miter = normalize2(startNormal.x + endNormal.x, startNormal.y + endNormal.y, endNormal);
+      const scale = clamp2(half / dot2(miter, endNormal), -half * 4, half * 4);
+      left.push({ x: point.x + miter.x * scale, y: point.y + miter.y * scale });
+      right.push({ x: point.x - miter.x * scale, y: point.y - miter.y * scale });
+    }
+    const segmentCount = closed ? path.length : path.length - 1;
+    for (let index = 0; index < segmentCount; index += 1) {
+      const nextIndex = (index + 1) % path.length;
+      const aPoint = left[index];
+      const bPoint = right[index];
+      const cPoint = right[nextIndex];
+      const dPoint = left[nextIndex];
+      const a = [aPoint.x, height, -aPoint.y];
+      const b = [bPoint.x, height, -bPoint.y];
+      const c = [cPoint.x, height, -cPoint.y];
+      const d = [dPoint.x, height, -dPoint.y];
       writer.triangle(a, b, c, [0, 1, 0], color, emissive);
       writer.triangle(a, c, d, [0, 1, 0], color, emissive);
     }
@@ -270,8 +301,8 @@
     ];
     for (let index = 0; index < points.length; index += 1) {
       const next = (index + 1) % points.length;
-      const a = [points[index].x, 0.12, -points[index].y];
-      const b = [points[next].x, 0.12, -points[next].y];
+      const a = [points[index].x, 0.02, -points[index].y];
+      const b = [points[next].x, 0.02, -points[next].y];
       const c = [points[next].x, height, -points[next].y];
       const d = [points[index].x, height, -points[index].y];
       const normal = faceNormal(a, b, c);
@@ -300,13 +331,13 @@
     }
   }
 
-  function addGrid(writer, bounds, spacing) {
+  function addGrid(writer, bounds, spacing, height = SURFACE_LAYERS.grid) {
     const color = [0.06, 0.36, 0.42, 0.32];
     for (let x = Math.ceil(bounds.minimumX / spacing) * spacing; x <= bounds.maximumX; x += spacing) {
-      addRibbon(writer, [{ x, y: bounds.minimumY }, { x, y: bounds.maximumY }], 0.32, 0.09, color, 0.45);
+      addRibbon(writer, [{ x, y: bounds.minimumY }, { x, y: bounds.maximumY }], 0.32, height, color, 0.45);
     }
     for (let y = Math.ceil(bounds.minimumY / spacing) * spacing; y <= bounds.maximumY; y += spacing) {
-      addRibbon(writer, [{ x: bounds.minimumX, y }, { x: bounds.maximumX, y }], 0.32, 0.09, color, 0.45);
+      addRibbon(writer, [{ x: bounds.minimumX, y }, { x: bounds.maximumX, y }], 0.32, height, color, 0.45);
     }
   }
 
@@ -429,6 +460,23 @@
     return [...points];
   }
 
+  function distance2(left, right) {
+    return Math.hypot(left.x - right.x, left.y - right.y);
+  }
+
+  function normalize2(x, y, fallback = { x: 1, y: 0 }) {
+    const length = Math.hypot(x, y);
+    return length > 1e-9 ? { x: x / length, y: y / length } : fallback;
+  }
+
+  function dot2(left, right) {
+    return left.x * right.x + left.y * right.y;
+  }
+
+  function clamp2(value, minimum, maximum) {
+    return Math.max(minimum, Math.min(maximum, value));
+  }
+
   function signedArea(points) {
     let area = 0;
     for (let index = 0; index < points.length; index += 1) {
@@ -479,6 +527,7 @@
     FLOATS_PER_VERTEX,
     MATERIAL_MODEL: actorGeometry.MATERIAL_MODEL,
     PLUGIN_TONES,
+    SURFACE_LAYERS,
     SUPPORTED_ACTOR_KINDS: actorGeometry.SUPPORTED_ACTOR_KINDS,
     addExtrudedPolygon,
     addRibbon,
