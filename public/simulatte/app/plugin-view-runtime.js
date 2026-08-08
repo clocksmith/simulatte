@@ -6,7 +6,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginViewRuntime = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginViewRuntime(viewDirectorApi) {
-  function createCoordinator({ renderer, focusSelect, onModeSelected }) {
+  function createCoordinator({ renderer, onModeSelected }) {
     if (!renderer || typeof renderer.cameraTargets !== 'function') {
       throw viewRuntimeError('plugin_view_renderer_invalid', 'Plugin view runtime expected a camera-capable renderer');
     }
@@ -79,7 +79,6 @@
         && (!cameraMode || cameraState?.mode === cameraMode)
       ) return state;
       if (targetId && cameraState?.focusId !== targetId) {
-        if (focusSelect) focusSelect.value = targetId;
         renderer.focusCameraTarget(targetId);
       }
       if (cameraMode && cameraState?.mode !== cameraMode) {

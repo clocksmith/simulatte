@@ -156,18 +156,7 @@
         </section>
 
         <div id="camera-controls" class="camera-controls" aria-label="View controls" data-semantic-label-exclusion>
-          <div class="camera-focus-anchor">
-            <button id="camera-focus-button" class="sim-action" type="button" aria-controls="camera-focus-popover" aria-expanded="false">Focus</button>
-            <div id="camera-focus-popover" class="camera-focus-popover sim-popover" hidden>
-              <label class="camera-focus-label" for="camera-focus">
-                <span class="sim-label">Map focus</span>
-                <select id="camera-focus" class="sim-field" aria-label="Map focus">
-                  <option value="route">Full route</option>
-                </select>
-              </label>
-            </div>
-          </div>
-          <div class="camera-modes sim-segmented">
+          <div class="camera-modes sim-segmented" role="group" aria-label="Camera experiences">
             <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
             <button id="camera-pov" type="button" aria-pressed="false">POV</button>
             <button id="camera-bird" class="is-active" type="button" aria-pressed="true">Overview</button>

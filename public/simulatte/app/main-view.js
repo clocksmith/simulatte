@@ -14,7 +14,7 @@
       'reranker-proof', 'place-resolution-proof',
       'occurrence-stats', 'occurrence-patterns', 'occurrence-effects',
       'metric-state', 'metric-tick', 'metric-time', 'metric-speed', 'metric-distance', 'metric-route', 'metric-bet', 'journey-progress-fill', 'journey-hud',
-      'metric-settlement', 'metric-calibration', 'camera-controls', 'camera-focus', 'camera-focus-button', 'camera-focus-popover', 'camera-follow', 'camera-pov', 'camera-bird', 'camera-top', 'camera-free', 'camera-compare', 'semantic-label-canvas',
+      'metric-settlement', 'metric-calibration', 'camera-controls', 'camera-follow', 'camera-pov', 'camera-bird', 'camera-top', 'camera-free', 'camera-compare', 'semantic-label-canvas',
       'experience-summary', 'experience-summary-state', 'experience-summary-title', 'experience-summary-description', 'experience-summary-event', 'experience-summary-narrative', 'experience-summary-stats', 'experience-summary-comparison',
       'planning-forecast', 'alternative-proof', 'ledger-proof', 'policy-arena-proof',
       'export-ledger-button', 'import-receipt-button', 'import-receipt-file',

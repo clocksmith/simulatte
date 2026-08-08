@@ -272,26 +272,6 @@
         button.setAttribute('aria-pressed',String(active));
       });
     }
-    function closeTierFocus(){
-      elements.cameraFocusPopover.hidden=true;
-      elements.cameraFocusButton.setAttribute('aria-expanded','false');
-    }
-    function populateTierCameraTargets(){
-      const targets=tierVisualizer?.pluginCameraTargets?.()||[];
-      const selected=elements.cameraFocus.value;
-      elements.cameraFocus.replaceChildren(...targets.map((target)=>{
-        const option=document.createElement('option');
-        option.value=target.id;
-        option.textContent=target.label;
-        return option;
-      }));
-      elements.cameraFocusButton.disabled=!targets.length;
-      elements.cameraFollow.disabled=!targets.some((target)=>target.viewMode==='follow');
-      elements.cameraPov.disabled=!targets.some((target)=>target.viewMode==='pov'||target.viewMode==='follow');
-      elements.cameraCompare.disabled=!targets.some((target)=>target.viewMode==='compare');
-      if(targets.some((target)=>target.id===selected))elements.cameraFocus.value=selected;
-      else if(targets.length)elements.cameraFocus.value=targets[0].id;
-    }
     function wireTierViewControls(){
       const supportedViews=new Set(data.applicationProfile.experience?.supportedViews||['overview','free']);
       elements.cameraFollow.hidden=!supportedViews.has('follow');
@@ -305,24 +285,6 @@
       elements.cameraFree.textContent='Free';
       elements.cameraCompare.textContent='Compare';
       selectTierViewMode(data.applicationProfile.experience?.defaultView||'overview');
-      on(elements.cameraFocusButton,'click',(event)=>{
-        event.stopPropagation();
-        const open=elements.cameraFocusPopover.hidden;
-        elements.cameraFocusPopover.hidden=!open;
-        elements.cameraFocusButton.setAttribute('aria-expanded',String(open));
-      });
-      on(window,'click',closeTierFocus);
-      on(elements.cameraFocusPopover,'click',(event)=>event.stopPropagation());
-      on(elements.cameraFocus,'change',()=>{
-        const targetId=elements.cameraFocus.value;
-        const target=tierVisualizer.pluginCameraTargets?.().find((row)=>row.id===targetId);
-        if(!target)return;
-        viewDirector?.setManualOverride({mode:'free',targetIds:[target.sourceId]});
-        tierVisualizer.setViewMode?.('free');
-        tierVisualizer.focusPluginTarget?.(targetId);
-        selectTierViewMode('free');
-        closeTierFocus();
-      });
       on(elements.cameraBird,'click',()=>{
         const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],'overview');
         viewDirector?.setManualOverride({mode:'overview',targetIds:target?[target.sourceId]:[]});
@@ -443,7 +405,6 @@
       tierVisualizer.removeHud?.();
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
       tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.presentation})),{simulationTimeMs,provenanceReceipts:platform.provenanceReceipts});
-      populateTierCameraTargets();
       if(!simulationClock)simulationClock=root.SimulatteSimulationClock.createClock({timeline:platform.timeline});
       simulationClock.useTimeline(platform.timeline,{atMs:simulationTimeMs});
       const previousViewState=viewDirector?.snapshot();

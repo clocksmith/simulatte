@@ -63,7 +63,7 @@
     throw new Error('simulatte_app_view_dependency_missing');
   }
   const { collectElements, populateApplicationProfiles, applicationProfileLabel, setRuntimeStatus, runtimeLabel, renderIdentity, renderPlaceResolution, renderPlanning, configureExperienceShell, renderExperienceSummary, renderPlayback } = mainViewApi;
-  const { wireCameraControls, selectCameraMode, populateCameraFocus, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons } = cityInterfaceApi;
+  const { wireCameraControls, selectCameraMode, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons } = cityInterfaceApi;
   const log = runtimeLog || {
     info: () => null,
     warn: () => null,
@@ -241,7 +241,6 @@
           const targetId = `plugin:${pluginId}:${command.targetId}`;
           pluginViewRuntime?.setManualOverride({ mode: 'free', targetIds: [targetId] });
           selectCameraMode(elements, renderer.focusCameraTarget(targetId));
-          elements.cameraFocus.value = targetId;
           return;
         }
         if (actionId.startsWith(`${pluginId}.intervene.`)) {
@@ -354,7 +353,7 @@
       elements.decisionsButton.textContent = controlCount ? `Controls (${controlCount})` : 'Evidence';
       renderPluginSummary(pluginPlayback?.snapshot().phase || 'ready');
       if (!renderer) return;
-      const selected = elements.cameraFocus.value || 'route';
+      const selected = renderer.cameraState?.()?.focusId || 'route';
       const semanticPresentations = platform.contributions.map((contribution) => ({
         pluginId: contribution.pluginId,
         presentation: contribution.presentation,
@@ -365,11 +364,9 @@
         selectedIds: [selected],
         provenanceReceipts: platform.provenanceReceipts,
       });
-      populateCameraFocus(elements.cameraFocus, renderer.cameraTargets(), selected);
       if (!hasAppliedInitialCamera) hasAppliedInitialCamera = experienceCameraApi.applyInitialCamera({
         configuration: data.applicationProfile.camera,
         renderer,
-        focusSelect: elements.cameraFocus,
         onModeSelected: (mode) => selectCameraMode(elements, mode),
       });
       if (!pluginClock) pluginClock = simulationClockApi.createClock({
@@ -417,7 +414,6 @@
       if (!pluginViewRuntime) {
         pluginViewRuntime = pluginViewRuntimeApi.createCoordinator({
           renderer,
-          focusSelect: elements.cameraFocus,
           onModeSelected: (mode) => selectCameraMode(elements, mode),
         });
       }
@@ -810,5 +806,5 @@
   }
 
   launchBrowserApp(start, collectElements);
-  return { applicationProfileLabel, collectElements, friendlyMissionError, populateApplicationProfiles, populateCameraFocus, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
+  return { applicationProfileLabel, collectElements, friendlyMissionError, populateApplicationProfiles, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
 });

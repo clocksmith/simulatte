@@ -13,21 +13,15 @@
       [elements.cameraFree, 'free'],
       [elements.cameraCompare, 'compare'],
     ];
-    populateCameraFocus(elements.cameraFocus, renderer.cameraTargets());
     controls.forEach(([button, mode]) => on(button, 'click', () => {
       hooks.onManualNavigation?.({ control: 'mode', mode, targetIds: [] });
       const target = preferredCameraTarget(renderer.cameraTargets(), mode);
       if (target) {
-        elements.cameraFocus.value = target.id;
         renderer.focusCameraTarget(target.id);
       }
       renderer.setCameraMode(mode);
       selectCameraMode(elements, mode);
     }));
-    on(elements.cameraFocus, 'change', () => {
-      hooks.onManualNavigation?.({ control: 'focus', mode: 'free', targetIds: [elements.cameraFocus.value] });
-      selectCameraMode(elements, renderer.focusCameraTarget(elements.cameraFocus.value));
-    });
   }
 
   function selectCameraMode(elements, mode) {
@@ -54,36 +48,11 @@
       || null;
   }
 
-  function populateCameraFocus(select, targets, selectedId = 'route') {
-    select.replaceChildren();
-    const groups = new Map([
-      ['route', document.createElement('optgroup')],
-      ['region', document.createElement('optgroup')],
-      ['place', document.createElement('optgroup')],
-      ['plugin', document.createElement('optgroup')],
-    ]);
-    groups.get('route').label = 'Journey';
-    groups.get('region').label = 'Regions';
-    groups.get('place').label = 'Places';
-    groups.get('plugin').label = 'Application';
-    targets.forEach((target) => {
-      const option = document.createElement('option');
-      option.value = target.id;
-      option.textContent = target.label;
-      groups.get(target.kind).append(option);
-    });
-    groups.forEach((group) => {
-      if (group.children.length) select.append(group);
-    });
-    select.value = targets.some((row) => row.id === selectedId) ? selectedId : 'route';
-  }
-
   function wireInterfaceControls(elements, signal) {
     const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal });
     let lastDrawerTrigger = null;
     const popovers = [
       [elements.runtimeToggle, elements.runtimeDetails],
-      [elements.cameraFocusButton, elements.cameraFocusPopover],
       [elements.dockMoreButton, elements.dockMoreMenu],
     ];
 
@@ -132,7 +101,6 @@
     on(elements.dockMoreMenu, 'click', (event) => {
       if (event.target.closest('button')) setPopover(elements.dockMoreButton, elements.dockMoreMenu, false);
     });
-    on(elements.cameraFocus, 'change', () => setPopover(elements.cameraFocusButton, elements.cameraFocusPopover, false));
     const sections = Array.from(elements.decisionsDrawer.querySelectorAll(':scope > details.evidence-section'));
     sections.forEach((section) => on(section, 'toggle', () => {
       if (!section.open) return;
@@ -233,5 +201,5 @@
     elements.dockMoreButton.setAttribute('aria-expanded', 'false');
   }
 
-  return Object.freeze({ wireCameraControls, selectCameraMode, preferredCameraTarget, populateCameraFocus, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons });
+  return Object.freeze({ wireCameraControls, selectCameraMode, preferredCameraTarget, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons });
 });
