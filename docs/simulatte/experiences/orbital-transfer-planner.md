@@ -113,4 +113,4 @@ Cannot claim:
 - [v4 contribution](../../../public/shared/plugins/orbital-transfer-planner/v4-contribution.js)
 - [Profile](../../../public/data/application-profiles/orbital-transfer-planner-v1.json)
 - [Focused tests](../../../tests/orbital-transfer-verification.test.cjs)
-- [Evidence index](../../../artifacts/profile-evidence/index.json)
+- Evidence output: `artifacts/profile-evidence/index.json`

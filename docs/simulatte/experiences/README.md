@@ -37,8 +37,8 @@ behavior that executes today.
 | `verified` | Focused tests and the declared browser evidence matrix pass |
 | `deployed` | Verified behavior was also checked on the hosted production URL |
 
-The existing evidence index is
-[`artifacts/profile-evidence/index.json`](../../../artifacts/profile-evidence/index.json).
+The existing evidence index is generated at
+`artifacts/profile-evidence/index.json`.
 It binds 94 passing runs to commit `a5713c1c13abacbc626b8e96c95e4c64fc779ca9`
 and worktree identity
 `facdee0932717326829d2b3704ee5bf44b2192d43d8badcbc9496d60792c2698`.

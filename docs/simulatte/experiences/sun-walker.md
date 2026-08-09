@@ -114,4 +114,4 @@ Cannot claim:
 - [Profile](../../../public/data/application-profiles/sun-walker-v1.json)
 - [Governed environment](../../../public/data/sun-walker/sun-walker-environment-v1.json)
 - [Focused tests](../../../tests/sun-walker-v4.test.cjs)
-- [Evidence index](../../../artifacts/profile-evidence/index.json)
+- Evidence output: `artifacts/profile-evidence/index.json`

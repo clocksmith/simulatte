@@ -112,4 +112,4 @@ Cannot claim:
 - [Profile](../../../public/data/application-profiles/safety-explorer-v1.json)
 - [Focused tests](../../../tests/safety-explorer-truth.test.cjs)
 - [Claim inventory](../../../public/data/application-profiles/profile-claim-inventory-v1.json)
-- [Evidence index](../../../artifacts/profile-evidence/index.json)
+- Evidence output: `artifacts/profile-evidence/index.json`

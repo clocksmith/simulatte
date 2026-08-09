@@ -112,4 +112,4 @@ Cannot claim:
 - [Profile](../../../public/data/application-profiles/maritime-trade-global-v1.json)
 - [Calibration artifacts](../../../public/data/maritime-trade-global/calibration-artifacts-v1.json)
 - [Focused tests](../../../tests/maritime-trade-global.test.cjs)
-- [Evidence index](../../../artifacts/profile-evidence/index.json)
+- Evidence output: `artifacts/profile-evidence/index.json`

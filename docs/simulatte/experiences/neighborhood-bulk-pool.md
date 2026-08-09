@@ -116,4 +116,4 @@ Cannot claim:
 - [Profile](../../../public/data/application-profiles/neighborhood-bulk-pool-v1.json)
 - [Plugin manifest](../../../public/shared/plugins/neighborhood-bulk-pool/plugin.json)
 - [Claim inventory](../../../public/data/application-profiles/profile-claim-inventory-v1.json)
-- [Evidence index](../../../artifacts/profile-evidence/index.json)
+- Evidence output: `artifacts/profile-evidence/index.json`

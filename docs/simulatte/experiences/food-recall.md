@@ -110,4 +110,4 @@ Cannot claim:
 - [v4 contribution](../../../public/shared/plugins/food-recall-us/v4-contribution.js)
 - [Profile](../../../public/data/application-profiles/food-recall-us-v1.json)
 - [Focused tests](../../../tests/food-recall-causal-inputs.test.cjs)
-- [Evidence index](../../../artifacts/profile-evidence/index.json)
+- Evidence output: `artifacts/profile-evidence/index.json`

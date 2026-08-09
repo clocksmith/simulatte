@@ -117,4 +117,4 @@ Cannot claim:
 - [v4 contribution](../../../public/shared/plugins/grid-resilience-us/v4-contribution.js)
 - [Profile](../../../public/data/application-profiles/grid-resilience-us-v1.json)
 - [Focused tests](../../../tests/grid-resilience-us.test.cjs)
-- [Evidence index](../../../artifacts/profile-evidence/index.json)
+- Evidence output: `artifacts/profile-evidence/index.json`

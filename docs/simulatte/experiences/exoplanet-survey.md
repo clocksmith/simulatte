@@ -111,4 +111,4 @@ Cannot claim:
 - [Shared plugin v4 contract](../plugin-v4-contract.md)
 - [Tier application manifest](../../../public/data/simulatte/tier-application-manifest.json)
 - [Profile claim inventory](../../../public/data/application-profiles/profile-claim-inventory-v1.json)
-- [Evidence index](../../../artifacts/profile-evidence/index.json)
+- Evidence output: `artifacts/profile-evidence/index.json`
