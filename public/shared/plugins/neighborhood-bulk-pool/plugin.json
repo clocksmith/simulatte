@@ -98,15 +98,19 @@
       "path": "./catalog-index.js"
     },
     {
+      "integrity": "sha384-d695db5a9be0ee7da94a119c21dbaecda024b93351432a1a71efecb7ebb08355812bc362d2fbead7d6c5aaa679609a8b",
+      "path": "./geography-contract.js"
+    },
+    {
       "integrity": "sha384-5a802d367a0e48480bdac9336d0cc1f5f67e6735bc9a6124055d26adfa2db5425ff5642676787c32d8af6c20a9d47b04",
       "path": "./pool-timeline.js"
     },
     {
-      "integrity": "sha384-6df1f4cee889bb8569d1bb5a6e15624a3fd32ae700d48a0991bf9ad9d637ef5e048c67c6bded056a019033c20a18afe7",
+      "integrity": "sha384-bf2a5f79aa4e4392b8741692bcc2cb78f74232c72ea287de135571757fca88c3341ed2e0896dd4ec7c4cec7048cb3965",
       "path": "./pool-solver.js"
     },
     {
-      "integrity": "sha384-b182ad152db9c698090afe85b359603627dcf86ed1ee9cce60adc52750c053fab622c45b86a5773370977b6ea88aead3",
+      "integrity": "sha384-acb87a5353daae50fabd0d75bcc68cc3ff391af5c653e7bece698585285bf122b87ca0dfab88fb1cdff2763909e65ee2",
       "path": "./v4-contribution.js"
     }
   ],

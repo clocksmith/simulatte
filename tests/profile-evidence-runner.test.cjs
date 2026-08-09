@@ -873,12 +873,13 @@ test('human review queue binds verified screenshots, receipts, build, deployment
 test('browser capture searches executed comparison receipts and preserves City playback receipts across reload', async () => {
   const browser = await import(BROWSER_URL);
   const { run } = await fixture();
-  const expression = browser.browserProbeExpression(run, 0);
-  assert.ok(
-    expression.indexOf('const previous = seedText()') < expression.indexOf("document.getElementById('shuffle-button').click()"),
-    'seed evidence must capture the previous value before the synchronous shuffle action',
-  );
-  assert.match(expression, /scenario-controls-ready/);
+  const expression = browser.browserProbeExpression(run);
+  const governedUrl = browser.governedRunUrl('http://127.0.0.1:4173/', run);
+  assert.equal(governedUrl.pathname, run.route);
+  assert.equal(governedUrl.searchParams.get('scenario'), run.seedId);
+  assert.equal(governedUrl.searchParams.get('seed'), run.seed);
+  assert.match(expression, /profile evidence governed URL mismatch/);
+  assert.doesNotMatch(expression, /shuffle-button.*click/);
   assert.match(expression, /previousClockCursor/);
   assert.match(expression, /previousTierStepCount/);
   assert.match(expression, /commitTimelineTerminal/);
@@ -910,6 +911,8 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.match(expression, /navigationAtMs: firstMeaningfulFramePageAt/);
   assert.match(expression, /basis: 'start-action-to-new-governed-frame'/);
   const source = fs.readFileSync(path.join(ROOT, 'tools/simulatte/profile-evidence-browser.mjs'), 'utf8');
+  const controllerBuilderSource = fs.readFileSync(path.join(ROOT, 'public/simulatte/app/main-controller-builder.js'), 'utf8');
+  assert.match(controllerBuilderSource, /await renderPluginExperience\(\{ mission: null \}\)/);
   assert.match(source, /__simulattePluginRunReceipt/);
   assert.match(source, /beforeReceipt: isPluginPlayback \? beforeReceipt/);
   assert.match(source, /afterReceipt: isPluginPlayback \? afterReceipt/);

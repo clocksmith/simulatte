@@ -361,7 +361,7 @@ async function captureAll({ options, plan, claims, identity, releaseIdentitySha2
     for (const run of selectedRuns) {
       const runClaims = claims.filter((claim) => claim.profileId === run.profileId && claim.seedId === run.seedId);
       const profile = readJson(path.join(ROOT, run.profilePath));
-      const seedIndex = profile.seeds.findIndex((seed) => seed.id === run.seedId);
+      if (!profile.seeds.some((seed) => seed.id === run.seedId)) throw new Error(`profile_evidence_seed_missing: ${run.profileId}/${run.seedId}`);
       console.log(`PROFILE-EVIDENCE capture profile=${run.profileId} seed=${run.seedId} viewport=${run.viewport.id}`);
       const sourceAttempt = attemptSourceIdentity(() => currentSourceIdentity(ROOT, run, identity));
       if (sourceAttempt.error) {
@@ -391,7 +391,6 @@ async function captureAll({ options, plan, claims, identity, releaseIdentitySha2
           sourceIdentity,
           claims: runClaims,
           outputDirectory: options.outputDirectory,
-          seedIndex,
         });
       } catch (error) {
         receipt = failedReceipt(run, sourceIdentity, runClaims, error);

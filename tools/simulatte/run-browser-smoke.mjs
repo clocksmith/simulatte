@@ -136,6 +136,7 @@ async function runBrowserSmoke(options) {
   const chrome = spawn(chromePath, [
     '--headless=new',
     '--enable-unsafe-webgpu',
+    ...(process.platform === 'linux' ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface'] : []),
     '--disable-background-networking',
     '--no-first-run',
     '--no-default-browser-check',
@@ -289,12 +290,7 @@ async function runBrowserSmoke(options) {
     if (featureViewEvaluation.exceptionDetails) throw new Error(featureViewEvaluation.exceptionDetails.exception && featureViewEvaluation.exceptionDetails.exception.description || featureViewEvaluation.exceptionDetails.text);
     const featureView = featureViewEvaluation.result.value;
     const result = evaluated.result.value;
-    // Plugin-owned city/world profiles can legitimately have a small core map
-    // and carry their visible geometry in the plugin-static buffer. The visual
-    // gate must count the actual submitted static vertices, not only the core
-    // substrate, or it incorrectly rejects a rendered scene.
-    const renderedStaticVertexCount = result.staticVertexCount
-      + Number(result.rendererReceipt?.pluginStaticVertexCount || 0);
+    const visualGeometryPass = visualGeometryExpectation(result);
     const p2pDeliveryPass = expectsP2pDelivery
       ? featureView.cooperation.visible
         && featureView.cooperation.title === 'Cooperative delivery'
@@ -370,7 +366,7 @@ async function runBrowserSmoke(options) {
       && (isPluginPlayback || result.ambientActorKinds === 'pedestrian,bicycle,scooter,car')
       && result.rendererFrames > 0
       && performancePass
-      && renderedStaticVertexCount > 10000
+      && visualGeometryPass
       && autonomyProofPassed
       && result.runtimeLog.eventCount >= 8
       && result.runtimeLog.requiredEventsPresent
@@ -461,7 +457,7 @@ async function runBrowserSmoke(options) {
       visualRuntime: result.state === 'completed'
         && result.rendererBackend === 'webgpu'
         && result.rendererFrames > 0
-        && renderedStaticVertexCount > 10000,
+        && visualGeometryPass,
       evidence: result.runtimeLog.requiredEventsPresent
         && result.runtimeLog.failureCount === 0
         && (isPluginPlayback
@@ -517,7 +513,7 @@ async function runBrowserSmoke(options) {
         staticHost.server.closeAllConnections?.();
       });
     }
-    fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+    await removeTemporaryDirectory(profileDir);
   }
 }
 
@@ -697,6 +693,20 @@ async function stopChild(child) {
   await exited;
 }
 
+async function removeTemporaryDirectory(directory) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      fs.rmSync(directory, { recursive: true, force: true });
+      return true;
+    } catch (error) {
+      if (!['EBUSY', 'ENOTEMPTY', 'EPERM'].includes(error.code)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+  console.warn(`SIMULATTE-BROWSER cleanup=pending path=${directory}`);
+  return false;
+}
+
 function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPluginPlayback = false) {
   return `(async () => {
     const configuredRunMode = ${JSON.stringify(expectedRunCameraMode)};
@@ -714,7 +724,9 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       while (!predicate()) {
         const status = document.getElementById('runtime-status');
         const failure = runtimeFailure();
-        if (failure) throw new Error('autonomy browser runtime.failed at ' + label + ': ' + failure);
+        if (failure) throw new Error('autonomy browser runtime.failed at ' + label + ': ' + failure
+          + '; url=' + (globalThis.location ? globalThis.location.pathname + globalThis.location.search : 'unavailable')
+          + '; events=' + (globalThis.__simulatteAutonomyRuntimeEvents || []).slice(-8).map((row) => row.event).join(','));
         if (performance.now() - started > limit) {
           const state = document.getElementById('metric-state');
           throw new Error('autonomy browser timeout at ' + label +
@@ -943,17 +955,17 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       document.getElementById('camera-bird').click();
       await waitForCamera('camera-probe-reset');
     }
-    modeProbes.push(await probeMode('top'));
-    modeProbes.push(await probeMode('follow'));
+    if (cameraExperiences.available.includes('top')) modeProbes.push(await probeMode('top'));
+    if (cameraExperiences.available.includes('follow')) modeProbes.push(await probeMode('follow'));
     const followZoomBefore = Number(canvas.dataset.cameraFollowDistance);
-    canvas.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -240 }));
+    if (cameraExperiences.available.includes('follow')) canvas.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -240 }));
     await sleep(260);
     const followZoomAfter = Number(canvas.dataset.cameraFollowDistance);
-    const followZoomWorked = canvas.dataset.cameraInteraction === 'zoom'
+    const followZoomWorked = !cameraExperiences.available.includes('follow') || (canvas.dataset.cameraInteraction === 'zoom'
       && Number.isFinite(followZoomBefore)
       && Number.isFinite(followZoomAfter)
-      && followZoomAfter < followZoomBefore;
-    modeProbes.push(await probeMode('bird'));
+      && followZoomAfter < followZoomBefore);
+    if (cameraExperiences.available.includes('overview')) modeProbes.push(await probeMode('bird'));
     markPhase('camera_modes_complete');
 
     const originalSetPointerCapture = canvas.setPointerCapture;
@@ -1208,6 +1220,20 @@ function consentFlowExpression() {
   })()`;
 }
 
+function visualGeometryExpectation(result) {
+  const receipt = result?.rendererReceipt;
+  if (receipt?.worldSurfaceOwner === 'plugin') {
+    const pluginVertexCount = Number(receipt.pluginStaticVertexCount || 0)
+      + Number(receipt.pluginOverlayVertexCount || 0)
+      + Number(receipt.pluginShadowVertexCount || 0);
+    return Number(receipt.staticVertexCount || 0) === 0
+      && Number(receipt.groundOverlayVertexCount || 0) === 0
+      && pluginVertexCount > 0;
+  }
+  return Number(result?.staticVertexCount || 0)
+    + Number(receipt?.pluginStaticVertexCount || 0) > 10000;
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const report = await runBrowserSmoke(options);
@@ -1236,6 +1262,9 @@ export {
   findChrome,
   parseUrl,
   parseViewport,
+  removeTemporaryDirectory,
   runBrowserSmoke,
   semanticCameraExpectation,
+  stopChild,
+  visualGeometryExpectation,
 };

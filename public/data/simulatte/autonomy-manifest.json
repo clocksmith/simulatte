@@ -8,7 +8,8 @@
     {
       "id": "neighborhood-bulk-pool-v1",
       "path": "../application-profiles/neighborhood-bulk-pool-v1.json",
-      "sha256": "8877ac358a798d85470b1117fc2ce386ccb64233878a1844ceeccfdbbca4fa1c"
+      "sha256": "5a1abe7b00dd56c8e3c34fe51401f20a29e906fea548c46d6fcb84d1c7811a8c",
+      "worldDetail": "plugin-owned"
     },
     {
       "id": "nyc-development-atlas-v1",

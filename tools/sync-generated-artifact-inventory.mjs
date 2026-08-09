@@ -14,6 +14,7 @@ const definitions = [
   ['semantic-universe', 'public/data/simulatte-universe/manifest.json', 'blank-retrieval', 'npm run build:universe', 'active', 'npm run validate:universe'],
   ['visual-cards', 'public/data/simulatte-visual-cards/manifest.json', 'blank-visual', 'npm run build:visual-cards', 'active', 'npm run validate:visual-cards'],
   ['pipeline-jobs', 'public/data/pipeline-job-registry.json', 'shared-pipeline', 'npm run pipeline:matrix:sync', 'active', 'npm run pipeline:matrix:check'],
+  ['folder-contract', 'docs/simulatte/folder-contract.json', 'repository-governance', 'npm run folder-contracts:update', 'active-generated-mirror', 'npm run folder-contracts:check'],
   ['us-major-cities', 'public/data/simulatte/cache/country/us-cities-v1.json', 'world-tiers', 'curated fixture', 'active-fixture', 'npm run check:artifacts'],
   ['solar-system-cache', 'public/data/simulatte/cache/space/solar-system.json', 'world-tiers', 'npm run simulatte:fetch:solar-system', 'inactive-empty-placeholder', 'npm run check:artifacts'],
 ];

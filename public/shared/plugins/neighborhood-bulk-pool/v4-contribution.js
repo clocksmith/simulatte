@@ -9,9 +9,10 @@
   const PLUGIN_ID = 'neighborhood-bulk-pool';
   const MODEL_HASHES = Object.freeze({
     catalogIndex: 'ea332cf023c9ede5cb17e3736927ce35e9c2ad98eb61cc4c7891a1edc749b050',
-    poolSolver: 'c420f87e38de174243e8cacf3f495ac04496528bc0df2a28b2664666155694c3',
-    routeScreen: 'c420f87e38de174243e8cacf3f495ac04496528bc0df2a28b2664666155694c3',
-    settlement: 'c420f87e38de174243e8cacf3f495ac04496528bc0df2a28b2664666155694c3',
+    poolSolver: '713ed870d98f75e8e67d8ea2c54fe8d69fdea66eacfd57f9f5c84e087f7be532',
+    routeScreen: '713ed870d98f75e8e67d8ea2c54fe8d69fdea66eacfd57f9f5c84e087f7be532',
+    settlement: '713ed870d98f75e8e67d8ea2c54fe8d69fdea66eacfd57f9f5c84e087f7be532',
+    geographyContract: '92b46b6776977863054e4d85a9a4e80d5e9df846f7cf810b22fe5645d4d3eec7',
   });
 
   function createContribution({ datasets, dataReceipts, config, result, snapshot }) {
@@ -27,6 +28,7 @@
       modelRecord('pool-solver', MODEL_HASHES.poolSolver, records, 'joint package and trip assignment', result),
       modelRecord('route-screen', MODEL_HASHES.routeScreen, records, 'capacity and freshness route screen', result),
       modelRecord('settlement', MODEL_HASHES.settlement, records, 'exact pro-rata cost settlement', result),
+      modelRecord('geography-contract', MODEL_HASHES.geographyContract, records, 'cross-dataset WGS84 scope and reference validation', result),
     ];
     const warehouseProvenance = provenance('derived', 'snapshot', {
       kind: 'missing',
@@ -46,6 +48,7 @@
       recordById.get('neighborhood-bulk-route-corridors-modeled-v1'),
       modelRecords[1],
       modelRecords[2],
+      modelRecords[4],
     ]);
     const simulatedProvenance = provenance('simulated', 'forecast', {
       kind: 'distribution',
@@ -154,10 +157,6 @@
   }
 
   function createLayers(datasets, result, snapshot, warehouse, scenario, modeled, simulated) {
-    const warehouseOffers = new Map(datasets.warehouses.warehouses.map((row) => [row.id, 0]));
-    datasets.catalog.items.forEach((item) => item.offers.forEach((offer) => {
-      warehouseOffers.set(offer.warehouseId, (warehouseOffers.get(offer.warehouseId) || 0) + 1);
-    }));
     const activeGroups = new Set(snapshot.visiblePoolGroupIds);
     const visibleTrips = new Set(snapshot.visibleTripAssignmentIds);
     const completedTrips = new Set(snapshot.completedTripAssignmentIds || []);
@@ -168,7 +167,6 @@
     const completedStops = new Set(snapshot.completedStopIds || []);
     const visibleRejectedRequests = new Set(snapshot.visibleRejectedRequestIds || []);
     const neighborhoods = new Map(datasets.routes.neighborhoods.map((row) => [row.id, row]));
-    const maximumOffers = Math.max(...warehouseOffers.values(), 1);
     const layers = [
       ...datasets.routes.coverageAreas.map((row) => builder.layer({
         id: `modeled-area:${row.id}`,
@@ -206,9 +204,9 @@
       ...datasets.warehouses.warehouses.map((row) => builder.layer({
         id: `warehouse:${row.id}`,
         kind: 'point',
-        label: row.label,
+        label: `${row.label} · derived address anchor, not a building footprint`,
         geometry: builder.geometry('point', 'wgs84', [[...row.coordinates, 0]]),
-        quantity: builder.quantity('catalog-offer-rows', warehouseOffers.get(row.id), 'rows', [0, maximumOffers]),
+        quantity: builder.quantity('warehouse-display-anchor', 1, 'anchor', [0, 1]),
         role: 'primary',
         importance: 0.98,
         aggregationKey: 'bulk-pool-warehouses',

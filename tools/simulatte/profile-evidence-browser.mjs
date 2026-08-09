@@ -231,7 +231,7 @@ function inspectPng(buffer, method) {
   };
 }
 
-function browserProbeExpression(run, seedIndex) {
+function browserProbeExpression(run) {
   return `(async () => {
     const waitFor = async (predicate, label, limit = 45000) => {
       const started = performance.now();
@@ -263,6 +263,14 @@ function browserProbeExpression(run, seedIndex) {
       }
     };
     await waitFor(() => document.body?.dataset.journeyPhase === 'ready', 'ready');
+    const governedRoute = globalThis.location
+      ? globalThis.SimulatteRouter?.parsePath(globalThis.location.pathname, globalThis.location.search)
+      : null;
+    if (globalThis.location && (governedRoute?.experience !== ${JSON.stringify(run.profileId)}
+      || governedRoute?.simulation?.scenarioId !== ${JSON.stringify(run.seedId)}
+      || governedRoute?.simulation?.seed !== ${JSON.stringify(run.seed)})) {
+      throw new Error('profile evidence governed URL mismatch: ' + JSON.stringify(governedRoute));
+    }
     const renderCanvas = document.getElementById(${JSON.stringify(run.tier === 'city' ? 'autonomy-canvas' : 'overlay-canvas')});
     const navigation = performance.getEntriesByType('navigation')[0];
     const coldStartup = { status: 'pass', basis: 'navigation-to-ready', durationMs: performance.now(), responseEndMs: Number(navigation?.responseEnd || 0) };
@@ -279,20 +287,9 @@ function browserProbeExpression(run, seedIndex) {
     };
     const expectedSeed = ${JSON.stringify(run.seed)};
     const seedText = () => document.getElementById('scenario-seed')?.textContent || '';
-    for (let index = 0; index < ${seedIndex}; index += 1) {
-      const previous = seedText();
-      document.getElementById('shuffle-button').click();
-      await waitFor(() => seedText() !== previous, 'seed-change');
-      await waitFor(
-        () => document.body.dataset.journeyPhase === 'ready'
-          && !document.getElementById('shuffle-button')?.disabled
-          && !document.getElementById('start-button')?.disabled,
-        'scenario-controls-ready',
-        10000
-      );
-    }
     await waitFor(
-      () => seedText().includes(expectedSeed),
+      () => seedText().includes(expectedSeed)
+        && !document.getElementById('start-button')?.disabled,
       'governed-seed expected=' + expectedSeed + ' actual=' + seedText(),
       5000
     );
@@ -784,13 +781,21 @@ function browserProbeExpression(run, seedIndex) {
   })()`;
 }
 
-async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, claims, outputDirectory, seedIndex }) {
+function governedRunUrl(baseUrl, run) {
+  const url = new URL(run.route, baseUrl);
+  url.searchParams.set('scenario', run.seedId);
+  url.searchParams.set('seed', run.seed);
+  return url;
+}
+
+async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, claims, outputDirectory }) {
   const renderCanvasId = run.tier === 'city' ? 'autonomy-canvas' : 'overlay-canvas';
   const debugPort = await freePort();
   const profileDirectory = fs.mkdtempSync(path.join(os.tmpdir(), `simulatte-profile-evidence-${run.profileId}-`));
   const chrome = spawn(chromePath, [
     '--headless=new',
     '--enable-unsafe-webgpu',
+    ...(process.platform === 'linux' ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface'] : []),
     '--enable-precise-memory-info',
     '--disable-background-networking',
     '--no-first-run',
@@ -823,12 +828,12 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       deviceScaleFactor: 1,
       mobile: run.viewport.width < 600,
     });
-    const url = new URL(run.route, baseUrl);
+    const url = governedRunUrl(baseUrl, run);
     const loaded = client.once('Page.loadEventFired');
     await withTimeout(client.send('Page.navigate', { url: url.toString() }), 30000, 'page-navigate');
     await withTimeout(loaded, 30000, 'page-load');
     const evaluated = await withTimeout(client.send('Runtime.evaluate', {
-      expression: browserProbeExpression(run, seedIndex),
+      expression: browserProbeExpression(run),
       awaitPromise: true,
       returnByValue: true,
     }), 180000, 'browser-probe');
@@ -853,6 +858,19 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     const pageScreenshotPath = path.join(pageScreenshotDirectory, `${pageScreenshotSha256}.png`);
     if (!fs.existsSync(pageScreenshotPath)) fs.writeFileSync(pageScreenshotPath, pageScreenshot);
     const captured = compactCapturedEvidence(evaluated.result.value);
+    const renderCapture = await withTimeout(client.send('Runtime.evaluate', {
+      expression: `(async () => {
+        const capture = document.getElementById(${JSON.stringify(renderCanvasId)})?.__simulatteCaptureRenderPixels;
+        return typeof capture === 'function' ? capture() : null;
+      })()`,
+      awaitPromise: true,
+      returnByValue: true,
+    }), 30000, 'render-pixel-readback');
+    if (renderCapture.exceptionDetails) {
+      throw new Error(renderCapture.exceptionDetails.exception?.description || renderCapture.exceptionDetails.text);
+    }
+    const renderPixels = renderCapture.result.value;
+    if (!renderPixels) throw new Error('profile_evidence_render_readback_unavailable');
     const beforeReloadOrigin = await withTimeout(client.send('Runtime.evaluate', {
       expression: 'performance.timeOrigin',
       returnByValue: true,
@@ -869,8 +887,9 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
           ? globalThis.__simulattePluginRunReceipt || null
           : globalThis.__simulatteTierRunReceipt || null;
         const phase = () => document.body?.dataset.journeyPhase || 'loading';
+        const pixelsReady = () => typeof document.getElementById(${JSON.stringify(renderCanvasId)})?.__simulatteCaptureRenderPixels === 'function';
         const started = performance.now();
-        while (!receipt() || phase() !== 'completed') {
+        while (!receipt() || phase() !== 'completed' || !pixelsReady()) {
           if (phase() === 'failed') break;
           if (performance.now() - started > 45000) break;
           await new Promise((resolve) => setTimeout(resolve, 25));
@@ -878,7 +897,12 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
         const afterReceipt = receipt();
         const beforeScenario = beforeReceipt?.scenario || null;
         const afterScenario = afterReceipt?.scenario || null;
-        const restored = Boolean(afterReceipt && phase() === 'completed');
+        const restored = Boolean(afterReceipt && phase() === 'completed' && pixelsReady());
+        const failure = globalThis.__simulatteLastFailError || null;
+        const failureEvents = [...(globalThis.__simulatteAutonomyRuntimeEvents || [])]
+          .filter((row) => row.level === 'error' || row.event === 'runtime.failed')
+          .slice(-4)
+          .map((row) => ({ event: row.event, details: row.details || null }));
         return {
           attempted: true,
           kind: isPluginPlayback ? 'plugin-playback' : 'tier-run',
@@ -889,7 +913,9 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
           afterScenarioId: afterScenario?.id || null,
           beforeSeed: beforeScenario?.seed || null,
           afterSeed: afterScenario?.seed || null,
-          reason: restored ? null : 'terminal_receipt_not_restored',
+          failure,
+          failureEvents,
+          reason: restored ? null : (afterReceipt && phase() === 'completed' ? 'render_readback_not_restored' : 'terminal_receipt_not_restored'),
         };
       })()`,
       awaitPromise: true,
@@ -909,19 +935,6 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       captured.integrity.status = 'contradictory';
       captured.integrity.contradictions.push(reload.result.value.reason);
     }
-    const renderCapture = await withTimeout(client.send('Runtime.evaluate', {
-      expression: `(async () => {
-        const capture = document.getElementById(${JSON.stringify(renderCanvasId)})?.__simulatteCaptureRenderPixels;
-        return typeof capture === 'function' ? capture() : null;
-      })()`,
-      awaitPromise: true,
-      returnByValue: true,
-    }), 30000, 'render-pixel-readback');
-    if (renderCapture.exceptionDetails) {
-      throw new Error(renderCapture.exceptionDetails.exception?.description || renderCapture.exceptionDetails.text);
-    }
-    const renderPixels = renderCapture.result.value;
-    if (!renderPixels) throw new Error('profile_evidence_render_readback_unavailable');
     const screenshot = encodeRgbaPng(renderPixels);
     const screenshotSha256 = sha256Bytes(screenshot);
     const screenshotDirectory = path.join(outputDirectory, 'screenshots', 'canvas', 'sha256');
@@ -1010,6 +1023,7 @@ export {
   compactRunReceiptReference,
   createEvidenceServer,
   findChrome,
+  governedRunUrl,
   inspectPng,
   waitForReloadedDocument,
 };

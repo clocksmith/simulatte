@@ -5,16 +5,20 @@
   const timelineApi = typeof module === 'object' && module.exports
     ? require('./pool-timeline.js')
     : root.SimulatteNeighborhoodBulkPoolTimeline;
-  const api = factory(catalogApi, timelineApi);
+  const geographyApi = typeof module === 'object' && module.exports
+    ? require('./geography-contract.js')
+    : root.SimulatteNeighborhoodBulkGeography;
+  const api = factory(catalogApi, timelineApi, geographyApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteNeighborhoodBulkPoolSolver = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createNeighborhoodBulkPoolSolver(catalogApi, timelineApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createNeighborhoodBulkPoolSolver(catalogApi, timelineApi, geographyApi) {
   const POLICY_IDS = Object.freeze(['independent', 'bulk-only', 'existing-trip', 'neighborhood-hub']);
   const ROUTED_POLICIES = new Set(['existing-trip', 'neighborhood-hub']);
 
   function runScenario({ datasets, config, scenario }) {
     requireDependencies();
     validateInputs(datasets, scenario);
+    const geographyReceipt = geographyApi.validateScenarioGeography(datasets, scenario);
     const catalog = catalogApi.createCatalogIndex(datasets.catalog);
     const scenarioRow = datasets.demand.scenarios.find((row) => row.id === scenario.scenarioId);
     const disruptions = normalizeDisruptions(scenario.disruptions || [], datasets, scenarioRow);
@@ -113,6 +117,7 @@
         declaredComplete: catalog.coverage.declaredComplete,
         maximumSupportedRows: catalog.coverage.maximumSupportedRows,
       },
+      geographyReceipt,
       claimBoundary: [
         datasets.warehouses.claimBoundary,
         datasets.catalog.claimBoundary,
@@ -728,6 +733,9 @@
   function requireDependencies() {
     if (!catalogApi?.createCatalogIndex) {
       throw solverError('bulk_pool_catalog_dependency_missing', 'Catalog index dependency is unavailable');
+    }
+    if (!geographyApi?.validateScenarioGeography) {
+      throw solverError('bulk_pool_geography_dependency_missing', 'Geography contract dependency is unavailable');
     }
   }
 

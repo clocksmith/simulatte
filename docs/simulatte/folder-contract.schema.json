@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ouroboros.local/schemas/folder-contract.v1.json",
+  "title": "Ouroboros folder contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "project", "lastReviewed", "nodes"],
+  "properties": {
+    "schema": { "const": "ouroboros.folderContract.v1" },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "repository", "catalogAuthority", "runtimeAuthority"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "repository": { "type": "string" },
+        "catalogAuthority": { "const": "ouroboros" },
+        "runtimeAuthority": { "type": "string" }
+      }
+    },
+    "lastReviewed": { "type": "string", "format": "date" },
+    "sourceRefs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "repository", "path", "kind", "authority"],
+        "properties": {
+          "id": { "type": "string" },
+          "repository": { "type": "string" },
+          "path": { "type": "string" },
+          "kind": { "enum": ["canonical-doc", "runtime-contract", "executable-test", "receipt", "manifest", "directory"] },
+          "authority": { "enum": ["definition", "implementation", "execution", "evidence", "status"] },
+          "scope": { "type": "string" }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trackedFiles", "trackedDirectories", "coveredDirectories", "classifiedDirectories", "uncoveredDirectories"],
+      "properties": {
+        "trackedFiles": { "type": "integer", "minimum": 0 },
+        "trackedDirectories": { "type": "integer", "minimum": 0 },
+        "coveredDirectories": { "type": "integer", "minimum": 0 },
+        "classifiedDirectories": { "type": "integer", "minimum": 0 },
+        "uncoveredDirectories": { "type": "array", "items": { "type": "string" } },
+        "inventoryCommand": { "type": "string", "minLength": 1 }
+      }
+    },
+    "classifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "classification", "reason"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "classification": { "enum": ["generated", "cached", "vendored", "temporary", "deployment-only", "excluded"] },
+          "reason": { "type": "string", "minLength": 20 },
+          "producer": { "type": "string" },
+          "validationCommand": { "type": "string" }
+        }
+      }
+    },
+    "freshnessChecks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "command", "covers"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9.-]+$" },
+          "command": { "type": "string", "minLength": 1 },
+          "covers": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+        }
+      }
+    },
+    "judgePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policyId", "promptPath", "deterministicFailuresAuthoritative", "allowedFindings"],
+      "properties": {
+        "policyId": { "type": "string", "minLength": 1 },
+        "promptPath": { "type": "string", "minLength": 1 },
+        "deterministicFailuresAuthoritative": { "const": true },
+        "allowedFindings": { "type": "array", "minItems": 1, "items": { "enum": ["semantic-drift", "unsupported-claim", "ownership-conflict", "missing-evidence"] } }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "path", "kind", "parentId", "intent", "ownership", "validation"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9.-]+$" },
+          "path": { "type": "string", "pattern": "^(\\.|[^/](?:.*[^/])?)$" },
+          "matchPaths": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "kind": { "enum": ["runtime", "shared-runtime", "plugin", "data", "evidence", "documentation", "orchestration"] },
+          "parentId": { "type": ["string", "null"] },
+          "dependencyNodeIds": { "type": "array", "items": { "type": "string" } },
+          "intent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["purpose", "actorOutcome", "mustPreserve", "mustNotClaim", "writingBoundary"],
+            "properties": {
+              "purpose": { "type": "string", "minLength": 20 },
+              "actorOutcome": { "type": "string", "minLength": 20 },
+              "mustPreserve": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+              "mustNotClaim": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+              "writingBoundary": { "type": "string", "minLength": 20 }
+            }
+          },
+          "ownership": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["owns", "allowedDependencies", "forbiddenDependencies", "changeEffects"],
+            "properties": {
+              "owns": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+              "allowedDependencies": { "type": "array", "items": { "type": "string" } },
+              "forbiddenDependencies": { "type": "array", "items": { "type": "string" } },
+              "changeEffects": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["when", "impact", "requiredValidation"],
+                  "properties": {
+                    "when": { "type": "string" },
+                    "impact": { "enum": ["local", "dependent", "workspace"] },
+                    "requiredValidation": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          },
+          "validation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["deterministicCommands", "requiredSourceRefs", "judgeInputs"],
+            "properties": {
+              "deterministicCommands": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+              "requiredSourceRefs": { "type": "array", "items": { "type": "string" } },
+              "requiredBrowserJourneys": { "type": "array", "items": { "type": "string" } },
+              "requiredSourcePaths": { "type": "array", "items": { "type": "string" } },
+              "judgeInputs": { "type": "array", "minItems": 1, "items": { "enum": ["intentProse", "contract", "changedDiff", "source", "tests", "receipts"] } }
+            }
+          },
+          "boundary": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "enforceImports": { "type": "boolean" },
+              "allowExternalPackages": { "type": "boolean" },
+              "allowedImportNodeIds": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "experience": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["profileId", "actor", "job", "trigger", "terminalOutcome", "controls", "urlParameters", "simulationInputs", "deterministicConfiguration", "dataProvenance", "coordinateSystem", "browserPixels", "resultMeaning", "doesNotProve", "recoveryStates", "refusalStates", "requiredTests", "requiredBrowserJourneys", "impact"],
+            "properties": {
+              "profileId": { "type": ["string", "null"] },
+              "actor": { "type": "string", "minLength": 3 },
+              "job": { "type": "string", "minLength": 10 },
+              "trigger": { "type": "string", "minLength": 3 },
+              "terminalOutcome": { "type": "string", "minLength": 10 },
+              "controls": { "$ref": "#/$defs/stringArray" },
+              "urlParameters": { "$ref": "#/$defs/stringArray" },
+              "simulationInputs": { "$ref": "#/$defs/stringArray" },
+              "deterministicConfiguration": { "$ref": "#/$defs/stringArray" },
+              "dataProvenance": { "$ref": "#/$defs/stringArray" },
+              "coordinateSystem": { "type": "string", "minLength": 10 },
+              "browserPixels": { "$ref": "#/$defs/stringArray" },
+              "resultMeaning": { "$ref": "#/$defs/stringArray" },
+              "doesNotProve": { "$ref": "#/$defs/stringArray" },
+              "recoveryStates": { "$ref": "#/$defs/stringArray" },
+              "refusalStates": { "$ref": "#/$defs/stringArray" },
+              "requiredTests": { "$ref": "#/$defs/stringArray" },
+              "requiredBrowserJourneys": { "$ref": "#/$defs/stringArray" },
+              "impact": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["local", "dependent", "workspace"],
+                "properties": {
+                  "local": { "type": "string" },
+                  "dependent": { "type": "string" },
+                  "workspace": { "type": "string" }
+                }
+              }
+            }
+          },
+          "status": { "enum": ["active", "partial", "proposed", "blocked"] },
+          "openGaps": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stringArray": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+  }
+}

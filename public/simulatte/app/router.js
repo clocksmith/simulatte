@@ -15,12 +15,15 @@
   //   /world/maritime-trade-global-v1   -> planet scale + that experience
   // Tier ids are already URL-safe, so they double as the first path segment; the experience
   // segment is the full application-profile id. Query fields are:
-  //   ?scenario=<seed id>&seed=<declared seed>&mission=<text>&param.<plugin>.<control>=<JSON>
+  //   ?world=<world id>&profile=<profile id>&camera=<mode>&scenario=<seed id>
+  //     &seed=<declared seed>&mission=<text>&param.<plugin>.<control>=<JSON>
   // Navigation is still in-place; changing a URL state tears down and remounts
   // the owning experience through the app shell rather than reloading the page.
   if (!tierRegistry) throw new Error('simulatte_router_tier_registry_missing');
   const TIERS = tierRegistry.TIER_IDS;
   const TIER_SET = new Set(TIERS);
+  const CAMERA_MODES = new Set(['bird', 'compare', 'follow', 'free', 'overview', 'pov', 'top']);
+  const ID_PATTERN = /^[a-z0-9][a-z0-9.:-]*$/;
 
   function cloneValue(value) {
     return Array.isArray(value) ? value.map(cloneValue)
@@ -61,6 +64,26 @@
     return Object.freeze(simulation);
   }
 
+  function optionalIdentifier(query, key) {
+    const value = query.get(key);
+    if (!value) return null;
+    if (!ID_PATTERN.test(value)) throw routeError(`route_${key}_invalid`, `Invalid ${key} identity ${value}`);
+    return value;
+  }
+
+  function parseRouteQuery(search, experience) {
+    const query = new URLSearchParams(String(search || '').replace(/^\?/, ''));
+    const world = optionalIdentifier(query, 'world');
+    const profile = optionalIdentifier(query, 'profile') || experience || null;
+    const requestedCamera = query.get('camera') || null;
+    if (requestedCamera && !CAMERA_MODES.has(requestedCamera)) throw routeError('route_camera_invalid', `Invalid camera mode ${requestedCamera}`);
+    const camera = requestedCamera === 'bird' ? 'overview' : requestedCamera;
+    if (experience && profile && experience !== profile) {
+      throw routeError('route_profile_mismatch', `Experience ${experience} does not match profile ${profile}`);
+    }
+    return { world, profile, camera, simulation: parseQuery(search) };
+  }
+
   function normalizeSimulation(simulation) {
     if (!simulation || typeof simulation !== 'object') return null;
     const scenario = simulation.scenario && typeof simulation.scenario === 'object' ? simulation.scenario : null;
@@ -93,21 +116,41 @@
     return text ? `?${text}` : '';
   }
 
+  function queryForRoute(route) {
+    const query = new URLSearchParams();
+    if (route.world) query.set('world', route.world);
+    if (route.profile || route.experience) query.set('profile', route.profile || route.experience);
+    if (route.camera) query.set('camera', route.camera === 'bird' ? 'overview' : route.camera);
+    const simulationQuery = queryForSimulation(route.simulation);
+    const simulation = new URLSearchParams(simulationQuery.replace(/^\?/, ''));
+    simulation.forEach((value, key) => query.set(key, value));
+    const text = query.toString();
+    return text ? `?${text}` : '';
+  }
+
   function decodeSegment(segment) {
     try { return decodeURIComponent(segment); } catch (_error) { return segment; }
   }
 
   function parsePath(pathname, search = '') {
     const parts = String(pathname || '/').split('/').filter(Boolean).map(decodeSegment);
-    if (!parts.length || !TIER_SET.has(parts[0])) return { tier: null, experience: null, simulation: null };
-    return { tier: parts[0], experience: parts[1] || null, simulation: parseQuery(search) };
+    if (!parts.length || !TIER_SET.has(parts[0])) return { tier: null, experience: null, world: null, profile: null, camera: null, simulation: null };
+    const experience = parts[1] || null;
+    if (experience && !ID_PATTERN.test(experience)) throw routeError('route_experience_invalid', `Invalid experience identity ${experience}`);
+    return { tier: parts[0], experience, ...parseRouteQuery(search, experience) };
   }
 
   function hrefFor(route) {
     if (!route || !route.tier || !TIER_SET.has(route.tier)) return '/';
     const tier = encodeURIComponent(route.tier);
     const path = route.experience ? `/${tier}/${encodeURIComponent(route.experience)}` : `/${tier}`;
-    return `${path}${queryForSimulation(route.simulation)}`;
+    return `${path}${queryForRoute(route)}`;
+  }
+
+  function routeError(code, message) {
+    const error = new Error(message);
+    error.code = code;
+    return error;
   }
 
   // A router instance binds the URL to a single onRoute handler. navigate() adds a history entry
@@ -142,5 +185,5 @@
     return Object.freeze({ TIERS, parsePath, hrefFor, currentRoute, navigate, canonicalize, start });
   }
 
-  return Object.freeze({ TIERS, parsePath, parseQuery, normalizeSimulation, queryForSimulation, hrefFor, createRouter });
+  return Object.freeze({ TIERS, CAMERA_MODES, parsePath, parseQuery, parseRouteQuery, normalizeSimulation, queryForSimulation, queryForRoute, hrefFor, createRouter });
 });

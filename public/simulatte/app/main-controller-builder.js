@@ -229,7 +229,7 @@
       renderer.reset();
       renderer.render(snapshot);
       setActiveState({ controller: null, mission: null });
-      renderPluginExperience({ mission: null });
+      await renderPluginExperience({ mission: null });
       elements.renderIdentity.textContent = renderIdentity(renderer.receipt());
       setRuntimeStatus(elements, 'Ready', 'ready');
       setJourneyPhase('ready');

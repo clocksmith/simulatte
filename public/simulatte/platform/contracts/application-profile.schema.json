@@ -79,6 +79,12 @@
             "synchronized"
           ]
         },
+        "worldDetail": {
+          "enum": [
+            "substrate",
+            "plugin-owned"
+          ]
+        },
         "stages": {
           "type": "array",
           "minItems": 2,

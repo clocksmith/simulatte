@@ -29,6 +29,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Checkout canonical folder-contract catalog
+        run: git clone --depth 1 --filter=blob:none --sparse https://github.com/clocksmith/ouroboros.git ../ouroboros && git -C ../ouroboros sparse-checkout set docs/integration/folder-contracts docs/integration/cujs scripts/check-folder-contracts.mjs
+
+      - name: Verify folder contracts, coverage, boundaries, and freshness
+        run: npm run folder-contracts:check
+
       - name: Install pinned classifier generator
         run: python -m pip install -r tools/samer/requirements-compact-classifiers.txt
 

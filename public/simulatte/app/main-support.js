@@ -277,7 +277,7 @@
           onSelectTier: (tier) => navigate({ tier, experience: null }),
         };
         const boot = (tier, experience, bootOptions) => tier === 'city'
-          ? start('city', experience, { navigate, signal: bootOptions?.signal, simulation: bootOptions?.simulation || null })
+          ? start('city', experience, { navigate, signal: bootOptions?.signal, simulation: bootOptions?.simulation || null, routeState: bootOptions?.routeState || null })
           : hostRoot.SimulatteWorldTiersBoot.bootGovernedTierExplorer(
             governedContext,
             tier,

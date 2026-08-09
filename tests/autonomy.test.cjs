@@ -1296,6 +1296,23 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.equal(developmentRequests.some((row) => row.url.includes('place-embedding-index')), false);
   assert.equal(developmentRequests.some((row) => row.url.includes('/embodiments/')), false);
 
+  const requestCountBeforeBulkProfile = requests.length;
+  const bulkProfile = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles, { requestedProfileId: 'neighborhood-bulk-pool-v1' });
+  const bulkRequests = requests.slice(requestCountBeforeBulkProfile);
+  assert.equal(bulkProfile.applicationProfile.experience.worldDetail, 'plugin-owned');
+  assert.equal(bulkProfile.world.id, 'neighborhood-bulk-pool-v1:plugin-owned-world-context:v1');
+  assert.equal(bulkProfile.world.renderGeometry.surfaceOwner, 'plugin');
+  assert.equal(bulkProfile.world.nodes.length, 0);
+  assert.ok(['land', 'parks', 'streets', 'buildings', 'bikeFacilities'].every(
+    (key) => bulkProfile.world.renderGeometry[key].length === 0
+  ));
+  assert.equal(bulkProfile.regionPacks.length, 0);
+  assert.equal(bulkProfile.regionComposition.renderDetailOwner, 'plugin');
+  assert.equal(bulkProfile.receipt.renderGeometryStatus, 'plugin-owned');
+  assert.equal(typeof bulkProfile.loadRenderGeometry, 'undefined');
+  assert.equal(bulkRequests.some((row) => row.url.includes('/regions/packs/')), false);
+  assert.equal(bulkRequests.some((row) => row.url.includes('.geometry.json')), false);
+
   const staleManifest = structuredClone(loaded.manifest);
   delete staleManifest.missionExamples;
   let staleManifestWouldHaveBeenServed = false;
@@ -1806,6 +1823,30 @@ test('browser audit validates explicit desktop and mobile viewport contracts', a
     focusId: 'plugin:sun-walker:shade-selected-route',
   });
   assert.equal(audit.semanticCameraExpectation({ source: 'core-fallback', mode: 'free' }), null);
+  assert.equal(audit.visualGeometryExpectation({
+    staticVertexCount: 0,
+    rendererReceipt: {
+      worldSurfaceOwner: 'plugin',
+      staticVertexCount: 0,
+      groundOverlayVertexCount: 0,
+      pluginStaticVertexCount: 1086,
+      pluginOverlayVertexCount: 108,
+      pluginShadowVertexCount: 0,
+    },
+  }), true);
+  assert.equal(audit.visualGeometryExpectation({
+    staticVertexCount: 0,
+    rendererReceipt: {
+      worldSurfaceOwner: 'plugin',
+      staticVertexCount: 0,
+      groundOverlayVertexCount: 6,
+      pluginStaticVertexCount: 1086,
+    },
+  }), false);
+  assert.equal(audit.visualGeometryExpectation({
+    staticVertexCount: 12000,
+    rendererReceipt: { worldSurfaceOwner: 'core', pluginStaticVertexCount: 0 },
+  }), true);
 
   const failureContext = () => ({
     document: {

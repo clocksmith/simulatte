@@ -7,6 +7,7 @@ const test = require('node:test');
 const ROOT = join(__dirname, '..');
 const PLUGIN_DIRECTORY = join(ROOT, 'public/shared/plugins/neighborhood-bulk-pool');
 const catalogApi = require(join(PLUGIN_DIRECTORY, 'catalog-index.js'));
+const geographyApi = require(join(PLUGIN_DIRECTORY, 'geography-contract.js'));
 const solver = require(join(PLUGIN_DIRECTORY, 'pool-solver.js'));
 const plugin = require(join(PLUGIN_DIRECTORY, 'index.js'));
 const config = json(join(PLUGIN_DIRECTORY, 'default-config.json'));
@@ -40,6 +41,35 @@ test('governed inputs validate while keeping residents, routes, and inventory cl
   assert.equal(datasets.routes.coverageAreas.length, 3);
   assert.match(datasets.catalog.claimBoundary, /deliberately incomplete/i);
   assert.match(datasets.routes.claimBoundary, /not.*street/i);
+});
+
+test('governed geography resolves scenario references and fails closed on misplaced data', () => {
+  const receipt = geographyApi.validateScenarioGeography(datasets, scenario);
+  assert.equal(receipt.schema, 'simulatte.neighborhoodBulkGeographyReceipt.v1');
+  assert.deepEqual(receipt.counts, {
+    warehouses: 4,
+    neighborhoods: 11,
+    hubs: 5,
+    coverageAreas: 3,
+    corridors: 7,
+  });
+  assert.ok(Object.values(receipt.checks).every(Boolean));
+  assert.equal(receipt.corridors.length, datasets.routes.corridors.length);
+  assert.ok(receipt.corridors.every((row) => row.roadExpansionRatio >= 1));
+  assert.match(receipt.claimBoundary, /does not prove surveyed entrances/i);
+
+  const displaced = structuredClone(datasets);
+  displaced.routes.corridors[0].coordinates[0][0] += 0.01;
+  assert.throws(
+    () => geographyApi.validateScenarioGeography(displaced, scenario),
+    (error) => error.code === 'bulk_pool_corridor_origin_mismatch'
+  );
+  const dangling = structuredClone(datasets);
+  dangling.demand.trips[0].corridorId = 'corridor-not-governed';
+  assert.throws(
+    () => geographyApi.validateScenarioGeography(dangling, scenario),
+    (error) => error.code === 'bulk_pool_geography_reference_invalid'
+  );
 });
 
 test('catalog index searches a 25,000-row snapshot without changing the browser contract', () => {
@@ -136,6 +166,8 @@ test('all policies replay deterministically and independently conserve demand, p
   assert.deepEqual(first, second);
   assert.equal(first.snapshots.at(-1).status, 'settled');
   assert.equal(first.catalogReceipt.declaredComplete, false);
+  assert.equal(first.geographyReceipt.schema, 'simulatte.neighborhoodBulkGeographyReceipt.v1');
+  assert.ok(Object.values(first.geographyReceipt.checks).every(Boolean));
   for (const policyId of solver.POLICY_IDS) {
     const result = first.policyResults[policyId];
     assert.equal(result.conservation.demandConserved, true, policyId);
@@ -324,8 +356,10 @@ test('v4 contribution renders semantic WGS84 evidence and every accepted control
     const warehouse = datasets.warehouses.warehouses.find((row) => row.id === corridor.warehouseId);
     assert.deepEqual(corridor.coordinates[0], warehouse.coordinates);
   });
-  assert.ok(contribution.presentation.layers.some((row) => row.quantity?.kind === 'catalog-offer-rows'));
-  assert.ok(contribution.provenanceRecords.length >= manifest.datasets.length + 4);
+  const warehouseLayers = contribution.presentation.layers.filter((row) => row.id.startsWith('warehouse:'));
+  assert.ok(warehouseLayers.every((row) => row.quantity?.kind === 'warehouse-display-anchor'));
+  assert.ok(warehouseLayers.every((row) => /not a building footprint/i.test(row.label)));
+  assert.ok(contribution.provenanceRecords.length >= manifest.datasets.length + 5);
   assert.ok(contribution.inspections.some((row) => JSON.stringify(row).includes('modeled-warehouse-scale')));
   const models = Object.fromEntries(
     contribution.provenanceRecords.filter((row) => row.kind === 'model').map((row) => [row.id, row])
@@ -336,10 +370,14 @@ test('v4 contribution renders semantic WGS84 evidence and every accepted control
   const solverHash = createHash('sha256')
     .update(readFileSync(join(PLUGIN_DIRECTORY, 'pool-solver.js')))
     .digest('hex');
+  const geographyHash = createHash('sha256')
+    .update(readFileSync(join(PLUGIN_DIRECTORY, 'geography-contract.js')))
+    .digest('hex');
   assert.equal(models['neighborhood-bulk-pool:model:catalog-index'].contentHash, catalogHash);
   for (const id of ['pool-solver', 'route-screen', 'settlement']) {
     assert.equal(models[`neighborhood-bulk-pool:model:${id}`].contentHash, solverHash);
   }
+  assert.equal(models['neighborhood-bulk-pool:model:geography-contract'].contentHash, geographyHash);
 });
 
 test('trip playback emits one active driver, moving packages, and a bird-eye camera target', async () => {

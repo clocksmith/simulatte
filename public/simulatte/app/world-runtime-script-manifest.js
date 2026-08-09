@@ -173,6 +173,7 @@
     'simulatte/app/plugin-presentation.js',
     'simulatte/app/camera-controller.js',
     'simulatte/app/semantic-label-overlay.js',
+    'simulatte/app/webgpu-pass.js',
     'simulatte/app/webgpu-renderer.js',
     'simulatte/app/trace-view.js',
     'simulatte/app/application-profile-select.js',

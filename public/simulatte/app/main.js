@@ -1,10 +1,7 @@
 (function attachAutonomyApp(root, factory) {
   const api = factory(Object.freeze({
     hostRoot: root,
-    dataLoader: // Accept both the original and the in-progress renamed global names so the app boots
-    // whichever the module files currently register under (the multi-tier refactor renamed
-    // these references before the module registrations were renamed to match).
-    (root.SimulatteApplicationLoader || root.SimulatteDataLoader),
+    dataLoader: (root.SimulatteApplicationLoader || root.SimulatteDataLoader),
     missionApi: root.SimulatteAutonomyMission,
     controllerApi: root.SimulatteAutonomyController,
     canvasApi: root.SimulatteAutonomyCanvas,
@@ -90,6 +87,7 @@
     if (!experienceCameraApi?.applyInitialCamera || !experienceCameraApi?.runCameraMode) throw new Error('Experience camera dependency is unavailable');
     const elements = collectElements();
     let routeSimulation = hooks.simulation || null;
+    let activeCameraMode = hooks.routeState?.camera || null;
     const lifecycle = mountLifecycleApi.create(hooks.signal);
     const on = lifecycle.on;
     const loadTrace = runtimeLog?.createLoadTrace?.(log, { details: { tier: initialTier, requestedProfileId, route: typeof window !== 'undefined' ? window.location.pathname + window.location.search : null, scenarioId: hooks.simulation?.scenarioId || null } }) || null;
@@ -173,8 +171,12 @@
       let data;
       data = await timedLoadStage('application.data', () => dataLoader.loadApplication(undefined, lifecycle.fetch, { requestedProfileId, deferRenderGeometry: true }));
       lifecycle.throwIfAborted();
+    if (hooks.routeState?.profile && hooks.routeState.profile !== data.applicationProfile.id) throw routeIdentityError('profile', hooks.routeState.profile, data.applicationProfile.id);
+    if (hooks.routeState?.world && hooks.routeState.world !== data.world.id) throw routeIdentityError('world', hooks.routeState.world, data.world.id);
+    if (activeCameraMode && !(data.applicationProfile.experience?.supportedViews || []).includes(activeCameraMode)) throw routeIdentityError('camera', activeCameraMode, data.applicationProfile.experience?.supportedViews?.join(',') || 'none');
     if (!applicationProfileSelectApi?.resolveInteraction || !applicationProfileSelectApi?.renderInteraction) throw new Error('Application interaction dependency is unavailable');
     const interaction = applicationProfileSelectApi.resolveInteraction(data.applicationProfile, data.manifest);
+    if (routeSimulation?.mission && interaction.mode !== 'prompt') throw routeIdentityError('mission', routeSimulation.mission, 'prompt interaction');
     configureExperienceShell(elements, {
       interactionMode: interaction.mode,
       profile: data.applicationProfile,
@@ -203,11 +205,7 @@
       pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
       storedPlaybackReceipt = null;
     }
-    const routeScenario = routeSimulation?.scenarioId
-      ? interaction.scenarios.find((scenario) => scenario.id === routeSimulation.scenarioId
-        && (!routeSimulation.seed || scenario.seed === routeSimulation.seed))
-      : null;
-    let activeScenario = routeScenario || (!routeSimulation && storedScenario) || interaction.defaultScenario;
+    let activeScenario = routeSimulation ? scenarioForRoute(routeSimulation) : storedScenario || interaction.defaultScenario;
     const pluginArtifacts = artifactStoreApi.createGovernedArtifactStore({ transport: transportApi.createBrowserTransport({ fetchImpl: lifecycle.fetch }) });
     let activeMissionForPlugins = null;
     extensions = await timedLoadStage('plugins.runtime', () => pluginRuntimeApi.createPluginRuntime({
@@ -396,8 +394,6 @@
         const accepted = acceptedRouteParameters(routeSimulation);
         Object.entries(accepted).forEach(([pluginId, values]) => pluginUi.setValues(pluginId, values));
         routeParametersApplied = true;
-        // setValues updates the governed control store, not already-rendered DOM
-        // inputs. Re-render once so the visible controls and copied URL agree.
         if (Object.keys(accepted).length) pluginUi.render(extensions.views(pluginContext), platform.contributions);
       }
       recordRenderWork(renderWork.phases.pluginUi, performance.now() - uiStartedAt);
@@ -405,9 +401,6 @@
       elements.decisionsButton.textContent = controlCount ? `Controls (${controlCount})` : 'Evidence';
       renderPluginSummary(pluginPlayback?.snapshot().phase || 'ready');
       if (!renderer) return;
-      // Platform assembly and GPU compilation are independent main-thread
-      // phases. Yield once between them so a large evidence snapshot cannot
-      // monopolize one task; a newer state supersedes stale work safely.
       await yieldToFrame();
       if (renderGeneration !== pluginRenderGeneration || !renderer) return;
       const selected = renderer.cameraState?.()?.focusId || 'route';
@@ -424,9 +417,9 @@
       });
       recordRenderWork(renderWork.phases.renderer, performance.now() - rendererStartedAt);
       if (!hasAppliedInitialCamera) hasAppliedInitialCamera = experienceCameraApi.applyInitialCamera({
-        configuration: data.applicationProfile.camera,
+        configuration: activeCameraMode ? { ...data.applicationProfile.camera, initialMode: activeCameraMode } : data.applicationProfile.camera,
         renderer,
-        onModeSelected: (mode) => selectCameraMode(elements, mode),
+        onModeSelected: (mode) => { activeCameraMode = mode; selectCameraMode(elements, mode); },
       });
       if (!pluginClock) pluginClock = simulationClockApi.createClock({
         timeline: platform.timeline,
@@ -507,21 +500,22 @@
     function scenarioForRoute(simulation) {
       const scenarioId = simulation?.scenarioId || null;
       const seed = simulation?.seed || null;
-      return (scenarioId
-        ? interaction.scenarios.find((row) => row.id === scenarioId && (!seed || row.seed === seed))
-        : null) || interaction.defaultScenario;
+      if (!scenarioId && !seed) return interaction.defaultScenario;
+      const scenario = interaction.scenarios.find((row) => (!scenarioId || row.id === scenarioId) && (!seed || row.seed === seed));
+      if (!scenario) throw routeIdentityError('scenario', [scenarioId, seed].filter(Boolean).join('/'), 'declared profile scenario');
+      return scenario;
     }
 
     function acceptedRouteParameters(simulation) {
       const requested = simulation?.parameters || {};
       const accepted = {};
       Object.entries(requested).forEach(([pluginId, values]) => {
-        if (!values || typeof values !== 'object' || Array.isArray(values)) return;
+        if (!extensions.activePluginIds.includes(pluginId)) throw routeIdentityError('parameter-owner', pluginId, extensions.activePluginIds.join(','));
+        if (!values || typeof values !== 'object' || Array.isArray(values)) throw routeIdentityError('parameters', pluginId, 'object');
         const declared = pluginUi.values(pluginId);
-        const filtered = Object.fromEntries(Object.keys(values)
-          .filter((key) => Object.prototype.hasOwnProperty.call(declared, key))
-          .map((key) => [key, values[key]]));
-        if (Object.keys(filtered).length) accepted[pluginId] = filtered;
+        const unknown = Object.keys(values).filter((key) => !Object.prototype.hasOwnProperty.call(declared, key));
+        if (unknown.length) throw routeIdentityError('parameter', `${pluginId}.${unknown.join(',')}`, 'declared control');
+        if (Object.keys(values).length) accepted[pluginId] = values;
       });
       return accepted;
     }
@@ -535,11 +529,10 @@
       return {
         scenarioId: activeScenario.id,
         seed: activeScenario.seed,
-        ...(elements.missionInput.value ? { mission: elements.missionInput.value } : {}),
+        ...(interaction.mode === 'prompt' && elements.missionInput.value ? { mission: elements.missionInput.value } : {}),
         parameters,
       };
     }
-
     async function updateSimulationFromRoute(nextSimulation) {
       routeSimulation = nextSimulation || null;
       const nextScenario = scenarioForRoute(nextSimulation);
@@ -558,8 +551,6 @@
         applicationProfileSelectApi.renderInteraction(interaction, activeScenario, elements);
         await renderPluginExperience({ mission: null });
       } else {
-        // Removing a query parameter must restore the declared control default;
-        // URL state is authoritative, not the previous in-memory control map.
         pluginUi.resetValues();
         routeParametersApplied = false;
         await renderPluginExperience({ mission: activeMissionForPlugins });
@@ -576,6 +567,25 @@
       if (!controlsApplied) await renderPluginExperience({ mission: activeMissionForPlugins });
       return simulationRouteState();
     }
+
+    function governedRoute(simulation = simulationRouteState()) { return { tier: initialTier, experience: data.applicationProfile.id, world: data.world.id, profile: data.applicationProfile.id, camera: activeCameraMode, simulation }; }
+    function selectGovernedCamera(mode, navigate = false) {
+      const canonical = experienceCameraApi.canonicalMode(mode);
+      if (!(data.applicationProfile.experience?.supportedViews || []).includes(canonical)) throw routeIdentityError('camera', canonical, data.applicationProfile.experience?.supportedViews?.join(',') || 'none');
+      activeCameraMode = canonical;
+      renderer?.setCameraMode(canonical);
+      selectCameraMode(elements, canonical);
+      if (navigate) void hooks.navigate?.(governedRoute(), { replace: true });
+      return canonical;
+    }
+    async function updateRouteFromUrl(route) {
+      if (route.profile && route.profile !== data.applicationProfile.id) throw routeIdentityError('profile', route.profile, data.applicationProfile.id);
+      if (route.world && route.world !== data.world.id) throw routeIdentityError('world', route.world, data.world.id);
+      if (route.camera && route.camera !== activeCameraMode) selectGovernedCamera(route.camera);
+      if (hostRoot.SimulatteRouter.queryForSimulation(route.simulation) !== hostRoot.SimulatteRouter.queryForSimulation(simulationRouteState())) await updateSimulationFromRoute(route.simulation || null);
+      return governedRoute();
+    }
+    function routeIdentityError(kind, requested, resolved) { const error = new Error(`Requested ${kind} ${requested}; resolved ${resolved}`); error.code = `route_${kind}_resolution_mismatch`; return error; }
 
     profileSelectUi = wireProfileSelection({
       elements,
@@ -602,13 +612,16 @@
               mode: cameraInteraction.mode,
               targetIds: cameraInteraction.targetIds,
             });
-            selectCameraMode(elements, cameraInteraction.mode);
+            activeCameraMode = experienceCameraApi.canonicalMode(cameraInteraction.mode);
+            selectCameraMode(elements, activeCameraMode);
           },
           onManualNavigation(cameraInteraction) {
             pluginViewRuntime?.setManualOverride({
               mode: cameraInteraction.mode,
               targetIds: cameraInteraction.targetIds,
             });
+            activeCameraMode = experienceCameraApi.canonicalMode(cameraInteraction.mode);
+            void hooks.navigate?.(governedRoute(), { replace: true });
           },
         });
         if (lifecycle.signal.aborted) {
@@ -673,9 +686,7 @@
         updateButtons(elements, false, true, controller.snapshot().state.status, true);
         return;
       }
-      const runCameraMode = experienceCameraApi.runCameraMode(data.applicationProfile.camera);
-      renderer.setCameraMode(runCameraMode);
-      selectCameraMode(elements, runCameraMode);
+      const runCameraMode = selectGovernedCamera(experienceCameraApi.runCameraMode(data.applicationProfile.camera), true);
       isRunning = true;
       setJourneyPhase('running');
       hasJourneyStarted = true;
@@ -710,9 +721,7 @@
     const startSelectedExperience = async () => {
       try {
         if (interaction.mode === 'playback') {
-          const runCameraMode = experienceCameraApi.runCameraMode(data.applicationProfile.camera);
-          renderer.setCameraMode(runCameraMode);
-          selectCameraMode(elements, runCameraMode);
+          selectGovernedCamera(experienceCameraApi.runCameraMode(data.applicationProfile.camera), true);
           if (pluginPlayback.snapshot().phase === 'paused') await pluginPlayback.resume();
           else await pluginPlayback.start();
         } else await startRun();
@@ -750,9 +759,6 @@
         pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
         hostRoot.__simulattePluginRunReceipt = null;
         pluginUi.resetValues();
-        // The scenario handler renders the new ready state below; suppress
-        // the controller's intermediate render so a shuffle cannot compile
-        // the same evidence presentation twice in one interaction task.
         if (pluginPlayback) await pluginPlayback.reset(nextScenario, { renderReadyState: false });
         else await extensions.setScenario(nextScenario);
         activeScenario = nextScenario;
@@ -836,8 +842,7 @@
       } catch (error) {
         failRuntime(elements, error);
       }
-    });
-
+  });
     function reflectPluginPlaybackPhase(phase, snapshot) {
       const isActive = phase === 'running';
       isRunning = isActive;
@@ -932,9 +937,7 @@
           throw error;
         }
         lifecycle.throwIfAborted();
-      }
-
-      // Init the tier visualizer + wire the toolbar dropdown (SimulatteWorldTiersBoot owns landing).
+    }
       tierVisualizer = SimulatteMultiTierVisualizer.createTierVisualizer(elements.overlayCanvas, 'world-tier-control');
       const selectWorldTier = SimulatteWorldTiersBoot.wireTierControls({
         elements,
@@ -945,24 +948,24 @@
         onSelectTier: (tier) => hooks.navigate?.({ tier, experience: null }),
       });
 
-      // Load the city tier visualizer for this mount. Tier/experience switches are URL-driven and
-      // re-boot in place through the shell — no page reload.
       await timedLoadStage('tier.visualizer', () => selectWorldTier(initialTier));
       lifecycle.throwIfAborted();
       await timedLoadStage('first.render', () => renderPluginExperience({ mission: activeMissionForPlugins }));
       loadTrace?.complete({ profileId: data.applicationProfile.id, interactionMode: interaction.mode, scenarioId: activeScenario.id, renderer: renderer?.receipt?.().backend || null });
     } catch (error) {
-      // Tear this boot down cleanly (abort listeners, release GPU) and throw so the shell can retry
-      // the tier default or surface the failure. No location.assign, no landing bounce.
       await disposeApplication();
       throw error;
     }
       return {
         tier: 'city',
         experience: data.applicationProfile.id,
+        world: data.world.id,
+        profile: data.applicationProfile.id,
+        camera: activeCameraMode,
         simulation: simulationRouteState(),
         data,
         dispose: disposeApplication,
+        updateRoute: updateRouteFromUrl,
         updateSimulation: updateSimulationFromRoute,
         getController: () => controller,
         getRenderer: () => renderer,
@@ -972,8 +975,7 @@
       await disposeApplication();
       throw error;
     }
-  }
-
+    }
   function recordRenderWork(values, durationMs) {
     if (values.length >= 128) values.shift();
     values.push(Number(durationMs));
@@ -991,7 +993,6 @@
       phases: Object.fromEntries(Object.entries(work.phases).map(([key, values]) => [key, summarize(values)])),
     };
   }
-
   launchBrowserApp(start, collectElements);
   return { applicationProfileLabel, collectElements, friendlyMissionError, populateApplicationProfiles, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
 });

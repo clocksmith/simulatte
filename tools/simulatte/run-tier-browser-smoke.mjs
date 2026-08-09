@@ -7,6 +7,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createStaticSiteServer } from './static-site-server.mjs';
 import { CdpClient } from './browser-harness.mjs';
+import { removeTemporaryDirectory, stopChild } from './run-browser-smoke.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -118,7 +119,7 @@ async function auditTier(chromePath, baseUrl, item) {
   const report = { tier: item.tier, profileId: item.profileId, pluginId: item.pluginId, pass: false, status: null, receipt: null, errors: [] };
   const debugPort = await findAvailablePort();
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `simulatte-tier-${item.tier}-`));
-  const chrome = spawn(chromePath, ['--headless=new', '--enable-unsafe-webgpu', '--disable-background-networking', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profileDir}`, `--remote-debugging-port=${debugPort}`, '--window-size=1440,1000', 'about:blank'], { stdio: ['ignore', 'ignore', 'ignore'] });
+  const chrome = spawn(chromePath, ['--headless=new', '--enable-unsafe-webgpu', ...(process.platform === 'linux' ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface'] : []), '--disable-background-networking', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profileDir}`, `--remote-debugging-port=${debugPort}`, '--window-size=1440,1000', 'about:blank'], { stdio: ['ignore', 'ignore', 'ignore'] });
   let client = null;
   try {
     const page = await waitForDevtools(debugPort, chrome);
@@ -145,7 +146,8 @@ async function auditTier(chromePath, baseUrl, item) {
     report.errors.unshift(error.message);
   } finally {
     if (client) await client.close();
-    chrome.kill();
+    await stopChild(chrome);
+    await removeTemporaryDirectory(profileDir);
   }
   return report;
 }

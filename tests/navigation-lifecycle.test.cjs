@@ -213,16 +213,22 @@ test('router paths preserve the governed tier and full experience id', () => {
   assert.deepEqual(routerApi.parsePath('/world/maritime-trade-global-v1'), {
     tier: 'world',
     experience: 'maritime-trade-global-v1',
+    world: null,
+    profile: 'maritime-trade-global-v1',
+    camera: null,
     simulation: null,
   });
-  assert.equal(routerApi.hrefFor({ tier: 'solar-system', experience: 'orbital-transfer-planner-v1' }), '/solar-system/orbital-transfer-planner-v1');
-  assert.deepEqual(routerApi.parsePath('/unknown/profile-v1'), { tier: null, experience: null, simulation: null });
+  assert.equal(routerApi.hrefFor({ tier: 'solar-system', experience: 'orbital-transfer-planner-v1' }), '/solar-system/orbital-transfer-planner-v1?profile=orbital-transfer-planner-v1');
+  assert.deepEqual(routerApi.parsePath('/unknown/profile-v1'), { tier: null, experience: null, world: null, profile: null, camera: null, simulation: null });
 });
 
 test('router round-trips scenario and typed simulation parameters through a canonical URL', () => {
   const route = {
     tier: 'city',
     experience: 'cable-trader-pickup-v1',
+    world: 'nyc-core-autonomy-v1',
+    profile: 'cable-trader-pickup-v1',
+    camera: 'overview',
     simulation: {
       scenarioId: 'device-upgrade-cycle',
       seed: 'cable-circulation-upgrades-2026',
@@ -240,8 +246,17 @@ test('router round-trips scenario and typed simulation parameters through a cano
   assert.deepEqual(routerApi.parsePath(new URL(href, 'https://simulatte.test').pathname, new URL(href, 'https://simulatte.test').search), {
     tier: 'city',
     experience: 'cable-trader-pickup-v1',
+    world: route.world,
+    profile: route.profile,
+    camera: route.camera,
     simulation: route.simulation,
   });
+});
+
+test('router refuses invalid identities, mismatched profiles, and unknown camera modes', () => {
+  assert.throws(() => routerApi.parsePath('/city/cable-trader-pickup-v1', '?profile=sun-walker-v1'), (error) => error.code === 'route_profile_mismatch');
+  assert.throws(() => routerApi.parsePath('/city/cable-trader-pickup-v1', '?world=NYC core'), (error) => error.code === 'route_world_invalid');
+  assert.throws(() => routerApi.parsePath('/city/cable-trader-pickup-v1', '?camera=sideways'), (error) => error.code === 'route_camera_invalid');
 });
 
 test('every registered experience resolves to its canonical GitHub Markdown preview', () => {
@@ -391,6 +406,9 @@ test('app shell aborts and disposes a superseded boot before mounting the latest
   assert.deepEqual(canonicalRoutes, [{
     tier: 'world',
     experience: 'maritime-trade-global-v1',
+    world: null,
+    profile: 'maritime-trade-global-v1',
+    camera: null,
   }]);
 });
 
@@ -453,8 +471,8 @@ test('app shell reloads the tier default when browser history removes an experie
     { tier: 'world', experience: null },
   ]);
   assert.deepEqual(canonicalRoutes, [
-    { tier: 'world', experience: 'alternate-v1' },
-    { tier: 'world', experience: 'tier-default-v1' },
+    { tier: 'world', experience: 'alternate-v1', world: null, profile: 'alternate-v1', camera: null },
+    { tier: 'world', experience: 'tier-default-v1', world: null, profile: 'tier-default-v1', camera: null },
   ]);
 });
 
@@ -589,5 +607,5 @@ test('app shell recovers an unknown governed-tier experience with that tier defa
     { tier: 'world', experience: 'removed-experience-v1' },
     { tier: 'world', experience: null },
   ]);
-  assert.deepEqual(canonicalRoutes, [{ tier: 'world', experience: 'tier-default-v1' }]);
+  assert.deepEqual(canonicalRoutes, [{ tier: 'world', experience: 'tier-default-v1', world: null, profile: 'tier-default-v1', camera: null }]);
 });

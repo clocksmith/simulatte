@@ -466,7 +466,7 @@
     const world = {
       ...worldTemplate,
       id: contextId,
-      label: `${profile.label} plugin-owned world context`,
+      label: `${profile.id} plugin-owned world context`,
       contentVersion: contextId,
       provenance: {
         sourceKind: 'profile_owned_world_context',
@@ -491,6 +491,7 @@
       renderGeometry: {
         schema: worldTemplate.renderGeometry.schema,
         coordinateSystem: worldTemplate.renderGeometry.coordinateSystem,
+        surfaceOwner: 'plugin',
         claimBoundary: 'No core render geometry is loaded. Visible world detail must come from the selected plugin with its own evidence bindings.',
         land: [], parks: [], streets: [], buildings: [], bikeFacilities: [],
       },

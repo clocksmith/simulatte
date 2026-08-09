@@ -60,6 +60,7 @@
 
   function createStaticGeometry(world, { detail = 'full' } = {}) {
     const writer = createWriter();
+    if (world.renderGeometry.surfaceOwner === 'plugin') return writer.finish();
     const bounds = world.coordinateSystem.bounds;
     addBox(writer, {
       minimum: [bounds.minimumX - 300, -5, -bounds.maximumY - 300],
@@ -86,6 +87,7 @@
   function createGroundOverlayGeometry(world, reusableWriter = null) {
     const writer = reusableWriter || createWriter();
     writer.reset();
+    if (world.renderGeometry.surfaceOwner === 'plugin') return writer.finish();
     addGrid(writer, world.coordinateSystem.bounds, 100, SURFACE_LAYERS.grid);
     return writer.finish();
   }

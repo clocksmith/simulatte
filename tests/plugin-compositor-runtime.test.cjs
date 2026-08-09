@@ -6,6 +6,7 @@ const tierPresentation = require('../public/simulatte/app/tier-plugin-presentati
 const multiTierVisualizer = require('../public/simulatte/app/multi-tier-visualizer.js');
 const semanticLabelOverlay = require('../public/simulatte/app/semantic-label-overlay.js');
 const gpuGeometry = require('../public/simulatte/app/webgpu-geometry.js');
+const gpuPass = require('../public/simulatte/app/webgpu-pass.js');
 const contracts = require('../public/simulatte/platform/contracts/plugin-v4-contracts.js');
 const provenanceRegistry = require('../public/simulatte/platform/runtime/provenance-registry.js');
 
@@ -321,6 +322,75 @@ test('City keeps the ground grid and semantic coverage areas out of the opaque d
   const overlay = gpuGeometry.createPluginOverlayGeometry(scene);
   assert.equal(opaque.length, 0);
   assert.ok(overlay.length > 0);
+});
+
+test('plugin-owned worlds do not fabricate a core water surface or ground grid', () => {
+  const world = {
+    coordinateSystem: { bounds: { minimumX: -100, maximumX: 100, minimumY: -100, maximumY: 100 } },
+    renderGeometry: {
+      surfaceOwner: 'plugin',
+      land: [], parks: [], streets: [], bikeFacilities: [], buildings: [],
+    },
+  };
+  assert.equal(gpuGeometry.createStaticGeometry(world).length, 0);
+  assert.equal(gpuGeometry.createGroundOverlayGeometry(world).length, 0);
+});
+
+test('WebGPU pass composition shares one vertex contract and preserves depth-safe draw order', () => {
+  const descriptors = [];
+  const device = { createRenderPipeline: (descriptor) => (descriptors.push(descriptor), descriptor.label) };
+  const layout = { id: 'camera-layout' };
+  const shader = { id: 'shader' };
+  const pipelines = gpuPass.createPipelines({
+    device,
+    module: shader,
+    format: 'rgba8unorm',
+    sampleCount: 1,
+    layout,
+    floatsPerVertex: gpuGeometry.FLOATS_PER_VERTEX,
+  });
+  assert.deepEqual(pipelines, { opaque: 'autonomy-map-pipeline', overlay: 'autonomy-overlay-pipeline' });
+  assert.equal(descriptors.length, 2);
+  assert.ok(descriptors.every((row) => row.layout === layout));
+  assert.deepEqual(descriptors[0].vertex.buffers, descriptors[1].vertex.buffers);
+  assert.deepEqual(descriptors.map((row) => row.depthStencil), [
+    { format: 'depth24plus', depthWriteEnabled: true, depthCompare: 'less' },
+    { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'less-equal' },
+  ]);
+
+  const calls = [];
+  const pass = {
+    setBindGroup: () => {},
+    setPipeline: (value) => calls.push(`pipeline:${value}`),
+    setVertexBuffer: (slot, value) => calls.push(`buffer:${value}`),
+    draw: (count) => calls.push(`draw:${count}`),
+    end: () => calls.push('end'),
+  };
+  gpuPass.encodeScene({ beginRenderPass: () => pass }, {
+    label: 'test-pass',
+    resolveTarget: null,
+    targets: { color: { createView: () => 'color' }, depth: { createView: () => 'depth' } },
+    bindGroup: {},
+    pipelines,
+    sampleCount: 1,
+    clearValue: { r: 0, g: 0, b: 0, a: 1 },
+    geometry: {
+      static: { buffer: 'static', vertexCount: 1 },
+      groundOverlay: { buffer: 'ground', vertexCount: 2 },
+      pluginOverlay: { buffer: 'plugin-overlay', vertexCount: 3 },
+      shadow: { buffer: 'shadow', vertexCount: 4 },
+      dynamic: { buffer: 'dynamic', vertexCount: 5 },
+      pluginStatic: { buffer: 'plugin-static', vertexCount: 6 },
+      pluginDynamic: { buffer: 'plugin-dynamic', vertexCount: 7 },
+    },
+  });
+  assert.deepEqual(calls, [
+    'pipeline:autonomy-map-pipeline', 'buffer:static', 'draw:1',
+    'pipeline:autonomy-overlay-pipeline', 'buffer:ground', 'draw:2',
+    'buffer:plugin-overlay', 'draw:3', 'buffer:shadow', 'draw:4',
+    'pipeline:autonomy-map-pipeline', 'buffer:dynamic', 'draw:5',
+    'buffer:plugin-static', 'draw:6', 'buffer:plugin-dynamic', 'draw:7', 'end',
+  ]);
 });
 
 test('City interpolates point actors between governed presentation snapshots', () => {

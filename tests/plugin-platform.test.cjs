@@ -472,8 +472,11 @@ test('experience camera configuration targets only an active plugin', () => {
 
 test('application profiles declare when plugin evidence owns the visible world detail', () => {
   const profile = require('../public/data/application-profiles/nyc-development-atlas-v1.json');
+  const bulkProfile = require('../public/data/application-profiles/neighborhood-bulk-pool-v1.json');
   assert.equal(contracts.validateProfile(profile), profile);
+  assert.equal(contracts.validateProfile(bulkProfile), bulkProfile);
   assert.equal(profile.experience.worldDetail, 'plugin-owned');
+  assert.equal(bulkProfile.experience.worldDetail, 'plugin-owned');
   assert.deepEqual(profile.experience.performanceBudget, {
     firstMeaningfulFrameMs: 250,
     p95FrameMs: 350,

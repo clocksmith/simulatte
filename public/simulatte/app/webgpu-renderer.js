@@ -14,10 +14,13 @@
   const semanticLabels = typeof module === 'object' && module.exports
     ? require('./semantic-label-overlay.js')
     : root.SimulatteSemanticLabelOverlay;
-  const api = factory(math, geometry, cameraController, presentationCompiler, semanticLabels);
+  const passApi = typeof module === 'object' && module.exports
+    ? require('./webgpu-pass.js')
+    : root.SimulatteAutonomyGpuPass;
+  const api = factory(math, geometry, cameraController, presentationCompiler, semanticLabels, passApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, presentationCompiler, semanticLabels) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, presentationCompiler, semanticLabels, passApi) {
   const SAMPLE_COUNT = 1;
   const MINIMAP_RADIUS_M = 420;
   const MINIMAP_FRAME_INTERVAL_MS = 1000 / 10;
@@ -91,6 +94,9 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
   async function createCanvasRenderer(canvas, worldModel, options = {}) {
     const cameraApi = resolveCameraController(cameraController);
+    if (!passApi?.createPipelines || !passApi?.encodeScene) {
+      throw rendererError('webgpu_pass_runtime_missing', 'WebGPU pass composition runtime is unavailable');
+    }
     if (!globalThis.navigator?.gpu) throw rendererError('webgpu_unavailable', 'This simulation requires a browser with WebGPU enabled');
     if (!worldModel.world.renderGeometry) throw rendererError('render_geometry_missing', `World ${worldModel.world.id} has no compiled renderGeometry`);
     const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
@@ -128,71 +134,13 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       label: 'autonomy-camera-pipeline-layout',
       bindGroupLayouts: [cameraBindGroupLayout],
     });
-    const pipeline = device.createRenderPipeline({
-      label: 'autonomy-map-pipeline',
+    const pipelines = passApi.createPipelines({
+      device,
       layout: cameraPipelineLayout,
-      vertex: {
-        module: shader,
-        entryPoint: 'vertexMain',
-        buffers: [{
-          arrayStride: geometry.FLOATS_PER_VERTEX * 4,
-          attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x3' },
-            { shaderLocation: 1, offset: 12, format: 'float32x3' },
-            { shaderLocation: 2, offset: 24, format: 'float32x4' },
-            { shaderLocation: 3, offset: 40, format: 'float32' },
-            { shaderLocation: 4, offset: 44, format: 'float32x2' },
-          ],
-        }],
-      },
-      fragment: {
-        module: shader,
-        entryPoint: 'fragmentMain',
-        targets: [{
-          format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
-          },
-        }],
-      },
-      primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: { format: 'depth24plus', depthWriteEnabled: true, depthCompare: 'less' },
-      multisample: { count: SAMPLE_COUNT },
-    });
-    // Translucent overlays sit above the grid without writing depth.
-    const shadowPipeline = device.createRenderPipeline({
-      label: 'autonomy-shadow-pipeline',
-      // Share the main camera bind-group layout and uniform buffer.
-      layout: cameraPipelineLayout,
-      vertex: {
-        module: shader,
-        entryPoint: 'vertexMain',
-        buffers: [{
-          arrayStride: geometry.FLOATS_PER_VERTEX * 4,
-          attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x3' },
-            { shaderLocation: 1, offset: 12, format: 'float32x3' },
-            { shaderLocation: 2, offset: 24, format: 'float32x4' },
-            { shaderLocation: 3, offset: 40, format: 'float32' },
-            { shaderLocation: 4, offset: 44, format: 'float32x2' },
-          ],
-        }],
-      },
-      fragment: {
-        module: shader,
-        entryPoint: 'fragmentMain',
-        targets: [{
-          format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
-          },
-        }],
-      },
-      primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'less-equal' },
-      multisample: { count: SAMPLE_COUNT },
+      module: shader,
+      format,
+      floatsPerVertex: geometry.FLOATS_PER_VERTEX,
+      sampleCount: SAMPLE_COUNT,
     });
     const uniformBuffer = device.createBuffer({ label: 'autonomy-camera-uniforms', size: 128, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     const uniformData = new Float32Array(32);
@@ -281,6 +229,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.dataset.actorMeshSchema = geometry.ACTOR_MESH_SCHEMA;
     canvas.dataset.actorMeshKinds = geometry.SUPPORTED_ACTOR_KINDS.join(',');
     canvas.dataset.materialModel = geometry.MATERIAL_MODEL;
+    canvas.dataset.worldSurfaceOwner = worldModel.world.renderGeometry.surfaceOwner || 'core';
     canvas.dataset.ambientActorCount = String(worldModel.ambientCompilation.actors.length);
     canvas.dataset.ambientActorKinds = Object.entries(worldModel.ambientCompilation.counts)
       .filter(([, count]) => count > 0).map(([kind]) => kind).join(',');
@@ -391,6 +340,23 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       return structuredClone(state.pluginScene.counts);
     }
 
+    function sceneGeometry(useOverviewStatic) {
+      const selectedStaticData = useOverviewStatic ? state.overviewStaticData : state.staticData;
+      return {
+        static: geometryRow(useOverviewStatic ? state.overviewStaticBuffer : state.staticBuffer, selectedStaticData),
+        groundOverlay: geometryRow(groundOverlayBuffer, groundOverlayData),
+        pluginOverlay: geometryRow(state.pluginOverlayBuffer, state.pluginOverlayData),
+        shadow: geometryRow(state.pluginShadowBuffer, state.pluginShadowData),
+        dynamic: geometryRow(state.dynamicBuffer, state.dynamicData),
+        pluginStatic: geometryRow(state.pluginStaticBuffer, state.pluginStaticData),
+        pluginDynamic: geometryRow(state.pluginDynamicBuffer, state.pluginDynamicData),
+      };
+    }
+
+    function geometryRow(buffer, data) {
+      return { buffer, vertexCount: data.length / geometry.FLOATS_PER_VERTEX };
+    }
+
     function drawFrame(timestamp = performance.now()) {
       if (state.isDestroyed || !state.latestSnapshot) return;
       const cpuStartedAt = performance.now();
@@ -416,21 +382,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       const encoder = device.createCommandEncoder({ label: 'autonomy-map-frame' });
       const currentTexture = context.getCurrentTexture();
       const useOverviewStatic = pose.mode !== 'pov';
-      encodeScene(encoder, {
+      passApi.encodeScene(encoder, {
         label: 'autonomy-map-pass',
         resolveTarget: currentTexture.createView(),
         targets: state.renderTargets,
         bindGroup,
-        staticBuffer: useOverviewStatic ? state.overviewStaticBuffer : state.staticBuffer,
-        staticVertexCount: (useOverviewStatic ? state.overviewStaticData : state.staticData).length / geometry.FLOATS_PER_VERTEX,
-        shadowPipeline,
-        shadowBuffer: state.pluginShadowBuffer,
-        shadowVertexCount: state.pluginShadowData.length / geometry.FLOATS_PER_VERTEX,
-        overlayPipeline: shadowPipeline,
-        groundOverlayBuffer,
-        groundOverlayVertexCount: groundOverlayData.length / geometry.FLOATS_PER_VERTEX,
-        pluginOverlayBuffer: state.pluginOverlayBuffer,
-        pluginOverlayVertexCount: state.pluginOverlayData.length / geometry.FLOATS_PER_VERTEX,
+        pipelines,
+        sampleCount: SAMPLE_COUNT,
+        geometry: sceneGeometry(useOverviewStatic),
         clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
       });
       const minimapVisible = Boolean(pose.mode === 'follow' && minimapCanvas);
@@ -443,21 +402,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           resizeMinimapCanvas(minimapCanvas, device, format, state);
           const minimapCamera = cameraForMinimap(state.latestSnapshot, minimapCanvas);
           writeUniforms(device, minimapUniformBuffer, minimapCamera, minimapCanvas, seconds, state.pluginScene.sun, minimapUniformData);
-          encodeScene(encoder, {
+          passApi.encodeScene(encoder, {
             label: 'autonomy-minimap-pass',
             resolveTarget: minimapContext.getCurrentTexture().createView(),
             targets: state.minimapTargets,
             bindGroup: minimapBindGroup,
-            staticBuffer: state.overviewStaticBuffer,
-            staticVertexCount: state.overviewStaticData.length / geometry.FLOATS_PER_VERTEX,
-            shadowPipeline,
-            shadowBuffer: state.pluginShadowBuffer,
-            shadowVertexCount: state.pluginShadowData.length / geometry.FLOATS_PER_VERTEX,
-            overlayPipeline: shadowPipeline,
-            groundOverlayBuffer,
-            groundOverlayVertexCount: groundOverlayData.length / geometry.FLOATS_PER_VERTEX,
-            pluginOverlayBuffer: state.pluginOverlayBuffer,
-            pluginOverlayVertexCount: state.pluginOverlayData.length / geometry.FLOATS_PER_VERTEX,
+            pipelines,
+            sampleCount: SAMPLE_COUNT,
+            geometry: sceneGeometry(true),
             clearValue: { r: 0.003, g: 0.012, b: 0.022, a: 1 },
           });
           state.minimapLastRenderAt = timestamp;
@@ -480,77 +432,6 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.frameCpuMs.push(performance.now() - cpuStartedAt);
     }
 
-    function encodeScene(encoder, {
-      label,
-      resolveTarget,
-      targets,
-      bindGroup: sceneBindGroup,
-      staticBuffer: sceneStaticBuffer = staticBuffer,
-      staticVertexCount: sceneStaticVertexCount = staticData.length / geometry.FLOATS_PER_VERTEX,
-      shadowPipeline: sceneShadowPipeline = null,
-      shadowBuffer: sceneShadowBuffer = null,
-      shadowVertexCount: sceneShadowVertexCount = 0,
-      overlayPipeline: sceneOverlayPipeline = null,
-      groundOverlayBuffer: sceneGroundOverlayBuffer = null,
-      groundOverlayVertexCount: sceneGroundOverlayVertexCount = 0,
-      pluginOverlayBuffer: scenePluginOverlayBuffer = null,
-      pluginOverlayVertexCount: scenePluginOverlayVertexCount = 0,
-      clearValue,
-    }) {
-      const pass = encoder.beginRenderPass({
-        label,
-        colorAttachments: [{
-          view: SAMPLE_COUNT === 1 ? resolveTarget : targets.color.createView(),
-          ...(SAMPLE_COUNT === 1 ? {} : { resolveTarget }),
-          clearValue,
-          loadOp: 'clear',
-          // With single-sample rendering the current swapchain texture is the
-          // presentation target. It must be stored; discarding it leaves a
-          // valid WebGPU pass and a black/undefined browser canvas.
-          storeOp: SAMPLE_COUNT === 1 ? 'store' : 'discard',
-        }],
-        depthStencilAttachment: {
-          view: targets.depth.createView(),
-          depthClearValue: 1,
-          depthLoadOp: 'clear',
-          depthStoreOp: 'discard',
-        },
-      });
-      pass.setPipeline(pipeline);
-      pass.setBindGroup(0, sceneBindGroup);
-      pass.setVertexBuffer(0, sceneStaticBuffer);
-      pass.draw(sceneStaticVertexCount);
-      if (sceneOverlayPipeline && sceneGroundOverlayBuffer && sceneGroundOverlayVertexCount) {
-        pass.setPipeline(sceneOverlayPipeline);
-        pass.setVertexBuffer(0, sceneGroundOverlayBuffer);
-        pass.draw(sceneGroundOverlayVertexCount);
-      }
-      if (sceneOverlayPipeline && scenePluginOverlayBuffer && scenePluginOverlayVertexCount) {
-        pass.setPipeline(sceneOverlayPipeline);
-        pass.setVertexBuffer(0, scenePluginOverlayBuffer);
-        pass.draw(scenePluginOverlayVertexCount);
-      }
-      if (sceneShadowPipeline && sceneShadowBuffer && sceneShadowVertexCount) {
-        pass.setPipeline(sceneShadowPipeline);
-        pass.setVertexBuffer(0, sceneShadowBuffer);
-        pass.draw(sceneShadowVertexCount);
-        pass.setPipeline(pipeline);
-      }
-      if (state.dynamicBuffer && state.dynamicData.length) {
-        pass.setVertexBuffer(0, state.dynamicBuffer);
-        pass.draw(state.dynamicData.length / geometry.FLOATS_PER_VERTEX);
-      }
-      if (state.pluginStaticBuffer && state.pluginStaticData.length) {
-        pass.setVertexBuffer(0, state.pluginStaticBuffer);
-        pass.draw(state.pluginStaticData.length / geometry.FLOATS_PER_VERTEX);
-      }
-      if (state.pluginDynamicBuffer && state.pluginDynamicData.length) {
-        pass.setVertexBuffer(0, state.pluginDynamicBuffer);
-        pass.draw(state.pluginDynamicData.length / geometry.FLOATS_PER_VERTEX);
-      }
-      pass.end();
-    }
-
     async function capturePixels() {
       if (state.isDestroyed) throw rendererError('webgpu_capture_disposed', 'Cannot capture a disposed renderer');
       if (!state.latestSnapshot) throw rendererError('webgpu_capture_state_missing', 'Cannot capture before a simulation state is rendered');
@@ -568,21 +449,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       const currentTexture = context.getCurrentTexture();
       const encoder = device.createCommandEncoder({ label: 'autonomy-evidence-frame' });
       const useOverviewStatic = pose.mode !== 'pov';
-      encodeScene(encoder, {
+      passApi.encodeScene(encoder, {
         label: 'autonomy-evidence-pass',
         resolveTarget: currentTexture.createView(),
         targets: state.renderTargets,
         bindGroup,
-        staticBuffer: useOverviewStatic ? state.overviewStaticBuffer : state.staticBuffer,
-        staticVertexCount: (useOverviewStatic ? state.overviewStaticData : state.staticData).length / geometry.FLOATS_PER_VERTEX,
-        shadowPipeline,
-        shadowBuffer: state.pluginShadowBuffer,
-        shadowVertexCount: state.pluginShadowData.length / geometry.FLOATS_PER_VERTEX,
-        overlayPipeline: shadowPipeline,
-        groundOverlayBuffer,
-        groundOverlayVertexCount: groundOverlayData.length / geometry.FLOATS_PER_VERTEX,
-        pluginOverlayBuffer: state.pluginOverlayBuffer,
-        pluginOverlayVertexCount: state.pluginOverlayData.length / geometry.FLOATS_PER_VERTEX,
+        pipelines,
+        sampleCount: SAMPLE_COUNT,
+        geometry: sceneGeometry(useOverviewStatic),
         clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
       });
       const rowBytes = canvas.width * 4;
@@ -706,6 +580,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         }])),
         firstFrameMs: state.firstFrameAt ? Number((state.firstFrameAt - state.startedAt).toFixed(3)) : null,
         worldId: worldModel.world.id,
+        worldSurfaceOwner: worldModel.world.renderGeometry.surfaceOwner || 'core',
         buildingCount: worldModel.world.renderGeometry.buildings.length,
         streetCount: worldModel.world.renderGeometry.streets.length,
         parkCount: worldModel.world.renderGeometry.parks.length,

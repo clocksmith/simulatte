@@ -120,6 +120,7 @@
 
     async function renderRoute(route) {
       const generationAtStart = ++generation;
+      let acceptedRoute = route;
       if (!route || !route.tier) {
         cancelPending();
         showLanding();
@@ -131,9 +132,22 @@
           && router.hrefFor({
             tier: current.tier,
             experience: current.experience,
+            world: current.world,
+            profile: current.profile,
+            camera: current.camera,
             simulation: current.simulation || null,
           }) === router.hrefFor(route)) {
-          router.canonicalize({ tier: current.tier, experience: current.experience, simulation: current.simulation || null });
+          router.canonicalize(currentRouteState(current));
+          return;
+        }
+        if (route.experience === current.experience && typeof current.updateRoute === 'function') {
+          cancelPending();
+          beginRouteLoad(route);
+          const updated = await current.updateRoute(route);
+          if (generationAtStart !== generation) return;
+          Object.assign(current, updated || {});
+          router.canonicalize(currentRouteState(current));
+          finishRouteLoad();
           return;
         }
         if (route.experience === current.experience && typeof current.updateSimulation === 'function') {
@@ -165,6 +179,7 @@
         booted = await boot(route.tier, route.experience || null, {
           signal: attempt.signal,
           simulation: route.simulation || null,
+          routeState: route,
         });
       } catch (error) {
         if (attempt.signal.aborted || generationAtStart !== generation) return;
@@ -176,7 +191,9 @@
             booted = await boot(route.tier, null, {
               signal: attempt.signal,
               simulation: route.simulation || null,
+              routeState: { tier: route.tier, experience: null, world: null, profile: null, camera: route.camera, simulation: route.simulation || null },
             });
+            acceptedRoute = { tier: route.tier, experience: null, world: null, profile: null, camera: route.camera, simulation: route.simulation || null };
           } catch (retryError) {
             if (attempt.signal.aborted || generationAtStart !== generation) return;
             if (pending === attempt) pending = null;
@@ -196,18 +213,46 @@
         try { await booted.dispose?.(); } catch (_error) { /* superseded */ }
         return;
       }
+      validateResolvedRoute(acceptedRoute, booted);
       current = {
         tier: booted.tier,
         experience: booted.experience,
+        world: booted.world,
+        profile: booted.profile || booted.experience,
+        camera: booted.camera,
         simulation: booted.simulation || route.simulation || null,
         dispose: booted.dispose,
+        updateRoute: booted.updateRoute,
         updateSimulation: booted.updateSimulation,
       };
       reflectRoute(current);
-      const canonicalRoute = { tier: booted.tier, experience: booted.experience };
-      if (booted.simulation || route.simulation) canonicalRoute.simulation = booted.simulation || route.simulation;
-      router.canonicalize(canonicalRoute);
+      router.canonicalize(currentRouteState(current));
       finishRouteLoad();
+    }
+
+    function currentRouteState(value) {
+      const route = {
+        tier: value.tier,
+        experience: value.experience,
+        world: value.world || null,
+        profile: value.profile || value.experience || null,
+        camera: value.camera || null,
+      };
+      if (value.simulation) route.simulation = value.simulation;
+      return route;
+    }
+
+    function validateResolvedRoute(route, booted) {
+      const resolvedProfile = booted.profile || booted.experience;
+      if (route.profile && route.profile !== resolvedProfile) throw routeResolutionError('route_profile_resolution_mismatch', `Requested profile ${route.profile}; resolved ${resolvedProfile}`);
+      if (route.world && route.world !== booted.world) throw routeResolutionError('route_world_resolution_mismatch', `Requested world ${route.world}; resolved ${booted.world}`);
+      if (route.camera && route.camera !== booted.camera) throw routeResolutionError('route_camera_resolution_mismatch', `Requested camera ${route.camera}; resolved ${booted.camera}`);
+    }
+
+    function routeResolutionError(code, message) {
+      const error = new Error(message);
+      error.code = code;
+      return error;
     }
 
     function reflectRoute(route) {
@@ -289,6 +334,8 @@
     let lastPluginContributions=Object.freeze([]);
     let disposed=false;
     const requestedSimulation = options.simulation || null;
+    const requestedRoute = options.routeState || {};
+    let activeCameraMode = requestedRoute.camera || null;
     const runtimeLog = root.SimulatteAutonomyRuntimeLog || root.SimulatteRuntimeLog;
     const loadTrace = runtimeLog?.createLoadTrace?.(runtimeLog, {
       details: {
@@ -301,6 +348,7 @@
     const timedLoadStage = (name, operation, details = {}) => loadTrace?.run(name, operation, details) || operation();
 
     function selectTierViewMode(mode){
+      activeCameraMode=mode==='bird'?'overview':mode;
       [
         [elements.cameraFollow, 'follow'],
         [elements.cameraPov, 'pov'],
@@ -313,6 +361,22 @@
         button.classList.toggle('is-active',active);
         button.setAttribute('aria-pressed',String(active));
       });
+    }
+    function governedTierRoute(simulation=simulationRouteState()){return {tier,experience:data.applicationProfile.id,world:data.world.id,profile:data.applicationProfile.id,camera:activeCameraMode,simulation};}
+    function tierRouteError(kind,requested,resolved){const error=new Error(`Requested ${kind} ${requested}; resolved ${resolved}`);error.code=`route_${kind}_resolution_mismatch`;return error;}
+    function applyTierCamera(mode,navigate=false){
+      const canonical=mode==='bird'?'overview':mode;
+      const supported=new Set(data.applicationProfile.experience?.supportedViews||['overview','free']);
+      if(!supported.has(canonical))throw tierRouteError('camera',canonical,[...supported].join(','));
+      const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],canonical);
+      if(['follow','pov','compare'].includes(canonical)&&!target)throw tierRouteError('camera',canonical,'target unavailable');
+      const directorMode=['top','free'].includes(canonical)?'free':canonical;
+      viewDirector?.setManualOverride({mode:directorMode,targetIds:target?[target.sourceId]:[]});
+      tierVisualizer.setViewMode?.(canonical);
+      if(target)tierVisualizer.focusPluginTarget?.(target.id);
+      selectTierViewMode(canonical);
+      if(navigate)void ctx.navigate?.(governedTierRoute(),{replace:true});
+      return canonical;
     }
     function wireTierViewControls(){
       const supportedViews=new Set(data.applicationProfile.experience?.supportedViews||['overview','free']);
@@ -327,47 +391,8 @@
       elements.cameraFree.textContent='Free';
       elements.cameraCompare.textContent='Compare';
       selectTierViewMode(data.applicationProfile.experience?.defaultView||'overview');
-      on(elements.cameraBird,'click',()=>{
-        const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],'overview');
-        viewDirector?.setManualOverride({mode:'overview',targetIds:target?[target.sourceId]:[]});
-        tierVisualizer.setViewMode?.('overview');
-        if(target)tierVisualizer.focusPluginTarget?.(target.id);
-        selectTierViewMode('overview');
-      });
-      on(elements.cameraFollow,'click',()=>{
-        const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],'follow');
-        if(!target)return;
-        viewDirector?.setManualOverride({mode:'follow',targetIds:[target.sourceId]});
-        tierVisualizer.setViewMode?.('follow');
-        tierVisualizer.focusPluginTarget?.(target.id);
-        selectTierViewMode('follow');
-      });
-      on(elements.cameraPov,'click',()=>{
-        const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],'pov');
-        if(!target)return;
-        viewDirector?.setManualOverride({mode:'pov',targetIds:[target.sourceId]});
-        tierVisualizer.setViewMode?.('pov');
-        tierVisualizer.focusPluginTarget?.(target.id);
-        selectTierViewMode('pov');
-      });
-      on(elements.cameraTop,'click',()=>{
-        viewDirector?.setManualOverride({mode:'free',targetIds:[]});
-        tierVisualizer.setViewMode?.('top');
-        selectTierViewMode('top');
-      });
-      on(elements.cameraFree,'click',()=>{
-        viewDirector?.setManualOverride({mode:'free',targetIds:[]});
-        tierVisualizer.setViewMode?.('free');
-        selectTierViewMode('free');
-      });
-      on(elements.cameraCompare,'click',()=>{
-        const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],'compare');
-        if(!target)return;
-        viewDirector?.setManualOverride({mode:'compare',targetIds:[target.sourceId]});
-        tierVisualizer.setViewMode?.('compare');
-        tierVisualizer.focusPluginTarget?.(target.id);
-        selectTierViewMode('compare');
-      });
+      [[elements.cameraBird,'overview'],[elements.cameraFollow,'follow'],[elements.cameraPov,'pov'],[elements.cameraTop,'top'],[elements.cameraFree,'free'],[elements.cameraCompare,'compare']]
+        .forEach(([button,mode])=>on(button,'click',()=>applyTierCamera(mode,true)));
     }
 
     async function dispose(){
@@ -501,16 +526,21 @@
     function scenarioForRoute(simulation){
       const scenarioId=simulation?.scenarioId||null;
       const seed=simulation?.seed||null;
-      return (scenarioId?interaction.scenarios.find((row)=>row.id===scenarioId&&(!seed||row.seed===seed)):null)||interaction.defaultScenario;
+      if(!scenarioId&&!seed)return interaction.defaultScenario;
+      const scenario=interaction.scenarios.find((row)=>(!scenarioId||row.id===scenarioId)&&(!seed||row.seed===seed));
+      if(!scenario)throw tierRouteError('scenario',[scenarioId,seed].filter(Boolean).join('/'),'declared profile scenario');
+      return scenario;
     }
     function acceptedRouteParameters(simulation){
       const requested=simulation?.parameters||{};
       const accepted={};
       Object.entries(requested).forEach(([pluginId,values])=>{
-        if(!values||typeof values!=='object'||Array.isArray(values))return;
+        if(!runtime.activePluginIds.includes(pluginId))throw tierRouteError('parameter-owner',pluginId,runtime.activePluginIds.join(','));
+        if(!values||typeof values!=='object'||Array.isArray(values))throw tierRouteError('parameters',pluginId,'object');
         const declared=pluginUi.values(pluginId);
-        const filtered=Object.fromEntries(Object.keys(values).filter((key)=>Object.prototype.hasOwnProperty.call(declared,key)).map((key)=>[key,values[key]]));
-        if(Object.keys(filtered).length)accepted[pluginId]=filtered;
+        const unknown=Object.keys(values).filter((key)=>!Object.prototype.hasOwnProperty.call(declared,key));
+        if(unknown.length)throw tierRouteError('parameter',`${pluginId}.${unknown.join(',')}`,'declared control');
+        if(Object.keys(values).length)accepted[pluginId]=values;
       });
       return accepted;
     }
@@ -548,6 +578,13 @@
         if(requestedParameters[owner])await runController?.applyControls(requestedParameters[owner]);
       }
       return simulationRouteState();
+    }
+    async function updateRouteFromUrl(route){
+      if(route.profile&&route.profile!==data.applicationProfile.id)throw tierRouteError('profile',route.profile,data.applicationProfile.id);
+      if(route.world&&route.world!==data.world.id)throw tierRouteError('world',route.world,data.world.id);
+      if(route.camera&&route.camera!==activeCameraMode)applyTierCamera(route.camera);
+      if(root.SimulatteRouter.queryForSimulation(route.simulation)!==root.SimulatteRouter.queryForSimulation(simulationRouteState()))await updateSimulationFromRoute(route.simulation||null);
+      return governedTierRoute();
     }
     function reportRunFailure(error){
       if(root.__simulatteLastFailError?.message===error.message)return;
@@ -620,11 +657,14 @@
       lifecycle.throwIfAborted();
       data=await timedLoadStage('application.data', () => root.SimulatteTierApplicationLoader.loadTierApplication({tier,requestedProfileId:requestedProfileId||null,fetchImpl:lifecycle.fetch}));
       lifecycle.throwIfAborted();
+      if(requestedRoute.profile&&requestedRoute.profile!==data.applicationProfile.id)throw tierRouteError('profile',requestedRoute.profile,data.applicationProfile.id);
+      if(requestedRoute.world&&requestedRoute.world!==data.world.id)throw tierRouteError('world',requestedRoute.world,data.world.id);
       tierVisualizer=ctx.createTierVisualizer(elements.overlayCanvas,'world-tier-control');
       removeManualView=tierVisualizer.onManualView?.(()=>{
         viewDirector?.setManualOverride({mode:'free',targetIds:[]});
         tierVisualizer.setViewMode?.('free');
         selectTierViewMode('free');
+        void ctx.navigate?.(governedTierRoute(),{replace:true});
       });
       await timedLoadStage('tier.visualizer', () => tierVisualizer.loadTier(tier));
       lifecycle.throwIfAborted();
@@ -643,10 +683,7 @@
         tier,
       });
       const storedRun=root.SimulatteTierRunController.readStoredReceipt(root.sessionStorage,data.applicationProfile.id);
-      const routeScenario = requestedSimulation?.scenarioId
-        ? interaction.scenarios.find((scenario) => scenario.id === requestedSimulation.scenarioId
-          && (!requestedSimulation.seed || scenario.seed === requestedSimulation.seed))
-        : null;
+      const routeScenario=requestedSimulation?scenarioForRoute(requestedSimulation):null;
       activeScenario=routeScenario||(
         !requestedSimulation && interaction.scenarios.find((scenario)=>(
           scenario.id===storedRun?.scenario?.id&&scenario.seed===storedRun?.scenario?.seed
@@ -655,6 +692,7 @@
       renderScenario();
       await timedLoadStage('scenario.activation', () => activateScenario(activeScenario,requestedSimulation), { profileId: data.applicationProfile.id });
       lifecycle.throwIfAborted();
+      applyTierCamera(requestedRoute.camera||data.applicationProfile.experience?.defaultView||'overview');
       const owner=data.applicationProfile.interaction.simulationOwnerPluginId||runtime.activePluginIds[0];
       configureRunController(owner);
       on(elements.startButton,'click',()=>{void runController.start().catch(reportRunFailure);});
@@ -715,8 +753,12 @@
       return Object.freeze({
         tier,
         experience: data.applicationProfile.id,
+        world: data.world.id,
+        profile: data.applicationProfile.id,
+        camera: activeCameraMode,
         simulation: simulationRouteState(),
         dispose,
+        updateRoute: updateRouteFromUrl,
         updateSimulation: updateSimulationFromRoute,
       });
     } catch (error) {

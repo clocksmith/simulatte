@@ -15,7 +15,7 @@
       ],
       "output": {
         "path": "public/data/simulatte/autonomy-manifest.json",
-        "sha256": "beb501a3eee4a04f58c5be934951ee9ce98f7cc79ca69505793ea42a9179d943"
+        "sha256": "a9b1a8240898693a3bcf3f8be697bacabe1a1929726b8d9f37eb2d7e6d7a2738"
       },
       "contentVersion": "autonomy-nyc-multimodal-v1",
       "activationState": "active",
@@ -110,6 +110,24 @@
       "contentVersion": "simulatte-shared-pipeline-jobs-v1",
       "activationState": "active",
       "validationCommand": "npm run pipeline:matrix:check"
+    },
+    {
+      "artifactId": "folder-contract",
+      "owner": "repository-governance",
+      "schema": "ouroboros.folderContract.v1",
+      "generatorCommand": "npm run folder-contracts:update",
+      "inputIdentities": [
+        {
+          "manifestRef": "docs/simulatte/folder-contract.json"
+        }
+      ],
+      "output": {
+        "path": "docs/simulatte/folder-contract.json",
+        "sha256": "1975a7b40f175e430fd0e8a271fb0438e0dc307b00dd7f71b1fb89921056923a"
+      },
+      "contentVersion": "unpopulated",
+      "activationState": "active-generated-mirror",
+      "validationCommand": "npm run folder-contracts:check"
     },
     {
       "artifactId": "us-major-cities",
