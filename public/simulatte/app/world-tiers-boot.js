@@ -127,8 +127,25 @@
         return;
       }
       if (current && current.tier === route.tier) {
-        if (route.experience === current.experience) {
-          router.canonicalize({ tier: current.tier, experience: current.experience });
+        if (route.experience === current.experience
+          && router.hrefFor({
+            tier: current.tier,
+            experience: current.experience,
+            simulation: current.simulation || null,
+          }) === router.hrefFor(route)) {
+          router.canonicalize({ tier: current.tier, experience: current.experience, simulation: current.simulation || null });
+          return;
+        }
+        if (route.experience === current.experience && typeof current.updateSimulation === 'function') {
+          cancelPending();
+          beginRouteLoad(route);
+          const updated = await current.updateSimulation(route.simulation || null);
+          if (generationAtStart !== generation) return;
+          if (updated) current.simulation = updated;
+          const canonical = { tier: current.tier, experience: current.experience };
+          if (current.simulation) canonical.simulation = current.simulation;
+          router.canonicalize(canonical);
+          finishRouteLoad();
           return;
         }
       }
@@ -145,7 +162,10 @@
       pending = attempt;
       let booted;
       try {
-        booted = await boot(route.tier, route.experience || null, { signal: attempt.signal });
+        booted = await boot(route.tier, route.experience || null, {
+          signal: attempt.signal,
+          simulation: route.simulation || null,
+        });
       } catch (error) {
         if (attempt.signal.aborted || generationAtStart !== generation) return;
         // A genuinely unknown/removed experience id should not strand the visitor. Any failure
@@ -153,7 +173,10 @@
         // product and producing evidence for the wrong route.
         if (route.experience && (error?.code === 'application_profile_unknown' || error?.code === 'tier_profile_unknown')) {
           try {
-            booted = await boot(route.tier, null, { signal: attempt.signal });
+            booted = await boot(route.tier, null, {
+              signal: attempt.signal,
+              simulation: route.simulation || null,
+            });
           } catch (retryError) {
             if (attempt.signal.aborted || generationAtStart !== generation) return;
             if (pending === attempt) pending = null;
@@ -173,9 +196,17 @@
         try { await booted.dispose?.(); } catch (_error) { /* superseded */ }
         return;
       }
-      current = { tier: booted.tier, experience: booted.experience, dispose: booted.dispose };
+      current = {
+        tier: booted.tier,
+        experience: booted.experience,
+        simulation: booted.simulation || route.simulation || null,
+        dispose: booted.dispose,
+        updateSimulation: booted.updateSimulation,
+      };
       reflectRoute(current);
-      router.canonicalize({ tier: booted.tier, experience: booted.experience });
+      const canonicalRoute = { tier: booted.tier, experience: booted.experience };
+      if (booted.simulation || route.simulation) canonicalRoute.simulation = booted.simulation || route.simulation;
+      router.canonicalize(canonicalRoute);
       finishRouteLoad();
     }
 
@@ -257,6 +288,7 @@
     let removeManualView=null;
     let lastPluginContributions=Object.freeze([]);
     let disposed=false;
+    const requestedSimulation = options.simulation || null;
 
     function selectTierViewMode(mode){
       [
@@ -363,7 +395,7 @@
       });
     }
 
-    async function activateScenario(scenario){
+    async function activateScenario(scenario,routeSimulation=null){
       pluginUi?.dispose?.();
       if(runtime)await runtime.dispose();
       runtime=await root.SimulattePluginRuntime.createPluginRuntime({registry:root.SimulatteGeneratedPluginRegistry,profile:data.applicationProfile,scenario,dataCatalog:data.dataCatalog,artifactStore:data.artifactStore,registryBaseUrl:data.registryBaseUrl,corePorts:createCorePorts(scenario)});
@@ -375,6 +407,15 @@
           renderPlugins();
         },
         onControlChange:async({pluginId,values})=>{
+          if (ctx.navigate) {
+            const simulation=simulationRouteState();
+            await ctx.navigate({
+              tier,
+              experience: data.applicationProfile.id,
+              simulation: { ...simulation, parameters: { ...simulation.parameters, [pluginId]: values } },
+            }, { replace: true });
+            return;
+          }
           if(!runController||runController.snapshot().ownerPluginId!==pluginId)return;
           root.SimulatteTierRunController.clearStoredReceipt(root.sessionStorage,data.applicationProfile.id);
           root.__simulatteTierRunReceipt=null;
@@ -392,6 +433,11 @@
         onError:(error)=>reportRunFailure(error),
       });
       renderPlugins();
+      if(routeSimulation){
+        const accepted=acceptedRouteParameters(routeSimulation);
+        Object.entries(accepted).forEach(([pluginId,values])=>pluginUi.setValues(pluginId,values));
+        if(Object.keys(accepted).length)renderPlugins();
+      }
     }
     function renderPlugins(){
       if(!runtime)return;
@@ -442,6 +488,57 @@
       }));
     }
     function renderScenario(){root.SimulatteApplicationProfileSelect.renderInteraction(interaction,activeScenario,elements);elements.missionField.hidden=true;elements.scenarioField.hidden=false;elements.startButton.hidden=false;elements.shuffleButton.hidden=interaction.scenarios.length<2;elements.pauseButton.hidden=true;elements.resumeButton.hidden=true;elements.replayButton.hidden=true;elements.newMissionButton.hidden=true;elements.dockMoreButton.hidden=true;elements.playbackStrip.hidden=true;elements.playbackSpeedControl.hidden=true;elements.playbackTimelineControl.hidden=true;elements.playbackTimeline.value='0';elements.playbackTimeline.max='0';elements.playbackProgress.textContent='0 / 0';elements.modelSelectionControls?.replaceChildren();}
+    function scenarioForRoute(simulation){
+      const scenarioId=simulation?.scenarioId||null;
+      const seed=simulation?.seed||null;
+      return (scenarioId?interaction.scenarios.find((row)=>row.id===scenarioId&&(!seed||row.seed===seed)):null)||interaction.defaultScenario;
+    }
+    function acceptedRouteParameters(simulation){
+      const requested=simulation?.parameters||{};
+      const accepted={};
+      Object.entries(requested).forEach(([pluginId,values])=>{
+        if(!values||typeof values!=='object'||Array.isArray(values))return;
+        const declared=pluginUi.values(pluginId);
+        const filtered=Object.fromEntries(Object.keys(values).filter((key)=>Object.prototype.hasOwnProperty.call(declared,key)).map((key)=>[key,values[key]]));
+        if(Object.keys(filtered).length)accepted[pluginId]=filtered;
+      });
+      return accepted;
+    }
+    function simulationRouteState(){
+      const parameters={};
+      runtime.activePluginIds.forEach((pluginId)=>{
+        const values=pluginUi.values(pluginId);
+        if(Object.keys(values).length)parameters[pluginId]=values;
+      });
+      return {scenarioId:activeScenario.id,seed:activeScenario.seed,parameters};
+    }
+    async function updateSimulationFromRoute(nextSimulation){
+      const nextScenario=scenarioForRoute(nextSimulation);
+      const scenarioChanged=nextScenario.id!==activeScenario.id||nextScenario.seed!==activeScenario.seed;
+      const requestedParameters=acceptedRouteParameters(nextSimulation);
+      const owner=data.applicationProfile.interaction.simulationOwnerPluginId||runtime.activePluginIds[0];
+      if(scenarioChanged){
+        runController?.dispose();
+        root.SimulatteTierRunController.clearStoredReceipt(root.sessionStorage,data.applicationProfile.id);
+        root.__simulatteTierRunReceipt=null;
+        root.__simulatteTierRunState=null;
+        root.__simulatteComparisonExecutionReceipts=Object.freeze([]);
+        pluginUi.resetValues();
+        activeScenario=nextScenario;
+        renderScenario();
+        await activateScenario(activeScenario,nextSimulation);
+        configureRunController(owner);
+      }else{
+        // The URL is authoritative. Clear controls first so removing a query
+        // parameter cannot resurrect a stale in-memory value.
+        pluginUi.resetValues();
+        renderPlugins();
+        Object.entries(requestedParameters).forEach(([pluginId,values])=>pluginUi.setValues(pluginId,values));
+        if(Object.keys(requestedParameters).length)renderPlugins();
+        if(requestedParameters[owner])await runController?.applyControls(requestedParameters[owner]);
+      }
+      return simulationRouteState();
+    }
     function reportRunFailure(error){
       if(root.__simulatteLastFailError?.message===error.message)return;
       root.__simulatteLastFailError={message:error.message,code:error.code||null};
@@ -536,11 +633,17 @@
         tier,
       });
       const storedRun=root.SimulatteTierRunController.readStoredReceipt(root.sessionStorage,data.applicationProfile.id);
-      activeScenario=interaction.scenarios.find((scenario)=>(
-        scenario.id===storedRun?.scenario?.id&&scenario.seed===storedRun?.scenario?.seed
-      ))||interaction.defaultScenario;
+      const routeScenario = requestedSimulation?.scenarioId
+        ? interaction.scenarios.find((scenario) => scenario.id === requestedSimulation.scenarioId
+          && (!requestedSimulation.seed || scenario.seed === requestedSimulation.seed))
+        : null;
+      activeScenario=routeScenario||(
+        !requestedSimulation && interaction.scenarios.find((scenario)=>(
+          scenario.id===storedRun?.scenario?.id&&scenario.seed===storedRun?.scenario?.seed
+        ))
+      )||interaction.defaultScenario;
       renderScenario();
-      await activateScenario(activeScenario);
+      await activateScenario(activeScenario,requestedSimulation);
       lifecycle.throwIfAborted();
       const owner=data.applicationProfile.interaction.simulationOwnerPluginId||runtime.activePluginIds[0];
       configureRunController(owner);
@@ -553,12 +656,21 @@
       on(elements.playbackSpeed,'change',()=>{runController.setPlaybackRate(Number(elements.playbackSpeed.value));});
       on(elements.playbackTimeline,'change',()=>{void runController.seek(Number(elements.playbackTimeline.value)).catch(reportRunFailure);});
       on(elements.shuffleButton,'click',async()=>{
+        const nextScenario=root.SimulatteApplicationProfileSelect.nextScenario(interaction,activeScenario.id);
+        if (ctx.navigate) {
+          await ctx.navigate({
+            tier,
+            experience: data.applicationProfile.id,
+            simulation: { scenarioId: nextScenario.id, seed: nextScenario.seed },
+          });
+          return;
+        }
         runController?.dispose();
         elements.shuffleButton.disabled=true;
         elements.startButton.disabled=true;
         ctx.setJourneyPhase?.('loading');
         ctx.setRuntimeStatus?.(elements,'Loading scenario','loading');
-        activeScenario=root.SimulatteApplicationProfileSelect.nextScenario(interaction,activeScenario.id);
+        activeScenario=nextScenario;
         renderScenario();
         elements.shuffleButton.disabled=true;
         elements.startButton.disabled=true;
@@ -581,7 +693,13 @@
       const restored=await runController.restore();
       lifecycle.throwIfAborted();
       if(!restored){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');}
-      return Object.freeze({ tier, experience: data.applicationProfile.id, dispose });
+      return Object.freeze({
+        tier,
+        experience: data.applicationProfile.id,
+        simulation: simulationRouteState(),
+        dispose,
+        updateSimulation: updateSimulationFromRoute,
+      });
     } catch (error) {
       await dispose();
       throw error;

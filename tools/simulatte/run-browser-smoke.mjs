@@ -289,6 +289,12 @@ async function runBrowserSmoke(options) {
     if (featureViewEvaluation.exceptionDetails) throw new Error(featureViewEvaluation.exceptionDetails.exception && featureViewEvaluation.exceptionDetails.exception.description || featureViewEvaluation.exceptionDetails.text);
     const featureView = featureViewEvaluation.result.value;
     const result = evaluated.result.value;
+    // Plugin-owned city/world profiles can legitimately have a small core map
+    // and carry their visible geometry in the plugin-static buffer. The visual
+    // gate must count the actual submitted static vertices, not only the core
+    // substrate, or it incorrectly rejects a rendered scene.
+    const renderedStaticVertexCount = result.staticVertexCount
+      + Number(result.rendererReceipt?.pluginStaticVertexCount || 0);
     const p2pDeliveryPass = expectsP2pDelivery
       ? featureView.cooperation.visible
         && featureView.cooperation.title === 'Cooperative delivery'
@@ -357,11 +363,14 @@ async function runBrowserSmoke(options) {
       && ['pedestrian', 'bicycle', 'scooter', 'car']
         .every((kind) => result.actorMeshKinds.split(',').includes(kind))
       && result.materialModel === 'metallic_roughness_vertex_v1'
-      && result.ambientActorCount === 13
-      && result.ambientActorKinds === 'pedestrian,bicycle,scooter,car'
+      // Plugin-owned playback worlds may intentionally provide their own
+      // modeled actors and do not promise the core autonomy ambient-traffic
+      // fixture. Core journeys still require the canonical 13-actor proof.
+      && (isPluginPlayback || result.ambientActorCount === 13)
+      && (isPluginPlayback || result.ambientActorKinds === 'pedestrian,bicycle,scooter,car')
       && result.rendererFrames > 0
       && performancePass
-      && result.staticVertexCount > 10000
+      && renderedStaticVertexCount > 10000
       && autonomyProofPassed
       && result.runtimeLog.eventCount >= 8
       && result.runtimeLog.requiredEventsPresent
@@ -374,6 +383,8 @@ async function runBrowserSmoke(options) {
       && result.shuffle.changed
       && result.shuffle.startLabel.length > 0
       && (result.shuffle.interactionMode === 'prompt' ? result.shuffle.startLabel === 'Start' : result.shuffle.seedChanged)
+      && result.urlState.scenarioChanged
+      && result.urlState.hasTypedParameters
       && result.copy.removedLabelsAbsent
       && (isPluginPlayback || (
         result.copy.createLink.href === 'https://create.simulatte.world/'
@@ -415,22 +426,17 @@ async function runBrowserSmoke(options) {
       && result.camera.startedInConfiguredMode
       && result.camera.configuredRunMode === expectedRunCameraMode
       && initialViewPass
+      && result.camera.experiences.focusControlAbsent
+      && result.camera.experiences.available.length >= 1
+      && result.camera.experiences.selected === result.camera.initial.mode
       && (expectedRunCameraMode === 'follow'
         ? result.camera.minimap.visible && result.camera.minimap.frameCount > 0 && result.camera.minimap.projection === 'orthographic_top_north_up'
         : !result.camera.minimap.visible)
-      && result.camera.regionTargetCount === 3
-      && result.camera.placeTargetCount === 20
       && result.camera.modeProbes.every((row) => row.began && row.noSnap && row.progressed && row.settled && row.moved)
-      && result.camera.regionFocus.began
-      && result.camera.regionFocus.noSnap
-      && result.camera.regionFocus.progressed
-      && result.camera.regionFocus.settled
-      && result.camera.regionFocus.moved
       && result.camera.panWorked
       && result.camera.orbitWorked
       && result.camera.zoomWorked
       && result.camera.followZoomWorked
-      && result.camera.returnedToRoute
       && (isPluginPlayback || result.distance === '1524 m')
       && result.runtime === 'Complete'
       && (isPluginPlayback || (
@@ -455,7 +461,7 @@ async function runBrowserSmoke(options) {
       visualRuntime: result.state === 'completed'
         && result.rendererBackend === 'webgpu'
         && result.rendererFrames > 0
-        && result.staticVertexCount > 10000,
+        && renderedStaticVertexCount > 10000,
       evidence: result.runtimeLog.requiredEventsPresent
         && result.runtimeLog.failureCount === 0
         && (isPluginPlayback
@@ -465,16 +471,17 @@ async function runBrowserSmoke(options) {
         && result.initialLayout.primaryControlsVisible
         && !result.hasHorizontalOverflow,
       camera: result.camera.startedInConfiguredMode
+        && result.camera.experiences.focusControlAbsent
+        && result.camera.experiences.available.length >= 1
         && result.camera.modeProbes.every((row) => row.began && row.noSnap && row.progressed && row.settled && row.moved)
-        && result.camera.regionFocus.settled
-        && result.camera.returnedToRoute,
+        && result.camera.experiences.selected === result.camera.initial.mode,
       initialView: initialViewPass,
       plugins: featurePass,
       browserErrors: errors.length === 0 && failedResponses.length === 0,
     });
     const failedDiagnostics = Object.entries(diagnostics).filter(([, passed]) => !passed).map(([id]) => id);
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v11',
+      schema: 'simulatte.autonomyBrowserSmoke.v12',
       pass,
       targetUrl,
       viewport: options.viewport,
@@ -731,7 +738,8 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       return { id, hidden: element.hidden, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
     };
     const interactionMode = document.body.dataset.interactionMode || 'prompt';
-    const initialRects = ['runtime-toggle', 'application-profile-trigger', 'camera-focus-button', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'scenario-field', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button', 'experience-doc-link'].map(rectFor);
+    const cameraModeIds = ['camera-follow', 'camera-pov', 'camera-bird', 'camera-top', 'camera-free', 'camera-compare'];
+    const initialRects = ['runtime-toggle', 'application-profile-trigger', ...cameraModeIds, 'mission-input', 'scenario-field', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button', 'experience-doc-link'].map(rectFor);
     const primaryFieldId = interactionMode === 'prompt' ? 'mission-input' : 'scenario-field';
     const initialLayout = {
       viewport: viewportRect,
@@ -771,10 +779,21 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       focus: canvas.dataset.cameraFocus,
       decision: globalThis.__simulattePluginPlatformV4?.view?.state?.decision || null,
     };
+    const cameraExperiences = {
+      available: cameraModeIds
+        .map((id) => document.getElementById(id))
+        .filter((button) => button && !button.hidden)
+        .map((button) => button.id.replace(/^camera-/, '').replace(/^bird$/, 'overview')),
+      selected: cameraModeIds
+        .map((id) => document.getElementById(id))
+        .find((button) => button?.getAttribute('aria-pressed') === 'true')?.id.replace(/^camera-/, '').replace(/^bird$/, 'overview') || null,
+      focusControlAbsent: !document.getElementById('camera-focus-button')
+        && !document.getElementById('camera-focus-popover')
+        && !document.getElementById('camera-focus'),
+    };
     const applicationProfile = document.getElementById('application-profile');
     const applicationProfileTrigger = document.getElementById('application-profile-trigger');
     const applicationProfileOptions = document.getElementById('application-profile-options');
-    const focusSelect = document.getElementById('camera-focus');
     const missionInput = document.getElementById('mission-input');
     const scenarioSeed = document.getElementById('scenario-seed');
     const shuffleButton = document.getElementById('shuffle-button');
@@ -794,6 +813,7 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       && document.activeElement === applicationProfileTrigger;
     const originalMission = missionInput.value;
     const originalSeed = scenarioSeed.textContent;
+    const initialRouteUrl = location.href;
     markPhase('scenario_shuffle_started');
     shuffleButton.click();
     markPhase('scenario_shuffle_dispatched');
@@ -806,6 +826,9 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
     markPhase('scenario_shuffle_complete');
     const shuffledMission = missionInput.value;
     const shuffledSeed = scenarioSeed.textContent;
+    const shuffledRouteUrl = location.href;
+    const initialRoute = new URL(initialRouteUrl);
+    const shuffledRoute = new URL(shuffledRouteUrl);
     const shuffle = {
       changed: shuffledMission.length > 0 && (shuffledMission !== originalMission || shuffledSeed !== originalSeed),
       seedChanged: shuffledSeed !== originalSeed,
@@ -815,6 +838,16 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       originalSeed,
       shuffledSeed,
       startLabel: startButton.textContent.trim(),
+    };
+    const urlState = {
+      initialUrl: initialRouteUrl,
+      shuffledUrl: shuffledRouteUrl,
+      initialScenario: initialRoute.searchParams.get('scenario'),
+      shuffledScenario: shuffledRoute.searchParams.get('scenario'),
+      initialSeed: initialRoute.searchParams.get('seed'),
+      shuffledSeed: shuffledRoute.searchParams.get('seed'),
+      scenarioChanged: initialRoute.searchParams.get('scenario') !== shuffledRoute.searchParams.get('scenario'),
+      hasTypedParameters: [...initialRoute.searchParams.keys()].some((key) => key.startsWith('param.')),
     };
     const visibleCopy = document.body.innerText;
     const createLink = document.querySelector('#runtime-details .sim-text-link[href="https://create.simulatte.world/"]');
@@ -905,8 +938,6 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
         moved: vectorDistance(before, after) > 2,
       };
     };
-    const regionOptions = [...focusSelect.options].filter((option) => option.value.startsWith('region:'));
-    const placeOptions = [...focusSelect.options].filter((option) => option.value.startsWith('place:'));
     const modeProbes = [];
     if (initialCamera.mode === 'top') {
       document.getElementById('camera-bird').click();
@@ -924,31 +955,6 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       && followZoomAfter < followZoomBefore;
     modeProbes.push(await probeMode('bird'));
     markPhase('camera_modes_complete');
-
-    const focusBefore = cameraTarget();
-    const regionTargetId = regionOptions.find((option) => option.value.includes('north-brooklyn'))?.value || regionOptions.at(-1)?.value;
-    focusSelect.value = regionTargetId;
-    focusSelect.dispatchEvent(new Event('change', { bubbles: true }));
-    const focusImmediate = cameraTarget();
-    const regionFocusBegan = canvas.dataset.cameraFocus === regionTargetId && canvas.dataset.cameraTransition === 'active';
-    const regionFocusNoSnap = vectorDistance(focusBefore, focusImmediate) < 1;
-    await sleep(260);
-    const focusMiddle = cameraTarget();
-    const focusProgress = Number(canvas.dataset.cameraTransitionProgress);
-    const regionFocusProgressed = canvas.dataset.cameraTransition === 'active'
-      && focusProgress > 0
-      && focusProgress < 1
-      && vectorDistance(focusBefore, focusMiddle) > 1;
-    await waitForCamera('region-focus-settled');
-    const regionFocusAfter = cameraTarget();
-    const regionFocus = {
-      targetId: regionTargetId,
-      began: regionFocusBegan,
-      noSnap: regionFocusNoSnap,
-      progressed: regionFocusProgressed,
-      settled: canvas.dataset.cameraFocus === regionTargetId && canvas.dataset.cameraTransition === 'settled',
-      moved: vectorDistance(focusBefore, regionFocusAfter) > 100,
-    };
 
     const originalSetPointerCapture = canvas.setPointerCapture;
     canvas.setPointerCapture = () => {};
@@ -982,11 +988,6 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
     const zoomWorked = vectorDistance(cameraEye(), cameraTarget()) < zoomBefore - 1;
     canvas.setPointerCapture = originalSetPointerCapture;
 
-    focusSelect.value = 'route';
-    focusSelect.dispatchEvent(new Event('change', { bubbles: true }));
-    await waitForCamera('route-focus-restored');
-    const returnedToRoute = canvas.dataset.cameraFocus === 'route'
-      && canvas.dataset.cameraTransition === 'settled';
     markPhase('camera_interactions_complete');
     if (!pluginPlayback) {
       missionInput.value = 'run in circles around union squatre park parimeter until youve ran 5000 feet';
@@ -1101,19 +1102,17 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
         failureCount: runtimeEvents.filter((row) => row.level === 'error').length,
       },
       shuffle,
+      urlState,
       copy,
       camera: {
-        regionTargetCount: regionOptions.length,
-        placeTargetCount: placeOptions.length,
+        experiences: cameraExperiences,
         modeProbes,
-        regionFocus,
         panWorked,
         orbitWorked,
         zoomWorked,
         followZoomWorked,
         followZoomBefore,
         followZoomAfter,
-        returnedToRoute,
         initial: initialCamera,
         configuredRunMode,
         startedInConfiguredMode,
@@ -1130,6 +1129,8 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       ambientActorKinds: document.getElementById('autonomy-canvas').dataset.ambientActorKinds || null,
       adapterName: document.getElementById('autonomy-canvas').dataset.adapterName || null,
       rendererFrames: Number(document.getElementById('autonomy-canvas').dataset.frameCount || 0),
+      rendererReceipt: document.getElementById('autonomy-canvas').__simulatteRenderReceipt?.() || null,
+      appRenderReceipt: globalThis.__simulatteAppRenderReceipt?.() || null,
       smoothness: {
         rafFrameCount: rafIntervals.length,
         frameIntervalMs: frameDistribution,

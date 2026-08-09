@@ -20,9 +20,13 @@
     let activeConfig = withScenario(config, scenario);
     const worldModel = sdk.worldQuery.model();
     const routeCache = new Map();
+    const visibleRouteCache = new Map();
+    let routeWarmGeneration = 0;
     let activeNetwork = circulation.createNetwork(activeConfig, worldModel);
 
     function routesForVisibleJourneys(simulation, day) {
+      const cached = visibleRouteCache.get(`${simulation.id}:${day}`);
+      if (cached) return cached;
       const visible = simulation.snapshots[day];
       const hubById = new Map(activeNetwork.hubs.map((row) => [row.id, row]));
       const residenceById = new Map(activeNetwork.residences.map((row) => [row.id, row]));
@@ -35,10 +39,12 @@
         planDirection(hub, residence, direction, originNodeId, destinationNodeId);
       });
       const visibleIds = new Set(visible.visibleJourneys.map((row) => row.routeId));
-      return [...routeCache.values()].filter((row) => visibleIds.has(row.id));
+      const routes = Object.freeze([...routeCache.values()].filter((row) => visibleIds.has(row.id)));
+      visibleRouteCache.set(`${simulation.id}:${day}`, routes);
+      return routes;
     }
 
-    function planDirection(hub, residence, direction, originNodeId, destinationNodeId) {
+    function planDirection(hub, residence, direction, originNodeId, destinationNodeId, network = activeNetwork) {
       const key = circulation.routeKey(hub.id, residence.id, direction);
       if (routeCache.has(key)) return;
       const route = sdk.routing.plan({
@@ -70,11 +76,47 @@
       });
     }
 
+    function scheduleRouteWarmup(simulation, network) {
+      if (typeof document === 'undefined' || typeof setTimeout !== 'function') return;
+      const generation = ++routeWarmGeneration;
+      const terminal = simulation.snapshots[simulation.durationDays];
+      const hubById = new Map(network.hubs.map((row) => [row.id, row]));
+      const residenceById = new Map(network.residences.map((row) => [row.id, row]));
+      const jobs = [];
+      const seen = new Set();
+      terminal.visibleJourneys.forEach((journey) => {
+        const key = circulation.routeKey(journey.hubId, journey.residenceId, journey.action === 'dropoff' ? 'to-hub' : 'from-hub');
+        if (seen.has(key)) return;
+        seen.add(key);
+        const hub = hubById.get(journey.hubId);
+        const residence = residenceById.get(journey.residenceId);
+        const direction = journey.action === 'dropoff' ? 'to-hub' : 'from-hub';
+        jobs.push({
+          hub,
+          residence,
+          direction,
+          originNodeId: direction === 'from-hub' ? hub.nodeId : residence.nodeId,
+          destinationNodeId: direction === 'from-hub' ? residence.nodeId : hub.nodeId,
+        });
+      });
+      let cursor = 0;
+      const pump = () => {
+        if (generation !== routeWarmGeneration || cursor >= jobs.length) return;
+        const job = jobs[cursor++];
+        planDirection(job.hub, job.residence, job.direction, job.originNodeId, job.destinationNodeId, network);
+        if (cursor < jobs.length) setTimeout(pump, 0);
+      };
+      setTimeout(pump, 0);
+    }
+
     function simulationFor(nextScenario = null) {
       if (nextScenario) activeConfig = withScenario(activeConfig, nextScenario);
       routeCache.clear();
+      visibleRouteCache.clear();
       activeNetwork = circulation.createNetwork(activeConfig, worldModel);
-      return circulation.simulateCirculation(activeConfig, activeNetwork);
+      const simulation = circulation.simulateCirculation(activeConfig, activeNetwork);
+      scheduleRouteWarmup(simulation, activeNetwork);
+      return simulation;
     }
 
     let activeSimulation = simulationFor();

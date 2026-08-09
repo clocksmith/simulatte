@@ -288,7 +288,7 @@
         id: `grid-restoration-crew:${task.crewId}:${task.targetId}`,
         kind: 'actor',
         label: `${task.crewId} · ${task.successful ? 'restoring' : 'attempting'} ${task.targetId}`,
-        geometry: builder.geometry('point', 'wgs84', [[...position, 0]]),
+        geometry: builder.geometry('polyline', 'wgs84', [[...home, 0], [...target, 0]]),
         quantity: builder.quantity('actor.repair-crew.route-progress', progress, 'ratio', [0, 1]),
         role: 'event',
         importance: 1,

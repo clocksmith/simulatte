@@ -36,7 +36,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginNycRealEstate",
-    "integrity": "sha384-68a8996e2c2411939a571ee1ba69bb5d46a59400cb04f2a51f69019a0ff9894786f3bb49b65c1506c9030f21f40c13ad",
+    "integrity": "sha384-c78bb72d015da43692f7f2413a7445894608014cbdad867806cd666f7cf66b7bfb40cf32e5290e6a882492d919b7ce7b",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -73,7 +73,7 @@
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-3045967d7d89e0692c185cac2a014c721305ba45f0f2431fa7fd3a24b6f62e5f33bab8d2163cb6f54b535f3d0a462d03",
+      "integrity": "sha384-3388f98f76f82278aee44e2ea0712279014a9cd54cb5e7d075db2ca8a498efa5544ee9c50ee1364730c2b5ecf1847ec9",
       "path": "./v4-contribution.js"
     },
     {
@@ -93,7 +93,7 @@
       "path": "./forecast-model.js"
     },
     {
-      "integrity": "sha384-442e19a6f4bda6dca64d61f418b5b345ee85217603408f612e0ad3f5c80d908d7e246b6cee5bd26bd178d256944e3afb",
+      "integrity": "sha384-6c2c7a0688d5a74190c6902587c928c1c3ac2243c509109b77b8fd3eb3289ee1a6eae27db844d1f39abcaeca3f8c530f",
       "path": "./price-surface.js"
     }
   ],

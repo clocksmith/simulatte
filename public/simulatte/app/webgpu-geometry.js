@@ -8,6 +8,9 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuGeometry(actorGeometry) {
   const FLOATS_PER_VERTEX = actorGeometry.FLOATS_PER_VERTEX;
   const DENSE_PLUGIN_ACTOR_THRESHOLD = 12;
+  const PLUGIN_TRANSITION_SECONDS = 0.72;
+  const PATH_METRICS_CACHE = new WeakMap();
+  const TRIANGULATION_CACHE = new WeakMap();
   const DEFAULT_MATERIAL = Object.freeze([0.02, 0.78]);
   // Overview cameras expose depth-buffer precision limits. Keep every map
   // surface in an explicit band so thin layers do not fight while panning.
@@ -53,7 +56,7 @@
     muted: [0.48, 0.62, 0.66, 0.72],
   });
 
-  function createStaticGeometry(world) {
+  function createStaticGeometry(world, { detail = 'full' } = {}) {
     const writer = createWriter();
     const bounds = world.coordinateSystem.bounds;
     addBox(writer, {
@@ -73,7 +76,8 @@
     for (const facility of world.renderGeometry.bikeFacilities) {
       addRibbon(writer, facility.geometry, facility.laneType === 'protected' ? 2.1 : 1.35, SURFACE_LAYERS.facility, COLORS[facility.laneType] || COLORS.connector, 0.55);
     }
-    for (const building of world.renderGeometry.buildings) addBuilding(writer, building);
+    if (detail === 'overview') addOverviewBuildingMasses(writer, world.renderGeometry.buildings);
+    else for (const building of world.renderGeometry.buildings) addBuilding(writer, building, detail);
     addGrid(writer, bounds, 100, SURFACE_LAYERS.grid);
     return writer.finish();
   }
@@ -122,20 +126,42 @@
     return writer.finish();
   }
 
+  function createPluginStaticGeometry(scene, reusableWriter = null) {
+    const writer = reusableWriter || createWriter();
+    writer.reset();
+    addPluginStaticPresentation(writer, scene);
+    return writer.finish();
+  }
+
+  function createPluginDynamicGeometry(scene, snapshot, reusableWriter = null, animationTimeSeconds = null, transitionActors = null) {
+    const writer = reusableWriter || createWriter();
+    writer.reset();
+    addPluginDynamicPresentation(writer, scene, snapshot, animationTimeSeconds, transitionActors);
+    return writer.finish();
+  }
+
   function addPluginPresentation(writer, scene, snapshot) {
+    addPluginStaticPresentation(writer, scene);
+    addPluginDynamicPresentation(writer, scene, snapshot);
+  }
+
+  function addPluginStaticPresentation(writer, scene) {
     if (!scene) return;
     scene.areas.forEach((row) => {
       if (row.isVolume) {
         addExtrudedPolygon(writer, row.points, row.heightM, semanticColor(row, 'fill'), row.intensity);
       } else {
-        addFlatPolygon(writer, row.points, row.heightM, semanticColor(row, 'fill'), row.intensity);
+        const fillColor = row.semanticKind === 'occlusion.shadow-length'
+          ? withAlpha(semanticColor(row, 'fill'), 0.22)
+          : semanticColor(row, 'fill');
+        addFlatPolygon(writer, row.points, row.heightM, fillColor, row.intensity);
         if (row.semanticKind === 'occlusion.shadow-length' && row.points.length > 2) {
           addRibbon(
             writer,
             [...row.points, row.points[0]],
             2.2,
             row.heightM + 0.03,
-            semanticColor(row),
+            withAlpha(semanticColor(row), 0.38),
             0.18
           );
         }
@@ -156,10 +182,23 @@
     (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), row.intensity));
     (scene.geoMarkers || []).forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
     if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
-    const elapsedSeconds = Number(snapshot.state.simulatedTimeSeconds || 0);
+  }
+
+  function addPluginDynamicPresentation(writer, scene, snapshot, animationTimeSeconds = null, transitionActors = null) {
+    if (!scene) return;
+    const elapsedSeconds = Number.isFinite(animationTimeSeconds)
+      ? Math.max(0, animationTimeSeconds)
+      : Number(snapshot.state.simulatedTimeSeconds || 0);
     const usesDenseActorSignals = scene.actors.length > DENSE_PLUGIN_ACTOR_THRESHOLD;
     scene.actors.forEach((row, index) => {
-      const pose = poseAlongPath(row.points, row.phaseOffsetM + elapsedSeconds * row.speedMps);
+      const totalPathM = pathMetrics(row.points).total;
+      const visualSpeedMps = totalPathM > 0
+        ? Math.max(Math.abs(Number(row.speedMps) || 0), totalPathM * 0.24)
+        : 0;
+      const transitionFrom = transitionActors?.get(row.id);
+      const pose = transitionFrom && row.points.length === 1
+        ? poseBetweenPoints(transitionFrom, row.points[0], Math.min(1, elapsedSeconds / PLUGIN_TRANSITION_SECONDS))
+        : poseAlongPath(row.points, row.phaseOffsetM + elapsedSeconds * visualSpeedMps);
       if (row.kind !== 'pedestrian') {
         addBeacon(writer, pose.point, semanticColor(row), row.isSelected ? 12 : 5, row.isSelected ? 3.2 : 1.8, row.isSelected ? 1.2 : 0.72);
       }
@@ -175,13 +214,8 @@
   }
 
   function poseAlongPath(points, distanceM) {
-    const lengths = [];
-    let total = 0;
-    for (let index = 1; index < points.length; index += 1) {
-      const length = Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
-      lengths.push(length);
-      total += length;
-    }
+    const metrics = pathMetrics(points);
+    const { lengths, total } = metrics;
     let remaining = total ? ((distanceM % total) + total) % total : 0;
     for (let index = 0; index < lengths.length; index += 1) {
       const start = points[index];
@@ -198,6 +232,32 @@
     return { point: { ...points[0] }, heading: 0 };
   }
 
+  function poseBetweenPoints(from, to, progress) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    return {
+      point: { x: from.x + dx * progress, y: from.y + dy * progress },
+      heading: Math.atan2(dy, dx),
+    };
+  }
+
+  function pathMetrics(points) {
+    if (points && typeof points === 'object') {
+      const cached = PATH_METRICS_CACHE.get(points);
+      if (cached) return cached;
+    }
+    const lengths = [];
+    let total = 0;
+    for (let index = 1; index < points.length; index += 1) {
+      const length = Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
+      lengths.push(length);
+      total += length;
+    }
+    const metrics = Object.freeze({ lengths: Object.freeze(lengths), total });
+    if (points && typeof points === 'object') PATH_METRICS_CACHE.set(points, metrics);
+    return metrics;
+  }
+
   function tone(id) {
     return PLUGIN_TONES[id] || PLUGIN_TONES.muted;
   }
@@ -211,6 +271,10 @@
       Number.parseInt(value.slice(5, 7), 16) / 255,
       Number(opacity === 'fill' ? row.style.fillOpacity ?? 1 : row.style.strokeOpacity ?? 1),
     ]);
+  }
+
+  function withAlpha(color, alpha) {
+    return [color[0], color[1], color[2], Math.max(0, Math.min(1, alpha))];
   }
 
   function createWriter(initialCapacity = 65536) {
@@ -311,12 +375,20 @@
     }
   }
 
-  function addBuilding(writer, building) {
-    const points = openRing(building.footprint);
+  function addBuilding(writer, building, detail = 'full') {
+    const sourcePoints = openRing(building.footprint);
+    const points = detail === 'overview' ? overviewBuildingFootprint(sourcePoints) : sourcePoints;
     if (points.length < 3) return;
     const height = Number.isFinite(building.heightM) ? Math.max(3, building.heightM) : 3;
     const roofColor = buildingColor(height, true);
     const sideColor = buildingColor(height, false);
+    if (detail === 'overview') {
+      // At city scale the roof silhouette carries the useful signal. Omitting
+      // parcel walls removes the hidden-face overdraw that otherwise dominates
+      // the overview pass; POV remains full-fidelity below.
+      addFlatPolygon(writer, points, height, roofColor, 0.05);
+      return;
+    }
     const vertices = points.map((point) => [point.x, height, -point.y]);
     triangulate(points).forEach(([a, b, c]) => writer.triangle(vertices[a], vertices[b], vertices[c], [0, 1, 0], roofColor, 0.05));
     for (let index = 0; index < points.length; index += 1) {
@@ -329,6 +401,74 @@
       writer.triangle(a, b, c, normal, sideColor, 0.02);
       writer.triangle(a, c, d, normal, sideColor, 0.02);
     }
+  }
+
+  // Individual parcel edges are below pixel resolution at overview distance.
+  // Preserve each building's extent, height, and material contrast while
+  // collapsing irregular footprints to four corners. Close cameras keep the
+  // exact source footprint.
+  function overviewBuildingFootprint(points) {
+    if (points.length <= 4) return points;
+    let minimumX = Infinity;
+    let maximumX = -Infinity;
+    let minimumY = Infinity;
+    let maximumY = -Infinity;
+    points.forEach((point) => {
+      minimumX = Math.min(minimumX, point.x);
+      maximumX = Math.max(maximumX, point.x);
+      minimumY = Math.min(minimumY, point.y);
+      maximumY = Math.max(maximumY, point.y);
+    });
+    return [
+      { x: minimumX, y: minimumY },
+      { x: maximumX, y: minimumY },
+      { x: maximumX, y: maximumY },
+      { x: minimumX, y: maximumY },
+    ];
+  }
+
+  function addOverviewBuildingMasses(writer, buildings) {
+    const CELL_SIZE_M = 42;
+    const cells = new Map();
+    buildings.forEach((building) => {
+      const points = openRing(building.footprint);
+      if (points.length < 3) return;
+      let minimumX = Infinity;
+      let maximumX = -Infinity;
+      let minimumY = Infinity;
+      let maximumY = -Infinity;
+      points.forEach((point) => {
+        minimumX = Math.min(minimumX, point.x);
+        maximumX = Math.max(maximumX, point.x);
+        minimumY = Math.min(minimumY, point.y);
+        maximumY = Math.max(maximumY, point.y);
+      });
+      const centerX = (minimumX + maximumX) / 2;
+      const centerY = (minimumY + maximumY) / 2;
+      const key = `${Math.floor(centerX / CELL_SIZE_M)}:${Math.floor(centerY / CELL_SIZE_M)}`;
+      const cell = cells.get(key) || {
+        minimumX: centerX,
+        maximumX: centerX,
+        minimumY: centerY,
+        maximumY: centerY,
+        heightM: 3,
+      };
+      cell.minimumX = Math.min(cell.minimumX, minimumX);
+      cell.maximumX = Math.max(cell.maximumX, maximumX);
+      cell.minimumY = Math.min(cell.minimumY, minimumY);
+      cell.maximumY = Math.max(cell.maximumY, maximumY);
+      cell.heightM = Math.max(cell.heightM, Number(building.heightM) || 3);
+      cells.set(key, cell);
+    });
+    cells.forEach((cell) => {
+      const points = [
+        { x: cell.minimumX, y: cell.minimumY },
+        { x: cell.maximumX, y: cell.minimumY },
+        { x: cell.maximumX, y: cell.maximumY },
+        { x: cell.minimumX, y: cell.maximumY },
+      ];
+      addFlatPolygon(writer, points, cell.heightM, buildingColor(cell.heightM, true), 0.05);
+    });
   }
 
   function addGrid(writer, bounds, spacing, height = SURFACE_LAYERS.grid) {
@@ -426,8 +566,12 @@
   }
 
   function triangulate(pointsWithClosure) {
+    if (pointsWithClosure && typeof pointsWithClosure === 'object') {
+      const cached = TRIANGULATION_CACHE.get(pointsWithClosure);
+      if (cached) return cached;
+    }
     const points = openRing(pointsWithClosure);
-    if (points.length < 3) return [];
+    if (points.length < 3) return cacheTriangulation(pointsWithClosure, []);
     const indices = points.map((_, index) => index);
     if (signedArea(points) < 0) indices.reverse();
     const triangles = [];
@@ -452,7 +596,13 @@
     if (!triangles.length) {
       for (let index = 1; index < points.length - 1; index += 1) triangles.push([0, index, index + 1]);
     }
-    return triangles;
+    return cacheTriangulation(pointsWithClosure, triangles);
+  }
+
+  function cacheTriangulation(points, triangles) {
+    const value = Object.freeze(triangles.map((row) => Object.freeze(row)));
+    if (points && typeof points === 'object') TRIANGULATION_CACHE.set(points, value);
+    return value;
   }
 
   function openRing(points) {
@@ -532,6 +682,9 @@
     addExtrudedPolygon,
     addRibbon,
     createDynamicGeometry,
+    createPluginDynamicGeometry,
+    pathMetrics,
+    createPluginStaticGeometry,
     createStaticGeometry,
     createWriter,
     poseAlongPath,

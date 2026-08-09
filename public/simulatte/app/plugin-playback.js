@@ -362,20 +362,20 @@
             actual: comparisonExecutionReceipts,
           });
         }
-        return publishSettlement(settlements, comparisonExecutionReceipts);
+        return publishSettlement(settlements, comparisonExecutionReceipts, { render: comparisonExecutionReceipts.length > 0 });
       } catch (error) {
         if (generation === runGeneration) fail(error);
         throw error;
       }
     }
 
-    async function reset(nextScenario = activeScenario, { preserveInterventions = false } = {}) {
+    async function reset(nextScenario = activeScenario, { preserveInterventions = false, renderReadyState = true } = {}) {
       assertActive();
       clock.pause();
       const generation = ++runGeneration;
       await actionQueue;
       if (!preserveInterventions) interventionLog = [];
-      return resetState(nextScenario, generation);
+      return resetState(nextScenario, generation, { renderReadyState });
     }
 
     async function resetState(nextScenario, generation, { renderReadyState = true } = {}) {
@@ -428,7 +428,7 @@
       }
       const comparisonExecutionReceipts = await executeComparisons();
       if (generation !== runGeneration) return snapshot();
-      return publishSettlement(settlements, comparisonExecutionReceipts);
+      return publishSettlement(settlements, comparisonExecutionReceipts, { render: comparisonExecutionReceipts.length > 0 });
     }
 
     async function executeComparisons() {
@@ -460,12 +460,12 @@
       return receipts;
     }
 
-    function publishSettlement(settlements, comparisonExecutionReceipts = []) {
+    function publishSettlement(settlements, comparisonExecutionReceipts = [], { render: shouldRender = true } = {}) {
       const frozenComparisons = freezeClone(comparisonExecutionReceipts);
       // Comparison actions may add branch-specific semantic evidence. Recompile
       // the presentation after they execute so the terminal map and receipts
       // describe the same settled run.
-      render();
+      if (shouldRender) render();
       const receipt = freezeClone({
         schema: 'simulatte.pluginPlaybackRunReceipt.v1',
         ownerPluginId,

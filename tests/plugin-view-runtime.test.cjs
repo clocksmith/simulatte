@@ -89,7 +89,6 @@ function provenanceReceipt(pluginId, targetIds = ['route']) {
 
 test('plugin view runtime applies declarative intents through renderer-owned camera targets', () => {
   const calls = [];
-  const focusSelect = { value: '' };
   const coordinator = viewRuntimeApi.createCoordinator({
     renderer: {
       cameraTargets: () => [
@@ -99,13 +98,11 @@ test('plugin view runtime applies declarative intents through renderer-owned cam
       focusCameraTarget: (id) => calls.push(['focus', id]),
       setCameraMode: (mode) => calls.push(['mode', mode]),
     },
-    focusSelect,
     onModeSelected: (mode) => calls.push(['selected', mode]),
   });
   const receipt = coordinator.sync([contribution('fixture')], [provenanceReceipt('fixture')]);
   assert.equal(receipt.state.decision.intentId, 'fixture:active-view');
   assert.deepEqual(receipt.provenance.resolvedTargetIds, ['route']);
-  assert.equal(focusSelect.value, 'plugin:fixture:active-view');
   assert.deepEqual(calls, [
     ['focus', 'plugin:fixture:active-view'],
     ['mode', 'overview'],

@@ -206,8 +206,8 @@
 
   function viewHint(tier) {
     if (tier === 'city') return 'Drag to orbit. Shift-drag or use Top to pan. Scroll to zoom.';
-    if (tier === 'star-chart') return 'Drag to orbit the star field. Scroll to zoom. Use Focus to frame evidence.';
-    return 'Drag to pan. Scroll to zoom. Use Focus to frame evidence.';
+    if (tier === 'star-chart') return 'Drag to orbit the star field. Scroll to zoom. Choose a camera experience above.';
+    return 'Drag to pan. Scroll to zoom. Choose a camera experience above.';
   }
 
   return Object.freeze({

@@ -12,7 +12,7 @@
     statistics: '9d772eb897587edf847f42c1cde23ba1569ca3f5c86975e2d679f2fde88f7051',
     sector: 'be6f30d622cde56325f163fd7c92082723928f724c46244eee588b6f53a71ec8',
     comparison: '674ea3927e2c418b7de3f190ca81d25657e6a0d9dc480cf3be41304abc1ec1cb',
-    priceSurface: '8cb13c2c6435dd58dd98d213a5a75f54201bf9b29bbdf351bff0932b152b1b68',
+    priceSurface: '7e1ea5648fb8e957abc7c9efd92047072c8525b2cf1cb54c244e31a7a5edeab5',
     governance: '4a6bc387b12322b14a58c3b9ec36ad70c81a7ff5ebd06ad4cb28ac134be3cf65',
   });
   const VISUAL_DETAIL_LIMITS = Object.freeze({
@@ -22,6 +22,28 @@
     capacitySites: 48,
     comparisonProjectsPerBranch: 24,
   });
+  // Geometry is immutable evidence. Keep the exact source coordinate array as
+  // the cache key so replay snapshots can change quantities and labels without
+  // rebuilding the same 262 neighborhood polygons (or invalidating the shared
+  // presentation/compiler triangle memoization).
+  const GEOMETRY_MEMO = new WeakMap();
+
+  function cachedGeometry(kind, coordinateSystem, coordinates) {
+    if (!coordinates || typeof coordinates !== 'object') {
+      return builder.geometry(kind, coordinateSystem, coordinates);
+    }
+    let byContract = GEOMETRY_MEMO.get(coordinates);
+    if (!byContract) {
+      byContract = new Map();
+      GEOMETRY_MEMO.set(coordinates, byContract);
+    }
+    const key = `${kind}:${coordinateSystem}`;
+    const cached = byContract.get(key);
+    if (cached) return cached;
+    const value = builder.geometry(kind, coordinateSystem, coordinates);
+    byContract.set(key, value);
+    return value;
+  }
 
   function createContribution({
     datasets,
@@ -312,7 +334,7 @@
         id: `price-surface:${row.regionId}`,
         kind: 'field',
         label: `${row.label}, ${row.boroughLabel} · ${snapshot.year}`,
-        geometry: builder.geometry('polygon', 'wgs84', row.polygon),
+        geometry: cachedGeometry('polygon', 'wgs84', row.polygon),
         quantity: Number.isFinite(row.p50Usd)
           ? builder.quantity(
             row.status === 'observed'
@@ -332,7 +354,7 @@
         id: 'selected-region',
         kind: 'field',
         label: `${result.region.label}, ${result.region.boroughLabel} · ${snapshot.year}`,
-        geometry: builder.geometry('polygon', 'wgs84', result.region.polygon),
+        geometry: cachedGeometry('polygon', 'wgs84', result.region.polygon),
         quantity: priceQuantity,
         role: 'primary',
         importance: 0.92,
@@ -354,7 +376,7 @@
         id: `historical:${row.id}`,
         kind: 'volume',
         label: row.label,
-        geometry: builder.geometry('polygon', 'wgs84', row.footprint),
+        geometry: cachedGeometry('polygon', 'wgs84', row.footprint),
         quantity: builder.quantity(
           `historical-building-${row.stage}`,
           row.visibleHeightM,
@@ -370,7 +392,7 @@
         id: `future:${row.id}`,
         kind: 'volume',
         label: projectLabel(row),
-        geometry: builder.geometry('polygon', 'wgs84', row.footprint),
+        geometry: cachedGeometry('polygon', 'wgs84', row.footprint),
         quantity: builder.quantity(
           'scenario-building-visible-height',
           row.visibleHeightM,
@@ -572,6 +594,24 @@
     simulated,
     comparison
   ) {
+    // Keep the full source result for evidence and settlement, but only emit
+    // object-level inspections for the same bounded detail that the map draws.
+    // Every neighborhood heatmap cell remains inspectable; hidden building and
+    // capacity rows are represented by the explicit detail-boundary field.
+    const milestoneTargetIds = new Set(snapshot.milestoneEvents.map((row) => row.targetLayerId));
+    const visibleHistoricalStates = boundedRows(
+      snapshot.historicalBuildingStates,
+      VISUAL_DETAIL_LIMITS.historicalBuildings,
+      (row) => (milestoneTargetIds.has(`historical:${row.id}`) ? 1_000_000 : 0) + row.targetHeightM
+    );
+    const visibleFutureStates = boundedRows(
+      snapshot.futureProjectStates,
+      VISUAL_DETAIL_LIMITS.futureProjects,
+      (row) => (milestoneTargetIds.has(`future:${row.id}`) ? 1_000_000 : 0) + row.heightM
+    );
+    const visibleCapacitySites = snapshot.year === 2026
+      ? boundedRows(result.capacitySites, VISUAL_DETAIL_LIMITS.capacitySites, (row) => capacityValue(row, result.sectorProfile))
+      : [];
     const priceFields = snapshot.price.p50Usd === null
       ? [field('price-status', 'Price record', 'No governed observation', null, observed)]
       : [
@@ -651,7 +691,7 @@
         field('source-sampled', 'Source snapshot sampled', result.coverage.sourceSampled ? 'yes' : 'no', null, capacity),
         field('boundary', 'Meaning', 'Mapped FAR capacity is not a parcel feasibility or permit prediction', null, capacity),
       ],
-    }, ...surfaceInspections, ...snapshot.historicalBuildingStates.map((row) => ({
+    }, ...surfaceInspections, ...visibleHistoricalStates.map((row) => ({
       id: `inspect:historical:${row.id}`,
       label: row.address || row.jobId || row.id,
       targetIds: [`historical:${row.id}`],
@@ -666,7 +706,7 @@
         field('milestones', 'Recorded milestones', row.milestones.map((item) => `${item.kind}: ${item.date}`).join('; '), null, observed),
         field('limitation', 'Construction replay limit', row.limitation, null, observed),
       ],
-    })), ...snapshot.futureProjectStates.map((row) => ({
+    })), ...visibleFutureStates.map((row) => ({
       id: `inspect:${row.id}`,
       label: row.address,
       targetIds: [`future:${row.id}`],
@@ -682,7 +722,7 @@
         field('capacity-source', 'Capacity source rows', row.sourceRowIds.join(', '), null, capacity),
         field('footprint-origin', 'Footprint origin', row.footprintOrigin, null, simulated),
       ],
-    })), ...(snapshot.year === 2026 ? result.capacitySites.map((row) => ({
+    })), ...(snapshot.year === 2026 ? visibleCapacitySites.map((row) => ({
       id: `inspect:capacity:${row.id}`,
       label: row.address,
       targetIds: [`capacity:${row.id}`],
@@ -711,7 +751,11 @@
           field('development-status', 'Development forecast', branch.developmentStatus, null, simulated),
           field('projects', 'Modeled projects', branch.projects.length, 'projects', simulated),
         ],
-      }, ...branch.projects.map((row) => ({
+      }, ...boundedRows(
+        branch.projects,
+        VISUAL_DETAIL_LIMITS.comparisonProjectsPerBranch,
+        (project) => project.heightM
+      ).map((row) => ({
         id: `inspect:comparison:${role}:${row.id}`,
         label: `${role} · ${row.address}`,
         targetIds: [`comparison:${role}:${row.id}`],

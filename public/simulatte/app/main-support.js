@@ -267,7 +267,7 @@
       if (typeof document === 'undefined') return;
       const launch = () => {
         const router = hostRoot.SimulatteRouter.createRouter(window);
-        const navigate = (route) => router.navigate(route);
+        const navigate = (route, options) => router.navigate(route, options);
         const governedContext = {
           collectElements,
           setJourneyPhase,
@@ -277,7 +277,7 @@
           onSelectTier: (tier) => navigate({ tier, experience: null }),
         };
         const boot = (tier, experience, bootOptions) => tier === 'city'
-          ? start('city', experience, { navigate, signal: bootOptions?.signal })
+          ? start('city', experience, { navigate, signal: bootOptions?.signal, simulation: bootOptions?.simulation || null })
           : hostRoot.SimulatteWorldTiersBoot.bootGovernedTierExplorer(
             governedContext,
             tier,

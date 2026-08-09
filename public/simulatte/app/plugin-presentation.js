@@ -10,12 +10,22 @@
   root.SimulattePluginPresentation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginPresentationCompiler(geographyApi, compositorApi) {
   const SCHEMA = 'simulatte.compiledPluginPresentation.v1';
+  const PROJECTION_CACHE = new WeakMap();
+  const SEMANTIC_GEOMETRY_CACHE = new WeakMap();
 
   function projectionForWorld(worldModel) {
     if (!geographyApi || typeof geographyApi.createProjection !== 'function') return null;
     const world = worldModel && worldModel.world;
     const projection = world && world.coordinateSystem && world.coordinateSystem.projection;
-    return geographyApi.createProjection(projection || geographyApi.projectionFromWorld(world));
+    const projectionSource = projection || geographyApi.projectionFromWorld(world);
+    if (projectionSource && typeof projectionSource === 'object') {
+      const cached = PROJECTION_CACHE.get(projectionSource);
+      if (cached) return cached;
+      const created = geographyApi.createProjection(projectionSource);
+      PROJECTION_CACHE.set(projectionSource, created);
+      return created;
+    }
+    return geographyApi.createProjection(projectionSource);
   }
 
   function compile(contributions, worldModel, options = {}) {
@@ -132,8 +142,10 @@
 
   function compileSemantic(compiled, presentation, pluginId, namespace, projection, worldModel, options) {
     const layerPoints = new Map();
+    const rawLayerPoints = new Map();
     presentation.layers.forEach((layer) => {
       const points = resolveSemanticGeometry(layer.geometry, worldModel, pluginId, projection, layer.id);
+      rawLayerPoints.set(layer.id, points);
       layerPoints.set(
         layer.id,
         layer.kind === 'actor'
@@ -199,12 +211,21 @@
         const actorKind = semanticActorKind(primitive.quantity?.kind);
         if (actorKind) {
           const progress = semanticActorProgress(primitive.quantity);
+          const rawPoints = rawLayerPoints.get(primitive.sourceId || primitive.id) || points;
+          const pathPoints = actorPathPoints(
+            primitive.sourceId || primitive.id,
+            primitive.quantity?.kind,
+            rawPoints,
+            presentation,
+            rawLayerPoints,
+          );
+          const pathLength = polylineLength(pathPoints);
           compiled.actors.push(Object.freeze({
             ...common,
-            points: Object.freeze([pointAlongPath(points, progress)]),
+            points: Object.freeze(pathPoints),
             kind: actorKind,
-            speedMps: 0,
-            phaseOffsetM: 0,
+            speedMps: pathLength > 0 ? pathLength * 0.24 : 0,
+            phaseOffsetM: pathLength * progress,
             isSelected: true,
           }));
         } else {
@@ -334,6 +355,55 @@
     };
   }
 
+  function polylineLength(points) {
+    let total = 0;
+    for (let index = 1; index < points.length; index += 1) {
+      total += Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
+    }
+    return total;
+  }
+
+  function actorPathPoints(actorId, quantityKind, actorPoints, presentation, rawLayerPoints) {
+    if (actorPoints.length > 1) return actorPoints;
+    if (!/route-progress|shipment-progress|repair|packet|spacecraft|vessel|pedestrian/.test(String(quantityKind || ''))) return actorPoints;
+    const pathLayers = presentation.layers.filter((layer) => layer.kind === 'path');
+    if (!pathLayers.length) return actorPoints;
+    const actor = String(actorId || '').toLowerCase();
+    const preferred = pathLayers.find((layer) => {
+      const id = String(layer.id || '').toLowerCase();
+      if (actor.includes('screening-spacecraft')) return id.includes('transfer-trajectory');
+      if (actor.includes('asteroid-active-clone')) return id.includes('representative-trajectory') || id.includes('clone-path');
+      if (actor.includes('voyage:')) return id.startsWith('route:');
+      if (actor.includes('sun-walker')) return id === 'shade-selected-route';
+      if (actor.includes('shipment:')) return id.startsWith('corridor:');
+      if (actor.includes('packet')) return id.startsWith('relay-link:');
+      return false;
+    });
+    const candidates = preferred ? [preferred, ...pathLayers.filter((layer) => layer !== preferred)] : pathLayers;
+    const selected = candidates
+      .map((layer) => ({ layer, points: rawLayerPoints.get(layer.id) || [] }))
+      .filter((row) => row.points.length > 1)
+      .sort((left, right) => pathDistanceToPoint(left.points, actorPoints[0]) - pathDistanceToPoint(right.points, actorPoints[0]))[0];
+    return selected?.points || actorPoints;
+  }
+
+  function pathDistanceToPoint(points, point) {
+    if (!point || points.length < 2) return Number.POSITIVE_INFINITY;
+    let best = Number.POSITIVE_INFINITY;
+    for (let index = 1; index < points.length; index += 1) {
+      const start = points[index - 1];
+      const end = points[index];
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+      const denominator = dx * dx + dy * dy;
+      const ratio = denominator ? Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / denominator)) : 0;
+      const x = start.x + dx * ratio;
+      const y = start.y + dy * ratio;
+      best = Math.min(best, Math.hypot(point.x - x, point.y - y));
+    }
+    return best;
+  }
+
   function validViewport(value) {
     return value
       && Number.isFinite(value.width)
@@ -421,10 +491,30 @@
     if (geometry.kind === 'segments') return pointsForSegments(worldModel, pluginId, geometry.segmentIds, layerId);
     if (geometry.coordinateSystem === 'wgs84') {
       if (!projection) throw presentationError('plugin_presentation_projection_missing', `Plugin ${pluginId} emitted WGS84 semantic geometry without a world projection`);
+      const coordinates = geometry.coordinates;
+      if (coordinates && typeof coordinates === 'object') {
+        const cached = SEMANTIC_GEOMETRY_CACHE.get(coordinates);
+        if (cached && cached.projection === projection) return cached.points;
+        const points = coordinates.map((coordinate) => {
+          const point = projection.project({ longitude: coordinate[0], latitude: coordinate[1] });
+          return Object.freeze({ x: point.x, y: point.y });
+        });
+        const value = Object.freeze({ projection, points: Object.freeze(points) });
+        SEMANTIC_GEOMETRY_CACHE.set(coordinates, value);
+        return value.points;
+      }
       return geometry.coordinates.map((coordinate) => {
         const point = projection.project({ longitude: coordinate[0], latitude: coordinate[1] });
         return Object.freeze({ x: point.x, y: point.y });
       });
+    }
+    const coordinates = geometry.coordinates;
+    if (coordinates && typeof coordinates === 'object') {
+      const cached = SEMANTIC_GEOMETRY_CACHE.get(coordinates);
+      if (cached && cached.projection === null) return cached.points;
+      const points = coordinates.map((coordinate) => Object.freeze({ x: coordinate[0], y: coordinate[1] }));
+      SEMANTIC_GEOMETRY_CACHE.set(coordinates, { projection: null, points: Object.freeze(points) });
+      return points;
     }
     return geometry.coordinates.map((coordinate) => Object.freeze({ x: coordinate[0], y: coordinate[1] }));
   }

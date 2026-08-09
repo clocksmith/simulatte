@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCableTrader",
-    "integrity": "sha384-df2dda070f5743334ea11cac9ee2fed20a71c464ac5dbf0e0e15bd1fa72ad63dbd833d717d2eb07ead421ebbcd4e17f7",
+    "integrity": "sha384-2dfe2e54e08e18fa66519df9f1286c55378139ef1a8ac972885e0f5b135e9ec4d2e4b70093e0735685502ebf75c8003a",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -57,11 +57,11 @@
       "path": "./circulation-presentation.js"
     },
     {
-      "integrity": "sha384-a656ed40e45748510030b0244182832207df32b837a0b293c18d10e6d9643d933ba47fad3e4c3efa2ecafb89d8db053d",
+      "integrity": "sha384-42ca573744a24da1c39fef8372d4c9d076f4bb84629e467ab0c08c6250307b2d27bc462398c46a6ba69a2ceece741c1c",
       "path": "./circulation-simulation.js"
     },
     {
-      "integrity": "sha384-a7f3fc8f7ab1dc7ed76877a393a195fc5579ab3c85aab81d95a82e17208399bfce747931019f0908f7109bbed5f0fa44",
+      "integrity": "sha384-f7bac9110a170aeb4a513bc02f4d125ef60e7b48f539b9c3929bd5e9a59e1fb57bda88bdd04d09c90ec8e7887dfa56ae",
       "path": "./v4-contribution.js"
     }
   ],

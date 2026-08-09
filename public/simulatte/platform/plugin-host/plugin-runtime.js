@@ -69,6 +69,9 @@
     let scenarioQueue = Promise.resolve();
     let lifecycle = 'active';
     let disposalPromise = null;
+    let platformCache = null;
+    let timelineCache = null;
+    const validatedContributions = new WeakSet();
 
     function assertActive() {
       if (lifecycle === 'active') return;
@@ -236,7 +239,10 @@
           const contribution = instance.contributeV4(stateApi.freezeClone(context));
           if (contribution === null) return [];
           if (contribution.schema === 'simulatte.pluginContribution.v4') {
-            v4Contracts.validateContribution(contribution, `Plugin ${pluginId} v4 contribution`);
+            if (!validatedContributions.has(contribution)) {
+              v4Contracts.validateContribution(contribution, `Plugin ${pluginId} v4 contribution`);
+              validatedContributions.add(contribution);
+            }
             sources.push(Object.freeze({ pluginId, source: 'native-v4' }));
             return [v4Builder?.isBuiltContribution?.(contribution)
               ? contribution
@@ -266,25 +272,75 @@
 
     function platformV4(context) {
       assertActive();
+      const revision = stateHost.currentRevision();
+      const scenarioId = context?.scenario?.id || scenario?.id || null;
+      const scenarioSeed = context?.scenario?.seed || scenario?.seed || null;
+      const compositionSize = Number(context?.compositionSize || 0);
+      if (platformCache
+        && platformCache.revision === revision
+        && platformCache.scenarioId === scenarioId
+        && platformCache.scenarioSeed === scenarioSeed
+        && platformCache.compositionSize === compositionSize) {
+        return platformCache.value;
+      }
+      const collectStartedAt = performance.now();
       const collected = collectContributionsV4(context);
       const contributions = collected.contributions;
+      // Native V4 plugins return immutable, identity-stable contributions for a
+      // given snapshot. State revisions can still advance for playback/control
+      // events that do not change that contribution. Rebuilding the provenance
+      // registry, receipts, and timeline in that case is pure duplicate work and
+      // was the largest remaining main-thread cost in the Atlas terminal path.
+      // Legacy adapters remain revision-sensitive because their normalized event
+      // stream is derived from the state trace.
+      const nativeOnly = collected.sources.every((row) => row.source === 'native-v4');
+      if (nativeOnly && platformCache
+        && platformCache.scenarioId === scenarioId
+        && platformCache.scenarioSeed === scenarioSeed
+        && platformCache.compositionSize === compositionSize
+        && sameContributionIdentities(platformCache.contributions, contributions)) {
+        return platformCache.value;
+      }
+      const workCpuMs = {
+        collect: 0,
+        registry: 0,
+        contributionReceipts: 0,
+        timeline: 0,
+        assembly: 0,
+      };
+      workCpuMs.collect = performance.now() - collectStartedAt;
+      const registryStartedAt = performance.now();
       const registry = provenanceApi.createProvenanceRegistry();
       contributions.forEach((contribution) => {
         contribution.provenanceRecords.forEach(registry.register);
         bindContributionProvenance(registry, contribution);
       });
+      workCpuMs.registry = performance.now() - registryStartedAt;
       const nativePluginIds = new Set(collected.sources
         .filter((row) => row.source === 'native-v4')
         .map((row) => row.pluginId));
+      const receiptStartedAt = performance.now();
       const provenanceReceipts = contributions
         .filter((contribution) => nativePluginIds.has(contribution.pluginId))
-        .map((contribution) => provenanceApi.createContributionProvenanceReceipt(contribution));
-      const provenanceCoverage = provenanceApi.createPlatformProvenanceReceipt(provenanceReceipts);
-      const timeline = timelineApi.createTimeline({
-        id: `${profile.id}:${scenario?.id || 'default'}`,
-        events: contributions.flatMap((contribution) => contribution.events),
-      });
-      return Object.freeze({
+        .map((contribution) => provenanceApi.createContributionProvenanceReceipt(contribution, { validated: true }));
+      const provenanceCoverage = provenanceApi.createPlatformProvenanceReceipt(provenanceReceipts, { validated: true });
+      workCpuMs.contributionReceipts = performance.now() - receiptStartedAt;
+      const timelineStartedAt = performance.now();
+      const timelineId = `${profile.id}:${scenario?.id || 'default'}`;
+      const timelineContributions = contributions;
+      const timeline = timelineCache
+        && sameContributionIdentities(timelineCache.contributions, timelineContributions)
+        ? aliasTimeline(timelineCache.timeline, timelineId)
+        : timelineApi.createTimeline({
+          id: timelineId,
+          events: contributions.flatMap((contribution) => contribution.events),
+        });
+      if (!timelineCache || !sameContributionIdentities(timelineCache.contributions, timelineContributions)) {
+        timelineCache = { contributions: timelineContributions, timeline };
+      }
+      workCpuMs.timeline = performance.now() - timelineStartedAt;
+      const assemblyStartedAt = performance.now();
+      const valueBody = {
         schema: 'simulatte.pluginPlatform.v4',
         contributions,
         contributionSources: collected.sources,
@@ -302,7 +358,14 @@
           timeline: timeline.receipt(),
           provenance: registry.receipt(),
         }),
+      };
+      workCpuMs.assembly = performance.now() - assemblyStartedAt;
+      const value = Object.freeze({
+        ...valueBody,
+        workCpuMs: Object.freeze(Object.fromEntries(Object.entries(workCpuMs).map(([key, value]) => [key, Number(value)]))),
       });
+      platformCache = { revision, scenarioId, scenarioSeed, compositionSize, contributions, value };
+      return value;
     }
 
     async function dispatchAction(pluginId, actionId, context = {}) {
@@ -379,6 +442,7 @@
         throw error;
       }
       scenario = candidateScenario;
+      platformCache = null;
       return scenario;
     }
 
@@ -428,6 +492,22 @@
     contribution.inspections.forEach((inspection) => inspection.fields.forEach((field) => {
       registry.bind(`${contribution.pluginId}:inspection:${inspection.id}:${field.id}`, field.provenance.evidenceRefs);
     }));
+  }
+
+  function sameContributionIdentities(previous, next) {
+    if (!Array.isArray(previous) || previous.length !== next.length) return false;
+    for (let index = 0; index < next.length; index += 1) {
+      if (previous[index] !== next[index]) return false;
+    }
+    return true;
+  }
+
+  function aliasTimeline(timeline, id) {
+    const baseReceipt = timeline.receipt();
+    return Object.freeze({
+      ...timeline,
+      receipt: () => Object.freeze({ ...baseReceipt, id }),
+    });
   }
 
   async function verifyEntries(rows, artifactStore, baseUrl) {

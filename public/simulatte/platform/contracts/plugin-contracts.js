@@ -104,6 +104,13 @@
     if (value.camera !== undefined) {
       assertAllowedKeys(value.camera, ['initialMode', 'runMode', 'pluginId', 'targetId'], ['initialMode', 'runMode'], `Profile ${value.id} camera`);
       if (!['follow', 'bird', 'top'].includes(value.camera.initialMode) || !['follow', 'bird', 'top'].includes(value.camera.runMode)) fail('application_profile_camera_mode_invalid', `Profile ${value.id} camera modes are invalid`, value.camera);
+      if (value.experience) {
+        const supportedViews = new Set(value.experience.supportedViews);
+        const unsupported = ['initialMode', 'runMode']
+          .map((key) => [key, value.camera[key] === 'bird' ? 'overview' : value.camera[key]])
+          .filter(([, mode]) => !supportedViews.has(mode));
+        if (unsupported.length) fail('application_profile_camera_mode_unsupported', `Profile ${value.id} camera modes must be listed in experience.supportedViews`, { camera: value.camera, unsupported });
+      }
       if ((value.camera.pluginId === undefined) !== (value.camera.targetId === undefined)) fail('application_profile_camera_target_invalid', `Profile ${value.id} camera expected pluginId and targetId together`, value.camera);
       if (value.camera.pluginId !== undefined) {
         text(value.camera.pluginId, 'application_profile_camera_target_invalid', `Profile ${value.id} camera plugin`);

@@ -213,9 +213,35 @@ test('router paths preserve the governed tier and full experience id', () => {
   assert.deepEqual(routerApi.parsePath('/world/maritime-trade-global-v1'), {
     tier: 'world',
     experience: 'maritime-trade-global-v1',
+    simulation: null,
   });
   assert.equal(routerApi.hrefFor({ tier: 'solar-system', experience: 'orbital-transfer-planner-v1' }), '/solar-system/orbital-transfer-planner-v1');
-  assert.deepEqual(routerApi.parsePath('/unknown/profile-v1'), { tier: null, experience: null });
+  assert.deepEqual(routerApi.parsePath('/unknown/profile-v1'), { tier: null, experience: null, simulation: null });
+});
+
+test('router round-trips scenario and typed simulation parameters through a canonical URL', () => {
+  const route = {
+    tier: 'city',
+    experience: 'cable-trader-pickup-v1',
+    simulation: {
+      scenarioId: 'device-upgrade-cycle',
+      seed: 'cable-circulation-upgrades-2026',
+      parameters: {
+        'cable-trader': {
+          peopleCount: 128,
+          includeLegacy: false,
+          selectedCableTypeIds: ['usb-c-to-c', 'hdmi'],
+        },
+      },
+    },
+  };
+  const href = routerApi.hrefFor(route);
+  assert.match(href, /^\/city\/cable-trader-pickup-v1\?/);
+  assert.deepEqual(routerApi.parsePath(new URL(href, 'https://simulatte.test').pathname, new URL(href, 'https://simulatte.test').search), {
+    tier: 'city',
+    experience: 'cable-trader-pickup-v1',
+    simulation: route.simulation,
+  });
 });
 
 test('every registered experience resolves to its canonical GitHub Markdown preview', () => {

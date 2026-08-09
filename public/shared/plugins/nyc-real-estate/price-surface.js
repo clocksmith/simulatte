@@ -96,12 +96,19 @@
       ...parameters,
       seed: `${parameters.seed}:price-surface:${region.id}`,
     };
-    const draws = model.createExogenousDraws({
-      parameters: regionParameters,
-      capacitySites: [],
-    });
     const momentumPct = model.historicalMomentum(series);
-    const memberPrices = draws.members.map((member) => {
+    // The price-only surface never consumes site capacity or capital-cycle
+    // draws. Generate only the declared shock stream instead of constructing
+    // and hashing the full forecast-model member objects for all 262 regions.
+    // The discarded capital draw is still consumed so the seeded stream remains
+    // byte-for-byte compatible with createExogenousDraws.
+    const memberPrices = Array.from({ length: ENSEMBLE_SIZE }, (_unused, memberIndex) => {
+      const random = statistics.seededRandom(`${regionParameters.seed}:member:${memberIndex}`);
+      const shockByYear = new Map();
+      futureYears(parameters).forEach((year) => {
+        random();
+        shockByYear.set(year, statistics.gaussian(random));
+      });
       let price = series.at(-1).medianPriceUsd;
       return futureYears(parameters).map((year) => {
         const next = model.advancePrice({
@@ -110,7 +117,7 @@
           parameters: regionParameters,
           policy,
           supplyEffectPct: 0,
-          shockZ: member.years[year].shockZ,
+          shockZ: shockByYear.get(year),
           year,
         });
         price = next.priceUsd;

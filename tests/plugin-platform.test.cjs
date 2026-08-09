@@ -455,7 +455,6 @@ test('experience camera configuration targets only an active plugin', () => {
   assert.equal(contracts.validateProfile(profile), profile);
   assert.throws(() => contracts.validateProfile({ ...profile, camera: { ...profile.camera, pluginId: 'sun-walker' } }), /application_profile_camera_plugin_inactive/);
   const calls = [];
-  const focusSelect = { value: 'route' };
   const applied = experienceCameraApi.applyInitialCamera({
     configuration: profile.camera,
     renderer: {
@@ -463,11 +462,9 @@ test('experience camera configuration targets only an active plugin', () => {
       focusCameraTarget: (id) => calls.push(['focus', id]),
       setCameraMode: (mode) => calls.push(['mode', mode]),
     },
-    focusSelect,
     onModeSelected: (mode) => calls.push(['selected', mode]),
   });
   assert.equal(applied, true);
-  assert.equal(focusSelect.value, 'plugin:cable-trader:network');
   assert.deepEqual(calls, [['focus', 'plugin:cable-trader:network'], ['mode', 'top'], ['selected', 'top']]);
   assert.equal(experienceCameraApi.runCameraMode(null), 'follow');
   assert.equal(experienceCameraApi.runCameraMode({ runMode: 'bird' }), 'overview');

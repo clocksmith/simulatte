@@ -8,24 +8,25 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createProvenanceRegistryModule(contracts) {
   const RECORD_KINDS = Object.freeze(['dataset', 'row', 'transformation', 'model']);
 
-  function createContributionProvenanceReceipt(contribution, { settlements = [] } = {}) {
-    contracts.validateContribution(contribution);
+  function createContributionProvenanceReceipt(contribution, { settlements = [], validated = false } = {}) {
+    if (!validated) contracts.validateContribution(contribution);
     if (!Array.isArray(settlements)) {
       throw registryError('provenance_settlements_invalid', 'Contribution settlements expected an array');
     }
     const recordsById = new Map(contribution.provenanceRecords.map((row) => [row.id, row]));
     const subjects = [
       ...contribution.provenanceRecords.map((row) => row.envelope),
-      ...contribution.presentation.layers.map((row) => subjectEnvelope(row.id, 'semanticObject', row.provenance, recordsById)),
-      ...contribution.events.map((row) => subjectEnvelope(row.id, 'event', row.provenance, recordsById)),
-      ...contribution.controls.controls.map((row) => subjectEnvelope(row.id, 'parameter', row.provenance, recordsById)),
+      ...contribution.presentation.layers.map((row) => subjectEnvelope(row.id, 'semanticObject', row.provenance, recordsById, validated)),
+      ...contribution.events.map((row) => subjectEnvelope(row.id, 'event', row.provenance, recordsById, validated)),
+      ...contribution.controls.controls.map((row) => subjectEnvelope(row.id, 'parameter', row.provenance, recordsById, validated)),
       ...(contribution.state ? [
-        subjectEnvelope(contribution.state.id, 'state', contribution.state.provenance, recordsById),
+        subjectEnvelope(contribution.state.id, 'state', contribution.state.provenance, recordsById, validated),
         ...contribution.state.measures.map((row) => subjectEnvelope(
           `${contribution.state.id}:metric:${row.kind}`,
           'metric',
           contribution.state.provenance,
           recordsById,
+          validated,
         )),
       ] : []),
       ...contribution.inspections.flatMap((inspection) => inspection.fields.map((field) => subjectEnvelope(
@@ -33,6 +34,7 @@
         'inspection',
         field.provenance,
         recordsById,
+        validated,
       ))),
       ...settlements.map((row, index) => {
         if (!row || typeof row.id !== 'string' || !row.id) {
@@ -50,7 +52,7 @@
     });
   }
 
-  function createPlatformProvenanceReceipt(contributionReceipts) {
+  function createPlatformProvenanceReceipt(contributionReceipts, { validated = false } = {}) {
     if (!Array.isArray(contributionReceipts)) {
       throw registryError('provenance_contribution_receipts_invalid', 'Platform provenance receipts expected an array');
     }
@@ -60,7 +62,7 @@
         throw registryError('provenance_contribution_receipt_invalid', `Platform provenance receipt ${index} is invalid`);
       }
       return receipt.envelopes.map((envelope) => {
-        contracts.validateProvenanceEnvelope(envelope, `Platform provenance ${receipt.pluginId}:${envelope.subjectId}`);
+        if (!validated) contracts.validateProvenanceEnvelope(envelope, `Platform provenance ${receipt.pluginId}:${envelope.subjectId}`);
         const key = `${receipt.pluginId}:${envelope.subjectId}`;
         const existing = seen.get(key);
         if (existing && canonical(existing) !== canonical(envelope)) {
@@ -78,8 +80,8 @@
     });
   }
 
-  function subjectEnvelope(subjectId, subjectKind, provenance, recordsById) {
-    contracts.validateProvenance(provenance, `${subjectKind} ${subjectId} provenance`);
+  function subjectEnvelope(subjectId, subjectKind, provenance, recordsById, validated = false) {
+    if (!validated) contracts.validateProvenance(provenance, `${subjectKind} ${subjectId} provenance`);
     if (!provenance.evidenceRefs.length) {
       throw registryError('provenance_subject_evidence_missing', `${subjectKind} ${subjectId} has no evidence`);
     }
@@ -115,7 +117,7 @@
       licenseRequired: records.some((row) => row.envelope.licenseRequired),
       licenseIdentifiers: unique(records.flatMap((row) => row.envelope.licenseIdentifiers)),
     };
-    contracts.validateProvenanceEnvelope(envelope, `${subjectKind} ${subjectId} envelope`);
+    if (!validated) contracts.validateProvenanceEnvelope(envelope, `${subjectKind} ${subjectId} envelope`);
     return deepFreeze(envelope);
   }
 

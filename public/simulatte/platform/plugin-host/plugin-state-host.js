@@ -8,6 +8,7 @@
     const reducers = new Map();
     const states = new Map(pluginIds.map((id) => [id, Object.freeze({})]));
     const events = [];
+    let revision = 0;
 
     function register(pluginId, reducer, initialState = {}) {
       assertAllowed(pluginId);
@@ -34,6 +35,7 @@
         states.set(pluginId, deepFreeze(nextState));
       }
       events.push(row);
+      revision += 1;
       return row;
     }
 
@@ -46,11 +48,15 @@
       return Object.freeze([...events]);
     }
 
+    function currentRevision() {
+      return revision;
+    }
+
     function assertAllowed(pluginId) {
       if (!allowed.has(pluginId)) throw stateError('plugin_state_namespace_undeclared', `Plugin state namespace ${pluginId} is not active`, { pluginId });
     }
 
-    return Object.freeze({ register, propose, read, trace });
+    return Object.freeze({ register, propose, read, trace, currentRevision });
   }
 
   function freezeClone(value) {

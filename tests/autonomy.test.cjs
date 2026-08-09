@@ -1580,7 +1580,8 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.match(html, /id="runtime-details"[\s\S]*id="runtime-context-legend"[\s\S]*id="runtime-data-copy"/);
   assert.doesNotMatch(html, /id="runtime-details"[\s\S]*href="https:\/\/create\.simulatte\.world\/"/);
   assert.doesNotMatch(html, /id="map-panel-button"|id="map-popover"/);
-  assert.match(html, /id="camera-focus-popover"[^>]*hidden/);
+  assert.match(html, /class="camera-modes sim-segmented"[^>]*role="group"[^>]*aria-label="Camera experiences"/);
+  assert.doesNotMatch(html, /camera-focus|>Focus</);
   assert.match(html, /id="dock-more-menu"[^>]*hidden/);
   assert.match(html, /id="dock-more-menu"[\s\S]*id="what-if-button"/);
   assert.match(html, /id="playback-strip"[\s\S]*id="step-button"[\s\S]*id="reset-button"[\s\S]*id="playback-speed"/);

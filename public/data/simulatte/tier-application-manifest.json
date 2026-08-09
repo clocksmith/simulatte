@@ -9,7 +9,7 @@
         {
           "id": "food-recall-us-v1",
           "path": "../application-profiles/food-recall-us-v1.json",
-          "sha256": "c7e4efa6b9e7d2dfb90ffc96c873bae72f446990b5faf3228611e72e55907f56",
+          "sha256": "66ee0e3d559284c10c0474bae47ed8303f5cd36e16ec61e9e11a1f9d4802f29d",
           "world": {
             "id": "us-national-regions-v1",
             "path": "./worlds/us-national-regions-v1.json",

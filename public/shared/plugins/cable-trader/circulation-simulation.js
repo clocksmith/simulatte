@@ -4,6 +4,7 @@
   root.SimulatteCableTraderCirculation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderCirculation() {
   const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+  const ROUTABLE_COMPONENT_CACHE = new WeakMap();
 
   function createNetwork(config, worldModel) {
     const settings = validateConfig(config);
@@ -394,6 +395,9 @@
   }
 
   function largestRoutableComponent(worldModel) {
+    const cacheKey = worldModel?.world || worldModel;
+    const cached = ROUTABLE_COMPONENT_CACHE.get(cacheKey);
+    if (cached) return cached;
     if (!worldModel?.world?.nodes || !worldModel?.world?.segments) {
       throw new Error('Cable Trader requires a governed city network');
     }
@@ -435,7 +439,9 @@
       right.length - left.length || left[0].id.localeCompare(right[0].id)
     ))[0];
     if (!largest?.length) throw new Error('Cable Trader could not find a routable city component');
-    return largest;
+    const result = Object.freeze(largest);
+    ROUTABLE_COMPONENT_CACHE.set(cacheKey, result);
+    return result;
   }
 
   function finishingOrder(ids, outgoing) {

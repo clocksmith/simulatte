@@ -261,6 +261,38 @@ test('City renders residence point clouds as lightweight six-vertex nodes', () =
   assert.equal(geometry.length / gpuGeometry.FLOATS_PER_VERTEX, markerCount * 6);
 });
 
+test('City separates plugin-static markers from time-varying plugin actors', () => {
+  const scene = {
+    areas: [],
+    paths: [],
+    markers: [{ point: { x: 4, y: 8 }, semanticKind: 'person-residences', tone: 'muted', radiusM: 0.5, intensity: 0.2 }],
+    actors: [{ points: [{ x: 0, y: 0 }, { x: 10, y: 0 }], phaseOffsetM: 0, speedMps: 1, kind: 'bicycle', isSelected: false, tone: 'cyan' }],
+    choropleths: [],
+    geoAreas: [],
+    geoPaths: [],
+    geoMarkers: [],
+    sun: null,
+  };
+  const snapshot = { state: { simulatedTimeSeconds: 0 } };
+  const staticGeometry = gpuGeometry.createPluginStaticGeometry(scene);
+  const dynamicGeometry = gpuGeometry.createPluginDynamicGeometry(scene, snapshot);
+  const animatedGeometry = gpuGeometry.createPluginDynamicGeometry(scene, snapshot, null, 0.5);
+  assert.equal(staticGeometry.length / gpuGeometry.FLOATS_PER_VERTEX, 6);
+  assert.ok(dynamicGeometry.length > 0);
+  assert.notDeepEqual([...dynamicGeometry], [...animatedGeometry]);
+});
+
+test('City interpolates point actors between governed presentation snapshots', () => {
+  const scene = {
+    areas: [], paths: [], markers: [], choropleths: [], geoAreas: [], geoPaths: [], geoMarkers: [], sun: null,
+    actors: [{ id: 'actor:one', points: [{ x: 10, y: 0 }], phaseOffsetM: 0, speedMps: 0, kind: 'bicycle', isSelected: false, tone: 'cyan' }],
+  };
+  const snapshot = { state: { simulatedTimeSeconds: 0 } };
+  const atStart = gpuGeometry.createPluginDynamicGeometry(scene, snapshot, null, 0, new Map([['actor:one', { x: 0, y: 0 }]]));
+  const halfway = gpuGeometry.createPluginDynamicGeometry(scene, snapshot, null, 0.36, new Map([['actor:one', { x: 0, y: 0 }]]));
+  assert.notDeepEqual([...atStart], [...halfway]);
+});
+
 test('semantic volume compiles into an extruded City mesh and retains height in tier views', () => {
   const base = semanticPresentation();
   const presentation = {
@@ -373,7 +405,7 @@ test('City compiles a semantic actor into a moving actor mesh and camera target'
   });
   assert.equal(compiled.actors.length, 1);
   assert.equal(compiled.actors[0].kind, 'pedestrian');
-  assert.deepEqual(compiled.actors[0].points, [{ x: 40, y: 0 }]);
+  assert.deepEqual(compiled.actors[0].points, [{ x: 0, y: 0 }, { x: 80, y: 0 }, { x: 80, y: 80 }]);
   const cameraTarget = compiled.cameraTargets.find((row) => row.id === 'plugin:fixture:walker');
   assert.deepEqual(cameraTarget.target, [40, 0, -0]);
 });

@@ -587,7 +587,7 @@ button {
 }
 
 .camera-modes {
-  max-width: min(100vw - 32px, 520px);
+  max-width: min(calc(100vw - 32px), 520px);
   overflow-x: auto;
   scrollbar-width: none;
 }

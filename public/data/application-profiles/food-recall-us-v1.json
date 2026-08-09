@@ -61,8 +61,8 @@
     }
   ],
   "camera": {
-    "initialMode": "top",
-    "runMode": "top",
+    "initialMode": "bird",
+    "runMode": "bird",
     "pluginId": "food-recall-us",
     "targetId": "us-food-network"
   },

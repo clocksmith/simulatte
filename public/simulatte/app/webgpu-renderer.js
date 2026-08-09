@@ -18,8 +18,23 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, presentationCompiler, semanticLabels) {
-  const SAMPLE_COUNT = 4;
+  // The scene already uses explicit depth bands and stable emissive shading;
+  // single-sample targets avoid a second full-world resolve on every frame.
+  // This is the bounded baseline for dense browser GPU scenes.
+  const SAMPLE_COUNT = 1;
   const MINIMAP_RADIUS_M = 420;
+  // The minimap is a secondary context. Updating it at display rate duplicates
+  // the full scene pass while the primary camera is already rendering smoothly.
+  // Keep it visibly live at a bounded 15 Hz instead of making it compete with
+  // the primary frame budget.
+  // The minimap is a navigational aid, not the primary view. Ten updates per
+  // second keep movement legible while preventing a second full-world pass from
+  // contending with camera transitions on large city scenes.
+  const MINIMAP_FRAME_INTERVAL_MS = 1000 / 10;
+  // Keep requestAnimationFrame and camera state at display rate, but bound
+  // expensive WebGPU command submission. This prevents a dense world from
+  // queuing unbounded work while a user is changing camera modes.
+  const PRIMARY_RENDER_INTERVAL_MS = 1000 / 45;
   const SHADER = `
 struct Uniforms {
   viewProjection: mat4x4<f32>,
@@ -147,6 +162,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       multisample: { count: SAMPLE_COUNT },
     });
     const uniformBuffer = device.createBuffer({ label: 'autonomy-camera-uniforms', size: 128, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const uniformData = new Float32Array(32);
     const bindGroup = device.createBindGroup({
       label: 'autonomy-map-bind-group',
       layout: pipeline.getBindGroupLayout(0),
@@ -155,6 +171,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const minimapUniformBuffer = minimapCanvas
       ? device.createBuffer({ label: 'autonomy-minimap-uniforms', size: 128, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
       : null;
+    const minimapUniformData = minimapCanvas ? new Float32Array(32) : null;
     const minimapBindGroup = minimapUniformBuffer
       ? device.createBindGroup({
         label: 'autonomy-minimap-bind-group',
@@ -162,8 +179,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         entries: [{ binding: 0, resource: { buffer: minimapUniformBuffer } }],
       })
       : null;
-    const staticData = geometry.createStaticGeometry(worldModel.world);
+    const staticData = geometry.createStaticGeometry(worldModel.world, { detail: 'full' });
+    const overviewStaticData = geometry.createStaticGeometry(worldModel.world, { detail: 'overview' });
     const staticBuffer = createVertexBuffer(device, staticData, 'autonomy-static-geometry');
+    const overviewStaticBuffer = createVertexBuffer(device, overviewStaticData, 'autonomy-overview-static-geometry');
     const state = {
       ...cameraApi.createCameraState(worldModel.world, worldModel, options.regionRegistry, options.regionPacks),
       routeIdentity: null,
@@ -174,6 +193,17 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       dynamicWriter: geometry.createWriter(1048576),
       dynamicBuffer: null,
       dynamicCapacity: 0,
+      pluginStaticData: new Float32Array(),
+      pluginStaticWriter: geometry.createWriter(262144),
+      pluginStaticBuffer: null,
+      pluginStaticCapacity: 0,
+      pluginDynamicData: new Float32Array(),
+      pluginDynamicWriter: geometry.createWriter(262144),
+      pluginDynamicBuffer: null,
+      pluginDynamicCapacity: 0,
+      coreDynamicSnapshot: null,
+      coreDynamicReceipt: null,
+      coreDynamicTraceLength: -1,
       frameCount: 0,
       frameCpuMs: [],
       firstFrameAt: null,
@@ -182,8 +212,23 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       renderTargets: null,
       minimapTargets: null,
       minimapFrameCount: 0,
+      minimapLastRenderAt: -Infinity,
+      minimapWasVisible: false,
+      lastSubmittedFrameAt: -Infinity,
+      staticData,
+      staticBuffer,
+      overviewStaticData,
+      overviewStaticBuffer,
       pluginScene: presentationCompiler.compile([], worldModel),
+      pluginTransitionActors: new Map(),
       pluginSimulationTimeSeconds: 0,
+      pluginAnimationStartedAt: performance.now(),
+      workCpuMs: {
+        pluginCompile: [],
+        pluginStaticGeometry: [],
+        pluginDynamicGeometry: [],
+        coreDynamicGeometry: [],
+      },
       semanticLabelReceipt: null,
       isDestroyed: false,
     };
@@ -225,19 +270,60 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     function refreshDynamicGeometry() {
       if (!state.latestSnapshot) return;
       const snapshot = snapshotAtRenderTime(state.latestSnapshot, state.pluginSimulationTimeSeconds);
-      state.dynamicData = geometry.createDynamicGeometry(worldModel, snapshot, state.latestReceipt, state.tracePositions, state.dynamicWriter, state.pluginScene);
-      ensureDynamicBuffer(device, state, state.dynamicData);
+      if (state.coreDynamicSnapshot !== state.latestSnapshot
+        || state.coreDynamicReceipt !== state.latestReceipt
+        || state.coreDynamicTraceLength !== state.tracePositions.length) {
+        const coreStartedAt = performance.now();
+        state.dynamicData = geometry.createDynamicGeometry(worldModel, snapshot, state.latestReceipt, state.tracePositions, state.dynamicWriter);
+        recordWorkCpu(state.workCpuMs.coreDynamicGeometry, performance.now() - coreStartedAt);
+        ensureGeometryBuffer(device, state, state.dynamicData, 'dynamicBuffer', 'dynamicCapacity', 'autonomy-dynamic-geometry');
+        state.coreDynamicSnapshot = state.latestSnapshot;
+        state.coreDynamicReceipt = state.latestReceipt;
+        state.coreDynamicTraceLength = state.tracePositions.length;
+      }
+      refreshPluginDynamicGeometry(snapshot, 0);
+    }
+
+    function refreshPluginDynamicGeometry(snapshot = null, animationTimeSeconds = null) {
+      if (!state.pluginScene?.actors?.length) return;
+      const pluginStartedAt = performance.now();
+      state.pluginDynamicData = geometry.createPluginDynamicGeometry(
+        state.pluginScene,
+        snapshot || snapshotAtRenderTime(state.latestSnapshot, state.pluginSimulationTimeSeconds),
+        state.pluginDynamicWriter,
+        animationTimeSeconds,
+        state.pluginTransitionActors,
+      );
+      recordWorkCpu(state.workCpuMs.pluginDynamicGeometry, performance.now() - pluginStartedAt);
+      ensureGeometryBuffer(device, state, state.pluginDynamicData, 'pluginDynamicBuffer', 'pluginDynamicCapacity', 'autonomy-plugin-dynamic-geometry');
     }
 
     function setPluginPresentations(contributions, presentationOptions = {}) {
       state.pluginSimulationTimeSeconds = Math.max(0, Number(presentationOptions.simulationTimeMs || 0)) / 1000;
-      state.pluginScene = presentationCompiler.compile(contributions, worldModel, {
+      state.pluginAnimationStartedAt = performance.now();
+      const compileStartedAt = performance.now();
+      const previousActors = new Map((state.pluginScene?.actors || []).map((row) => [row.id, row]));
+      const nextScene = presentationCompiler.compile(contributions, worldModel, {
         ...presentationOptions,
         viewport: {
           width: Math.max(1, canvas.clientWidth || canvas.width),
           height: Math.max(1, canvas.clientHeight || canvas.height),
         },
       });
+      state.pluginTransitionActors = new Map(nextScene.actors.flatMap((row) => {
+        const previous = previousActors.get(row.id);
+        if (!previous || row.points.length !== 1 || previous.points?.length !== 1) return [];
+        const from = previous.points[0];
+        const to = row.points[0];
+        if (!from || !to || (from.x === to.x && from.y === to.y)) return [];
+        return [[row.id, { x: from.x, y: from.y }]];
+      }));
+      state.pluginScene = nextScene;
+      recordWorkCpu(state.workCpuMs.pluginCompile, performance.now() - compileStartedAt);
+      const staticStartedAt = performance.now();
+      state.pluginStaticData = geometry.createPluginStaticGeometry(state.pluginScene, state.pluginStaticWriter);
+      recordWorkCpu(state.workCpuMs.pluginStaticGeometry, performance.now() - staticStartedAt);
+      ensureGeometryBuffer(device, state, state.pluginStaticData, 'pluginStaticBuffer', 'pluginStaticCapacity', 'autonomy-plugin-static-geometry');
       cameraApi.replacePluginCameraTargets(state, state.pluginScene.cameraTargets, performance.now());
       Object.entries(state.pluginScene.counts).forEach(([key, value]) => {
         canvas.dataset[`plugin${key.charAt(0).toUpperCase()}${key.slice(1)}Count`] = String(value);
@@ -264,8 +350,15 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       const pose = cameraApi.advanceCamera(state, state.latestSnapshot, worldModel, canvas.width / canvas.height, timestamp);
       const camera = cameraForPose(pose, canvas);
       recordCameraDataset(canvas, pose);
+      const animationTimeSeconds = Math.max(0, (timestamp - state.pluginAnimationStartedAt) / 1000);
+      refreshPluginDynamicGeometry(
+        snapshotAtRenderTime(state.latestSnapshot, state.pluginSimulationTimeSeconds),
+        animationTimeSeconds,
+      );
+      if (timestamp - state.lastSubmittedFrameAt < PRIMARY_RENDER_INTERVAL_MS) return;
+      state.lastSubmittedFrameAt = timestamp;
       const seconds = resolvedSimulationTimeSeconds(state.latestSnapshot, state.pluginSimulationTimeSeconds);
-      writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun);
+      writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun, uniformData);
       state.semanticLabelReceipt = semanticLabels?.draw(
         labelCanvas,
         state.pluginScene.labels,
@@ -274,52 +367,81 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       ) || null;
       const encoder = device.createCommandEncoder({ label: 'autonomy-map-frame' });
       const currentTexture = context.getCurrentTexture();
+      // The route-follow camera still covers a city-scale field of view. Use
+      // the bounded proxy there as well; only POV is close enough to resolve
+      // irregular parcel edges and merits the full source geometry.
+      const useOverviewStatic = pose.mode !== 'pov';
       encodeScene(encoder, {
         label: 'autonomy-map-pass',
         resolveTarget: currentTexture.createView(),
         targets: state.renderTargets,
         bindGroup,
+        staticBuffer: useOverviewStatic ? state.overviewStaticBuffer : state.staticBuffer,
+        staticVertexCount: (useOverviewStatic ? state.overviewStaticData : state.staticData).length / geometry.FLOATS_PER_VERTEX,
         clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
       });
       const minimapVisible = Boolean(pose.mode === 'follow' && minimapCanvas);
       canvas.dataset.followMinimap = minimapVisible ? 'visible' : 'hidden';
       if (minimapVisible) {
         minimapCanvas.hidden = false;
-        resizeMinimapCanvas(minimapCanvas, device, format, state);
-        const minimapCamera = cameraForMinimap(state.latestSnapshot, minimapCanvas);
-        writeUniforms(device, minimapUniformBuffer, minimapCamera, minimapCanvas, seconds, state.pluginScene.sun);
-        encodeScene(encoder, {
-          label: 'autonomy-minimap-pass',
-          resolveTarget: minimapContext.getCurrentTexture().createView(),
-          targets: state.minimapTargets,
-          bindGroup: minimapBindGroup,
-          clearValue: { r: 0.003, g: 0.012, b: 0.022, a: 1 },
-        });
-        state.minimapFrameCount += 1;
-        minimapCanvas.dataset.frameCount = String(state.minimapFrameCount);
-        minimapCanvas.dataset.center = `${state.latestSnapshot.state.position.x.toFixed(2)},${state.latestSnapshot.state.position.y.toFixed(2)}`;
+        const shouldRenderMinimap = !state.minimapWasVisible
+          || timestamp - state.minimapLastRenderAt >= MINIMAP_FRAME_INTERVAL_MS;
+        // During a camera transition the primary view is already doing the
+        // expensive work needed to move the scene. Defer the secondary pass
+        // until the pose settles; the next frame refreshes its center.
+        if (shouldRenderMinimap && pose.transitionState === 'settled') {
+          resizeMinimapCanvas(minimapCanvas, device, format, state);
+          const minimapCamera = cameraForMinimap(state.latestSnapshot, minimapCanvas);
+          writeUniforms(device, minimapUniformBuffer, minimapCamera, minimapCanvas, seconds, state.pluginScene.sun, minimapUniformData);
+          encodeScene(encoder, {
+            label: 'autonomy-minimap-pass',
+            resolveTarget: minimapContext.getCurrentTexture().createView(),
+            targets: state.minimapTargets,
+            bindGroup: minimapBindGroup,
+            staticBuffer: state.overviewStaticBuffer,
+            staticVertexCount: state.overviewStaticData.length / geometry.FLOATS_PER_VERTEX,
+            clearValue: { r: 0.003, g: 0.012, b: 0.022, a: 1 },
+          });
+          state.minimapLastRenderAt = timestamp;
+          state.minimapFrameCount += 1;
+          minimapCanvas.dataset.frameCount = String(state.minimapFrameCount);
+          minimapCanvas.dataset.center = `${state.latestSnapshot.state.position.x.toFixed(2)},${state.latestSnapshot.state.position.y.toFixed(2)}`;
+        }
+        state.minimapWasVisible = true;
       } else if (minimapCanvas) {
         minimapCanvas.hidden = true;
+        state.minimapWasVisible = false;
       }
       device.queue.submit([encoder.finish()]);
       state.frameCount += 1;
       if (!state.firstFrameAt) state.firstFrameAt = performance.now();
       canvas.dataset.frameCount = String(state.frameCount);
       canvas.dataset.staticVertexCount = String(staticData.length / geometry.FLOATS_PER_VERTEX);
-      canvas.dataset.dynamicVertexCount = String(state.dynamicData.length / geometry.FLOATS_PER_VERTEX);
+      canvas.dataset.dynamicVertexCount = String((state.dynamicData.length + state.pluginDynamicData.length) / geometry.FLOATS_PER_VERTEX);
       if (state.frameCpuMs.length >= 512) state.frameCpuMs.shift();
       state.frameCpuMs.push(performance.now() - cpuStartedAt);
     }
 
-    function encodeScene(encoder, { label, resolveTarget, targets, bindGroup: sceneBindGroup, clearValue }) {
+    function encodeScene(encoder, {
+      label,
+      resolveTarget,
+      targets,
+      bindGroup: sceneBindGroup,
+      staticBuffer: sceneStaticBuffer = staticBuffer,
+      staticVertexCount: sceneStaticVertexCount = staticData.length / geometry.FLOATS_PER_VERTEX,
+      clearValue,
+    }) {
       const pass = encoder.beginRenderPass({
         label,
         colorAttachments: [{
-          view: targets.color.createView(),
-          resolveTarget,
+          view: SAMPLE_COUNT === 1 ? resolveTarget : targets.color.createView(),
+          ...(SAMPLE_COUNT === 1 ? {} : { resolveTarget }),
           clearValue,
           loadOp: 'clear',
-          storeOp: 'discard',
+          // With single-sample rendering the current swapchain texture is the
+          // presentation target. It must be stored; discarding it leaves a
+          // valid WebGPU pass and a black/undefined browser canvas.
+          storeOp: SAMPLE_COUNT === 1 ? 'store' : 'discard',
         }],
         depthStencilAttachment: {
           view: targets.depth.createView(),
@@ -330,11 +452,19 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       });
       pass.setPipeline(pipeline);
       pass.setBindGroup(0, sceneBindGroup);
-      pass.setVertexBuffer(0, staticBuffer);
-      pass.draw(staticData.length / geometry.FLOATS_PER_VERTEX);
+      pass.setVertexBuffer(0, sceneStaticBuffer);
+      pass.draw(sceneStaticVertexCount);
       if (state.dynamicBuffer && state.dynamicData.length) {
         pass.setVertexBuffer(0, state.dynamicBuffer);
         pass.draw(state.dynamicData.length / geometry.FLOATS_PER_VERTEX);
+      }
+      if (state.pluginStaticBuffer && state.pluginStaticData.length) {
+        pass.setVertexBuffer(0, state.pluginStaticBuffer);
+        pass.draw(state.pluginStaticData.length / geometry.FLOATS_PER_VERTEX);
+      }
+      if (state.pluginDynamicBuffer && state.pluginDynamicData.length) {
+        pass.setVertexBuffer(0, state.pluginDynamicBuffer);
+        pass.draw(state.pluginDynamicData.length / geometry.FLOATS_PER_VERTEX);
       }
       pass.end();
     }
@@ -352,14 +482,17 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       );
       const camera = cameraForPose(pose, canvas);
       const seconds = resolvedSimulationTimeSeconds(state.latestSnapshot, state.pluginSimulationTimeSeconds);
-      writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun);
+      writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun, uniformData);
       const currentTexture = context.getCurrentTexture();
       const encoder = device.createCommandEncoder({ label: 'autonomy-evidence-frame' });
+      const useOverviewStatic = pose.mode !== 'pov';
       encodeScene(encoder, {
         label: 'autonomy-evidence-pass',
         resolveTarget: currentTexture.createView(),
         targets: state.renderTargets,
         bindGroup,
+        staticBuffer: useOverviewStatic ? state.overviewStaticBuffer : state.staticBuffer,
+        staticVertexCount: (useOverviewStatic ? state.overviewStaticData : state.staticData).length / geometry.FLOATS_PER_VERTEX,
         clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
       });
       const rowBytes = canvas.width * 4;
@@ -458,7 +591,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         format,
         sampleCount: SAMPLE_COUNT,
         staticVertexCount: staticData.length / geometry.FLOATS_PER_VERTEX,
-        dynamicVertexCount: state.dynamicData.length / geometry.FLOATS_PER_VERTEX,
+        dynamicVertexCount: (state.dynamicData.length + state.pluginDynamicData.length) / geometry.FLOATS_PER_VERTEX,
+        coreDynamicVertexCount: state.dynamicData.length / geometry.FLOATS_PER_VERTEX,
+        pluginStaticVertexCount: state.pluginStaticData.length / geometry.FLOATS_PER_VERTEX,
+        pluginDynamicVertexCount: state.pluginDynamicData.length / geometry.FLOATS_PER_VERTEX,
         frameCount: state.frameCount,
         renderCpu: {
           basis: 'main-thread-command-encoding-and-submit',
@@ -466,6 +602,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           totalMs: state.frameCpuMs.reduce((sum, value) => sum + value, 0),
           maxMs: Math.max(0, ...state.frameCpuMs),
         },
+        workCpuMs: Object.fromEntries(Object.entries(state.workCpuMs).map(([key, values]) => [key, {
+          sampleCount: values.length,
+          totalMs: values.reduce((sum, value) => sum + value, 0),
+          maxMs: Math.max(0, ...values),
+        }])),
         firstFrameMs: state.firstFrameAt ? Number((state.firstFrameAt - state.startedAt).toFixed(3)) : null,
         worldId: worldModel.world.id,
         buildingCount: worldModel.world.renderGeometry.buildings.length,
@@ -514,7 +655,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       delete canvas.__simulatteRenderReceipt;
       if (state.animationFrame !== null) cancelAnimationFrame(state.animationFrame);
       staticBuffer.destroy();
+      overviewStaticBuffer.destroy();
       state.dynamicBuffer?.destroy();
+      state.pluginStaticBuffer?.destroy();
+      state.pluginDynamicBuffer?.destroy();
       state.renderTargets?.color.destroy();
       state.renderTargets?.depth.destroy();
       state.minimapTargets?.color.destroy();
@@ -552,13 +696,18 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     return buffer;
   }
 
-  function ensureDynamicBuffer(device, state, data) {
-    if (!state.dynamicBuffer || data.byteLength > state.dynamicCapacity) {
-      state.dynamicBuffer?.destroy();
-      state.dynamicCapacity = Math.max(4096, nextPowerOfTwo(data.byteLength));
-      state.dynamicBuffer = device.createBuffer({ label: 'autonomy-dynamic-geometry', size: state.dynamicCapacity, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+  function ensureGeometryBuffer(device, state, data, bufferKey, capacityKey, label) {
+    if (!state[bufferKey] || data.byteLength > state[capacityKey]) {
+      state[bufferKey]?.destroy();
+      state[capacityKey] = Math.max(4096, nextPowerOfTwo(data.byteLength));
+      state[bufferKey] = device.createBuffer({ label, size: state[capacityKey], usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
     }
-    if (data.length) device.queue.writeBuffer(state.dynamicBuffer, 0, data);
+    if (data.length) device.queue.writeBuffer(state[bufferKey], 0, data);
+  }
+
+  function recordWorkCpu(values, durationMs) {
+    if (values.length >= 128) values.shift();
+    values.push(Number(durationMs));
   }
 
   function resizeCanvas(canvas, device, format, state) {
@@ -627,8 +776,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.dataset.cameraFollowDistance = pose.followDistance.toFixed(3);
   }
 
-  function writeUniforms(device, buffer, camera, canvas, seconds, sun = null) {
-    const values = new Float32Array(32);
+  function writeUniforms(device, buffer, camera, canvas, seconds, sun = null, values = new Float32Array(32)) {
     const directionToSun = sun?.directionToSun || [0.38, 0.88, 0.26];
     values.set(camera.viewProjection, 0);
     values.set([...camera.eye, 1], 16);

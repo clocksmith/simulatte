@@ -10,6 +10,8 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createTierPluginPresentationApi(deterministicValues, compositorApi) {
   const COLORS = Object.freeze({ cyan:'#4de8ff',green:'#33ff66',amber:'#ffb347',red:'#ff5c66',magenta:'#ff4fd8',violet:'#a98cff',blue:'#6da8ff',shade:'#5e7389',muted:'rgba(237,245,243,0.28)' });
+  const PATH2D_CACHE = new WeakMap();
+  const ACTOR_TRANSITION_SECONDS = 0.72;
 
   function compileTierPresentation(pluginPresentation, fallbackCoordinateSystem = 'wgs84', options = {}) {
     if (pluginPresentation?.schema === 'simulatte.pluginPresentation.v4') return compileSemantic(pluginPresentation, options);
@@ -26,8 +28,10 @@
     const choropleths = [];
     const labels = [];
     const pointsById = new Map();
+    const rawPointsById = new Map();
     value.layers.forEach((layer) => {
       const coordinates = layer.geometry.coordinates || [];
+      rawPointsById.set(layer.id, coordinates);
       if (!coordinates.length) return;
       pointsById.set(
         layer.id,
@@ -70,14 +74,23 @@
           radius: style.radiusPx || 4,
         })));
       }
-      else if (primitive.kind === 'actor') actors.push(freezeRow({
-        ...row,
-        position: normalizeTuple(
-          pointAlongCoordinates(coordinates, semanticProgress(primitive.quantity), value.coordinateSystem),
-          value.coordinateSystem
-        ),
-        radius: style.radiusPx || 5,
-      }));
+      else if (primitive.kind === 'actor') {
+        const progress = semanticProgress(primitive.quantity);
+        const pathCoordinates = actorPathCoordinates(
+          primitive.id,
+          primitive.quantity?.kind,
+          rawPointsById.get(primitive.id) || coordinates,
+          value,
+          rawPointsById,
+        );
+        actors.push(freezeRow({
+          ...row,
+          position: normalizeTuple(pointAlongCoordinates(coordinates, progress, value.coordinateSystem), value.coordinateSystem),
+          pathCoordinates: pathCoordinates ? Object.freeze(pathCoordinates.map((point) => Object.freeze([...point]))) : null,
+          progress,
+          radius: style.radiusPx || 5,
+        }));
+      }
       else if (primitive.kind === 'path') paths.push(freezeRow({
         ...row,
         coordinates: Object.freeze(coordinates.map((point) => Object.freeze(normalizeTuple(point, value.coordinateSystem)))),
@@ -260,6 +273,27 @@
     return coordinates.at(-1);
   }
 
+  function actorPathCoordinates(actorId, quantityKind, actorCoordinates, presentation, rawPointsById) {
+    if (actorCoordinates.length > 1) return actorCoordinates;
+    if (!/route-progress|shipment-progress|repair|packet|spacecraft|vessel|pedestrian/.test(String(quantityKind || ''))) return null;
+    const pathLayers = presentation.layers.filter((layer) => layer.kind === 'path');
+    if (!pathLayers.length) return null;
+    const actor = String(actorId || '').toLowerCase();
+    const preferred = pathLayers.find((layer) => {
+      const id = String(layer.id || '').toLowerCase();
+      if (actor.includes('screening-spacecraft')) return id.includes('transfer-trajectory');
+      if (actor.includes('asteroid-active-clone')) return id.includes('representative-trajectory') || id.includes('clone-path');
+      if (actor.includes('voyage:')) return id.startsWith('route:');
+      if (actor.includes('sun-walker')) return id === 'shade-selected-route';
+      if (actor.includes('shipment:')) return id.startsWith('corridor:');
+      if (actor.includes('packet')) return id.startsWith('relay-link:');
+      return false;
+    });
+    const selected = preferred || pathLayers[0];
+    const coordinates = rawPointsById.get(selected.id);
+    return Array.isArray(coordinates) && coordinates.length > 1 ? coordinates : null;
+  }
+
   function focusDelta(cameraTargets, presentations, id, width, height, view) {
     const target = (cameraTargets || []).find((row) => row.id === id);
     if (!target) return null;
@@ -272,15 +306,32 @@
     let presentations = Object.freeze([]);
     let cameraTargets = Object.freeze([]);
     let simulationTimeSeconds = 0;
+    let animationStartedAt = performance.now();
     return Object.freeze({
       set(contributions, runtimeOptions = {}) {
         const view = host.view();
-        presentations = compileContributions(contributions, {
+        const previous = presentations;
+        const compiled = compileContributions(contributions, {
           ...runtimeOptions,
           viewport: { width: Math.max(1, host.width()), height: Math.max(1, host.height()) },
           project: (position, system) => projectPoint(position, system, view),
         });
+        presentations = Object.freeze(compiled.map((next) => {
+          const prior = previous.find((row) => row.pluginId === next.pluginId);
+          if (!prior) return next;
+          const priorActors = new Map(prior.actors.map((row) => [row.id, row]));
+          const actors = next.actors.map((actor) => {
+            const old = priorActors.get(actor.id);
+            if (!old || actor.pathCoordinates?.length > 1 || old.pathCoordinates?.length > 1) return actor;
+            const from = old.position;
+            const to = actor.position;
+            if (!from || !to || from.every((value, index) => value === to[index])) return actor;
+            return freezeRow({ ...actor, transitionFrom: Object.freeze([...from]) });
+          });
+          return Object.freeze({ ...next, actors: Object.freeze(actors) });
+        }));
         simulationTimeSeconds = Math.max(0, Number(runtimeOptions.simulationTimeMs || 0)) / 1000;
+        animationStartedAt = performance.now();
         cameraTargets = Object.freeze(presentations.flatMap((row) => row.cameraTargets || []));
         return presentations;
       },
@@ -297,8 +348,11 @@
       render(ctx) {
         if (!presentations.length) return;
         const view = host.view();
+        const animationElapsedSeconds = Math.max(0, (performance.now() - animationStartedAt) / 1000);
         draw(ctx, presentations, (position, system) => projectPoint(position, system, view), {
-          timeSeconds: simulationTimeSeconds,
+            timeSeconds: simulationTimeSeconds,
+          animationElapsedSeconds,
+            view,
         });
       },
       receipt() {
@@ -313,26 +367,117 @@
   function draw(ctx, contributions, project, options = {}) {
     if (!ctx || typeof project !== 'function') return;
     const timeSeconds = Number(options.timeSeconds || 0);
+    const animationElapsedSeconds = Number(options.animationElapsedSeconds || 0);
     contributions.forEach((presentation) => {
       const projection = (position) => project(position, presentation.coordinateSystem);
-      const entries = [
-        ...presentation.areas.map((row) => ({ kind: 'polygon', row, order: 0 })),
-        ...presentation.choropleths.map((row) => ({ kind: 'polygon', row, order: 1 })),
-        ...presentation.paths.map((row) => ({ kind: 'path', row, order: 2 })),
-        ...presentation.markers.map((row) => ({ kind: 'marker', row, order: 3 })),
-        ...presentation.actors.map((row) => ({ kind: 'actor', row, order: 4 })),
-      ].map((entry) => ({
-        ...entry,
-        depth: primitiveDepth(entry.row, projection),
-      })).sort((left, right) => left.depth - right.depth || left.order - right.order);
-      entries.forEach(({ kind, row }) => {
-        if (kind === 'polygon') drawPolygon(ctx, row.coordinates, projection, row);
-        else if (kind === 'path') drawPath(ctx, row.coordinates, projection, row, timeSeconds);
-        else if (kind === 'marker') drawMarker(ctx, projection(row.position), row, timeSeconds);
-        else drawActor(ctx, projection(row.position), row, timeSeconds);
-      });
+      if (presentation.coordinateSystem === 'wgs84' && canUseAffinePlanarPath(ctx, options.view)) {
+        drawAffinePlanar(ctx, presentation, options.view, timeSeconds, animationElapsedSeconds);
+        return;
+      }
+      // Geographic projections are planar: every primitive has the same depth,
+      // so rebuilding and sorting hundreds of entries on every frame only adds
+      // allocation and sort work without changing pixels. Coordinate-native
+      // 3D tiers retain the depth sort because camera orbit changes ordering.
+      if (presentation.coordinateSystem === 'wgs84') {
+        presentation.areas.forEach((row) => drawPolygon(ctx, row.coordinates, projection, row));
+        presentation.choropleths.forEach((row) => drawPolygon(ctx, row.coordinates, projection, row));
+        presentation.paths.forEach((row) => drawPath(ctx, row.coordinates, projection, row, timeSeconds));
+        presentation.markers.forEach((row) => drawMarker(ctx, projection(row.position), row, timeSeconds));
+        presentation.actors.forEach((row) => drawActor(ctx, projection(actorPosition(row, animationElapsedSeconds, presentation.coordinateSystem)), row, timeSeconds));
+      } else {
+        const entries = [
+          ...presentation.areas.map((row) => ({ kind: 'polygon', row, order: 0 })),
+          ...presentation.choropleths.map((row) => ({ kind: 'polygon', row, order: 1 })),
+          ...presentation.paths.map((row) => ({ kind: 'path', row, order: 2 })),
+          ...presentation.markers.map((row) => ({ kind: 'marker', row, order: 3 })),
+          ...presentation.actors.map((row) => ({ kind: 'actor', row, order: 4 })),
+        ].map((entry) => ({
+          ...entry,
+          depth: primitiveDepth(entry.row, projection),
+        })).sort((left, right) => left.depth - right.depth || left.order - right.order);
+        entries.forEach(({ kind, row }) => {
+          if (kind === 'polygon') drawPolygon(ctx, row.coordinates, projection, row);
+          else if (kind === 'path') drawPath(ctx, row.coordinates, projection, row, timeSeconds);
+          else if (kind === 'marker') drawMarker(ctx, projection(row.position), row, timeSeconds);
+          else drawActor(ctx, projection(actorPosition(row, animationElapsedSeconds, presentation.coordinateSystem)), row, timeSeconds);
+        });
+      }
       drawCollisionManagedLabels(ctx, presentation.labels, projection);
     });
+  }
+
+  function canUseAffinePlanarPath(ctx, view) {
+    return typeof Path2D === 'function'
+      && view?.currentTier === 'city'
+      && Number.isFinite(view.zoom)
+      && Number.isFinite(view.panX)
+      && Number.isFinite(view.panY);
+  }
+
+  function drawAffinePlanar(ctx, presentation, view, timeSeconds, animationElapsedSeconds = 0) {
+    const scale = 2.2 * view.zoom;
+    ctx.save();
+    ctx.setTransform(scale, 0, 0, -scale, view.panX, view.panY);
+    presentation.areas.forEach((row) => drawPath2dPolygon(ctx, row, false));
+    presentation.choropleths.forEach((row) => drawPath2dPolygon(ctx, row, false));
+    presentation.paths.forEach((row) => {
+      if (animatedFlow(row.quantityKind)) {
+        drawPath(ctx, row.coordinates, (position) => ({ x: view.panX + position[0] * scale, y: view.panY - position[1] * scale }), row, timeSeconds);
+        return;
+      }
+      const path = path2dFor(row.coordinates, false);
+      if (!path) return;
+      ctx.strokeStyle = color(row.tone, row.style?.strokeOpacity ?? 0.8, row.style?.color);
+      ctx.lineWidth = Math.max(1, Math.min(4, Number(row.style?.widthPx || row.width || 2))) / Math.max(0.001, Math.abs(scale));
+      ctx.setLineDash((row.style?.dash || []).map((value) => Number(value) / Math.max(0.001, Math.abs(scale))));
+      ctx.stroke(path);
+      ctx.setLineDash([]);
+    });
+    ctx.restore();
+    const project = (position) => ({ x: view.panX + position[0] * scale, y: view.panY - position[1] * scale, scale: 1 });
+    presentation.markers.forEach((row) => drawMarker(ctx, project(row.position), row, timeSeconds));
+    presentation.actors.forEach((row) => drawActor(ctx, project(actorPosition(row, animationElapsedSeconds, presentation.coordinateSystem)), row, timeSeconds));
+    drawCollisionManagedLabels(ctx, presentation.labels, project);
+  }
+
+  function actorPosition(actor, animationElapsedSeconds, coordinateSystem) {
+    if (actor.transitionFrom && actor.position) {
+      const progress = Math.min(1, Math.max(0, animationElapsedSeconds / ACTOR_TRANSITION_SECONDS));
+      return actor.position.map((value, index) => Number(actor.transitionFrom[index] || 0) + (value - Number(actor.transitionFrom[index] || 0)) * progress);
+    }
+    if (!actor.pathCoordinates || actor.pathCoordinates.length < 2) return actor.position;
+    return pointAlongCoordinates(actor.pathCoordinates, (actor.progress + animationElapsedSeconds * 0.24) % 1, coordinateSystem);
+  }
+
+  function drawPath2dPolygon(ctx, row, isVolume) {
+    const path = path2dFor(row.coordinates, true);
+    if (!path) return;
+    const defaultOpacity = Math.max(0.06, Math.min(0.36, Number(row.intensity || 0.4) * 0.15));
+    const fillOpacity = /occlusion\.shadow-length/.test(String(row.quantityKind || ''))
+      ? Math.min(0.22, Number(row.style?.fillOpacity ?? defaultOpacity))
+      : Number(row.style?.fillOpacity ?? defaultOpacity);
+    ctx.fillStyle = color(row.tone, fillOpacity, row.style?.color);
+    ctx.strokeStyle = color(row.tone, row.style?.strokeOpacity ?? 0.55, row.style?.color);
+    ctx.lineWidth = 0.8;
+    ctx.fill(path);
+    ctx.stroke(path);
+  }
+
+  function path2dFor(coordinates, close) {
+    if (!Array.isArray(coordinates) || coordinates.length < 2 || typeof Path2D !== 'function') return null;
+    const cached = PATH2D_CACHE.get(coordinates);
+    if (cached?.[close ? 'closed' : 'open']) return cached[close ? 'closed' : 'open'];
+    const path = new Path2D();
+    coordinates.forEach((point, index) => {
+      if (index === 0) path.moveTo(Number(point[0]), Number(point[1]));
+      else path.lineTo(Number(point[0]), Number(point[1]));
+    });
+    if (close) path.closePath();
+    PATH2D_CACHE.set(coordinates, {
+      ...(cached || {}),
+      [close ? 'closed' : 'open']: path,
+    });
+    return path;
   }
 
   function drawPath(ctx, coordinates, project, path, timeSeconds) {
@@ -360,7 +505,11 @@
     ctx.beginPath();
     coordinates.forEach((coordinate,index)=>{const point=project(coordinate);if(index===0)ctx.moveTo(point.x,point.y);else ctx.lineTo(point.x,point.y);});
     ctx.closePath();
-    ctx.fillStyle=color(area.tone,area.style?.fillOpacity ?? Math.max(0.06,Math.min(0.36,Number(area.intensity||0.4)*0.15)),area.style?.color);
+    const defaultOpacity=Math.max(0.06,Math.min(0.36,Number(area.intensity||0.4)*0.15));
+    const fillOpacity=/occlusion\.shadow-length/.test(String(area.quantityKind||''))
+      ? Math.min(0.22,Number(area.style?.fillOpacity ?? defaultOpacity))
+      : Number(area.style?.fillOpacity ?? defaultOpacity);
+    ctx.fillStyle=color(area.tone,fillOpacity,area.style?.color);
     ctx.strokeStyle=color(area.tone,area.style?.strokeOpacity ?? 0.55,area.style?.color);
     ctx.fill();
     ctx.stroke();

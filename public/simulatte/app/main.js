@@ -89,6 +89,7 @@
   async function start(initialTier = 'city', requestedProfileId = null, hooks = {}) {
     if (!experienceCameraApi?.applyInitialCamera || !experienceCameraApi?.runCameraMode) throw new Error('Experience camera dependency is unavailable');
     const elements = collectElements();
+    let routeSimulation = hooks.simulation || null;
     const lifecycle = mountLifecycleApi.create(hooks.signal);
     const on = lifecycle.on;
     let extensions = null;
@@ -104,7 +105,14 @@
     let pluginUi = null;
     let neuralGate = null;
     let buildRevision = 0;
+    let pluginRenderGeneration = 0;
+    let routeParametersApplied = false;
+    let missionUrlTimer = null;
     let lastPluginContributions = Object.freeze([]);
+    const renderWork = {
+      samples: [],
+      phases: Object.fromEntries(['platform', 'pluginUi', 'renderer', 'viewRuntime', 'total'].map((key) => [key, []])),
+    };
     let isRunning = false;
     let disposal = null;
 
@@ -112,6 +120,8 @@
       if (disposal) return disposal;
       disposal = (async () => {
         isRunning = false;
+        if (missionUrlTimer !== null) clearTimeout(missionUrlTimer);
+        missionUrlTimer = null;
         buildRevision += 1;
         pluginClock?.pause();
         if (frameRequest !== null) cancelAnimationFrame(frameRequest);
@@ -183,7 +193,11 @@
       pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
       storedPlaybackReceipt = null;
     }
-    let activeScenario = storedScenario || interaction.defaultScenario;
+    const routeScenario = routeSimulation?.scenarioId
+      ? interaction.scenarios.find((scenario) => scenario.id === routeSimulation.scenarioId
+        && (!routeSimulation.seed || scenario.seed === routeSimulation.seed))
+      : null;
+    let activeScenario = routeScenario || (!routeSimulation && storedScenario) || interaction.defaultScenario;
     const pluginArtifacts = artifactStoreApi.createGovernedArtifactStore({ transport: transportApi.createBrowserTransport({ fetchImpl: lifecycle.fetch }) });
     let activeMissionForPlugins = null;
     extensions = await pluginRuntimeApi.createPluginRuntime({
@@ -234,7 +248,7 @@
       },
     });
     lifecycle.throwIfAborted();
-    pluginUi = pluginUiApi.createDeclarativeUiHost({
+      pluginUi = pluginUiApi.createDeclarativeUiHost({
       rootElements: { inspector: elements.pluginInspector, map: elements.pluginMapUi },
       onAction: async ({ pluginId, actionId, command, values }) => {
         if (command?.kind === 'camera.focus') {
@@ -253,6 +267,15 @@
         renderPluginExperience({ mission: activeMissionForPlugins });
       },
       onControlChange: async ({ pluginId, values }) => {
+        if (hooks.navigate) {
+          const simulation = simulationRouteState();
+          await hooks.navigate({
+            tier: initialTier,
+            experience: data.applicationProfile.id,
+            simulation: { ...simulation, parameters: { ...simulation.parameters, [pluginId]: values } },
+          }, { replace: true });
+          return;
+        }
         if (!pluginPlayback || pluginPlayback.snapshot().ownerPluginId !== pluginId) return;
         pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
         hostRoot.__simulattePluginRunReceipt = null;
@@ -344,26 +367,52 @@
       stopLoop,
       renderPlanning,
     });
-    function renderPluginExperience(context) {
+    async function renderPluginExperience(context) {
+      const renderGeneration = ++pluginRenderGeneration;
+      const renderStartedAt = performance.now();
       const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
+      const platformStartedAt = performance.now();
       const platform = extensions.platformV4(pluginContext);
+      recordRenderWork(renderWork.phases.platform, performance.now() - platformStartedAt);
+      Object.entries(platform.workCpuMs || {}).forEach(([phase, durationMs]) => {
+        const key = `platform:${phase}`;
+        if (!renderWork.phases[key]) renderWork.phases[key] = [];
+        recordRenderWork(renderWork.phases[key], durationMs);
+      });
       lastPluginContributions = platform.contributions;
+      const uiStartedAt = performance.now();
       pluginUi.render(extensions.views(pluginContext), platform.contributions);
+      if (!routeParametersApplied) {
+        const accepted = acceptedRouteParameters(routeSimulation);
+        Object.entries(accepted).forEach(([pluginId, values]) => pluginUi.setValues(pluginId, values));
+        routeParametersApplied = true;
+        // setValues updates the governed control store, not already-rendered DOM
+        // inputs. Re-render once so the visible controls and copied URL agree.
+        if (Object.keys(accepted).length) pluginUi.render(extensions.views(pluginContext), platform.contributions);
+      }
+      recordRenderWork(renderWork.phases.pluginUi, performance.now() - uiStartedAt);
       const controlCount = platform.contributions.reduce((total, contribution) => total + contribution.controls.controls.length, 0);
       elements.decisionsButton.textContent = controlCount ? `Controls (${controlCount})` : 'Evidence';
       renderPluginSummary(pluginPlayback?.snapshot().phase || 'ready');
       if (!renderer) return;
+      // Platform assembly and GPU compilation are independent main-thread
+      // phases. Yield once between them so a large evidence snapshot cannot
+      // monopolize one task; a newer state supersedes stale work safely.
+      await yieldToFrame();
+      if (renderGeneration !== pluginRenderGeneration || !renderer) return;
       const selected = renderer.cameraState?.()?.focusId || 'route';
       const semanticPresentations = platform.contributions.map((contribution) => ({
         pluginId: contribution.pluginId,
         presentation: contribution.presentation,
       }));
       const platformTime = Math.max(0, ...platform.contributions.map((contribution) => contribution.state?.simulationTimeMs || 0));
+      const rendererStartedAt = performance.now();
       renderer.setPluginPresentations(semanticPresentations, {
         simulationTimeMs: platformTime,
         selectedIds: [selected],
         provenanceReceipts: platform.provenanceReceipts,
       });
+      recordRenderWork(renderWork.phases.renderer, performance.now() - rendererStartedAt);
       if (!hasAppliedInitialCamera) hasAppliedInitialCamera = experienceCameraApi.applyInitialCamera({
         configuration: data.applicationProfile.camera,
         renderer,
@@ -417,7 +466,9 @@
           onModeSelected: (mode) => selectCameraMode(elements, mode),
         });
       }
+      const viewStartedAt = performance.now();
       const viewReceipt = pluginViewRuntime.sync(platform.contributions, platform.provenanceReceipts);
+      recordRenderWork(renderWork.phases.viewRuntime, performance.now() - viewStartedAt);
       hostRoot.__simulattePluginPlatformV4 = Object.freeze({
         receipt: platform.receipt,
         contributions: platform.contributions,
@@ -427,6 +478,8 @@
         view: viewReceipt,
         compositor: renderer.receipt().pluginCompositor,
       });
+      recordRenderWork(renderWork.phases.total, performance.now() - renderStartedAt);
+      hostRoot.__simulatteAppRenderReceipt = () => renderWorkReceipt(renderWork);
     }
     function renderPluginSummary(runState) {
       renderExperienceSummary(elements, hostRoot.SimulatteWorldTiersBoot.experienceHudSummary({
@@ -439,6 +492,79 @@
         playback: pluginPlayback?.snapshot() || null,
         comparisonReceipts: hostRoot.__simulatteComparisonExecutionReceipts || [],
       }));
+    }
+
+    function scenarioForRoute(simulation) {
+      const scenarioId = simulation?.scenarioId || null;
+      const seed = simulation?.seed || null;
+      return (scenarioId
+        ? interaction.scenarios.find((row) => row.id === scenarioId && (!seed || row.seed === seed))
+        : null) || interaction.defaultScenario;
+    }
+
+    function acceptedRouteParameters(simulation) {
+      const requested = simulation?.parameters || {};
+      const accepted = {};
+      Object.entries(requested).forEach(([pluginId, values]) => {
+        if (!values || typeof values !== 'object' || Array.isArray(values)) return;
+        const declared = pluginUi.values(pluginId);
+        const filtered = Object.fromEntries(Object.keys(values)
+          .filter((key) => Object.prototype.hasOwnProperty.call(declared, key))
+          .map((key) => [key, values[key]]));
+        if (Object.keys(filtered).length) accepted[pluginId] = filtered;
+      });
+      return accepted;
+    }
+
+    function simulationRouteState() {
+      const parameters = {};
+      extensions.activePluginIds.forEach((pluginId) => {
+        const values = pluginUi.values(pluginId);
+        if (Object.keys(values).length) parameters[pluginId] = values;
+      });
+      return {
+        scenarioId: activeScenario.id,
+        seed: activeScenario.seed,
+        ...(elements.missionInput.value ? { mission: elements.missionInput.value } : {}),
+        parameters,
+      };
+    }
+
+    async function updateSimulationFromRoute(nextSimulation) {
+      routeSimulation = nextSimulation || null;
+      const nextScenario = scenarioForRoute(nextSimulation);
+      const scenarioChanged = nextScenario.id !== activeScenario.id || nextScenario.seed !== activeScenario.seed;
+      const requestedParameters = acceptedRouteParameters(nextSimulation);
+      let controlsApplied = false;
+      if (scenarioChanged) {
+        pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
+        hostRoot.__simulattePluginRunReceipt = null;
+        hostRoot.__simulatteComparisonExecutionReceipts = Object.freeze([]);
+        pluginUi.resetValues();
+        routeParametersApplied = false;
+        if (pluginPlayback) await pluginPlayback.reset(nextScenario, { renderReadyState: false });
+        else await extensions.setScenario(nextScenario);
+        activeScenario = nextScenario;
+        applicationProfileSelectApi.renderInteraction(interaction, activeScenario, elements);
+        await renderPluginExperience({ mission: null });
+      } else {
+        // Removing a query parameter must restore the declared control default;
+        // URL state is authoritative, not the previous in-memory control map.
+        pluginUi.resetValues();
+        routeParametersApplied = false;
+        await renderPluginExperience({ mission: activeMissionForPlugins });
+      }
+      if (nextSimulation?.mission && interaction.mode === 'prompt') {
+        elements.missionInput.value = nextSimulation.mission;
+        resizeMissionInput(elements.missionInput);
+      }
+      if (pluginPlayback) {
+        const owner = data.applicationProfile.interaction?.simulationOwnerPluginId || extensions.activePluginIds[0];
+        await pluginPlayback.applyControls(requestedParameters[owner] || pluginUi.values(owner));
+        controlsApplied = true;
+      }
+      if (!controlsApplied) await renderPluginExperience({ mission: activeMissionForPlugins });
+      return simulationRouteState();
     }
 
     profileSelectUi = wireProfileSelection({
@@ -598,6 +724,14 @@
     on(elements.shuffleButton, 'click', async () => {
       if (isRunning) return;
       const nextScenario = applicationProfileSelectApi.nextScenario(interaction, activeScenario.id);
+      if (hooks.navigate) {
+        await hooks.navigate({
+          tier: initialTier,
+          experience: data.applicationProfile.id,
+          simulation: { scenarioId: nextScenario.id, seed: nextScenario.seed },
+        });
+        return;
+      }
       elements.shuffleButton.disabled = true;
       setJourneyPhase('loading');
       setRuntimeStatus(elements, 'Loading scenario', 'loading');
@@ -606,7 +740,10 @@
         pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
         hostRoot.__simulattePluginRunReceipt = null;
         pluginUi.resetValues();
-        if (pluginPlayback) await pluginPlayback.reset(nextScenario);
+        // The scenario handler renders the new ready state below; suppress
+        // the controller's intermediate render so a shuffle cannot compile
+        // the same evidence presentation twice in one interaction task.
+        if (pluginPlayback) await pluginPlayback.reset(nextScenario, { renderReadyState: false });
         else await extensions.setScenario(nextScenario);
         activeScenario = nextScenario;
         applicationProfileSelectApi.renderInteraction(interaction, activeScenario, elements);
@@ -733,6 +870,17 @@
       hasJourneyStarted = false;
       updateButtons(elements, false, false, 'active', false);
       setRuntimeStatus(elements, 'Ready', 'changed');
+      if (hooks.navigate) {
+        if (missionUrlTimer !== null) clearTimeout(missionUrlTimer);
+        missionUrlTimer = setTimeout(() => {
+          missionUrlTimer = null;
+          void hooks.navigate({
+            tier: initialTier,
+            experience: data.applicationProfile.id,
+            simulation: simulationRouteState(),
+          }, { replace: true });
+        }, 160);
+      }
     });
     on(elements.missionInput, 'keydown', (event) => {
       if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
@@ -791,18 +939,45 @@
       // re-boot in place through the shell — no page reload.
       await selectWorldTier(initialTier);
       lifecycle.throwIfAborted();
-      renderPluginExperience({ mission: activeMissionForPlugins });
+      await renderPluginExperience({ mission: activeMissionForPlugins });
     } catch (error) {
       // Tear this boot down cleanly (abort listeners, release GPU) and throw so the shell can retry
       // the tier default or surface the failure. No location.assign, no landing bounce.
       await disposeApplication();
       throw error;
     }
-      return { tier: 'city', experience: data.applicationProfile.id, data, dispose: disposeApplication, getController: () => controller, getRenderer: () => renderer };
+      return {
+        tier: 'city',
+        experience: data.applicationProfile.id,
+        simulation: simulationRouteState(),
+        data,
+        dispose: disposeApplication,
+        updateSimulation: updateSimulationFromRoute,
+        getController: () => controller,
+        getRenderer: () => renderer,
+      };
     } catch (error) {
       await disposeApplication();
       throw error;
     }
+  }
+
+  function recordRenderWork(values, durationMs) {
+    if (values.length >= 128) values.shift();
+    values.push(Number(durationMs));
+  }
+
+  function renderWorkReceipt(work) {
+    const summarize = (values) => ({
+      sampleCount: values.length,
+      totalMs: values.reduce((sum, value) => sum + value, 0),
+      maxMs: Math.max(0, ...values),
+    });
+    return {
+      schema: 'simulatte.appRenderWorkReceipt.v1',
+      samples: work.phases.total.length,
+      phases: Object.fromEntries(Object.entries(work.phases).map(([key, values]) => [key, summarize(values)])),
+    };
   }
 
   launchBrowserApp(start, collectElements);

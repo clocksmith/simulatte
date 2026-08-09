@@ -18,9 +18,74 @@
   const MODEL_IDENTITIES = Object.freeze({
     circulationModelHash: '35a9533f20a0b7dacf829135777bfd320b72eb99720334dd3b129e8d1d0bb7af',
   });
+  const STATIC_CACHE = new WeakMap();
+  const CONTRIBUTION_CACHE = new WeakMap();
 
   function createContribution({ config, simulation, state, routes }) {
     const visible = simulation.snapshots[state.playback.day];
+    const cacheKey = `${state.playback.day}:${state.playback.status}:${routes.map((row) => row.id).join('|')}`;
+    const cachedByKey = CONTRIBUTION_CACHE.get(simulation);
+    if (cachedByKey?.has(cacheKey)) return cachedByKey.get(cacheKey);
+    const staticData = staticFor(config, simulation);
+    const routeById = new Map(routes.map((row) => [row.id, row]));
+    const layers = [
+      ...hubLayers(simulation, visible, staticData.scenario),
+      ...residenceLayers(simulation, staticData.scenario),
+      ...journeyLayers(config, simulation, visible, routeById, staticData.simulated),
+    ];
+    const presentation = builder.presentation({
+      pluginId: PLUGIN_ID,
+      coordinateSystem: 'city-node-segment-id',
+      layers,
+      viewIntents: [
+        builder.viewIntent({
+          id: 'cable-network-overview',
+          mode: 'overview',
+          targetIds: [
+            ...simulation.activeHubIds.map((id) => `hub:${id}`),
+            'residences',
+          ],
+          reasonEventId: visible.day ? staticData.events[visible.day - 1]?.id || null : null,
+          priority: 50,
+        }),
+      ],
+    });
+    const progressiveState = builder.state({
+      id: `${simulation.id}:state-day-${visible.day}`,
+      pluginId: PLUGIN_ID,
+      simulationTimeMs: visible.day * DAY_MS,
+      status: state.playback.status,
+      previousStateId: visible.day ? `${simulation.id}:state-day-${visible.day - 1}` : null,
+      eventIds: staticData.eventIdsByDay[visible.day],
+      measures: [
+        builder.quantity('people', simulation.people.length, 'people'),
+        builder.quantity('unique-residences', simulation.residences.length, 'residences'),
+        builder.quantity('cable-supply', visible.global.supply, 'cables/day'),
+        builder.quantity('cable-demand', visible.global.demand, 'cables/day'),
+        builder.quantity('cables-reused', visible.cumulative.fulfilled, 'cables'),
+        builder.quantity('active-travelers', visible.global.journeys, 'people/day'),
+        builder.quantity('waiting-demand', visible.global.waiting, 'cables'),
+        builder.quantity('hub-inventory', visible.global.inventory, 'cables'),
+      ],
+      provenance: staticData.simulated,
+    });
+    const contribution = builder.contribution({
+      pluginId: PLUGIN_ID,
+      presentation,
+      events: staticData.events,
+      controls: staticData.controls,
+      state: progressiveState,
+      inspections: inspections(config, simulation, visible, staticData.simulated),
+      provenanceRecords: staticData.provenanceRecords,
+    });
+    if (cachedByKey) cachedByKey.set(cacheKey, contribution);
+    else CONTRIBUTION_CACHE.set(simulation, new Map([[cacheKey, contribution]]));
+    return contribution;
+  }
+
+  function staticFor(config, simulation) {
+    const cached = STATIC_CACHE.get(simulation);
+    if (cached) return cached;
     const scenarioRecord = builder.datasetRecord(config.id, {
       sha256: simulation.configurationHash,
     }, {
@@ -65,8 +130,7 @@
       },
       records: [scenarioRecord, catalogRecord],
     });
-    const routeById = new Map(routes.map((row) => [row.id, row]));
-    const events = simulation.events.map((row, sequence) => builder.event({
+    const events = Object.freeze(simulation.events.map((row, sequence) => builder.event({
       id: row.id,
       pluginId: PLUGIN_ID,
       sequence,
@@ -76,29 +140,10 @@
       correlationId: simulation.id,
       payload: { day: row.day, measures: row.measures },
       provenance: simulated,
-    }));
-    const layers = [
-      ...hubLayers(simulation, visible, scenario),
-      ...residenceLayers(simulation, scenario),
-      ...journeyLayers(config, simulation, visible, routeById, simulated),
-    ];
-    const presentation = builder.presentation({
-      pluginId: PLUGIN_ID,
-      coordinateSystem: 'city-node-segment-id',
-      layers,
-      viewIntents: [
-        builder.viewIntent({
-          id: 'cable-network-overview',
-          mode: 'overview',
-          targetIds: [
-            ...simulation.activeHubIds.map((id) => `hub:${id}`),
-            'residences',
-          ],
-          reasonEventId: visible.day ? events[visible.day - 1]?.id || null : null,
-          priority: 50,
-        }),
-      ],
-    });
+    })));
+    const eventIdsByDay = Object.freeze(Array.from({ length: simulation.durationDays + 1 }, (_, day) => Object.freeze(
+      events.slice(0, day).map((row) => row.id)
+    )));
     const controls = builder.controls([
       numeric('peopleCount', 'People / unique residences', simulation.people.length, 64, 10000, 64, scenario),
       numeric('hubCount', 'Hubs', simulation.activeHubIds.length, 4, 64, 1, scenario),
@@ -110,34 +155,16 @@
         scenario
       ),
     ]);
-    const progressiveState = builder.state({
-      id: `${simulation.id}:state-day-${visible.day}`,
-      pluginId: PLUGIN_ID,
-      simulationTimeMs: visible.day * DAY_MS,
-      status: state.playback.status,
-      previousStateId: visible.day ? `${simulation.id}:state-day-${visible.day - 1}` : null,
-      eventIds: events.slice(0, visible.day).map((row) => row.id),
-      measures: [
-        builder.quantity('people', simulation.people.length, 'people'),
-        builder.quantity('unique-residences', simulation.residences.length, 'residences'),
-        builder.quantity('cable-supply', visible.global.supply, 'cables/day'),
-        builder.quantity('cable-demand', visible.global.demand, 'cables/day'),
-        builder.quantity('cables-reused', visible.cumulative.fulfilled, 'cables'),
-        builder.quantity('active-travelers', visible.global.journeys, 'people/day'),
-        builder.quantity('waiting-demand', visible.global.waiting, 'cables'),
-        builder.quantity('hub-inventory', visible.global.inventory, 'cables'),
-      ],
-      provenance: simulated,
-    });
-    return builder.contribution({
-      pluginId: PLUGIN_ID,
-      presentation,
+    const result = Object.freeze({
+      scenario,
+      simulated,
       events,
+      eventIdsByDay,
       controls,
-      state: progressiveState,
-      inspections: inspections(config, simulation, visible, simulated),
-      provenanceRecords: [catalogRecord, scenarioRecord, modelRecord],
+      provenanceRecords: Object.freeze([catalogRecord, scenarioRecord, modelRecord]),
     });
+    STATIC_CACHE.set(simulation, result);
+    return result;
   }
 
   function hubLayers(simulation, visible, provenance) {

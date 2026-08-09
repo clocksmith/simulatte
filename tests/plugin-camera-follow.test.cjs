@@ -128,7 +128,6 @@ test('City camera buttons send the exact advertised modes and select semantic ta
       cameraTop: node(),
       cameraFree: node(),
       cameraCompare: node(),
-      cameraFocus: node(),
     };
     const calls = [];
     const targets = [
@@ -148,7 +147,6 @@ test('City camera buttons send the exact advertised modes and select semantic ta
       ['focus', 'plugin:fixture:comparison'],
       ['mode', 'compare'],
     ]);
-    assert.equal(elements.cameraFocus.value, 'plugin:fixture:comparison');
   } finally {
     global.document = previousDocument;
   }

@@ -578,6 +578,11 @@
     const snapshot = currentSnapshot(state);
     return deepFreeze({
       status: state.playback.status === 'settled' ? 'settled' : 'running',
+      // Starting playback at the already-rendered first snapshot changes only
+      // playback state; avoid a duplicate full city-map compilation. Subsequent
+      // cursor advances expose presentationChanged implicitly through a new
+      // snapshot and are rendered by the shared playback controller.
+      presentationChanged: state.playback.cursor !== 0,
       currentStep: state.playback.cursor,
       totalSteps: state.result.snapshots.length - 1,
       simulationTimeMs: snapshot.simulationTimeMs,
