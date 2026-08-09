@@ -1682,6 +1682,34 @@ test('autonomy runtime logs bounded structured events and deployment revalidates
   assert.deepEqual(autonomyDataHeaders.headers, [{ key: 'Cache-Control', value: 'no-cache' }]);
 });
 
+test('experience load traces emit reusable stage timings and terminal summaries', () => {
+  let time = 100;
+  const rows = [];
+  const logger = runtimeLog.createRuntimeLogger({ clock: () => time, sink: { info: (_label, row) => rows.push(row), error: (_label, row) => rows.push(row) } });
+  const trace = runtimeLog.createLoadTrace(logger, {
+    clock: () => time,
+    loadId: 'load-test',
+    details: { tier: 'solar-system', requestedProfileId: 'asteroid-defense-v1' },
+  });
+  time = 112;
+  const stage = trace.stage('application.data');
+  time = 147.25;
+  stage.end({ assetCount: 4 });
+  time = 160;
+  trace.complete({ profileId: 'asteroid-defense-v1' });
+
+  assert.deepEqual(rows.map((row) => row.event), [
+    'experience.load.started',
+    'experience.load.stage.started',
+    'experience.load.stage.completed',
+    'experience.load.completed',
+  ]);
+  assert.equal(rows[2].details.durationMs, 35.25);
+  assert.equal(rows[3].details.durationMs, 60);
+  assert.deepEqual(rows[3].details.stages, [{ stage: 'application.data', durationMs: 35.25, assetCount: 4 }]);
+  assert.equal(rows.every((row) => row.details.loadId === 'load-test'), true);
+});
+
 test('autonomy schemas are restrictive and SAME-R declares one intervention', async () => {
   for (const name of ['mission', 'observation', 'occurrence-receipt', 'action-bet', 'settlement', 'journey-receipt', 'region-pack', 'region-registry']) {
     const schema = readJson(`public/shared/contracts/${name}.schema.json`);

@@ -92,6 +92,8 @@
     let routeSimulation = hooks.simulation || null;
     const lifecycle = mountLifecycleApi.create(hooks.signal);
     const on = lifecycle.on;
+    const loadTrace = runtimeLog?.createLoadTrace?.(log, { details: { tier: initialTier, requestedProfileId, route: typeof window !== 'undefined' ? window.location.pathname + window.location.search : null, scenarioId: hooks.simulation?.scenarioId || null } }) || null;
+    const timedLoadStage = (name, operation, details = {}) => loadTrace?.run(name, operation, details) || operation();
     let extensions = null;
     let profileSelectUi = null;
     let tierVisualizer = null;
@@ -166,10 +168,10 @@
       });
       setRuntimeStatus(elements, 'Loading', 'loading');
       if (!runtimeLoaderApi?.loadSelectedProduct) throw new Error('World runtime loader dependency is unavailable');
-      await runtimeLoaderApi.loadSelectedProduct({ tierId: 'city', profileId: requestedProfileId });
+      await timedLoadStage('runtime.bootstrap', () => runtimeLoaderApi.loadSelectedProduct({ tierId: 'city', profileId: requestedProfileId }));
       lifecycle.throwIfAborted();
       let data;
-      data = await dataLoader.loadApplication(undefined, lifecycle.fetch, { requestedProfileId, deferRenderGeometry: true });
+      data = await timedLoadStage('application.data', () => dataLoader.loadApplication(undefined, lifecycle.fetch, { requestedProfileId, deferRenderGeometry: true }));
       lifecycle.throwIfAborted();
     if (!applicationProfileSelectApi?.resolveInteraction || !applicationProfileSelectApi?.renderInteraction) throw new Error('Application interaction dependency is unavailable');
     const interaction = applicationProfileSelectApi.resolveInteraction(data.applicationProfile, data.manifest);
@@ -178,7 +180,15 @@
       profile: data.applicationProfile,
       tier: initialTier,
     });
-    if (typeof data.loadRenderGeometry === 'function' && data.applicationProfile.experience?.worldDetail !== 'plugin-owned') { setRuntimeStatus(elements, 'Loading map detail', 'loading'); await new Promise((resolve) => requestAnimationFrame(resolve)); lifecycle.throwIfAborted(); data = await data.loadRenderGeometry(); lifecycle.throwIfAborted(); }
+    if (typeof data.loadRenderGeometry === 'function' && data.applicationProfile.experience?.worldDetail !== 'plugin-owned') {
+      setRuntimeStatus(elements, 'Loading map detail', 'loading');
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      lifecycle.throwIfAborted();
+      data = await timedLoadStage('world.geometry', () => data.loadRenderGeometry());
+      lifecycle.throwIfAborted();
+    } else {
+      loadTrace?.stage('world.geometry').end({ skipped: true, reason: 'plugin-owned' });
+    }
     const playbackStorage = pluginPlaybackApi?.browserStorage?.(hostRoot) || null;
     let storedPlaybackReceipt = interaction.mode === 'playback'
       ? pluginPlaybackApi.loadStoredReceipt(playbackStorage, data.applicationProfile.id)
@@ -200,7 +210,7 @@
     let activeScenario = routeScenario || (!routeSimulation && storedScenario) || interaction.defaultScenario;
     const pluginArtifacts = artifactStoreApi.createGovernedArtifactStore({ transport: transportApi.createBrowserTransport({ fetchImpl: lifecycle.fetch }) });
     let activeMissionForPlugins = null;
-    extensions = await pluginRuntimeApi.createPluginRuntime({
+    extensions = await timedLoadStage('plugins.runtime', () => pluginRuntimeApi.createPluginRuntime({
       registry: pluginRegistry,
       profile: data.applicationProfile,
       scenario: activeScenario,
@@ -246,7 +256,7 @@
         compute: pluginComputeApi ? pluginComputeApi.createComputePort({ workerPool: null }) : undefined,
         tier: Object.freeze({ schema: 'simulatte.tierQuery.v1', id: initialTier, worldId: data.world.id, profileId: data.applicationProfile.id, snapshot: () => data.world }),
       },
-    });
+    }), { pluginCount: data.applicationProfile.plugins.length });
     lifecycle.throwIfAborted();
       pluginUi = pluginUiApi.createDeclarativeUiHost({
       rootElements: { inspector: elements.pluginInspector, map: elements.pluginMapUi },
@@ -911,7 +921,7 @@
     try {
       renderPolicyArena(elements, data.policyArenaEvidence);
       await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
-      await buildController();
+      await timedLoadStage('initial.controller', () => buildController());
       lifecycle.throwIfAborted();
       if (storedPlaybackReceipt) {
         if (!pluginPlayback) throw new Error('Stored plugin playback cannot be restored without a playback controller');
@@ -937,9 +947,10 @@
 
       // Load the city tier visualizer for this mount. Tier/experience switches are URL-driven and
       // re-boot in place through the shell — no page reload.
-      await selectWorldTier(initialTier);
+      await timedLoadStage('tier.visualizer', () => selectWorldTier(initialTier));
       lifecycle.throwIfAborted();
-      await renderPluginExperience({ mission: activeMissionForPlugins });
+      await timedLoadStage('first.render', () => renderPluginExperience({ mission: activeMissionForPlugins }));
+      loadTrace?.complete({ profileId: data.applicationProfile.id, interactionMode: interaction.mode, scenarioId: activeScenario.id, renderer: renderer?.receipt?.().backend || null });
     } catch (error) {
       // Tear this boot down cleanly (abort listeners, release GPU) and throw so the shell can retry
       // the tier default or surface the failure. No location.assign, no landing bounce.
@@ -957,6 +968,7 @@
         getRenderer: () => renderer,
       };
     } catch (error) {
+      loadTrace?.fail(error, { profileId: requestedProfileId });
       await disposeApplication();
       throw error;
     }

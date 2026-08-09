@@ -289,6 +289,16 @@
     let lastPluginContributions=Object.freeze([]);
     let disposed=false;
     const requestedSimulation = options.simulation || null;
+    const runtimeLog = root.SimulatteAutonomyRuntimeLog || root.SimulatteRuntimeLog;
+    const loadTrace = runtimeLog?.createLoadTrace?.(runtimeLog, {
+      details: {
+        tier,
+        requestedProfileId,
+        route: typeof window !== 'undefined' ? window.location.pathname + window.location.search : null,
+        scenarioId: requestedSimulation?.scenarioId || null,
+      },
+    }) || null;
+    const timedLoadStage = (name, operation, details = {}) => loadTrace?.run(name, operation, details) || operation();
 
     function selectTierViewMode(mode){
       [
@@ -606,9 +616,9 @@
       ctx.setJourneyPhase?.('loading');
       ctx.setRuntimeStatus?.(elements,'Loading experience','loading');
       if(!root.SimulatteWorldRuntimeLoader?.loadSelectedProduct)throw new Error('tier_boot_runtime_loader_missing');
-      await root.SimulatteWorldRuntimeLoader.loadSelectedProduct({tierId:tier,profileId:requestedProfileId||null});
+      await timedLoadStage('runtime.bootstrap', () => root.SimulatteWorldRuntimeLoader.loadSelectedProduct({tierId:tier,profileId:requestedProfileId||null}));
       lifecycle.throwIfAborted();
-      data=await root.SimulatteTierApplicationLoader.loadTierApplication({tier,requestedProfileId:requestedProfileId||null,fetchImpl:lifecycle.fetch});
+      data=await timedLoadStage('application.data', () => root.SimulatteTierApplicationLoader.loadTierApplication({tier,requestedProfileId:requestedProfileId||null,fetchImpl:lifecycle.fetch}));
       lifecycle.throwIfAborted();
       tierVisualizer=ctx.createTierVisualizer(elements.overlayCanvas,'world-tier-control');
       removeManualView=tierVisualizer.onManualView?.(()=>{
@@ -616,7 +626,7 @@
         tierVisualizer.setViewMode?.('free');
         selectTierViewMode('free');
       });
-      await tierVisualizer.loadTier(tier);
+      await timedLoadStage('tier.visualizer', () => tierVisualizer.loadTier(tier));
       lifecycle.throwIfAborted();
       populateProfileSelect(elements.applicationProfile,data.profileEntries,data.applicationProfile.id);
       profileSelectUi=root.SimulatteApplicationProfileSelect.createApplicationProfileSelect({select:elements.applicationProfile,root:elements.applicationProfileControl,trigger:elements.applicationProfileTrigger,label:elements.applicationProfileLabel,listbox:elements.applicationProfileOptions});
@@ -643,7 +653,7 @@
         ))
       )||interaction.defaultScenario;
       renderScenario();
-      await activateScenario(activeScenario,requestedSimulation);
+      await timedLoadStage('scenario.activation', () => activateScenario(activeScenario,requestedSimulation), { profileId: data.applicationProfile.id });
       lifecycle.throwIfAborted();
       const owner=data.applicationProfile.interaction.simulationOwnerPluginId||runtime.activePluginIds[0];
       configureRunController(owner);
@@ -690,9 +700,18 @@
         }
       });
       on(window,'pagehide',()=>{void dispose();},{once:true});
-      const restored=await runController.restore();
+      const restored=await timedLoadStage('first.render', () => runController.restore(), {
+        profileId: data.applicationProfile.id,
+        scenarioId: activeScenario.id,
+      });
       lifecycle.throwIfAborted();
       if(!restored){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');}
+      loadTrace?.complete({
+        profileId: data.applicationProfile.id,
+        interactionMode: interaction.mode,
+        scenarioId: activeScenario.id,
+        pluginCount: runtime.activePluginIds.length,
+      });
       return Object.freeze({
         tier,
         experience: data.applicationProfile.id,
@@ -701,6 +720,7 @@
         updateSimulation: updateSimulationFromRoute,
       });
     } catch (error) {
+      loadTrace?.fail(error, { profileId: data?.applicationProfile?.id || requestedProfileId || null });
       await dispose();
       throw error;
     }
