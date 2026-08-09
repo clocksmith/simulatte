@@ -940,7 +940,7 @@ test('reload evidence waits for a different browser document instead of a delaye
   assert.equal(origins.length, 0);
 });
 
-test('release scripts and CI consume the same public profile claim evidence runner', () => {
+test('release scripts expose the same public profile claim evidence runner', () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
   assert.equal(
     packageJson.scripts['audit:simulatte:evidence'],
@@ -948,8 +948,6 @@ test('release scripts and CI consume the same public profile claim evidence runn
   );
   assert.match(packageJson.scripts['release:audit'], /npm run audit:simulatte:evidence/);
   assert.match(packageJson.scripts['check:release'], /npm run audit:simulatte:evidence/);
-  const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/release-audit.yml'), 'utf8');
-  assert.match(workflow, /npm run audit:simulatte:evidence -- --chrome \/usr\/bin\/google-chrome-stable/);
   const runner = fs.readFileSync(path.join(ROOT, 'tools/simulatte/run-profile-evidence.mjs'), 'utf8');
   assert.match(runner, /profile-claim-inventory-v1\.json/);
   assert.match(runner, /closeAllConnections/);

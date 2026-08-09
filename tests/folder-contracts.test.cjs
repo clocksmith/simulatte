@@ -30,6 +30,27 @@ test('folder contract covers every tracked or non-ignored source directory', () 
   assert.equal(contract.coverage.trackedFiles, inventory.files.length);
 });
 
+test('isolated validation skips only unavailable external repositories', () => {
+  const unavailableCatalog = path.join(os.tmpdir(), 'simulatte-missing-folder-contract-catalog');
+  assert.doesNotThrow(() => checker.validateSourceReferences(contract, {
+    repositoryRoot: root,
+    catalogRoot: unavailableCatalog,
+    allowUnavailableExternalSources: true,
+  }));
+  assert.throws(() => checker.validateSourceReferences(contract, {
+    repositoryRoot: root,
+    catalogRoot: unavailableCatalog,
+    allowUnavailableExternalSources: false,
+  }), (error) => error.code === 'folder_contract_source_ref_missing');
+  const missingLocal = structuredClone(contract);
+  missingLocal.sourceRefs.find((reference) => reference.repository === 'simulatte').path = 'missing-local-source';
+  assert.throws(() => checker.validateSourceReferences(missingLocal, {
+    repositoryRoot: root,
+    catalogRoot: unavailableCatalog,
+    allowUnavailableExternalSources: true,
+  }), (error) => error.code === 'folder_contract_source_ref_missing');
+});
+
 test('every connected profile has exactly one complete experience contract', () => {
   const connected = contract.nodes.filter((node) => node.experience?.profileId);
   assert.deepEqual(
@@ -110,6 +131,7 @@ test('judge receipt binds deterministic validation, prompt, policy, commit, cont
       '--schema', schemaPath,
       '--repository-root', root,
       '--catalog-root', path.resolve(root, '..', 'ouroboros'),
+      '--allow-unavailable-external-sources',
       '--changed', 'tools/run-folder-contract-judge.mjs',
       '--receipt', validationPath,
       '--quiet',

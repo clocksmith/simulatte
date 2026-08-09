@@ -6,7 +6,7 @@ import { execFileSync, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 function parseArgs(argv) {
-  const options = { changed: [], runFreshness: false, quiet: false };
+  const options = { changed: [], runFreshness: false, quiet: false, allowUnavailableExternalSources: false };
   for (let index = 0; index < argv.length; index += 1) {
     const [key, inline] = argv[index].split('=');
     const value = () => inline ?? argv[++index];
@@ -18,9 +18,10 @@ function parseArgs(argv) {
     else if (key === '--changed') options.changed.push(value());
     else if (key === '--receipt') options.receiptPath = path.resolve(value());
     else if (key === '--run-freshness') options.runFreshness = true;
+    else if (key === '--allow-unavailable-external-sources') options.allowUnavailableExternalSources = true;
     else if (key === '--quiet') options.quiet = true;
     else if (key === '--help') {
-      process.stdout.write('usage: check-folder-contracts.mjs --contract FILE --schema FILE --repository-root DIR [--catalog-root DIR] [--base REF] [--changed PATH] [--run-freshness] [--receipt FILE]\n');
+      process.stdout.write('usage: check-folder-contracts.mjs --contract FILE --schema FILE --repository-root DIR [--catalog-root DIR] [--base REF] [--changed PATH] [--run-freshness] [--allow-unavailable-external-sources] [--receipt FILE]\n');
       process.exit(0);
     } else throw new Error(`folder_contract_argument_unknown: ${argv[index]}`);
   }
@@ -113,12 +114,24 @@ function repositoryFor(reference, contract, options) {
   return path.resolve(options.catalogRoot, '..', reference.repository);
 }
 
+function repositoryIsAvailable(root, repository) {
+  if (!fs.existsSync(root)) return false;
+  try {
+    const topLevel = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: root, encoding: 'utf8' }).trim();
+    return path.basename(topLevel).toLowerCase() === repository.toLowerCase();
+  } catch {
+    return path.basename(root).toLowerCase() === repository.toLowerCase();
+  }
+}
+
 function validateSourceReferences(contract, options) {
   const references = new Map();
   for (const reference of contract.sourceRefs || []) {
     invariant(reference.id && !references.has(reference.id), 'folder_contract_source_ref_duplicate', `Source reference ${reference.id || '<missing>'} is duplicated`);
     references.set(reference.id, reference);
     const root = repositoryFor(reference, contract, options);
+    const isExternal = reference.repository !== contract.project.repository;
+    if (isExternal && options.allowUnavailableExternalSources && !repositoryIsAvailable(root, reference.repository)) continue;
     invariant(fs.existsSync(path.join(root, reference.path)), 'folder_contract_source_ref_missing', `Source reference ${reference.id} does not exist`, { repository: reference.repository, path: reference.path });
   }
   for (const node of contract.nodes) {
@@ -385,4 +398,4 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   }
 }
 
-export { canonicalJson, impactClosure, matchingClassification, narrowestNode, trackedInventory, validateCoverage, validateImports, validateShape };
+export { canonicalJson, impactClosure, matchingClassification, narrowestNode, trackedInventory, validateCoverage, validateImports, validateShape, validateSourceReferences };
