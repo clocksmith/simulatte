@@ -222,17 +222,34 @@
 
   function validatePresentation(value, label = 'Presentation') {
     object(value, 'plugin_v4_presentation_invalid', `${label} expected an object`);
-    exactKeys(value, ['schema', 'pluginId', 'coordinateSystem', 'epoch', 'layers', 'viewIntents'], label);
+    allowedKeys(value, ['schema', 'pluginId', 'coordinateSystem', 'epoch', 'layers', 'viewIntents', 'sun'], ['schema', 'pluginId', 'coordinateSystem', 'epoch', 'layers', 'viewIntents'], label);
     equal(value.schema, 'simulatte.pluginPresentation.v4', 'plugin_v4_presentation_schema_invalid', `${label} schema`);
     text(value.pluginId, 'plugin_v4_presentation_plugin_invalid', `${label} pluginId`);
     text(value.coordinateSystem, 'plugin_v4_coordinate_system_invalid', `${label} coordinateSystem`);
     if (value.epoch !== null) text(value.epoch, 'plugin_v4_epoch_invalid', `${label} epoch`);
     array(value.layers, 'plugin_v4_layers_invalid', `${label} layers`);
     array(value.viewIntents, 'plugin_v4_view_intents_invalid', `${label} viewIntents`);
+    if (value.sun !== undefined && value.sun !== null) validateSun(value.sun, `${label} sun`);
     value.layers.forEach((row, index) => validateSemanticLayer(row, `${label} layers[${index}]`));
     value.viewIntents.forEach((row, index) => validateViewIntent(row, `${label} viewIntents[${index}]`));
     unique(value.layers.map((row) => row.id), 'plugin_v4_layer_duplicate', `${label} layer IDs`);
     unique(value.viewIntents.map((row) => row.id), 'plugin_v4_view_intent_duplicate', `${label} view intent IDs`);
+    return value;
+  }
+
+  function validateSun(value, label = 'Sun') {
+    object(value, 'plugin_v4_sun_invalid', `${label} expected an object`);
+    exactKeys(value, ['id', 'label', 'azimuthDegrees', 'elevationDegrees', 'anchorSegmentIds', 'distanceM', 'radiusM', 'intensity'], label);
+    text(value.id, 'plugin_v4_sun_id_invalid', `${label} id`);
+    text(value.label, 'plugin_v4_sun_label_invalid', `${label} label`);
+    finite(value.azimuthDegrees, 0, 360, 'plugin_v4_sun_azimuth_invalid', `${label} azimuth`);
+    finite(value.elevationDegrees, -5, 90, 'plugin_v4_sun_elevation_invalid', `${label} elevation`);
+    array(value.anchorSegmentIds, 'plugin_v4_sun_anchor_segments_invalid', `${label} anchor segments`);
+    if (value.anchorSegmentIds.length > 4096) fail('plugin_v4_sun_anchor_segments_invalid', `${label} anchor segments exceed 4096`);
+    value.anchorSegmentIds.forEach((id) => text(id, 'plugin_v4_sun_anchor_segment_id_invalid', `${label} anchor segment ID`));
+    finite(value.distanceM, 50, 2000, 'plugin_v4_sun_distance_invalid', `${label} distance`);
+    finite(value.radiusM, 1, 100, 'plugin_v4_sun_radius_invalid', `${label} radius`);
+    finite(value.intensity, 0, 2, 'plugin_v4_sun_intensity_invalid', `${label} intensity`);
     return value;
   }
 

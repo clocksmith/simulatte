@@ -98,7 +98,7 @@
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-a4eb538b1480a95d18ce6e407ea829ec1322389bca28b71e5cbbfbb40d4934d209208657af8e305da82be8a98c84c8c6",
+      "integrity": "sha384-fcf72f0f9dd5f152bd93703af3f089549e80e36a01f980654748b7b7aa8c41dea2e559b57c08517cae00ce3b46ac9480",
       "path": "./v4-contribution.js"
     }
   ],

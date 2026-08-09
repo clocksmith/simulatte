@@ -20,6 +20,7 @@
     street: 0.18,
     facility: 0.28,
     grid: 0.38,
+    overlay: 0.46,
   });
   const COLORS = Object.freeze({
     water: [0.014, 0.042, 0.078, 1],
@@ -43,6 +44,7 @@
     prediction: [1, 0.25, 0.86, 0.72],
     sensor: [0.1, 0.7, 1, 0.14],
     sun: [1, 0.72, 0.16, 1],
+    bulkCoverage: [0.02, 0.16, 0.24, 0.42],
   });
   const PLUGIN_TONES = Object.freeze({
     cyan: [0.14, 0.94, 1, 0.96],
@@ -78,7 +80,13 @@
     }
     if (detail === 'overview') addOverviewBuildingMasses(writer, world.renderGeometry.buildings);
     else for (const building of world.renderGeometry.buildings) addBuilding(writer, building, detail);
-    addGrid(writer, bounds, 100, SURFACE_LAYERS.grid);
+    return writer.finish();
+  }
+
+  function createGroundOverlayGeometry(world, reusableWriter = null) {
+    const writer = reusableWriter || createWriter();
+    writer.reset();
+    addGrid(writer, world.coordinateSystem.bounds, 100, SURFACE_LAYERS.grid);
     return writer.finish();
   }
 
@@ -126,10 +134,24 @@
     return writer.finish();
   }
 
-  function createPluginStaticGeometry(scene, reusableWriter = null) {
+  function createPluginStaticGeometry(scene, reusableWriter = null, options = {}) {
     const writer = reusableWriter || createWriter();
     writer.reset();
-    addPluginStaticPresentation(writer, scene);
+    addPluginStaticPresentation(writer, scene, options);
+    return writer.finish();
+  }
+
+  function createPluginOverlayGeometry(scene, reusableWriter = null) {
+    const writer = reusableWriter || createWriter();
+    writer.reset();
+    addPluginOverlayPresentation(writer, scene);
+    return writer.finish();
+  }
+
+  function createPluginShadowGeometry(scene, reusableWriter = null) {
+    const writer = reusableWriter || createWriter();
+    writer.reset();
+    addPluginShadowPresentation(writer, scene);
     return writer.finish();
   }
 
@@ -145,9 +167,11 @@
     addPluginDynamicPresentation(writer, scene, snapshot);
   }
 
-  function addPluginStaticPresentation(writer, scene) {
+  function addPluginStaticPresentation(writer, scene, { excludeShadows = false, excludeAreas = false } = {}) {
     if (!scene) return;
     scene.areas.forEach((row) => {
+      if (excludeShadows && row.semanticKind === 'occlusion.shadow-length') return;
+      if (excludeAreas && row.semanticKind !== 'occlusion.shadow-length') return;
       if (row.isVolume) {
         addExtrudedPolygon(writer, row.points, row.heightM, semanticColor(row, 'fill'), row.intensity);
       } else {
@@ -182,6 +206,54 @@
     (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), row.intensity));
     (scene.geoMarkers || []).forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
     if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
+  }
+
+  function addPluginOverlayPresentation(writer, scene) {
+    if (!scene) return;
+    const addOverlay = (row) => {
+      if (row.isVolume || row.semanticKind === 'occlusion.shadow-length') return;
+      if (row.semanticKind === 'scenario-coverage-area') {
+        if (row.points.length > 2) {
+          addFlatPolygon(writer, row.points, SURFACE_LAYERS.overlay, COLORS.bulkCoverage, 0.1);
+          addRibbon(
+            writer,
+            [...row.points, row.points[0]],
+            4.5,
+            SURFACE_LAYERS.overlay + 0.012,
+            withAlpha(semanticColor(row, 'fill'), 0.52),
+            0.08,
+          );
+        }
+        return;
+      }
+      addFlatPolygon(
+        writer,
+        row.points,
+        Math.max(SURFACE_LAYERS.overlay, row.heightM || 0.4),
+        withAlpha(semanticColor(row, 'fill'), 0.3),
+        Math.min(0.28, row.intensity || 0),
+      );
+    };
+    scene.areas.forEach(addOverlay);
+    (scene.choropleths || []).forEach(addOverlay);
+    (scene.geoAreas || []).forEach(addOverlay);
+  }
+
+  function addPluginShadowPresentation(writer, scene) {
+    if (!scene) return;
+    scene.areas.forEach((row) => {
+      if (row.semanticKind !== 'occlusion.shadow-length' || row.points.length <= 2) return;
+      const fillColor = withAlpha(semanticColor(row, 'fill'), 0.28);
+      addFlatPolygon(writer, row.points, Math.max(SURFACE_LAYERS.grid + 0.012, row.heightM || 0.4), fillColor, Math.max(0.22, row.intensity || 0));
+      addRibbon(
+        writer,
+        [...row.points, row.points[0]],
+        2.2,
+        Math.max(SURFACE_LAYERS.grid + 0.014, (row.heightM || 0.4) + 0.03),
+        withAlpha(semanticColor(row), 0.48),
+        0.22,
+      );
+    });
   }
 
   function addPluginDynamicPresentation(writer, scene, snapshot, animationTimeSeconds = null, transitionActors = null) {
@@ -472,12 +544,16 @@
   }
 
   function addGrid(writer, bounds, spacing, height = SURFACE_LAYERS.grid) {
-    const color = [0.06, 0.36, 0.42, 0.32];
+    // World-space subpixel ribbons shimmer under perspective cameras. A
+    // slightly wider, quieter overlay remains legible without competing with
+    // the opaque road/building depth pass.
+    const color = [0.06, 0.36, 0.42, 0.24];
+    const width = 1.1;
     for (let x = Math.ceil(bounds.minimumX / spacing) * spacing; x <= bounds.maximumX; x += spacing) {
-      addRibbon(writer, [{ x, y: bounds.minimumY }, { x, y: bounds.maximumY }], 0.32, height, color, 0.45);
+      addRibbon(writer, [{ x, y: bounds.minimumY }, { x, y: bounds.maximumY }], width, height, color, 0.18);
     }
     for (let y = Math.ceil(bounds.minimumY / spacing) * spacing; y <= bounds.maximumY; y += spacing) {
-      addRibbon(writer, [{ x: bounds.minimumX, y }, { x: bounds.maximumX, y }], 0.32, height, color, 0.45);
+      addRibbon(writer, [{ x: bounds.minimumX, y }, { x: bounds.maximumX, y }], width, height, color, 0.18);
     }
   }
 
@@ -685,6 +761,9 @@
     createPluginDynamicGeometry,
     pathMetrics,
     createPluginStaticGeometry,
+    createPluginOverlayGeometry,
+    createPluginShadowGeometry,
+    createGroundOverlayGeometry,
     createStaticGeometry,
     createWriter,
     poseAlongPath,

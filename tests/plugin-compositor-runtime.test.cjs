@@ -282,6 +282,47 @@ test('City separates plugin-static markers from time-varying plugin actors', () 
   assert.notDeepEqual([...dynamicGeometry], [...animatedGeometry]);
 });
 
+test('City renders shadow overlays in a separate depth-safe geometry stream', () => {
+  const scene = {
+    areas: [{
+      points: [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }],
+      heightM: 0.4,
+      semanticKind: 'occlusion.shadow-length',
+      tone: 'shade',
+      intensity: 0.7,
+    }],
+    paths: [], markers: [], actors: [], choropleths: [], geoAreas: [], geoPaths: [], geoMarkers: [], sun: null,
+  };
+  const staticGeometry = gpuGeometry.createPluginStaticGeometry(scene, null, { excludeShadows: true });
+  const shadowGeometry = gpuGeometry.createPluginShadowGeometry(scene);
+  assert.equal(staticGeometry.length, 0);
+  assert.ok(shadowGeometry.length > 0);
+  assert.equal(shadowGeometry.length % gpuGeometry.FLOATS_PER_VERTEX, 0);
+});
+
+test('City keeps the ground grid and semantic coverage areas out of the opaque depth stream', () => {
+  const world = {
+    coordinateSystem: { bounds: { minimumX: -100, maximumX: 100, minimumY: -100, maximumY: 100 } },
+    renderGeometry: { land: [], parks: [], streets: [], bikeFacilities: [], buildings: [] },
+  };
+  const ground = gpuGeometry.createGroundOverlayGeometry(world);
+  assert.ok(ground.length > 0);
+  const scene = {
+    areas: [{
+      points: [{ x: -20, y: -20 }, { x: 20, y: -20 }, { x: 20, y: 20 }, { x: -20, y: 20 }],
+      heightM: 0.35,
+      semanticKind: 'scenario-coverage-area',
+      tone: 'violet',
+      intensity: 0.66,
+    }],
+    paths: [], markers: [], actors: [], choropleths: [], geoAreas: [], geoPaths: [], geoMarkers: [], sun: null,
+  };
+  const opaque = gpuGeometry.createPluginStaticGeometry(scene, null, { excludeAreas: true });
+  const overlay = gpuGeometry.createPluginOverlayGeometry(scene);
+  assert.equal(opaque.length, 0);
+  assert.ok(overlay.length > 0);
+});
+
 test('City interpolates point actors between governed presentation snapshots', () => {
   const scene = {
     areas: [], paths: [], markers: [], choropleths: [], geoAreas: [], geoPaths: [], geoMarkers: [], sun: null,

@@ -115,6 +115,16 @@
       coordinateSystem: 'city-node-segment-id',
       epoch: simulation.departureAt,
       layers,
+      sun: activeSample?.solarPosition ? {
+        id: 'modeled-sun',
+        label: `Modeled sun at ${Math.round(activeSample.solarPosition.elevationDegrees)}° elevation`,
+        azimuthDegrees: activeSample.solarPosition.azimuthDegrees,
+        elevationDegrees: activeSample.solarPosition.elevationDegrees,
+        anchorSegmentIds: selected.route.segmentIds.slice(0, 1),
+        distanceM: 900,
+        radiusM: 18,
+        intensity: 1.1,
+      } : null,
       viewIntents: [builder.viewIntent({
         id: isSettled ? 'sun-route-summary' : isOverview ? 'sun-route-overview' : 'sun-walker-navigation',
         mode: navigationMode,

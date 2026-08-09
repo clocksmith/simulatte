@@ -1637,6 +1637,7 @@ test('city renderer keeps static map layers in stable depth bands and pulses onl
     street: 0.18,
     facility: 0.28,
     grid: 0.38,
+    overlay: 0.46,
   });
   const layers = Object.values(gpuGeometry.SURFACE_LAYERS);
   assert.equal(new Set(layers).size, layers.length);

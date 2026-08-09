@@ -260,7 +260,7 @@
           points: Object.freeze(points),
           heightM: isVolume
             ? Math.max(0.35, Number(primitive.quantity?.value || 0))
-            : 0.35,
+            : primitive.quantity?.kind === 'occlusion.shadow-length' ? 0.4 : 0.35,
           isVolume,
         }));
       }
@@ -298,6 +298,29 @@
         }));
       });
     });
+    if (presentation.sun) {
+      if (compiled.sun) throw presentationError('plugin_presentation_sun_conflict', `Plugins ${compiled.sun.pluginId} and ${pluginId} both declared solar lighting`);
+      const anchorPoints = pointsForSegments(worldModel, pluginId, presentation.sun.anchorSegmentIds, presentation.sun.id);
+      const center = centerForPoints(anchorPoints);
+      const azimuth = presentation.sun.azimuthDegrees * Math.PI / 180;
+      const elevation = presentation.sun.elevationDegrees * Math.PI / 180;
+      const horizontal = Math.cos(elevation) * presentation.sun.distanceM;
+      compiled.sun = Object.freeze({
+        ...presentation.sun,
+        id: namespace(presentation.sun.id),
+        pluginId,
+        directionToSun: Object.freeze([
+          Math.sin(azimuth) * Math.cos(elevation),
+          Math.sin(elevation),
+          -Math.cos(azimuth) * Math.cos(elevation),
+        ]),
+        worldPosition: Object.freeze([
+          center[0] + Math.sin(azimuth) * horizontal,
+          Math.max(presentation.sun.radiusM * 1.5, Math.sin(elevation) * presentation.sun.distanceM),
+          center[2] - Math.cos(azimuth) * horizontal,
+        ]),
+      });
+    }
   }
 
   function offsetPolyline(points, distance) {

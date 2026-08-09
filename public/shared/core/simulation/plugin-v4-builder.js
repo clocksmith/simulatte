@@ -250,7 +250,7 @@
     return deepFreeze(value);
   }
 
-  function presentation({ pluginId, coordinateSystem, epoch = null, layers = [], viewIntents = [] }) {
+  function presentation({ pluginId, coordinateSystem, epoch = null, layers = [], viewIntents = [], sun = null }) {
     const value = {
       schema: 'simulatte.pluginPresentation.v4',
       pluginId,
@@ -258,6 +258,7 @@
       epoch,
       layers,
       viewIntents,
+      sun,
     };
     contracts.validatePresentation(value);
     return deepFreeze(value);

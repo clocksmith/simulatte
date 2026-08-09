@@ -18,22 +18,9 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, presentationCompiler, semanticLabels) {
-  // The scene already uses explicit depth bands and stable emissive shading;
-  // single-sample targets avoid a second full-world resolve on every frame.
-  // This is the bounded baseline for dense browser GPU scenes.
   const SAMPLE_COUNT = 1;
   const MINIMAP_RADIUS_M = 420;
-  // The minimap is a secondary context. Updating it at display rate duplicates
-  // the full scene pass while the primary camera is already rendering smoothly.
-  // Keep it visibly live at a bounded 15 Hz instead of making it compete with
-  // the primary frame budget.
-  // The minimap is a navigational aid, not the primary view. Ten updates per
-  // second keep movement legible while preventing a second full-world pass from
-  // contending with camera transitions on large city scenes.
   const MINIMAP_FRAME_INTERVAL_MS = 1000 / 10;
-  // Keep requestAnimationFrame and camera state at display rate, but bound
-  // expensive WebGPU command submission. This prevents a dense world from
-  // queuing unbounded work while a user is changing camera modes.
   const PRIMARY_RENDER_INTERVAL_MS = 1000 / 45;
   const SHADER = `
 struct Uniforms {
@@ -129,9 +116,21 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const compilation = await shader.getCompilationInfo();
     const shaderErrors = compilation.messages.filter((row) => row.type === 'error');
     if (shaderErrors.length) throw rendererError('webgpu_shader_invalid', shaderErrors.map((row) => `${row.lineNum}:${row.linePos} ${row.message}`).join('\n'));
+    const cameraBindGroupLayout = device.createBindGroupLayout({
+      label: 'autonomy-camera-bind-group-layout',
+      entries: [{
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: { type: 'uniform' },
+      }],
+    });
+    const cameraPipelineLayout = device.createPipelineLayout({
+      label: 'autonomy-camera-pipeline-layout',
+      bindGroupLayouts: [cameraBindGroupLayout],
+    });
     const pipeline = device.createRenderPipeline({
       label: 'autonomy-map-pipeline',
-      layout: 'auto',
+      layout: cameraPipelineLayout,
       vertex: {
         module: shader,
         entryPoint: 'vertexMain',
@@ -161,11 +160,45 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       depthStencil: { format: 'depth24plus', depthWriteEnabled: true, depthCompare: 'less' },
       multisample: { count: SAMPLE_COUNT },
     });
+    // Translucent overlays sit above the grid without writing depth.
+    const shadowPipeline = device.createRenderPipeline({
+      label: 'autonomy-shadow-pipeline',
+      // Share the main camera bind-group layout and uniform buffer.
+      layout: cameraPipelineLayout,
+      vertex: {
+        module: shader,
+        entryPoint: 'vertexMain',
+        buffers: [{
+          arrayStride: geometry.FLOATS_PER_VERTEX * 4,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: 'float32x3' },
+            { shaderLocation: 1, offset: 12, format: 'float32x3' },
+            { shaderLocation: 2, offset: 24, format: 'float32x4' },
+            { shaderLocation: 3, offset: 40, format: 'float32' },
+            { shaderLocation: 4, offset: 44, format: 'float32x2' },
+          ],
+        }],
+      },
+      fragment: {
+        module: shader,
+        entryPoint: 'fragmentMain',
+        targets: [{
+          format,
+          blend: {
+            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+          },
+        }],
+      },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'less-equal' },
+      multisample: { count: SAMPLE_COUNT },
+    });
     const uniformBuffer = device.createBuffer({ label: 'autonomy-camera-uniforms', size: 128, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     const uniformData = new Float32Array(32);
     const bindGroup = device.createBindGroup({
       label: 'autonomy-map-bind-group',
-      layout: pipeline.getBindGroupLayout(0),
+      layout: cameraBindGroupLayout,
       entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
     });
     const minimapUniformBuffer = minimapCanvas
@@ -175,14 +208,16 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const minimapBindGroup = minimapUniformBuffer
       ? device.createBindGroup({
         label: 'autonomy-minimap-bind-group',
-        layout: pipeline.getBindGroupLayout(0),
+        layout: cameraBindGroupLayout,
         entries: [{ binding: 0, resource: { buffer: minimapUniformBuffer } }],
       })
       : null;
     const staticData = geometry.createStaticGeometry(worldModel.world, { detail: 'full' });
     const overviewStaticData = geometry.createStaticGeometry(worldModel.world, { detail: 'overview' });
+    const groundOverlayData = geometry.createGroundOverlayGeometry(worldModel.world);
     const staticBuffer = createVertexBuffer(device, staticData, 'autonomy-static-geometry');
     const overviewStaticBuffer = createVertexBuffer(device, overviewStaticData, 'autonomy-overview-static-geometry');
+    const groundOverlayBuffer = createVertexBuffer(device, groundOverlayData, 'autonomy-ground-overlay-geometry');
     const state = {
       ...cameraApi.createCameraState(worldModel.world, worldModel, options.regionRegistry, options.regionPacks),
       routeIdentity: null,
@@ -197,6 +232,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       pluginStaticWriter: geometry.createWriter(262144),
       pluginStaticBuffer: null,
       pluginStaticCapacity: 0,
+      pluginOverlayData: new Float32Array(),
+      pluginOverlayWriter: geometry.createWriter(262144),
+      pluginOverlayBuffer: null,
+      pluginOverlayCapacity: 0,
+      pluginShadowData: new Float32Array(),
+      pluginShadowWriter: geometry.createWriter(262144),
+      pluginShadowBuffer: null,
+      pluginShadowCapacity: 0,
       pluginDynamicData: new Float32Array(),
       pluginDynamicWriter: geometry.createWriter(262144),
       pluginDynamicBuffer: null,
@@ -321,15 +364,20 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.pluginScene = nextScene;
       recordWorkCpu(state.workCpuMs.pluginCompile, performance.now() - compileStartedAt);
       const staticStartedAt = performance.now();
-      state.pluginStaticData = geometry.createPluginStaticGeometry(state.pluginScene, state.pluginStaticWriter);
+      state.pluginStaticData = geometry.createPluginStaticGeometry(state.pluginScene, state.pluginStaticWriter, { excludeShadows: true, excludeAreas: true });
       recordWorkCpu(state.workCpuMs.pluginStaticGeometry, performance.now() - staticStartedAt);
       ensureGeometryBuffer(device, state, state.pluginStaticData, 'pluginStaticBuffer', 'pluginStaticCapacity', 'autonomy-plugin-static-geometry');
+      state.pluginOverlayData = geometry.createPluginOverlayGeometry(state.pluginScene, state.pluginOverlayWriter);
+      ensureGeometryBuffer(device, state, state.pluginOverlayData, 'pluginOverlayBuffer', 'pluginOverlayCapacity', 'autonomy-plugin-overlay-geometry');
+      state.pluginShadowData = geometry.createPluginShadowGeometry(state.pluginScene, state.pluginShadowWriter);
+      ensureGeometryBuffer(device, state, state.pluginShadowData, 'pluginShadowBuffer', 'pluginShadowCapacity', 'autonomy-plugin-shadow-geometry');
       cameraApi.replacePluginCameraTargets(state, state.pluginScene.cameraTargets, performance.now());
       Object.entries(state.pluginScene.counts).forEach(([key, value]) => {
         canvas.dataset[`plugin${key.charAt(0).toUpperCase()}${key.slice(1)}Count`] = String(value);
       });
       canvas.dataset.sunAzimuthDegrees = state.pluginScene.sun ? String(state.pluginScene.sun.azimuthDegrees) : '';
       canvas.dataset.sunElevationDegrees = state.pluginScene.sun ? String(state.pluginScene.sun.elevationDegrees) : '';
+      canvas.dataset.pluginShadowVertexCount = String(state.pluginShadowData.length / geometry.FLOATS_PER_VERTEX);
       canvas.dataset.solarLighting = state.pluginScene.sun ? 'plugin' : 'default';
       const compositorReceipts = state.pluginScene.compositorReceipts || [];
       canvas.dataset.pluginCompositorReceiptCount = String(compositorReceipts.length);
@@ -367,9 +415,6 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       ) || null;
       const encoder = device.createCommandEncoder({ label: 'autonomy-map-frame' });
       const currentTexture = context.getCurrentTexture();
-      // The route-follow camera still covers a city-scale field of view. Use
-      // the bounded proxy there as well; only POV is close enough to resolve
-      // irregular parcel edges and merits the full source geometry.
       const useOverviewStatic = pose.mode !== 'pov';
       encodeScene(encoder, {
         label: 'autonomy-map-pass',
@@ -378,6 +423,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         bindGroup,
         staticBuffer: useOverviewStatic ? state.overviewStaticBuffer : state.staticBuffer,
         staticVertexCount: (useOverviewStatic ? state.overviewStaticData : state.staticData).length / geometry.FLOATS_PER_VERTEX,
+        shadowPipeline,
+        shadowBuffer: state.pluginShadowBuffer,
+        shadowVertexCount: state.pluginShadowData.length / geometry.FLOATS_PER_VERTEX,
+        overlayPipeline: shadowPipeline,
+        groundOverlayBuffer,
+        groundOverlayVertexCount: groundOverlayData.length / geometry.FLOATS_PER_VERTEX,
+        pluginOverlayBuffer: state.pluginOverlayBuffer,
+        pluginOverlayVertexCount: state.pluginOverlayData.length / geometry.FLOATS_PER_VERTEX,
         clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
       });
       const minimapVisible = Boolean(pose.mode === 'follow' && minimapCanvas);
@@ -386,9 +439,6 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         minimapCanvas.hidden = false;
         const shouldRenderMinimap = !state.minimapWasVisible
           || timestamp - state.minimapLastRenderAt >= MINIMAP_FRAME_INTERVAL_MS;
-        // During a camera transition the primary view is already doing the
-        // expensive work needed to move the scene. Defer the secondary pass
-        // until the pose settles; the next frame refreshes its center.
         if (shouldRenderMinimap && pose.transitionState === 'settled') {
           resizeMinimapCanvas(minimapCanvas, device, format, state);
           const minimapCamera = cameraForMinimap(state.latestSnapshot, minimapCanvas);
@@ -400,6 +450,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
             bindGroup: minimapBindGroup,
             staticBuffer: state.overviewStaticBuffer,
             staticVertexCount: state.overviewStaticData.length / geometry.FLOATS_PER_VERTEX,
+            shadowPipeline,
+            shadowBuffer: state.pluginShadowBuffer,
+            shadowVertexCount: state.pluginShadowData.length / geometry.FLOATS_PER_VERTEX,
+            overlayPipeline: shadowPipeline,
+            groundOverlayBuffer,
+            groundOverlayVertexCount: groundOverlayData.length / geometry.FLOATS_PER_VERTEX,
+            pluginOverlayBuffer: state.pluginOverlayBuffer,
+            pluginOverlayVertexCount: state.pluginOverlayData.length / geometry.FLOATS_PER_VERTEX,
             clearValue: { r: 0.003, g: 0.012, b: 0.022, a: 1 },
           });
           state.minimapLastRenderAt = timestamp;
@@ -429,6 +487,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       bindGroup: sceneBindGroup,
       staticBuffer: sceneStaticBuffer = staticBuffer,
       staticVertexCount: sceneStaticVertexCount = staticData.length / geometry.FLOATS_PER_VERTEX,
+      shadowPipeline: sceneShadowPipeline = null,
+      shadowBuffer: sceneShadowBuffer = null,
+      shadowVertexCount: sceneShadowVertexCount = 0,
+      overlayPipeline: sceneOverlayPipeline = null,
+      groundOverlayBuffer: sceneGroundOverlayBuffer = null,
+      groundOverlayVertexCount: sceneGroundOverlayVertexCount = 0,
+      pluginOverlayBuffer: scenePluginOverlayBuffer = null,
+      pluginOverlayVertexCount: scenePluginOverlayVertexCount = 0,
       clearValue,
     }) {
       const pass = encoder.beginRenderPass({
@@ -454,6 +520,22 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       pass.setBindGroup(0, sceneBindGroup);
       pass.setVertexBuffer(0, sceneStaticBuffer);
       pass.draw(sceneStaticVertexCount);
+      if (sceneOverlayPipeline && sceneGroundOverlayBuffer && sceneGroundOverlayVertexCount) {
+        pass.setPipeline(sceneOverlayPipeline);
+        pass.setVertexBuffer(0, sceneGroundOverlayBuffer);
+        pass.draw(sceneGroundOverlayVertexCount);
+      }
+      if (sceneOverlayPipeline && scenePluginOverlayBuffer && scenePluginOverlayVertexCount) {
+        pass.setPipeline(sceneOverlayPipeline);
+        pass.setVertexBuffer(0, scenePluginOverlayBuffer);
+        pass.draw(scenePluginOverlayVertexCount);
+      }
+      if (sceneShadowPipeline && sceneShadowBuffer && sceneShadowVertexCount) {
+        pass.setPipeline(sceneShadowPipeline);
+        pass.setVertexBuffer(0, sceneShadowBuffer);
+        pass.draw(sceneShadowVertexCount);
+        pass.setPipeline(pipeline);
+      }
       if (state.dynamicBuffer && state.dynamicData.length) {
         pass.setVertexBuffer(0, state.dynamicBuffer);
         pass.draw(state.dynamicData.length / geometry.FLOATS_PER_VERTEX);
@@ -493,6 +575,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         bindGroup,
         staticBuffer: useOverviewStatic ? state.overviewStaticBuffer : state.staticBuffer,
         staticVertexCount: (useOverviewStatic ? state.overviewStaticData : state.staticData).length / geometry.FLOATS_PER_VERTEX,
+        shadowPipeline,
+        shadowBuffer: state.pluginShadowBuffer,
+        shadowVertexCount: state.pluginShadowData.length / geometry.FLOATS_PER_VERTEX,
+        overlayPipeline: shadowPipeline,
+        groundOverlayBuffer,
+        groundOverlayVertexCount: groundOverlayData.length / geometry.FLOATS_PER_VERTEX,
+        pluginOverlayBuffer: state.pluginOverlayBuffer,
+        pluginOverlayVertexCount: state.pluginOverlayData.length / geometry.FLOATS_PER_VERTEX,
         clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
       });
       const rowBytes = canvas.width * 4;
@@ -594,7 +684,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         dynamicVertexCount: (state.dynamicData.length + state.pluginDynamicData.length) / geometry.FLOATS_PER_VERTEX,
         coreDynamicVertexCount: state.dynamicData.length / geometry.FLOATS_PER_VERTEX,
         pluginStaticVertexCount: state.pluginStaticData.length / geometry.FLOATS_PER_VERTEX,
+        groundOverlayVertexCount: groundOverlayData.length / geometry.FLOATS_PER_VERTEX,
+        pluginOverlayVertexCount: state.pluginOverlayData.length / geometry.FLOATS_PER_VERTEX,
+        pluginShadowVertexCount: state.pluginShadowData.length / geometry.FLOATS_PER_VERTEX,
         pluginDynamicVertexCount: state.pluginDynamicData.length / geometry.FLOATS_PER_VERTEX,
+        solarLighting: state.pluginScene.sun ? {
+          azimuthDegrees: state.pluginScene.sun.azimuthDegrees,
+          elevationDegrees: state.pluginScene.sun.elevationDegrees,
+        } : null,
         frameCount: state.frameCount,
         renderCpu: {
           basis: 'main-thread-command-encoding-and-submit',
@@ -656,8 +753,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       if (state.animationFrame !== null) cancelAnimationFrame(state.animationFrame);
       staticBuffer.destroy();
       overviewStaticBuffer.destroy();
+      groundOverlayBuffer.destroy();
       state.dynamicBuffer?.destroy();
       state.pluginStaticBuffer?.destroy();
+      state.pluginOverlayBuffer?.destroy();
+      state.pluginShadowBuffer?.destroy();
       state.pluginDynamicBuffer?.destroy();
       state.renderTargets?.color.destroy();
       state.renderTargets?.depth.destroy();
@@ -894,6 +994,5 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     error.code = code;
     return error;
   }
-
   return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, fogDensityForEye, readAdapterInfo, rendererError, resolveCameraController, resolvedSimulationTimeSeconds, snapshotAtRenderTime };
 });

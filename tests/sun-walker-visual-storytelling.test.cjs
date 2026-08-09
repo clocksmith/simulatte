@@ -143,6 +143,23 @@ test('Walker actor position advances while camera target identity remains stable
   });
 });
 
+test('Building shadow geometry follows the active sun sample during playback', () => {
+  const result = simulate();
+  const first = createContribution(result, 1);
+  const second = createContribution(result, 2);
+  const shadows = (contribution) => contribution.presentation.layers
+    .filter((layer) => layer.quantity.kind === 'occlusion.shadow-length');
+  const firstShadows = shadows(first);
+  const secondShadows = shadows(second);
+  assert.ok(firstShadows.length > 0);
+  assert.equal(secondShadows.length, firstShadows.length);
+  assert.notDeepEqual(
+    firstShadows.map((layer) => layer.geometry.coordinates),
+    secondShadows.map((layer) => layer.geometry.coordinates),
+    'the projected shadow must move as the simulated sun moves',
+  );
+});
+
 test('Walked-segment colors and inspector metrics agree with completed samples', () => {
   const result = simulate();
   for (let step = 1; step < result.timeline.snapshots.length - 1; step += 1) {
