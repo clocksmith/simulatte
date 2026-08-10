@@ -1,6 +1,7 @@
 {
   "name": "simulatte-world",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "audit:catalogs": "node tools/audit-catalog-inventory.mjs",
     "audit:blank:gold:desktop": "node tools/audit-intent-scene-screenshots.mjs --curated 0 --broad 0 --four 0 --eighty 0 --gold-set tools/samer/simulatte-public-gold-v1.json --machine-only-gold --intent-mode local --width 1440 --height 1000 --out artifacts/blank-gold-desktop",
