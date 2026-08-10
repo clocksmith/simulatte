@@ -98,6 +98,9 @@
     function finishRouteLoad() {
       try {
         delete document.body.dataset.routeLoading;
+        if (document.body.dataset.journeyPhase === 'loading') {
+          document.body.dataset.journeyPhase = 'ready';
+        }
       } catch (_error) { /* no document */ }
     }
 

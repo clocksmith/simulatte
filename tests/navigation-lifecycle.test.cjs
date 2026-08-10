@@ -517,7 +517,6 @@ test('app shell hides the mounted world synchronously and keeps only the loader 
           };
         }
         await replacementBootGate.promise;
-        body.dataset.journeyPhase = 'ready';
         return { tier, experience, dispose() {} };
       },
     });
