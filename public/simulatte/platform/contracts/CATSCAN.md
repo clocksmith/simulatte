@@ -1,8 +1,9 @@
 # CATSCAN: World platform contracts
 
-Component: `simulatte.world.platform.contracts`
 Parent: [World platform](../CATSCAN.md)
-Target: Define the versioned profile, plugin, presentation, and platform wire boundaries.
+## Target
+
+Define the versioned profile, plugin, presentation, and platform wire boundaries.
 
 ## Authority
 
@@ -13,14 +14,11 @@ Target: Define the versioned profile, plugin, presentation, and platform wire bo
 
 - Applies to contract code under `public/simulatte/platform/contracts/`.
 
-## Inputs
+## Contracts
 
-- [plugin v4 specification](../../../../docs/simulatte/plugin-v4-contract.md)
-
-## Outputs
-
-- [plugin manifest schema](plugin-manifest.schema.json)
-- [plugin contracts](plugin-v4-contracts.js)
+- Input: [plugin v4 specification](../../../../docs/simulatte/plugin-v4-contract.md)
+- Output: [plugin manifest schema](plugin-manifest.schema.json)
+- Output: [plugin contracts](plugin-v4-contracts.js)
 
 ## Invariants
 
@@ -38,6 +36,6 @@ Target: Define the versioned profile, plugin, presentation, and platform wire bo
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

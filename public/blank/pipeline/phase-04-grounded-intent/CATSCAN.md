@@ -1,8 +1,9 @@
 # CATSCAN: Phase 4 Grounded Intent
 
-Component: `simulatte.create.phase4-grounding`
 Parent: [Create compiler pipeline](../CATSCAN.md)
-Target: Produce the accepted semantic world graph with assumptions, refusals, and provenance.
+## Target
+
+Produce the accepted semantic world graph with assumptions, refusals, and provenance.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Produce the accepted semantic world graph with assumptions, refusals, an
 
 - Applies to Phase 4 grounding and graph synthesis code.
 
-## Inputs
+## Contracts
 
-- [Phase 3 retrieval contract](../phase-03-retrieval/CATSCAN.md)
-
-## Outputs
-
-- [Phase 5 simulation contract](../phase-05-simulation/CATSCAN.md)
+- Input: [Phase 3 retrieval contract](../phase-03-retrieval/CATSCAN.md)
+- Output: [Phase 5 simulation contract](../phase-05-simulation/CATSCAN.md)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Produce the accepted semantic world graph with assumptions, refusals, an
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

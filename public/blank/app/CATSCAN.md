@@ -1,8 +1,9 @@
 # CATSCAN: Create application
 
-Component: `simulatte.create.app`
 Parent: [Create](../CATSCAN.md)
-Target: Expose prompt, progress, inspection, interaction, and review controls around the compiler.
+## Target
+
+Expose prompt, progress, inspection, interaction, and review controls around the compiler.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Expose prompt, progress, inspection, interaction, and review controls ar
 
 - Applies to browser coordination under `public/blank/app/`.
 
-## Inputs
+## Contracts
 
-- [runtime script manifest](runtime-script-manifest.js)
-- [compiler charter](../pipeline/CATSCAN.md)
-
-## Outputs
-
-- [Create page](../index.html)
-- [run view model](runtime/run-view-model.js)
+- Input: [runtime script manifest](runtime-script-manifest.js)
+- Input: [compiler charter](../pipeline/CATSCAN.md)
+- Output: [Create page](../index.html)
+- Output: [run view model](runtime/run-view-model.js)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Expose prompt, progress, inspection, interaction, and review controls ar
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

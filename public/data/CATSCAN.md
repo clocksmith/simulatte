@@ -1,8 +1,9 @@
 # CATSCAN: Governed browser data
 
-Component: `simulatte.data`
 Parent: [Browser surface](../CATSCAN.md)
-Target: Supply versioned, validated, provenance-bound data and manifests to browser runtimes.
+## Target
+
+Supply versioned, validated, provenance-bound data and manifests to browser runtimes.
 
 ## Authority
 
@@ -13,14 +14,11 @@ Target: Supply versioned, validated, provenance-bound data and manifests to brow
 
 - Applies to canonical deployable data under `public/data/`.
 
-## Inputs
+## Contracts
 
-- [data ingestion contract](../../docs/simulatte/data-ingestion.md)
-
-## Outputs
-
-- [World autonomy manifest](simulatte/autonomy-manifest.json)
-- [profile charter](application-profiles/CATSCAN.md)
+- Input: [data ingestion contract](../../docs/simulatte/data-ingestion.md)
+- Output: [World autonomy manifest](simulatte/autonomy-manifest.json)
+- Output: [profile charter](application-profiles/CATSCAN.md)
 
 ## Invariants
 
@@ -38,6 +36,6 @@ Target: Supply versioned, validated, provenance-bound data and manifests to brow
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

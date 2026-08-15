@@ -1,8 +1,9 @@
 # CATSCAN: World platform
 
-Component: `simulatte.world.platform`
 Parent: [World](../CATSCAN.md)
-Target: Host profiles and plugins through explicit data, capability, lifecycle, view, and receipt contracts.
+## Target
+
+Host profiles and plugins through explicit data, capability, lifecycle, view, and receipt contracts.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Host profiles and plugins through explicit data, capability, lifecycle, 
 
 - Applies to platform code under `public/simulatte/platform/`.
 
-## Inputs
+## Contracts
 
-- [plugin platform architecture](../../../docs/simulatte/plugin-platform-architecture.md)
-- [platform contracts](contracts/CATSCAN.md)
-
-## Outputs
-
-- [plugin host charter](plugin-host/CATSCAN.md)
-- [platform runtime charter](runtime/CATSCAN.md)
+- Input: [plugin platform architecture](../../../docs/simulatte/plugin-platform-architecture.md)
+- Input: [platform contracts](contracts/CATSCAN.md)
+- Output: [plugin host charter](plugin-host/CATSCAN.md)
+- Output: [platform runtime charter](runtime/CATSCAN.md)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Host profiles and plugins through explicit data, capability, lifecycle, 
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

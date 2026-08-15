@@ -1,8 +1,10 @@
 # CATSCAN: Release automation
 
-Component: `simulatte.deployment`
 Parent: [Simulatte](../CATSCAN.md)
-Target: Run declared release and audit gates without turning CI status into runtime proof.
+
+## Target
+
+Run declared release and audit gates without turning CI status into runtime proof.
 
 ## Authority
 
@@ -13,13 +15,10 @@ Target: Run declared release and audit gates without turning CI status into runt
 
 - Applies to workflows and repository automation under `.github/`.
 
-## Inputs
+## Contracts
 
-- [deployment contract](../docs/deployment.md)
-
-## Outputs
-
-- [release audit workflow](workflows/release-audit.yml)
+- Input: [deployment contract](../docs/deployment.md).
+- Output: [release audit workflow](workflows/release-audit.yml).
 
 ## Invariants
 
@@ -37,6 +36,5 @@ Target: Run declared release and audit gates without turning CI status into runt
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

@@ -1,8 +1,9 @@
 # CATSCAN: Create
 
-Component: `simulatte.create`
 Parent: [Browser surface](../CATSCAN.md)
-Target: Turn a brief into inspectable phase artifacts, rendered pixels, and bounded scene proof.
+## Target
+
+Turn a brief into inspectable phase artifacts, rendered pixels, and bounded scene proof.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Turn a brief into inspectable phase artifacts, rendered pixels, and boun
 
 - Applies to the `/blank/` browser product and its local assets.
 
-## Inputs
+## Contracts
 
-- [WorldSpec product goals](../../GOALS.md#product-object-worldspec)
-- [compiler pipeline](pipeline/CATSCAN.md)
-
-## Outputs
-
-- [Create entrypoint](index.html)
-- [Create application charter](app/CATSCAN.md)
+- Input: [WorldSpec product goals](../../GOALS.md#product-object-worldspec)
+- Input: [compiler pipeline](pipeline/CATSCAN.md)
+- Output: [Create entrypoint](index.html)
+- Output: [Create application charter](app/CATSCAN.md)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Turn a brief into inspectable phase artifacts, rendered pixels, and boun
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

@@ -1,8 +1,9 @@
 # CATSCAN: World build and evidence tools
 
-Component: `simulatte.tools.world`
 Parent: [Repository tools](../CATSCAN.md)
-Target: Promote source snapshots, compile governed World data, and capture browser evidence through reproducible commands.
+## Target
+
+Promote source snapshots, compile governed World data, and capture browser evidence through reproducible commands.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Promote source snapshots, compile governed World data, and capture brows
 
 - Applies to World-specific tools under `tools/simulatte/`.
 
-## Inputs
+## Contracts
 
-- [data ingestion contract](../../docs/simulatte/data-ingestion.md)
-- [governed data charter](../../public/data/CATSCAN.md)
-
-## Outputs
-
-- [NYC world builder](build-nyc-autonomy-world.mjs)
-- [profile evidence contract](profile-evidence-contract.mjs)
+- Input: [data ingestion contract](../../docs/simulatte/data-ingestion.md)
+- Input: [governed data charter](../../public/data/CATSCAN.md)
+- Output: [NYC world builder](build-nyc-autonomy-world.mjs)
+- Output: [profile evidence contract](profile-evidence-contract.mjs)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Promote source snapshots, compile governed World data, and capture brows
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

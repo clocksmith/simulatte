@@ -1,8 +1,9 @@
 # CATSCAN: Plugin host
 
-Component: `simulatte.world.platform.plugin-host`
 Parent: [World platform](../CATSCAN.md)
-Target: Instantiate plugins with only declared capabilities, datasets, state, scheduling, and deterministic services.
+## Target
+
+Instantiate plugins with only declared capabilities, datasets, state, scheduling, and deterministic services.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Instantiate plugins with only declared capabilities, datasets, state, sc
 
 - Applies to plugin host code under this directory.
 
-## Inputs
+## Contracts
 
-- [generated plugin registry](generated-plugin-registry.js)
-- [platform contracts](../contracts/CATSCAN.md)
-
-## Outputs
-
-- [plugin runtime](plugin-runtime.js)
-- [plugin SDK](plugin-sdk.js)
+- Input: [generated plugin registry](generated-plugin-registry.js)
+- Input: [platform contracts](../contracts/CATSCAN.md)
+- Output: [plugin runtime](plugin-runtime.js)
+- Output: [plugin SDK](plugin-sdk.js)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Instantiate plugins with only declared capabilities, datasets, state, sc
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

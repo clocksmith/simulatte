@@ -1,8 +1,9 @@
 # CATSCAN: Phase 5 Simulation
 
-Component: `simulatte.create.phase5-simulation`
 Parent: [Create compiler pipeline](../CATSCAN.md)
-Target: Lower grounded intent into executable physics, solver, state, control, and render-addressable artifacts.
+## Target
+
+Lower grounded intent into executable physics, solver, state, control, and render-addressable artifacts.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Lower grounded intent into executable physics, solver, state, control, a
 
 - Applies to Phase 5 simulation compilation and solver code.
 
-## Inputs
+## Contracts
 
-- [Phase 4 grounded intent contract](../phase-04-grounded-intent/CATSCAN.md)
-
-## Outputs
-
-- [Phase 6 visual contract](../phase-06-visual/CATSCAN.md)
+- Input: [Phase 4 grounded intent contract](../phase-04-grounded-intent/CATSCAN.md)
+- Output: [Phase 6 visual contract](../phase-06-visual/CATSCAN.md)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Lower grounded intent into executable physics, solver, state, control, a
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

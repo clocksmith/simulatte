@@ -1,8 +1,9 @@
 # CATSCAN: Phase 7 Render
 
-Component: `simulatte.create.phase7-render`
 Parent: [Create compiler pipeline](../CATSCAN.md)
-Target: Execute the compiled scene packet and emit pixels plus identity, frame, and timing receipts.
+## Target
+
+Execute the compiled scene packet and emit pixels plus identity, frame, and timing receipts.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Execute the compiled scene packet and emit pixels plus identity, frame, 
 
 - Applies to Phase 7 render execution code.
 
-## Inputs
+## Contracts
 
-- [Phase 6 visual contract](../phase-06-visual/CATSCAN.md)
-
-## Outputs
-
-- [Phase 8 scene proof contract](../phase-08-scene-proof/CATSCAN.md)
+- Input: [Phase 6 visual contract](../phase-06-visual/CATSCAN.md)
+- Output: [Phase 8 scene proof contract](../phase-08-scene-proof/CATSCAN.md)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Execute the compiled scene packet and emit pixels plus identity, frame, 
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

@@ -14,16 +14,16 @@ const IGNORED_DIRECTORIES = new Set([
   'node_modules',
 ]);
 const REQUIRED_SECTIONS = [
+  'Target',
   'Authority',
   'Scope',
-  'Inputs',
-  'Outputs',
+  'Contracts',
   'Invariants',
   'Acceptance',
   'Non-goals',
   'Freedom',
 ];
-const LINKED_SECTIONS = ['Inputs', 'Outputs', 'Acceptance'];
+const LINKED_SECTIONS = ['Contracts', 'Acceptance'];
 
 function fail(message) {
   const error = new Error(`catscan_invalid: ${message}`);
@@ -99,10 +99,6 @@ function wordCount(text) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function stripCode(value) {
-  return value.replace(/^`|`$/g, '').trim();
-}
-
 function resolveLocalLink(root, relativePath, target) {
   if (/^(?:[a-z]+:|#)/i.test(target)) return null;
   const withoutFragment = target.split('#')[0].split('?')[0];
@@ -132,12 +128,7 @@ function parseCatscan(root, relativePath) {
   const title = text.match(/^# CATSCAN:\s*(.+)$/m)?.[1]?.trim();
   if (!title) fail(`${relativePath} must start with # CATSCAN: <Component>`);
   if (wordCount(text) > MAX_WORDS) fail(`${relativePath} exceeds ${MAX_WORDS} words`);
-  const component = stripCode(topField(text, 'Component', relativePath));
-  if (!/^[a-z0-9][a-z0-9.-]*$/.test(component)) {
-    fail(`${relativePath} has invalid component identifier ${component}`);
-  }
   const parent = topField(text, 'Parent', relativePath);
-  const target = topField(text, 'Target', relativePath);
   const sections = Object.fromEntries(REQUIRED_SECTIONS.map((section) => {
     const body = sectionBody(text, section);
     if (!body) fail(`${relativePath} is missing or has empty ## ${section}`);
@@ -151,21 +142,27 @@ function parseCatscan(root, relativePath) {
   }
   if (!sections.Authority.includes('- Owns ')) fail(`${relativePath} Authority must declare - Owns`);
   if (!sections.Authority.includes('- Does not own ')) fail(`${relativePath} Authority must declare - Does not own`);
+  if (!sections.Contracts.match(/^- Input:\s*.+\[[^\]]+]\([^)]+\)/m)) {
+    fail(`${relativePath} Contracts must declare - Input with a local link`);
+  }
+  if (!sections.Contracts.match(/^- Output:\s*.+\[[^\]]+]\([^)]+\)/m)) {
+    fail(`${relativePath} Contracts must declare - Output with a local link`);
+  }
   if (!sections.Acceptance.match(/^- Evidence:\s*\[[^\]]+]\([^)]+\)/m)) {
     fail(`${relativePath} Acceptance must declare - Evidence: [label](path)`);
   }
-  if (!sections.Freedom.includes('Any mechanism is permitted')) {
+  if (!sections.Freedom.includes('Any implementation is permitted')) {
     fail(`${relativePath} Freedom must preserve implementation freedom`);
   }
   const parentLinks = parseLinks(parent);
   return {
-    component,
+    component: title,
     directory: normalizeRelative(path.dirname(relativePath)) === '.' ? '.' : normalizeRelative(path.dirname(relativePath)),
     parent,
     parentLink: parentLinks.length === 1 ? parentLinks[0] : null,
     path: relativePath,
     sections,
-    target,
+    target: sections.Target.replace(/\s+/g, ' '),
     title,
     wordCount: wordCount(text),
   };
@@ -205,8 +202,9 @@ function validateCatscans(root) {
   const charters = relativePaths.map((relativePath) => parseCatscan(root, relativePath));
   const identifiers = new Set();
   for (const charter of charters) {
-    if (identifiers.has(charter.component)) fail(`duplicate component identifier ${charter.component}`);
-    identifiers.add(charter.component);
+    const identifier = charter.component.toLowerCase();
+    if (identifiers.has(identifier)) fail(`duplicate component identifier ${charter.component}`);
+    identifiers.add(identifier);
     validateLocalLinks(root, charter);
   }
   validateParents(root, charters);

@@ -1,8 +1,9 @@
 # CATSCAN: World platform runtime
 
-Component: `simulatte.world.platform.runtime`
 Parent: [World platform](../CATSCAN.md)
-Target: Provide deterministic clock, timeline, and provenance services to governed runs.
+## Target
+
+Provide deterministic clock, timeline, and provenance services to governed runs.
 
 ## Authority
 
@@ -13,14 +14,11 @@ Target: Provide deterministic clock, timeline, and provenance services to govern
 
 - Applies to runtime services under `public/simulatte/platform/runtime/`.
 
-## Inputs
+## Contracts
 
-- [platform contract charter](../contracts/CATSCAN.md)
-
-## Outputs
-
-- [simulation clock](simulation-clock.js)
-- [provenance registry](provenance-registry.js)
+- Input: [platform contract charter](../contracts/CATSCAN.md)
+- Output: [simulation clock](simulation-clock.js)
+- Output: [provenance registry](provenance-registry.js)
 
 ## Invariants
 
@@ -38,6 +36,6 @@ Target: Provide deterministic clock, timeline, and provenance services to govern
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

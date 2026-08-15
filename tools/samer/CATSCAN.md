@@ -1,8 +1,9 @@
 # CATSCAN: Improvement control plane
 
-Component: `simulatte.tools.samer`
 Parent: [Repository tools](../CATSCAN.md)
-Target: Evaluate candidates against frozen populations and retain promotion, rejection, and negative-learning evidence.
+## Target
+
+Evaluate candidates against frozen populations and retain promotion, rejection, and negative-learning evidence.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Evaluate candidates against frozen populations and retain promotion, rej
 
 - Applies to SAME-R tooling and policies under `tools/samer/`.
 
-## Inputs
+## Contracts
 
-- [model selection policy](model-selection-policy.json)
-- [construction contract](simulatte-construction-contract.json)
-
-## Outputs
-
-- [candidate registry](model-candidate-registry.json)
-- [evidence charter](evidence/CATSCAN.md)
+- Input: [model selection policy](model-selection-policy.json)
+- Input: [construction contract](simulatte-construction-contract.json)
+- Output: [candidate registry](model-candidate-registry.json)
+- Output: [evidence charter](evidence/CATSCAN.md)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Evaluate candidates against frozen populations and retain promotion, rej
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

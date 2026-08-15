@@ -1,8 +1,9 @@
 # CATSCAN: Application profiles
 
-Component: `simulatte.data.profiles`
 Parent: [Governed browser data](../CATSCAN.md)
-Target: Bind each activated experience to exact world, plugin, control, seed, presentation, and evidence requirements.
+## Target
+
+Bind each activated experience to exact world, plugin, control, seed, presentation, and evidence requirements.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Bind each activated experience to exact world, plugin, control, seed, pr
 
 - Applies to application profile manifests and claim inventory.
 
-## Inputs
+## Contracts
 
-- [tier application manifest](../simulatte/tier-application-manifest.json)
-
-## Outputs
-
-- [profile claim inventory](profile-claim-inventory-v1.json)
+- Input: [tier application manifest](../simulatte/tier-application-manifest.json)
+- Output: [profile claim inventory](profile-claim-inventory-v1.json)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Bind each activated experience to exact world, plugin, control, seed, pr
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

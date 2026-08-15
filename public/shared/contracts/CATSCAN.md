@@ -1,8 +1,9 @@
 # CATSCAN: Shared contracts
 
-Component: `simulatte.shared.contracts`
 Parent: [Shared browser runtime](../CATSCAN.md)
-Target: Define restrictive, versioned wire and validation contracts shared across browser components.
+## Target
+
+Define restrictive, versioned wire and validation contracts shared across browser components.
 
 ## Authority
 
@@ -13,14 +14,11 @@ Target: Define restrictive, versioned wire and validation contracts shared acros
 
 - Applies to schemas and validators under `public/shared/contracts/`.
 
-## Inputs
+## Contracts
 
-- [schema rules](../../../STYLE_GUIDE.md)
-
-## Outputs
-
-- [mission schema](mission.schema.json)
-- [contract validator](contract-validator.js)
+- Input: [schema rules](../../../STYLE_GUIDE.md)
+- Output: [mission schema](mission.schema.json)
+- Output: [contract validator](contract-validator.js)
 
 ## Invariants
 
@@ -38,6 +36,6 @@ Target: Define restrictive, versioned wire and validation contracts shared acros
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

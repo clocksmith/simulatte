@@ -1,8 +1,9 @@
 # CATSCAN: Phase 3 Retrieval
 
-Component: `simulatte.create.phase3-retrieval`
 Parent: [Create compiler pipeline](../CATSCAN.md)
-Target: Retrieve and rerank high-recall candidate knowledge with explicit provenance and rejection evidence.
+## Target
+
+Retrieve and rerank high-recall candidate knowledge with explicit provenance and rejection evidence.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Retrieve and rerank high-recall candidate knowledge with explicit proven
 
 - Applies to Phase 3 retrieval and reranking code.
 
-## Inputs
+## Contracts
 
-- [Phase 2 language contract](../phase-02-language/CATSCAN.md)
-
-## Outputs
-
-- [Phase 4 grounded intent contract](../phase-04-grounded-intent/CATSCAN.md)
+- Input: [Phase 2 language contract](../phase-02-language/CATSCAN.md)
+- Output: [Phase 4 grounded intent contract](../phase-04-grounded-intent/CATSCAN.md)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Retrieve and rerank high-recall candidate knowledge with explicit proven
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

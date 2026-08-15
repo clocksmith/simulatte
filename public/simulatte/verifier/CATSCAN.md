@@ -1,8 +1,9 @@
 # CATSCAN: Journey verification
 
-Component: `simulatte.world.verifier`
 Parent: [World](../CATSCAN.md)
-Target: Verify a completed journey against declared mission, lifecycle, result, and receipt obligations.
+## Target
+
+Verify a completed journey against declared mission, lifecycle, result, and receipt obligations.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Verify a completed journey against declared mission, lifecycle, result, 
 
 - Applies to verifier code under `public/simulatte/verifier/`.
 
-## Inputs
+## Contracts
 
-- [journey receipt schema](../../shared/contracts/journey-receipt.schema.json)
-
-## Outputs
-
-- [journey verifier](journey-verifier.js)
+- Input: [journey receipt schema](../../shared/contracts/journey-receipt.schema.json)
+- Output: [journey verifier](journey-verifier.js)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Verify a completed journey against declared mission, lifecycle, result, 
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

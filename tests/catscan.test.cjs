@@ -5,7 +5,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 function charter({ component, parent, target = 'Produce a bounded result.' }) {
-  return `# CATSCAN: ${component}\n\nComponent: \`${component}\`\nParent: ${parent}\nTarget: ${target}\n\n## Authority\n\n- Owns bounded decisions.\n- Does not own adjacent decisions.\n\n## Scope\n\n- Applies to this component.\n\n## Inputs\n\n- [Input](contract.md).\n\n## Outputs\n\n- [Output](contract.md).\n\n## Invariants\n\n- Failures remain explicit.\n\n## Acceptance\n\n- The component remains bounded.\n- Evidence: [contract fixture](contract.md).\n\n## Non-goals\n\n- Adjacent product behavior.\n\n## Freedom\n\nAny mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.\n`;
+  return `# CATSCAN: ${component}\n\nParent: ${parent}\n\n## Target\n\n${target}\n\n## Authority\n\n- Owns bounded decisions.\n- Does not own adjacent decisions.\n\n## Scope\n\n- Applies to this component.\n\n## Contracts\n\n- Input: [input contract](contract.md).\n- Output: [output contract](contract.md).\n\n## Invariants\n\n- Failures remain explicit.\n\n## Acceptance\n\n- The component remains bounded.\n- Evidence: [contract fixture](contract.md).\n\n## Non-goals\n\n- Adjacent product behavior.\n\n## Freedom\n\nAny implementation is permitted if it preserves these boundaries and passes the acceptance evidence.\n`;
 }
 
 async function withFixture(runFixture) {
@@ -51,6 +51,15 @@ test('recursive CATSCAN validation rejects missing evidence links', async () => 
     const childPath = path.join(root, 'child', 'CATSCAN.md');
     fs.writeFileSync(childPath, fs.readFileSync(childPath, 'utf8').replaceAll('contract.md', 'missing.md'));
     assert.throws(() => validateCatscans(root), /link does not exist/);
+  });
+});
+
+test('recursive CATSCAN validation rejects duplicate component names', async () => {
+  const { validateCatscans } = await import('../tools/check-catscan.mjs');
+  await withFixture((root) => {
+    const childPath = path.join(root, 'child', 'CATSCAN.md');
+    fs.writeFileSync(childPath, fs.readFileSync(childPath, 'utf8').replace('# CATSCAN: root.child', '# CATSCAN: root'));
+    assert.throws(() => validateCatscans(root), /duplicate component identifier root/);
   });
 });
 

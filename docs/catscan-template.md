@@ -13,9 +13,11 @@ Charters state what remains true, not how it must be implemented.
 ```markdown
 # CATSCAN: <Component>
 
-Component: `<unique.component-id>`
 Parent: [<parent component>](../CATSCAN.md)
-Target: <One sentence describing the outcome this component creates.>
+
+## Target
+
+<One sentence describing the outcome this component creates.>
 
 ## Authority
 
@@ -26,13 +28,10 @@ Target: <One sentence describing the outcome this component creates.>
 
 - Applies to <owned files or boundary>.
 
-## Inputs
+## Contracts
 
-- [<input contract>](path).
-
-## Outputs
-
-- [<output contract>](path).
+- Input: [<input contract>](path).
+- Output: [<output contract>](path).
 
 ## Invariants
 
@@ -50,12 +49,12 @@ Target: <One sentence describing the outcome this component creates.>
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 ```
 
 Keep a charter below 250 words when practical. The validator enforces a generous
-300-word ceiling, required fields and sections, unique identifiers, nearest
+300-word ceiling, required sections, unique component names, nearest
 parent links, local contract and evidence links, and a synchronized generated
 component index.
 

@@ -1,8 +1,9 @@
 # CATSCAN: Create compiler pipeline
 
-Component: `simulatte.create.pipeline`
 Parent: [Create](../CATSCAN.md)
-Target: Preserve prompt obligations through eight typed, ordered phase boundaries.
+## Target
+
+Preserve prompt obligations through eight typed, ordered phase boundaries.
 
 ## Authority
 
@@ -13,14 +14,11 @@ Target: Preserve prompt obligations through eight typed, ordered phase boundarie
 
 - Applies to phase implementations under `public/blank/pipeline/`.
 
-## Inputs
+## Contracts
 
-- [phase registry](../app/runtime/phase-module-registry.js)
-- [pipeline invariants](../../../STYLE_GUIDE.md)
-
-## Outputs
-
-- [scene proof phase](phase-08-scene-proof/CATSCAN.md)
+- Input: [phase registry](../app/runtime/phase-module-registry.js)
+- Input: [pipeline invariants](../../../STYLE_GUIDE.md)
+- Output: [scene proof phase](phase-08-scene-proof/CATSCAN.md)
 
 ## Invariants
 
@@ -38,6 +36,6 @@ Target: Preserve prompt obligations through eight typed, ordered phase boundarie
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

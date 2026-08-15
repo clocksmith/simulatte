@@ -1,8 +1,9 @@
 # CATSCAN: World
 
-Component: `simulatte.world`
 Parent: [Browser surface](../CATSCAN.md)
-Target: Execute governed profiles with deterministic controls, dynamics, safety, settlement, replay, and receipts.
+## Target
+
+Execute governed profiles with deterministic controls, dynamics, safety, settlement, replay, and receipts.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Execute governed profiles with deterministic controls, dynamics, safety,
 
 - Applies to World runtime code under `public/simulatte/`.
 
-## Inputs
+## Contracts
 
-- [governed data charter](../data/CATSCAN.md)
-- [platform charter](platform/CATSCAN.md)
-
-## Outputs
-
-- [World runtime manifest](app/world-runtime-script-manifest.js)
-- [journey verifier](verifier/CATSCAN.md)
+- Input: [governed data charter](../data/CATSCAN.md)
+- Input: [platform charter](platform/CATSCAN.md)
+- Output: [World runtime manifest](app/world-runtime-script-manifest.js)
+- Output: [journey verifier](verifier/CATSCAN.md)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Execute governed profiles with deterministic controls, dynamics, safety,
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

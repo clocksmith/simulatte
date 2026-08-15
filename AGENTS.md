@@ -36,8 +36,8 @@ discovery and procedure; it does not duplicate component goals.
 Use this order when sources disagree:
 
 1. The user's latest explicit direction.
-2. The ordered `CATSCAN.md` chain, with the nearest child narrowing its parent.
-3. [GOALS.md](GOALS.md) for durable repository strategy.
+2. [GOALS.md](GOALS.md) for durable repository purpose and strategy.
+3. The ordered `CATSCAN.md` chain, with the nearest child narrowing its parent.
 4. [STYLE_GUIDE.md](STYLE_GUIDE.md) for engineering invariants.
 5. Runtime manifests, schemas, tests, and receipts for current executable state.
 6. README and design documents for usage, navigation, and mechanism history.

@@ -1,8 +1,9 @@
 # CATSCAN: Shared browser runtime
 
-Component: `simulatte.shared`
 Parent: [Browser surface](../CATSCAN.md)
-Target: Provide narrow contracts and reusable deterministic behavior without becoming a hidden product coordinator.
+## Target
+
+Provide narrow contracts and reusable deterministic behavior without becoming a hidden product coordinator.
 
 ## Authority
 
@@ -13,14 +14,11 @@ Target: Provide narrow contracts and reusable deterministic behavior without bec
 
 - Applies to reusable browser code under `public/shared/`.
 
-## Inputs
+## Contracts
 
-- [shared contracts](contracts/CATSCAN.md)
-
-## Outputs
-
-- [shared plugin boundary](plugins/CATSCAN.md)
-- [shared core boundary](core/CATSCAN.md)
+- Input: [shared contracts](contracts/CATSCAN.md)
+- Output: [shared plugin boundary](plugins/CATSCAN.md)
+- Output: [shared core boundary](core/CATSCAN.md)
 
 ## Invariants
 
@@ -38,6 +36,6 @@ Target: Provide narrow contracts and reusable deterministic behavior without bec
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

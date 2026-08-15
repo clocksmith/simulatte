@@ -1,8 +1,9 @@
 # CATSCAN: Experience contracts
 
-Component: `simulatte.docs.experiences`
 Parent: [Documentation](../../CATSCAN.md)
-Target: State each connected experience's actor, job, controls, truth, result, proof, and non-claims.
+## Target
+
+State each connected experience's actor, job, controls, truth, result, proof, and non-claims.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: State each connected experience's actor, job, controls, truth, result, p
 
 - Applies to connected experience records under this directory.
 
-## Inputs
+## Contracts
 
-- [profile claim inventory](../../../public/data/application-profiles/profile-claim-inventory-v1.json)
-
-## Outputs
-
-- [experience index](README.md)
+- Input: [profile claim inventory](../../../public/data/application-profiles/profile-claim-inventory-v1.json)
+- Output: [experience index](README.md)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: State each connected experience's actor, job, controls, truth, result, p
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

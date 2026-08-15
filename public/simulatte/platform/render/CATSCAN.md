@@ -1,8 +1,9 @@
 # CATSCAN: World semantic compositor
 
-Component: `simulatte.world.platform.render`
 Parent: [World platform](../CATSCAN.md)
-Target: Compose declared plugin and World presentation contributions without obscuring the primary simulation.
+## Target
+
+Compose declared plugin and World presentation contributions without obscuring the primary simulation.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Compose declared plugin and World presentation contributions without obs
 
 - Applies to platform render composition under this directory.
 
-## Inputs
+## Contracts
 
-- [platform view contract](../contracts/tier-presentation.schema.json)
-
-## Outputs
-
-- [semantic compositor](semantic-compositor.js)
+- Input: [platform view contract](../contracts/tier-presentation.schema.json)
+- Output: [semantic compositor](semantic-compositor.js)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Compose declared plugin and World presentation contributions without obs
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

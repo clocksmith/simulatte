@@ -1,8 +1,9 @@
 # CATSCAN: Plugin tooling
 
-Component: `simulatte.tools.plugins`
 Parent: [Repository tools](../CATSCAN.md)
-Target: Validate plugin integrity and generate the connected runtime registry from declared manifests.
+## Target
+
+Validate plugin integrity and generate the connected runtime registry from declared manifests.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Validate plugin integrity and generate the connected runtime registry fr
 
 - Applies to plugin tools under `tools/plugins/`.
 
-## Inputs
+## Contracts
 
-- [plugin source charter](../../public/shared/plugins/CATSCAN.md)
-
-## Outputs
-
-- [generated plugin registry](../../public/simulatte/platform/plugin-host/generated-plugin-registry.js)
+- Input: [plugin source charter](../../public/shared/plugins/CATSCAN.md)
+- Output: [generated plugin registry](../../public/simulatte/platform/plugin-host/generated-plugin-registry.js)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Validate plugin integrity and generate the connected runtime registry fr
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

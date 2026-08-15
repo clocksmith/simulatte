@@ -1,8 +1,9 @@
 # CATSCAN: Shared simulation core
 
-Component: `simulatte.shared.core`
 Parent: [Shared browser runtime](../CATSCAN.md)
-Target: Provide deterministic simulation primitives reused by governed experiences.
+## Target
+
+Provide deterministic simulation primitives reused by governed experiences.
 
 ## Authority
 
@@ -13,14 +14,11 @@ Target: Provide deterministic simulation primitives reused by governed experienc
 
 - Applies to shared simulation code under `public/shared/core/`.
 
-## Inputs
+## Contracts
 
-- [shared contract charter](../contracts/CATSCAN.md)
-
-## Outputs
-
-- [civil time primitive](simulation/civil-time.js)
-- [N-body primitive](simulation/n-body-propagation.js)
+- Input: [shared contract charter](../contracts/CATSCAN.md)
+- Output: [civil time primitive](simulation/civil-time.js)
+- Output: [N-body primitive](simulation/n-body-propagation.js)
 
 ## Invariants
 
@@ -38,6 +36,6 @@ Target: Provide deterministic simulation primitives reused by governed experienc
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

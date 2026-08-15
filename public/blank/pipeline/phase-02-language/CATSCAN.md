@@ -1,8 +1,9 @@
 # CATSCAN: Phase 2 Language
 
-Component: `simulatte.create.phase2-language`
 Parent: [Create compiler pipeline](../CATSCAN.md)
-Target: Extract a source-bound language graph without deciding final world semantics.
+## Target
+
+Extract a source-bound language graph without deciding final world semantics.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Extract a source-bound language graph without deciding final world seman
 
 - Applies to Phase 2 language extraction code.
 
-## Inputs
+## Contracts
 
-- [Phase 1 runtime contract](../phase-01-runtime/CATSCAN.md)
-
-## Outputs
-
-- [Phase 3 retrieval contract](../phase-03-retrieval/CATSCAN.md)
+- Input: [Phase 1 runtime contract](../phase-01-runtime/CATSCAN.md)
+- Output: [Phase 3 retrieval contract](../phase-03-retrieval/CATSCAN.md)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Extract a source-bound language graph without deciding final world seman
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

@@ -1,8 +1,9 @@
 # CATSCAN: Repository tools
 
-Component: `simulatte.tools`
 Parent: [Simulatte](../CATSCAN.md)
-Target: Build, inspect, validate, package, and audit Simulatte through explicit commands and receipts.
+## Target
+
+Build, inspect, validate, package, and audit Simulatte through explicit commands and receipts.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Build, inspect, validate, package, and audit Simulatte through explicit 
 
 - Applies to Node and support tools under `tools/`.
 
-## Inputs
+## Contracts
 
-- [engineering invariants](../STYLE_GUIDE.md)
-- [package commands](../package.json)
-
-## Outputs
-
-- [CATSCAN validator](check-catscan.mjs)
-- [World tool charter](simulatte/CATSCAN.md)
+- Input: [engineering invariants](../STYLE_GUIDE.md)
+- Input: [package commands](../package.json)
+- Output: [CATSCAN validator](check-catscan.mjs)
+- Output: [World tool charter](simulatte/CATSCAN.md)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Build, inspect, validate, package, and audit Simulatte through explicit 
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

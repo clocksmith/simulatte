@@ -1,8 +1,9 @@
 # CATSCAN: Improvement evidence
 
-Component: `simulatte.tools.samer.evidence`
 Parent: [Improvement control plane](../CATSCAN.md)
-Target: Retain immutable, replayable candidate evaluations without converting diagnostic leaders into promotions.
+## Target
+
+Retain immutable, replayable candidate evaluations without converting diagnostic leaders into promotions.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Retain immutable, replayable candidate evaluations without converting di
 
 - Applies to retained evidence under `tools/samer/evidence/`.
 
-## Inputs
+## Contracts
 
-- [model evidence contract](model-selection/README.md)
-
-## Outputs
-
-- [classification frontier](model-selection/classification-v1/frontier.json)
+- Input: [model evidence contract](model-selection/README.md)
+- Output: [classification frontier](model-selection/classification-v1/frontier.json)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Retain immutable, replayable candidate evaluations without converting di
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

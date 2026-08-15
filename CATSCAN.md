@@ -1,8 +1,9 @@
 # CATSCAN: Simulatte
 
-Component: `simulatte`
 Parent: none
-Target: Compile bounded briefs into inspectable, executable worlds with explicit proof and refusal.
+## Target
+
+Compile bounded briefs into inspectable, executable worlds with explicit proof and refusal.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Compile bounded briefs into inspectable, executable worlds with explicit
 
 - Applies to the complete Simulatte repository.
 
-## Inputs
+## Contracts
 
-- [product goals](GOALS.md)
-- [engineering invariants](STYLE_GUIDE.md)
-
-## Outputs
-
-- [product navigation](README.md)
-- [browser component charter](public/CATSCAN.md)
+- Input: [product goals](GOALS.md)
+- Input: [engineering invariants](STYLE_GUIDE.md)
+- Output: [product navigation](README.md)
+- Output: [browser component charter](public/CATSCAN.md)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Compile bounded briefs into inspectable, executable worlds with explicit
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

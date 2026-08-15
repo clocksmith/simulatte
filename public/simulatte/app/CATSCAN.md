@@ -1,8 +1,9 @@
 # CATSCAN: World application
 
-Component: `simulatte.world.app`
 Parent: [World](../CATSCAN.md)
-Target: Resolve routes, mount the selected profile, expose controls, render progress, and support replay.
+## Target
+
+Resolve routes, mount the selected profile, expose controls, render progress, and support replay.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Resolve routes, mount the selected profile, expose controls, render prog
 
 - Applies to browser application code under `public/simulatte/app/`.
 
-## Inputs
+## Contracts
 
-- [World platform charter](../platform/CATSCAN.md)
-- [runtime script manifest](world-runtime-script-manifest.js)
-
-## Outputs
-
-- [World controller](main.js)
-- [run controller](tier-run-controller.js)
+- Input: [World platform charter](../platform/CATSCAN.md)
+- Input: [runtime script manifest](world-runtime-script-manifest.js)
+- Output: [World controller](main.js)
+- Output: [run controller](tier-run-controller.js)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Resolve routes, mount the selected profile, expose controls, render prog
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

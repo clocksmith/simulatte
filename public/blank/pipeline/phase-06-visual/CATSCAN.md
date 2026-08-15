@@ -1,8 +1,9 @@
 # CATSCAN: Phase 6 Visual
 
-Component: `simulatte.create.phase6-visual`
 Parent: [Create compiler pipeline](../CATSCAN.md)
-Target: Compile simulation artifacts into a renderable scene program that preserves specific prompt meaning.
+## Target
+
+Compile simulation artifacts into a renderable scene program that preserves specific prompt meaning.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Compile simulation artifacts into a renderable scene program that preser
 
 - Applies to Phase 6 visual compilation code.
 
-## Inputs
+## Contracts
 
-- [Phase 5 simulation contract](../phase-05-simulation/CATSCAN.md)
-
-## Outputs
-
-- [Phase 7 render contract](../phase-07-render/CATSCAN.md)
+- Input: [Phase 5 simulation contract](../phase-05-simulation/CATSCAN.md)
+- Output: [Phase 7 render contract](../phase-07-render/CATSCAN.md)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Compile simulation artifacts into a renderable scene program that preser
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

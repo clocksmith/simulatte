@@ -1,8 +1,9 @@
 # CATSCAN: Experience plugins
 
-Component: `simulatte.plugins`
 Parent: [Shared browser runtime](../CATSCAN.md)
-Target: Contribute governed experience behavior through versioned manifests and capability-limited ports.
+## Target
+
+Contribute governed experience behavior through versioned manifests and capability-limited ports.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Contribute governed experience behavior through versioned manifests and 
 
 - Applies to connected and explicitly disconnected plugins under this directory.
 
-## Inputs
+## Contracts
 
-- [plugin v4 contract](../../../docs/simulatte/plugin-v4-contract.md)
-
-## Outputs
-
-- [example plugin manifest](cable-trader/plugin.json)
+- Input: [plugin v4 contract](../../../docs/simulatte/plugin-v4-contract.md)
+- Output: [example plugin manifest](cable-trader/plugin.json)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Contribute governed experience behavior through versioned manifests and 
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

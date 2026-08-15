@@ -1,8 +1,9 @@
 # CATSCAN: Mission compilation
 
-Component: `simulatte.world.mission`
 Parent: [World](../CATSCAN.md)
-Target: Compile a governed mission into typed capabilities and executable planning inputs.
+## Target
+
+Compile a governed mission into typed capabilities and executable planning inputs.
 
 ## Authority
 
@@ -13,14 +14,11 @@ Target: Compile a governed mission into typed capabilities and executable planni
 
 - Applies to mission code under `public/simulatte/mission/`.
 
-## Inputs
+## Contracts
 
-- [mission schema](../../shared/contracts/mission.schema.json)
-
-## Outputs
-
-- [mission compiler](mission-compiler.js)
-- [capability matrix](capability-matrix.js)
+- Input: [mission schema](../../shared/contracts/mission.schema.json)
+- Output: [mission compiler](mission-compiler.js)
+- Output: [capability matrix](capability-matrix.js)
 
 ## Invariants
 
@@ -38,6 +36,6 @@ Target: Compile a governed mission into typed capabilities and executable planni
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

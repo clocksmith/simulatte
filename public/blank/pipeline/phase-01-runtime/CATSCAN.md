@@ -1,8 +1,9 @@
 # CATSCAN: Phase 1 Runtime
 
-Component: `simulatte.create.phase1-runtime`
 Parent: [Create compiler pipeline](../CATSCAN.md)
-Target: Prove required models, indexes, caches, schemas, and providers before compilation starts.
+## Target
+
+Prove required models, indexes, caches, schemas, and providers before compilation starts.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Prove required models, indexes, caches, schemas, and providers before co
 
 - Applies to Phase 1 runtime gate code.
 
-## Inputs
+## Contracts
 
-- [model runtime lock](../../../data/simulatte-embedder/model-runtime-lock.json)
-
-## Outputs
-
-- [Phase 2 language contract](../phase-02-language/CATSCAN.md)
+- Input: [model runtime lock](../../../data/simulatte-embedder/model-runtime-lock.json)
+- Output: [Phase 2 language contract](../phase-02-language/CATSCAN.md)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Prove required models, indexes, caches, schemas, and providers before co
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

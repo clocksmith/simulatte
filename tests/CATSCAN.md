@@ -1,8 +1,9 @@
 # CATSCAN: Tests and executable evidence
 
-Component: `simulatte.tests`
 Parent: [Simulatte](../CATSCAN.md)
-Target: Act as the executable type system for component boundaries, behavior, artifacts, and evidence integrity.
+## Target
+
+Act as the executable type system for component boundaries, behavior, artifacts, and evidence integrity.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Act as the executable type system for component boundaries, behavior, ar
 
 - Applies to test files and stable fixtures under `tests/`.
 
-## Inputs
+## Contracts
 
-- [engineering invariants](../STYLE_GUIDE.md)
-- [component validator](../tools/check-catscan.mjs)
-
-## Outputs
-
-- [folder contract suite](folder-contracts.test.cjs)
-- [CATSCAN suite](catscan.test.cjs)
+- Input: [engineering invariants](../STYLE_GUIDE.md)
+- Input: [component validator](../tools/check-catscan.mjs)
+- Output: [folder contract suite](folder-contracts.test.cjs)
+- Output: [CATSCAN suite](catscan.test.cjs)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Act as the executable type system for component boundaries, behavior, ar
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

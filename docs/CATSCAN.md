@@ -1,8 +1,9 @@
 # CATSCAN: Documentation
 
-Component: `simulatte.docs`
 Parent: [Simulatte](../CATSCAN.md)
-Target: Record intent, usage, architecture, and evidence meaning without claiming unexecuted behavior.
+## Target
+
+Record intent, usage, architecture, and evidence meaning without claiming unexecuted behavior.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Record intent, usage, architecture, and evidence meaning without claimin
 
 - Applies to hand-authored documents under `docs/`.
 
-## Inputs
+## Contracts
 
-- [product goals](../GOALS.md)
-- [current product map](../README.md)
-
-## Outputs
-
-- [World documentation](simulatte/README.md)
-- [deployment instructions](deployment.md)
+- Input: [product goals](../GOALS.md)
+- Input: [current product map](../README.md)
+- Output: [World documentation](simulatte/README.md)
+- Output: [deployment instructions](deployment.md)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Record intent, usage, architecture, and evidence meaning without claimin
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

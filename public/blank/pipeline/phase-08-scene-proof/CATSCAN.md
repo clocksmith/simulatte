@@ -1,8 +1,9 @@
 # CATSCAN: Phase 8 Scene Proof
 
-Component: `simulatte.create.phase8-proof`
 Parent: [Create compiler pipeline](../CATSCAN.md)
-Target: Settle composition obligations against render receipts and pixel evidence without adding scene content.
+## Target
+
+Settle composition obligations against render receipts and pixel evidence without adding scene content.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Settle composition obligations against render receipts and pixel evidenc
 
 - Applies to Phase 8 scene proof code.
 
-## Inputs
+## Contracts
 
-- [Phase 7 render contract](../phase-07-render/CATSCAN.md)
-
-## Outputs
-
-- [WorldProof product goal](../../../../GOALS.md#worldproof)
+- Input: [Phase 7 render contract](../phase-07-render/CATSCAN.md)
+- Output: [WorldProof product goal](../../../../GOALS.md#worldproof)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Settle composition obligations against render receipts and pixel evidenc
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

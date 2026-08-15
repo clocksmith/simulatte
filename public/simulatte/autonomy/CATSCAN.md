@@ -1,8 +1,9 @@
 # CATSCAN: Autonomy surface
 
-Component: `simulatte.world.autonomy`
 Parent: [World](../CATSCAN.md)
-Target: Expose the governed city autonomy experience through the World runtime contracts.
+## Target
+
+Expose the governed city autonomy experience through the World runtime contracts.
 
 ## Authority
 
@@ -13,13 +14,10 @@ Target: Expose the governed city autonomy experience through the World runtime c
 
 - Applies to the autonomy entrypoint under `public/simulatte/autonomy/`.
 
-## Inputs
+## Contracts
 
-- [autonomy manifest](../../data/simulatte/autonomy-manifest.json)
-
-## Outputs
-
-- [autonomy page](index.html)
+- Input: [autonomy manifest](../../data/simulatte/autonomy-manifest.json)
+- Output: [autonomy page](index.html)
 
 ## Invariants
 
@@ -37,6 +35,6 @@ Target: Expose the governed city autonomy experience through the World runtime c
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 

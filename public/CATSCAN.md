@@ -1,8 +1,9 @@
 # CATSCAN: Browser surface
 
-Component: `simulatte.public`
 Parent: [Simulatte](../CATSCAN.md)
-Target: Boot Create and World from static assets with visible readiness, execution, proof, or refusal.
+## Target
+
+Boot Create and World from static assets with visible readiness, execution, proof, or refusal.
 
 ## Authority
 
@@ -13,15 +14,12 @@ Target: Boot Create and World from static assets with visible readiness, executi
 
 - Applies to the complete static hosting surface under `public/`.
 
-## Inputs
+## Contracts
 
-- [product goals](../GOALS.md)
-- [hosting contract](../docs/deployment.md)
-
-## Outputs
-
-- [World entrypoint](index.html)
-- [Create charter](blank/CATSCAN.md)
+- Input: [product goals](../GOALS.md)
+- Input: [hosting contract](../docs/deployment.md)
+- Output: [World entrypoint](index.html)
+- Output: [Create charter](blank/CATSCAN.md)
 
 ## Invariants
 
@@ -39,6 +37,6 @@ Target: Boot Create and World from static assets with visible readiness, executi
 
 ## Freedom
 
-Any mechanism is permitted if it preserves these boundaries and passes the
+Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
 
