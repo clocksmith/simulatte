@@ -1,40 +1,44 @@
----
-catscan: 1
-path: docs
-owner: simulatte
-contractNode: simulatte.docs
-status: active
----
+# CATSCAN: Documentation
 
-# Simulatte documentation
+Component: `simulatte.docs`
+Parent: [Simulatte](../CATSCAN.md)
+Target: Record intent, usage, architecture, and evidence meaning without claiming unexecuted behavior.
 
-Documentation records product intent, architecture, experience contracts, evidence meaning, deployment procedures, and known gaps.
-Runtime manifests and receipts remain authoritative for implementation and execution claims.
+## Authority
 
-## API Surface
+- Owns human-facing product and architecture prose.
+- Does not own runtime state, generated evidence verdicts, or deployment status.
 
-- product and operating instructions
-- per-experience actor, job, controls, result, and non-claim contracts
-- deployment, evidence, and bug-zapping guides
-- generated folder-contract and judge-policy references
+## Scope
 
-## Internal Dependencies
+- Applies to hand-authored documents under `docs/`.
 
-- `public/data/application-profiles/`
-- `public/shared/plugins/`
-- `tools/simulatte/`
-- `tests/`
+## Inputs
 
-## External Dependencies
+- [product goals](../GOALS.md)
+- [current product map](../README.md)
 
-- None. External references must be explicitly cited and cannot replace local evidence.
+## Outputs
 
-## Validation
+- [World documentation](simulatte/README.md)
+- [deployment instructions](deployment.md)
 
-- `npm run catscan:check`
-- `node --test tests/folder-contracts.test.cjs`
-- `npm run folder-contracts:ci`
+## Invariants
 
-## Non-Claims
+- Proposals, current behavior, proof, and gaps stay visibly distinct.
+- Detailed mechanism history belongs in design documents, not charters.
 
-Prose is not a substitute for execution, browser, deployment, receipt, or human-review evidence.
+## Acceptance
+
+- Documentation paths remain covered by repository ownership contracts.
+- Evidence: [folder contract tests](../tests/folder-contracts.test.cjs).
+
+## Non-goals
+
+- Using prose as a substitute for tests, receipts, or browser evidence.
+
+## Freedom
+
+Any mechanism is permitted if it preserves these boundaries and passes the
+acceptance evidence.
+

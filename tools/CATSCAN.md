@@ -1,41 +1,44 @@
----
-catscan: 1
-path: tools
-owner: simulatte
-contractNode: simulatte.tools
-status: active
----
+# CATSCAN: Repository tools
 
-# Simulatte tools
+Component: `simulatte.tools`
+Parent: [Simulatte](../CATSCAN.md)
+Target: Build, inspect, validate, package, and audit Simulatte through explicit commands and receipts.
 
-Tools compile governed data, serve local browser surfaces, run deterministic audits, collect receipts, and validate release
-boundaries. They do not become hidden runtime authorities.
+## Authority
 
-## API Surface
+- Owns deterministic developer and release tooling.
+- Does not own browser runtime policy or proof without bound execution evidence.
 
-- data and manifest builders
-- browser smoke and profile-evidence runners
-- folder-contract checker, synchronizer, and judge bundle runner
-- release, deployment, and artifact checks
+## Scope
 
-## Internal Dependencies
+- Applies to Node and support tools under `tools/`.
 
-- `public/data/` manifests and source indexes
-- `tests/` contracts and focused regression lanes
-- `docs/simulatte/folder-contract.json`
+## Inputs
 
-## External Dependencies
+- [engineering invariants](../STYLE_GUIDE.md)
+- [package commands](../package.json)
 
-- Node.js 22
-- Chromium for browser evidence
-- Firebase CLI for deployment commands
+## Outputs
 
-## Validation
+- [CATSCAN validator](check-catscan.mjs)
+- [World tool charter](simulatte/CATSCAN.md)
 
-- `npm run catscan:check`
-- `npm run folder-contracts:ci`
-- `npm test`
+## Invariants
 
-## Non-Claims
+- Generated artifacts are changed only by their generators.
+- Tool success states what evidence layer actually ran.
 
-Tool output is evidence only when its receipt binds source, build, inputs, and execution identity.
+## Acceptance
+
+- Tool contracts and focused regression lanes pass.
+- Evidence: [CATSCAN contract tests](../tests/catscan.test.cjs).
+
+## Non-goals
+
+- Becoming a hidden runtime dependency or claiming deployment from local output.
+
+## Freedom
+
+Any mechanism is permitted if it preserves these boundaries and passes the
+acceptance evidence.
+

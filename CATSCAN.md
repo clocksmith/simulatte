@@ -1,45 +1,44 @@
----
-catscan: 1
-path: .
-owner: simulatte
-contractNode: simulatte.root
-status: active
----
+# CATSCAN: Simulatte
 
-# Simulatte
+Component: `simulatte`
+Parent: none
+Target: Compile bounded briefs into inspectable, executable worlds with explicit proof and refusal.
 
-Simulatte turns declared human intent into deterministic simulation state, browser-rendered pixels, and bounded evidence. The
-folder contract at `docs/simulatte/folder-contract.json` is the executable ownership and validation authority; this file is the
-concise architecture map supplied to humans and local judges.
+## Authority
 
-## API Surface
+- Owns repository mission, product boundaries, and release-wide evidence meaning.
+- Does not own the internal algorithms of child components.
 
-- `public/` World and Blank browser products
-- `tools/` deterministic builders, audits, servers, and contract runners
-- `tests/` phase, browser, data, and architecture checks
-- `docs/` product, experience, evidence, and deployment contracts
-- `npm run check:fast` source and folder-contract gate
+## Scope
 
-## Internal Dependencies
+- Applies to the complete Simulatte repository.
 
-- `public/` depends on declared `public/data`, `public/shared`, and platform contracts.
-- `tools/` produces or verifies generated data, receipts, and browser evidence.
-- `tests/` verifies source boundaries and declared runtime behavior.
-- `docs/` defines intent and evidence boundaries but never proves runtime behavior alone.
+## Inputs
 
-## External Dependencies
+- [product goals](GOALS.md)
+- [engineering invariants](STYLE_GUIDE.md)
 
-- Firebase Hosting for deployment.
-- Browser WebGPU and the pinned Doppler development lane where a profile requires model execution.
+## Outputs
 
-## Validation
+- [product navigation](README.md)
+- [browser component charter](public/CATSCAN.md)
 
-- `npm run catscan:check`
-- `npm run folder-contracts:ci`
-- `npm run check:fast`
-- `git diff --check`
+## Invariants
 
-## Non-Claims
+- Goals, implementation claims, and evidence remain distinct.
+- Unsupported behavior stays explicit and fails closed where required.
 
-Source, documentation, screenshots, or a local judge receipt do not by themselves prove deployment, scientific truth, or human visual
-acceptance.
+## Acceptance
+
+- Every governed component resolves an ordered charter chain.
+- Evidence: [CATSCAN contract tests](tests/catscan.test.cjs).
+
+## Non-goals
+
+- Prescribing one implementation technique for every component.
+
+## Freedom
+
+Any mechanism is permitted if it preserves these boundaries and passes the
+acceptance evidence.
+

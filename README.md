@@ -128,6 +128,10 @@ licensed under MIT.
 - [`public/data/`](public/data/) — governed manifests, profiles, models, and world data
 - [`tools/`](tools/) — build, audit, evaluation, and deployment tools
 - [`tests/`](tests/) — runtime, platform, plugin, and data tests
+- [`GOALS.md`](GOALS.md): durable product direction and success gates
+- [`CATSCAN.md`](CATSCAN.md): root component authority and invariant charter
+- [`docs/component-index.md`](docs/component-index.md): generated recursive component index
+- [`docs/catscan-template.md`](docs/catscan-template.md): component charter format
 - [`STYLE_GUIDE.md`](STYLE_GUIDE.md) — phase contracts and browser implementation rules
 - [`docs/simulatte/experiences/README.md`](docs/simulatte/experiences/README.md) — experience index
 

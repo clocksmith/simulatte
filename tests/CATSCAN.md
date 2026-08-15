@@ -1,40 +1,44 @@
----
-catscan: 1
-path: tests
-owner: simulatte
-contractNode: simulatte.tests
-status: active
----
+# CATSCAN: Tests and executable evidence
 
-# Simulatte tests
+Component: `simulatte.tests`
+Parent: [Simulatte](../CATSCAN.md)
+Target: Act as the executable type system for component boundaries, behavior, artifacts, and evidence integrity.
 
-Tests are the executable type system for phase boundaries, data contracts, plugin ownership, browser behavior, and evidence
-integrity.
+## Authority
 
-## API Surface
+- Owns deterministic regression fixtures and assertions.
+- Does not own product intent, deployed behavior, or human visual judgment.
 
-- unit and shape tests for compiler and runtime phases
-- plugin and data contract tests
-- browser and pixel evidence audits
-- folder-contract coverage and import-boundary tests
+## Scope
 
-## Internal Dependencies
+- Applies to test files and stable fixtures under `tests/`.
 
-- `public/` runtime and governed data
-- `tools/` deterministic checkers and evidence helpers
-- `docs/` declared experience and claim contracts
+## Inputs
 
-## External Dependencies
+- [engineering invariants](../STYLE_GUIDE.md)
+- [component validator](../tools/check-catscan.mjs)
 
-- Node.js test runner
-- Chromium and WebGPU where a browser lane is declared
+## Outputs
 
-## Validation
+- [folder contract suite](folder-contracts.test.cjs)
+- [CATSCAN suite](catscan.test.cjs)
 
-- `node --test tests/folder-contracts.test.cjs`
-- `npm test`
-- The affected node's deterministic commands from the folder contract.
+## Invariants
 
-## Non-Claims
+- Tests do not weaken to match incorrect behavior.
+- A source test does not claim browser, GPU, deployment, or human proof.
 
-A passing source test does not prove deployed behavior, visual recognizability, or human adjudication.
+## Acceptance
+
+- The affected component's narrowest stable tests pass.
+- Evidence: [test runner](../tools/run-test-files.mjs).
+
+## Non-goals
+
+- Encoding product direction only in assertions.
+
+## Freedom
+
+Any mechanism is permitted if it preserves these boundaries and passes the
+acceptance evidence.
+

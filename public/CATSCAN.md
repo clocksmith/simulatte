@@ -1,40 +1,44 @@
----
-catscan: 1
-path: public
-owner: simulatte
-contractNode: simulatte.public
-status: active
----
+# CATSCAN: Browser surface
 
-# Simulatte browser surface
+Component: `simulatte.public`
+Parent: [Simulatte](../CATSCAN.md)
+Target: Boot Create and World from static assets with visible readiness, execution, proof, or refusal.
 
-The static browser surface owns the World simulator, the separate Blank prompt-to-pixels compiler, shared assets, governed data,
-and their visible readiness or refusal states.
+## Authority
 
-## API Surface
+- Owns browser entrypoints and deployable static runtime assets.
+- Does not own build-time data acquisition or unbound claims.
 
-- World entrypoint and URL-selected experience profiles
-- Blank eight-phase compiler entrypoint
-- Shared plugin host, assets, manifests, and governed data loaders
+## Scope
 
-## Internal Dependencies
+- Applies to the complete static hosting surface under `public/`.
 
-- `public/data/`
-- `public/shared/`
-- `public/simulatte/`
-- `public/blank/`
+## Inputs
 
-## External Dependencies
+- [product goals](../GOALS.md)
+- [hosting contract](../docs/deployment.md)
 
-- Browser DOM, Canvas, WebGPU, and static hosting APIs.
+## Outputs
 
-## Validation
+- [World entrypoint](index.html)
+- [Create charter](blank/CATSCAN.md)
 
-- `npm run check:runtime-entrypoint`
-- `npm run check:world-entrypoint`
-- `npm run check:deploy`
-- Browser journeys declared in the folder contract.
+## Invariants
 
-## Non-Claims
+- Hosted behavior uses canonical public assets.
+- A JavaScript object is not proof of visible or behavioral success.
 
-An object present in JavaScript is not proof that its meaning is visible in settled pixels.
+## Acceptance
+
+- Both hosting surfaces package from declared entrypoints.
+- Evidence: [hosting surface tests](../tests/hosting-surfaces.test.cjs).
+
+## Non-goals
+
+- Server-only state or silent production fallbacks.
+
+## Freedom
+
+Any mechanism is permitted if it preserves these boundaries and passes the
+acceptance evidence.
+
