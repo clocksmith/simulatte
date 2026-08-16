@@ -29,18 +29,22 @@
   const PLUGIN_ID = 'subsea-network-global';
   const BRANCH_ROLES = Object.freeze(['baseline', 'intervention']);
 
-  async function runComparison({ datasets, dataReceipts, config, scenario }) {
+  async function runComparison({ datasets, dataReceipts, config, scenario, selectedResult = null }) {
     requireDependencies();
     const branchPolicies = Object.freeze({
       baseline: 'weighted-throughput',
       intervention: 'proportional-fair',
     });
-    const simulations = Object.fromEntries(BRANCH_ROLES.map((role) => [role, model.runScenario({
-      datasets,
-      config,
-      scenario,
-      policyOverrides: { allocationPolicyId: branchPolicies[role] },
-    })]));
+    const simulations = Object.fromEntries(BRANCH_ROLES.map((role) => [role,
+      canReuseSelectedResult(selectedResult, scenario, branchPolicies[role])
+        ? selectedResult
+        : model.runScenario({
+            datasets,
+            config,
+            scenario,
+            policyOverrides: { allocationPolicyId: branchPolicies[role] },
+          }),
+    ]));
     assertSharedScenario(simulations);
     const hiddenTruth = {
       seed: scenario.seed,
@@ -249,11 +253,6 @@
         value: { source: 'shared deterministic scenario seed', calibrationStatus: 'scenario_variance' },
       },
       evidenceRefs: [
-        ...dataReceipts.map((row) => ({
-          id: row.datasetId,
-          datasetId: row.datasetId,
-          contentHash: row.sha256,
-        })),
         {
           id: `${PLUGIN_ID}:model:allocation`,
           datasetId: 'subsea-model-governance-v1',
@@ -268,6 +267,24 @@
         },
       ],
     });
+  }
+
+  function canReuseSelectedResult(result, scenario, allocationPolicyId) {
+    const identity = result?.configurationIdentity;
+    if (!identity || result.allocationPolicyId !== allocationPolicyId) return false;
+    const expected = {
+      scenarioId: scenario.scenarioId,
+      seed: scenario.seed,
+      allocationPolicyId,
+      repairPolicyId: scenario.repairPolicyId,
+      failedResourceIds: [...scenario.failedResourceIds].sort(),
+      excludedLandingIds: [...(scenario.excludedLandingIds || [])].sort(),
+      essentialServiceWeight: scenario.essentialServiceWeight,
+      repairResourceCount: scenario.repairResourceCount,
+      ensembleSize: scenario.ensembleSize,
+    };
+    return canonical(Object.fromEntries(Object.keys(expected).map((key) => [key, identity[key]])))
+      === canonical(expected);
   }
 
   function createEvidenceCatalog(dataReceipts, result) {

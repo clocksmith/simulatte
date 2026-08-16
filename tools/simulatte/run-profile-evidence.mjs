@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import {
   addressReceipt,
@@ -20,6 +21,8 @@ import {
 import { captureBrowserRun, createEvidenceServer, findChrome } from './profile-evidence-browser.mjs';
 
 const TOOL_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+const profileWorldSpecContract = require('../../public/shared/contracts/profile-world-spec.js');
 const ROOT = path.resolve(TOOL_DIRECTORY, '../..');
 const DEFAULT_OUTPUT = path.join(ROOT, 'artifacts/profile-evidence');
 const INVENTORY_PATH = path.join(ROOT, 'public/data/application-profiles/profile-claim-inventory-v1.json');
@@ -178,12 +181,20 @@ function relativeArtifactLink(outputDirectory, filePath) {
 
 function writeSummary(outputDirectory, report) {
   const status = evidenceReportStatus(report);
+  const proofRows = report.runs || [];
+  const worldProofPasses = proofRows.filter((row) => row.worldProofVerdict === 'pass').length;
+  const worldProofPending = proofRows.filter((row) => row.worldProofVerdict === 'not-proven').length;
+  const worldProofFailures = proofRows.length - worldProofPasses - worldProofPending;
   const lines = [
     '# Simulatte profile evidence',
     '',
-    `Status: ${status}`,
+    `Machine evidence status: ${status}`,
     '',
     `Captured runs: ${report.passedRuns}/${report.totalRuns} passed`,
+    '',
+    `WorldProof verdicts: ${worldProofPasses} pass, ${worldProofPending} not-proven, ${worldProofFailures} fail or missing`,
+    '',
+    `Platform-claim eligible: ${proofRows.filter((row) => row.platformClaimEligible).length}/${proofRows.length}`,
     '',
     `Release coverage: ${report.totalRuns}/${report.requiredRuns} runs (${report.coverageComplete ? 'complete' : 'incomplete'})`,
     '',
@@ -193,9 +204,9 @@ function writeSummary(outputDirectory, report) {
     '| --- | ---: | ---: | --- |',
     ...report.profiles.map((row) => `| ${row.profileId} | ${row.passedRuns} | ${row.totalRuns} | ${Object.entries(row.failureCounts).map(([failure, count]) => `${failure} (${count})`).join(', ') || 'none'} |`),
     '',
-    '| Profile | Seed | Viewport | Status | Receipt | Failures |',
-    '| --- | --- | --- | --- | --- | --- |',
-    ...report.runs.map((row) => `| ${row.profileId} | ${row.seedId} | ${row.viewportId} | ${row.pass ? 'pass' : 'fail'} | [${row.receiptSha256.slice(0, 12)}](${row.receiptPath}) | ${row.failures.join(', ') || 'none'} |`),
+    '| Profile | Seed | Viewport | Machine | WorldProof | Receipt | Failures |',
+    '| --- | --- | --- | --- | --- | --- | --- |',
+    ...report.runs.map((row) => `| ${row.profileId} | ${row.seedId} | ${row.viewportId} | ${row.pass ? 'pass' : 'fail'} | ${row.worldProofVerdict || 'missing'} | [${row.receiptSha256.slice(0, 12)}](${row.receiptPath}) | ${row.failures.join(', ') || 'none'} |`),
     '',
   ];
   fs.writeFileSync(path.join(outputDirectory, 'summary.md'), `${lines.join('\n')}\n`);
@@ -226,6 +237,12 @@ function writeHumanReviewQueue(outputDirectory, report) {
     const receipt = verifyStoredReceipt(outputDirectory, row);
     const screenshot = receipt.evidence?.screenshot || null;
     const pageScreenshot = receipt.evidence?.pageScreenshot || null;
+    const worldProof = receipt.runtime?.worldProof || null;
+    if (
+      worldProof?.schema !== 'simulatte.worldProof.v1'
+      || worldProof.worldSpec?.contentHash !== receipt.runtime?.worldSpec?.contentHash
+      || worldProof.bindings?.renderDataKey !== screenshot?.sha256
+    ) throw new Error(`profile_evidence_world_proof_visual_binding_invalid: ${row.runId}`);
     const renderEvidence = {
       compositorReceipts: receipt.runtime?.compositorReceipts || [],
       contributionSources: receipt.runtime?.contributionSources || [],
@@ -245,6 +262,8 @@ function writeHumanReviewQueue(outputDirectory, report) {
       canvasScreenshot: verifiedVisualAsset(outputDirectory, screenshot, 'canvas_screenshot'),
       pageScreenshot: verifiedVisualAsset(outputDirectory, pageScreenshot, 'page_screenshot'),
       renderEvidenceSha256: sha256Bytes(canonicalJson(renderEvidence)),
+      worldProofVerdict: worldProof.verdict,
+      platformClaimEligible: worldProof.verdict === 'pass',
       reviewStatus: row.pass ? 'human-adjudication-required' : 'blocked-on-machine-evidence',
     };
   });
@@ -332,16 +351,37 @@ function validateIndex({ outputDirectory, plan, claims, identity }) {
     if (!row) return { runId: run.id, pass: false, failures: ['run_receipt_missing'], claimResults: [] };
     try {
       const receipt = verifyStoredReceipt(outputDirectory, row);
-      return validateReceipt({
+      const validation = validateReceipt({
         receipt,
         run,
         sourceIdentity: currentSourceIdentity(ROOT, run, identity),
         claims,
       });
+      const rowFailures = [];
+      if (row.worldProofVerdict !== validation.worldProofVerdict) {
+        rowFailures.push('world_proof_index_verdict_mismatch');
+      }
+      if (row.platformClaimEligible !== validation.platformClaimEligible) {
+        rowFailures.push('world_proof_index_eligibility_mismatch');
+      }
+      return rowFailures.length ? {
+        ...validation,
+        pass: false,
+        failures: [...validation.failures, ...rowFailures],
+      } : validation;
     } catch (error) {
       return { runId: run.id, pass: false, failures: [error.code || error.message], claimResults: [] };
     }
   });
+  const expectedProofSummary = {
+    passedRuns: validations.filter((row) => row.worldProofVerdict === 'pass').length,
+    notProvenRuns: validations.filter((row) => row.worldProofVerdict === 'not-proven').length,
+    failedOrMissingRuns: validations.filter((row) => !['pass', 'not-proven'].includes(row.worldProofVerdict)).length,
+    platformClaimEligibleRuns: validations.filter((row) => row.platformClaimEligible).length,
+  };
+  if (canonicalJson(index.worldProof || null) !== canonicalJson(expectedProofSummary)) {
+    indexFailures.push('world_proof_index_summary_mismatch');
+  }
   const extras = index.runs.filter((row) => !plan.runs.some((run) => run.id === row.runId));
   if (extras.length) validations.push({ runId: 'index', pass: false, failures: ['unexpected_run_receipts'], claimResults: [] });
   if (indexFailures.length) validations.push({ runId: 'index-contract', pass: false, failures: indexFailures, claimResults: [] });
@@ -361,7 +401,25 @@ async function captureAll({ options, plan, claims, identity, releaseIdentitySha2
     for (const run of selectedRuns) {
       const runClaims = claims.filter((claim) => claim.profileId === run.profileId && claim.seedId === run.seedId);
       const profile = readJson(path.join(ROOT, run.profilePath));
-      if (!profile.seeds.some((seed) => seed.id === run.seedId)) throw new Error(`profile_evidence_seed_missing: ${run.profileId}/${run.seedId}`);
+      const scenario = profile.seeds.find((seed) => seed.id === run.seedId);
+      if (!scenario) throw new Error(`profile_evidence_seed_missing: ${run.profileId}/${run.seedId}`);
+      let recompiledSpec = null;
+      let compilerError = null;
+      try {
+        const pluginManifests = profile.plugins.map((selection) => readJson(path.join(
+          ROOT,
+          'public/shared/plugins',
+          selection.id,
+          'plugin.json'
+        )));
+        recompiledSpec = profileWorldSpecContract.compileProfileWorldSpec({
+          profile,
+          scenario,
+          pluginManifests,
+        });
+      } catch (error) {
+        compilerError = error;
+      }
       console.log(`PROFILE-EVIDENCE capture profile=${run.profileId} seed=${run.seedId} viewport=${run.viewport.id}`);
       const sourceAttempt = attemptSourceIdentity(() => currentSourceIdentity(ROOT, run, identity));
       if (sourceAttempt.error) {
@@ -377,6 +435,8 @@ async function captureAll({ options, plan, claims, identity, releaseIdentitySha2
           receiptPath: relativeArtifactLink(options.outputDirectory, stored.path),
           pass: false,
           failures,
+          worldProofVerdict: 'missing',
+          platformClaimEligible: false,
         });
         console.log(`PROFILE-EVIDENCE result=fail run=${run.id} failures=${failures.join(',')}`);
         continue;
@@ -391,6 +451,8 @@ async function captureAll({ options, plan, claims, identity, releaseIdentitySha2
           sourceIdentity,
           claims: runClaims,
           outputDirectory: options.outputDirectory,
+          recompiledSpec,
+          compilerError,
         });
       } catch (error) {
         receipt = failedReceipt(run, sourceIdentity, runClaims, error);
@@ -406,6 +468,8 @@ async function captureAll({ options, plan, claims, identity, releaseIdentitySha2
         receiptPath: relativeArtifactLink(options.outputDirectory, stored.path),
         pass: validation.pass,
         failures: validation.failures,
+        worldProofVerdict: validation.worldProofVerdict,
+        platformClaimEligible: validation.platformClaimEligible,
       });
       console.log(`PROFILE-EVIDENCE result=${validation.pass ? 'pass' : 'fail'} run=${run.id} failures=${validation.failures.join(',') || 'none'}`);
     }
@@ -430,6 +494,12 @@ async function captureAll({ options, plan, claims, identity, releaseIdentitySha2
     coverageComplete: selectedRuns.length === plan.runs.length,
     pass: rows.every((row) => row.pass) && selectedRuns.length === plan.runs.length,
     profiles: profileClosureMatrix(rows),
+    worldProof: {
+      passedRuns: rows.filter((row) => row.worldProofVerdict === 'pass').length,
+      notProvenRuns: rows.filter((row) => row.worldProofVerdict === 'not-proven').length,
+      failedOrMissingRuns: rows.filter((row) => !['pass', 'not-proven'].includes(row.worldProofVerdict)).length,
+      platformClaimEligibleRuns: rows.filter((row) => row.platformClaimEligible).length,
+    },
     runs: rows,
   };
   fs.writeFileSync(path.join(options.outputDirectory, 'index.json'), `${JSON.stringify(report, null, 2)}\n`);

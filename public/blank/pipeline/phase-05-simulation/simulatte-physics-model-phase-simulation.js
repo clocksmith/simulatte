@@ -22,8 +22,12 @@
         const modules = scope.uniqueList(overrides.modules || template.modules || []);
         const objects = scope.normalizeObjects(overrides.objects, template.objects || []);
         const params = scope.normalizeParams(template, overrides.params, controls);
+        const compilerConfig = overrides.compilerConfig || overrides.source &&
+          overrides.source.compilerConfig || {};
+        const shouldCompileCustom = template.id === 'custom-world' && overrides.preserveCompiledWorldSpec !== true;
         const spec = {
-          schema: 'simulatte.simulationSpec.v1',
+          schema: scope.worldSpec.WORLD_SPEC_SCHEMA,
+          schemaVersion: scope.worldSpec.WORLD_SPEC_VERSION,
           id: overrides.id || deterministicSpecId(template.id, name, modules, objects, params),
           templateId: template.id,
           name,
@@ -52,8 +56,15 @@
           ),
           createdAt: overrides.createdAt || new Date(0).toISOString(),
           remixOf: overrides.remixOf || '',
+          source: overrides.source || null,
+          authorship: overrides.authorship || null,
+          determinism: overrides.determinism || defaultWorldSpecDeterminism(params, compilerConfig),
+          dependencies: overrides.dependencies || defaultWorldSpecDependencies(),
+          safety: overrides.safety || defaultWorldSpecSafety(),
+          unsupportedRequirements: overrides.unsupportedRequirements || [],
+          unresolvedAmbiguities: overrides.unresolvedAmbiguities || [],
         };
-        if (spec.templateId === 'custom-world') {
+        if (shouldCompileCustom) {
           reportCompilePhaseProgress(overrides, 'simulation', 0, 'Compiling simulation');
           Object.assign(spec, compileCompilerArtifacts(spec, overrides));
         }
@@ -67,7 +78,7 @@
           spec.renderIR = spec.renderIR || simulationCompile.renderIR || null;
           spec.interactionIR = spec.interactionIR || simulationCompile.interactionIR || null;
         }
-        if (spec.templateId === 'custom-world') {
+        if (shouldCompileCustom) {
           reportCompilePhaseProgress(overrides, 'simulation', 100, 'Simulation compiled');
         }
         if (spec.phaseArtifacts && spec.phaseArtifacts.phase5) {
@@ -93,8 +104,43 @@
         spec.physicalSpec = overrides.physicalSpec || (
           spec.contract && spec.contract.graph ? compilePhysicalSpec(spec) : null
         );
-        normalizedSimulationSpecs.add(spec);
-        return spec;
+        const finalized = scope.worldSpec.finalizeWorldSpec(spec, {
+          compilerConfig,
+        });
+        normalizedSimulationSpecs.add(finalized);
+        return finalized;
+      }
+
+    function defaultWorldSpecDeterminism(params = {}, compilerConfig = {}) {
+        const seed = Number(params.seed);
+        const compilerDeterministic = compilerConfig && compilerConfig.deterministicRuntime === true &&
+          ['pipeline-worker', 'main-thread'].includes(compilerConfig.compilerLane);
+        return {
+          schema: 'simulatte.worldSpecDeterminism.v1',
+          requiredClasses: compilerDeterministic
+            ? ['compiler-deterministic', 'simulation-reproducible', 'replay-identified']
+            : ['replay-identified'],
+          seed: Number.isFinite(seed) ? seed : null,
+          simulationTolerance: compilerDeterministic ? 1e-9 : null,
+          pixelPolicy: null,
+        };
+      }
+
+    function defaultWorldSpecDependencies() {
+        return {
+          schema: 'simulatte.worldSpecDependencies.v1',
+          governedPacks: [],
+          plugins: [],
+          assets: [],
+        };
+      }
+
+    function defaultWorldSpecSafety() {
+        return {
+          schema: 'simulatte.worldSpecSafety.v1',
+          rules: [],
+          status: 'not-declared',
+        };
       }
 
     function deterministicSpecId(templateId, name, modules, objects, params) {
@@ -129,7 +175,22 @@
           phaseArtifacts: raw.phaseArtifacts || null,
           createdAt: raw.createdAt || new Date(0).toISOString(),
           remixOf: raw.remixOf || '',
+          source: raw.source || null,
+          authorship: raw.authorship || null,
+          determinism: raw.determinism || null,
+          dependencies: raw.dependencies || null,
+          safety: raw.safety || null,
+          unsupportedRequirements: raw.unsupportedRequirements || [],
+          unresolvedAmbiguities: raw.unresolvedAmbiguities || [],
+          preserveCompiledWorldSpec: raw.schema === scope.worldSpec.WORLD_SPEC_SCHEMA &&
+            Boolean(raw.physicsIR && raw.solverGraph && raw.renderIR && raw.renderProgram),
         });
+      }
+
+    function acceptNormalizedWorldSpec(spec) {
+        scope.worldSpec.validateWorldSpec(spec);
+        normalizedSimulationSpecs.add(spec);
+        return spec;
       }
 
     function compileCompilerArtifacts(spec, overrides = {}) {
@@ -360,6 +421,7 @@
       reportCompilePhaseProgress,
       createSpec,
       normalizeSpec,
+      acceptNormalizedWorldSpec,
       compileCompilerArtifacts,
       attachRenderIRPhaseInputs,
       compilePhysicalSpec,

@@ -23,6 +23,7 @@ Contribute governed experience behavior through versioned manifests and capabili
 
 - Plugins receive only declared capabilities and datasets.
 - One plugin cannot access another through supported APIs.
+- Bundled executables declare same-realm trust, provenance, integrity, and revocation identity without claiming isolation.
 
 ## Acceptance
 
@@ -37,4 +38,3 @@ Contribute governed experience behavior through versioned manifests and capabili
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

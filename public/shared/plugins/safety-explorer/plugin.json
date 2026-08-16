@@ -59,7 +59,17 @@
       "path": "./v4-contribution.js"
     }
   ],
-  "schema": "simulatte.pluginManifest.v1",
+  "governance": {
+    "trustLevel": "repository-bundled",
+    "executionIsolation": "same-realm-contract",
+    "publisher": "simulatte",
+    "provenance": "repository-source",
+    "signatureStatus": "not-applicable-repository-bundled",
+    "marketplaceEligible": false,
+    "status": "active",
+    "revocationId": "plugin:safety-explorer@2.0.0"
+  },
+  "schema": "simulatte.pluginManifest.v3",
   "sdkVersion": 1,
   "version": "2.0.0"
 }

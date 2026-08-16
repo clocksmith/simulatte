@@ -51,16 +51,19 @@
     mainSupportApi: typeof module === 'object' && module.exports
       ? require('./main-support.js')
       : root.SimulatteMainSupport,
+    profileProgramApi: typeof module === 'object' && module.exports ? require('./profile-program.js') : root.SimulatteProfileProgram,
+    appRenderWorkApi: typeof module === 'object' && module.exports ? require('./app-render-work.js') : root.SimulatteAppRenderWork,
   }));
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dependencies) {
-  const { hostRoot, dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, pluginViewRuntimeApi, mountLifecycleApi, mainViewApi, pluginPlaybackApi, cityInterfaceApi, mainControllerBuilderApi, mainSupportApi } = dependencies;
-  if (!cityInterfaceApi || !mainViewApi || !mainControllerBuilderApi || !mainSupportApi) {
+  const { hostRoot, dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, pluginViewRuntimeApi, mountLifecycleApi, mainViewApi, pluginPlaybackApi, cityInterfaceApi, mainControllerBuilderApi, mainSupportApi, profileProgramApi, appRenderWorkApi } = dependencies;
+  if (!cityInterfaceApi || !mainViewApi || !mainControllerBuilderApi || !mainSupportApi || !profileProgramApi || !appRenderWorkApi) {
     throw new Error('simulatte_app_view_dependency_missing');
   }
   const { collectElements, populateApplicationProfiles, applicationProfileLabel, setRuntimeStatus, runtimeLabel, renderIdentity, renderPlaceResolution, renderPlanning, configureExperienceShell, renderExperienceSummary, renderPlayback } = mainViewApi;
   const { wireCameraControls, selectCameraMode, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons } = cityInterfaceApi;
+  const { record: recordRenderWork, receipt: renderWorkReceipt } = appRenderWorkApi;
   const log = runtimeLog || {
     info: () => null,
     warn: () => null,
@@ -101,8 +104,8 @@
     let frameRequest = null;
     let pluginClock = null;
     let pluginViewRuntime = null;
-    let pluginPlayback = null;
-    let pluginUi = null;
+    let pluginPlayback = null, pluginUi = null;
+    let profileProgram = null, latestJourneyReceipt = null;
     let neuralGate = null;
     let buildRevision = 0;
     let pluginRenderGeneration = 0;
@@ -129,7 +132,7 @@
         lifecycle.abort();
         elements.applicationProfile.disabled = true;
         const resources = {
-          profileSelectUi, placeResolver, tierVisualizer, renderer, extensions, pluginUi, neuralGate,
+          profileSelectUi, placeResolver, tierVisualizer, renderer, extensions, pluginUi, neuralGate, profileProgram,
         };
         profileSelectUi = null;
         placeResolver = null;
@@ -139,12 +142,14 @@
         extensions = null;
         pluginUi = null;
         neuralGate = null;
+        profileProgram = null;
         await mountLifecycleApi.disposeAll([
           { resource: 'place-resolver', dispose: () => resources.placeResolver?.unload() },
           { resource: 'tier-visualizer', dispose: () => resources.tierVisualizer?.destroy() },
           { resource: 'renderer', dispose: () => resources.renderer?.destroy() },
           { resource: 'plugin-playback', dispose: () => pluginPlayback?.dispose() },
           { resource: 'plugin-ui', dispose: () => resources.pluginUi?.dispose() },
+          { resource: 'profile-program', dispose: () => resources.profileProgram?.dispose() },
           { resource: 'plugin-runtime', dispose: () => resources.extensions?.dispose() },
           { resource: 'profile-select', dispose: () => resources.profileSelectUi?.dispose() },
           { resource: 'neural-consent', dispose: () => resources.neuralGate?.dispose() },
@@ -277,11 +282,10 @@
       onControlChange: async ({ pluginId, values }) => {
         if (hooks.navigate) {
           const simulation = simulationRouteState();
-          await hooks.navigate({
-            tier: initialTier,
-            experience: data.applicationProfile.id,
-            simulation: { ...simulation, parameters: { ...simulation.parameters, [pluginId]: values } },
-          }, { replace: true });
+          await hooks.navigate(governedRoute({
+            ...simulation,
+            parameters: { ...simulation.parameters, [pluginId]: values },
+          }), { replace: true });
           return;
         }
         if (!pluginPlayback || pluginPlayback.snapshot().ownerPluginId !== pluginId) return;
@@ -639,7 +643,7 @@
       }
     }
     async function buildController({ keepMissionLocked = false } = {}) {
-      return controllerBuilder.build({ keepMissionLocked });
+      latestJourneyReceipt = null; return controllerBuilder.build({ keepMissionLocked });
     }
     async function recordJourney(targetController) {
       const revision = buildRevision;
@@ -649,6 +653,7 @@
       receipt.pluginSettlement = await activeExtensions.settle({ journey: receipt });
       receipt.pluginRuntime = activeExtensions.runtimeReceipt();
       if (revision === buildRevision && activeExtensions === extensions) {
+        latestJourneyReceipt = receipt; void profileProgram?.refreshProof();
         renderPluginExperience({ mission, journey: receipt });
       }
       const identity = `${receipt.mission.id}:${receipt.integrity.terminalHash}:${receipt.finalState.status}`;
@@ -744,11 +749,7 @@
       if (isRunning) return;
       const nextScenario = applicationProfileSelectApi.nextScenario(interaction, activeScenario.id);
       if (hooks.navigate) {
-        await hooks.navigate({
-          tier: initialTier,
-          experience: data.applicationProfile.id,
-          simulation: { scenarioId: nextScenario.id, seed: nextScenario.seed },
-        });
+        await hooks.navigate(governedRoute({ scenarioId: nextScenario.id, seed: nextScenario.seed }));
         return;
       }
       elements.shuffleButton.disabled = true;
@@ -844,7 +845,8 @@
       }
   });
     function reflectPluginPlaybackPhase(phase, snapshot) {
-      const isActive = phase === 'running';
+      if (phase !== 'completed') profileProgramApi.invalidateRunReceipt(hostRoot, '__simulattePluginRunReceipt');
+      const isActive = phase === 'running'; setJourneyPhase(phase);
       isRunning = isActive;
       hasJourneyStarted = phase !== 'ready';
       if (phase === 'running') {
@@ -889,11 +891,7 @@
         if (missionUrlTimer !== null) clearTimeout(missionUrlTimer);
         missionUrlTimer = setTimeout(() => {
           missionUrlTimer = null;
-          void hooks.navigate({
-            tier: initialTier,
-            experience: data.applicationProfile.id,
-            simulation: simulationRouteState(),
-          }, { replace: true });
+          void hooks.navigate(governedRoute(), { replace: true });
         }, 160);
       }
     });
@@ -951,6 +949,21 @@
       await timedLoadStage('tier.visualizer', () => selectWorldTier(initialTier));
       lifecycle.throwIfAborted();
       await timedLoadStage('first.render', () => renderPluginExperience({ mission: activeMissionForPlugins }));
+      profileProgram = profileProgramApi.connect({
+        documentRoot: document, profile: data.applicationProfile, registry: pluginRegistry,
+        getRuntime: () => extensions, getScenario: () => activeScenario, getCanvas: () => elements.autonomyCanvas,
+        getRunReceipt: () => hostRoot.__simulatteTierRunReceipt || hostRoot.__simulattePluginRunReceipt || latestJourneyReceipt,
+        navigateScenario: async (scenario) => {
+          const simulation = { ...simulationRouteState(), scenarioId: scenario.id, seed: scenario.seed };
+          if (hooks.navigate) return hooks.navigate(governedRoute(simulation));
+          return updateSimulationFromRoute(simulation);
+        },
+        replay: async () => {
+          if (!pluginPlayback) return elements.replayButton.click();
+          await pluginPlayback.seek(pluginPlayback.snapshot().totalSteps); await pluginPlayback.resume();
+          return hostRoot.__simulattePluginRunReceipt;
+        },
+      });
       loadTrace?.complete({ profileId: data.applicationProfile.id, interactionMode: interaction.mode, scenarioId: activeScenario.id, renderer: renderer?.receipt?.().backend || null });
     } catch (error) {
       await disposeApplication();
@@ -976,23 +989,6 @@
       throw error;
     }
     }
-  function recordRenderWork(values, durationMs) {
-    if (values.length >= 128) values.shift();
-    values.push(Number(durationMs));
-  }
-
-  function renderWorkReceipt(work) {
-    const summarize = (values) => ({
-      sampleCount: values.length,
-      totalMs: values.reduce((sum, value) => sum + value, 0),
-      maxMs: Math.max(0, ...values),
-    });
-    return {
-      schema: 'simulatte.appRenderWorkReceipt.v1',
-      samples: work.phases.total.length,
-      phases: Object.fromEntries(Object.entries(work.phases).map(([key, values]) => [key, summarize(values)])),
-    };
-  }
   launchBrowserApp(start, collectElements);
   return { applicationProfileLabel, collectElements, friendlyMissionError, populateApplicationProfiles, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
 });

@@ -106,7 +106,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginMaritimeTradeGlobal",
-    "integrity": "sha384-04ac8ddf07f9965e0d46dd5d005b37f687e87e4c80720352933ada886160c448702c449cd91e5f5f5ce9d561d9ece541",
+    "integrity": "sha384-4261bb95b5c73912ade3738204d29e726195326115fca853f2d1065002574df7979992bee408f80653f9a56ba1c64a70",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -197,7 +197,17 @@
       "path": "./weather-disruption.js"
     }
   ],
-  "schema": "simulatte.pluginManifest.v2",
+  "governance": {
+    "trustLevel": "repository-bundled",
+    "executionIsolation": "same-realm-contract",
+    "publisher": "simulatte",
+    "provenance": "repository-source",
+    "signatureStatus": "not-applicable-repository-bundled",
+    "marketplaceEligible": false,
+    "status": "active",
+    "revocationId": "plugin:maritime-trade-global@2.0.0"
+  },
+  "schema": "simulatte.pluginManifest.v3",
   "sdkVersion": 2,
   "version": "2.0.0"
 }

@@ -7,8 +7,9 @@ Settle composition obligations against render receipts and pixel evidence withou
 
 ## Authority
 
-- Owns settled obligations, proof verdict, explicit losses, and not-proven results.
-- Does not own semantic changes, scene generation, or behavioral WorldProof.
+- Owns settled visual obligations, the scene-proof verdict, explicit losses, and not-proven results.
+- Attaches the shared WorldProof aggregate without converting scene evidence into behavioral proof.
+- Does not own semantic changes, scene generation, simulation, interaction, safety, or replay evidence.
 
 ## Scope
 
@@ -23,11 +24,13 @@ Settle composition obligations against render receipts and pixel evidence withou
 
 - An obligation without render evidence cannot silently pass.
 - Screenshots and hashes are evidence, not proof by themselves.
+- WorldProof receives typed intent, semantic, and interaction receipts without Phase 8 borrowing one proof class for another.
 
 ## Acceptance
 
 - Proof fixtures distinguish visible settlement from missing or unsupported output.
 - Evidence: [render proof tests](../../../../tests/physical-compiler-render-proof.test.cjs).
+- Evidence: [WorldProof aggregation tests](../../../../tests/world-proof.test.cjs).
 
 ## Non-goals
 
@@ -37,4 +40,3 @@ Settle composition obligations against render receipts and pixel evidence withou
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

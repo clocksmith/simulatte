@@ -42,6 +42,7 @@ const regressionFloor = Number(process.env.SIMULATTE_PIPELINE_REGRESSION_FLOOR |
 const regressions = phaseIds.filter((id) => phaseDeltas[id] <= -regressionFloor);
 const improvements = phaseIds.filter((id) => phaseDeltas[id] > 0);
 const drift = phaseIds.filter((id) => phaseDeltas[id] < 0 && phaseDeltas[id] > -regressionFloor);
+const earliestObservableDivergence = phaseIds.find((id) => phaseDeltas[id] < 0) || 'none';
 
 console.log(`pipeline=${current.pipelineScore} baseline=${baseline.pipelineScore} delta=${formatDelta(pipelineDelta)}`);
 console.log(`verdict=${current.verdict || 'n/a'} weakest=${current.weakestPhase || 'n/a'}`);
@@ -50,6 +51,8 @@ console.log(`improvements=${improvements.join(',') || 'none'}`);
 console.log(`regressions=${regressions.join(',') || 'none'}`);
 console.log(`minorDrift=${drift.join(',') || 'none'} threshold=${regressionFloor}`);
 console.log(`belowFloor=${(current.belowFloor || []).join(',') || 'none'}`);
+console.log(`earliestObservableDivergence=${earliestObservableDivergence} causalOwnership=not-proven`);
+console.log('causalOwnership requires npm run audit:pipeline:diagnose with four complete artifact-substitution replays.');
 
 if (pipelineDelta <= -regressionFloor || regressions.length) process.exitCode = 1;
 

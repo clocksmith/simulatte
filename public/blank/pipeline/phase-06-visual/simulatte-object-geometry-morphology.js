@@ -306,9 +306,14 @@
       topologyWeight * 0.2 +
       (surfaces.some((value) => value !== 'solid') ? 0.05 : 0)
     ).toFixed(4));
+    const sphericalIdentitySignature =
+      program.constructionGraph && program.constructionGraph.topologyId === 'spherical-body' &&
+      program.constructionReceipt && program.constructionReceipt.topologyTargetFit === true &&
+      featureClasses.includes('sphere') && featureClasses.includes('specular');
     const pass = parts.length >= 2 &&
       (distinctive >= 1 || signatureContourCount >= 1) &&
-      (contours.length >= 2 || featureClasses.length >= 3 || signatureContourCount >= 1) &&
+      (contours.length >= 2 || featureClasses.length >= 3 || signatureContourCount >= 1 ||
+        sphericalIdentitySignature) &&
       specificityScore >= 0.48;
     return {
       schema: MORPHOLOGY_RECEIPT_SCHEMA,

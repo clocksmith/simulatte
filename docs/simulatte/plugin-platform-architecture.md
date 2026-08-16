@@ -233,7 +233,7 @@ storage does not imply shared semantic ownership.
 Every plugin is a self-contained directory:
 
 ```text
-public/plugins/sun-walker/
+public/shared/plugins/sun-walker/
   plugin.json
   config.schema.json
   default-config.json
@@ -248,7 +248,7 @@ The minimum manifest shape is:
 ```json
 {
   "$schema": "../../platform/contracts/plugin-manifest.schema.json",
-  "schema": "simulatte.pluginManifest.v1",
+  "schema": "simulatte.pluginManifest.v3",
   "id": "sun-walker",
   "version": "1.0.0",
   "sdkVersion": 1,
@@ -271,12 +271,29 @@ The minimum manifest shape is:
   ],
   "provides": ["routing.dimension.sun-exposure.v1"],
   "consumes": [],
-  "extensionPoints": ["request", "route", "settlement", "ui", "presentation"]
+  "extensionPoints": ["request", "route", "settlement", "ui", "presentation"],
+  "governance": {
+    "trustLevel": "repository-bundled",
+    "executionIsolation": "same-realm-contract",
+    "publisher": "simulatte",
+    "provenance": "repository-source",
+    "signatureStatus": "not-applicable-repository-bundled",
+    "marketplaceEligible": false,
+    "status": "active",
+    "revocationId": "plugin:sun-walker@1.0.0"
+  }
 }
 ```
 
 The manifest owns declared authority. Runtime code cannot request additional
 permissions or data after activation.
+
+Executable activation additionally requires a v3 governance record. Current
+plugins are repository-bundled, execute in the page's JavaScript realm, and are
+explicitly ineligible for marketplace distribution. The host emits a trust
+receipt and rejects legacy or revoked executables before their factory runs.
+Third-party execution remains unsupported until a separately enforced isolated,
+signed, budgeted, and revocable lane exists.
 
 The generated runtime registry is produced by scanning plugin manifests and
 sorting by plugin ID. Plugin work does not hand-edit the registry. One

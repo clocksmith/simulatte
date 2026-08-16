@@ -343,11 +343,15 @@ test('phase contracts declare the strict eight-phase handoff', () => {
     assert.ok(Array.isArray(phase.forbiddenUpstreamReads));
   });
   assert.ok(contracts.phases[2].forbiddenUpstreamReads.includes('rawPrompt'));
+  assert.ok(contracts.phases[1].artifactKeys.includes('intentRequirements'));
+  assert.ok(contracts.phases[2].artifactKeys.includes('intentRequirements'));
   assert.ok(contracts.phases[2].artifactKeys.includes('retrievalRerankResult'));
   assert.ok(contracts.phases[2].artifactKeys.includes('activationCloud'));
   assert.ok(contracts.phases[2].receipts.includes('phase3-activation-fusion'));
   assert.ok(contracts.phases[3].forbiddenUpstreamReads.includes('rankedPrimitives'));
   assert.ok(contracts.phases[3].artifactKeys.includes('groundedSceneContract'));
+  assert.ok(contracts.phases[3].artifactKeys.includes('intentSettlement'));
+  assert.ok(contracts.phases[3].artifactKeys.includes('semanticProvenance'));
   assert.ok(contracts.phases[5].artifactKeys.includes('visualCompile'));
   assert.ok(contracts.phases[6].artifactKeys.includes('renderExecution'));
   assert.ok(contracts.phases[6].forbiddenUpstreamReads.includes('renderIR'));
@@ -810,10 +814,10 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
   assert.match(renderer, /appendBuildVersion\(url, view\)/);
   assert.match(renderer, /new view\.Worker\(url\)/);
   assert.match(renderer, /function compilePromptSpec\(prompt, options, event = \{\}\)/);
-  assert.match(renderer, /pipelineCompiler\.compile\(prompt, options, onPhaseProgress\)/);
+  assert.match(renderer, /pipelineCompiler\.compile\(prompt, \{\s+\.\.\.options,\s+compilerLane: 'pipeline-worker',\s+\}, onPhaseProgress\)/);
   assert.match(renderer, /data\.type === 'simulatte:pipeline-worker:progress'/);
   assert.match(renderer, /worker compile fell back to main thread/);
-  assert.match(renderer, /return createSpecFromPrompt\(prompt, \{ \.\.\.options, onPhaseProgress \}\)/);
+  assert.match(renderer, /return createSpecFromPrompt\(prompt, \{\s+\.\.\.options,\s+compilerLane: 'main-thread',\s+onPhaseProgress,\s+\}\)/);
   assert.match(renderer, /let compileSerial = 0/);
   assert.match(renderer, /token !== compileSerial/);
   assert.doesNotMatch(renderer, /Compiling preview simulation graph/);

@@ -6,6 +6,7 @@ require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js')
 const registry = require('../public/blank/app/runtime/phase-module-registry.js');
 const interactionRuntime = require('../public/blank/app/runtime/world-interaction-runtime.js');
 const sceneProof = require('../public/blank/pipeline/phase-08-scene-proof/simulatte-scene-proof.js');
+const worldProof = require('../public/shared/contracts/world-proof.js');
 
 const renderer = registry.family('webGpuRenderer');
 const PROMPT = 'a robot pushes a rolling metal wheel';
@@ -64,6 +65,11 @@ test('pointer commands deterministically mutate solver channels before subsequen
   assert.equal(first.interaction.appliedCommandCount, 3);
   assert.ok(first.interaction.modifiedChannels.length > 0);
   assert.ok(first.interaction.receipts.every((row) => row.status === 'applied'));
+  assert.ok(first.interaction.receipts.every((row) => (
+    row.beforeState.schema === lab.INTERACTION_TRANSITION_STATE_SCHEMA &&
+    row.afterState.schema === lab.INTERACTION_TRANSITION_STATE_SCHEMA &&
+    row.beforeStateHash !== row.afterStateHash
+  )));
 
   const positionId = target.channels.position;
   const beforeStep = { ...first.solverState.channels[positionId] };
@@ -200,33 +206,48 @@ test('browser adapter maps pointer and keyboard events into one monotonic comman
 });
 
 test('Phase 8 distinguishes causal interaction proof from unexercised and dropped feedback', () => {
-  const base = {
-    schema: 'simulatte.phase7InteractionReceipt.v1',
-    status: 'executed',
-    commandCount: 3,
-    appliedCommandCount: 3,
-    rejectedCommandCount: 0,
-    changedChannelCount: 2,
-    physicalActionExecuted: true,
-    selectedTargetId: 'target:wheel',
-    activeTargetId: 'target:wheel',
-    visualStateConsumed: true,
-  };
-  assert.equal(sceneProof.settleInteractionReceipt(base).status, 'pass');
+  const spec = compile();
+  const target = dynamicTarget(spec);
+  const packet = spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
+  const binding = worldProof.createWorldProofBinding(spec, {
+    buildId: 'interaction-test-build',
+    runtimeId: 'interaction-test-runtime',
+  });
+  const state = lab.applyInteractionCommands(
+    lab.createSimulationState(spec),
+    spec.interactionIR,
+    [
+      { sequence: 1, actionId: 'select', targetId: target.id, point: [0.5, 0.5] },
+      { sequence: 2, actionId: 'impulse', targetId: target.id, delta: [0.2, -0.4] },
+    ]
+  );
+  const base = renderer.phase7InteractionReceipt(
+    { simulationState: state },
+    {
+      interactionVisualReceipt: {
+        schema: 'simulatte.phase7InteractionVisualReceipt.v1',
+        consumed: true,
+      },
+    },
+    packet
+  );
+  const passing = sceneProof.settleInteractionReceipt(base, binding);
+  assert.equal(passing.status, 'pass');
+  assert.equal(passing.interactionProgramHash, spec.interactionIR.contentHash);
+  assert.equal(passing.provenTransitionCount, 2);
   assert.equal(sceneProof.settleInteractionReceipt({
     ...base,
     visualStateConsumed: false,
-  }).status, 'fail');
-  assert.equal(sceneProof.settleInteractionReceipt({
-    ...base,
-    status: 'not-exercised',
-    commandCount: 0,
-    appliedCommandCount: 0,
-    changedChannelCount: 0,
-    physicalActionExecuted: false,
-    selectedTargetId: '',
-    activeTargetId: '',
-  }).status, 'not-exercised');
+  }, binding).status, 'fail');
+  const unexercised = renderer.phase7InteractionReceipt(
+    { simulationState: lab.createSimulationState(spec) },
+    null,
+    packet
+  );
+  assert.equal(
+    sceneProof.settleInteractionReceipt(unexercised, binding).status,
+    'not-proven'
+  );
 
   const phase7Output = {
     schema: 'simulatte.phase7.output.v2',
@@ -238,6 +259,7 @@ test('Phase 8 distinguishes causal interaction proof from unexercised and droppe
         schema: 'simulatte.renderExecution.v2',
         rendered: true,
         renderCount: 1,
+        worldProofBinding: binding,
         packetIdentitySummary: [],
         visualObligationProof: [],
         interactionReceipt: base,
@@ -252,7 +274,7 @@ test('Phase 8 distinguishes causal interaction proof from unexercised and droppe
   );
   assert.equal(settled.artifact.sceneProof.interactionProof.status, 'pass');
   assert.equal(settled.artifact.sceneProof.verdict, 'pass');
-  assert.equal(settled.receipts[0].interactionChangedChannelCount, 2);
+  assert.equal(settled.receipts[0].interactionChangedChannelCount, base.changedChannelCount);
 
   const dropped = sceneProof.settleSceneProof({
     ...phase7Output,

@@ -46,6 +46,7 @@
 .phase-rail-step[data-status="running"] { border-color: var(--accent); color: var(--text); }
 .phase-rail-step[data-status="passed"] { background: color-mix(in srgb, var(--accent) 18%, var(--panel)); }
 .phase-rail-step[data-status="failed"] { border-color: #c2410c; color: #c2410c; }
+.phase-rail-step[data-status="not-proven"] { border-style: dotted; border-color: #a16207; color: #a16207; }
 .phase-rail-step[data-status="unsupported"] { border-style: dashed; color: #a16207; }
 .phase-details { margin: 6px 0; color: var(--dim); font-size: 11px; }
 
@@ -2530,6 +2531,76 @@ input[type="range"]::-moz-range-track {
 .world-model-panel .spec-preview {
   max-height: 156px;
   margin-top: 6px;
+}
+
+.world-spec-editor-panel {
+  margin-top: 4px;
+}
+
+.world-proof-panel {
+  margin-top: 4px;
+}
+
+.world-proof-panel > summary {
+  color: rgba(0, 0, 0, 0.66);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.world-proof-preview {
+  max-height: 220px;
+}
+
+.world-spec-editor-panel > summary {
+  color: rgba(0, 0, 0, 0.66);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.world-spec-editor-controls {
+  display: grid;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.world-spec-editor-controls > label {
+  color: rgba(0, 0, 0, 0.52);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+#world-spec-edit-rationale,
+#world-spec-editor {
+  width: 100%;
+  border-color: rgba(0, 0, 0, 0.14);
+  background: rgba(255, 255, 255, 0.68);
+  color: rgba(0, 0, 0, 0.76);
+}
+
+#world-spec-editor {
+  min-height: 260px;
+  resize: vertical;
+  font: 10px/1.42 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  tab-size: 2;
+}
+
+.world-spec-editor-status {
+  min-height: 1.3em;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: rgba(0, 0, 0, 0.56);
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+.world-spec-editor-status[data-state="error"] {
+  color: #8d1e1e;
+}
+
+.world-spec-editor-status[data-state="dirty"],
+.world-spec-editor-status[data-state="active"] {
+  color: rgba(0, 0, 0, 0.82);
 }
 
 .intent-runtime-detail {

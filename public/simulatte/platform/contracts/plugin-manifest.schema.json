@@ -23,7 +23,8 @@
     "schema": {
       "enum": [
         "simulatte.pluginManifest.v1",
-        "simulatte.pluginManifest.v2"
+        "simulatte.pluginManifest.v2",
+        "simulatte.pluginManifest.v3"
       ]
     },
     "id": {
@@ -214,9 +215,43 @@
     "defaultConfig": {
       "type": "string",
       "minLength": 1
+    },
+    "governance": {
+      "type": "object",
+      "required": [
+        "trustLevel",
+        "executionIsolation",
+        "publisher",
+        "provenance",
+        "signatureStatus",
+        "marketplaceEligible",
+        "status",
+        "revocationId"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "trustLevel": { "const": "repository-bundled" },
+        "executionIsolation": { "const": "same-realm-contract" },
+        "publisher": { "const": "simulatte" },
+        "provenance": { "const": "repository-source" },
+        "signatureStatus": { "const": "not-applicable-repository-bundled" },
+        "marketplaceEligible": { "const": false },
+        "status": { "enum": ["active", "revoked"] },
+        "revocationId": {
+          "type": "string",
+          "pattern": "^plugin:[a-z0-9]+(?:-[a-z0-9]+)*@[0-9]+\\.[0-9]+\\.[0-9]+$"
+        }
+      }
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": { "schema": { "const": "simulatte.pluginManifest.v3" } }
+      },
+      "then": { "required": ["governance"] },
+      "else": { "not": { "required": ["governance"] } }
+    },
     {
       "if": {
         "properties": {

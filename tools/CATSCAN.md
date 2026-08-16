@@ -19,12 +19,15 @@ Build, inspect, validate, package, and audit Simulatte through explicit commands
 - Input: [engineering invariants](../STYLE_GUIDE.md)
 - Input: [package commands](../package.json)
 - Output: [CATSCAN validator](check-catscan.mjs)
+- Output: [WorldSpec editor browser audit](audit-world-spec-editor.mjs)
+- Output: [causal phase diagnosis](causal-phase-diagnosis.mjs)
 - Output: [World tool charter](simulatte/CATSCAN.md)
 
 ## Invariants
 
 - Generated artifacts are changed only by their generators.
 - Tool success states what evidence layer actually ran.
+- Phase ownership requires complete suspect/good artifact substitutions through independent downstream lanes.
 
 ## Acceptance
 
@@ -39,4 +42,3 @@ Build, inspect, validate, package, and audit Simulatte through explicit commands
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

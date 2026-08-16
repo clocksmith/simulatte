@@ -14,17 +14,17 @@ behavior that executes today.
 
 | Experience | Tier | Status | Real data | Simulation | Comparison | Browser proof |
 |---|---|---|---|---|---|---|
-| [Cable Trader](cable-trader.md) | City | implemented | City routes and an authored everyday cable taxonomy | 256 stable people by default, hub inventory, supply, demand, pickups, and drop-offs | One continuous 365-day exchange | Desktop and mobile proof pending for the v6 rebuild |
-| [Neighborhood Bulk Pool](neighborhood-bulk-pool.md) | City | implemented | Warehouse identities and addresses | Synthetic pooling, handoffs, costs, and waste | Four pooling policies | Prior commit only |
-| [NYC Development Atlas](nyc-development-atlas.md) | City | implemented | NYC neighborhood, sale, DOB, building, and PLUTO records | Historical building stages and conditional price and development ensembles | Business as usual vs selected development policy | Not tested |
-| [Sun Walker](sun-walker.md) | City | implemented | NYC geometry, 2015 trees, historical weather analog | Arrival-time solar exposure and occlusion | Fastest vs shade-selected route | Prior commit only |
-| [Food Recall](food-recall.md) | Country | implemented | Governed environmental and logistics fields where identified | Synthetic lots, contamination, illness, and recall | Recall intervention vs no recall | Prior commit only |
-| [Grid Resilience](grid-resilience.md) | Country | implemented | Historical EIA and NOAA rows | Interface-constrained dispatch and restoration | Economic baseline vs resilience policy | Prior commit only |
-| [Maritime Trade](maritime-trade.md) | World | implemented | Governed port identities and calibration artifacts | Routes, queues, cargo, emissions, and disruption | Configured voyage vs undisrupted baseline | Prior commit only |
-| [Subsea Network](subsea-network.md) | World | implemented | FCC regulatory cable identities | Traffic allocation, failures, fairness, and repairs | Weighted throughput vs proportional fairness | Prior commit only |
-| [Orbital Transfer Planner](orbital-transfer-planner.md) | Solar System | implemented | Pinned ephemeris state vectors | Lambert search and independent propagation | Selected transfer vs Hohmann screen | Prior commit only |
-| [Asteroid Defense](asteroid-defense.md) | Solar System | implemented | Pinned JPL catalog and benchmark rows | Synthetic observations, orbit clones, and intervention | No intervention vs selected policy | Prior commit only |
-| [Interstellar Relay Network](interstellar-relay-network.md) | Star Chart | implemented | Gaia DR3 astrometry; derived HYG snapshot | Hypothetical terminals, routing, channels, and operations | Direct classical link vs selected route | Prior commit only |
+| [Cable Trader](cable-trader.md) | City | implemented | City routes and an authored everyday cable taxonomy | 256 stable people by default, hub inventory, supply, demand, pickups, and drop-offs | One continuous 365-day exchange | See generated evidence index; human visual review remains separate |
+| [Neighborhood Bulk Pool](neighborhood-bulk-pool.md) | City | implemented | Warehouse identities and addresses | Synthetic pooling, handoffs, costs, and waste | Four pooling policies | See generated evidence index; human visual review remains separate |
+| [NYC Development Atlas](nyc-development-atlas.md) | City | implemented | NYC neighborhood, sale, DOB, building, and PLUTO records | Historical building stages and conditional price and development ensembles | Business as usual vs selected development policy | See generated evidence index; human visual review remains separate |
+| [Sun Walker](sun-walker.md) | City | implemented | NYC geometry, 2015 trees, historical weather analog | Arrival-time solar exposure and occlusion | Fastest vs shade-selected route | See generated evidence index; human visual review remains separate |
+| [Food Recall](food-recall.md) | Country | implemented | Governed environmental and logistics fields where identified | Synthetic lots, contamination, illness, and recall | Recall intervention vs no recall | See generated evidence index; human visual review remains separate |
+| [Grid Resilience](grid-resilience.md) | Country | implemented | Historical EIA and NOAA rows | Interface-constrained dispatch and restoration | Economic baseline vs resilience policy | See generated evidence index; human visual review remains separate |
+| [Maritime Trade](maritime-trade.md) | World | implemented | Governed port identities and calibration artifacts | Routes, queues, cargo, emissions, and disruption | Configured voyage vs undisrupted baseline | See generated evidence index; human visual review remains separate |
+| [Subsea Network](subsea-network.md) | World | implemented | FCC regulatory cable identities | Traffic allocation, failures, fairness, and repairs | Weighted throughput vs proportional fairness | See generated evidence index; human visual review remains separate |
+| [Orbital Transfer Planner](orbital-transfer-planner.md) | Solar System | implemented | Pinned ephemeris state vectors | Lambert search and independent propagation | Selected transfer vs Hohmann screen | See generated evidence index; human visual review remains separate |
+| [Asteroid Defense](asteroid-defense.md) | Solar System | implemented | Pinned JPL catalog and benchmark rows | Synthetic observations, orbit clones, and intervention | No intervention vs selected policy | See generated evidence index; human visual review remains separate |
+| [Interstellar Relay Network](interstellar-relay-network.md) | Star Chart | implemented | Gaia DR3 astrometry; derived HYG snapshot | Hypothetical terminals, routing, channels, and operations | Direct classical link vs selected route | See generated evidence index; human visual review remains separate |
 | [Exoplanet Survey](exoplanet-survey.md) | Star Chart | proposed | Proposed Gaia and NASA archive inputs | Proposed blinded injection and recovery | Proposed survey-policy comparison | Not tested |
 
 ## Reading status
@@ -37,13 +37,10 @@ behavior that executes today.
 | `verified` | Focused tests and the declared browser evidence matrix pass |
 | `deployed` | Verified behavior was also checked on the hosted production URL |
 
-The existing evidence index is generated at
-`artifacts/profile-evidence/index.json`.
-It binds 94 passing runs to commit `a5713c1c13abacbc626b8e96c95e4c64fc779ca9`
-and worktree identity
-`facdee0932717326829d2b3704ee5bf44b2192d43d8badcbc9496d60792c2698`.
-Those receipts do not verify the current worktree. Current browser and
-production deployment checks have not been rerun.
+The current machine evidence status, source identity, WorldProof verdicts, and
+human-review queue are generated under `artifacts/profile-evidence/`. Machine
+capture does not prove human recognizability, and neither local evidence nor a
+passing WorldProof proves production deployment.
 
 ## Truth vocabulary
 

@@ -157,6 +157,63 @@ test('scene proof fails a required identity when its live pixel obligation fails
   assert.equal(proof.verdict, 'fail');
 });
 
+test('scene proof rejects literal pixels compiled from a topology that does not fit the target identity', () => {
+  const spec = lab.createSpecFromPrompt('a red ball', { allowPrototypeFallback: true });
+  const canvas = { width: 640, height: 360 };
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, canvas);
+  const ball = input.sceneRenderPacket.entities.find((row) => row.identity?.type === 'ball');
+  assert.ok(ball, 'fixture compiles a ball entity');
+
+  const program = ball.geometry.program;
+  program.grammarId = 'object-grammar.constructive.resonant-instrument.balanced';
+  program.constructionReceipt = {
+    ...program.constructionReceipt,
+    topologyId: 'resonant-instrument',
+    topologySelectionMethod: 'evidence-score',
+    topologyTargetFit: false,
+  };
+  program.constructionGraph = {
+    ...program.constructionGraph,
+    topologyId: 'resonant-instrument',
+  };
+
+  const renderData = rendererScope.compileSceneRenderData(input.sceneRenderPacket);
+  renderData.requireLivePixelSamples = true;
+  const readbackPlan = rendererScope.phase7PixelReadbackPlan(
+    renderData,
+    input.sceneRenderPacket,
+    input,
+    canvas
+  );
+  assert.ok(readbackPlan, 'tampered topology still reaches physical pixel sampling');
+  const phase7 = lab.runPhase7RenderExecution(input, null, canvas, {
+    ...renderData,
+    rendered: true,
+    renderCount: 1,
+    pixelSamples: {
+      schema: 'simulatte.phase7PixelSampleSet.v1',
+      source: 'scene-proof-unrelated-topology-readback',
+      packetKey: renderData.packetKey,
+      samples: readbackPlan.samples.map((sample) => ({
+        ...sample,
+        rgba: [239, 51, 64, 255],
+      })),
+    },
+  });
+  const realization = phase7.artifact.renderExecution.objectRealization.rows
+    .find((row) => row.identityType === 'ball');
+  const proof = lab.runPhase8SceneProof(phase7).artifact.sceneProof;
+  const topologyProof = proof.settledObligations.find((row) => (
+    row.obligationId === 'visual:construction:surface-ball-1:topology'
+  ));
+
+  assert.equal(realization.topologyVerified, false);
+  assert.equal(realization.semanticFit, false);
+  assert.equal(realization.realized, false);
+  assert.equal(topologyProof.status, 'lost');
+  assert.equal(proof.verdict, 'fail');
+});
+
 test('scene proof fails closed for negated identities without a semantic absence proof', () => {
   const phase7 = renderedPhase7('a dog but no cat');
   const absence = phase7.artifact.compositionLedger.obligations.find((row) => row.constraintKind === 'absence');

@@ -4,6 +4,8 @@ const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 const { pathToFileURL } = require('node:url');
+const profileWorldSpec = require('../public/shared/contracts/profile-world-spec.js');
+const profileWorldProof = require('../public/shared/contracts/profile-world-proof.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const CONTRACT_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-contract.mjs')).href;
@@ -64,7 +66,7 @@ function settledComparisonReceipt() {
 }
 
 test('render readback encodes exact RGBA bytes as a bounded PNG', async () => {
-  const { encodeRgbaPng } = await import(PNG_URL);
+  const { encodeRgbaPng, inspectPng } = await import(PNG_URL);
   const png = encodeRgbaPng({
     width: 2,
     height: 1,
@@ -74,6 +76,15 @@ test('render readback encodes exact RGBA bytes as a bounded PNG', async () => {
   assert.equal(png.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
   assert.equal(png.readUInt32BE(16), 2);
   assert.equal(png.readUInt32BE(20), 1);
+  assert.deepEqual(inspectPng(png, 'test-readback'), {
+    method: 'test-readback',
+    width: 2,
+    height: 1,
+    sampleCount: 2,
+    nonTransparentSampleCount: 2,
+    distinctColorCount: 2,
+    status: 'pass',
+  });
   assert.throws(
     () => encodeRgbaPng({ width: 2, height: 1, format: 'rgba8unorm', rgbaBase64: 'AA==' }),
     /render_byte_length_invalid/
@@ -145,6 +156,22 @@ async function fixture({ profileId = null } = {}) {
       }],
     })),
   };
+  const profile = JSON.parse(fs.readFileSync(path.join(ROOT, run.profilePath), 'utf8'));
+  const scenario = profile.seeds.find((row) => row.id === run.seedId);
+  const pluginManifests = profile.plugins.map((selection) => JSON.parse(fs.readFileSync(
+    path.join(ROOT, 'public/shared/plugins', selection.id, 'plugin.json'),
+    'utf8'
+  )));
+  const executionWorldSpec = profileWorldSpec.compileProfileWorldSpec({
+    profile,
+    scenario,
+    pluginManifests,
+  });
+  const independentlyRecompiledWorldSpec = profileWorldSpec.compileProfileWorldSpec({
+    profile,
+    scenario,
+    pluginManifests,
+  });
   const receipt = {
     schema: 'simulatte.profileEvidenceReceipt.v1',
     run: {
@@ -166,6 +193,21 @@ async function fixture({ profileId = null } = {}) {
     runtime: {
       path: 'native-v4',
       profileId: run.profileId,
+      worldSpec: executionWorldSpec,
+      worldSpecConformance: profileWorldSpec.createConformanceReceipt(executionWorldSpec, {
+        profile,
+        scenario,
+        pluginManifests,
+      }),
+      runReceipt: {
+        schema: 'simulatte.profileEvidenceRunReceiptRef.v1',
+        originalSchema: 'simulatte.pluginPlaybackRunReceipt.v1',
+        profileId: run.profileId,
+        scenario: { id: run.seedId, seed: run.seed },
+        status: 'settled',
+        contentSha256: 'f'.repeat(64),
+        byteLength: 1024,
+      },
       clockReceipt: { schema: 'simulatte.simulationClockReceipt.v4' },
       viewReceipt: {
         schema: 'simulatte.viewDirectorReceipt.v4',
@@ -234,12 +276,18 @@ async function fixture({ profileId = null } = {}) {
         },
         memory: {
           basis: 'selected-governed-seed-ready-to-lifecycle-camera-settled',
+          measurementMode: 'forced-gc-retained-heap-at-governed-boundaries',
           status: 'pass',
           sampleCount: 2,
           initialUsedJsHeapBytes: 100,
           finalUsedJsHeapBytes: 110,
-          peakUsedJsHeapBytes: 120,
+          peakUsedJsHeapBytes: 110,
           finalTotalJsHeapBytes: 200,
+          observedPeakUsedJsHeapBytes: 140,
+          samples: [
+            { boundary: 'window-start', usedJsHeapBytes: 100, totalJsHeapBytes: 180 },
+            { boundary: 'window-end', usedJsHeapBytes: 110, totalJsHeapBytes: 200 },
+          ],
         },
         longTasks: {
           basis: 'selected-governed-seed-ready-to-lifecycle-camera-settled',
@@ -267,6 +315,7 @@ async function fixture({ profileId = null } = {}) {
       pixelReadback: {
         method: run.tier === 'city' ? 'webgpu-texture-readback-png-samples' : 'canvas2d-image-data-png-samples',
         status: 'pass',
+        sha256: 'c'.repeat(64),
         sampleCount: 256,
         distinctColorCount: 4,
       },
@@ -297,6 +346,20 @@ async function fixture({ profileId = null } = {}) {
       .filter((claim) => claim.profileId === run.profileId && claim.seedId === run.seedId)
       .map((claim) => ({ id: claim.id, sentence: claim.sentence })),
   };
+  const proof = profileWorldProof.createProfileWorldProof({
+    spec: receipt.runtime.worldSpec,
+    run,
+    runtime: receipt.runtime,
+    evidence: receipt.evidence,
+    sourceIdentity: receipt.sourceIdentity,
+    browser: receipt.browser,
+    claims: receipt.claims,
+    nowIso: '2026-08-15T00:00:00.000Z',
+    recompiledSpec: independentlyRecompiledWorldSpec,
+    independentCompilerExecution: true,
+  });
+  receipt.runtime.compilerDeterminismReceipt = structuredClone(proof.evidence.compilerDeterminismReceipt);
+  receipt.runtime.worldProof = proof;
   return { buildIdentity, claims, contract, plan, receipt, run, sourceIdentity };
 }
 
@@ -358,6 +421,74 @@ test('complete native browser evidence settles its profile claim', async () => {
   assert.equal(validation.pass, true);
   assert.deepEqual(validation.failures, []);
   assert.ok(validation.claimResults.every((row) => row.pass));
+  assert.equal(receipt.runtime.worldProof.schema, 'simulatte.worldProof.v1');
+  assert.equal(receipt.runtime.worldProof.verdict, 'not-proven');
+  assert.equal(receipt.runtime.worldProof.proofClasses.intent.status, 'pass');
+  assert.equal(receipt.runtime.worldProof.proofClasses.semantic.status, 'pass');
+  assert.equal(receipt.runtime.worldProof.proofClasses.compilation.status, 'pass');
+  assert.equal(receipt.runtime.worldProof.proofClasses.simulation.status, 'pass');
+  assert.equal(receipt.runtime.worldProof.proofClasses.replay.status, 'pass');
+  assert.equal(receipt.runtime.compilerDeterminismReceipt.status, 'pass');
+  assert.equal(
+    receipt.runtime.worldProof.evidence.replayReceipt.classStatuses['compiler-deterministic'],
+    'pass'
+  );
+  assert.equal(receipt.runtime.worldProof.proofClasses.visual.status, 'not-proven');
+  assert.equal(validation.worldProofVerdict, 'not-proven');
+  assert.equal(validation.platformClaimEligible, false);
+});
+
+test('profile evidence requires typed intent and semantic machine proof', async () => {
+  const fixtureValue = await fixture();
+  fixtureValue.receipt.runtime.worldProof.proofClasses.intent.status = 'not-proven';
+  fixtureValue.receipt.runtime.worldProof.proofClasses.semantic.status = 'not-proven';
+  const validation = fixtureValue.contract.validateReceipt({
+    receipt: fixtureValue.receipt,
+    run: fixtureValue.run,
+    sourceIdentity: fixtureValue.sourceIdentity,
+    claims: fixtureValue.claims,
+  });
+  assert.ok(validation.failures.includes('profile_world_proof_invalid'));
+  assert.ok(validation.failures.includes('profile_world_proof_machine_classes_invalid'));
+});
+
+test('profile evidence rejects rebound WorldSpec, conformance, and WorldProof identities', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture();
+  receipt.runtime.worldSpec.params.scenarioId = 'undeclared-scenario';
+  receipt.runtime.worldSpecConformance = {
+    ...receipt.runtime.worldSpecConformance,
+    worldSpecContentHash: 'fnv1a32:00000000',
+  };
+  receipt.runtime.worldProof.worldSpec.contentHash = 'fnv1a32:00000000';
+  const validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('profile_world_spec_invalid'));
+  assert.ok(validation.failures.includes('profile_world_spec_execution_binding_invalid'));
+  assert.ok(validation.failures.includes('profile_world_spec_conformance_invalid'));
+  assert.ok(validation.failures.includes('profile_world_proof_invalid'));
+});
+
+test('profile evidence rejects a missing or mutated independent compiler receipt', async () => {
+  let fixtureValue = await fixture();
+  delete fixtureValue.receipt.runtime.compilerDeterminismReceipt;
+  let validation = fixtureValue.contract.validateReceipt({
+    receipt: fixtureValue.receipt,
+    run: fixtureValue.run,
+    sourceIdentity: fixtureValue.sourceIdentity,
+    claims: fixtureValue.claims,
+  });
+  assert.ok(validation.failures.includes('profile_world_proof_invalid'));
+  assert.ok(validation.failures.includes('profile_world_proof_compiler_determinism_invalid'));
+
+  fixtureValue = await fixture();
+  fixtureValue.receipt.runtime.compilerDeterminismReceipt.outputMatches = false;
+  validation = fixtureValue.contract.validateReceipt({
+    receipt: fixtureValue.receipt,
+    run: fixtureValue.run,
+    sourceIdentity: fixtureValue.sourceIdentity,
+    claims: fixtureValue.claims,
+  });
+  assert.ok(validation.failures.includes('profile_world_proof_invalid'));
+  assert.ok(validation.failures.includes('profile_world_proof_compiler_determinism_invalid'));
 });
 
 test('complete tier browser evidence binds actual Canvas2D image data', async () => {
@@ -407,13 +538,18 @@ test('browser evidence replaces repeated simulation payloads with content-addres
     runtime: { runReceipt },
     evidence: { events: [structuredClone(event)] },
   };
-  const compacted = browser.compactCapturedEvidence(raw);
+  const compacted = browser.compactCapturedEvidence(raw, {
+    profileId: runReceipt.profileId,
+    tier: runReceipt.tier,
+  });
   const rawBytes = Buffer.byteLength(JSON.stringify(raw));
   const compactedBytes = Buffer.byteLength(JSON.stringify(compacted));
 
   assert.ok(compactedBytes < rawBytes / 20, `${compactedBytes} should be much smaller than ${rawBytes}`);
   assert.equal(compacted.runtime.runReceipt.schema, 'simulatte.profileEvidenceRunReceiptRef.v1');
   assert.equal(compacted.runtime.runReceipt.originalSchema, runReceipt.schema);
+  assert.equal(compacted.runtime.runReceipt.profileId, runReceipt.profileId);
+  assert.equal(compacted.runtime.runReceipt.tier, runReceipt.tier);
   assert.equal(compacted.runtime.runReceipt.eventCount, 1);
   assert.equal(
     compacted.runtime.runReceipt.contentSha256,
@@ -432,8 +568,10 @@ test('browser evidence replaces repeated simulation payloads with content-addres
 test('content-addressed playback references prove reload without embedding both receipts', async () => {
   const browser = await import(BROWSER_URL);
   const { contract, run } = await fixture();
-  const beforeReceipt = browser.compactRunReceiptReference(playbackReceipt(run));
-  const afterReceipt = browser.compactRunReceiptReference(playbackReceipt(run));
+  const playback = playbackReceipt(run);
+  assert.equal(playback.profileId, undefined);
+  const beforeReceipt = browser.compactRunReceiptReference(playback, run);
+  const afterReceipt = browser.compactRunReceiptReference(playback, run);
   const reload = {
     attempted: true,
     restored: true,
@@ -442,6 +580,8 @@ test('content-addressed playback references prove reload without embedding both 
     afterReceipt,
   };
 
+  assert.equal(beforeReceipt.profileId, run.profileId);
+  assert.equal(beforeReceipt.tier, run.tier);
   assert.equal(contract.isRestoredRunEvidence(reload, run), true);
   reload.afterReceipt = {
     ...afterReceipt,
@@ -529,6 +669,18 @@ test('performance evidence binds pacing, heap, and long tasks to the governed li
   assert.ok(validation.failures.includes('frame_pacing_evidence_invalid'));
   assert.ok(validation.failures.includes('memory_evidence_invalid'));
   assert.ok(validation.failures.includes('long_task_evidence_invalid'));
+});
+
+test('memory evidence separates reproducible retained heap from ambient allocation pressure', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture();
+  receipt.evidence.performance.memory.measurementMode = 'ambient-sampling';
+  let validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('memory_evidence_invalid'));
+
+  receipt.evidence.performance.memory.measurementMode = 'forced-gc-retained-heap-at-governed-boundaries';
+  receipt.evidence.performance.memory.samples[1].boundary = 'mid-run';
+  validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('memory_evidence_invalid'));
 });
 
 test('deployment evidence rejects page captures in place of WebGPU canvas pixels', async () => {
@@ -836,6 +988,17 @@ test('human review queue binds verified screenshots, receipts, build, deployment
     sha256: contract.sha256Bytes(pageBytes),
     path: pagePath,
   };
+  receipt.evidence.pixelReadback.sha256 = receipt.evidence.screenshot.sha256;
+  receipt.runtime.worldProof = profileWorldProof.createProfileWorldProof({
+    spec: receipt.runtime.worldSpec,
+    run,
+    runtime: receipt.runtime,
+    evidence: receipt.evidence,
+    sourceIdentity: receipt.sourceIdentity,
+    browser: receipt.browser,
+    claims: receipt.claims,
+    nowIso: '2026-08-15T00:00:00.000Z',
+  });
   const stored = contract.storeReceipt(path.join(outputDirectory, 'receipts'), receipt);
   const row = {
     runId: run.id,
@@ -861,6 +1024,8 @@ test('human review queue binds verified screenshots, receipts, build, deployment
   assert.equal(queue.rows[0].buildIdentity.buildId, 'test-build');
   assert.equal(queue.rows[0].deployment.route, run.route);
   assert.match(queue.rows[0].renderEvidenceSha256, /^[a-f0-9]{64}$/);
+  assert.equal(queue.rows[0].worldProofVerdict, 'not-proven');
+  assert.equal(queue.rows[0].platformClaimEligible, false);
   assert.equal(queue.rows[0].reviewStatus, 'human-adjudication-required');
   fs.writeFileSync(path.join(outputDirectory, canvasPath), 'tampered');
   assert.throws(
@@ -910,6 +1075,9 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.match(expression, /atMs: firstMeaningfulFramePageAt - firstMeaningfulFrameStartedAt/);
   assert.match(expression, /navigationAtMs: firstMeaningfulFramePageAt/);
   assert.match(expression, /basis: 'start-action-to-new-governed-frame'/);
+  assert.match(expression, /sampleRetainedHeap\('window-start'\)/);
+  assert.match(expression, /sampleRetainedHeap\('window-end'\)/);
+  assert.match(expression, /observedPeakUsedJsHeapBytes/);
   const source = fs.readFileSync(path.join(ROOT, 'tools/simulatte/profile-evidence-browser.mjs'), 'utf8');
   const controllerBuilderSource = fs.readFileSync(path.join(ROOT, 'public/simulatte/app/main-controller-builder.js'), 'utf8');
   assert.match(controllerBuilderSource, /await renderPluginExperience\(\{ mission: null \}\)/);
@@ -921,6 +1089,7 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.doesNotMatch(source, /readyAt/);
   assert.match(source, /withTimeout\(client\.send\('Runtime\.evaluate'/);
   assert.match(source, /180000, 'browser-probe'/);
+  assert.match(source, /--js-flags=--expose-gc/);
   assert.match(source, /client\.send\('Browser\.close'\)/);
   assert.match(source, /await client\.close\(\)/);
   assert.match(source, /receipt\?\.adapter/);

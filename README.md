@@ -119,6 +119,10 @@ bypass contract validation or safety gates.
 The plugin boundary is a contract and permission boundary, not a separate
 JavaScript security isolate. The package remains private, while the source is
 licensed under MIT.
+All currently executable plugins are repository-bundled, same-realm, and
+explicitly not marketplace-eligible. Activation emits a trust receipt and
+fails closed for legacy or revoked executable manifests; no third-party
+execution lane is claimed.
 
 ## Repository map
 

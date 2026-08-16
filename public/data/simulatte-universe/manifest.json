@@ -11,30 +11,30 @@
   "indexes": {
     "affordances": {
       "artifact": "./affordance-index-v1.json",
-      "artifactBytes": 3982035,
+      "artifactBytes": 3985348,
       "artifactHash": {
         "alg": "sha256",
-        "hex": "8230bcdfacab3bc163ffc36d6b8f7836ca8a12fb52af0fb4a126f6f1832c0ad6"
+        "hex": "7d2cdc8b29e5cdb5630da5c3a40b7badafa0e98d556ba3cd3e59d445163e9e4f"
       },
       "documentSchema": "simulatte.universeAffordanceIndex.v1",
       "kind": "affordance-index"
     },
     "analogs": {
       "artifact": "./physical-analog-index-v1.json",
-      "artifactBytes": 5106516,
+      "artifactBytes": 5111715,
       "artifactHash": {
         "alg": "sha256",
-        "hex": "13aea69fe58dc20a963ddc8d78c4a2b7b384e7add332b03c8490b4d0fe3bf241"
+        "hex": "72b1a044a710be4f8e858789f9a5a9c1e73ce0a219db1c40b688725d74a4fdf3"
       },
       "documentSchema": "simulatte.universePhysicalAnalogIndex.v1",
       "kind": "physical-analog-index"
     },
     "concepts": {
       "artifact": "./concept-index-v1.json",
-      "artifactBytes": 6029100,
+      "artifactBytes": 6035480,
       "artifactHash": {
         "alg": "sha256",
-        "hex": "6101d5604eae0a241fda3194fb7c487cc7a5cb2b14fac799a498f98fb2a9bd28"
+        "hex": "d147719b08682af77c41d33b5e2fe33dc9be0c659c0774b22222db60f4c65f58"
       },
       "documentSchema": "simulatte.universeConceptIndex.v1",
       "kind": "concept-index"
@@ -51,30 +51,30 @@
     },
     "operators": {
       "artifact": "./operator-index-v1.json",
-      "artifactBytes": 1624562,
+      "artifactBytes": 1624841,
       "artifactHash": {
         "alg": "sha256",
-        "hex": "0311e01840906d7d56479a2e88d53a48ba628e3aad1732a2713ca5220660e1e7"
+        "hex": "b7d37cee6dac12acb0427ad8789a6288c94e1594fbef200ef38bbac6eff44800"
       },
       "documentSchema": "simulatte.universeOperatorIndex.v1",
       "kind": "operator-index"
     },
     "processes": {
       "artifact": "./process-index-v1.json",
-      "artifactBytes": 1040621,
+      "artifactBytes": 1040950,
       "artifactHash": {
         "alg": "sha256",
-        "hex": "086734b01894a07c3c8d9b79518687a4d2eba2bd68eee43e30b2c745d7d894a9"
+        "hex": "740b103fe3c8adbdb8ab91e079daa2e8160e78cc4aad20746e60a25600d4f2fb"
       },
       "documentSchema": "simulatte.universeProcessIndex.v1",
       "kind": "process-index"
     },
     "relations": {
       "artifact": "./relation-index-v1.json",
-      "artifactBytes": 1046854,
+      "artifactBytes": 1047092,
       "artifactHash": {
         "alg": "sha256",
-        "hex": "dd1bdba90ff5056bd0475f8e68115a312824d19233918bddd9ea0f2e71536c63"
+        "hex": "ce891a4630f26142045c67838b99ff5d296fc0bbe94538e569981fda7cbe931a"
       },
       "documentSchema": "simulatte.universeRelationIndex.v1",
       "kind": "relation-index"
@@ -91,33 +91,33 @@
     },
     "shapes": {
       "artifact": "./shape-index-v1.json",
-      "artifactBytes": 1492422,
+      "artifactBytes": 1495507,
       "artifactHash": {
         "alg": "sha256",
-        "hex": "6a09cfad8f0178a18352db5a027ec080ec4665486756f0202f7d20df0c27c67d"
+        "hex": "e78de9b6779c6e5ca417b17ac742c1eaf4ce5a744229639ac746c399eba9acd9"
       },
       "documentSchema": "simulatte.universeShapeIndex.v1",
       "kind": "shape-index"
     },
     "synonyms": {
       "artifact": "./synonym-index-v1.json",
-      "artifactBytes": 12674287,
+      "artifactBytes": 12705583,
       "artifactHash": {
         "alg": "sha256",
-        "hex": "932b399a6c45551c4601a9c982f4300d613e9fa5b075bf3731bf934993454584"
+        "hex": "efe8c0e1b3d1c1db948fb460b5e34b46ebcc5b80ccf61dd18ab7a79620cd0d5e"
       },
       "documentSchema": "simulatte.universeSynonymIndex.v1",
       "kind": "synonym-index"
     }
   },
   "modelRuntimeLock": {
-    "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 14,
     "artifact": "../simulatte-embedder/model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
       "hex": "6b109f14ddcec68ab60c6c7aa7b5f4c3a96965742504ed836cf7e2ffad5f9a6d"
-    }
+    },
+    "id": "simulatte-doppler-qwen-runtime-lock",
+    "number": 14
   },
   "schema": "simulatte.universeManifest.v1"
 }

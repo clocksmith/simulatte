@@ -15,6 +15,8 @@
         scope.assertPhaseEnvelope(phase3Output, 3, 'Phase 4 input');
         const activationCloud = phase3Output.artifact && phase3Output.artifact.activationCloud || {};
         const languageGraph = phase3Output.artifact && phase3Output.artifact.languageGraph || {};
+        const intentRequirements = phase3Output.artifact && phase3Output.artifact.intentRequirements || null;
+        scope.worldProof.validateIntentRequirementLedger(intentRequirements);
         const groundingEvidence = activationCloud.groundingEvidence || {};
         const languageEvidence = activationCloud.languageEvidence || groundingEvidence.languageEvidence || {};
         const candidateEvidence = activationCloud.candidateEvidence || [];
@@ -58,7 +60,7 @@
             4,
             'phase4-grounded-intent'
           );
-          const groundedSceneContract = groundedSceneContractFromPhase4({
+          const groundedSceneContract = scope.groundedSceneContractFromPhase4({
             acceptedGraph,
             rejectedGraph,
             activationCloud,
@@ -106,7 +108,7 @@
             groundedSceneContract,
             assumptions: groundingEvidence.assumptions || intentBrief.assumptions || [],
             unsupported: groundingEvidence.unsupported || acceptedGraph && acceptedGraph.unsupported || intentBrief.unsupported || [],
-          provenanceByNode: provenanceByNodeRows(acceptedGraph, {
+          provenanceByNode: scope.provenanceByNodeRows(acceptedGraph, {
             ...intentBrief,
             evidenceBindings: uniqueById([
               ...(intentBrief.evidenceBindings || []),
@@ -124,6 +126,14 @@
             coverageGapCount: (groundedInterpretation.coverageGaps || []).length,
           },
         };
+        const intentSettlement = scope.worldProof.createIntentSettlementLedger(
+          intentRequirements,
+          { groundedIntent, groundedSceneContract, compositionLedger }
+        );
+        const semanticProvenance = scope.worldProof.createSemanticProvenanceLedger(
+          intentRequirements,
+          { groundedIntent, groundedSceneContract, compositionLedger }
+        );
         return scope.createPhaseEnvelope({
           phase: 4,
           inputSchema: phase3Output.schema,
@@ -132,6 +142,8 @@
               activationCloud,
               groundedIntent,
               groundedSceneContract,
+              intentSettlement,
+              semanticProvenance,
               compositionLedger,
             },
             receipts: [
@@ -143,6 +155,12 @@
                 acceptedObligations: groundedSceneContract.acceptedObligations.length,
                 unsupported: groundedIntent.unsupported.length,
                 assumptions: groundedIntent.assumptions.length,
+                acceptedIntentRequirements: intentSettlement.acceptedCount,
+                explicitlyRefusedIntentRequirements: intentSettlement.explicitRefusalCount,
+                unresolvedIntentRequirements: intentSettlement.unresolvedCount,
+                lostIntentRequirements: intentSettlement.lostCount,
+                provenSemanticBindings: semanticProvenance.provenCount,
+                missingSemanticBindings: semanticProvenance.missingCount,
               },
             ],
         });
@@ -202,57 +220,6 @@
           ...(graphIntent.affordances || []),
         ].map((row) => scope.phaseCarryObject(row)));
       }
-
-    function groundedSceneContractFromPhase4({
-          acceptedGraph = null,
-          rejectedGraph = null,
-          activationCloud = {},
-          groundingEvidence = {},
-          intentBrief = {},
-          groundedInterpretation = {},
-          compositionLedger = null,
-        } = {}) {
-          const nodes = acceptedGraph && Array.isArray(acceptedGraph.nodes) ? acceptedGraph.nodes : [];
-          const graphRelations = acceptedGraph && Array.isArray(acceptedGraph.edges) ? acceptedGraph.edges : [];
-          const ledgerRelations = compositionLedger && Array.isArray(compositionLedger.relations) ? compositionLedger.relations : [];
-          const acceptedRelations = uniqueById([
-            ...ledgerRelations,
-            ...graphRelations.map((edge) => ({
-              id: edge.id || `${edge.source || 'source'}:${edge.relation || edge.type || 'relation'}:${edge.target || 'target'}`,
-              kind: edge.kind || edge.type || edge.relation || 'graph-relation',
-              from: edge.source || edge.from || '',
-              to: edge.target || edge.to || '',
-              evidenceIds: edge.evidence || [],
-              confidence: Number(edge.confidence || 0),
-            })),
-          ]);
-          return scope.phaseCarryObject({
-            schema: scope.GROUNDED_SCENE_CONTRACT_SCHEMA,
-            acceptedEntries: nodes.map((node) => ({
-              id: node.id || node.canonicalId || '',
-              label: node.label || node.canonicalId || '',
-              kind: node.nodeType || node.semanticType || 'entity',
-              provenance: node.provenance || node.source || '',
-              confidence: Number(node.confidence || 0),
-            })),
-            acceptedRelations,
-            acceptedObligations: compositionLedger && Array.isArray(compositionLedger.obligations)
-              ? compositionLedger.obligations.filter((row) => row.status !== 'lost' && row.status !== 'failed')
-              : [],
-            rejectedEntries: rejectedGraph && Array.isArray(rejectedGraph.rejected) ? rejectedGraph.rejected : [],
-            unsupported: groundingEvidence.unsupported || intentBrief.unsupported || acceptedGraph && acceptedGraph.unsupported || [],
-            assumptions: groundingEvidence.assumptions || intentBrief.assumptions || [],
-            provenanceByEntry: provenanceByNodeRows(acceptedGraph, {
-              ...intentBrief,
-              evidenceBindings: uniqueById([
-                ...(intentBrief.evidenceBindings || []),
-                ...(groundedInterpretation.evidenceBindings || []),
-              ]),
-            }),
-            slotCoverage: activationCloud.coverageBySlot || {},
-            compositionLedger,
-          });
-        }
 
     function groundedIntentAcceptedGraph({
         groundingEvidence = {},
@@ -468,20 +435,6 @@
           ...(intentBrief.causalVisualAffordances || []),
           ...((intentBrief.visualIntent && intentBrief.visualIntent.affordances) || []),
         ];
-      }
-
-    function provenanceByNodeRows(acceptedGraph = {}, intentBrief = {}) {
-        const bindings = intentBrief.evidenceBindings || [];
-        return Object.fromEntries((acceptedGraph && acceptedGraph.nodes || []).map((node) => [
-          node.id,
-          {
-            source: node.source || node.provenance && node.provenance.source || '',
-            evidenceIds: bindings
-              .filter((row) => row && (row.nodeId === node.id || row.targetId === node.id))
-              .map((row) => row.evidenceId || row.id || '')
-              .filter(Boolean),
-          },
-        ]));
       }
 
     function uniqueById(rows = []) {
@@ -706,14 +659,12 @@
       runPhase4GroundedIntent,
       phase4IntentBriefFromActivationCloud,
       visualAffordancesFromUniverseGraphCandidates,
-      groundedSceneContractFromPhase4,
       groundedIntentAcceptedGraph,
       candidateEvidenceFromUniverseGraphCandidates,
       promptParseFromLanguageEvidence,
       promptParseFromLanguageGraph,
       rejectedGraphFromGrounding,
       visualAffordancesFromIntentBrief,
-      provenanceByNodeRows,
       uniqueById,
       runPhase5SimulationCompile,
       relationLoweringRows,

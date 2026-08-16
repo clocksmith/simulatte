@@ -289,6 +289,13 @@ async function runBrowserSmoke(options) {
     });
     if (featureViewEvaluation.exceptionDetails) throw new Error(featureViewEvaluation.exceptionDetails.exception && featureViewEvaluation.exceptionDetails.exception.description || featureViewEvaluation.exceptionDetails.text);
     const featureView = featureViewEvaluation.result.value;
+    const profileProgramEvaluation = await client.send('Runtime.evaluate', {
+      expression: profileProgramRoundTripExpression(expectedProfile.seeds || []),
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    if (profileProgramEvaluation.exceptionDetails) throw new Error(profileProgramEvaluation.exceptionDetails.exception && profileProgramEvaluation.exceptionDetails.exception.description || profileProgramEvaluation.exceptionDetails.text);
+    const profileProgram = profileProgramEvaluation.result.value;
     const result = evaluated.result.value;
     const visualGeometryPass = visualGeometryExpectation(result);
     const p2pDeliveryPass = expectsP2pDelivery
@@ -394,7 +401,8 @@ async function runBrowserSmoke(options) {
       && result.copy.experienceDocLink.rel.includes('noopener')
       && result.copy.experienceDocLink.rel.includes('noreferrer')
       && result.copy.experienceDocLink.withinViewport
-      && !result.copy.experienceDocLink.overlapsMissionDock
+      && result.copy.experienceDocLink.insideMissionDock
+      && !result.copy.experienceDocLink.overlapsMissionContent
       && consentView.disclosed.title === 'Enable local Qwen embedding?'
       && consentView.disclosed.embedding === '533 MB'
       && consentView.disclosed.rerankerRowAbsent
@@ -444,6 +452,7 @@ async function runBrowserSmoke(options) {
         && actorView.minimapFrameCount > 0
       ))
       && featurePass
+      && profileProgram.pass
       && result.scrollY === 0
       && !result.hasHorizontalOverflow
       && errors.length === 0
@@ -465,7 +474,10 @@ async function runBrowserSmoke(options) {
           : result.traceRows > 0 && result.selectedRows === 1),
       layout: result.initialLayout.allWithinViewport
         && result.initialLayout.primaryControlsVisible
-        && !result.hasHorizontalOverflow,
+        && !result.hasHorizontalOverflow
+        && result.copy.experienceDocLink.withinViewport
+        && result.copy.experienceDocLink.insideMissionDock
+        && !result.copy.experienceDocLink.overlapsMissionContent,
       camera: result.camera.startedInConfiguredMode
         && result.camera.experiences.focusControlAbsent
         && result.camera.experiences.available.length >= 1
@@ -473,11 +485,12 @@ async function runBrowserSmoke(options) {
         && result.camera.experiences.selected === result.camera.initial.mode,
       initialView: initialViewPass,
       plugins: featurePass,
+      profileProgram: profileProgram.pass,
       browserErrors: errors.length === 0 && failedResponses.length === 0,
     });
     const failedDiagnostics = Object.entries(diagnostics).filter(([, passed]) => !passed).map(([id]) => id);
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v12',
+      schema: 'simulatte.autonomyBrowserSmoke.v13',
       pass,
       targetUrl,
       viewport: options.viewport,
@@ -487,6 +500,7 @@ async function runBrowserSmoke(options) {
       decisionView,
       actorView,
       featureView,
+      profileProgram,
       errors,
       failedResponses,
       diagnostics,
@@ -625,6 +639,163 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
       };
     }
     return { cooperation, gpuParity, shade, cableTrader };
+  })()`;
+}
+
+function profileProgramRoundTripExpression(scenarios) {
+  return `(async () => {
+    const scenarios = ${JSON.stringify(scenarios.map((row) => ({
+      id: row.id,
+      seed: row.seed,
+      prompt: row.missionText || row.description || row.label || row.id,
+    })))};
+    const phaseHistory = [{ atMs: performance.now(), phase: document.body.dataset.journeyPhase || 'missing', status: document.getElementById('runtime-status')?.textContent || '', href: location.href }];
+    new MutationObserver(() => phaseHistory.push({
+      atMs: performance.now(),
+      phase: document.body.dataset.journeyPhase || 'missing',
+      status: document.getElementById('runtime-status')?.textContent || '',
+      href: location.href,
+    })).observe(document.body, { attributes: true, attributeFilter: ['data-journey-phase'] });
+    const waitFor = async (predicate, label, limit = 60000) => {
+      const started = performance.now();
+      while (!predicate()) {
+        const programStatus = document.getElementById('profile-world-spec-status');
+        const proofStatus = document.getElementById('profile-world-proof-status');
+        if (programStatus?.dataset.state === 'error' || proofStatus?.dataset.state === 'error') {
+          throw new Error('profile program failed at ' + label + ': '
+            + (programStatus?.textContent || '') + ' · ' + (proofStatus?.textContent || ''));
+        }
+        if (performance.now() - started > limit) {
+          throw new Error('profile program timeout at ' + label
+            + '; phase=' + (document.body.dataset.journeyPhase || 'missing')
+            + '; runtime=' + (document.getElementById('runtime-status')?.textContent || 'missing')
+            + '; program=' + (programStatus?.textContent || 'missing')
+            + '; proof=' + (proofStatus?.textContent || 'missing')
+            + '; profileChecks=' + JSON.stringify(window.__simulatteProfileProgramChecks || null)
+            + '; phases=' + JSON.stringify(phaseHistory.slice(-16)));
+        }
+        await new Promise((resolve) => setTimeout(resolve, 40));
+      }
+    };
+    const editor = document.getElementById('profile-world-spec-editor');
+    const section = document.getElementById('profile-program-section');
+    const drawer = document.getElementById('decisions-drawer');
+    const controlsButton = document.getElementById('decisions-button');
+    if (!editor || !section || !drawer || !controlsButton || scenarios.length < 2) throw new Error('profile program requires visible controls, an editor, and two governed scenarios');
+    if (!drawer.classList.contains('is-open')) controlsButton.click();
+    await waitFor(() => drawer.classList.contains('is-open') && drawer.getAttribute('aria-hidden') === 'false', 'program-drawer-open', 5000);
+    await new Promise((resolve) => setTimeout(resolve, 320));
+    section.open = true;
+    section.scrollIntoView({ block: 'start', behavior: 'instant' });
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const actionIds = [
+      'apply-profile-world-spec', 'reset-profile-world-spec', 'replay-profile-world-spec',
+      'export-profile-world-spec', 'import-profile-world-spec',
+    ];
+    const layoutRows = [editor, ...actionIds.map((id) => document.getElementById(id))].map((element) => {
+      const rect = element.getBoundingClientRect();
+      return { id: element.id, left: rect.left, right: rect.right, width: rect.width, height: rect.height };
+    });
+    const layout = {
+      rows: layoutRows,
+      pass: layoutRows.every((row) => row.width > 0 && row.height > 0 && row.left >= -0.5 && row.right <= innerWidth + 0.5)
+        && section.scrollWidth <= section.clientWidth + 1
+        && document.documentElement.scrollWidth <= innerWidth,
+    };
+    await waitFor(() => editor.value && document.getElementById('profile-world-spec-status').dataset.state === 'ready', 'editor-ready', 5000);
+    const initial = JSON.parse(editor.value);
+    const target = scenarios.find((row) => row.id !== initial.params.scenarioId);
+    if (!target) throw new Error('profile program could not select a different governed scenario');
+    const candidate = structuredClone(initial);
+    candidate.params.scenarioId = target.id;
+    editor.value = JSON.stringify(candidate, null, 2);
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+    await waitFor(() => !document.getElementById('apply-profile-world-spec').disabled, 'edit-dirty', 5000);
+    document.getElementById('apply-profile-world-spec').click();
+    await waitFor(() => {
+      try {
+        const active = JSON.parse(editor.value);
+        const checks = {
+          scenario: active.params.scenarioId === target.id,
+          changed: active.contentHash !== initial.contentHash,
+          promptScenario: active.source.prompt.includes('Scenario ' + target.id + '.'),
+          promptMission: active.source.prompt.endsWith('Mission ' + target.prompt),
+          phase2Source: active.phaseArtifacts?.phase2?.artifact?.languageGraph?.sourceText === active.source.prompt,
+          intent: active.phaseArtifacts?.phase4?.artifact?.intentSettlement?.status === 'pass',
+          semantic: active.phaseArtifacts?.phase4?.artifact?.semanticProvenance?.status === 'pass',
+          seed: active.params.scenarioSeed === target.seed,
+          contract: Boolean(active.contract.scenarioContentHash),
+          route: new URL(location.href).searchParams.get('scenario') === target.id,
+          runtime: document.getElementById('runtime-status').dataset.kind === 'ready',
+        };
+        window.__simulatteProfileProgramChecks = checks;
+        return Object.values(checks).every(Boolean);
+      } catch { return false; }
+    }, 'governed-recompile');
+    const applied = JSON.parse(editor.value);
+    const start = document.getElementById('start-button');
+    start.click();
+    const timeline = document.getElementById('playback-timeline');
+    const pause = document.getElementById('pause-button');
+    const resume = document.getElementById('resume-button');
+    if (document.body.dataset.interactionMode === 'playback') {
+      await waitFor(() => Number(timeline.max || 0) > 0 && !pause.hidden, 'edited-run-ready');
+      pause.click();
+      timeline.value = timeline.max;
+      timeline.dispatchEvent(new Event('change', { bubbles: true }));
+      await waitFor(() => document.body.dataset.journeyPhase === 'paused'
+        && Number(timeline.value) === Number(timeline.max)
+        && document.getElementById('runtime-status').textContent.startsWith('End preview')
+        && !resume.hidden && !resume.disabled, 'edited-run-terminal-preview');
+      resume.click();
+    }
+    await waitFor(() => document.body.dataset.journeyPhase === 'completed', 'edited-run-settled');
+    await waitFor(() => {
+      try {
+        const proof = JSON.parse(document.getElementById('profile-world-proof').textContent);
+        return proof.worldSpec.contentHash === applied.contentHash
+          && proof.proofClasses.intent.status === 'pass'
+          && proof.proofClasses.semantic.status === 'pass'
+          && proof.proofClasses.compilation.status === 'pass'
+          && proof.proofClasses.simulation.status === 'pass';
+      } catch { return false; }
+    }, 'edited-run-proof');
+    const beforeReplay = JSON.parse(document.getElementById('profile-world-proof').textContent);
+    const replay = document.getElementById('replay-profile-world-spec');
+    await waitFor(() => !replay.disabled, 'exact-replay-ready');
+    replay.click();
+    await waitFor(() => {
+      try {
+        const proof = JSON.parse(document.getElementById('profile-world-proof').textContent);
+        return !replay.disabled
+          && proof.createdAt !== beforeReplay.createdAt
+          && proof.proofClasses.replay.status === 'pass';
+      } catch { return false; }
+    }, 'exact-replay-proof');
+    const proof = JSON.parse(document.getElementById('profile-world-proof').textContent);
+    const pass = layout.pass
+      && proof.verdict === 'not-proven'
+      && proof.worldSpec.contentHash === applied.contentHash
+      && proof.proofClasses.compilation.status === 'pass'
+      && proof.proofClasses.simulation.status === 'pass'
+      && proof.proofClasses.replay.status === 'pass'
+      && proof.proofClasses.intent.status === 'pass'
+      && proof.proofClasses.semantic.status === 'pass'
+      && proof.proofClasses.visual.status === 'not-proven';
+    return {
+      pass,
+      initialContentHash: initial.contentHash,
+      appliedContentHash: applied.contentHash,
+      scenarioId: applied.params.scenarioId,
+      scenarioSeed: applied.params.scenarioSeed,
+      routeScenarioId: new URL(location.href).searchParams.get('scenario'),
+      verdict: proof.verdict,
+      proofClasses: Object.fromEntries(Object.entries(proof.proofClasses).map(([id, row]) => [id, row.status])),
+      pixelReadbackStatus: proof.evidence.sceneProof.pixelReadbackStatus,
+      editorAuthority: 'params.scenarioId',
+      layout,
+      phaseHistory,
+    };
   })()`;
 }
 
@@ -865,7 +1036,8 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
     const createLink = document.querySelector('#runtime-details .sim-text-link[href="https://create.simulatte.world/"]');
     const experienceDocLink = document.getElementById('experience-doc-link');
     const experienceDocRect = experienceDocLink?.getBoundingClientRect();
-    const missionDockRect = document.querySelector('.mission-dock')?.getBoundingClientRect();
+    const missionDock = document.querySelector('.mission-dock');
+    const missionDockRect = missionDock?.getBoundingClientRect();
     const intersects = (left, right) => Boolean(
       left && right
       && left.width > 0
@@ -912,7 +1084,22 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
           && experienceDocRect.right <= viewportRect.width + 0.5
           && experienceDocRect.bottom <= viewportRect.height + 0.5
         ),
-        overlapsMissionDock: intersects(experienceDocRect, missionDockRect),
+        rect: experienceDocRect ? {
+          left: experienceDocRect.left,
+          top: experienceDocRect.top,
+          right: experienceDocRect.right,
+          bottom: experienceDocRect.bottom,
+        } : null,
+        missionDockRect: missionDockRect ? {
+          left: missionDockRect.left,
+          top: missionDockRect.top,
+          right: missionDockRect.right,
+          bottom: missionDockRect.bottom,
+        } : null,
+        insideMissionDock: experienceDocLink?.parentElement === missionDock,
+        overlapsMissionContent: [...(missionDock?.children || [])]
+          .filter((element) => element !== experienceDocLink && !element.hidden)
+          .some((element) => intersects(experienceDocRect, element.getBoundingClientRect())),
       },
     };
     const sleep = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
@@ -1238,6 +1425,7 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   const report = await runBrowserSmoke(options);
   console.log(`AUTONOMY-BROWSER state=${report.result.state} tick=${report.result.tick} trace=${report.result.traceRows} errors=${report.errors.length} failedResponses=${report.failedResponses.length} status=${report.pass ? 'pass' : 'fail'}`);
+  console.log(`SIMULATTE-PROFILE-PROGRAM scenario=${report.profileProgram.scenarioId} verdict=${report.profileProgram.verdict} replay=${report.profileProgram.proofClasses.replay} layout=${report.profileProgram.layout.pass ? 'pass' : 'fail'}`);
   if (report.failedDiagnostics.length) console.log(`AUTONOMY-BROWSER failedChecks=${report.failedDiagnostics.join(',')}`);
   if (!report.pass) process.exitCode = 1;
   return report;
@@ -1262,6 +1450,7 @@ export {
   findChrome,
   parseUrl,
   parseViewport,
+  profileProgramRoundTripExpression,
   removeTemporaryDirectory,
   runBrowserSmoke,
   semanticCameraExpectation,

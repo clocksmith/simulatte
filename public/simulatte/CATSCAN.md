@@ -24,12 +24,16 @@ Execute governed profiles with deterministic controls, dynamics, safety, settlem
 ## Invariants
 
 - Profile, world, plugin, seed, and controls bind every run.
+- Every selected profile executes its exact public WorldSpec and exposes a bound WorldProof without converting pending human review into visual proof.
+- Profile scenario edits recompile every governed scenario-bound field before the runtime accepts the program.
+- A clean profile editor follows an externally selected scenario; a dirty stale edit never merges silently.
 - Unsupported or unsafe execution refuses visibly.
 
 ## Acceptance
 
 - World loads the selected governed profile and reaches a terminal or refusal state.
 - Evidence: [World runtime loader tests](../../tests/world-runtime-loader.test.cjs).
+- Evidence: [profile program contract tests](../../tests/profile-program.test.cjs) and [browser round-trip audit](../../tools/simulatte/run-browser-smoke.mjs).
 
 ## Non-goals
 
@@ -39,4 +43,3 @@ Execute governed profiles with deterministic controls, dynamics, safety, settlem
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

@@ -371,7 +371,7 @@
       });
       operation.masterTimeMs = operationTime(operation);
       validateSynchronization(operation);
-      const frozen = cloneFreeze(operation, 'comparison_operation_clone_failed');
+      const frozen = deepFreeze(operation);
       history = Object.freeze([...history, frozen]);
       positionMs = frozen.masterTimeMs;
       notify(Object.freeze({ type: 'operation', operation: frozen, comparison: snapshot() }));
@@ -390,7 +390,7 @@
         actual.branches[role] = advanceBranch(role, recorded.branches[role].action);
       });
       actual.masterTimeMs = operationTime(actual);
-      const frozen = cloneFreeze(actual, 'comparison_operation_clone_failed');
+      const frozen = deepFreeze(actual);
       if (canonical(frozen) !== canonical(recorded)) {
         recordFault('comparison_replay_diverged', 'Replayed comparison operation differs from its receipt', {
           index: recorded.index,
@@ -438,6 +438,7 @@
       assertPolicySafe(action, `${role} policy action`);
       const frozenAction = cloneFreeze(action, 'comparison_policy_action_clone_failed');
       let transition;
+      let ownedTransition = null;
       try {
         transition = branch.driver.advance(deepFreeze({
           schema: 'simulatte.comparisonAdvanceRequest.v4',
@@ -447,7 +448,8 @@
         }));
         rejectPromise(transition, 'comparison_driver_async_invalid', `${role} driver transition`);
         validateTransition(transition, role);
-        applyTransition(branch, transition, role);
+        ownedTransition = cloneFreeze(transition, 'comparison_transition_clone_failed');
+        applyTransition(branch, ownedTransition, role);
       } catch (error) {
         branch.status = 'failed';
         recordFault('comparison_branch_advance_failed', `${role} branch failed to advance`, {
@@ -458,7 +460,7 @@
       }
       return deepFreeze({
         action: frozenAction,
-        transition: cloneFreeze(transition, 'comparison_transition_clone_failed'),
+        transition: ownedTransition,
       });
     }
 
@@ -479,20 +481,14 @@
         ...transition.evidenceIds,
       ]);
       validateEvidenceClosure(transitionEvidenceIds, `${role} transition`);
-      branch.events.push(...transition.events.map((event) => cloneFreeze(
-        event,
-        'comparison_event_clone_failed'
-      )));
+      branch.events.push(...transition.events);
       timelineModule.createTimeline({ id: branch.definition.id, events: branch.events });
-      branch.metrics = transition.metrics.map((metric) => cloneFreeze(
-        metric,
-        'comparison_metric_clone_failed'
-      ));
+      branch.metrics = transition.metrics;
       transitionEvidenceIds.forEach((evidenceId) => branch.evidenceIds.add(evidenceId));
       branch.simulationTimeMs = transition.simulationTimeMs;
       branch.status = transition.status;
       branch.stepCount += 1;
-      branch.observation = cloneFreeze(transition.observation, 'comparison_observation_clone_failed');
+      branch.observation = transition.observation;
       assertPolicySafe(branch.observation, `${role} observation`);
     }
 

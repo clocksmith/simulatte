@@ -9,11 +9,18 @@
     require('./simulatte-physics-model-activation-fusion.js');
     require('./simulatte-physics-model-phase3-ledger.js');
     require('./simulatte-interaction-ir.js');
+    require('../phase-04-grounded-intent/simulatte-semantic-provenance.js');
     require('./simulatte-physics-model-phase-grounding.js');
+    require('../phase-04-grounded-intent/simulatte-user-override-grounding.js');
+    require('../phase-04-grounded-intent/simulatte-intent-proof.js');
+    require('../phase-04-grounded-intent/simulatte-semantic-proof.js');
     require('./simulatte-physics-model-phase-visual-execution.js');
     require('./simulatte-physics-model-phase-simulation.js');
+    require('./simulatte-world-spec-runtime.js');
     require('./simulatte-physics-model-phase-visual-render.js');
     require('./simulatte-physics-model-state-solvers.js');
+    require('./simulatte-simulation-reproducibility.js');
+    require('./simulatte-safety-proof.js');
     require('./simulatte-physics-model-spec-api.js');
     require('./simulatte-physics-model-metrics.js');
     require('./simulatte-physics-model-compatibility.js');
@@ -38,6 +45,7 @@
     ENERGY_LEDGER_SCHEMA: scope.ENERGY_LEDGER_SCHEMA,
     CHECKPOINT_SCHEMA: scope.CHECKPOINT_SCHEMA,
     INTERACTION_IR_SCHEMA: scope.INTERACTION_IR_SCHEMA,
+    INTERACTION_TRANSITION_STATE_SCHEMA: scope.INTERACTION_TRANSITION_STATE_SCHEMA,
     SYNTHESIS_SCHEMA: scope.SYNTHESIS_SCHEMA,
     OBLIGATION_VERDICTS: scope.OBLIGATION_VERDICTS,
     UNIVERSE_GRAPH_SCHEMA: scope.UNIVERSE_GRAPH_SCHEMA,
@@ -82,6 +90,11 @@
     createSemanticRag: scope.createSemanticRag,
     createReactionState: scope.createReactionState,
     createSimulationState: scope.createSimulationState,
+    createSimulationReproducibilityReceiptForSpec:
+      scope.createSimulationReproducibilityReceiptForSpec,
+    createIntentProofReceiptForSpec: scope.createIntentProofReceiptForSpec,
+    createSemanticProofReceiptForSpec: scope.createSemanticProofReceiptForSpec,
+    createSafetyProofReceiptForSpec: scope.createSafetyProofReceiptForSpec,
     createInteractionCommand: scope.createInteractionCommand,
     createInteractionState: scope.createInteractionState,
     createSolverState: scope.createSolverState,
@@ -91,6 +104,7 @@
     createSpecFromPrompt: scope.createSpecFromPrompt,
     createState: scope.createState,
     deserializeSpec: scope.deserializeSpec,
+    applyWorldSpecEdit: scope.applyWorldSpecEdit,
     deserializeSolverCheckpoint: scope.deserializeSolverCheckpoint,
     energyLedger: scope.energyLedger,
     formatMetric: scope.formatMetric,
@@ -109,6 +123,7 @@
     readoutLabelsForSpec: scope.readoutLabelsForSpec,
     readoutValues: scope.readoutValues,
     remixSpec: scope.remixSpec,
+    recordWorldSpecEdit: scope.recordWorldSpecEdit,
     restoreSolverCheckpoint: scope.restoreSolverCheckpoint,
     resolveIntentToSpec: scope.resolveIntentToSpec,
     serializeSpec: scope.serializeSpec,

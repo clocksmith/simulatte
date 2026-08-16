@@ -23,6 +23,8 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 
 - WGSL consumes resolved data and makes no policy decisions.
 - Renderer branches follow compiled scene data, not prompt keywords.
+- Bound semantic receipts pass through unchanged and never grant Phase 7 semantic authority.
+- Interaction receipts preserve the Phase 5 program hash, command transitions, changed channels, and visible-state consumption.
 
 ## Acceptance
 
@@ -37,4 +39,3 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

@@ -30,6 +30,12 @@
     ], ['radial:appendage:core:below', 'attach:sensor:core:front'], [
       'octopus', 'squid', 'cephalopod', 'tentacle',
     ], 'medium'),
+    topology('spherical-body', ['ground.rolling-body'], [
+      node('core', 1, 'ellipse', [[0.72, 0.72]], ['sphere-body']),
+      node('detail', 1, 'ellipse', [[0.14, 0.09]], ['specular-highlight']),
+    ], ['attach:detail:core:front'], [
+      'ball', 'sphere', 'marble', 'rolling body', 'orb',
+    ], 'small'),
     topology('resonant-instrument', ['ground.wave-event'], [
       node('core', 3, ['ellipse', 'rounded-box', 'ellipse'], [[0.34, 0.3], [0.2, 0.2], [0.46, 0.4]], ['upper-bout', 'waist', 'lower-bout']),
       node('appendage', 1, 'capsule', [[0.48, 0.075]], ['neck']),

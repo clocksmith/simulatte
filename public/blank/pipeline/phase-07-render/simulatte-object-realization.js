@@ -142,6 +142,7 @@
   function objectTopologyVerified(program = {}) {
     const parts = Array.isArray(program.parts) ? program.parts : [];
     if (constructionGraphTopologyVerified(program, parts)) return true;
+    if (hasConstructionEvidence(program)) return false;
     const ids = parts.map((part) => String(part.id || '').toLowerCase());
     const grammar = String(program.grammarId || '')
       .replace(/^object-grammar\./, '')
@@ -187,6 +188,12 @@
   }
 
   function objectSemanticFit(program = {}) {
+    const receipt = program.constructionReceipt || {};
+    if (hasConstructionEvidence(program)) {
+      return receipt.topologyTargetFit === true &&
+        receipt.targetIdentityBound === true &&
+        (receipt.modelEvaluated === true || receipt.literalSlotMatch === true);
+    }
     if (
       program.source === 'phase6-data-owned-part-graph' &&
       /^(?:category-catalog|identity-catalog|prompt-specialized)$/
@@ -194,10 +201,15 @@
     ) {
       return true;
     }
-    const receipt = program.constructionReceipt || {};
     return receipt.topologyTargetFit === true &&
       receipt.targetIdentityBound === true &&
       (receipt.modelEvaluated === true || receipt.literalSlotMatch === true);
+  }
+
+  function hasConstructionEvidence(program = {}) {
+    const receipt = program.constructionReceipt || {};
+    return receipt.topologyId != null ||
+      Boolean(program.constructionGraph && program.constructionGraph.schema);
   }
 
   function objectMorphologyQuality(program = {}, parts = []) {
@@ -238,6 +250,7 @@
     objectTopologyVerified,
     constructionGraphTopologyVerified,
     objectSemanticFit,
+    hasConstructionEvidence,
     objectMorphologyQuality,
   });
 });

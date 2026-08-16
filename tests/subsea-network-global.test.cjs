@@ -168,6 +168,30 @@ test('comparison executes synchronized policy-blind branches and settles compati
   assert.equal(run.comparisonExecutionReceipt.synchronizationPolicy, 'lockstep');
 });
 
+test('comparison reuses only an exact selected branch and preserves the independent receipt', async () => {
+  const selectedResult = model.runScenario({ datasets, config, scenario });
+  const baseline = await comparison.runComparison({ datasets, dataReceipts, config, scenario });
+  const reused = await comparison.runComparison({ datasets, dataReceipts, config, scenario, selectedResult });
+
+  assert.deepEqual(reused.branchMetrics, baseline.branchMetrics);
+  assert.deepEqual(reused.settlement, baseline.settlement);
+  assert.deepEqual(reused.comparisonExecutionReceipt, baseline.comparisonExecutionReceipt);
+  assert.ok(Buffer.byteLength(JSON.stringify(reused.comparisonExecutionReceipt)) < 750_000);
+});
+
+test('plugin comparison publishes one full proof and returns only its settled identity', async () => {
+  const harness = createSdkHarness();
+  const instance = await plugin.activate({ sdk: harness.sdk, config, profile: null, scenario });
+  const result = await instance.handleAction('counterfactual.compare');
+  const archived = harness.receipts.find((receipt) => receipt.schema === 'simulatte.comparisonExecutionReceipt.v4');
+
+  assert.equal(result.status, 'settled');
+  assert.equal(result.comparisonExecutionReceipt, undefined);
+  assert.equal(result.comparisonExecutionReceiptId, archived.id);
+  assert.equal(archived.state, 'settled');
+  assert.equal(instance.contributeV4().presentation.viewIntents[0].mode, 'compare');
+});
+
 test('typed controls rebuild on start, step without recomputation, and replay deterministically', async () => {
   const harness = createSdkHarness();
   const instance = await plugin.activate({

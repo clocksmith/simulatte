@@ -97,7 +97,17 @@
       "path": "./price-surface.js"
     }
   ],
-  "schema": "simulatte.pluginManifest.v2",
+  "governance": {
+    "trustLevel": "repository-bundled",
+    "executionIsolation": "same-realm-contract",
+    "publisher": "simulatte",
+    "provenance": "repository-source",
+    "signatureStatus": "not-applicable-repository-bundled",
+    "marketplaceEligible": false,
+    "status": "active",
+    "revocationId": "plugin:nyc-real-estate@1.0.0"
+  },
+  "schema": "simulatte.pluginManifest.v3",
   "sdkVersion": 2,
   "version": "1.0.0"
 }

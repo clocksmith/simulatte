@@ -17,6 +17,7 @@
     controlsForSpec,
     readoutLabelsForSpec,
     readoutValues,
+    recordWorldSpecEdit,
     stateLabel,
     worldModelSnapshot,
   } = support;
@@ -566,11 +567,11 @@
         }
         const name = nameInput && nameInput.value ? nameInput.value : spec.name;
         if (name === spec.name && sameParamValues(params, spec.params)) return spec;
-        return {
+        return recordWorldSpecEdit(spec, {
           ...spec,
           name,
           params,
-        };
+        }, { rationale: 'Adjusted WorldSpec controls in Create' });
       }
 
     function sameParamValues(next = {}, prev = {}) {

@@ -1,0 +1,478 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simulatte.dev/contracts/world-proof.schema.json",
+  "title": "Simulatte WorldProof",
+  "description": "A content-addressed aggregate of independent intent, semantic, compilation, simulation, interaction, safety, visual, and replay proof classes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contentHash", "verdict", "worldSpec", "proofClasses", "criticalFailures", "bindings", "evidence", "createdAt"],
+  "properties": {
+    "schema": { "const": "simulatte.worldProof.v1" },
+    "contentHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+    "verdict": { "enum": ["pass", "fail", "not-proven"] },
+    "worldSpec": {
+      "type": "object",
+      "required": ["schema", "id", "contentHash", "revision", "promptHash", "patchIds"],
+      "properties": {
+        "schema": { "const": "simulatte.worldSpec.v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "contentHash": { "type": "string", "minLength": 1 },
+        "revision": { "type": "integer", "minimum": 0 },
+        "promptHash": { "type": "string", "minLength": 1 },
+        "patchIds": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "proofClasses": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intent", "semantic", "compilation", "simulation", "interaction", "safety", "visual", "replay"],
+      "properties": {
+        "intent": { "$ref": "#/$defs/proofClass" },
+        "semantic": { "$ref": "#/$defs/proofClass" },
+        "compilation": { "$ref": "#/$defs/proofClass" },
+        "simulation": { "$ref": "#/$defs/proofClass" },
+        "interaction": { "$ref": "#/$defs/proofClass" },
+        "safety": { "$ref": "#/$defs/proofClass" },
+        "visual": { "$ref": "#/$defs/proofClass" },
+        "replay": { "$ref": "#/$defs/proofClass" }
+      }
+    },
+    "criticalFailures": { "type": "array", "items": { "type": "object" } },
+    "bindings": { "type": "object" },
+    "evidence": {
+      "type": "object",
+      "required": ["intentReceipt", "semanticReceipt", "sceneProof", "simulationReceipt", "interactionProof", "safetyReceipt", "compilerDeterminismReceipt", "simulationReproducibilityReceipt", "replayReceipt"],
+      "properties": {
+        "intentReceipt": {
+          "oneOf": [
+            { "$ref": "#/$defs/intentProofReceipt" },
+            { "type": "null" }
+          ]
+        },
+        "semanticReceipt": {
+          "oneOf": [
+            { "$ref": "#/$defs/semanticProofReceipt" },
+            { "type": "null" }
+          ]
+        },
+        "sceneProof": { "type": ["object", "null"] },
+        "simulationReceipt": { "type": ["object", "null"] },
+        "interactionProof": {
+          "oneOf": [
+            { "$ref": "#/$defs/interactionProofReceipt" },
+            { "type": "null" }
+          ]
+        },
+        "safetyReceipt": {
+          "oneOf": [
+            { "$ref": "#/$defs/safetyProofReceipt" },
+            { "type": "null" }
+          ]
+        },
+        "compilerDeterminismReceipt": {
+          "oneOf": [
+            { "$ref": "#/$defs/compilerDeterminismReceipt" },
+            { "type": "null" }
+          ]
+        },
+        "simulationReproducibilityReceipt": {
+          "oneOf": [
+            { "$ref": "#/$defs/simulationReproducibilityReceipt" },
+            { "type": "null" }
+          ]
+        },
+        "replayReceipt": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "createdAt": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "intentProofReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "contentHash", "status", "failureCode", "reason",
+        "worldSpecContentHash", "worldSpecRevision", "promptHash", "phase2Schema",
+        "phase4Schema", "requirementLedgerHash", "settlementLedgerHash",
+        "requirementCount", "criticalRequirementCount", "acceptedCount",
+        "explicitRefusalCount", "unresolvedCount", "lostCount",
+        "uncoveredSemanticSpanIds", "settlements"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.intentProofReceipt.v1" },
+        "contentHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+        "status": { "enum": ["pass", "fail", "not-proven"] },
+        "failureCode": { "type": "string" },
+        "reason": { "type": "string", "minLength": 1 },
+        "worldSpecContentHash": { "type": "string" },
+        "worldSpecRevision": { "type": "integer", "minimum": 0 },
+        "promptHash": { "type": "string" },
+        "phase2Schema": { "type": "string" },
+        "phase4Schema": { "type": "string" },
+        "requirementLedgerHash": { "type": "string" },
+        "settlementLedgerHash": { "type": "string" },
+        "requirementCount": { "type": "integer", "minimum": 0 },
+        "criticalRequirementCount": { "type": "integer", "minimum": 0 },
+        "acceptedCount": { "type": "integer", "minimum": 0 },
+        "explicitRefusalCount": { "type": "integer", "minimum": 0 },
+        "unresolvedCount": { "type": "integer", "minimum": 0 },
+        "lostCount": { "type": "integer", "minimum": 0 },
+        "uncoveredSemanticSpanIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "settlements": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "$ref": "#/$defs/intentSettlement" }
+        }
+      }
+    },
+    "intentSettlement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "id", "requirementId", "kind", "label", "critical", "polarity",
+        "sourceSpanIds", "status", "evidenceIds", "reason"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.intentSettlement.v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "requirementId": { "type": "string", "minLength": 1 },
+        "kind": {
+          "enum": [
+            "entity", "concept", "part", "action", "environment", "medium",
+            "attribute", "quantity", "relation", "material", "observable", "term"
+          ]
+        },
+        "label": { "type": "string", "minLength": 1 },
+        "critical": { "type": "boolean" },
+        "polarity": { "enum": ["required", "forbidden"] },
+        "sourceSpanIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "status": { "enum": ["accepted", "explicitly-refused", "unresolved", "lost"] },
+        "evidenceIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "semanticProofReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "contentHash", "status", "failureCode", "reason",
+        "worldSpecContentHash", "worldSpecRevision", "promptHash", "phase2Schema",
+        "phase4Schema", "requirementLedgerHash", "provenanceLedgerHash", "graphHash",
+        "bindingCount", "provenCount", "missingCount", "bindings"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.semanticProofReceipt.v1" },
+        "contentHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+        "status": { "enum": ["pass", "fail", "not-proven"] },
+        "failureCode": { "type": "string" },
+        "reason": { "type": "string", "minLength": 1 },
+        "worldSpecContentHash": { "type": "string" },
+        "worldSpecRevision": { "type": "integer", "minimum": 0 },
+        "promptHash": { "type": "string" },
+        "phase2Schema": { "type": "string" },
+        "phase4Schema": { "type": "string" },
+        "requirementLedgerHash": { "type": "string" },
+        "provenanceLedgerHash": { "type": "string" },
+        "graphHash": { "type": "string" },
+        "bindingCount": { "type": "integer", "minimum": 0 },
+        "provenCount": { "type": "integer", "minimum": 0 },
+        "missingCount": { "type": "integer", "minimum": 0 },
+        "bindings": {
+          "type": "array",
+          "maxItems": 2048,
+          "items": { "$ref": "#/$defs/semanticProvenanceBinding" }
+        }
+      }
+    },
+    "semanticProvenanceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "id", "kind", "targetId", "targetPath", "label", "valueHash",
+        "authority", "sourceSpanIds", "evidenceIds", "patchIds", "status", "reason"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.semanticProvenanceBinding.v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["entity", "relation", "property", "quantity", "negation"] },
+        "targetId": { "type": "string", "minLength": 1 },
+        "targetPath": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "valueHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+        "authority": { "enum": ["prompt", "compilerInference", "userOverride", "governedPack", "plugin", "runtimeState"] },
+        "sourceSpanIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "patchIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "status": { "enum": ["proven", "missing"] },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "compilerDeterminismReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "status", "failureCode", "reason", "independentExecution", "buildId",
+        "compilerLane", "compilerConfigHash", "compilerInputHash", "authoredWorldSpecContentHash",
+        "authoredWorldSpecRevision", "baselineContentHash", "recompiledWorldSpecId",
+        "recompiledContentHash", "recompiledInputHash", "inputMatches", "laneMatches", "outputMatches"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.compilerDeterminismReceipt.v1" },
+        "status": { "enum": ["pass", "fail"] },
+        "failureCode": { "type": "string" },
+        "reason": { "type": "string", "minLength": 1 },
+        "independentExecution": { "type": "boolean" },
+        "buildId": { "type": "string" },
+        "compilerLane": { "type": "string" },
+        "compilerConfigHash": { "type": "string" },
+        "compilerInputHash": { "type": "string" },
+        "authoredWorldSpecContentHash": { "type": "string" },
+        "authoredWorldSpecRevision": { "type": "integer", "minimum": 0 },
+        "baselineContentHash": { "type": "string" },
+        "recompiledWorldSpecId": { "type": "string" },
+        "recompiledContentHash": { "type": "string" },
+        "recompiledInputHash": { "type": "string" },
+        "inputMatches": { "type": "boolean" },
+        "laneMatches": { "type": "boolean" },
+        "outputMatches": { "type": "boolean" }
+      }
+    },
+    "simulationReproducibilityReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "status", "failureCode", "reason", "independentExecution",
+        "worldSpecContentHash", "worldSpecRevision", "buildId", "policyHash", "seed",
+        "stepCount", "stepSeconds", "tolerance", "maxStateNodes", "baselineStateHash",
+        "replayStateHash", "baselineStateNodeCount", "replayStateNodeCount",
+        "maxAbsoluteDelta", "mismatchPaths"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.simulationReproducibilityReceipt.v1" },
+        "status": { "enum": ["pass", "fail"] },
+        "failureCode": { "type": "string" },
+        "reason": { "type": "string", "minLength": 1 },
+        "independentExecution": { "type": "boolean" },
+        "worldSpecContentHash": { "type": "string" },
+        "worldSpecRevision": { "type": "integer", "minimum": 0 },
+        "buildId": { "type": "string" },
+        "policyHash": { "type": "string" },
+        "seed": { "type": ["number", "null"] },
+        "stepCount": { "type": "integer", "minimum": 0 },
+        "stepSeconds": { "type": "number", "minimum": 0 },
+        "tolerance": { "type": "number", "minimum": 0 },
+        "maxStateNodes": { "type": "integer", "minimum": 0 },
+        "baselineStateHash": { "type": "string" },
+        "replayStateHash": { "type": "string" },
+        "baselineStateNodeCount": { "type": "integer", "minimum": 0 },
+        "replayStateNodeCount": { "type": "integer", "minimum": 0 },
+        "maxAbsoluteDelta": { "type": "number", "minimum": 0 },
+        "mismatchPaths": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "interactionProofReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "contentHash", "status", "failureCode", "reason",
+        "worldSpecContentHash", "worldSpecRevision", "interactionProgramSchema",
+        "interactionProgramHash", "phase7ProgramSchema", "phase7SourceProgramHash",
+        "commandCount", "appliedCommandCount", "rejectedCommandCount",
+        "receiptWindowCount", "provenTransitionCount", "invalidTransitionCount",
+        "executedActionIds", "executedTargetIds", "changedChannelIds",
+        "invalidTransitionIds", "transitionHash", "visualStateConsumed", "transitions"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.interactionProofReceipt.v1" },
+        "contentHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+        "status": { "enum": ["pass", "fail", "not-proven"] },
+        "failureCode": { "type": "string" },
+        "reason": { "type": "string", "minLength": 1 },
+        "worldSpecContentHash": { "type": "string" },
+        "worldSpecRevision": { "type": "integer", "minimum": 0 },
+        "interactionProgramSchema": { "type": "string" },
+        "interactionProgramHash": { "type": "string" },
+        "phase7ProgramSchema": { "type": "string" },
+        "phase7SourceProgramHash": { "type": "string" },
+        "commandCount": { "type": "integer", "minimum": 0 },
+        "appliedCommandCount": { "type": "integer", "minimum": 0 },
+        "rejectedCommandCount": { "type": "integer", "minimum": 0 },
+        "receiptWindowCount": { "type": "integer", "minimum": 0 },
+        "provenTransitionCount": { "type": "integer", "minimum": 0 },
+        "invalidTransitionCount": { "type": "integer", "minimum": 0 },
+        "executedActionIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "executedTargetIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "changedChannelIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "invalidTransitionIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "transitionHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+        "visualStateConsumed": { "type": "boolean" },
+        "transitions": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/$defs/interactionTransitionProof" }
+        }
+      }
+    },
+    "interactionTransitionProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "id", "sequence", "actionId", "targetId", "bindingId", "status",
+        "beforeState", "afterState", "beforeStateHash", "afterStateHash",
+        "stateChanged", "changedChannelIds", "valid", "failureCodes"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.interactionTransitionProof.v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "sequence": { "type": "integer", "minimum": 0 },
+        "actionId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "bindingId": { "type": "string" },
+        "status": { "type": "string" },
+        "beforeState": { "$ref": "#/$defs/interactionTransitionState" },
+        "afterState": { "$ref": "#/$defs/interactionTransitionState" },
+        "beforeStateHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+        "afterStateHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+        "stateChanged": { "type": "boolean" },
+        "changedChannelIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "valid": { "type": "boolean" },
+        "failureCodes": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "interactionTransitionState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "selectedTargetId", "hoveredTargetId", "grabbedTargetId",
+        "activeTargetId", "visualPosition", "channels"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.interactionTransitionState.v1" },
+        "selectedTargetId": { "type": "string" },
+        "hoveredTargetId": { "type": "string" },
+        "grabbedTargetId": { "type": "string" },
+        "activeTargetId": { "type": "string" },
+        "visualPosition": {
+          "oneOf": [
+            { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
+            { "type": "null" }
+          ]
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "value"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "value": {}
+            }
+          }
+        }
+      }
+    },
+    "safetyProofReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "status", "failureCode", "reason", "independentExecution",
+        "worldSpecContentHash", "worldSpecRevision", "buildId", "rulesHash", "policyHash",
+        "seed", "stepCount", "stepSeconds", "checkpointCount", "ruleCount",
+        "baselineDecision", "replayDecision", "decisionsMatch", "baselineTraceHash",
+        "replayTraceHash", "ruleResults", "violationRuleIds", "warningRuleIds", "mismatchRuleIds"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.safetyProofReceipt.v1" },
+        "status": { "enum": ["pass", "fail"] },
+        "failureCode": { "type": "string" },
+        "reason": { "type": "string", "minLength": 1 },
+        "independentExecution": { "type": "boolean" },
+        "worldSpecContentHash": { "type": "string" },
+        "worldSpecRevision": { "type": "integer", "minimum": 0 },
+        "buildId": { "type": "string" },
+        "rulesHash": { "type": "string" },
+        "policyHash": { "type": "string" },
+        "seed": { "type": ["number", "null"] },
+        "stepCount": { "type": "integer", "minimum": 0 },
+        "stepSeconds": { "type": "number", "minimum": 0 },
+        "checkpointCount": { "type": "integer", "minimum": 0 },
+        "ruleCount": { "type": "integer", "minimum": 0 },
+        "baselineDecision": { "enum": ["", "allow", "block"] },
+        "replayDecision": { "enum": ["", "allow", "block"] },
+        "decisionsMatch": { "type": "boolean" },
+        "baselineTraceHash": { "type": "string" },
+        "replayTraceHash": { "type": "string" },
+        "ruleResults": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/$defs/safetyRuleResult" }
+        },
+        "violationRuleIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "warningRuleIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "mismatchRuleIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "safetyRuleResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "ruleId", "severity", "status", "evaluationCount", "violationCount",
+        "firstViolationStep", "lastValue", "minimumObserved", "maximumObserved", "traceHash"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.safetyRuleResult.v1" },
+        "ruleId": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["block", "warn"] },
+        "status": { "enum": ["pass", "block", "warn"] },
+        "evaluationCount": { "type": "integer", "minimum": 1 },
+        "violationCount": { "type": "integer", "minimum": 0 },
+        "firstViolationStep": { "type": ["integer", "null"], "minimum": 0 },
+        "lastValue": { "type": ["number", "null"] },
+        "minimumObserved": { "type": ["number", "null"] },
+        "maximumObserved": { "type": ["number", "null"] },
+        "traceHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" }
+      }
+    },
+    "proofClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "class", "required", "status", "evidence", "failures"],
+      "properties": {
+        "schema": { "const": "simulatte.worldProofClass.v1" },
+        "class": { "enum": ["intent", "semantic", "compilation", "simulation", "interaction", "safety", "visual", "replay"] },
+        "required": { "type": "boolean" },
+        "status": { "enum": ["pass", "fail", "not-proven", "not-applicable", "unsupported"] },
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "failures": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

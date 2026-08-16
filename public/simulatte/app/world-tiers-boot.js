@@ -104,6 +104,21 @@
       } catch (_error) { /* no document */ }
     }
 
+    function isLifecycleNeutralRouteUpdate(route) {
+      if (!current || route.experience !== current.experience) return false;
+      const currentRoute = currentRouteState(current);
+      const resolvedRoute = {
+        ...route,
+        world: route.world || currentRoute.world,
+        profile: route.profile || currentRoute.profile,
+        camera: route.camera || currentRoute.camera,
+      };
+      return router.hrefFor({
+        ...currentRoute,
+        camera: resolvedRoute.camera,
+      }) === router.hrefFor(resolvedRoute);
+    }
+
     function showLanding() {
       landing?.classList.remove('hidden');
       updateExperienceDocLink(documentationLink, null);
@@ -145,12 +160,13 @@
         }
         if (route.experience === current.experience && typeof current.updateRoute === 'function') {
           cancelPending();
-          beginRouteLoad(route);
+          const requiresLoad = !isLifecycleNeutralRouteUpdate(route);
+          if (requiresLoad) beginRouteLoad(route);
           const updated = await current.updateRoute(route);
           if (generationAtStart !== generation) return;
           Object.assign(current, updated || {});
           router.canonicalize(currentRouteState(current));
-          finishRouteLoad();
+          if (requiresLoad) finishRouteLoad();
           return;
         }
         if (route.experience === current.experience && typeof current.updateSimulation === 'function') {
@@ -316,7 +332,7 @@
   }
 
   async function bootGovernedTierExplorer(ctx,tier,requestedProfileId,options={}) {
-    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulatteCityInterface','SimulatteMainView','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteSimulationClock','SimulatteViewDirector','SimulatteAutonomyReceipts','SimulatteTierRunController'];
+    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulatteCityInterface','SimulatteMainView','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteSimulationClock','SimulatteViewDirector','SimulatteAutonomyReceipts','SimulatteTierRunController','SimulatteProfileProgram'];
     const missing=required.find((name)=>!root[name]);
     if(missing)throw new Error(`tier_boot_dependency_missing: ${missing}`);
     const elements=ctx.collectElements();
@@ -333,6 +349,7 @@
     let simulationClock=null;
     let viewDirector=null;
     let runController=null;
+    let profileProgram=null;
     let removeManualView=null;
     let lastPluginContributions=Object.freeze([]);
     let disposed=false;
@@ -405,9 +422,10 @@
       runController?.dispose();
       lifecycle.abort();
       removeManualView?.();
-      const resources={runtime,pluginUi,profileSelectUi,tierVisualizer};
-      runtime=null;pluginUi=null;profileSelectUi=null;tierVisualizer=null;
+      const resources={runtime,pluginUi,profileSelectUi,tierVisualizer,profileProgram};
+      runtime=null;pluginUi=null;profileSelectUi=null;tierVisualizer=null;profileProgram=null;
       await lifecycleApi.disposeAll([
+        {resource:'profile-program',dispose:()=>resources.profileProgram?.dispose()},
         {resource:'plugin-runtime',dispose:()=>resources.runtime?.dispose()},
         {resource:'plugin-ui',dispose:()=>resources.pluginUi?.dispose?.()},
         {resource:'profile-select',dispose:()=>resources.profileSelectUi?.dispose()},
@@ -447,11 +465,10 @@
         onControlChange:async({pluginId,values})=>{
           if (ctx.navigate) {
             const simulation=simulationRouteState();
-            await ctx.navigate({
-              tier,
-              experience: data.applicationProfile.id,
-              simulation: { ...simulation, parameters: { ...simulation.parameters, [pluginId]: values } },
-            }, { replace: true });
+            await ctx.navigate(governedTierRoute({
+              ...simulation,
+              parameters: { ...simulation.parameters, [pluginId]: values },
+            }), { replace: true });
             return;
           }
           if(!runController||runController.snapshot().ownerPluginId!==pluginId)return;
@@ -620,6 +637,7 @@
           const isRunning=state.state==='running';
           const isPaused=state.state==='paused';
           const isSettled=state.state==='settled';
+          if(!isSettled)root.SimulatteProfileProgram.invalidateRunReceipt(root,'__simulatteTierRunReceipt');
           const isProgressive=state.totalSteps>1;
           const shellPhase=isSettled?'completed':state.state==='idle'?'ready':state.state;
           elements.startButton.hidden=state.state!=='idle'&&!(isSettled&&!isProgressive);
@@ -709,11 +727,7 @@
       on(elements.shuffleButton,'click',async()=>{
         const nextScenario=root.SimulatteApplicationProfileSelect.nextScenario(interaction,activeScenario.id);
         if (ctx.navigate) {
-          await ctx.navigate({
-            tier,
-            experience: data.applicationProfile.id,
-            simulation: { scenarioId: nextScenario.id, seed: nextScenario.seed },
-          });
+          await ctx.navigate(governedTierRoute({ scenarioId: nextScenario.id, seed: nextScenario.seed }));
           return;
         }
         runController?.dispose();
@@ -747,6 +761,23 @@
       });
       lifecycle.throwIfAborted();
       if(!restored){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');}
+      profileProgram=root.SimulatteProfileProgram.connect({
+        documentRoot:document,
+        profile:data.applicationProfile,
+        registry:root.SimulatteGeneratedPluginRegistry,
+        getRuntime:()=>runtime,
+        getScenario:()=>activeScenario,
+        getRunReceipt:()=>root.__simulatteTierRunReceipt||root.__simulattePluginRunReceipt||null,
+        getCanvas:()=>elements.overlayCanvas,
+        navigateScenario:async(scenario)=>{
+          const simulation={...simulationRouteState(),scenarioId:scenario.id,seed:scenario.seed};
+          if(ctx.navigate){
+            return ctx.navigate(governedTierRoute(simulation));
+          }
+          return updateSimulationFromRoute(simulation);
+        },
+        replay:async()=>{await runController.seek(runController.snapshot().totalSteps);await runController.resume();return root.__simulatteTierRunReceipt;},
+      });
       loadTrace?.complete({
         profileId: data.applicationProfile.id,
         interactionMode: interaction.mode,

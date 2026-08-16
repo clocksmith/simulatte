@@ -18,6 +18,7 @@
       'experience-summary', 'experience-summary-state', 'experience-summary-title', 'experience-summary-description', 'experience-summary-event', 'experience-summary-narrative', 'experience-summary-stats', 'experience-summary-comparison',
       'planning-forecast', 'alternative-proof', 'ledger-proof', 'policy-arena-proof',
       'export-ledger-button', 'import-receipt-button', 'import-receipt-file',
+      'profile-program-section', 'profile-world-spec-editor', 'profile-world-spec-status', 'apply-profile-world-spec', 'reset-profile-world-spec', 'replay-profile-world-spec', 'export-profile-world-spec', 'import-profile-world-spec', 'profile-world-spec-import-file', 'profile-world-proof-status', 'profile-world-proof',
       'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'journey-section', 'decision-section', 'advanced-section', 'model-selection-panel',
       'plugin-inspector', 'plugin-map-ui',
     ];

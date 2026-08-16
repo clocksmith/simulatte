@@ -1,0 +1,374 @@
+{
+  "schema": "simulatte.worldSpecEditorBrowserAudit.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "prompt": "a red ball beside a qzxwplk",
+  "initialSceneProofVerdict": "fail",
+  "initialRequiredFailures": [
+    {
+      "schema": "simulatte.sceneProofObligation.v1",
+      "obligationId": "entity:ball",
+      "kind": "object",
+      "target": "ball",
+      "required": true,
+      "sourceStatus": "preserved",
+      "evidence": [
+        "visualObligationProof"
+      ],
+      "status": "lost",
+      "reason": "required identity failed live pixel proof"
+    },
+    {
+      "schema": "simulatte.sceneProofObligation.v1",
+      "obligationId": "entity:qzxwplk",
+      "kind": "object",
+      "target": "qzxwplk",
+      "required": true,
+      "sourceStatus": "preserved",
+      "evidence": [
+        "visualObligationProof"
+      ],
+      "status": "lost",
+      "reason": "required identity failed live pixel proof"
+    },
+    {
+      "schema": "simulatte.sceneProofObligation.v1",
+      "obligationId": "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+      "kind": "relation",
+      "target": "entity-ball:spatial-constraint:entity-qzxwplk",
+      "required": true,
+      "sourceStatus": "preserved",
+      "evidence": [
+        "visualObligationProof"
+      ],
+      "status": "lost",
+      "reason": "relation failed Phase 7 visual proof"
+    },
+    {
+      "schema": "simulatte.sceneProofObligation.v1",
+      "obligationId": "relation:spatial:entity-ball:beside:entity-qzxwplk",
+      "kind": "relation",
+      "target": "spatial:entity-ball:beside:entity-qzxwplk",
+      "required": true,
+      "sourceStatus": "preserved",
+      "evidence": [
+        "visualObligationProof"
+      ],
+      "status": "lost",
+      "reason": "relation failed Phase 7 visual proof"
+    },
+    {
+      "schema": "simulatte.sceneProofObligation.v1",
+      "obligationId": "visual:prompt-property-ball-color-#ef3340",
+      "kind": "visual",
+      "target": "Ball",
+      "required": true,
+      "sourceStatus": "preserved",
+      "evidence": [
+        "visualObligationProof"
+      ],
+      "status": "lost",
+      "reason": "visual pixel proof failed"
+    },
+    {
+      "schema": "simulatte.sceneProofObligation.v1",
+      "obligationId": "visual:compiled-scene-packet",
+      "kind": "visual",
+      "target": "ball beside",
+      "required": true,
+      "sourceStatus": "preserved",
+      "evidence": [
+        "visualObligationProof"
+      ],
+      "status": "lost",
+      "reason": "visual pixel proof failed"
+    },
+    {
+      "schema": "simulatte.sceneProofObligation.v1",
+      "obligationId": "visual:construction:prompt-body-qzxwplk:support",
+      "kind": "visual",
+      "target": "qzxwplk",
+      "required": true,
+      "sourceStatus": "lost",
+      "evidence": [],
+      "status": "lost",
+      "reason": "carried failure status lost"
+    },
+    {
+      "schema": "simulatte.sceneProofObligation.v1",
+      "obligationId": "visual:construction:surface-ball-1:topology",
+      "kind": "visual",
+      "target": "ball",
+      "required": true,
+      "sourceStatus": "preserved",
+      "evidence": [
+        "visualObligationProof"
+      ],
+      "status": "lost",
+      "reason": "visual pixel proof failed"
+    },
+    {
+      "schema": "simulatte.sceneProofObligation.v1",
+      "obligationId": "visual:construction:surface-ball-1:part:core",
+      "kind": "visual",
+      "target": "ball",
+      "required": true,
+      "sourceStatus": "preserved",
+      "evidence": [
+        "visualObligationProof"
+      ],
+      "status": "lost",
+      "reason": "visual pixel proof failed"
+    },
+    {
+      "schema": "simulatte.sceneProofObligation.v1",
+      "obligationId": "visual:construction:surface-ball-1:part:detail",
+      "kind": "visual",
+      "target": "ball",
+      "required": true,
+      "sourceStatus": "preserved",
+      "evidence": [
+        "visualObligationProof"
+      ],
+      "status": "lost",
+      "reason": "visual pixel proof failed"
+    }
+  ],
+  "originalColor": "#ef3340",
+  "editedColor": "#00aa44",
+  "visualColor": "#00aa44",
+  "greenGeometryPartCount": 1,
+  "constructionTopologyId": "spherical-body",
+  "constructionTopologyTargetFit": true,
+  "constructionPartIds": [
+    "sphere-body",
+    "specular-highlight"
+  ],
+  "propertyObligationIds": [
+    "visual:user-override-property-ball-color-#00aa44"
+  ],
+  "propertyObligationValues": [
+    "#00aa44"
+  ],
+  "propertyObligationStatuses": [
+    "preserved"
+  ],
+  "propertyObligationAuthorities": [
+    "userOverride"
+  ],
+  "patchAuthority": "userOverride",
+  "propertyPatchId": "patch:1:300723e0",
+  "patchAffectedObligationIds": [
+    "entity:ball",
+    "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+    "relation:spatial:entity-ball:beside:entity-qzxwplk",
+    "visual:prompt-property-ball-color-#ef3340"
+  ],
+  "semanticPropertyAuthority": "userOverride",
+  "semanticPropertyPatchIds": [
+    "patch:1:300723e0"
+  ],
+  "before": {
+    "contentHash": "fnv1a32:14856e6b",
+    "revision": 0,
+    "renderCount": 1,
+    "renderInputSerial": 1,
+    "sceneProofVerdict": "fail",
+    "requiredFailures": [
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "entity:ball",
+        "kind": "object",
+        "target": "ball",
+        "required": true,
+        "sourceStatus": "preserved",
+        "evidence": [
+          "visualObligationProof"
+        ],
+        "status": "lost",
+        "reason": "required identity failed live pixel proof"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "entity:qzxwplk",
+        "kind": "object",
+        "target": "qzxwplk",
+        "required": true,
+        "sourceStatus": "preserved",
+        "evidence": [
+          "visualObligationProof"
+        ],
+        "status": "lost",
+        "reason": "required identity failed live pixel proof"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+        "kind": "relation",
+        "target": "entity-ball:spatial-constraint:entity-qzxwplk",
+        "required": true,
+        "sourceStatus": "preserved",
+        "evidence": [
+          "visualObligationProof"
+        ],
+        "status": "lost",
+        "reason": "relation failed Phase 7 visual proof"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "relation:spatial:entity-ball:beside:entity-qzxwplk",
+        "kind": "relation",
+        "target": "spatial:entity-ball:beside:entity-qzxwplk",
+        "required": true,
+        "sourceStatus": "preserved",
+        "evidence": [
+          "visualObligationProof"
+        ],
+        "status": "lost",
+        "reason": "relation failed Phase 7 visual proof"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "visual:prompt-property-ball-color-#ef3340",
+        "kind": "visual",
+        "target": "Ball",
+        "required": true,
+        "sourceStatus": "preserved",
+        "evidence": [
+          "visualObligationProof"
+        ],
+        "status": "lost",
+        "reason": "visual pixel proof failed"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "visual:compiled-scene-packet",
+        "kind": "visual",
+        "target": "ball beside",
+        "required": true,
+        "sourceStatus": "preserved",
+        "evidence": [
+          "visualObligationProof"
+        ],
+        "status": "lost",
+        "reason": "visual pixel proof failed"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "visual:construction:prompt-body-qzxwplk:support",
+        "kind": "visual",
+        "target": "qzxwplk",
+        "required": true,
+        "sourceStatus": "lost",
+        "evidence": [],
+        "status": "lost",
+        "reason": "carried failure status lost"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "visual:construction:surface-ball-1:topology",
+        "kind": "visual",
+        "target": "ball",
+        "required": true,
+        "sourceStatus": "preserved",
+        "evidence": [
+          "visualObligationProof"
+        ],
+        "status": "lost",
+        "reason": "visual pixel proof failed"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "visual:construction:surface-ball-1:part:core",
+        "kind": "visual",
+        "target": "ball",
+        "required": true,
+        "sourceStatus": "preserved",
+        "evidence": [
+          "visualObligationProof"
+        ],
+        "status": "lost",
+        "reason": "visual pixel proof failed"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "visual:construction:surface-ball-1:part:detail",
+        "kind": "visual",
+        "target": "ball",
+        "required": true,
+        "sourceStatus": "preserved",
+        "evidence": [
+          "visualObligationProof"
+        ],
+        "status": "lost",
+        "reason": "visual pixel proof failed"
+      }
+    ]
+  },
+  "after": {
+    "contentHash": "fnv1a32:a04dc2bb",
+    "revision": 1,
+    "renderCount": 62,
+    "renderInputSerial": 4
+  },
+  "editorStatus": "ready",
+  "sceneVisible": "true",
+  "renderer": "webgpu",
+  "rendererStatus": "WebGPU renderer ready",
+  "sceneProofVerdict": "pass",
+  "sceneProofRequiredFailures": [],
+  "worldProofVerdict": "pass",
+  "worldProofContentHash": "fnv1a32:5173ef7d",
+  "worldProofWorldSpecHash": "fnv1a32:a04dc2bb",
+  "worldProofCriticalFailures": [],
+  "worldProofClassStatuses": {
+    "intent": "pass",
+    "semantic": "pass",
+    "compilation": "pass",
+    "simulation": "pass",
+    "interaction": "pass",
+    "safety": "pass",
+    "visual": "pass",
+    "replay": "pass"
+  },
+  "intentProofStatus": "pass",
+  "intentProofRequirementHash": "fnv1a32:977ad4d5",
+  "intentProofSettlementHash": "fnv1a32:b6e937f7",
+  "intentProofAcceptedCount": 2,
+  "intentProofRefusalCount": 2,
+  "intentProofUnresolvedCount": 0,
+  "intentProofLostCount": 0,
+  "semanticProofStatus": "pass",
+  "semanticProofLedgerHash": "fnv1a32:15d823f2",
+  "semanticProofGraphHash": "fnv1a32:b251c341",
+  "semanticProofBindingCount": 2,
+  "semanticProofProvenCount": 2,
+  "semanticProofMissingCount": 0,
+  "compilerDeterminismStatus": "pass",
+  "compilerDeterminismInputHash": "fnv1a32:e43913c4",
+  "compilerDeterminismBaselineHash": "fnv1a32:14856e6b",
+  "compilerDeterminismRecompiledHash": "fnv1a32:14856e6b",
+  "compilerDeterminismLane": "pipeline-worker",
+  "simulationReproducibilityStatus": "pass",
+  "simulationReproducibilityBaselineHash": "fnv1a32:6eb38e40",
+  "simulationReproducibilityReplayHash": "fnv1a32:6eb38e40",
+  "simulationReproducibilityMaxDelta": 0,
+  "interactionProofStatus": "pass",
+  "interactionProofContentHash": "fnv1a32:8d5aa40c",
+  "interactionProofProgramHash": "fnv1a32:9160b87e",
+  "interactionProofTransitionHash": "fnv1a32:d1848124",
+  "interactionProofProvenTransitionCount": 4,
+  "interactionProofInvalidTransitionCount": 0,
+  "interactionProofChangedChannelCount": 2,
+  "safetyProofStatus": "pass",
+  "safetyProofDecision": "allow",
+  "safetyProofRulesHash": "fnv1a32:7f74947a",
+  "safetyProofBaselineHash": "fnv1a32:411c8480",
+  "safetyProofReplayHash": "fnv1a32:411c8480",
+  "documentFitsViewport": true,
+  "controlsFitViewport": true,
+  "screenshot": "artifacts/blank-world-spec-editor/1440x1000.png",
+  "screenshotSha256": "2dab85be92d3fdb12f880a5ea31bd51ad88ee52e25d8f4da047bdc34ddec7c94"
+}

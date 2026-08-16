@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
 
 const contracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
 const catalogApi = require('../public/simulatte/platform/data-catalog/immutable-data-catalog.js');
@@ -10,8 +11,8 @@ const experienceCameraApi = require('../public/simulatte/app/experience-camera.j
 const interactionApi = require('../public/simulatte/app/application-profile-select.js');
 
 function manifest(overrides = {}) {
-  return {
-    schema: 'simulatte.pluginManifest.v1',
+  const base = {
+    schema: 'simulatte.pluginManifest.v3',
     id: 'fixture-plugin',
     version: '1.0.0',
     sdkVersion: 1,
@@ -28,8 +29,21 @@ function manifest(overrides = {}) {
     receiptSchemas: ['simulatte.plugin.fixtureReceipt.v1'],
     configSchema: './config.schema.json',
     defaultConfig: './default-config.json',
-    ...overrides,
   };
+  const next = { ...base, ...overrides };
+  if (!Object.hasOwn(overrides, 'governance')) {
+    next.governance = {
+      trustLevel: 'repository-bundled',
+      executionIsolation: 'same-realm-contract',
+      publisher: 'simulatte',
+      provenance: 'repository-source',
+      signatureStatus: 'not-applicable-repository-bundled',
+      marketplaceEligible: false,
+      status: 'active',
+      revocationId: `plugin:${next.id}@${next.version}`,
+    };
+  }
+  return next;
 }
 
 test('plugin runtime activates a least-authority fixture, sequences state, contributes UI, and disposes', async () => {
@@ -63,6 +77,29 @@ test('plugin runtime activates a least-authority fixture, sequences state, contr
   assert.equal((await runtime.settle({}))[0].count, 2);
   assert.equal(runtime.views({})[0].view.title, 'Fixture');
   assert.equal(runtime.runtimeReceipt().pluginReceipts.length, 1);
+  assert.equal(runtime.runtimeReceipt().worldSpec.schema, 'simulatte.worldSpec.v1');
+  assert.equal(runtime.runtimeReceipt().worldSpec.params.profileId, profile.id);
+  assert.equal(runtime.runtimeReceipt().worldSpecConformance.status, 'pass');
+  assert.equal(runtime.worldSpec().contentHash, runtime.runtimeReceipt().worldSpec.contentHash);
+  const firstRuntimeReceipt = runtime.runtimeReceipt();
+  const secondRuntimeReceipt = runtime.runtimeReceipt();
+  assert.equal(firstRuntimeReceipt.events[0], secondRuntimeReceipt.events[0]);
+  assert.equal(firstRuntimeReceipt.pluginReceipts[0], secondRuntimeReceipt.pluginReceipts[0]);
+  assert.equal(Object.isFrozen(firstRuntimeReceipt.events[0]), true);
+  assert.equal(Object.isFrozen(firstRuntimeReceipt.pluginReceipts[0]), true);
+  assert.deepEqual(runtime.runtimeReceipt().pluginTrustReceipts, [{
+    schema: 'simulatte.pluginTrustReceipt.v1',
+    pluginId: 'fixture-plugin',
+    pluginVersion: '1.0.0',
+    trustLevel: 'repository-bundled',
+    executionIsolation: 'same-realm-contract',
+    publisher: 'simulatte',
+    provenance: 'repository-source',
+    signatureStatus: 'not-applicable-repository-bundled',
+    marketplaceEligible: false,
+    revocationId: 'plugin:fixture-plugin@1.0.0',
+    status: 'authorized',
+  }]);
   await runtime.dispose();
   assert.equal(disposed, true);
 });
@@ -349,6 +386,69 @@ test('plugin contracts reject undeclared authority and capability cycles fail be
   const profile = { schema: 'simulatte.applicationProfile.v1', id: 'cycle-v1', plugins: [{ id: 'alpha', configId: 'default' }, { id: 'beta', configId: 'default' }], routeObjective: {} };
   const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
   await assert.rejects(runtimeApi.createPluginRuntime({ registry: { entry: (id) => rows.get(id) }, profile, dataCatalog }), /plugin_capability_cycle/);
+});
+
+test('executable plugin activation fails closed without current trust or after revocation', async () => {
+  const legacy = manifest({ schema: 'simulatte.pluginManifest.v2', governance: undefined });
+  delete legacy.governance;
+  assert.equal(contracts.validateManifest(legacy), legacy);
+  assert.throws(() => contracts.authorizeExecutableManifest(legacy), /plugin_executable_trust_missing/);
+
+  const revoked = manifest({
+    governance: {
+      ...manifest().governance,
+      status: 'revoked',
+    },
+  });
+  assert.throws(() => contracts.authorizeExecutableManifest(revoked), /plugin_executable_revoked/);
+
+  const marketplaceClaim = manifest({
+    governance: {
+      ...manifest().governance,
+      marketplaceEligible: true,
+    },
+  });
+  assert.throws(() => contracts.validateManifest(marketplaceClaim), /plugin_marketplace_eligibility_forbidden/);
+
+  let activated = false;
+  const row = {
+    manifest: legacy,
+    configs: { default: { id: 'default' } },
+    factory: { activate() { activated = true; return { id: legacy.id }; } },
+  };
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'legacy-trust-v1', plugins: [{ id: legacy.id, configId: 'default' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
+  await assert.rejects(
+    runtimeApi.createPluginRuntime({ registry: { entry: () => row }, profile, dataCatalog }),
+    /plugin_executable_trust_missing/
+  );
+  assert.equal(activated, false);
+});
+
+test('every repository plugin carries current same-realm trust without marketplace claims', () => {
+  const pluginsRoot = path.join(__dirname, '..', 'public', 'shared', 'plugins');
+  const schema = JSON.parse(fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'simulatte', 'platform', 'contracts', 'plugin-manifest.schema.json'),
+    'utf8'
+  ));
+  assert.ok(schema.properties.schema.enum.includes('simulatte.pluginManifest.v3'));
+  assert.equal(schema.properties.governance.properties.marketplaceEligible.const, false);
+
+  const receipts = fs.readdirSync(pluginsRoot, { withFileTypes: true }).flatMap((entry) => {
+    const manifestPath = path.join(pluginsRoot, entry.name, 'plugin.json');
+    if (!entry.isDirectory() || !fs.existsSync(manifestPath)) return [];
+    const value = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    assert.equal(value.schema, 'simulatte.pluginManifest.v3', value.id);
+    assert.equal(contracts.validateManifest(value), value);
+    return [contracts.authorizeExecutableManifest(value)];
+  });
+  assert.equal(receipts.length, 12);
+  assert.ok(receipts.every((receipt) => (
+    receipt.trustLevel === 'repository-bundled' &&
+    receipt.executionIsolation === 'same-realm-contract' &&
+    receipt.marketplaceEligible === false &&
+    receipt.status === 'authorized'
+  )));
 });
 
 test('request contributions reject fields outside the versioned host contract', () => {

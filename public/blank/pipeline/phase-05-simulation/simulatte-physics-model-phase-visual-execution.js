@@ -152,7 +152,7 @@
     return createVisualCompileEnvelope(phase5Output, compositionGraph);
   }
 
-  function createRenderExecutionInput(source = {}, simulationState = null, canvas = null) {
+  function createRenderExecutionInput(source = {}, simulationState = null, canvas = null, options = {}) {
     const phase6Output = source && source.schema === scope.phaseOutputSchema(6)
       ? source
       : source && source.phaseArtifacts && source.phaseArtifacts.phase6 || null;
@@ -174,6 +174,13 @@
       renderInstances: Array.isArray(visualCompile.renderInstances) ? visualCompile.renderInstances : [],
       visualObligations: Array.isArray(visualCompile.visualObligations) ? visualCompile.visualObligations : [],
       compositionLedger: visualCompile.compositionLedger || phase6Output.artifact.compositionLedger || null,
+      worldProofBinding: scope.worldProof.createWorldProofBinding(source, options),
+      replayBaseline: options.replayBaseline || null,
+      intentReceipt: options.intentReceipt || null,
+      semanticReceipt: options.semanticReceipt || null,
+      compilerDeterminismReceipt: options.compilerDeterminismReceipt || null,
+      simulationReproducibilityReceipt: options.simulationReproducibilityReceipt || null,
+      safetyReceipt: options.safetyReceipt || null,
       simulationState,
       canvas,
     };
@@ -235,6 +242,17 @@
         renderExecution: {
           schema: scope.RENDER_EXECUTION_SCHEMA,
           renderExecutionInputSchema: renderExecutionInput.schema,
+          worldProofBinding: renderExecutionInput.worldProofBinding || null,
+          replayBaseline: renderExecutionInput.replayBaseline || null,
+          intentReceipt: renderExecutionInput.intentReceipt || null,
+          semanticReceipt: renderExecutionInput.semanticReceipt || null,
+          compilerDeterminismReceipt: renderExecutionInput.compilerDeterminismReceipt || null,
+          simulationReproducibilityReceipt:
+            renderExecutionInput.simulationReproducibilityReceipt || null,
+          safetyReceipt: renderExecutionInput.safetyReceipt || null,
+          simulationReceipt: renderExecutionInput.simulationState &&
+            renderExecutionInput.simulationState.solverState &&
+            renderExecutionInput.simulationState.solverState.executionReceipt || null,
           sceneRenderPacketSchema: sceneRenderPacket.schema || '',
           rendered: frameReceipt.rendered === true,
           packetIdentitySummary: scope.scenePacketIdentitySummary(sceneRenderPacket),

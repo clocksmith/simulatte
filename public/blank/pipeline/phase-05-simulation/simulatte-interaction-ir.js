@@ -7,6 +7,8 @@
   const INTERACTION_STATE_SCHEMA = 'simulatte.interactionState.v1';
   const INTERACTION_COMMAND_SCHEMA = 'simulatte.interactionCommand.v1';
   const INTERACTION_RECEIPT_SCHEMA = 'simulatte.interactionCommandReceipt.v1';
+  const INTERACTION_TRANSITION_STATE_SCHEMA = 'simulatte.interactionTransitionState.v1';
+  const INTERACTION_HASH_PREFIX = 'fnv1a32:';
   const MAX_RECEIPTS = 64;
 
   const ACTIONS = Object.freeze([
@@ -100,6 +102,7 @@
     const bindings = BINDINGS.filter((row) => actionIds.has(row.actionId)).map(clone);
     const interactionIR = {
       schema: INTERACTION_IR_SCHEMA,
+      contentHash: '',
       compiler: 'simulatte.phase5.interaction-ir.compiler.v1',
       coordinateSystem: 'normalized-canvas',
       commandOrdering: 'monotonic-sequence-then-arrival-order',
@@ -118,6 +121,7 @@
         complexity: `O(${targets.length}+${Object.keys(channelMetadata).length})`,
       },
     };
+    interactionIR.contentHash = interactionProgramContentHash(interactionIR);
     validateInteractionIR(interactionIR);
     return interactionIR;
   }
@@ -176,6 +180,9 @@
   function validateInteractionIR(ir = {}) {
     if (ir.schema !== INTERACTION_IR_SCHEMA) {
       throw new Error(`InteractionIR expected ${INTERACTION_IR_SCHEMA}`);
+    }
+    if (ir.contentHash !== interactionProgramContentHash(ir)) {
+      throw new Error('InteractionIR contentHash does not match its canonical program');
     }
     const actionIds = new Set((ir.actions || []).map((row) => row.id));
     const targetIds = new Set();
@@ -264,6 +271,7 @@
     const action = (interactionIR.actions || []).find((row) => row.id === command.actionId);
     const target = command.targetId ? targets.get(command.targetId) : null;
     const interaction = state.interaction;
+    const beforeState = interactionTransitionState(state, target);
     interaction.commandCount += 1;
     let status = 'applied';
     let reason = '';
@@ -299,6 +307,7 @@
       ...nextInteraction.modifiedChannels,
       ...changedChannels,
     ]).slice(-32);
+    const afterState = interactionTransitionState(state, target);
     nextInteraction.receipts.push({
       schema: INTERACTION_RECEIPT_SCHEMA,
       sequence: command.sequence,
@@ -308,6 +317,10 @@
       status,
       reason,
       changedChannels,
+      beforeState,
+      afterState,
+      beforeStateHash: interactionTransitionStateHash(beforeState),
+      afterStateHash: interactionTransitionStateHash(afterState),
       point: command.point.slice(),
       delta: command.delta.slice(),
     });
@@ -453,6 +466,61 @@
       : undefined;
   }
 
+  function interactionTransitionState(state = {}, target = null) {
+    const interaction = state.interaction || {};
+    const targetId = String(target && target.id || '');
+    const channelIds = unique(Object.values(target && target.channels || {}))
+      .map(String)
+      .filter(Boolean)
+      .sort();
+    const visualPosition = targetId && interaction.visualPositions &&
+      interaction.visualPositions[targetId];
+    return {
+      schema: INTERACTION_TRANSITION_STATE_SCHEMA,
+      selectedTargetId: String(interaction.selectedTargetId || ''),
+      hoveredTargetId: String(interaction.hoveredTargetId || ''),
+      grabbedTargetId: String(interaction.grabbedTargetId || ''),
+      activeTargetId: String(interaction.activeTargetId || ''),
+      visualPosition: Array.isArray(visualPosition)
+        ? visualPosition.slice(0, 2).map((value) => finite(value, 0))
+        : null,
+      channels: channelIds.map((id) => ({
+        id,
+        value: canonicalValue(readChannel(state, id) ?? null),
+      })),
+    };
+  }
+
+  function interactionProgramContentHash(interactionIR = {}) {
+    const program = clone(interactionIR || {});
+    delete program.contentHash;
+    return hashCanonical(program);
+  }
+
+  function interactionTransitionStateHash(state = {}) {
+    return hashCanonical(state);
+  }
+
+  function hashCanonical(value) {
+    let hash = 0x811c9dc5;
+    const bytes = new TextEncoder().encode(JSON.stringify(canonicalValue(value)));
+    for (const byte of bytes) {
+      hash ^= byte;
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+    return `${INTERACTION_HASH_PREFIX}${hash.toString(16).padStart(8, '0')}`;
+  }
+
+  function canonicalValue(value) {
+    if (Array.isArray(value)) return value.map(canonicalValue);
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.keys(value).sort().map((key) => [key, canonicalValue(value[key])])
+      );
+    }
+    return value;
+  }
+
   function scaleVector(value, scale) {
     return [finite(value[0], 0) * scale, finite(value[1], 0) * scale];
   }
@@ -489,6 +557,7 @@
     INTERACTION_STATE_SCHEMA,
     INTERACTION_COMMAND_SCHEMA,
     INTERACTION_RECEIPT_SCHEMA,
+    INTERACTION_TRANSITION_STATE_SCHEMA,
     ACTIONS,
     BINDINGS,
     compileInteractionIR,
@@ -497,5 +566,7 @@
     withInteractionState,
     createInteractionCommand,
     applyInteractionCommands,
+    interactionProgramContentHash,
+    interactionTransitionStateHash,
   };
 });

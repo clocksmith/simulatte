@@ -10,6 +10,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_CONTRACT = path.join(ROOT, 'docs/simulatte/folder-contract.json');
 const DEFAULT_SCHEMA = path.join(ROOT, 'docs/simulatte/folder-contract.schema.json');
 const DEFAULT_POLICY = path.join(ROOT, 'docs/simulatte/folder-contract-judge-policy.md');
+const REVIEW_DIFF_MAX_BYTES = 8 * 1024 * 1024;
+const REVIEW_DIFF_FILE_MAX_BYTES = 1024 * 1024;
 
 function parseArgs(argv) {
   const options = { adapterArgs: [], model: 'unassigned-local-review', runFreshness: true };
@@ -105,6 +107,77 @@ function inspectedFile(relativePath, role) {
   };
 }
 
+function fullDiffBinding() {
+  const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-folder-contract-diff-'));
+  const diffPath = path.join(tempDirectory, 'worktree.diff');
+  const diffFd = fs.openSync(diffPath, 'w');
+  let result;
+  try {
+    result = spawnSync('git', ['diff', '--no-ext-diff', '--binary', 'HEAD', '--', '.'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', diffFd, 'pipe'],
+    });
+  } finally {
+    fs.closeSync(diffFd);
+  }
+  try {
+    invariant(!result.error, 'folder_contract_judge_diff_failed', result.error?.message || 'git diff failed');
+    invariant(result.status === 0, 'folder_contract_judge_diff_failed', String(result.stderr || `git exited ${result.status}`));
+    return {
+      bytes: fs.statSync(diffPath).size,
+      sha256: fileHash(diffPath),
+    };
+  } finally {
+    fs.rmSync(tempDirectory, { recursive: true, force: true });
+  }
+}
+
+function reviewDiff(changedPaths) {
+  const chunks = [];
+  let includedBytes = 0;
+  const append = (value) => {
+    const text = String(value || '');
+    const bytes = Buffer.byteLength(text);
+    if (includedBytes + bytes > REVIEW_DIFF_MAX_BYTES) return false;
+    chunks.push(text);
+    includedBytes += bytes;
+    return true;
+  };
+  const omit = (relativePath, reason) => append(
+    `\n--- ${relativePath}\n[diff omitted: ${reason}]\n`
+  );
+  const stat = execFileSync('git', ['diff', '--no-ext-diff', '--stat', 'HEAD', '--', '.'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    maxBuffer: REVIEW_DIFF_MAX_BYTES,
+  });
+  append(stat);
+  for (const relativePath of [...new Set(changedPaths)].sort()) {
+    const absolutePath = path.join(ROOT, relativePath);
+    const bytes = fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()
+      ? fs.statSync(absolutePath).size
+      : 0;
+    if (bytes > REVIEW_DIFF_FILE_MAX_BYTES) {
+      omit(relativePath, `${bytes} byte file exceeds the 1 MiB review limit; content hash is bound separately`);
+      continue;
+    }
+    const result = spawnSync('git', ['diff', '--no-ext-diff', 'HEAD', '--', relativePath], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      maxBuffer: REVIEW_DIFF_FILE_MAX_BYTES * 2,
+    });
+    if (result.error || result.status !== 0) {
+      omit(relativePath, result.error?.code === 'ENOBUFS' ? 'patch exceeds the per-file review limit' : 'git diff failed');
+      continue;
+    }
+    if (result.stdout && !append(result.stdout)) {
+      omit(relativePath, 'bundle reached the 8 MiB review limit');
+    }
+  }
+  return chunks.join('');
+}
+
 function pathsFromCommands(commands) {
   const paths = new Set();
   for (const command of commands) {
@@ -157,7 +230,8 @@ function buildBundle(options, contract, validation, policyText) {
   const source = [...sourcePaths].sort().map((sourcePath) => inspectedFile(sourcePath, 'source')).filter(Boolean);
   const tests = [...testPaths].sort().map((testPath) => inspectedFile(testPath, 'test')).filter(Boolean);
   const receipts = [...receiptPaths].sort().map((receiptPath) => inspectedFile(receiptPath, 'receipt')).filter(Boolean);
-  const diff = execFileSync('git', ['diff', '--no-ext-diff', '--text', 'HEAD', '--', '.'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  const diffBinding = fullDiffBinding();
+  const diff = reviewDiff(changedPaths);
   return {
     schema: 'simulatte.folderContractJudgeBundle.v1',
     bindings: {
@@ -166,7 +240,8 @@ function buildBundle(options, contract, validation, policyText) {
       contractSha256: fileHash(options.contractPath),
       policySha256: hash(policyText),
       deterministicValidationSha256: hash(canonicalJson(validation)),
-      changedDiffSha256: hash(diff),
+      changedDiffSha256: diffBinding.sha256,
+      changedDiffBytes: diffBinding.bytes,
     },
     deterministicValidation: validation,
     intentProse: selectedNodes.map((node) => ({ id: node.id, path: node.path, intent: node.intent, ownership: node.ownership, experience: node.experience || null })),

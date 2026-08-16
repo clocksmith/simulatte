@@ -24,8 +24,9 @@
 
   function validateManifest(value) {
     assertObject(value, 'plugin_manifest_invalid', 'Plugin manifest expected an object');
-    assertExactKeys(value, ['schema', 'id', 'version', 'sdkVersion', 'entry', 'resources', 'permissions', 'datasets', 'provides', 'consumes', 'extensionPoints', 'receiptSchemas', 'configSchema', 'defaultConfig'], `Plugin manifest ${value.id || 'missing'}`);
-    if (!['simulatte.pluginManifest.v1', 'simulatte.pluginManifest.v2'].includes(value.schema)) fail('plugin_manifest_schema_invalid', `Plugin manifest schema ${value.schema || 'missing'} is invalid`, null);
+    const isGoverned = value.schema === 'simulatte.pluginManifest.v3';
+    assertExactKeys(value, ['schema', 'id', 'version', 'sdkVersion', 'entry', 'resources', 'permissions', 'datasets', 'provides', 'consumes', 'extensionPoints', 'receiptSchemas', 'configSchema', 'defaultConfig', ...(isGoverned ? ['governance'] : [])], `Plugin manifest ${value.id || 'missing'}`);
+    if (!['simulatte.pluginManifest.v1', 'simulatte.pluginManifest.v2', 'simulatte.pluginManifest.v3'].includes(value.schema)) fail('plugin_manifest_schema_invalid', `Plugin manifest schema ${value.schema || 'missing'} is invalid`, null);
     if (!ID_PATTERN.test(value.id || '')) fail('plugin_manifest_id_invalid', `Plugin manifest ID ${value.id || 'missing'} is invalid`, { id: value.id || null });
     if (!/^\d+\.\d+\.\d+$/.test(value.version || '')) fail('plugin_manifest_version_invalid', `Plugin ${value.id} version is invalid`, { version: value.version });
     if (!SUPPORTED_SDK_VERSIONS.includes(value.sdkVersion)) fail('plugin_sdk_version_unsupported', `Plugin ${value.id} SDK version ${value.sdkVersion ?? 'missing'} is unsupported`, { supported: SUPPORTED_SDK_VERSIONS, sdkVersion: value.sdkVersion ?? null });
@@ -54,7 +55,46 @@
     validateUniqueText(value.receiptSchemas, `Plugin ${value.id} receipt schemas`);
     text(value.configSchema, 'plugin_config_schema_invalid', `Plugin ${value.id} config schema`);
     text(value.defaultConfig, 'plugin_default_config_invalid', `Plugin ${value.id} default config`);
+    if (isGoverned) validatePluginGovernance(value);
     return value;
+  }
+
+  function validatePluginGovernance(manifest) {
+    const value = manifest.governance;
+    assertObject(value, 'plugin_governance_missing', `Plugin ${manifest.id} governance expected an object`);
+    assertExactKeys(value, ['trustLevel', 'executionIsolation', 'publisher', 'provenance', 'signatureStatus', 'marketplaceEligible', 'status', 'revocationId'], `Plugin ${manifest.id} governance`);
+    equal(value.trustLevel, 'repository-bundled', 'plugin_trust_level_unsupported', `Plugin ${manifest.id} trust level`);
+    equal(value.executionIsolation, 'same-realm-contract', 'plugin_execution_isolation_unsupported', `Plugin ${manifest.id} execution isolation`);
+    equal(value.publisher, 'simulatte', 'plugin_publisher_untrusted', `Plugin ${manifest.id} publisher`);
+    equal(value.provenance, 'repository-source', 'plugin_provenance_untrusted', `Plugin ${manifest.id} provenance`);
+    equal(value.signatureStatus, 'not-applicable-repository-bundled', 'plugin_signature_status_invalid', `Plugin ${manifest.id} signature status`);
+    if (value.marketplaceEligible !== false) fail('plugin_marketplace_eligibility_forbidden', `Plugin ${manifest.id} cannot claim marketplace eligibility without an isolated signed lane`, { pluginId: manifest.id });
+    if (!['active', 'revoked'].includes(value.status)) fail('plugin_governance_status_invalid', `Plugin ${manifest.id} governance status is invalid`, { status: value.status });
+    equal(value.revocationId, `plugin:${manifest.id}@${manifest.version}`, 'plugin_revocation_identity_invalid', `Plugin ${manifest.id} revocation identity`);
+    return value;
+  }
+
+  function authorizeExecutableManifest(manifest) {
+    validateManifest(manifest);
+    if (manifest.schema !== 'simulatte.pluginManifest.v3') {
+      fail('plugin_executable_trust_missing', `Plugin ${manifest.id} executable manifest has no governed trust contract`, { pluginId: manifest.id, schema: manifest.schema });
+    }
+    if (manifest.governance.status !== 'active') {
+      fail('plugin_executable_revoked', `Plugin ${manifest.id} executable authority is revoked`, { pluginId: manifest.id, revocationId: manifest.governance.revocationId });
+    }
+    return Object.freeze({
+      schema: 'simulatte.pluginTrustReceipt.v1',
+      pluginId: manifest.id,
+      pluginVersion: manifest.version,
+      trustLevel: manifest.governance.trustLevel,
+      executionIsolation: manifest.governance.executionIsolation,
+      publisher: manifest.governance.publisher,
+      provenance: manifest.governance.provenance,
+      signatureStatus: manifest.governance.signatureStatus,
+      marketplaceEligible: false,
+      revocationId: manifest.governance.revocationId,
+      status: 'authorized',
+    });
   }
 
   function validateProfile(value) {
@@ -559,5 +599,5 @@
     throw error;
   }
 
-  return { EXTENSION_POINTS, PERMISSIONS, SDK_VERSION, SUPPORTED_SDK_VERSIONS, validateManifest, validatePresentationContribution, validateProfile, validatePluginInstance, validateRequestContribution, validateSettlementContribution, validateUiContribution };
+  return { EXTENSION_POINTS, PERMISSIONS, SDK_VERSION, SUPPORTED_SDK_VERSIONS, authorizeExecutableManifest, validateManifest, validatePluginGovernance, validatePresentationContribution, validateProfile, validatePluginInstance, validateRequestContribution, validateSettlementContribution, validateUiContribution };
 });

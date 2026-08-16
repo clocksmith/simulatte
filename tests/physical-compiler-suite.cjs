@@ -1788,6 +1788,32 @@ test('exact construction families exclude unrelated embedding neighbours through
   assert.equal(program.constructionReceipt.topologyTargetFit, true);
 });
 
+test('ball construction selects spherical geometry instead of an unrelated instrument topology', () => {
+  const spec = lab.createSpecFromPrompt('a red ball', {
+    allowPrototypeFallback: true,
+    deterministicRuntime: true,
+    retrievalPhase: 'deterministic-local',
+  });
+  const entity = spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket.entities
+    .find((row) => /ball/i.test(row.label || ''));
+  const program = entity.geometry.program;
+  const partIds = program.parts.map((row) => row.id);
+
+  assert.match(program.grammarId, /spherical-body/);
+  assert.equal(program.constructionReceipt.topologySelectionMethod, 'exact-target-cue');
+  assert.equal(program.constructionReceipt.topologyTargetFit, true);
+  assert.equal(program.constructionGraph.topologyId, 'spherical-body');
+  assert.ok(program.parts.some((row) => (
+    row.id === 'sphere-body' && row.primitive === 'ellipse' && row.fill === '#ef3340'
+  )));
+  assert.ok(program.parts.some((row) => (
+    row.id === 'specular-highlight' && row.primitive === 'ellipse'
+  )));
+  assert.equal(program.morphologyReceipt.pass, true);
+  assert.equal(partIds.includes('spin-axis'), false);
+  assert.equal(partIds.some((id) => /neck|string|soundhole|bridge/.test(id)), false);
+});
+
 test('data-owned target labels bind compound nouns before analogous construction reranking', () => {
   const slot = { slotRole: 'object', entryId: 'entity:building-masses' };
   const candidate = (candidateId, score) => intentEmbedderScope.annotateConstructionCandidate(slot, {
@@ -2861,6 +2887,7 @@ test('phase envelopes enforce neighboring pipeline handoffs', () => {
 	        languageGraph: phases.phase3.artifact.languageGraph,
 	        sceneLanguageGraph: phases.phase3.artifact.sceneLanguageGraph,
 	        queryPlan: phases.phase3.artifact.queryPlan,
+	        intentRequirements: phases.phase3.artifact.intentRequirements,
 	        retrievalRerankResult: phases.phase3.artifact.retrievalRerankResult,
 	        activationCloud: { schema: 'simulatte.activationCloud.v2', groundingEvidence: null, weightedActivations: [] },
 	        compositionLedger: phases.phase3.artifact.compositionLedger,
@@ -3214,8 +3241,12 @@ test('WebGPU phase 8 layer summary follows compiled VisualIR structures', () => 
       assert.equal(renderer.renderData.drawCount, Number(canvas.dataset.sceneRenderDrawCount));
       const renderData = renderer.renderData;
       const renderDataKey = canvas.dataset.phase7RenderDataKey;
+      renderer.phase7OutputPacketKey = renderDataKey;
+      renderer.phase8Output = { schema: 'simulatte.phase8.output.v2' };
       renderer.setRenderExecutionInput(lab.createRenderExecutionInput(spec, { fields: { heat: 0.7 } }, canvas));
       assert.equal(canvas.dataset.renderInputSerial, '2');
+      assert.equal(renderer.phase7OutputPacketKey, '', `${prompt} should invalidate proof for a new execution input`);
+      assert.equal(renderer.phase8Output, null, `${prompt} should invalidate Phase 8 for a new execution input`);
       assert.equal(renderer.renderData, renderData, `${prompt} should reuse compact render data when only simulation state changes`);
       assert.equal(canvas.dataset.phase7RenderDataKey, renderDataKey);
       assert.equal(renderer.renderExecutionInput.simulationState.fields.heat, 0.7);

@@ -17,12 +17,14 @@ Extract a source-bound language graph without deciding final world semantics.
 ## Contracts
 
 - Input: [Phase 1 runtime contract](../phase-01-runtime/CATSCAN.md)
+- Output: [intent requirement contract](../../../shared/contracts/world-proof-intent.js)
 - Output: [Phase 3 retrieval contract](../phase-03-retrieval/CATSCAN.md)
 
 ## Invariants
 
 - Source spans remain attached to extracted obligations.
 - Counts and negation cannot be weakened into hints.
+- Every semantic span is covered by a typed critical requirement or named as an extraction gap.
 
 ## Acceptance
 
@@ -37,4 +39,3 @@ Extract a source-bound language graph without deciding final world semantics.
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

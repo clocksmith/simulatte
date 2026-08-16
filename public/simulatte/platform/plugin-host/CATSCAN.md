@@ -18,13 +18,16 @@ Instantiate plugins with only declared capabilities, datasets, state, scheduling
 
 - Input: [generated plugin registry](generated-plugin-registry.js)
 - Input: [platform contracts](../contracts/CATSCAN.md)
+- Input: [profile WorldSpec compiler](../../../shared/contracts/profile-world-spec.js)
 - Output: [plugin runtime](plugin-runtime.js)
 - Output: [plugin SDK](plugin-sdk.js)
 
 ## Invariants
 
 - Missing capabilities fail before plugin work begins.
+- Plugin activation and scenario changes resolve through the exact authored profile WorldSpec; runtime receipts expose that artifact and its conformance receipt.
 - Cross-plugin and undeclared network, storage, or DOM access stay unavailable.
+- Executable plugins require an active repository-bundled trust receipt; same-realm code is never marketplace-eligible.
 
 ## Acceptance
 
@@ -39,4 +42,3 @@ Instantiate plugins with only declared capabilities, datasets, state, scheduling
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

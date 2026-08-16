@@ -137,6 +137,16 @@
         lastSubstepCount: 0,
         lastDt: 0,
       },
+      executionReceipt: {
+        schema: 'simulatte.solverExecutionReceipt.v1',
+        status: 'not-exercised',
+        frame: 0,
+        operatorInvocationCount: 0,
+        expectedOperatorIds: (solverGraph.steps || []).map(solverStepIdentity),
+        executedOperatorIds: [],
+        missingOperatorIds: (solverGraph.steps || []).map(solverStepIdentity),
+        finiteChannels: finiteRuntimeValue(solverGraph.channels || {}),
+      },
     };
     state.energyLedger = createEnergyLedger(null, state, solverGraph, 0);
     return state;
@@ -149,6 +159,7 @@
     const dt = clamp(Number(dtInput || 0.016), 0.001, 1);
     const channels = cloneChannels(inputState.channels || solverGraph.channels || {});
     const events = [];
+    const executedOperatorIds = [];
     const maxSubDt = stableDtForSolverGraph(solverGraph);
     const substepCount = Math.max(1, Math.ceil(dt / maxSubDt));
     const subDt = dt / substepCount;
@@ -164,6 +175,7 @@
             events,
             metadata: solverGraph.channelMetadata || {},
           });
+          executedOperatorIds.push(solverStepIdentity(step));
         }
       }
       applyGridBoundaries(channels, solverGraph.gridBoundaries || [], subDt, events);
@@ -186,9 +198,44 @@
         lastDt: dt,
         maxSubDt,
       },
+      executionReceipt: solverExecutionReceipt(
+        solverGraph,
+        channels,
+        Number(inputState.frame || 0) + 1,
+        executedOperatorIds
+      ),
     };
     state.energyLedger = createEnergyLedger(inputState, state, solverGraph, dt);
     return state;
+  }
+
+  function solverStepIdentity(step = {}) {
+    return String(step.operatorId || step.id || step.type || step.stage || 'anonymous-operator');
+  }
+
+  function solverExecutionReceipt(solverGraph, channels, frame, invocations) {
+    const expectedOperatorIds = [...new Set((solverGraph.steps || []).map(solverStepIdentity))];
+    const executedOperatorIds = [...new Set(invocations || [])];
+    const executed = new Set(executedOperatorIds);
+    const missingOperatorIds = expectedOperatorIds.filter((id) => !executed.has(id));
+    const finiteChannels = finiteRuntimeValue(channels);
+    return {
+      schema: 'simulatte.solverExecutionReceipt.v1',
+      status: frame > 0 && finiteChannels && missingOperatorIds.length === 0 ? 'pass' : 'fail',
+      frame,
+      operatorInvocationCount: (invocations || []).length,
+      expectedOperatorIds,
+      executedOperatorIds,
+      missingOperatorIds,
+      finiteChannels,
+    };
+  }
+
+  function finiteRuntimeValue(value) {
+    if (typeof value === 'number') return Number.isFinite(value);
+    if (Array.isArray(value)) return value.every(finiteRuntimeValue);
+    if (value && typeof value === 'object') return Object.values(value).every(finiteRuntimeValue);
+    return value === null || ['string', 'boolean', 'undefined'].includes(typeof value);
   }
 
   function stableDtForSolverGraph(solverGraph = {}) {

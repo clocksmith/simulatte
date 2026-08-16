@@ -7,7 +7,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createStaticSiteServer } from './static-site-server.mjs';
 import { CdpClient } from './browser-harness.mjs';
-import { removeTemporaryDirectory, stopChild } from './run-browser-smoke.mjs';
+import { profileProgramRoundTripExpression, removeTemporaryDirectory, stopChild } from './run-browser-smoke.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -116,7 +116,7 @@ async function waitFor(probe, predicate, label, timeoutMs) {
 
 // Boot a tier, wait for Ready, click Start, and require a settled run receipt.
 async function auditTier(chromePath, baseUrl, item) {
-  const report = { tier: item.tier, profileId: item.profileId, pluginId: item.pluginId, pass: false, status: null, receipt: null, errors: [] };
+  const report = { tier: item.tier, profileId: item.profileId, pluginId: item.pluginId, pass: false, status: null, receipt: null, profileProgram: null, errors: [] };
   const debugPort = await findAvailablePort();
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `simulatte-tier-${item.tier}-`));
   const chrome = spawn(chromePath, ['--headless=new', '--enable-unsafe-webgpu', ...(process.platform === 'linux' ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface'] : []), '--disable-background-networking', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profileDir}`, `--remote-debugging-port=${debugPort}`, '--window-size=1440,1000', 'about:blank'], { stdio: ['ignore', 'ignore', 'ignore'] });
@@ -141,6 +141,17 @@ async function auditTier(chromePath, baseUrl, item) {
     report.status = final.status;
     report.receipt = final.receipt;
     if (final.receipt.actionStatus !== 'settled') throw new Error(`action status ${final.receipt.actionStatus}`);
+    const profile = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'data', 'application-profiles', `${item.profileId}.json`), 'utf8'));
+    const programEvaluation = await client.send('Runtime.evaluate', {
+      expression: profileProgramRoundTripExpression(profile.seeds || []),
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    if (programEvaluation.exceptionDetails) {
+      throw new Error(programEvaluation.exceptionDetails.exception?.description || programEvaluation.exceptionDetails.text);
+    }
+    report.profileProgram = programEvaluation.result.value;
+    if (!report.profileProgram?.pass) throw new Error('profile program round trip failed');
     report.pass = report.errors.length === 0;
   } catch (error) {
     report.errors.unshift(error.message);
@@ -176,7 +187,7 @@ async function runTierBrowserSmoke() {
   for (const item of selectedTiers) {
     console.log(`TIER-SMOKE testing tier=${item.tier} profile=${item.profileId}...`);
     const report = await auditTier(chromePath, options.baseUrl, item);
-    console.log(`TIER-SMOKE tier=${item.tier} status=${report.pass ? 'pass' : 'fail'}${report.pass ? ` obligations=${report.receipt.obligations}` : ` reason=${report.errors[0] || 'unknown'}`}`);
+    console.log(`TIER-SMOKE tier=${item.tier} status=${report.pass ? 'pass' : 'fail'}${report.pass ? ` obligations=${report.receipt.obligations} program=${report.profileProgram.verdict}` : ` reason=${report.errors[0] || 'unknown'}`}`);
     reports.push(report);
   }
 

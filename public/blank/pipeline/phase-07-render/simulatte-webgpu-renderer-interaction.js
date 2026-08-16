@@ -199,6 +199,11 @@
       return {
         schema: 'simulatte.phase7InteractionReceipt.v1',
         status: 'not-configured',
+        programSchema: packet.interactionProgram && packet.interactionProgram.schema || '',
+        sourceProgramSchema: packet.interactionProgram &&
+          packet.interactionProgram.sourceProgramSchema || '',
+        sourceProgramContentHash: packet.interactionProgram &&
+          packet.interactionProgram.sourceProgramContentHash || '',
         commandCount: 0,
         appliedCommandCount: 0,
         rejectedCommandCount: 0,
@@ -216,6 +221,10 @@
       schema: 'simulatte.phase7InteractionReceipt.v1',
       status: appliedCommandCount > 0 ? 'executed' : 'not-exercised',
       programSchema: packet.interactionProgram && packet.interactionProgram.schema || '',
+      sourceProgramSchema: packet.interactionProgram &&
+        packet.interactionProgram.sourceProgramSchema || '',
+      sourceProgramContentHash: packet.interactionProgram &&
+        packet.interactionProgram.sourceProgramContentHash || '',
       sourceStateSchema: interaction.schema,
       interactionVersion: Number(interaction.version || 0),
       commandCount: Number(interaction.commandCount || 0),

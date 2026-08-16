@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
-import zlib from 'node:zlib';
 import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { CdpClient, findChrome } from './run-browser-smoke.mjs';
-import { encodeRgbaPng } from './profile-evidence-png.mjs';
+import { encodeRgbaPng, inspectPng } from './profile-evidence-png.mjs';
 import { removeGeneratedProfileDirectory, stopChild } from './profile-evidence-process.mjs';
 import { createStaticSiteServer } from './static-site-server.mjs';
 import {
@@ -14,6 +14,9 @@ import {
   pluginPlaybackIdentity,
   sha256Bytes,
 } from './profile-evidence-contract.mjs';
+
+const require = createRequire(import.meta.url);
+const profileWorldProof = require('../../public/shared/contracts/profile-world-proof.js');
 
 function serializedIdentity(value) {
   const content = JSON.stringify(value);
@@ -50,17 +53,21 @@ function compactEventReference(event) {
   };
 }
 
-function compactRunReceiptReference(receipt) {
+function compactRunReceiptReference(receipt, context = {}) {
   if (!receipt || typeof receipt !== 'object') return null;
-  if (receipt.schema === 'simulatte.profileEvidenceRunReceiptRef.v1') return receipt;
+  const profileId = receipt.profileId || context.profileId || null;
+  const tier = receipt.tier || context.tier || null;
+  if (receipt.schema === 'simulatte.profileEvidenceRunReceiptRef.v1') {
+    return { ...receipt, profileId, tier };
+  }
   const restorationIdentity = pluginPlaybackIdentity(receipt);
   const events = receipt.pluginRuntime?.events || receipt.runtime?.events || [];
   const pluginReceipts = receipt.pluginRuntime?.pluginReceipts || receipt.runtime?.pluginReceipts || [];
   return {
     schema: 'simulatte.profileEvidenceRunReceiptRef.v1',
     originalSchema: receipt.schema || null,
-    profileId: receipt.profileId || null,
-    tier: receipt.tier || null,
+    profileId,
+    tier,
     ownerPluginId: receipt.ownerPluginId || null,
     scenario: {
       id: receipt.scenario?.id || null,
@@ -79,12 +86,12 @@ function compactRunReceiptReference(receipt) {
   };
 }
 
-function compactCapturedEvidence(captured) {
+function compactCapturedEvidence(captured, context = {}) {
   return {
     ...captured,
     runtime: {
       ...captured.runtime,
-      runReceipt: compactRunReceiptReference(captured.runtime?.runReceipt),
+      runReceipt: compactRunReceiptReference(captured.runtime?.runReceipt, context),
     },
     evidence: {
       ...captured.evidence,
@@ -151,86 +158,6 @@ async function waitForReloadedDocument(client, previousTimeOrigin) {
   throw new Error('profile evidence host timeout at page-reload-document');
 }
 
-function unfilterPng(raw, width, height, channels) {
-  const stride = width * channels;
-  const output = Buffer.alloc(stride * height);
-  let inputOffset = 0;
-  for (let y = 0; y < height; y += 1) {
-    const filter = raw[inputOffset++];
-    for (let x = 0; x < stride; x += 1) {
-      const byte = raw[inputOffset++];
-      const left = x >= channels ? output[y * stride + x - channels] : 0;
-      const up = y > 0 ? output[(y - 1) * stride + x] : 0;
-      const upperLeft = y > 0 && x >= channels ? output[(y - 1) * stride + x - channels] : 0;
-      let predictor = 0;
-      if (filter === 1) predictor = left;
-      else if (filter === 2) predictor = up;
-      else if (filter === 3) predictor = Math.floor((left + up) / 2);
-      else if (filter === 4) {
-        const estimate = left + up - upperLeft;
-        const leftDistance = Math.abs(estimate - left);
-        const upDistance = Math.abs(estimate - up);
-        const upperLeftDistance = Math.abs(estimate - upperLeft);
-        predictor = leftDistance <= upDistance && leftDistance <= upperLeftDistance ? left : upDistance <= upperLeftDistance ? up : upperLeft;
-      } else if (filter !== 0) {
-        throw new Error(`profile_evidence_png_filter_unsupported: ${filter}`);
-      }
-      output[y * stride + x] = (byte + predictor) & 0xff;
-    }
-  }
-  return output;
-}
-
-function inspectPng(buffer, method) {
-  const signature = buffer.subarray(0, 8).toString('hex');
-  if (signature !== '89504e470d0a1a0a') throw new Error('profile_evidence_screenshot_not_png');
-  let offset = 8;
-  let width = 0;
-  let height = 0;
-  let colorType = -1;
-  const idat = [];
-  while (offset < buffer.length) {
-    const length = buffer.readUInt32BE(offset);
-    const type = buffer.subarray(offset + 4, offset + 8).toString('ascii');
-    const data = buffer.subarray(offset + 8, offset + 8 + length);
-    if (type === 'IHDR') {
-      width = data.readUInt32BE(0);
-      height = data.readUInt32BE(4);
-      if (data[8] !== 8) throw new Error(`profile_evidence_png_bit_depth_unsupported: ${data[8]}`);
-      colorType = data[9];
-    } else if (type === 'IDAT') idat.push(data);
-    else if (type === 'IEND') break;
-    offset += length + 12;
-  }
-  const channels = colorType === 6 ? 4 : colorType === 2 ? 3 : 0;
-  if (!channels) throw new Error(`profile_evidence_png_color_type_unsupported: ${colorType}`);
-  const pixels = unfilterPng(zlib.inflateSync(Buffer.concat(idat)), width, height, channels);
-  const colors = new Set();
-  let nonTransparent = 0;
-  const xStep = Math.max(1, Math.floor(width / 16));
-  const yStep = Math.max(1, Math.floor(height / 16));
-  let sampleCount = 0;
-  for (let y = Math.floor(yStep / 2); y < height; y += yStep) {
-    for (let x = Math.floor(xStep / 2); x < width; x += xStep) {
-      const start = (y * width + x) * channels;
-      const sample = [...pixels.subarray(start, start + channels)];
-      const alpha = channels === 4 ? sample[3] : 255;
-      if (alpha > 0) nonTransparent += 1;
-      colors.add(sample.join(','));
-      sampleCount += 1;
-    }
-  }
-  return {
-    method,
-    width,
-    height,
-    sampleCount,
-    nonTransparentSampleCount: nonTransparent,
-    distinctColorCount: colors.size,
-    status: nonTransparent === sampleCount && colors.size > 1 ? 'pass' : 'fail',
-  };
-}
-
 function browserProbeExpression(run) {
   return `(async () => {
     const waitFor = async (predicate, label, limit = 45000) => {
@@ -294,6 +221,18 @@ function browserProbeExpression(run) {
       5000
     );
     const performanceWindowBasis = 'selected-governed-seed-ready-to-lifecycle-camera-settled';
+    const retainedHeapSamples = [];
+    const sampleRetainedHeap = (boundary) => {
+      if (typeof globalThis.gc !== 'function' || !performance.memory) return;
+      globalThis.gc();
+      retainedHeapSamples.push({
+        boundary,
+        atMs: performance.now(),
+        usedJsHeapBytes: Number(performance.memory.usedJSHeapSize),
+        totalJsHeapBytes: Number(performance.memory.totalJSHeapSize),
+      });
+    };
+    sampleRetainedHeap('window-start');
     const captureStartedAt = performance.now();
     const performanceMarks = [{ label: 'window-start', atMs: captureStartedAt }];
     const markPerformance = (label) => performanceMarks.push({ label, atMs: performance.now() });
@@ -520,6 +459,7 @@ function browserProbeExpression(run) {
     cancelAnimationFrame(frameSamplerId);
     clearInterval(memorySamplerId);
     sampleMemory();
+    sampleRetainedHeap('window-end');
     const frameIntervalEntries = frameTimes.slice(1).map((value, index) => ({
       startTime: frameTimes[index],
       endTime: value,
@@ -531,6 +471,7 @@ function browserProbeExpression(run) {
       ? values[Math.min(values.length - 1, Math.floor((values.length - 1) * fraction))]
       : null;
     const usedHeapValues = memorySamples.map((row) => row.usedJsHeapBytes);
+    const retainedHeapValues = retainedHeapSamples.map((row) => row.usedJsHeapBytes);
     const replayBeforeSha256 = await sha256Value(replayBeforeIdentity);
     const replayAfterSha256 = replayAfterIdentity ? await sha256Value(replayAfterIdentity) : null;
     const tierReceipt = globalThis.__simulatteTierRunReceipt || null;
@@ -582,6 +523,32 @@ function browserProbeExpression(run) {
     const compactRunReceipt = async (receipt) => {
       if (!receipt || typeof receipt !== 'object') return null;
       const content = JSON.stringify(receipt);
+      const componentByteLengths = Object.fromEntries(Object.entries(receipt).map(([key, value]) => [
+        key,
+        new TextEncoder().encode(JSON.stringify(value)).byteLength,
+      ]));
+      const runtimeComponentByteLengths = receipt.pluginRuntime
+        ? Object.fromEntries(Object.entries(receipt.pluginRuntime).map(([key, value]) => [
+            key,
+            new TextEncoder().encode(JSON.stringify(value)).byteLength,
+          ]))
+        : null;
+      const actionResultComponentByteLengths = receipt.actionResult
+        ? Object.fromEntries(Object.entries(receipt.actionResult).map(([key, value]) => [
+            key,
+            new TextEncoder().encode(JSON.stringify(value)).byteLength,
+          ]))
+        : null;
+      const largestRuntimeEvents = (receipt.pluginRuntime?.events || []).map((event) => ({
+        kind: event.kind || null,
+        sequence: event.sequence ?? null,
+        byteLength: new TextEncoder().encode(JSON.stringify(event)).byteLength,
+      })).sort((left, right) => right.byteLength - left.byteLength).slice(0, 8);
+      const largestPluginReceipts = (receipt.pluginRuntime?.pluginReceipts || []).map((envelope) => ({
+        schema: envelope.receipt?.schema || null,
+        sequence: envelope.sequence ?? null,
+        byteLength: new TextEncoder().encode(JSON.stringify(envelope)).byteLength,
+      })).sort((left, right) => right.byteLength - left.byteLength).slice(0, 8);
       const restorationIdentity = receipt.schema === 'simulatte.pluginPlaybackRunReceipt.v1'
         && receipt.actionResult?.status === 'settled'
         && receipt.ownerPluginId
@@ -627,6 +594,11 @@ function browserProbeExpression(run) {
         restorationIdentitySha256: restorationIdentity ? await sha256Value(restorationIdentity) : null,
         contentSha256: await sha256Text(content),
         byteLength: new TextEncoder().encode(content).byteLength,
+        componentByteLengths,
+        runtimeComponentByteLengths,
+        actionResultComponentByteLengths,
+        largestRuntimeEvents,
+        largestPluginReceipts,
       };
     };
     const compactedRunReceipt = await compactRunReceipt(runReceipt);
@@ -690,6 +662,8 @@ function browserProbeExpression(run) {
         viewReceipt: platform?.view || null,
         compositorReceipts: Array.isArray(platform?.compositor) ? platform.compositor : [],
         datasetEvidence,
+        worldSpec: runtimeReceipt?.worldSpec || null,
+        worldSpecConformance: runtimeReceipt?.worldSpecConformance || null,
         runReceipt: compactedRunReceipt,
         contributionSources,
       },
@@ -752,12 +726,16 @@ function browserProbeExpression(run) {
           },
           memory: {
             basis: performanceWindowBasis,
-            status: usedHeapValues.length ? 'pass' : 'fail',
-            sampleCount: usedHeapValues.length,
-            initialUsedJsHeapBytes: usedHeapValues[0] ?? null,
-            finalUsedJsHeapBytes: usedHeapValues.at(-1) ?? null,
-            peakUsedJsHeapBytes: usedHeapValues.length ? Math.max(...usedHeapValues) : null,
-            finalTotalJsHeapBytes: memorySamples.at(-1)?.totalJsHeapBytes ?? null,
+            measurementMode: 'forced-gc-retained-heap-at-governed-boundaries',
+            status: retainedHeapValues.length === 2 ? 'pass' : 'fail',
+            sampleCount: retainedHeapValues.length,
+            initialUsedJsHeapBytes: retainedHeapValues[0] ?? null,
+            finalUsedJsHeapBytes: retainedHeapValues.at(-1) ?? null,
+            peakUsedJsHeapBytes: retainedHeapValues.length ? Math.max(...retainedHeapValues) : null,
+            finalTotalJsHeapBytes: retainedHeapSamples.at(-1)?.totalJsHeapBytes ?? null,
+            observedPeakUsedJsHeapBytes: usedHeapValues.length ? Math.max(...usedHeapValues) : null,
+            samples: retainedHeapSamples,
+            observedSamples: memorySamples.slice(-64),
           },
           longTasks: {
             basis: performanceWindowBasis,
@@ -788,7 +766,16 @@ function governedRunUrl(baseUrl, run) {
   return url;
 }
 
-async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, claims, outputDirectory }) {
+async function captureBrowserRun({
+  chromePath,
+  baseUrl,
+  run,
+  sourceIdentity,
+  claims,
+  outputDirectory,
+  recompiledSpec = null,
+  compilerError = null,
+}) {
   const renderCanvasId = run.tier === 'city' ? 'autonomy-canvas' : 'overlay-canvas';
   const debugPort = await freePort();
   const profileDirectory = fs.mkdtempSync(path.join(os.tmpdir(), `simulatte-profile-evidence-${run.profileId}-`));
@@ -797,6 +784,7 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     '--enable-unsafe-webgpu',
     ...(process.platform === 'linux' ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface'] : []),
     '--enable-precise-memory-info',
+    '--js-flags=--expose-gc',
     '--disable-background-networking',
     '--no-first-run',
     '--no-default-browser-check',
@@ -857,7 +845,7 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     fs.mkdirSync(pageScreenshotDirectory, { recursive: true });
     const pageScreenshotPath = path.join(pageScreenshotDirectory, `${pageScreenshotSha256}.png`);
     if (!fs.existsSync(pageScreenshotPath)) fs.writeFileSync(pageScreenshotPath, pageScreenshot);
-    const captured = compactCapturedEvidence(evaluated.result.value);
+    const captured = compactCapturedEvidence(evaluated.result.value, run);
     const renderCapture = await withTimeout(client.send('Runtime.evaluate', {
       expression: `(async () => {
         const capture = document.getElementById(${JSON.stringify(renderCanvasId)})?.__simulatteCaptureRenderPixels;
@@ -926,8 +914,8 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     }
     const reloadEvidence = reload.result.value;
     if (reloadEvidence.kind === 'plugin-playback') {
-      reloadEvidence.beforeReceipt = compactRunReceiptReference(reloadEvidence.beforeReceipt);
-      reloadEvidence.afterReceipt = compactRunReceiptReference(reloadEvidence.afterReceipt);
+      reloadEvidence.beforeReceipt = compactRunReceiptReference(reloadEvidence.beforeReceipt, run);
+      reloadEvidence.afterReceipt = compactRunReceiptReference(reloadEvidence.afterReceipt, run);
     }
     captured.evidence.reload = reloadEvidence;
     if (reload.result.value.restored) captured.evidence.lifecycle.push('reload');
@@ -972,9 +960,31 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       ? 'webgpu-texture-readback-png-samples'
       : 'canvas2d-image-data-png-samples';
     captured.evidence.pixelReadback = { ...inspectPng(screenshot, pixelMethod), sha256: screenshotSha256 };
+    const capturedAt = new Date().toISOString();
+    const browserIdentity = {
+      product: browserVersion.product,
+      protocolVersion: browserVersion.protocolVersion,
+      userAgent: browserVersion.userAgent,
+      gpu: gpu.result.value,
+    };
+    const proof = profileWorldProof.createProfileWorldProof({
+      spec: captured.runtime.worldSpec,
+      run,
+      runtime: captured.runtime,
+      evidence: captured.evidence,
+      sourceIdentity,
+      browser: browserIdentity,
+      claims,
+      nowIso: capturedAt,
+      recompiledSpec,
+      independentCompilerExecution: true,
+      compilerError,
+    });
+    captured.runtime.compilerDeterminismReceipt = structuredClone(proof.evidence.compilerDeterminismReceipt);
+    captured.runtime.worldProof = proof;
     return {
       schema: 'simulatte.profileEvidenceReceipt.v1',
-      capturedAt: new Date().toISOString(),
+      capturedAt,
       run: {
         id: run.id,
         profileId: run.profileId,
@@ -985,12 +995,7 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
         comparisonMode: run.comparisonMode,
       },
       sourceIdentity,
-      browser: {
-        product: browserVersion.product,
-        protocolVersion: browserVersion.protocolVersion,
-        userAgent: browserVersion.userAgent,
-        gpu: gpu.result.value,
-      },
+      browser: browserIdentity,
       ...captured,
       claims: claims.map((claim) => ({ id: claim.id, sentence: claim.sentence })),
     };

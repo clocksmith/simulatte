@@ -21,11 +21,13 @@ test('prompt controller keeps its public CommonJS API', () => {
   const workers = require(path.join(promptDir, 'prompt-controller-workers.js'));
   const training = require(path.join(promptDir, 'prompt-controller-training.js'));
   const runtime = require(path.join(promptDir, 'prompt-controller-runtime.js'));
+  const compilerProof = require(path.join(promptDir, 'prompt-controller-compiler-proof.js'));
   const lab = require(path.join(promptDir, 'prompt-controller-lab-controller.js'));
   assert.deepEqual(Object.keys(api), ['createBrowserLab', 'start']);
   assert.deepEqual(Object.keys(lab), ['createBrowserLab']);
   assert.deepEqual(Object.keys(training), ['logGraphDebug', 'syncWorldModelReceipt']);
   assert.equal(typeof runtime.createIntentWorkerClient, 'function');
+  assert.deepEqual(Object.keys(compilerProof), ['create']);
   assert.deepEqual(Object.keys(workers), [
     'createPipelineCompiler',
     'worldModelReceiptElements',
@@ -74,6 +76,43 @@ test('prompt controller resolves root-hosted workers against Blank asset base', 
   );
 });
 
+test('compiler proof coordinator performs a separate compile and rejects stale receipts', async () => {
+  const compilerProofApi = require(path.join(promptDir, 'prompt-controller-compiler-proof.js'));
+  const model = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+  const proofContract = require('../public/shared/contracts/world-proof.js');
+  const spec = model.createSpecFromPrompt('a red ball', {
+    deterministicRuntime: true,
+    compilerLane: 'pipeline-worker',
+    retrievalPhase: 'deterministic-local',
+  });
+  const binding = proofContract.createWorldProofBinding(spec, {
+    buildId: 'test-build',
+    runtimeId: 'test-runtime',
+  });
+  let compileCalls = 0;
+  let cancelCalls = 0;
+  const coordinator = compilerProofApi.create({}, {
+    createPipelineCompiler: () => ({
+      compile(prompt, compilerConfig) {
+        compileCalls += 1;
+        return Promise.resolve(model.createSpecFromPrompt(prompt, compilerConfig));
+      },
+      cancel() {
+        cancelCalls += 1;
+      },
+    }),
+    createSpecFromPrompt: model.createSpecFromPrompt,
+  });
+
+  const receipt = await coordinator.verify(spec, binding);
+  assert.equal(compileCalls, 1);
+  assert.equal(cancelCalls, 1);
+  assert.equal(receipt.status, 'pass');
+  assert.equal(coordinator.receiptFor(spec), receipt);
+  coordinator.invalidate();
+  assert.equal(coordinator.receiptFor(spec), null);
+});
+
 test('prompt controller browser layers publish the API in manifest order', () => {
   const context = vm.createContext({
     SimulattePromptControllerSupport: require(path.join(promptDir, 'prompt-controller-dependencies.js')),
@@ -82,12 +121,15 @@ test('prompt controller browser layers publish the API in manifest order', () =>
     SimulatteNeuralModelConsent: require('../public/neural-model-consent.js'),
     SimulatteModelSelection: require('../public/model-selection.js'),
     SimulatteRunViewModel: require('../public/blank/app/runtime/run-view-model.js'),
+    SimulatteWorldProof: require('../public/shared/contracts/world-proof.js'),
   });
   for (const file of [
     'prompt-controller-runtime.js',
     'prompt-controller-workers.js',
     'prompt-controller-training.js',
     'prompt-model-selection.js',
+    'world-spec-editor.js',
+    'prompt-controller-compiler-proof.js',
     'prompt-controller-lab-controller.js',
     'prompt-controller.js',
   ]) {
@@ -103,6 +145,7 @@ test('prompt controller browser layers reject missing dependencies', () => {
     'prompt-controller-workers.js',
     'prompt-controller-training.js',
     'prompt-model-selection.js',
+    'prompt-controller-compiler-proof.js',
     'prompt-controller-lab-controller.js',
     'prompt-controller.js',
   ]) {

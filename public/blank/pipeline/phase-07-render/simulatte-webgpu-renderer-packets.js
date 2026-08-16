@@ -115,6 +115,9 @@
             renderData,
             sceneRenderPacket
           );
+          const simulationReceipt = renderExecutionInput && renderExecutionInput.simulationState &&
+            renderExecutionInput.simulationState.solverState &&
+            renderExecutionInput.simulationState.solverState.executionReceipt || null;
           return {
             schema: scope.PHASE7_OUTPUT_SCHEMA,
           phase: 7,
@@ -123,6 +126,15 @@
             artifact: {
               renderExecution: {
                 schema: scope.RENDER_EXECUTION_SCHEMA,
+                worldProofBinding: renderExecutionInput && renderExecutionInput.worldProofBinding || null,
+                replayBaseline: renderExecutionInput && renderExecutionInput.replayBaseline || null,
+                intentReceipt: renderExecutionInput && renderExecutionInput.intentReceipt || null,
+                semanticReceipt: renderExecutionInput && renderExecutionInput.semanticReceipt || null,
+                compilerDeterminismReceipt: renderExecutionInput &&
+                  renderExecutionInput.compilerDeterminismReceipt || null,
+                simulationReproducibilityReceipt: renderExecutionInput &&
+                  renderExecutionInput.simulationReproducibilityReceipt || null,
+                safetyReceipt: renderExecutionInput && renderExecutionInput.safetyReceipt || null,
                 renderExecutionInputSchema: renderExecutionInput && renderExecutionInput.schema || '',
                 sceneRenderPacketSchema: sceneRenderPacket && sceneRenderPacket.schema || '',
                 renderDataSchema: renderData && renderData.schema || '',
@@ -141,6 +153,7 @@
                 scope.objectRealizationForScenePacket(sceneRenderPacket),
               rendererConsumption: renderData && renderData.rendererConsumption || null,
               interactionReceipt,
+              simulationReceipt,
                   visualObligationProof,
                   visualObligationProofSummary,
                   shaderPath: renderData && renderData.path || '',

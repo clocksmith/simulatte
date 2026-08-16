@@ -1,5 +1,11 @@
 (function attachSimulattePhysicsModelstatesolvers(root) {
   const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+  const DEFAULT_SIMULATION_PROOF_POLICY = Object.freeze({
+    schema: 'simulatte.simulationReproducibilityPolicy.v1',
+    stepCount: 8,
+    stepSeconds: 1 / 60,
+    maxStateNodes: 100000,
+  });
 
     function addSynthesisComponents(synthesis, addDomain, addComponent, intent = null) {
         if (!synthesis || !synthesis.synthGraph) return;
@@ -459,6 +465,27 @@
           .sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || a.id.localeCompare(b.id));
       }
 
+    function worldSpecCompilerConfig(overrides = {}) {
+        const deterministicRuntime = overrides.deterministicRuntime === true;
+        return Object.fromEntries(Object.entries({
+          schema: 'simulatte.worldSpecCompilerConfig.v1',
+          deterministicRuntime,
+          compilerLane: overrides.compilerLane || '',
+          simulationProof: overrides.simulationProof && typeof overrides.simulationProof === 'object'
+            ? overrides.simulationProof
+            : deterministicRuntime ? DEFAULT_SIMULATION_PROOF_POLICY : null,
+          params: overrides.params && typeof overrides.params === 'object' ? overrides.params : {},
+          retrievalPhase: overrides.retrievalPhase || '',
+          classificationTierId: overrides.classificationTierId || '',
+          classificationTierPolicy: overrides.classificationTierPolicy || null,
+          classificationCalibration: overrides.classificationCalibration || null,
+          embeddingModel: overrides.embeddingModel || '',
+          embeddingBackend: overrides.embeddingBackend || '',
+          modelSelection: overrides.modelSelection || null,
+          allowPrototypeFallback: overrides.allowPrototypeFallback === true ? true : null,
+        }).filter(([, value]) => value !== '' && value !== null));
+      }
+
     function resolveIntentToSpec(intentInput, overrides = {}) {
         const intent = intentInput && intentInput.schema === 'simulatte.intent.v1'
           ? intentInput
@@ -475,6 +502,7 @@
             intent,
             onPhaseProgress: overrides.onPhaseProgress,
             phaseArtifacts: intent.phaseArtifacts || null,
+            compilerConfig: worldSpecCompilerConfig(overrides),
           });
         }
 
@@ -547,6 +575,7 @@
           contract,
           onPhaseProgress: overrides.onPhaseProgress,
           phaseArtifacts: intent.phaseArtifacts || null,
+          compilerConfig: worldSpecCompilerConfig(overrides),
         });
       }
 
@@ -597,14 +626,6 @@
           params: { ...params, ...(overrides.params || {}) },
           remixOf: spec.id,
         });
-      }
-
-    function serializeSpec(spec) {
-        return JSON.stringify(scope.normalizeSpec(spec), null, 2);
-      }
-
-    function deserializeSpec(text) {
-        return scope.normalizeSpec(JSON.parse(String(text || '{}')));
       }
 
     function createSimulationState(spec) {
@@ -869,8 +890,6 @@
       titleFromPrompt,
       seedFromString,
       remixSpec,
-      serializeSpec,
-      deserializeSpec,
       createSimulationState,
       stepSimulation,
       solarPower,

@@ -1,6 +1,12 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
+
+const require = createRequire(import.meta.url);
+const worldSpecContract = require('../../public/shared/contracts/world-spec.js');
+const worldProofContract = require('../../public/shared/contracts/world-proof.js');
+const profileWorldProofContract = require('../../public/shared/contracts/profile-world-proof.js');
 
 const VIEWPORTS = Object.freeze([
   Object.freeze({ id: 'desktop-1440x1000', width: 1440, height: 1000 }),
@@ -557,6 +563,69 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   if (receipt.run?.viewportId !== run.viewport.id) failures.push('viewport_identity_mismatch');
   if (receipt.run?.comparisonMode !== run.comparisonMode) failures.push('comparison_policy_mismatch');
   if (receipt.runtime?.path !== 'native-v4') failures.push(receipt.runtime?.path === 'legacy-adapter' ? 'legacy_only_evidence' : 'runtime_path_mismatch');
+  const profileSpec = receipt.runtime?.worldSpec;
+  const profileConformance = receipt.runtime?.worldSpecConformance;
+  const profileProof = receipt.runtime?.worldProof;
+  try {
+    worldSpecContract.validateWorldSpec(profileSpec);
+  } catch (_error) {
+    failures.push('profile_world_spec_invalid');
+  }
+  if (
+    profileSpec?.templateId !== 'simulatte.profile-conformance.v1'
+    || profileSpec?.kind !== 'governed-profile'
+    || profileSpec?.params?.profileId !== run.profileId
+    || profileSpec?.params?.scenarioId !== run.seedId
+    || profileSpec?.params?.scenarioSeed !== run.seed
+    || !Array.isArray(profileSpec?.dependencies?.plugins)
+    || canonicalJson(profileSpec.dependencies.plugins.map((row) => row.id)) !== canonicalJson(run.pluginIds)
+  ) failures.push('profile_world_spec_execution_binding_invalid');
+  if (
+    profileConformance?.schema !== 'simulatte.profileWorldSpecConformanceReceipt.v1'
+    || profileConformance.status !== 'pass'
+    || profileConformance.compilerLane !== 'simulatte.profile-pack-compiler.v1'
+    || profileConformance.profileId !== run.profileId
+    || profileConformance.scenarioId !== run.seedId
+    || profileConformance.scenarioSeed !== run.seed
+    || profileConformance.worldSpecContentHash !== profileSpec?.contentHash
+    || profileConformance.worldSpecRevision !== profileSpec?.authorship?.revision
+  ) failures.push('profile_world_spec_conformance_invalid');
+  try {
+    profileWorldProofContract.validateProfileWorldProof(profileProof, {
+      spec: profileSpec,
+      run,
+      runtime: receipt.runtime,
+      evidence: receipt.evidence,
+      sourceIdentity: receipt.sourceIdentity,
+      browser: receipt.browser,
+      claims: receipt.claims,
+    });
+  } catch (_error) {
+    failures.push('profile_world_proof_invalid');
+  }
+  const compilerReceipt = receipt.runtime?.compilerDeterminismReceipt;
+  let compilerReceiptValid = false;
+  try {
+    worldProofContract.validateCompilerDeterminismReceipt(compilerReceipt);
+    compilerReceiptValid = true;
+  } catch (_error) {
+    compilerReceiptValid = false;
+  }
+  if (
+    !compilerReceiptValid
+    || compilerReceipt?.schema !== 'simulatte.compilerDeterminismReceipt.v1'
+    || compilerReceipt.status !== 'pass'
+    || canonicalJson(compilerReceipt) !== canonicalJson(profileProof?.evidence?.compilerDeterminismReceipt)
+    || profileProof?.evidence?.replayReceipt?.classStatuses?.['compiler-deterministic'] !== 'pass'
+  ) failures.push('profile_world_proof_compiler_determinism_invalid');
+  if (profileProof?.verdict === 'fail') failures.push('profile_world_proof_failed');
+  if (
+    profileProof?.proofClasses?.intent?.status !== 'pass'
+    || profileProof?.proofClasses?.semantic?.status !== 'pass'
+    || profileProof?.proofClasses?.compilation?.status !== 'pass'
+    || profileProof?.proofClasses?.simulation?.status !== 'pass'
+    || profileProof?.proofClasses?.replay?.status !== 'pass'
+  ) failures.push('profile_world_proof_machine_classes_invalid');
   if (receipt.runtime?.clockReceipt?.schema !== 'simulatte.simulationClockReceipt.v4') {
     failures.push('platform_clock_receipt_invalid');
   }
@@ -640,11 +709,21 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   if (
     performanceEvidence?.memory?.status !== 'pass'
     || performanceEvidence.memory.basis !== performanceWindowBasis
-    || !(performanceEvidence.memory.sampleCount >= 1)
+    || performanceEvidence.memory.measurementMode !== 'forced-gc-retained-heap-at-governed-boundaries'
+    || performanceEvidence.memory.sampleCount !== 2
+    || !Array.isArray(performanceEvidence.memory.samples)
+    || performanceEvidence.memory.samples.length !== 2
+    || performanceEvidence.memory.samples[0]?.boundary !== 'window-start'
+    || performanceEvidence.memory.samples[1]?.boundary !== 'window-end'
     || !Number.isFinite(performanceEvidence.memory.initialUsedJsHeapBytes)
     || !Number.isFinite(performanceEvidence.memory.finalUsedJsHeapBytes)
     || !Number.isFinite(performanceEvidence.memory.peakUsedJsHeapBytes)
+    || !Number.isFinite(performanceEvidence.memory.observedPeakUsedJsHeapBytes)
     || performanceEvidence.memory.peakUsedJsHeapBytes < performanceEvidence.memory.initialUsedJsHeapBytes
+    || performanceEvidence.memory.initialUsedJsHeapBytes !== performanceEvidence.memory.samples[0]?.usedJsHeapBytes
+    || performanceEvidence.memory.finalUsedJsHeapBytes !== performanceEvidence.memory.samples[1]?.usedJsHeapBytes
+    || performanceEvidence.memory.peakUsedJsHeapBytes !== Math.max(...performanceEvidence.memory.samples.map((row) => row.usedJsHeapBytes))
+    || performanceEvidence.memory.observedPeakUsedJsHeapBytes < performanceEvidence.memory.peakUsedJsHeapBytes
   ) failures.push('memory_evidence_invalid');
   if (
     performanceEvidence?.longTasks?.status !== 'pass'
@@ -746,6 +825,8 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
     pass: failures.length === 0,
     failures: [...new Set(failures)],
     claimResults,
+    worldProofVerdict: String(profileProof?.verdict || 'missing'),
+    platformClaimEligible: profileProof?.verdict === 'pass',
   };
 }
 

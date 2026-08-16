@@ -758,10 +758,10 @@ body[data-journey-phase="ready"] .journey-hud {
 }
 
 .experience-doc-link {
-  position: fixed;
-  z-index: 19;
-  left: max(16px, env(safe-area-inset-left));
-  bottom: max(16px, env(safe-area-inset-bottom));
+  position: static;
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin: 0 4px 2px;
   color: var(--sim-ink-soft);
   font: 600 12px/1.4 var(--sim-font);
   letter-spacing: 0;
@@ -1593,6 +1593,72 @@ body[data-journey-phase="failed"] .scenario-field {
   font-size: 11px;
 }
 
+.profile-program-editor-label {
+  display: grid;
+  gap: 7px;
+}
+
+.profile-program-section textarea {
+  width: 100%;
+  min-height: 220px;
+  max-height: 48vh;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid var(--sim-line);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.84);
+  color: var(--sim-ink);
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  tab-size: 2;
+}
+
+.profile-program-section textarea:focus {
+  border-color: var(--sim-accent);
+  outline: 1px solid var(--sim-accent);
+}
+
+.profile-program-actions {
+  flex-wrap: wrap;
+}
+
+.profile-world-proof-details {
+  border-top: 1px solid var(--sim-line);
+  padding-top: 10px;
+}
+
+.profile-world-proof-details > summary {
+  cursor: pointer;
+  color: var(--sim-ink-soft);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.profile-world-proof {
+  max-height: 360px;
+  overflow: auto;
+  margin: 10px 0 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.84);
+  color: var(--sim-ink);
+  font: 10px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#profile-world-spec-status[data-state="error"],
+#profile-world-proof-status[data-state="error"],
+#profile-world-proof-status[data-state="fail"] {
+  color: var(--sim-ink);
+  text-decoration: underline;
+}
+
+#profile-world-spec-status[data-state="dirty"],
+#profile-world-proof-status[data-state="not-proven"],
+#profile-world-proof-status[data-state="pending"] {
+  color: var(--sim-accent);
+}
+
 .sr-only {
   position: absolute !important;
   width: 1px !important;
@@ -1633,11 +1699,6 @@ body[data-journey-phase="failed"] .scenario-field {
   .experience-summary {
     top: calc(max(12px, env(safe-area-inset-top)) + 100px);
     max-height: min(34dvh, 300px);
-  }
-
-  .experience-doc-link {
-    left: max(12px, env(safe-area-inset-left));
-    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 146px);
   }
 
   .follow-minimap {
@@ -1767,8 +1828,6 @@ body[data-journey-phase="failed"] .scenario-field {
   }
 
   .experience-doc-link {
-    left: max(10px, env(safe-area-inset-left));
-    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 194px);
     font-size: 11px;
   }
 

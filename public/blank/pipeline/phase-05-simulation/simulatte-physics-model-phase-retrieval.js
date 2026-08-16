@@ -75,6 +75,10 @@
           const languageGraph = languageGraphFromPromptParse(sourceText, promptParse);
           const sceneLanguageGraph = scope.sceneLanguageGraphFromLanguageGraph(languageGraph);
           const queryPlan = scope.queryPlanFromSceneLanguageGraph(sceneLanguageGraph);
+          const intentRequirements = scope.worldProof.createIntentRequirementLedger({
+            languageGraph,
+            sceneLanguageGraph,
+          });
           const compositionLedger = scope.phase2CompositionLedger(
             sceneLanguageGraph,
             queryPlan,
@@ -88,6 +92,7 @@
               languageGraph,
               sceneLanguageGraph,
               queryPlan,
+              intentRequirements,
               compositionLedger,
               promptParse,
             },
@@ -101,6 +106,8 @@
                 relations: languageGraph.relations.length,
                 querySlots: queryPlan.slots.length,
                 obligationCount: compositionLedger.obligations.length,
+                intentRequirementCount: intentRequirements.requirementCount,
+                criticalIntentRequirementCount: intentRequirements.criticalRequirementCount,
               },
             ],
           });
@@ -276,6 +283,8 @@
           const languageGraph = scope.requiredPhase2Artifact(phase2Artifact, 'languageGraph');
           const sceneLanguageGraph = scope.requiredPhase2Artifact(phase2Artifact, 'sceneLanguageGraph');
             const queryPlan = scope.requiredPhase2Artifact(phase2Artifact, 'queryPlan');
+            const intentRequirements = scope.requiredPhase2Artifact(phase2Artifact, 'intentRequirements');
+            scope.worldProof.validateIntentRequirementLedger(intentRequirements);
             const query = String(languageGraph.sourceText || '');
             const retrievalEvidence = runtimeContext && runtimeContext.retrievalEvidence || {};
             scope.assertPhase3RetrievalEvidencePromptHash(retrievalEvidence, sceneLanguageGraph.sourcePromptHash || scope.stableTextHash(query));
@@ -373,6 +382,7 @@
           languageGraph,
           sceneLanguageGraph,
           queryPlan,
+          intentRequirements,
           retrievalRerankResult,
           compositionLedger,
         };

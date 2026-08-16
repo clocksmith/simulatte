@@ -65,6 +65,12 @@
   const deterministicValues = typeof module === 'object' && module.exports
       ? require('../../../shared/deterministic-values.js')
       : root.SimulatteDeterministicValues;
+  const worldSpec = typeof module === 'object' && module.exports
+      ? require('../../../shared/contracts/world-spec.js')
+      : root.SimulatteWorldSpec;
+  const worldProof = typeof module === 'object' && module.exports
+      ? require('../../../shared/contracts/world-proof.js')
+      : root.SimulatteWorldProof;
   requireRuntimeDependency({
     root,
     moduleName: 'SimulattePhysicsModel',
@@ -76,6 +82,18 @@
     moduleName: 'SimulattePhysicsModel',
     dependencyName: 'SimulatteDeterministicValues',
     value: deterministicValues,
+  });
+  requireRuntimeDependency({
+    root,
+    moduleName: 'SimulattePhysicsModel',
+    dependencyName: 'SimulatteWorldSpec',
+    value: worldSpec,
+  });
+  requireRuntimeDependency({
+    root,
+    moduleName: 'SimulattePhysicsModel',
+    dependencyName: 'SimulatteWorldProof',
+    value: worldProof,
   });
   moduleRegistry.define('physicsModel', 'simulatte-physics-model-dependencies.js', {
     root,
@@ -96,6 +114,8 @@
     groundedModule,
     languageLexicon,
     phaseContracts,
+    worldSpec,
+    worldProof,
     ...deterministicValues,
     ...(renderProof || {}),
     initialized: true,

@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simulatte.world/contracts/world-spec.schema.json",
+  "title": "Simulatte WorldSpec",
+  "description": "The versioned public program compiled, edited, executed, exported, and replayed by Simulatte.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "contentHash",
+    "source",
+    "authorship",
+    "determinism",
+    "dependencies",
+    "safety",
+    "unsupportedRequirements",
+    "unresolvedAmbiguities",
+    "id",
+    "templateId",
+    "name",
+    "kind",
+    "description",
+    "modules",
+    "objects",
+    "controls",
+    "params"
+  ],
+  "properties": {
+    "schema": { "const": "simulatte.worldSpec.v1" },
+    "schemaVersion": { "const": "1.1.0" },
+    "contentHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+    "source": { "$ref": "#/$defs/source" },
+    "authorship": { "$ref": "#/$defs/authorship" },
+    "determinism": { "$ref": "#/$defs/determinism" },
+    "dependencies": { "$ref": "#/$defs/dependencies" },
+    "safety": { "$ref": "#/$defs/safety" },
+    "unsupportedRequirements": { "type": "array", "items": { "type": "object" } },
+    "unresolvedAmbiguities": { "type": "array", "items": { "type": "object" } },
+    "id": { "type": "string", "minLength": 1 },
+    "templateId": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "kind": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "modules": { "type": "array", "items": { "type": "string" } },
+    "objects": { "type": "array", "items": { "type": "object" } },
+    "controls": { "type": "array" },
+    "params": { "type": "object" },
+    "intent": { "type": ["object", "null"] },
+    "contract": { "type": ["object", "null"] },
+    "promptParse": { "type": ["object", "null"] },
+    "universeGraph": { "type": ["object", "null"] },
+    "physicsIR": { "type": ["object", "null"] },
+    "validationReceipt": { "type": ["object", "null"] },
+    "solverGraph": { "type": ["object", "null"] },
+    "renderIR": { "type": ["object", "null"] },
+    "interactionIR": { "type": ["object", "null"] },
+    "phaseArtifacts": { "type": ["object", "null"] },
+    "createdAt": { "type": "string" },
+    "remixOf": { "type": "string" },
+    "compositionGraph": { "type": ["object", "null"] },
+    "renderProgram": { "type": ["object", "null"] },
+    "physicalSpec": { "type": ["object", "null"] }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "prompt", "compilerConfig"],
+      "properties": {
+        "schema": { "const": "simulatte.worldSpecSource.v1" },
+        "prompt": { "type": "string" },
+        "compilerConfig": {
+          "description": "Phase-owned compiler configuration is retained verbatim so model and policy identities remain inspectable.",
+          "type": "object"
+        }
+      }
+    },
+    "authorship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "revision", "sources", "fieldProvenance", "patches"],
+      "properties": {
+        "schema": { "const": "simulatte.worldSpecAuthoring.v1" },
+        "revision": { "type": "integer", "minimum": 0 },
+        "sources": { "type": "array", "items": { "$ref": "#/$defs/sourceAuthority" } },
+        "fieldProvenance": { "type": "array", "items": { "$ref": "#/$defs/fieldProvenance" } },
+        "patches": { "type": "array", "items": { "$ref": "#/$defs/patch" } }
+      }
+    },
+    "sourceAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "authority", "label"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "authority": {
+          "enum": ["prompt", "compilerInference", "userOverride", "governedPack", "plugin", "runtimeState"]
+        },
+        "label": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fieldProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "authority", "sourceId"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/" },
+        "authority": {
+          "enum": ["prompt", "compilerInference", "userOverride", "governedPack", "plugin", "runtimeState"]
+        },
+        "sourceId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "determinism": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "requiredClasses", "seed", "simulationTolerance", "pixelPolicy"],
+      "properties": {
+        "schema": { "const": "simulatte.worldSpecDeterminism.v1" },
+        "requiredClasses": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "compiler-deterministic",
+              "decision-deterministic",
+              "simulation-reproducible",
+              "semantic-render-reproducible",
+              "pixel-bounded",
+              "replay-identified"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "seed": { "type": ["number", "null"] },
+        "simulationTolerance": { "type": ["number", "null"], "minimum": 0 },
+        "pixelPolicy": { "type": ["object", "null"] }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "governedPacks", "plugins", "assets"],
+      "properties": {
+        "schema": { "const": "simulatte.worldSpecDependencies.v1" },
+        "governedPacks": { "type": "array", "items": { "type": "object" } },
+        "plugins": { "type": "array", "items": { "type": "object" } },
+        "assets": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "rules", "status"],
+      "properties": {
+        "schema": { "const": "simulatte.worldSpecSafety.v1" },
+        "rules": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/$defs/safetyRule" }
+        },
+        "status": { "enum": ["not-declared", "declared", "unsupported"] }
+      }
+    },
+    "safetyRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "id", "description", "statePath", "operator", "minimum",
+        "maximum", "expected", "tolerance", "severity"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.worldSpecSafetyRule.v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "statePath": { "type": "string", "pattern": "^/", "maxLength": 512 },
+        "operator": { "enum": ["finite", "gte", "lte", "between", "equals"] },
+        "minimum": { "type": ["number", "null"] },
+        "maximum": { "type": ["number", "null"] },
+        "expected": { "type": ["number", "null"] },
+        "tolerance": { "type": "number", "minimum": 0 },
+        "severity": { "enum": ["block", "warn"] }
+      }
+    },
+    "patch": {
+      "oneOf": [
+        { "$ref": "#/$defs/patchV1" },
+        { "$ref": "#/$defs/patchV2" }
+      ]
+    },
+    "patchV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "id",
+        "revision",
+        "authority",
+        "author",
+        "targetPath",
+        "previousValue",
+        "newValue",
+        "rationale",
+        "affectedObligationIds"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.worldSpecPatch.v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "revision": { "type": "integer", "minimum": 1 },
+        "authority": { "const": "userOverride" },
+        "author": { "type": "string", "minLength": 1 },
+        "targetPath": { "type": "string", "pattern": "^/" },
+        "previousValue": {},
+        "newValue": {},
+        "rationale": { "type": "string", "minLength": 1 },
+        "affectedObligationIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "patchV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "id",
+        "revision",
+        "authority",
+        "author",
+        "targetPath",
+        "previousValue",
+        "newValue",
+        "rationale",
+        "affectedObligationIds",
+        "compilerBaselineContentHash"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.worldSpecPatch.v2" },
+        "id": { "type": "string", "minLength": 1 },
+        "revision": { "type": "integer", "minimum": 1 },
+        "authority": { "const": "userOverride" },
+        "author": { "type": "string", "minLength": 1 },
+        "targetPath": { "type": "string", "pattern": "^/" },
+        "previousValue": {},
+        "newValue": {},
+        "rationale": { "type": "string", "minLength": 1 },
+        "affectedObligationIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "compilerBaselineContentHash": {
+          "type": ["string", "null"],
+          "pattern": "^fnv1a32:[0-9a-f]{8}$"
+        }
+      }
+    }
+  }
+}

@@ -1,10 +1,13 @@
 (function attachSimulatteSceneProof(root, factory) {
-  const api = factory();
+  const worldProofContract = typeof module === 'object' && module.exports
+    ? require('../../../shared/contracts/world-proof.js')
+    : root.SimulatteWorldProof;
+  const api = factory(worldProofContract);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteSceneProof = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSceneProofApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSceneProofApi(worldProofContract) {
   const SCENE_PROOF_SCHEMA = 'simulatte.sceneProof.v1';
   const PHASE7_OUTPUT_SCHEMA = 'simulatte.phase7.output.v2';
   const PHASE8_OUTPUT_SCHEMA = 'simulatte.phase8.output.v2';
@@ -44,7 +47,11 @@
     const requiredLost = settledObligations.filter((row) => row.required === true && row.status === 'lost');
     const requiredUnsupported = settledObligations.filter((row) => row.required === true && row.status === 'unsupported');
     const requiredNotProven = settledObligations.filter((row) => row.required === true && row.status === 'not-proven');
-    const interactionProof = settleInteractionReceipt(renderExecution.interactionReceipt || null);
+    const worldProofBinding = renderExecution.worldProofBinding || null;
+    const interactionProof = settleInteractionReceipt(
+      renderExecution.interactionReceipt || null,
+      worldProofBinding
+    );
     const verdict = !rendered
       ? 'not-proven'
       : requiredLost.length || requiredUnsupported.length || requiredNotProven.length || interactionProof.status === 'fail'
@@ -82,6 +89,45 @@
       },
       nowIso: options.nowIso || new Date().toISOString(),
     };
+    const intentReceipt = options.intentReceipt || renderExecution.intentReceipt || null;
+    const semanticReceipt = options.semanticReceipt || renderExecution.semanticReceipt || null;
+    const safetyReceipt = options.safetyReceipt || renderExecution.safetyReceipt || null;
+    const replayReceipt = options.replayReceipt || (
+      renderExecution.replayBaseline && worldProofContract &&
+      typeof worldProofContract.createReplayReceipt === 'function'
+        ? worldProofContract.createReplayReceipt(renderExecution.replayBaseline, {
+          binding: worldProofBinding,
+          sceneProof,
+          intentReceipt,
+          semanticReceipt,
+          simulationReceipt: options.simulationReceipt || renderExecution.simulationReceipt || null,
+          interactionProofReceipt: interactionProof,
+          safetyReceipt,
+          compilerDeterminismReceipt: renderExecution.compilerDeterminismReceipt || null,
+          simulationReproducibilityReceipt:
+            renderExecution.simulationReproducibilityReceipt || null,
+          deviceClass: renderExecution.optimization && renderExecution.optimization.deviceClass || '',
+        })
+        : null
+    );
+    const worldProof = worldProofBinding && worldProofContract &&
+      typeof worldProofContract.createWorldProof === 'function'
+      ? worldProofContract.createWorldProof({
+        binding: worldProofBinding,
+        sceneProof,
+        intentReceipt,
+        semanticReceipt,
+        simulationReceipt: options.simulationReceipt || renderExecution.simulationReceipt || null,
+        safetyReceipt,
+        compilerDeterminismReceipt: renderExecution.compilerDeterminismReceipt || null,
+        simulationReproducibilityReceipt:
+          renderExecution.simulationReproducibilityReceipt || null,
+        replayReceipt,
+        runtimeReceiptId: phase7Output.runtimeReceiptId,
+        renderDataKey: renderExecution.renderDataKey || '',
+        nowIso: sceneProof.nowIso,
+      })
+      : null;
     return {
       schema: PHASE8_OUTPUT_SCHEMA,
       phase: 8,
@@ -89,6 +135,7 @@
       runtimeReceiptId: String(phase7Output.runtimeReceiptId || 'runtime:unknown'),
       artifact: {
         sceneProof,
+        worldProof,
         compositionLedger: settleLedger(sourceLedger, settledObligations),
       },
       receipts: [
@@ -112,63 +159,19 @@
           ),
           interactionStatus: interactionProof.status,
           interactionCommandCount: interactionProof.commandCount,
-          interactionChangedChannelCount: interactionProof.changedChannelCount,
+          interactionChangedChannelCount: interactionProof.changedChannelIds.length,
+          worldProofVerdict: worldProof && worldProof.verdict || 'not-bound',
+          worldSpecContentHash: worldProof && worldProof.worldSpec.contentHash || '',
         },
       ],
     };
   }
 
-  function settleInteractionReceipt(receipt = null) {
-    if (!receipt || receipt.schema !== 'simulatte.phase7InteractionReceipt.v1') {
-      return {
-        schema: 'simulatte.phase8InteractionProof.v1',
-        status: 'not-configured',
-        commandCount: 0,
-        changedChannelCount: 0,
-        reason: 'Phase 7 supplied no interaction receipt',
-      };
-    }
-    const commandCount = Number(receipt.commandCount || 0);
-    const changedChannelCount = Number(receipt.changedChannelCount || 0);
-    if (receipt.status !== 'executed' || Number(receipt.appliedCommandCount || 0) === 0) {
-      return {
-        schema: 'simulatte.phase8InteractionProof.v1',
-        status: 'not-exercised',
-        commandCount,
-        changedChannelCount,
-        reason: 'No accepted interaction command has executed',
-      };
-    }
-    if (receipt.physicalActionExecuted === true && changedChannelCount === 0) {
-      return {
-        schema: 'simulatte.phase8InteractionProof.v1',
-        status: 'fail',
-        commandCount,
-        changedChannelCount,
-        reason: 'A physical interaction claimed execution without changed simulation channels',
-      };
-    }
-    const visibleTargetActive = Boolean(receipt.selectedTargetId || receipt.activeTargetId);
-    if (visibleTargetActive && receipt.visualStateConsumed !== true) {
-      return {
-        schema: 'simulatte.phase8InteractionProof.v1',
-        status: 'fail',
-        commandCount,
-        changedChannelCount,
-        reason: 'Executed interaction state was not consumed by Phase 7 visual feedback',
-      };
-    }
-    return {
-      schema: 'simulatte.phase8InteractionProof.v1',
-      status: 'pass',
-      commandCount,
-      changedChannelCount,
-      selectedTargetId: receipt.selectedTargetId || '',
-      activeTargetId: receipt.activeTargetId || '',
-      reason: receipt.physicalActionExecuted === true
-        ? 'Input command changed simulation channels and Phase 7 consumed interaction state'
-        : 'Input command changed selection state and Phase 7 consumed interaction feedback',
-    };
+  function settleInteractionReceipt(receipt = null, binding = null) {
+    return worldProofContract.createInteractionProofReceipt({
+      binding,
+      phase7Receipt: receipt,
+    });
   }
 
 	  function validatePhase7Input(phase7Output) {

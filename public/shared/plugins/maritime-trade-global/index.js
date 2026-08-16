@@ -30,9 +30,9 @@
     const datasets = loadDatasets(sdk);
     const routeObjective = profile?.routeObjective || {};
     let activeScenario = normalizeScenario(scenario, config);
-    let result = run(activeScenario);
-    sdk.state.register(reduce, initialState(result));
-    appendActivationReceipts(result);
+    const initialResult = run(activeScenario);
+    sdk.state.register(reduce, initialState(initialResult));
+    appendActivationReceipts(initialResult);
 
     function run(nextScenario) {
       return engine.runScenario({
@@ -71,15 +71,15 @@
 
     function setScenario(nextScenario) {
       activeScenario = normalizeScenario(nextScenario, config);
-      result = run(activeScenario);
-      sdk.events.propose({
+      const nextResult = run(activeScenario);
+      const accepted = sdk.events.propose({
         pluginId: PLUGIN_ID,
         kind: `${PLUGIN_ID}.scenario-computed`,
-        scenarioId: result.scenarioId,
-        result,
+        scenarioId: nextResult.scenarioId,
+        result: nextResult,
       });
-      appendActivationReceipts(result);
-      return summary(result, 0);
+      appendActivationReceipts(accepted.result);
+      return summary(accepted.result, 0);
     }
 
     function contributeRequest({ sourceText, mission = null }) {

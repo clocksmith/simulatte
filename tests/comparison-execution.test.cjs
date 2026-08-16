@@ -190,6 +190,18 @@ test('lockstep comparison executes isolated branches and settles compatible metr
   assert.equal(execution.snapshot().state, 'settled');
 });
 
+test('comparison clones driver transitions once and retains frozen owned history', () => {
+  const { execution } = createFixture();
+  const [operation] = execution.step();
+  const recorded = execution.receipt().history[0];
+
+  assert.equal(operation, recorded);
+  assert.equal(Object.isFrozen(recorded), true);
+  assert.equal(Object.isFrozen(recorded.branches.baseline.transition), true);
+  assert.equal(Object.isFrozen(recorded.branches.baseline.transition.metrics[0]), true);
+  assert.equal(Object.isFrozen(recorded.branches.baseline.transition.events[0]), true);
+});
+
 test('playback pauses, resumes, seeks, scrubs, replays, and reloads from receipts', () => {
   const callbacks = [];
   const timers = {

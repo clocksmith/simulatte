@@ -20,13 +20,22 @@
   const runViewModelApi = typeof module === 'object' && module.exports
     ? require('../runtime/run-view-model.js')
     : root.SimulatteRunViewModel;
-  if (!support || !workers || !training || !construction || !runtime || !promptModelSelection || !runViewModelApi) {
-    throw new Error('SimulattePromptControllerLab requires support, workers, training, construction search, runtime, model selection, and run view model');
+  const worldSpecEditorApi = typeof module === 'object' && module.exports
+    ? require('./world-spec-editor.js')
+    : root.SimulatteWorldSpecEditor;
+  const compilerProofApi = typeof module === 'object' && module.exports
+    ? require('./prompt-controller-compiler-proof.js')
+    : root.SimulattePromptCompilerProof;
+  if (!support || !workers || !training || !construction || !runtime || !promptModelSelection || !runViewModelApi || !worldSpecEditorApi || !compilerProofApi) {
+    throw new Error('SimulattePromptControllerLab requires support, workers, training, construction search, runtime, model selection, run view model, WorldSpec editor, and compiler proof');
   }
   const {
     model, runtimeProgressApi, EXAMPLE_INTENTS, applyInteractionCommands, clamp, createRenderExecutionInput,
-    createSimulationState, createSpec, createSpecFromPrompt, deserializeSpec,
-    normalizeSpec, remixSpec, serializeSpec, stepSimulation,
+    createSimulationState, createIntentProofReceiptForSpec, createSemanticProofReceiptForSpec,
+    createSimulationReproducibilityReceiptForSpec,
+    createSafetyProofReceiptForSpec,
+    createSpec, createSpecFromPrompt, deserializeSpec,
+    applyWorldSpecEdit, normalizeSpec, remixSpec, serializeSpec, stepSimulation,
   } = support;
   const {
     createPipelineCompiler, worldModelReceiptElements, createTrainingRunState,
@@ -65,6 +74,8 @@
         const nameInput = root.getElementById('simulation-name');
         const promptInput = root.getElementById('build-prompt');
         const specPreview = root.getElementById('spec-preview');
+        const worldProofPreview = root.getElementById('world-proof-preview');
+        const replayWorldSpecButton = root.getElementById('replay-world-spec');
         const worldModelReceipt = worldModelReceiptElements(root, specPreview);
         const componentStack = root.getElementById('component-stack');
         const shuffleButton = root.getElementById('shuffle-prompt');
@@ -122,7 +133,19 @@
         let constructionRetryPending = false;
         let activePromptRuntimeReceipt = null;
         let classificationPolicyPromise = null;
+        let worldSpecEditor = null;
+        let latestReplayBaseline = null;
+        let pendingReplayBaseline = null;
+        let intentProofReceipt = null;
+        let semanticProofReceipt = null;
+        let simulationReproducibilityReceipt = null;
+        let safetyProofReceipt = null;
         const pipelineCompiler = createPipelineCompiler(root);
+        const compilerProof = compilerProofApi.create(root, {
+          createPipelineCompiler,
+          createSpecFromPrompt,
+        });
+        let requestedCompilerProofKey = '';
         const worldInteractionApi = root.defaultView && root.defaultView.SimulatteWorldInteractionRuntime;
         const worldInteraction = worldInteractionApi && typeof worldInteractionApi.connect === 'function'
           ? worldInteractionApi.connect(canvas, {
@@ -158,6 +181,70 @@
 
         handleSceneProofReport = (report) => {
           runView?.recordSceneProof(report);
+          const phase8Artifact = report && report.phase8Output && report.phase8Output.artifact || {};
+          const renderExecution = report && report.phase7Output && report.phase7Output.artifact &&
+            report.phase7Output.artifact.renderExecution || {};
+          const worldProofApi = root.defaultView && root.defaultView.SimulatteWorldProof;
+          const binding = renderExecution.worldProofBinding || null;
+          const reportMatchesSpec = Boolean(
+            binding && binding.worldSpec && binding.worldSpec.contentHash === spec.contentHash
+          );
+          if (report && report.final === true && phase8Artifact.worldProof && worldProofApi &&
+              typeof worldProofApi.createReplayBaseline === 'function' && reportMatchesSpec) {
+            const compilerDeterminismReceipt = compilerProof.receiptFor(spec);
+            if (compilerProof.required(spec) && !compilerDeterminismReceipt) {
+              const proofKey = `${spec.contentHash}:${binding.replayIdentity && binding.replayIdentity.buildId || ''}`;
+              if (requestedCompilerProofKey !== proofKey) {
+                requestedCompilerProofKey = proofKey;
+                compilerProof.verify(spec, binding).then((receipt) => {
+                  if (!receipt || binding.worldSpec.contentHash !== spec.contentHash) return;
+                  requestedCompilerProofKey = '';
+                  renderExecutionInput = null;
+                  const nextRenderExecutionInput = refreshRenderExecutionInput();
+                  if (nextRenderExecutionInput && webGpuRenderer) {
+                    webGpuRenderer.setRenderExecutionInput(nextRenderExecutionInput);
+                  }
+                }).catch((error) => {
+                  requestedCompilerProofKey = '';
+                  publishRuntime({
+                    state: 'error',
+                    blocking: false,
+                    stage: 'compiler-proof',
+                    percent: 100,
+                    message: 'Compiler determinism proof failed',
+                    detail: error && error.message ? error.message : String(error || ''),
+                    canvasLoading: false,
+                  });
+                });
+              }
+            } else {
+              latestReplayBaseline = worldProofApi.createReplayBaseline({
+                binding,
+                sceneProof: phase8Artifact.sceneProof,
+                intentReceipt: phase8Artifact.worldProof.evidence &&
+                  phase8Artifact.worldProof.evidence.intentReceipt || null,
+                semanticReceipt: phase8Artifact.worldProof.evidence &&
+                  phase8Artifact.worldProof.evidence.semanticReceipt || null,
+                simulationReceipt: renderExecution.simulationReceipt,
+                interactionProofReceipt: phase8Artifact.sceneProof.interactionProof,
+                safetyReceipt: phase8Artifact.worldProof.evidence &&
+                  phase8Artifact.worldProof.evidence.safetyReceipt || null,
+                compilerDeterminismReceipt,
+                simulationReproducibilityReceipt,
+                deviceClass: renderExecution.optimization && renderExecution.optimization.deviceClass || '',
+              });
+              pendingReplayBaseline = null;
+              if (replayWorldSpecButton) replayWorldSpecButton.disabled = false;
+            }
+          }
+          if (worldProofPreview) {
+            worldProofPreview.textContent = JSON.stringify(
+              report && report.phase8Output && report.phase8Output.artifact &&
+                report.phase8Output.artifact.worldProof || {},
+              null,
+              2
+            );
+          }
           if (!report || report.final !== true || !trainingRun.runId || !trainingRun.prompt) return;
           const search = trainingRun.constructionSearch || createConstructionSearchState({ buildSerial });
           trainingRun.constructionSearch = search;
@@ -242,7 +329,16 @@
             renderExecutionInput = null;
             return null;
           }
-          renderExecutionInput = createRenderExecutionInput(phase6Output, state, canvas);
+          renderExecutionInput = createRenderExecutionInput(spec, state, canvas, {
+            buildId: appBuildVersion(root.defaultView),
+            runtimeId: 'simulatte.blank.browser.webgpu.v1',
+            replayBaseline: pendingReplayBaseline,
+            intentReceipt: intentProofReceipt,
+            semanticReceipt: semanticProofReceipt,
+            compilerDeterminismReceipt: compilerProof.receiptFor(spec),
+            simulationReproducibilityReceipt,
+            safetyReceipt: safetyProofReceipt,
+          });
           return renderExecutionInput;
         };
 
@@ -261,10 +357,32 @@
         const setSpec = (nextSpec, options = {}) => {
           const visible = options.visible === true || simulationVisible;
           spec = normalizeSpec(nextSpec);
+          compilerProof.invalidate();
+          requestedCompilerProofKey = '';
+          latestReplayBaseline = null;
+          pendingReplayBaseline = null;
+          if (replayWorldSpecButton) replayWorldSpecButton.disabled = true;
           pendingInteractionCommands.length = 0;
           worldInteraction?.reset();
           runView?.recordSpec(spec);
           state = createSimulationState(spec);
+          intentProofReceipt = createIntentProofReceiptForSpec(spec, {
+            buildId: appBuildVersion(root.defaultView),
+            runtimeId: 'simulatte.blank.browser.webgpu.v1',
+          });
+          semanticProofReceipt = createSemanticProofReceiptForSpec(spec, {
+            buildId: appBuildVersion(root.defaultView),
+            runtimeId: 'simulatte.blank.browser.webgpu.v1',
+          });
+          simulationReproducibilityReceipt =
+            createSimulationReproducibilityReceiptForSpec(spec, {
+              buildId: appBuildVersion(root.defaultView),
+              runtimeId: 'simulatte.blank.browser.webgpu.v1',
+            });
+          safetyProofReceipt = createSafetyProofReceiptForSpec(spec, {
+            buildId: appBuildVersion(root.defaultView),
+            runtimeId: 'simulatte.blank.browser.webgpu.v1',
+          });
           renderExecutionInput = null;
           if (nameInput) nameInput.value = spec.name;
           renderControls(controlStack, spec);
@@ -273,6 +391,7 @@
           syncReadoutLabels(readouts, spec);
           syncWorldModelReceipt(worldModelReceipt, spec);
           syncSpecPreview(specPreview, spec);
+          worldSpecEditor?.sync(spec);
           logGraphDebug(spec);
           if (visible && webGpuRenderer) {
             const nextRenderExecutionInput = refreshRenderExecutionInput();
@@ -284,6 +403,61 @@
           }
           last = performance.now();
         };
+
+        replayWorldSpecButton?.addEventListener('click', () => {
+          if (!latestReplayBaseline || !webGpuRenderer) return;
+          const receipts = state && state.interaction && Array.isArray(state.interaction.receipts)
+            ? state.interaction.receipts : [];
+          const replayCommands = receipts
+            .filter((row) => row.status === 'applied')
+            .map((row, index) => ({
+              schema: 'simulatte.interactionCommand.v1',
+              sequence: index + 1,
+              actionId: row.actionId,
+              targetId: row.targetId,
+              source: 'world-spec-replay',
+              bindingId: row.bindingId || '',
+              point: Array.isArray(row.point) ? row.point.slice(0, 2) : [0.5, 0.5],
+              delta: Array.isArray(row.delta) ? row.delta.slice(0, 2) : [0, 0],
+              value: 0,
+            }));
+          pendingReplayBaseline = latestReplayBaseline;
+          state = createSimulationState(spec);
+          pendingInteractionCommands.length = 0;
+          pendingInteractionCommands.push(...replayCommands);
+          worldInteraction?.reset();
+          renderExecutionInput = null;
+          const nextRenderExecutionInput = refreshRenderExecutionInput();
+          if (nextRenderExecutionInput) webGpuRenderer.setRenderExecutionInput(nextRenderExecutionInput);
+          replayWorldSpecButton.disabled = true;
+          publishRuntime({
+            state: 'active',
+            blocking: false,
+            stage: 'replay',
+            taskPercent: 0,
+            progressScope: 'task',
+            percent: 99,
+            message: 'Replaying exact WorldSpec',
+            detail: spec.contentHash,
+            canvasLoading: false,
+          });
+        });
+
+        worldSpecEditor = worldSpecEditorApi.connect(root, {
+          getSpec: () => spec,
+          serialize: serializeSpec,
+          apply: (payload, rationale) => {
+            const next = applyWorldSpecEdit(spec, payload, { rationale });
+            setSpec(next, { visible: true });
+            return next;
+          },
+          import: (payload) => {
+            const next = deserializeSpec(payload);
+            setSpec(next, { visible: true });
+            return next;
+          },
+          onError: () => { if (stateReadout) stateReadout.textContent = 'WorldSpec edit failed'; },
+        });
 
         function setSimulationCanvasVisible(visible) {
           simulationVisible = Boolean(visible);
@@ -366,24 +540,6 @@
           root.getElementById('pause-lab').textContent = paused ? 'Resume' : 'Pause';
         });
         root.getElementById('remix-lab')?.addEventListener('click', () => setSpec(remixSpec(readSpecFromUi(spec, controlStack, nameInput))));
-        root.getElementById('export-lab')?.addEventListener('click', async () => {
-          const payload = serializeSpec(readSpecFromUi(spec, controlStack, nameInput));
-          try {
-            await navigator.clipboard.writeText(payload);
-          } catch (_err) {
-            window.prompt('Simulatte simulation spec:', payload);
-          }
-        });
-        root.getElementById('import-lab')?.addEventListener('click', () => {
-          const raw = window.prompt('Paste Simulatte simulation spec JSON:');
-          if (!raw) return;
-          try {
-            setSpec(deserializeSpec(raw));
-          } catch (_err) {
-            if (stateReadout) stateReadout.textContent = 'import failed';
-          }
-        });
-
         async function resolveWithEmbedding(prompt, params, serial, showCanvasLoader = false, modelSelection) {
           if (!String(prompt || '').trim()) return;
           if (!embedder) {
@@ -639,7 +795,10 @@
           await waitForLoadingPaint();
           if (pipelineCompiler) {
             try {
-              return await pipelineCompiler.compile(prompt, options, onPhaseProgress);
+              return await pipelineCompiler.compile(prompt, {
+                ...options,
+                compilerLane: 'pipeline-worker',
+              }, onPhaseProgress);
             } catch (error) {
               if (error && error.code === 'SIMULATTE_PIPELINE_ABORTED') throw error;
               if (!error || error.code !== 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE') throw error;
@@ -660,7 +819,11 @@
               await waitForLoadingPaint();
             }
           }
-          return createSpecFromPrompt(prompt, { ...options, onPhaseProgress });
+          return createSpecFromPrompt(prompt, {
+            ...options,
+            compilerLane: 'main-thread',
+            onPhaseProgress,
+          });
         }
 
         function tick(now) {
@@ -675,6 +838,7 @@
           spec = readSpecFromUi(spec, controlStack, nameInput);
           if (spec !== previousSpec) {
             renderExecutionInput = null;
+            worldSpecEditor?.sync(spec);
             if (previewDisclosure && previewDisclosure.open) syncSpecPreview(specPreview, spec);
           }
           if (pendingInteractionCommands.length && typeof applyInteractionCommands === 'function') {

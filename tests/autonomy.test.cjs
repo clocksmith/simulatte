@@ -1542,6 +1542,10 @@ test('autonomy browser surface loads every declared module and stays independent
   assert.doesNotMatch(html, /href="https:\/\/create\.simulatte\.world\/"[^>]*>Create<\/a>/);
   assert.match(html, /id="experience-doc-link" class="sim-text-link experience-doc-link"[^>]*target="_blank"[^>]*hidden>Experience docs<\/a>/);
   assert.doesNotMatch(html, /id="experience-doc-link"[^>]*sim-surface/);
+  const missionDockStart = html.indexOf('<section class="mission-dock');
+  const missionDockEnd = html.indexOf('</section>', missionDockStart);
+  const experienceDocsPosition = html.indexOf('id="experience-doc-link"');
+  assert.ok(missionDockStart >= 0 && experienceDocsPosition > missionDockStart && experienceDocsPosition < missionDockEnd);
   assert.doesNotMatch(html, /class="blank-link"/);
   assert.match(compatibilityHtml, /Simulatte/);
   assert.match(compilerHtml, /class="prompt-dock-autonomy" href="https:\/\/simulatte\.world\/"/);

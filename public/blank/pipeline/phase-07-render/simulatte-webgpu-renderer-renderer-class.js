@@ -13,6 +13,18 @@
         };
       }
 
+    function webGpuDeviceClass(adapter) {
+      const info = adapter && adapter.info || {};
+      const declared = [info.vendor, info.architecture, info.device, info.description]
+        .map((value) => String(value || '').trim())
+        .filter(Boolean)
+        .join(':');
+      const platform = typeof navigator !== 'undefined'
+        ? String(navigator.userAgentData && navigator.userAgentData.platform || navigator.platform || '').trim()
+        : '';
+      return `webgpu:${declared || platform || 'unreported'}`;
+    }
+
     function create(canvas, options = {}) {
         if (!canvas || typeof navigator === 'undefined' || !navigator.gpu) return null;
         const context = canvas.getContext('webgpu');
@@ -69,6 +81,7 @@
           this.objectPartBufferDirty = true;
           this.gpuScenePath = 'background-plus-instanced-object-parts';
           this.webgpuFeatureReceipt = makeDefaultWebGpuFeatureReceipt();
+          this.deviceClass = 'webgpu:uninitialized';
           this.palette = scope.paletteToVec4(scope.PALETTES.machine);
           this.metrics = { heat: 0.35, flow: 0.45, density: 0.48, bloom: 0.56, motion: 0.42 };
           this.seed = 1;
@@ -83,6 +96,7 @@
           try {
             const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
             if (!adapter) throw new Error('WebGPU adapter unavailable');
+            this.deviceClass = webGpuDeviceClass(adapter);
             const deviceRequest = await scope.requestWebGpuDevice(adapter);
             this.device = deviceRequest.device;
             this.webgpuFeatureReceipt = deviceRequest.receipt;
@@ -230,6 +244,8 @@
           if (nextRenderExecutionInput !== this.renderExecutionInput) {
             this.renderInputSerial += 1;
             this.canvas.dataset.renderInputSerial = String(this.renderInputSerial);
+            this.phase7OutputPacketKey = '';
+            this.phase8Output = null;
           }
           this.renderExecutionInput = nextRenderExecutionInput;
           this.canvas.dataset.renderExecutionInput = this.renderExecutionInput
@@ -411,6 +427,7 @@
           try {
             this.phase8Output = api.settleSceneProof(this.phase7Output);
             const sceneProof = this.phase8Output.artifact.sceneProof;
+            const worldProof = this.phase8Output.artifact.worldProof || null;
             this.canvas.dataset.phase8Output = this.phase8Output.schema;
             this.canvas.dataset.sceneProofVerdict = sceneProof.verdict;
             this.canvas.dataset.sceneProofError = '';
@@ -425,6 +442,7 @@
                 row.required === true && (row.status === 'lost' || row.status === 'not-proven')
               ))
             );
+            scope.syncWorldProofDatasets(this.canvas, worldProof);
           } catch (error) {
             this.phase8Output = null;
             this.canvas.dataset.phase8Output = '';
@@ -433,6 +451,7 @@
             this.canvas.dataset.sceneProofRequiredLostIds = '[]';
             this.canvas.dataset.sceneProofRequiredNotProvenIds = '[]';
             this.canvas.dataset.sceneProofRequiredFailures = '[]';
+            scope.resetWorldProofDatasets(this.canvas);
           }
           const proofFinishedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
           this.lastSceneProofMs = Math.max(0, proofFinishedAt - proofStartedAt);
@@ -814,6 +833,7 @@
             translatedTechniques: scope.WEBGPU_TRANSLATED_TECHNIQUES.slice(),
             unsupportedNativeFeatures: scope.WEBGPU_NATIVE_ONLY_FEATURES.slice(),
             features: this.webgpuFeatureReceipt,
+            deviceClass: this.deviceClass,
             pixelReadback: this.lastPixelReadbackReceipt,
             rendererConsumption: this.rendererConsumption,
           };

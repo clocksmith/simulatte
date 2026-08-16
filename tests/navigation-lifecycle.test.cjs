@@ -550,6 +550,115 @@ test('app shell hides the mounted world synchronously and keeps only the loader 
   }
 });
 
+test('app shell keeps presentation-only and equivalent partial routes lifecycle-neutral while scenario updates load', async () => {
+  const previousDocument = global.document;
+  const summary = { hidden: false, dataset: { experienceId: 'cable-trader-pickup-v1' } };
+  const stats = {
+    children: [{ textContent: 'Settled metric' }],
+    replaceChildren() { this.children = []; },
+  };
+  const body = {
+    classList: { add() {}, remove() {} },
+    dataset: { journeyPhase: 'ready' },
+  };
+  const routeUpdates = [];
+  global.document = {
+    body,
+    getElementById(id) {
+      if (id === 'experience-summary') return summary;
+      if (id === 'experience-summary-stats') return stats;
+      return null;
+    },
+    querySelectorAll() { return []; },
+  };
+  try {
+    const shell = bootApi.createAppShell({
+      router: {
+        canonicalize() {},
+        hrefFor: routerApi.hrefFor,
+        start() {},
+      },
+      landing: {
+        classList: { add() {}, remove() {} },
+        querySelector() { return null; },
+        addEventListener() {},
+      },
+      boot: async () => ({
+        tier: 'city',
+        experience: 'cable-trader-pickup-v1',
+        world: 'nyc-core-autonomy-v1',
+        profile: 'cable-trader-pickup-v1',
+        camera: 'overview',
+        simulation: { scenarioId: 'everyday-exchange', seed: 'everyday-seed' },
+        dispose() {},
+        updateRoute(route) {
+          routeUpdates.push({
+            route,
+            phase: body.dataset.journeyPhase,
+            isLoading: body.dataset.routeLoading === 'true',
+          });
+          if (route.simulation?.scenarioId === 'device-upgrade-cycle') {
+            body.dataset.journeyPhase = 'ready';
+          }
+          return route;
+        },
+      }),
+    });
+    const baseRoute = {
+      tier: 'city',
+      experience: 'cable-trader-pickup-v1',
+      world: 'nyc-core-autonomy-v1',
+      profile: 'cable-trader-pickup-v1',
+      camera: 'overview',
+      simulation: { scenarioId: 'everyday-exchange', seed: 'everyday-seed' },
+    };
+    await shell.renderRoute(baseRoute);
+    summary.hidden = false;
+    summary.dataset.experienceId = 'cable-trader-pickup-v1';
+    stats.children = [{ textContent: 'Settled metric' }];
+    body.dataset.journeyPhase = 'completed';
+
+    await shell.renderRoute({ ...baseRoute, camera: 'follow' });
+
+    assert.deepEqual(routeUpdates[0], {
+      route: { ...baseRoute, camera: 'follow' },
+      phase: 'completed',
+      isLoading: false,
+    });
+    assert.equal(body.dataset.journeyPhase, 'completed');
+    assert.equal(body.dataset.routeLoading, undefined);
+    assert.equal(summary.hidden, false);
+    assert.deepEqual(stats.children, [{ textContent: 'Settled metric' }]);
+
+    await shell.renderRoute({
+      tier: baseRoute.tier,
+      experience: baseRoute.experience,
+      profile: baseRoute.profile,
+      simulation: baseRoute.simulation,
+    });
+
+    assert.equal(routeUpdates[1].phase, 'completed');
+    assert.equal(routeUpdates[1].isLoading, false);
+    assert.equal(body.dataset.journeyPhase, 'completed');
+    assert.equal(body.dataset.routeLoading, undefined);
+
+    await shell.renderRoute({
+      ...baseRoute,
+      camera: 'follow',
+      simulation: { scenarioId: 'device-upgrade-cycle', seed: 'upgrade-seed' },
+    });
+
+    assert.equal(routeUpdates[2].phase, 'loading');
+    assert.equal(routeUpdates[2].isLoading, true);
+    assert.equal(body.dataset.journeyPhase, 'ready');
+    assert.equal(body.dataset.routeLoading, undefined);
+    assert.equal(summary.hidden, true);
+    assert.deepEqual(stats.children, []);
+  } finally {
+    global.document = previousDocument;
+  }
+});
+
 test('route loading layer covers every mounted world panel without a transition delay', () => {
   const css = fs.readFileSync(path.resolve(__dirname, '../public/styles.css'), 'utf8');
   assert.match(css, /body\[data-route-loading="true"\] \.loading-screen\s*\{[^}]*z-index:\s*500;/s);

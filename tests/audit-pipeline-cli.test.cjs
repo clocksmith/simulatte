@@ -46,3 +46,20 @@ test('model audit selects the optional embedding lane instead of only granting c
   assert.match(source, /neuralModelConsent\.summarizeLock\(MODEL_RUNTIME_LOCK\)/);
   assert.match(source, /retrieval\.value === 'qwen-embedding-retrieval'/);
 });
+
+test('causal phase diagnosis documents the required four-lane artifact substitution inputs', () => {
+  const result = spawnSync(process.execPath, ['tools/causal-phase-diagnosis.mjs', '--help'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /--failure-run FILE/);
+  assert.match(result.stdout, /--known-good FILE/);
+  assert.match(result.stdout, /--candidate-runner MODULE/);
+  assert.match(result.stdout, /--reference-runner MODULE/);
+
+  const comparison = fs.readFileSync(path.join(root, 'tools', 'compare-pipeline-audit.mjs'), 'utf8');
+  assert.match(comparison, /causalOwnership=not-proven/);
+  assert.match(comparison, /audit:pipeline:diagnose/);
+});

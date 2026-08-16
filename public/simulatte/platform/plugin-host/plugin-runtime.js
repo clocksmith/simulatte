@@ -29,8 +29,11 @@
   const v4Builder = typeof module === 'object' && module.exports
     ? require('../../../shared/core/simulation/plugin-v4-builder.js')
     : root.SimulattePluginV4Builder;
+  const profileWorldSpec = typeof module === 'object' && module.exports
+    ? require('../../../shared/contracts/profile-world-spec.js')
+    : root.SimulatteProfileWorldSpec;
   const pluginAssetPaths = pluginPaths || createDefaultPluginAssetPaths();
-  const api = factory(contracts, graphApi, stateApi, sdkApi, pluginAssetPaths, v4Contracts, v4Adapters, timelineApi, provenanceApi, v4Builder);
+  const api = factory(contracts, graphApi, stateApi, sdkApi, pluginAssetPaths, v4Contracts, v4Adapters, timelineApi, provenanceApi, v4Builder, profileWorldSpec);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginRuntime = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginRuntimeModule(
@@ -43,9 +46,10 @@
   v4Adapters,
   timelineApi,
   provenanceApi,
-  v4Builder
+  v4Builder,
+  profileWorldSpec
 ) {
-  async function createPluginRuntime({ registry, profile, scenario = null, dataCatalog, artifactStore = null, registryBaseUrl = null, corePorts = {} }) {
+  async function createPluginRuntime({ registry, profile, scenario = null, worldSpec = null, dataCatalog, artifactStore = null, registryBaseUrl = null, corePorts = {} }) {
     const effectiveRegistryBaseUrl = registryBaseUrl || pluginPaths.sharedRootUrl(documentBase());
     contracts.validateProfile(profile);
     if (!registry || typeof registry.entry !== 'function') throw runtimeError('plugin_registry_invalid', 'Plugin runtime expected a registry entry function', null);
@@ -54,11 +58,27 @@
       const row = registry.entry(selection.id);
       if (!row) throw runtimeError('plugin_registry_entry_missing', `Profile ${profile.id} selects unknown plugin ${selection.id}`, { pluginId: selection.id });
       contracts.validateManifest(row.manifest);
+      const trustReceipt = contracts.authorizeExecutableManifest(row.manifest);
       const config = row.configs?.[selection.configId];
       if (!config) throw runtimeError('plugin_config_missing', `Plugin ${selection.id} has no config ${selection.configId}`, { pluginId: selection.id, configId: selection.configId });
       if (!row.factory || typeof row.factory.activate !== 'function') throw runtimeError('plugin_factory_invalid', `Plugin ${selection.id} expected an activate function`, { pluginId: selection.id });
-      return Object.freeze({ selection, manifest: row.manifest, config, factory: row.factory });
+      return Object.freeze({ selection, manifest: row.manifest, config, factory: row.factory, trustReceipt });
     });
+    if (!profileWorldSpec || typeof profileWorldSpec.compileProfileWorldSpec !== 'function') {
+      throw runtimeError('plugin_profile_world_spec_contract_missing', 'Plugin runtime requires the shared profile WorldSpec compiler', null);
+    }
+    const pluginManifests = selectedRows.map((row) => row.manifest);
+    let activeWorldSpec = worldSpec
+      ? stateApi.freezeClone(worldSpec)
+      : profileWorldSpec.compileProfileWorldSpec({ profile, scenario, pluginManifests });
+    const initialResolution = profileWorldSpec.resolveProfileExecution(activeWorldSpec, {
+      profile,
+      scenario,
+      pluginManifests,
+    });
+    if (Array.isArray(profile.seeds) && profile.seeds.length) {
+      scenario = initialResolution.scenario;
+    }
     const graph = graphApi.resolveCapabilityGraph(selectedRows.map((row) => row.manifest));
     const rowsById = new Map(selectedRows.map((row) => [row.manifest.id, row]));
     const instances = new Map();
@@ -120,7 +140,13 @@
           capabilityInvoke: (capabilityId, input) => invokeCapability(pluginId, capabilityId, input),
           receiptSink: appendReceipt,
         });
-        const instance = await row.factory.activate({ sdk, config: stateApi.freezeClone(row.config), profile: stateApi.freezeClone(profile), scenario: stateApi.freezeClone(scenario) });
+        const instance = await row.factory.activate({
+          sdk,
+          config: stateApi.freezeClone(row.config),
+          profile: stateApi.freezeClone(profile),
+          scenario: stateApi.freezeClone(scenario),
+          worldSpec: stateApi.freezeClone(activeWorldSpec),
+        });
         contracts.validatePluginInstance(pluginId, instance, row.manifest);
         validateDeclaredExtensions(row.manifest, instance);
         instances.set(pluginId, instance);
@@ -413,12 +439,32 @@
 
     function setScenario(nextScenario) {
       if (lifecycle !== 'active') return Promise.reject(runtimeError('plugin_runtime_disposed', 'Plugin runtime is no longer active', { lifecycle }));
-      const pending = scenarioQueue.then(() => applyScenario(nextScenario));
+      const pending = scenarioQueue.then(() => applyScenario(nextScenario, null));
       scenarioQueue = pending.catch(() => {});
       return pending;
     }
 
-    async function applyScenario(nextScenario) {
+    function setWorldSpec(nextWorldSpec) {
+      if (lifecycle !== 'active') return Promise.reject(runtimeError('plugin_runtime_disposed', 'Plugin runtime is no longer active', { lifecycle }));
+      let resolution;
+      try {
+        resolution = profileWorldSpec.resolveProfileExecution(nextWorldSpec, {
+          profile,
+          scenario,
+          pluginManifests,
+        });
+      } catch (error) {
+        return Promise.reject(error);
+      }
+      const pending = scenarioQueue.then(() => applyScenario(
+        resolution.scenario,
+        stateApi.freezeClone(nextWorldSpec)
+      ));
+      scenarioQueue = pending.catch(() => {});
+      return pending;
+    }
+
+    async function applyScenario(nextScenario, authoredWorldSpec) {
       const previousScenario = scenario;
       const candidateScenario = stateApi.freezeClone(nextScenario);
       const updatedInstances = [];
@@ -442,20 +488,32 @@
         throw error;
       }
       scenario = candidateScenario;
+      activeWorldSpec = authoredWorldSpec || profileWorldSpec.compileProfileWorldSpec({
+        profile,
+        scenario: candidateScenario,
+        pluginManifests,
+      });
       platformCache = null;
       return scenario;
     }
 
     function runtimeReceipt() {
-      return stateApi.freezeClone({
+      return stateApi.deepFreeze({
         schema: 'simulatte.pluginRuntimeReceipt.v1',
         profileId: profile.id,
         scenario,
+        worldSpec: activeWorldSpec,
+        worldSpecConformance: profileWorldSpec.createConformanceReceipt(activeWorldSpec, {
+          profile,
+          scenario,
+          pluginManifests,
+        }),
         sdkVersion: Math.max(1, ...[...rowsById.values()].map((row) => row.manifest.sdkVersion)),
         activationOrder: graph.order,
+        pluginTrustReceipts: graph.order.map((pluginId) => rowsById.get(pluginId).trustReceipt),
         sourceReceipts,
         disabledOptionalCapabilities: graph.disabledOptional,
-        pluginReceipts: receipts,
+        pluginReceipts: Object.freeze([...receipts]),
         events: stateHost.trace(),
       });
     }
@@ -478,7 +536,9 @@
       routeContributors,
       runtimeReceipt,
       setScenario,
+      setWorldSpec,
       settle,
+      worldSpec: () => stateApi.freezeClone(activeWorldSpec),
       views,
       activePluginIds: graph.order,
     });

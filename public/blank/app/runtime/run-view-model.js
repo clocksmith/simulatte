@@ -2,11 +2,18 @@
   const phaseContracts = typeof module === 'object' && module.exports
     ? require('../../pipeline/simulatte-phase-contracts.js')
     : root.SimulattePhaseContracts;
-  const api = factory(phaseContracts);
+  const worldProofContract = typeof module === 'object' && module.exports
+    ? require('../../../shared/contracts/world-proof.js')
+    : root.SimulatteWorldProof;
+  const api = factory(phaseContracts, worldProofContract);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRunViewModel = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createRunViewModelApi(phaseContracts) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createRunViewModelApi(
+  phaseContracts,
+  worldProofContract
+) {
   if (!phaseContracts?.validatePhaseEnvelope) throw new Error('simulatte_run_view_model_phase_contracts_missing');
+  if (!worldProofContract?.validateWorldProof) throw new Error('simulatte_run_view_model_world_proof_contract_missing');
   const PHASES = Object.freeze([
     'Runtime', 'Language', 'Retrieval', 'Grounding',
     'Simulation', 'Visuals', 'Render', 'Proof',
@@ -15,7 +22,7 @@
   function identity(value) {
     if (!value) return '—';
     if (typeof value === 'string') return value;
-    return value.id || value.sha256 || value.hash || value.schema || 'receipted';
+    return value.id || value.sha256 || value.contentHash || value.hash || value.schema || 'receipted';
   }
 
   function phaseRow(step, seed = {}) {
@@ -152,16 +159,21 @@
     const phase7Receipt = Array.isArray(phase7.receipts) ? phase7.receipts[0] || {} : {};
     const phase8 = report.phase8Output || {};
     const sceneProof = phase8.artifact?.sceneProof || {};
-    const proofSummary = sceneProof.summary || {};
-    const settledObligations = Array.isArray(sceneProof.settledObligations)
-      ? sceneProof.settledObligations
-      : [];
-    const requiredObligations = settledObligations.filter((row) => row.required === true);
-    const requiredFailures = requiredObligations.filter((row) => (
-      row.status === 'lost' || row.status === 'not-proven'
-    ));
+    const worldProof = validatedWorldProof(phase8.artifact?.worldProof);
+    const proofClasses = worldProof ? Object.values(worldProof.proofClasses) : [];
+    const requiredProofClasses = proofClasses.filter((row) => row.required === true);
+    const criticalFailures = worldProof && Array.isArray(worldProof.criticalFailures)
+      ? worldProof.criticalFailures : [];
     const phase7Valid = phaseEnvelopeValid(phase7, 7) && phase7PixelProofPassed(renderExecution, phase7Receipt);
-    const phase8Valid = phaseEnvelopeValid(phase8, 8) && sceneProof.verdict === 'pass';
+    const phase8EnvelopeValid = phaseEnvelopeValid(phase8, 8);
+    const phase8Status = !phase8EnvelopeValid || !worldProof
+      ? 'failed'
+      : worldProof.verdict === 'pass'
+        ? 'passed'
+        : worldProof.verdict === 'not-proven'
+          ? 'not-proven'
+          : 'failed';
+    const phase8Valid = phase8Status === 'passed';
     const phases = viewModel.phases.map((phase) => {
       if (phase.step === 7 && phase7.schema) {
         return {
@@ -177,17 +189,30 @@
       if (phase.step === 8 && phase8.schema) {
         return {
           ...phase,
-          status: phase8Valid ? 'passed' : 'failed',
-          inputIdentity: identity(phase8.inputSchema || phase7.schema),
-          outputIdentity: identity(phase8.schema),
+          status: phase8Status,
+          inputIdentity: identity(worldProof?.worldSpec?.contentHash || phase8.inputSchema || phase7.schema),
+          outputIdentity: identity(worldProof?.contentHash || phase8.schema),
           durationMs: Number(report.durationMs || phase.durationMs || 0),
-          candidateCount: Number(requiredObligations.length || proofSummary.requiredCount || 0),
-          loss: Number(requiredFailures.length),
+          candidateCount: Number(requiredProofClasses.length),
+          loss: Number(criticalFailures.length),
         };
       }
       return phase;
     });
-    return finalize(viewModel.runId, phase7Valid && phase8Valid ? 'ready' : viewModel.status, phases);
+    const status = phase7Valid && phase8Valid
+      ? 'ready'
+      : phase7Valid && phase8Status === 'not-proven'
+        ? 'not-proven'
+        : 'failed';
+    return finalize(viewModel.runId, status, phases);
+  }
+
+  function validatedWorldProof(value) {
+    try {
+      return worldProofContract.validateWorldProof(value);
+    } catch (_error) {
+      return null;
+    }
   }
 
   function phaseEnvelopeValid(envelope, phase) {

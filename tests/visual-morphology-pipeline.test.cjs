@@ -308,6 +308,7 @@ test('object shader consumes the extended contour and surface contract', () => {
   assert.match(shader, /fn objectTaperedCapsule/);
   assert.match(shader, /fn objectSurfacePattern/);
   assert.match(shader, /fn objectAccentColor/);
+  assert.match(shader, /u\.viewport\.y \/ max\(u\.viewport\.x, 1\.0\)/);
   assert.match(shader, /u\.viewport\.z \* accent\.w/);
   assert.match(shader, /objectPartMask\(input\.local, input\.shape, input\.shapeParams\)/);
 });

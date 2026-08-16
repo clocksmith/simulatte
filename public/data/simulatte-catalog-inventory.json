@@ -23,42 +23,42 @@
       "id": "surface-card-embeddings",
       "path": "public/data/simulatte-embedder/surface-card-index-qwen-v1.json",
       "itemKey": "documents",
-      "expectedCount": 1410,
+      "expectedCount": 1412,
       "kind": "embedding-index"
     },
     {
       "id": "universe-concepts",
       "path": "public/data/simulatte-universe/concept-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 2004,
+      "expectedCount": 2006,
       "kind": "semantic-index"
     },
     {
       "id": "universe-synonyms",
       "path": "public/data/simulatte-universe/synonym-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 4888,
+      "expectedCount": 4900,
       "kind": "semantic-index"
     },
     {
       "id": "universe-analogs",
       "path": "public/data/simulatte-universe/physical-analog-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 1977,
+      "expectedCount": 1979,
       "kind": "semantic-index"
     },
     {
       "id": "universe-affordances",
       "path": "public/data/simulatte-universe/affordance-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 1231,
+      "expectedCount": 1232,
       "kind": "semantic-index"
     },
     {
       "id": "universe-shapes",
       "path": "public/data/simulatte-universe/shape-index-v1.json",
       "itemKey": "documents",
-      "expectedCount": 520,
+      "expectedCount": 521,
       "kind": "semantic-index"
     },
     {

@@ -31,11 +31,10 @@
     const datasets = loadDatasets(sdk);
     let selectedScenario = normalizeScenario(scenario, config);
     let acceptedParameters = validateParameters({}, selectedScenario, config, datasets);
-    let result = run(acceptedParameters);
-    let ensemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
-    let comparison = null;
-    sdk.state.register(reduce, initialState(result, ensemble, acceptedParameters));
-    appendScenarioReceipts(result, ensemble, acceptedParameters);
+    const initialResult = run(acceptedParameters);
+    const initialEnsemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
+    sdk.state.register(reduce, initialState(initialResult, initialEnsemble, acceptedParameters));
+    appendScenarioReceipts(initialResult, initialEnsemble, acceptedParameters);
 
     function run(parameters) {
       return model.runScenario({ datasets, config, scenario: parameters });
@@ -44,19 +43,18 @@
     function setScenario(nextScenario) {
       selectedScenario = normalizeScenario(nextScenario, config);
       acceptedParameters = validateParameters({}, selectedScenario, config, datasets);
-      result = run(acceptedParameters);
-      ensemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
-      comparison = null;
-      sdk.events.propose({
+      const nextResult = run(acceptedParameters);
+      const nextEnsemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
+      const accepted = sdk.events.propose({
         pluginId: PLUGIN_ID,
         kind: `${PLUGIN_ID}.scenario-computed`,
-        scenarioId: result.scenarioId,
+        scenarioId: nextResult.scenarioId,
         acceptedParameters,
-        result,
-        ensemble,
+        result: nextResult,
+        ensemble: nextEnsemble,
       });
-      appendScenarioReceipts(result, ensemble, acceptedParameters);
-      return scenarioSummary(result, acceptedParameters);
+      appendScenarioReceipts(accepted.result, accepted.ensemble, acceptedParameters);
+      return scenarioSummary(accepted.result, acceptedParameters);
     }
 
     function handleAction(actionId, context = {}) {
@@ -70,24 +68,24 @@
       if (phase === 'start') {
         selectedScenario = normalizeScenario(context.scenario || selectedScenario, config);
         acceptedParameters = validateParameters(context.values || {}, selectedScenario, config, datasets);
-        result = run(acceptedParameters);
-        ensemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
-        comparison = null;
+        const nextResult = run(acceptedParameters);
+        const nextEnsemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
         sdk.events.propose({
           pluginId: PLUGIN_ID,
           kind: `${PLUGIN_ID}.scenario-computed`,
-          scenarioId: result.scenarioId,
+          scenarioId: nextResult.scenarioId,
           acceptedParameters,
-          result,
-          ensemble,
+          result: nextResult,
+          ensemble: nextEnsemble,
         });
         sdk.events.propose({
           pluginId: PLUGIN_ID,
           kind: `${PLUGIN_ID}.playback-started`,
           acceptedParameters,
         });
-        appendScenarioReceipts(result, ensemble, acceptedParameters);
-        return playbackResult(sdk.state.read());
+        const accepted = sdk.state.read();
+        appendScenarioReceipts(accepted.result, accepted.ensemble, acceptedParameters);
+        return playbackResult(accepted);
       }
       if (phase === 'step') {
         const state = sdk.state.read();
@@ -117,12 +115,20 @@
         dataReceipts: datasets.dataReceipts,
         config,
         scenario: state.acceptedParameters,
+        selectedResult: state.result,
       });
-      comparison = comparisonRun;
+      const comparisonSummary = deepFreeze({
+        schema: 'simulatte.plugin.subseaComparisonSummary.v1',
+        comparisonId: comparisonRun.comparisonId,
+        policies: comparisonRun.policies,
+        branchMetrics: comparisonRun.branchMetrics,
+        settlement: comparisonRun.settlement,
+        comparisonExecutionReceiptId: comparisonRun.comparisonExecutionReceipt.id,
+      });
       sdk.events.propose({
         pluginId: PLUGIN_ID,
         kind: `${PLUGIN_ID}.comparison-computed`,
-        comparison: comparisonRun,
+        comparison: comparisonSummary,
       });
       sdk.receipts.append(comparisonRun.comparisonExecutionReceipt);
       sdk.receipts.append({
@@ -137,7 +143,7 @@
         status: 'settled',
         comparisonId: comparisonRun.comparisonId,
         comparisonBranches: comparisonRun.branchMetrics,
-        comparisonExecutionReceipt: comparisonRun.comparisonExecutionReceipt,
+        comparisonExecutionReceiptId: comparisonRun.comparisonExecutionReceipt.id,
       };
     }
 

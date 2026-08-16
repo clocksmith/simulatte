@@ -51,7 +51,7 @@
       ],
       "output": {
         "path": "public/data/simulatte-embedder/manifest.json",
-        "sha256": "9fe057f4329c408cdf8e92f5e4f44ffdc39fbb41dc5be9a5f1b7d6eed1af0a12"
+        "sha256": "90c3bd3fb8ad831a28ebb867ce48e94e9a80d0500f6a95c5b504885c77f5a1cf"
       },
       "contentVersion": "simulatte-model-backed-intent-retrieval-v1",
       "activationState": "active",
@@ -69,7 +69,7 @@
       ],
       "output": {
         "path": "public/data/simulatte-universe/manifest.json",
-        "sha256": "e59af3fe3c7e12f3c86a6a9b5b14e71c0522b45c0307fec69c95880aa413c396"
+        "sha256": "d61c5c7c969c303bc42420108ee976ba660811b32226dbc497e48c968b2f5a8d"
       },
       "contentVersion": "simulatte-universe-multi-index-v1",
       "activationState": "active",
@@ -123,7 +123,7 @@
       ],
       "output": {
         "path": "docs/simulatte/folder-contract.json",
-        "sha256": "52ef76e95299e9cc554bc8a397a3e5e2e564f23164ced0189a387d40148c4944"
+        "sha256": "fe2980e03e7ff9ed7f59b89cd21a57f73e39a22af9bd52a17d8642a7de5daaad"
       },
       "contentVersion": "unpopulated",
       "activationState": "active-generated-mirror",
