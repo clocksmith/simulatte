@@ -6,6 +6,7 @@ Owner contract: [Maritime Trade current experience](../maritime-trade.md).
 
 | Field | State |
 |---|---|
+| Strategic role | **Hero Planetary Simulator** (Rank 3 Core Surface per [Roadmap](../../prompt-to-world-roadmap.md)) |
 | Consistency baseline | 8/10 |
 | Interest baseline | 9/10 |
 | Runtime status | Implemented |
@@ -19,6 +20,7 @@ Owner contract: [Maritime Trade current experience](../maritime-trade.md).
 | Date | Sweep | Result | Evidence |
 |---|---|---|---|
 | 2026-07-27 | Shared playback, semantic presentation, camera, and side-metric consistency | Code complete; browser proof pending | Repository tests 740/740, JavaScript shape tests 46/46, plugin and boundary checks passed |
+| 2026-08-16 | Hero Planetary consolidation & chokepoint focus | Documented role as primary planetary-scale conformance pack and chokepoint cascade showcase. | [Strategic & Performance Consolidation Roadmap](../../prompt-to-world-roadmap.md) |
 
 ## Frontier improvements
 

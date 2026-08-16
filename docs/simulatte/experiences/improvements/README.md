@@ -13,20 +13,21 @@ These files separate three kinds of information:
 
 Frontier descriptions are targets, not implementation claims. The canonical
 experience pages remain the source for behavior that executes today.
+Per the [Strategic & Performance Consolidation Roadmap](../../prompt-to-world-roadmap.md), active development focuses on the **Flagship Compiler** (Blank) and two **Hero Conformance Packs** (Sun Walker and Maritime Trade), while text-heavy/low-visual experiments are slated for archival into historical reference packs.
 
-| Experience | Baseline consistency | Baseline interest | Deep frontier review |
-|---|---:|---:|---|
-| [Cable Trader](cable-trader.md) | 8/10 | 7/10 | Authored |
-| [Neighborhood Bulk Pool](neighborhood-bulk-pool.md) | 8/10 | 9/10 | Authored |
-| [NYC Development Atlas](nyc-development-atlas.md) | 6/10 code audit | 6/10 code audit | Authored |
-| [Sun Walker](sun-walker.md) | 9/10 | 8/10 | Pending |
-| [Food Recall](food-recall.md) | 8/10 | 8/10 | Pending |
-| [Grid Resilience](grid-resilience.md) | 9/10 | 9/10 | Pending |
-| [Maritime Trade](maritime-trade.md) | 8/10 | 9/10 | Pending |
-| [Subsea Network](subsea-network.md) | 8/10 | 8/10 | Pending |
-| [Orbital Transfer Planner](orbital-transfer-planner.md) | 9/10 | 8/10 | Pending |
-| [Asteroid Defense](asteroid-defense.md) | 9/10 | 10/10 | Pending |
-| [Interstellar Relay Network](interstellar-relay-network.md) | 8/10 | 9/10 | Pending |
+| Experience | Strategic Role | Baseline consistency | Baseline interest | Deep frontier review |
+|---|---|---:|---:|---|
+| [Sun Walker](sun-walker.md) | **Hero City Simulator** | 9/10 | 8/10 | Authored / Active |
+| [Maritime Trade](maritime-trade.md) | **Hero Planetary Simulator** | 8/10 | 9/10 | Authored / Active |
+| [NYC Development Atlas](nyc-development-atlas.md) | Secondary City Pack | 6/10 code audit | 6/10 code audit | Authored |
+| [Asteroid Defense](asteroid-defense.md) | Solar Conformance Pack | 9/10 | 10/10 | Pending |
+| [Orbital Transfer Planner](orbital-transfer-planner.md) | Solar Conformance Pack | 9/10 | 8/10 | Pending |
+| [Subsea Network](subsea-network.md) | World Conformance Pack | 8/10 | 8/10 | Pending |
+| [Cable Trader](cable-trader.md) | *Archival Candidate* | 8/10 | 7/10 | Authored |
+| [Neighborhood Bulk Pool](neighborhood-bulk-pool.md) | *Archival Candidate* | 8/10 | 9/10 | Authored |
+| [Food Recall](food-recall.md) | *Archival Candidate* | 8/10 | 8/10 | Pending |
+| [Grid Resilience](grid-resilience.md) | *Archival Candidate* | 9/10 | 9/10 | Pending |
+| [Interstellar Relay Network](interstellar-relay-network.md) | *Archival Candidate* | 8/10 | 9/10 | Pending |
 
 ## Shared 10/10 release gate
 

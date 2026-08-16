@@ -22,7 +22,8 @@ and live renderer adoption of atomic tile residency remain outside the claim.
 
 The target application boundary and resumable extraction sequence are defined
 in [Simulatte plugin platform architecture](plugin-platform-architecture.md).
-Blank remains a separate compiler. Sun Walker, P2P Delivery, Cable Trader,
+The strategic consolidation of Simulatte into a Prompt-to-World simulation compiler and performance optimization plan is defined in [Strategic & Performance Consolidation Roadmap](prompt-to-world-roadmap.md).
+Blank remains the primary compiler surface. Sun Walker, P2P Delivery, Cable Trader,
 Counterfactual Lab, Accessible Journey, Historical Streets, Amenity Router,
 and Gig Wage Truth are defined as independently versioned Simulatte World
 plugins composed through a shared host. Safety Explorer source remains
