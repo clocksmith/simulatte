@@ -4,6 +4,7 @@ import { mkdir, readFile, appendFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
+import { runAutoCompilation } from './compile-human-reviews.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -290,7 +291,51 @@ const server = createServer(async (req, res) => {
       await appendFile(REVIEW_LOG, `${JSON.stringify(review)}\n`);
       await writeFile(DRAFT_PATH, `${JSON.stringify({ ...review, type: 'draft' }, null, 2)}\n`);
       broadcast('review', review);
-      sendJson(req, res, 201, { ok: true, review });
+
+      let compilation = null;
+      try {
+        compilation = await runAutoCompilation({ dataDir: DATA_DIR });
+        broadcast('compilation', compilation);
+      } catch (err) {
+        console.error('Auto-compilation on review failed:', err);
+      }
+
+      sendJson(req, res, 201, { ok: true, review, compilation });
+      return;
+    }
+
+    if (method === 'POST' && url.pathname === '/compile') {
+      const compilation = await runAutoCompilation({ dataDir: DATA_DIR });
+      broadcast('compilation', compilation);
+      sendJson(req, res, 200, { ok: true, compilation });
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/heuristics') {
+      try {
+        const raw = await readFile(path.join(DATA_DIR, 'compiled-heuristics.json'), 'utf8');
+        sendJson(req, res, 200, JSON.parse(raw));
+      } catch (error) {
+        if (error && error.code === 'ENOENT') {
+          sendJson(req, res, 404, { ok: false, error: 'heuristics not yet compiled' });
+        } else {
+          throw error;
+        }
+      }
+      return;
+    }
+
+    if (method === 'GET' && url.pathname === '/candidates') {
+      try {
+        const raw = await readFile(path.join(DATA_DIR, 'training-candidates.json'), 'utf8');
+        sendJson(req, res, 200, JSON.parse(raw));
+      } catch (error) {
+        if (error && error.code === 'ENOENT') {
+          sendJson(req, res, 404, { ok: false, error: 'candidates not yet compiled' });
+        } else {
+          throw error;
+        }
+      }
       return;
     }
 

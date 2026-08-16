@@ -1,0 +1,10 @@
+{
+  "schema": "simulatte.calibrationReceipt.v1",
+  "generatedAt": "2026-08-16T23:57:22.238Z",
+  "sourceReviewsSha256": "5463d4dba27a45acb2f4d18bba17889dd934289f8620c51a08be0f75582ea76a",
+  "reviewCount": 4,
+  "passCount": 0,
+  "critiqueCount": 1,
+  "candidatesCompiled": 4,
+  "heuristicsCompiled": 8
+}

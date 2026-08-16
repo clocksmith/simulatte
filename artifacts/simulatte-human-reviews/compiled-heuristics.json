@@ -1,0 +1,177 @@
+{
+  "schema": "simulatte.compiledHumanCritiqueHeuristics.v1",
+  "generatedAt": "2026-08-16T23:57:22.238Z",
+  "reviewCount": 4,
+  "statusSummary": {
+    "pass": 0,
+    "fail": 1,
+    "critique": 0,
+    "other": 3
+  },
+  "topKeywords": [
+    {
+      "keyword": "typed",
+      "count": 2
+    },
+    {
+      "keyword": "dogs",
+      "count": 2
+    },
+    {
+      "keyword": "some",
+      "count": 2
+    },
+    {
+      "keyword": "this",
+      "count": 2
+    },
+    {
+      "keyword": "scene",
+      "count": 2
+    },
+    {
+      "keyword": "city",
+      "count": 2
+    },
+    {
+      "keyword": "like",
+      "count": 2
+    },
+    {
+      "keyword": "trees",
+      "count": 2
+    },
+    {
+      "keyword": "circle",
+      "count": 1
+    },
+    {
+      "keyword": "squates",
+      "count": 1
+    },
+    {
+      "keyword": "lines",
+      "count": 1
+    },
+    {
+      "keyword": "shit",
+      "count": 1
+    },
+    {
+      "keyword": "flowers",
+      "count": 1
+    },
+    {
+      "keyword": "hint",
+      "count": 1
+    },
+    {
+      "keyword": "which",
+      "count": 1
+    },
+    {
+      "keyword": "also",
+      "count": 1
+    },
+    {
+      "keyword": "looks",
+      "count": 1
+    },
+    {
+      "keyword": "nothign",
+      "count": 1
+    },
+    {
+      "keyword": "terrible",
+      "count": 1
+    },
+    {
+      "keyword": "typee",
+      "count": 1
+    }
+  ],
+  "phaseHeuristics": {
+    "phase-01": {
+      "phaseNumber": 1,
+      "phaseName": "phase-01-runtime",
+      "critiqueCount": 0,
+      "commonFailures": [],
+      "suggestedRules": []
+    },
+    "phase-02": {
+      "phaseNumber": 2,
+      "phaseName": "phase-02-language",
+      "critiqueCount": 0,
+      "commonFailures": [],
+      "suggestedRules": [
+        "Enforce explicit token bounds on clause negation and spatial modifier attachment.",
+        "Strictly validate numeric quantity extraction before intent graph lowering."
+      ]
+    },
+    "phase-03": {
+      "phaseNumber": 3,
+      "phaseName": "phase-03-retrieval",
+      "critiqueCount": 0,
+      "commonFailures": [],
+      "suggestedRules": [
+        "Boost lexical keyword matching weight when dense cosine similarity drops below 0.65.",
+        "Index multi-word domain entity synonyms into semantic RAG cache."
+      ]
+    },
+    "phase-04": {
+      "phaseNumber": 4,
+      "phaseName": "phase-04-grounded-intent",
+      "critiqueCount": 0,
+      "commonFailures": [],
+      "suggestedRules": [
+        "Flag unsupported spatial obligations as explicit approximations instead of dropping nodes.",
+        "Preserve causal dependency edges across multi-clause intent sequences."
+      ]
+    },
+    "phase-05": {
+      "phaseNumber": 5,
+      "phaseName": "phase-05-simulation",
+      "critiqueCount": 0,
+      "commonFailures": [],
+      "suggestedRules": [
+        "Ensure solver ODE step size clamps to minimum 1/120s under high agent velocity.",
+        "Validate constraint satisfaction boundaries at terminal simulation state."
+      ]
+    },
+    "phase-06": {
+      "phaseNumber": 6,
+      "phaseName": "phase-06-visual",
+      "critiqueCount": 0,
+      "commonFailures": [],
+      "suggestedRules": [
+        "Enforce bounding-box spatial non-intersection for procedural instance layout.",
+        "Check camera frustum coverage across primary subject trajectory."
+      ]
+    },
+    "phase-07": {
+      "phaseNumber": 7,
+      "phaseName": "phase-07-render",
+      "critiqueCount": 0,
+      "commonFailures": [],
+      "suggestedRules": [
+        "Verify WebGPU uniform buffer alignment (256-byte stride compliance).",
+        "Check depth buffer write-mask state across layered semi-transparent geometry."
+      ]
+    },
+    "phase-08": {
+      "phaseNumber": 8,
+      "phaseName": "phase-08-scene-proof",
+      "critiqueCount": 4,
+      "commonFailures": [
+        "i typed dogs, i see 2 circle some squates and some lines, this is shit",
+        "i typed flowers, i see scene hint as city? which also looks nothign like a city, terrible.",
+        "i typee trees and mountains, the rainbow efect loooks coool visiausl as an optics world, but this does not look anythihgng like trees or moutnains at all, why is onle one scene kind written?",
+        "i said dogs and cats swimming and i got a thermal plume, not even close."
+      ],
+      "suggestedRules": [
+        "Generate deterministic WorldProof receipt with explicit obligation settlement table.",
+        "Record exact frame readback hashes for regression verification."
+      ]
+    }
+  }
+}

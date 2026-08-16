@@ -1,0 +1,51 @@
+{
+  "schema": "simulatte.compiledTrainingCandidates.v1",
+  "generatedAt": "2026-08-16T23:57:22.238Z",
+  "candidateCount": 4,
+  "candidates": [
+    {
+      "prompt": "dogs",
+      "failureCount": 1,
+      "failedPhases": [
+        "1->8"
+      ],
+      "recordedCritiques": [
+        "i typed dogs, i see 2 circle some squates and some lines, this is shit"
+      ],
+      "targetSuitability": "exploratory-candidate"
+    },
+    {
+      "prompt": "flowers",
+      "failureCount": 1,
+      "failedPhases": [
+        "1->8"
+      ],
+      "recordedCritiques": [
+        "i typed flowers, i see scene hint as city? which also looks nothign like a city, terrible."
+      ],
+      "targetSuitability": "exploratory-candidate"
+    },
+    {
+      "prompt": "trees and mountaints",
+      "failureCount": 1,
+      "failedPhases": [
+        "1->8"
+      ],
+      "recordedCritiques": [
+        "i typee trees and mountains, the rainbow efect loooks coool visiausl as an optics world, but this does not look anythihgng like trees or moutnains at all, why is onle one scene kind written?"
+      ],
+      "targetSuitability": "exploratory-candidate"
+    },
+    {
+      "prompt": "dogs and cats swimming",
+      "failureCount": 1,
+      "failedPhases": [
+        "1->8"
+      ],
+      "recordedCritiques": [
+        "i said dogs and cats swimming and i got a thermal plume, not even close."
+      ],
+      "targetSuitability": "exploratory-candidate"
+    }
+  ]
+}

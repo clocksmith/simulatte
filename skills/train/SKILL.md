@@ -29,6 +29,7 @@ Useful variants:
 npm run train -- --no-open
 npm run train -- --stop
 npm run train -- --check --no-open
+npm run compile:reviews
 ```
 
 Training mode keys in the app:
@@ -41,6 +42,19 @@ Use the phase row to judge `Final`, `1->2`, `1->3`, `1->4`, `1->5`, `1->6`,
 use `Looks right` / `1` for a pass. Each saved record includes the selected
 checkpoint, feedback text, current pipeline phase, compact artifact summary, and
 canvas diagnostics.
+
+### Direct Auto-Compilation of Reviews
+
+The review server automatically compiles human reviews upon receipt into:
+- `artifacts/simulatte-human-reviews/compiled-heuristics.json` (Phase-by-phase failure patterns, rejected token clusters, and generation guidance)
+- `artifacts/simulatte-human-reviews/training-candidates.json` (High-priority prompts for calibration and model regression suites)
+- `artifacts/simulatte-human-reviews/calibration-receipt.json` (Cryptographic source hash and compilation receipt)
+
+Endpoints exposed on the review server:
+- `POST /reviews`: Appends review and triggers immediate auto-compilation.
+- `POST /compile`: Explicitly triggers auto-compilation over all saved reviews.
+- `GET /heuristics`: Serves latest compiled heuristics across phases 1 through 8.
+- `GET /candidates`: Serves compiled training and calibration candidate prompts.
 
 Do not deploy for this workflow. Do not use Firebase. Keep the loop local and
 receipt-backed through the review server.
