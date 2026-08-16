@@ -13,8 +13,11 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 import { captureChildProcessOutput } from './audit-process-log.mjs';
 import { auditPromptMatches, waitForCondition, withDeadline } from './audit-runtime-wait.mjs';
+import { stopStaticServer } from './audit-server-lifecycle.mjs';
 import { modelPreparationFailures } from './model-preparation-receipt.mjs';
 import { renderedSignalEvidence } from './visual-rubric-evidence.mjs';
+import { captureExactWorldProofReplay } from './exact-world-proof-replay-audit.mjs';
+import { beginBrowserMemoryWindow, endBrowserMemoryWindow } from './browser-memory-receipt.mjs';
 import {
   evaluateGoldVisualResults,
   loadGoldAdjudication,
@@ -166,6 +169,7 @@ function parseArgs(argv) {
     goldSetPath: '',
     goldAdjudicationPath: '',
     machineOnlyGold: false,
+    exactReplay: false,
     chromePath: '',
   };
   for (let i = 0; i < argv.length; i += 1) {
@@ -182,6 +186,7 @@ function parseArgs(argv) {
     else if (key === '--gold-set') options.goldSetPath = path.resolve(readValue() || '');
     else if (key === '--gold-adjudication') options.goldAdjudicationPath = path.resolve(readValue() || '');
     else if (key === '--machine-only-gold') options.machineOnlyGold = true;
+    else if (key === '--exact-replay') options.exactReplay = true;
     else if (key === '--chrome') options.chromePath = path.resolve(readValue() || '');
     else if (key === '--width') options.width = Math.max(320, Number(readValue() || options.width));
     else if (key === '--height') options.height = Math.max(480, Number(readValue() || options.height));
@@ -206,7 +211,7 @@ function parseArgs(argv) {
       options.intentMode = mode === 'model' ? 'model' : 'local';
     }
     else if (key === '--help') {
-      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--chrome PATH] [--curated N] [--broad N] [--prompt TEXT] [--gold-set PATH] [--gold-adjudication PATH] [--machine-only-gold] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--timeout-ms N] [--prompt-timeout-ms N] [--frame-delay-ms N] [--profile-dir DIR] [--local-port PORT]');
+      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--chrome PATH] [--curated N] [--broad N] [--prompt TEXT] [--gold-set PATH] [--gold-adjudication PATH] [--machine-only-gold] [--exact-replay] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--timeout-ms N] [--prompt-timeout-ms N] [--frame-delay-ms N] [--profile-dir DIR] [--local-port PORT]');
       process.exit(0);
     }
   }
@@ -1032,6 +1037,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const terminalPixelProof = ['pass', 'fail', 'not-proven', 'error'].includes(pixelProof);
     const required = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelRequiredObligationCount || 0);
     const sampled = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelSampledObligationCount || 0);
+    const semanticAbsence = Number(canvas && canvas.dataset && canvas.dataset.phase7SemanticAbsenceObligationCount || 0);
+    const settled = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelSettledObligationCount || 0);
     return {
       ok: promptMatches && renderInputMatches && rendered >= 3 && terminalSceneProof &&
         terminalPixelReadback && terminalPixelProof && required >= 1,
@@ -1047,6 +1054,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       phase7PixelProofStatus: pixelProof,
       phase7PixelRequiredObligationCount: required,
       phase7PixelSampledObligationCount: sampled,
+      phase7SemanticAbsenceObligationCount: semanticAbsence,
+      phase7PixelSettledObligationCount: settled,
       phase7PixelVisibleSampleCount: Number(canvas && canvas.dataset && canvas.dataset.phase7PixelVisibleSampleCount || 0),
       phase7PixelMinContrast: Number(canvas && canvas.dataset && canvas.dataset.phase7PixelMinContrast || 0),
       phase7VisualObligationProof: canvas && canvas.dataset && canvas.dataset.phase7VisualObligationProof || '',
@@ -1061,7 +1070,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       sceneProofVerdict: value && value.sceneProofVerdict || '',
       phase7PixelReadback: value && value.phase7PixelReadback || '',
       phase7PixelProofStatus: value && value.phase7PixelProofStatus || '',
-      sampled: value && value.phase7PixelSampledObligationCount || 0,
+      settled: value && value.phase7PixelSettledObligationCount || 0,
     }),
     describeLast: (value) => ({
       renderCount: value && value.renderCount || 0,
@@ -1075,8 +1084,20 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       phase7PixelProofStatus: value && value.phase7PixelProofStatus || '',
       requiredObligations: value && value.phase7PixelRequiredObligationCount || 0,
       sampledObligations: value && value.phase7PixelSampledObligationCount || 0,
+      semanticAbsenceObligations: value && value.phase7SemanticAbsenceObligationCount || 0,
+      settledObligations: value && value.phase7PixelSettledObligationCount || 0,
     }),
   });
+  let exactReplay = null;
+  if (options.exactReplay) {
+    markStage('exact-replay');
+    exactReplay = await captureExactWorldProofReplay({
+      cdp,
+      evaluate,
+      prompt,
+      timeoutMs,
+    });
+  }
   markStage('diagnostics');
   const diagnostics = await evaluate(cdp, `(() => {
     const canvas = document.getElementById('physics-canvas');
@@ -1143,6 +1164,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const compiledSourcePromptHash = phaseArtifacts.phase2 && phaseArtifacts.phase2.artifact &&
       phaseArtifacts.phase2.artifact.sceneLanguageGraph &&
       phaseArtifacts.phase2.artifact.sceneLanguageGraph.sourcePromptHash || '';
+    const phase2IntentRequirementLedger = phaseArtifacts.phase2 && phaseArtifacts.phase2.artifact &&
+      phaseArtifacts.phase2.artifact.intentRequirements || null;
     const phaseArtifactSchemas = Object.fromEntries(Array.from({ length: 6 }, (_, index) => {
       const key = 'phase' + (index + 1);
       return [key, phaseArtifacts[key] && phaseArtifacts[key].schema || ''];
@@ -1260,6 +1283,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       renderInputSerial: Number(canvas && canvas.dataset && canvas.dataset.renderInputSerial || 0),
       compiledPrompt,
       compiledSourcePromptHash,
+      phase2IntentRequirementLedger,
       sceneRenderPacketCanonicalJson: sceneRenderPacket ? canonicalBrowserJson(sceneRenderPacket) : '',
       runtimeStage: runtime ? runtime.dataset.stage || '' : '',
       runtimeLastStage: runtime ? runtime.dataset.lastStage || '' : '',
@@ -1500,6 +1524,9 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         target: row.target || '',
         required: row.required === true,
         status: row.status || '',
+        constraintKind: row.constraintKind || '',
+        targetIdentity: row.targetIdentity || '',
+        targetSemanticCode: Number(row.targetSemanticCode || 0),
         visualEvidence: row.visualEvidence || [],
       })),
       sceneRenderPacketSurfaceContacts: sceneRenderPacket && sceneRenderPacket.receipts &&
@@ -1528,6 +1555,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         label: row.label || '',
         type: row.identity && row.identity.type || '',
         sourceLabel: row.identity && row.identity.sourceLabel || '',
+        semanticCode: Number(row.renderCodes && row.renderCodes.semanticCode || 0),
         layerSlot: row.layerSlot || '',
         animationKind: row.animation && row.animation.kind || '',
         animationSpeed: Number(row.animation && row.animation.speed || 0),
@@ -1600,6 +1628,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       phase7PixelVisibleSampleCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelVisibleSampleCount || 0) : 0,
       phase7PixelMinContrast: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelMinContrast || 0) : 0,
       phase7PixelSampledObligationCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelSampledObligationCount || 0) : 0,
+      phase7SemanticAbsenceObligationCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7SemanticAbsenceObligationCount || 0) : 0,
+      phase7PixelSettledObligationCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelSettledObligationCount || 0) : 0,
       phase7PixelRequiredObligationCount: canvas && canvas.dataset ? Number(canvas.dataset.phase7PixelRequiredObligationCount || 0) : 0,
       phase7PixelSampledObligations: canvas && canvas.dataset ? canvas.dataset.phase7PixelSampledObligations || '' : '',
       phase7PixelSamples,
@@ -1829,6 +1859,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   const sceneRenderPacketCanonicalJson = diagnostics.sceneRenderPacketCanonicalJson || '';
   delete diagnostics.sceneRenderPacketCanonicalJson;
   const finalDiagnostics = { ...diagnostics, ...settledProof };
+  finalDiagnostics.exactReplay = exactReplay;
   finalDiagnostics.promptSha256 = sha256Hex(prompt);
   finalDiagnostics.sceneRenderPacketSha256 = sceneRenderPacketCanonicalJson
     ? sha256Hex(sceneRenderPacketCanonicalJson)
@@ -2255,8 +2286,12 @@ function analyze(results, options = {}) {
     if (result.phase7PixelRequiredObligationCount < 1) {
       failures.push(`${result.index}: Phase 7 pixel proof has no required visual obligations`);
     }
-    if (result.phase7PixelSampledObligationCount !== result.phase7PixelRequiredObligationCount) {
-      failures.push(`${result.index}: Phase 7 pixel proof sampled ${result.phase7PixelSampledObligationCount}/${result.phase7PixelRequiredObligationCount} required obligations`);
+    const settledVisualObligations = Number(
+      result.phase7PixelSettledObligationCount ?? result.phase7PixelSampledObligationCount
+    );
+    if (settledVisualObligations !== result.phase7PixelRequiredObligationCount) {
+      failures.push(`${result.index}: Phase 7 pixel proof settled ${settledVisualObligations}/${result.phase7PixelRequiredObligationCount} required obligations ` +
+        `(${result.phase7PixelSampledObligationCount} pixel sampled, ${result.phase7SemanticAbsenceObligationCount || 0} semantic absence)`);
     }
     if (result.webgpuOptimizationPath !== 'background-plus-instanced-object-parts') {
       failures.push(`${result.index}: WebGPU optimization path is ${result.webgpuOptimizationPath || 'missing'}`);
@@ -2615,6 +2650,7 @@ async function main() {
   await fs.mkdir(profileDir, { recursive: true });
   const chrome = spawn(chromePath, [
     '--headless=new',
+    '--enable-precise-memory-info',
     `--remote-debugging-port=${debugPort}`,
     `--user-data-dir=${profileDir}`,
     '--no-first-run',
@@ -2640,8 +2676,12 @@ async function main() {
       };
       const promptOptions = { ...options, promptCount: prompts.length, onAuditStage };
       const deadlineMs = promptDeadlineMs(promptOptions);
+      let memoryWindowOpen = false;
+      let browserMemory = null;
       try {
-        results.push(await withDeadline(
+        await beginBrowserMemoryWindow(cdp, evaluate);
+        memoryWindowOpen = true;
+        const result = await withDeadline(
           `visual audit prompt ${i + 1}/${prompts.length}`,
           () => runPrompt(cdp, prompts[i], i, options.outDir, promptOptions),
           deadlineMs,
@@ -2649,9 +2689,16 @@ async function main() {
             describe: () => `stage=${active.stage}, stageElapsedMs=${active.elapsedMs}`,
             onTimeout: (error) => cdp.close(error),
           }
-        ));
+        );
+        browserMemory = await endBrowserMemoryWindow(cdp, evaluate);
+        memoryWindowOpen = false;
+        results.push({ ...result, browserMemory });
       } catch (error) {
         if (cdp.closedError) throw error;
+        if (memoryWindowOpen) {
+          browserMemory = await endBrowserMemoryWindow(cdp, evaluate).catch(() => null);
+          memoryWindowOpen = false;
+        }
         const state = await auditFailureState(cdp);
         const message = error && error.message ? error.message : String(error);
         results.push({
@@ -2661,6 +2708,7 @@ async function main() {
           goldRowId: prompts[i].goldRowId || '',
           auditError: message,
           auditFailureState: state,
+          browserMemory,
         });
         console.error(JSON.stringify({
           schema: 'simulatte.visualAuditPromptFailure.v1',
@@ -2708,6 +2756,7 @@ async function main() {
         ? 'machine-phase8-pixel-and-scene-proof'
         : 'machine-and-human-recognizability',
       target: options.url ? 'live-url' : 'local-public',
+      exactReplay: options.exactReplay,
       url: pageUrl,
       profileDir,
       profilePersistent: Boolean(options.profileDir || options.keepProfile),
@@ -2743,14 +2792,20 @@ async function main() {
   } finally {
     if (cdp) cdp.close();
     await stopChildProcess(chrome);
-    if (local.server) local.server.close();
+    await stopStaticServer(local.server);
     if (!options.profileDir && !options.keepProfile) {
       await fs.rm(profileDir, { recursive: true, force: true }).catch(() => {});
     }
   }
 }
 
-main().catch((err) => {
+function exitAfterOutputFlush() {
+  const exitCode = Number(process.exitCode || 0);
+  if (!process.stdout.writable) process.exit(exitCode);
+  process.stdout.write('', () => process.exit(exitCode));
+}
+
+main().then(exitAfterOutputFlush).catch((err) => {
   console.error(err && err.stack || err);
   process.exit(1);
 });

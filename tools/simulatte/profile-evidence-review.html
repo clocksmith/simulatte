@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Simulatte profile evidence review</title>
+  <link rel="stylesheet" href="/review.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Simulatte WorldProof</p>
+      <h1>Profile evidence review</h1>
+    </div>
+    <div id="summary" class="summary" aria-live="polite">Loading bound evidence...</div>
+  </header>
+
+  <main>
+    <aside class="run-picker" aria-label="Evidence runs">
+      <label for="run-filter">Show</label>
+      <select id="run-filter">
+        <option value="pending">Pending first</option>
+        <option value="all">All runs</option>
+        <option value="conflict">Conflicts</option>
+        <option value="fail">Failed reviews</option>
+      </select>
+      <label for="run-select">Bound run</label>
+      <select id="run-select" size="12" aria-label="Bound evidence run"></select>
+      <div class="pager">
+        <button id="previous-run" type="button">Previous</button>
+        <button id="next-run" type="button">Next</button>
+      </div>
+      <p id="queue-identity" class="identity"></p>
+    </aside>
+
+    <article class="review-workspace">
+      <section class="brief-panel">
+        <div class="section-heading">
+          <div>
+            <p id="run-label" class="eyebrow"></p>
+            <h2 id="profile-label">Select a run</h2>
+          </div>
+          <span id="review-status" class="status">pending</span>
+        </div>
+        <p id="prompt-text" class="prompt"></p>
+        <dl class="binding-grid">
+          <div><dt>Build</dt><dd id="build-id"></dd></div>
+          <div><dt>WorldSpec</dt><dd id="world-spec-id"></dd></div>
+          <div><dt>Scene packet</dt><dd id="scene-packet-id"></dd></div>
+          <div><dt>Screenshot</dt><dd id="screenshot-id"></dd></div>
+        </dl>
+      </section>
+
+      <section class="evidence-panel" aria-label="Bound screenshots">
+        <div class="evidence-tabs" role="group" aria-label="Screenshot type">
+          <button id="show-canvas" type="button" aria-pressed="true">Canvas evidence</button>
+          <button id="show-page" type="button" aria-pressed="false">Full page</button>
+        </div>
+        <figure>
+          <img id="evidence-image" alt="Bound simulation evidence">
+          <figcaption id="evidence-caption"></figcaption>
+        </figure>
+      </section>
+
+      <form id="review-form" class="review-form">
+        <div class="reviewer-row">
+          <label for="reviewer-id">Reviewer identity</label>
+          <input id="reviewer-id" name="reviewerId" maxlength="120" autocomplete="name" required>
+        </div>
+        <fieldset id="verdict-fields">
+          <legend>Human visual verdicts</legend>
+        </fieldset>
+        <label for="review-note">Review note</label>
+        <textarea id="review-note" maxlength="4000" rows="4" placeholder="Record the visible reason for any failure or ambiguity."></textarea>
+        <div class="submit-row">
+          <p id="submit-status" role="status"></p>
+          <button id="submit-review" type="submit">Submit immutable review</button>
+        </div>
+      </form>
+
+      <section class="prior-reviews">
+        <h2>Bound reviews</h2>
+        <ul id="review-list"></ul>
+      </section>
+    </article>
+  </main>
+
+  <script type="module" src="/review.js"></script>
+</body>
+</html>

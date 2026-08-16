@@ -28,7 +28,7 @@
   ],
   "properties": {
     "schema": { "const": "simulatte.worldSpec.v1" },
-    "schemaVersion": { "const": "1.1.0" },
+    "schemaVersion": { "const": "1.2.0" },
     "contentHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
     "source": { "$ref": "#/$defs/source" },
     "authorship": { "$ref": "#/$defs/authorship" },
@@ -79,13 +79,14 @@
     "authorship": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schema", "revision", "sources", "fieldProvenance", "patches"],
+      "required": ["schema", "revision", "sources", "fieldProvenance", "patches", "reconciliations"],
       "properties": {
-        "schema": { "const": "simulatte.worldSpecAuthoring.v1" },
+        "schema": { "const": "simulatte.worldSpecAuthoring.v2" },
         "revision": { "type": "integer", "minimum": 0 },
         "sources": { "type": "array", "items": { "$ref": "#/$defs/sourceAuthority" } },
         "fieldProvenance": { "type": "array", "items": { "$ref": "#/$defs/fieldProvenance" } },
-        "patches": { "type": "array", "items": { "$ref": "#/$defs/patch" } }
+        "patches": { "type": "array", "items": { "$ref": "#/$defs/patch" } },
+        "reconciliations": { "type": "array", "items": { "$ref": "#/$defs/reconciliation" } }
       }
     },
     "sourceAuthority": {
@@ -246,6 +247,74 @@
         "compilerBaselineContentHash": {
           "type": ["string", "null"],
           "pattern": "^fnv1a32:[0-9a-f]{8}$"
+        }
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "id",
+        "decision",
+        "decidedBy",
+        "previousWorldSpec",
+        "compiledWorldSpec",
+        "effectiveOverrides"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.worldSpecReconciliation.v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "decision": { "enum": ["preserve-overrides", "accept-recompiled"] },
+        "decidedBy": { "type": "string", "minLength": 1 },
+        "previousWorldSpec": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "contentHash", "revision", "patchIds"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "contentHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+            "revision": { "type": "integer", "minimum": 1 },
+            "patchIds": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "compiledWorldSpec": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "contentHash", "revision"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "contentHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+            "revision": { "const": 0 }
+          }
+        },
+        "effectiveOverrides": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "targetPath",
+              "priorCompilerValue",
+              "acceptedValue",
+              "recompiledValue",
+              "status"
+            ],
+            "properties": {
+              "targetPath": { "type": "string", "pattern": "^/" },
+              "priorCompilerValue": {},
+              "acceptedValue": {},
+              "recompiledValue": {},
+              "status": {
+                "enum": ["unchanged-baseline", "already-applied", "compiler-conflict", "unavailable"]
+              }
+            }
+          }
         }
       }
     }

@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte World Improvement Record",
+  "description": "A content-addressed correction episode binding a failed execution, exact user patches, successful replay, adjudication state, and evaluation scope.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contentHash",
+    "status",
+    "brief",
+    "failureBoundary",
+    "intervention",
+    "successfulReplay",
+    "diagnosis",
+    "adjudication",
+    "population",
+    "generalization",
+    "corpusDisposition",
+    "createdAt"
+  ],
+  "properties": {
+    "schema": { "const": "simulatte.worldImprovementRecord.v1" },
+    "contentHash": { "$ref": "#/$defs/hash" },
+    "status": { "const": "successful-replay" },
+    "brief": { "$ref": "#/$defs/brief" },
+    "failureBoundary": { "$ref": "#/$defs/failureBoundary" },
+    "intervention": { "$ref": "#/$defs/intervention" },
+    "successfulReplay": { "$ref": "#/$defs/success" },
+    "diagnosis": { "$ref": "#/$defs/diagnosis" },
+    "adjudication": { "$ref": "#/$defs/adjudication" },
+    "population": { "$ref": "#/$defs/population" },
+    "generalization": { "$ref": "#/$defs/generalization" },
+    "corpusDisposition": {
+      "enum": ["diagnostic-only", "adjudicated-positive", "adjudicated-negative"]
+    },
+    "createdAt": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^fnv1a32:[0-9a-f]{8}$"
+    },
+    "brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt", "promptHash"],
+      "properties": {
+        "prompt": { "type": "string", "minLength": 1 },
+        "promptHash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "worldSpecSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "id", "contentHash", "revision", "program"],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementWorldSpec.v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "contentHash": { "$ref": "#/$defs/hash" },
+        "revision": { "type": "integer", "minimum": 0 },
+        "program": { "$ref": "world-spec.schema.json" }
+      }
+    },
+    "compilerPhase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "phase",
+        "outputSchema",
+        "contentHash",
+        "runtimeReceiptId",
+        "receiptIds",
+        "envelope"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementCompilerPhase.v1" },
+        "phase": { "type": "integer", "minimum": 1, "maximum": 6 },
+        "outputSchema": { "type": "string", "minLength": 1 },
+        "contentHash": { "$ref": "#/$defs/hash" },
+        "runtimeReceiptId": { "type": "string" },
+        "receiptIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "envelope": {
+          "type": "object",
+          "description": "The exact typed phase envelope. Its outputSchema selects the owning phase validator."
+        }
+      }
+    },
+    "compilerTrace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "contentHash", "phases"],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementCompilerTrace.v1" },
+        "contentHash": { "$ref": "#/$defs/hash" },
+        "phases": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/compilerPhase" }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "runtimeReceiptId",
+        "buildId",
+        "runtimeId",
+        "deviceClass",
+        "renderDataKey",
+        "worldProofBinding",
+        "sceneProof",
+        "worldProof"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementExecution.v1" },
+        "runtimeReceiptId": { "type": "string" },
+        "buildId": { "type": "string", "minLength": 1 },
+        "runtimeId": { "type": "string" },
+        "deviceClass": { "type": "string" },
+        "renderDataKey": { "type": "string" },
+        "worldProofBinding": { "type": "object" },
+        "sceneProof": { "type": "object" },
+        "worldProof": { "$ref": "world-proof.schema.json" }
+      }
+    },
+    "failureBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "brief", "worldSpec", "compilerTrace", "execution", "capturedAt"],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementFailureBoundary.v1" },
+        "brief": { "$ref": "#/$defs/brief" },
+        "worldSpec": { "$ref": "#/$defs/worldSpecSnapshot" },
+        "compilerTrace": { "$ref": "#/$defs/compilerTrace" },
+        "execution": { "$ref": "#/$defs/execution" },
+        "capturedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "intervention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "fromRevision",
+        "toRevision",
+        "patchIds",
+        "affectedObligationIds",
+        "patches"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementIntervention.v1" },
+        "fromRevision": { "type": "integer", "minimum": 0 },
+        "toRevision": { "type": "integer", "minimum": 1 },
+        "patchIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "affectedObligationIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "patches": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "object" }
+        }
+      }
+    },
+    "success": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "worldSpec", "compilerTrace", "execution", "capturedAt"],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementSuccess.v1" },
+        "worldSpec": { "$ref": "#/$defs/worldSpecSnapshot" },
+        "compilerTrace": { "$ref": "#/$defs/compilerTrace" },
+        "execution": { "$ref": "#/$defs/execution" },
+        "capturedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "divergence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "phase", "proofClass", "status", "failure"],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementDivergence.v1" },
+        "phase": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "proofClass": {
+          "enum": ["intent", "semantic", "compilation", "simulation", "interaction", "safety", "visual", "replay"]
+        },
+        "status": { "enum": ["fail", "unsupported", "not-proven"] },
+        "failure": { "type": "string", "minLength": 1 }
+      }
+    },
+    "diagnosis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "earliestObservableDivergence", "causalAttribution"],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementDiagnosis.v1" },
+        "earliestObservableDivergence": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/divergence" }
+          ]
+        },
+        "causalAttribution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema", "status", "ownerPhase", "evidenceIds"],
+          "properties": {
+            "schema": { "const": "simulatte.worldImprovementCausalAttribution.v1" },
+            "status": { "const": "not-attributed" },
+            "ownerPhase": { "type": "null" },
+            "evidenceIds": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      }
+    },
+    "humanReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "id",
+        "status",
+        "reviewer",
+        "reviewedAt",
+        "targetPhase",
+        "feedback",
+        "tags",
+        "buildId",
+        "artifactHash",
+        "screenshotHash",
+        "worldProofContentHash",
+        "priorRecordContentHash"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementHumanReview.v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["accepted", "rejected"] },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "reviewedAt": { "type": "string", "format": "date-time" },
+        "targetPhase": { "const": "final" },
+        "feedback": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "buildId": { "type": "string", "minLength": 1 },
+        "artifactHash": { "type": "string", "minLength": 1 },
+        "screenshotHash": { "type": "string", "minLength": 1 },
+        "worldProofContentHash": { "$ref": "#/$defs/hash" },
+        "priorRecordContentHash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "adjudication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "status", "review"],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementAdjudication.v1" },
+        "status": { "enum": ["pending", "accepted", "rejected"] },
+        "review": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/humanReview" }
+          ]
+        }
+      }
+    },
+    "population": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "partition", "suiteId", "rowId"],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementPopulation.v1" },
+        "partition": { "const": "unassigned" },
+        "suiteId": { "const": "" },
+        "rowId": { "const": "" }
+      }
+    },
+    "generalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "status", "suiteId", "receiptIds"],
+      "properties": {
+        "schema": { "const": "simulatte.worldImprovementGeneralization.v1" },
+        "status": { "const": "not-evaluated" },
+        "suiteId": { "const": "" },
+        "receiptIds": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    }
+  }
+}

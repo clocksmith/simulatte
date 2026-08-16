@@ -81,7 +81,7 @@
       try {
         setSpecStatus(elements, 'Validating governed scenario', 'active');
         const current = currentSpec();
-        const candidate = worldSpec.parseWorldSpec(elements.editor.value);
+        const candidate = worldSpec.parseWorldSpecEditCandidate(elements.editor.value);
         const scenario = scenarioEditTarget(current, candidate, profile);
         const compiled = profileWorldSpec.compileProfileScenarioSelection({
           profile,
@@ -235,9 +235,10 @@
       const file = elements.importFile.files && elements.importFile.files[0];
       if (!file) return;
       try {
-        elements.editor.value = await file.text();
+        const imported = worldSpec.parseWorldSpec(await file.text());
+        elements.editor.value = worldSpec.serializeWorldSpec(imported);
         markDirty();
-        setSpecStatus(elements, `Imported ${file.name || 'WorldSpec file'} for validation`, 'dirty');
+        setSpecStatus(elements, `Verified ${file.name || 'WorldSpec file'} for governed recompile`, 'dirty');
       } catch (error) {
         setSpecStatus(elements, error.message || String(error), 'error');
       } finally {
@@ -317,6 +318,7 @@
 
   function scenarioEditTarget(current, candidate, profile) {
     worldSpec.validateWorldSpec(current);
+    worldSpec.validateWorldSpec(candidate, { verifyHash: false });
     const currentExport = JSON.parse(worldSpec.serializeWorldSpec(current));
     const candidateExport = canonicalValue(candidate);
     delete currentExport.contentHash;

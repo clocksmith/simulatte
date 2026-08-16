@@ -32,7 +32,13 @@ test('World profile editor turns one scenario selector edit into a complete gove
   const candidate = JSON.parse(worldSpec.serializeWorldSpec(spec));
   candidate.params.scenarioId = profile.seeds[1].id;
 
-  const target = profileProgram.scenarioEditTarget(spec, candidate, profile);
+  assert.throws(
+    () => worldSpec.parseWorldSpec(JSON.stringify(candidate)),
+    (error) => error.code === 'SIMULATTE_WORLD_SPEC_INVALID' && error.path === '$.contentHash'
+  );
+  const parsedCandidate = worldSpec.parseWorldSpecEditCandidate(JSON.stringify(candidate));
+
+  const target = profileProgram.scenarioEditTarget(spec, parsedCandidate, profile);
   const compiled = profileWorldSpec.compileProfileScenarioSelection({
     profile,
     scenarioId: target.id,
@@ -50,6 +56,13 @@ test('World profile editor turns one scenario selector edit into a complete gove
   assert.equal(compiled.phaseArtifacts.phase4.artifact.semanticProvenance.status, 'pass');
   assert.equal(compiled.phaseArtifacts.phase5.artifact.scenarioId, target.id);
   assert.equal(compiled.authorship.revision, 0);
+});
+
+test('World profile imports verify declared identity before entering the governed editor', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'public/simulatte/app/profile-program.js'), 'utf8');
+
+  assert.match(source, /const imported = worldSpec\.parseWorldSpec\(await file\.text\(\)\)/);
+  assert.match(source, /worldSpec\.parseWorldSpecEditCandidate\(elements\.editor\.value\)/);
 });
 
 test('World profile editor rejects fields whose runtime semantics are not implemented', () => {
@@ -211,4 +224,12 @@ test('World page loads the profile program after shared contracts and exposes ev
   assert.ok(runtimeManifest.browser.indexOf('simulatte/app/profile-program.js') <
     runtimeManifest.browser.indexOf('simulatte/app/world-tiers-boot.js'));
   assert.match(html, /src="\.\/simulatte\/app\/profile-program\.js\?/);
+});
+
+test('World browser audit verifies governed intent at runtime proof rather than in the export form', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'tools/simulatte/run-browser-smoke.mjs'), 'utf8');
+  assert.match(source, /proof\.proofClasses\.intent\.status === 'pass'/);
+  assert.match(source, /proof\.proofClasses\.semantic\.status === 'pass'/);
+  assert.doesNotMatch(source, /active\.phaseArtifacts/);
+  assert.match(source, /profileChecks=/);
 });

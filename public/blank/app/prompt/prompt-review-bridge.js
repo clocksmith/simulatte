@@ -2,15 +2,22 @@
   const store = typeof module === 'object' && module.exports
     ? require('./prompt-review-bridge-store.js')
     : root.SimulatteReviewBridgeStore;
-  const api = factory(store, root);
+  const improvementRecordContract = typeof module === 'object' && module.exports
+    ? require('../../../shared/contracts/world-improvement-record.js')
+    : root.SimulatteWorldImprovementRecord;
+  const api = factory(store, improvementRecordContract, root);
   root.SimulatteReviewBridge = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', () => api.start());
   }
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createReviewBridge(store, root) {
-  if (!store) {
-    throw new Error('SimulatteReviewBridge requires prompt-review-bridge-store.js to load first.');
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createReviewBridge(
+  store,
+  improvementRecordContract,
+  root
+) {
+  if (!store || !improvementRecordContract) {
+    throw new Error('SimulatteReviewBridge requires review storage and improvement-record contracts.');
   }
   const {
     STORAGE_ENABLED,
@@ -171,7 +178,6 @@
   }
 
   function createPanel() {
-    injectStyles();
     const node = document.createElement('section');
     node.className = 'simulatte-review-bridge simulatte-training-mode simulatte-training-layer';
     node.setAttribute('aria-label', 'Simulatte training layer');
@@ -251,218 +257,6 @@
     document.body.append(node);
     selectPhase(selectedPhaseId);
     return node;
-  }
-
-  function injectStyles() {
-    if (document.getElementById('simulatte-review-bridge-style')) return;
-    const style = document.createElement('style');
-    style.id = 'simulatte-review-bridge-style';
-    style.textContent = `
-      .simulatte-review-bridge {
-        position: fixed;
-        z-index: 55;
-        top: 12px;
-        right: 12px;
-        width: min(440px, calc(100vw - 24px));
-        max-height: calc(100vh - 24px);
-        display: grid;
-        gap: 10px;
-        overflow: auto;
-        padding: 12px;
-        border: 1px solid rgba(26, 49, 47, 0.14);
-        border-radius: 8px;
-        background: rgba(250, 252, 249, 0.94);
-        box-shadow: 0 14px 52px rgba(20, 31, 28, 0.18);
-        color: rgba(18, 28, 26, 0.9);
-        backdrop-filter: blur(12px);
-      }
-      .training-layer-head,
-      .training-head-actions,
-      .training-utility-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .training-layer-head {
-        justify-content: space-between;
-        font-size: 12px;
-      }
-      .training-title-block {
-        display: grid;
-        gap: 2px;
-      }
-      .training-title-block strong {
-        font-size: 13px;
-      }
-      .training-layer-body {
-        display: grid;
-        gap: 9px;
-      }
-      .simulatte-review-bridge.is-collapsed {
-        width: min(280px, calc(100vw - 24px));
-      }
-      .simulatte-review-bridge.is-collapsed .training-layer-body {
-        display: none;
-      }
-      .training-layer-head span,
-      .training-utility-row span {
-        color: rgba(23, 32, 29, 0.58);
-      }
-      .training-prompt-readout {
-        display: grid;
-        gap: 4px;
-        padding: 8px;
-        border: 1px solid rgba(26, 49, 47, 0.1);
-        border-radius: 7px;
-        background: rgba(255, 255, 255, 0.68);
-      }
-      .training-prompt-readout span {
-        color: rgba(23, 32, 29, 0.52);
-        font-size: 10px;
-        text-transform: uppercase;
-      }
-      .training-prompt-readout output {
-        max-height: 52px;
-        overflow: auto;
-        font-size: 12px;
-        line-height: 1.35;
-      }
-      .training-question,
-      .training-note-label,
-      .training-field-label,
-      .training-target-readout,
-      .training-artifact-summary,
-      .training-diagnostics {
-        color: rgba(23, 32, 29, 0.72);
-        font-size: 12px;
-        font-weight: 720;
-      }
-      .training-field-label {
-        color: rgba(23, 32, 29, 0.52);
-        font-size: 10px;
-        text-transform: uppercase;
-      }
-      .training-note-label {
-        color: rgba(23, 32, 29, 0.6);
-        font-size: 10px;
-        text-transform: uppercase;
-      }
-      .training-target-readout {
-        color: rgba(23, 32, 29, 0.86);
-      }
-      .training-artifact-summary {
-        max-height: 42px;
-        overflow: hidden;
-        font-size: 11px;
-        font-weight: 560;
-      }
-      .training-artifact-json {
-        max-height: 150px;
-        overflow: auto;
-        margin: 0;
-        padding: 8px;
-        border: 1px solid rgba(26, 49, 47, 0.1);
-        border-radius: 7px;
-        background: rgba(15, 21, 19, 0.92);
-        color: rgba(239, 250, 244, 0.94);
-        font: 10px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        white-space: pre-wrap;
-      }
-      .training-diagnostics {
-        padding: 7px 8px;
-        border-radius: 7px;
-        background:
-          linear-gradient(90deg, rgba(244, 192, 210, 0.38), rgba(255, 236, 164, 0.32), rgba(175, 232, 206, 0.34), rgba(184, 219, 255, 0.32));
-        font-size: 11px;
-        font-weight: 620;
-      }
-      .training-utility-row {
-        flex-wrap: wrap;
-      }
-      .training-primary-actions {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 8px;
-      }
-      .training-phase-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
-      }
-      .training-phase-grid button,
-      .training-utility-row button,
-      .training-primary-actions button,
-      .training-head-actions button {
-        min-height: 30px;
-        padding: 0 9px;
-        border: 1px solid rgba(26, 49, 47, 0.12);
-        border-radius: 7px;
-        background: rgba(255, 255, 255, 0.72);
-        font-size: 10px;
-        text-transform: none;
-        letter-spacing: 0;
-      }
-      .training-primary-actions button {
-        min-height: 36px;
-        font-size: 12px;
-        font-weight: 760;
-      }
-      .training-primary-actions button[data-training-save-feedback] {
-        border-color: rgba(32, 111, 93, 0.32);
-        background: rgba(218, 244, 237, 0.84);
-      }
-      .training-phase-grid button {
-        display: grid;
-        gap: 2px;
-        align-items: start;
-        min-height: 58px;
-        padding: 7px 8px;
-        text-align: left;
-      }
-      .training-phase-grid button.is-active {
-        border-color: rgba(32, 111, 93, 0.42);
-        background: rgba(218, 244, 237, 0.86);
-      }
-      .training-phase-short {
-        font-size: 12px;
-        font-weight: 780;
-      }
-      .training-phase-name,
-      .training-phase-state {
-        overflow: hidden;
-        color: rgba(23, 32, 29, 0.56);
-        font-size: 10px;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .training-phase-grid button[data-phase-state="ready"] .training-phase-state {
-        color: rgba(22, 112, 83, 0.82);
-      }
-      .training-phase-grid button[data-phase-state="missing"] .training-phase-state {
-        color: rgba(169, 74, 48, 0.86);
-      }
-      .simulatte-review-bridge textarea {
-        width: 100%;
-        min-height: 66px;
-        max-height: 140px;
-        resize: vertical;
-      }
-      @media (max-width: 700px) {
-        .simulatte-review-bridge {
-          top: auto;
-          right: 8px;
-          bottom: 8px;
-          left: 8px;
-          width: auto;
-          max-height: min(72vh, 620px);
-        }
-        .training-phase-grid,
-        .training-primary-actions {
-          grid-template-columns: 1fr;
-        }
-      }
-    `;
-    document.head.append(style);
   }
 
   function selectPhase(phaseId) {
@@ -580,9 +374,36 @@
     const prompt = snapshot.prompt || currentPrompt();
     const feedback = noteInput ? noteInput.value : '';
     const tags = selectedTags.filter(Boolean);
+    const id = reviewId();
+    const build = document.querySelector('meta[name="simulatte-build"]')?.content || '';
+    const artifactHash = await hashText(JSON.stringify(artifact).slice(0, 60000));
+    let improvementRecord = status === 'draft' ? null : snapshot.improvementRecord || null;
+    if (improvementRecord) {
+      improvementRecordContract.validateWorldImprovementRecord(improvementRecord);
+      const humanOutcome = target.id === 'final' && (
+        status === 'pass' || (status === 'feedback' && String(feedback || '').trim())
+      ) ? (status === 'pass' ? 'accepted' : 'rejected') : '';
+      if (humanOutcome) {
+        improvementRecord = improvementRecordContract.adjudicateWorldImprovementRecord(
+          improvementRecord,
+          {
+            id,
+            status: humanOutcome,
+            reviewedAt: createdAt,
+            reviewer: 'local-human-reviewer',
+            feedback,
+            tags,
+            buildId: build,
+            artifactHash,
+            screenshotHash: diagnostics.canvasHash,
+            worldProofContentHash: improvementRecord.successfulReplay.execution.worldProof.contentHash,
+          }
+        );
+      }
+    }
     return {
       schema: 'simulatte.trainingReview.v1',
-      id: reviewId(),
+      id,
       clientCreatedAt: createdAt,
       runId: snapshot.runId || fallbackRunId(prompt),
       status,
@@ -596,12 +417,14 @@
       phaseTo: target.to,
       pipelinePhase: snapshot.phase || null,
       artifactSummary: artifact,
-      artifactHash: await hashText(JSON.stringify(artifact).slice(0, 60000)),
+      artifactHash,
       phaseCards: phaseCardSummary(snapshot),
       selectedArtifact: compactRecordArtifact(artifact),
       appUrl: root.location && root.location.href || '',
-      build: document.querySelector('meta[name="simulatte-build"]')?.content || '',
+      build,
       diagnostics,
+      improvementRecord,
+      corpusDisposition: improvementRecord && improvementRecord.corpusDisposition || 'no-correction-record',
     };
   }
 

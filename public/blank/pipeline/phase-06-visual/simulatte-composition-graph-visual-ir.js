@@ -302,8 +302,10 @@
         };
         const obligations = sourceObligations.map((row) => {
           const status = visualObligationStatus(row, facts);
+          const targetSemanticCode = visualAbsenceTargetSemanticCode(row);
           return {
             ...row,
+            ...(targetSemanticCode > 0 ? { targetSemanticCode } : {}),
             status,
             phase: 6,
             visualEvidence: visualObligationEvidence(row, facts),
@@ -351,6 +353,15 @@
             },
           };
         }
+
+    function visualAbsenceTargetSemanticCode(obligation = {}) {
+        const absence = obligation.constraintKind === 'absence' || (
+          obligation.constraintKind === 'count' && Number(obligation.expectedCount) === 0
+        );
+        if (!absence || typeof scope.scenePacketSemanticCode !== 'function') return 0;
+        const type = String(obligation.targetIdentity || obligation.target || '').trim();
+        return type ? Number(scope.scenePacketSemanticCode({ type })) : 0;
+      }
 
     function visualObligationStatus(row = {}, facts = {}) {
         const promptSettlement = facts.promptVisualSettlements && facts.promptVisualSettlements[row.id];

@@ -13,11 +13,15 @@
 ) {
   const objectRealizationForScenePacket = objectRealization.objectRealizationForScenePacket;
   const phase7PixelSampleSetValidation = evidenceBinding.phase7PixelSampleSetValidation;
+  const phase7SemanticAbsenceProof = evidenceBinding.phase7SemanticAbsenceProof;
   if (typeof objectRealizationForScenePacket !== 'function') {
     throw new Error('SimulatteRenderProof requires SimulatteObjectRealization');
   }
   if (typeof phase7PixelSampleSetValidation !== 'function') {
     throw new Error('SimulatteRenderProof requires SimulatteRenderEvidenceBinding');
+  }
+  if (typeof phase7SemanticAbsenceProof !== 'function') {
+    throw new Error('SimulatteRenderProof requires Phase 7 semantic absence evidence');
   }
   function scenePacketIdentitySummary(sceneRenderPacket = {}) {
     return Array.from(new Set((sceneRenderPacket.entities || [])
@@ -131,6 +135,10 @@
       requiredObligationIds: proofIds(proofs, (row) => row.required === true),
       passedObligationIds: proofIds(proofs, (row) => row.status === 'pass'),
       failedObligationIds: proofIds(proofs, (row) => row.status === 'fail'),
+      semanticAbsencePassedObligationIds: proofIds(proofs, (row) => (
+        row.status === 'pass' && row.pixelProof &&
+        row.pixelProof.method === 'closed-world-semantic-submission-with-texture-readback-binding'
+      )),
     };
   }
 
@@ -224,7 +232,7 @@
       ),
       {
         id: 'visual-obligation-pixel-samples',
-        actual: livePixelAudit.sampledRequiredObligationCount,
+        actual: livePixelAudit.settledRequiredObligationCount,
         expectedMin: livePixelAudit.required ? livePixelAudit.requiredObligationCount : 0,
         pass: livePixelAudit.obligationsSampled,
       }
@@ -322,13 +330,19 @@
       obligation.constraintKind === 'count' && Number(obligation.expectedCount) === 0
     );
     if (absenceConstraint) {
+      const detector = phase7SemanticAbsenceProof(obligation, sceneRenderPacket, renderData);
       return {
         required: true,
-        satisfied: false,
+        satisfied: detector.satisfied === true,
         expectedCount: 0,
         visibleCount: 0,
-        evidence: [],
-        reason: 'semantic absence detector unavailable',
+        method: detector.method,
+        detector,
+        evidence: detector.satisfied ? [
+          'phase7-semantic-absence-detector',
+          'webgpu-texture-copy-readback',
+        ] : [],
+        reason: detector.reason,
       };
     }
     const obligationId = obligation.obligationId || obligation.id || '';
@@ -591,9 +605,13 @@
     const requiredIds = options.proofSummary && Array.isArray(
       options.proofSummary.requiredObligationIds
     ) ? options.proofSummary.requiredObligationIds : [];
+    const semanticAbsenceIds = options.proofSummary && Array.isArray(
+      options.proofSummary.semanticAbsencePassedObligationIds
+    ) ? options.proofSummary.semanticAbsencePassedObligationIds : [];
+    const pixelRequiredIds = requiredIds.filter((id) => !semanticAbsenceIds.includes(id));
     const visibleSamples = samples.filter((row) => row.visible === true && row.colorSatisfied !== false);
     const sampledRequiredIds = new Set(samples
-      .filter((row) => row.visible === true && row.colorSatisfied !== false && row.obligationId && requiredIds.includes(row.obligationId))
+      .filter((row) => row.visible === true && row.colorSatisfied !== false && row.obligationId && pixelRequiredIds.includes(row.obligationId))
       .map((row) => row.obligationId));
     const constructionCountsSatisfied = Array.from(new Set(samples
       .filter((row) => row.constraintKind === 'construction-part' && row.obligationId)
@@ -602,15 +620,16 @@
       const expected = Math.max(1, ...rows.map((row) => Number(row.expectedSampleCount || 1)));
       return rows.filter((row) => row.visible === true && row.colorSatisfied !== false).length >= expected;
     });
-    const minVisibleSampleCount = required
+    const minVisibleSampleCount = required && pixelRequiredIds.length
       ? Math.max(1, Math.min(3, drawableCount || 1, samples.length || 1))
       : 0;
-    const minContrast = required ? 0.035 : 0;
+    const minContrast = required && pixelRequiredIds.length ? 0.035 : 0;
     const minContrastValue = visibleSamples.length
       ? Math.min(...visibleSamples.map((row) => Number(row.contrast || 0)))
       : 0;
-    const obligationsSampled = (!required || requiredIds.length === 0 ||
-      requiredIds.every((id) => sampledRequiredIds.has(id))) && constructionCountsSatisfied;
+    const obligationsSampled = (!required || pixelRequiredIds.length === 0 ||
+      pixelRequiredIds.every((id) => sampledRequiredIds.has(id))) && constructionCountsSatisfied;
+    const settledRequiredObligationCount = sampledRequiredIds.size + semanticAbsenceIds.length;
     return {
       schema: 'simulatte.phase7LivePixelAudit.v1',
       required,
@@ -619,6 +638,10 @@
       minContrast: Number(minContrastValue.toFixed(4)),
       sampledRequiredObligationCount: sampledRequiredIds.size,
       requiredObligationCount: requiredIds.length,
+      pixelRequiredObligationCount: pixelRequiredIds.length,
+      semanticAbsenceObligationCount: semanticAbsenceIds.length,
+      semanticAbsenceObligationIds: semanticAbsenceIds.slice(),
+      settledRequiredObligationCount,
       obligationsSampled,
       constructionCountsSatisfied,
       sampledObligationIds: Array.from(sampledRequiredIds),

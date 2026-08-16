@@ -131,16 +131,22 @@
   function modifierRequirements(languageGraph, sceneLanguageGraph, bySpan) {
     const spans = new Map((languageGraph.spans || []).map((row) => [row.id, row]));
     const attributes = sceneLanguageGraph.attributes || [];
+    const relationModifierSpanIds = new Set((sceneLanguageGraph.relations || [])
+      .flatMap((relation) => modifierSpanIdsForRelation(languageGraph, relation)));
     const boundAttributeSpans = new Set();
-    const requirements = (languageGraph.modifiers || []).map((row) => {
+    const requirements = (languageGraph.modifiers || []).flatMap((row) => {
       const modifier = spans.get(row.modifierSpanId) || {};
+      if (relationModifierSpanIds.has(row.modifierSpanId)) {
+        boundAttributeSpans.add(row.modifierSpanId);
+        return [];
+      }
       const targets = bySpan.get(row.targetSpanId) || [];
       const matchingAttributes = attributes.filter((entry) => (
         (entry.sourceSpanIds || []).includes(row.modifierSpanId)
       ));
       boundAttributeSpans.add(row.modifierSpanId);
       const forbidden = [...targets, ...matchingAttributes].some((entry) => entry.negated === true);
-      return normalizedRequirement({
+      return [normalizedRequirement({
         id: `intent:attribute:${row.id || row.modifierSpanId}`,
         kind: 'attribute',
         label: modifier.text || row.relation || 'attribute',
@@ -149,7 +155,7 @@
         targetIds: [...matchingAttributes.map((entry) => entry.id), ...targets.map((entry) => entry.id)],
         value: row.value === undefined ? modifier.propertyValue : row.value,
         predicate: row.relation || modifier.modifierRelation || '',
-      });
+      })];
     });
     for (const entry of attributes) {
       if ((entry.sourceSpanIds || []).some((spanId) => boundAttributeSpans.has(spanId))) continue;
@@ -157,6 +163,19 @@
       requirements.push(entryRequirement(entry));
     }
     return requirements;
+  }
+
+  function modifierSpanIdsForRelation(languageGraph, relation) {
+    const predicate = String(
+      relation && (relation.spatialRelation || relation.predicate || relation.process || relation.kind) || ''
+    ).toLowerCase();
+    const sourceSpanIds = new Set(relation && relation.sourceSpanIds || []);
+    if (!predicate) return [];
+    return (languageGraph.modifiers || []).filter((modifier) => (
+      modifier && modifier.relation === 'location' &&
+      String(modifier.value || '').toLowerCase() === predicate &&
+      sourceSpanIds.has(modifier.targetSpanId)
+    )).map((modifier) => modifier.modifierSpanId);
   }
 
   function quantityRequirements(languageGraph, bySpan) {
@@ -177,7 +196,7 @@
     });
   }
 
-  function relationRequirements(sceneLanguageGraph) {
+  function relationRequirements(languageGraph, sceneLanguageGraph) {
     const selected = new Map();
     for (const row of sceneLanguageGraph.relations || []) {
       if (!row || row.required !== true || !(row.sourceSpanIds || []).length) continue;
@@ -190,7 +209,7 @@
       id: `intent:relation:${row.id}`,
       kind: 'relation',
       label: row.spatialRelation || row.predicate || row.process || row.kind || 'relation',
-      sourceSpanIds: row.sourceSpanIds,
+      sourceSpanIds: [...(row.sourceSpanIds || []), ...modifierSpanIdsForRelation(languageGraph, row)],
       targetIds: [row.from, row.to, row.target],
       predicate: row.spatialRelation || row.predicate || row.process || row.kind || '',
     }));
@@ -231,7 +250,7 @@
       .map(entryRequirement);
     requirements.push(...modifierRequirements(languageGraph, sceneLanguageGraph, bySpan));
     requirements.push(...quantityRequirements(languageGraph, bySpan));
-    requirements.push(...relationRequirements(sceneLanguageGraph));
+    requirements.push(...relationRequirements(languageGraph, sceneLanguageGraph));
     requirements.push(...fallbackRequirements(languageGraph, requirements));
     requirements = [...new Map(requirements.map((row) => [row.id, row])).values()]
       .filter((row) => !(

@@ -23,11 +23,17 @@
   const worldSpecEditorApi = typeof module === 'object' && module.exports
     ? require('./world-spec-editor.js')
     : root.SimulatteWorldSpecEditor;
+  const reconciliationControllerApi = typeof module === 'object' && module.exports
+    ? require('./world-spec-reconciliation-controller.js')
+    : root.SimulatteWorldSpecReconciliationController;
   const compilerProofApi = typeof module === 'object' && module.exports
     ? require('./prompt-controller-compiler-proof.js')
     : root.SimulattePromptCompilerProof;
-  if (!support || !workers || !training || !construction || !runtime || !promptModelSelection || !runViewModelApi || !worldSpecEditorApi || !compilerProofApi) {
-    throw new Error('SimulattePromptControllerLab requires support, workers, training, construction search, runtime, model selection, run view model, WorldSpec editor, and compiler proof');
+  const worldImprovementSessionApi = typeof module === 'object' && module.exports
+    ? require('./world-improvement-session.js')
+    : root.SimulatteWorldImprovementSession;
+  if (!support || !workers || !training || !construction || !runtime || !promptModelSelection || !runViewModelApi || !worldSpecEditorApi || !reconciliationControllerApi || !compilerProofApi || !worldImprovementSessionApi) {
+    throw new Error('SimulattePromptControllerLab requires support, workers, training, construction search, runtime, model selection, run view model, WorldSpec editing and reconciliation, compiler proof, and improvement records');
   }
   const {
     model, runtimeProgressApi, EXAMPLE_INTENTS, applyInteractionCommands, clamp, createRenderExecutionInput,
@@ -134,12 +140,14 @@
         let activePromptRuntimeReceipt = null;
         let classificationPolicyPromise = null;
         let worldSpecEditor = null;
+        let worldSpecReconciliation = null;
         let latestReplayBaseline = null;
         let pendingReplayBaseline = null;
         let intentProofReceipt = null;
         let semanticProofReceipt = null;
         let simulationReproducibilityReceipt = null;
         let safetyProofReceipt = null;
+        const worldImprovementSession = worldImprovementSessionApi.create();
         const pipelineCompiler = createPipelineCompiler(root);
         const compilerProof = compilerProofApi.create(root, {
           createPipelineCompiler,
@@ -189,6 +197,10 @@
           const reportMatchesSpec = Boolean(
             binding && binding.worldSpec && binding.worldSpec.contentHash === spec.contentHash
           );
+          if (reportMatchesSpec) {
+            const improvementRecord = worldImprovementSession.observeProof(spec, report);
+            if (improvementRecord) worldSpecEditor?.syncImprovement(improvementRecord);
+          }
           if (report && report.final === true && phase8Artifact.worldProof && worldProofApi &&
               typeof worldProofApi.createReplayBaseline === 'function' && reportMatchesSpec) {
             const compilerDeterminismReceipt = compilerProof.receiptFor(spec);
@@ -357,6 +369,7 @@
         const setSpec = (nextSpec, options = {}) => {
           const visible = options.visible === true || simulationVisible;
           spec = normalizeSpec(nextSpec);
+          worldImprovementSession.observeSpec(spec);
           compilerProof.invalidate();
           requestedCompilerProofKey = '';
           latestReplayBaseline = null;
@@ -443,9 +456,13 @@
           });
         });
 
+        worldSpecReconciliation = reconciliationControllerApi.connect(root, { publishRuntime });
+
         worldSpecEditor = worldSpecEditorApi.connect(root, {
           getSpec: () => spec,
+          getImprovementRecord: () => worldImprovementSession.getCurrentRecord(),
           serialize: serializeSpec,
+          serializeImprovementRecord: worldImprovementSessionApi.serializeRecord,
           apply: (payload, rationale) => {
             const next = applyWorldSpecEdit(spec, payload, { rationale });
             setSpec(next, { visible: true });
@@ -459,6 +476,12 @@
           onError: () => { if (stateReadout) stateReadout.textContent = 'WorldSpec edit failed'; },
         });
 
+        async function reconcileCompiledSpec(nextSpec, serial, token = null) {
+          const result = await worldSpecReconciliation.resolve(spec, nextSpec);
+          if (serial !== buildSerial || (token !== null && token !== compileSerial)) return null;
+          return result && result.worldSpec || null;
+        }
+
         function setSimulationCanvasVisible(visible) {
           simulationVisible = Boolean(visible);
           canvas.dataset.sceneVisible = simulationVisible ? 'true' : 'false';
@@ -471,6 +494,7 @@
           const params = paramsOverride || readPromptParams(promptInput, {});
           const serial = buildSerial + 1;
           buildSerial = serial;
+          worldSpecReconciliation.abort('superseded');
           if (embedder && typeof embedder.cancel === 'function') embedder.cancel();
           if (pipelineCompiler && typeof pipelineCompiler.cancel === 'function') pipelineCompiler.cancel();
           constructionRetryPending = false;
@@ -484,7 +508,9 @@
               canvasLoading: false,
             });
             setSimulationCanvasVisible(false);
-            setSpec(createSpec('blank-world', { params }), { visible: false });
+            const nextSpec = await reconcileCompiledSpec(createSpec('blank-world', { params }), serial);
+            if (!nextSpec) return;
+            setSpec(nextSpec, { visible: false });
             return;
           }
           let modelSelection;
@@ -588,7 +614,9 @@
                 canvasLoading: showCanvasLoader,
               });
               if (serial !== buildSerial || token !== compileSerial) return false;
-              setSpec(nextSpec, { visible: true });
+              const executableSpec = await reconcileCompiledSpec(nextSpec, serial, token);
+              if (!executableSpec) return false;
+              setSpec(executableSpec, { visible: true });
               publishRuntime({
                 state: 'active',
                 stage: 'render',
@@ -687,7 +715,9 @@
               canvasLoading: showCanvasLoader,
             });
             if (serial !== buildSerial || token !== compileSerial) return;
-            setSpec(nextSpec, { visible: true });
+            const executableSpec = await reconcileCompiledSpec(nextSpec, serial, token);
+            if (!executableSpec) return;
+            setSpec(executableSpec, { visible: true });
             publishRuntime({
               state: 'ready',
               stage: 'ready',
@@ -891,7 +921,12 @@
         return {
           getSpec: () => spec,
           getState: () => state,
-          getTrainingSnapshot: () => trainingSnapshot(trainingRun, spec, state, canvas),
+          getTrainingSnapshot: () => ({
+            ...trainingSnapshot(trainingRun, spec, state, canvas),
+            improvementRecord: worldImprovementSession.getCurrentRecord(),
+          }),
+          getImprovementRecord: () => worldImprovementSession.getCurrentRecord(),
+          getImprovementRecords: () => worldImprovementSession.getRecords(),
           setSpec,
         };
       }

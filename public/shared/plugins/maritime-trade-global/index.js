@@ -30,9 +30,9 @@
     const datasets = loadDatasets(sdk);
     const routeObjective = profile?.routeObjective || {};
     let activeScenario = normalizeScenario(scenario, config);
-    const initialResult = run(activeScenario);
-    sdk.state.register(reduce, initialState(initialResult));
-    appendActivationReceipts(initialResult);
+    let activeResult = run(activeScenario);
+    sdk.state.register(reduce, initialState(activeResult));
+    appendActivationReceipts(activeResult);
 
     function run(nextScenario) {
       return engine.runScenario({
@@ -70,8 +70,12 @@
     }
 
     function setScenario(nextScenario) {
-      activeScenario = normalizeScenario(nextScenario, config);
-      const nextResult = run(activeScenario);
+      const normalizedScenario = normalizeScenario(nextScenario, config);
+      const nextResult = sameExecutionScenario(activeScenario, normalizedScenario)
+        ? activeResult
+        : run(normalizedScenario);
+      activeScenario = normalizedScenario;
+      activeResult = nextResult;
       const accepted = sdk.events.propose({
         pluginId: PLUGIN_ID,
         kind: `${PLUGIN_ID}.scenario-computed`,
@@ -533,6 +537,14 @@
       comparison: null,
       lastAction: 'activated',
     };
+  }
+
+  function sameExecutionScenario(left, right) {
+    const leftKeys = Object.keys(left || {}).sort();
+    const rightKeys = Object.keys(right || {}).sort();
+    return leftKeys.length === rightKeys.length
+      && leftKeys.every((key, index) => key === rightKeys[index]
+        && JSON.stringify(left[key]) === JSON.stringify(right[key]));
   }
 
   function reduce(state, event) {

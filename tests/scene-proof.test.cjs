@@ -20,14 +20,15 @@ function renderedPhase7(prompt) {
     canvas
   );
   assert.ok(readbackPlan, 'Phase 7 fixture creates a pixel-readback plan');
-  const absentObligationIds = renderExecutionInput.visualObligations
-    .filter((row) => row.constraintKind === 'absence')
-    .map((row) => row.obligationId || row.id);
-  assert.deepEqual(readbackPlan.unmatchedObligationIds, absentObligationIds);
+  assert.deepEqual(readbackPlan.unmatchedObligationIds, []);
+  renderData.rendererConsumption.objectSubmissionConsumed = true;
+  renderData.rendererConsumption.semanticCodesConsumed = true;
+  renderData.rendererConsumption.objectPartCountConsumed = renderData.objectPartCount;
   const pixelSamples = {
     schema: 'simulatte.phase7PixelSampleSet.v1',
-    source: 'scene-proof-test-readback',
+    source: 'webgpu-texture-copy-readback',
     packetKey: renderData.packetKey,
+    readbackSerial: 1,
     samples: readbackPlan.samples.map((sample) => ({
       ...sample,
       rgba: [80, 160, 220, 255],
@@ -214,16 +215,16 @@ test('scene proof rejects literal pixels compiled from a topology that does not 
   assert.equal(proof.verdict, 'fail');
 });
 
-test('scene proof fails closed for negated identities without a semantic absence proof', () => {
+test('scene proof preserves negated identities only with bound semantic absence proof', () => {
   const phase7 = renderedPhase7('a dog but no cat');
   const absence = phase7.artifact.compositionLedger.obligations.find((row) => row.constraintKind === 'absence');
   assert.ok(absence, 'Phase 2 carries an absence obligation to Phase 7');
   const absenceId = absence.obligationId || absence.id;
   const settled = lab.runPhase8SceneProof(phase7).artifact.sceneProof;
   const cat = settled.settledObligations.find((row) => row.obligationId === absenceId);
-  assert.equal(cat.status, 'lost');
+  assert.equal(cat.status, 'preserved');
   assert.ok(cat.evidence.includes('visualObligationProof'));
-  assert.equal(settled.verdict, 'fail');
+  assert.equal(settled.verdict, 'pass');
 
   const tampered = {
     ...phase7,

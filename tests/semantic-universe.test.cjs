@@ -104,7 +104,7 @@ test('semantic coverage benchmark uses gold obligations, excludes prompt copies,
 
   assert.equal(report.schema, 'simulatte.semanticCoverageBenchmark.v2');
   assert.equal(report.promptSource.id, 'simulatte-public-gold-v1');
-  assert.equal(report.promptCount, 6);
+  assert.equal(report.promptCount, 8);
   assert.equal(report.exactPromptMatchCount, 0);
   assert.ok(report.meanGoldObligationCoverage > 0);
   assert.equal(report.indexBill.vectors.primitives.ownerCoverage, 1);

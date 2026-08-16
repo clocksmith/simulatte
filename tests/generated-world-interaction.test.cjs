@@ -163,6 +163,30 @@ test('Phase 7 hit testing and GPU feedback consume the final Phase 6 collider ma
   }
 });
 
+test('inverse nudges restore authored layout instead of treating physics coordinates as canvas positions', () => {
+  const spec = lab.createSpecFromPrompt('yellow excavator beside a glass greenhouse', {
+    allowPrototypeFallback: true,
+  });
+  const packet = spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
+  const target = spec.interactionIR.targets.find((row) => row.capabilities.includes('nudge'));
+  let state = lab.createSimulationState(spec);
+  state = lab.applyInteractionCommands(state, spec.interactionIR, [
+    { sequence: 1, actionId: 'nudge', targetId: target.id, delta: [0.035, 0] },
+    { sequence: 2, actionId: 'nudge', targetId: target.id, delta: [-0.035, 0] },
+  ]);
+  const renderData = renderer.compileSceneRenderData(packet, packet.sceneKind, 'inverse-nudge-test');
+  const applied = renderer.scenePacketInteractionPartData(
+    renderData.objectPartData,
+    renderData.objectParts,
+    packet,
+    state,
+  );
+
+  assert.equal(state.interaction.visualPositions[target.id], undefined);
+  assert.equal(applied.receipt.movedPartCount, 0);
+  assert.deepEqual(Array.from(applied.data), Array.from(renderData.objectPartData));
+});
+
 test('browser adapter maps pointer and keyboard events into one monotonic command queue', () => {
   const spec = compile();
   const program = spec.phaseArtifacts.phase6.artifact.visualCompile.interactionProgram;

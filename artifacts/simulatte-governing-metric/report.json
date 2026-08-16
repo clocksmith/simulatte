@@ -1,0 +1,978 @@
+{
+  "schema": "simulatte.publicGoverningMetricReport.v1",
+  "contractId": "simulatte-public-governing-metric-v1",
+  "scope": {
+    "kind": "public-diagnostic",
+    "sealedHoldout": false,
+    "promotionAuthority": false,
+    "claim": "public diagnostic evidence; not a sealed promotion result"
+  },
+  "buildId": "572e9e4c78ee764f278bcae58fc4967e571d5e34-ac32875249a9",
+  "status": "not-proven",
+  "pass": false,
+  "promotionStatus": "not-authorized",
+  "machineGate": {
+    "status": "pass",
+    "pass": true,
+    "failureCount": 0,
+    "failures": []
+  },
+  "humanGate": {
+    "status": "not-proven",
+    "pass": false,
+    "scope": "bound recognizability adjudication for the fixed gold population"
+  },
+  "northStar": {
+    "populationKind": "fixed difficulty-stratified public diagnostic; not a sealed promotion holdout",
+    "status": "not-proven",
+    "everyCriticalPromptMustPass": true,
+    "promptCount": 8,
+    "machinePassCount": 8,
+    "humanPassCount": 0,
+    "gatedPassCount": 0,
+    "machinePassRate": 1,
+    "humanPassRate": 0,
+    "gatedPassRate": 0,
+    "difficultySummaries": [
+      {
+        "difficulty": "easy",
+        "promptCount": 3,
+        "machinePassCount": 3,
+        "humanPassCount": 0,
+        "gatedPassCount": 0,
+        "pass": false
+      },
+      {
+        "difficulty": "medium",
+        "promptCount": 3,
+        "machinePassCount": 3,
+        "humanPassCount": 0,
+        "gatedPassCount": 0,
+        "pass": false
+      },
+      {
+        "difficulty": "hard",
+        "promptCount": 2,
+        "machinePassCount": 2,
+        "humanPassCount": 0,
+        "gatedPassCount": 0,
+        "pass": false
+      }
+    ],
+    "rows": [
+      {
+        "goldRowId": "cats-in-galaxy",
+        "difficulty": "medium",
+        "machinePass": true,
+        "humanStatus": "not-proven",
+        "status": "not-proven",
+        "executions": [
+          {
+            "viewportId": "desktop",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:e0f1ad6c",
+              "sourcePromptHash": "fnv1a32:94067469"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3410,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 12262448,
+              "finalUsedJsHeapBytes": 19733546,
+              "retainedDeltaBytes": 7471098,
+              "observedPeakUsedJsHeapBytes": 34948154,
+              "sampleCount": 134,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          },
+          {
+            "viewportId": "mobile",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:e0f1ad6c",
+              "sourcePromptHash": "fnv1a32:94067469"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3190,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 12195201,
+              "finalUsedJsHeapBytes": 18763362,
+              "retainedDeltaBytes": 6568161,
+              "observedPeakUsedJsHeapBytes": 43918414,
+              "sampleCount": 125,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          }
+        ]
+      },
+      {
+        "goldRowId": "airplane-over-trees",
+        "difficulty": "easy",
+        "machinePass": true,
+        "humanStatus": "not-proven",
+        "status": "not-proven",
+        "executions": [
+          {
+            "viewportId": "desktop",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:f56f3fe5",
+              "sourcePromptHash": "fnv1a32:3fab49c9"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3217,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 18747945,
+              "finalUsedJsHeapBytes": 20459151,
+              "retainedDeltaBytes": 1711206,
+              "observedPeakUsedJsHeapBytes": 45952205,
+              "sampleCount": 127,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          },
+          {
+            "viewportId": "mobile",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:f56f3fe5",
+              "sourcePromptHash": "fnv1a32:3fab49c9"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3110,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 19727075,
+              "finalUsedJsHeapBytes": 20554110,
+              "retainedDeltaBytes": 827035,
+              "observedPeakUsedJsHeapBytes": 40085024,
+              "sampleCount": 124,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          }
+        ]
+      },
+      {
+        "goldRowId": "dogs-playing-with-people",
+        "difficulty": "hard",
+        "machinePass": true,
+        "humanStatus": "not-proven",
+        "status": "not-proven",
+        "executions": [
+          {
+            "viewportId": "desktop",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 6,
+              "matchedCount": 6,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:7110602d",
+              "sourcePromptHash": "fnv1a32:6ce3fc73"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3413,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 20447527,
+              "finalUsedJsHeapBytes": 21005723,
+              "retainedDeltaBytes": 558196,
+              "observedPeakUsedJsHeapBytes": 46250676,
+              "sampleCount": 135,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          },
+          {
+            "viewportId": "mobile",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 6,
+              "matchedCount": 6,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:7110602d",
+              "sourcePromptHash": "fnv1a32:6ce3fc73"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3219,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 19863403,
+              "finalUsedJsHeapBytes": 20766694,
+              "retainedDeltaBytes": 903291,
+              "observedPeakUsedJsHeapBytes": 48341630,
+              "sampleCount": 128,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          }
+        ]
+      },
+      {
+        "goldRowId": "dog-beside-cat",
+        "difficulty": "easy",
+        "machinePass": true,
+        "humanStatus": "not-proven",
+        "status": "not-proven",
+        "executions": [
+          {
+            "viewportId": "desktop",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 3,
+              "matchedCount": 3,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:bda6df6f",
+              "sourcePromptHash": "fnv1a32:887aeb77"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3247,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 20669747,
+              "finalUsedJsHeapBytes": 21095786,
+              "retainedDeltaBytes": 426039,
+              "observedPeakUsedJsHeapBytes": 33861334,
+              "sampleCount": 129,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          },
+          {
+            "viewportId": "mobile",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 3,
+              "matchedCount": 3,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:bda6df6f",
+              "sourcePromptHash": "fnv1a32:887aeb77"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3113,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 20755758,
+              "finalUsedJsHeapBytes": 21214549,
+              "retainedDeltaBytes": 458791,
+              "observedPeakUsedJsHeapBytes": 39922134,
+              "sampleCount": 124,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          }
+        ]
+      },
+      {
+        "goldRowId": "dog-tree-without-cat",
+        "difficulty": "medium",
+        "machinePass": true,
+        "humanStatus": "not-proven",
+        "status": "not-proven",
+        "executions": [
+          {
+            "viewportId": "desktop",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:668cd635",
+              "sourcePromptHash": "fnv1a32:15388198"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3377,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 20412819,
+              "finalUsedJsHeapBytes": 21770620,
+              "retainedDeltaBytes": 1357801,
+              "observedPeakUsedJsHeapBytes": 47042829,
+              "sampleCount": 135,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          },
+          {
+            "viewportId": "mobile",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:668cd635",
+              "sourcePromptHash": "fnv1a32:15388198"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3174,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 20532106,
+              "finalUsedJsHeapBytes": 21892668,
+              "retainedDeltaBytes": 1360562,
+              "observedPeakUsedJsHeapBytes": 46302996,
+              "sampleCount": 126,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          }
+        ]
+      },
+      {
+        "goldRowId": "purple-violin-on-wooden-stool",
+        "difficulty": "hard",
+        "machinePass": true,
+        "humanStatus": "not-proven",
+        "status": "not-proven",
+        "executions": [
+          {
+            "viewportId": "desktop",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:cd0dddb1",
+              "sourcePromptHash": "fnv1a32:4cf635bf"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3554,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 21759188,
+              "finalUsedJsHeapBytes": 22391792,
+              "retainedDeltaBytes": 632604,
+              "observedPeakUsedJsHeapBytes": 42273995,
+              "sampleCount": 142,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          },
+          {
+            "viewportId": "mobile",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:cd0dddb1",
+              "sourcePromptHash": "fnv1a32:4cf635bf"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3210,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 21881824,
+              "finalUsedJsHeapBytes": 22520583,
+              "retainedDeltaBytes": 638759,
+              "observedPeakUsedJsHeapBytes": 41513231,
+              "sampleCount": 126,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          }
+        ]
+      },
+      {
+        "goldRowId": "excavator-beside-greenhouse",
+        "difficulty": "medium",
+        "machinePass": true,
+        "humanStatus": "not-proven",
+        "status": "not-proven",
+        "executions": [
+          {
+            "viewportId": "desktop",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:97d1f34f",
+              "sourcePromptHash": "fnv1a32:37acde9c"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3341,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 21550418,
+              "finalUsedJsHeapBytes": 23503372,
+              "retainedDeltaBytes": 1952954,
+              "observedPeakUsedJsHeapBytes": 49617299,
+              "sampleCount": 132,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          },
+          {
+            "viewportId": "mobile",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:97d1f34f",
+              "sourcePromptHash": "fnv1a32:37acde9c"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3201,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 22509515,
+              "finalUsedJsHeapBytes": 23619316,
+              "retainedDeltaBytes": 1109801,
+              "observedPeakUsedJsHeapBytes": 59602421,
+              "sampleCount": 124,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          }
+        ]
+      },
+      {
+        "goldRowId": "octopus-holding-teapot",
+        "difficulty": "easy",
+        "machinePass": true,
+        "humanStatus": "not-proven",
+        "status": "not-proven",
+        "executions": [
+          {
+            "viewportId": "desktop",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:d946188b",
+              "sourcePromptHash": "fnv1a32:5a4ea04a"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3257,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 22514195,
+              "finalUsedJsHeapBytes": 22512876,
+              "retainedDeltaBytes": -1319,
+              "observedPeakUsedJsHeapBytes": 37997341,
+              "sampleCount": 130,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          },
+          {
+            "viewportId": "mobile",
+            "machineStatus": "pass",
+            "humanStatus": "not-proven",
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:d946188b",
+              "sourcePromptHash": "fnv1a32:5a4ea04a"
+            },
+            "semanticStatus": "pass",
+            "simulationStatus": "pass",
+            "interactionStatus": "pass",
+            "safetyStatus": "not-applicable",
+            "visualMachineStatus": "pass",
+            "replayStatus": "pass",
+            "auditDurationMs": 3122,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 23608336,
+              "finalUsedJsHeapBytes": 22627371,
+              "retainedDeltaBytes": -980965,
+              "observedPeakUsedJsHeapBytes": 37601445,
+              "sampleCount": 124,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "latencyStatus": "pass",
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "failures": []
+          }
+        ]
+      }
+    ]
+  },
+  "boundaryDiagnostics": {
+    "scope": "declared public boundary rows only; no general open-world refusal claim",
+    "status": "pass",
+    "boundaryCount": 1,
+    "viewportExecutionCount": 2,
+    "passCount": 1,
+    "rows": [
+      {
+        "boundaryRowId": "unsupported-neologism-edit-replay",
+        "boundaryKind": "unsupported-edit-replay",
+        "pass": true,
+        "failures": [],
+        "executions": [
+          {
+            "boundaryRowId": "unsupported-neologism-edit-replay",
+            "viewportId": "desktop",
+            "width": 1440,
+            "height": 1000,
+            "pass": true,
+            "auditDurationMs": 3613,
+            "revisionDelta": 1,
+            "classStatuses": {
+              "intent": "pass",
+              "semantic": "pass",
+              "compilation": "pass",
+              "simulation": "pass",
+              "interaction": "pass",
+              "safety": "pass",
+              "visual": "pass",
+              "replay": "pass"
+            },
+            "refusalCount": 2,
+            "refusalPass": true,
+            "unsupportedIdentified": true,
+            "latencyPass": true,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 12230817,
+              "finalUsedJsHeapBytes": 22597785,
+              "retainedDeltaBytes": 10366968,
+              "observedPeakUsedJsHeapBytes": 99875158,
+              "sampleCount": 82,
+              "physicalGpuMemoryStatus": "not-measured"
+            }
+          },
+          {
+            "boundaryRowId": "unsupported-neologism-edit-replay",
+            "viewportId": "mobile",
+            "width": 390,
+            "height": 844,
+            "pass": true,
+            "auditDurationMs": 3624,
+            "revisionDelta": 1,
+            "classStatuses": {
+              "intent": "pass",
+              "semantic": "pass",
+              "compilation": "pass",
+              "simulation": "pass",
+              "interaction": "pass",
+              "safety": "pass",
+              "visual": "pass",
+              "replay": "pass"
+            },
+            "refusalCount": 2,
+            "refusalPass": true,
+            "unsupportedIdentified": true,
+            "latencyPass": true,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 12181537,
+              "finalUsedJsHeapBytes": 22529421,
+              "retainedDeltaBytes": 10347884,
+              "observedPeakUsedJsHeapBytes": 98181916,
+              "sampleCount": 84,
+              "physicalGpuMemoryStatus": "not-measured"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "dimensions": [
+    {
+      "id": "requirement-extraction-recall",
+      "status": "pass",
+      "pass": true,
+      "scope": "frozen Phase 2 expectations on every gold prompt and required viewport",
+      "observations": {
+        "promptCount": 8,
+        "viewportExecutionCount": 16,
+        "passCount": 8
+      }
+    },
+    {
+      "id": "refusal-correctness",
+      "status": "pass",
+      "pass": true,
+      "scope": "declared public unsupported/edit boundary rows only",
+      "observations": {
+        "boundaryCount": 1,
+        "generalOpenWorldRefusalRecall": "not-measured"
+      }
+    },
+    {
+      "id": "unsupported-content-precision",
+      "status": "pass",
+      "pass": true,
+      "scope": "supported gold prompts plus declared unsupported boundary rows",
+      "observations": {
+        "goldPromptCount": 8,
+        "boundaryCount": 1
+      }
+    },
+    {
+      "id": "semantic-settlement",
+      "status": "pass",
+      "pass": true,
+      "scope": "WorldProof semantic class on every browser execution",
+      "observations": {}
+    },
+    {
+      "id": "dynamic-settlement",
+      "status": "pass",
+      "pass": true,
+      "scope": "exact replay simulation class and edited-world fixed-step proof",
+      "observations": {}
+    },
+    {
+      "id": "interaction-settlement",
+      "status": "pass",
+      "pass": true,
+      "scope": "executed control transitions in exact replay and edited-world proof",
+      "observations": {}
+    },
+    {
+      "id": "safety-settlement",
+      "status": "pass",
+      "pass": true,
+      "scope": "declared safety rules; gold prompts without rules remain not-applicable",
+      "observations": {}
+    },
+    {
+      "id": "visual-settlement",
+      "status": "not-proven",
+      "pass": false,
+      "scope": "machine pixel settlement gated by bound human recognizability adjudication",
+      "observations": {
+        "machineStatus": "pass",
+        "humanStatus": "not-proven"
+      }
+    },
+    {
+      "id": "replay-success",
+      "status": "pass",
+      "pass": true,
+      "scope": "exact WorldProof replay on every required viewport",
+      "observations": {}
+    },
+    {
+      "id": "latency",
+      "status": "pass",
+      "pass": true,
+      "scope": "bound browser audit durations under each source contract budget",
+      "observations": {
+        "maximumObservedMs": 3624
+      }
+    },
+    {
+      "id": "memory",
+      "status": "pass",
+      "pass": true,
+      "scope": "forced-GC browser JavaScript heap boundaries plus periodic observed peaks; physical GPU allocation memory is not exposed by WebGPU",
+      "observations": {
+        "executionCount": 18,
+        "passCount": 18,
+        "maximumObservedJsHeapBytes": 99875158,
+        "maximumRetainedDeltaBytes": 10366968,
+        "physicalGpuMemoryStatus": "not-measured"
+      }
+    },
+    {
+      "id": "edit-to-success-cycles",
+      "status": "pass",
+      "pass": true,
+      "scope": "one explicit user patch from failed proof to successful replay on each declared boundary execution",
+      "observations": {
+        "boundaryCount": 1,
+        "revisionDeltas": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "retained-human-satisfaction",
+      "status": "not-measured",
+      "pass": false,
+      "scope": "recognizability adjudication is pending and no longitudinal satisfaction receipt is bound",
+      "observations": {}
+    }
+  ],
+  "sources": {
+    "contract": {
+      "path": "tools/samer/simulatte-public-governing-metric-v1.json",
+      "sha256": "076f84ab052f59161b833681a0f5bd39eec5f3a5598bae672888c4925ff3e935"
+    },
+    "buildIdentity": {
+      "path": "public/version.json",
+      "sha256": "cde2fa267054d8f5723671b02902e628bc8621abcdaca207be33ab527c7f0df8"
+    },
+    "goldSet": {
+      "path": "tools/samer/simulatte-public-gold-v1.json",
+      "sha256": "15330643108c0539fe16aca4283d3bf434ac164da2a0498a5e7ef2f9812d0909",
+      "id": "simulatte-public-gold-v1",
+      "rowCount": 8
+    },
+    "boundarySet": {
+      "path": "tools/samer/simulatte-public-boundary-v1.json",
+      "sha256": "ec03f020d14b5fb4af51eed04c7b4b04f0a1fa38ebb292f0588acff4f854e9f0",
+      "id": "simulatte-public-boundary-v1",
+      "rowCount": 1
+    },
+    "goldReports": [
+      {
+        "viewportId": "desktop",
+        "createdAt": "2026-08-16T09:21:25.801Z",
+        "path": "artifacts/blank-gold-desktop/report.json",
+        "sha256": "9d9dcac91d9eceb2d63e096c74199e1d0922781ade82785c64b971dd08ccb9dd",
+        "screenshotArtifactCount": 16
+      },
+      {
+        "viewportId": "mobile",
+        "createdAt": "2026-08-16T09:21:56.302Z",
+        "path": "artifacts/blank-gold-mobile/report.json",
+        "sha256": "b7420419c66295376d909202d92f02276663b5d4e70fa13f52e54995e3877f2e",
+        "screenshotArtifactCount": 16
+      }
+    ],
+    "boundaryReports": [
+      {
+        "viewportId": "desktop",
+        "boundaryRowId": "unsupported-neologism-edit-replay",
+        "path": "artifacts/blank-world-spec-editor/1440x1000.json",
+        "sha256": "4e554b1fdebc8f7555de295da8dc0f1cd5d42421c444d8f1509737afce05bca1"
+      },
+      {
+        "viewportId": "mobile",
+        "boundaryRowId": "unsupported-neologism-edit-replay",
+        "path": "artifacts/blank-world-spec-editor/390x844.json",
+        "sha256": "38924b75674622043b5e1679a06cbd51e2da2fac0764851b30fc41d7bcce4ec9"
+      }
+    ],
+    "tooling": {
+      "compiler": {
+        "path": "tools/samer/compile-governing-metric.mjs",
+        "sha256": "f7c613c06ec617bf1100c1ad49ae44f2221a1dec860a5524902ade4151297ec4"
+      },
+      "goldEvaluator": {
+        "path": "tools/samer/gold-visual-evaluator.mjs",
+        "sha256": "a25c348c251bfc9ef6e90744b835ad216fd62690153506afdcde6a3c90cb92c6"
+      },
+      "goldAudit": {
+        "path": "tools/audit-intent-scene-screenshots.mjs",
+        "sha256": "9540efccad4b069e4c6033864b9f36cbc3e16a0309e472ee5d2e5922960e24e1"
+      },
+      "boundaryAudit": {
+        "path": "tools/audit-world-spec-editor.mjs",
+        "sha256": "387cb906c011f4c4db004b88f7fc81e3e8b01230b89bb8ca02089fda1ca07589"
+      },
+      "browserMemory": {
+        "path": "tools/browser-memory-receipt.mjs",
+        "sha256": "97ed0e9135001e44ba59f60eceb36f1a21a0a2e09a3a8bf487c7beee6269ae58"
+      }
+    },
+    "requiredViewportIds": [
+      "desktop",
+      "mobile"
+    ]
+  }
+}

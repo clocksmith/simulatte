@@ -116,11 +116,12 @@
   function branchDriver({ role, run, startingIdentity, evidenceCatalog, comparisonId }) {
     let cursor = 0;
     const evidenceIds = evidenceCatalog.map((row) => row.id);
+    const modelEvidence = evidenceCatalog.filter((row) => row.kind === 'model');
     const provenance = contracts.createProvenance({
       origin: 'simulated',
       temporalStatus: 'forecast',
       uncertainty: { kind: 'distribution', value: { interpretation: 'Shared declared scenario inputs.' } },
-      evidenceRefs: evidenceCatalog.map((row) => builder.evidence(row)),
+      evidenceRefs: modelEvidence.map((row) => builder.evidence(row)),
     });
     const observation = () => {
       const snapshot = run.snapshots[cursor];

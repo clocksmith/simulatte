@@ -34,6 +34,8 @@ test('public gold set binds simple prompts to counts relations poses and visual 
     '5 cats in a galaxy',
     'airplane flying over trees',
     '3 dogs playing with 7 people',
+    'a dog beside a cat',
+    'a dog beside a tree with no cat',
     'purple violin on a wooden stool',
     'yellow excavator beside a glass greenhouse',
     'an octopus holding a teapot',
@@ -41,6 +43,24 @@ test('public gold set binds simple prompts to counts relations poses and visual 
   assert.ok(goldSet.rows.every((row) => row.entities.length && row.blockingVisualRules.length));
   assert.ok(goldSet.rows.some((row) => row.relations.length));
   assert.ok(goldSet.rows.some((row) => row.poses.length));
+  assert.deepEqual(
+    Object.fromEntries(goldSet.governingMetric.difficulties.map((difficulty) => [
+      difficulty,
+      goldSet.rows.filter((row) => row.difficulty === difficulty).length,
+    ])),
+    { easy: 3, medium: 3, hard: 2 },
+  );
+  assert.equal(goldSet.governingMetric.exactReplayRequired, true);
+  assert.ok(goldSet.governingMetric.measures.includes('requirement-extraction-recall'));
+  assert.ok(goldSet.rows.every((row) => row.extractionRequirements.length > 0));
+  assert.ok(goldSet.governingMetric.doesNotMeasure.includes('refusal-correctness'));
+  assert.ok(goldSet.governingMetric.measures.includes('negation-preservation'));
+  assert.ok(!goldSet.governingMetric.doesNotMeasure.includes('negation-preservation'));
+  assert.ok(goldSet.governingMetric.measures.includes('close-semantic-distractor-separation'));
+  assert.ok(!goldSet.governingMetric.doesNotMeasure.includes('close-semantic-distractors'));
+  assert.ok(goldSet.governingMetric.measures.includes('browser-js-heap-memory'));
+  assert.ok(goldSet.governingMetric.doesNotMeasure.includes('physical-gpu-allocation-memory'));
+  assert.ok(goldSet.governingMetric.maximumObservedJsHeapBytes > 0);
 });
 
 test('every public gold row reaches Phase 6 with its exact entities relations poses and properties', () => {
@@ -55,9 +75,14 @@ test('every public gold row reaches Phase 6 with its exact entities relations po
 
   for (const row of goldSet.rows) {
     const spec = lab.createSpecFromPrompt(row.prompt, { allowPrototypeFallback: true });
+    const intentReceipt = lab.createIntentProofReceiptForSpec(spec, {
+      buildId: 'gold-contract-test',
+      runtimeId: 'gold-contract-test',
+    });
     const phase6 = spec.phaseArtifacts.phase6.artifact;
     const packet = phase6.visualCompile.sceneRenderPacket;
     const obligations = phase6.compositionLedger.obligations || [];
+    assert.equal(intentReceipt.status, 'pass', `${row.prompt}: critical intent settlement`);
     for (const expected of row.entities || []) {
       const matches = packet.entities.filter((entity) => entity.identity.type === expected.type);
       if (expected.count != null) {
@@ -94,6 +119,15 @@ test('every public gold row reaches Phase 6 with its exact entities relations po
         binding.propertyKind === expected.kind && binding.value === expected.value &&
         binding.status === 'bound' && binding.matchedPartIds.length > 0
       )), `${row.prompt}: ${expected.type} ${expected.kind}=${expected.value}`);
+    }
+    for (const expected of row.absences || []) {
+      assert.ok(!packet.entities.some((entity) => entity.identity.type === expected.type),
+        `${row.prompt}: forbidden ${expected.type} must not reach the packet`);
+      const absence = obligations.find((obligation) => (
+        obligation.constraintKind === 'absence' && obligation.targetIdentity === expected.type
+      ));
+      assert.equal(absence?.status, 'preserved', `${row.prompt}: ${expected.type} absence`);
+      assert.ok(Number(absence?.targetSemanticCode) > 0, `${row.prompt}: ${expected.type} semantic code`);
     }
   }
 });
@@ -153,12 +187,56 @@ test('failed screenshot obligations reject a grammar and deterministically compi
   assert.equal(receipt.schema, 'simulatte.constructionSelectionReceipt.v3');
   assert.equal(receipt.attempt, 1);
   assert.equal(receipt.candidates.find((row) => row.grammarId === firstGrammar).status, 'rejected');
+  assert.deepEqual(next.source.compilerConfig.constructionApproach, decision.nextApproach);
+  const independentlyRecompiled = lab.createSpecFromPrompt(
+    next.source.prompt,
+    next.source.compilerConfig,
+  );
+  assert.equal(independentlyRecompiled.contentHash, next.contentHash);
   assert.equal(constructionSearch.observeConstructionSceneProof({
     final: true,
     packetKey: 'cat:first',
     phase8Output,
     sceneRenderPacket: packet,
   }, spec, searchState).action, 'duplicate');
+});
+
+test('accepted construction search cannot be reopened by interaction-time visual reports', () => {
+  const spec = lab.createSpecFromPrompt('yellow excavator beside a glass greenhouse', {
+    allowPrototypeFallback: true,
+  });
+  const packet = packetForPhase6(spec.phaseArtifacts.phase6);
+  const ledger = structuredClone(spec.phaseArtifacts.phase6.artifact.compositionLedger);
+  const state = constructionSearch.createConstructionSearchState();
+  const accepted = constructionSearch.observeConstructionSceneProof({
+    final: true,
+    packetKey: 'excavator:initial',
+    sceneRenderPacket: packet,
+    phase8Output: {
+      artifact: {
+        sceneProof: { verdict: 'pass', evidence: { pixelAuditStatus: 'pass' }, settledObligations: [] },
+        compositionLedger: ledger,
+      },
+    },
+  }, spec, state);
+  assert.equal(accepted.action, 'accept');
+  assert.equal(state.status, 'accepted');
+
+  const later = constructionSearch.observeConstructionSceneProof({
+    final: true,
+    packetKey: 'excavator:interaction-highlight',
+    sceneRenderPacket: packet,
+    phase8Output: {
+      artifact: {
+        sceneProof: { verdict: 'fail', evidence: { pixelAuditStatus: 'fail' }, settledObligations: [] },
+        compositionLedger: ledger,
+      },
+    },
+  }, spec, state);
+  assert.equal(later.action, 'ignore');
+  assert.equal(later.reason, 'construction search is already accepted');
+  assert.equal(state.status, 'accepted');
+  assert.equal(state.attempts.length, 1);
 });
 
 test('renderer scene proof reports only become final after required pixel evidence settles', () => {
@@ -183,8 +261,16 @@ test('renderer scene proof reports only become final after required pixel eviden
     packetKey,
     samples: [],
   };
+  renderer.renderData.livePixelSamplesStatus = 'fail';
+  renderer.renderData.livePixelReadbackAttemptCount = 2;
+  assert.equal(notify(renderer).final, false);
+  renderer.renderData.livePixelReadbackAttemptCount = 3;
   assert.equal(notify(renderer).final, true);
-  assert.deepEqual(reports.map((row) => row.final), [false, true]);
+  renderer.renderData.livePixelSamplesStatus = 'pass';
+  renderer.renderData.livePixelReadbackAttemptCount = 1;
+  assert.equal(notify(renderer).final, true);
+  assert.deepEqual(reports.map((row) => row.final), [false, false, true, true]);
+  assert.deepEqual(reports.map((row) => row.pixelReadbackAttemptCount), [0, 2, 3, 1]);
 });
 
 test('playing with creates a shared pose and relation while flight stays on the airplane', () => {
@@ -274,6 +360,36 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
   const goldSet = evaluator.loadGoldSet(goldSetPath);
   const promptHash = (value) => crypto.createHash('sha256').update(value).digest('hex');
   const packetHash = (row) => promptHash(`packet:${row.id}`);
+  const exactReplay = (row, index) => ({
+    schema: 'simulatte.exactWorldProofReplayAudit.v1',
+    prompt: row.prompt,
+    worldSpec: {
+      schema: 'simulatte.worldSpec.v1',
+      id: `world-${row.id}`,
+      contentHash: `fnv1a32:${String(index + 1).padStart(8, '0')}`,
+      revision: 0,
+      prompt: row.prompt,
+    },
+    worldProof: {
+      verdict: 'pass',
+      contentHash: `fnv1a32:${String(index + 101).padStart(8, '0')}`,
+      worldSpecContentHash: `fnv1a32:${String(index + 1).padStart(8, '0')}`,
+      classStatuses: {
+        intent: 'pass', semantic: 'pass', compilation: 'pass', simulation: 'pass',
+        interaction: 'pass', safety: 'pass', visual: 'pass', replay: 'pass',
+      },
+      criticalFailures: [],
+    },
+    controlExecution: { required: true, executed: true, entityId: `entity-${row.id}` },
+    compilerDeterminism: {
+      status: 'pass', baselineContentHash: `compile-${row.id}`, recompiledContentHash: `compile-${row.id}`,
+    },
+    simulationReproducibility: {
+      status: 'pass', baselineStateHash: `state-${row.id}`, replayStateHash: `state-${row.id}`, maxAbsoluteDelta: 0,
+    },
+    beforeRenderInputSerial: 3,
+    afterRenderInputSerial: 4,
+  });
   const results = goldSet.rows.map((row, index) => ({
     index: index + 1,
     goldRowId: row.id,
@@ -281,6 +397,20 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
     compiledPrompt: row.prompt,
     promptSha256: promptHash(row.prompt),
     buildId: 'test-build-identity',
+    phase2IntentRequirementLedger: {
+      schema: 'simulatte.intentRequirementLedger.v1',
+      contentHash: `fnv1a32:${String(index + 201).padStart(8, '0')}`,
+      sourcePromptHash: `fnv1a32:${String(index + 301).padStart(8, '0')}`,
+      requirements: row.extractionRequirements.map((expected) => ({
+        schema: 'simulatte.intentRequirement.v1',
+        id: `test:${expected.id}`,
+        kind: expected.kind,
+        targetIds: expected.targetIds,
+        polarity: expected.polarity || 'required',
+        predicate: expected.predicateAny?.[0] || '',
+        value: expected.value ?? expected.minimumValue ?? null,
+      })),
+    },
     sceneRenderPacketSha256: packetHash(row),
     screenshotHash: String(index + 1).padStart(64, '0'),
     canvasScreenshot: `${row.id}.canvas.png`,
@@ -288,6 +418,7 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
     sceneRenderPacketIdentities: row.entities.flatMap((entity) => (
       Array.from({ length: entity.count || entity.minimumCount || 1 }, () => ({
         type: entity.type,
+        semanticCode: entity.type === 'dog' ? 1 : entity.type === 'cat' ? 2 : index + 20,
         grammarId: `object-grammar.${entity.type}`,
         literal: true,
         unsupportedIdentity: false,
@@ -306,22 +437,81 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
               ? 'hold-pose' : 'static-pose',
       }))
     )),
-    phase6CompositionObligations: row.relations.map((relation) => ({
-      id: `relation:spatial:entity-${relation.subjectType}:${relation.kind}:entity-${relation.objectType}`,
-      status: 'preserved',
-    })),
-    phase7VisualObligationProof: JSON.stringify(row.relations.map((relation) => ({
-      obligationId: `relation:spatial:entity-${relation.subjectType}:${relation.kind}:entity-${relation.objectType}`,
-      status: 'pass',
-      geometrySatisfied: true,
-      pixelSatisfied: true,
-    }))),
+    phase6CompositionObligations: [
+      ...row.relations.map((relation) => ({
+        id: `relation:spatial:entity-${relation.subjectType}:${relation.kind}:entity-${relation.objectType}`,
+        status: 'preserved',
+      })),
+      ...(row.absences || []).map((absence) => ({
+        id: `visual:prompt-absence-entity-${absence.type}`,
+        constraintKind: 'absence',
+        targetIdentity: absence.type,
+        targetSemanticCode: absence.type === 'cat' ? 2 : 101,
+        status: 'preserved',
+      })),
+    ],
+    phase7VisualObligationProof: JSON.stringify([
+      ...row.relations.map((relation) => ({
+        obligationId: `relation:spatial:entity-${relation.subjectType}:${relation.kind}:entity-${relation.objectType}`,
+        status: 'pass',
+        geometrySatisfied: true,
+        pixelSatisfied: true,
+      })),
+      ...(row.absences || []).map((absence) => ({
+        obligationId: `visual:prompt-absence-entity-${absence.type}`,
+        target: absence.type,
+        status: 'pass',
+        geometrySatisfied: true,
+        pixelSatisfied: true,
+        pixelProof: {
+          detector: {
+            targetIdentity: absence.type,
+            status: 'pass',
+            method: 'closed-world-semantic-submission-with-texture-readback-binding',
+          },
+        },
+      })),
+    ]),
     phase7PixelProofStatus: 'pass',
     sceneProofVerdict: 'pass',
+    intentBriefUnsupportedCount: 0,
+    physicalReceiptUnsupportedCount: 0,
+    auditTiming: { schema: 'simulatte.visualAuditTiming.v1', durationMs: 5000, stages: [] },
+    browserMemory: {
+      schema: 'simulatte.browserMemoryReceipt.v1',
+      status: 'pass',
+      basis: 'single-prompt-browser-execution-window',
+      measurementMode: 'forced-gc-retained-heap-plus-periodic-observed-peak',
+      sampleIntervalMs: 25,
+      sampleCount: 3,
+      initialUsedJsHeapBytes: 10_000_000,
+      finalUsedJsHeapBytes: 11_000_000,
+      finalBeforeGcUsedJsHeapBytes: 15_000_000,
+      retainedDeltaBytes: 1_000_000,
+      observedPeakUsedJsHeapBytes: 18_000_000,
+      observedPeakAtMs: 250,
+      maximumTotalJsHeapBytes: 32_000_000,
+      boundarySamples: [
+        { boundary: 'window-start', usedJsHeapBytes: 10_000_000 },
+        { boundary: 'window-end-before-gc', usedJsHeapBytes: 15_000_000 },
+        { boundary: 'window-end', usedJsHeapBytes: 11_000_000 },
+      ],
+      physicalGpuMemory: {
+        status: 'not-measured',
+        reason: 'WebGPU does not expose physical driver allocation telemetry',
+      },
+    },
+    exactReplay: exactReplay(row, index),
   }));
   const withoutHuman = evaluator.evaluateGoldVisualResults(results, goldSet, null);
-  assert.equal(withoutHuman.machinePassCount, 6);
+  assert.equal(withoutHuman.machinePassCount, 8);
   assert.equal(withoutHuman.humanPassCount, 0);
+  assert.equal(withoutHuman.status, 'not-proven');
+  assert.equal(withoutHuman.machinePassRate, 1);
+  assert.deepEqual(
+    withoutHuman.governingMetric.difficultySummaries.map((row) => [row.difficulty, row.promptCount, row.machinePassRate]),
+    [['easy', 3, 1], ['medium', 3, 1], ['hard', 2, 1]],
+  );
   assert.equal(withoutHuman.pass, false);
 
   const adjudication = {
@@ -343,8 +533,10 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
     })),
   };
   const withHuman = evaluator.evaluateGoldVisualResults(results, goldSet, adjudication);
-  assert.equal(withHuman.machinePassCount, 6);
-  assert.equal(withHuman.humanPassCount, 6);
+  assert.equal(withHuman.machinePassCount, 8);
+  assert.equal(withHuman.humanPassCount, 8);
+  assert.equal(withHuman.status, 'pass');
+  assert.equal(withHuman.gatedPassRate, 1);
   assert.equal(withHuman.pass, true);
 
   const changed = (edit) => {
@@ -385,6 +577,53 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
     false,
     'Phase 6 relation metadata cannot substitute for final projected pixel proof'
   );
+  const inventedEntity = structuredClone(results);
+  inventedEntity[0].sceneRenderPacketIdentities.push({
+    type: 'dragon', grammarId: 'object-grammar.dragon', literal: true, unsupportedIdentity: false,
+  });
+  assert.equal(
+    evaluator.evaluateGoldVisualResults(inventedEntity, goldSet, adjudication).rows[0].machine.pass,
+    false,
+    'an invented entity must fail the unsupported-invention gate',
+  );
+  const divergentReplay = structuredClone(results);
+  divergentReplay[0].exactReplay.simulationReproducibility.replayStateHash = 'divergent-state';
+  assert.equal(
+    evaluator.evaluateGoldVisualResults(divergentReplay, goldSet, adjudication).rows[0].machine.pass,
+    false,
+    'a divergent exact replay must fail the executable-world gate',
+  );
+  const slowAudit = structuredClone(results);
+  slowAudit[0].auditTiming.durationMs = goldSet.governingMetric.maximumAuditDurationMs + 1;
+  assert.equal(
+    evaluator.evaluateGoldVisualResults(slowAudit, goldSet, adjudication).rows[0].machine.pass,
+    false,
+    'a latency breach must fail the gated population row',
+  );
+  const overMemoryBudget = structuredClone(results);
+  overMemoryBudget[0].browserMemory.observedPeakUsedJsHeapBytes =
+    goldSet.governingMetric.maximumObservedJsHeapBytes + 1;
+  overMemoryBudget[0].browserMemory.maximumTotalJsHeapBytes =
+    goldSet.governingMetric.maximumObservedJsHeapBytes + 1;
+  assert.equal(
+    evaluator.evaluateGoldVisualResults(overMemoryBudget, goldSet, adjudication).rows[0].machine.pass,
+    false,
+    'a browser heap breach must fail the gated population row',
+  );
+  const unsupportedReport = structuredClone(results);
+  unsupportedReport[0].physicalReceiptUnsupportedCount = 1;
+  assert.equal(
+    evaluator.evaluateGoldVisualResults(unsupportedReport, goldSet, adjudication).rows[0].machine.pass,
+    false,
+    'reported unsupported output must fail a fully supported gold prompt',
+  );
+  const missingExtraction = structuredClone(results);
+  missingExtraction[0].phase2IntentRequirementLedger.requirements.shift();
+  const missingExtractionEvaluation = evaluator.evaluateGoldVisualResults(missingExtraction, goldSet, adjudication);
+  assert.equal(missingExtractionEvaluation.rows[0].machine.pass, false);
+  assert.ok(missingExtractionEvaluation.rows[0].machine.failures.some((row) => (
+    row.id.startsWith('requirement-extraction:')
+  )));
 
   assert.throws(() => evaluator.evaluateGoldVisualResults(results, goldSet, changed((copy) => {
     copy.rows.push(structuredClone(copy.rows[0]));

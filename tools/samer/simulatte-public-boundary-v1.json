@@ -1,0 +1,54 @@
+{
+  "schema": "simulatte.promptBoundarySet.v1",
+  "id": "simulatte-public-boundary-v1",
+  "purpose": "Public diagnostic boundary set for unsupported-content honesty and edit-to-success proof. It is not a sealed promotion holdout.",
+  "governingMetric": {
+    "schema": "simulatte.promptBoundaryGoverningMetric.v1",
+    "everyBoundaryMustPass": true,
+    "maximumAuditDurationMs": 20000,
+    "maximumObservedJsHeapBytes": 536870912,
+    "measures": [
+      "unsupported-content-identification",
+      "initial-fail-closed-proof",
+      "explicit-user-refusal",
+      "edit-to-success-replay",
+      "world-spec-authorship-provenance",
+      "explicit-recompile-reconciliation",
+      "browser-js-heap-memory"
+    ],
+    "doesNotMeasure": [
+      "general-open-world-refusal-recall",
+      "human-recognizability-without-current-adjudication",
+      "physical-gpu-allocation-memory"
+    ]
+  },
+  "rows": [
+    {
+      "id": "unsupported-neologism-edit-replay",
+      "boundaryKind": "unsupported-edit-replay",
+      "prompt": "a red ball beside a qzxwplk",
+      "supportedEntityType": "ball",
+      "unsupportedLabel": "qzxwplk",
+      "edit": {
+        "originalColor": "#ef3340",
+        "replacementColor": "#00aa44",
+        "rationale": "Refuse qzxwplk, make the ball green, and bind a fixed-step safety gate"
+      },
+      "acceptance": {
+        "initialSceneProofVerdict": "fail",
+        "finalSceneProofVerdict": "pass",
+        "finalWorldProofVerdict": "pass",
+        "expectedTopologyId": "spherical-body",
+        "requiredPartIds": ["sphere-body", "specular-highlight"],
+        "forbiddenPartPatterns": ["spin-axis", "neck", "string", "soundhole", "bridge"],
+        "supersededObligationId": "visual:prompt-property-ball-color-#ef3340",
+        "acceptedIntentCount": 2,
+        "refusedIntentCount": 2,
+        "unresolvedIntentCount": 0,
+        "lostIntentCount": 0,
+        "reconciliationRequired": true,
+        "recompilationDecision": "preserve-overrides"
+      }
+    }
+  ]
+}

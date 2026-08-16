@@ -16,3 +16,17 @@ test('review bridge exposes the stable training API through explicit dependencie
     'toggle',
   ]);
 });
+
+test('review fallback storage fails explicitly instead of dropping a correction record', async () => {
+  const reviewStore = store.createReviewStore({
+    indexedDB: null,
+    localStorage: {
+      getItem: () => '[]',
+      setItem: () => { throw new Error('quota exceeded'); },
+    },
+  });
+  await assert.rejects(
+    reviewStore.put({ id: 'review:correction:1' }, false),
+    /fallback storage failed: quota exceeded/
+  );
+});

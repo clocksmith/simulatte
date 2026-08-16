@@ -122,6 +122,8 @@ test('prompt controller browser layers publish the API in manifest order', () =>
     SimulatteModelSelection: require('../public/model-selection.js'),
     SimulatteRunViewModel: require('../public/blank/app/runtime/run-view-model.js'),
     SimulatteWorldProof: require('../public/shared/contracts/world-proof.js'),
+    SimulatteWorldSpecReconciliation: require('../public/shared/contracts/world-spec-reconciliation.js'),
+    SimulatteWorldImprovementRecord: require('../public/shared/contracts/world-improvement-record.js'),
   });
   for (const file of [
     'prompt-controller-runtime.js',
@@ -129,7 +131,9 @@ test('prompt controller browser layers publish the API in manifest order', () =>
     'prompt-controller-training.js',
     'prompt-model-selection.js',
     'world-spec-editor.js',
+    'world-spec-reconciliation-controller.js',
     'prompt-controller-compiler-proof.js',
+    'world-improvement-session.js',
     'prompt-controller-lab-controller.js',
     'prompt-controller.js',
   ]) {
@@ -145,7 +149,9 @@ test('prompt controller browser layers reject missing dependencies', () => {
     'prompt-controller-workers.js',
     'prompt-controller-training.js',
     'prompt-model-selection.js',
+    'world-spec-reconciliation-controller.js',
     'prompt-controller-compiler-proof.js',
+    'world-improvement-session.js',
     'prompt-controller-lab-controller.js',
     'prompt-controller.js',
   ]) {

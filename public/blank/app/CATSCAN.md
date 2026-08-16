@@ -3,7 +3,7 @@
 Parent: [Create](../CATSCAN.md)
 ## Target
 
-Expose prompt, progress, inspection, interaction, and review controls around the compiler.
+Expose Create controls and evidence around the compiler.
 
 ## Authority
 
@@ -12,14 +12,14 @@ Expose prompt, progress, inspection, interaction, and review controls around the
 
 ## Scope
 
-- Applies to browser coordination under `public/blank/app/`.
+- Browser coordination under `public/blank/app/`.
 
 ## Contracts
 
 - Input: [runtime script manifest](runtime-script-manifest.js)
 - Input: [compiler charter](../pipeline/CATSCAN.md)
 - Output: [Create page](../index.html)
-- Output: [WorldSpec editor](prompt/world-spec-editor.js)
+- Output: [WorldSpec editor](prompt/world-spec-editor.js), [reconciliation](prompt/world-spec-reconciliation-controller.js), and [correction session](prompt/world-improvement-session.js)
 - Output: [compiler determinism coordinator](prompt/prompt-controller-compiler-proof.js)
 - Output: [WorldProof inspector and replay](prompt/prompt-controller-lab-controller.js)
 - Output: [run view model](runtime/run-view-model.js)
@@ -28,20 +28,20 @@ Expose prompt, progress, inspection, interaction, and review controls around the
 
 - The application coordinates typed phase APIs rather than reimplementing them.
 - Displayed completion follows receipts, not optimistic UI state.
-- Applied edits record user authority before the edited artifact executes.
+- Edits record user authority before execution; fresh compilation cannot replace them without an explicit preserve or supersede decision.
 - Compiler determinism compares an independently compiled artifact with the reconstructed pre-edit baseline.
 - Exact replay performs a second execution and compares bound outcomes under one execution identity.
-- Deterministic Create runs bind an independent fixed-step simulation comparison before replay can pass.
-- Declared safety rules bind two independent fixed-step decision traces before WorldProof can pass.
-- Create binds the typed Phase 2 and Phase 4 intent receipt into both execution and exact replay.
-- Create binds typed semantic provenance into execution and exact replay without reinterpreting it.
+- Deterministic runs bind independent fixed-step simulation and safety comparisons before replay can pass.
+- Execution and replay bind typed Phase 2 intent, Phase 4 settlement, and semantic provenance without reinterpretation.
+- A correction record exists only after a failed critical obligation, a later user-authored revision, and passing exact replay are bound together.
+- Machine-only correction records remain diagnostic until a final-phase human action creates a hash-bound adjudication.
 
 ## Acceptance
 
-- The runtime manifest and phase registry resolve without hidden dependencies.
-- Evidence: [phase module registry tests](../../../tests/phase-module-registry.test.cjs).
+- The runtime manifest and phase registry resolve without hidden dependencies. Evidence: [registry tests](../../../tests/phase-module-registry.test.cjs).
 - Evidence: [WorldSpec editor tests](../../../tests/world-spec.test.cjs).
 - Evidence: [WorldSpec editor browser audit](../../../tools/audit-world-spec-editor.mjs).
+- Evidence: [improvement record tests](../../../tests/world-improvement-record.test.cjs).
 
 ## Non-goals
 

@@ -81,6 +81,18 @@
         if (shouldCompileCustom) {
           reportCompilePhaseProgress(overrides, 'simulation', 100, 'Simulation compiled');
         }
+        const declaredConstructionApproach = compilerConfig.constructionApproach &&
+          typeof compilerConfig.constructionApproach === 'object'
+          ? JSON.parse(JSON.stringify(compilerConfig.constructionApproach))
+          : null;
+        if (declaredConstructionApproach && spec.phaseArtifacts && spec.phaseArtifacts.phase5) {
+          const simulationCompile = spec.phaseArtifacts.phase5.artifact &&
+            spec.phaseArtifacts.phase5.artifact.simulationCompile;
+          if (simulationCompile && simulationCompile.renderIR) {
+            simulationCompile.renderIR.constructionApproach = declaredConstructionApproach;
+            spec.renderIR = simulationCompile.renderIR;
+          }
+        }
         if (spec.phaseArtifacts && spec.phaseArtifacts.phase5) {
           reportCompilePhaseProgress(overrides, 'visual', 0, 'Building VisualIR');
           const phase6Compiled = scope.compilePhase6VisualProgram(spec.phaseArtifacts.phase5, overrides.compositionGraph || null);
@@ -204,7 +216,7 @@
         const phase4Output = phaseArtifacts.phase4 || null;
         const languageGraph = phase2Output && phase2Output.artifact && phase2Output.artifact.languageGraph || {};
         const groundedIntent = phase4Output && phase4Output.artifact && phase4Output.artifact.groundedIntent || {};
-        const prompt = languageGraph.sourceText || spec.name || '';
+        const prompt = languageGraph.sourceText || spec.source && spec.source.prompt || spec.name || '';
         const promptParse = overrides.promptParse || spec.promptParse || intent.promptParse || (
           scope.parsePrompt ? scope.parsePrompt(prompt) : null
         );
@@ -298,6 +310,140 @@
             neighboringIO: true,
           },
         };
+      }
+
+    function hydrateImportedWorldSpec(raw) {
+        scope.worldSpec.validateWorldSpec(raw);
+        scope.worldSpec.compilerBaselineContentHash(raw);
+        if (raw.phaseArtifacts && raw.phaseArtifacts.phase6) {
+          return acceptNormalizedWorldSpec(raw);
+        }
+        const validationReceipt = validateImportedExecutionProgram(raw);
+        const compiled = compileCompilerArtifacts(raw);
+        const compiledPhases = compiled.phaseArtifacts || {};
+        let phase4 = compiledPhases.phase4;
+        if (!phase4) throw importedCompatibilityError('cannot reconstruct Phase 4 grounding');
+        if (Number(raw.authorship && raw.authorship.revision || 0) > 0) {
+          phase4 = scope.createUserOverridePhase4(phase4, {
+            ...raw,
+            phaseArtifacts: compiledPhases,
+          });
+        }
+        const compiledPhase5 = scope.runPhase5SimulationCompile(
+          phase4,
+          scope.runtimeContextFromPhase(phase4)
+        );
+        const freshSimulationCompile = compiledPhase5.artifact.simulationCompile;
+        const simulationCompile = {
+          ...freshSimulationCompile,
+          physicsIR: raw.physicsIR,
+          validationReceipt,
+          solverGraph: raw.solverGraph,
+          renderIR: raw.renderIR,
+          interactionIR: raw.interactionIR,
+          controls: raw.controls,
+          visualSource: {
+            specId: raw.id,
+            templateId: raw.templateId,
+            name: raw.name,
+            kind: raw.kind,
+            modules: raw.modules,
+            objects: raw.objects,
+            params: raw.params,
+            contract: raw.contract,
+          },
+        };
+        const phase5Receipt = compiledPhase5.receipts.find((row) => (
+          row.id === 'phase5-simulation-compile'
+        ));
+        const phase5 = scope.createPhaseEnvelope({
+          phase: 5,
+          inputSchema: phase4.schema,
+          runtimeReceiptId: compiledPhase5.runtimeReceiptId,
+          artifact: {
+            simulationCompile,
+            compositionLedger: simulationCompile.compositionLedger,
+          },
+          receipts: [{
+            ...phase5Receipt,
+            physicsIR: raw.physicsIR.schema,
+            solverGraph: raw.solverGraph.schema,
+            renderIR: raw.renderIR.schema,
+            interactionIR: raw.interactionIR.schema,
+            importAuthority: 'world-spec',
+            worldSpecContentHash: raw.contentHash,
+          }],
+        });
+        const phase6 = scope.createVisualCompileEnvelopeFromCompiled(phase5, {
+          compositionGraph: raw.compositionGraph,
+          visualProgram: raw.renderProgram,
+        });
+        const hydrated = {
+          ...raw,
+          intent: compiled.intent,
+          promptParse: compiled.promptParse,
+          validationReceipt,
+          phaseArtifacts: {
+            ...compiledPhases,
+            phase4,
+            phase5,
+            phase6,
+          },
+        };
+        if (scope.worldSpec.contentHash(hydrated) !== raw.contentHash) {
+          throw importedCompatibilityError('hydration changed executable identity');
+        }
+        return acceptNormalizedWorldSpec(hydrated);
+      }
+
+    function validateImportedExecutionProgram(spec) {
+        requireImportedSchema(spec.physicsIR, scope.PHYSICAL_IR_SCHEMA, 'physicsIR');
+        requireImportedSchema(spec.solverGraph, scope.SOLVER_GRAPH_SCHEMA, 'solverGraph');
+        requireImportedSchema(spec.renderIR, scope.RENDER_IR_SCHEMA, 'renderIR');
+        requireImportedSchema(spec.interactionIR, scope.INTERACTION_IR_SCHEMA, 'interactionIR');
+        requireImportedSchema(spec.compositionGraph, scope.COMPOSITION_SCHEMA, 'compositionGraph');
+        requireImportedSchema(spec.renderProgram, scope.RENDER_PROGRAM_SCHEMA, 'renderProgram');
+        if (spec.solverGraph.sourceIR !== spec.physicsIR.schema) {
+          throw importedCompatibilityError('solverGraph does not bind physicsIR');
+        }
+        if (spec.renderIR.sourceIR !== spec.physicsIR.schema ||
+            spec.renderIR.sourceSolverGraph !== spec.solverGraph.schema) {
+          throw importedCompatibilityError('renderIR does not bind the imported simulation program');
+        }
+        if (spec.renderProgram.sourceGraphId !== spec.compositionGraph.graphId) {
+          throw importedCompatibilityError('renderProgram does not bind compositionGraph');
+        }
+        if (scope.worldSpec.canonicalJson(spec.renderProgram.renderIR) !==
+            scope.worldSpec.canonicalJson(spec.renderIR)) {
+          throw importedCompatibilityError('renderProgram contains a different renderIR');
+        }
+        const scenePacket = spec.renderProgram.sceneRenderPacket;
+        const visualIR = spec.renderProgram.visualIR;
+        requireImportedSchema(scenePacket, 'simulatte.sceneRenderPacket.v1', 'renderProgram.sceneRenderPacket');
+        requireImportedSchema(visualIR, 'simulatte.visualIR.v1', 'renderProgram.visualIR');
+        if (scope.worldSpec.canonicalJson(visualIR.sceneRenderPacket) !==
+            scope.worldSpec.canonicalJson(scenePacket)) {
+          throw importedCompatibilityError('visualIR contains a different sceneRenderPacket');
+        }
+        const validationReceipt = scope.validatePhysicsIR(spec.physicsIR);
+        if (validationReceipt.status !== 'valid' || validationReceipt.errors.length) {
+          throw importedCompatibilityError('physicsIR validation failed');
+        }
+        scope.validateInteractionIR(spec.interactionIR);
+        return validationReceipt;
+      }
+
+    function requireImportedSchema(value, schema, field) {
+        if (!value || value.schema !== schema) {
+          throw importedCompatibilityError(`${field} expected ${schema}`);
+        }
+      }
+
+    function importedCompatibilityError(message) {
+        return new scope.worldSpec.WorldSpecError(
+          `Imported WorldSpec is incompatible with this runtime: ${message}`,
+          '$.compatibility'
+        );
       }
 
     function compilePhysicalSpec(spec) {
@@ -422,6 +568,7 @@
       createSpec,
       normalizeSpec,
       acceptNormalizedWorldSpec,
+      hydrateImportedWorldSpec,
       compileCompilerArtifacts,
       attachRenderIRPhaseInputs,
       compilePhysicalSpec,

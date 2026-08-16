@@ -110,6 +110,7 @@
     formatMetric: scope.formatMetric,
     groundedPrimitiveRows: scope.groundedPrimitiveRows,
     groundUniverseGraph: scope.groundUniverseGraph,
+    hydrateImportedWorldSpec: scope.hydrateImportedWorldSpec,
     hasModule: scope.hasModule,
     isMagneticMachine: scope.isMagneticMachine,
     kineticEnergy: scope.kineticEnergy,

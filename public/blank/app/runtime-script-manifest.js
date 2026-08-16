@@ -8,6 +8,7 @@
 
   const runtimeFoundation = group(
     '../shared/deterministic-values.js',
+    '../shared/contracts/world-spec-authorship.js',
     '../shared/contracts/world-spec.js',
     '../shared/contracts/world-proof-compiler.js',
     '../shared/contracts/world-proof-intent.js',
@@ -228,6 +229,8 @@
     'pipeline/phase-05-simulation/simulatte-physics-model.js'
   );
   const prompt = group(
+    '../shared/contracts/world-spec-reconciliation.js',
+    '../shared/contracts/world-improvement-record.js',
     'app/prompt/prompt-controller-dependencies.js',
     'app/prompt/prompt-controller-construction-search.js',
     'app/prompt/prompt-controller-runtime.js',
@@ -235,7 +238,9 @@
     'app/prompt/prompt-controller-training.js',
     'app/prompt/prompt-model-selection.js',
     'app/prompt/world-spec-editor.js',
+    'app/prompt/world-spec-reconciliation-controller.js',
     'app/prompt/prompt-controller-compiler-proof.js',
+    'app/prompt/world-improvement-session.js',
     'app/prompt/prompt-controller-lab-controller.js',
     'app/prompt/prompt-controller.js'
   );

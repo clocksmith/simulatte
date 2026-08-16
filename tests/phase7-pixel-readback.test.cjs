@@ -12,8 +12,16 @@ function pixelSampleSet(renderData, samples, source = 'phase7-test-readback') {
     schema: 'simulatte.phase7PixelSampleSet.v1',
     source,
     packetKey: renderData.packetKey,
+    readbackSerial: 1,
     samples,
   };
+}
+
+function markSemanticSubmissionConsumed(renderData) {
+  renderData.rendererConsumption.objectSubmissionConsumed = true;
+  renderData.rendererConsumption.semanticCodesConsumed = true;
+  renderData.rendererConsumption.objectPartCountConsumed = renderData.objectPartCount;
+  return renderData;
 }
 
 function glacierReadbackFixture() {
@@ -104,6 +112,30 @@ test('Phase 7 samples the exact target entity before token-similar drawables', (
   assert.equal(ranked[0].id, 'open-microwave-resonator-2');
 });
 
+test('Phase 7 color proof samples distinct bound parts instead of one occludable entity center', () => {
+  const spec = lab.createSpecFromPrompt('yellow excavator beside a glass greenhouse', {
+    allowPrototypeFallback: true,
+  });
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 390, height: 844 });
+  const renderData = rendererScope.compileSceneRenderData(input.sceneRenderPacket);
+  renderData.requireLivePixelSamples = true;
+  const color = input.visualObligations.find((row) => (
+    row.obligationId === 'visual:prompt-property-excavator-color-#f4d03f'
+  ));
+  const plan = rendererScope.phase7PixelReadbackPlan(
+    renderData,
+    input.sceneRenderPacket,
+    input,
+    { width: 390, height: 844 }
+  );
+  const samples = plan.samples.filter((row) => row.obligationId === color.obligationId);
+
+  assert.equal(samples.length, 4);
+  assert.equal(new Set(samples.map((row) => row.constructionPartId)).size, 4);
+  assert.ok(samples.every((row) => row.drawableId === 'surface-excavator-1'));
+  assert.ok(samples.some((row) => ['panel', 'appendage'].includes(row.constructionRole)));
+});
+
 test('Phase 7 action proof samples the relation owner instead of a nearby object', () => {
   const spec = lab.createSpecFromPrompt('airplane flying over trees', { allowPrototypeFallback: true });
   const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });
@@ -161,44 +193,88 @@ test('Phase 7 does not certify required visuals without live pixel readback', ()
   assert.equal(proof.status, 'fail');
 });
 
-test('Phase 7 absence proof fails closed without a semantic absence detector', () => {
+test('Phase 7 absence proof binds the compiled semantic submission to current texture readback', () => {
   const spec = lab.createSpecFromPrompt('a dog but no cat', { allowPrototypeFallback: true });
   const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });
   const absence = input.visualObligations.find((row) => row.constraintKind === 'absence' && row.targetIdentity === 'cat');
   assert.ok(absence, 'required cat absence reaches Phase 7');
-  const renderData = rendererScope.compileSceneRenderData(input.sceneRenderPacket);
+  assert.equal(absence.targetSemanticCode, 2);
+  const renderData = markSemanticSubmissionConsumed(
+    rendererScope.compileSceneRenderData(input.sceneRenderPacket)
+  );
   renderData.requireLivePixelSamples = true;
   const plan = rendererScope.phase7PixelReadbackPlan(renderData, input.sceneRenderPacket, input, { width: 640, height: 360 });
   const samples = plan.samples.filter((row) => row.obligationId === absence.obligationId);
   assert.equal(samples.length, 0);
-  assert.ok(plan.unmatchedObligationIds.includes(absence.obligationId));
+  assert.ok(!plan.unmatchedObligationIds.includes(absence.obligationId));
 
   const proofApi = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
-  const forbiddenPacket = {
-    ...input.sceneRenderPacket,
-    entities: [
-      ...input.sceneRenderPacket.entities,
-      { id: 'forbidden-cat', label: 'cat', identity: { type: 'cat', label: 'cat' } },
-    ],
-  };
-  const proof = proofApi.renderObligationProof(forbiddenPacket, [absence], input.compositionLedger, true, {
+  const currentSamples = pixelSampleSet(renderData, plan.samples.map((sample) => ({
+    ...sample,
+    rgba: [80, 160, 220, 255],
+  })), 'webgpu-texture-copy-readback');
+  const proven = proofApi.renderObligationProof(input.sceneRenderPacket, [absence], input.compositionLedger, true, {
     ...renderData,
-    pixelSamples: pixelSampleSet(renderData, [
-      { obligationId: absence.obligationId, drawableId: 'surface-dog-1', rgba: [80, 160, 220, 255] },
-    ]),
+    pixelSamples: currentSamples,
   })[0];
-  assert.equal(proof.packetSatisfied, false);
-  assert.equal(proof.status, 'fail');
+  assert.equal(proven.packetSatisfied, true);
+  assert.equal(proven.pixelProof.detector.status, 'pass');
+  assert.equal(proven.pixelProof.detector.inspectedRegion, 'full-canvas-render-submission');
+  assert.equal(proven.pixelProof.detector.readbackSerial, 1);
+  assert.equal(proven.status, 'pass');
 
-  const unproven = proofApi.renderObligationProof(input.sceneRenderPacket, [absence], input.compositionLedger, true, {
-    ...renderData,
-    pixelSamples: pixelSampleSet(renderData, [
-      { obligationId: absence.obligationId, drawableId: 'surface-dog-1', rgba: [80, 160, 220, 255] },
-    ]),
+  const forbiddenPacket = structuredClone(input.sceneRenderPacket);
+  const forbiddenEntity = structuredClone(forbiddenPacket.entities.find((row) => row.identity.type === 'dog'));
+  forbiddenEntity.id = 'forbidden-cat';
+  forbiddenEntity.label = 'cat';
+  forbiddenEntity.identity = { ...forbiddenEntity.identity, type: 'cat', label: 'cat', sourceLabel: 'cat' };
+  forbiddenEntity.renderCodes = { ...forbiddenEntity.renderCodes, semanticCode: absence.targetSemanticCode };
+  forbiddenPacket.entities.push(forbiddenEntity);
+  const forbiddenRenderData = markSemanticSubmissionConsumed(
+    rendererScope.compileSceneRenderData(forbiddenPacket)
+  );
+  forbiddenRenderData.requireLivePixelSamples = true;
+  const forbiddenPlan = rendererScope.phase7PixelReadbackPlan(
+    forbiddenRenderData, forbiddenPacket, input, { width: 640, height: 360 }
+  );
+  const forbiddenIdentity = proofApi.renderObligationProof(forbiddenPacket, [absence], input.compositionLedger, true, {
+    ...forbiddenRenderData,
+    pixelSamples: pixelSampleSet(forbiddenRenderData, forbiddenPlan.samples.map((sample) => ({
+      ...sample,
+      rgba: [80, 160, 220, 255],
+    })), 'webgpu-texture-copy-readback'),
   })[0];
-  assert.equal(unproven.packetSatisfied, true);
-  assert.equal(unproven.pixelProof.reason, 'semantic absence detector unavailable');
-  assert.equal(unproven.status, 'fail');
+  assert.equal(forbiddenIdentity.packetSatisfied, false);
+  assert.equal(forbiddenIdentity.pixelProof.detector.status, 'fail');
+  assert.equal(forbiddenIdentity.status, 'fail');
+
+  const stale = proofApi.renderObligationProof(input.sceneRenderPacket, [absence], input.compositionLedger, true, {
+    ...renderData,
+    pixelSamples: { ...currentSamples, packetKey: `${renderData.packetKey}:stale` },
+  })[0];
+  assert.match(stale.pixelProof.reason, /scene-packet-binding/);
+  assert.equal(stale.status, 'fail');
+
+  const truncated = proofApi.renderObligationProof(input.sceneRenderPacket, [absence], input.compositionLedger, true, {
+    ...renderData,
+    objectPartTruncated: true,
+    pixelSamples: currentSamples,
+  })[0];
+  assert.match(truncated.pixelProof.reason, /object-part-submission-complete/);
+  assert.equal(truncated.status, 'fail');
+
+  const tamperedVector = new Float32Array(renderData.objectPartData);
+  tamperedVector[12] = absence.targetSemanticCode;
+  const forbiddenCode = proofApi.renderObligationProof(input.sceneRenderPacket, [absence], input.compositionLedger, true, {
+    ...renderData,
+    objectPartData: tamperedVector,
+    pixelSamples: currentSamples,
+  })[0];
+  assert.equal(forbiddenCode.pixelProof.detector.status, 'fail');
+  assert.ok(forbiddenCode.pixelProof.detector.checks.some((row) => (
+    row.id === 'forbidden-semantic-codes' && row.pass === false
+  )));
+  assert.equal(forbiddenCode.status, 'fail');
 });
 
 test('Phase 7 reports readback capacity overflow instead of truncating proof', () => {

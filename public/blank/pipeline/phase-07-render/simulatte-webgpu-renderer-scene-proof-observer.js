@@ -12,7 +12,13 @@
       const readbackFailure = renderer.lastPixelReadbackReceipt &&
         renderer.lastPixelReadbackReceipt.packetKey === packetKey &&
         renderer.lastPixelReadbackReceipt.status === 'fail';
-      const final = renderData.requireLivePixelSamples !== true || sampleBinding.valid || Boolean(readbackFailure);
+      const pixelAuditStatus = String(renderData.livePixelSamplesStatus || '');
+      const readbackAttemptCount = Number(renderData.livePixelReadbackAttemptCount || 0);
+      const pixelEvidenceSettled = sampleBinding.valid && (
+        pixelAuditStatus === 'pass' || readbackAttemptCount >= 3
+      );
+      const final = renderData.requireLivePixelSamples !== true ||
+        pixelEvidenceSettled || Boolean(readbackFailure);
       const report = {
         schema: 'simulatte.rendererSceneProofReport.v1',
         packetKey,
@@ -23,6 +29,8 @@
         durationMs: Number(renderer.lastSceneProofMs || 0),
         pixelSampleSource: renderData.pixelSampleSource || suppliedSamples && suppliedSamples.source || '',
         pixelSampleBinding: sampleBinding,
+        pixelAuditStatus,
+        pixelReadbackAttemptCount: readbackAttemptCount,
         pixelReadbackReceipt: renderer.lastPixelReadbackReceipt || null,
       };
       if (renderer.canvas && renderer.canvas.dataset) {

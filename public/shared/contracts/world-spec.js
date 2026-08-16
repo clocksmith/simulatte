@@ -1,14 +1,20 @@
 (function attachSimulatteWorldSpec(root, factory) {
-  const api = factory();
+  const authorship = typeof module === 'object' && module.exports
+    ? require('./world-spec-authorship.js')
+    : root.SimulatteWorldSpecAuthorship;
+  if (!authorship) throw new Error('SimulatteWorldSpec requires WorldSpec authorship validation');
+  const api = factory(authorship);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteWorldSpec = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldSpecApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldSpecApi(authorshipContract) {
 
   const WORLD_SPEC_SCHEMA = 'simulatte.worldSpec.v1';
-  const WORLD_SPEC_VERSION = '1.1.0';
+  const WORLD_SPEC_VERSION = '1.2.0';
+  const PREVIOUS_WORLD_SPEC_VERSION = '1.1.0';
   const LEGACY_WORLD_SPEC_VERSION = '1.0.0';
   const LEGACY_SPEC_SCHEMA = 'simulatte.simulationSpec.v1';
-  const AUTHORING_SCHEMA = 'simulatte.worldSpecAuthoring.v1';
+  const AUTHORING_SCHEMA = 'simulatte.worldSpecAuthoring.v2';
+  const RECONCILIATION_SCHEMA = 'simulatte.worldSpecReconciliation.v1';
   const SOURCE_SCHEMA = 'simulatte.worldSpecSource.v1';
   const PATCH_SCHEMA = 'simulatte.worldSpecPatch.v2';
   const LEGACY_PATCH_SCHEMA = 'simulatte.worldSpecPatch.v1';
@@ -173,6 +179,7 @@
         },
       ],
       patches: [],
+      reconciliations: [],
     };
   }
 
@@ -184,6 +191,7 @@
       sources: arrayOfObjects(value.sources, defaultAuthorship(source).sources),
       fieldProvenance: arrayOfObjects(value.fieldProvenance, defaultAuthorship(source).fieldProvenance),
       patches: arrayOfObjects(value.patches, []),
+      reconciliations: arrayOfObjects(value.reconciliations, []),
     };
   }
 
@@ -316,71 +324,15 @@
   }
 
   function validateAuthorship(authorship) {
-    requireObject(authorship, '$.authorship');
-    requireExactKeys(authorship, ['schema', 'revision', 'sources', 'fieldProvenance', 'patches'], '$.authorship');
-    if (authorship.schema !== AUTHORING_SCHEMA) {
-      throw new WorldSpecError(`Expected ${AUTHORING_SCHEMA}`, '$.authorship.schema');
-    }
-    if (!Number.isInteger(authorship.revision) || authorship.revision < 0) {
-      throw new WorldSpecError('Authorship revision must be a nonnegative integer', '$.authorship.revision');
-    }
-    requireArray(authorship.sources, '$.authorship.sources');
-    requireArray(authorship.fieldProvenance, '$.authorship.fieldProvenance');
-    requireArray(authorship.patches, '$.authorship.patches');
-    authorship.sources.forEach((source, index) => {
-      const path = `$.authorship.sources[${index}]`;
-      requireObject(source, path);
-      requireExactKeys(source, ['id', 'authority', 'label'], path);
-      requireString(source.id, `${path}.id`);
-      requireString(source.authority, `${path}.authority`);
-      requireString(source.label, `${path}.label`);
-      if (!AUTHORITIES.has(source.authority)) throw new WorldSpecError('Unknown field authority', `${path}.authority`);
+    return authorshipContract.validateAuthorship(authorship, {
+      authoringSchema: AUTHORING_SCHEMA,
+      currentPatchSchema: PATCH_SCHEMA,
+      legacyPatchSchema: LEGACY_PATCH_SCHEMA,
+      contentHashPrefix: CONTENT_HASH_PREFIX,
+      reconciliationSchema: RECONCILIATION_SCHEMA,
+      authorities: AUTHORITIES,
+      fail(message, path) { throw new WorldSpecError(message, path); },
     });
-    authorship.fieldProvenance.forEach((row, index) => {
-      const path = `$.authorship.fieldProvenance[${index}]`;
-      requireObject(row, path);
-      requireExactKeys(row, ['path', 'authority', 'sourceId'], path);
-      requireString(row.path, `${path}.path`);
-      requireString(row.authority, `${path}.authority`);
-      requireString(row.sourceId, `${path}.sourceId`);
-      if (!AUTHORITIES.has(row.authority)) throw new WorldSpecError('Unknown field authority', `${path}.authority`);
-    });
-    authorship.patches.forEach((patch, index) => {
-      const path = `$.authorship.patches[${index}]`;
-      requireObject(patch, path);
-      const currentPatch = patch.schema === PATCH_SCHEMA;
-      if (!currentPatch && patch.schema !== LEGACY_PATCH_SCHEMA) {
-        throw new WorldSpecError(`Expected ${PATCH_SCHEMA} or ${LEGACY_PATCH_SCHEMA}`, `${path}.schema`);
-      }
-      requireExactKeys(patch, [
-        'schema', 'id', 'revision', 'authority', 'author', 'targetPath', 'previousValue',
-        'newValue', 'rationale', 'affectedObligationIds',
-        ...(currentPatch ? ['compilerBaselineContentHash'] : []),
-      ], path);
-      requireString(patch.id, `${path}.id`);
-      requireString(patch.authority, `${path}.authority`);
-      requireString(patch.author, `${path}.author`);
-      requireString(patch.targetPath, `${path}.targetPath`);
-      requireString(patch.rationale, `${path}.rationale`);
-      if (currentPatch && patch.compilerBaselineContentHash !== null && (
-        typeof patch.compilerBaselineContentHash !== 'string' ||
-        !patch.compilerBaselineContentHash.startsWith(CONTENT_HASH_PREFIX)
-      )) {
-        throw new WorldSpecError('Patch compiler baseline must be content-addressed or null', `${path}.compilerBaselineContentHash`);
-      }
-      requireArray(patch.affectedObligationIds, `${path}.affectedObligationIds`);
-      if (patch.authority !== 'userOverride') throw new WorldSpecError('Patch authority must be userOverride', `${path}.authority`);
-      if (!Number.isInteger(patch.revision) || patch.revision < 1) {
-        throw new WorldSpecError('Patch revision must be a positive integer', `${path}.revision`);
-      }
-      if (!patch.targetPath.startsWith('/')) throw new WorldSpecError('Patch targetPath must be a JSON pointer', `${path}.targetPath`);
-    });
-    const currentBaselineValues = authorship.patches
-      .filter((patch) => patch.schema === PATCH_SCHEMA)
-      .map((patch) => patch.compilerBaselineContentHash);
-    if (new Set(currentBaselineValues).size > 1) {
-      throw new WorldSpecError('All patches must retain one compiler baseline', '$.authorship.patches');
-    }
   }
 
   function validateDeterminism(value) {
@@ -531,7 +483,7 @@
     }
   }
 
-  function parseWorldSpec(text) {
+  function parseWorldSpec(text, options = {}) {
     let parsed;
     try {
       parsed = JSON.parse(String(text || ''));
@@ -545,13 +497,20 @@
       throw new WorldSpecError(`Unsupported spec schema ${String(parsed.schema || 'missing')}`, '$.schema');
     }
     if (parsed.schema !== WORLD_SPEC_SCHEMA) return parsed;
-    if (parsed.schemaVersion === LEGACY_WORLD_SPEC_VERSION) return migrateWorldSpec(parsed);
-    validateWorldSpec(parsed, { verifyHash: false });
+    if ([LEGACY_WORLD_SPEC_VERSION, PREVIOUS_WORLD_SPEC_VERSION].includes(parsed.schemaVersion)) {
+      return migrateWorldSpec(parsed);
+    }
+    validateWorldSpec(parsed, { verifyHash: options.verifyHash !== false });
     return parsed;
   }
 
+  function parseWorldSpecEditCandidate(text) {
+    return parseWorldSpec(text, { verifyHash: false });
+  }
+
   function migrateWorldSpec(spec) {
-    if (spec.schema !== WORLD_SPEC_SCHEMA || spec.schemaVersion !== LEGACY_WORLD_SPEC_VERSION) {
+    if (spec.schema !== WORLD_SPEC_SCHEMA ||
+        ![LEGACY_WORLD_SPEC_VERSION, PREVIOUS_WORLD_SPEC_VERSION].includes(spec.schemaVersion)) {
       throw new WorldSpecError('No WorldSpec migration is available', '$.schemaVersion');
     }
     if (spec.contentHash !== contentHash(spec)) {
@@ -560,6 +519,13 @@
     const migrated = {
       ...spec,
       schemaVersion: WORLD_SPEC_VERSION,
+      authorship: {
+        ...spec.authorship,
+        schema: AUTHORING_SCHEMA,
+        reconciliations: Array.isArray(spec.authorship && spec.authorship.reconciliations)
+          ? spec.authorship.reconciliations
+          : [],
+      },
     };
     migrated.contentHash = contentHash(migrated);
     validateWorldSpec(migrated);
@@ -576,7 +542,9 @@
 
   function prepareUserEdit(current, input, options = {}) {
     validateWorldSpec(current);
-    const parsedCandidate = typeof input === 'string' ? parseWorldSpec(input) : input;
+    const parsedCandidate = typeof input === 'string'
+      ? parseWorldSpecEditCandidate(input)
+      : input;
     const candidate = {
       ...current,
       ...(parsedCandidate || {}),
@@ -747,19 +715,23 @@
   function compilerBaselineContentHash(spec) {
     validateWorldSpec(spec);
     const patches = spec.authorship.patches;
-    if (!patches.length) return spec.contentHash;
+    if (!patches.length) {
+      const latestReconciliation = (spec.authorship.reconciliations || []).at(-1);
+      return latestReconciliation && latestReconciliation.compiledWorldSpec
+        ? latestReconciliation.compiledWorldSpec.contentHash
+        : spec.contentHash;
+    }
     validateCompilerPatchChain(spec);
     if (patches.some((patch) => patch.schema === LEGACY_PATCH_SCHEMA)) return '';
     return patches[0].compilerBaselineContentHash || '';
   }
 
   function pointerTokens(pointer) {
-    if (typeof pointer !== 'string' || !pointer.startsWith('/') || pointer === '/') {
-      throw new WorldSpecError('Compiler-baseline patch requires a non-root JSON pointer', '$.authorship.patches');
-    }
-    return pointer.slice(1).split('/').map((token) => (
-      token.replace(/~1/g, '/').replace(/~0/g, '~')
-    ));
+    return authorshipContract.pointerTokens(pointer, {
+      allowRoot: false,
+      path: '$.authorship.patches',
+      fail(message, path) { throw new WorldSpecError(message, path); },
+    });
   }
 
   function pointerParent(root, pointer) {
@@ -890,9 +862,11 @@
   return Object.freeze({
     WORLD_SPEC_SCHEMA,
     WORLD_SPEC_VERSION,
+    PREVIOUS_WORLD_SPEC_VERSION,
     LEGACY_WORLD_SPEC_VERSION,
     LEGACY_SPEC_SCHEMA,
     AUTHORING_SCHEMA,
+    RECONCILIATION_SCHEMA,
     SOURCE_SCHEMA,
     PATCH_SCHEMA,
     LEGACY_PATCH_SCHEMA,
@@ -906,6 +880,7 @@
     finalizeWorldSpec,
     validateWorldSpec,
     parseWorldSpec,
+    parseWorldSpecEditCandidate,
     serializeWorldSpec,
     prepareUserEdit,
     compilerBaselineContentHash,

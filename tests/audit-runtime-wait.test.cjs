@@ -1,4 +1,6 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 
 test('model readiness extends while meaningful loader progress changes', async () => {
@@ -105,4 +107,39 @@ test('child process logs are drained into bounded diagnostic tails', async () =>
   assert.equal(snapshot.stdout.truncated, true);
   assert.equal(snapshot.stderr.truncated, true);
   assert.match(snapshot.stderr.tail, /-failure$/);
+});
+
+test('audit static server teardown closes retained keep-alive connections', async () => {
+  const http = require('node:http');
+  const { once } = require('node:events');
+  const { stopStaticServer } = await import('../tools/audit-server-lifecycle.mjs');
+  const server = http.createServer((_request, response) => {
+    response.writeHead(200, { connection: 'keep-alive', 'content-type': 'text/plain' });
+    response.end('ok');
+  });
+  server.keepAliveTimeout = 60000;
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const agent = new http.Agent({ keepAlive: true });
+  const response = await new Promise((resolve, reject) => {
+    http.get({ host: '127.0.0.1', port: server.address().port, agent }, resolve).on('error', reject);
+  });
+  response.resume();
+  await once(response, 'end');
+
+  await stopStaticServer(server);
+
+  assert.equal(server.listening, false);
+  agent.destroy();
+});
+
+test('visual audit CLI flushes output and terminates after owned-resource cleanup', () => {
+  const source = fs.readFileSync(
+    path.resolve(__dirname, '../tools/audit-intent-scene-screenshots.mjs'),
+    'utf8'
+  );
+
+  assert.match(source, /await stopStaticServer\(local\.server\)/);
+  assert.match(source, /process\.stdout\.write\('', \(\) => process\.exit\(exitCode\)\)/);
+  assert.match(source, /main\(\)\.then\(exitAfterOutputFlush\)/);
 });

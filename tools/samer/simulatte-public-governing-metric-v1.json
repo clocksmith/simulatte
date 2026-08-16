@@ -1,0 +1,55 @@
+{
+  "schema": "simulatte.publicGoverningMetricContract.v1",
+  "id": "simulatte-public-governing-metric-v1",
+  "purpose": "Compile public diagnostic browser evidence into separate governing dimensions without granting promotion authority.",
+  "scope": {
+    "kind": "public-diagnostic",
+    "sealedHoldout": false,
+    "promotionAuthority": false
+  },
+  "buildIdentityPath": "public/version.json",
+  "goldSetPath": "tools/samer/simulatte-public-gold-v1.json",
+  "boundarySetPath": "tools/samer/simulatte-public-boundary-v1.json",
+  "outputPath": "artifacts/simulatte-governing-metric/report.json",
+  "requiredViewports": [
+    {
+      "id": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "goldReportPath": "artifacts/blank-gold-desktop/report.json"
+    },
+    {
+      "id": "mobile",
+      "width": 390,
+      "height": 844,
+      "goldReportPath": "artifacts/blank-gold-mobile/report.json"
+    }
+  ],
+  "boundaryReports": [
+    {
+      "boundaryRowId": "unsupported-neologism-edit-replay",
+      "viewportId": "desktop",
+      "path": "artifacts/blank-world-spec-editor/1440x1000.json"
+    },
+    {
+      "boundaryRowId": "unsupported-neologism-edit-replay",
+      "viewportId": "mobile",
+      "path": "artifacts/blank-world-spec-editor/390x844.json"
+    }
+  ],
+  "reportedDimensions": [
+    "requirement-extraction-recall",
+    "refusal-correctness",
+    "unsupported-content-precision",
+    "semantic-settlement",
+    "dynamic-settlement",
+    "interaction-settlement",
+    "safety-settlement",
+    "visual-settlement",
+    "replay-success",
+    "latency",
+    "memory",
+    "edit-to-success-cycles",
+    "retained-human-satisfaction"
+  ]
+}

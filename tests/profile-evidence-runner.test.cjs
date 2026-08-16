@@ -10,7 +10,9 @@ const profileWorldProof = require('../public/shared/contracts/profile-world-proo
 const ROOT = path.resolve(__dirname, '..');
 const CONTRACT_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-contract.mjs')).href;
 const BROWSER_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-browser.mjs')).href;
+const BROWSER_LIFECYCLE_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-browser-lifecycle.mjs')).href;
 const RUNNER_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/run-profile-evidence.mjs')).href;
+const REVIEW_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-review-contract.mjs')).href;
 const PNG_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-png.mjs')).href;
 const PROCESS_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-process.mjs')).href;
 const INVENTORY_PATH = path.join(ROOT, 'public/data/application-profiles/profile-claim-inventory-v1.json');
@@ -1023,16 +1025,90 @@ test('human review queue binds verified screenshots, receipts, build, deployment
   assert.equal(queue.rows[0].pageScreenshot.sha256, receipt.evidence.pageScreenshot.sha256);
   assert.equal(queue.rows[0].buildIdentity.buildId, 'test-build');
   assert.equal(queue.rows[0].deployment.route, run.route);
+  assert.equal(queue.rows[0].scenePacketIdentity.lane, 'profile-compositor');
+  assert.match(queue.rows[0].scenePacketIdentity.sha256, /^[a-f0-9]{64}$/);
   assert.match(queue.rows[0].renderEvidenceSha256, /^[a-f0-9]{64}$/);
+  assert.deepEqual(queue.requiredVerdicts, [
+    'recognizability',
+    'composition',
+    'perceptualQuality',
+    'truthBoundaryLegibility',
+  ]);
   assert.equal(queue.rows[0].worldProofVerdict, 'not-proven');
   assert.equal(queue.rows[0].platformClaimEligible, false);
   assert.equal(queue.rows[0].reviewStatus, 'human-adjudication-required');
   fs.writeFileSync(path.join(outputDirectory, canvasPath), 'tampered');
   assert.throws(
     () => runner.writeHumanReviewQueue(outputDirectory, { capturePass: true, coverageComplete: true, runs: [row] }),
-    /profile_evidence_canvas_screenshot_hash_mismatch/,
+    /profile_review_canvas_screenshot_hash_mismatch/,
   );
   fs.rmSync(outputDirectory, { recursive: true, force: true });
+});
+
+test('failed machine capture produces a blocked review index without visual assets', async (t) => {
+  const { claims, contract, run, sourceIdentity } = await fixture();
+  const runner = await import(RUNNER_URL);
+  const review = await import(REVIEW_URL);
+  const outputDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-profile-review-blocked-'));
+  t.after(() => fs.rmSync(outputDirectory, { recursive: true, force: true }));
+  const runClaims = claims.filter((claim) => claim.profileId === run.profileId && claim.seedId === run.seedId);
+  const receipt = runner.failedReceipt(
+    run,
+    sourceIdentity,
+    runClaims,
+    Object.assign(new Error('browser capture failed'), { code: 'browser_capture_failed' }),
+  );
+  const stored = contract.storeReceipt(path.join(outputDirectory, 'receipts'), receipt);
+  const row = {
+    runId: run.id,
+    profileId: run.profileId,
+    seedId: run.seedId,
+    viewportId: run.viewport.id,
+    receiptSha256: stored.sha256,
+    receiptPath: path.relative(outputDirectory, stored.path).split(path.sep).join('/'),
+    pass: false,
+    failures: ['browser_capture_failed'],
+    worldProofVerdict: 'missing',
+    platformClaimEligible: false,
+  };
+  const index = {
+    schema: 'simulatte.profileEvidenceIndex.v1',
+    capturePass: false,
+    coverageComplete: false,
+    pass: false,
+    runs: [row],
+  };
+  fs.writeFileSync(path.join(outputDirectory, 'index.json'), contract.canonicalJson(index));
+  const queue = runner.writeHumanReviewQueue(outputDirectory, {
+    capturePass: false,
+    coverageComplete: false,
+    runs: [row],
+  });
+  assert.equal(queue.status, 'machine-evidence-incomplete');
+  assert.equal(queue.pendingRuns, 0);
+  assert.equal(queue.rows[0].machineStatus, 'blocked');
+  assert.equal(queue.rows[0].canvasScreenshot, null);
+  assert.equal(queue.rows[0].scenePacketIdentity, null);
+  const generated = review.writeProfileReviewIndex(outputDirectory).index;
+  assert.equal(generated.releaseReady, false);
+  assert.deepEqual(generated.summary, {
+    pass: 0,
+    fail: 0,
+    conflict: 0,
+    pending: 0,
+    blocked: 1,
+    platformClaimEligible: 0,
+  });
+  assert.equal(generated.rows[0].reviewStatus, 'blocked');
+  assert.equal(generated.rows[0].adjudicatedWorldProof.verdict, 'fail');
+  assert.equal(generated.rows[0].adjudicatedWorldProof.baseWorldProofSha256, null);
+  assert.throws(
+    () => review.createProfileReviewReceipt(
+      review.loadProfileReviewContext(outputDirectory),
+      { runId: run.id, reviewerId: 'Blocked Reviewer', verdict: {} },
+    ),
+    /profile_review_machine_evidence_not_ready/,
+  );
 });
 
 test('browser capture searches executed comparison receipts and preserves City playback receipts across reload', async () => {
@@ -1047,6 +1123,13 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.doesNotMatch(expression, /shuffle-button.*click/);
   assert.match(expression, /previousClockCursor/);
   assert.match(expression, /previousTierStepCount/);
+  assert.match(expression, /pause-control-ready/);
+  assert.match(expression, /pause-applied/);
+  assert.match(expression, /step-control-ready/);
+  assert.match(expression, /resume-control-ready/);
+  assert.match(expression, /resume-applied/);
+  assert.ok(expression.indexOf("lifecycle.push('pause')") < expression.indexOf("lifecycle.push('step')"));
+  assert.ok(expression.indexOf("lifecycle.push('step')") < expression.indexOf("lifecycle.push('resume')"));
   assert.match(expression, /commitTimelineTerminal/);
   assert.match(expression, /terminal-preview/);
   assert.match(expression, /terminal-commit/);
@@ -1094,6 +1177,74 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.match(source, /await client\.close\(\)/);
   assert.match(source, /receipt\?\.adapter/);
   assert.doesNotMatch(source, /navigator\.gpu\.requestAdapter\(\)/);
+});
+
+test('progressive lifecycle capture waits through a late control projection and exercises pause, step, resume', async () => {
+  const { progressiveLifecycleProbeSource } = await import(BROWSER_LIFECYCLE_URL);
+  const lifecycle = ['boot', 'select-seed', 'start'];
+  const marks = [];
+  const platform = { clock: { emittedCount: 0, state: { cursor: 0 } } };
+  const body = { dataset: { journeyPhase: 'running' } };
+  const status = { textContent: 'Running 0 of 19' };
+  const resume = {
+    disabled: false,
+    hidden: true,
+    click() {
+      body.dataset.journeyPhase = 'running';
+      resume.hidden = true;
+    },
+  };
+  const step = {
+    disabled: false,
+    hidden: true,
+    click() {
+      platform.clock.state.cursor += 1;
+      status.textContent = 'Paused at 1 of 19';
+    },
+  };
+  const pause = {
+    disabled: false,
+    hidden: true,
+    click() {
+      body.dataset.journeyPhase = 'paused';
+      pause.hidden = true;
+      step.hidden = false;
+      resume.hidden = false;
+    },
+  };
+  const document = {
+    body,
+    getElementById(id) {
+      return { 'pause-button': pause, 'step-button': step, 'resume-button': resume, 'runtime-status': status }[id] || null;
+    },
+  };
+  const waitFor = async (predicate, label) => {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      if (predicate()) return;
+      if (label === 'pause-control-ready' && attempt === 0) pause.hidden = false;
+      await Promise.resolve();
+    }
+    throw new Error(`test wait failed at ${label}`);
+  };
+  const AsyncFunction = Object.getPrototypeOf(async function noop() {}).constructor;
+  const execute = new AsyncFunction(
+    'document',
+    'globalThis',
+    'waitFor',
+    'lifecycle',
+    'markPerformance',
+    `${progressiveLifecycleProbeSource(['pause', 'step', 'resume'])}\nreturn lifecycle;`,
+  );
+  const observed = await execute(
+    document,
+    { __simulattePluginPlatformV4: platform, __simulatteTierRunState: null },
+    waitFor,
+    lifecycle,
+    (label) => marks.push(label),
+  );
+  assert.deepEqual(observed, ['boot', 'select-seed', 'start', 'pause', 'step', 'resume']);
+  assert.deepEqual(marks, ['pause', 'step', 'resume']);
+  assert.equal(platform.clock.state.cursor, 1);
 });
 
 test('reload evidence waits for a different browser document instead of a delayed load event', async () => {

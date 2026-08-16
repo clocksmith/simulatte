@@ -482,6 +482,10 @@
           embeddingModel: overrides.embeddingModel || '',
           embeddingBackend: overrides.embeddingBackend || '',
           modelSelection: overrides.modelSelection || null,
+          constructionApproach: overrides.constructionApproach &&
+            typeof overrides.constructionApproach === 'object'
+            ? overrides.constructionApproach
+            : null,
           allowPrototypeFallback: overrides.allowPrototypeFallback === true ? true : null,
         }).filter(([, value]) => value !== '' && value !== null));
       }

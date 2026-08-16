@@ -1,11 +1,12 @@
 (function attachSimulatteWebGpuRendererPixelPlan(root) {
   const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+    const PHASE7_COLOR_PROPERTY_SAMPLE_LIMIT = 4;
 
     function phase7ProjectedObjectPartPoints(renderData = {}, obligation = {}, time = 0) {
       const target = scope.normalizeForProof(obligation.targetIdentity || obligation.target || '');
       const entityId = String(obligation.targetEntityId || '');
       const role = scope.normalizeForProof(obligation.expectedPartRole || '');
-      const candidates = (renderData.objectParts || []).filter((part) => {
+      let candidates = (renderData.objectParts || []).filter((part) => {
         const entityMatches = entityId
           ? String(part.entityId || '') === entityId || String(part.entityId || '').startsWith(`${entityId}:instance:`)
           : true;
@@ -15,12 +16,34 @@
         ) : true;
         const roleMatches = role ? scope.normalizeForProof(part.constructionRole) === role : true;
         return entityMatches && identityMatches && roleMatches;
-      }).sort((a, b) => (
-        Number(a.constructionRoleIndex || 0) - Number(b.constructionRoleIndex || 0) ||
+      });
+      const expectedColor = phase7ExpectedColor(obligation.expectedValue);
+      if (expectedColor) {
+        const colorBound = candidates.filter((part) => phase7PartColorDistance(part.fill, expectedColor) <= 0.08);
+        if (colorBound.length) candidates = colorBound;
+      }
+      candidates.sort((a, b) => (
         Number(b.size && b.size[0] || 0) * Number(b.size && b.size[1] || 0) -
-        Number(a.size && a.size[0] || 0) * Number(a.size && a.size[1] || 0)
+        Number(a.size && a.size[0] || 0) * Number(a.size && a.size[1] || 0) ||
+        Number(a.depth || 0.5) - Number(b.depth || 0.5) ||
+        Number(a.constructionRoleIndex || 0) - Number(b.constructionRoleIndex || 0)
       ));
       return candidates.map((part) => ({ ...phase7ProjectedPartPoint(part, renderData.cameraState, time), part }));
+    }
+
+    function phase7ExpectedColor(value = '') {
+      const match = String(value || '').match(/^#([a-f0-9]{6})$/i);
+      if (!match) return null;
+      return [0, 2, 4].map((offset) => Number.parseInt(match[1].slice(offset, offset + 2), 16) / 255);
+    }
+
+    function phase7PartColorDistance(value = [], expected = []) {
+      if (!Array.isArray(value) || value.length < 3 || !Array.isArray(expected) || expected.length < 3) {
+        return Number.POSITIVE_INFINITY;
+      }
+      return Math.sqrt(value.slice(0, 3).reduce((sum, channel, index) => (
+        sum + (Number(channel || 0) - Number(expected[index] || 0)) ** 2
+      ), 0));
     }
 
     function phase7ProjectedObjectPartPoint(renderData = {}, obligation = {}, time = 0) {
@@ -88,7 +111,7 @@
       const obligations = phase7RequiredVisualObligations(renderExecutionInput, sceneRenderPacket);
       if (!obligations.length) return null;
       const requiredSampleCount = obligations.reduce((total, obligation) => (
-        total + phase7ObligationPixelSampleCount(obligation)
+        total + phase7ObligationPixelSampleCount(obligation, renderData)
       ), 0);
       if (requiredSampleCount > scope.PHASE7_PIXEL_READBACK_SAMPLE_LIMIT) {
         return phase7UnrenderablePixelPlan(
@@ -106,7 +129,7 @@
       const samples = [];
       const unmatchedObligationIds = [];
       for (const obligation of obligations) {
-        const expectedSamples = phase7ObligationPixelSampleCount(obligation);
+        const expectedSamples = phase7ObligationPixelSampleCount(obligation, renderData);
         const before = samples.length;
         if (obligation.constraintKind === 'environment' || obligation.targetIdentity === 'sunset') {
           samples.push(scope.pixelSampleForEnvironmentObligation(obligation, width, height));
@@ -128,6 +151,9 @@
         if (samples.length - before < expectedSamples) {
           unmatchedObligationIds.push(obligation.obligationId || obligation.id || 'unknown');
         }
+      }
+      if (!samples.length && obligations.some(phase7SemanticAbsenceObligation)) {
+        samples.push(phase7SemanticAbsenceFrameBindingSample(width, height));
       }
       return {
         schema: 'simulatte.phase7PixelReadbackPlan.v1',
@@ -156,6 +182,28 @@
         return;
       }
       const matched = drawablesForPixelObligation(drawables, obligation).slice(0, expectedSamples);
+      if (phase7ExpectedColor(obligation.expectedValue)) {
+        const drawable = matched[0];
+        const projectedParts = uniqueProjectedConstructionParts(phase7ProjectedObjectPartPoints(
+          renderData,
+          { ...obligation, targetEntityId: drawable && drawable.id || obligation.targetEntityId },
+          Number(renderData.pixelReadbackTimeMs || 0) * 0.001
+        )).slice(0, expectedSamples);
+        for (const projected of projectedParts) {
+          const sample = drawable && scope.pixelSampleForDrawable(
+            drawable,
+            obligation,
+            width,
+            height,
+            samples.length,
+            drawables.length
+          );
+          if (!sample) continue;
+          applyProjectedPixelSample(sample, projected, width, height, obligation);
+          samples.push(sample);
+        }
+        return;
+      }
       if (obligation.constraintKind === 'construction-part') {
         const projectedParts = uniqueProjectedConstructionParts(phase7ProjectedObjectPartPoints(
           renderData,
@@ -270,10 +318,39 @@
       });
     }
 
-    function phase7ObligationPixelSampleCount(obligation = {}) {
+    function phase7ObligationPixelSampleCount(obligation = {}, renderData = null) {
+      if (phase7SemanticAbsenceObligation(obligation)) return 0;
+      if (phase7ExpectedColor(obligation.expectedValue)) {
+        const candidateCount = phase7ProjectedObjectPartPoints(
+          renderData || {}, obligation, Number(renderData && renderData.pixelReadbackTimeMs || 0) * 0.001
+        ).length;
+        return Math.max(1, Math.min(PHASE7_COLOR_PROPERTY_SAMPLE_LIMIT, candidateCount || 1));
+      }
       return phase7VisualRelationObligation(obligation)
         ? 2
         : Math.max(1, Number(obligation.expectedCount || 1));
+    }
+
+    function phase7SemanticAbsenceObligation(obligation = {}) {
+      return obligation.constraintKind === 'absence' || (
+        obligation.constraintKind === 'count' && Number(obligation.expectedCount) === 0
+      );
+    }
+
+    function phase7SemanticAbsenceFrameBindingSample(width, height) {
+      const x = Math.max(0, Math.floor(width / 2));
+      const y = Math.max(0, Math.floor(height / 2));
+      return {
+        schema: 'simulatte.phase7PixelReadbackSample.v1',
+        id: 'gpu:semantic-absence-frame-binding:1',
+        obligationId: '',
+        label: 'semantic absence frame binding',
+        source: 'phase7-semantic-absence-detector-frame-binding',
+        drawableId: '',
+        x,
+        y,
+        uv: [Number((x / Math.max(1, width - 1)).toFixed(5)), Number((y / Math.max(1, height - 1)).toFixed(5))],
+      };
     }
 
     function phase7VisualRelationObligation(obligation = {}) {

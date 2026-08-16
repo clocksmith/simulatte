@@ -22,6 +22,14 @@
   function observeConstructionSceneProof(report = {}, spec = {}, state = null) {
     const search = state || createConstructionSearchState();
     if (report.final !== true) return constructionSearchDecision('wait', search, null);
+    if (['accepted', 'failed', 'exhausted'].includes(search.status)) {
+      return constructionSearchDecision(
+        'ignore',
+        search,
+        null,
+        `construction search is already ${search.status}`,
+      );
+    }
     const phase8 = report.phase8Output || null;
     const proof = phase8 && phase8.artifact && phase8.artifact.sceneProof || null;
     if (!proof) return constructionSearchDecision('ignore', search, null, 'missing Phase 8 scene proof');
@@ -185,8 +193,14 @@
     phaseArtifacts.phase5 = phase5;
     const intent = cloneValue(spec.intent || {});
     if (intent && typeof intent === 'object') intent.phaseArtifacts = phaseArtifacts;
+    const source = cloneValue(spec.source || {});
+    source.compilerConfig = {
+      ...(source.compilerConfig || {}),
+      constructionApproach: cloneValue(approach),
+    };
     return {
       ...spec,
+      source,
       intent,
       renderIR: cloneValue(simulationCompile.renderIR),
       phaseArtifacts,

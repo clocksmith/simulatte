@@ -148,7 +148,9 @@
       rows.push(row);
       try {
         env.localStorage.setItem(STORAGE_FALLBACK, JSON.stringify(rows.slice(-500)));
-      } catch (_err) {}
+      } catch (error) {
+        throw new Error(`Training review fallback storage failed: ${error && error.message || 'unknown error'}`);
+      }
       return row;
     }
 

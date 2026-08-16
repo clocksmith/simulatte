@@ -162,7 +162,7 @@ test('a user safety edit becomes authored executable WorldSpec intent', () => {
   assert.equal(worldSpec.validateWorldSpec(edited), edited);
 });
 
-test('WorldSpec export omits compiler evidence while preserving executable identity on import', () => {
+test('WorldSpec export omits compiler evidence and import reconstructs an executable proof chain', () => {
   const spec = compileFixture();
   const serialized = lab.serializeSpec(spec);
   const exported = JSON.parse(serialized);
@@ -177,6 +177,104 @@ test('WorldSpec export omits compiler evidence while preserving executable ident
   assert.equal(imported.contentHash, spec.contentHash);
   assert.equal(lab.serializeSpec(imported), serialized);
   assert.deepEqual(imported.params, spec.params);
+  assert.deepEqual(Object.keys(imported.phaseArtifacts), [
+    'phase1', 'phase2', 'phase3', 'phase4', 'phase5', 'phase6',
+  ]);
+  assert.equal(imported.phaseArtifacts.phase5.receipts[0].importAuthority, 'world-spec');
+  assert.equal(
+    imported.phaseArtifacts.phase5.receipts[0].worldSpecContentHash,
+    imported.contentHash
+  );
+  const renderInput = lab.createRenderExecutionInput(
+    imported,
+    lab.createSimulationState(imported),
+    { width: 640, height: 360 }
+  );
+  assert.equal(renderInput.sceneRenderPacket.schema, 'simulatte.sceneRenderPacket.v1');
+  assert.equal(renderInput.worldProofBinding.worldSpec.contentHash, imported.contentHash);
+  assert.equal(lab.createIntentProofReceiptForSpec(imported).status, 'pass');
+  assert.equal(lab.createSemanticProofReceiptForSpec(imported).status, 'pass');
+});
+
+test('edited WorldSpec import retains user authority and rejects incompatible execution bindings', () => {
+  const spec = compileFixture();
+  const candidate = JSON.parse(lab.serializeSpec(spec));
+  const node = candidate.universeGraph.nodes.find((row) => row.sourceLabel === 'ball');
+  node.properties.find((row) => row.kind === 'color').value = '#00aa44';
+  const edited = lab.applyWorldSpecEdit(spec, candidate, { rationale: 'Make the ball green' });
+  const imported = lab.deserializeSpec(lab.serializeSpec(edited));
+
+  assert.equal(imported.contentHash, edited.contentHash);
+  assert.equal(imported.phaseArtifacts.phase4.receipts
+    .find((row) => row.id === 'phase4-grounded-intent').authority, 'userOverride');
+  assert.equal(lab.createSemanticProofReceiptForSpec(imported).status, 'pass');
+  const importedBall = imported.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket.entities
+    .find((row) => row.identity?.sourceLabel === 'ball');
+  assert.ok(importedBall.geometry.program.parts.some((row) => row.fill === '#00aa44'));
+
+  const incompatible = JSON.parse(lab.serializeSpec(edited));
+  incompatible.renderProgram.sourceGraphId = 'different-composition-graph';
+  incompatible.contentHash = worldSpec.contentHash(incompatible);
+  assert.throws(
+    () => lab.deserializeSpec(JSON.stringify(incompatible)),
+    /Imported WorldSpec is incompatible.*renderProgram does not bind compositionGraph/
+  );
+});
+
+test('WorldSpec import rejects content tampering instead of silently minting a new identity', () => {
+  const spec = compileFixture();
+  const tampered = JSON.parse(lab.serializeSpec(spec));
+  tampered.params.seed = 987;
+
+  assert.throws(
+    () => lab.deserializeSpec(JSON.stringify(tampered)),
+    /WorldSpec contentHash does not match canonical content/
+  );
+});
+
+test('WorldSpec rejects forged authorship references and incoherent patch history', () => {
+  const spec = compileFixture();
+  const expectRejected = (input, mutate, pattern) => {
+    const forged = JSON.parse(lab.serializeSpec(input));
+    mutate(forged);
+    forged.contentHash = worldSpec.contentHash(forged);
+    assert.throws(() => lab.deserializeSpec(JSON.stringify(forged)), pattern);
+  };
+
+  expectRejected(spec, (forged) => {
+    forged.authorship.fieldProvenance.push({
+      path: '/params/energyInput',
+      authority: 'prompt',
+      sourceId: 'source:does-not-exist',
+    });
+  }, /Field provenance sourceId does not resolve/);
+
+  expectRejected(spec, (forged) => {
+    forged.authorship.fieldProvenance.push({
+      path: '/params/energyInput',
+      authority: 'prompt',
+      sourceId: 'source:compiler',
+    });
+  }, /Field provenance authority does not match/);
+  expectRejected(spec, (forged) => {
+    forged.authorship.fieldProvenance.push({
+      path: '/params/__proto__/polluted',
+      authority: 'compilerInference',
+      sourceId: 'source:compiler',
+    });
+  }, /JSON pointer contains a prohibited segment/);
+
+  const candidate = JSON.parse(lab.serializeSpec(spec));
+  candidate.params.energyInput = 1.25;
+  const edited = lab.applyWorldSpecEdit(spec, candidate, { rationale: 'Create patch history fixture' });
+  expectRejected(edited, (forged) => {
+    const patchId = forged.authorship.patches[0].id;
+    forged.authorship.fieldProvenance = forged.authorship.fieldProvenance
+      .filter((row) => row.sourceId !== patchId);
+  }, /Patch is missing field provenance/);
+  expectRejected(edited, (forged) => {
+    forged.authorship.revision += 1;
+  }, /Authorship revision does not match patch history/);
 });
 
 test('legacy simulation specs migrate to WorldSpec instead of remaining a second public identity', () => {
@@ -195,7 +293,7 @@ test('legacy simulation specs migrate to WorldSpec instead of remaining a second
   assert.match(migrated.contentHash, /^fnv1a32:/);
 });
 
-test('WorldSpec 1.0 exports migrate to 1.1 without inventing compiler baselines', () => {
+test('WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations', () => {
   const spec = compileFixture();
   const candidate = JSON.parse(lab.serializeSpec(spec));
   candidate.params.energyInput = 1.1;
@@ -214,6 +312,7 @@ test('WorldSpec 1.0 exports migrate to 1.1 without inventing compiler baselines'
   assert.equal(migrated.schemaVersion, worldSpec.WORLD_SPEC_VERSION);
   assert.notEqual(migrated.contentHash, legacy.contentHash);
   assert.equal(migrated.authorship.patches[0].schema, worldSpec.LEGACY_PATCH_SCHEMA);
+  assert.deepEqual(migrated.authorship.reconciliations, []);
   assert.equal(worldSpec.compilerBaselineContentHash(migrated), '');
   assert.equal(worldSpec.validateWorldSpec(migrated), migrated);
 });
@@ -223,7 +322,7 @@ test('user edits append provenance, reject immutable evidence, and change execut
   const candidate = JSON.parse(lab.serializeSpec(spec));
   candidate.params.energyInput = 1.25;
 
-  const edited = lab.applyWorldSpecEdit(spec, candidate, {
+  const edited = lab.applyWorldSpecEdit(spec, JSON.stringify(candidate), {
     rationale: 'Increase the applied energy',
   });
   const patch = edited.authorship.patches.at(-1);
@@ -382,14 +481,27 @@ test('Create exposes editor, import, export, and replay controls in runtime orde
     'replay-world-spec',
     'reset-world-spec-edit',
     'export-lab',
+    'export-improvement-record',
     'import-lab',
     'world-spec-import-file',
     'world-spec-editor-status',
+    'world-improvement-record-status',
+    'world-spec-reconciliation-dialog',
+    'world-spec-reconciliation-summary',
+    'world-spec-reconciliation-conflicts',
+    'world-spec-reconciliation-fields',
+    'preserve-world-spec-overrides',
+    'accept-recompiled-world-spec',
+    'cancel-world-spec-reconciliation',
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.equal(schema.additionalProperties, false);
   assert.equal(schema.properties.schema.const, worldSpec.WORLD_SPEC_SCHEMA);
+  assert.ok(
+    runtimeManifest.browser.indexOf('../shared/contracts/world-spec-authorship.js') <
+    runtimeManifest.browser.indexOf('../shared/contracts/world-spec.js')
+  );
   assert.ok(
     runtimeManifest.browser.indexOf('../shared/contracts/world-spec.js') <
     runtimeManifest.browser.indexOf('../shared/contracts/world-proof-compiler.js')
@@ -416,6 +528,10 @@ test('Create exposes editor, import, export, and replay controls in runtime orde
   );
   assert.ok(
     runtimeManifest.browser.indexOf('../shared/contracts/world-proof.js') <
+    runtimeManifest.browser.indexOf('../shared/contracts/world-improvement-record.js')
+  );
+  assert.ok(
+    runtimeManifest.browser.indexOf('../shared/contracts/world-proof.js') <
     runtimeManifest.browser.indexOf('pipeline/phase-05-simulation/simulatte-physics-model-dependencies.js')
   );
   assert.ok(
@@ -436,21 +552,43 @@ test('Create exposes editor, import, export, and replay controls in runtime orde
   );
   assert.ok(
     runtimeManifest.browser.indexOf('app/prompt/world-spec-editor.js') <
+    runtimeManifest.browser.indexOf('app/prompt/world-spec-reconciliation-controller.js')
+  );
+  assert.ok(
+    runtimeManifest.browser.indexOf('../shared/contracts/world-spec-reconciliation.js') <
+    runtimeManifest.browser.indexOf('app/prompt/world-spec-reconciliation-controller.js')
+  );
+  assert.ok(
+    runtimeManifest.browser.indexOf('app/prompt/world-spec-reconciliation-controller.js') <
     runtimeManifest.browser.indexOf('app/prompt/prompt-controller-lab-controller.js')
   );
   assert.ok(
     runtimeManifest.browser.indexOf('app/prompt/prompt-controller-compiler-proof.js') <
+    runtimeManifest.browser.indexOf('app/prompt/world-improvement-session.js')
+  );
+  assert.ok(
+    runtimeManifest.browser.indexOf('app/prompt/world-improvement-session.js') <
     runtimeManifest.browser.indexOf('app/prompt/prompt-controller-lab-controller.js')
   );
 });
 
 test('a user may explicitly refuse an unsupported node without retaining stale execution obligations', () => {
-  const spec = lab.createSpecFromPrompt('a red ball beside a qzxwplk', {
+  const boundarySet = JSON.parse(fs.readFileSync(
+    path.join(root, 'tools/samer/simulatte-public-boundary-v1.json'),
+    'utf8'
+  ));
+  assert.equal(boundarySet.schema, 'simulatte.promptBoundarySet.v1');
+  assert.equal(boundarySet.governingMetric.everyBoundaryMustPass, true);
+  const boundary = boundarySet.rows.find((row) => row.boundaryKind === 'unsupported-edit-replay');
+  assert.ok(boundary);
+  const includesUnsupported = (value) => String(JSON.stringify(value)).toLowerCase()
+    .includes(boundary.unsupportedLabel.toLowerCase());
+  const spec = lab.createSpecFromPrompt(boundary.prompt, {
     allowPrototypeFallback: true,
   });
-  assert.ok(spec.unsupportedRequirements.some((row) => /qzxwplk/i.test(JSON.stringify(row))));
+  assert.ok(spec.unsupportedRequirements.some(includesUnsupported));
   const candidate = JSON.parse(lab.serializeSpec(spec));
-  const removedNode = candidate.universeGraph.nodes.find((node) => /qzxwplk/i.test(node.label || ''));
+  const removedNode = candidate.universeGraph.nodes.find(includesUnsupported);
   assert.ok(removedNode);
   candidate.universeGraph.nodes = candidate.universeGraph.nodes
     .filter((node) => node.id !== removedNode.id);
@@ -458,7 +596,7 @@ test('a user may explicitly refuse an unsupported node without retaining stale e
     .filter((edge) => edge.from !== removedNode.id && edge.to !== removedNode.id);
 
   const edited = lab.applyWorldSpecEdit(spec, candidate, {
-    rationale: 'Explicitly refuse the unsupported qzxwplk requirement',
+    rationale: boundary.edit.rationale,
   });
   const ledger = edited.phaseArtifacts.phase6.artifact.visualCompile.compositionLedger;
   const ledgerText = JSON.stringify({
@@ -467,16 +605,13 @@ test('a user may explicitly refuse an unsupported node without retaining stale e
     obligations: ledger.obligations,
   });
 
-  assert.doesNotMatch(ledgerText, /qzxwplk/i);
-  assert.ok(edited.unsupportedRequirements.some((row) => /qzxwplk/i.test(JSON.stringify(row))));
+  assert.ok(!includesUnsupported(ledgerText));
+  assert.ok(edited.unsupportedRequirements.some(includesUnsupported));
   assert.ok(edited.authorship.patches.some((row) => row.authority === 'userOverride' &&
     row.targetPath.startsWith('/universeGraph/nodes')));
   assert.ok(edited.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket.entities
-    .every((row) => !/qzxwplk/i.test(JSON.stringify(row.identity || {}))));
+    .every((row) => !includesUnsupported(row.identity || {})));
   assert.equal(edited.phaseArtifacts.phase4.artifact.semanticProvenance.status, 'pass');
-  assert.doesNotMatch(
-    JSON.stringify(edited.phaseArtifacts.phase4.artifact.semanticProvenance.bindings),
-    /qzxwplk/i
-  );
+  assert.ok(!includesUnsupported(edited.phaseArtifacts.phase4.artifact.semanticProvenance.bindings));
   assert.equal(lab.createSemanticProofReceiptForSpec(edited).status, 'pass');
 });

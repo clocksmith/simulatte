@@ -596,6 +596,12 @@
           this.canvas.dataset.phase7PixelSampledObligationCount = String(
             pixelAudit && pixelAudit.livePixelAudit && pixelAudit.livePixelAudit.sampledRequiredObligationCount || 0
           );
+          this.canvas.dataset.phase7SemanticAbsenceObligationCount = String(
+            pixelAudit && pixelAudit.livePixelAudit && pixelAudit.livePixelAudit.semanticAbsenceObligationCount || 0
+          );
+          this.canvas.dataset.phase7PixelSettledObligationCount = String(
+            pixelAudit && pixelAudit.livePixelAudit && pixelAudit.livePixelAudit.settledRequiredObligationCount || 0
+          );
           this.canvas.dataset.phase7PixelRequiredObligationCount = String(
             pixelAudit && pixelAudit.livePixelAudit && pixelAudit.livePixelAudit.requiredObligationCount || 0
           );
@@ -611,6 +617,7 @@
             ? visualObligationProofSummary.passedObligationIds.join(',')
             : '';
           this.canvas.dataset.phase7PixelAuditChecks = JSON.stringify(pixelAudit && pixelAudit.checks || []).slice(0, 2000);
+          scope.notifyRendererSceneProof(this);
         }
 
         recordPixelReadbackFailure(readback, err) {
@@ -661,6 +668,8 @@
           this.canvas.dataset.phase7PixelVisibleSampleCount = '0';
           this.canvas.dataset.phase7PixelMinContrast = '0';
           this.canvas.dataset.phase7PixelSampledObligationCount = '0';
+          this.canvas.dataset.phase7SemanticAbsenceObligationCount = '0';
+          this.canvas.dataset.phase7PixelSettledObligationCount = '0';
           this.canvas.dataset.phase7PixelRequiredObligationCount = '0';
           this.canvas.dataset.phase7PixelSampledObligations = '';
           this.canvas.dataset.phase7VisualObligationProof = '';
@@ -785,6 +794,9 @@
           this.rendererConsumption.materialCountConsumed = objectPathActive
             ? Number(this.rendererConsumption.sourceMaterialCount || 0)
             : 0;
+          this.rendererConsumption.objectSubmissionConsumed = this.objectPartCount === 0 || objectPathActive;
+          this.rendererConsumption.semanticCodesConsumed = this.objectPartCount === 0 || objectPathActive;
+          this.rendererConsumption.objectPartCountConsumed = objectPathActive ? this.objectPartCount : 0;
           this.rendererConsumption.depthEnabled = objectPathActive && Boolean(this.depthTexture);
           this.rendererConsumption.normalShading = objectPathActive;
           this.rendererConsumption.atmosphereConsumed = Boolean(

@@ -7,6 +7,7 @@ import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { CdpClient, findChrome } from './run-browser-smoke.mjs';
 import { encodeRgbaPng, inspectPng } from './profile-evidence-png.mjs';
+import { progressiveLifecycleProbeSource } from './profile-evidence-browser-lifecycle.mjs';
 import { removeGeneratedProfileDirectory, stopChild } from './profile-evidence-process.mjs';
 import { createStaticSiteServer } from './static-site-server.mjs';
 import {
@@ -333,44 +334,7 @@ function browserProbeExpression(run) {
       compositorReceiptCount: globalThis.__simulattePluginPlatformV4?.compositor?.length || 0,
     };
     markPerformance('first-meaningful-frame');
-    const pause = document.getElementById('pause-button');
-    if (pause && !pause.hidden && !pause.disabled) {
-      await new Promise((resolve) => setTimeout(resolve, 25));
-      pause.click();
-      lifecycle.push('pause');
-      markPerformance('pause');
-      const resume = document.getElementById('resume-button');
-      if (resume && !resume.hidden && !resume.disabled) {
-        resume.click();
-        lifecycle.push('resume');
-        markPerformance('resume');
-        if (!pause.hidden && !pause.disabled) pause.click();
-      }
-      const step = document.getElementById('step-button');
-      if (step && !step.hidden && !step.disabled) {
-        const previousStepStatus = document.getElementById('runtime-status')?.textContent || '';
-        const previousEmittedCount = Number(globalThis.__simulattePluginPlatformV4?.clock?.emittedCount || 0);
-        const previousClockCursor = Number(globalThis.__simulattePluginPlatformV4?.clock?.state?.cursor || 0);
-        const previousTierStepCount = Number(globalThis.__simulatteTierRunState?.stepCount || 0);
-        step.click();
-        await waitFor(
-          () => document.body.dataset.journeyPhase === 'completed'
-            || Number(globalThis.__simulattePluginPlatformV4?.clock?.emittedCount || 0) > previousEmittedCount
-            || Number(globalThis.__simulattePluginPlatformV4?.clock?.state?.cursor || 0) > previousClockCursor
-            || Number(globalThis.__simulatteTierRunState?.stepCount || 0) > previousTierStepCount
-            || (document.getElementById('runtime-status')?.textContent || '') !== previousStepStatus,
-          'step-completed',
-          10000
-        );
-        lifecycle.push('step');
-        markPerformance('step');
-      }
-      if (resume && !resume.hidden && !resume.disabled) {
-        resume.click();
-        if (!lifecycle.includes('resume')) lifecycle.push('resume');
-        markPerformance('resume-after-step');
-      }
-    }
+${progressiveLifecycleProbeSource(run.interactionPath)}
     const hasProgressiveTimeline = !document.getElementById('playback-timeline-control')?.hidden
       && Number(document.getElementById('playback-timeline')?.max || 0) > 0;
     if (hasProgressiveTimeline) await commitTimelineTerminal('settlement', true);

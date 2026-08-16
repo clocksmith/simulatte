@@ -6,6 +6,7 @@ artifacts/simulatte-pipeline-audit/runs/*/
 artifacts/samer/
 artifacts/tier-browser-smoke/
 artifacts/profile-evidence/
+artifacts/profile-evidence-review/
 artifacts/folder-contract/
 artifacts/samer-gold-*/
 tools/autonomy/data-sources/*/osm-api-tiles/

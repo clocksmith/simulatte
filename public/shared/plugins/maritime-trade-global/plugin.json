@@ -106,7 +106,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginMaritimeTradeGlobal",
-    "integrity": "sha384-4261bb95b5c73912ade3738204d29e726195326115fca853f2d1065002574df7979992bee408f80653f9a56ba1c64a70",
+    "integrity": "sha384-2fea11a146971581e120409f0e495569a88a48c91aa0ff4e5a67653007ee097de1d4d546cb8a0a7209a98ab722450cdf",
     "path": "./index.js"
   },
   "extensionPoints": [

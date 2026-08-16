@@ -18,6 +18,13 @@ import {
   storeReceipt,
   validateReceipt,
 } from './profile-evidence-contract.mjs';
+import {
+  QUEUE_REQUIRED_BINDINGS,
+  VERDICT_FIELDS,
+  deriveProfileVisualBindings,
+  validateProfileReviewIndex,
+  writeProfileReviewIndex,
+} from './profile-evidence-review-contract.mjs';
 import { captureBrowserRun, createEvidenceServer, findChrome } from './profile-evidence-browser.mjs';
 
 const TOOL_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
@@ -164,7 +171,13 @@ function prepareCaptureDirectory(outputDirectory) {
   for (const relativePath of ['receipts', 'screenshots']) {
     fs.rmSync(path.join(outputDirectory, relativePath), { recursive: true, force: true });
   }
-  for (const relativePath of ['index.json', 'release-freeze.json', 'summary.md']) {
+  for (const relativePath of [
+    'human-review-index.json',
+    'human-review-queue.json',
+    'index.json',
+    'release-freeze.json',
+    'summary.md',
+  ]) {
     fs.rmSync(path.join(outputDirectory, relativePath), { force: true });
   }
 }
@@ -212,43 +225,39 @@ function writeSummary(outputDirectory, report) {
   fs.writeFileSync(path.join(outputDirectory, 'summary.md'), `${lines.join('\n')}\n`);
 }
 
-function verifiedVisualAsset(outputDirectory, evidence, kind) {
-  if (!evidence) return null;
-  const root = path.resolve(outputDirectory);
-  const assetPath = path.resolve(root, evidence.path || '');
-  if (!assetPath.startsWith(`${root}${path.sep}`)) throw new Error(`profile_evidence_${kind}_path_invalid`);
-  if (!fs.existsSync(assetPath)) throw new Error(`profile_evidence_${kind}_missing: ${evidence.path}`);
-  if (sha256File(assetPath) !== evidence.sha256) throw new Error(`profile_evidence_${kind}_hash_mismatch: ${evidence.path}`);
-  return {
-    sha256: evidence.sha256,
-    path: evidence.path,
-    ...(kind === 'canvas_screenshot' ? {
-      kind: evidence.kind,
-      sourceBackend: evidence.sourceBackend,
-      width: evidence.width ?? null,
-      height: evidence.height ?? null,
-    } : {}),
-  };
-}
-
 function writeHumanReviewQueue(outputDirectory, report) {
   const indexPath = path.join(outputDirectory, 'index.json');
   const rows = report.runs.map((row) => {
     const receipt = verifyStoredReceipt(outputDirectory, row);
+    if (!row.pass) {
+      return {
+        runId: row.runId,
+        profileId: row.profileId,
+        seedId: row.seedId,
+        viewportId: row.viewportId,
+        machineStatus: 'blocked',
+        receiptSha256: row.receiptSha256,
+        receiptPath: row.receiptPath,
+        buildIdentity: receipt.sourceIdentity?.build || null,
+        deployment: receipt.evidence?.deployment || null,
+        canvasScreenshot: null,
+        pageScreenshot: null,
+        scenePacketIdentity: null,
+        renderEvidenceSha256: null,
+        worldProofVerdict: row.worldProofVerdict || 'missing',
+        machineWorldProofEligible: false,
+        platformClaimEligible: false,
+        reviewStatus: 'blocked-on-machine-evidence',
+      };
+    }
     const screenshot = receipt.evidence?.screenshot || null;
-    const pageScreenshot = receipt.evidence?.pageScreenshot || null;
     const worldProof = receipt.runtime?.worldProof || null;
     if (
       worldProof?.schema !== 'simulatte.worldProof.v1'
       || worldProof.worldSpec?.contentHash !== receipt.runtime?.worldSpec?.contentHash
       || worldProof.bindings?.renderDataKey !== screenshot?.sha256
     ) throw new Error(`profile_evidence_world_proof_visual_binding_invalid: ${row.runId}`);
-    const renderEvidence = {
-      compositorReceipts: receipt.runtime?.compositorReceipts || [],
-      contributionSources: receipt.runtime?.contributionSources || [],
-      pixelReadback: receipt.evidence?.pixelReadback || null,
-      visual: receipt.evidence?.visual || null,
-    };
+    const visualBindings = deriveProfileVisualBindings(outputDirectory, receipt);
     return {
       runId: row.runId,
       profileId: row.profileId,
@@ -259,11 +268,13 @@ function writeHumanReviewQueue(outputDirectory, report) {
       receiptPath: row.receiptPath,
       buildIdentity: receipt.sourceIdentity?.build || null,
       deployment: receipt.evidence?.deployment || null,
-      canvasScreenshot: verifiedVisualAsset(outputDirectory, screenshot, 'canvas_screenshot'),
-      pageScreenshot: verifiedVisualAsset(outputDirectory, pageScreenshot, 'page_screenshot'),
-      renderEvidenceSha256: sha256Bytes(canonicalJson(renderEvidence)),
+      canvasScreenshot: visualBindings.canvasScreenshot,
+      pageScreenshot: visualBindings.pageScreenshot,
+      scenePacketIdentity: visualBindings.scenePacketIdentity,
+      renderEvidenceSha256: visualBindings.renderEvidenceSha256,
       worldProofVerdict: worldProof.verdict,
-      platformClaimEligible: worldProof.verdict === 'pass',
+      machineWorldProofEligible: worldProof.verdict === 'pass',
+      platformClaimEligible: false,
       reviewStatus: row.pass ? 'human-adjudication-required' : 'blocked-on-machine-evidence',
     };
   });
@@ -273,18 +284,8 @@ function writeHumanReviewQueue(outputDirectory, report) {
       ? 'human-adjudication-required'
       : 'machine-evidence-incomplete',
     indexSha256: sha256File(indexPath),
-    requiredBindings: [
-      'runId',
-      'receiptSha256',
-      'buildIdentity',
-      'deployment',
-      'canvasScreenshot.sha256',
-      'renderEvidenceSha256',
-      'reviewerId',
-      'reviewedAt',
-      'verdict',
-    ],
-    requiredVerdicts: ['recognizability', 'truth-boundary-legibility'],
+    requiredBindings: [...QUEUE_REQUIRED_BINDINGS],
+    requiredVerdicts: [...VERDICT_FIELDS],
     totalRuns: rows.length,
     pendingRuns: rows.filter((row) => row.reviewStatus === 'human-adjudication-required').length,
     rows,
@@ -505,6 +506,7 @@ async function captureAll({ options, plan, claims, identity, releaseIdentitySha2
   fs.writeFileSync(path.join(options.outputDirectory, 'index.json'), `${JSON.stringify(report, null, 2)}\n`);
   writeSummary(options.outputDirectory, report);
   writeHumanReviewQueue(options.outputDirectory, report);
+  writeProfileReviewIndex(options.outputDirectory);
   return report;
 }
 
@@ -532,6 +534,14 @@ async function main() {
     const validations = validateIndex({ outputDirectory: options.outputDirectory, plan, claims, identity });
     const passed = validations.filter((row) => row.pass).length;
     console.log(`PROFILE-EVIDENCE check runs=${validations.length} passed=${passed} failed=${validations.length - passed}`);
+    let reviewIndex = null;
+    try {
+      reviewIndex = validateProfileReviewIndex(options.outputDirectory).index;
+      console.log(`PROFILE-REVIEW check runs=${reviewIndex.totalRuns} reviews=${reviewIndex.totalReviews} pending=${reviewIndex.summary.pending} conflict=${reviewIndex.summary.conflict} eligible=${reviewIndex.summary.platformClaimEligible}`);
+    } catch (error) {
+      console.error(`PROFILE-REVIEW check failed=${error.code || error.message}`);
+      process.exitCode = 1;
+    }
     if (passed !== plan.runs.length || validations.length !== plan.runs.length) process.exitCode = 1;
   } else if (report && !report.capturePass) {
     process.exitCode = 1;

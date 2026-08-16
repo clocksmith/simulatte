@@ -170,6 +170,29 @@ test('comparison executes lockstep policy-blind branches and settles compatible 
   assert.equal(result.comparisonExecutionReceipt.startingIdentity.seed, scenario.seed);
   assert.deepEqual(Object.keys(result.branchMetrics.baseline).sort(), Object.keys(result.branchMetrics.intervention).sort());
   assert.doesNotMatch(JSON.stringify(result.comparisonExecutionReceipt), /futureOutcome|oracleValue|hiddenTruthValue/);
+  assert.ok(Buffer.byteLength(JSON.stringify(result.comparisonExecutionReceipt)) < 250_000);
+});
+
+test('exact scenario preparation and comparison replay reuse governed results', async () => {
+  const harness = createSdkHarness();
+  const instance = await plugin.activate({ sdk: harness.sdk, config, profile: null, scenario });
+
+  instance.setScenario(scenario);
+  await instance.handleAction('scenario.run', { scenario, values: { phase: 'start' } });
+  const scenarioEvents = harness.events.filter((row) => row.kind.endsWith('.scenario-computed'));
+  assert.deepEqual(scenarioEvents.map((row) => row.preparation), ['reused', 'reused']);
+
+  const firstComparison = await instance.handleAction('counterfactual.compare');
+  const replayedComparison = await instance.handleAction('counterfactual.compare');
+  assert.equal(firstComparison.comparisonPreparation, 'computed');
+  assert.equal(replayedComparison.comparisonPreparation, 'reused');
+  assert.deepEqual(replayedComparison.comparisonExecutionReceipt, firstComparison.comparisonExecutionReceipt);
+
+  await instance.handleAction('scenario.run', {
+    scenario,
+    values: { phase: 'start', emissionsPriceUsdPerTon: config.emissionsPriceUsdPerTon + 1 },
+  });
+  assert.equal(harness.events.filter((row) => row.kind.endsWith('.scenario-computed')).at(-1).preparation, 'computed');
 });
 
 test('typed Start accepts controls, Step preserves identity, and replay restores exactly', async () => {
@@ -231,8 +254,10 @@ function createSdkHarness() {
   let state = null;
   let reducer = null;
   const receipts = [];
+  const events = [];
   const byId = datasetsById();
   return {
+    events,
     receipts,
     sdk: {
       datasets: {
@@ -241,6 +266,7 @@ function createSdkHarness() {
       },
       events: {
         propose(event) {
+          events.push(event);
           state = reducer(state, event);
           return event;
         },

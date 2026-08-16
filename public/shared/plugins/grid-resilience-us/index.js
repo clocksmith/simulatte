@@ -37,6 +37,7 @@
     let result = run(acceptedParameters);
     let ensemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
     let comparison = null;
+    let comparisonCache = null;
     sdk.state.register(reduce, initialState(result, ensemble, acceptedParameters));
     appendRunReceipts(result, ensemble);
 
@@ -46,13 +47,29 @@
 
     function setScenario(nextScenario) {
       selectedScenario = normalizeScenario(nextScenario, config);
-      acceptedParameters = validateParameters({}, selectedScenario, config, datasets);
-      result = run(acceptedParameters);
-      ensemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
+      const nextParameters = validateParameters({}, selectedScenario, config, datasets);
+      const preparation = prepareScenario(nextParameters);
       comparison = null;
-      sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.scenario-computed`, result, ensemble, acceptedParameters });
+      sdk.events.propose({
+        pluginId: PLUGIN_ID,
+        kind: `${PLUGIN_ID}.scenario-computed`,
+        result,
+        ensemble,
+        acceptedParameters,
+        preparation,
+      });
       appendRunReceipts(result, ensemble);
       return summary(result, acceptedParameters);
+    }
+
+    function prepareScenario(nextParameters) {
+      const preparation = sameExecutionParameters(acceptedParameters, nextParameters) ? 'reused' : 'computed';
+      acceptedParameters = nextParameters;
+      if (preparation === 'computed') {
+        result = run(acceptedParameters);
+        ensemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
+      }
+      return preparation;
     }
 
     function handleAction(actionId, context = {}) {
@@ -65,11 +82,17 @@
       const phase = context.values?.phase;
       if (phase === 'start') {
         selectedScenario = normalizeScenario(context.scenario || selectedScenario, config);
-        acceptedParameters = validateParameters(context.values || {}, selectedScenario, config, datasets);
-        result = run(acceptedParameters);
-        ensemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
+        const nextParameters = validateParameters(context.values || {}, selectedScenario, config, datasets);
+        const preparation = prepareScenario(nextParameters);
         comparison = null;
-        sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.scenario-computed`, result, ensemble, acceptedParameters });
+        sdk.events.propose({
+          pluginId: PLUGIN_ID,
+          kind: `${PLUGIN_ID}.scenario-computed`,
+          result,
+          ensemble,
+          acceptedParameters,
+          preparation,
+        });
         sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.playback-started`, acceptedParameters });
         appendRunReceipts(result, ensemble);
         return playbackResult(sdk.state.read());
@@ -92,12 +115,22 @@
 
     async function compare() {
       const state = sdk.state.read();
-      comparison = await comparisonApi.runComparison({
-        datasets,
-        config,
-        scenario: state.acceptedParameters,
+      const parameterIdentity = executionParameterIdentity(state.acceptedParameters);
+      const preparation = comparisonCache?.parameterIdentity === parameterIdentity ? 'reused' : 'computed';
+      comparison = preparation === 'reused'
+        ? comparisonCache.comparison
+        : await comparisonApi.runComparison({
+          datasets,
+          config,
+          scenario: state.acceptedParameters,
+        });
+      comparisonCache = { parameterIdentity, comparison };
+      sdk.events.propose({
+        pluginId: PLUGIN_ID,
+        kind: `${PLUGIN_ID}.comparison-computed`,
+        comparison,
+        preparation,
       });
-      sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.comparison-computed`, comparison });
       sdk.receipts.append(comparison.comparisonExecutionReceipt);
       sdk.receipts.append({
         schema: 'simulatte.plugin.gridComparisonReceipt.v1',
@@ -111,6 +144,7 @@
         comparisonId: comparison.comparisonId,
         comparisonBranches: comparison.branchMetrics,
         comparisonExecutionReceipt: comparison.comparisonExecutionReceipt,
+        comparisonPreparation: preparation,
       };
     }
 
@@ -331,6 +365,14 @@
 
   function initialState(result, ensemble, acceptedParameters) {
     return { result, ensemble, acceptedParameters, playback: { status: 'ready', cursor: 0 }, comparison: null };
+  }
+
+  function sameExecutionParameters(left, right) {
+    return executionParameterIdentity(left) === executionParameterIdentity(right);
+  }
+
+  function executionParameterIdentity(value) {
+    return JSON.stringify(value || null);
   }
 
   function playbackResult(state) {

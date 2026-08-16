@@ -9,7 +9,9 @@
   }
 
   function deserializeSpec(text) {
-    return scope.normalizeSpec(scope.worldSpec.parseWorldSpec(text));
+    const parsed = scope.worldSpec.parseWorldSpec(text);
+    if (parsed.schema !== scope.worldSpec.WORLD_SPEC_SCHEMA) return scope.normalizeSpec(parsed);
+    return scope.hydrateImportedWorldSpec(parsed);
   }
 
   function recordWorldSpecEdit(inputSpec, input, options = {}) {

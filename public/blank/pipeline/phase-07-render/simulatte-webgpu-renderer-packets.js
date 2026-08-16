@@ -233,7 +233,8 @@
         const drawables = scenePacketUniformDrawables(packet, sceneKind);
         const uniformDrawables = drawables.slice(0, scope.SCENE_PACKET_OBJECT_SLOTS);
         const sceneObjectUniforms = scenePacketObjectUniformVectorFromDrawables(uniformDrawables);
-        const objectParts = scenePacketObjectParts(packet).slice(0, scope.GPU_OBJECT_PART_CAPACITY);
+        const sourceObjectParts = scenePacketObjectParts(packet, Number.POSITIVE_INFINITY);
+        const objectParts = sourceObjectParts.slice(0, scope.GPU_OBJECT_PART_CAPACITY);
         const objectPartData = scenePacketObjectPartStorageVector(objectParts);
         const cameraState = scenePacketCameraState(packet);
         const lightState = scenePacketLightState(packet);
@@ -268,6 +269,9 @@
           objectParts,
           objectPartData,
           objectPartCount: objectParts.length,
+          sourceObjectPartCount: sourceObjectParts.length,
+          objectPartTruncated: sourceObjectParts.length !== objectParts.length,
+          objectPartFloatStride: scope.GPU_OBJECT_PART_FLOATS,
           objectPartCapacity: scope.GPU_OBJECT_PART_CAPACITY,
           objectPartSummary: scenePacketObjectPartSummary(objectParts),
           morphologySubmission: scope.scenePacketMorphologySummary(objectParts),
@@ -284,7 +288,7 @@
         };
       }
 
-    function scenePacketObjectParts(packet = {}) {
+    function scenePacketObjectParts(packet = {}, capacity = scope.GPU_OBJECT_PART_CAPACITY) {
         const rows = scenePacketRows(packet, 'entities')
           .filter((row) => (
             row &&
@@ -348,7 +352,7 @@
                 row.material && row.material.emissiveStrength || (row.material && row.material.emissive === true ? 0.42 : 0))),
               literal: program.literal === true,
             });
-            if (parts.length >= scope.GPU_OBJECT_PART_CAPACITY) return parts;
+            if (parts.length >= capacity) return parts;
           }
         }
         return parts;
@@ -525,6 +529,10 @@
           lightCountConsumed: 0,
           materialCountConsumed: 0,
           objectPartCount: objectParts.length,
+          sourceObjectPartCount: objectParts.length,
+          objectSubmissionConfigured: true,
+          objectSubmissionConsumed: false,
+          semanticCodesConsumed: false,
           morphologySubmission: scope.scenePacketMorphologySummary(objectParts),
           atmosphereConfigured: atmosphere &&
             atmosphere.schema === 'simulatte.sceneAtmosphereProgram.v1',

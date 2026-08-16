@@ -18,13 +18,17 @@ Evaluate candidates against frozen populations and retain promotion, rejection, 
 
 - Input: [model selection policy](model-selection-policy.json)
 - Input: [construction contract](simulatte-construction-contract.json)
+- Input: [public governing metric contract](simulatte-public-governing-metric-v1.json)
 - Output: [candidate registry](model-candidate-registry.json)
+- Output: [separate public diagnostic dimensions](compile-governing-metric.mjs)
 - Output: [evidence charter](evidence/CATSCAN.md)
 
 ## Invariants
 
 - Train, selection, and held-out populations remain separate.
 - No single fitness number hides critical semantic or visual failure.
+- Public diagnostics never imply sealed-holdout promotion or missing human proof.
+- Memory dimensions preserve the distinction between measured browser heap and unavailable physical GPU memory.
 
 ## Acceptance
 
@@ -39,4 +43,3 @@ Evaluate candidates against frozen populations and retain promotion, rejection, 
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

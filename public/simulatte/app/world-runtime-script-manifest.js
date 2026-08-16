@@ -13,6 +13,7 @@
     'shared/contracts/contract-validation-primitives.js',
     'shared/contracts/contract-runtime-validator.js',
     'shared/contracts/contract-validator.js',
+    'shared/contracts/world-spec-authorship.js',
     'shared/contracts/world-spec.js',
     'shared/contracts/world-proof-compiler.js',
     'shared/contracts/world-proof-intent.js',

@@ -259,6 +259,29 @@ test('plugin supports progressive start/step and current-core terminal compatibi
   assert.ok(semantic.viewIntents.every((row) => row.mayInterruptManualOverride === false));
 });
 
+test('plugin reuses an exact prepared scenario and recomputes changed execution controls', async () => {
+  let scenarioRunCount = 0;
+  const host = hostFor('asia-europe-mainline', {
+    onSchedulerCreate: () => { scenarioRunCount += 1; },
+  });
+  const instance = await plugin.activate({
+    sdk: host.sdk,
+    config,
+    profile,
+    scenario: { scenarioId: 'asia-europe-mainline', seed: 'reuse-seed' },
+  });
+  assert.equal(scenarioRunCount, 1);
+
+  instance.setScenario({ scenarioId: 'asia-europe-mainline', seed: 'reuse-seed' });
+  instance.handleAction('scenario.run', { values: { phase: 'start' } });
+  assert.equal(scenarioRunCount, 1);
+
+  instance.handleAction('scenario.run', {
+    values: { phase: 'start', cargoTeu: config.cargoTeu + 100 },
+  });
+  assert.equal(scenarioRunCount, 2);
+});
+
 test('comparison uses a common seed and preserves selected scenario state', async () => {
   const host = hostFor('suez-closure-cape-reroute');
   const instance = await plugin.activate({
@@ -376,13 +399,19 @@ function datasets() {
   };
 }
 
-function hostFor(scenarioId) {
+function hostFor(scenarioId, { onSchedulerCreate = null } = {}) {
   let state = null;
   let reducer = null;
   const receipts = [];
   const random = randomApi.createRandomPort({ rootSeed: 'maritime-plugin-test', scenarioId })
     .forPlugin('maritime-trade-global');
-  const scheduler = schedulerApi.createSchedulerPort({}).forPlugin('maritime-trade-global');
+  const schedulerPort = schedulerApi.createSchedulerPort({}).forPlugin('maritime-trade-global');
+  const scheduler = {
+    create(options) {
+      onSchedulerCreate?.(options);
+      return schedulerPort.create(options);
+    },
+  };
   return {
     receipts,
     sdk: {

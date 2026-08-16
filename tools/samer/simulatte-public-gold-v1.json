@@ -2,9 +2,37 @@
   "schema": "simulatte.promptGoldSet.v1",
   "id": "simulatte-public-gold-v1",
   "purpose": "Public diagnostic construction set. It is not a sealed promotion holdout.",
+  "governingMetric": {
+    "schema": "simulatte.promptGoldGoverningMetric.v1",
+    "difficulties": ["easy", "medium", "hard"],
+    "minimumRowsPerDifficulty": 2,
+    "exactReplayRequired": true,
+    "maximumAuditDurationMs": 12000,
+    "maximumObservedJsHeapBytes": 536870912,
+    "maximumUnexpectedEntityCount": 0,
+    "maximumReportedUnsupportedCount": 0,
+    "measures": [
+      "requirement-extraction-recall",
+      "critical-entity-relation-pose-and-property-settlement",
+      "negation-preservation",
+      "close-semantic-distractor-separation",
+      "unsupported-invention",
+      "canonical-world-spec-and-world-proof-binding",
+      "compiler-and-simulation-replay",
+      "browser-audit-latency",
+      "browser-js-heap-memory"
+    ],
+    "doesNotMeasure": [
+      "refusal-correctness",
+      "human-recognizability-without-current-adjudication",
+      "physical-gpu-allocation-memory"
+    ]
+  },
   "rows": [
     {
       "id": "cats-in-galaxy",
+      "difficulty": "medium",
+      "difficultyBasis": "Exact count plus a containment relation inside an environment.",
       "prompt": "5 cats in a galaxy",
       "entities": [
         { "type": "cat", "count": 5 },
@@ -13,11 +41,19 @@
       "relations": [
         { "subjectType": "cat", "kind": "inside", "objectType": "galaxy" }
       ],
+      "extractionRequirements": [
+        { "id": "entity-cat", "kind": "entity", "targetIds": ["entity:cat"], "polarity": "required" },
+        { "id": "entity-galaxy", "kind": "entity", "targetIds": ["entity:galaxy"], "polarity": "required" },
+        { "id": "count-cat", "kind": "quantity", "targetIds": ["entity:cat"], "predicateAny": ["exact-count"], "value": 5 },
+        { "id": "relation-cat-in-galaxy", "kind": "relation", "targetIds": ["entity:cat", "entity:galaxy"], "predicateAny": ["in", "inside"] }
+      ],
       "poses": [],
       "blockingVisualRules": ["recognizable-cats", "recognizable-galaxy", "not-generic-box-only"]
     },
     {
       "id": "airplane-over-trees",
+      "difficulty": "easy",
+      "difficultyBasis": "Two familiar entity families with one directional relation and pose.",
       "prompt": "airplane flying over trees",
       "entities": [
         { "type": "airplane", "count": 1 },
@@ -30,10 +66,19 @@
         { "type": "airplane", "pose": "flight" },
         { "type": "tree", "pose": "static" }
       ],
+      "extractionRequirements": [
+        { "id": "entity-airplane", "kind": "entity", "targetIds": ["entity:airplane"], "polarity": "required" },
+        { "id": "entity-tree", "kind": "entity", "targetIds": ["entity:tree"], "polarity": "required" },
+        { "id": "plural-tree", "kind": "quantity", "targetIds": ["entity:tree"], "predicateAny": ["exact-count"], "minimumValue": 2 },
+        { "id": "action-flying", "kind": "action", "targetIds": ["action:flying"], "polarity": "required" },
+        { "id": "relation-airplane-over-tree", "kind": "relation", "targetIds": ["entity:airplane", "entity:tree"], "predicateAny": ["above", "over"] }
+      ],
       "blockingVisualRules": ["recognizable-airplane", "recognizable-trees", "airplane-above-trees", "not-generic-box-only"]
     },
     {
       "id": "dogs-playing-with-people",
+      "difficulty": "hard",
+      "difficultyBasis": "Two simultaneous exact counts and a multi-entity interaction pose.",
       "prompt": "3 dogs playing with 7 people",
       "entities": [
         { "type": "dog", "count": 3 },
@@ -46,10 +91,69 @@
         { "type": "dog", "pose": "play-interaction" },
         { "type": "person", "pose": "play-interaction" }
       ],
+      "extractionRequirements": [
+        { "id": "entity-dog", "kind": "entity", "targetIds": ["entity:dog"], "polarity": "required" },
+        { "id": "entity-person", "kind": "entity", "targetIds": ["entity:person"], "polarity": "required" },
+        { "id": "count-dog", "kind": "quantity", "targetIds": ["entity:dog"], "predicateAny": ["exact-count"], "value": 3 },
+        { "id": "count-person", "kind": "quantity", "targetIds": ["entity:person"], "predicateAny": ["exact-count"], "value": 7 },
+        { "id": "action-playing", "kind": "action", "targetIds": ["action:playing"], "polarity": "required" },
+        { "id": "relation-dog-with-person", "kind": "relation", "targetIds": ["entity:dog", "entity:person"], "predicateAny": ["with"] }
+      ],
       "blockingVisualRules": ["recognizable-dogs", "recognizable-people", "visible-play-interaction", "not-generic-box-only"]
     },
     {
+      "id": "dog-beside-cat",
+      "difficulty": "easy",
+      "difficultyBasis": "Two close animal identities must remain distinct through compilation, rendering, and proof.",
+      "prompt": "a dog beside a cat",
+      "entities": [
+        { "type": "dog", "count": 1 },
+        { "type": "cat", "count": 1 }
+      ],
+      "closeSemanticDistractors": [
+        { "requiredType": "dog", "distractorType": "cat" }
+      ],
+      "relations": [
+        { "subjectType": "dog", "kind": "beside", "objectType": "cat" }
+      ],
+      "extractionRequirements": [
+        { "id": "entity-dog", "kind": "entity", "targetIds": ["entity:dog"], "polarity": "required" },
+        { "id": "entity-cat", "kind": "entity", "targetIds": ["entity:cat"], "polarity": "required" },
+        { "id": "relation-dog-beside-cat", "kind": "relation", "targetIds": ["entity:dog", "entity:cat"], "predicateAny": ["beside"] }
+      ],
+      "poses": [],
+      "properties": [],
+      "blockingVisualRules": ["recognizable-dog", "recognizable-cat", "dog-and-cat-visibly-distinct", "dog-beside-cat", "not-generic-box-only"]
+    },
+    {
+      "id": "dog-tree-without-cat",
+      "difficulty": "medium",
+      "difficultyBasis": "Two visible entities, a directional relation, and a required bounded semantic absence.",
+      "prompt": "a dog beside a tree with no cat",
+      "entities": [
+        { "type": "dog", "count": 1 },
+        { "type": "tree", "count": 1 }
+      ],
+      "absences": [
+        { "type": "cat" }
+      ],
+      "relations": [
+        { "subjectType": "dog", "kind": "beside", "objectType": "tree" }
+      ],
+      "extractionRequirements": [
+        { "id": "entity-dog", "kind": "entity", "targetIds": ["entity:dog"], "polarity": "required" },
+        { "id": "entity-tree", "kind": "entity", "targetIds": ["entity:tree"], "polarity": "required" },
+        { "id": "absence-cat", "kind": "entity", "targetIds": ["entity:cat"], "polarity": "forbidden" },
+        { "id": "relation-dog-beside-tree", "kind": "relation", "targetIds": ["entity:dog", "entity:tree"], "predicateAny": ["beside"] }
+      ],
+      "poses": [],
+      "properties": [],
+      "blockingVisualRules": ["recognizable-dog", "recognizable-tree", "dog-beside-tree", "no-visible-cat", "not-generic-box-only"]
+    },
+    {
       "id": "purple-violin-on-wooden-stool",
+      "difficulty": "hard",
+      "difficultyBasis": "Object aliasing plus color, material, and support-relation obligations.",
       "prompt": "purple violin on a wooden stool",
       "entities": [
         { "type": "violin", "count": 1 },
@@ -63,10 +167,19 @@
         { "type": "violin", "kind": "color", "value": "#8055b8" },
         { "type": "chair", "kind": "material", "value": "wood" }
       ],
+      "extractionRequirements": [
+        { "id": "entity-violin", "kind": "entity", "targetIds": ["entity:violin"], "polarity": "required" },
+        { "id": "entity-stool", "kind": "entity", "targetIds": ["entity:stool"], "polarity": "required" },
+        { "id": "attribute-purple-violin", "kind": "attribute", "targetIds": ["entity:violin"], "predicateAny": ["color"], "value": "#8055b8" },
+        { "id": "attribute-wooden-stool", "kind": "attribute", "targetIds": ["entity:stool"], "predicateAny": ["material"], "value": "wood" },
+        { "id": "relation-violin-on-stool", "kind": "relation", "targetIds": ["entity:violin", "entity:stool"], "predicateAny": ["on"] }
+      ],
       "blockingVisualRules": ["recognizable-violin", "recognizable-stool", "purple-violin", "wooden-stool", "violin-on-stool", "not-generic-box-only"]
     },
     {
       "id": "excavator-beside-greenhouse",
+      "difficulty": "medium",
+      "difficultyBasis": "Specialized objects with color, material, and side-by-side layout.",
       "prompt": "yellow excavator beside a glass greenhouse",
       "entities": [
         { "type": "excavator", "count": 1 },
@@ -80,10 +193,19 @@
         { "type": "excavator", "kind": "color", "value": "#f4d03f" },
         { "type": "greenhouse", "kind": "material", "value": "glass" }
       ],
+      "extractionRequirements": [
+        { "id": "entity-excavator", "kind": "entity", "targetIds": ["entity:excavator"], "polarity": "required" },
+        { "id": "entity-greenhouse", "kind": "entity", "targetIds": ["entity:greenhouse"], "polarity": "required" },
+        { "id": "attribute-yellow-excavator", "kind": "attribute", "targetIds": ["entity:excavator"], "predicateAny": ["color"], "value": "#f4d03f" },
+        { "id": "material-glass-greenhouse", "kind": "relation", "targetIds": ["entity:greenhouse", "medium:glass"], "predicateAny": ["material-of"] },
+        { "id": "relation-excavator-beside-greenhouse", "kind": "relation", "targetIds": ["entity:excavator", "entity:greenhouse"], "predicateAny": ["beside"] }
+      ],
       "blockingVisualRules": ["recognizable-excavator", "recognizable-greenhouse", "yellow-excavator", "glass-greenhouse", "side-by-side-layout", "not-generic-box-only"]
     },
     {
       "id": "octopus-holding-teapot",
+      "difficulty": "easy",
+      "difficultyBasis": "Two recognizable objects with one grasp relation and pose.",
       "prompt": "an octopus holding a teapot",
       "entities": [
         { "type": "octopus", "count": 1 },
@@ -94,6 +216,12 @@
       ],
       "poses": [
         { "type": "octopus", "pose": "grasp-hold" }
+      ],
+      "extractionRequirements": [
+        { "id": "entity-octopus", "kind": "entity", "targetIds": ["entity:octopus"], "polarity": "required" },
+        { "id": "entity-teapot", "kind": "entity", "targetIds": ["entity:teapot"], "polarity": "required" },
+        { "id": "action-holding", "kind": "action", "targetIds": ["action:holding"], "polarity": "required" },
+        { "id": "relation-octopus-holding-teapot", "kind": "relation", "targetIds": ["entity:octopus", "entity:teapot"], "predicateAny": ["holding"] }
       ],
       "properties": [],
       "blockingVisualRules": ["recognizable-octopus", "recognizable-teapot", "visible-grasp", "not-generic-box-only"]

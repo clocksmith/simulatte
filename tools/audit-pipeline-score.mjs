@@ -414,7 +414,8 @@ function scorePrompt(row, index, lab, liveRows, options) {
     liveResult.phase7PixelReadback !== 'pass' ||
     liveResult.phase7PixelProofStatus !== 'pass' ||
     Number(liveResult.phase7PixelRequiredObligationCount || 0) < 1 ||
-    Number(liveResult.phase7PixelSampledObligationCount || 0) !== Number(liveResult.phase7PixelRequiredObligationCount || 0)
+    Number(liveResult.phase7PixelSettledObligationCount ?? liveResult.phase7PixelSampledObligationCount ?? 0) !==
+      Number(liveResult.phase7PixelRequiredObligationCount || 0)
   );
   if (hardFailure) {
     failures.push(`requiredLiveProof:sceneProof=${liveResult && liveResult.sceneProofVerdict || 'missing'} pixelReadback=${liveResult && liveResult.phase7PixelReadback || 'missing'} pixelProof=${liveResult && liveResult.phase7PixelProofStatus || 'missing'}`);

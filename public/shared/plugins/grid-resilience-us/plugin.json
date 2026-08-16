@@ -116,7 +116,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginGridResilienceUs",
-    "integrity": "sha384-e0f93a80c48dd80c0ed711ba814deb09163800b67228b5052d5821475abf9713bfc4cb3a6b074cc7744cf2df2a205dc6",
+    "integrity": "sha384-beb83dbffc8b0702643d5fddd63716838594fd20db84d400e79099e8e79c632e52eab0b9f9c0364f84be82916a8625e5",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -174,7 +174,7 @@
       "path": "./v4-contribution.js"
     },
     {
-      "integrity": "sha384-31dd663e767b6e91766a46d4420630b9089c9cc9fa7a65824fa8ac4c11a337fb21a349bae4a2afa3714125f546420eb0",
+      "integrity": "sha384-ba6944e2a7739a338c8bf08577eb2af477b9efffe116ad14c53a71ffc1e9e085348dec276692552529595da7458b0b03",
       "path": "./comparison-driver.js"
     },
     {

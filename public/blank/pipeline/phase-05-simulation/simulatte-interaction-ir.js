@@ -378,9 +378,7 @@
         clamp(current[0] + command.delta[0], 0, 1),
         clamp(current[1] + command.delta[1], 0, 1),
       ];
-      interaction.visualPositions[target.id] = position;
       setVectorChannel(state, target.channels.position, position, changedChannels);
-      interaction.visualChannelBaselines[target.id] = channelPosition(state, target);
       addVectorChannel(state, target.channels.velocity, scaleVector(command.delta, 5), changedChannels, 6);
       return result(state, changedChannels, changedChannels.length ? 'nudge changed simulation channels' : 'nudge changed visual position');
     }

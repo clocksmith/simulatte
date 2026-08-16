@@ -30,6 +30,7 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 - Render-addressable rows retain source evidence.
 - A solver execution receipt names the operators actually invoked and fails on missing or non-finite state.
 - Create owns its explicit WorldSpec determinism, dependency, and safety defaults; shared validators do not invent them.
+- Imported WorldSpec programs rebuild typed phase evidence, retain authored authority, and fail closed when their execution bindings are incompatible.
 - Simulation reproducibility uses two fresh states, the declared fixed-step policy, and a typed state comparison receipt.
 - Every applied interaction command retains its program identity and recomputable before/after state; a no-op cannot prove a transition.
 - Declared safety rules execute at every fixed-step checkpoint in two fresh runs; missing, blocking, or divergent decisions fail closed.
