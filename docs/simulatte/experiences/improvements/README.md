@@ -19,9 +19,9 @@ Per the [Strategic & Performance Consolidation Roadmap](../../prompt-to-world-ro
 |---|---|---:|---:|---|
 | [Sun Walker](sun-walker.md) | **Hero City Simulator** | 9/10 | 8/10 | Authored / Active |
 | [Maritime Trade](maritime-trade.md) | **Hero Planetary Simulator** | 8/10 | 9/10 | Authored / Active |
+| [Orbital Transfer Planner](orbital-transfer-planner.md) | **Hero Orbital Simulator** | 9/10 | 8/10 | Authored / Active |
 | [NYC Development Atlas](nyc-development-atlas.md) | Secondary City Pack | 6/10 code audit | 6/10 code audit | Authored |
 | [Asteroid Defense](asteroid-defense.md) | Solar Conformance Pack | 9/10 | 10/10 | Pending |
-| [Orbital Transfer Planner](orbital-transfer-planner.md) | Solar Conformance Pack | 9/10 | 8/10 | Pending |
 | [Subsea Network](subsea-network.md) | World Conformance Pack | 8/10 | 8/10 | Pending |
 | [Cable Trader](cable-trader.md) | *Archival Candidate* | 8/10 | 7/10 | Authored |
 | [Neighborhood Bulk Pool](neighborhood-bulk-pool.md) | *Archival Candidate* | 8/10 | 9/10 | Authored |

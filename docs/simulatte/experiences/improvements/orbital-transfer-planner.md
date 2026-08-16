@@ -7,6 +7,7 @@ Owner contract:
 
 | Field | State |
 |---|---|
+| Strategic role | **Hero Orbital Simulator** (Solar System Tier Hero per [Roadmap](../../prompt-to-world-roadmap.md)) |
 | Consistency baseline | 9/10 |
 | Interest baseline | 8/10 |
 | Runtime status | Implemented |
@@ -20,6 +21,7 @@ Owner contract:
 | Date | Sweep | Result | Evidence |
 |---|---|---|---|
 | 2026-07-27 | Shared playback, semantic presentation, camera, and side-metric consistency | Code complete; browser proof pending | Repository tests 740/740, JavaScript shape tests 46/46, plugin and boundary checks passed |
+| 2026-08-16 | Hero Orbital Simulator consolidation & landing showcase | Promoted as Solar System hero simulator on landing shell with direct default routing and Lambert solver validation. | `public/index.html`, `public/world-tiers.css`, `public/simulatte/app/world-runtime-script-manifest.js` |
 
 ## Frontier improvements
 

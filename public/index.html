@@ -465,6 +465,7 @@
   <script defer src="./simulatte/app/main.js?v=572e9e4c78ee764f278bcae58fc4967e571d5e34-ac32875249a9"></script>
 
   <!-- World Tiers Landing Page Selector -->
+  <!-- World Tiers Landing Page Selector -->
   <div id="world-tiers-landing-page">
     <header class="landing-header">
       <h1 class="landing-title" aria-label="SIMULATTE">
@@ -475,43 +476,66 @@
           <text x="50%" y="132" text-anchor="middle" dominant-baseline="middle">SIMULATTE</text>
         </svg>
       </h1>
-      <p class="landing-subtitle">Explore autonomous behavior across scales,<br />from local street networks to the stars.</p>
+      <p class="landing-subtitle">Inspectable prompt-to-simulation compiler and multi-scale physical worlds.</p>
     </header>
+
+    <!-- Primary Hero Surface: Simulatte Create (Prompt-to-World WebGPU Compiler) -->
+    <a href="./blank/" class="landing-compiler-hero" aria-label="Launch Simulatte Create prompt-to-world compiler">
+      <div class="compiler-hero-badge">Primary Product · WebGPU Compiler</div>
+      <div class="compiler-hero-content">
+        <div class="compiler-hero-title">
+          <span class="compiler-hero-mark">⚡</span>
+          <span>Simulatte Create</span>
+          <span class="compiler-hero-arrow">→</span>
+        </div>
+        <p class="compiler-hero-desc">Compile natural-language briefs into editable <code>WorldSpec</code> programs, physical dynamics, and deterministic WebGPU simulations with bound <code>WorldProof</code> receipts.</p>
+      </div>
+    </a>
+
+    <div class="landing-section-divider">
+      <span>Or Explore Governed Conformance Worlds</span>
+    </div>
+
     <div class="tier-cards-grid">
-      <div class="tier-card" data-tier="city">
+      <div class="tier-card is-hero" data-tier="city" data-default-profile="sun-walker-v1">
+        <div class="tier-badge">Hero City Simulator</div>
         <div class="tier-icon">
           <span class="tier-icon-mark">C</span>
         </div>
-        <h2 class="tier-name">City</h2>
-        <p class="tier-desc">Local WebGPU street routing, building shadows, and cooperative agents in NYC.</p>
+        <h2 class="tier-name">City · Sun Walker</h2>
+        <p class="tier-desc">Real-time solar azimuth, building shadow geometry, tree occlusion, and shade-aware routing in NYC.</p>
       </div>
-      <div class="tier-card" data-tier="country">
-        <div class="tier-icon">
-          <span class="tier-icon-mark">R</span>
-        </div>
-        <h2 class="tier-name">Country</h2>
-        <p class="tier-desc">Broad transit networks and cross-region routing graphs across the United States.</p>
-      </div>
-      <div class="tier-card" data-tier="world">
+      <div class="tier-card is-hero" data-tier="world" data-default-profile="maritime-trade-global-v1">
+        <div class="tier-badge">Hero Planetary Simulator</div>
         <div class="tier-icon">
           <span class="tier-icon-mark">P</span>
         </div>
-        <h2 class="tier-name">Planet</h2>
-        <p class="tier-desc">Global country boundaries, major cities, and coordinate systems.</p>
+        <h2 class="tier-name">Planet · Maritime Trade</h2>
+        <p class="tier-desc">Global shipping chokepoint simulation (Suez, Panama, Malacca), container port queues, and emissions cascades.</p>
       </div>
-      <div class="tier-card" data-tier="solar-system">
+      <div class="tier-card is-hero" data-tier="solar-system" data-default-profile="orbital-transfer-planner-v1">
+        <div class="tier-badge">Hero Orbital Simulator</div>
         <div class="tier-icon">
           <span class="tier-icon-mark">S</span>
         </div>
-        <h2 class="tier-name">Solar System</h2>
-        <p class="tier-desc">Heliocentric planetary orbits, distances, and velocities from JPL Horizons.</p>
+        <h2 class="tier-name">Solar System · Orbital Transfer</h2>
+        <p class="tier-desc">Heliocentric planetary ephemeris, Lambert transfer trajectories, and delta-v mission optimization.</p>
       </div>
-      <div class="tier-card" data-tier="star-chart">
+      <div class="tier-card is-conformance" data-tier="country" data-default-profile="food-recall-us-v1">
+        <div class="tier-badge">Conformance Pack</div>
+        <div class="tier-icon">
+          <span class="tier-icon-mark">R</span>
+        </div>
+        <h2 class="tier-name">Country · Supply Logistics</h2>
+        <p class="tier-desc">Multi-region distribution networks, causal supply disruption tracking, and grid resilience across the US.</p>
+      </div>
+      <div class="tier-card is-conformance" data-tier="star-chart" data-default-profile="interstellar-relay-network-v1">
+        <div class="tier-badge">Conformance Pack</div>
         <div class="tier-icon">
           <span class="tier-icon-mark">U</span>
         </div>
-        <h2 class="tier-name">Universe</h2>
-        <p class="tier-desc">3D stellar charts and spectral color classifications of Hipparcos stars.</p>
+        <h2 class="tier-name">Universe · Star Chart</h2>
+        <p class="tier-desc">3D stellar charts and relativistic interstellar relay communications across Hipparcos star systems.</p>
       </div>
     </div>
   </div>

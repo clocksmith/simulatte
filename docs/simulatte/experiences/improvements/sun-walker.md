@@ -22,6 +22,7 @@ Owner contract: [Sun Walker current experience](../sun-walker.md).
 | 2026-07-27 | Camera-target audit and shared playback consistency | Follow and POV target the walker; browser proof pending | Repository tests 740/740, JavaScript shape tests 46/46, plugin and boundary checks passed |
 | 2026-07-27 | Presentation layer set and visual storytelling rebuild | Follow and POV target the moving actor. Completed samples color walked segments and feed snapshot-bound inspector metrics. | `tests/sun-walker-visual-storytelling.test.cjs`, `tests/sun-walker-v4.test.cjs` |
 | 2026-08-16 | Hero City consolidation & spatial corridor sharding roadmap | Authored consolidation plan: decouple from monolithic 53.5MB NYC dataset, stream bounding-box corridors (`nyc-training-corridor-v1.json` at 5.5KB), and adopt binary encoding. | [Strategic & Performance Consolidation Roadmap](../../prompt-to-world-roadmap.md) |
+| 2026-08-16 | Primary City Default Promotion | Set Sun Walker as the active default city profile on landing and manifest (`TIER_DEFAULT_PROFILE.city = 'sun-walker-v1'`). | `public/index.html`, `public/world-tiers.css`, `public/simulatte/app/world-runtime-script-manifest.js`, `tests/world-runtime-loader.test.cjs` |
 
 ## Frontier improvements
 

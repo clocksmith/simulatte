@@ -21,6 +21,7 @@ Owner contract: [Maritime Trade current experience](../maritime-trade.md).
 |---|---|---|---|
 | 2026-07-27 | Shared playback, semantic presentation, camera, and side-metric consistency | Code complete; browser proof pending | Repository tests 740/740, JavaScript shape tests 46/46, plugin and boundary checks passed |
 | 2026-08-16 | Hero Planetary consolidation & chokepoint focus | Documented role as primary planetary-scale conformance pack and chokepoint cascade showcase. | [Strategic & Performance Consolidation Roadmap](../../prompt-to-world-roadmap.md) |
+| 2026-08-16 | Primary Planet Hero Landing Showcase | Elevated to Hero Planetary Simulator with direct default profile routing and chokepoint queue visualization. | `public/index.html`, `public/world-tiers.css`, `public/simulatte/app/world-tiers-boot.js` |
 
 ## Frontier improvements
 

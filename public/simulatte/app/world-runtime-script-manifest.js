@@ -221,7 +221,7 @@
     'interstellar-relay-network-v1': Object.freeze(['interstellar-relay-network']),
   });
   const TIER_DEFAULT_PROFILE = Object.freeze({
-    city: 'cable-trader-pickup-v1',
+    city: 'sun-walker-v1',
     country: 'food-recall-us-v1',
     world: 'maritime-trade-global-v1',
     'solar-system': 'orbital-transfer-planner-v1',

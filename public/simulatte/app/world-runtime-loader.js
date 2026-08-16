@@ -78,5 +78,12 @@
     return Object.freeze({ scripts: manifest().stages.optionalModel });
   }
 
-  return Object.freeze({ loadSelectedProduct, loadOptionalModel, pluginScripts });
+  async function loadModule(path) {
+    const build = root.document?.querySelector('meta[name="simulatte-build"]')?.content;
+    const url = new URL(`./${path}${build ? `?v=${encodeURIComponent(build)}` : ''}`, root.document?.baseURI || 'http://localhost/').toString();
+    return import(url);
+  }
+
+  return Object.freeze({ loadSelectedProduct, loadOptionalModel, loadScript, loadModule, pluginScripts });
 });
+
