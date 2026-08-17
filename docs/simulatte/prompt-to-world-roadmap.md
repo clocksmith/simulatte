@@ -35,6 +35,8 @@ To deliver a sharp, inspectable product experience, Simulatte focuses developmen
 | **1** | **Blank / Create (`/blank`)** | **Flagship Product**: Prompt-to-World Compiler | Compiles natural-language briefs into an inspectable, editable, executable `WorldSpec` with deterministic WebGPU scene proof (`WorldProof`). |
 | **2** | **Sun Walker (`/city/sun-walker-v1`)** | **Hero City Simulator**: Local Urban Dynamics | Real-time solar azimuth calculations, building shadow projections, tree canopy occlusion, and shade-aware routing across NYC on a native WebGPU canvas. |
 | **3** | **Maritime Trade (`/world/maritime-trade-global-v1`)** | **Hero Planetary Simulator**: Global Logistics & Cascades | Global shipping chokepoint simulation (Suez, Panama, Malacca), container port queues, disruption cascades, emissions tracking, and voyage counterfactuals. |
+| **4** | **Orbital Transfer Planner (`/solar-system/orbital-transfer-planner-v1`)** | **Hero Orbital Simulator**: Interplanetary Missions | Grounded Lambert two-point boundary-value solver, Keplerian orbital mechanics, and $\Delta v$ porkchop plot trajectory optimization. |
+| **5** | **Interstellar Relay (`/star-chart/interstellar-relay-network-v1`)** | **Hero Interstellar Simulator**: Relativistic Optical Comms | 3D Planck blackbody spectral stellar coronas (O, B, A, F, G, K, M), parsec galactic plane depth drop-lines, Gaussian laser beam divergence ($1.22 \lambda / D$), and moving-target light time. |
 
 ### Archival & Deprecation Plan
 The following text-heavy, low-visual, or redundant profile experiments are candidates for archival from the primary user journey into historical reference packs:
@@ -42,7 +44,6 @@ The following text-heavy, low-visual, or redundant profile experiments are candi
 - **Neighborhood Bulk Pool**: Low spatial visualization; primarily tabular pooling logic.
 - **Food Recall**: Country-tier state grid with limited dynamic interaction.
 - **Grid Resilience**: Tabular dispatch without rich 3D spatial dynamics.
-- **Interstellar Relay Network**: Abstract graph hops without terrestrial grounding.
 
 ---
 

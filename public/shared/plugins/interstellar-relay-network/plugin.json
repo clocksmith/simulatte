@@ -169,7 +169,7 @@
       "path": "./operations-model.js"
     },
     {
-      "integrity": "sha384-372a9b2a9b692783bf527161af8c5967cb3694e4427aa821144e4b6b3c763b6da2f9265c95c4f0962f271761f0afdfa7",
+      "integrity": "sha384-c7dd248ee5fc826221f6671f7f8a0f1721d9c2ad83796dca39cfdc55dabcdda1b34982f9cd3db2d8af77ad183f2965b9",
       "path": "./optical-link-budget.js"
     },
     {
@@ -177,7 +177,7 @@
       "path": "./packet-queue.js"
     },
     {
-      "integrity": "sha384-1502ad11c35bbe7e88c7278817ec3c87304aa3d3047ad1f2329907da1308e92abdf117e743292d6a3652ff9cdddf5886",
+      "integrity": "sha384-56b88a23cfdeaecb2a12aaaa487c617a0492658b871329e5456e5b5d9b4c8320c86b2e8ff7088016bb67104e13ad9e92",
       "path": "./presentation.js"
     },
     {

@@ -284,7 +284,21 @@
       this.panX = this.width / 2;
       this.panY = this.height / 2;
 
-      if (tierName === 'solar-system') {
+      if (tierName === 'datacenter') {
+        this.updateHudContent('Datacenter', 'Loading 256-GPU cluster topology and thermal model...', {}, '');
+        try {
+          const res = await this.dataLoader.fetch(cacheUrl('simulatte/worlds/datacenter-supercluster-v1.json'));
+          this.data = res.ok ? await res.json() : { racks: Array.from({ length: 32 }, (_, i) => ({ id: `rack-${i}`, avgTempC: 54 })) };
+          this.updateHudContent(
+            'Datacenter',
+            '3D physical facility view: 32 liquid-cooled 42U racks, 256 GPUs, NVLink mesh, and InfiniBand spine-leaf.',
+            tierFacts.extractDatacenterStats ? tierFacts.extractDatacenterStats(this.data) : {}
+          );
+        } catch (err) {
+          console.error('[MultiTierVisualizer] error loading datacenter tier data', err);
+          this.data = { racks: Array.from({ length: 32 }, (_, i) => ({ id: `rack-${i}`, avgTempC: 54 })) };
+        }
+      } else if (tierName === 'solar-system') {
         this.updateHudContent('Solar System', 'Loading NASA JPL Horizons orbital data...', {}, '');
         try {
           const [payload, facts] = await Promise.all([

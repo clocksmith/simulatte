@@ -47,8 +47,18 @@
       'Nearest major galaxy': nearest.name ? `${nearest.name} (${nearest.distanceMillionLy} million ly)` : 'Unknown',
       'Estimated galaxies': galaxies.estimatedObservableCount || 'Unknown',
       'Observable size': universeFacts.observableUniverseSizeLy ? `${universeFacts.observableUniverseSizeLy.toLocaleString()} ly` : 'Unknown'
+  function extractDatacenterStats(data = {}) {
+    return {
+      'Facility Scale': 'Datacenter / Room (~10¹ m)',
+      'Total Accelerators': '256 GPUs / TPUs',
+      'Racks': '32 42U Liquid-Cooled Cabinets',
+      'Intra-Node Interconnect': 'NVLink 900 GB/s Full Mesh',
+      'Inter-Rack Fabric': '800G InfiniBand Spine-Leaf',
+      'Cooling Architecture': 'Direct-to-Chip Liquid (CDU)',
+      'Peak Cluster FP8 Compute': '512 PFLOPS',
+      'Target PUE': '1.08',
     };
   }
 
-  return { extractSolarSystemStats, extractUniverseStats };
+  return { extractSolarSystemStats, extractUniverseStats, extractDatacenterStats };
 });

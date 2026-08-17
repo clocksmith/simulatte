@@ -1,0 +1,69 @@
+{
+  "schema": "simulatte.applicationProfile.v3",
+  "id": "gpu-supercluster-v1",
+  "tier": "datacenter",
+  "worldModelId": "datacenter-supercluster-v1",
+  "interaction": {
+    "mode": "simulation",
+    "simulationOwnerPluginId": "gpu-supercluster",
+    "missionRequired": false,
+    "startLabel": "Run distributed step",
+    "shuffleLabel": "Change cluster workload"
+  },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Training step",
+    "primaryMeasureKinds": ["cluster-tflops", "model-flops-utilization", "allreduce-latency-ms", "peak-gpu-temp-c", "cooling-pue"],
+    "supportedViews": ["overview", "free", "compare"],
+    "defaultView": "overview",
+    "comparisonMode": "synchronized",
+    "performanceBudget": {
+      "firstMeaningfulFrameMs": 250,
+      "p95FrameMs": 250,
+      "peakHeapMiB": 64
+    },
+    "stages": [
+      { "id": "forward-pass", "label": "Forward computation", "narrative": "Micro-batch activations compute across Tensor Parallel groups via NVLink.", "fromProgress": 0 },
+      { "id": "backward-gradients", "label": "Backward pass", "narrative": "Gradients calculate locally; Pipeline bubbles settle across node stages.", "fromProgress": 0.25 },
+      { "id": "allreduce-sync", "label": "Ring-AllReduce barrier", "narrative": "Bucketed gradient tensors stream across 800G InfiniBand spine-leaf fabric.", "fromProgress": 0.55 },
+      { "id": "thermal-settlement", "label": "Thermal & MFU settlement", "narrative": "Coolant distribution units absorb TDP heat; cluster MFU and step time close.", "fromProgress": 0.85 }
+    ]
+  },
+  "defaultSeedId": "gpt4-3d-parallelism",
+  "seeds": [
+    {
+      "id": "gpt4-3d-parallelism",
+      "label": "256-GPU 3D Parallelism (TP=8, PP=4, DP=8)",
+      "description": "Dense transformer 70B training with Ring-AllReduce across 32 racks.",
+      "seed": "supercluster-gpt-001",
+      "scenarioId": "gpt4-3d-parallelism"
+    },
+    {
+      "id": "straggler-fault-injection",
+      "label": "Degraded Node Straggler Cascade",
+      "description": "Throttled GPU in Rack R2-4 introduces a tail-latency barrier across all 32 racks.",
+      "seed": "supercluster-straggler-002",
+      "scenarioId": "straggler-fault-injection"
+    },
+    {
+      "id": "cdu-cooling-failure",
+      "label": "Row 3 CDU Coolant Surge",
+      "description": "Cooling distribution unit flow drops 50%, triggering die thermal throttling to 1.2 GHz.",
+      "seed": "supercluster-thermal-003",
+      "scenarioId": "cdu-cooling-failure"
+    },
+    {
+      "id": "tree-allreduce-low-latency",
+      "label": "Double-Binary Tree AllReduce",
+      "description": "Tree-based collective reduction optimizing inter-rack latency over raw ring bandwidth.",
+      "seed": "supercluster-tree-004",
+      "scenarioId": "tree-allreduce-low-latency"
+    }
+  ],
+  "plugins": [
+    {
+      "id": "gpu-supercluster",
+      "configId": "gpu-supercluster-config-v1"
+    }
+  ]
+}

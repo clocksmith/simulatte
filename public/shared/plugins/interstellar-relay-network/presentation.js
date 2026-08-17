@@ -62,6 +62,8 @@
           lightTimeYears: hop.lightTime.latencyYears,
           achievableDataRateGbps: result.channelReceipts[index].effectiveDataRateGbps,
           linkMarginDb: result.linkBudgets[index].linkMarginDb,
+          beamHalfAngleRad: result.linkBudgets[index].beamHalfAngleRad,
+          beamDiameterAtTargetM: result.linkBudgets[index].beamDiameterAtTargetM,
           physicalPacketSuccessProbability: result.channelReceipts[index].packetSuccessProbability,
           operationalDeliveryProbability: result.operations.deliveryProbability,
           channelMode: result.channelReceipts[index].mode,

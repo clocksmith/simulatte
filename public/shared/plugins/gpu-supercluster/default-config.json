@@ -1,0 +1,26 @@
+{
+  "schema": "simulatte.plugin.gpuSuperclusterConfig.v1",
+  "id": "gpu-supercluster-config-v1",
+  "seed": "supercluster-gpt-001",
+  "totalGpus": 256,
+  "racks": 32,
+  "nodesPerRack": 8,
+  "gpusPerNode": 8,
+  "parallelism": {
+    "tensorParallel": 8,
+    "pipelineParallel": 4,
+    "dataParallel": 8
+  },
+  "collectiveAlgorithm": "ring-allreduce",
+  "tensorSizeGb": 14.2,
+  "nvlinkBandwidthGbps": 900,
+  "infinibandBandwidthGbps": 800,
+  "coolantInletTempC": 22.0,
+  "coolantFlowLpm": 120.0,
+  "ambientAirTempC": 24.0,
+  "gpuTdpW": 700,
+  "stragglerNodeId": null,
+  "stragglerThrottlePercent": 0,
+  "linkPacketDropRate": 0.0,
+  "cduFlowDegradationPercent": 0
+}

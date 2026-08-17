@@ -5,6 +5,13 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createTierRegistry() {
   const TIERS = Object.freeze([
     Object.freeze({
+      id: 'datacenter',
+      label: 'Datacenter',
+      rendererMethod: 'drawDatacenter',
+      canvasVisible: true,
+      initialZoom: 1.0,
+    }),
+    Object.freeze({
       id: 'city',
       label: 'City',
       rendererMethod: null,

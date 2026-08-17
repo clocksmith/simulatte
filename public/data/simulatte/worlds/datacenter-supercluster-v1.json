@@ -1,0 +1,70 @@
+{
+  "schema": "simulatte.tierWorldModel.v1",
+  "id": "datacenter-supercluster-v1",
+  "tier": "datacenter",
+  "label": "256-GPU AI Supercluster Datacenter Facility",
+  "contentVersion": "datacenter-supercluster-2026-08-v1",
+  "coordinateSystem": {
+    "kind": "datacenter-cartesian-meters",
+    "referenceFrame": "facility-origin",
+    "units": "meter",
+    "positionTuple": ["xM", "yM", "zM"]
+  },
+  "bounds": {
+    "minimumMeters": [-20, -12, 0],
+    "maximumMeters": [20, 12, 4.5],
+    "cameraDistanceMeters": 35
+  },
+  "facility": {
+    "rows": 4,
+    "racksPerRow": 8,
+    "totalRacks": 32,
+    "nodesPerRack": 8,
+    "gpusPerNode": 8,
+    "totalGpus": 256,
+    "acceleratorModel": "H100-SXM5-80GB",
+    "acceleratorTdpW": 700,
+    "coolingArchitecture": "direct-to-chip-liquid",
+    "interconnectIntraNode": "NVLink-4-900GBps",
+    "interconnectInterRack": "InfiniBand-NDR-800Gbps"
+  },
+  "racks": [
+    {"id": "R1-1", "row": 1, "index": 1, "xM": -14.0, "yM": -7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R1-2", "row": 1, "index": 2, "xM": -10.0, "yM": -7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R1-3", "row": 1, "index": 3, "xM": -6.0, "yM": -7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R1-4", "row": 1, "index": 4, "xM": -2.0, "yM": -7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R1-5", "row": 1, "index": 5, "xM": 2.0, "yM": -7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R1-6", "row": 1, "index": 6, "xM": 6.0, "yM": -7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R1-7", "row": 1, "index": 7, "xM": 10.0, "yM": -7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R1-8", "row": 1, "index": 8, "xM": 14.0, "yM": -7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R2-1", "row": 2, "index": 1, "xM": -14.0, "yM": -2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R2-2", "row": 2, "index": 2, "xM": -10.0, "yM": -2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R2-3", "row": 2, "index": 3, "xM": -6.0, "yM": -2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R2-4", "row": 2, "index": 4, "xM": -2.0, "yM": -2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R2-5", "row": 2, "index": 5, "xM": 2.0, "yM": -2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R2-6", "row": 2, "index": 6, "xM": 6.0, "yM": -2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R2-7", "row": 2, "index": 7, "xM": 10.0, "yM": -2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R2-8", "row": 2, "index": 8, "xM": 14.0, "yM": -2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R3-1", "row": 3, "index": 1, "xM": -14.0, "yM": 2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R3-2", "row": 3, "index": 2, "xM": -10.0, "yM": 2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R3-3", "row": 3, "index": 3, "xM": -6.0, "yM": 2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R3-4", "row": 3, "index": 4, "xM": -2.0, "yM": 2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R3-5", "row": 3, "index": 5, "xM": 2.0, "yM": 2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R3-6", "row": 3, "index": 6, "xM": 6.0, "yM": 2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R3-7", "row": 3, "index": 7, "xM": 10.0, "yM": 2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R3-8", "row": 3, "index": 8, "xM": 14.0, "yM": 2.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R4-1", "row": 4, "index": 1, "xM": -14.0, "yM": 7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R4-2", "row": 4, "index": 2, "xM": -10.0, "yM": 7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R4-3", "row": 4, "index": 3, "xM": -6.0, "yM": 7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R4-4", "row": 4, "index": 4, "xM": -2.0, "yM": 7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R4-5", "row": 4, "index": 5, "xM": 2.0, "yM": 7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R4-6", "row": 4, "index": 6, "xM": 6.0, "yM": 7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R4-7", "row": 4, "index": 7, "xM": 10.0, "yM": 7.5, "zM": 0.0, "nodes": 8, "gpus": 8},
+    {"id": "R4-8", "row": 4, "index": 8, "xM": 14.0, "yM": 7.5, "zM": 0.0, "nodes": 8, "gpus": 8}
+  ],
+  "simulationTopology": {
+    "nodeKinds": ["gpu-accelerator", "server-node", "server-rack", "spine-switch", "cdu-pump"],
+    "edgeKinds": ["nvlink-mesh", "infiniband-rail", "coolant-manifold"],
+    "collectiveKinds": ["ring-allreduce", "tree-allreduce", "all-to-all-tensor-parallel"]
+  }
+}

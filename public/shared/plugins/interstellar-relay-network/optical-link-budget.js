@@ -75,6 +75,7 @@
     return Object.freeze({
       schema: 'simulatte.opticalLinkBudget.v2', txPowerW, txApertureM, rxApertureM,
       wavelengthNm: wavelengthM * 1e9, opticalEfficiency, distanceMeters,
+      beamHalfAngleRad, beamDiameterAtTargetM: 2 * distanceMeters * Math.tan(beamHalfAngleRad),
       freeSpaceLossDb: 10 * Math.log10(freeSpace), txGainDb: 10 * Math.log10(txGain), rxGainDb: 10 * Math.log10(rxGain),
       pointingLossDb: 10 * Math.log10(pointingLoss), declaredAttenuationDb: 10 * Math.log10(declaredAttenuation),
       rxPowerW, photonRate, signalPhotonRate, backgroundPhotonRateHz,
