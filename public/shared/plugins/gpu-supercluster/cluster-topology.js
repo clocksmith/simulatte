@@ -9,8 +9,8 @@
     const rowsCount = 4;
     const racksPerRow = Math.ceil(racksCount / rowsCount);
     const gpusPerRack = Math.floor(totalGpus / racksCount);
-    const nodesPerRack = Number(config.nodesPerRack || 8);
-    const gpusPerNode = Number(config.gpusPerNode || Math.max(1, Math.floor(gpusPerRack / nodesPerRack)));
+    const gpusPerNode = Number(config.gpusPerNode || Math.min(8, gpusPerRack));
+    const nodesPerRack = Number(config.nodesPerRack || Math.max(1, Math.floor(gpusPerRack / gpusPerNode)));
 
     const racks = [];
     const gpus = [];

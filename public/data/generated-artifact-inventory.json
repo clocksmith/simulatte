@@ -33,7 +33,7 @@
       ],
       "output": {
         "path": "public/data/simulatte/tier-application-manifest.json",
-        "sha256": "1659ec1c5600269476a00b51dfec8989ea7225f87b68d1a198662d7451ffd529"
+        "sha256": "607afd512dc3787cd05e94775fe63c325b5fbc4af0c678478efbe340cf62d1a4"
       },
       "contentVersion": "simulatte-tier-applications-v3",
       "activationState": "active",
@@ -123,7 +123,7 @@
       ],
       "output": {
         "path": "docs/simulatte/folder-contract.json",
-        "sha256": "b50d64e79cc3fdbef312f500bf4411ad844f92ec71a7fddecc859dfb0bde3369"
+        "sha256": "13effa402dac62ecdf8ca42e234abad6424764da5b43ca227c6dcd8394d1fb6f"
       },
       "contentVersion": "unpopulated",
       "activationState": "active-generated-mirror",

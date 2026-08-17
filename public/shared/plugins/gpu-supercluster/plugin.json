@@ -1,0 +1,91 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginGpuSupercluster",
+    "integrity": "sha384-e04a51f5e0046e7981ae14c374fe9263a064f2f590a6b650606b94ea168b866c9f3a1cef958a6ce62575f89b1e3e875c",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "request",
+    "route",
+    "settlement",
+    "ui",
+    "presentation"
+  ],
+  "governance": {
+    "executionIsolation": "same-realm-contract",
+    "marketplaceEligible": false,
+    "provenance": "repository-source",
+    "publisher": "simulatte",
+    "revocationId": "plugin:gpu-supercluster@1.0.0",
+    "signatureStatus": "not-applicable-repository-bundled",
+    "status": "active",
+    "trustLevel": "repository-bundled"
+  },
+  "id": "gpu-supercluster",
+  "permissions": [
+    "clock.read.v1",
+    "events.propose.v1",
+    "receipts.append.v1",
+    "routing.contribute.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1",
+    "world.query.v1"
+  ],
+  "provides": [
+    "simulation.datacenter.ai-supercluster.v1",
+    "routing.dimension.tensor-allreduce.v1",
+    "field.cluster-thermals.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.gpuSuperclusterReceipt.v1"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-c5b7d2260fb3790908e5baa6609298bfb5085bba1c5d4c03f45e4f30df4d10d4d4df0e3b9d112b99f3fd181ea87c5952",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-f53d5aaf70dca4e317c9b79f3c2d5361e4f08fcd7e3f9a18106485107fb24d09a7d406a049f18539c8d2794f92f54f5b",
+      "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-857f81939d87118f854a580d9d0f1c4f9ebf64b0e74ff339becd09797aff75a9912e05e4dc3b8371f6ec693e695c3ecc",
+      "path": "./cluster-controls.js"
+    },
+    {
+      "integrity": "sha384-992bff27f7491e0ffb1975ca19506e22e5c68feeda2af8f8eecee45936afb548adcf4a064c77ad632f82308682765486",
+      "path": "./cluster-topology.js"
+    },
+    {
+      "integrity": "sha384-0773d430474f5ef95ffad6ad33d9eb6b413447abb511c9c6f4b85001f529be13f34a3f20b38a6f8c10c77eb47f1af5fc",
+      "path": "./collective-solver.js"
+    },
+    {
+      "integrity": "sha384-98e717c7b9975ce5542205fa4a6459cd65cb95894e6e5db27eb1bd1ec5c2d90e7e8d29a7f1c3498fc62fa340a3a867c0",
+      "path": "./dataset-validators.js"
+    },
+    {
+      "integrity": "sha384-b18b4e5a55e16ca196b05b0e20fc3a550cb80ef958300d2a2d09d950b79202320f2e57f1f9b96fa9223b575332245295",
+      "path": "./presentation.js"
+    },
+    {
+      "integrity": "sha384-dd72f3fbdf879f6ba7b064221d88e79f199f5d8e4fbf49c7c889b43a2111b60d2cd7cc8da2202790e1718abb30156759",
+      "path": "./receipt-factory.js"
+    },
+    {
+      "integrity": "sha384-7e9c1a3840a27ced803e49fc599c37885f55ba6e56bc5c748a522c37dbd9e9d9b5de5e71696ad311c23499b4ddf2a55e",
+      "path": "./thermal-model.js"
+    },
+    {
+      "integrity": "sha384-b81c42c8a01d5751a1352eed5a0abd8dae659829eeb2028c1654e9bbe4a4284326a672609da420d9f64e6234dcc84228",
+      "path": "./v4-contribution.js"
+    }
+  ],
+  "schema": "simulatte.pluginManifest.v3",
+  "sdkVersion": 2,
+  "version": "1.0.0"
+}

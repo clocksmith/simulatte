@@ -18,8 +18,9 @@
     const flowKgPerSec = (effectiveFlowLpm / 60) * 1.0;
     const cpWater = 4184;
 
-    // Thermal resistance from GPU die junction to cooling fluid (C/W)
-    const rThermalDieToFluid = 0.045; // High-efficiency direct-to-chip microchannel coldplate
+    // Thermal resistance from GPU die junction to cooling fluid (C/W), scaled by convective flow velocity
+    const baseThermalResistance = 0.075; // Nominal microchannel coldplate resistance at full flow
+    const rThermalDieToFluid = baseThermalResistance * Math.pow(coolantFlowLpm / effectiveFlowLpm, 0.6);
 
     // Actual power dissipation per GPU based on compute load
     const activeGpuPowerW = gpuTdpW * Math.max(0.2, activeMfuFraction);
@@ -27,7 +28,7 @@
 
     // Total facility heat absorbed by coolant loop
     const totalHeatW = activeGpuPowerW * totalGpus;
-    const coolantDeltaTC = totalHeatW / (flowKgPerSec * cpWater * racksCount);
+    const coolantDeltaTC = totalHeatW / (flowKgPerSec * cpWater);
     const coolantOutletTempC = coolantInletTempC + coolantDeltaTC;
 
     const rackThermals = [];
@@ -35,13 +36,13 @@
     let throttledGpuCount = 0;
 
     for (let r = 0; r < racksCount; r++) {
-      // Slight thermal variation across rows (hot aisle exhaust recirculation)
+      // Thermal variation across rows and fluid loop path
       const rowIndex = Math.floor(r / 8);
-      const rackInletRise = (rowIndex * 1.5) * (1 + (cduFlowDegradationPercent / 100));
-      const rackCoolantInlet = coolantInletTempC + rackInletRise;
+      const loopHeatFactor = coolantDeltaTC * (cduFlowDegradationPercent / 100) * ((r + 1) / racksCount);
+      const rackCoolantInlet = coolantInletTempC + (rowIndex * 1.5) + loopHeatFactor;
 
       const avgJunctionTemp = rackCoolantInlet + (activeGpuPowerW * rThermalDieToFluid);
-      const isThrottled = avgJunctionTemp >= 82.0;
+      const isThrottled = avgJunctionTemp >= 80.0;
 
       if (avgJunctionTemp > peakJunctionTempC) {
         peakJunctionTempC = avgJunctionTemp;

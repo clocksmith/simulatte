@@ -171,7 +171,7 @@ test('street and tier registries own canonical cross-surface mappings', () => {
   assert.equal(streetNames.normalizeStreetWords('The Main Ave.', { omitArticles: true }).join(' '), 'main av');
   assert.equal(tierRegistry.tierDefinition('world').rendererMethod, 'drawWorld');
   assert.equal(tierRegistry.tierDefinition('city').canvasVisible, false);
-  assert.deepEqual(tierRegistry.TIER_IDS, ['city', 'country', 'world', 'solar-system', 'star-chart']);
+  assert.deepEqual(tierRegistry.TIER_IDS, ['datacenter', 'city', 'country', 'world', 'solar-system', 'star-chart']);
 });
 
 test('run view model projects one eight-phase status and receipt contract', () => {

@@ -91,6 +91,7 @@
                 <span id="world-tier-label">Select scale</span>
               </button>
               <div id="world-tier-options" class="select-options" role="listbox" aria-label="Simulatte world scales" hidden>
+                <div class="select-option" data-value="datacenter" role="option">Datacenter</div>
                 <div class="select-option" data-value="city" role="option">City</div>
                 <div class="select-option" data-value="country" role="option">Country</div>
                 <div class="select-option" data-value="world" role="option">Planet</div>
@@ -497,6 +498,14 @@
     </div>
 
     <div class="tier-cards-grid">
+      <div class="tier-card is-hero" data-tier="datacenter" data-default-profile="gpu-supercluster-v1">
+        <div class="tier-badge">Hero Datacenter Simulator</div>
+        <div class="tier-icon">
+          <span class="tier-icon-mark">D</span>
+        </div>
+        <h2 class="tier-name">Datacenter · 256-GPU Cluster</h2>
+        <p class="tier-desc">3D liquid-cooled 42U rack arrays, NVLink mesh, Ring-AllReduce collectives, and thermodynamic heatmaps.</p>
+      </div>
       <div class="tier-card is-hero" data-tier="city" data-default-profile="sun-walker-v1">
         <div class="tier-badge">Hero City Simulator</div>
         <div class="tier-icon">

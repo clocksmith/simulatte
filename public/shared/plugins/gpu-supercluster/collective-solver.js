@@ -59,7 +59,9 @@
     // Peak theoretical compute for 256 H100s at FP8 (~1979 TFLOPS peak per GPU)
     const peakGpuTflopsFp8 = 1979;
     const totalPeakClusterTflops = totalGpus * peakGpuTflopsFp8;
-    const idealComputeTimeSec = (tensorSizeBytes * 6) / (totalPeakClusterTflops * 1e12 / 8);
+    // Standard transformer step compute: ~1.7 PFLOPs per step
+    const stepFlops = tensorSizeBytes * 120000;
+    const idealComputeTimeSec = stepFlops / (totalPeakClusterTflops * 1e12);
 
     // Compute execution time with pipeline bubbles
     const computeTimeWithBubblesSec = idealComputeTimeSec * (1 + bubbleFraction);
