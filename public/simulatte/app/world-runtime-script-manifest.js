@@ -64,6 +64,15 @@
     'shared/core/simulation/civil-time.js',
     'shared/core/simulation/plugin-v4-builder.js',
     'shared/core/simulation/n-body-propagation.js',
+    'shared/plugins/gpu-supercluster/cluster-controls.js',
+    'shared/plugins/gpu-supercluster/cluster-topology.js',
+    'shared/plugins/gpu-supercluster/collective-solver.js',
+    'shared/plugins/gpu-supercluster/dataset-validators.js',
+    'shared/plugins/gpu-supercluster/presentation.js',
+    'shared/plugins/gpu-supercluster/receipt-factory.js',
+    'shared/plugins/gpu-supercluster/thermal-model.js',
+    'shared/plugins/gpu-supercluster/v4-contribution.js',
+    'shared/plugins/gpu-supercluster/index.js',
     'shared/plugins/cable-trader/circulation-simulation.js',
     'shared/plugins/cable-trader/v4-contribution.js',
     'shared/plugins/cable-trader/circulation-presentation.js',
@@ -208,6 +217,7 @@
     'simulatte/app/main.js',
   ]);
   const PROFILE_PLUGINS = Object.freeze({
+    'gpu-supercluster-v1': Object.freeze(['gpu-supercluster']),
     'cable-trader-pickup-v1': Object.freeze(['cable-trader']),
     'neighborhood-bulk-pool-v1': Object.freeze(['neighborhood-bulk-pool']),
     'nyc-development-atlas-v1': Object.freeze(['nyc-real-estate']),
@@ -221,6 +231,7 @@
     'interstellar-relay-network-v1': Object.freeze(['interstellar-relay-network']),
   });
   const TIER_DEFAULT_PROFILE = Object.freeze({
+    datacenter: 'gpu-supercluster-v1',
     city: 'sun-walker-v1',
     country: 'food-recall-us-v1',
     world: 'maritime-trade-global-v1',
@@ -253,12 +264,24 @@
       return [...pluginIds].some((pluginId) => path.startsWith(`shared/plugins/${pluginId}/`));
     }));
   }
+  const TIER_MODULES = Object.freeze({
+    datacenter: Object.freeze(['simulatte/app/tier-renderers.js', 'simulatte/app/multi-tier-visualizer.js']),
+    city: Object.freeze(['simulatte/app/city-interface.js', 'simulatte/app/main-view.js', 'simulatte/app/main-controller-builder.js']),
+    country: Object.freeze(['simulatte/app/tier-renderers.js', 'simulatte/app/multi-tier-visualizer.js']),
+    world: Object.freeze(['simulatte/app/tier-renderers.js', 'simulatte/app/multi-tier-visualizer.js']),
+    'solar-system': Object.freeze(['simulatte/app/tier-renderers.js', 'simulatte/app/multi-tier-visualizer.js']),
+    'star-chart': Object.freeze(['simulatte/app/tier-renderers.js', 'simulatte/app/multi-tier-visualizer.js']),
+  });
+  function tierModules(tierId) {
+    return TIER_MODULES[String(tierId || '')] || Object.freeze([]);
+  }
   return Object.freeze({
     browser,
     eager,
     stages,
     profilePlugins: PROFILE_PLUGINS,
     tierDefaultProfile: TIER_DEFAULT_PROFILE,
+    tierModules,
     pluginIdsForSelection,
     forSelection,
   });

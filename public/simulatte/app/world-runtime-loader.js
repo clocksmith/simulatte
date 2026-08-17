@@ -84,6 +84,22 @@
     return import(url);
   }
 
-  return Object.freeze({ loadSelectedProduct, loadOptionalModel, loadScript, loadModule, pluginScripts });
+  async function loadTierModules(tierId) {
+    const scripts = manifest().tierModules ? manifest().tierModules(tierId) : [];
+    for (const path of scripts) {
+      await loadScript(path);
+    }
+    return Object.freeze({ tierId, scripts: Object.freeze([...scripts]) });
+  }
+
+  async function loadSelectedRuntime(options = {}) {
+    const scripts = manifest().stages.selectedRuntime || [];
+    for (const path of scripts) {
+      await loadScript(path);
+    }
+    return Object.freeze({ scripts });
+  }
+
+  return Object.freeze({ loadSelectedProduct, loadOptionalModel, loadScript, loadModule, loadTierModules, loadSelectedRuntime, pluginScripts });
 });
 

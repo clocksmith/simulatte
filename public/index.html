@@ -93,7 +93,6 @@
               <div id="world-tier-options" class="select-options" role="listbox" aria-label="Simulatte world scales" hidden>
                 <div class="select-option" data-value="datacenter" role="option">Datacenter</div>
                 <div class="select-option" data-value="city" role="option">City</div>
-                <div class="select-option" data-value="country" role="option">Country</div>
                 <div class="select-option" data-value="world" role="option">Planet</div>
                 <div class="select-option" data-value="solar-system" role="option">Solar System</div>
                 <div class="select-option" data-value="star-chart" role="option">Universe</div>
@@ -480,71 +479,94 @@
       <p class="landing-subtitle">Inspectable prompt-to-simulation compiler and multi-scale physical worlds.</p>
     </header>
 
-    <!-- Primary Hero Surface: Simulatte Create (Prompt-to-World WebGPU Compiler) -->
-    <a href="./blank/" class="landing-compiler-hero" aria-label="Launch Simulatte Create prompt-to-world compiler">
-      <div class="compiler-hero-badge">Primary Product · WebGPU Compiler</div>
-      <div class="compiler-hero-content">
-        <div class="compiler-hero-title">
-          <span class="compiler-hero-mark">⚡</span>
-          <span>Simulatte Create</span>
-          <span class="compiler-hero-arrow">→</span>
-        </div>
-        <p class="compiler-hero-desc">Compile natural-language briefs into editable <code>WorldSpec</code> programs, physical dynamics, and deterministic WebGPU simulations with bound <code>WorldProof</code> receipts.</p>
-      </div>
-    </a>
+    <!-- Hexagonal Constellation Layout -->
+    <div class="hex-constellation-container" aria-label="Simulatte Multi-Scale Constellation">
+      <!-- Background SVG connector web / orbital grid -->
+      <svg class="hex-constellation-web" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <linearGradient id="spoke-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--sim-accent, #10b981)" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="var(--sim-accent-soft, #064e3b)" stop-opacity="0.1"/>
+          </linearGradient>
+        </defs>
+        <!-- Orbital Rings -->
+        <circle cx="500" cy="400" r="280" class="orbital-ring" stroke-dasharray="4 8" />
+        <circle cx="500" cy="400" r="160" class="orbital-ring-inner" stroke-dasharray="2 6" />
+        <!-- Symmetrical Spokes connecting Center (500,400) to 6 Satellites (R=280) -->
+        <line x1="500" y1="400" x2="257" y2="260" class="constellation-spoke" />
+        <line x1="500" y1="400" x2="500" y2="120" class="constellation-spoke" />
+        <line x1="500" y1="400" x2="742" y2="260" class="constellation-spoke" />
+        <line x1="500" y1="400" x2="742" y2="540" class="constellation-spoke" />
+        <line x1="500" y1="400" x2="500" y2="680" class="constellation-spoke" />
+        <line x1="500" y1="400" x2="257" y2="540" class="constellation-spoke" />
+        <!-- Perimeter Hexagon Ring connecting all 6 satellites -->
+        <polygon points="257,260 500,120 742,260 742,540 500,680 257,540" class="constellation-perimeter" stroke-dasharray="6 6" />
+      </svg>
 
-    <div class="landing-section-divider">
-      <span>Or Explore Governed Conformance Worlds</span>
-    </div>
+      <!-- Center Hexagon Hub: Simulatte Create -->
+      <a href="./blank/" class="hex-hub" id="hex-center-create" aria-label="Launch Simulatte Create WebGPU Compiler">
+        <div class="hex-hub-inner">
+          <div class="hex-hub-badge">⚡ Flagship Compiler</div>
+          <div class="hex-hub-icon">⚡</div>
+          <h2 class="hex-hub-title">Simulatte Create</h2>
+          <p class="hex-hub-desc">Prompt-to-World WebGPU compiler with verified WorldProof receipts.</p>
+          <span class="hex-hub-action">Open Compiler →</span>
+        </div>
+      </a>
 
-    <div class="tier-cards-grid">
-      <div class="tier-card is-hero" data-tier="datacenter" data-default-profile="gpu-supercluster-v1">
-        <div class="tier-badge">Hero Datacenter Simulator</div>
-        <div class="tier-icon">
-          <span class="tier-icon-mark">D</span>
+      <!-- 6 Symmetric Satellites -->
+      <div class="hex-satellite tier-card pos-top-left" data-tier="datacenter" data-default-profile="gpu-supercluster-v1" role="button" tabindex="0" aria-label="Launch 256-GPU Supercluster Simulator">
+        <div class="hex-satellite-inner">
+          <div class="hex-badge">Datacenter</div>
+          <div class="hex-icon">D</div>
+          <h3 class="hex-title">256-GPU Cluster</h3>
+          <p class="hex-desc">3D liquid-cooled racks, NVLink mesh, and AllReduce thermals.</p>
         </div>
-        <h2 class="tier-name">Datacenter · 256-GPU Cluster</h2>
-        <p class="tier-desc">3D liquid-cooled 42U rack arrays, NVLink mesh, Ring-AllReduce collectives, and thermodynamic heatmaps.</p>
       </div>
-      <div class="tier-card is-hero" data-tier="city" data-default-profile="sun-walker-v1">
-        <div class="tier-badge">Hero City Simulator</div>
-        <div class="tier-icon">
-          <span class="tier-icon-mark">C</span>
+
+      <div class="hex-satellite tier-card pos-top" data-tier="star-chart" data-default-profile="interstellar-relay-network-v1" role="button" tabindex="0" aria-label="Launch Interstellar Relay Network Simulator">
+        <div class="hex-satellite-inner">
+          <div class="hex-badge">Universe</div>
+          <div class="hex-icon">U</div>
+          <h3 class="hex-title">Interstellar Relay</h3>
+          <p class="hex-desc">3D Hipparcos celestial coords and relativistic optical link budgets.</p>
         </div>
-        <h2 class="tier-name">City · Sun Walker</h2>
-        <p class="tier-desc">Real-time solar azimuth, building shadow geometry, tree occlusion, and shade-aware routing in NYC.</p>
       </div>
-      <div class="tier-card is-hero" data-tier="world" data-default-profile="maritime-trade-global-v1">
-        <div class="tier-badge">Hero Planetary Simulator</div>
-        <div class="tier-icon">
-          <span class="tier-icon-mark">P</span>
+
+      <div class="hex-satellite tier-card pos-top-right" data-tier="solar-system" data-default-profile="orbital-transfer-planner-v1" role="button" tabindex="0" aria-label="Launch Orbital Transfer Planner Simulator">
+        <div class="hex-satellite-inner">
+          <div class="hex-badge">Solar System</div>
+          <div class="hex-icon">S</div>
+          <h3 class="hex-title">Orbital Transfer</h3>
+          <p class="hex-desc">Lambert two-point solvers and Keplerian porkchop trajectories.</p>
         </div>
-        <h2 class="tier-name">Planet · Maritime Trade</h2>
-        <p class="tier-desc">Global shipping chokepoint simulation (Suez, Panama, Malacca), container port queues, and emissions cascades.</p>
       </div>
-      <div class="tier-card is-hero" data-tier="solar-system" data-default-profile="orbital-transfer-planner-v1">
-        <div class="tier-badge">Hero Orbital Simulator</div>
-        <div class="tier-icon">
-          <span class="tier-icon-mark">S</span>
+
+      <div class="hex-satellite tier-card pos-bottom-right" data-tier="world" data-default-profile="maritime-trade-global-v1" role="button" tabindex="0" aria-label="Launch Maritime Trade Simulator">
+        <div class="hex-satellite-inner">
+          <div class="hex-badge">Planet · Shipping</div>
+          <div class="hex-icon">P</div>
+          <h3 class="hex-title">Maritime Trade</h3>
+          <p class="hex-desc">Global chokepoints (Suez, Panama), queues, and emissions.</p>
         </div>
-        <h2 class="tier-name">Solar System · Orbital Transfer</h2>
-        <p class="tier-desc">Heliocentric planetary ephemeris, Lambert transfer trajectories, and delta-v mission optimization.</p>
       </div>
-      <div class="tier-card is-conformance" data-tier="country" data-default-profile="food-recall-us-v1">
-        <div class="tier-badge">Conformance Pack</div>
-        <div class="tier-icon">
-          <span class="tier-icon-mark">R</span>
+
+      <div class="hex-satellite tier-card pos-bottom" data-tier="world" data-default-profile="subsea-network-global-v1" role="button" tabindex="0" aria-label="Launch Subsea Network Simulator">
+        <div class="hex-satellite-inner">
+          <div class="hex-badge">Planet · Telecom</div>
+          <div class="hex-icon">N</div>
+          <h3 class="hex-title">Subsea Network</h3>
+          <p class="hex-desc">Undersea fiber cables, seismic faults, and packet rerouting.</p>
         </div>
-        <h2 class="tier-name">Country · Supply Logistics</h2>
-        <p class="tier-desc">Multi-region distribution networks, causal supply disruption tracking, and grid resilience across the US.</p>
       </div>
-      <div class="tier-card is-conformance" data-tier="star-chart" data-default-profile="interstellar-relay-network-v1">
-        <div class="tier-badge">Conformance Pack</div>
-        <div class="tier-icon">
-          <span class="tier-icon-mark">U</span>
+
+      <div class="hex-satellite tier-card pos-bottom-left" data-tier="city" data-default-profile="sun-walker-v1" role="button" tabindex="0" aria-label="Launch Sun Walker City Simulator">
+        <div class="hex-satellite-inner">
+          <div class="hex-badge">City</div>
+          <div class="hex-icon">C</div>
+          <h3 class="hex-title">Sun Walker</h3>
+          <p class="hex-desc">Solar azimuth, NYC shadow ray-tracing, and shade-aware routing.</p>
         </div>
-        <h2 class="tier-name">Universe · Star Chart</h2>
-        <p class="tier-desc">3D stellar charts and relativistic interstellar relay communications across Hipparcos star systems.</p>
       </div>
     </div>
   </div>

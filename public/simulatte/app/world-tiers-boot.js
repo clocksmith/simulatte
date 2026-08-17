@@ -299,10 +299,10 @@
 
     function wireLanding() {
       if (!landing) return;
-      const grid = landing.querySelector('.tier-cards-grid');
+      const grid = landing.querySelector('.hex-constellation-container') || landing.querySelector('.tier-cards-grid');
       const setParallax = (x, y) => { landing.style.setProperty('--parallax-x', x.toFixed(3)); landing.style.setProperty('--parallax-y', y.toFixed(3)); };
       grid?.addEventListener('mousemove', (event) => { const rect = grid.getBoundingClientRect(); landing.classList.add('is-parallax'); setParallax(((event.clientX - rect.left) / rect.width - .5) * 2, ((event.clientY - rect.top) / rect.height - .5) * 2); });
-      landing.addEventListener('click', (event) => { const card = event.target && event.target.closest && event.target.closest('.tier-card'); if (card && card.dataset.tier) void router.navigate({ tier: card.dataset.tier, experience: card.dataset.defaultProfile || null }); });
+      landing.addEventListener('click', (event) => { const card = event.target && event.target.closest && (event.target.closest('.hex-satellite') || event.target.closest('.tier-card')); if (card && card.dataset.tier) void router.navigate({ tier: card.dataset.tier, experience: card.dataset.defaultProfile || null }); });
     }
 
     function start() { wireLanding(); return router.start((route) => renderRoute(route)); }
@@ -332,6 +332,9 @@
   }
 
   async function bootGovernedTierExplorer(ctx,tier,requestedProfileId,options={}) {
+    if (root.SimulatteWorldRuntimeLoader?.loadTierModules) {
+      await root.SimulatteWorldRuntimeLoader.loadTierModules(tier);
+    }
     const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulatteCityInterface','SimulatteMainView','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteSimulationClock','SimulatteViewDirector','SimulatteAutonomyReceipts','SimulatteTierRunController','SimulatteProfileProgram'];
     const missing=required.find((name)=>!root[name]);
     if(missing)throw new Error(`tier_boot_dependency_missing: ${missing}`);

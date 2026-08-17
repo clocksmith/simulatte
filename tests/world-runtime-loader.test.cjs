@@ -56,3 +56,37 @@ test('World optional model scripts remain outside every pre-consent selection', 
   const consented = manifest.forSelection({ profileId: 'sun-walker-v1', includeOptionalModel: true });
   assert.ok(manifest.stages.optionalModel.every((path) => consented.includes(path)));
 });
+
+test('World dynamic runtime loader loads selected runtime scripts', async () => {
+  const appended = [];
+  const previousDocument = global.document;
+  global.document = {
+    baseURI: 'https://simulatte.test/',
+    querySelector: () => ({ content: 'test-build' }),
+    createElement: () => {
+      const listeners = new Map();
+      return {
+        addEventListener(type, listener) { listeners.set(type, listener); },
+        dispatch(type) { listeners.get(type)?.(); },
+      };
+    },
+    head: {
+      appendChild(script) {
+        appended.push(script);
+        queueMicrotask(() => script.dispatch('load'));
+      },
+    },
+  };
+  global.SimulatteWorldRuntimeScriptManifest = manifest;
+  global.SimulatteGeneratedPluginRegistry = registry;
+  delete require.cache[require.resolve('../public/simulatte/app/world-runtime-loader.js')];
+  const loader = require('../public/simulatte/app/world-runtime-loader.js');
+
+  try {
+    const result = await loader.loadSelectedRuntime();
+    assert.ok(Array.isArray(result.scripts));
+    assert.equal(appended.length, result.scripts.length);
+  } finally {
+    global.document = previousDocument;
+  }
+});
