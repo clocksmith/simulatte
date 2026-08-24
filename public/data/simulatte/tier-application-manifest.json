@@ -3,21 +3,6 @@
   "id": "simulatte-tier-applications-v3",
   "schema": "simulatte.tierApplicationManifest.v3",
   "tiers": {
-    "datacenter": {
-      "defaultProfileId": "gpu-supercluster-v1",
-      "profiles": [
-        {
-          "id": "gpu-supercluster-v1",
-          "path": "../application-profiles/gpu-supercluster-v1.json",
-          "sha256": "e926efe7471b5c72f843d3d372bf1336f72477008615612cdb46578e4a3fdbc5",
-          "world": {
-            "id": "datacenter-supercluster-v1",
-            "path": "./worlds/datacenter-supercluster-v1.json",
-            "sha256": "c916c0c35e86e32e54a778a64fea057356d825d48a1ad0b950cfd4cb1e15da5d"
-          }
-        }
-      ]
-    },
     "country": {
       "defaultProfileId": "food-recall-us-v1",
       "profiles": [
@@ -39,6 +24,21 @@
             "id": "us-national-regions-v1",
             "path": "./worlds/us-national-regions-v1.json",
             "sha256": "2aa3b7324fd1b80d64de7aa1cb98cd33053b0e0f6ff62962f2bfa505c8a1c550"
+          }
+        }
+      ]
+    },
+    "datacenter": {
+      "defaultProfileId": "gpu-supercluster-v1",
+      "profiles": [
+        {
+          "id": "gpu-supercluster-v1",
+          "path": "../application-profiles/gpu-supercluster-v1.json",
+          "sha256": "86333f22cb8b1162f04783f3b38ef1ee0ec450732c173e55d531c9197c98a971",
+          "world": {
+            "id": "datacenter-supercluster-v1",
+            "path": "./worlds/datacenter-supercluster-v1.json",
+            "sha256": "c916c0c35e86e32e54a778a64fea057356d825d48a1ad0b950cfd4cb1e15da5d"
           }
         }
       ]
