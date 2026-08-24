@@ -9,6 +9,7 @@ Execute governed profiles with deterministic controls, dynamics, safety, settlem
 
 - Owns the World browser product and selected profile lifecycle.
 - Owns explicit cross-plugin WorldSpec compositions, including the Earth and Virginia datacenter serial reference world.
+- Owns recursive spatial residency through content-addressed render payloads, atomic parent-child replacement, predictive prefetch, pinning, and eviction independent of simulation residency.
 - Does not own Create compilation or plugin-private logic.
 
 ## Scope
@@ -29,12 +30,14 @@ Execute governed profiles with deterministic controls, dynamics, safety, settlem
 - Profile scenario edits recompile every governed scenario-bound field before the runtime accepts the program.
 - A clean profile editor follows an externally selected scenario; a dirty stale edit never merges silently.
 - Unsupported or unsafe execution refuses visibly.
+- Camera interest may change spatial payload residency but cannot suspend or rewrite causally required simulation state.
 
 ## Acceptance
 
 - World loads the selected governed profile and reaches a terminal or refusal state.
 - Evidence: [World runtime loader tests](../../tests/world-runtime-loader.test.cjs).
 - Evidence: [profile program contract tests](../../tests/profile-program.test.cjs) and [browser round-trip audit](../../tools/simulatte/run-browser-smoke.mjs).
+- Evidence: [recursive spatial residency tests](../../tests/recursive-spatial-residency.test.cjs).
 
 ## Non-goals
 

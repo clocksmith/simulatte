@@ -11,13 +11,16 @@
   const residencyApi = typeof module === 'object' && module.exports
     ? require('../../shared/core/simulation/simulation-residency-manager.js')
     : root.SimulatteSimulationResidencyManager;
+  const spatialApi = typeof module === 'object' && module.exports
+    ? require('./world-tile-manager.js')
+    : root.SimulatteWorldTileManager;
   const subseaApi = typeof module === 'object' && module.exports
     ? require('../../shared/plugins/subsea-network-global/multiscale-module.js')
     : root.SimulatteSubseaMultiscaleModule;
   const gpuApi = typeof module === 'object' && module.exports
     ? require('../../shared/plugins/gpu-supercluster/multiscale-modules.js')
     : root.SimulatteGpuMultiscaleModules;
-  const api = factory(worldSpecApi, contracts, coordinatorApi, residencyApi, subseaApi, gpuApi);
+  const api = factory(worldSpecApi, contracts, coordinatorApi, residencyApi, spatialApi, subseaApi, gpuApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteEarthVirginiaDatacenterReference = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createEarthVirginiaReferenceApi(
@@ -25,6 +28,7 @@
   contracts,
   coordinatorApi,
   residencyApi,
+  spatialApi,
   subseaApi,
   gpuApi
 ) {
@@ -160,10 +164,19 @@
         },
       },
     });
+    function createSpatialResidency({ representations, tileOptions }) {
+      return spatialApi.createRecursiveSpatialResidencyManager({
+        scopes: compositionGraph.scopes,
+        representations,
+        tileOptions,
+        simulationResidencySnapshot: () => simulationResidency.snapshot(),
+      });
+    }
     return Object.freeze({
       worldSpec,
       coordinator,
       simulationResidency,
+      createSpatialResidency,
       reference: deepFreeze({ subsea: subsea.reference, datacenter: datacenter.reference }),
     });
   }

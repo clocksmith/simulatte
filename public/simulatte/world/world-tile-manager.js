@@ -21,6 +21,7 @@
     const maximumCpuBytes = options.maximumCpuBytes ?? 256 * 1024 * 1024;
     const maximumGpuBytes = options.maximumGpuBytes ?? 512 * 1024 * 1024;
     const now = options.now || (() => Date.now());
+    const onEvent = options.onEvent || (() => {});
     const active = new Map();
     const pinned = new Set();
     const operations = new Map();
@@ -56,13 +57,24 @@
         record('seams_validated', operationId, { tileIds: entries.map((entry) => entry.id) });
         const requestedPins = new Set(requestOptions.pinIds || []);
         if (requestOptions.pin) entries.forEach((entry) => requestedPins.add(entry.id));
-        const evictedIds = activationEvictionPlan(staged, requestedPins);
+        const requestedReplacements = new Set(requestOptions.replaceIds || []);
+        requestedReplacements.forEach((id) => {
+          if (!active.has(id)) throw tileError('tile_replacement_missing', { tileId: id });
+        });
+        const evictedIds = activationEvictionPlan(staged, requestedPins, requestedReplacements);
         const priorRows = entries.map((entry) => active.get(entry.id) || null);
+        const entryIds = new Set(entries.map((entry) => entry.id));
+        const replacedRows = [...requestedReplacements].filter((id) => !entryIds.has(id)).map((id) => active.get(id));
         staged.forEach((row) => {
           active.set(row.entry.id, activeRow(row.entry, row.decoded, row.resource, row.cpuBytes, row.gpuBytes, now()));
           if (requestedPins.has(row.entry.id)) pinned.add(row.entry.id);
         });
         priorRows.filter(Boolean).forEach((row) => dispose(row.resource, row.entry));
+        replacedRows.forEach((row) => {
+          active.delete(row.entry.id);
+          pinned.delete(row.entry.id);
+          dispose(row.resource, row.entry);
+        });
         evictedIds.forEach((id) => {
           const row = active.get(id);
           active.delete(id);
@@ -71,6 +83,7 @@
         record('tile_set_activated', operationId, {
           tileIds: entries.map((entry) => entry.id),
           evictedIds,
+          replacedIds: replacedRows.map((row) => row.entry.id),
           durationMs: now() - startedAt,
         });
         return {
@@ -80,6 +93,7 @@
           tileIds: entries.map((entry) => entry.id),
           tiles: staged.map(publicTileRow),
           evictedIds,
+          replacedIds: replacedRows.map((row) => row.entry.id),
           activeStatePreservedUntilActivation: true,
           durationMs: now() - startedAt,
         };
@@ -155,9 +169,20 @@
       return true;
     }
 
-    function activationEvictionPlan(staged, requestedPins) {
-      const replacingIds = new Set(staged.map((row) => row.entry.id));
-      const protectedIds = new Set(replacingIds);
+    function remove(tileId, options = {}) {
+      const row = active.get(tileId);
+      if (!row) return false;
+      if (pinned.has(tileId) && !options.force) throw tileError('tile_remove_pinned', { tileId });
+      active.delete(tileId);
+      pinned.delete(tileId);
+      dispose(row.resource, row.entry);
+      record('tile_removed', ++operationSequence, { tileIds: [tileId], reason: options.reason || 'explicit-removal' });
+      return true;
+    }
+
+    function activationEvictionPlan(staged, requestedPins, requestedReplacements = new Set()) {
+      const protectedIds = new Set(staged.map((row) => row.entry.id));
+      const replacingIds = new Set([...protectedIds, ...requestedReplacements]);
       const projected = [...active.values()].filter((row) => !replacingIds.has(row.entry.id));
       staged.forEach((row) => projected.push(activeRow(row.entry, row.decoded, row.resource, row.cpuBytes, row.gpuBytes, now())));
       const effectivePins = new Set([...pinned, ...requestedPins]);
@@ -221,10 +246,211 @@
     }
 
     function record(phase, operationId, detail) {
-      events.push({ sequence: events.length + 1, phase, operationId, timestampMs: now(), ...detail });
+      const event = { sequence: events.length + 1, phase, operationId, timestampMs: now(), ...detail };
+      events.push(event);
+      onEvent(structuredClone(event));
     }
 
-    return { activeResource, cancel, pin, requestSet, requestTile, seedActive, snapshot, touch, unpin };
+    return { activeResource, cancel, pin, remove, requestSet, requestTile, seedActive, snapshot, touch, unpin };
+  }
+
+  function createRecursiveSpatialResidencyManager(options = {}) {
+    const scopes = options.scopes || [];
+    const representations = options.representations || [];
+    const simulationResidencySnapshot = options.simulationResidencySnapshot || (() => null);
+    const scopeById = new Map(scopes.map((scope) => [scope.id, scope]));
+    const representationById = new Map();
+    const residency = new Map();
+    const events = [];
+    representations.forEach((representation) => {
+      validateRepresentation(representation, scopeById, representationById);
+      representationById.set(representation.id, Object.freeze(structuredClone(representation)));
+      residency.set(representation.id, 'absent');
+    });
+    representations.forEach((representation) => {
+      if (representation.parentRepresentationId !== null && !representationById.has(representation.parentRepresentationId)) {
+        throw spatialError('spatial_parent_representation_unknown', { representationId: representation.id, parentRepresentationId: representation.parentRepresentationId });
+      }
+    });
+    const callerEvent = options.tileOptions?.onEvent || (() => {});
+    const tileManager = createWorldTileManager({
+      ...(options.tileOptions || {}),
+      onEvent(event) {
+        applyTileEvent(event);
+        callerEvent(event);
+      },
+    });
+
+    function seedRepresentations(rows, requestOptions = {}) {
+      const seeded = rows.map((row) => {
+        const representation = requireRepresentation(row.representationId);
+        return { entry: tileEntry(representation), decoded: row.decoded, resource: row.resource, cpuBytes: row.cpuBytes, gpuBytes: row.gpuBytes };
+      });
+      tileManager.seedActive(seeded);
+      rows.forEach((row) => residency.set(row.representationId, 'resident'));
+      (requestOptions.pinIds || []).forEach((id) => pin(id));
+      record('representations-seeded', { representationIds: rows.map((row) => row.representationId) });
+      return snapshot();
+    }
+
+    async function requestRepresentations(representationIds, requestOptions = {}) {
+      const ids = [...new Set(representationIds)];
+      if (!ids.length) throw spatialError('spatial_request_empty');
+      const rows = ids.map(requireRepresentation);
+      const replaceIds = [...new Set(requestOptions.replaceIds || [])];
+      replaceIds.forEach(requireRepresentation);
+      validateReplacement(rows, replaceIds);
+      ids.forEach((id) => residency.set(id, 'requested'));
+      record('representations-requested', { representationIds: ids, replaceIds, reason: requestOptions.reason || 'view-interest' });
+      try {
+        const receipt = await tileManager.requestSet(rows.map(tileEntry), {
+          pinIds: requestOptions.pinIds || [],
+          replaceIds,
+        });
+        ids.forEach((id) => residency.set(id, (requestOptions.pinIds || []).includes(id) ? 'pinned' : 'resident'));
+        replaceIds.forEach((id) => residency.set(id, 'absent'));
+        receipt.evictedIds.forEach((id) => residency.set(id, 'absent'));
+        record('representations-activated', { representationIds: ids, replaceIds, tileReceipt: receipt });
+        return Object.freeze({
+          schema: 'simulatte.recursiveSpatialActivationReceipt/v1',
+          status: 'activated',
+          representationIds: ids,
+          replacedRepresentationIds: replaceIds,
+          evictedRepresentationIds: receipt.evictedIds,
+          activeStatePreservedUntilActivation: receipt.activeStatePreservedUntilActivation,
+          simulationResidencyUnchanged: true,
+          tileReceipt: receipt,
+        });
+      } catch (error) {
+        ids.forEach((id) => residency.set(id, tileManager.snapshot().activeTiles.some((row) => row.id === id) ? 'resident' : 'absent'));
+        record('representations-failed', { representationIds: ids, replaceIds, code: error.code || 'spatial_load_failed' });
+        throw error;
+      }
+    }
+
+    async function prefetch(predictions, requestOptions = {}) {
+      const ordered = [...predictions].sort((left, right) => right.priority - left.priority || left.representationId.localeCompare(right.representationId));
+      ordered.forEach((row) => {
+        requireRepresentation(row.representationId);
+        if (!Number.isFinite(row.priority)) throw spatialError('spatial_prediction_priority_invalid', { representationId: row.representationId });
+      });
+      const absent = ordered.map((row) => row.representationId).filter((id) => residency.get(id) === 'absent');
+      if (!absent.length) return Object.freeze({ schema: 'simulatte.recursiveSpatialPrefetchReceipt/v1', status: 'already-resident', representationIds: [] });
+      const receipt = await requestRepresentations(absent, { ...requestOptions, reason: 'predictive-prefetch' });
+      return Object.freeze({ schema: 'simulatte.recursiveSpatialPrefetchReceipt/v1', status: 'activated', representationIds: absent, activation: receipt });
+    }
+
+    function pin(representationId) {
+      requireRepresentation(representationId);
+      tileManager.pin(representationId);
+      residency.set(representationId, 'pinned');
+      record('representation-pinned', { representationId });
+      return snapshot();
+    }
+
+    function unpin(representationId) {
+      requireRepresentation(representationId);
+      const evictedIds = tileManager.unpin(representationId);
+      residency.set(representationId, tileManager.snapshot().activeTiles.some((row) => row.id === representationId) ? 'resident' : 'absent');
+      evictedIds.forEach((id) => residency.set(id, 'absent'));
+      record('representation-unpinned', { representationId, evictedIds });
+      return snapshot();
+    }
+
+    function evictRepresentation(representationId, reason = 'view-interest-released') {
+      requireRepresentation(representationId);
+      if (!['resident', 'pinned'].includes(residency.get(representationId))) return false;
+      residency.set(representationId, 'evicting');
+      const removed = tileManager.remove(representationId, { reason });
+      residency.set(representationId, 'absent');
+      record('representation-evicted', { representationId, reason });
+      return removed;
+    }
+
+    function activeResource(representationId) {
+      requireRepresentation(representationId);
+      return tileManager.activeResource(representationId);
+    }
+
+    function snapshot() {
+      const tileSnapshot = tileManager.snapshot();
+      const representationStates = Object.fromEntries([...residency.entries()].sort(([left], [right]) => left.localeCompare(right)));
+      const scopeStates = Object.fromEntries(scopes.map((scope) => {
+        const states = scope.renderRepresentationIds.filter((id) => residency.has(id)).map((id) => residency.get(id));
+        return [scope.id, strongestResidency(states)];
+      }));
+      return Object.freeze({
+        schema: 'simulatte.recursiveSpatialResidencySnapshot/v1',
+        representationStates,
+        scopeStates,
+        tileResidency: tileSnapshot,
+        simulationResidencyObservation: structuredClone(simulationResidencySnapshot()),
+        events: structuredClone(events),
+      });
+    }
+
+    function applyTileEvent(event) {
+      if (event.phase === 'candidate_requested') event.tileIds.forEach((id) => residency.set(id, 'requested'));
+      if (event.phase === 'tile_uploaded_inactive') residency.set(event.tileId, 'staged');
+      if (event.phase === 'tile_set_activated') {
+        event.tileIds.forEach((id) => residency.set(id, 'resident'));
+        (event.evictedIds || []).forEach((id) => residency.set(id, 'absent'));
+        (event.replacedIds || []).forEach((id) => residency.set(id, 'absent'));
+      }
+    }
+
+    function validateReplacement(rows, replaceIds) {
+      if (!replaceIds.length) return;
+      const replaced = new Set(replaceIds);
+      rows.forEach((row) => {
+        if (row.parentRepresentationId !== null && !replaced.has(row.parentRepresentationId)) {
+          throw spatialError('spatial_parent_replacement_undeclared', { representationId: row.id, parentRepresentationId: row.parentRepresentationId });
+        }
+      });
+    }
+
+    function requireRepresentation(id) {
+      const row = representationById.get(id);
+      if (!row) throw spatialError('spatial_representation_unknown', { representationId: id });
+      return row;
+    }
+
+    function record(phase, detail) {
+      events.push({ sequence: events.length + 1, phase, ...structuredClone(detail) });
+    }
+
+    return Object.freeze({ activeResource, evictRepresentation, pin, prefetch, requestRepresentations, seedRepresentations, snapshot, unpin });
+  }
+
+  function validateRepresentation(value, scopeById, priorRepresentations) {
+    const keys = ['schema', 'id', 'scopeId', 'parentRepresentationId', 'fidelityLevelId', 'fidelityRank', 'url', 'sha256', 'cpuBytesEstimate', 'gpuBytesEstimate'];
+    if (!value || Object.keys(value).sort().join(',') !== [...keys].sort().join(',')) throw spatialError('spatial_representation_keys_invalid', { representationId: value?.id || null });
+    if (value.schema !== 'simulatte.recursiveRenderPayload/v1') throw spatialError('spatial_representation_schema_invalid', { representationId: value.id });
+    if (!scopeById.has(value.scopeId)) throw spatialError('spatial_representation_scope_unknown', { representationId: value.id, scopeId: value.scopeId });
+    if (priorRepresentations.has(value.id)) throw spatialError('spatial_representation_duplicate', { representationId: value.id });
+    validateManifestEntry(value);
+    if (value.parentRepresentationId !== null && typeof value.parentRepresentationId !== 'string') throw spatialError('spatial_parent_representation_invalid', { representationId: value.id });
+    if (typeof value.fidelityLevelId !== 'string' || !value.fidelityLevelId) throw spatialError('spatial_fidelity_invalid', { representationId: value.id });
+    if (!Number.isInteger(value.fidelityRank) || value.fidelityRank < 0) throw spatialError('spatial_fidelity_rank_invalid', { representationId: value.id });
+    if (!Number.isInteger(value.cpuBytesEstimate) || value.cpuBytesEstimate < 0 || !Number.isInteger(value.gpuBytesEstimate) || value.gpuBytesEstimate < 0) throw spatialError('spatial_budget_estimate_invalid', { representationId: value.id });
+  }
+
+  function tileEntry(representation) {
+    return { id: representation.id, url: representation.url, sha256: representation.sha256 };
+  }
+
+  function strongestResidency(states) {
+    const order = ['absent', 'requested', 'staged', 'resident', 'pinned', 'evicting'];
+    if (!states.length) return 'absent';
+    return states.reduce((best, state) => order.indexOf(state) > order.indexOf(best) ? state : best, 'absent');
+  }
+
+  function spatialError(code, evidence = null) {
+    const error = new Error(code);
+    error.name = 'RecursiveSpatialResidencyError';
+    error.code = code;
+    error.evidence = evidence;
+    return error;
   }
 
   function activeRow(entry, decoded, resource, cpuBytes, gpuBytes, timestamp) {
@@ -272,5 +498,5 @@
     return error;
   }
 
-  return { createWorldTileManager, defaultHashBytes, tileError };
+  return { createRecursiveSpatialResidencyManager, createWorldTileManager, defaultHashBytes, spatialError, tileError };
 });
