@@ -306,6 +306,20 @@
         const parameters = validateParameters(input.values || input, nextScenario, config, datasets);
         return model.runScenario({ datasets, config, scenario: parameters });
       },
+      'simulation.module.subsea-capacity.v1': (input = {}) => dep(
+        'SimulatteSubseaMultiscaleModule',
+        './multiscale-module.js'
+      ).createSubseaCapacityModule({
+        datasets,
+        config,
+        scenario: validateParameters(
+          input.values || input,
+          normalizeScenario(input.scenario || input, config),
+          config,
+          datasets
+        ),
+        ...input.moduleOptions,
+      }),
     });
 
     return Object.freeze({

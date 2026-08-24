@@ -8,6 +8,7 @@ Execute governed profiles with deterministic controls, dynamics, safety, settlem
 ## Authority
 
 - Owns the World browser product and selected profile lifecycle.
+- Owns explicit cross-plugin WorldSpec compositions, including the Earth and Virginia datacenter serial reference world.
 - Does not own Create compilation or plugin-private logic.
 
 ## Scope

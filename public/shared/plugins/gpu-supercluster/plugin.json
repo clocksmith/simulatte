@@ -5,7 +5,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginGpuSupercluster",
-    "integrity": "sha384-4fe7d28f55aace5b9db08ca67c03f0dec6d935d01393714e0431d18d3b7ee6df93905473a53b8cf1d0cdf7131d2440e9",
+    "integrity": "sha384-7b7766cc3eb3e5053482e3e9f0ad97a55863797026eb4b1dfd37d13540ce5e85a52323b40675bc2120583c40e154ce41",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -38,7 +38,8 @@
   "provides": [
     "simulation.datacenter.ai-supercluster.v1",
     "routing.dimension.tensor-allreduce.v1",
-    "field.cluster-thermals.v1"
+    "field.cluster-thermals.v1",
+    "simulation.module.datacenter-wan-scheduler-thermal.v1"
   ],
   "receiptSchemas": [
     "simulatte.gpuSuperclusterReceipt.v1"
@@ -69,16 +70,20 @@
       "path": "./dataset-validators.js"
     },
     {
+      "integrity": "sha384-7e9c1a3840a27ced803e49fc599c37885f55ba6e56bc5c748a522c37dbd9e9d9b5de5e71696ad311c23499b4ddf2a55e",
+      "path": "./thermal-model.js"
+    },
+    {
+      "integrity": "sha384-921b4a323e053ce6d1587817ea885f4de667368031a183656e56509fafc079209a65fd6d0dd0f2566d7270812de7173d",
+      "path": "./multiscale-modules.js"
+    },
+    {
       "integrity": "sha384-b18b4e5a55e16ca196b05b0e20fc3a550cb80ef958300d2a2d09d950b79202320f2e57f1f9b96fa9223b575332245295",
       "path": "./presentation.js"
     },
     {
       "integrity": "sha384-dd72f3fbdf879f6ba7b064221d88e79f199f5d8e4fbf49c7c889b43a2111b60d2cd7cc8da2202790e1718abb30156759",
       "path": "./receipt-factory.js"
-    },
-    {
-      "integrity": "sha384-7e9c1a3840a27ced803e49fc599c37885f55ba6e56bc5c748a522c37dbd9e9d9b5de5e71696ad311c23499b4ddf2a55e",
-      "path": "./thermal-model.js"
     },
     {
       "integrity": "sha384-c616b846ccc7360080f9659cea7370f94e84b2d1e60a04d4e8d75ceeb60972db4a4d0432170fb41f5e799c5c3dd00211",

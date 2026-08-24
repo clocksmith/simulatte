@@ -86,7 +86,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSubseaNetworkGlobal",
-    "integrity": "sha384-860cb303330cde853fdc5f1c2292cf64a26d095679e4b442b1ddbace0f1c201a8bbf0499feb17bd8b52041da2edeebec",
+    "integrity": "sha384-2d7e5e380cd563dd24dbf3805b63a829b7c6fdbd23c2c4740f95aecb75163557ed4d58ff2f6861aa944619972cfe1b79",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -96,6 +96,16 @@
     "ui",
     "presentation"
   ],
+  "governance": {
+    "executionIsolation": "same-realm-contract",
+    "marketplaceEligible": false,
+    "provenance": "repository-source",
+    "publisher": "simulatte",
+    "revocationId": "plugin:subsea-network-global@1.0.0",
+    "signatureStatus": "not-applicable-repository-bundled",
+    "status": "active",
+    "trustLevel": "repository-bundled"
+  },
   "id": "subsea-network-global",
   "permissions": [
     "events.propose.v1",
@@ -105,7 +115,8 @@
     "ui.inspector.v1"
   ],
   "provides": [
-    "simulation.subsea-network.v1"
+    "simulation.subsea-network.v1",
+    "simulation.module.subsea-capacity.v1"
   ],
   "receiptSchemas": [
     "simulatte.plugin.subseaScenarioReceipt.v1",
@@ -160,20 +171,14 @@
       "path": "./comparison-driver.js"
     },
     {
+      "integrity": "sha384-b0e38266cbd68f598622539cfe3b800b76c3888edacf5d248acf3798a6264335383117d8f8006ed2554b35a0c9d3200c",
+      "path": "./multiscale-module.js"
+    },
+    {
       "integrity": "sha384-4f1530c7990b1097b1824fcfc29e96b952a76b1d8ea9d3aeca28176de5fd2db9b7a055f0f01232f88db4d7fedfa56973",
       "path": "./presentation.js"
     }
   ],
-  "governance": {
-    "trustLevel": "repository-bundled",
-    "executionIsolation": "same-realm-contract",
-    "publisher": "simulatte",
-    "provenance": "repository-source",
-    "signatureStatus": "not-applicable-repository-bundled",
-    "marketplaceEligible": false,
-    "status": "active",
-    "revocationId": "plugin:subsea-network-global@1.0.0"
-  },
   "schema": "simulatte.pluginManifest.v3",
   "sdkVersion": 2,
   "version": "1.0.0"

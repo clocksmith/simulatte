@@ -8,6 +8,7 @@ Contribute governed experience behavior through versioned manifests and capabili
 ## Authority
 
 - Owns plugin source, declared resources, datasets, controls, contributions, and lifecycle hooks.
+- Owns typed multiscale module adapters that expose plugin-private mathematics without exposing plugin-private state.
 - Does not own host capabilities, cross-plugin access, or profile activation.
 
 ## Scope

@@ -227,6 +227,10 @@
       capabilities: Object.freeze({
         'simulation.datacenter.ai-supercluster.v1': (input = {}) => simulate({ ...current.config, ...input }),
         'field.cluster-thermals.v1': (input = {}) => simulate({ ...current.config, ...input }).thermals,
+        'simulation.module.datacenter-wan-scheduler-thermal.v1': (input = {}) => dependency(
+          'SimulatteGpuMultiscaleModules',
+          './multiscale-modules.js'
+        ).createDatacenterModules({ config: current.config, ...input }),
       }),
       contributeV4,
       handleAction,
