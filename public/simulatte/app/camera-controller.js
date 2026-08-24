@@ -265,9 +265,16 @@
       eye,
       target: [...state.orbitTarget],
       fieldOfViewRadians: (state.mode === 'top' ? 42 : isCompare ? 54 : 46) * Math.PI / 180,
-      near: 1,
+      near: overviewNearPlane(distance),
       far: Math.max(20000, distance * 2.5),
     };
+  }
+
+  function overviewNearPlane(distance) {
+    // The target is roughly one camera-distance away, so one percent cannot
+    // clip city geometry. Raising the near plane with distance preserves enough
+    // depth precision for roads, parks, grids, and overlays to remain ordered.
+    return clamp(Number(distance) * 0.01, 1, 200);
   }
 
   function focusedPluginTarget(state) {
@@ -392,6 +399,7 @@
     createCameraTargets,
     focusCameraTarget,
     orbitCamera,
+    overviewNearPlane,
     panCamera,
     replacePluginCameraTargets,
     setCameraMode,

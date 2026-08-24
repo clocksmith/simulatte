@@ -5,7 +5,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginGpuSupercluster",
-    "integrity": "sha384-e04a51f5e0046e7981ae14c374fe9263a064f2f590a6b650606b94ea168b866c9f3a1cef958a6ce62575f89b1e3e875c",
+    "integrity": "sha384-4fe7d28f55aace5b9db08ca67c03f0dec6d935d01393714e0431d18d3b7ee6df93905473a53b8cf1d0cdf7131d2440e9",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -81,7 +81,7 @@
       "path": "./thermal-model.js"
     },
     {
-      "integrity": "sha384-b81c42c8a01d5751a1352eed5a0abd8dae659829eeb2028c1654e9bbe4a4284326a672609da420d9f64e6234dcc84228",
+      "integrity": "sha384-c616b846ccc7360080f9659cea7370f94e84b2d1e60a04d4e8d75ceeb60972db4a4d0432170fb41f5e799c5c3dd00211",
       "path": "./v4-contribution.js"
     }
   ],

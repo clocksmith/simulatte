@@ -127,19 +127,20 @@ envelope. Draft schemas are not v4 and fall back to the compatibility path.
 
 ## Profile boundary
 
-The public audit covers eleven connected profiles:
+The public audit covers twelve connected profiles:
 
 1. Asteroid Defense
 2. Cable Trader
 3. Food Recall
-4. Grid Resilience
-5. Interstellar Relay Network
-6. Maritime Trade
-7. Neighborhood Bulk Pool
-8. NYC Development Atlas
-9. Orbital Transfer Planner
-10. Subsea Network
-11. Sun Walker
+4. 256-GPU AI Supercluster
+5. Grid Resilience
+6. Interstellar Relay Network
+7. Maritime Trade
+8. Neighborhood Bulk Pool
+9. NYC Development Atlas
+10. Orbital Transfer Planner
+11. Subsea Network
+12. Sun Walker
 
 City is shared world data and simulation substrate, not another experience.
 Blank is a separate product and has its own audit.

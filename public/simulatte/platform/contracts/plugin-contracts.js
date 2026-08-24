@@ -125,7 +125,7 @@
       ids.add(row.id);
     });
     if (isV3) {
-      if (!['country', 'world', 'solar-system', 'star-chart'].includes(value.tier)) fail('application_profile_tier_invalid', `Profile ${value.id} tier ${value.tier || 'missing'} is invalid`, { tier: value.tier || null });
+      if (!['datacenter', 'country', 'world', 'solar-system', 'star-chart'].includes(value.tier)) fail('application_profile_tier_invalid', `Profile ${value.id} tier ${value.tier || 'missing'} is invalid`, { tier: value.tier || null });
       text(value.worldModelId, 'application_profile_world_invalid', `Profile ${value.id} world model ID`);
     }
     assertObject(value.routeObjective, 'application_profile_objective_invalid', `Profile ${value.id} route objective expected an object`);

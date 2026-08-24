@@ -442,7 +442,7 @@ test('every repository plugin carries current same-realm trust without marketpla
     assert.equal(contracts.validateManifest(value), value);
     return [contracts.authorizeExecutableManifest(value)];
   });
-  assert.equal(receipts.length, 12);
+  assert.equal(receipts.length, 13);
   assert.ok(receipts.every((receipt) => (
     receipt.trustLevel === 'repository-bundled' &&
     receipt.executionIsolation === 'same-realm-contract' &&

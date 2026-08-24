@@ -65,5 +65,6 @@
       "id": "gpu-supercluster",
       "configId": "gpu-supercluster-config-v1"
     }
-  ]
+  ],
+  "routeObjective": {}
 }

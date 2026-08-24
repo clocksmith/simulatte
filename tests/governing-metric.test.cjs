@@ -20,10 +20,23 @@ function dimension(report, id) {
   return report.dimensions.find((row) => row.id === id);
 }
 
+function loadArchivedEvidenceFixture(compiler) {
+  const input = compiler.loadGoverningMetricInputs(contractFile);
+  const buildIds = new Set([
+    ...input.pointers.goldReports.flatMap(({ pointer }) => (
+      pointer.value.results.map((row) => row.buildId)
+    )),
+    ...input.pointers.boundaryReports.map(({ pointer }) => pointer.value.buildId),
+  ]);
+  assert.equal(buildIds.size, 1, 'archived governing-metric evidence must bind one build');
+  input.pointers.build.value.build = [...buildIds][0];
+  return input;
+}
+
 test('public governing metric keeps machine proof, human proof, scope, and dimensions separate', async () => {
   const { compiler } = await modules();
   const report = compiler.buildGoverningMetricReport(
-    compiler.loadGoverningMetricInputs(contractFile)
+    loadArchivedEvidenceFixture(compiler)
   );
   assert.equal(report.schema, 'simulatte.publicGoverningMetricReport.v1');
   assert.equal(report.status, 'not-proven');
@@ -61,7 +74,7 @@ test('public governing metric keeps machine proof, human proof, scope, and dimen
 
 test('one critical prompt failure fails the governing machine gate instead of averaging away', async () => {
   const { compiler, gold } = await modules();
-  const input = compiler.loadGoverningMetricInputs(contractFile);
+  const input = loadArchivedEvidenceFixture(compiler);
   const goldSet = input.pointers.goldSet.value;
   const source = input.pointers.goldReports[0].pointer.value;
   source.results[0].phase2IntentRequirementLedger.requirements.shift();
@@ -77,11 +90,11 @@ test('one critical prompt failure fails the governing machine gate instead of av
 
 test('governing metric rejects stale builds and incomplete boundary evidence', async () => {
   const { compiler } = await modules();
-  const stale = compiler.loadGoverningMetricInputs(contractFile);
+  const stale = loadArchivedEvidenceFixture(compiler);
   stale.pointers.goldReports[0].pointer.value.results[0].buildId = 'stale-build';
   assert.throws(() => compiler.buildGoverningMetricReport(stale), /stale build/);
 
-  const incomplete = compiler.loadGoverningMetricInputs(contractFile);
+  const incomplete = loadArchivedEvidenceFixture(compiler);
   incomplete.pointers.boundaryReports.pop();
   assert.throws(
     () => compiler.buildGoverningMetricReport(incomplete),

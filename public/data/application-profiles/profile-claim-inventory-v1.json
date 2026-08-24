@@ -1,11 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schema": "simulatte.profileClaimInventory.v1",
-  "contentVersion": "2026-08-01",
+  "contentVersion": "2026-08-23",
   "profileIds": [
     "asteroid-defense-v1",
     "cable-trader-pickup-v1",
     "food-recall-us-v1",
+    "gpu-supercluster-v1",
     "grid-resilience-us-v1",
     "interstellar-relay-network-v1",
     "maritime-trade-global-v1",

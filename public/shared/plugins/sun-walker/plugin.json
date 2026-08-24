@@ -30,7 +30,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-cde782a572afbccf5b8d2ff815a477c79fe44e03920dcff1e5cece110f81f382764cdb0e91f08f7d6f3f406c38032cd1",
+    "integrity": "sha384-0dbb650d1167a5455628a38ef52adf27ed45131ac4557747a718bddd1922ee4765a1f0cb472e586b95070fae5347cef4",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -40,6 +40,16 @@
     "ui",
     "presentation"
   ],
+  "governance": {
+    "executionIsolation": "same-realm-contract",
+    "marketplaceEligible": false,
+    "provenance": "repository-source",
+    "publisher": "simulatte",
+    "revocationId": "plugin:sun-walker@3.1.0",
+    "signatureStatus": "not-applicable-repository-bundled",
+    "status": "active",
+    "trustLevel": "repository-bundled"
+  },
   "id": "sun-walker",
   "permissions": [
     "clock.read.v1",
@@ -86,6 +96,10 @@
       "path": "./environment.js"
     },
     {
+      "integrity": "sha384-b42e583f68055eff9be4db583b8ef8792b7f6eae2bf15e0032e0db7d0a5df9a86d88943e4081edfae9e33cc6a3992c0b",
+      "path": "./exposure-summary.js"
+    },
+    {
       "integrity": "sha384-9c6fe2ff4787c42afd245f61536e1480dee8a7e5ae52479516a70c29edb78627d46d13e817d573a1725c2e89371d3e0e",
       "path": "./presentation.js"
     },
@@ -98,20 +112,10 @@
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-fcf72f0f9dd5f152bd93703af3f089549e80e36a01f980654748b7b7aa8c41dea2e559b57c08517cae00ce3b46ac9480",
+      "integrity": "sha384-326bbcdb96636aa546203e67f73efb9bc84cbdb694f903e4d1486b3c4f9a4a7f8bfa1d31d87e308012ff34b600b0ba9b",
       "path": "./v4-contribution.js"
     }
   ],
-  "governance": {
-    "trustLevel": "repository-bundled",
-    "executionIsolation": "same-realm-contract",
-    "publisher": "simulatte",
-    "provenance": "repository-source",
-    "signatureStatus": "not-applicable-repository-bundled",
-    "marketplaceEligible": false,
-    "status": "active",
-    "revocationId": "plugin:sun-walker@3.1.0"
-  },
   "schema": "simulatte.pluginManifest.v3",
   "sdkVersion": 2,
   "version": "3.1.0"

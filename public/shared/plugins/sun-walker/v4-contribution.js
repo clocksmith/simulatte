@@ -5,10 +5,13 @@
   const shadowGeometry = typeof module === 'object' && module.exports
     ? require('./shadow-geometry.js')
     : root.SimulatteSunWalkerShadowGeometry;
-  const api = factory(builder, shadowGeometry);
+  const exposureSummary = typeof module === 'object' && module.exports
+    ? require('./exposure-summary.js')
+    : root.SimulatteSunWalkerExposureSummary;
+  const api = factory(builder, shadowGeometry, exposureSummary);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteSunWalkerV4 = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerV4(builder, shadowGeometry) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerV4(builder, shadowGeometry, exposureSummaryApi) {
   const PLUGIN_ID = 'sun-walker';
   const MODEL_HASH = '3f5955769b066c43acaee934f8b9b775fe76a2b796db48d4a9eea89e7bd66ce7';
 
@@ -29,7 +32,9 @@
     const fastest = simulation.candidates.find((row) => row.id === simulation.fastestCandidateId);
     const snapshot = simulation.timeline.snapshots[Math.min(step, simulation.timeline.snapshots.length - 1)];
     const samples = selected.samples.slice(0, snapshot.state.completedSamples);
-    const activeSample = samples.at(-1) || selected.samples[0];
+    const latestCompletedSample = samples.at(-1) || null;
+    const activeSample = latestCompletedSample || selected.samples[0];
+    const exposureStatus = exposureSummaryApi.summarize(snapshot.state, latestCompletedSample);
     const buildingRows = [...new Set(selected.samples.map((row) => row.occluderId).filter(Boolean))]
       .filter((id) => selected.samples.some((row) => row.occluderId === id && row.occluderKind === 'building'))
       .map((id) => builder.rowRecord(buildings, id, {}));
@@ -164,6 +169,9 @@
         builder.quantity('direct-sun', snapshot.state.directSunSeconds, 'seconds'),
         builder.quantity('shade', snapshot.state.shadeSeconds, 'seconds'),
         builder.quantity('unknown', snapshot.state.unknownSeconds, 'seconds'),
+        builder.quantity('night', snapshot.state.nightSeconds, 'seconds'),
+        builder.quantity('direct-sun-share', exposureStatus.percentages.direct / 100, 'ratio', [0, 1]),
+        builder.quantity('shade-share', exposureStatus.percentages.shade / 100, 'ratio', [0, 1]),
         builder.quantity('direct-beam-equivalent', snapshot.state.directBeamEquivalentSeconds, 'seconds'),
       ],
       provenance: claim,
@@ -180,10 +188,19 @@
         targetIds: ['shade-selected-route'],
         fields: [
           field('progress', 'Route progress', snapshot.state.progress, 'ratio', claim),
+          field('current-status', 'Current status', exposureStatus.current.label, null, claim),
+          field('exposure-split', 'Walk so far', exposureStatus.split, null, claim),
+          field('shade-share', 'Shade percent', exposureStatus.percentages.shade / 100, 'ratio', claim),
+          field('direct-sun-share', 'Direct sun percent', exposureStatus.percentages.direct / 100, 'ratio', claim),
           field('direct-sun', 'Direct sun so far', snapshot.state.directSunSeconds, 'seconds', claim),
           field('direct-beam-equivalent', 'Weather/canopy-adjusted direct beam so far', snapshot.state.directBeamEquivalentSeconds, 'seconds', claim),
-          field('building-shade', 'Modeled shade so far', snapshot.state.shadeSeconds, 'seconds', claim),
+          field('modeled-shade', 'Modeled shade so far', snapshot.state.shadeSeconds, 'seconds', claim),
+          field('building-shade', 'Building shade so far', snapshot.state.buildingShadeSeconds, 'seconds', claim),
+          field('canopy-shade', 'Canopy shade so far', snapshot.state.canopyShadeSeconds, 'seconds', claim),
           field('unknown', 'Unknown exposure so far', snapshot.state.unknownSeconds, 'seconds', claim),
+          field('night', 'Night exposure so far', snapshot.state.nightSeconds, 'seconds', claim),
+          field('shadow-display', 'Shadow display', exposureStatus.shadowDisplay, null, claim),
+          field('shadow-calculation', 'Calculation', exposureStatus.shadowCalculation, null, claim),
           field('environment', 'Environmental evidence', 'Historical 2015 trees + pinned 2024 Central Park analog', null, claim),
           field('boundary', 'Claim boundary', simulation.claimBoundary, null, claim),
         ],

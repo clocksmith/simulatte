@@ -365,11 +365,11 @@ async function fixture({ profileId = null } = {}) {
   return { buildIdentity, claims, contract, plan, receipt, run, sourceIdentity };
 }
 
-test('profile evidence plan enumerates eleven connected profiles, forty-seven seeds, and two required viewports', async () => {
+test('profile evidence plan enumerates twelve connected profiles, fifty-one seeds, and two required viewports', async () => {
   const { plan } = await fixture();
-  assert.equal(plan.profileIds.length, 11);
-  assert.equal(new Set(plan.runs.map((run) => `${run.profileId}:${run.seedId}`)).size, 47);
-  assert.equal(plan.runCount, 94);
+  assert.equal(plan.profileIds.length, 12);
+  assert.equal(new Set(plan.runs.map((run) => `${run.profileId}:${run.seedId}`)).size, 51);
+  assert.equal(plan.runCount, 102);
   assert.deepEqual([...new Set(plan.runs.map((run) => run.viewport.id))], [
     'desktop-1440x1000',
     'mobile-390x844',
@@ -391,9 +391,9 @@ test('release freeze binds registries, profiles, plugins, datasets, and browser 
   });
   assert.equal(identity.schema, 'simulatte.profileEvidenceReleaseIdentity.v1');
   assert.equal(identity.build.buildId, 'release-build');
-  assert.equal(identity.profiles.length, 11);
-  assert.equal(identity.plugins.length, 11);
-  assert.ok(identity.datasets.length >= 11);
+  assert.equal(identity.profiles.length, 12);
+  assert.equal(identity.plugins.length, 12);
+  assert.ok(identity.datasets.length >= 12);
   assert.deepEqual(identity.registries.map((row) => row.id), [
     'city-profile-registry',
     'tier-profile-registry',
@@ -411,7 +411,7 @@ test('release freeze binds registries, profiles, plugins, datasets, and browser 
 
 test('claim inventory assigns one stable claim ID to every published seed description', async () => {
   const { claims } = await fixture();
-  assert.equal(claims.length, 47);
+  assert.equal(claims.length, 51);
   assert.equal(new Set(claims.map((claim) => claim.id)).size, claims.length);
   assert.ok(claims.every((claim) => claim.sentence.length > 0));
   assert.ok(claims.every((claim) => claim.source.path.startsWith('public/data/application-profiles/')));

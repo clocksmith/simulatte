@@ -30,6 +30,7 @@
     sampleCount,
     depthWriteEnabled,
     depthCompare,
+    depthBias = 0,
   }) {
     return {
       label,
@@ -45,7 +46,7 @@
         targets: [{ format, blend: BLEND_STATE }],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: { format: 'depth24plus', depthWriteEnabled, depthCompare },
+      depthStencil: { format: 'depth24plus', depthWriteEnabled, depthCompare, depthBias },
       multisample: { count: sampleCount },
     };
   }
@@ -74,6 +75,7 @@
         sampleCount,
         depthWriteEnabled: false,
         depthCompare: 'less-equal',
+        depthBias: -2,
       })),
     });
   }

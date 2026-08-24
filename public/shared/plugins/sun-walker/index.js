@@ -17,7 +17,10 @@
   const environment = typeof module === 'object' && module.exports
     ? require('./environment.js')
     : root.SimulatteSunWalkerEnvironment;
-  const api = factory(exposure, routeSimulation, presentation, compatibility, v4, environment);
+  const exposureSummary = typeof module === 'object' && module.exports
+    ? require('./exposure-summary.js')
+    : root.SimulatteSunWalkerExposureSummary;
+  const api = factory(exposure, routeSimulation, presentation, compatibility, v4, environment, exposureSummary);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginSunWalker = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerPlugin(
@@ -26,7 +29,8 @@
   presentationApi,
   compatibilityApi,
   v4Api,
-  environmentApi
+  environmentApi,
+  exposureSummaryApi
 ) {
   const GOVERNANCE_DATASET_ID = 'sun-walker.model-governance.v1';
   const ENVIRONMENT_DATASET_ID = 'sun-walker.environment.v1';
@@ -440,12 +444,16 @@
     const completedSamples = snapshot.state.completedSamples;
     const latestSample = completedSamples > 0 ? selected.samples[completedSamples - 1] : null;
     const settled = snapshot.state.status === 'settled';
+    const exposureStatus = exposureSummaryApi.summarize(snapshot.state, latestSample);
     return [
       { label: 'Simulation', value: `${snapshot.state.status} · ${completedSamples}/${snapshot.state.totalSamples} samples` },
-      { label: 'Current exposure', value: latestSample ? `${latestSample.state} · ${latestSample.timestamp}` : 'Ready at route origin' },
-      { label: 'Direct sun', value: `${Math.round(snapshot.state.directSunSeconds)} of ${Math.round(selected.metrics.travelSeconds)} s` },
-      { label: 'Modeled shade so far', value: `${Math.round(snapshot.state.shadeSeconds)} s` },
-      { label: 'Unknown so far', value: `${Math.round(snapshot.state.unknownSeconds)} s` },
+      { label: 'Current status', value: exposureStatus.current.label },
+      { label: 'Walk so far', value: exposureStatus.split },
+      { label: 'Shade', value: `${exposureStatus.percentages.shade}% / ${Math.round(exposureStatus.seconds.shade)} s total / ${Math.round(exposureStatus.seconds.buildingShade)} s building / ${Math.round(exposureStatus.seconds.canopyShade)} s canopy` },
+      { label: 'Direct sun', value: `${exposureStatus.percentages.direct}% / ${Math.round(exposureStatus.seconds.direct)} s` },
+      { label: 'Unknown / night', value: `${exposureStatus.percentages.unknown}% unknown / ${exposureStatus.percentages.night}% night` },
+      { label: 'Shadow display', value: exposureStatus.shadowDisplay },
+      { label: 'Calculation', value: exposureStatus.shadowCalculation },
       ...(settled ? [
         { label: 'Shade-selected', value: `${Math.round(selected.metrics.modeledBuildingShadePercent)}% modeled building shade` },
         { label: 'Canopy', value: `${Math.round(selected.metrics.modeledCanopyShadePercent)}% modeled historical-canopy shade` },
@@ -454,7 +462,7 @@
       ] : []),
       ...(latestSample ? [{
         label: 'Sun',
-        value: `${Math.round(latestSample.solarPosition.azimuthDegrees)}° azimuth · ${Math.round(latestSample.solarPosition.elevationDegrees)}° elevation`,
+        value: `${Math.round(latestSample.solarPosition.azimuthDegrees)}° azimuth · ${Math.round(latestSample.solarPosition.elevationDegrees)}° elevation · ${latestSample.timestamp}`,
       }] : []),
       { label: 'Data', value: `${simulation.dataReceipt.datasets[0].sourceRowIds.length.toLocaleString('en-US')} governed building rows` },
       ...(latestSample ? [{

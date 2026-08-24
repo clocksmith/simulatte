@@ -354,8 +354,8 @@ test('WebGPU pass composition shares one vertex contract and preserves depth-saf
   assert.ok(descriptors.every((row) => row.layout === layout));
   assert.deepEqual(descriptors[0].vertex.buffers, descriptors[1].vertex.buffers);
   assert.deepEqual(descriptors.map((row) => row.depthStencil), [
-    { format: 'depth24plus', depthWriteEnabled: true, depthCompare: 'less' },
-    { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'less-equal' },
+    { format: 'depth24plus', depthWriteEnabled: true, depthCompare: 'less', depthBias: 0 },
+    { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'less-equal', depthBias: -2 },
   ]);
 
   const calls = [];

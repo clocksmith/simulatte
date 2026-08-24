@@ -476,41 +476,37 @@
           <text x="50%" y="132" text-anchor="middle" dominant-baseline="middle">SIMULATTE</text>
         </svg>
       </h1>
-      <p class="landing-subtitle">Inspectable prompt-to-simulation compiler and multi-scale physical worlds.</p>
+      <p class="landing-subtitle">Build and inspect browser simulations across physical scales.</p>
     </header>
 
     <!-- Hexagonal Constellation Layout -->
     <div class="hex-constellation-container" aria-label="Simulatte Multi-Scale Constellation">
-      <!-- Background SVG connector web / orbital grid -->
-      <svg class="hex-constellation-web" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <!-- Quiet hex field inspired by the Fawn start surface. -->
+      <svg class="hex-constellation-web" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
-          <linearGradient id="spoke-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="var(--sim-accent, #10b981)" stop-opacity="0.5"/>
-            <stop offset="100%" stop-color="var(--sim-accent-soft, #064e3b)" stop-opacity="0.1"/>
-          </linearGradient>
+          <pattern id="ambient-hex-grid" width="84" height="96" patternUnits="userSpaceOnUse">
+            <path d="M42 1 L83 24 L83 72 L42 95 L1 72 L1 24 Z" class="ambient-hex-cell" />
+          </pattern>
+          <radialGradient id="ambient-hex-fade" cx="50%" cy="50%" r="52%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.62" />
+            <stop offset="70%" stop-color="#ffffff" stop-opacity="0.16" />
+            <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+          </radialGradient>
+          <mask id="ambient-hex-mask">
+            <rect width="1000" height="720" fill="url(#ambient-hex-fade)" />
+          </mask>
         </defs>
-        <!-- Orbital Rings -->
-        <circle cx="500" cy="400" r="280" class="orbital-ring" stroke-dasharray="4 8" />
-        <circle cx="500" cy="400" r="160" class="orbital-ring-inner" stroke-dasharray="2 6" />
-        <!-- Symmetrical Spokes connecting Center (500,400) to 6 Satellites (R=280) -->
-        <line x1="500" y1="400" x2="257" y2="260" class="constellation-spoke" />
-        <line x1="500" y1="400" x2="500" y2="120" class="constellation-spoke" />
-        <line x1="500" y1="400" x2="742" y2="260" class="constellation-spoke" />
-        <line x1="500" y1="400" x2="742" y2="540" class="constellation-spoke" />
-        <line x1="500" y1="400" x2="500" y2="680" class="constellation-spoke" />
-        <line x1="500" y1="400" x2="257" y2="540" class="constellation-spoke" />
-        <!-- Perimeter Hexagon Ring connecting all 6 satellites -->
-        <polygon points="257,260 500,120 742,260 742,540 500,680 257,540" class="constellation-perimeter" stroke-dasharray="6 6" />
+        <rect width="1000" height="720" fill="url(#ambient-hex-grid)" mask="url(#ambient-hex-mask)" class="ambient-hex-field" />
       </svg>
 
       <!-- Center Hexagon Hub: Simulatte Create -->
-      <a href="./blank/" class="hex-hub" id="hex-center-create" aria-label="Launch Simulatte Create WebGPU Compiler">
+      <a href="./blank/" class="hex-hub" id="hex-center-create" aria-label="Open Simulatte Create">
         <div class="hex-hub-inner">
-          <div class="hex-hub-badge">⚡ Flagship Compiler</div>
-          <div class="hex-hub-icon">⚡</div>
+          <div class="hex-hub-badge">Create a world</div>
+          <div class="hex-hub-icon" aria-hidden="true">C</div>
           <h2 class="hex-hub-title">Simulatte Create</h2>
-          <p class="hex-hub-desc">Prompt-to-World WebGPU compiler with verified WorldProof receipts.</p>
-          <span class="hex-hub-action">Open Compiler →</span>
+          <p class="hex-hub-desc">Turn a brief into an editable simulation with replayable evidence.</p>
+          <span class="hex-hub-action">Open Create</span>
         </div>
       </a>
 
@@ -544,7 +540,7 @@
 
       <div class="hex-satellite tier-card pos-bottom-right" data-tier="world" data-default-profile="maritime-trade-global-v1" role="button" tabindex="0" aria-label="Launch Maritime Trade Simulator">
         <div class="hex-satellite-inner">
-          <div class="hex-badge">Planet · Shipping</div>
+          <div class="hex-badge">Planet / Shipping</div>
           <div class="hex-icon">P</div>
           <h3 class="hex-title">Maritime Trade</h3>
           <p class="hex-desc">Global chokepoints (Suez, Panama), queues, and emissions.</p>
@@ -553,7 +549,7 @@
 
       <div class="hex-satellite tier-card pos-bottom" data-tier="world" data-default-profile="subsea-network-global-v1" role="button" tabindex="0" aria-label="Launch Subsea Network Simulator">
         <div class="hex-satellite-inner">
-          <div class="hex-badge">Planet · Telecom</div>
+          <div class="hex-badge">Planet / Telecom</div>
           <div class="hex-icon">N</div>
           <h3 class="hex-title">Subsea Network</h3>
           <p class="hex-desc">Undersea fiber cables, seismic faults, and packet rerouting.</p>

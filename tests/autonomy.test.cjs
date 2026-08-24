@@ -1663,8 +1663,23 @@ test('city renderer keeps static map layers in stable depth bands and pulses onl
   const layers = Object.values(gpuGeometry.SURFACE_LAYERS);
   assert.equal(new Set(layers).size, layers.length);
   assert.ok(layers.every((value, index) => index === 0 || value - layers[index - 1] >= 0.08));
+  assert.equal(cameraApi.overviewNearPlane(100), 1);
+  assert.equal(cameraApi.overviewNearPlane(5000), 50);
+  assert.equal(cameraApi.overviewNearPlane(50000), 200);
   assert.match(rendererApi.SHADER, /input\.emissive > 0\.8/);
   assert.match(rendererApi.SHADER, /select\(1\.0, 0\.82 \+ 0\.18 \* sin/);
+});
+
+test('city overview building aggregation cannot create overlapping coplanar roof masses', () => {
+  const masses = gpuGeometry.overviewBuildingMasses([{
+    heightM: 24,
+    footprint: [{ x: 10, y: 2 }, { x: 70, y: 2 }, { x: 70, y: 12 }, { x: 10, y: 12 }],
+  }, {
+    heightM: 24,
+    footprint: [{ x: 20, y: 4 }, { x: 68, y: 4 }, { x: 68, y: 14 }, { x: 20, y: 14 }],
+  }]).sort((left, right) => left.minimumX - right.minimumX);
+  assert.equal(masses.length, 2);
+  assert.ok(masses[0].maximumX < masses[1].minimumX);
 });
 
 test('city ribbons use continuous joins for open and closed map paths', () => {

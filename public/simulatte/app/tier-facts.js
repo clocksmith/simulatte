@@ -47,6 +47,9 @@
       'Nearest major galaxy': nearest.name ? `${nearest.name} (${nearest.distanceMillionLy} million ly)` : 'Unknown',
       'Estimated galaxies': galaxies.estimatedObservableCount || 'Unknown',
       'Observable size': universeFacts.observableUniverseSizeLy ? `${universeFacts.observableUniverseSizeLy.toLocaleString()} ly` : 'Unknown'
+    };
+  }
+
   function extractDatacenterStats(data = {}) {
     return {
       'Facility Scale': 'Datacenter / Room (~10¹ m)',

@@ -6,6 +6,7 @@ const crypto = require('node:crypto');
 const contracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
 const simulationApi = require('../public/shared/plugins/sun-walker/sun-route-simulation.js');
 const presentationApi = require('../public/shared/plugins/sun-walker/presentation.js');
+const exposureSummaryApi = require('../public/shared/plugins/sun-walker/exposure-summary.js');
 const v4Api = require('../public/shared/plugins/sun-walker/v4-contribution.js');
 const plugin = require('../public/shared/plugins/sun-walker/index.js');
 const compositor = require('../public/simulatte/platform/render/semantic-compositor.js');
@@ -173,6 +174,8 @@ test('Walked-segment colors and inspector metrics agree with completed samples',
     );
     const measures = Object.fromEntries(contribution.state.measures.map((row) => [row.kind, row.value]));
     const rows = plugin.inspectorRows(result, step);
+    const exposureStatus = exposureSummaryApi.summarize(snapshot.state, activeSample);
+    const inspectionRows = contribution.inspections[0].fields;
 
     assert.deepEqual(actor.geometry.coordinates[0], [activeSample.point.x, activeSample.point.y, 0]);
     assert.equal(segment.quantity.kind, `exposure.${activeSample.state}`);
@@ -187,15 +190,18 @@ test('Walked-segment colors and inspector metrics agree with completed samples',
     assert.equal(measures.shade, snapshot.state.shadeSeconds);
     assert.equal(measures.unknown, snapshot.state.unknownSeconds);
     assert.equal(
-      rowValue(rows, 'Current exposure'),
-      `${activeSample.state} · ${activeSample.timestamp}`
+      rowValue(rows, 'Current status'),
+      exposureStatus.current.label
     );
-    assert.equal(
-      rowValue(rows, 'Direct sun'),
-      `${Math.round(snapshot.state.directSunSeconds)} of ${Math.round(selected.metrics.travelSeconds)} s`
-    );
-    assert.equal(rowValue(rows, 'Modeled shade so far'), `${Math.round(snapshot.state.shadeSeconds)} s`);
-    assert.equal(rowValue(rows, 'Unknown so far'), `${Math.round(snapshot.state.unknownSeconds)} s`);
+    assert.equal(rowValue(rows, 'Walk so far'), exposureStatus.split);
+    assert.match(rowValue(rows, 'Shade'), new RegExp(`^${exposureStatus.percentages.shade}%`));
+    assert.match(rowValue(rows, 'Direct sun'), new RegExp(`^${exposureStatus.percentages.direct}%`));
+    assert.equal(rowValue(rows, 'Shadow display'), exposureStatus.shadowDisplay);
+    assert.equal(rowValue(rows, 'Calculation'), exposureStatus.shadowCalculation);
+    assert.equal(rowValue(inspectionRows, 'Current status'), exposureStatus.current.label);
+    assert.equal(rowValue(inspectionRows, 'Walk so far'), exposureStatus.split);
+    assert.equal(rowValue(inspectionRows, 'Shade percent'), exposureStatus.percentages.shade / 100);
+    assert.equal(rowValue(inspectionRows, 'Direct sun percent'), exposureStatus.percentages.direct / 100);
   }
 });
 

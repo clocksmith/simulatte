@@ -10,6 +10,8 @@ Owner contract: `public/shared/plugins/gpu-supercluster/index.js`.
 - Profile ID: `gpu-supercluster-v1`
 - Default scenario: `gpt4-3d-parallelism`
 - Contract version: plugin v4 contribution
+- Runtime path: native v4 plugin host
+- Evidence status: deterministic source and unit contracts only
 
 ## What is it?
 
@@ -42,3 +44,56 @@ Owner contract: `public/shared/plugins/gpu-supercluster/index.js`.
 - During execution: Glowing die-level thermal heatmaps (cyan $\to$ amber $\to$ magenta), spinning CDU pumps, and pulsing fiber-optic AllReduce waves.
 - Selection and inspection: Per-rack power draw, junction temperatures, NVLink bandwidth, and MFU efficiency.
 - Final settlement: Total step latency ($ms$), effective cluster TFLOPS, PUE, and immutable simulation receipts.
+- Comparison view: Baseline and intervention runs expose timing, thermal, network, and utilization differences.
+
+## What is real, derived, modeled, or simulated?
+
+The declared rack count, accelerator count, link classes, control ranges, and scenario identities are governed profile inputs. Topology, collective timing, thermal state, throttling, utilization, and settlement values are deterministic model outputs. The rack drawing and animated network pulses project those outputs. They are not measurements from a deployed cluster, vendor benchmark results, or physical datacenter telemetry.
+
+## How does the simulation work?
+
+- The profile selects one governed scenario, seed, control set, and comparison policy.
+- The plugin builds racks, accelerators, cooling loops, and hierarchical network links from the declared topology.
+- The collective solver computes communication steps and transfer cost for the selected algorithm and tensor size.
+- The thermal model advances coolant and junction temperatures from load, flow, and degradation inputs.
+- The runtime applies straggler, packet-drop, and thermal-throttle effects before settling each step.
+- The plugin emits state, comparison, settlement, and replay receipts for the declared run.
+
+## How do comparison and playback work?
+
+- A baseline run retains the default controls and seed.
+- An intervention changes one or more declared controls while retaining the comparison identity.
+- Comparison rows keep step latency, utilization, temperature, cooling, and network effects separate.
+- Playback replays the retained state and event sequence without recomputing a different scenario.
+- Reload evidence is valid only when profile, plugin, seed, controls, and terminal receipts match.
+
+## What can and cannot be claimed?
+
+- The source can claim deterministic execution of the declared topology and solver contracts.
+- Unit evidence can claim the tested collective, thermal, topology, and contribution behavior.
+- A run can compare two modeled scenarios under the same profile and seed.
+- A receipt can identify the inputs, runtime path, state transitions, and modeled result it records.
+- The simulation cannot claim measured H100, NVLink, InfiniBand, facility, or training performance.
+- The visualization cannot prove physical rack placement, cooling behavior, or network traffic.
+- A successful modeled run cannot establish production safety, capacity, cost, or energy efficiency.
+- Public promotion requires separately retained browser, replay, deployment, and human evidence.
+
+## What is verified?
+
+- The profile and plugin manifests resolve through the public registries.
+- The plugin integrity digest binds its declared source closure.
+- Topology tests cover 32 racks and 256 accelerator identities.
+- Solver tests cover collective selection and deterministic timing relationships.
+- Thermal tests cover cooling controls and threshold-driven throttling.
+- Current checks do not constitute physical browser, GPU, deployment, or human proof.
+
+## Where is it implemented?
+
+- [Application profile](../../../public/data/application-profiles/gpu-supercluster-v1.json)
+- [Plugin manifest](../../../public/shared/plugins/gpu-supercluster/plugin.json)
+- [Plugin entrypoint](../../../public/shared/plugins/gpu-supercluster/index.js)
+- [Topology model](../../../public/shared/plugins/gpu-supercluster/cluster-topology.js)
+- [Collective solver](../../../public/shared/plugins/gpu-supercluster/collective-solver.js)
+- [Thermal model](../../../public/shared/plugins/gpu-supercluster/thermal-model.js)
+- [Runtime contribution](../../../public/shared/plugins/gpu-supercluster/v4-contribution.js)
+- [Contract tests](../../../tests/gpu-supercluster.test.cjs)

@@ -17,6 +17,7 @@
   const TIER_LABELS = tierRegistry.TIER_LABELS;
   const GITHUB_EXPERIENCE_DOC_BASE_URL = 'https://github.com/clocksmith/simulatte/blob/main/docs/simulatte/experiences/';
   const EXPERIENCE_DOC_PATHS = Object.freeze({
+    'gpu-supercluster-v1': 'gpu-supercluster.md',
     'cable-trader-pickup-v1': 'cable-trader.md',
     'neighborhood-bulk-pool-v1': 'neighborhood-bulk-pool.md',
     'nyc-development-atlas-v1': 'nyc-development-atlas.md',
@@ -30,6 +31,7 @@
     'interstellar-relay-network-v1': 'interstellar-relay-network.md',
   });
   const PROFILE_LABELS = Object.freeze({
+    'gpu-supercluster-v1': 'GPU Supercluster',
     'cable-trader-pickup-v1': 'Cable Trader',
     'neighborhood-bulk-pool-v1': 'Neighborhood Bulk Pool',
     'nyc-development-atlas-v1': 'NYC Development Atlas',

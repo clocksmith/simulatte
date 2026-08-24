@@ -12,6 +12,8 @@
   const PATH_METRICS_CACHE = new WeakMap();
   const TRIANGULATION_CACHE = new WeakMap();
   const DEFAULT_MATERIAL = Object.freeze([0.02, 0.78]);
+  const OVERVIEW_BUILDING_CELL_SIZE_M = 42;
+  const OVERVIEW_BUILDING_CELL_GUTTER_M = 0.12;
   // Overview cameras expose depth-buffer precision limits. Keep every map
   // surface in an explicit band so thin layers do not fight while panning.
   const SURFACE_LAYERS = Object.freeze({
@@ -502,7 +504,18 @@
   }
 
   function addOverviewBuildingMasses(writer, buildings) {
-    const CELL_SIZE_M = 42;
+    overviewBuildingMasses(buildings).forEach((cell) => {
+      const points = [
+        { x: cell.minimumX, y: cell.minimumY },
+        { x: cell.maximumX, y: cell.minimumY },
+        { x: cell.maximumX, y: cell.maximumY },
+        { x: cell.minimumX, y: cell.maximumY },
+      ];
+      addFlatPolygon(writer, points, cell.heightM, buildingColor(cell.heightM, true), 0.05);
+    });
+  }
+
+  function overviewBuildingMasses(buildings) {
     const cells = new Map();
     buildings.forEach((building) => {
       const points = openRing(building.footprint);
@@ -519,12 +532,16 @@
       });
       const centerX = (minimumX + maximumX) / 2;
       const centerY = (minimumY + maximumY) / 2;
-      const key = `${Math.floor(centerX / CELL_SIZE_M)}:${Math.floor(centerY / CELL_SIZE_M)}`;
+      const cellX = Math.floor(centerX / OVERVIEW_BUILDING_CELL_SIZE_M);
+      const cellY = Math.floor(centerY / OVERVIEW_BUILDING_CELL_SIZE_M);
+      const key = `${cellX}:${cellY}`;
       const cell = cells.get(key) || {
-        minimumX: centerX,
-        maximumX: centerX,
-        minimumY: centerY,
-        maximumY: centerY,
+        cellX,
+        cellY,
+        minimumX: Infinity,
+        maximumX: -Infinity,
+        minimumY: Infinity,
+        maximumY: -Infinity,
         heightM: 3,
       };
       cell.minimumX = Math.min(cell.minimumX, minimumX);
@@ -534,14 +551,18 @@
       cell.heightM = Math.max(cell.heightM, Number(building.heightM) || 3);
       cells.set(key, cell);
     });
-    cells.forEach((cell) => {
-      const points = [
-        { x: cell.minimumX, y: cell.minimumY },
-        { x: cell.maximumX, y: cell.minimumY },
-        { x: cell.maximumX, y: cell.maximumY },
-        { x: cell.minimumX, y: cell.maximumY },
-      ];
-      addFlatPolygon(writer, points, cell.heightM, buildingColor(cell.heightM, true), 0.05);
+    return [...cells.values()].map((cell) => {
+      const cellMinimumX = cell.cellX * OVERVIEW_BUILDING_CELL_SIZE_M;
+      const cellMaximumX = cellMinimumX + OVERVIEW_BUILDING_CELL_SIZE_M;
+      const cellMinimumY = cell.cellY * OVERVIEW_BUILDING_CELL_SIZE_M;
+      const cellMaximumY = cellMinimumY + OVERVIEW_BUILDING_CELL_SIZE_M;
+      return Object.freeze({
+        minimumX: Math.max(cell.minimumX, cellMinimumX + OVERVIEW_BUILDING_CELL_GUTTER_M),
+        maximumX: Math.min(cell.maximumX, cellMaximumX - OVERVIEW_BUILDING_CELL_GUTTER_M),
+        minimumY: Math.max(cell.minimumY, cellMinimumY + OVERVIEW_BUILDING_CELL_GUTTER_M),
+        maximumY: Math.min(cell.maximumY, cellMaximumY - OVERVIEW_BUILDING_CELL_GUTTER_M),
+        heightM: cell.heightM,
+      });
     });
   }
 
@@ -768,6 +789,7 @@
     createGroundOverlayGeometry,
     createStaticGeometry,
     createWriter,
+    overviewBuildingMasses,
     poseAlongPath,
     triangulate,
   };

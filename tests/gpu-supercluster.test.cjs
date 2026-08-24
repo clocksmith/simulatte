@@ -11,6 +11,9 @@ const collectiveApi = require(path.join(pluginDir, 'collective-solver.js'));
 const thermalApi = require(path.join(pluginDir, 'thermal-model.js'));
 const receiptApi = require(path.join(pluginDir, 'receipt-factory.js'));
 const pluginApi = require(path.join(pluginDir, 'index.js'));
+const pluginContracts = require(path.join(ROOT, 'public/simulatte/platform/contracts/plugin-contracts.js'));
+const v4Contracts = require(path.join(ROOT, 'public/simulatte/platform/contracts/plugin-v4-contracts.js'));
+const manifest = require(path.join(pluginDir, 'plugin.json'));
 
 test('gpu-supercluster topology generates 256 GPUs across 32 liquid-cooled racks', () => {
   const topology = topologyApi.buildClusterTopology({ totalGpus: 256, racks: 32 });
@@ -105,4 +108,36 @@ test('gpu-supercluster plugin produces deterministic simulation and valid receip
   const presentation = result.createSemanticPresentation({ progress: 0.5 });
   assert.equal(presentation.schema, 'simulatte.semanticPresentation.v4-draft');
   assert.equal(presentation.layers.length, 3);
+});
+
+test('gpu-supercluster activates as a native v4 plugin with deterministic playback and comparison', async () => {
+  const registrations = [];
+  const instance = await pluginApi.activate({
+    sdk: { state: { register: (...args) => registrations.push(args) } },
+    config: require(path.join(pluginDir, 'default-config.json')),
+    scenario: { id: 'straggler-fault-injection', seed: 'supercluster-straggler-002' },
+  });
+
+  pluginContracts.validatePluginInstance('gpu-supercluster', instance, manifest);
+  assert.equal(registrations.length, 1);
+  const ready = instance.contributeV4();
+  v4Contracts.validateContribution(ready, 'GPU Supercluster ready contribution');
+  assert.equal(ready.state.status, 'ready');
+
+  assert.equal(instance.handleAction('scenario.run', { values: { phase: 'start' } }).status, 'running');
+  let terminal;
+  for (let step = 0; step < 4; step += 1) {
+    terminal = instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  }
+  assert.equal(terminal.status, 'settled');
+  const settled = instance.contributeV4();
+  v4Contracts.validateContribution(settled, 'GPU Supercluster settled contribution');
+  assert.equal(settled.events.length, 4);
+  assert.equal(settled.state.status, 'settled');
+
+  const comparison = instance.handleAction('counterfactual.compare');
+  assert.equal(comparison.status, 'settled');
+  assert.ok(comparison.comparisonBranches.baseline.stepTimeMs > 0);
+  assert.ok(comparison.comparisonBranches.intervention.stepTimeMs > 0);
+  assert.deepEqual(instance.settle().obligationResults, []);
 });

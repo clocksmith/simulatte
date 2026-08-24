@@ -105,7 +105,7 @@ test('all shipped experiences declare validated story, metric, comparison, and v
   });
   assert.equal(kinds.has('safety-explorer-v1'), false);
   assert.equal(kinds.get('orbital-transfer-planner-v1'), 'solver');
-  assert.equal([...kinds.values()].filter((kind) => kind === 'simulation').length, 10);
+  assert.equal([...kinds.values()].filter((kind) => kind === 'simulation').length, 11);
 });
 
 test('default scenarios foreground the governing disruption or relay mechanism', () => {
@@ -296,6 +296,10 @@ test('experience documentation link updates and fails closed for unknown profile
 test('experience actions use one honest verb taxonomy', () => {
   const root = path.resolve(__dirname, '..');
   const expected = {
+    'gpu-supercluster-v1': {
+      startLabel: 'Run distributed step',
+      shuffleLabel: 'Change cluster workload',
+    },
     'cable-trader-pickup-v1': {
       startLabel: 'Start cable exchange',
       shuffleLabel: 'Change pseudo-year',
