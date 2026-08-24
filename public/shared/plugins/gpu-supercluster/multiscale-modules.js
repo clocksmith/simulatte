@@ -74,25 +74,27 @@
     });
 
     const cluster = descriptor(IDS.clusterModule, 'gpu-supercluster.capacity-bound-cluster/v1', cadenceSeconds, {
-      initialize: () => ({ ...baselineCluster, logicalTime: 0 }),
-      advance: ({ toTime, inputs }) => ({
-        state: {
+      initialize: () => ({ ...baselineCluster, fidelity: 'detail', logicalTime: 0 }),
+      advance: ({ state, toTime, inputs }) => {
+        const next = {
           ...solveCluster(
             config,
             baselineCollectives,
             inputs[IDS.clusterRunnableInput].value,
             inputs[IDS.clusterThroughputInput].value
           ),
+          fidelity: 'detail',
           logicalTime: toTime,
-        },
-        events: [],
-        diagnostics: [],
-      }),
+        };
+        return { state: state?.fidelity === 'aggregate' ? aggregateClusterState(next) : next, events: [], diagnostics: [] };
+      },
       emit: ({ state, logicalTime }) => [
         output(IDS.clusterPowerOutput, state.totalItPowerKw, logicalTime),
         output(IDS.clusterFacilityPowerOutput, state.totalFacilityPowerKw, logicalTime),
         output(IDS.clusterTemperatureOutput, state.peakJunctionTempC, logicalTime),
       ],
+      aggregate: ({ state }) => aggregateClusterState(state),
+      refine: ({ state, request }) => refineClusterState(state, request),
     });
 
     return Object.freeze({
@@ -118,11 +120,11 @@
       restore({ checkpoint }) {
         return checkpoint.state;
       },
-      aggregate() {
-        fail('gpu_multiscale_fidelity_not_admitted', 'Datacenter fidelity transitions belong to phase five');
+      aggregate({ state, request }) {
+        return operations.aggregate ? operations.aggregate({ state, request }) : state;
       },
-      refine() {
-        fail('gpu_multiscale_fidelity_not_admitted', 'Datacenter fidelity transitions belong to phase five');
+      refine({ state, request }) {
+        return operations.refine ? operations.refine({ state, request }) : state;
       },
       dispose() {},
     };
@@ -211,6 +213,50 @@
       peakJunctionTempC: thermals.peakJunctionTempC,
       throttledGpuCount: thermals.throttledGpuCount,
       thermalState: thermals,
+    });
+  }
+
+  function aggregateClusterState(state) {
+    if (state.fidelity === 'aggregate') return state;
+    const { racks = [], ...thermalAggregate } = state.thermalState;
+    return deepFreeze({
+      ...state,
+      fidelity: 'aggregate',
+      thermalState: thermalAggregate,
+      discardedDetail: {
+        kind: 'rack-thermal-array',
+        count: racks.length,
+        sourceHash: `fnv1a32:${stableHash(JSON.stringify(racks))}`,
+      },
+    });
+  }
+
+  function refineClusterState(state, request) {
+    if (request?.method !== 'qualified-sampling' || !request.branchId) {
+      fail('gpu_multiscale_refinement_unqualified', 'Aggregate refinement requires a named qualified-sampling branch');
+    }
+    if (state.fidelity !== 'aggregate') fail('gpu_multiscale_refinement_source_invalid', 'Only aggregate cluster state can be refined');
+    const racksCount = state.thermalState.racksCount;
+    const rackPowerKw = state.thermalState.totalItPowerKw / racksCount;
+    const throttled = state.thermalState.throttledGpuCount > 0;
+    const racks = Array.from({ length: racksCount }, (_, rackIndex) => ({
+      rackIndex,
+      avgTempC: state.thermalState.peakJunctionTempC,
+      coolantInletC: state.thermalState.coolantInletTempC,
+      coolantOutletC: state.thermalState.coolantOutletTempC,
+      powerDrawKw: rackPowerKw,
+      isThrottled: throttled,
+    }));
+    const { discardedDetail, ...withoutDiscarded } = state;
+    return deepFreeze({
+      ...withoutDiscarded,
+      fidelity: 'detail',
+      thermalState: { ...state.thermalState, racks },
+      refinement: {
+        method: 'qualified-sampling',
+        branchId: request.branchId,
+        sourceAggregateHash: discardedDetail?.sourceHash || null,
+      },
     });
   }
 

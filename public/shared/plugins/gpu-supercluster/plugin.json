@@ -74,7 +74,7 @@
       "path": "./thermal-model.js"
     },
     {
-      "integrity": "sha384-921b4a323e053ce6d1587817ea885f4de667368031a183656e56509fafc079209a65fd6d0dd0f2566d7270812de7173d",
+      "integrity": "sha384-afa67f528b6e2befff6d301e0a30ba94a6913f20e80a8bf1efd74a10e7ca9661a2074ed9c60a1cd996657247aa09e714",
       "path": "./multiscale-modules.js"
     },
     {

@@ -37,6 +37,7 @@ Provide deterministic simulation primitives reused by governed experiences.
 ## Deterministic co-simulation authority
 
 - `simulation/multirate-coordinator.js` owns serial logical time, stable module ordering, latched typed-port exchange, checkpoint restoration, branching, cancellation, and exchange-ledger replay.
+- `simulation/simulation-residency-manager.js` owns simulation-scope residency transitions, causal suspension guards, exact scope checkpoint records, and qualified fidelity branches at settled coordinator boundaries.
 - Modules retain their numerical methods and private state. The coordinator receives only declared lifecycle operations and phase-two simulation-port and coupling-plan contracts.
 - Render loops, workers, WebGPU dispatch, camera state, and Promise completion order cannot advance logical time or alter canonical commit order.
 

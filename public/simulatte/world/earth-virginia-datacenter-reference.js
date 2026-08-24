@@ -8,19 +8,23 @@
   const coordinatorApi = typeof module === 'object' && module.exports
     ? require('../../shared/core/simulation/multirate-coordinator.js')
     : root.SimulatteMultirateCoordinator;
+  const residencyApi = typeof module === 'object' && module.exports
+    ? require('../../shared/core/simulation/simulation-residency-manager.js')
+    : root.SimulatteSimulationResidencyManager;
   const subseaApi = typeof module === 'object' && module.exports
     ? require('../../shared/plugins/subsea-network-global/multiscale-module.js')
     : root.SimulatteSubseaMultiscaleModule;
   const gpuApi = typeof module === 'object' && module.exports
     ? require('../../shared/plugins/gpu-supercluster/multiscale-modules.js')
     : root.SimulatteGpuMultiscaleModules;
-  const api = factory(worldSpecApi, contracts, coordinatorApi, subseaApi, gpuApi);
+  const api = factory(worldSpecApi, contracts, coordinatorApi, residencyApi, subseaApi, gpuApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteEarthVirginiaDatacenterReference = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createEarthVirginiaReferenceApi(
   worldSpecApi,
   contracts,
   coordinatorApi,
+  residencyApi,
   subseaApi,
   gpuApi
 ) {
@@ -138,9 +142,28 @@
         [gpuApi.IDS.clusterThroughputInput]: datacenter.reference.maximumStepsPerHour,
       },
     });
+    const simulationResidency = residencyApi.createManager({
+      id: `${WORLD_ID}:simulation-residency`,
+      worldSpecContentHash: worldSpec.contentHash,
+      coordinator,
+      scopes: compositionGraph.scopes,
+      modules,
+      ports: compositionGraph.ports,
+      causalRequiredScopeIds: ['earth', 'virginia-datacenter'],
+      fidelityPolicies: {
+        'virginia-datacenter': {
+          coarsenTransformationId: 'gpu-supercluster.rack-to-facility-aggregate/v1',
+          refineTransformationId: 'gpu-supercluster.qualified-rack-sampling/v1',
+          preservedQuantities: ['total IT power', 'total facility power', 'peak junction temperature', 'scheduler throughput'],
+          discardedInformation: ['per-rack thermal distribution'],
+          errorBounds: [{ quantity: 'declared facility aggregates', absolute: 0, relative: 0 }],
+        },
+      },
+    });
     return Object.freeze({
       worldSpec,
       coordinator,
+      simulationResidency,
       reference: deepFreeze({ subsea: subsea.reference, datacenter: datacenter.reference }),
     });
   }
@@ -271,6 +294,8 @@
       childScopeIds: ['virginia-datacenter'],
       moduleInstanceIds: [subseaApi.MODULE_ID],
       renderRepresentationIds: ['earth-subsea-network-aggregate'],
+      fidelityLevels: [{ id: 'earth:declared-detail', modelId: 'earth:current-model', rank: 1 }],
+      residencyStates: ['active'],
     });
   }
 
@@ -283,10 +308,15 @@
       childScopeIds: [],
       moduleInstanceIds: [gpuApi.IDS.gatewayModule, gpuApi.IDS.schedulerModule, gpuApi.IDS.clusterModule],
       renderRepresentationIds: ['virginia-datacenter-aggregate'],
+      fidelityLevels: [
+        { id: 'virginia-datacenter:facility-aggregate', modelId: 'gpu-supercluster.facility-aggregate/v1', rank: 0 },
+        { id: 'virginia-datacenter:declared-detail', modelId: 'gpu-supercluster.rack-detail/v1', rank: 1 },
+      ],
+      residencyStates: ['dormant', 'checkpointed', 'aggregate', 'active', 'refining'],
     });
   }
 
-  function scope({ id, parentScopeId, coordinateFrameId, bounds, childScopeIds, moduleInstanceIds, renderRepresentationIds }) {
+  function scope({ id, parentScopeId, coordinateFrameId, bounds, childScopeIds, moduleInstanceIds, renderRepresentationIds, fidelityLevels, residencyStates }) {
     return {
       schema: contracts.SCHEMAS.scope,
       id,
@@ -297,8 +327,8 @@
       childScopeIds,
       moduleInstanceIds,
       stateOwnerModuleIds: [...moduleInstanceIds],
-      availableFidelityLevels: [{ id: `${id}:declared-detail`, modelId: `${id}:current-model`, rank: 0 }],
-      simulationResidencyPolicy: { allowedStates: ['active'], defaultState: 'active' },
+      availableFidelityLevels: fidelityLevels,
+      simulationResidencyPolicy: { allowedStates: residencyStates, defaultState: 'active' },
       spatialResidencyPolicy: { allowedStates: ['absent', 'resident'], defaultState: 'absent' },
       renderRepresentationIds,
       controlIds: [],

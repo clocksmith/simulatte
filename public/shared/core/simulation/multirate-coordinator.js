@@ -146,6 +146,8 @@
       module.clock.kind === 'fixed' ? startTime + module.clock.intervalSeconds : Infinity,
     ]));
     const inputBuffers = new Map();
+    const moduleActive = new Map(plan.modules.map((module) => [module.id, true]));
+    const suspendedNextTimes = new Map();
     let pendingDeliveries = [];
     let pendingControls = [];
     let controlHistory = [];
@@ -156,6 +158,7 @@
     let cancelled = false;
     let disposed = false;
     let cancellationReason = null;
+    let runActive = false;
 
     Object.entries(initialPortValues).sort(([left], [right]) => left.localeCompare(right)).forEach(([portId, row]) => {
       const port = plan.portById.get(portId);
@@ -182,6 +185,7 @@
 
     function enqueueControl(control) {
       assertUsable();
+      assertSafeBoundary();
       requireRecord(control, 'control');
       requireString(control.id, 'control.id');
       requireFinite(control.logicalTime, 'control.logicalTime');
@@ -190,6 +194,7 @@
       if (control.logicalTime < logicalTime) fail('multirate_control_in_past', `Control ${control.id} precedes logical time ${logicalTime}`);
       control.targetModuleIds.forEach((moduleId) => {
         if (!plan.moduleById.has(moduleId)) fail('multirate_control_module_unknown', `Control ${control.id} targets unknown module ${moduleId}`);
+        if (!moduleActive.get(moduleId)) fail('multirate_control_module_inactive', `Control ${control.id} targets inactive module ${moduleId}`);
       });
       if (controlHistory.some((row) => row.id === control.id)) fail('multirate_control_duplicate', `Duplicate control ${control.id}`);
       const retained = freeze(clone(control));
@@ -202,15 +207,21 @@
 
     async function runUntil(targetTime) {
       assertUsable();
-      if (!initialized) await initialize();
+      if (runActive) fail('multirate_run_active', `Coordinator ${id} is already advancing`);
       requireFinite(targetTime, 'targetTime');
       if (targetTime < logicalTime) fail('multirate_time_reverse', `Cannot run backward from ${logicalTime} to ${targetTime}`);
-      while (!cancelled) {
-        const nextTime = nextCommunicationTime();
-        if (!Number.isFinite(nextTime) || nextTime > targetTime) break;
-        await executeRound(nextTime);
+      runActive = true;
+      try {
+        if (!initialized) await initialize();
+        while (!cancelled) {
+          const nextTime = nextCommunicationTime();
+          if (!Number.isFinite(nextTime) || nextTime > targetTime) break;
+          await executeRound(nextTime);
+        }
+        return snapshot();
+      } finally {
+        runActive = false;
       }
-      return snapshot();
     }
 
     async function executeRound(nextTime) {
@@ -435,6 +446,7 @@
 
     async function checkpoint(checkpointId = `${id}:checkpoint:${logicalTime}`) {
       assertReady();
+      assertSafeBoundary();
       const moduleCheckpoints = {};
       for (const module of plan.modules) {
         moduleCheckpoints[module.id] = await module.lifecycle.checkpoint(freeze({
@@ -457,6 +469,8 @@
         stateHashes: Object.fromEntries(stateHashes),
         lastTimes: Object.fromEntries(lastTimes),
         nextTimes: Object.fromEntries(nextTimes),
+        moduleActive: Object.fromEntries(moduleActive),
+        suspendedNextTimes: Object.fromEntries(suspendedNextTimes),
         inputBuffers: Object.fromEntries(inputBuffers),
         pendingDeliveries: clone(pendingDeliveries),
         pendingControls: clone(pendingControls),
@@ -470,6 +484,7 @@
 
     async function restore(checkpointValue) {
       assertUsable();
+      assertSafeBoundary();
       validateCheckpoint(checkpointValue, id, worldSpecContentHash, plan.contentHash);
       for (const module of plan.modules) {
         const state = await module.lifecycle.restore(freeze({
@@ -487,6 +502,8 @@
       }
       replaceMap(lastTimes, checkpointValue.lastTimes);
       replaceMap(nextTimes, checkpointValue.nextTimes);
+      replaceMap(moduleActive, checkpointValue.moduleActive);
+      replaceMap(suspendedNextTimes, checkpointValue.suspendedNextTimes);
       replaceMap(inputBuffers, checkpointValue.inputBuffers);
       pendingDeliveries = clone(checkpointValue.pendingDeliveries);
       pendingControls = clone(checkpointValue.pendingControls);
@@ -521,6 +538,7 @@
 
     async function transition(operation, moduleIds, request = {}) {
       assertReady();
+      assertSafeBoundary();
       if (!['aggregate', 'refine'].includes(operation)) fail('multirate_transition_invalid', `Unknown transition ${operation}`);
       const ids = [...new Set(moduleIds)].sort();
       for (const moduleId of ids) {
@@ -543,6 +561,43 @@
         logicalTime,
         status: 'accepted',
         operation,
+        activatedModuleIds: ids,
+        moduleStateHashes: Object.fromEntries(ids.map((moduleId) => [moduleId, stateHashes.get(moduleId)])),
+      };
+      entry.contentHash = contentHash(entry);
+      ledger.push(freeze(entry));
+      return snapshot();
+    }
+
+    function setModuleActive(moduleIds, active, reason = 'simulation-residency-transition') {
+      assertReady();
+      assertSafeBoundary();
+      if (typeof active !== 'boolean') fail('multirate_module_active_invalid', 'Module active state must be boolean');
+      const ids = [...new Set(moduleIds)].sort();
+      ids.forEach((moduleId) => {
+        const module = plan.moduleById.get(moduleId);
+        if (!module) fail('multirate_transition_module_unknown', `Unknown module ${moduleId}`);
+        if (moduleActive.get(moduleId) === active) return;
+        if (!active) {
+          suspendedNextTimes.set(moduleId, nextTimes.get(moduleId));
+          nextTimes.set(moduleId, Infinity);
+        } else {
+          const interval = module.clock.kind === 'fixed' ? module.clock.intervalSeconds : Infinity;
+          const prior = suspendedNextTimes.get(moduleId);
+          nextTimes.set(moduleId, Number.isFinite(prior) && prior > logicalTime ? prior : logicalTime + interval);
+          suspendedNextTimes.delete(moduleId);
+        }
+        moduleActive.set(moduleId, active);
+      });
+      const entry = {
+        schema: 'simulatte.multirate-module-residency/v1',
+        id: `${id}:module-residency:${ledger.length + 1}`,
+        sequence: ledger.length + 1,
+        branchId,
+        logicalTime,
+        status: 'accepted',
+        active,
+        reason: String(reason),
         activatedModuleIds: ids,
         moduleStateHashes: Object.fromEntries(ids.map((moduleId) => [moduleId, stateHashes.get(moduleId)])),
       };
@@ -611,6 +666,8 @@
         cancelled,
         cancellationReason,
         disposed,
+        safeBoundary: !runActive,
+        moduleActive: Object.fromEntries(moduleActive),
         moduleStateHashes: Object.fromEntries(stateHashes),
         pendingDeliveryCount: pendingDeliveries.length,
         pendingControlCount: pendingControls.length,
@@ -627,6 +684,10 @@
       if (!initialized) fail('multirate_not_initialized', `Coordinator ${id} is not initialized`);
     }
 
+    function assertSafeBoundary() {
+      if (runActive) fail('multirate_boundary_unsafe', `Coordinator ${id} is advancing and cannot mutate residency`);
+    }
+
     return Object.freeze({
       aggregate: (moduleIds, request) => transition('aggregate', moduleIds, request),
       branch,
@@ -640,6 +701,7 @@
       replay,
       restore,
       runUntil,
+      setModuleActive,
       snapshot,
     });
   }
@@ -650,6 +712,8 @@
     if (value.coordinatorId !== coordinatorId) fail('multirate_checkpoint_coordinator_mismatch', `Checkpoint belongs to ${value.coordinatorId}`);
     if (value.worldSpecContentHash !== worldSpecContentHash) fail('multirate_checkpoint_world_mismatch', 'Checkpoint WorldSpec identity differs');
     if (value.executionPlanHash !== executionPlanHash) fail('multirate_checkpoint_plan_mismatch', 'Checkpoint execution plan differs');
+    requireRecord(value.moduleActive, 'checkpoint.moduleActive');
+    requireRecord(value.suspendedNextTimes, 'checkpoint.suspendedNextTimes');
     const candidate = clone(value);
     delete candidate.contentHash;
     if (contentHash(candidate) !== value.contentHash) fail('multirate_checkpoint_hash_invalid', 'Checkpoint content hash does not match');
