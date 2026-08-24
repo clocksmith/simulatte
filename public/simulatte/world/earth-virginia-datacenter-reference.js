@@ -35,7 +35,7 @@
   const WORLD_ID = 'earth-virginia-datacenter-v1';
   const AUTHORITY = 'earth-virginia-reference-world/v1';
 
-  function createReferenceWorld({ datasets, subseaConfig, gpuConfig }) {
+  function createReferenceWorld({ datasets, subseaConfig, gpuConfig, executionAdapter = null }) {
     const scenario = {
       scenarioId: 'atlantic-single-cut',
       capacityScenarioId: 'modeled-atlantic-capacity-v1',
@@ -145,6 +145,7 @@
         [gpuApi.IDS.clusterRunnableInput]: 1,
         [gpuApi.IDS.clusterThroughputInput]: datacenter.reference.maximumStepsPerHour,
       },
+      executionAdapter,
     });
     const simulationResidency = residencyApi.createManager({
       id: `${WORLD_ID}:simulation-residency`,

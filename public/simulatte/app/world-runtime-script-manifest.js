@@ -65,6 +65,7 @@
     'shared/core/simulation/civil-time.js',
     'shared/core/simulation/plugin-v4-builder.js',
     'shared/core/simulation/multirate-coordinator.js',
+    'shared/core/simulation/worker-task-pool.js',
     'shared/core/simulation/n-body-propagation.js',
     'shared/plugins/gpu-supercluster/cluster-controls.js',
     'shared/plugins/gpu-supercluster/cluster-topology.js',

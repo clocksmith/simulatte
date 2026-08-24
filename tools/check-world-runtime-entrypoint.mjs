@@ -7,15 +7,64 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 const manifest = require('../public/simulatte/app/world-runtime-script-manifest.js');
-const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
-const actual = [...html.matchAll(/<script defer src="\.\/([^"?]+)(?:\?[^"]+)?"/g)]
-  .map((match) => match[1])
-  .filter((scriptPath) => ![
-    'simulatte/app/world-runtime-script-manifest.js',
-    'simulatte/app/world-runtime-loader.js',
-  ].includes(scriptPath));
+const htmlPath = path.join(root, 'public/index.html');
+const START = '<!-- SIMULATTE_WORLD_RUNTIME_SCRIPTS_START -->';
+const END = '<!-- SIMULATTE_WORLD_RUNTIME_SCRIPTS_END -->';
+const write = process.argv.includes('--write');
+let html = fs.readFileSync(htmlPath, 'utf8');
+let actual = eagerScripts(html);
+if (JSON.stringify(actual) !== JSON.stringify(manifest.eager) && write) {
+  html = synchronizeHtml(html, manifest.eager);
+  fs.writeFileSync(htmlPath, html);
+  actual = eagerScripts(html);
+  process.stdout.write('Wrote public/index.html World runtime script entrypoint.\n');
+}
+
+function eagerScripts(source) {
+  return [...source.matchAll(/<script defer src="\.\/([^"?]+)(?:\?[^\"]+)?"/g)]
+    .map((match) => match[1])
+    .filter((scriptPath) => ![
+      'simulatte/app/world-runtime-script-manifest.js',
+      'simulatte/app/world-runtime-loader.js',
+    ].includes(scriptPath));
+}
+
+function synchronizeHtml(source, eager) {
+  const buildStamp = source.match(/<meta name="simulatte-build" content="([^"]+)">/)?.[1];
+  if (!buildStamp) throw new Error('World entrypoint is missing the simulatte-build identity');
+  const lines = [START, scriptTag('simulatte/app/world-runtime-script-manifest.js', buildStamp)];
+  eager.forEach((scriptPath) => {
+    lines.push(scriptTag(scriptPath, buildStamp));
+    if (scriptPath === 'simulatte/platform/bootstrap/tier-application-loader.js') {
+      lines.push(scriptTag('simulatte/app/world-runtime-loader.js', buildStamp));
+    }
+    if (scriptPath === 'shared/core/simulation/n-body-propagation.js') {
+      lines.push('  <!-- generated-plugin-scripts:start -->');
+      lines.push('  <!-- Selected plugin scripts are loaded by world-runtime-loader.js after route selection. -->');
+      lines.push('  <!-- generated-plugin-scripts:end -->');
+    }
+  });
+  lines.push(END);
+  const block = lines.join('\n');
+  const markedStart = source.indexOf(START);
+  const markedEnd = source.indexOf(END);
+  if (markedStart >= 0 && markedEnd > markedStart) {
+    return `${source.slice(0, markedStart)}${block}${source.slice(markedEnd + END.length)}`;
+  }
+  const first = source.match(/  <script defer src="\.\/simulatte\/app\/world-runtime-script-manifest\.js\?[^\"]+"><\/script>/);
+  const main = source.match(/  <script defer src="\.\/simulatte\/app\/main\.js\?[^\"]+"><\/script>/);
+  if (!first || first.index === undefined || !main || main.index === undefined) {
+    throw new Error('World entrypoint script boundaries are missing');
+  }
+  return `${source.slice(0, first.index)}${block}${source.slice(main.index + main[0].length)}`;
+}
+
+function scriptTag(scriptPath, buildStamp) {
+  return `  <script defer src="./${scriptPath}?v=${buildStamp}"></script>`;
+}
+
 if (JSON.stringify(actual) !== JSON.stringify(manifest.eager)) {
-  throw new Error('World runtime script entrypoint differs from world-runtime-script-manifest.js');
+  throw new Error('World runtime script entrypoint differs from world-runtime-script-manifest.js; run npm run sync:world-entrypoint');
 }
 if (new Set(manifest.browser).size !== manifest.browser.length) {
   throw new Error('World runtime manifest contains duplicate script paths');

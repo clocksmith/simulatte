@@ -31,6 +31,15 @@
       if (!knownDemandIds.has(id)) fail('subsea_multiscale_demand_unknown', `Unknown governed demand ${id}`);
     });
     const baseline = summarize(healthy, demandIds, result);
+    const workerTimeline = {
+      failureTimeSeconds,
+      baseline,
+      disrupted: summarize(disrupted, demandIds, result),
+      recovery: result.snapshots.slice(2).map((snapshot) => ({
+        simulationTimeMs: snapshot.simulationTimeMs,
+        state: summarize(snapshot, demandIds, result),
+      })),
+    };
 
     function stateAt(logicalTime) {
       if (logicalTime < failureTimeSeconds) return baseline;
@@ -51,6 +60,14 @@
       implementationId: 'subsea-network-global.multiscale-capacity/v1',
       implementationHash: `scenario:${result.scenarioIdentity}`,
       clock: { kind: 'fixed', intervalSeconds: cadenceSeconds },
+      createWorkerTask(context) {
+        return {
+          schema: 'simulatte.simulationWorkerTask/v1',
+          ...context,
+          operation: 'subsea-capacity.advance/v1',
+          payload: { timeline: workerTimeline, outputPortId: OUTPUT_PORT_ID },
+        };
+      },
       lifecycle: {
         initialize() {
           return { ...baseline, logicalTime: 0 };

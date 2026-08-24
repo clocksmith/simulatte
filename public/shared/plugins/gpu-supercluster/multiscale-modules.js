@@ -41,6 +41,7 @@
     const maximumStepsPerHour = 3600000 / baselineCollectives.stepTimeMs;
     const arrivalStepsPerHour = maximumStepsPerHour * arrivalUtilization;
     const baselineCluster = solveCluster(config, baselineCollectives, 1, maximumStepsPerHour);
+    const workerFactory = { config, baselineDeliveredGbps, contractedCapacityGbps, cadenceSeconds, arrivalUtilization };
 
     const gateway = descriptor(IDS.gatewayModule, 'gpu-supercluster.wan-gateway/v1', cadenceSeconds, {
       initialize: () => gatewayState(baselineDeliveredGbps, baselineDeliveredGbps, contractedCapacityGbps, 0),
@@ -50,7 +51,7 @@
         diagnostics: [],
       }),
       emit: ({ state, logicalTime }) => [output(IDS.gatewayOutput, state.availableGbps, logicalTime)],
-    });
+    }, workerFactory);
 
     const scheduler = descriptor(IDS.schedulerModule, 'gpu-supercluster.training-scheduler/v1', cadenceSeconds, {
       initialize: () => schedulerState(contractedCapacityGbps, contractedCapacityGbps, maximumStepsPerHour, arrivalStepsPerHour, 0, 0),
@@ -71,7 +72,7 @@
         output(IDS.schedulerRunnableOutput, state.runnableFraction, logicalTime),
         output(IDS.schedulerThroughputOutput, state.throughputStepsPerHour, logicalTime),
       ],
-    });
+    }, workerFactory);
 
     const cluster = descriptor(IDS.clusterModule, 'gpu-supercluster.capacity-bound-cluster/v1', cadenceSeconds, {
       initialize: () => ({ ...baselineCluster, fidelity: 'detail', logicalTime: 0 }),
@@ -95,7 +96,7 @@
       ],
       aggregate: ({ state }) => aggregateClusterState(state),
       refine: ({ state, request }) => refineClusterState(state, request),
-    });
+    }, workerFactory);
 
     return Object.freeze({
       modules: Object.freeze([gateway, scheduler, cluster]),
@@ -109,7 +110,7 @@
     });
   }
 
-  function descriptor(id, implementationId, intervalSeconds, operations) {
+  function descriptor(id, implementationId, intervalSeconds, operations, workerFactory) {
     const lifecycle = {
       initialize: operations.initialize,
       advance: operations.advance,
@@ -133,6 +134,9 @@
       implementationId,
       implementationHash: `fnv1a32:${stableHash(implementationId)}`,
       clock: { kind: 'fixed', intervalSeconds },
+      createWorkerTask(context) {
+        return { schema: 'simulatte.simulationWorkerTask/v1', ...context, operation: 'gpu-supercluster.advance/v1', payload: { factory: workerFactory } };
+      },
       lifecycle,
     });
   }

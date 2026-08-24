@@ -171,7 +171,7 @@
       "path": "./comparison-driver.js"
     },
     {
-      "integrity": "sha384-b0e38266cbd68f598622539cfe3b800b76c3888edacf5d248acf3798a6264335383117d8f8006ed2554b35a0c9d3200c",
+      "integrity": "sha384-cc94c5a3f93613b293845bb43b571af4b74f3cc1328adb698416419739b026c8561c22b250a11adaee5d67289536ec57",
       "path": "./multiscale-module.js"
     },
     {

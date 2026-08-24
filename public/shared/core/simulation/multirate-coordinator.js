@@ -133,6 +133,7 @@
       startTime = 0,
       branchId = 'main',
       parentCheckpointId = null,
+      executionAdapter = null,
     } = configuration || {};
     requireString(id, 'id');
     requireString(worldSpecContentHash, 'worldSpecContentHash');
@@ -287,6 +288,21 @@
 
     async function invokeModule(moduleId, toTime, inputs, controls) {
       const module = plan.moduleById.get(moduleId);
+      if (executionAdapter && typeof module.createWorkerTask === 'function') {
+        const task = module.createWorkerTask(freeze({
+          id: `${id}:${branchId}:${moduleId}:${toTime}`,
+          moduleId,
+          implementationId: module.implementationId,
+          implementationHash: module.implementationHash,
+          branchId,
+          fromTime: lastTimes.get(moduleId),
+          toTime,
+          state: clone(states.get(moduleId)),
+          inputs,
+          controls: controlsForModules(controls, [moduleId]),
+        }));
+        return validateModuleResult(moduleId, await executionAdapter.execute(task), toTime);
+      }
       const advanced = await module.lifecycle.advance(freeze({
         moduleId,
         fromTime: lastTimes.get(moduleId),
