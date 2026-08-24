@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simulatte.world/contracts/coordinate-frame.schema.json",
+  "title": "Simulatte Coordinate Frame",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "axes", "handedness", "origin", "epoch", "precision", "bounds", "transformToParent"],
+  "properties": {
+    "schema": { "const": "simulatte.coordinateFrame.v1" },
+    "id": { "$ref": "#/$defs/id" },
+    "axes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "unit", "direction"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "unit": { "$ref": "#/$defs/id" },
+          "direction": { "enum": ["positive", "negative"] }
+        }
+      }
+    },
+    "handedness": { "enum": ["right", "left", "not-applicable"] },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "values", "referenceFrameId"],
+      "properties": {
+        "kind": { "enum": ["absolute", "reference"] },
+        "values": { "$ref": "#/$defs/vector" },
+        "referenceFrameId": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] }
+      }
+    },
+    "epoch": { "type": ["string", "null"] },
+    "precision": { "type": "number", "exclusiveMinimum": 0 },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum"],
+      "properties": { "minimum": { "$ref": "#/$defs/vector" }, "maximum": { "$ref": "#/$defs/vector" } }
+    },
+    "transformToParent": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["parentFrameId", "translation", "rotationQuaternion", "scale"],
+          "properties": {
+            "parentFrameId": { "$ref": "#/$defs/id" },
+            "translation": { "$ref": "#/$defs/vector" },
+            "rotationQuaternion": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "number" } },
+            "scale": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "vector": { "type": "array", "minItems": 1, "items": { "type": "number" } }
+  }
+}

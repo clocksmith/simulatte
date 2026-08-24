@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simulatte.world/contracts/simulation-port.schema.json",
+  "title": "Simulatte Simulation Port",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "moduleInstanceId", "direction", "kind", "quantity", "dataSchemaId", "shape", "unit", "dimension", "coordinateFrameId", "cadence", "timestampSemantics", "latencySeconds", "interpolationPolicy", "aggregationPolicy", "uncertainty", "provenanceRequired", "determinismClass", "authority", "validRange", "missingDataBehavior", "backpressurePolicy"],
+  "properties": {
+    "schema": { "const": "simulatte.simulationPort.v1" },
+    "id": { "$ref": "#/$defs/id" },
+    "moduleInstanceId": { "$ref": "#/$defs/id" },
+    "direction": { "enum": ["input", "output"] },
+    "kind": { "enum": ["event", "sampled-state"] },
+    "quantity": { "$ref": "#/$defs/id" },
+    "dataSchemaId": { "$ref": "#/$defs/id" },
+    "shape": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+    "unit": { "$ref": "#/$defs/id" },
+    "dimension": { "$ref": "#/$defs/id" },
+    "coordinateFrameId": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+    "cadence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "intervalSeconds"],
+      "properties": {
+        "kind": { "enum": ["fixed", "event"] },
+        "intervalSeconds": { "type": ["number", "null"], "exclusiveMinimum": 0 }
+      }
+    },
+    "timestampSemantics": { "enum": ["sample-time", "interval-start", "interval-end", "event-time"] },
+    "latencySeconds": { "type": "number", "minimum": 0 },
+    "interpolationPolicy": { "enum": ["none", "hold", "linear"] },
+    "aggregationPolicy": { "enum": ["none", "sum", "mean", "minimum", "maximum", "last"] },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "unit", "confidenceLevel"],
+      "properties": {
+        "kind": { "enum": ["none", "absolute-bound", "distribution"] },
+        "unit": { "type": ["string", "null"] },
+        "confidenceLevel": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    },
+    "provenanceRequired": { "type": "boolean" },
+    "determinismClass": { "enum": ["exact", "bounded-numeric", "seeded-stochastic", "external-observation"] },
+    "authority": { "$ref": "#/$defs/id" },
+    "validRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum"],
+      "properties": { "minimum": { "type": ["number", "null"] }, "maximum": { "type": ["number", "null"] } }
+    },
+    "missingDataBehavior": { "enum": ["reject", "hold-last", "use-declared-default", "emit-unknown"] },
+    "backpressurePolicy": { "enum": ["block", "drop-oldest", "drop-newest", "coalesce", "reject"] }
+  },
+  "$defs": { "id": { "type": "string", "minLength": 1 } }
+}

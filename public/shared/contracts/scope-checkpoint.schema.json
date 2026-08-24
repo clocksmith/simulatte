@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simulatte.world/contracts/scope-checkpoint.schema.json",
+  "title": "Simulatte Scope Checkpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "contentHash", "worldSpecContentHash", "scopeId", "logicalTime", "compatibilityVersion", "sourceCheckpointId", "moduleImplementations", "moduleStates", "reconstructionReferences", "pendingEvents", "portBuffers", "couplingState", "fidelityLevels", "omittedScopes"],
+  "properties": {
+    "schema": { "const": "simulatte.scopeCheckpoint.v1" },
+    "id": { "$ref": "#/$defs/id" },
+    "contentHash": { "$ref": "#/$defs/sha256" },
+    "worldSpecContentHash": { "type": "string", "pattern": "^fnv1a32:[0-9a-f]{8}$" },
+    "scopeId": { "$ref": "#/$defs/id" },
+    "logicalTime": { "type": "number", "minimum": 0 },
+    "compatibilityVersion": { "$ref": "#/$defs/id" },
+    "sourceCheckpointId": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+    "moduleImplementations": { "type": "array", "items": { "$ref": "#/$defs/moduleImplementation" } },
+    "moduleStates": { "type": "array", "items": { "$ref": "#/$defs/moduleState" } },
+    "reconstructionReferences": { "type": "array", "items": { "$ref": "#/$defs/reconstruction" } },
+    "pendingEvents": { "type": "array", "items": { "type": "object" } },
+    "portBuffers": { "type": "array", "items": { "$ref": "#/$defs/portBuffer" } },
+    "couplingState": { "type": "object" },
+    "fidelityLevels": { "type": "array", "items": { "$ref": "#/$defs/fidelityLevel" } },
+    "omittedScopes": { "type": "array", "items": { "$ref": "#/$defs/omittedScope" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "moduleImplementation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["moduleInstanceId", "implementationId", "implementationHash", "determinismClass"],
+      "properties": { "moduleInstanceId": { "$ref": "#/$defs/id" }, "implementationId": { "$ref": "#/$defs/id" }, "implementationHash": { "$ref": "#/$defs/sha256" }, "determinismClass": { "enum": ["exact", "bounded-numeric", "seeded-stochastic", "external-observation"] } }
+    },
+    "moduleState": {
+      "type": "object", "additionalProperties": false,
+      "required": ["moduleInstanceId", "stateHash", "state"],
+      "properties": { "moduleInstanceId": { "$ref": "#/$defs/id" }, "stateHash": { "$ref": "#/$defs/sha256" }, "state": {} }
+    },
+    "reconstruction": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scopeId", "method", "checkpointId", "eventLogHash", "aggregateStateHash"],
+      "properties": { "scopeId": { "$ref": "#/$defs/id" }, "method": { "enum": ["exact-checkpoint", "deterministic-replay", "qualified-aggregate"] }, "checkpointId": { "type": ["string", "null"] }, "eventLogHash": { "type": ["string", "null"] }, "aggregateStateHash": { "type": ["string", "null"] } }
+    },
+    "portBuffer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["portId", "valueHash", "timestamp", "value"],
+      "properties": { "portId": { "$ref": "#/$defs/id" }, "valueHash": { "$ref": "#/$defs/sha256" }, "timestamp": { "type": "number" }, "value": {} }
+    },
+    "fidelityLevel": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scopeId", "fidelityLevelId"],
+      "properties": { "scopeId": { "$ref": "#/$defs/id" }, "fidelityLevelId": { "$ref": "#/$defs/id" } }
+    },
+    "omittedScope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scopeId", "policy", "referenceId"],
+      "properties": { "scopeId": { "$ref": "#/$defs/id" }, "policy": { "enum": ["exact-checkpoint", "deterministic-replay", "qualified-aggregate", "causally-irrelevant"] }, "referenceId": { "$ref": "#/$defs/id" } }
+    }
+  }
+}

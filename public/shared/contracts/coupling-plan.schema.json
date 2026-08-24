@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simulatte.world/contracts/coupling-plan.schema.json",
+  "title": "Simulatte Coupling Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "edges", "coupledSolvers"],
+  "properties": {
+    "schema": { "const": "simulatte.couplingPlan.v1" },
+    "id": { "$ref": "#/$defs/id" },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "sourcePortId", "destinationPortId", "adapterId", "communicationCadence", "delaySeconds", "initializationRule", "samplingPolicy", "errorPolicy", "convergencePolicyId", "proofObligationIds"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "sourcePortId": { "$ref": "#/$defs/id" },
+          "destinationPortId": { "$ref": "#/$defs/id" },
+          "adapterId": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+          "communicationCadence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "intervalSeconds"],
+            "properties": {
+              "kind": { "enum": ["fixed", "every-source-event"] },
+              "intervalSeconds": { "type": ["number", "null"], "exclusiveMinimum": 0 }
+            }
+          },
+          "delaySeconds": { "type": "number", "minimum": 0 },
+          "initializationRule": { "$ref": "#/$defs/id" },
+          "samplingPolicy": { "enum": ["exact", "hold", "linear", "aggregate"] },
+          "errorPolicy": { "enum": ["stop", "degrade", "retry", "emit-unknown"] },
+          "convergencePolicyId": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+          "proofObligationIds": { "$ref": "#/$defs/ids" }
+        }
+      }
+    },
+    "coupledSolvers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "edgeIds", "algorithm", "tolerance", "maximumIterations"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "edgeIds": { "$ref": "#/$defs/ids" },
+          "algorithm": { "$ref": "#/$defs/id" },
+          "tolerance": { "type": "number", "minimum": 0 },
+          "maximumIterations": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "ids": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+  }
+}

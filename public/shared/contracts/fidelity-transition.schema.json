@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simulatte.world/contracts/fidelity-transition.schema.json",
+  "title": "Simulatte Fidelity Transition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "scopeId", "logicalTime", "sourceModelId", "targetModelId", "sourceStateHash", "method", "transformationId", "preservedQuantities", "discardedInformation", "errorBounds", "initializationMethod", "causalFrontier", "resultStateHash", "continuityClaim", "branchId"],
+  "properties": {
+    "schema": { "const": "simulatte.fidelityTransition.v1" },
+    "id": { "$ref": "#/$defs/id" },
+    "scopeId": { "$ref": "#/$defs/id" },
+    "logicalTime": { "type": "number", "minimum": 0 },
+    "sourceModelId": { "$ref": "#/$defs/id" },
+    "targetModelId": { "$ref": "#/$defs/id" },
+    "sourceStateHash": { "$ref": "#/$defs/sha256" },
+    "method": { "enum": ["exact-checkpoint", "deterministic-replay", "qualified-sampling", "coarsen", "refuse"] },
+    "transformationId": { "$ref": "#/$defs/id" },
+    "preservedQuantities": { "$ref": "#/$defs/ids" },
+    "discardedInformation": { "$ref": "#/$defs/ids" },
+    "errorBounds": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["quantity", "absolute", "relative"],
+        "properties": { "quantity": { "$ref": "#/$defs/id" }, "absolute": { "type": ["number", "null"], "minimum": 0 }, "relative": { "type": ["number", "null"], "minimum": 0 } }
+      }
+    },
+    "initializationMethod": { "$ref": "#/$defs/id" },
+    "causalFrontier": { "$ref": "#/$defs/ids" },
+    "resultStateHash": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+    "continuityClaim": { "enum": ["exact", "qualified-branch", "lossy", "refused"] },
+    "branchId": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "ids": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

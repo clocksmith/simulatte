@@ -11,6 +11,7 @@
     'shared/streets/street-name.js',
     'shared/contracts/data-contract-validator.js',
     'shared/contracts/contract-validation-primitives.js',
+    'shared/contracts/multiscale-contracts.js',
     'shared/contracts/contract-runtime-validator.js',
     'shared/contracts/contract-validator.js',
     'shared/contracts/world-spec-authorship.js',

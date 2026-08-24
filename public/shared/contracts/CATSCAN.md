@@ -3,7 +3,7 @@
 Parent: [Shared browser runtime](../CATSCAN.md)
 ## Target
 
-Define restrictive, versioned contracts shared across browser components.
+Define restrictive shared browser contracts.
 
 ## Authority
 
@@ -19,6 +19,7 @@ Define restrictive, versioned contracts shared across browser components.
 - Input: [schema rules](../../../STYLE_GUIDE.md)
 - Output: [WorldSpec](world-spec.schema.json), [profile compiler](profile-world-spec.js), [WorldProof](world-proof.schema.json), and [profile binding](profile-world-proof.js)
 - Output: [recompile reconciliation](world-spec-reconciliation.js) and [governed improvement record](world-improvement-record.js)
+- Output: recursive [scopes](recursive-world-scope.schema.json), [frames](coordinate-frame.schema.json), [ports](simulation-port.schema.json), [couplings](coupling-plan.schema.json), [checkpoints](scope-checkpoint.schema.json), and [fidelity transitions](fidelity-transition.schema.json)
 - Output: [intent](world-proof-intent.js), [semantic](world-proof-semantic.js), [simulation](world-proof-simulation.js), [interaction](world-proof-interaction.js), and [safety](world-proof-safety.js) receipts
 - Output: [mission validator](contract-validator.js)
 
@@ -33,6 +34,8 @@ Define restrictive, versioned contracts shared across browser components.
 - Governed profiles require a valid public WorldSpec, matching independent compile, canonical intent, and semantic evidence.
 - Profile WorldProof keeps machine execution, replay, and human visual recognition as separate verdicts.
 - Improvement records bind the failed trace, exact user patches, successful replay, and review without admitting unadjudicated data into a training population.
+- Cross-scope ports require named mismatch adapters.
+- Zero-delay cycles require solvers; lossy fidelity is not exact.
 
 ## Acceptance
 
@@ -42,6 +45,7 @@ Define restrictive, versioned contracts shared across browser components.
 - Evidence: [WorldProof contract tests](../../../tests/world-proof.test.cjs).
 - Evidence: [profile WorldSpec and WorldProof tests](../../../tests/profile-world-spec.test.cjs).
 - Evidence: [improvement record tests](../../../tests/world-improvement-record.test.cjs).
+- Evidence: [multiscale tests](../../../tests/multiscale-contracts.test.cjs).
 
 ## Non-goals
 

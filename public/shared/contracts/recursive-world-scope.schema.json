@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simulatte.world/contracts/recursive-world-scope.schema.json",
+  "title": "Simulatte Recursive World Scope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "parentScopeId", "coordinateFrameId", "spatialBounds", "temporalDomain", "childScopeIds", "moduleInstanceIds", "stateOwnerModuleIds", "availableFidelityLevels", "simulationResidencyPolicy", "spatialResidencyPolicy", "renderRepresentationIds", "controlIds", "proofObligationIds"],
+  "properties": {
+    "schema": { "const": "simulatte.recursiveWorldScope.v1" },
+    "id": { "$ref": "#/$defs/id" },
+    "parentScopeId": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+    "coordinateFrameId": { "$ref": "#/$defs/id" },
+    "spatialBounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "minimum", "maximum"],
+      "properties": {
+        "kind": { "enum": ["axis-aligned-box", "geographic-box"] },
+        "minimum": { "$ref": "#/$defs/vector" },
+        "maximum": { "$ref": "#/$defs/vector" }
+      }
+    },
+    "temporalDomain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startTime", "endTime", "timeUnit"],
+      "properties": {
+        "startTime": { "type": "number" },
+        "endTime": { "type": "number" },
+        "timeUnit": { "$ref": "#/$defs/id" }
+      }
+    },
+    "childScopeIds": { "$ref": "#/$defs/ids" },
+    "moduleInstanceIds": { "$ref": "#/$defs/ids" },
+    "stateOwnerModuleIds": { "$ref": "#/$defs/ids" },
+    "availableFidelityLevels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "modelId", "rank"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "modelId": { "$ref": "#/$defs/id" },
+          "rank": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "simulationResidencyPolicy": { "$ref": "#/$defs/residencyPolicy" },
+    "spatialResidencyPolicy": { "$ref": "#/$defs/residencyPolicy" },
+    "renderRepresentationIds": { "$ref": "#/$defs/ids" },
+    "controlIds": { "$ref": "#/$defs/ids" },
+    "proofObligationIds": { "$ref": "#/$defs/ids" }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "ids": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+    "vector": { "type": "array", "minItems": 1, "items": { "type": "number" } },
+    "residencyPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowedStates", "defaultState"],
+      "properties": {
+        "allowedStates": { "$ref": "#/$defs/ids" },
+        "defaultState": { "$ref": "#/$defs/id" }
+      }
+    }
+  }
+}
