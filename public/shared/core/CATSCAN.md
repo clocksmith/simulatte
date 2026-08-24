@@ -32,10 +32,15 @@ Provide deterministic simulation primitives reused by governed experiences.
 
 ## Non-goals
 
-- Coordinating complete experiences or hiding domain assumptions.
+- Owning product policy, rendering complete experiences, or hiding domain assumptions behind shared utilities.
+
+## Deterministic co-simulation authority
+
+- `simulation/multirate-coordinator.js` owns serial logical time, stable module ordering, latched typed-port exchange, checkpoint restoration, branching, cancellation, and exchange-ledger replay.
+- Modules retain their numerical methods and private state. The coordinator receives only declared lifecycle operations and phase-two simulation-port and coupling-plan contracts.
+- Render loops, workers, WebGPU dispatch, camera state, and Promise completion order cannot advance logical time or alter canonical commit order.
 
 ## Freedom
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-
