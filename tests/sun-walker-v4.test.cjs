@@ -289,9 +289,11 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.deepEqual(views[0].actions, []);
   const simulation = instance.simulationState();
   const directSun = views[0].rows.find((row) => row.label === 'Direct sun');
+  const directSunSeconds = Math.round(simulation.state.directSunSeconds);
+  const travelSeconds = instance.comparisonModel().metrics.travelSeconds.intervention;
   assert.equal(
     directSun.value,
-    `${Math.round(simulation.state.directSunSeconds)} of ${Math.round(instance.comparisonModel().metrics.travelSeconds.intervention)} s`
+    `${Math.round((simulation.state.directSunSeconds / travelSeconds) * 100)}% / ${directSunSeconds} s`
   );
 });
 
