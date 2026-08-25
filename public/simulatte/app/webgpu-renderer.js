@@ -432,7 +432,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.frameCpuMs.push(performance.now() - cpuStartedAt);
     }
 
-    async function capturePixels() {
+    async function capturePixels(options = {}) {
       if (state.isDestroyed) throw rendererError('webgpu_capture_disposed', 'Cannot capture a disposed renderer');
       if (!state.latestSnapshot) throw rendererError('webgpu_capture_state_missing', 'Cannot capture before a simulation state is rendered');
       resizeCanvas(canvas, device, format, state);
@@ -492,11 +492,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         if (mapped) readback.unmap();
         readback.destroy();
       }
-      let binary = '';
-      for (let offset = 0; offset < rgba.length; offset += 32768) {
-        binary += String.fromCharCode(...rgba.subarray(offset, offset + 32768));
-      }
-      return Object.freeze({
+      const capture = {
         schema: 'simulatte.autonomyRenderPixels.v1',
         width: canvas.width,
         height: canvas.height,
@@ -504,8 +500,15 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         sourceBackend: 'webgpu',
         sourceFormat: format,
         sourceFrameCount: state.frameCount,
-        rgbaBase64: btoa(binary),
-      });
+      };
+      if (options.encoding === 'bytes') {
+        return Object.freeze({ ...capture, rgbaBytes: rgba });
+      }
+      let binary = '';
+      for (let offset = 0; offset < rgba.length; offset += 32768) {
+        binary += String.fromCharCode(...rgba.subarray(offset, offset + 32768));
+      }
+      return Object.freeze({ ...capture, rgbaBase64: btoa(binary) });
     }
 
     function animationFrame(timestamp) {

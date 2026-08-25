@@ -1225,12 +1225,12 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.ok(loaded.dataCatalog.ids.includes(loaded.featureCatalog.id));
   assert.ok(requests.length > 8);
   assert.ok(requests.every((row) => row.options?.cache === 'no-cache'));
-  assert.equal(loaded.applicationProfile.id, 'cable-trader-pickup-v1');
-  assert.deepEqual(loaded.applicationProfile.plugins.map((row) => row.id), ['cable-trader']);
+  assert.equal(loaded.applicationProfile.id, loaded.manifest.applicationProfile.id);
+  assert.deepEqual(loaded.applicationProfile.plugins.map((row) => row.id), ['sun-walker']);
   assert.deepEqual(loaded.manifest.applicationProfiles.map((row) => row.id), [
+    'cable-trader-pickup-v1',
     'neighborhood-bulk-pool-v1',
     'nyc-development-atlas-v1',
-    'sun-walker-v1',
   ]);
   assert.equal(loaded.safetyHistoryIndex.id, loaded.manifest.safetyHistoryIndex.id);
   assert.equal(fs.existsSync(path.join(root, 'public/data/application-profiles/simulatte-world-v1.json')), false);

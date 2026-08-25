@@ -17,6 +17,7 @@
     "audit:pipeline:summary": "node tools/summarize-pipeline-audit.mjs",
     "audit:shade-data": "node tools/simulatte/audit-shade-geometry.mjs",
     "audit:simulatte:browser": "node tools/simulatte/run-browser-smoke.mjs",
+    "qualify:recursive-reference": "node tools/simulatte/qualify-recursive-reference.mjs",
     "audit:simulatte:experience-ui": "node tools/simulatte/audit-experience-ui.mjs",
     "audit:simulatte:tiers": "node tools/simulatte/run-tier-browser-smoke.mjs",
     "audit:simulatte:evidence": "node tools/simulatte/run-profile-evidence.mjs --capture --check",

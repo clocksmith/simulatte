@@ -97,6 +97,25 @@ test('World profile replay identity excludes host-only runtime envelopes', () =>
   assert.equal(profileProgram.isSettledRunReceipt({ ...base, actionResult: { status: 'running' } }), false);
 });
 
+test('World profile proof hashes in-process render bytes without a Base64 round trip', async () => {
+  let requestedEncoding = null;
+  const evidence = await profileProgram.captureRenderEvidence({
+    async __simulatteCaptureRenderPixels(options) {
+      requestedEncoding = options.encoding;
+      return {
+        width: 2,
+        height: 1,
+        rgbaBytes: new Uint8Array([255, 0, 0, 255, 0, 255, 0, 255]),
+      };
+    },
+  });
+
+  assert.equal(requestedEncoding, 'bytes');
+  assert.equal(evidence.width, 2);
+  assert.equal(evidence.height, 1);
+  assert.match(evidence.sha256, /^[a-f0-9]{64}$/);
+});
+
 test('World profile replay invalidation removes stale proof and comparison receipts', () => {
   const target = {
     __simulatteTierRunReceipt: { schema: 'simulatte.tierRunReceipt.v1' },

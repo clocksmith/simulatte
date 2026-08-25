@@ -135,6 +135,28 @@ test('multirate coordinator latches prior committed input before same-time outpu
   assert.equal(checkpoint.states.sink.value, 10);
 });
 
+test('published output observations are read-only, hashed, and restored with checkpoints', async () => {
+  const source = fixture();
+  const coordinator = coordinatorApi.createCoordinator(source.configuration);
+  await coordinator.runUntil(2);
+  const observed = coordinator.observePorts();
+  assert.equal(observed.schema, coordinatorApi.PORT_OBSERVATION_SCHEMA);
+  assert.equal(observed.logicalTime, 2);
+  assert.equal(observed.records['source.output'].value, 2);
+  assert.equal(observed.records['sink.output'].value, 10);
+  assert.match(observed.contentHash, /^fnv1a32:[0-9a-f]{8}$/);
+  assert.throws(
+    () => coordinator.observePorts(['sink.input']),
+    (error) => error.code === 'multirate_observation_port_not_output'
+  );
+
+  const checkpoint = await coordinator.checkpoint('published-output-checkpoint');
+  assert.deepEqual(checkpoint.outputBuffers, observed.records);
+  const restored = coordinatorApi.createCoordinator(source.configuration);
+  await restored.restore(checkpoint);
+  assert.deepEqual(restored.observePorts(), observed);
+});
+
 test('multirate coordinator rejects invalid output before publication and retains the failure', async () => {
   const coordinator = coordinatorApi.createCoordinator(fixture({ sourceMaximum: 0 }).configuration);
   await assert.rejects(coordinator.runUntil(1), (error) => error.code === 'multirate_port_range_invalid');

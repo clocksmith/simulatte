@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulatte Recursive World</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/simulatte/world/recursive-reference.css">
+</head>
+<body>
+  <main class="world-shell">
+    <header class="world-header">
+      <div>
+        <p class="eyebrow">Simulatte Recursive World</p>
+        <h1>One failure, every scale</h1>
+      </div>
+      <div class="runtime-status" aria-live="polite">
+        <span class="status-mark" id="status-mark"></span>
+        <span id="runtime-status">Loading governed world</span>
+      </div>
+    </header>
+
+    <section class="world-stage" aria-label="Recursive Earth and datacenter simulation">
+      <canvas id="recursive-world-canvas"></canvas>
+      <nav class="scale-rail" aria-label="World scale">
+        <button type="button" data-target="earth" class="selected">Earth</button>
+        <button type="button" data-target="facility">Facility</button>
+        <button type="button" data-target="rack">Rack</button>
+        <button type="button" data-target="node">Node</button>
+        <button type="button" data-target="gpu">GPU</button>
+      </nav>
+      <div class="time-readout">
+        <span>Logical time</span>
+        <strong id="logical-time">0 s</strong>
+      </div>
+    </section>
+
+    <section class="evidence-panel">
+      <div class="causal-header">
+        <div>
+          <p class="eyebrow">Published output ports</p>
+          <h2>Atlantic failure to thermal outcome</h2>
+        </div>
+        <div class="proof-verdict" id="proof-verdict">Proof pending</div>
+      </div>
+      <div class="causal-chain" id="causal-chain">
+        <article><span>Delivered capacity</span><strong id="metric-capacity">Waiting</strong></article>
+        <article><span>Virginia WAN</span><strong id="metric-wan">Waiting</strong></article>
+        <article><span>Scheduler throughput</span><strong id="metric-throughput">Waiting</strong></article>
+        <article><span>Cluster IT power</span><strong id="metric-power">Waiting</strong></article>
+        <article><span>Peak junction</span><strong id="metric-temperature">Waiting</strong></article>
+      </div>
+      <div class="measurement-row">
+        <span id="frame-measurement">Measuring visible frame loop</span>
+        <span id="evidence-identity">No browser evidence yet</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="/shared/contracts/world-spec-authorship.js"></script>
+  <script src="/shared/contracts/contract-validation-primitives.js"></script>
+  <script src="/shared/contracts/multiscale-contracts.js"></script>
+  <script src="/shared/contracts/world-spec.js"></script>
+  <script src="/shared/core/simulation/multirate-coordinator.js"></script>
+  <script src="/shared/core/simulation/worker-task-pool.js"></script>
+  <script src="/shared/core/simulation/simulation-residency-manager.js"></script>
+  <script src="/simulatte/runtime/canonical-receipts.js"></script>
+  <script src="/simulatte/runtime/runtime-log.js"></script>
+  <script src="/simulatte/platform/transport/browser-transport.js"></script>
+  <script src="/simulatte/world/world-tile-manager.js"></script>
+  <script src="/shared/plugins/subsea-network-global/demand-model.js"></script>
+  <script src="/shared/plugins/subsea-network-global/path-catalog.js"></script>
+  <script src="/shared/plugins/subsea-network-global/allocation-solver.js"></script>
+  <script src="/shared/plugins/subsea-network-global/repair-engine.js"></script>
+  <script src="/shared/plugins/subsea-network-global/metrics.js"></script>
+  <script src="/shared/plugins/subsea-network-global/network-model.js"></script>
+  <script src="/shared/plugins/subsea-network-global/multiscale-module.js"></script>
+  <script src="/shared/plugins/gpu-supercluster/collective-solver.js"></script>
+  <script src="/shared/plugins/gpu-supercluster/thermal-model.js"></script>
+  <script src="/shared/plugins/gpu-supercluster/multiscale-modules.js"></script>
+  <script src="/simulatte/world/earth-virginia-datacenter-reference.js"></script>
+  <script src="/simulatte/world/recursive-world-scene.js"></script>
+  <script src="/simulatte/world/recursive-world-view.js"></script>
+  <script src="/simulatte/world/recursive-world-webgpu-renderer.js"></script>
+  <script src="/simulatte/world/recursive-world-proof.js"></script>
+  <script src="/simulatte/world/recursive-reference-controller.js"></script>
+</body>
+</html>

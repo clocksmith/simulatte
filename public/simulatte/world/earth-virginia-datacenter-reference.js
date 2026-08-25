@@ -64,6 +64,11 @@
     });
     const modules = [subsea.descriptor, ...datacenter.modules];
     const compositionGraph = createCompositionGraph();
+    const renderProgram = createRenderProgram({
+      deliveredCapacityMaximum: subsea.reference.baseline.deliveredGbps,
+      wanCapacityMaximum: datacenter.reference.contractedCapacityGbps,
+      throughputMaximum: datacenter.reference.maximumStepsPerHour,
+    });
     contracts.validateWorldComposition(compositionGraph);
     const worldSpec = worldSpecApi.finalizeWorldSpec({
       id: WORLD_ID,
@@ -111,6 +116,9 @@
       objects: [
         { id: 'earth', kind: 'recursive-world-scope' },
         { id: 'virginia-datacenter', kind: 'recursive-world-scope' },
+        { id: 'virginia-rack-01', kind: 'recursive-world-scope' },
+        { id: 'virginia-node-0001', kind: 'recursive-world-scope' },
+        { id: 'virginia-gpu-0001', kind: 'recursive-world-scope' },
       ],
       controls: [],
       params: {
@@ -127,9 +135,17 @@
         sourceScenarioIdentity: subsea.reference.scenarioIdentity,
       },
       compositionGraph,
+      renderProgram,
       physicalSpec: {
         schema: 'simulatte.recursiveReferencePhysicalSpec.v1',
         claimBoundary: 'Deterministic modeled coupling under declared data, scheduler policy, and solver assumptions; not current network or datacenter operations.',
+        causalObligations: [
+          causalObligation('subsea-capacity-decreases', subseaApi.OUTPUT_PORT_ID, 'decreases'),
+          causalObligation('wan-capacity-decreases', gpuApi.IDS.gatewayOutput, 'decreases'),
+          causalObligation('scheduler-throughput-decreases', gpuApi.IDS.schedulerThroughputOutput, 'decreases'),
+          causalObligation('cluster-power-decreases', gpuApi.IDS.clusterPowerOutput, 'decreases'),
+          causalObligation('cluster-temperature-decreases', gpuApi.IDS.clusterTemperatureOutput, 'decreases'),
+        ],
       },
     });
 
@@ -197,8 +213,9 @@
       sampledPort(gpuApi.IDS.clusterTemperatureOutput, gpuApi.IDS.clusterModule, 'output', 'peak junction temperature', 'degC', 'temperature', -273.15, null),
     ];
     return deepFreeze({
-      frames: [earthFrame(), datacenterFrame()],
-      scopes: [earthScope(), datacenterScope()],
+      frames: [wgs84Frame(), earthFrame(), datacenterFrame(), rackFrame(), nodeFrame(), gpuFrame()],
+      frameAdapters: [wgs84EcefAdapter()],
+      scopes: [earthScope(), datacenterScope(), rackScope(), nodeScope(), gpuScope()],
       ports,
       couplingPlan: {
         schema: contracts.SCHEMAS.coupling,
@@ -258,6 +275,89 @@
     };
   }
 
+  function createRenderProgram({ deliveredCapacityMaximum, wanCapacityMaximum, throughputMaximum }) {
+    return deepFreeze({
+      schema: 'simulatte.recursive-render-program/v1',
+      representations: [
+        {
+          id: 'earth-subsea-network-aggregate',
+          scopeId: 'earth',
+          coordinateFrameId: 'earth-ecef-meters',
+          fidelityLevelId: 'earth:declared-detail',
+          primitives: [
+            { id: 'earth-body', kind: 'sphere', center: [0, 0, 0], radius: 6371000, semanticRole: 'planet' },
+            {
+              id: 'marea-corridor',
+              kind: 'polyline',
+              points: [[1234095, -4820158, 3981168], [4068017, -160379, 4891530]],
+              widthMeters: 18000,
+              semanticRole: 'subsea-capacity-corridor',
+            },
+          ],
+        },
+        {
+          id: 'virginia-datacenter-aggregate',
+          scopeId: 'virginia-datacenter',
+          coordinateFrameId: 'virginia-datacenter-local-meters',
+          fidelityLevelId: 'virginia-datacenter:facility-aggregate',
+          primitives: [{ id: 'facility-shell', kind: 'box', center: [0, 0, 12], size: [240, 160, 24], semanticRole: 'datacenter' }],
+        },
+        {
+          id: 'virginia-rack-01-detail',
+          scopeId: 'virginia-rack-01',
+          coordinateFrameId: 'virginia-rack-01-local-meters',
+          fidelityLevelId: 'virginia-rack-01:declared-detail',
+          primitives: [{ id: 'rack-shell', kind: 'box', center: [0, 0, 1.1], size: [0.8, 1.2, 2.2], semanticRole: 'compute-rack' }],
+        },
+        {
+          id: 'virginia-node-0001-detail',
+          scopeId: 'virginia-node-0001',
+          coordinateFrameId: 'virginia-node-0001-local-meters',
+          fidelityLevelId: 'virginia-node-0001:declared-detail',
+          primitives: [{ id: 'node-chassis', kind: 'box', center: [0, 0, 0], size: [0.5, 0.8, 0.16], semanticRole: 'compute-node' }],
+        },
+        {
+          id: 'virginia-gpu-0001-detail',
+          scopeId: 'virginia-gpu-0001',
+          coordinateFrameId: 'virginia-gpu-0001-local-meters',
+          fidelityLevelId: 'virginia-gpu-0001:declared-detail',
+          primitives: [{ id: 'gpu-board', kind: 'box', center: [0, 0, 0], size: [0.3, 0.12, 0.04], semanticRole: 'gpu' }],
+        },
+      ],
+      cameraTargets: [
+        { id: 'earth', scopeId: 'earth', coordinateFrameId: 'earth-ecef-meters', position: [0, 0, 0], distanceMeters: 18000000 },
+        { id: 'facility', scopeId: 'virginia-datacenter', coordinateFrameId: 'virginia-datacenter-local-meters', position: [0, 0, 12], distanceMeters: 600 },
+        { id: 'rack', scopeId: 'virginia-rack-01', coordinateFrameId: 'virginia-rack-01-local-meters', position: [0, 0, 1.1], distanceMeters: 5 },
+        { id: 'node', scopeId: 'virginia-node-0001', coordinateFrameId: 'virginia-node-0001-local-meters', position: [0, 0, 0], distanceMeters: 1.6 },
+        { id: 'gpu', scopeId: 'virginia-gpu-0001', coordinateFrameId: 'virginia-gpu-0001-local-meters', position: [0, 0, 0], distanceMeters: 0.8 },
+      ],
+      stateBindings: [
+        stateBinding('subsea-capacity', subseaApi.OUTPUT_PORT_ID, 'earth-subsea-network-aggregate', 'capacity', 'Gbps', 0, deliveredCapacityMaximum),
+        stateBinding('datacenter-wan', gpuApi.IDS.gatewayOutput, 'virginia-datacenter-aggregate', 'wan-capacity', 'Gbps', 0, wanCapacityMaximum),
+        stateBinding('scheduler-throughput', gpuApi.IDS.schedulerThroughputOutput, 'virginia-datacenter-aggregate', 'throughput', 'steps/hour', 0, throughputMaximum),
+        stateBinding('cluster-it-power', gpuApi.IDS.clusterPowerOutput, 'virginia-node-0001-detail', 'it-power', 'kW', 0, null),
+        stateBinding('cluster-facility-power', gpuApi.IDS.clusterFacilityPowerOutput, 'virginia-datacenter-aggregate', 'facility-power', 'kW', 0, null),
+        stateBinding('cluster-temperature', gpuApi.IDS.clusterTemperatureOutput, 'virginia-gpu-0001-detail', 'temperature', 'degC', -273.15, null),
+      ],
+    });
+  }
+
+  function stateBinding(id, sourcePortId, representationId, visualChannel, unit, minimum, maximum) {
+    return {
+      id,
+      sourcePortId,
+      representationId,
+      visualChannel,
+      unit,
+      mapping: { kind: 'linear-clamped-when-bounded', minimum, maximum },
+      interpolationPolicy: 'hold',
+    };
+  }
+
+  function causalObligation(id, sourcePortId, comparison) {
+    return { id, sourcePortId, comparison, required: true };
+  }
+
   function earthFrame() {
     return {
       schema: contracts.SCHEMAS.frame,
@@ -272,7 +372,38 @@
     };
   }
 
+  function wgs84Frame() {
+    return {
+      schema: contracts.SCHEMAS.frame,
+      id: 'earth-wgs84',
+      axes: [
+        { id: 'latitude', unit: 'degree', direction: 'positive' },
+        { id: 'longitude', unit: 'degree', direction: 'positive' },
+        { id: 'height', unit: 'meter', direction: 'positive' },
+      ],
+      handedness: 'not-applicable',
+      origin: { kind: 'absolute', values: [0, 0, 0], referenceFrameId: null },
+      epoch: 'WGS84',
+      precision: 0.0000001,
+      bounds: { minimum: [-90, -180, -12000], maximum: [90, 180, 1000000] },
+      transformToParent: null,
+    };
+  }
+
+  function wgs84EcefAdapter() {
+    return {
+      id: 'earth-wgs84-to-ecef-v1',
+      sourceFrameId: 'earth-wgs84',
+      destinationFrameId: 'earth-ecef-meters',
+      method: 'wgs84-ecef',
+      direction: 'bidirectional',
+      parameters: { semiMajorAxisMeters: 6378137, inverseFlattening: 298.257223563 },
+      authority: 'simulatte.coordinate-frame-adapter/wgs84-v1',
+    };
+  }
+
   function datacenterFrame() {
+    const translation = contracts.transformCoordinate(wgs84EcefAdapter(), [39.0438, -77.4874, 100]);
     return {
       schema: contracts.SCHEMAS.frame,
       id: 'virginia-datacenter-local-meters',
@@ -284,7 +415,56 @@
       bounds: { minimum: [-1000, -1000, -100], maximum: [1000, 1000, 300] },
       transformToParent: {
         parentFrameId: 'earth-ecef-meters',
-        translation: [1072000, -4828000, 4011000],
+        translation,
+        rotationQuaternion: [0, 0, 0, 1],
+        scale: 1,
+      },
+    };
+  }
+
+  function rackFrame() {
+    return childFrame({
+      id: 'virginia-rack-01-local-meters',
+      parentFrameId: 'virginia-datacenter-local-meters',
+      translation: [0, 0, 0],
+      precision: 0.0001,
+      bounds: { minimum: [-2, -2, 0], maximum: [2, 2, 3] },
+    });
+  }
+
+  function gpuFrame() {
+    return childFrame({
+      id: 'virginia-gpu-0001-local-meters',
+      parentFrameId: 'virginia-node-0001-local-meters',
+      translation: [0, 0, 0],
+      precision: 0.00001,
+      bounds: { minimum: [-0.5, -0.5, -0.2], maximum: [0.5, 0.5, 0.2] },
+    });
+  }
+
+  function nodeFrame() {
+    return childFrame({
+      id: 'virginia-node-0001-local-meters',
+      parentFrameId: 'virginia-rack-01-local-meters',
+      translation: [0, 0, 1.1],
+      precision: 0.00001,
+      bounds: { minimum: [-0.6, -0.9, -0.3], maximum: [0.6, 0.9, 0.3] },
+    });
+  }
+
+  function childFrame({ id, parentFrameId, translation, precision, bounds }) {
+    return {
+      schema: contracts.SCHEMAS.frame,
+      id,
+      axes: axes('meter'),
+      handedness: 'right',
+      origin: { kind: 'reference', values: [0, 0, 0], referenceFrameId: parentFrameId },
+      epoch: null,
+      precision,
+      bounds,
+      transformToParent: {
+        parentFrameId,
+        translation,
         rotationQuaternion: [0, 0, 0, 1],
         scale: 1,
       },
@@ -319,13 +499,55 @@
       parentScopeId: 'earth',
       coordinateFrameId: 'virginia-datacenter-local-meters',
       bounds: { minimum: [-1000, -1000, -100], maximum: [1000, 1000, 300] },
-      childScopeIds: [],
+      childScopeIds: ['virginia-rack-01'],
       moduleInstanceIds: [gpuApi.IDS.gatewayModule, gpuApi.IDS.schedulerModule, gpuApi.IDS.clusterModule],
       renderRepresentationIds: ['virginia-datacenter-aggregate'],
       fidelityLevels: [
         { id: 'virginia-datacenter:facility-aggregate', modelId: 'gpu-supercluster.facility-aggregate/v1', rank: 0 },
         { id: 'virginia-datacenter:declared-detail', modelId: 'gpu-supercluster.rack-detail/v1', rank: 1 },
       ],
+      residencyStates: ['dormant', 'checkpointed', 'aggregate', 'active', 'refining'],
+    });
+  }
+
+  function rackScope() {
+    return scope({
+      id: 'virginia-rack-01',
+      parentScopeId: 'virginia-datacenter',
+      coordinateFrameId: 'virginia-rack-01-local-meters',
+      bounds: { minimum: [-2, -2, 0], maximum: [2, 2, 3] },
+      childScopeIds: ['virginia-node-0001'],
+      moduleInstanceIds: [],
+      renderRepresentationIds: ['virginia-rack-01-detail'],
+      fidelityLevels: [{ id: 'virginia-rack-01:declared-detail', modelId: 'gpu-supercluster.rack-detail/v1', rank: 1 }],
+      residencyStates: ['dormant', 'checkpointed', 'aggregate', 'active', 'refining'],
+    });
+  }
+
+  function nodeScope() {
+    return scope({
+      id: 'virginia-node-0001',
+      parentScopeId: 'virginia-rack-01',
+      coordinateFrameId: 'virginia-node-0001-local-meters',
+      bounds: { minimum: [-0.6, -0.9, -0.3], maximum: [0.6, 0.9, 0.3] },
+      childScopeIds: ['virginia-gpu-0001'],
+      moduleInstanceIds: [],
+      renderRepresentationIds: ['virginia-node-0001-detail'],
+      fidelityLevels: [{ id: 'virginia-node-0001:declared-detail', modelId: 'gpu-supercluster.node-detail/v1', rank: 1 }],
+      residencyStates: ['dormant', 'checkpointed', 'aggregate', 'active', 'refining'],
+    });
+  }
+
+  function gpuScope() {
+    return scope({
+      id: 'virginia-gpu-0001',
+      parentScopeId: 'virginia-node-0001',
+      coordinateFrameId: 'virginia-gpu-0001-local-meters',
+      bounds: { minimum: [-0.5, -0.5, -0.2], maximum: [0.5, 0.5, 0.2] },
+      childScopeIds: [],
+      moduleInstanceIds: [],
+      renderRepresentationIds: ['virginia-gpu-0001-detail'],
+      fidelityLevels: [{ id: 'virginia-gpu-0001:declared-detail', modelId: 'gpu-supercluster.gpu-detail/v1', rank: 1 }],
       residencyStates: ['dormant', 'checkpointed', 'aggregate', 'active', 'refining'],
     });
   }
@@ -343,7 +565,7 @@
       stateOwnerModuleIds: [...moduleInstanceIds],
       availableFidelityLevels: fidelityLevels,
       simulationResidencyPolicy: { allowedStates: residencyStates, defaultState: 'active' },
-      spatialResidencyPolicy: { allowedStates: ['absent', 'resident'], defaultState: 'absent' },
+      spatialResidencyPolicy: { allowedStates: ['absent', 'requested', 'staged', 'resident', 'pinned', 'evicting'], defaultState: 'absent' },
       renderRepresentationIds,
       controlIds: [],
       proofObligationIds: [`proof:${id}:causal-state`],

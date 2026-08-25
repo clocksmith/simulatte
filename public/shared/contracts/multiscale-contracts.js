@@ -17,6 +17,7 @@
   });
   const SHA256 = /^sha256:[0-9a-f]{64}$/;
   const WORLD_HASH = /^fnv1a32:[0-9a-f]{8}$/;
+  const WGS84 = Object.freeze({ semiMajorAxisMeters: 6378137, inverseFlattening: 298.257223563 });
 
   class MultiscaleContractError extends Error {
     constructor(path, expected, received) {
@@ -160,6 +161,76 @@
       finite(frame.transformToParent.scale, '$.transformToParent.scale', 0, true);
     }
     return frame;
+  }
+
+  function validateCoordinateFrameAdapter(adapter, context = {}) {
+    object(adapter, '$', ['id', 'sourceFrameId', 'destinationFrameId', 'method', 'direction', 'parameters', 'authority']);
+    ['id', 'sourceFrameId', 'destinationFrameId', 'authority'].forEach((key) => string(adapter[key], `$.${key}`));
+    if (adapter.sourceFrameId === adapter.destinationFrameId) fail('$.destinationFrameId', 'different frame identity', adapter.destinationFrameId);
+    oneOf(adapter.method, ['wgs84-ecef'], '$.method');
+    oneOf(adapter.direction, ['forward', 'bidirectional'], '$.direction');
+    object(adapter.parameters, '$.parameters', ['semiMajorAxisMeters', 'inverseFlattening']);
+    finite(adapter.parameters.semiMajorAxisMeters, '$.parameters.semiMajorAxisMeters', 0, true);
+    finite(adapter.parameters.inverseFlattening, '$.parameters.inverseFlattening', 0, true);
+    if (context.frameIds) {
+      if (!context.frameIds.has(adapter.sourceFrameId)) fail('$.sourceFrameId', 'known coordinate frame', adapter.sourceFrameId);
+      if (!context.frameIds.has(adapter.destinationFrameId)) fail('$.destinationFrameId', 'known coordinate frame', adapter.destinationFrameId);
+    }
+    return adapter;
+  }
+
+  function wgs84ToEcef(point, parameters = WGS84) {
+    vector(point, '$.wgs84', 3);
+    const [latitudeDegrees, longitudeDegrees, heightMeters] = point;
+    if (latitudeDegrees < -90 || latitudeDegrees > 90) fail('$.wgs84[0]', 'latitude between -90 and 90 degrees', latitudeDegrees);
+    if (longitudeDegrees < -180 || longitudeDegrees > 180) fail('$.wgs84[1]', 'longitude between -180 and 180 degrees', longitudeDegrees);
+    const semiMajorAxis = parameters.semiMajorAxisMeters;
+    const flattening = 1 / parameters.inverseFlattening;
+    const eccentricitySquared = flattening * (2 - flattening);
+    const latitude = latitudeDegrees * Math.PI / 180;
+    const longitude = longitudeDegrees * Math.PI / 180;
+    const sinLatitude = Math.sin(latitude);
+    const cosLatitude = Math.cos(latitude);
+    const radius = semiMajorAxis / Math.sqrt(1 - eccentricitySquared * sinLatitude * sinLatitude);
+    return Object.freeze([
+      (radius + heightMeters) * cosLatitude * Math.cos(longitude),
+      (radius + heightMeters) * cosLatitude * Math.sin(longitude),
+      (radius * (1 - eccentricitySquared) + heightMeters) * sinLatitude,
+    ]);
+  }
+
+  function ecefToWgs84(point, parameters = WGS84) {
+    vector(point, '$.ecef', 3);
+    const [x, y, z] = point;
+    const semiMajorAxis = parameters.semiMajorAxisMeters;
+    const flattening = 1 / parameters.inverseFlattening;
+    const semiMinorAxis = semiMajorAxis * (1 - flattening);
+    const eccentricitySquared = flattening * (2 - flattening);
+    const secondaryEccentricitySquared = (semiMajorAxis ** 2 - semiMinorAxis ** 2) / semiMinorAxis ** 2;
+    const horizontal = Math.hypot(x, y);
+    if (horizontal < 0.000001) {
+      if (Math.abs(z) < 0.000001) fail('$.ecef', 'point away from the undefined Earth center', point);
+      return Object.freeze([Math.sign(z) * 90, 0, Math.abs(z) - semiMinorAxis]);
+    }
+    const theta = Math.atan2(z * semiMajorAxis, horizontal * semiMinorAxis);
+    const sinTheta = Math.sin(theta);
+    const cosTheta = Math.cos(theta);
+    const latitude = Math.atan2(
+      z + secondaryEccentricitySquared * semiMinorAxis * sinTheta ** 3,
+      horizontal - eccentricitySquared * semiMajorAxis * cosTheta ** 3
+    );
+    const longitude = Math.atan2(y, x);
+    const sinLatitude = Math.sin(latitude);
+    const radius = semiMajorAxis / Math.sqrt(1 - eccentricitySquared * sinLatitude * sinLatitude);
+    const height = horizontal / Math.max(Math.cos(latitude), Number.EPSILON) - radius;
+    return Object.freeze([latitude * 180 / Math.PI, longitude * 180 / Math.PI, height]);
+  }
+
+  function transformCoordinate(adapter, point, direction = 'forward') {
+    validateCoordinateFrameAdapter(adapter);
+    if (direction === 'forward') return wgs84ToEcef(point, adapter.parameters);
+    if (direction === 'reverse' && adapter.direction === 'bidirectional') return ecefToWgs84(point, adapter.parameters);
+    fail('$.direction', 'forward or authorized reverse transform', direction);
   }
 
   function validateRecursiveWorldScope(scope, context = {}) {
@@ -462,7 +533,7 @@
   }
 
   function validateWorldComposition(value) {
-    const { scopes, frames, ports, couplingPlan } = value;
+    const { scopes, frames, ports, couplingPlan, frameAdapters = [] } = value;
     const frameRows = array(frames, '$.frames', 1);
     const frameIds = uniqueObjects(frameRows, '$.frames');
     frameRows.forEach(validateCoordinateFrame);
@@ -471,6 +542,9 @@
       if (parentId && !frameIds.has(parentId)) fail(`$.frames[${index}].transformToParent.parentFrameId`, 'known parent frame', parentId);
     });
     rejectParentCycle(frameRows, (row) => row.transformToParent && row.transformToParent.parentFrameId, '$.frames');
+    const adapterRows = array(frameAdapters, '$.frameAdapters');
+    uniqueObjects(adapterRows, '$.frameAdapters');
+    adapterRows.forEach((adapter) => validateCoordinateFrameAdapter(adapter, { frameIds }));
     const scopeRows = array(scopes, '$.scopes', 1);
     const scopeIds = uniqueObjects(scopeRows, '$.scopes');
     scopeRows.forEach((scope) => validateRecursiveWorldScope(scope, { frameIds }));
@@ -511,10 +585,14 @@
     MultiscaleContractError,
     validateRecursiveWorldScope,
     validateCoordinateFrame,
+    validateCoordinateFrameAdapter,
     validateSimulationPort,
     validateCouplingPlan,
     validateScopeCheckpoint,
     validateFidelityTransition,
     validateWorldComposition,
+    ecefToWgs84,
+    transformCoordinate,
+    wgs84ToEcef,
   });
 });

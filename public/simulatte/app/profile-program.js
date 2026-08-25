@@ -427,11 +427,16 @@
     if (!canvas || typeof canvas.__simulatteCaptureRenderPixels !== 'function') {
       throw programError('profile_program_render_readback_missing', 'Rendered pixel readback is unavailable');
     }
-    const capture = await canvas.__simulatteCaptureRenderPixels();
-    if (!capture || !capture.rgbaBase64 || !(capture.width > 0) || !(capture.height > 0)) {
+    const capture = await canvas.__simulatteCaptureRenderPixels({ encoding: 'bytes' });
+    const bytes = capture?.rgbaBytes instanceof Uint8Array
+      ? capture.rgbaBytes
+      : capture?.rgbaBase64
+        ? base64Bytes(capture.rgbaBase64)
+        : null;
+    if (!capture || !bytes || bytes.byteLength !== capture.width * capture.height * 4
+      || !(capture.width > 0) || !(capture.height > 0)) {
       throw programError('profile_program_render_readback_invalid', 'Rendered pixel readback is incomplete');
     }
-    const bytes = base64Bytes(capture.rgbaBase64);
     return Object.freeze({
       width: Number(capture.width),
       height: Number(capture.height),
@@ -607,6 +612,7 @@
 
   return Object.freeze({
     ALLOWED_EDITOR_PATHS: Object.freeze([...ALLOWED_EDITOR_PATHS]),
+    captureRenderEvidence,
     connect,
     diffPaths,
     invalidateRunReceipt,

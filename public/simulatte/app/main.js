@@ -547,13 +547,17 @@
         pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
         hostRoot.__simulattePluginRunReceipt = null;
         hostRoot.__simulatteComparisonExecutionReceipts = Object.freeze([]);
-        pluginUi.resetValues();
         routeParametersApplied = false;
-        if (pluginPlayback) await pluginPlayback.reset(nextScenario, { renderReadyState: false });
-        else await extensions.setScenario(nextScenario);
+        if (pluginPlayback) {
+          // Keep declared controls until scenario.run prepares the new contribution.
+          await pluginPlayback.reset(nextScenario, { renderReadyState: false });
+        } else {
+          pluginUi.resetValues();
+          await extensions.setScenario(nextScenario);
+        }
         activeScenario = nextScenario;
         applicationProfileSelectApi.renderInteraction(interaction, activeScenario, elements);
-        await renderPluginExperience({ mission: null });
+        if (!pluginPlayback) await renderPluginExperience({ mission: null });
       } else {
         pluginUi.resetValues();
         routeParametersApplied = false;

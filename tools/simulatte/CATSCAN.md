@@ -22,6 +22,7 @@ Promote source snapshots, compile governed World data, and capture browser evide
 - Output: [profile evidence contract](profile-evidence-contract.mjs)
 - Output: [human visual review contract](profile-evidence-review-contract.mjs)
 - Output: [World browser audit](run-browser-smoke.mjs)
+- Output: [recursive reference browser qualification](qualify-recursive-reference.mjs)
 
 ## Invariants
 

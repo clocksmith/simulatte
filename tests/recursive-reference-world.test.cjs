@@ -33,8 +33,25 @@ test('reference WorldSpec binds recursive scopes, typed ports, explicit frames, 
     'datacenter-training-scheduler',
     'gpu-cluster',
   ]);
-  assert.equal(reference.worldSpec.compositionGraph.scopes.length, 2);
+  assert.equal(reference.worldSpec.compositionGraph.scopes.length, 5);
+  assert.equal(reference.worldSpec.compositionGraph.frames.length, 6);
+  assert.equal(reference.worldSpec.compositionGraph.frameAdapters.length, 1);
+  assert.deepEqual(reference.worldSpec.compositionGraph.scopes.map((scope) => [scope.id, scope.childScopeIds]), [
+    ['earth', ['virginia-datacenter']],
+    ['virginia-datacenter', ['virginia-rack-01']],
+    ['virginia-rack-01', ['virginia-node-0001']],
+    ['virginia-node-0001', ['virginia-gpu-0001']],
+    ['virginia-gpu-0001', []],
+  ]);
   assert.equal(reference.worldSpec.compositionGraph.couplingPlan.edges.length, 4);
+  assert.deepEqual(reference.worldSpec.renderProgram.stateBindings.map((binding) => binding.sourcePortId), [
+    'subsea.mid-atlantic.delivered-gbps',
+    'virginia-wan.available-gbps',
+    'datacenter-scheduler.throughput-steps-per-hour',
+    'gpu-cluster.it-power-kw',
+    'gpu-cluster.facility-power-kw',
+    'gpu-cluster.peak-junction-temperature-c',
+  ]);
   assert.match(reference.worldSpec.contentHash, /^fnv1a32:[0-9a-f]{8}$/);
 });
 
@@ -55,6 +72,12 @@ test('declared MAREA failure propagates through WAN, scheduler, power, and therm
   assert.ok(affected.states['gpu-cluster'].totalItPowerKw < baseline.states['gpu-cluster'].totalItPowerKw);
   assert.ok(affected.states['gpu-cluster'].peakJunctionTempC < baseline.states['gpu-cluster'].peakJunctionTempC);
   assert.equal(affected.states['subsea-capacity'].sourceScenarioIdentity, reference.reference.subsea.scenarioIdentity);
+  const observed = coordinator.observePorts();
+  assert.equal(observed.records['subsea.mid-atlantic.delivered-gbps'].value, affected.states['subsea-capacity'].deliveredGbps);
+  assert.equal(observed.records['virginia-wan.available-gbps'].value, affected.states['virginia-wan-gateway'].availableGbps);
+  assert.equal(observed.records['datacenter-scheduler.throughput-steps-per-hour'].value, affected.states['datacenter-training-scheduler'].throughputStepsPerHour);
+  assert.equal(observed.records['gpu-cluster.it-power-kw'].value, affected.states['gpu-cluster'].totalItPowerKw);
+  assert.equal(observed.records['gpu-cluster.peak-junction-temperature-c'].value, affected.states['gpu-cluster'].peakJunctionTempC);
 });
 
 test('reference causal execution and WorldSpec identities reproduce exactly', async () => {

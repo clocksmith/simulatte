@@ -107,7 +107,7 @@ function fixture() {
     edges: [edge('subsea-to-wan', 'subsea.deliveredGbps', 'wan.availableGbps')],
     coupledSolvers: [],
   };
-  return { frames, scopes, ports, couplingPlan };
+  return { frames, frameAdapters: [], scopes, ports, couplingPlan };
 }
 
 test('six canonical multiscale schemas are strict versioned public contracts', () => {
@@ -123,6 +123,32 @@ test('six canonical multiscale schemas are strict versioned public contracts', (
 test('one Earth scope can contain one datacenter through explicit frames, ports, and coupling', () => {
   const value = fixture();
   assert.equal(contracts.validateWorldComposition(value), value);
+});
+
+test('WGS84 coordinates round trip through an explicit bidirectional ECEF adapter', () => {
+  const adapter = {
+    id: 'wgs84-ecef-v1',
+    sourceFrameId: 'earth-wgs84',
+    destinationFrameId: 'earth-ecef',
+    method: 'wgs84-ecef',
+    direction: 'bidirectional',
+    parameters: { semiMajorAxisMeters: 6378137, inverseFlattening: 298.257223563 },
+    authority: 'test',
+  };
+  assert.equal(contracts.validateCoordinateFrameAdapter(adapter, { frameIds: new Set(['earth-wgs84', 'earth-ecef']) }), adapter);
+  const source = [39.0438, -77.4874, 100];
+  const ecef = contracts.transformCoordinate(adapter, source);
+  const restored = contracts.transformCoordinate(adapter, ecef, 'reverse');
+  assert.ok(Math.abs(restored[0] - source[0]) < 1e-8);
+  assert.ok(Math.abs(restored[1] - source[1]) < 1e-8);
+  assert.ok(Math.abs(restored[2] - source[2]) < 0.001);
+  for (const latitude of [-90, 90]) {
+    const pole = [latitude, 0, 25];
+    const poleRestored = contracts.transformCoordinate(adapter, contracts.transformCoordinate(adapter, pole), 'reverse');
+    assert.ok(Math.abs(poleRestored[0] - pole[0]) < 1e-10);
+    assert.equal(poleRestored[1], 0);
+    assert.ok(Math.abs(poleRestored[2] - pole[2]) < 0.000001);
+  }
 });
 
 test('unit mismatch requires a named adapter', () => {

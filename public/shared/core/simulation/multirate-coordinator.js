@@ -9,7 +9,8 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteMultirateCoordinator = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createMultirateCoordinatorApi(primitives, contracts) {
-  const CHECKPOINT_SCHEMA = 'simulatte.multirate-coordinator-checkpoint/v1';
+  const CHECKPOINT_SCHEMA = 'simulatte.multirate-coordinator-checkpoint/v2';
+  const PORT_OBSERVATION_SCHEMA = 'simulatte.multirate-port-observation/v1';
   const REQUIRED_LIFECYCLE = Object.freeze([
     'initialize',
     'advance',
@@ -147,6 +148,7 @@
       module.clock.kind === 'fixed' ? startTime + module.clock.intervalSeconds : Infinity,
     ]));
     const inputBuffers = new Map();
+    const outputBuffers = new Map();
     const moduleActive = new Map(plan.modules.map((module) => [module.id, true]));
     const suspendedNextTimes = new Map();
     let pendingDeliveries = [];
@@ -268,17 +270,18 @@
         throw error;
       }
 
+      const deliveries = createDeliveries(results, nextTime, roundId);
       for (const moduleId of moduleIds) {
         const result = results.get(moduleId);
         states.set(moduleId, clone(result.state));
         stateHashes.set(moduleId, result.stateHash);
+        result.outputs.forEach((output) => outputBuffers.set(output.portId, output));
         lastTimes.set(moduleId, nextTime);
         const module = plan.moduleById.get(moduleId);
         if (module.clock.kind === 'fixed' && nextTimes.get(moduleId) === nextTime) {
           nextTimes.set(moduleId, nextTime + module.clock.intervalSeconds);
         }
       }
-      const deliveries = createDeliveries(results, nextTime, roundId);
       pendingDeliveries.push(...deliveries);
       pendingDeliveries.sort(byDelivery);
       logicalTime = nextTime;
@@ -488,6 +491,7 @@
         moduleActive: Object.fromEntries(moduleActive),
         suspendedNextTimes: Object.fromEntries(suspendedNextTimes),
         inputBuffers: Object.fromEntries(inputBuffers),
+        outputBuffers: Object.fromEntries(outputBuffers),
         pendingDeliveries: clone(pendingDeliveries),
         pendingControls: clone(pendingControls),
         controlHistory: clone(controlHistory),
@@ -521,6 +525,7 @@
       replaceMap(moduleActive, checkpointValue.moduleActive);
       replaceMap(suspendedNextTimes, checkpointValue.suspendedNextTimes);
       replaceMap(inputBuffers, checkpointValue.inputBuffers);
+      replaceMap(outputBuffers, checkpointValue.outputBuffers);
       pendingDeliveries = clone(checkpointValue.pendingDeliveries);
       pendingControls = clone(checkpointValue.pendingControls);
       controlHistory = clone(checkpointValue.controlHistory);
@@ -670,6 +675,35 @@
       return freeze(ledger.map(clone));
     }
 
+    function observePorts(portIds = null) {
+      assertReady();
+      assertSafeBoundary();
+      const requested = portIds === null
+        ? [...plan.portById.values()].filter((port) => port.direction === 'output').map((port) => port.id)
+        : portIds;
+      requireArray(requested, 'portIds');
+      const ids = [...new Set(requested)].sort();
+      const records = {};
+      ids.forEach((portId) => {
+        requireString(portId, 'portIds[]');
+        const port = plan.portById.get(portId);
+        if (!port) fail('multirate_observation_port_unknown', `Observation references unknown port ${portId}`);
+        if (port.direction !== 'output') {
+          fail('multirate_observation_port_not_output', `Observation may read only published output ports, not ${portId}`);
+        }
+        records[portId] = outputBuffers.has(portId) ? clone(outputBuffers.get(portId)) : null;
+      });
+      const observation = {
+        schema: PORT_OBSERVATION_SCHEMA,
+        coordinatorId: id,
+        branchId,
+        logicalTime,
+        records,
+      };
+      observation.contentHash = contentHash(observation);
+      return freeze(observation);
+    }
+
     function snapshot() {
       return freeze({
         id,
@@ -685,6 +719,7 @@
         safeBoundary: !runActive,
         moduleActive: Object.fromEntries(moduleActive),
         moduleStateHashes: Object.fromEntries(stateHashes),
+        observedPortCount: outputBuffers.size,
         pendingDeliveryCount: pendingDeliveries.length,
         pendingControlCount: pendingControls.length,
         ledgerLength: ledger.length,
@@ -713,6 +748,7 @@
       enqueueControl,
       getLedger,
       initialize,
+      observePorts,
       refine: (moduleIds, request) => transition('refine', moduleIds, request),
       replay,
       restore,
@@ -730,6 +766,7 @@
     if (value.executionPlanHash !== executionPlanHash) fail('multirate_checkpoint_plan_mismatch', 'Checkpoint execution plan differs');
     requireRecord(value.moduleActive, 'checkpoint.moduleActive');
     requireRecord(value.suspendedNextTimes, 'checkpoint.suspendedNextTimes');
+    requireRecord(value.outputBuffers, 'checkpoint.outputBuffers');
     const candidate = clone(value);
     delete candidate.contentHash;
     if (contentHash(candidate) !== value.contentHash) fail('multirate_checkpoint_hash_invalid', 'Checkpoint content hash does not match');
@@ -876,6 +913,7 @@
 
   return Object.freeze({
     CHECKPOINT_SCHEMA,
+    PORT_OBSERVATION_SCHEMA,
     MultirateCoordinatorError,
     compileExecutionPlan,
     contentHash,

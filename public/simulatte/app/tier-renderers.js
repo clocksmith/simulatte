@@ -452,6 +452,7 @@
         // Retrieve connected link target if possible
         const outgoing = data.links.filter(l => l.source === agent.node);
         const nextNodeIdx = outgoing.length > 0 ? outgoing[0].target : agent.node;
+        const nextNode = data.nodes[nextNodeIdx] || currentNode;
         // Interpolate position along node connection
         const ax = currentNode.lon + (nextNode.lon - currentNode.lon) * agent.progress;
         const ay = currentNode.lat + (nextNode.lat - currentNode.lat) * agent.progress;
@@ -661,4 +662,3 @@
 
   return Object.freeze({ drawSolarSystem, drawStarChart, drawWorld, drawCountry, drawDatacenter });
 });
-

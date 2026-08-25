@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const manifest = require('../public/simulatte/app/world-runtime-script-manifest.js');
 const registry = require('../public/simulatte/platform/plugin-host/generated-plugin-registry.js');
+const autonomyManifest = require('../public/data/simulatte/autonomy-manifest.json');
 
 test('World runtime selections load only the chosen profile plugin bundle', async () => {
   const appended = [];
@@ -47,6 +48,7 @@ test('World runtime selections load only the chosen profile plugin bundle', asyn
 
 test('World optional model scripts remain outside every pre-consent selection', () => {
   assert.equal(manifest.tierDefaultProfile.city, 'sun-walker-v1');
+  assert.equal(autonomyManifest.applicationProfile.id, manifest.tierDefaultProfile.city);
   assert.equal('simulatte-world-v1' in manifest.profilePlugins, false);
   assert.deepEqual(manifest.pluginIdsForSelection({ tierId: 'city' }), ['sun-walker']);
   for (const profileId of Object.keys(manifest.profilePlugins)) {
@@ -55,6 +57,7 @@ test('World optional model scripts remain outside every pre-consent selection', 
   }
   const consented = manifest.forSelection({ profileId: 'sun-walker-v1', includeOptionalModel: true });
   assert.ok(manifest.stages.optionalModel.every((path) => consented.includes(path)));
+  assert.equal(manifest.browser.some((path) => path.includes('recursive-world-')), false);
 });
 
 test('World dynamic runtime loader loads selected runtime scripts', async () => {
