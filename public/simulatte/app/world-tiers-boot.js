@@ -781,7 +781,7 @@
           }
           return updateSimulationFromRoute(simulation);
         },
-        replay:async()=>{await runController.seek(runController.snapshot().totalSteps);await runController.resume();return root.__simulatteTierRunReceipt;},
+        replay:async()=>{await runController.replay();return root.__simulatteTierRunReceipt;},
       });
       loadTrace?.complete({
         profileId: data.applicationProfile.id,

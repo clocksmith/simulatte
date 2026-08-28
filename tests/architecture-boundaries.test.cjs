@@ -54,3 +54,17 @@ test('completed TODO trackers stay removed', () => {
     assert.equal(fs.existsSync(path.join(ROOT, name)), false, `${name} must not return`);
   }
 });
+
+test('datacenter visualizer loads the canonical tier world model', () => {
+  const visualizer = read('public/simulatte/app/multi-tier-visualizer.js');
+  const worldModel = JSON.parse(read('public/data/simulatte/worlds/datacenter-supercluster-v1.json'));
+  assert.match(visualizer, /loadTierCache\('\.\.\/worlds\/datacenter-supercluster-v1\.json'/);
+  assert.equal(worldModel.id, 'datacenter-supercluster-v1');
+  assert.equal(worldModel.tier, 'datacenter');
+});
+
+test('profile program exact replay uses the run controller replay boundary', () => {
+  const boot = read('public/simulatte/app/world-tiers-boot.js');
+  assert.match(boot, /replay:async\(\)=>\{await runController\.replay\(\)/);
+  assert.doesNotMatch(boot, /replay:async\(\)=>\{await runController\.seek\(/);
+});

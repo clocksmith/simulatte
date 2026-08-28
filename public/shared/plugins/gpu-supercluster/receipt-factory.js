@@ -9,11 +9,8 @@
     collectives = {},
     thermals = {},
   } = {}) {
-    const timestampIso = new Date().toISOString();
-
     return Object.freeze({
       schema: 'simulatte.gpuSuperclusterReceipt.v1',
-      timestampIso,
       seed: config.seed || 'supercluster-gpt-001',
       cluster: Object.freeze({
         totalGpus: topology.totalGpus || 256,

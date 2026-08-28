@@ -104,6 +104,7 @@ test('gpu-supercluster plugin produces deterministic simulation and valid receip
   assert.ok(result.receipt);
   assert.equal(result.receipt.schema, 'simulatte.gpuSuperclusterReceipt.v1');
   assert.equal(result.receipt.modelReceipts.length, 2);
+  assert.deepEqual(pluginApi.simulate({ totalGpus: 256, racks: 32 }).receipt, result.receipt);
 
   const presentation = result.createSemanticPresentation({ progress: 0.5 });
   assert.equal(presentation.schema, 'simulatte.semanticPresentation.v4-draft');
@@ -123,6 +124,7 @@ test('gpu-supercluster activates as a native v4 plugin with deterministic playba
   const ready = instance.contributeV4();
   v4Contracts.validateContribution(ready, 'GPU Supercluster ready contribution');
   assert.equal(ready.state.status, 'ready');
+  assert.equal(instance.settle().status, 'not_settled');
 
   assert.equal(instance.handleAction('scenario.run', { values: { phase: 'start' } }).status, 'running');
   let terminal;
@@ -139,5 +141,16 @@ test('gpu-supercluster activates as a native v4 plugin with deterministic playba
   assert.equal(comparison.status, 'settled');
   assert.ok(comparison.comparisonBranches.baseline.stepTimeMs > 0);
   assert.ok(comparison.comparisonBranches.intervention.stepTimeMs > 0);
+  assert.equal(instance.settle().status, 'settled');
   assert.deepEqual(instance.settle().obligationResults, []);
+
+  const [reduce, initialState] = registrations[0];
+  assert.doesNotThrow(() => structuredClone(initialState));
+  assert.equal(initialState.result.createSemanticPresentation, undefined);
+  assert.equal(initialState.result.createContribution, undefined);
+  const updatedState = reduce(initialState, {
+    type: 'update-controls',
+    controls: { linkPacketDropRate: 0.01 },
+  });
+  assert.doesNotThrow(() => structuredClone(updatedState));
 });

@@ -287,8 +287,9 @@
       if (tierName === 'datacenter') {
         this.updateHudContent('Datacenter', 'Loading 256-GPU cluster topology and thermal model...', {}, '');
         try {
-          const res = await this.dataLoader.fetch(cacheUrl('simulatte/worlds/datacenter-supercluster-v1.json'));
-          this.data = res.ok ? await res.json() : { racks: Array.from({ length: 32 }, (_, i) => ({ id: `rack-${i}`, avgTempC: 54 })) };
+          this.data = await this.loadTierCache('../worlds/datacenter-supercluster-v1.json', {
+            context: 'datacenter world model'
+          });
           this.updateHudContent(
             'Datacenter',
             '3D physical facility view: 32 liquid-cooled 42U racks, 256 GPUs, NVLink mesh, and InfiniBand spine-leaf.',

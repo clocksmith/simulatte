@@ -87,6 +87,16 @@
     return Object.freeze(outcome);
   }
 
+  function serializableResult(result) {
+    return Object.freeze({
+      config: result.config,
+      topology: result.topology,
+      collectives: result.collectives,
+      thermals: result.thermals,
+      receipt: result.receipt,
+    });
+  }
+
   async function activate({ sdk, config, profile, scenario } = {}) {
     const activeConfig = {
       totalGpus: 256,
@@ -118,8 +128,8 @@
         current = simulate(nextConfig);
         return {
           ...state,
-          config: nextConfig,
-          result: current,
+          config: current.config,
+          result: serializableResult(current),
           lastAction: 'update-controls',
         };
       }
@@ -129,7 +139,7 @@
     if (sdk && sdk.state) {
       sdk.state.register(reduce, {
         config: current.config,
-        result: current,
+        result: serializableResult(current),
         progressive: { status: 'ready', step: 0, progress: 0 },
         lastAction: 'activated',
       });
@@ -201,6 +211,7 @@
 
     function settle() {
       return Object.freeze({
+        status: currentStep >= 4 ? 'settled' : 'not_settled',
         obligationResults: Object.freeze([]),
         stateIdentity: `${current.receipt.seed}:${currentStep}`,
         losses: Object.freeze([]),

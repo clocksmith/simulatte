@@ -15,6 +15,7 @@ const PUBLIC = path.join(ROOT, 'public');
 const DEFAULT_OUT = path.join(ROOT, 'artifacts', 'tier-browser-smoke');
 
 const TIERS = [
+  { tier: 'datacenter', profileId: 'gpu-supercluster-v1', pluginId: 'gpu-supercluster' },
   { tier: 'country', profileId: 'food-recall-us-v1', pluginId: 'food-recall-us' },
   { tier: 'country', profileId: 'grid-resilience-us-v1', pluginId: 'grid-resilience-us' },
   { tier: 'world', profileId: 'maritime-trade-global-v1', pluginId: 'maritime-trade-global' },

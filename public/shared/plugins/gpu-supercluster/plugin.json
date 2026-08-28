@@ -5,7 +5,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginGpuSupercluster",
-    "integrity": "sha384-7b7766cc3eb3e5053482e3e9f0ad97a55863797026eb4b1dfd37d13540ce5e85a52323b40675bc2120583c40e154ce41",
+    "integrity": "sha384-d244ea9c0463603630b755b6b10f9f25701ed4cd1de254f46a70ce1397764df35b68e0684672ba81bce76ff904bafb06",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -82,7 +82,7 @@
       "path": "./presentation.js"
     },
     {
-      "integrity": "sha384-dd72f3fbdf879f6ba7b064221d88e79f199f5d8e4fbf49c7c889b43a2111b60d2cd7cc8da2202790e1718abb30156759",
+      "integrity": "sha384-f354379398d27fbd5c8606179ce484fe5ad79b5fb646c459dc75e64f555d7016f259f9f27cf46501b31b5da4113fae29",
       "path": "./receipt-factory.js"
     },
     {
