@@ -448,6 +448,7 @@ test('native v4 contribution preserves true 3D evidence, moving packet depth, an
 
 test('users can choose arbitrary endpoints and direct, automatic, or manual routing', async () => {
   const host = await activateDefault();
+  assert.equal(host.instance.capabilities['simulation.interstellar-relay.v4']().result.presetStatus, 'starting preset');
   await host.instance.handleAction('scenario.run', {
     values: {
       phase: 'start',
@@ -462,6 +463,8 @@ test('users can choose arbitrary endpoints and direct, automatic, or manual rout
   });
   let result = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
   assert.deepEqual(result.routeSelection.selectedPath, ['gaia-barnard', 'gaia-wolf-359']);
+  assert.deepEqual(result.controls.requiredRelayIds, []);
+  assert.equal(result.presetStatus, 'customized');
   assert.equal(result.packet.sourceId, 'gaia-barnard');
   assert.equal(result.packet.destinationId, 'gaia-wolf-359');
 
@@ -471,7 +474,7 @@ test('users can choose arbitrary endpoints and direct, automatic, or manual rout
       sourceId: 'gaia-sol',
       targetId: 'gaia-barnard',
       routingMode: 'manual',
-      requiredRelayIds: ['gaia-proxima'],
+      requiredRelayIds: ['none', 'gaia-proxima', 'gaia-proxima'],
       maxHops: 4,
       maxHopDistancePc: 1000,
       packetBytes: 4096,
@@ -479,6 +482,7 @@ test('users can choose arbitrary endpoints and direct, automatic, or manual rout
   });
   result = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
   assert.deepEqual(result.routeSelection.selectedPath, ['gaia-sol', 'gaia-proxima', 'gaia-barnard']);
+  assert.deepEqual(result.controls.requiredRelayIds, ['gaia-proxima']);
 
   await host.instance.handleAction('scenario.run', {
     values: {
@@ -515,6 +519,12 @@ test('users can choose arbitrary endpoints and direct, automatic, or manual rout
   ].forEach((id) => assert.ok(controls.has(id), id));
   assert.equal(controls.get('requiredRelayIds').kind, 'multiselect');
   assert.equal(controls.get('eligibleRelayIds').kind, 'multiselect');
+  assert.deepEqual(
+    [...controls.values()].slice(0, 16).map((row) => row.label.split(':')[0]),
+    ['Route', 'Route', 'Route', 'Route', 'Relays', 'Relays', 'Relays', 'Relays', 'Transmission', 'Transmission', 'Transmission', 'Transmission', 'Operations', 'Operations', 'Operations', 'Physics'],
+  );
+  assert.match(controls.get('startEpochIso').label, /UTC/);
+  assert.match(controls.get('channelMode').options.find((row) => row.value === 'traversable-wormhole').label, /speculative, not constructible/);
 });
 
 test('every visible HYG star is selectable with source-specific uncertainty and receipts', async () => {

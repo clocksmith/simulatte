@@ -127,6 +127,33 @@ test('declarative UI renders v4 experiment controls and returns typed edited val
   });
 });
 
+test('declarative UI bounds and searches large option catalogs while retaining selected values', () => {
+  const documentRef = fakeDocument();
+  const inspector = new FakeNode('root', documentRef);
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {} });
+  const options = Array.from({ length: 120 }, (_, index) => ({
+    value: `star-${index}`,
+    label: `Catalog star ${index}`,
+  }));
+  host.render([], [{
+    pluginId: 'catalog-fixture',
+    controls: { controls: [control('target', 'select', 'star-119', options)] },
+    inspections: [],
+  }]);
+
+  const search = find(inspector, (node) => node.dataset?.pluginControlSearch === 'target');
+  const select = find(inspector, (node) => node.dataset?.pluginControl === 'target');
+  assert.ok(search);
+  assert.equal(search.dataset.visibleOptionLimit, String(uiHost.LARGE_OPTION_VISIBLE_LIMIT));
+  assert.equal(select.children.filter((option) => !option.hidden).length, 81);
+  search.value = 'star 95';
+  search.dispatch('input');
+  assert.deepEqual(
+    select.children.filter((option) => !option.hidden).map((option) => option.value),
+    ['star-95', 'star-119'],
+  );
+});
+
 test('declarative UI renders controls first without deleting dynamic evidence or provenance inspections', () => {
   const documentRef = fakeDocument();
   const roots = {

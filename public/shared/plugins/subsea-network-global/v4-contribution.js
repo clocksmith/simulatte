@@ -13,7 +13,15 @@
     repair: '6935c49c5fd7496b70ed3db60fd38b26b5064b448b70ca7c54d74a1a8ac86017',
   });
 
-  function createContribution({ datasets, dataReceipts, config, result, snapshot, comparison = null }) {
+  function createContribution({
+    datasets,
+    dataReceipts,
+    config,
+    result,
+    snapshot,
+    appliedParameters = null,
+    comparison = null,
+  }) {
     requireBuilder();
     const records = dataReceipts.map((receipt) => builder.datasetRecord(receipt.datasetId, receipt, metadataFor(receipt.datasetId)));
     const recordById = new Map(records.map((row) => [row.id, row]));
@@ -194,39 +202,40 @@
       })],
     });
     const controls = builder.controls([
-      selectControl('allocationPolicyId', 'Allocation policy', result.allocationPolicyId, [
+      selectControl('demandScenarioId', 'Disruption: demand scenario', result.configurationIdentity.demandScenarioId,
+        datasets.demands.scenarios.map((row) => option(row.id, row.id.replaceAll('-', ' '))), scenario),
+      multiSelectControl('failedResourceIds', 'Disruption: failed resources', result.failedResourceIds, failureOptions(datasets), scenario),
+      multiSelectControl(
+        'jurisdictionExclusions',
+        'Disruption: excluded landing regions',
+        result.excludedLandingIds.length ? result.excludedLandingIds : ['none'],
+        [option('none', 'No exclusions'), ...datasets.landings.points.map((row) => option(row.id, row.label))],
+        scenario
+      ),
+      selectControl('allocationPolicyId', 'Allocation: selected policy', result.allocationPolicyId, [
         option('weighted-throughput', 'Weighted throughput'),
         option('proportional-fair', 'Proportional fairness'),
         option('essential-service-priority', 'Essential-service priority'),
         option('geographic-equity', 'Geographic equity'),
       ], scenario),
-      selectControl('repairPolicyId', 'Repair policy', result.repairPolicyId, [
+      selectControl('comparisonPolicyId', 'Allocation: comparison policy', appliedParameters?.comparisonPolicyId || config.comparisonPolicyId, [
+        option('weighted-throughput', 'Weighted throughput'),
+        option('proportional-fair', 'Proportional fairness'),
+        option('essential-service-priority', 'Essential-service priority'),
+        option('geographic-equity', 'Geographic equity'),
+      ], scenario),
+      rangeControl('essentialServiceWeight', 'Allocation: essential-service weight', result.configurationIdentity.essentialServiceWeight, 1, 20, 1, scenario),
+      selectControl('repairPolicyId', 'Repair: priority policy', result.repairPolicyId, [
         option('nearest-first', 'Nearest resource first'),
         option('unmet-demand-first', 'Unserved demand first'),
       ], scenario),
-      selectControl(
-        'demandScenarioId',
-        'Demand and disruption scenario',
-        result.configurationIdentity.demandScenarioId,
-        datasets.demands.scenarios.map((row) => option(row.id, row.id.replaceAll('-', ' '))),
-        scenario
-      ),
-      multiSelectControl('failedResourceIds', 'Modeled failures', result.failedResourceIds, failureOptions(datasets), scenario),
-      rangeControl('essentialServiceWeight', 'Essential-service weight', result.configurationIdentity.essentialServiceWeight, 1, 20, 1, scenario),
-      multiSelectControl(
-        'jurisdictionExclusions',
-        'Excluded regions',
-        result.excludedLandingIds.length ? result.excludedLandingIds : ['none'],
-        [option('none', 'No exclusions'), ...datasets.landings.points.map((row) => option(row.id, row.label))],
-        scenario
-      ),
-      numberControl('repairResourceCount', 'Repair resources', result.configurationIdentity.repairResourceCount, 1, datasets.repairs.scenarios[0].resources.length, 1, scenario),
-      numberControl('ensembleSize', 'Scenario ensemble runs', result.configurationIdentity.ensembleSize, 1, config.ensembleSeeds.length, 1, scenario),
+      numberControl('repairResourceCount', 'Repair: available resources', result.configurationIdentity.repairResourceCount, 1, datasets.repairs.scenarios[0].resources.length, 1, scenario),
+      numberControl('ensembleSize', 'Evidence: ensemble runs', result.configurationIdentity.ensembleSize, 1, config.ensembleSeeds.length, 1, scenario),
     ], [{
-      id: 'throughput-vs-fair',
-      label: 'Weighted throughput vs proportional fairness',
-      baselineScenarioId: `${result.scenarioId}:weighted-throughput`,
-      variantScenarioId: `${result.scenarioId}:proportional-fair`,
+      id: `${appliedParameters?.comparisonPolicyId || config.comparisonPolicyId}-vs-${result.allocationPolicyId}`,
+      label: `${(appliedParameters?.comparisonPolicyId || config.comparisonPolicyId).replaceAll('-', ' ')} vs selected ${result.allocationPolicyId.replaceAll('-', ' ')}`,
+      baselineScenarioId: `${result.scenarioId}:${appliedParameters?.comparisonPolicyId || config.comparisonPolicyId}`,
+      variantScenarioId: `${result.scenarioId}:${result.allocationPolicyId}`,
       synchronizedClock: true,
     }]);
     const progressiveState = builder.state({

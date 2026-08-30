@@ -76,7 +76,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginInterstellarRelayNetwork",
-    "integrity": "sha384-24c561954800befdc2daf1fa6d111ca40cde4b2e56092acaab0a97687c3d1c3cb3e0b904e62f157f37191f913fbf5e4f",
+    "integrity": "sha384-5bb48258290b09d0f2b1a381d36b95e2648f2a3fcc2825100392c5bfca167b2ec4521926397f5762ab0137a8b8029adf",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -185,7 +185,7 @@
       "path": "./receipt-factory.js"
     },
     {
-      "integrity": "sha384-a8a6122f9bde74389e08bb9bd41f693b31917cdc6eb70e2eae89840cb4b70c245745f7da3c983a65609e0f5f73295257",
+      "integrity": "sha384-3739c9d31caed2fa7e7a0c6a7e657cc56184706254ee51de5099f7346b961da67f17bb1a089252586a578f7cc0197267",
       "path": "./relay-controls.js"
     },
     {
@@ -197,7 +197,7 @@
       "path": "./stellar-state.js"
     },
     {
-      "integrity": "sha384-4d84349d6f94adb0bb617beb7b51a55ae71c9b1a791a729b6656c3be515d1ba4b7e7ef6a492e0b2b8b15bafcc83059fd",
+      "integrity": "sha384-ed440da5db35b0c6a0a54fd2600bcf5dcd70f03c396e090e2b54b2fbac3c9168a7a3c898077fff7e7e040d0457d0d305",
       "path": "./v4-contribution.js"
     }
   ],

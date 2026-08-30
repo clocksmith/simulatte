@@ -14,7 +14,7 @@
     const transitions = exposureTransitions(visibleSamples);
     return truthApi.deepFreeze({
       schema: 'simulatte.presentationLayerSet.v4',
-      id: `sun-presentation-${simulation.id}-step-${snapshot.step}`,
+      id: `sun-presentation-${simulation.id}`,
       simulationId: simulation.id,
       eventId: snapshot.eventId,
       layers: [
@@ -144,11 +144,11 @@
     if (snapshot.state.status === 'running') {
       rows.push({
         schema: 'simulatte.viewIntent.v4',
-        id: `sun-follow-${snapshot.step}`,
+        id: 'sun-follow-walker',
         mode: 'follow',
         targets: [{ entityId: 'sun-walker-actor' }],
-        transitionReason: 'walker advanced to the next exposure sample',
-        triggerEventId: snapshot.eventId,
+        transitionReason: 'walk playback entered follow mode',
+        triggerEventId: simulation.timeline.events[1]?.id || snapshot.eventId,
         priority: 55,
         expiresAfterEventId: simulation.timeline.events[snapshot.step + 1]?.id || null,
         preservesManualOverride: true,
@@ -196,6 +196,8 @@
       timestamp: sample.timestamp,
       state: sample.state,
       reason: sample.reason,
+      geometricState: sample.geometricState,
+      geometricReason: sample.geometricReason,
       occluderId: sample.occluderId,
       occluderKind: sample.occluderKind,
       quantities: [

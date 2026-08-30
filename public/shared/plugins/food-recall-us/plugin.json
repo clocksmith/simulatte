@@ -85,7 +85,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginFoodRecallUs",
-    "integrity": "sha384-8d52b085c4be2186c7e320323206ef5e78714c918545ffdbb998a5ddf8b1e501b23cc75369c50833d267c245c489c12d",
+    "integrity": "sha384-b609431786b15e4b059ee909abe589fffebfa952e1f8e50f11bff6c68773f1ca986e68e543790b3a56c10cdbbb629be6",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -127,7 +127,7 @@
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-1c718b0f23b95446c137cc873e01e0621ab70e0125cc23776d4a817f14fa4d46626efd431ce75ecfe35ed462274effde",
+      "integrity": "sha384-4a4e51c9356715006dfe3a3f53c4ac367534b5976153244c0aa5b417e1551d930355971a977c5fb5f5656b5508b6ff70",
       "path": "./default-config.json"
     },
     {
@@ -135,7 +135,7 @@
       "path": "./food-engine.js"
     },
     {
-      "integrity": "sha384-98153401bafaafc89a77ea83d38d702d77a72787da30efca091b96ee311fb5ba3f10d3f8a0ce509d805968efebba3cea",
+      "integrity": "sha384-887779e00666ffbbc06a4aa330d72c9e3c1b1ed7a4a1818ef7d2f57c4ac6ebd88d52a3bf83d00af8fda35a1955124c75",
       "path": "./food-presentation.js"
     },
     {
@@ -143,7 +143,7 @@
       "path": "./input-context.js"
     },
     {
-      "integrity": "sha384-79811e894bce0efaba3f68f586f3365ea697079597505ed1852a1c99f0ad10f3e380655851340e1ff1c9b85804792b1d",
+      "integrity": "sha384-7e162ab8ed675657813efbc1c20db451611455cc8654c5ba3b866c5b90ee2c4e0fca894ee41dcaf1bda9ca6c46930f7a",
       "path": "./v4-contribution.js"
     }
   ],

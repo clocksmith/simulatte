@@ -14,6 +14,13 @@
       night: finite(state?.nightSeconds),
       buildingShade: finite(state?.buildingShadeSeconds),
       canopyShade: finite(state?.canopyShadeSeconds),
+      adjustedDirectBeam: finite(state?.directBeamEquivalentSeconds),
+    });
+    const geometricSeconds = Object.freeze({
+      direct: finite(state?.geometricDirectSunSeconds),
+      shade: finite(state?.geometricShadeSeconds),
+      unknown: finite(state?.geometricUnknownSeconds),
+      night: finite(state?.geometricNightSeconds),
     });
     const elapsedSeconds = seconds.direct + seconds.shade + seconds.unknown + seconds.night;
     const percentages = allocatePercentages({
@@ -22,21 +29,37 @@
       unknown: seconds.unknown,
       night: seconds.night,
     });
+    const geometricPercentages = allocatePercentages(geometricSeconds);
+    const adjustedDirectBeamPercent = elapsedSeconds > 0
+      ? Math.round(seconds.adjustedDirectBeam / elapsedSeconds * 100)
+      : 0;
     return Object.freeze({
       seconds,
+      geometricSeconds,
       elapsedSeconds,
       percentages,
+      geometricPercentages,
+      adjustedDirectBeamPercent,
       current: currentExposure(sample),
       split: elapsedSeconds > 0
-        ? `Shade ${percentages.shade}% / Direct sun ${percentages.direct}% / Unknown ${percentages.unknown}% / Night ${percentages.night}%`
+        ? `Exposure: Shade ${percentages.shade}% / Sun ${percentages.direct}% / Unknown ${percentages.unknown}% / Night ${percentages.night}%`
         : 'No completed exposure samples',
+      geometricSplit: elapsedSeconds > 0
+        ? `Geometry: Shade ${geometricPercentages.shade}% / Direct sun ${geometricPercentages.direct}% / Unknown ${geometricPercentages.unknown}% / Night ${geometricPercentages.night}%`
+        : 'No completed geometric sun samples',
       shadowDisplay: SHADOW_DISPLAY,
       shadowCalculation: SHADOW_CALCULATION,
     });
   }
 
   function currentExposure(sample) {
-    if (!sample) return Object.freeze({ state: 'ready', label: 'Ready at route origin' });
+    if (!sample) return Object.freeze({
+      state: 'ready',
+      label: 'Ready at route origin',
+      geometricState: 'ready',
+      geometricLabel: 'Geometric sun not sampled',
+      adjustedDirectBeamPercent: 0,
+    });
     const label = {
       direct: 'In direct sun',
       unknown: 'Exposure unknown',
@@ -47,7 +70,20 @@
           ? 'In modeled canopy shade'
           : 'In modeled shade',
     }[sample.state] || `Exposure: ${sample.state}`;
-    return Object.freeze({ state: sample.state, label });
+    const geometricState = sample.geometricState || sample.state;
+    const geometricLabel = {
+      direct: 'Geometrically in direct sun',
+      shade: 'Geometrically in building shade',
+      unknown: 'Geometric sun state unknown',
+      night: 'Sun below modeled horizon',
+    }[geometricState] || `Geometric sun: ${geometricState}`;
+    return Object.freeze({
+      state: sample.state,
+      label,
+      geometricState,
+      geometricLabel,
+      adjustedDirectBeamPercent: Math.round(finite(sample.directBeamFactor) * 100),
+    });
   }
 
   function allocatePercentages(values) {

@@ -11,11 +11,11 @@ import { runRerank } from '../../public/vendor/doppler/src/inference/browser-har
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
-const DEFAULT_EMBEDDING_RECEIPT = path.join(ROOT, 'public/data/simulatte/evidence/place-resolution-public-diagnostic-v2.json');
+const DEFAULT_EMBEDDING_RECEIPT = path.join(ROOT, 'public/data/simulatte/evidence/place-resolution-public-diagnostic-v6.json');
 const DEFAULT_OUTPUT = path.join(ROOT, 'artifacts/autonomy-performance/neural-place-reranker.json');
 const MODEL_LOCK_PATH = path.join(ROOT, 'public/data/simulatte-embedder/model-runtime-lock.json');
 const INDEX_PATH = path.join(ROOT, 'public/data/simulatte/place-embedding-index-v1.json');
-const CORPUS_PATH = path.join(ROOT, 'tools/samer/autonomy/place-resolution-probes-v1.json');
+const CORPUS_PATH = path.join(ROOT, 'tools/samer/simulatte/place-resolution-probes-v1.json');
 const DOPPLER_ENTRY_PATH = path.join(ROOT, 'public/vendor/doppler/src/index.js');
 
 function parseArgs(argv) {

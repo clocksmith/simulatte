@@ -123,31 +123,36 @@
       })],
     });
     const controls = builder.controls([
-      select('disturbanceScenarioId', 'Disturbance', result.configurationIdentity.disturbanceScenarioId,
-        datasets.disturbances.scenarios.map((row) => option(row.id, row.name)), scenario),
-      select('dispatchPolicyId', 'Dispatch policy', result.policies.dispatchPolicyId, [
+      select('dispatchPolicyId', 'Dispatch · Policy', result.policies.dispatchPolicyId, [
         option('economic-order', 'Economic order'),
         option('resilience-weighted', 'Resilience weighted'),
       ], scenario),
-      select('reservePolicyId', 'Reserve policy', result.policies.reservePolicyId, [
+      select('reservePolicyId', 'Dispatch · Reserve policy', result.policies.reservePolicyId, [
         option('fixed-reserve', 'Fixed reserve'),
         option('adaptive-reserve', 'Adaptive reserve'),
       ], scenario),
-      select('storagePolicyId', 'Storage policy', result.policies.storagePolicyId, [
+      number('emissionsPriceUsdPerTon', 'Dispatch · Emissions price (USD/tCO2e)', result.configurationIdentity.emissionsPriceUsdPerTon, 0, 250, 5, scenario),
+      select('storagePolicyId', 'Flexibility · Storage policy', result.policies.storagePolicyId, [
         option('immediate-support', 'Immediate support'),
         option('reserve-preserving', 'Reserve preserving'),
       ], scenario),
-      select('restorationPolicyId', 'Restoration policy', result.policies.restorationPolicyId, [
+      range('demandResponseMaximumFraction', 'Flexibility · Maximum demand response (share)', result.configurationIdentity.demandResponseMaximumFraction, 0, 0.2, 0.01, scenario),
+      ...result.configurationIdentity.sheddingPriorities.map((regionId, index) => select(
+        `sheddingPriority${index + 1}`,
+        `Flexibility · Service priority ${index + 1}${index === 0 ? ' (highest)' : ''}`,
+        regionId,
+        datasets.topology.regions.map((row) => option(row.id, row.name)),
+        scenario
+      )),
+      select('restorationPolicyId', 'Restoration · Policy', result.policies.restorationPolicyId, [
         option('nearest-first', 'Nearest first'),
         option('dependency-aware', 'Dependency aware'),
         option('service-impact-first', 'Service impact first'),
       ], scenario),
-      range('demandResponseMaximumFraction', 'Maximum demand response', result.configurationIdentity.demandResponseMaximumFraction, 0, 0.2, 0.01, scenario),
-      number('emissionsPriceUsdPerTon', 'Emissions price', result.configurationIdentity.emissionsPriceUsdPerTon, 0, 250, 5, scenario),
-      multi('sheddingPriorities', 'Service priority regions', result.configurationIdentity.sheddingPriorities,
-        datasets.topology.regions.map((row) => option(row.id, row.name)), scenario),
-      number('restorationCrewCount', 'Restoration crews', result.configurationIdentity.restorationCrewCount, 1, datasets.restoration.crews.length, 1, scenario),
-      number('ensembleSize', 'Scenario ensemble runs', result.configurationIdentity.ensembleSize, 1, config.ensembleSeeds.length, 1, scenario),
+      number('restorationCrewCount', 'Restoration · Crews (count)', result.configurationIdentity.restorationCrewCount, 1, datasets.restoration.crews.length, 1, scenario),
+      select('disturbanceScenarioId', 'Experiment · Disturbance', result.configurationIdentity.disturbanceScenarioId,
+        datasets.disturbances.scenarios.map((row) => option(row.id, row.name)), scenario),
+      number('ensembleSize', 'Experiment · Ensemble runs (count)', result.configurationIdentity.ensembleSize, 1, config.ensembleSeeds.length, 1, scenario),
     ], [{
       id: 'fixed-vs-adaptive-resilience',
       label: 'Economic baseline versus resilience intervention',
@@ -234,9 +239,6 @@
 
   function select(id, label, value, options, provenance) {
     return { id, label, kind: 'select', value, options, minimum: null, maximum: null, step: null, provenance };
-  }
-  function multi(id, label, value, options, provenance) {
-    return { id, label, kind: 'multiselect', value, options, minimum: null, maximum: null, step: null, provenance };
   }
   function range(id, label, value, minimum, maximum, step, provenance) {
     return { id, label, kind: 'range', value, options: null, minimum, maximum, step, provenance };

@@ -66,7 +66,19 @@
     function runPlayback(context) {
       const phase = context.values?.phase;
       if (phase === 'start') {
-        selectedScenario = normalizeScenario(context.scenario || selectedScenario, config);
+        const demandScenarioId = context.values?.demandScenarioId || acceptedParameters.demandScenarioId;
+        const outerScenario = context.scenario ? normalizeScenario(context.scenario, config) : null;
+        if (outerScenario && outerScenario.scenarioId !== demandScenarioId) {
+          throw pluginError(
+            'subsea_scenario_authority_conflict',
+            `Drawer demandScenarioId ${demandScenarioId} conflicts with outer scenario ${outerScenario.scenarioId}`
+          );
+        }
+        selectedScenario = normalizeScenario({
+          ...acceptedParameters,
+          id: demandScenarioId,
+          scenarioId: demandScenarioId,
+        }, config);
         acceptedParameters = validateParameters(context.values || {}, selectedScenario, config, datasets);
         const nextResult = run(acceptedParameters);
         const nextEnsemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
@@ -121,6 +133,11 @@
         schema: 'simulatte.plugin.subseaComparisonSummary.v1',
         comparisonId: comparisonRun.comparisonId,
         policies: comparisonRun.policies,
+        selectedPolicyId: comparisonRun.selectedPolicyId,
+        selectedBranchId: comparisonRun.selectedBranchId,
+        comparisonPolicyId: comparisonRun.comparisonPolicyId,
+        comparisonBranchId: comparisonRun.comparisonBranchId,
+        branchIdentities: comparisonRun.branchIdentities,
         branchMetrics: comparisonRun.branchMetrics,
         settlement: comparisonRun.settlement,
         comparisonExecutionReceiptId: comparisonRun.comparisonExecutionReceipt.id,
@@ -135,6 +152,11 @@
         schema: 'simulatte.plugin.subseaComparisonReceipt.v1',
         comparisonId: comparisonRun.comparisonId,
         policies: comparisonRun.policies,
+        selectedPolicyId: comparisonRun.selectedPolicyId,
+        selectedBranchId: comparisonRun.selectedBranchId,
+        comparisonPolicyId: comparisonRun.comparisonPolicyId,
+        comparisonBranchId: comparisonRun.comparisonBranchId,
+        branchIdentities: comparisonRun.branchIdentities,
         branchMetrics: comparisonRun.branchMetrics,
         settlementId: comparisonRun.settlement.id,
         truth: truth('simulated', 'forecast', distribution('Shared declared inputs; not current operations.')),
@@ -142,6 +164,11 @@
       return {
         status: 'settled',
         comparisonId: comparisonRun.comparisonId,
+        selectedPolicyId: comparisonRun.selectedPolicyId,
+        selectedBranchId: comparisonRun.selectedBranchId,
+        comparisonPolicyId: comparisonRun.comparisonPolicyId,
+        comparisonBranchId: comparisonRun.comparisonBranchId,
+        branchIdentities: comparisonRun.branchIdentities,
         comparisonBranches: comparisonRun.branchMetrics,
         comparisonExecutionReceiptId: comparisonRun.comparisonExecutionReceipt.id,
       };
@@ -218,17 +245,27 @@
         slot: 'inspector',
         title: 'Subsea allocation experiment',
         rows: [
-          { label: 'Scenario', value: parameters.demandScenarioId.replaceAll('-', ' ') },
+          { label: 'Disruption applied', value: parameters.demandScenarioId.replaceAll('-', ' ') },
+          { label: 'Disruption failures', value: parameters.failedResourceIds.join(', ') },
+          { label: 'Disruption exclusions', value: parameters.jurisdictionExclusions.length ? parameters.jurisdictionExclusions.join(', ') : 'none' },
           { label: 'Playback', value: `${state.playback.cursor} of ${state.result.snapshots.length - 1} · ${state.playback.status}` },
           { label: 'Network stage', value: snapshot.status.replaceAll('-', ' ') },
           { label: 'What changed', value: snapshot.narrative },
-          { label: 'Allocation', value: parameters.allocationPolicyId.replaceAll('-', ' ') },
-          { label: 'Repair priority', value: parameters.repairPolicyId.replaceAll('-', ' ') },
-          { label: 'Modeled failures', value: parameters.failedResourceIds.join(', ') },
+          { label: 'Allocation applied', value: parameters.allocationPolicyId.replaceAll('-', ' ') },
+          { label: 'Allocation comparison', value: parameters.comparisonPolicyId.replaceAll('-', ' ') },
+          { label: 'Allocation service weight', value: parameters.essentialServiceWeight },
+          { label: 'Repair priority applied', value: parameters.repairPolicyId.replaceAll('-', ' ') },
+          { label: 'Repair resources applied', value: parameters.repairResourceCount },
           { label: 'Delivered', value: `${Math.round(snapshot.metrics.deliveredGbps).toLocaleString()} scenario Gbps` },
           { label: 'Unmet demand', value: `${Math.round(snapshot.metrics.droppedGbps).toLocaleString()} scenario Gbps` },
           { label: 'Service fairness', value: snapshot.metrics.jainServiceFairness.toFixed(3) },
-          { label: 'Ensemble', value: `${parameters.ensembleSize} declared seeds · scenario variance` },
+          { label: 'Evidence ensemble', value: `${parameters.ensembleSize} declared seeds · scenario variance` },
+          { label: 'Evidence datasets', value: `${datasets.dataReceipts.length} bound dataset receipts` },
+          ...(state.comparison ? [
+            { label: 'Comparison identity', value: state.comparison.comparisonId },
+            { label: 'Selected branch', value: `${state.comparison.selectedBranchId}: ${state.comparison.selectedPolicyId}` },
+            { label: 'Comparator branch', value: `${state.comparison.comparisonBranchId}: ${state.comparison.comparisonPolicyId}` },
+          ] : []),
         ],
         fields: [],
         actions: [],
@@ -256,6 +293,7 @@
         config,
         result: state.result,
         snapshot: currentSnapshot(state),
+        appliedParameters: state.acceptedParameters,
         comparison: state.comparison,
       });
     }
@@ -345,6 +383,14 @@
     if (!allocationApi.POLICY_IDS.includes(allocationPolicyId)) {
       throw pluginError('subsea_control_invalid', `Unknown allocationPolicyId ${allocationPolicyId}`);
     }
+    const comparisonPolicyId = textControl(
+      values.comparisonPolicyId,
+      selectedScenario.comparisonPolicyId || config.comparisonPolicyId,
+      'comparisonPolicyId'
+    );
+    if (!allocationApi.POLICY_IDS.includes(comparisonPolicyId)) {
+      throw pluginError('subsea_control_invalid', `Unknown comparisonPolicyId ${comparisonPolicyId}`);
+    }
     const repairPolicyId = textControl(values.repairPolicyId, selectedScenario.repairPolicyId || config.repairPolicyId, 'repairPolicyId');
     if (!['nearest-first', 'unmet-demand-first'].includes(repairPolicyId)) {
       throw pluginError('subsea_control_invalid', `Unknown repairPolicyId ${repairPolicyId}`);
@@ -401,6 +447,7 @@
       capacityScenarioId: demandScenario.capacityScenarioId,
       repairScenarioId: demandScenario.repairScenarioId,
       allocationPolicyId,
+      comparisonPolicyId,
       repairPolicyId,
       failedResourceIds,
       excludedLandingIds: jurisdictionExclusions,

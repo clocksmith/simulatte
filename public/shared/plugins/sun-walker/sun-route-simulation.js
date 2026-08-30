@@ -211,6 +211,8 @@
         sampleIndex,
         point,
         representedSeconds: round(sampleSeconds),
+        geometricState: result.state,
+        geometricReason: result.reason,
         state: state.state,
         reason: state.reason,
         occluderId: result.occluderId || environmental.canopy.treeId,
@@ -340,6 +342,10 @@
       progress: 0,
       directSunSeconds: 0,
       shadeSeconds: 0,
+      geometricDirectSunSeconds: 0,
+      geometricShadeSeconds: 0,
+      geometricUnknownSeconds: 0,
+      geometricNightSeconds: 0,
       buildingShadeSeconds: 0,
       canopyShadeSeconds: 0,
       unknownSeconds: 0,
@@ -350,6 +356,7 @@
 
   function advanceState(state, sample, completedSamples, totalSamples) {
     const key = `${sample.state === 'direct' ? 'directSun' : sample.state}Seconds`;
+    const geometricKey = `geometric${sample.geometricState === 'direct' ? 'DirectSun' : capitalize(sample.geometricState)}Seconds`;
     return {
       ...state,
       status: 'running',
@@ -358,6 +365,7 @@
       totalSamples,
       progress: round(completedSamples / totalSamples),
       [key]: round(state[key] + sample.representedSeconds),
+      [geometricKey]: round(state[geometricKey] + sample.representedSeconds),
       buildingShadeSeconds: round(state.buildingShadeSeconds
         + (sample.state === 'shade' && sample.occluderKind === 'building' ? sample.representedSeconds : 0)),
       canopyShadeSeconds: round(state.canopyShadeSeconds
@@ -549,7 +557,7 @@
 
   function controlDefinitions(config) {
     return truthApi.deepFreeze([
-      control('departureAt', 'datetime', null, 'scenario', 'Simulation departure instant'),
+      control('departureAt', 'datetime', null, 'scenario', 'Departure time (UTC)'),
       control('maximumAddedTimeSeconds', 'number', config.maximumAddedTimeSeconds, 'scenario', 'Maximum absolute detour'),
       control('maximumAddedRatio', 'number', config.maximumAddedRatio, 'scenario', 'Maximum relative detour'),
       control('directSunWeight', 'number', config.directSunWeight, 'scenario', 'Direct-sun preference weight'),
@@ -737,6 +745,10 @@
         : building.reason,
       directBeamFactor: environmental.directBeamFactor,
     };
+  }
+
+  function capitalize(value) {
+    return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
   }
 
   function observedHistoricalTruth(hash) {

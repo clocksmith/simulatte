@@ -96,7 +96,7 @@
     "measure:world-data": "node tools/measure-world-data.mjs",
     "pipeline:matrix:check": "node tools/render-pipeline-job-matrix.mjs --check",
     "pipeline:matrix:sync": "node tools/render-pipeline-job-matrix.mjs",
-    "prepare:hosting": "npm run restore:doppler:development && npm run stamp:build && npm run check:deploy && npm run package:hosting",
+    "prepare:hosting": "npm run check:doppler:development && npm run stamp:build && npm run check:deploy && npm run package:hosting",
     "package:hosting": "node tools/package-hosting-surfaces.mjs",
     "plugins:check": "npm run simulatte:tiers:data:check && node tools/plugins/sync-plugin-integrity.mjs && node tools/plugins/sync-plugin-registry.mjs && node tools/plugins/check-plugin-boundaries.mjs",
     "plugins:sync": "node tools/plugins/sync-plugin-integrity.mjs --write && node tools/plugins/sync-plugin-registry.mjs --write",
@@ -137,6 +137,7 @@
     "sync:model-lock-references": "node tools/sync-model-runtime-lock-references.mjs --write",
     "sync:runtime-entrypoint": "node tools/sync-runtime-script-entrypoint.mjs --write",
     "test": "node tools/run-test-files.mjs",
+    "test:doppler-models": "node tools/simulatte/qualify-doppler-models.mjs",
     "test:fail-fast": "node tools/run-test-files.mjs --fail-fast",
     "test:vendor-inference": "node tools/run-vendor-inference-lane.mjs",
     "train": "node tools/train.mjs",
@@ -145,5 +146,8 @@
     "validate:universe": "node tools/validate-semantic-universe.mjs",
     "validate:visual-cards": "node tools/validate-visual-card-index.mjs",
     "sync:world-entrypoint": "node tools/check-world-runtime-entrypoint.mjs --write"
+  },
+  "devDependencies": {
+    "doe-gpu": "0.4.7"
   }
 }

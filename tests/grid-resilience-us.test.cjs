@@ -178,7 +178,10 @@ test('exact scenario preparation and comparison replay reuse governed results', 
   const instance = await plugin.activate({ sdk: harness.sdk, config, profile: null, scenario });
 
   instance.setScenario(scenario);
-  await instance.handleAction('scenario.run', { scenario, values: { phase: 'start' } });
+  await instance.handleAction('scenario.run', {
+    scenario: { id: 'ignored-route-scenario', scenarioId: 'ignored-route-scenario' },
+    values: { phase: 'start' },
+  });
   const scenarioEvents = harness.events.filter((row) => row.kind.endsWith('.scenario-computed'));
   assert.deepEqual(scenarioEvents.map((row) => row.preparation), ['reused', 'reused']);
 
@@ -206,23 +209,30 @@ test('typed Start accepts controls, Step preserves identity, and replay restores
     restorationPolicyId: 'service-impact-first',
     demandResponseMaximumFraction: 0.04,
     emissionsPriceUsdPerTon: 80,
-    sheddingPriorities: ['east', 'central', 'texas', 'west'],
+    sheddingPriority1: 'east',
+    sheddingPriority2: 'central',
+    sheddingPriority3: 'texas',
+    sheddingPriority4: 'west',
     restorationCrewCount: 1,
     ensembleSize: 2,
   };
   const started = await instance.handleAction('scenario.run', {
-    scenario: { id: 'interface-loss', scenarioId: 'interface-loss', seed: 'grid-replay-1' },
+    scenario: { id: 'route-must-not-win', scenarioId: 'route-must-not-win', seed: 'grid-replay-1' },
     values: { ...values, phase: 'start' },
   });
   assert.equal(started.status, 'running');
   assert.equal(started.acceptedParameters.emissionsPriceUsdPerTon, 80);
+  assert.equal(started.acceptedParameters.disturbanceScenarioId, 'interface-loss');
+  assert.deepEqual(started.acceptedParameters.sheddingPriorities, ['east', 'central', 'texas', 'west']);
   const receiptCount = harness.receipts.length;
-  const stepped = await instance.handleAction('scenario.run', { values: { ...values, phase: 'step' } });
+  const stepped = await instance.handleAction('scenario.run', {
+    values: { ...values, emissionsPriceUsdPerTon: 5, phase: 'step' },
+  });
   assert.equal(stepped.currentStep, 1);
   assert.equal(stepped.scenarioIdentity, started.scenarioIdentity);
   assert.equal(harness.receipts.length, receiptCount);
   const replayed = await instance.handleAction('scenario.run', {
-    scenario: { id: 'interface-loss', scenarioId: 'interface-loss', seed: 'grid-replay-1' },
+    scenario: { id: 'another-route-scenario', scenarioId: 'another-route-scenario', seed: 'grid-replay-1' },
     values: { ...values, phase: 'start' },
   });
   assert.deepEqual(replayed, started);
@@ -242,9 +252,19 @@ test('v4 contribution exposes all experiment controls, semantic quantities, and 
     'reservePolicyId',
     'restorationCrewCount',
     'restorationPolicyId',
-    'sheddingPriorities',
+    'sheddingPriority1',
+    'sheddingPriority2',
+    'sheddingPriority3',
+    'sheddingPriority4',
     'storagePolicyId',
   ].sort());
+  const priorityControls = contribution.controls.controls.filter((row) => row.id.startsWith('sheddingPriority'));
+  assert.deepEqual(priorityControls.map((row) => row.value), config.sheddingPriorities);
+  assert.ok(priorityControls.every((row) => row.kind === 'select' && row.label.startsWith('Flexibility ·')));
+  assert.ok(contribution.controls.controls.some((row) => row.label.includes('USD/tCO2e')));
+  const appliedRows = instance.view()[0].rows;
+  assert.ok(appliedRows.some((row) => row.label === 'Applied dispatch'));
+  assert.ok(appliedRows.some((row) => row.label === 'Live demand / served'));
   assert.ok(contribution.presentation.layers.some((row) => row.quantity?.kind === 'modeled-unserved-load'));
   assert.ok(contribution.presentation.layers.some((row) => row.quantity?.kind === 'interface-utilization'));
   assert.ok(contribution.provenanceRecords.length > manifest.datasets.length);

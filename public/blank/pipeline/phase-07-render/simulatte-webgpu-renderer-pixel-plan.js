@@ -178,7 +178,7 @@
       height
     ) {
       if (phase7VisualRelationObligation(obligation)) {
-        appendRelationPixelSamples(samples, drawables, renderData, obligation, width, height);
+        appendRelationPixelSamples(samples, drawables, renderData, obligation, expectedSamples, width, height);
         return;
       }
       const matched = drawablesForPixelObligation(drawables, obligation).slice(0, expectedSamples);
@@ -300,6 +300,7 @@
         null;
       const ledgerRows = ledger && Array.isArray(ledger.obligations) ? ledger.obligations : [];
       const directIds = new Set(direct.map((row) => row && (row.obligationId || row.id)).filter(Boolean));
+      const seenIds = new Set();
       return [
         ...direct,
         ...ledgerRows.filter((row) => !directIds.has(row && (row.obligationId || row.id))),
@@ -315,6 +316,11 @@
           row.ownedByPhase === 6 ||
           /^visual:/.test(id)
         ));
+      }).filter((row) => {
+        const id = row && (row.obligationId || row.id) || '';
+        if (!id || seenIds.has(id)) return !id;
+        seenIds.add(id);
+        return true;
       });
     }
 
@@ -327,7 +333,7 @@
         return Math.max(1, Math.min(PHASE7_COLOR_PROPERTY_SAMPLE_LIMIT, candidateCount || 1));
       }
       return phase7VisualRelationObligation(obligation)
-        ? 2
+        ? phase7DynamicRelationObligation(obligation) ? 1 : 2
         : Math.max(1, Number(obligation.expectedCount || 1));
     }
 
@@ -357,8 +363,21 @@
       const id = String(obligation.obligationId || obligation.id || '');
       return obligation.required === true && obligation.kind === 'relation' && (
         /^relation:spatial:/.test(id) ||
-        /^relation:[^:]+:(?:hold|holds|holding|grasp|grasps|grasping|carry|carries|carrying|clutch|clutches|clutching):/.test(id)
+        /^relation:[^:]+:(?:hold|holds|holding|grasp|grasps|grasping|carry|carries|carrying|clutch|clutches|clutching):/.test(id) ||
+        phase7DynamicRelationEvidenceIds(obligation).length > 0
       );
+    }
+
+    function phase7DynamicRelationEvidenceIds(obligation = {}) {
+      return Array.from(new Set((obligation.visualEvidence || [])
+        .map((value) => String(value || '').match(/^phase6:(?:process|field):(.+)$/))
+        .filter(Boolean)
+        .map((match) => scope.normalizeForProof(match[1]))));
+    }
+
+    function phase7DynamicRelationObligation(obligation = {}) {
+      return obligation.required === true && obligation.kind === 'relation' &&
+        phase7DynamicRelationEvidenceIds(obligation).length > 0;
     }
 
     function phase7VisualRelationIdentities(obligation = {}) {
@@ -367,7 +386,28 @@
       return match ? [scope.normalizeForProof(match[1]), scope.normalizeForProof(match[2])] : [];
     }
 
-    function appendRelationPixelSamples(samples, drawables, renderData, obligation, width, height) {
+    function appendRelationPixelSamples(samples, drawables, renderData, obligation, expectedSamples, width, height) {
+      const initialSampleCount = samples.length;
+      const dynamicEvidenceIds = phase7DynamicRelationEvidenceIds(obligation);
+      if (dynamicEvidenceIds.length) {
+        const sampledDrawableIds = new Set();
+        for (const evidenceId of dynamicEvidenceIds) {
+          const drawable = drawables.find((row) => pixelDrawableMatchesEvidenceId(row, evidenceId));
+          if (!drawable || sampledDrawableIds.has(drawable.id)) continue;
+          sampledDrawableIds.add(drawable.id);
+          const sample = scope.pixelSampleForDrawable(
+            drawable,
+            obligation,
+            width,
+            height,
+            samples.length,
+            drawables.length
+          );
+          if (sample) samples.push(sample);
+          if (samples.length - initialSampleCount >= expectedSamples) break;
+        }
+        return;
+      }
       for (const identity of phase7VisualRelationIdentities(obligation)) {
         const drawable = drawables.find((row) => pixelDrawableMatchesIdentity(row, identity));
         if (!drawable) continue;
@@ -386,6 +426,7 @@
         );
         if (sample && projected) applyProjectedPixelSample(sample, projected, width, height, obligation);
         if (sample) samples.push(sample);
+        if (samples.length - initialSampleCount >= expectedSamples) break;
       }
     }
 
@@ -399,6 +440,14 @@
         ...(row.representedEntityIds || []),
       ].map(scope.normalizeForProof).filter(Boolean);
       return values.some((value) => value === identity || value.includes(identity) || identity.includes(value));
+    }
+
+    function pixelDrawableMatchesEvidenceId(row = {}, evidenceId = '') {
+      const expected = scope.normalizeForProof(evidenceId);
+      return [row.id, row.sourceGraphId]
+        .map(scope.normalizeForProof)
+        .filter(Boolean)
+        .some((value) => value === expected);
     }
 
     function drawablesForPixelObligation(drawables = [], obligation = {}) {

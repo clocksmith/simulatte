@@ -56,7 +56,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginOrbitalTransferPlanner",
-    "integrity": "sha384-8474aeccb672eb63e0a9adeb3231712626f6f3e9423c3f61df92fc160ab372c727d46a1bd4ebeea6a9778927c9c36356",
+    "integrity": "sha384-9bb7938bd09c3b0ad6ac5cf0ff57609da062145e60d80238f519644b4d147ec19bb7cd9985aef5ee10fe4b446bb4006b",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -142,7 +142,7 @@
       "path": "./radiation.js"
     },
     {
-      "integrity": "sha384-950c8219a2f8894bb33a89145f9b3621208bb4f051258f83a413224e633f33d2c54378a41943ddfd6ed6edeaa15ff907",
+      "integrity": "sha384-3619c313d49d7a9236d44c37875948468b5985d02be40cf38922d2bab5a78a21caee2d91427dac905b701a6b4a5944b8",
       "path": "./v4-contribution.js"
     }
   ],

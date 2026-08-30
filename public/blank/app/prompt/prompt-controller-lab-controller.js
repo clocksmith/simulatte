@@ -147,6 +147,8 @@
         let semanticProofReceipt = null;
         let simulationReproducibilityReceipt = null;
         let safetyProofReceipt = null;
+        let improvementReportDiagnostics = null;
+        const improvementReportDiagnosticHistory = [];
         const worldImprovementSession = worldImprovementSessionApi.create();
         const pipelineCompiler = createPipelineCompiler(root);
         const compilerProof = compilerProofApi.create(root, {
@@ -197,9 +199,31 @@
           const reportMatchesSpec = Boolean(
             binding && binding.worldSpec && binding.worldSpec.contentHash === spec.contentHash
           );
+          improvementReportDiagnostics = {
+            schema: 'simulatte.worldImprovementReportDiagnostic.v1',
+            final: report && report.final === true,
+            reportMatchesSpec,
+            activeWorldSpecContentHash: String(spec && spec.contentHash || ''),
+            reportWorldSpecContentHash: String(binding && binding.worldSpec && binding.worldSpec.contentHash || ''),
+            sceneProofVerdict: String(phase8Artifact.sceneProof && phase8Artifact.sceneProof.verdict || ''),
+            worldProofVerdict: String(phase8Artifact.worldProof && phase8Artifact.worldProof.verdict || ''),
+            replayStatus: String(phase8Artifact.worldProof && phase8Artifact.worldProof.proofClasses &&
+              phase8Artifact.worldProof.proofClasses.replay &&
+              phase8Artifact.worldProof.proofClasses.replay.status || ''),
+          };
+          improvementReportDiagnosticHistory.push(improvementReportDiagnostics);
+          if (improvementReportDiagnosticHistory.length > 16) {
+            improvementReportDiagnosticHistory.shift();
+          }
           if (reportMatchesSpec) {
-            const improvementRecord = worldImprovementSession.observeProof(spec, report);
-            if (improvementRecord) worldSpecEditor?.syncImprovement(improvementRecord);
+            try {
+              const improvementRecord = worldImprovementSession.observeProof(spec, report);
+              if (improvementRecord) worldSpecEditor?.syncImprovement(improvementRecord);
+            } catch (error) {
+              improvementReportDiagnostics.sessionError = error && error.message
+                ? error.message
+                : String(error || 'improvement session rejected report');
+            }
           }
           if (report && report.final === true && phase8Artifact.worldProof && worldProofApi &&
               typeof worldProofApi.createReplayBaseline === 'function' && reportMatchesSpec) {
@@ -927,6 +951,11 @@
           }),
           getImprovementRecord: () => worldImprovementSession.getCurrentRecord(),
           getImprovementRecords: () => worldImprovementSession.getRecords(),
+          getImprovementDiagnostics: () => ({
+            session: worldImprovementSession.getDiagnostics(),
+            report: improvementReportDiagnostics,
+            reportHistory: improvementReportDiagnosticHistory.map((entry) => ({ ...entry })),
+          }),
           setSpec,
         };
       }

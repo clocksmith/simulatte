@@ -10,6 +10,7 @@ const topologyApi = require(path.join(pluginDir, 'cluster-topology.js'));
 const collectiveApi = require(path.join(pluginDir, 'collective-solver.js'));
 const thermalApi = require(path.join(pluginDir, 'thermal-model.js'));
 const receiptApi = require(path.join(pluginDir, 'receipt-factory.js'));
+const controlsApi = require(path.join(pluginDir, 'cluster-controls.js'));
 const pluginApi = require(path.join(pluginDir, 'index.js'));
 const pluginContracts = require(path.join(ROOT, 'public/simulatte/platform/contracts/plugin-contracts.js'));
 const v4Contracts = require(path.join(ROOT, 'public/simulatte/platform/contracts/plugin-v4-contracts.js'));
@@ -69,6 +70,15 @@ test('straggler node fault injection degrades MFU and increases barrier step tim
   assert.ok(degraded.stragglerDelayMs > 0);
 });
 
+test('packet loss affects collective state and coolant controls use the declared 1000 L/min bound', () => {
+  const baseline = collectiveApi.solveCollectives({ totalGpus: 256, linkPacketDropRate: 0 });
+  const degraded = collectiveApi.solveCollectives({ totalGpus: 256, linkPacketDropRate: 0.1 });
+  assert.ok(degraded.commTimeMs > baseline.commTimeMs);
+  assert.ok(degraded.stepTimeMs > baseline.stepTimeMs);
+  assert.equal(controlsApi.normalizeControls({ coolantFlowLpm: 900 }).coolantFlowLpm, 900);
+  assert.equal(controlsApi.normalizeControls({ coolantFlowLpm: 1200 }).coolantFlowLpm, 1000);
+});
+
 test('thermal model solves coolant delta-T, PUE, and triggers thermal throttling under reduced flow', () => {
   const nominal = thermalApi.solveThermals({
     totalGpus: 256,
@@ -126,7 +136,21 @@ test('gpu-supercluster activates as a native v4 plugin with deterministic playba
   assert.equal(ready.state.status, 'ready');
   assert.equal(instance.settle().status, 'not_settled');
 
-  assert.equal(instance.handleAction('scenario.run', { values: { phase: 'start' } }).status, 'running');
+  const started = instance.handleAction('scenario.run', {
+    values: { phase: 'start', linkPacketDropRate: 0.01, coolantFlowLpm: 900 },
+  });
+  assert.equal(started.status, 'running');
+  assert.equal(started.mode, 'deterministic-result-replay');
+  assert.equal(started.resultAuthority, 'recomputed-on-playback-start');
+  assert.equal(started.receipt.seed, 'supercluster-straggler-002');
+  const applied = instance.contributeV4();
+  const controls = new Map(applied.controls.controls.map((control) => [control.id, control]));
+  assert.equal(controls.get('linkPacketDropRate').value, 0.01);
+  assert.equal(controls.get('coolantFlowLpm').value, 900);
+  const fields = new Map(applied.inspections[0].fields.map((field) => [field.id, field]));
+  assert.equal(fields.get('scenario-seed').value, 'supercluster-straggler-002');
+  assert.equal(fields.get('packet-drop').value, 1);
+  assert.equal(fields.get('coolant-flow').value, 900);
   let terminal;
   for (let step = 0; step < 4; step += 1) {
     terminal = instance.handleAction('scenario.run', { values: { phase: 'step' } });

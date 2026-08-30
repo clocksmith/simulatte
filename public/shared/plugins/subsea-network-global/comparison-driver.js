@@ -32,9 +32,18 @@
   async function runComparison({ datasets, dataReceipts, config, scenario, selectedResult = null }) {
     requireDependencies();
     const branchPolicies = Object.freeze({
-      baseline: 'weighted-throughput',
-      intervention: 'proportional-fair',
+      baseline: scenario.comparisonPolicyId,
+      intervention: scenario.allocationPolicyId,
     });
+    if (!branchPolicies.baseline || !branchPolicies.intervention) {
+      throw comparisonError('subsea_comparison_policy_missing', 'Selected and comparison policies are required');
+    }
+    if (branchPolicies.baseline === branchPolicies.intervention) {
+      throw comparisonError(
+        'subsea_comparison_policy_duplicate',
+        `Selected policy ${branchPolicies.intervention} requires a distinct comparison policy`
+      );
+    }
     const simulations = Object.fromEntries(BRANCH_ROLES.map((role) => [role,
       canReuseSelectedResult(selectedResult, scenario, branchPolicies[role])
         ? selectedResult
@@ -55,8 +64,8 @@
     };
     const hiddenTruthHash = await sha256Json(hiddenTruth);
     const inputHash = await sha256Json({
-      scenarioId: scenario.scenarioId,
-      seed: scenario.seed,
+      appliedParameters: scenario,
+      branchPolicies,
       datasetHashes: dataReceipts.map((row) => [row.datasetId, row.sha256]),
       config,
     });
@@ -124,6 +133,14 @@
       schema: 'simulatte.plugin.subseaComparisonRun.v1',
       comparisonId,
       policies: branchPolicies,
+      selectedPolicyId: branchPolicies.intervention,
+      selectedBranchId: 'intervention',
+      comparisonPolicyId: branchPolicies.baseline,
+      comparisonBranchId: 'baseline',
+      branchIdentities: Object.fromEntries(BRANCH_ROLES.map((role) => [
+        role,
+        simulations[role].scenarioIdentity,
+      ])),
       branchMetrics: Object.fromEntries(BRANCH_ROLES.map((role) => [role, simulations[role].metrics])),
       settlement,
       comparisonExecutionReceipt: execution.receipt(),

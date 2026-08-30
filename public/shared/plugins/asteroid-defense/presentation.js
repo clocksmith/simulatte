@@ -5,7 +5,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAsteroidPresentation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAsteroidPresentation(propagation) {
-  function createSemanticPresentation({ result, snapshot, forceModel }) {
+  function createSemanticPresentation({ result, snapshot, forceModel, automaticView = true }) {
     const encounter = snapshot.activeEncounter === 'intervention'
       ? result.interventionEncounter
       : snapshot.activeEncounter === 'baseline'
@@ -83,7 +83,7 @@
           layer('asteroid-active-clone-layer', 'progress_actor', actorObjects, 'none', 'progressFraction'),
         ] : []),
       ],
-      viewIntents: [{
+      viewIntents: automaticView ? [{
         schema: 'simulatte.viewIntent.v4',
         mode: snapshot.status === 'settled' ? 'compare' : actorObjects.length ? 'follow' : 'overview',
         targetIds: actorObjects.length
@@ -93,7 +93,7 @@
         priority: 70,
         expiresAtEventId: null,
         mayInterruptManualOverride: false,
-      }],
+      }] : [],
     });
   }
 

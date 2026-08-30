@@ -18,7 +18,7 @@ test('candidate registry pins concrete task-specific implementations and blocks 
     'embedding-retrieval': 3,
     reranking: 4,
   });
-  assert.equal(report.modelLockNumber, 14);
+  assert.equal(report.modelLockNumber, 15);
   const classification = registry.tasks.classification;
   assert.deepEqual(classification.map((row) => row.id), [
     'deterministic-tfidf-control',
@@ -185,6 +185,16 @@ test('sealed opening commands keep repository paths portable', async () => {
   );
   assert.equal(receiptArgument('/tmp/outside-simulatte.json'), '/tmp/outside-simulatte.json');
   assert.equal(receiptArgument('Qwen/Qwen3-Reranker-0.6B'), 'Qwen/Qwen3-Reranker-0.6B');
+});
+
+test('neural place reranker uses the canonical Simulatte probe corpus', () => {
+  const source = fs.readFileSync(
+    path.join(root, 'tools/simulatte/evaluate-neural-place-reranker.mjs'),
+    'utf8'
+  );
+  assert.match(source, /tools\/samer\/simulatte\/place-resolution-probes-v1\.json/);
+  assert.doesNotMatch(source, /tools\/samer\/autonomy\/place-resolution-probes-v1\.json/);
+  assert.equal(fs.existsSync(path.join(root, 'tools/samer/simulatte/place-resolution-probes-v1.json')), true);
 });
 
 function readJson(relativePath) {

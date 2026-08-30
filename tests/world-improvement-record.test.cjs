@@ -214,7 +214,42 @@ test('improvement session captures a failure once and emits only after a later e
   assert.equal(record.successfulReplay.worldSpec.contentHash, fixture.successfulSpec.contentHash);
   assert.equal(session.getCurrentRecord(), record);
   assert.equal(session.getRecords().length, 1);
+  assert.equal(session.getDiagnostics().status, 'record-created');
   assert.deepEqual(emitted, [record]);
+});
+
+test('improvement session retains an exact failed baseline across same-prompt compiler candidates', () => {
+  const fixture = correctionFixture();
+  const alternate = lab.remixSpec(fixture.initialSpec);
+  const session = sessionContract.create();
+
+  assert.notEqual(alternate.contentHash, fixture.initialSpec.contentHash);
+  assert.equal(alternate.authorship.revision, fixture.initialSpec.authorship.revision);
+  session.observeProof(fixture.initialSpec, fixture.initialReport);
+  session.observeSpec(alternate);
+
+  const record = session.observeProof(fixture.successfulSpec, fixture.successfulReport);
+  assert.equal(record.failureBoundary.worldSpec.contentHash, fixture.initialSpec.contentHash);
+  assert.equal(record.successfulReplay.worldSpec.contentHash, fixture.successfulSpec.contentHash);
+});
+
+test('improvement session does not pair an edit of an unproven alternate with an older failure', () => {
+  const fixture = correctionFixture();
+  const alternate = lab.remixSpec(fixture.initialSpec);
+  const candidate = JSON.parse(lab.serializeSpec(alternate));
+  candidate.name = 'Edited unproven alternate';
+  const editedAlternate = lab.applyWorldSpecEdit(alternate, candidate, {
+    rationale: 'Do not borrow evidence from a different compiler candidate',
+  });
+  const session = sessionContract.create();
+
+  session.observeProof(fixture.initialSpec, fixture.initialReport);
+  session.observeSpec(alternate);
+  assert.equal(
+    session.observeProof(editedAlternate, reportForSpec(editedAlternate, 'pass', { replay: true })),
+    null
+  );
+  assert.equal(session.getCurrentRecord(), null);
 });
 
 test('final-phase training review binds human adjudication to the successful correction record', async () => {

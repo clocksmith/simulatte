@@ -17,7 +17,8 @@
     propagation: 'ccdb8fc4462878971f510c195f6c55b47613bc506264f0095b6a7daf230de9a0',
   });
 
-  function createContribution({ datasets, config, result, snapshot, comparison = null }) {
+  function createContribution({ datasets, config, result, snapshot, comparison = null, viewAuthority = null }) {
+    const automaticView = viewAuthority?.mode !== 'manual';
     const records = datasets.dataReceipts.map((receipt) => builder.datasetRecord(
       receipt.datasetId,
       receipt,
@@ -293,7 +294,7 @@
       coordinateSystem: 'heliocentric-ecliptic-au',
       epoch,
       layers,
-      viewIntents: [builder.viewIntent({
+      viewIntents: automaticView ? [builder.viewIntent({
         id: `asteroid-view:${snapshot.id}`,
         mode: comparison?.settlement
           ? 'compare'
@@ -303,7 +304,7 @@
         targetIds: viewTargetIds,
         reasonEventId: snapshot.eventIds.at(-1) || null,
         priority: 75,
-      })],
+      })] : [],
     });
     const campaign = datasets.campaigns.campaigns.find((row) => row.id === result.scenarioId);
     const controls = builder.controls([
@@ -366,6 +367,10 @@
         fields: [
           field('campaign', 'Synthetic campaign', result.scenarioId, null, scenarioClaim),
           field('stage', 'Scientific stage', snapshot.status, null, scenarioClaim),
+          field('logical-time', 'Logical simulation time', epochForDay(config.startInstant, snapshot.simulationTimeMs / 86400000), 'UTC', simulated),
+          field('decision-threshold', 'Modeled screening threshold', result.configurationIdentity.decisionThreshold, 'ratio', scenarioClaim),
+          field('decision-state', 'Active decision state', activeDecisionLabel(result, snapshot), null, simulated),
+          field('camera-authority', 'Camera authority', automaticView ? 'automatic simulation transitions' : 'manual camera override', null, simulated),
           field('observations', 'Acquired observations', snapshot.observationCount, 'observations', scenarioClaim),
           ...(snapshot.fitReceipt ? [
             field('fit-termination', 'Fit termination', snapshot.fitReceipt.terminationReason, null, simulated),
@@ -440,6 +445,15 @@
   function epochForDay(startInstant, day) {
     const start = Date.parse(startInstant || '');
     return Number.isFinite(start) ? new Date(start + day * 86400000).toISOString() : startInstant;
+  }
+
+  function activeDecisionLabel(result, snapshot) {
+    const encounter = snapshot.baselineEncounter;
+    if (!encounter) return 'awaiting modeled encounter screen';
+    const crossed = encounter.modeledScreeningFraction >= result.configurationIdentity.decisionThreshold;
+    if (!snapshot.requestedInterventionId) return crossed ? 'threshold met; decision pending' : 'below threshold; observing';
+    if (snapshot.appliedInterventionId === 'none') return crossed ? 'threshold met; intervention withheld' : 'below threshold; no intervention';
+    return `${crossed ? 'threshold met' : 'below threshold'}; ${snapshot.appliedInterventionId} applied`;
   }
 
   function julianDate(instant) {

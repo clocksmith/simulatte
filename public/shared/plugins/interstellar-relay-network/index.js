@@ -66,6 +66,15 @@
         operationsData,
         advancedData,
       });
+      const presetControls = controlsApi.resolveControls({
+        config,
+        scenario: scenarioRow,
+        values: branch === 'baseline' ? branchValues : {},
+        hardwareData,
+        starsData: stellarCatalog,
+        operationsData,
+        advancedData,
+      });
       const selectedTransceiverId = controls.transceiverId;
       const transceiver = hardwareData.archetypes[selectedTransceiverId];
       if (!transceiver) throw new Error(`interstellar_transceiver_missing: ${selectedTransceiverId}`);
@@ -263,6 +272,7 @@
           relayHops: Object.freeze(selectedPath.slice()),
         }),
         controls: effectiveControls,
+        presetStatus: controlsMatch(effectiveControls, presetControls) ? 'starting preset' : 'customized',
         controlOptions: controlsApi.controlOptions({
           starsData: stellarCatalog,
           hardwareData,
@@ -525,8 +535,10 @@
           title: 'Interstellar Relay Network',
           rows: [
             { label: 'Starting preset', value: result.scenario.name },
+            { label: 'Configuration', value: result.presetStatus },
             { label: 'Progress', value: `${state.progressive.currentEventIndex + 1}/${result.schedule.trace.length} events · ${state.progressive.status}` },
-            { label: 'Modeled clock', value: formatModeledDuration(state.progressive.elapsedSeconds) },
+            { label: 'Transmission epoch', value: `${result.controls.startEpochIso} (UTC)` },
+            { label: 'Modeled clock', value: `${formatModeledDuration(state.progressive.elapsedSeconds)} since transmission epoch` },
             { label: 'Current event', value: relayEventLabel(event?.kind) },
             { label: 'Packet location', value: currentStar?.name || state.progressive.packetLocationId },
             { label: 'Relay path', value: result.scenario.relayHops.map((id) => result.stellarStates.find((row) => row.sourceId === id)?.name || id).join(' → ') },
@@ -546,6 +558,8 @@
             { label: 'Constructibility', value: [...new Set(result.channelReceipts.map((row) => row.constructibilityStatus))].join('; ') },
             { label: 'Remaining limitation', value: result.omissions.map((row) => row.label).join('; ') },
             { label: 'Endpoint catalog', value: `${stellarCatalog.stars.length.toLocaleString()} selectable · ${starsData.stars.length - 1} Gaia DR3 astrometric rows · ${hygData.count - 1} non-Sol HYG snapshot rows` },
+            { label: 'Data provenance', value: result.dataReceipts.map((row) => `${row.datasetId}@${String(row.sha256 || 'unhashed').slice(0, 12)}`).join('; ') },
+            { label: 'Model dependencies', value: result.modelReceipts.map((row) => row.modelId).join('; ') },
           ],
           fields: controlsApi.controlFields(result.controls, result.controlOptions),
           actions: [],
@@ -735,6 +749,9 @@
   }
   function withoutPhase(values = {}) {
     return Object.fromEntries(Object.entries(values).filter(([key]) => key !== 'phase' && values[key] !== ''));
+  }
+  function controlsMatch(left, right) {
+    return JSON.stringify(left) === JSON.stringify(right);
   }
   function formatRate(gbps) {
     if (gbps >= 1) return `${gbps.toFixed(3)} Gbps`;

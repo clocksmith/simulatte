@@ -17,6 +17,15 @@
     governance: 'asteroid-model-governance-v1',
     provenance: 'asteroid-provenance-registry-v1',
   });
+  const CONTROL_IDS = Object.freeze([
+    'observationCampaignId',
+    'followUpPolicyId',
+    'decisionPolicyId',
+    'interventionArchetypeId',
+    'observationBudget',
+    'ensembleSize',
+    'decisionThreshold',
+  ]);
 
   function dep(globalName, path) {
     return typeof module === 'object' && module.exports ? require(path) : root[globalName];
@@ -54,21 +63,68 @@
     }
 
     function handleAction(actionId, context = {}) {
+      if (actionId === 'asteroid.configuration.apply') return applyConfiguration(context);
+      if (actionId === 'asteroid.configuration.reset') return resetDraft();
+      if (actionId === 'asteroid.view.manual') return setViewAuthority('manual');
+      if (actionId === 'asteroid.view.automatic') return setViewAuthority('automatic');
       if (actionId === 'scenario.run') return playback(context);
       if (actionId === 'counterfactual.compare') return compare();
       return { status: 'refused', reason: 'unknown_action', actionId };
     }
 
+    function applyConfiguration(context) {
+      const nextScenario = normalizeScenario(context.scenario || selectedScenario, config);
+      const nextParameters = validateParameters(context.values || {}, nextScenario, config, datasets);
+      selectedScenario = nextScenario;
+      acceptedParameters = nextParameters;
+      result = run(nextParameters);
+      comparison = null;
+      sdk.events.propose({
+        pluginId: PLUGIN_ID,
+        kind: `${PLUGIN_ID}.scenario-computed`,
+        result,
+        acceptedParameters,
+      });
+      appendScenarioReceipt(result);
+      return {
+        status: 'applied',
+        acceptedParameters,
+        scenarioIdentity: result.scenarioIdentity,
+        playbackStatus: sdk.state.read().playback.status,
+      };
+    }
+
+    function resetDraft() {
+      const state = sdk.state.read();
+      return {
+        status: 'reset',
+        values: state.acceptedParameters,
+        scenarioIdentity: state.result.scenarioIdentity,
+      };
+    }
+
+    function setViewAuthority(mode) {
+      sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.view-authority-changed`, mode });
+      const state = sdk.state.read();
+      return {
+        status: 'settled',
+        viewAuthority: state.viewAuthority.mode,
+        automaticView: state.viewAuthority.mode === 'automatic',
+      };
+    }
+
     function playback(context) {
       const phase = context.values?.phase;
       if (phase === 'start') {
-        selectedScenario = normalizeScenario(context.scenario || selectedScenario, config);
-        acceptedParameters = validateParameters(context.values || {}, selectedScenario, config, datasets);
-        result = run(acceptedParameters);
-        comparison = null;
-        sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.scenario-computed`, result, acceptedParameters });
+        const state = sdk.state.read();
+        if (hasUnappliedDraft(context, state.acceptedParameters)) {
+          return {
+            status: 'refused',
+            reason: 'configuration_not_applied',
+            acceptedParameters: state.acceptedParameters,
+          };
+        }
         sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.playback-started` });
-        appendScenarioReceipt(result);
         return playbackResult(sdk.state.read());
       }
       if (phase === 'step') {
@@ -172,6 +228,7 @@
         result: state.result,
         snapshot: currentSnapshot(state),
         forceModel: datasets.forceModels.models[0],
+        automaticView: state.viewAuthority.mode === 'automatic',
       });
     }
 
@@ -184,6 +241,7 @@
         result: state.result,
         snapshot: currentSnapshot(state),
         comparison: state.comparison,
+        viewAuthority: state.viewAuthority,
       });
     }
 
@@ -196,7 +254,16 @@
         rows: [
           { label: 'Synthetic campaign', value: state.acceptedParameters.observationCampaignId.replaceAll('-', ' ') },
           { label: 'Playback', value: `${state.playback.cursor} of ${state.result.snapshots.length - 1} · ${state.playback.status}` },
+          { label: 'Logical simulation time', value: logicalTimeLabel(config.startInstant, snapshot.simulationTimeMs) },
           { label: 'Scientific stage', value: asteroidStageLabel(snapshot.status) },
+          { label: 'Decision threshold', value: `${(state.acceptedParameters.decisionThreshold * 100).toFixed(1)}% modeled screening frequency` },
+          { label: 'Decision state', value: activeDecisionLabel(state.result, snapshot) },
+          {
+            label: 'Camera authority',
+            value: state.viewAuthority.mode === 'automatic'
+              ? 'Automatic simulation transitions active'
+              : 'Manual camera override active',
+          },
           { label: 'Observations', value: `${snapshot.observationCount} acquired` },
           ...(snapshot.fitReceipt ? [
             { label: 'Fit residual', value: `${state.result.metrics.fitResidualRmsArcsec.toFixed(2)} arcsec` },
@@ -214,7 +281,13 @@
             value: `${(snapshot.interventionEncounter.modeledScreeningFraction * 100).toFixed(1)}% of synthetic clones`,
           }] : []),
         ],
-        actions: [],
+        actions: [
+          { id: 'asteroid.configuration.apply', label: 'Apply configuration' },
+          { id: 'asteroid.configuration.reset', label: 'Reset draft' },
+          state.viewAuthority.mode === 'automatic'
+            ? { id: 'asteroid.view.manual', label: 'Hold manual camera' }
+            : { id: 'asteroid.view.automatic', label: 'Resume automatic view' },
+        ],
       }];
     }
 
@@ -316,7 +389,9 @@
     return deepFreeze({ ...value, id, scenarioId: id, observationCampaignId: id, seed: value?.seed || id });
   }
   function reduce(state, event) {
-    if (event.kind === `${PLUGIN_ID}.scenario-computed`) return initialState(event.result, event.acceptedParameters);
+    if (event.kind === `${PLUGIN_ID}.scenario-computed`) {
+      return initialState(event.result, event.acceptedParameters, state.viewAuthority);
+    }
     if (event.kind === `${PLUGIN_ID}.playback-started`) return { ...state, playback: { status: 'running', cursor: 0 } };
     if (event.kind === `${PLUGIN_ID}.playback-advanced`) return {
       ...state,
@@ -326,10 +401,23 @@
       },
     };
     if (event.kind === `${PLUGIN_ID}.comparison-computed`) return { ...state, comparison: event.comparison };
+    if (event.kind === `${PLUGIN_ID}.view-authority-changed`) return {
+      ...state,
+      viewAuthority: {
+        mode: event.mode,
+        reason: event.mode === 'automatic' ? 'operator_resumed_automatic_view' : 'operator_selected_manual_camera',
+      },
+    };
     return state;
   }
-  function initialState(result, acceptedParameters) {
-    return { result, acceptedParameters, playback: { status: 'ready', cursor: 0 }, comparison: null };
+  function initialState(result, acceptedParameters, viewAuthority = null) {
+    return {
+      result,
+      acceptedParameters,
+      playback: { status: 'ready', cursor: 0 },
+      comparison: null,
+      viewAuthority: viewAuthority || { mode: 'automatic', reason: 'scenario_ready' },
+    };
   }
   function playbackResult(state) {
     const snapshot = currentSnapshot(state);
@@ -340,7 +428,8 @@
       simulationTimeMs: snapshot.simulationTimeMs,
       scenarioIdentity: state.result.scenarioIdentity,
       acceptedParameters: state.acceptedParameters,
-      viewIntents: [{
+      viewAuthority: state.viewAuthority,
+      viewIntents: state.viewAuthority.mode === 'automatic' ? [{
         schema: 'simulatte.viewIntent.v4',
         mode: snapshot.status.includes('propagating') ? 'follow' : snapshot.status === 'settled' ? 'compare' : 'overview',
         targetIds: snapshot.status.includes('propagating') ? ['asteroid-active-clone'] : ['asteroid-representative-trajectory'],
@@ -348,10 +437,40 @@
         priority: 70,
         expiresAtEventId: null,
         mayInterruptManualOverride: false,
-      }],
+      }] : [],
     };
   }
+  function hasUnappliedDraft(context, acceptedParameters) {
+    const values = context.values || {};
+    if (CONTROL_IDS.some((id) => values[id] !== undefined && String(values[id]) !== String(acceptedParameters[id]))) {
+      return true;
+    }
+    const scenarioId = context.scenario?.observationCampaignId
+      || context.scenario?.scenarioId
+      || context.scenario?.id;
+    return Boolean(scenarioId && scenarioId !== acceptedParameters.observationCampaignId);
+  }
   function currentSnapshot(state) { return state.result.snapshots[state.playback.cursor]; }
+  function logicalTimeLabel(startInstant, simulationTimeMs) {
+    const start = Date.parse(startInstant || '');
+    const elapsed = Number(simulationTimeMs || 0);
+    const day = elapsed / 86400000;
+    const instant = Number.isFinite(start) ? new Date(start + elapsed).toISOString() : 'unknown epoch';
+    return `Day ${day.toFixed(2)} · ${instant}`;
+  }
+  function activeDecisionLabel(result, snapshot) {
+    const encounter = snapshot.baselineEncounter;
+    if (!encounter) return 'Awaiting modeled encounter screen';
+    const threshold = result.configurationIdentity.decisionThreshold;
+    const crossed = encounter.modeledScreeningFraction >= threshold;
+    if (!snapshot.requestedInterventionId) {
+      return crossed ? 'Threshold met; decision pending' : 'Below threshold; observation continues';
+    }
+    if (snapshot.appliedInterventionId === 'none') {
+      return crossed ? 'Threshold met; policy withheld intervention' : 'Below threshold; no intervention applied';
+    }
+    return `${crossed ? 'Threshold met' : 'Below threshold'}; ${snapshot.appliedInterventionId.replaceAll('-', ' ')} applied`;
+  }
   function asteroidStageLabel(status) {
     return {
       ready: 'Observation campaign ready',

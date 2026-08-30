@@ -180,6 +180,7 @@
   const renderProof = group(
     'pipeline/phase-07-render/simulatte-object-realization.js',
     'pipeline/phase-07-render/simulatte-render-evidence-binding.js',
+    'pipeline/phase-07-render/simulatte-render-proof-relations.js',
     'pipeline/phase-07-render/simulatte-render-proof.js'
   );
   const webGpuRenderer = group(
@@ -301,6 +302,7 @@
   const intentWorker = join(
     runtimeFoundation,
     catalog,
+    group('../data/simulatte-language-lexicon.js'),
     semanticRag,
     dopplerIntent,
     group('pipeline/phase-02-language/simulatte-language-evidence.js'),

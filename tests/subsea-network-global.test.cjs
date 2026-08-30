@@ -24,6 +24,7 @@ const scenario = Object.freeze({
   scenarioId: 'atlantic-single-cut',
   seed: 'subsea-atlantic-001',
   allocationPolicyId: 'proportional-fair',
+  comparisonPolicyId: 'weighted-throughput',
   repairPolicyId: 'unmet-demand-first',
   failedResourceIds: ['marea:spain'],
   excludedLandingIds: [],
@@ -166,6 +167,37 @@ test('comparison executes synchronized policy-blind branches and settles compati
   assert.doesNotMatch(receiptText, /hiddenTruthValue|futureFailures|futureRepairResults/);
   assert.equal(run.comparisonExecutionReceipt.startingIdentity.seed, scenario.seed);
   assert.equal(run.comparisonExecutionReceipt.synchronizationPolicy, 'lockstep');
+  assert.deepEqual(run.policies, {
+    baseline: scenario.comparisonPolicyId,
+    intervention: scenario.allocationPolicyId,
+  });
+  assert.equal(run.selectedPolicyId, scenario.allocationPolicyId);
+  assert.equal(run.selectedBranchId, 'intervention');
+  assert.equal(run.comparisonPolicyId, scenario.comparisonPolicyId);
+  assert.equal(run.comparisonBranchId, 'baseline');
+  assert.notEqual(run.branchIdentities.baseline, run.branchIdentities.intervention);
+});
+
+test('comparison uses the explicit selected and comparison policies and refuses identical branches', async () => {
+  const selected = {
+    ...scenario,
+    allocationPolicyId: 'weighted-throughput',
+    comparisonPolicyId: 'geographic-equity',
+  };
+  const run = await comparison.runComparison({ datasets, dataReceipts, config, scenario: selected });
+  assert.deepEqual(run.policies, {
+    baseline: 'geographic-equity',
+    intervention: 'weighted-throughput',
+  });
+  await assert.rejects(
+    comparison.runComparison({
+      datasets,
+      dataReceipts,
+      config,
+      scenario: { ...selected, comparisonPolicyId: selected.allocationPolicyId },
+    }),
+    /subsea_comparison_policy_duplicate/
+  );
 });
 
 test('comparison reuses only an exact selected branch and preserves the independent receipt', async () => {
@@ -204,6 +236,7 @@ test('typed controls rebuild on start, step without recomputation, and replay de
   const values = {
     demandScenarioId: 'dual-regional-disruption',
     allocationPolicyId: 'weighted-throughput',
+    comparisonPolicyId: 'geographic-equity',
     repairPolicyId: 'nearest-first',
     failedResourceIds: ['marea:spain', 'amitie:united-kingdom'],
     jurisdictionExclusions: ['none'],
@@ -218,6 +251,8 @@ test('typed controls rebuild on start, step without recomputation, and replay de
   assert.equal(started.status, 'running');
   assert.deepEqual(started.acceptedParameters.failedResourceIds, values.failedResourceIds.sort());
   assert.equal(started.acceptedParameters.essentialServiceWeight, 7);
+  assert.equal(started.acceptedParameters.seed, scenario.seed);
+  assert.equal(started.acceptedParameters.comparisonPolicyId, 'geographic-equity');
   const identity = started.scenarioIdentity;
   const receiptCount = harness.receipts.length;
   const stepped = await instance.handleAction('scenario.run', { values: { ...values, phase: 'step' } });
@@ -230,9 +265,13 @@ test('typed controls rebuild on start, step without recomputation, and replay de
   });
   assert.deepEqual(replayed, started);
   assert.throws(() => instance.handleAction('scenario.run', {
-    scenario,
+    scenario: { id: values.demandScenarioId, scenarioId: values.demandScenarioId, seed: 'ignored-invalid-policy-seed' },
     values: { ...values, allocationPolicyId: 'unknown', phase: 'start' },
   }), /subsea_control_invalid/);
+  assert.throws(() => instance.handleAction('scenario.run', {
+    scenario: { id: 'demand-surge', scenarioId: 'demand-surge', seed: 'outer-seed' },
+    values: { ...values, phase: 'start' },
+  }), /subsea_scenario_authority_conflict/);
 });
 
 test('v4 contribution exposes semantic quantities and every accepted public control', async () => {
@@ -244,6 +283,7 @@ test('v4 contribution exposes semantic quantities and every accepted public cont
     contribution.controls.controls.map((row) => row.id).sort(),
     [
       'allocationPolicyId',
+      'comparisonPolicyId',
       'demandScenarioId',
       'ensembleSize',
       'essentialServiceWeight',

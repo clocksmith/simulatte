@@ -11,6 +11,7 @@
     "capacityScenarioId",
     "repairScenarioId",
     "allocationPolicyId",
+    "comparisonPolicyId",
     "repairPolicyId",
     "failureIds",
     "jurisdictionExclusions",
@@ -51,6 +52,14 @@
       "minLength": 1
     },
     "allocationPolicyId": {
+      "enum": [
+        "weighted-throughput",
+        "proportional-fair",
+        "essential-service-priority",
+        "geographic-equity"
+      ]
+    },
+    "comparisonPolicyId": {
       "enum": [
         "weighted-throughput",
         "proportional-fair",

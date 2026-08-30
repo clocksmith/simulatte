@@ -52,7 +52,7 @@
       targetId: String(values.targetId || scenario.targetId),
       routingMode: String(values.routingMode || config.defaultRoutingMode),
       routeObjective: String(values.routeObjective || config.defaultRouteObjective),
-      requiredRelayIds: normalizeIds(values.requiredRelayIds, scenarioRelays),
+      requiredRelayIds: normalizeRequiredRelayIds(values.requiredRelayIds, scenarioRelays),
       eligibleRelayIds: normalizeIds(values.eligibleRelayIds, eligibleDefault),
       maxHops: Number(values.maxHops ?? config.maxHops),
       maxHopDistancePc: Number(values.maxHopDistancePc ?? config.maxHopDistancePc),
@@ -146,47 +146,47 @@
       ],
       terminals: Object.values(hardwareData.archetypes).map((row) => ({ value: row.id, label: row.name })),
       operationsProfiles: operationsData.profiles.map((row) => ({ value: row.id, label: row.label })),
-      channels: advancedData.channels.map((row) => ({ value: row.id, label: row.label })),
+      channels: advancedData.channels.map(channelOption),
     });
   }
 
   function controlFields(controls, options) {
     return [
-      selectField('sourceId', 'From star', controls.sourceId, options.stars),
-      selectField('targetId', 'To star', controls.targetId, options.stars),
-      selectField('routingMode', 'Routing mode', controls.routingMode, routeModes()),
-      selectField('routeObjective', 'Route objective', controls.routeObjective, routeObjectives()),
-      { id: 'maxHops', label: 'Maximum hops', type: 'number', value: controls.maxHops },
-      { id: 'maxHopDistancePc', label: 'Maximum hop distance (pc)', type: 'number', value: controls.maxHopDistancePc },
-      selectField('channelMode', 'Physics lane', controls.channelMode, options.channels),
-      selectField('operationsProfileId', 'Operations profile', controls.operationsProfileId, options.operationsProfiles),
-      { id: 'ensembleSize', label: 'Operational ensemble', type: 'number', value: controls.ensembleSize },
-      { id: 'retryLimit', label: 'Retry limit', type: 'number', value: controls.retryLimit },
-      { id: 'startEpochIso', label: 'Transmission epoch', type: 'date', value: controls.startEpochIso.slice(0, 10) },
-      { id: 'processingDelayHours', label: 'Relay processing hours', type: 'number', value: controls.processingDelayHours },
-      { id: 'packetBytes', label: 'Packet bytes', type: 'number', value: controls.packetBytes },
-      selectField('transceiverId', 'Scenario terminal', controls.transceiverId, options.terminals),
+      selectField('sourceId', 'Route: from star', controls.sourceId, options.stars),
+      selectField('targetId', 'Route: to star', controls.targetId, options.stars),
+      selectField('routingMode', 'Route: mode', controls.routingMode, routeModes()),
+      selectField('routeObjective', 'Route: objective', controls.routeObjective, routeObjectives()),
+      { id: 'maxHops', label: 'Relays: maximum hops', type: 'number', value: controls.maxHops },
+      { id: 'maxHopDistancePc', label: 'Relays: maximum hop distance (pc)', type: 'number', value: controls.maxHopDistancePc },
+      { id: 'startEpochIso', label: 'Transmission: epoch (UTC)', type: 'date', value: controls.startEpochIso.slice(0, 10) },
+      { id: 'packetBytes', label: 'Transmission: packet bytes', type: 'number', value: controls.packetBytes },
+      { id: 'processingDelayHours', label: 'Transmission: relay processing hours', type: 'number', value: controls.processingDelayHours },
+      selectField('transceiverId', 'Transmission: optical terminal', controls.transceiverId, options.terminals),
+      selectField('operationsProfileId', 'Operations: profile', controls.operationsProfileId, options.operationsProfiles),
+      { id: 'ensembleSize', label: 'Operations: samples', type: 'number', value: controls.ensembleSize },
+      { id: 'retryLimit', label: 'Operations: retry limit', type: 'number', value: controls.retryLimit },
+      selectField('channelMode', 'Physics: channel lane', controls.channelMode, options.channels),
       ...advancedFields(controls),
     ];
   }
 
   function advancedFields(controls) {
     if (controls.channelMode === 'quantum-assisted') return [
-      { id: 'quantumMemoryCoherenceHours', label: 'Quantum memory coherence (h)', type: 'number', value: controls.quantumMemoryCoherenceHours },
-      { id: 'quantumInitialFidelity', label: 'Initial entanglement fidelity', type: 'number', value: controls.quantumInitialFidelity },
-      { id: 'entanglementPairRateHz', label: 'Entanglement pair rate (Hz)', type: 'number', value: controls.entanglementPairRateHz },
+      { id: 'quantumMemoryCoherenceHours', label: 'Physics: quantum memory coherence (h)', type: 'number', value: controls.quantumMemoryCoherenceHours },
+      { id: 'quantumInitialFidelity', label: 'Physics: initial entanglement fidelity', type: 'number', value: controls.quantumInitialFidelity },
+      { id: 'entanglementPairRateHz', label: 'Physics: entanglement pair rate (Hz)', type: 'number', value: controls.entanglementPairRateHz },
     ];
     if (controls.channelMode === 'traversable-wormhole') return [
-      { id: 'wormholeTraversalSeconds', label: 'Wormhole traversal (s)', type: 'number', value: controls.wormholeTraversalSeconds },
-      { id: 'wormholeThroatRadiusM', label: 'Wormhole throat radius (m)', type: 'number', value: controls.wormholeThroatRadiusM },
-      { id: 'speculativeBandwidthGbps', label: 'Scenario bandwidth (Gbps)', type: 'number', value: controls.speculativeBandwidthGbps },
-      { id: 'speculativeStabilityProbability', label: 'Scenario stability', type: 'number', value: controls.speculativeStabilityProbability },
+      { id: 'wormholeTraversalSeconds', label: 'Physics: wormhole traversal (s)', type: 'number', value: controls.wormholeTraversalSeconds },
+      { id: 'wormholeThroatRadiusM', label: 'Physics: wormhole throat radius (m)', type: 'number', value: controls.wormholeThroatRadiusM },
+      { id: 'speculativeBandwidthGbps', label: 'Physics: speculative bandwidth (Gbps)', type: 'number', value: controls.speculativeBandwidthGbps },
+      { id: 'speculativeStabilityProbability', label: 'Physics: speculative stability', type: 'number', value: controls.speculativeStabilityProbability },
     ];
     if (controls.channelMode === 'alcubierre-warp') return [
-      { id: 'warpEffectiveSpeedC', label: 'Effective speed (c)', type: 'number', value: controls.warpEffectiveSpeedC },
-      { id: 'warpBubbleRadiusM', label: 'Warp bubble radius (m)', type: 'number', value: controls.warpBubbleRadiusM },
-      { id: 'speculativeBandwidthGbps', label: 'Scenario bandwidth (Gbps)', type: 'number', value: controls.speculativeBandwidthGbps },
-      { id: 'speculativeStabilityProbability', label: 'Scenario stability', type: 'number', value: controls.speculativeStabilityProbability },
+      { id: 'warpEffectiveSpeedC', label: 'Physics: effective speed (c)', type: 'number', value: controls.warpEffectiveSpeedC },
+      { id: 'warpBubbleRadiusM', label: 'Physics: warp bubble radius (m)', type: 'number', value: controls.warpBubbleRadiusM },
+      { id: 'speculativeBandwidthGbps', label: 'Physics: speculative bandwidth (Gbps)', type: 'number', value: controls.speculativeBandwidthGbps },
+      { id: 'speculativeStabilityProbability', label: 'Physics: speculative stability', type: 'number', value: controls.speculativeStabilityProbability },
     ];
     return [];
   }
@@ -223,9 +223,20 @@
     const catalog = row.catalogDatasetId === 'hyg.visible-stars.v1' ? 'HYG' : 'Gaia';
     return { value: row.sourceId, label: `${row.name} · ${catalog}` };
   }
+  function channelOption(row) {
+    const suffix = row.id === 'classical-optical'
+      ? 'engineering model'
+      : row.id === 'quantum-assisted'
+        ? 'modeled, classical message required'
+        : 'speculative, not constructible';
+    return { value: row.id, label: `${row.label} (${suffix})` };
+  }
   function normalizeIds(value, fallback) {
     const rows = Array.isArray(value) ? value : fallback;
-    return [...new Set(rows.map(String))];
+    return [...new Set(rows.map(String).filter((id) => id !== 'none'))];
+  }
+  function normalizeRequiredRelayIds(value, fallback) {
+    return normalizeIds(value, fallback);
   }
   function normalizeEpoch(value) {
     const text = String(value);

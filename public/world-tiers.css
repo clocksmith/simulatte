@@ -402,35 +402,153 @@
   top: 50%;
 }
 
-/* Mobile & Tablet Responsive Fallback */
+/* Mobile and tablet constellation. Percentages preserve one exact flat-top
+   honeycomb while the full cluster scales to the available viewport width. */
 @media (max-width: 1024px) {
+  #world-tiers-landing-page {
+    justify-content: flex-start;
+    padding: max(24px, env(safe-area-inset-top)) 12px max(24px, env(safe-area-inset-bottom));
+  }
+
+  .landing-header {
+    flex: 0 0 auto;
+    width: 100%;
+    margin-bottom: 18px;
+  }
+
+  .landing-title {
+    width: min(680px, 94vw);
+    margin-bottom: 4px;
+  }
+
   .hex-constellation-container {
+    flex: 0 0 auto;
+    position: relative;
+    display: block;
+    width: min(560px, calc(100vw - 24px));
     height: auto;
+    aspect-ratio: 2.5 / 2.598076211;
     min-height: 0;
-    flex-direction: column;
-    gap: 16px;
-    padding: 20px 0;
+    padding: 0;
+    margin: 0 auto;
   }
 
   .hex-constellation-web {
     display: none;
   }
 
-  .hex-hub {
-    position: relative;
-    width: min(280px, 90vw);
-    height: auto;
-    aspect-ratio: 2 / 1.73205;
-    margin-bottom: 20px;
+  .hex-hub,
+  .hex-satellite {
+    position: absolute;
+    width: 40%;
+    height: 33.333333%;
+    margin: 0;
   }
 
-  .hex-satellite {
-    position: relative;
-    left: auto !important;
-    top: auto !important;
-    width: min(280px, 90vw);
-    height: auto;
-    aspect-ratio: 2 / 1.73205;
+  .hex-hub {
+    left: 30%;
+    top: 33.333333%;
+  }
+
+  .pos-top-left {
+    left: 0;
+    top: 16.666667%;
+  }
+
+  .pos-top {
+    left: 30%;
+    top: 0;
+  }
+
+  .pos-top-right {
+    left: 60%;
+    top: 16.666667%;
+  }
+
+  .pos-bottom-right {
+    left: 60%;
+    top: 50%;
+  }
+
+  .pos-bottom {
+    left: 30%;
+    top: 66.666667%;
+  }
+
+  .pos-bottom-left {
+    left: 0;
+    top: 50%;
+  }
+}
+
+@media (max-width: 560px) {
+  #world-tiers-landing-page {
+    padding-inline: 8px;
+  }
+
+  .landing-header {
+    margin-bottom: 10px;
+  }
+
+  .landing-title {
+    width: min(440px, 96vw);
+    margin-bottom: 0;
+  }
+
+  .landing-subtitle {
+    max-width: 31ch;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .hex-constellation-container {
+    width: min(390px, calc(100vw - 16px));
+  }
+
+  .hex-hub-inner,
+  .hex-satellite-inner {
+    padding: 10px 16px;
+  }
+
+  .hex-hub-desc,
+  .hex-satellite .hex-desc {
+    display: none;
+  }
+
+  .hex-hub-badge,
+  .hex-satellite .hex-badge {
+    max-width: 15ch;
+    margin-bottom: 4px;
+    overflow: hidden;
+    font-size: 0.52rem;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hex-hub-icon,
+  .hex-satellite .hex-icon {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 3px;
+    font-size: 0.7rem;
+  }
+
+  .hex-hub-title,
+  .hex-satellite .hex-title {
+    max-width: 15ch;
+    margin-bottom: 2px;
+    font-size: 0.78rem;
+    line-height: 1.15;
+  }
+
+  .hex-hub-title {
+    color: #fff;
+    font-size: 0.86rem;
+  }
+
+  .hex-hub-action {
+    font-size: 0.64rem;
   }
 }
 

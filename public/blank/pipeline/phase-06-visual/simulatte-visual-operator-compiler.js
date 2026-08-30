@@ -122,6 +122,7 @@
     const requireResult = directRequirements.ok ? directRequirements : solverRequirements;
     const hasActivityEvidence = mappingHasActivityEvidence(row, context);
     const blockedTerms = termsMatched(row.excludes || [], text, normalized);
+    const absentTarget = mappingContradictsRequiredAbsence(row, context);
     const sceneGate = sceneAcceptsMapping(context, row);
     let score = 0;
     for (const term of matchedTerms) {
@@ -143,6 +144,9 @@
     } else if (!requireResult.ok) {
       accepted = false;
       rejectionReason = 'missing-required-language-evidence';
+    } else if (absentTarget) {
+      accepted = false;
+      rejectionReason = `contradicts-required-absence:${absentTarget}`;
     } else if (blockedTerms.length) {
       accepted = false;
       rejectionReason = `excluded-by:${blockedTerms.join(',')}`;
@@ -163,6 +167,17 @@
       matchedTerms,
       requiredGroups: requireResult.matchedGroups,
     };
+  }
+
+  function mappingContradictsRequiredAbsence(row = {}, context = {}) {
+    const obligations = context && context.spec && context.spec.renderIR &&
+      context.spec.renderIR.compositionLedger && context.spec.renderIR.compositionLedger.obligations || [];
+    const mappingText = normalizeText([row.id, ...(row.matchTerms || [])].filter(Boolean).join(' '));
+    const absence = obligations.find((obligation) => (
+      obligation && obligation.required === true && obligation.constraintKind === 'absence' &&
+      phraseInText(mappingText, normalizeText(obligation.targetIdentity || obligation.target || ''))
+    ));
+    return absence ? normalizeText(absence.targetIdentity || absence.target || '') : '';
   }
 
   function mappingHasActivityEvidence(row = {}, context = {}) {
@@ -368,8 +383,10 @@
   function sceneAcceptsMapping(context = {}, row = {}) {
     const scene = normalizeText(context.sceneKind || '');
     const direct = directLanguageText(context);
+    const positiveDirect = compiledDirectLanguageText(context);
     const id = String(row.id || '');
     const directHas = (pattern) => pattern.test(direct);
+    const positiveDirectHas = (pattern) => pattern.test(positiveDirect);
     if (/control-feedback/.test(id)) {
       const feedbackScene = directHas(/\b(control|controller|feedback|sensor|throttle|stabilize|regulate)\b/);
       if (!feedbackScene) return { ok: false, reason: 'scene-gate:no-direct-feedback-evidence' };
@@ -379,7 +396,7 @@
       if (!robotScene) return { ok: false, reason: 'scene-gate:no-direct-robotics-evidence' };
     }
     if (/quantum-phase-readout/.test(id)) {
-      const quantumScene = directHas(/\b(qubit|quantum|microwave|superconducting|resonator)\b/);
+      const quantumScene = positiveDirectHas(/\b(qubit|quantum|microwave|superconducting|resonator)\b/);
       if (!quantumScene) return { ok: false, reason: 'scene-gate:no-direct-quantum-evidence' };
     }
     if (/particle-track-detector/.test(id)) {
@@ -410,7 +427,7 @@
           : { ok: false, reason: 'scene-gate:no-direct-electromagnetic-evidence' };
       }
       if (/quantum-phase-readout/.test(id)) {
-        return directHas(/\b(qubit|quantum|microwave|superconducting|resonator)\b/)
+        return positiveDirectHas(/\b(qubit|quantum|microwave|superconducting|resonator)\b/)
           ? { ok: true, reason: '' }
           : { ok: false, reason: 'scene-gate:no-direct-quantum-evidence' };
       }

@@ -44,7 +44,22 @@
 
     function slotHasPromptOwnedVisualIdentity(slot = {}) {
       return /^(?:actor|object|environment)$/.test(String(slot.slotRole || '')) &&
-        /^object-grammar\.[a-z0-9-]+$/.test(String(slot.localGeometryGrammarId || ''));
+        /^object-grammar\.[a-z0-9-]+$/.test(localGeometryGrammarForSlot(slot));
+    }
+
+    function localGeometryGrammarForSlot(slot = {}) {
+      if (slot.localGeometryGrammarId) return String(slot.localGeometryGrammarId);
+      const lexicon = root.SimulatteLanguageLexicon && (
+        root.SimulatteLanguageLexicon.LANGUAGE_LEXICON || root.SimulatteLanguageLexicon
+      );
+      const labels = new Set([
+        String(slot.sourceLabel || '').trim().toLowerCase(),
+        String(slot.entryId || '').replace(/^[a-z]+:/, '').replace(/[_:]+/g, ' ').trim().toLowerCase(),
+      ].filter(Boolean));
+      const match = lexicon && Array.isArray(lexicon.entityPhrases)
+        ? lexicon.entityPhrases.find((entry) => labels.has(String(entry && entry[0] || '').trim().toLowerCase()))
+        : null;
+      return String(match && match[2] && match[2].localGeometryGrammarId || '');
     }
 
     function promptOwnedLocalCandidate(slot = {}) {
@@ -74,7 +89,7 @@
         semanticClass: slot.semanticClass || '',
         sourceLabel: slot.sourceLabel || target,
         visualArchetype: slot.visualArchetype || '',
-        localGeometryGrammarId: slot.localGeometryGrammarId || '',
+        localGeometryGrammarId: localGeometryGrammarForSlot(slot),
         shapeHints: slot.shapeHints || [],
         identityEvidence: !/^(?:action|concept|relation|visual)$/.test(role),
         constructionEvidence: false,
@@ -114,7 +129,7 @@
           candidateInputCount: 0,
           candidateOutputCount: 0,
           localCandidateCount: 1,
-          localGeometryGrammarId: slot.localGeometryGrammarId || '',
+          localGeometryGrammarId: candidate.localGeometryGrammarId,
         },
       };
     }

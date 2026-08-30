@@ -114,8 +114,8 @@
     });
     const controls = builder.controls([
       {
-        id: 'recallDay',
-        label: 'Recall day',
+        id: 'recallDelayDays',
+        label: 'Intervention · Delay after detection (days)',
         kind: 'number',
         value: activeIntervention?.dayOffset ?? scenario.defaultIntervention.dayOffset,
         options: null,
@@ -126,7 +126,7 @@
       },
       {
         id: 'recallDepth',
-        label: 'Recall depth',
+        label: 'Intervention · Layer depth',
         kind: 'select',
         value: activeIntervention?.depth ?? scenario.defaultIntervention.depth,
         options: [

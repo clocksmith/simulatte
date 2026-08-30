@@ -278,7 +278,10 @@
         const sceneVisualTarget = sceneVisualRow && sceneVisualRow.nameText || 'compiled scene packet';
         const genericEvidenceByObligation = Object.fromEntries(sourceObligations.map((row) => [
           row.id || '',
-          genericVisualEvidence(row, genericVisualRows, sourceObligations, sourceEntries, sourceRelations),
+          scope.uniqueList([
+            ...genericVisualEvidence(row, genericVisualRows, sourceObligations, sourceEntries, sourceRelations),
+            ...dynamicRelationProcessVisualEvidenceForRows(row, genericVisualRows),
+          ]),
         ]));
         const facts = {
           hasDog: identities.has('dog') || /\bdog|surface-dog|primitive-dog/.test(entityText),
@@ -365,7 +368,12 @@
 
     function visualObligationStatus(row = {}, facts = {}) {
         const promptSettlement = facts.promptVisualSettlements && facts.promptVisualSettlements[row.id];
-        if (promptSettlement) return promptSettlement.status;
+        if (promptSettlement) {
+          if (dynamicRelationRequiresProcessEvidence(row) && !dynamicRelationProcessEvidence(row, facts).length) {
+            return 'lost';
+          }
+          return promptSettlement.status;
+        }
         if (genericVisualEvidenceForObligation(row, facts).length) return 'preserved';
         if (row.id === 'entity:dog') return facts.hasDog ? 'preserved' : 'lost';
         if (row.id === 'entity:cat') return facts.hasCat ? 'preserved' : 'lost';
@@ -383,7 +391,10 @@
 
     function visualObligationEvidence(row = {}, facts = {}) {
         const promptSettlement = facts.promptVisualSettlements && facts.promptVisualSettlements[row.id];
-        const evidence = promptSettlement ? promptSettlement.evidence.slice() : genericVisualEvidenceForObligation(row, facts).slice();
+        const evidence = scope.uniqueList([
+          ...(promptSettlement ? promptSettlement.evidence : []),
+          ...genericVisualEvidenceForObligation(row, facts),
+        ]);
         if (/dog/.test(row.id) && facts.hasDog) evidence.push('scene-identity:dog');
         if (/cat/.test(row.id) && facts.hasCat) evidence.push('scene-identity:cat');
         if (/species-distinct/.test(row.id) && facts.hasDog && facts.hasCat) {
@@ -399,6 +410,30 @@
         if (/wake/.test(row.id) && facts.hasWake) evidence.push(...(facts.wakeRows || []));
         if (/submersion/.test(row.id) && facts.hasSubmersion) evidence.push(...(facts.submersionRows || []));
         return evidence;
+      }
+
+    function dynamicRelationRequiresProcessEvidence(row = {}) {
+        const id = String(row.id || row.obligationId || '');
+        if (row.kind !== 'relation' || !id) return false;
+        if (/^relation:spatial:|:spatial-constraint:|:(?:coexists|material-assignment):/.test(id)) return false;
+        if (/^relation:[^:]+:(?:hold|holds|holding|grasp|grasps|grasping|carry|carries|carrying|clutch|clutches|clutching):/.test(id)) return false;
+        return !(row.visualEvidence || []).some((value) => /^(?:part-binding|material-binding):/.test(String(value || '')));
+      }
+
+    function dynamicRelationProcessEvidence(row = {}, facts = {}) {
+        return genericVisualEvidenceForObligation(row, facts)
+          .filter((value) => /^phase6:(?:process|field):/.test(String(value || '')));
+      }
+
+    function dynamicRelationProcessVisualEvidenceForRows(row = {}, rows = []) {
+        if (!dynamicRelationRequiresProcessEvidence(row)) return [];
+        const parts = String(row.id || row.obligationId || '').split(':');
+        const predicate = parts[2] || '';
+        if (!predicate) return [];
+        const actionRows = (rows || []).filter((candidate) => (
+          candidate.source === 'process' || candidate.source === 'field'
+        ));
+        return visualEvidenceForLedgerAction(predicate, actionRows);
       }
 
     function genericVisualEvidenceForObligation(row = {}, facts = {}) {
@@ -520,8 +555,13 @@
       }
 
     function visualEvidenceForLedgerAction(target = '', rows = [], sourceEntries = []) {
-        const direct = visualEvidenceForTarget(target, rows, true);
+        const actionRows = (rows || []).filter((row) => row.source === 'process' || row.source === 'field');
+        const direct = visualEvidenceForTarget(target, actionRows, true);
         if (direct.length) return direct;
+        for (const alias of visualEvidenceAliasesForAction(target)) {
+          const aliased = visualEvidenceForTarget(alias, actionRows, true);
+          if (aliased.length) return aliased;
+        }
         const normalized = normalizeVisualEvidenceText(target);
         const promptEntry = (sourceEntries || []).find((entry) => entry && entry.kind === 'action' && entry.source === 'prompt' &&
           normalizeVisualEvidenceText(entry.label || String(entry.id || '').replace(/^action:/, '')) === normalized);
@@ -529,14 +569,28 @@
         const normalizedPredicate = promptEntry && (sourceEntries || []).find((entry) => entry && entry.kind === 'action' && entry.source === 'predicate' &&
           (entry.sourceSpanIds || []).some((id) => promptSpanIds.has(id)));
         if (normalizedPredicate) {
-          return visualEvidenceForTarget(normalizedPredicate.label || normalizedPredicate.id, rows, true);
+          return visualEvidenceForTarget(normalizedPredicate.label || normalizedPredicate.id, actionRows, true);
         }
         const predicate = (sourceEntries || []).find((entry) => entry && entry.kind === 'action' && entry.source === 'predicate' &&
           normalizeVisualEvidenceText(entry.label || String(entry.id || '').replace(/^action:/, '')) === normalized);
         if (!predicate) return [];
         const spanIds = new Set(predicate.sourceSpanIds || []);
         return scope.uniqueList((sourceEntries || []).filter((entry) => entry && entry.kind === 'action' && entry.source === 'prompt' &&
-          (entry.sourceSpanIds || []).some((id) => spanIds.has(id))).flatMap((entry) => visualEvidenceForTarget(entry.label || entry.id, rows, true)));
+          (entry.sourceSpanIds || []).some((id) => spanIds.has(id))).flatMap((entry) => visualEvidenceForTarget(entry.label || entry.id, actionRows, true)));
+      }
+
+    function visualEvidenceAliasesForAction(target = '') {
+        const aliases = {
+          impact: ['particle track detector', 'stress fracture', 'thermal combustion'],
+          deposition: ['granular erosion', 'particle advection', 'heat transfer'],
+          shepherd: ['orbital gravity'],
+          oscillation: ['orbital gravity'],
+          'network flow': ['network flow', 'orbital gravity'],
+          rotate: ['robot contact'],
+          study: ['instrument readout'],
+          measurement: ['instrument readout'],
+        };
+        return aliases[normalizeVisualEvidenceText(target)] || [];
       }
 
     function visualEvidenceForTarget(target = '', rows = [], allowEvidence = false) {

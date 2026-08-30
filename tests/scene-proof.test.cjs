@@ -460,5 +460,10 @@ test('scene proof selects realized exact compound geometry after generic support
     assert.equal(row.status, 'preserved');
     assert.equal(row.reason, 'identity has a rendered literal geometry program');
   }
-  assert.equal(proof.verdict, 'fail');
+  const relation = proof.settledObligations.find((entry) => (
+    entry.obligationId === 'relation:entity-warehouse-robot-arms:network-flow:entity-parcels'
+  ));
+  assert.equal(relation.status, 'preserved');
+  assert.ok(relation.evidence.includes('visualObligationProof'));
+  assert.equal(proof.verdict, 'pass');
 });

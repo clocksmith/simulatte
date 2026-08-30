@@ -276,12 +276,14 @@
     }
 
     function prototypeSlotRow(slot, promptText, result) {
+      const localGeometryGrammarId = localGeometryGrammarForSlot(slot);
       return {
         schema: 'simulatte.phase3ModelSlotRetrievalRow.v1',
         slotId: slot.slotId || '',
         slotRole: slot.slotRole || '',
         entryId: slot.entryId || '',
         required: slot.required !== false,
+        localGeometryGrammarId,
         queryText: [slot.sourceLabel || slot.entryId || '', promptText ? `scene:${promptText}` : '']
           .filter(Boolean).join(' | '),
         vectorHash: '',
@@ -301,10 +303,27 @@
           candidateInputCount: 0,
           candidateOutputCount: 0,
           localCandidateCount: result.candidates.length,
+          localGeometryGrammarId,
           postingVisits: result.postingVisits,
           scoredCardCount: result.scoredCardCount,
         },
       };
+    }
+
+    function localGeometryGrammarForSlot(slot = {}) {
+      if (slot.localGeometryGrammarId) return slot.localGeometryGrammarId;
+      const lexicon = [
+        root.SimulatteLanguageLexicon && root.SimulatteLanguageLexicon.LANGUAGE_LEXICON,
+        root.SimulatteLanguageLexicon,
+        root.SimulatteUniverseParser && root.SimulatteUniverseParser.LANGUAGE_LEXICON,
+      ].find((candidate) => candidate && Array.isArray(candidate.entityPhrases));
+      if (!lexicon) return '';
+      const labels = new Set([
+        String(slot.sourceLabel || '').trim().toLowerCase(),
+        String(slot.entryId || '').replace(/^[a-z]+:/, '').replace(/[_:]+/g, ' ').trim().toLowerCase(),
+      ].filter(Boolean));
+      const match = lexicon.entityPhrases.find((entry) => labels.has(String(entry && entry[0] || '').trim().toLowerCase()));
+      return String(match && match[2] && match[2].localGeometryGrammarId || '');
     }
 
     function lexicalConstructionIndex() {

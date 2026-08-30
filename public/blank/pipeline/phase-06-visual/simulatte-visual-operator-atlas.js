@@ -248,7 +248,10 @@
     ),
     mapping(
       'visual.operator.instrument-readout.v1',
-      ['detector', 'sensor', 'readout', 'instrument', 'probe', 'phototube', 'resonator', 'meter'],
+      [
+        'detector', 'sensor', 'readout', 'instrument', 'probe', 'phototube', 'resonator', 'meter',
+        'measurement', 'measure', 'measures', 'measuring', 'study', 'studies', 'studying',
+      ],
       ['instrument-panel', 'probe-array', 'readout-strip'],
       ['measurement-sample-field', 'uncertainty-band-field'],
       ['clinical-glass', 'signal-emissive'],

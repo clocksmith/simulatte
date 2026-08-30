@@ -10,7 +10,7 @@
         : 'ring-allreduce',
       tensorSizeGb: Number(rawControls.tensorSizeGb || 14.2),
       stragglerThrottlePercent: Math.max(0, Math.min(95, Number(rawControls.stragglerThrottlePercent || 0))),
-      coolantFlowLpm: Math.max(10, Math.min(500, Number(rawControls.coolantFlowLpm || 120))),
+      coolantFlowLpm: Math.max(10, Math.min(1000, Number(rawControls.coolantFlowLpm || 120))),
       linkPacketDropRate: Math.max(0, Math.min(0.5, Number(rawControls.linkPacketDropRate || 0))),
       cduFlowDegradationPercent: Math.max(0, Math.min(90, Number(rawControls.cduFlowDegradationPercent || 0))),
       activeParallelism: Object.freeze({

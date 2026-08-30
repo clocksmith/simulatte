@@ -10,6 +10,7 @@ import { readModelRuntimeLock } from './model-runtime-lock-utils.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MODEL_RUNTIME_LOCK = readModelRuntimeLock();
 const DOPPLER_PACKAGE = Object.freeze(MODEL_RUNTIME_LOCK.doppler && MODEL_RUNTIME_LOCK.doppler.package || {});
+const DOPPLER_DEVELOPMENT = Object.freeze(MODEL_RUNTIME_LOCK.doppler && MODEL_RUNTIME_LOCK.doppler.development || {});
 const VENDOR_ROOT = path.join(ROOT, 'public', 'vendor', 'doppler');
 const LIST_LIMIT = 20;
 
@@ -129,7 +130,7 @@ function verifyVendorMatchesPackage(packageRoot) {
 
   const { missing, extra } = compareLists(expectedFiles, actualFiles);
   if (missing.length || extra.length) {
-    fail('vendor file list differs from the published Doppler package', [
+    fail('vendor file list differs from the pinned Doppler source package', [
       ...relativeSample('missing:', missing),
       ...relativeSample('extra:', extra),
     ]);
@@ -145,7 +146,7 @@ function verifyVendorMatchesPackage(packageRoot) {
   });
   if (changed.length) {
     fail(
-      'vendor file contents differ from the published Doppler package',
+      'vendor file contents differ from the pinned Doppler source package',
       relativeSample('changed:', changed)
     );
   }
@@ -155,9 +156,31 @@ function main() {
   verifyVendorPackageJson();
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-doppler-vendor-'));
   try {
+    if (DOPPLER_DEVELOPMENT.kind !== 'sibling-git-archive') {
+      fail('doppler.development.kind must be sibling-git-archive');
+    }
+    if (!/^[0-9a-f]{40}$/i.test(String(DOPPLER_DEVELOPMENT.gitSha || ''))) {
+      fail('doppler.development.gitSha must be a full Git SHA');
+    }
+    const siblingRoot = path.resolve(ROOT, String(DOPPLER_DEVELOPMENT.workspacePath || ''));
+    if (!fs.existsSync(path.join(siblingRoot, '.git'))) {
+      fail(`sibling Doppler repository not found at ${siblingRoot}`);
+    }
+    run('git', ['cat-file', '-e', `${DOPPLER_DEVELOPMENT.gitSha}^{commit}`], { cwd: siblingRoot });
+    const archivePath = path.join(tempDir, 'doppler.tar');
+    run('git', [
+      'archive',
+      '--format=tar',
+      `--output=${archivePath}`,
+      DOPPLER_DEVELOPMENT.gitSha,
+    ], { cwd: siblingRoot });
+    const sourceRoot = path.join(tempDir, 'source');
+    fs.mkdirSync(sourceRoot);
+    run('tar', ['-xf', archivePath, '-C', sourceRoot], { cwd: ROOT });
     const packOutput = run('npm', [
       'pack',
-      `${DOPPLER_PACKAGE.name}@${DOPPLER_PACKAGE.version}`,
+      sourceRoot,
+      '--ignore-scripts',
       '--pack-destination',
       tempDir,
       '--json',
@@ -172,7 +195,7 @@ function main() {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 
-  console.log(`Deploy surface clean: lock #${MODEL_RUNTIME_LOCK.number} pins public/vendor/doppler to ${DOPPLER_PACKAGE.name}@${DOPPLER_PACKAGE.version}.`);
+  console.log(`Deploy surface clean: lock #${MODEL_RUNTIME_LOCK.number} pins public/vendor/doppler to source ${DOPPLER_DEVELOPMENT.gitSha}.`);
 }
 
 try {

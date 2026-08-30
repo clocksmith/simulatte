@@ -32,8 +32,7 @@
       throw pluginError('grid_plugin_dependency_missing', 'Grid runtime modules are incomplete');
     }
     const datasets = loadDatasets(sdk);
-    let selectedScenario = normalizeScenario(scenario, config);
-    let acceptedParameters = validateParameters({}, selectedScenario, config, datasets);
+    let acceptedParameters = validateParameters({}, normalizeScenario(scenario, config), config, datasets);
     let result = run(acceptedParameters);
     let ensemble = model.runEnsemble({ datasets, config, scenario: acceptedParameters });
     let comparison = null;
@@ -46,8 +45,7 @@
     }
 
     function setScenario(nextScenario) {
-      selectedScenario = normalizeScenario(nextScenario, config);
-      const nextParameters = validateParameters({}, selectedScenario, config, datasets);
+      const nextParameters = validateParameters({}, normalizeScenario(nextScenario, config), config, datasets);
       const preparation = prepareScenario(nextParameters);
       comparison = null;
       sdk.events.propose({
@@ -81,8 +79,7 @@
     function playback(context) {
       const phase = context.values?.phase;
       if (phase === 'start') {
-        selectedScenario = normalizeScenario(context.scenario || selectedScenario, config);
-        const nextParameters = validateParameters(context.values || {}, selectedScenario, config, datasets);
+        const nextParameters = validateParameters(context.values || {}, acceptedParameters, config, datasets);
         const preparation = prepareScenario(nextParameters);
         comparison = null;
         sdk.events.propose({
@@ -227,14 +224,28 @@
         title: 'Grid resilience experiment',
         rows: [
           { label: 'Disturbance', value: state.acceptedParameters.disturbanceScenarioId.replaceAll('-', ' ') },
+          {
+            label: 'Applied dispatch',
+            value: `${state.acceptedParameters.dispatchPolicyId.replaceAll('-', ' ')} · ${state.acceptedParameters.reservePolicyId.replaceAll('-', ' ')} · ${state.acceptedParameters.emissionsPriceUsdPerTon} USD/tCO2e`,
+          },
+          {
+            label: 'Applied flexibility',
+            value: `${state.acceptedParameters.storagePolicyId.replaceAll('-', ' ')} · ${(state.acceptedParameters.demandResponseMaximumFraction * 100).toFixed(1)}% maximum response`,
+          },
+          { label: 'Applied service priority', value: state.acceptedParameters.sheddingPriorities.join(' → ') },
+          {
+            label: 'Applied restoration',
+            value: `${state.acceptedParameters.restorationPolicyId.replaceAll('-', ' ')} · ${state.acceptedParameters.restorationCrewCount} crews`,
+          },
+          { label: 'Applied experiment', value: `${state.acceptedParameters.ensembleSize} ensemble runs` },
           { label: 'Playback', value: `${state.playback.cursor} of ${state.result.snapshots.length - 1} · ${state.playback.status}` },
           { label: 'Operating hour', value: snapshot.hour < 0 ? 'Ready' : `${snapshot.period} · hour ${snapshot.hour + 1}` },
           { label: 'Current event', value: latestEvent?.kind.replaceAll('.', ' ') || 'Dispatch inputs prepared' },
-          { label: 'Demand / served', value: `${Math.round(totals.demandMw).toLocaleString()} / ${Math.round(totals.servedMw).toLocaleString()} MW` },
-          { label: 'Generation / imports', value: `${Math.round(totals.generationMw).toLocaleString()} / ${Math.round(totals.importsMw).toLocaleString()} MW` },
-          { label: 'Storage / response', value: `${Math.round(totals.storageDischargeMw).toLocaleString()} / ${Math.round(totals.demandResponseMw).toLocaleString()} MW` },
-          { label: 'Charging / spill', value: `${Math.round(totals.storageChargeMw).toLocaleString()} / ${Math.round(totals.spilledGenerationMw).toLocaleString()} MW` },
-          { label: 'Unserved now', value: `${Math.round(totals.unservedMw).toLocaleString()} MW` },
+          { label: 'Live demand / served', value: `${Math.round(totals.demandMw).toLocaleString()} / ${Math.round(totals.servedMw).toLocaleString()} MW` },
+          { label: 'Live generation / imports', value: `${Math.round(totals.generationMw).toLocaleString()} / ${Math.round(totals.importsMw).toLocaleString()} MW` },
+          { label: 'Live storage / response', value: `${Math.round(totals.storageDischargeMw).toLocaleString()} / ${Math.round(totals.demandResponseMw).toLocaleString()} MW` },
+          { label: 'Live charging / spill', value: `${Math.round(totals.storageChargeMw).toLocaleString()} / ${Math.round(totals.spilledGenerationMw).toLocaleString()} MW` },
+          { label: 'Live unserved', value: `${Math.round(totals.unservedMw).toLocaleString()} MW` },
           {
             label: 'Binding region',
             value: constrained
@@ -307,13 +318,13 @@
       ['immediate-support', 'reserve-preserving'], 'storagePolicyId');
     const restorationPolicyId = selectValue(values.restorationPolicyId, selected.restorationPolicyId || config.restorationPolicyId,
       ['nearest-first', 'dependency-aware', 'service-impact-first'], 'restorationPolicyId');
-    const sheddingPriorities = arrayValue(values.sheddingPriorities, selected.sheddingPriorities || config.sheddingPriorities, 'sheddingPriorities');
     const regionIds = new Set(datasets.topology.regions.map((row) => row.id));
-    if (sheddingPriorities.some((row) => !regionIds.has(row))) throw pluginError('grid_control_invalid', 'Unknown shedding priority region');
+    const sheddingPriorities = orderedPriorities(values, selected.sheddingPriorities || config.sheddingPriorities, regionIds);
+    const selectedDisturbanceId = selected.disturbanceScenarioId || selected.scenarioId || selected.id;
     return deepFreeze({
       id: disturbanceScenarioId,
       scenarioId: disturbanceScenarioId,
-      seed: selected.seed || disturbanceScenarioId,
+      seed: disturbanceScenarioId === selectedDisturbanceId ? selected.seed || disturbanceScenarioId : disturbanceScenarioId,
       disturbanceScenarioId,
       dispatchPolicyId,
       reservePolicyId,
@@ -434,6 +445,18 @@
       throw pluginError('grid_control_invalid', `${label} must be a non-empty unique array`);
     }
     return [...selected];
+  }
+  function orderedPriorities(values, fallback, regionIds) {
+    const rankedValues = Array.from({ length: regionIds.size }, (_, index) => values[`sheddingPriority${index + 1}`]);
+    const hasRankedEditorValues = rankedValues.some((value) => value !== undefined && value !== '');
+    const selected = hasRankedEditorValues
+      ? rankedValues.map((value, index) => value === undefined || value === '' ? fallback[index] : value)
+      : arrayValue(values.sheddingPriorities, fallback, 'sheddingPriorities');
+    if (selected.length !== regionIds.size || new Set(selected).size !== regionIds.size
+      || selected.some((row) => !regionIds.has(row))) {
+      throw pluginError('grid_control_invalid', 'Service priority must rank every region exactly once');
+    }
+    return selected;
   }
   function numberValue(value, fallback, min, max, integer, label) {
     const selected = value === undefined || value === '' ? fallback : Number(value);

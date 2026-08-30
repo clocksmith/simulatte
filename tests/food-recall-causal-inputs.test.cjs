@@ -75,6 +75,7 @@ function applied({ temperatureC, delayHours, availability, failureMultiplier = 1
 }
 
 test('host weather and logistics capabilities resolve into immutable, traceable fields', () => {
+  assert.equal(config.defaultScenarioId, 'scenario:egg-cold-chain');
   const calls = [];
   const sdk = {
     capabilities: {
@@ -264,7 +265,12 @@ test('plugin receipts, settlement, inspection, and v4 contribution expose applie
   assert.equal(scenarioReceipt.appliedInputs.weather.fieldIdentity.includes('weather'), true);
   assert.equal(scenarioReceipt.appliedInputs.logistics.transitDelayHoursPrior, 6);
   assert.equal(scenarioReceipt.causalOutcomes.shipmentDurationHours, state.run.shipmentDurationHours);
-  assert.ok(instance.view()[0].rows.some((row) => row.label === 'Ambient input'));
+  const readyView = instance.view()[0];
+  assert.ok(readyView.rows.some((row) => row.label === 'Ambient input'));
+  assert.equal(readyView.rows.find((row) => row.label === 'Active layer').value, 'Baseline · no intervention applied');
+  assert.equal(readyView.rows.find((row) => row.label === 'Resulting recall day').value, 'Not applied');
+  assert.ok(readyView.fields.some((row) => row.id === 'recallDelayDays' && row.label === 'Delay after detection (days)'));
+  assert.ok(readyView.actions.some((row) => row.id === 'recall.issue' && row.label === 'Apply intervention'));
   assert.equal(instance.settle().obligationResults.find((row) => row.obligationId.endsWith(':causal-inputs')).status, 'unmet');
   const readyContribution = instance.contributeV4();
   contracts.validateContribution(readyContribution);
@@ -273,7 +279,7 @@ test('plugin receipts, settlement, inspection, and v4 contribution expose applie
   assert.equal(readyContribution.presentation.layers.filter((row) => row.id.startsWith('corridor:')).length, 0);
   assert.equal(instance.present().geoPaths.length, 0);
   let started = instance.handleAction('scenario.run', {
-    values: { phase: 'start', recallDay: 1, recallDepth: 'retail' },
+    values: { phase: 'start', recallDelayDays: 1, recallDepth: 'retail' },
   });
   assert.equal(started.status, 'running');
   assert.deepEqual(started.intervention, {
@@ -287,6 +293,11 @@ test('plugin receipts, settlement, inspection, and v4 contribution expose applie
   assert.equal(started.status, 'settled');
   assert.equal(state.run.recall.dayOffset, 1);
   assert.equal(state.run.recall.depth, 'retail');
+  assert.ok(Math.abs(state.run.recall.recallDay - (state.run.detectionDay + 1)) < 0.01);
+  const settledView = instance.view()[0];
+  assert.equal(settledView.rows.find((row) => row.label === 'Detected day').value, `day ${state.run.detectionDay}`);
+  assert.equal(settledView.rows.find((row) => row.label === 'Resulting recall day').value, `day ${state.run.recall.recallDay}`);
+  assert.match(settledView.rows.find((row) => row.label === 'Active layer').value, /Intervention · 1-day delay · retail/);
   assert.equal(instance.settle().obligationResults.find((row) => row.obligationId.endsWith(':causal-inputs')).status, 'settled');
   const contribution = instance.contributeV4();
   contracts.validateContribution(contribution);
@@ -301,6 +312,12 @@ test('plugin receipts, settlement, inspection, and v4 contribution expose applie
   assert.ok(corridorLayers.every((row) => overview.targetIds.includes(row.id)));
   assert.equal(instance.present().geoPaths.length, activeCorridorIds.size);
   assert.ok(receipts.some((row) => row.schema === 'simulatte.plugin.foodRecallInterventionReceipt.v2'));
+  const interventionReceipt = receipts.find((row) => row.schema === 'simulatte.plugin.foodRecallInterventionReceipt.v2');
+  assert.equal(interventionReceipt.metrics.recallDelayDays, 1);
+  assert.equal(interventionReceipt.metrics.resultingRecallDay, state.run.recall.recallDay);
+  const controls = instance.contributeV4().controls.controls;
+  assert.ok(controls.some((row) => row.id === 'recallDelayDays' && row.label.includes('Delay after detection')));
+  assert.equal(controls.some((row) => row.id === 'recallDay'), false);
 });
 
 function json(filename) {

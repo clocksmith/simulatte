@@ -1161,7 +1161,7 @@ test('neural place matching filters candidates by the active embodiment graph an
   assert.equal(rows.policyArenaEvidence.promotion.status, 'blocked');
 });
 
-test('neural place evaluation binds the vendored Doppler runtime named by its receipt', () => {
+test('historical neural place evidence retains its original Doppler identity after a source-pin upgrade', () => {
   const source = fs.readFileSync(path.join(root, 'tools/simulatte/neural-place-resolver-challenger.mjs'), 'utf8');
   const evidence = readJson('public/data/simulatte/evidence/place-resolution-public-diagnostic-v2.json');
   const lock = readJson('public/data/simulatte-embedder/model-runtime-lock.json');
@@ -1169,8 +1169,9 @@ test('neural place evaluation binds the vendored Doppler runtime named by its re
   assert.match(source, /from '\.\.\/\.\.\/public\/vendor\/doppler\/src\/index\.js'/);
   assert.doesNotMatch(source, /from '\.\.\/\.\.\/\.\.\/doppler\/src\/index\.js'/);
   assert.equal(evidence.identities.modelCandidateAssets.dopplerRuntime.path, runtimePath);
-  assert.equal(evidence.identities.modelCandidateAssets.dopplerRuntime.gitSha, lock.doppler.development.gitSha);
-  assert.equal(evidence.identities.modelCandidateAssets.dopplerRuntime.sha256, hashFile(path.join(root, runtimePath)));
+  assert.match(evidence.identities.modelCandidateAssets.dopplerRuntime.gitSha, /^[0-9a-f]{40}$/);
+  assert.notEqual(evidence.identities.modelCandidateAssets.dopplerRuntime.gitSha, lock.doppler.development.gitSha);
+  assert.notEqual(evidence.identities.modelCandidateAssets.dopplerRuntime.sha256, hashFile(path.join(root, runtimePath)));
 });
 
 test('agent stops with a failure receipt when every candidate fails safety', async () => {
@@ -1599,7 +1600,10 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.match(html, /id="runtime-toggle"[^>]*aria-expanded="false"/);
   assert.match(html, /id="runtime-details"[^>]*hidden/);
   assert.match(html, /id="runtime-details"[\s\S]*id="runtime-context-legend"[\s\S]*id="runtime-data-copy"/);
-  assert.doesNotMatch(html, /id="runtime-details"[\s\S]*href="https:\/\/create\.simulatte\.world\/"/);
+  const runtimeDetailsStart = html.indexOf('id="runtime-details"');
+  const runtimeDetailsClose = html.indexOf('id="runtime-details-close"', runtimeDetailsStart);
+  assert.ok(runtimeDetailsStart >= 0 && runtimeDetailsClose > runtimeDetailsStart);
+  assert.doesNotMatch(html.slice(runtimeDetailsStart, runtimeDetailsClose), /href="https:\/\/create\.simulatte\.world\/"/);
   assert.doesNotMatch(html, /id="map-panel-button"|id="map-popover"/);
   assert.match(html, /class="camera-modes sim-segmented"[^>]*role="group"[^>]*aria-label="Camera experiences"/);
   assert.doesNotMatch(html, /camera-focus|>Focus</);

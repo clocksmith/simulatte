@@ -12,26 +12,29 @@
   recordContract
 ) {
   function create(options = {}) {
-    let failureBoundary = null;
-    let failureKey = '';
+    let failureBoundaries = [];
     let currentRecord = null;
     let activePrompt = '';
+    let diagnostics = diagnostic('idle');
+    const diagnosticHistory = [diagnostics];
     const records = [];
+
+    function recordDiagnostic(status, spec = null, proof = null, error = null) {
+      diagnostics = diagnostic(status, spec, proof, failureBoundaries, error);
+      diagnosticHistory.push(diagnostics);
+      if (diagnosticHistory.length > 64) diagnosticHistory.shift();
+    }
 
     function observeSpec(spec) {
       const prompt = sourcePrompt(spec);
       if (!prompt) return null;
       if (activePrompt && prompt !== activePrompt) {
-        failureBoundary = null;
-        failureKey = '';
+        failureBoundaries = [];
         currentRecord = null;
+        recordDiagnostic('prompt-changed', spec);
       }
       activePrompt = prompt;
-      if (failureBoundary && Number(spec.authorship && spec.authorship.revision || 0) <=
-          failureBoundary.worldSpec.revision && spec.contentHash !== failureBoundary.worldSpec.contentHash) {
-        failureBoundary = null;
-        failureKey = '';
-      }
+      recordDiagnostic('spec-observed', spec);
       return currentRecord;
     }
 
@@ -42,51 +45,114 @@
       const sceneProof = report && report.phase8Output && report.phase8Output.artifact &&
         report.phase8Output.artifact.sceneProof;
       if (!spec || !proof || !sceneProof || report.final !== true) return currentRecord;
-      if (!failureBoundary && repairableFailure(proof, sceneProof)) {
+      if (repairableFailure(proof, sceneProof)) {
         const nextKey = `${spec.contentHash}:${proof.contentHash}`;
-        if (nextKey !== failureKey) {
-          failureBoundary = recordContract.captureFailureBoundary(spec, report, {
-            nowIso: proof.createdAt,
-          });
-          failureKey = nextKey;
+        if (!failureBoundaries.some((entry) => entry.key === nextKey)) {
+          let boundary;
+          try {
+            boundary = recordContract.captureFailureBoundary(spec, report, {
+              nowIso: proof.createdAt,
+            });
+          } catch (error) {
+            recordDiagnostic('failure-rejected', spec, proof, error);
+            throw error;
+          }
+          failureBoundaries.push({ key: nextKey, boundary });
           currentRecord = null;
         }
+        recordDiagnostic('failure-captured', spec, proof);
         return null;
       }
-      if (!failureBoundary || !successfulReplay(proof, sceneProof)) return currentRecord;
-      if (sourcePrompt(spec) !== failureBoundary.brief.prompt ||
-          Number(spec.authorship && spec.authorship.revision || 0) <= failureBoundary.worldSpec.revision) {
+      if (!successfulReplay(proof, sceneProof)) {
+        recordDiagnostic('replay-not-passing', spec, proof);
         return currentRecord;
       }
-      const next = recordContract.createWorldImprovementRecord({
-        failureBoundary,
-        successfulSpec: spec,
-        successfulReport: report,
-        nowIso: proof.createdAt,
-      });
+      const failureBoundary = matchingFailureBoundary(spec, failureBoundaries);
+      if (!failureBoundary) {
+        recordDiagnostic('failure-lineage-not-matched', spec, proof);
+        return currentRecord;
+      }
+      let next;
+      try {
+        next = recordContract.createWorldImprovementRecord({
+          failureBoundary,
+          successfulSpec: spec,
+          successfulReport: report,
+          nowIso: proof.createdAt,
+        });
+      } catch (error) {
+        recordDiagnostic('record-rejected', spec, proof, error);
+        throw error;
+      }
       currentRecord = next;
       records.push(next);
-      failureBoundary = null;
-      failureKey = '';
+      failureBoundaries = [];
+      recordDiagnostic('record-created', spec, proof);
       if (typeof options.onRecord === 'function') options.onRecord(next);
       return next;
     }
 
     function reset() {
-      failureBoundary = null;
-      failureKey = '';
+      failureBoundaries = [];
       currentRecord = null;
       activePrompt = '';
+      recordDiagnostic('reset');
     }
 
     return Object.freeze({
       observeSpec,
       observeProof,
       reset,
-      getFailureBoundary: () => failureBoundary,
+      getFailureBoundary: () => failureBoundaries.length
+        ? failureBoundaries[failureBoundaries.length - 1].boundary
+        : null,
       getCurrentRecord: () => currentRecord,
       getRecords: () => records.slice(),
+      getDiagnostics: () => ({
+        ...diagnostics,
+        history: diagnosticHistory.map((entry) => ({ ...entry })),
+      }),
     });
+  }
+
+  function diagnostic(status, spec = null, proof = null, entries = [], error = null) {
+    return {
+      schema: 'simulatte.worldImprovementSessionDiagnostic.v1',
+      status,
+      worldSpecContentHash: String(spec && spec.contentHash || ''),
+      worldSpecRevision: Number(spec && spec.authorship && spec.authorship.revision || 0),
+      sourcePrompt: sourcePrompt(spec),
+      worldProofContentHash: String(proof && proof.contentHash || ''),
+      worldProofVerdict: String(proof && proof.verdict || ''),
+      replayStatus: String(proof && proof.proofClasses && proof.proofClasses.replay &&
+        proof.proofClasses.replay.status || ''),
+      retainedFailureCount: entries.length,
+      retainedFailureContentHashes: entries.map((entry) => entry.boundary.worldSpec.contentHash),
+      error: error && error.message ? error.message : '',
+    };
+  }
+
+  function matchingFailureBoundary(spec, entries = []) {
+    const prompt = sourcePrompt(spec);
+    const revision = Number(spec && spec.authorship && spec.authorship.revision || 0);
+    const successPatches = spec && spec.authorship && Array.isArray(spec.authorship.patches)
+      ? spec.authorship.patches
+      : [];
+    for (let index = entries.length - 1; index >= 0; index -= 1) {
+      const boundary = entries[index].boundary;
+      if (boundary.brief.prompt !== prompt || revision <= boundary.worldSpec.revision) continue;
+      const boundaryPatches = boundary.worldSpec.program.authorship.patches || [];
+      const boundaryPatchIds = new Set(boundaryPatches.map((row) => row.id));
+      const appendedPatches = successPatches.filter((row) => !boundaryPatchIds.has(row.id));
+      const preservesPatchHistory = boundaryPatches.every((row, patchIndex) => (
+        successPatches[patchIndex] && successPatches[patchIndex].id === row.id
+      ));
+      const bindsRevisionZeroBaseline = boundary.worldSpec.revision !== 0 || appendedPatches.some((row) => (
+        row.compilerBaselineContentHash === boundary.worldSpec.contentHash
+      ));
+      if (preservesPatchHistory && appendedPatches.length && bindsRevisionZeroBaseline) return boundary;
+    }
+    return null;
   }
 
   function sourcePrompt(spec) {
@@ -106,6 +172,7 @@
 
   return Object.freeze({
     create,
+    matchingFailureBoundary,
     repairableFailure,
     successfulReplay,
     serializeRecord: recordContract.serializeWorldImprovementRecord,

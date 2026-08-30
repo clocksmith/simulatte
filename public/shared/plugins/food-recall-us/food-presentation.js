@@ -101,7 +101,14 @@
         { label: 'Lots / events', value: `${run.lotCount} lots · ${run.eventCount} events` },
         { label: 'True illnesses', value: String(run.trueIllnesses) },
         { label: 'Observed cases', value: String(run.observedCases) },
-        { label: 'Detection', value: run.detectionDay ? `day ${run.detectionDay}` : 'not detected' },
+        { label: 'Detected day', value: run.detectionDay ? `day ${run.detectionDay}` : 'Not reached' },
+        { label: 'Resulting recall day', value: run.recall?.recallDay ? `day ${run.recall.recallDay}` : 'Not applied' },
+        {
+          label: 'Active layer',
+          value: activeIntervention
+            ? `Intervention · ${activeIntervention.dayOffset}-day delay · ${activeIntervention.depth}`
+            : 'Baseline · no intervention applied',
+        },
         { label: 'Shipment time', value: `${run.shipmentDurationHours} modeled hours` },
         { label: 'Cold-chain failures', value: `${run.refrigerationFailures} simulated events` },
         { label: 'Ambient input', value: inputContext ? `${inputContext.weather.airTemperatureC} °C · ${inputContext.weather.truth.origin}` : 'unavailable' },
@@ -115,11 +122,12 @@
         ] : []),
       ],
       fields: [
-        { id: 'recallDay', label: 'Recall day', type: 'number', value: String(activeIntervention?.dayOffset ?? scenario.defaultIntervention.dayOffset) },
-        { id: 'recallDepth', label: 'Recall depth', type: 'select', value: activeIntervention?.depth ?? scenario.defaultIntervention.depth,
+        { id: 'recallDelayDays', label: 'Delay after detection (days)', type: 'number', value: String(activeIntervention?.dayOffset ?? scenario.defaultIntervention.dayOffset), minimum: 0, maximum: scenario.durationDays, step: 1 },
+        { id: 'recallDepth', label: 'Intervention layer', type: 'select', value: activeIntervention?.depth ?? scenario.defaultIntervention.depth,
           options: [{ value: 'retail', label: 'Retail' }, { value: 'consumer', label: 'Consumer' }] },
       ],
       actions: [
+        { id: 'recall.issue', label: 'Apply intervention' },
         { id: 'ensemble.run', label: 'Run ensemble' },
         { id: 'focus.national', label: 'National view', command: { kind: 'camera.focus', targetId: 'food-network-overview' } },
       ],

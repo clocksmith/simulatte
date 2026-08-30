@@ -283,6 +283,56 @@ test('flight playback advances the ephemeris epoch and follows the moving spacec
   );
 });
 
+test('applied mission state remains inspectable while step-time drafts cannot mutate the running proof', async () => {
+  const host = fixture();
+  const instance = await plugin.activate({ sdk: host.sdk, config, profile, scenario: profile.seeds[0] });
+  instance.handleAction('scenario.run', {
+    values: {
+      phase: 'start',
+      deltaVWeight: 2,
+      timeWeight: 0.2,
+      spacecraftArchetypeId: 'crew-ship-v1',
+      prograde: false,
+      verificationStepDays: 1,
+    },
+  });
+  const applied = instance.capabilities['simulation.orbital-transfer.v1']();
+  instance.handleAction('scenario.run', {
+    values: {
+      phase: 'step',
+      deltaVWeight: 9,
+      timeWeight: 0.9,
+      spacecraftArchetypeId: 'cargo-freighter-v1',
+      prograde: true,
+      verificationStepDays: 0.05,
+    },
+  });
+  const afterDraft = instance.capabilities['simulation.orbital-transfer.v1']();
+  assert.deepEqual(afterDraft.acceptedParameters, applied.acceptedParameters);
+
+  const contribution = instance.contributeV4();
+  const controls = Object.fromEntries(contribution.controls.controls.map((row) => [row.id, row]));
+  assert.equal(controls.deltaVWeight.value, 2);
+  assert.equal(controls.timeWeight.value, 0.2);
+  assert.equal(controls.spacecraftArchetypeId.value, 'crew-ship-v1');
+  assert.match(controls.prograde.label, /^Advanced:/);
+  assert.match(controls.verificationStepDays.label, /^Advanced:/);
+
+  const fields = Object.fromEntries(contribution.inspections[0].fields.map((row) => [row.id, row.value]));
+  assert.equal(fields['applied-scenario'], profile.seeds[0].label);
+  assert.equal(fields['applied-spacecraft'].id, 'crew-ship-v1');
+  assert.deepEqual(fields['applied-objective'], { deltaVWeight: 2, timeWeight: 0.2 });
+  assert.equal(fields['current-epoch'], contribution.presentation.epoch);
+  assert.equal(fields['route-progress'], 0);
+  assert.match(fields['playback-clock'], /Wall-clock playback rate only/);
+  assert.match(fields['view-interaction'], /Mouse drag orbits/);
+
+  const rows = Object.fromEntries(instance.view()[0].rows.map((row) => [row.label, row.value]));
+  assert.equal(rows['Applied scenario'], profile.seeds[0].label);
+  assert.match(rows['Applied spacecraft'], /Crew/i);
+  assert.match(rows['Playback speed'], /Wall-clock playback rate only/);
+});
+
 function fixture() {
   const values = new Map(manifest.datasets.map((row) => [
     row.id,

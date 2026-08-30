@@ -172,7 +172,7 @@
       });
       return Object.freeze({
         schema: 'simulatte.orbitalScenarioResult.v2',
-        scenarioId: spec.id, seed: spec.seed || null, targetBodyId,
+        scenarioId: spec.id, scenarioLabel: spec.label || spec.id, seed: spec.seed || null, targetBodyId,
         search, selected, fallback, metrics, radiation, verification, solverReceipt, claimGate,
         depots: depotsData?.depots || [],
         acceptedParameters: Object.freeze({
@@ -363,15 +363,30 @@
       const selectedVisible = playback.cursor >= 3;
       const verificationVisible = playback.cursor >= 4;
       const arrivalVisible = playback.cursor >= TRANSFER_TIMELINE.length - 1;
+      const routeProgress = flightProgress(playback.cursor);
+      const currentEpoch = epochForDay(
+        ephemerisData,
+        displayEphemerisDay(result, routeProgress, selectedVisible)
+      );
+      const elapsedFlightDays = Number.isFinite(routeProgress)
+        ? result.metrics.timeOfFlightDays * routeProgress
+        : 0;
+      const spacecraft = spacecraftData?.archetypes?.[result.acceptedParameters.spacecraftArchetypeId];
       return [
         {
           slot: 'inspector', title: 'Orbital Transfer Planner',
           rows: [
             { label: 'Solver stage', value: playback.stage.label },
             { label: 'What changed', value: playback.stage.narrative },
-            { label: 'Progress', value: `${playback.cursor} / ${playback.totalSteps}` },
-            { label: 'Scenario', value: result.scenarioId },
+            { label: 'Playback progress', value: `${playback.cursor} / ${playback.totalSteps} (${Math.round(playback.cursor / playback.totalSteps * 100)}%)` },
+            { label: 'Applied scenario', value: result.scenarioLabel },
+            { label: 'Applied spacecraft', value: spacecraft?.name || result.acceptedParameters.spacecraftArchetypeId },
+            { label: 'Applied objective', value: `Delta-v ${result.acceptedParameters.deltaVWeight} / flight time ${result.acceptedParameters.timeWeight}` },
             { label: 'Target', value: result.targetBodyId.toUpperCase() },
+            { label: 'Current model epoch', value: currentEpoch || 'not available' },
+            { label: 'Elapsed modeled flight', value: `${elapsedFlightDays.toFixed(2)} / ${result.metrics.timeOfFlightDays.toFixed(2)} days` },
+            { label: 'Playback speed', value: 'Wall-clock playback rate only; model time follows the displayed epoch.' },
+            { label: 'View interaction', value: 'Mouse drag orbits the solar system. Mouse wheel zooms.' },
             ...(playback.cursor >= 1 ? [{ label: 'Search', value: `${result.metrics.solutionCount}/${result.metrics.attemptedCount} converged` }] : []),
             ...(playback.cursor >= 2 ? [{ label: 'Rejected', value: `${result.solverReceipt.rejectedCandidateCount} candidates · ${rejectionSummary(result.solverReceipt.rejectionCounts)}` }] : []),
             ...(selectedVisible ? [
@@ -605,6 +620,13 @@
     if (!result.selected || !selectionVisible) return 0;
     if (!Number.isFinite(flightFraction)) return result.selected.departureDay;
     return result.selected.departureDay + result.selected.tofDays * flightFraction;
+  }
+
+  function epochForDay(dataset, day) {
+    const start = Date.parse(dataset?.epochStart || dataset?.epoch?.start || '');
+    return Number.isFinite(start) && Number.isFinite(day)
+      ? new Date(start + day * 86400000).toISOString()
+      : null;
   }
 
   function rejectionSummary(counts) {

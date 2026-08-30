@@ -75,7 +75,7 @@
         quantity: builder.quantity('occlusion.shadow-length', shadow.lengthM, 'meters'),
         role: 'primary',
         importance: 0.7,
-        aggregationKey: null,
+        aggregationKey: shadow.id,
         provenance: builder.provenance({
           origin: 'modeled',
           temporalStatus: 'forecast',
@@ -89,7 +89,7 @@
       ...[activeSample].filter(Boolean).map((sample) => builder.layer({
         id: 'sun-walker-actor',
         kind: 'actor',
-        label: `Walker · ${sample.state} · ${sample.timestamp}`,
+        label: `Walker · ${exposureStatus.current.label} · ${sample.timestamp} UTC`,
         geometry: builder.geometry('point', 'city-local-m', [[sample.point.x, sample.point.y, 0]]),
         quantity: builder.quantity('actor.pedestrian.route-progress', snapshot.state.progress, 'ratio', [0, 1]),
         role: 'event',
@@ -115,6 +115,7 @@
     const isSettled = snapshot.state.status === 'settled';
     const navigationMode = walkerNavigationMode(step, isSettled);
     const isOverview = navigationMode === 'overview';
+    const followReasonEvent = events[1] || activeEvent;
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'city-node-segment-id',
@@ -138,7 +139,9 @@
           : isOverview
             ? ['shade-selected-route']
             : ['sun-walker-actor'],
-        reasonEventId: activeEvent?.id || null,
+        reasonEventId: isSettled || isOverview
+          ? activeEvent?.id || null
+          : followReasonEvent?.id || null,
         priority: isSettled ? 65 : isOverview ? 50 : 55,
       })],
     });
@@ -172,6 +175,9 @@
         builder.quantity('night', snapshot.state.nightSeconds, 'seconds'),
         builder.quantity('direct-sun-share', exposureStatus.percentages.direct / 100, 'ratio', [0, 1]),
         builder.quantity('shade-share', exposureStatus.percentages.shade / 100, 'ratio', [0, 1]),
+        builder.quantity('geometric-direct-sun-share', exposureStatus.geometricPercentages.direct / 100, 'ratio', [0, 1]),
+        builder.quantity('geometric-shade-share', exposureStatus.geometricPercentages.shade / 100, 'ratio', [0, 1]),
+        builder.quantity('adjusted-direct-beam-share', exposureStatus.adjustedDirectBeamPercent / 100, 'ratio', [0, 1]),
         builder.quantity('direct-beam-equivalent', snapshot.state.directBeamEquivalentSeconds, 'seconds'),
       ],
       provenance: claim,
@@ -188,12 +194,18 @@
         targetIds: ['shade-selected-route'],
         fields: [
           field('progress', 'Route progress', snapshot.state.progress, 'ratio', claim),
-          field('current-status', 'Current status', exposureStatus.current.label, null, claim),
-          field('exposure-split', 'Walk so far', exposureStatus.split, null, claim),
-          field('shade-share', 'Shade percent', exposureStatus.percentages.shade / 100, 'ratio', claim),
-          field('direct-sun-share', 'Direct sun percent', exposureStatus.percentages.direct / 100, 'ratio', claim),
+          field('current-status', 'Current exposure', exposureStatus.current.label, null, claim),
+          field('current-geometric-status', 'Current geometric sun', exposureStatus.current.geometricLabel, null, claim),
+          field('current-adjusted-beam', 'Current adjusted direct beam', exposureStatus.current.adjustedDirectBeamPercent / 100, 'ratio', claim),
+          field('exposure-split', 'Walked exposure', exposureStatus.split, null, claim),
+          field('geometric-split', 'Walked geometric sun', exposureStatus.geometricSplit, null, claim),
+          field('shade-share', 'Exposure shade percent', exposureStatus.percentages.shade / 100, 'ratio', claim),
+          field('direct-sun-share', 'Exposure sun percent', exposureStatus.percentages.direct / 100, 'ratio', claim),
+          field('geometric-shade-share', 'Geometric shade percent', exposureStatus.geometricPercentages.shade / 100, 'ratio', claim),
+          field('geometric-direct-sun-share', 'Geometric direct sun percent', exposureStatus.geometricPercentages.direct / 100, 'ratio', claim),
           field('direct-sun', 'Direct sun so far', snapshot.state.directSunSeconds, 'seconds', claim),
           field('direct-beam-equivalent', 'Weather/canopy-adjusted direct beam so far', snapshot.state.directBeamEquivalentSeconds, 'seconds', claim),
+          field('adjusted-direct-beam-share', 'Weather/canopy-adjusted direct beam average', exposureStatus.adjustedDirectBeamPercent / 100, 'ratio', claim),
           field('modeled-shade', 'Modeled shade so far', snapshot.state.shadeSeconds, 'seconds', claim),
           field('building-shade', 'Building shade so far', snapshot.state.buildingShadeSeconds, 'seconds', claim),
           field('canopy-shade', 'Canopy shade so far', snapshot.state.canopyShadeSeconds, 'seconds', claim),

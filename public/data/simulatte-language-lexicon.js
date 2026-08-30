@@ -12,7 +12,7 @@
     'are', 'around', 'as', 'at', 'be', 'before', 'behind', 'below', 'beneath',
     'beside', 'between', 'build', 'but', 'by', 'create', 'do', 'during', 'for', 'from',
     'cannot', 'generic', 'have', 'in', 'inside', 'into', 'is', 'it', 'make', 'near',
-    'never', 'no', 'none', 'not', 'of', 'off', 'on', 'study',
+    'never', 'no', 'none', 'not', 'of', 'off', 'on',
     'onto', 'or', 'outside', 'over', 'simulate', 'simulation', 'that', 'the', 'this',
     'through', 'to', 'under', 'use', 'uses', 'while', 'with', 'within', 'without', 'world',
   ]);
@@ -401,8 +401,18 @@
     ['galaxy', 'entity', { entityClass: 'galaxy', visualArchetype: 'galaxy' }],
     ['stars', 'entity', { entityClass: 'sun', visualArchetype: 'star' }],
     ['star', 'entity', { entityClass: 'sun', visualArchetype: 'star' }],
-    ['planets', 'entity', { entityClass: 'planet', visualArchetype: 'planet' }],
-    ['planet', 'entity', { entityClass: 'planet', visualArchetype: 'planet' }],
+    ['planets', 'entity', {
+      entityClass: 'planet', visualArchetype: 'planet', localGeometryGrammarId: 'object-grammar.planet',
+    }],
+    ['planet', 'entity', {
+      entityClass: 'planet', visualArchetype: 'planet', localGeometryGrammarId: 'object-grammar.planet',
+    }],
+    ['moons', 'entity', {
+      entityClass: 'moon', visualArchetype: 'planet', localGeometryGrammarId: 'object-grammar.planet',
+    }],
+    ['moon', 'entity', {
+      entityClass: 'moon', visualArchetype: 'planet', localGeometryGrammarId: 'object-grammar.planet',
+    }],
     ['sunlight', 'entity', { entityClass: 'light-source', visualArchetype: 'star' }],
     ['gel', 'material'], ['membrane', 'entity'], ['turbulence', 'observable'],
   ]);
@@ -439,7 +449,7 @@
     'bedflow', 'balancing', 'balance', 'collapse', 'collapsing', 'motion',
     'dispersion', 'dispersing', 'resonance',
     'layers', 'layer', 'layering', 'shepherds', 'shepherd', 'shepherding',
-    'throttles', 'throttle', 'throttling',
+    'throttles', 'throttle', 'throttling', 'studies', 'study', 'studying',
   ]);
 
   const ACTION_POSE_LEXICON = Object.freeze([
@@ -489,7 +499,9 @@
       'fire', 'flame', 'combust', 'combustion', 'burn', 'burns', 'burning', 'ignite', 'ignites', 'igniting',
     ] },
     { process: 'heat_transfer', phrases: ['heat', 'heats', 'thermal'] },
-    { process: 'measurement', phrases: ['measurement', 'readout', 'readouts', 'watch', 'watches', 'watching'] },
+    { process: 'measurement', phrases: [
+      'measurement', 'readout', 'readouts', 'watch', 'watches', 'watching', 'study', 'studies', 'studying',
+    ] },
     { process: 'phase_transition', phrases: ['freeze', 'freezing', 'melt', 'melting', 'phase', 'ice'] },
     { process: 'network_flow', phrases: ['network', 'queue', 'dispatch', 'signal', 'train', 'platform', 'server', 'packet', 'parcel', 'traffic', 'zoning', 'allocation', 'resolve', 'resolution', 'conflict', 'route', 'routes', 'routing', 'throttle', 'throttles', 'throttling'] },
     { process: 'oscillation', phrases: ['wave', 'waves', 'pressure wave', 'pressure waves', 'resonance', 'orbital', 'orbit', 'ring', 'moon', 'oscillate', 'oscillates', 'oscillation'] },

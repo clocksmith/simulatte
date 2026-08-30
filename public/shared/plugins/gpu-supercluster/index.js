@@ -12,6 +12,7 @@
   }
 
   function simulate(rawConfig = {}) {
+    const controlsApi = dependency('SimulatteClusterControls', './cluster-controls.js');
     const topologyApi = dependency('SimulatteClusterTopology', './cluster-topology.js');
     const collectiveApi = dependency('SimulatteCollectiveSolver', './collective-solver.js');
     const thermalApi = dependency('SimulatteThermalModel', './thermal-model.js');
@@ -19,6 +20,7 @@
     const presentationApi = dependency('SimulatteClusterPresentation', './presentation.js');
     const v4Api = dependency('SimulatteGpuSuperclusterV4', './v4-contribution.js');
 
+    const normalizedControls = controlsApi.normalizeControls(rawConfig);
     const config = {
       totalGpus: 256,
       racks: 32,
@@ -37,6 +39,12 @@
       linkPacketDropRate: 0,
       cduFlowDegradationPercent: 0,
       ...rawConfig,
+      collectiveAlgorithm: normalizedControls.collectiveAlgorithm,
+      tensorSizeGb: normalizedControls.tensorSizeGb,
+      stragglerThrottlePercent: normalizedControls.stragglerThrottlePercent,
+      coolantFlowLpm: normalizedControls.coolantFlowLpm,
+      linkPacketDropRate: normalizedControls.linkPacketDropRate,
+      cduFlowDegradationPercent: normalizedControls.cduFlowDegradationPercent,
     };
     const topology = topologyApi.buildClusterTopology(config);
     const collectives = collectiveApi.solveCollectives({
@@ -190,6 +198,8 @@
     function playbackResult() {
       return Object.freeze({
         status: currentStep >= 4 ? 'settled' : 'running',
+        mode: 'deterministic-result-replay',
+        resultAuthority: 'recomputed-on-playback-start',
         currentStep,
         totalSteps: 4,
         simulationTimeMs: currentStep * 1000,
@@ -224,6 +234,10 @@
         title: 'Modeled GPU supercluster',
         rows: Object.freeze([
           Object.freeze({ label: 'Modeled GPUs', value: String(current.topology.totalGpus) }),
+          Object.freeze({ label: 'Executed scenario seed', value: current.receipt.seed }),
+          Object.freeze({ label: 'Applied packet drop', value: `${(current.config.linkPacketDropRate * 100).toFixed(2)} percent` }),
+          Object.freeze({ label: 'Applied coolant flow', value: `${current.config.coolantFlowLpm.toFixed(1)} L/min` }),
+          Object.freeze({ label: 'Playback authority', value: 'Stages reveal one deterministic result recomputed when playback starts.' }),
           Object.freeze({ label: 'Collective', value: current.collectives.algorithm }),
           Object.freeze({ label: 'Step time', value: `${current.collectives.stepTimeMs.toFixed(3)} ms` }),
           Object.freeze({ label: 'Peak temperature', value: `${current.thermals.peakJunctionTempC.toFixed(2)} C` }),
@@ -254,10 +268,11 @@
 
   function configForScenario(config, scenario) {
     const scenarioId = scenario?.id || scenario?.scenarioId || '';
-    if (scenarioId === 'straggler-fault-injection') return { ...config, stragglerThrottlePercent: 50 };
-    if (scenarioId === 'cdu-cooling-failure') return { ...config, cduFlowDegradationPercent: 50 };
-    if (scenarioId === 'tree-allreduce-low-latency') return { ...config, collectiveAlgorithm: 'tree-allreduce' };
-    return { ...config };
+    const candidate = scenario?.seed ? { ...config, seed: scenario.seed } : { ...config };
+    if (scenarioId === 'straggler-fault-injection') return { ...candidate, stragglerThrottlePercent: 50 };
+    if (scenarioId === 'cdu-cooling-failure') return { ...candidate, cduFlowDegradationPercent: 50 };
+    if (scenarioId === 'tree-allreduce-low-latency') return { ...candidate, collectiveAlgorithm: 'tree-allreduce' };
+    return candidate;
   }
 
   function controlValues(values) {
@@ -266,6 +281,7 @@
       'tensorSizeGb',
       'stragglerThrottlePercent',
       'coolantFlowLpm',
+      'linkPacketDropRate',
       'cduFlowDegradationPercent',
     ];
     return Object.fromEntries(allowed.flatMap((key) => values[key] === undefined ? [] : [[key, values[key]]]));

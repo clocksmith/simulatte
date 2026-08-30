@@ -116,7 +116,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginAsteroidDefense",
-    "integrity": "sha384-4ea3631ff033d57b30487f2b141fa299d0830cb84b3c74de79f6991c0f2ba0663be01368366d01f98a38631788454e0a",
+    "integrity": "sha384-fc74625a21f7dc33a75ee67c1a33cfecbaa204750ae9fc8704fe69fc42fe41f3c9e081a784c7d2e678a3afcbfe23646b",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -174,7 +174,7 @@
       "path": "./asteroid-model.js"
     },
     {
-      "integrity": "sha384-eccd7c54aabe10721b994e05d8d6fe9eba688ed6a08d745ec1d54ff24b11fa23e3f126198fc23edf96d6bb601efda502",
+      "integrity": "sha384-e75b22e6f20b63eaf10cfbfd0bd59b84ef1cc5448b8c1a912d65fa4334a26263b7af00cf10bb3640df16a3cdc815ce3f",
       "path": "./v4-contribution.js"
     },
     {
@@ -182,7 +182,7 @@
       "path": "./comparison-driver.js"
     },
     {
-      "integrity": "sha384-f14c9bcee2a0967bd7512c340a83825f1e224bac0b38fdfa26aafc383cbd2da73544b2187311818b741e427e6b4f5b62",
+      "integrity": "sha384-763e8cd27eec7afed84efc441cd1c192b4a49fc7b316387d085421e4800eb683e057dc5fa0b43a7138cdb3d4293639bc",
       "path": "./presentation.js"
     }
   ],

@@ -211,32 +211,32 @@
     const controls = builder.controls([
       select(
         'sourceId',
-        'From star',
+        'Route: from star',
         result.controls.sourceId,
         options.stars.filter((row) => row.value !== result.controls.targetId),
         modeled
       ),
       select(
         'targetId',
-        'To star',
+        'Route: to star',
         result.controls.targetId,
         options.stars.filter((row) => row.value !== result.controls.sourceId),
         modeled
       ),
-      select('routingMode', 'Routing mode', result.controls.routingMode, routeModes(), modeled),
-      select('routeObjective', 'Route objective', result.controls.routeObjective, routeObjectives(), modeled),
-      multiselect('requiredRelayIds', 'Required relay stars', requiredRelays, options.relays, modeled),
-      multiselect('eligibleRelayIds', 'Stars eligible as relays', result.controls.eligibleRelayIds, options.stars, modeled),
-      numeric('maxHops', 'Maximum hops', result.controls.maxHops, 1, 8, 1, modeled),
-      numeric('maxHopDistancePc', 'Maximum hop distance', result.controls.maxHopDistancePc, 0.01, 250000, 0.01, modeled),
-      select('channelMode', 'Physics lane', result.controls.channelMode, options.channels, channelProvenance),
-      select('operationsProfileId', 'Operations profile', result.controls.operationsProfileId, options.operationsProfiles, modeled),
-      numeric('ensembleSize', 'Operational samples', result.controls.ensembleSize, 8, 512, 8, modeled),
-      numeric('retryLimit', 'Retry limit', result.controls.retryLimit, 0, 20, 1, modeled),
-      datetime('startEpochIso', 'Transmission epoch', result.controls.startEpochIso.slice(0, 16), modeled),
-      numeric('packetBytes', 'Packet size', result.controls.packetBytes, 64, 1073741824, 1, modeled),
-      numeric('processingDelayHours', 'Relay processing delay', result.controls.processingDelayHours, 0, 8760, 1, modeled),
-      select('transceiverId', 'Optical terminal', result.controls.transceiverId, options.terminals, modeled),
+      select('routingMode', 'Route: mode', result.controls.routingMode, routeModes(), modeled),
+      select('routeObjective', 'Route: objective', result.controls.routeObjective, routeObjectives(), modeled),
+      multiselect('requiredRelayIds', 'Relays: required stars', requiredRelays, options.relays, modeled),
+      multiselect('eligibleRelayIds', 'Relays: eligible stars', result.controls.eligibleRelayIds, options.stars, modeled),
+      numeric('maxHops', 'Relays: maximum hops', result.controls.maxHops, 1, 8, 1, modeled),
+      numeric('maxHopDistancePc', 'Relays: maximum hop distance', result.controls.maxHopDistancePc, 0.01, 250000, 0.01, modeled),
+      datetime('startEpochIso', 'Transmission: epoch (UTC)', result.controls.startEpochIso.slice(0, 16), modeled),
+      numeric('packetBytes', 'Transmission: packet size', result.controls.packetBytes, 64, 1073741824, 1, modeled),
+      numeric('processingDelayHours', 'Transmission: relay processing delay', result.controls.processingDelayHours, 0, 8760, 1, modeled),
+      select('transceiverId', 'Transmission: optical terminal', result.controls.transceiverId, options.terminals, modeled),
+      select('operationsProfileId', 'Operations: profile', result.controls.operationsProfileId, options.operationsProfiles, modeled),
+      numeric('ensembleSize', 'Operations: samples', result.controls.ensembleSize, 8, 512, 8, modeled),
+      numeric('retryLimit', 'Operations: retry limit', result.controls.retryLimit, 0, 20, 1, modeled),
+      select('channelMode', 'Physics: channel lane', result.controls.channelMode, options.channels, channelProvenance),
       ...advancedControls(result, channelProvenance),
     ], [{
       id: result.comparisonDefinition.id,
@@ -359,21 +359,21 @@
   function advancedControls(result, provenance) {
     const value = result.controls;
     if (value.channelMode === 'quantum-assisted') return [
-      numeric('quantumMemoryCoherenceHours', 'Quantum memory coherence', value.quantumMemoryCoherenceHours, 0.001, 1e12, 1, provenance),
-      numeric('quantumInitialFidelity', 'Initial entanglement fidelity', value.quantumInitialFidelity, 0, 1, 0.001, provenance),
-      numeric('entanglementPairRateHz', 'Entanglement pair rate', value.entanglementPairRateHz, 1, 1e18, 1, provenance),
+      numeric('quantumMemoryCoherenceHours', 'Physics: quantum memory coherence', value.quantumMemoryCoherenceHours, 0.001, 1e12, 1, provenance),
+      numeric('quantumInitialFidelity', 'Physics: initial entanglement fidelity', value.quantumInitialFidelity, 0, 1, 0.001, provenance),
+      numeric('entanglementPairRateHz', 'Physics: entanglement pair rate', value.entanglementPairRateHz, 1, 1e18, 1, provenance),
     ];
     if (value.channelMode === 'traversable-wormhole') return [
-      numeric('wormholeTraversalSeconds', 'Wormhole traversal time', value.wormholeTraversalSeconds, 0.000001, 1e12, 0.001, provenance),
-      numeric('wormholeThroatRadiusM', 'Wormhole throat radius', value.wormholeThroatRadiusM, 1e-35, 1e12, 0.01, provenance),
-      numeric('speculativeBandwidthGbps', 'Scenario bandwidth', value.speculativeBandwidthGbps, 1e-12, 1e12, 0.001, provenance),
-      numeric('speculativeStabilityProbability', 'Scenario stability', value.speculativeStabilityProbability, 0, 1, 0.01, provenance),
+      numeric('wormholeTraversalSeconds', 'Physics: wormhole traversal time', value.wormholeTraversalSeconds, 0.000001, 1e12, 0.001, provenance),
+      numeric('wormholeThroatRadiusM', 'Physics: wormhole throat radius', value.wormholeThroatRadiusM, 1e-35, 1e12, 0.01, provenance),
+      numeric('speculativeBandwidthGbps', 'Physics: speculative bandwidth', value.speculativeBandwidthGbps, 1e-12, 1e12, 0.001, provenance),
+      numeric('speculativeStabilityProbability', 'Physics: speculative stability', value.speculativeStabilityProbability, 0, 1, 0.01, provenance),
     ];
     if (value.channelMode === 'alcubierre-warp') return [
-      numeric('warpEffectiveSpeedC', 'Effective speed', value.warpEffectiveSpeedC, 0.01, 1e6, 0.01, provenance),
-      numeric('warpBubbleRadiusM', 'Warp bubble radius', value.warpBubbleRadiusM, 0.01, 1e12, 1, provenance),
-      numeric('speculativeBandwidthGbps', 'Scenario bandwidth', value.speculativeBandwidthGbps, 1e-12, 1e12, 0.001, provenance),
-      numeric('speculativeStabilityProbability', 'Scenario stability', value.speculativeStabilityProbability, 0, 1, 0.01, provenance),
+      numeric('warpEffectiveSpeedC', 'Physics: effective speed', value.warpEffectiveSpeedC, 0.01, 1e6, 0.01, provenance),
+      numeric('warpBubbleRadiusM', 'Physics: warp bubble radius', value.warpBubbleRadiusM, 0.01, 1e12, 1, provenance),
+      numeric('speculativeBandwidthGbps', 'Physics: speculative bandwidth', value.speculativeBandwidthGbps, 1e-12, 1e12, 0.001, provenance),
+      numeric('speculativeStabilityProbability', 'Physics: speculative stability', value.speculativeStabilityProbability, 0, 1, 0.01, provenance),
     ];
     return [];
   }

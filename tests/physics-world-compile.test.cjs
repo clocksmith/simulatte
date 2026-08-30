@@ -776,6 +776,48 @@ test('prototype construction retrieval uses a bounded lexical index with honest 
   }], 'Phase 4 preserves unevaluated construction evidence without fabricating model scores');
 });
 
+test('planetary rings preserve the shepherd moon local construction grammar through Phase 3', () => {
+  const prompt = 'planetary rings shepherd moon resonance sorting ice boulders into density waves and orbital gaps';
+  const spec = createPrototypeSpec(prompt);
+  const phase2Slot = spec.intent.phaseArtifacts.phase2.artifact.queryPlan.slots
+    .find((row) => row.slotId === 'slot.object.moon');
+  const phase3Slot = spec.intent.phaseArtifacts.phase3.artifact.retrievalRerankResult.slotRetrieval.bySlot
+    .find((row) => row.slotId === 'slot.object.moon');
+  const moonEntity = spec.renderProgram.visualIR.sceneRenderPacket.entities
+    .find((row) => row.semanticRef === 'prompt.body.moon');
+
+  assert.equal(phase2Slot.localGeometryGrammarId, 'object-grammar.planet');
+  assert.equal(phase3Slot.localGeometryGrammarId, 'object-grammar.planet');
+  assert.deepEqual(phase3Slot.candidates, []);
+  assert.equal(phase3Slot.receipt.modelStatus, 'not-run');
+  assert.equal(moonEntity.geometry.program.grammarId, 'object-grammar.planet');
+  assert.equal(moonEntity.geometry.program.literal, true);
+});
+
+test('generic phase study remains a measurement process without restoring negated quantum hardware', () => {
+  const spec = createPrototypeSpec('phase study in a generic lab with no qubits or quantum hardware');
+  const phase2 = spec.intent.phaseArtifacts.phase2.artifact;
+  const spans = phase2.promptParse.spans;
+
+  assert.ok(spans.some((row) => row.kind === 'process' && row.text === 'study'));
+  assert.ok(phase2.promptParse.clauses.some((row) => row.process === 'measurement' && row.predicate === 'study'));
+  assert.ok(phase2.intentRequirements.requirements
+    .filter((row) => /qubits|quantum|hardware/.test(row.label))
+    .every((row) => row.polarity === 'forbidden'));
+  assert.ok(spec.renderProgram.visualIR.processes.some((row) => (
+    (row.evidence || []).some((value) => /instrument-readout/.test(value))
+  )));
+  assert.deepEqual(
+    spec.renderProgram.visualIR.sceneRenderPacket.compositionLedger.obligations
+      .filter((row) => row.id === 'action:study' || row.id === 'action:measurement')
+      .map((row) => [row.id, row.status]),
+    [['action:study', 'preserved'], ['action:measurement', 'preserved']]
+  );
+  assert.equal(spec.renderProgram.visualIR.processes.some((row) => (
+    (row.evidence || []).some((value) => /quantum-phase-readout/.test(value))
+  )), false);
+});
+
 test('prototype lexical construction matches tokens rather than substrings', () => {
   const queryPlan = {
     schema: 'simulatte.sceneQueryPlan.v1',

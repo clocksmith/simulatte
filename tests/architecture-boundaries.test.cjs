@@ -38,6 +38,17 @@ test('tier visualizer delegates drawing and local data access', () => {
   assert.equal(typeof dataLoader.createTierDataLoader, 'function');
 });
 
+test('tier visualizer uses one pointer-capture orbit path for mouse and touch', () => {
+  const visualizer = read('public/simulatte/app/multi-tier-visualizer.js');
+  assert.match(visualizer, /'pointerdown'/);
+  assert.match(visualizer, /'pointermove'/);
+  assert.match(visualizer, /'pointerup'/);
+  assert.match(visualizer, /'pointercancel'/);
+  assert.match(visualizer, /setPointerCapture/);
+  assert.match(visualizer, /touchAction = 'none'/);
+  assert.doesNotMatch(visualizer, /'mousedown'|'mousemove'|'mouseup'/);
+});
+
 test('browser smoke lanes share one CDP client', () => {
   const browserSmoke = read('tools/simulatte/run-browser-smoke.mjs');
   const tierSmoke = read('tools/simulatte/run-tier-browser-smoke.mjs');
@@ -67,4 +78,13 @@ test('profile program exact replay uses the run controller replay boundary', () 
   const boot = read('public/simulatte/app/world-tiers-boot.js');
   assert.match(boot, /replay:async\(\)=>\{await runController\.replay\(\)/);
   assert.doesNotMatch(boot, /replay:async\(\)=>\{await runController\.seek\(/);
+});
+
+test('world landing keeps Create at the canonical center of the mobile honeycomb', () => {
+  const html = read('public/index.html');
+  const css = read('public/world-tiers.css');
+  assert.match(html, /id="hex-center-create"[^>]+href="https:\/\/create\.simulatte\.world\/"|href="https:\/\/create\.simulatte\.world\/"[^>]+id="hex-center-create"/);
+  assert.match(css, /\.hex-hub\s*\{\s*left: 30%;\s*top: 33\.333333%;/);
+  assert.match(css, /\.pos-top-right\s*\{\s*left: 60%;\s*top: 16\.666667%;/);
+  assert.match(css, /\.pos-bottom-left\s*\{\s*left: 0;\s*top: 50%;/);
 });

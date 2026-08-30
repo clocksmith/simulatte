@@ -58,6 +58,66 @@ test('identity graphics atoms reach Phase 7 morphology and camera uniforms witho
   );
 });
 
+test('microbiome colonies and cooling aisles preserve specific morphology through Phase 7 pixel sampling', () => {
+  const cases = [
+    {
+      prompt: 'gut microbiome colonies exchanging metabolites through intestinal folds under immune sampling',
+      identityType: 'gut-microbiome-colonies',
+      grammarId: 'object-grammar.gut-microbiome-colonies',
+      contours: ['arch', 'cloud', 'crescent'],
+      surfaces: ['instrument', 'organic'],
+    },
+    {
+      prompt: 'edge data center server racks recirculating heat between cooling aisles under controller limits',
+      identityType: 'cooling-aisles',
+      grammarId: 'object-grammar.cooling-aisles',
+      contours: ['arch', 'bevel-box', 'ellipse', 'wave'],
+      surfaces: ['glass', 'instrument', 'metal', 'water'],
+    },
+  ];
+
+  for (const fixture of cases) {
+    const spec = lab.createSpecFromPrompt(fixture.prompt, { allowPrototypeFallback: true });
+    const canvas = { width: 640, height: 360 };
+    const input = lab.createRenderExecutionInput(spec, { t: 0 }, canvas);
+    const packet = input.sceneRenderPacket;
+    const entity = packet.entities.find((row) => row.identity.type === fixture.identityType);
+    const program = entity && entity.geometry.program;
+
+    assert.ok(entity, `${fixture.identityType}: Phase 6 entity`);
+    assert.equal(program.grammarId, fixture.grammarId);
+    assert.equal(program.source, 'phase6-data-owned-part-graph');
+    assert.equal(program.selectionRole, 'identity-catalog');
+    assert.equal(program.morphologyReceipt.pass, true);
+    assert.deepEqual(program.morphologyReceipt.contourProfiles.slice().sort(), fixture.contours);
+    assert.deepEqual(program.morphologyReceipt.surfacePatterns.slice().sort(), fixture.surfaces);
+    assert.ok(program.morphologyReceipt.signatureContourCount >= 2);
+
+    const renderData = renderer.compileSceneRenderData(packet, packet.sceneKind, `morphology-${fixture.identityType}`);
+    const submittedParts = renderData.objectParts.filter((row) => row.identityType === fixture.identityType);
+    const realization = renderData.objectRealization.rows.find((row) => (
+      row.identityType === fixture.identityType
+    ));
+
+    assert.ok(submittedParts.length > 0, `${fixture.identityType}: Phase 7 object parts`);
+    assert.ok(submittedParts.every((row) => row.shapeCode > 0));
+    assert.ok(submittedParts.filter((row) => row.surfacePattern !== 'solid')
+      .every((row) => row.surfaceCode > 0));
+    assert.equal(realization.topologyVerified, true);
+    assert.equal(realization.morphologySubmitted, true);
+    assert.equal(realization.realized, true);
+
+    renderData.requireLivePixelSamples = true;
+    const readbackPlan = renderer.phase7PixelReadbackPlan(renderData, packet, input, canvas);
+    assert.equal(readbackPlan.status, 'ready');
+    assert.deepEqual(readbackPlan.unmatchedObligationIds, []);
+    assert.ok(readbackPlan.samples.some((row) => (
+      row.obligationId === `entity:${fixture.identityType}`
+    )));
+    assert.ok(readbackPlan.samples.some((row) => row.drawableId === entity.id));
+  }
+});
+
 test('public gold prompts compile prompt-conditioned contours and material surfaces', () => {
   const observedContours = new Set();
   const observedSurfaces = new Set();

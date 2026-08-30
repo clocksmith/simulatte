@@ -240,8 +240,37 @@ test('typed controls rebuild once, step existing state, replay exactly, and clos
     ensembleSize: 8,
     decisionThreshold: 0,
   };
-  const started = await instance.handleAction('scenario.run', {
+  const applied = await instance.handleAction('asteroid.configuration.apply', {
     scenario: { id: 'late-precision-observation', scenarioId: 'late-precision-observation', seed: 'asteroid-replay' },
+    values,
+  });
+  assert.equal(applied.status, 'applied');
+  assert.equal(applied.playbackStatus, 'ready');
+  const refusedDraft = await instance.handleAction('scenario.run', {
+    values: { ...values, observationBudget: 6, phase: 'start' },
+  });
+  assert.equal(refusedDraft.status, 'refused');
+  assert.equal(refusedDraft.reason, 'configuration_not_applied');
+  const reset = await instance.handleAction('asteroid.configuration.reset');
+  assert.equal(reset.status, 'reset');
+  assert.deepEqual(reset.values, applied.acceptedParameters);
+  const manual = await instance.handleAction('asteroid.view.manual');
+  assert.equal(manual.automaticView, false);
+  assert.equal(instance.contributeV4().presentation.viewIntents.length, 0);
+  assert.equal(instance.semanticPresentation().viewIntents.length, 0);
+  const manualView = instance.view()[0];
+  assert.ok(manualView.rows.some((row) => row.label === 'Camera authority' && /manual/i.test(row.value)));
+  assert.ok(manualView.rows.some((row) => row.label === 'Logical simulation time' && /Day 0\.00/.test(row.value)));
+  assert.ok(manualView.rows.some((row) => row.label === 'Decision threshold' && /0\.0%/.test(row.value)));
+  assert.deepEqual(manualView.actions.map((row) => row.id), [
+    'asteroid.configuration.apply',
+    'asteroid.configuration.reset',
+    'asteroid.view.automatic',
+  ]);
+  const automatic = await instance.handleAction('asteroid.view.automatic');
+  assert.equal(automatic.automaticView, true);
+  assert.ok(instance.contributeV4().presentation.viewIntents.length > 0);
+  const started = await instance.handleAction('scenario.run', {
     values: { ...values, phase: 'start' },
   });
   assert.equal(started.status, 'running');
@@ -297,6 +326,10 @@ test('typed controls rebuild once, step existing state, replay exactly, and clos
     'observationCampaignId',
   ].sort());
   assert.ok(!contribution.inspections[0].fields.some((row) => row.id === 'screening-language'));
+  assert.ok(contribution.inspections[0].fields.some((row) => row.id === 'logical-time' && row.unit === 'UTC'));
+  assert.ok(contribution.inspections[0].fields.some((row) => row.id === 'decision-threshold' && row.value === 0));
+  assert.ok(contribution.inspections[0].fields.some((row) => row.id === 'decision-state'));
+  assert.ok(contribution.inspections[0].fields.some((row) => row.id === 'camera-authority' && /automatic/.test(row.value)));
   let terminal = replayed;
   let sawMovingActor = false;
   while (terminal.status === 'running') {

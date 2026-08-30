@@ -1,6 +1,6 @@
 {
   "id": "food-recall-us-default-v2",
-  "defaultScenarioId": "scenario:leafy-green-baseline",
+  "defaultScenarioId": "scenario:egg-cold-chain",
   "ensembleReplicates": 24,
   "scenarios": [
     {

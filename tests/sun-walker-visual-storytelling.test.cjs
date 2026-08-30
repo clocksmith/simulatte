@@ -138,10 +138,22 @@ test('Walker actor position advances while camera target identity remains stable
   assert.equal(firstActor.kind, 'actor');
   assert.equal(secondActor.kind, 'actor');
   assert.notDeepEqual(firstActor.geometry.coordinates, secondActor.geometry.coordinates);
+  assert.equal(
+    presentationApi.semanticPresentation(result, 1).id,
+    presentationApi.semanticPresentation(result, 2).id,
+  );
+  assert.equal(
+    presentationApi.semanticPresentation(result, 1).viewIntents.at(-1).id,
+    presentationApi.semanticPresentation(result, 2).viewIntents.at(-1).id,
+  );
   [first, second].forEach((contribution) => {
     assert.equal(contribution.presentation.viewIntents[0].mode, 'follow');
     assert.deepEqual(contribution.presentation.viewIntents[0].targetIds, ['sun-walker-actor']);
   });
+  assert.equal(
+    first.presentation.viewIntents[0].reasonEventId,
+    second.presentation.viewIntents[0].reasonEventId,
+  );
 });
 
 test('Building shadow geometry follows the active sun sample during playback', () => {
@@ -154,6 +166,8 @@ test('Building shadow geometry follows the active sun sample during playback', (
   const secondShadows = shadows(second);
   assert.ok(firstShadows.length > 0);
   assert.equal(secondShadows.length, firstShadows.length);
+  assert.deepEqual(firstShadows.map((layer) => layer.id), secondShadows.map((layer) => layer.id));
+  assert.ok(firstShadows.every((layer) => layer.aggregationKey === layer.id));
   assert.notDeepEqual(
     firstShadows.map((layer) => layer.geometry.coordinates),
     secondShadows.map((layer) => layer.geometry.coordinates),
@@ -178,6 +192,7 @@ test('Walked-segment colors and inspector metrics agree with completed samples',
     const inspectionRows = contribution.inspections[0].fields;
 
     assert.deepEqual(actor.geometry.coordinates[0], [activeSample.point.x, activeSample.point.y, 0]);
+    assert.match(actor.label, /UTC$/);
     assert.equal(segment.quantity.kind, `exposure.${activeSample.state}`);
     assert.equal(compositor.colorForLayer(segment), {
       direct: '#ffd75f',
@@ -190,19 +205,40 @@ test('Walked-segment colors and inspector metrics agree with completed samples',
     assert.equal(measures.shade, snapshot.state.shadeSeconds);
     assert.equal(measures.unknown, snapshot.state.unknownSeconds);
     assert.equal(
-      rowValue(rows, 'Current status'),
+      rowValue(rows, 'Current exposure'),
       exposureStatus.current.label
     );
-    assert.equal(rowValue(rows, 'Walk so far'), exposureStatus.split);
-    assert.match(rowValue(rows, 'Shade'), new RegExp(`^${exposureStatus.percentages.shade}%`));
-    assert.match(rowValue(rows, 'Direct sun'), new RegExp(`^${exposureStatus.percentages.direct}%`));
+    assert.equal(rowValue(rows, 'Current geometric sun'), exposureStatus.current.geometricLabel);
+    assert.equal(rowValue(rows, 'Current adjusted direct beam'), `${exposureStatus.current.adjustedDirectBeamPercent}%`);
+    assert.equal(rowValue(rows, 'Walked exposure'), exposureStatus.split);
+    assert.equal(rowValue(rows, 'Walked geometric sun'), exposureStatus.geometricSplit);
+    assert.match(rowValue(rows, 'Exposure shade'), new RegExp(`^${exposureStatus.percentages.shade}%`));
+    assert.match(rowValue(rows, 'Exposure sun'), new RegExp(`^${exposureStatus.percentages.direct}%`));
     assert.equal(rowValue(rows, 'Shadow display'), exposureStatus.shadowDisplay);
     assert.equal(rowValue(rows, 'Calculation'), exposureStatus.shadowCalculation);
-    assert.equal(rowValue(inspectionRows, 'Current status'), exposureStatus.current.label);
-    assert.equal(rowValue(inspectionRows, 'Walk so far'), exposureStatus.split);
-    assert.equal(rowValue(inspectionRows, 'Shade percent'), exposureStatus.percentages.shade / 100);
-    assert.equal(rowValue(inspectionRows, 'Direct sun percent'), exposureStatus.percentages.direct / 100);
+    assert.equal(rowValue(inspectionRows, 'Current exposure'), exposureStatus.current.label);
+    assert.equal(rowValue(inspectionRows, 'Current geometric sun'), exposureStatus.current.geometricLabel);
+    assert.equal(rowValue(inspectionRows, 'Current adjusted direct beam'), exposureStatus.current.adjustedDirectBeamPercent / 100);
+    assert.equal(rowValue(inspectionRows, 'Walked exposure'), exposureStatus.split);
+    assert.equal(rowValue(inspectionRows, 'Walked geometric sun'), exposureStatus.geometricSplit);
+    assert.equal(rowValue(inspectionRows, 'Exposure shade percent'), exposureStatus.percentages.shade / 100);
+    assert.equal(rowValue(inspectionRows, 'Exposure sun percent'), exposureStatus.percentages.direct / 100);
+    assert.equal(rowValue(inspectionRows, 'Geometric shade percent'), exposureStatus.geometricPercentages.shade / 100);
+    assert.equal(rowValue(inspectionRows, 'Geometric direct sun percent'), exposureStatus.geometricPercentages.direct / 100);
   }
+});
+
+test('Sun Walker labels UTC inputs and separates geometric sun from adjusted exposure', () => {
+  const result = simulate();
+  const departure = result.controls.find((row) => row.id === 'departureAt');
+  const sample = result.candidates.find((row) => row.id === result.selectedCandidateId).samples[0];
+  const status = exposureSummaryApi.currentExposure(sample);
+
+  assert.equal(departure.description, 'Departure time (UTC)');
+  assert.ok(['direct', 'shade', 'unknown', 'night'].includes(sample.geometricState));
+  assert.equal(status.geometricState, sample.geometricState);
+  assert.equal(status.adjustedDirectBeamPercent, Math.round(sample.directBeamFactor * 100));
+  assert.notEqual(status.geometricLabel, status.label);
 });
 
 test('Departure time and detour controls causally alter exposure and route choice', () => {

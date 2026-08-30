@@ -8,6 +8,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createDeclarativeUiHostModule(contracts) {
   const INITIAL_INSPECTION_COUNT = 12;
   const EAGER_INSPECTION_COUNT = 3;
+  const LARGE_OPTION_VISIBLE_LIMIT = 80;
 
   function createDeclarativeUiHost({
     rootElement,
@@ -234,6 +235,7 @@
       input.id = `plugin-control-${domId(pluginId)}-${domId(control.id)}`;
       input.className = 'sim-field';
       input.dataset.pluginControl = control.id;
+      const optionSearch = createOptionSearch(documentRef, control, input);
       label.htmlFor = input.id;
       let appliedValue = cloneControlValue(values.get(control.id));
       let applyRevision = 0;
@@ -270,7 +272,7 @@
           input.dataset.applyStatus = 'failed';
         }
       });
-      label.append(caption, input);
+      label.append(caption, ...(optionSearch ? [optionSearch, input] : [input]));
       fields.append(label);
     });
     return fields;
@@ -300,6 +302,35 @@
     if (control.kind === 'toggle') input.checked = Boolean(currentValue);
     else input.value = String(currentValue);
     return input;
+  }
+
+  function createOptionSearch(documentRef, control, select) {
+    if (!['select', 'multiselect'].includes(control.kind)
+      || (control.options || []).length <= LARGE_OPTION_VISIBLE_LIMIT) return null;
+    const search = documentRef.createElement('input');
+    search.type = 'search';
+    search.className = 'sim-field plugin-option-search';
+    search.placeholder = `Search ${control.label.toLowerCase()}`;
+    search.autocomplete = 'off';
+    search.dataset.pluginControlSearch = control.id;
+    search.dataset.visibleOptionLimit = String(LARGE_OPTION_VISIBLE_LIMIT);
+    const applyFilter = () => filterSelectOptions(select, search.value);
+    search.addEventListener('input', applyFilter);
+    select.addEventListener('change', applyFilter);
+    applyFilter();
+    return search;
+  }
+
+  function filterSelectOptions(select, query) {
+    const normalizedQuery = String(query || '').trim().toLocaleLowerCase();
+    let admitted = 0;
+    [...select.children].forEach((option) => {
+      const matches = !normalizedQuery
+        || `${option.textContent} ${option.value}`.toLocaleLowerCase().includes(normalizedQuery);
+      const visible = option.selected || (matches && admitted < LARGE_OPTION_VISIBLE_LIMIT);
+      option.hidden = !visible;
+      if (visible && !option.selected) admitted += 1;
+    });
   }
 
   function readControlInput(input, control) {
@@ -446,5 +477,11 @@
     return error;
   }
 
-  return { INITIAL_INSPECTION_COUNT, createDeclarativeUiHost, formatFieldValue };
+  return {
+    INITIAL_INSPECTION_COUNT,
+    LARGE_OPTION_VISIBLE_LIMIT,
+    createDeclarativeUiHost,
+    filterSelectOptions,
+    formatFieldValue,
+  };
 });

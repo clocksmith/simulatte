@@ -49,6 +49,7 @@
       this.panY = 0;
       this.zoom = 1.0;
       this.isDragging = false;
+      this.activePointerId = null;
       this.manualViewListeners = new Set();
       this.dragStartX = 0;
       this.dragStartY = 0;
@@ -114,16 +115,22 @@
 
     setupEvents() {
       const c = this.canvas;
-      this.on(c, 'mousedown', (e) => {
+      c.style.touchAction = 'none';
+      this.on(c, 'pointerdown', (e) => {
         if (this.currentTier === 'city') return;
+        if (e.isPrimary === false || this.activePointerId !== null) return;
+        e.preventDefault();
         this.notifyManualView('pan-orbit');
         this.isDragging = true;
+        this.activePointerId = e.pointerId;
+        c.setPointerCapture?.(e.pointerId);
         this.dragStartX = e.clientX;
         this.dragStartY = e.clientY;
       });
 
-      this.on(window, 'mousemove', (e) => {
-        if (!this.isDragging) return;
+      this.on(c, 'pointermove', (e) => {
+        if (!this.isDragging || e.pointerId !== this.activePointerId) return;
+        e.preventDefault();
         const dx = e.clientX - this.dragStartX;
         const dy = e.clientY - this.dragStartY;
         this.dragStartX = e.clientX;
@@ -140,9 +147,14 @@
         }
       });
 
-      this.on(window, 'mouseup', () => {
+      const finishPointerDrag = (e) => {
+        if (e.pointerId !== this.activePointerId) return;
+        if (c.hasPointerCapture?.(e.pointerId)) c.releasePointerCapture(e.pointerId);
         this.isDragging = false;
-      });
+        this.activePointerId = null;
+      };
+      this.on(c, 'pointerup', finishPointerDrag);
+      this.on(c, 'pointercancel', finishPointerDrag);
 
       this.on(c, 'wheel', (e) => {
         if (this.currentTier === 'city') return;

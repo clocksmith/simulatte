@@ -341,12 +341,27 @@
       return participantSpanIds;
     }
 
+      function sceneLexiconMetadataForSpan(span = {}) {
+          const sourceLabel = String(span.text || '').trim().toLowerCase();
+          const lexicon = [
+            scope.languageLexicon && scope.languageLexicon.LANGUAGE_LEXICON,
+            scope.languageLexicon,
+            scope.universeParser && scope.universeParser.LANGUAGE_LEXICON,
+          ].find((candidate) => candidate && Array.isArray(candidate.entityPhrases));
+          const rows = lexicon && Array.isArray(lexicon.entityPhrases)
+            ? lexicon.entityPhrases
+            : [];
+          const row = rows.find((entry) => String(entry && entry[0] || '').trim().toLowerCase() === sourceLabel);
+          return row && row[2] && typeof row[2] === 'object' ? row[2] : {};
+        }
+
       function sceneEntryForSpan(span = {}, fallbackKind = '', languageGraph = {}) {
           const kind = fallbackKind === 'action' ? 'action' :
             fallbackKind === 'medium' ? 'medium' :
             fallbackKind || span.kind || 'entry';
           const target = sceneTargetForSpan(span, kind);
           const negated = sceneSpanIsNegated(languageGraph, span);
+          const lexiconMetadata = sceneLexiconMetadataForSpan(span);
           const predicate = kind === 'action'
             ? (languageGraph.predicates || []).find((row) => row.verbSpanId === span.id)
             : null;
@@ -354,10 +369,15 @@
         id: sceneEntryIdForSpan(span, kind, languageGraph),
             kind,
             label: span.text || target,
-        semanticClass: span.semanticRole || span.entityClass || span.materialHint || kind,
-        visualArchetype: span.visualArchetype || '',
-        localGeometryGrammarId: span.localGeometryGrammarId || '',
-        shapeHints: span.shapeHints || (span.visualArchetype ? [span.visualArchetype] : []),
+        semanticClass: span.semanticRole || span.entityClass || lexiconMetadata.semanticRole ||
+          lexiconMetadata.entityClass || span.materialHint || lexiconMetadata.materialHint || kind,
+        visualArchetype: span.visualArchetype || lexiconMetadata.visualArchetype || '',
+        localGeometryGrammarId: span.localGeometryGrammarId || lexiconMetadata.localGeometryGrammarId || '',
+        shapeHints: span.shapeHints || lexiconMetadata.shapeHints || (
+          span.visualArchetype || lexiconMetadata.visualArchetype
+            ? [span.visualArchetype || lexiconMetadata.visualArchetype]
+            : []
+        ),
         poseHint: predicate && predicate.poseHint || '',
             source: 'prompt',
             sourceSpanIds: [span.id].filter(Boolean),

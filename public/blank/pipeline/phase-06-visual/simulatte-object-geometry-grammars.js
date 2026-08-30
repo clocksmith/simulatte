@@ -79,6 +79,15 @@
         part('leaf-left', 'ellipse', [-0.11, 0.12], [0.25, 0.1], '#4f9a56', -0.48),
         part('leaf-right', 'ellipse', [0.11, 0.18], [0.25, 0.1], '#5aab60', 0.48),
       ]),
+      'gut-microbiome-colonies': grammar('gut-microbiome-colonies', [0.28, 0.22], 17, [
+        part('arch-mucus-fold-upper', 'arch', [0, -0.28], [0.92, 0.18], '#b96f83', 0, 0.2, 'cell', 'field'),
+        part('arch-mucus-fold-lower', 'arch', [0, 0.28], [0.92, 0.18], '#9f586e', 3.14, 0.2, 'cell', 'field'),
+        part('crescent-colony-cell-left', 'crescent', [-0.25, -0.02], [0.3, 0.26], '#5d9b69', 0, 0.95, 'cell', 'core'),
+        part('cloud-colony-cell-center', 'cloud', [0, 0.05], [0.34, 0.3], '#77ad72', 0, 0.95, 'cell', 'core'),
+        part('crescent-colony-cell-right', 'crescent', [0.26, -0.05], [0.29, 0.25], '#4f855d', 0, 0.95, 'cell', 'core'),
+        part('arch-metabolite-path', 'arch', [0, 0.01], [0.7, 0.08], '#d7ba67', 0.08, 0.88, 'cell', 'path'),
+        part('crescent-immune-sampling-probe', 'crescent', [0.05, -0.28], [0.12, 0.22], '#7cc6d1', 3.14, 0.92, 'instrument', 'sensor'),
+      ]),
       building: grammar('building', [0.32, 0.48], 3, [
         part('shell', 'rounded-box', [0, 0.08], [0.82, 0.82], '#9aa6b2'),
         part('roof', 'triangle', [0, -0.42], [0.9, 0.28], '#4b5563'),
@@ -380,6 +389,15 @@
         part('server-low', 'rounded-box', [0, 0.27], [0.62, 0.16], '#415968'),
         part('status-light', 'ellipse', [0.23, -0.27], [0.06, 0.06], '#67d69a'),
       ]),
+      'cooling-aisles': grammar('cooling-aisles', [0.42, 0.34], 13, [
+        part('containment-arch-left', 'arch', [-0.24, 0], [0.36, 0.86], '#8bd3df', 0, 0.52, 'glass'),
+        part('containment-arch-right', 'arch', [0.24, 0], [0.36, 0.86], '#72becd', 0, 0.52, 'glass'),
+        part('equipment-face-left', 'bevel-box', [-0.4, 0.04], [0.18, 0.72], '#314451', 0, 0.96, 'metal'),
+        part('equipment-face-right', 'bevel-box', [0.4, 0.04], [0.18, 0.72], '#26343f', 0, 0.96, 'metal'),
+        part('airflow-wave-left', 'wave', [-0.14, 0.02], [0.16, 0.68], '#62bed0', 1.57, 0.76),
+        part('airflow-wave-right', 'wave', [0.14, 0.02], [0.16, 0.68], '#4fa8bc', 1.57, 0.76),
+        part('temperature-sensor', 'ellipse', [0, -0.31], [0.09, 0.09], '#f1c75b', 0, 1, 'instrument'),
+      ]),
       'data-center': grammar('data-center', [0.36, 0.32], 12, [
         part('facility', 'rounded-box', [0, 0], [0.94, 0.86], '#65717c'),
         part('rack-left', 'rounded-box', [-0.29, -0.02], [0.23, 0.66], '#26343f'),
@@ -600,7 +618,7 @@
       return Object.freeze({ id, minScale: Object.freeze(minScale), zOrder, parts: Object.freeze(parts), literal });
     }
 
-    function part(id, primitive, center, size, fill, rotation = 0, opacity = 1) {
+    function part(id, primitive, center, size, fill, rotation = 0, opacity = 1, texture = '', constructionRole = '') {
       return Object.freeze({
         id,
         primitive,
@@ -609,6 +627,8 @@
         rotation,
         fill,
         opacity,
+        texture,
+        ...(constructionRole ? { constructionRole } : {}),
       });
     }
 

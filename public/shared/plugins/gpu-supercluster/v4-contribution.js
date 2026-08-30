@@ -106,6 +106,7 @@
       numberControl('tensorSizeGb', 'Tensor size', result.config.tensorSizeGb, 0.1, 1000, 0.1, modeled),
       numberControl('stragglerThrottlePercent', 'Straggler throttle', result.config.stragglerThrottlePercent, 0, 95, 1, modeled),
       numberControl('coolantFlowLpm', 'Coolant flow', result.config.coolantFlowLpm, 10, 1000, 1, modeled),
+      numberControl('linkPacketDropRate', 'Link packet drop rate (fraction)', result.config.linkPacketDropRate, 0, 0.5, 0.001, modeled),
       numberControl('cduFlowDegradationPercent', 'CDU flow degradation', result.config.cduFlowDegradationPercent, 0, 90, 1, modeled),
     ], [{
       id: 'nominal-vs-degraded-cluster',
@@ -115,11 +116,11 @@
       synchronizedClock: true,
     }]);
     const state = builder.state({
-      id: `${PLUGIN_ID}:state:${boundedStep}`,
+      id: `${PLUGIN_ID}:state:${result.receipt.seed}:${boundedStep}`,
       pluginId: PLUGIN_ID,
       simulationTimeMs: boundedStep * 1000,
       status: boundedStep === 0 ? 'ready' : boundedStep === STAGES.length ? 'settled' : 'running',
-      previousStateId: boundedStep ? `${PLUGIN_ID}:state:${boundedStep - 1}` : null,
+      previousStateId: boundedStep ? `${PLUGIN_ID}:state:${result.receipt.seed}:${boundedStep - 1}` : null,
       eventIds: events.map((event) => event.id),
       measures: [
         builder.quantity('cluster-tflops', collectives.effectiveClusterTflops, 'TFLOP/s'),
@@ -141,7 +142,10 @@
         label: 'Modeled cluster result',
         targetIds: rackLayers.map((layer) => layer.id),
         fields: [
+          field('scenario-seed', 'Executed scenario seed', result.receipt.seed, 'seed', modeled),
           field('gpu-count', 'Modeled GPUs', topology.totalGpus, 'GPUs', modeled),
+          field('packet-drop', 'Applied packet drop rate', result.config.linkPacketDropRate * 100, 'percent', modeled),
+          field('coolant-flow', 'Applied coolant flow', result.config.coolantFlowLpm, 'L/min', modeled),
           field('step-time', 'Modeled step time', collectives.stepTimeMs, 'ms', modeled),
           field('peak-temperature', 'Modeled peak junction temperature', thermals.peakJunctionTempC, 'C', modeled),
           field('throttled-gpus', 'Modeled throttled GPUs', thermals.throttledGpuCount, 'GPUs', modeled),

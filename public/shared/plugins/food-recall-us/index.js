@@ -108,6 +108,8 @@
           baselineIllnesses,
           interventionIllnesses: ran.result.trueIllnesses,
           detectionDay: ran.result.detectionDay,
+          recallDelayDays: ran.result.recall.dayOffset,
+          resultingRecallDay: ran.result.recall.recallDay,
           shipmentDurationHours: ran.result.shipmentDurationHours,
         },
         appliedInputFieldIdentities: ran.result.inputContext.fieldIdentities,
@@ -308,9 +310,9 @@
     }
 
     function interventionFrom(values) {
-      const dayOffset = Number(values.recallDay ?? activeSpec.defaultIntervention.dayOffset);
+      const dayOffset = Number(values.recallDelayDays ?? activeSpec.defaultIntervention.dayOffset);
       if (!Number.isInteger(dayOffset) || dayOffset < 0 || dayOffset > activeSpec.durationDays) {
-        throw new Error(`food_recall_control_invalid: recallDay must be an integer from 0 to ${activeSpec.durationDays}`);
+        throw new Error(`food_recall_control_invalid: recallDelayDays must be an integer from 0 to ${activeSpec.durationDays}`);
       }
       const depth = values.recallDepth || activeSpec.defaultIntervention.depth;
       if (!['retail', 'consumer'].includes(depth)) {
@@ -484,7 +486,7 @@
       Object.freeze({ id: 'distribution', label: 'Lots reach consumers', lineageCount: lineage.length, narrative: 'Custody paths and transformations determine which synthetic lots are exposed.' }),
       Object.freeze({ id: 'exposure', label: 'Illnesses emerge', lineageCount: lineage.length, narrative: 'Dose-response and reporting assumptions generate the modeled exposure outcome.' }),
       Object.freeze({ id: 'detection', label: 'Cluster is detected', lineageCount: lineage.length, narrative: 'Only reported cases become available to the traceback policy.' }),
-      Object.freeze({ id: 'recall', label: 'Recall propagates', lineageCount: lineage.length, narrative: 'The selected recall day and depth remove reachable descendant lots.' }),
+      Object.freeze({ id: 'recall', label: 'Recall propagates', lineageCount: lineage.length, narrative: 'The applied delay after detection and recall depth remove reachable descendant lots.' }),
       Object.freeze({ id: 'settled', label: 'Incident settled', lineageCount: lineage.length, narrative: 'The intervention and no-recall branches can now be compared.' }),
     ]);
   }

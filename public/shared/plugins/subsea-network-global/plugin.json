@@ -86,7 +86,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSubseaNetworkGlobal",
-    "integrity": "sha384-2d7e5e380cd563dd24dbf3805b63a829b7c6fdbd23c2c4740f95aecb75163557ed4d58ff2f6861aa944619972cfe1b79",
+    "integrity": "sha384-976a79f0510fd10229eb124f8405fbd5005ce04919e8a9b770633c358cd4fd015381d375848f33e4ad748eb18096961b",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -131,11 +131,11 @@
   ],
   "resources": [
     {
-      "integrity": "sha384-e28cd94d7deab5b1bcc56325884744b19c488da9156a28f1f2c226dee40fa1f3d924ea7eeca5d3b30e1d4bf8b5348a90",
+      "integrity": "sha384-3b0fb6ad3094f1284e3b72f482340355f51fa6df2896e74527fab552999a2e96c18712d02e6c15ffd5ea60ad57510d64",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-5070fc8a5eca9012c4f51347a88b0cf7e76a67488012d06ada63c0ce1a2eb4dd5b4efc890a742ab3ccd6910f6a48208b",
+      "integrity": "sha384-051608859175008c4fa8700e1d7173dd3990328d345894566ea47487ffb7822a3d366729775e0c3c3a8262dbf2f51601",
       "path": "./default-config.json"
     },
     {
@@ -163,11 +163,11 @@
       "path": "./network-model.js"
     },
     {
-      "integrity": "sha384-90a295f7806c54c408d488768026c6521f6868722fcf9d395048edb8bbedafcb9b306ccaa656046476f6befee40c62a9",
+      "integrity": "sha384-63f026a6dac926fe6b2933b52c407ab132783977cae322d0a58e8d83d645c176bd170cfb1bacb72d6e7a35a8787043a2",
       "path": "./v4-contribution.js"
     },
     {
-      "integrity": "sha384-092632a1a04602785aa808549c4c70d2f7f5fc05c44810f05a47140eb454fdd6a5e4b3f6e5b13825655fb64f4b2af650",
+      "integrity": "sha384-21691d294cb387d66893a409588ab70a28588e69b9f6ae66df549f9deb6663bec13103812b776da62c3854bb9382db06",
       "path": "./comparison-driver.js"
     },
     {

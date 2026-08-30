@@ -116,7 +116,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginGridResilienceUs",
-    "integrity": "sha384-beb83dbffc8b0702643d5fddd63716838594fd20db84d400e79099e8e79c632e52eab0b9f9c0364f84be82916a8625e5",
+    "integrity": "sha384-0b8730ea07003f2ae18821006beffdeb1d1e45a6de379f8c41862e85864211e2049694fbb1960bacdfc19ef0d2896da0",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -146,7 +146,7 @@
   ],
   "resources": [
     {
-      "integrity": "sha384-d8508693c61621a3db0145b2c9e042b1418e0fc361194567b8c9ea52bccf7b88b5d43868d16aa6b53dcd6eefb6d4dc63",
+      "integrity": "sha384-73d8471c104cbed6ad6b48caabe6d8ddda160dc3e56d88e71391f75cd991b64e3e567e4eef10552aabc155a09d6b50be",
       "path": "./config.schema.json"
     },
     {
@@ -170,7 +170,7 @@
       "path": "./dispatch-model.js"
     },
     {
-      "integrity": "sha384-758a45807141ae3895683e989dc27156b4ba578e1b4c1f15668445cfdc01c76e08a8c5d53bb38f5f507e5f9b624e68c5",
+      "integrity": "sha384-ea4310976026d501f03590bc031ec6dbacc95fa72b3c2c11163f2518c2a6557ef9041fbf785188a2dc0f1b14328f633f",
       "path": "./v4-contribution.js"
     },
     {

@@ -217,7 +217,8 @@ function editorProbeExpression(boundary) {
     await waitFor('initial Phase 7 frame', () => Number(canvas.dataset.renderCount || 0) > 0);
     await waitFor('initial critical proof failure', () => {
       const failures = JSON.parse(canvas.dataset.sceneProofRequiredFailures || '[]');
-      return canvas.dataset.sceneProofVerdict === 'fail' &&
+      return canvas.dataset.sceneProofFinal === 'true' &&
+        canvas.dataset.sceneProofVerdict === 'fail' &&
         failures.some((row) => containsUnsupported(JSON.stringify(row)));
     });
     const failedSpec = lab.getSpec();
@@ -429,11 +430,17 @@ function editorProbeExpression(boundary) {
         '; inputSerial=' + (canvas.dataset.renderInputSerial || '0'));
     }
     const provenCanvasDataset = { ...canvas.dataset };
-    const improvementRecord = await waitFor('governed improvement record', () => {
-      const record = lab.getImprovementRecord && lab.getImprovementRecord();
-      return record?.schema === 'simulatte.worldImprovementRecord.v1' &&
-        record.status === 'successful-replay' ? record : null;
-    });
+    let improvementRecord;
+    try {
+      improvementRecord = await waitFor('governed improvement record', () => {
+        const record = lab.getImprovementRecord && lab.getImprovementRecord();
+        return record?.schema === 'simulatte.worldImprovementRecord.v1' &&
+          record.status === 'successful-replay' ? record : null;
+      });
+    } catch (error) {
+      const diagnostics = lab.getImprovementDiagnostics && lab.getImprovementDiagnostics();
+      throw new Error(error.message + '; correctionSession=' + JSON.stringify(diagnostics || null));
+    }
     let improvementBlob = null;
     const improvementCreateObjectURL = URL.createObjectURL.bind(URL);
     URL.createObjectURL = (blob) => {

@@ -883,12 +883,13 @@ test('home prompt shuffle stays consistent between HTML and catalog', () => {
   assert.match(html, /class="prompt-dock-head"[\s\S]{0,160}id="prompt-dock-toggle"/);
   assert.doesNotMatch(html, /<h1>Simulatte<\/h1>/);
   assert.match(html, /id="prompt-more-menu"[\s\S]*id="lab-state"[\s\S]*id="fps-readout"[\s\S]*id="world-model-panel"[\s\S]*id="spec-preview"/);
-  assert.match(html, /\.prompt-dock \.builder-row \{\n\s+position: relative;\n\s+display: block;\n\s+width: 100%;\n\s*\}/);
-  assert.match(html, /\.prompt-dock textarea \{[\s\S]*padding-bottom: 60px;[\s\S]*resize: vertical;/);
-  assert.match(html, /\.prompt-dock \.builder-row button \{[\s\S]*position: absolute;[\s\S]*bottom: 10px;[\s\S]*width: min\(128px, calc\(50% - 16px\)\);/);
-  assert.match(html, /#shuffle-prompt \{\n\s+left: 10px;\n\s*\}/);
-  assert.match(html, /#build-lab \{\n\s+right: 10px;\n\s*\}/);
-  assert.match(html, /class="builder-row"[\s\S]*id="build-prompt"[\s\S]*id="shuffle-prompt"[\s\S]*id="build-lab"/);
+  assert.match(html, /class="builder-row"[\s\S]*id="build-prompt"[\s\S]*class="prompt-actions"[\s\S]*id="shuffle-prompt"[\s\S]*<summary>Enhanced<\/summary>[\s\S]*id="build-lab"/);
+  assert.match(html, /\.prompt-dock \.builder-row \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/);
+  assert.match(html, /\.prompt-actions \{[\s\S]*display: grid;[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(0, auto\) minmax\(0, 1fr\);/);
+  assert.match(html, /\.prompt-dock \.prompt-actions > button,[\s\S]*position: relative;[\s\S]*inset: auto;/);
+  assert.match(html, /id="run-details-menu"[\s\S]*id="phase-rail"[\s\S]*id="copy-run-receipt"/);
+  assert.match(html, /\.run-details-menu \.phase-rail-shell \{[\s\S]*position: absolute;[\s\S]*inset: auto 0 calc\(100% \+ 8px\) auto;[\s\S]*box-sizing: border-box;[\s\S]*background: rgba\(250, 248, 240, 0\.94\);/);
+  assert.match(html, /@media \(max-width: 620px\) \{[\s\S]*\.physics-panel:not\(\[data-collapsed="true"\]\) \{[\s\S]*right: 8px;[\s\S]*left: 8px;[\s\S]*width: auto;[\s\S]*transform: none;/);
   assert.doesNotMatch(html, /id="prompt-more-menu"[\s\S]{0,500}id="shuffle-prompt"/);
   assert.doesNotMatch(html, /class="world-model-details"/);
   assert.doesNotMatch(html, /data-example-prompt=/);
@@ -2552,16 +2553,16 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.doesNotMatch(modelLockCheck, /'public',\n\s+'pipeline'/);
   assert.match(deployCheck, /MODEL_RUNTIME_LOCK\.doppler/);
   assert.match(deployCheck, /npm', \[\n\s+'pack',/);
-  assert.match(deployCheck, /vendor file contents differ from the published Doppler package/);
+  assert.match(deployCheck, /vendor file contents differ from the pinned Doppler source package/);
   assert.match(developmentSync, /sibling-git-archive/);
   assert.match(developmentSync, /git', \['archive'/);
   assert.match(developmentSync, /public', 'vendor', 'doppler'/);
-  assert.match(developmentSync, /let packageSource = `\$\{packagePin\.name\}@\$\{packagePin\.version\}`/);
-  assert.match(developmentSync, /if \(WRITE\) \{/);
+  assert.match(developmentSync, /const targetSourceSha = WRITE/);
+  assert.match(developmentSync, /git', \['cat-file', '-e'/);
   assert.match(developmentSync, /const entry = verifyPackument\(JSON\.parse\(output\), packagePin, WRITE\)/);
   assert.doesNotMatch(developmentSync, /fail\(`sibling HEAD/);
   assert.match(developmentSync, /packagePin\.integrity = entry\.integrity/);
-  assert.match(developmentSync, /development\.gitSha = writeSourceSha/);
+  assert.match(developmentSync, /development\.gitSha = targetSourceSha/);
   assert.doesNotMatch(deployCheck, /git', \['status', '--porcelain=v1'/);
   const noCacheSources = new Set(headers
     .filter((entry) => entry.headers.some((header) => (
@@ -2652,7 +2653,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and keeps the unqual
   assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
   assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
-  assert.equal(modelRuntimeLock.number, 14);
+  assert.equal(modelRuntimeLock.number, 15);
   assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
   assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
     assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);

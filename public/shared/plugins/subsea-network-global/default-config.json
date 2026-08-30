@@ -7,6 +7,7 @@
   "capacityScenarioId": "modeled-atlantic-capacity-v1",
   "repairScenarioId": "atlantic-repair-resources-v1",
   "allocationPolicyId": "proportional-fair",
+  "comparisonPolicyId": "weighted-throughput",
   "repairPolicyId": "unmet-demand-first",
   "failureIds": [
     "marea:spain"

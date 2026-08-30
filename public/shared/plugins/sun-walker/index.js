@@ -447,10 +447,14 @@
     const exposureStatus = exposureSummaryApi.summarize(snapshot.state, latestSample);
     return [
       { label: 'Simulation', value: `${snapshot.state.status} · ${completedSamples}/${snapshot.state.totalSamples} samples` },
-      { label: 'Current status', value: exposureStatus.current.label },
-      { label: 'Walk so far', value: exposureStatus.split },
-      { label: 'Shade', value: `${exposureStatus.percentages.shade}% / ${Math.round(exposureStatus.seconds.shade)} s total / ${Math.round(exposureStatus.seconds.buildingShade)} s building / ${Math.round(exposureStatus.seconds.canopyShade)} s canopy` },
-      { label: 'Direct sun', value: `${exposureStatus.percentages.direct}% / ${Math.round(exposureStatus.seconds.direct)} s` },
+      { label: 'Current exposure', value: exposureStatus.current.label },
+      { label: 'Current geometric sun', value: exposureStatus.current.geometricLabel },
+      { label: 'Current adjusted direct beam', value: `${exposureStatus.current.adjustedDirectBeamPercent}%` },
+      { label: 'Walked exposure', value: exposureStatus.split },
+      { label: 'Walked geometric sun', value: exposureStatus.geometricSplit },
+      { label: 'Exposure shade', value: `${exposureStatus.percentages.shade}% / ${Math.round(exposureStatus.seconds.shade)} s total / ${Math.round(exposureStatus.seconds.buildingShade)} s building / ${Math.round(exposureStatus.seconds.canopyShade)} s canopy` },
+      { label: 'Exposure sun', value: `${exposureStatus.percentages.direct}% / ${Math.round(exposureStatus.seconds.direct)} s` },
+      { label: 'Adjusted direct beam', value: `${exposureStatus.adjustedDirectBeamPercent}% average / ${Math.round(exposureStatus.seconds.adjustedDirectBeam)} equivalent s` },
       { label: 'Unknown / night', value: `${exposureStatus.percentages.unknown}% unknown / ${exposureStatus.percentages.night}% night` },
       { label: 'Shadow display', value: exposureStatus.shadowDisplay },
       { label: 'Calculation', value: exposureStatus.shadowCalculation },
@@ -461,7 +465,7 @@
         { label: 'Added travel', value: `${Math.round(simulation.comparison.metrics.travelSeconds.difference)} s` },
       ] : []),
       ...(latestSample ? [{
-        label: 'Sun',
+        label: 'Sun sample (UTC)',
         value: `${Math.round(latestSample.solarPosition.azimuthDegrees)}° azimuth · ${Math.round(latestSample.solarPosition.elevationDegrees)}° elevation · ${latestSample.timestamp}`,
       }] : []),
       { label: 'Data', value: `${simulation.dataReceipt.datasets[0].sourceRowIds.length.toLocaleString('en-US')} governed building rows` },

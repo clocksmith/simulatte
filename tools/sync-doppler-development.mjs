@@ -157,22 +157,20 @@ function main() {
   try {
     const packDir = path.join(tempDir, 'pack');
     fs.mkdirSync(packDir);
-    let packageSource = `${packagePin.name}@${packagePin.version}`;
-    let writeSourceSha = sourceSha;
-    if (WRITE) {
-      const siblingRoot = path.resolve(ROOT, String(development.workspacePath || ''));
-      if (!fs.existsSync(path.join(siblingRoot, '.git'))) {
-        fail(`sibling repository not found at ${siblingRoot}`);
-      }
-      writeSourceSha = run('git', ['rev-parse', 'HEAD'], { cwd: siblingRoot }).trim();
-      const archivePath = path.join(tempDir, 'doppler.tar');
-      run('git', ['archive', '--format=tar', `--output=${archivePath}`, writeSourceSha], { cwd: siblingRoot });
-      run('tar', ['-xf', archivePath, '-C', tempDir]);
-      packageSource = tempDir;
+    const siblingRoot = path.resolve(ROOT, String(development.workspacePath || ''));
+    if (!fs.existsSync(path.join(siblingRoot, '.git'))) {
+      fail(`sibling repository not found at ${siblingRoot}`);
     }
+    const targetSourceSha = WRITE
+      ? run('git', ['rev-parse', 'HEAD'], { cwd: siblingRoot }).trim()
+      : sourceSha;
+    run('git', ['cat-file', '-e', `${targetSourceSha}^{commit}`], { cwd: siblingRoot });
+    const archivePath = path.join(tempDir, 'doppler.tar');
+    run('git', ['archive', '--format=tar', `--output=${archivePath}`, targetSourceSha], { cwd: siblingRoot });
+    run('tar', ['-xf', archivePath, '-C', tempDir]);
     const output = run('npm', [
       'pack',
-      packageSource,
+      tempDir,
       '--ignore-scripts',
       '--pack-destination',
       packDir,
@@ -203,14 +201,14 @@ function main() {
       packagePin.integrity = entry.integrity;
       packagePin.shasum = entry.shasum;
       packagePin.fileCount = Number(entry.entryCount);
-      development.gitSha = writeSourceSha;
+      development.gitSha = targetSourceSha;
       writeLock(lock);
     }
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
   const action = WRITE ? 'synced' : RESTORE ? 'restored' : 'clean';
-  const authority = WRITE ? `source ${development.gitSha}` : 'npm registry';
+  const authority = `source ${development.gitSha}`;
   console.log(`Doppler development source ${action}: lock #${lock.number} uses ${packagePin.name}@${packagePin.version} from ${authority}.`);
 }
 

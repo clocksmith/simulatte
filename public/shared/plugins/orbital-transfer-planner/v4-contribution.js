@@ -226,8 +226,8 @@
       ],
     });
     const controls = builder.controls([
-      numericControl('deltaVWeight', 'Δv weight', profileWeights.deltaV ?? 1, 0, 10, 0.1, transferClaim),
-      numericControl('timeWeight', 'Flight-time weight', profileWeights.timeOfFlight ?? profileWeights.timeOfFlightDays ?? 0.01, 0, 1, 0.01, transferClaim),
+      numericControl('deltaVWeight', 'Objective: delta-v weight', profileWeights.deltaV ?? 1, 0, 10, 0.1, transferClaim),
+      numericControl('timeWeight', 'Objective: flight-time weight', profileWeights.timeOfFlight ?? profileWeights.timeOfFlightDays ?? 0.01, 0, 1, 0.01, transferClaim),
       selectControl(
         'spacecraftArchetypeId',
         'Spacecraft',
@@ -238,10 +238,10 @@
         })),
         transferClaim
       ),
-      toggleControl('prograde', 'Prograde transfer branch', result.acceptedParameters.prograde, transferClaim),
+      toggleControl('prograde', 'Advanced: prograde Lambert branch', result.acceptedParameters.prograde, transferClaim),
       numericControl(
         'verificationStepDays',
-        'Verification integration step',
+        'Advanced: verification integration step (days)',
         result.acceptedParameters.verificationStepDays,
         0.05,
         5,
@@ -273,6 +273,10 @@
         ...(selectionVisible ? [
           builder.quantity('time-of-flight', result.metrics.timeOfFlightDays, 'day'),
           builder.quantity('total-delta-v', result.metrics.totalDeltaVKmS, 'km/s'),
+          builder.quantity('modeled-flight-elapsed', Number.isFinite(flightFraction)
+            ? result.metrics.timeOfFlightDays * flightFraction
+            : 0, 'day'),
+          builder.quantity('route-progress', Number.isFinite(flightFraction) ? flightFraction : 0, 'ratio'),
         ] : []),
         ...(playback?.status === 'settled'
           ? [builder.quantity('radiation-exposure-proxy', result.metrics.radiationExposureUnits, 'shielded proton units')]
@@ -293,6 +297,23 @@
       fields: [
         field('solver-stage', 'Solver stage', playback?.stage?.label || 'Settled result', null, transferClaim),
         field('solver-narrative', 'What changed', playback?.stage?.narrative || result.claimBoundary, null, transferClaim),
+        field('applied-scenario', 'Applied scenario', result.scenarioLabel || result.scenarioId, null, transferClaim),
+        field('applied-spacecraft', 'Applied spacecraft', {
+          id: result.acceptedParameters.spacecraftArchetypeId,
+          label: spacecraftData?.archetypes?.[result.acceptedParameters.spacecraftArchetypeId]?.name
+            || result.acceptedParameters.spacecraftArchetypeId,
+        }, null, transferClaim),
+        field('applied-objective', 'Applied objective', {
+          deltaVWeight: result.acceptedParameters.deltaVWeight,
+          timeWeight: result.acceptedParameters.timeWeight,
+        }, null, transferClaim),
+        field('current-epoch', 'Current model epoch', displayEpoch, null, transferClaim),
+        field('flight-elapsed', 'Elapsed modeled flight', Number.isFinite(flightFraction)
+          ? result.metrics.timeOfFlightDays * flightFraction
+          : 0, 'day', transferClaim),
+        field('route-progress', 'Route progress', Number.isFinite(flightFraction) ? flightFraction : 0, 'ratio', transferClaim),
+        field('playback-clock', 'Playback speed meaning', 'Wall-clock playback rate only; model time follows the displayed epoch.', null, transferClaim),
+        field('view-interaction', 'View interaction', 'Mouse drag orbits the solar system. Mouse wheel zooms.', null, transferClaim),
         field('target', 'Target', result.targetBodyId, null, transferClaim),
         field('departure', 'Departure epoch', result.metrics.departureEpoch || 'circular fallback', null, transferClaim),
         field('arrival', 'Arrival epoch', result.metrics.arrivalEpoch || 'circular fallback', null, transferClaim),
