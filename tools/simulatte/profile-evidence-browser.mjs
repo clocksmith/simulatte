@@ -132,13 +132,36 @@ async function waitForDevtools(port, child) {
 }
 
 async function stopChild(child) {
-  if (!child || child.exitCode !== null) return;
+  if (!child || child.exitCode !== null || child.signalCode !== null) return;
+  let resolveExit;
+  const exited = new Promise((resolve) => { resolveExit = resolve; });
+  child.once('exit', resolveExit);
   child.kill('SIGTERM');
-  await Promise.race([
-    new Promise((resolve) => child.once('exit', resolve)),
-    new Promise((resolve) => setTimeout(resolve, 1000)),
+  const stopped = await Promise.race([
+    exited.then(() => true),
+    new Promise((resolve) => setTimeout(() => resolve(false), 2000)),
   ]);
-  if (child.exitCode === null) child.kill('SIGKILL');
+  if (stopped || child.exitCode !== null || child.signalCode !== null) return;
+  child.kill('SIGKILL');
+  await exited;
+}
+
+async function waitForReloadedDocument(client, previousTimeOrigin) {
+  const deadline = Date.now() + 60000;
+  while (Date.now() < deadline) {
+    try {
+      const evaluated = await client.send('Runtime.evaluate', {
+        expression: 'performance.timeOrigin',
+        returnByValue: true,
+      });
+      const currentTimeOrigin = evaluated.result?.value;
+      if (Number.isFinite(currentTimeOrigin) && currentTimeOrigin !== previousTimeOrigin) return;
+    } catch {
+      // The previous execution context is expected to disappear during reload.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error('profile evidence host timeout at page-reload-document');
 }
 
 function unfilterPng(raw, width, height, channels) {
@@ -794,9 +817,12 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     const screenshotPath = path.join(screenshotDirectory, `${screenshotSha256}.png`);
     if (!fs.existsSync(screenshotPath)) fs.writeFileSync(screenshotPath, screenshot);
     const captured = compactCapturedEvidence(evaluated.result.value);
-    const reloaded = client.once('Page.loadEventFired');
+    const beforeReloadOrigin = await client.send('Runtime.evaluate', {
+      expression: 'performance.timeOrigin',
+      returnByValue: true,
+    });
     await withTimeout(client.send('Page.reload', { ignoreCache: false }), 30000, 'page-reload');
-    await withTimeout(reloaded, 30000, 'page-reload-load');
+    await waitForReloadedDocument(client, beforeReloadOrigin.result.value);
     const beforeRunReceipt = captured.runtime.runReceipt;
     const reload = await withTimeout(client.send('Runtime.evaluate', {
       expression: `(async () => {
@@ -806,17 +832,17 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
         const receipt = () => isPluginPlayback
           ? globalThis.__simulattePluginRunReceipt || null
           : globalThis.__simulatteTierRunReceipt || null;
+        const phase = () => document.body?.dataset.journeyPhase || 'loading';
         const started = performance.now();
-        while (!receipt() || document.body.dataset.journeyPhase !== 'completed') {
-          const phase = document.body.dataset.journeyPhase;
-          if (phase === 'failed') break;
+        while (!receipt() || phase() !== 'completed') {
+          if (phase() === 'failed') break;
           if (performance.now() - started > 45000) break;
           await new Promise((resolve) => setTimeout(resolve, 25));
         }
         const afterReceipt = receipt();
         const beforeScenario = beforeReceipt?.scenario || null;
         const afterScenario = afterReceipt?.scenario || null;
-        const restored = Boolean(afterReceipt && document.body.dataset.journeyPhase === 'completed');
+        const restored = Boolean(afterReceipt && phase() === 'completed');
         return {
           attempted: true,
           kind: isPluginPlayback ? 'plugin-playback' : 'tier-run',
@@ -833,6 +859,9 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       awaitPromise: true,
       returnByValue: true,
     }), 60000, 'reload-restoration');
+    if (reload.exceptionDetails) {
+      throw new Error(reload.exceptionDetails.exception?.description || reload.exceptionDetails.text);
+    }
     const reloadEvidence = reload.result.value;
     if (reloadEvidence.kind === 'plugin-playback') {
       reloadEvidence.beforeReceipt = compactRunReceiptReference(reloadEvidence.beforeReceipt);
@@ -883,9 +912,16 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       claims: claims.map((claim) => ({ id: claim.id, sentence: claim.sentence })),
     };
   } finally {
-    if (client) await client.close();
+    if (client) {
+      try {
+        await withTimeout(client.send('Browser.close'), 5000, 'browser-close');
+      } catch {
+        // Chrome can close the protocol socket before acknowledging Browser.close.
+      }
+      await client.close();
+    }
     await stopChild(chrome);
-    fs.rmSync(profileDirectory, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+    fs.rmSync(profileDirectory, { recursive: true, force: true, maxRetries: 50, retryDelay: 100 });
   }
 }
 

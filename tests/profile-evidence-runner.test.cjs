@@ -759,7 +759,24 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.doesNotMatch(source, /readyAt/);
   assert.match(source, /withTimeout\(client\.send\('Runtime\.evaluate'/);
   assert.match(source, /180000, 'browser-probe'/);
-  assert.match(source, /if \(client\) await client\.close\(\)/);
+  assert.match(source, /waitForReloadedDocument\(client, beforeReloadOrigin\.result\.value\)/);
+  assert.match(source, /if \(reload\.exceptionDetails\)/);
+  assert.match(source, /client\.send\('Browser\.close'\)/);
+  assert.match(source, /await client\.close\(\)/);
+  assert.match(source, /await stopChild\(chrome\)/);
+  assert.match(source, /maxRetries: 50, retryDelay: 100/);
+  assert.ok(
+    source.indexOf("client.send('Browser.close')") < source.indexOf('await client.close()'),
+    'browser shutdown must precede protocol-client disposal',
+  );
+  assert.ok(
+    source.indexOf('await client.close()') < source.indexOf('await stopChild(chrome)'),
+    'protocol-client disposal must precede child-process settlement',
+  );
+  assert.ok(
+    source.indexOf('await stopChild(chrome)') < source.indexOf('fs.rmSync(profileDirectory'),
+    'Chrome must settle before its profile directory is removed',
+  );
 });
 
 test('release scripts and CI consume the same public profile claim evidence runner', () => {
