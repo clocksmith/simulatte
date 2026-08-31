@@ -958,7 +958,7 @@
         getRuntime: () => extensions, getScenario: () => activeScenario, getCanvas: () => elements.autonomyCanvas,
         getRunReceipt: () => hostRoot.__simulatteTierRunReceipt || hostRoot.__simulattePluginRunReceipt || latestJourneyReceipt,
         navigateScenario: async (scenario) => {
-          const simulation = { ...simulationRouteState(), scenarioId: scenario.id, seed: scenario.seed };
+          const simulation = { scenarioId: scenario.id, seed: scenario.seed };
           if (hooks.navigate) return hooks.navigate(governedRoute(simulation));
           return updateSimulationFromRoute(simulation);
         },

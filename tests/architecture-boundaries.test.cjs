@@ -80,6 +80,15 @@ test('profile program exact replay uses the run controller replay boundary', () 
   assert.doesNotMatch(boot, /replay:async\(\)=>\{await runController\.seek\(/);
 });
 
+test('profile program scenario navigation drops stale control parameters', () => {
+  const boot = read('public/simulatte/app/world-tiers-boot.js');
+  const main = read('public/simulatte/app/main.js');
+  assert.match(boot, /navigateScenario:async\(scenario\)=>\{\s*const simulation=\{scenarioId:scenario\.id,seed:scenario\.seed\};/);
+  assert.match(main, /navigateScenario: async \(scenario\) => \{\s*const simulation = \{ scenarioId: scenario\.id, seed: scenario\.seed \};/);
+  assert.doesNotMatch(boot, /navigateScenario:async\(scenario\)=>\{\s*const simulation=\{\.\.\.simulationRouteState\(\)/);
+  assert.doesNotMatch(main, /navigateScenario: async \(scenario\) => \{\s*const simulation = \{ \.\.\.simulationRouteState\(\)/);
+});
+
 test('world landing keeps Create at the canonical center of the mobile honeycomb', () => {
   const html = read('public/index.html');
   const css = read('public/world-tiers.css');

@@ -775,7 +775,7 @@
         getRunReceipt:()=>root.__simulatteTierRunReceipt||root.__simulattePluginRunReceipt||null,
         getCanvas:()=>elements.overlayCanvas,
         navigateScenario:async(scenario)=>{
-          const simulation={...simulationRouteState(),scenarioId:scenario.id,seed:scenario.seed};
+          const simulation={scenarioId:scenario.id,seed:scenario.seed};
           if(ctx.navigate){
             return ctx.navigate(governedTierRoute(simulation));
           }
