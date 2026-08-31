@@ -13,14 +13,18 @@ const REFERENCES = Object.freeze([
   ['public/data/simulatte-embedder/intent-evidence-contract-v1.json', './model-runtime-lock.json'],
   ['public/data/simulatte-universe/manifest.json', '../simulatte-embedder/model-runtime-lock.json'],
   ['public/data/simulatte-catalog-inventory.json', './simulatte-embedder/model-runtime-lock.json'],
+  ['public/data/pipeline-model-selection.json', './simulatte-embedder/model-runtime-lock.json', 'path'],
 ]);
 
 function main() {
   const stale = [];
-  for (const [relativePath, artifact] of REFERENCES) {
+  for (const [relativePath, artifact, dialect = 'artifact'] of REFERENCES) {
     const filePath = path.join(ROOT, relativePath);
     const document = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    const expected = modelRuntimeLockReference(artifact);
+    const reference = modelRuntimeLockReference(artifact);
+    const expected = dialect === 'path'
+      ? { id: reference.id, number: reference.number, path: artifact }
+      : reference;
     if (sameModelRuntimeLockReference(document.modelRuntimeLock, expected)) continue;
     stale.push(relativePath);
     if (WRITE) {
@@ -47,8 +51,10 @@ function main() {
 }
 
 function sameModelRuntimeLockReference(actual = {}, expected = {}) {
-  return actual.id === expected.id
-    && Number(actual.number) === Number(expected.number)
+  const identityMatches = actual.id === expected.id
+    && Number(actual.number) === Number(expected.number);
+  if (expected.path) return identityMatches && actual.path === expected.path;
+  return identityMatches
     && actual.artifact === expected.artifact
     && actual.artifactHash?.alg === expected.artifactHash?.alg
     && actual.artifactHash?.hex === expected.artifactHash?.hex;

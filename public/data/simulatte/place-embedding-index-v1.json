@@ -3130,9 +3130,9 @@
   "identities": {
     "embeddingRuntime": {
       "dopplerPackage": {
-        "integrity": "sha512-HlDRXnNaX+xQk3xGKr2d71z/23mewqD+TeguENMePwck34AdDmAR/ZbXfPLzSwjU3zwOq7FO/XHLhGn3eoR+Fw==",
+        "integrity": "sha512-Cog4j6Kwuhn/sxSBoT40njaV7hTnxxY/xWJ4YfYDsrDzDxVr11ULX7NbvCAhx7H0bqLqAZIEv9s2z5otaL4IaA==",
         "name": "doppler-gpu",
-        "shasum": "bdf084d2bc6f8e9035b758b1ea1c3d44c7b5ef3f",
+        "shasum": "dc4d8d84f807e669e910c21912a9169dc38188e7",
         "version": "0.5.1"
       },
       "dopplerSourceGitSha": "dd49cc11e4742cf40f7788bde2631d8179c161b3",
@@ -3145,7 +3145,7 @@
         "sourceRevision": "049000f49325dca7db2ed2c9de2c8881bd0f4603"
       },
       "schema": "simulatte.embeddingRuntimeIdentity.v1",
-      "sha256": "3f54d5f989c8b16fb17a73871a55818e3718d6643c8be43d8aab13c2c66ba2f7",
+      "sha256": "ce3d0d72f6e4f468f031d8b5a7dac4cd4f1701cccd6ed389818981fe41b2adc9",
       "sourceLockPath": "public/data/simulatte-embedder/model-runtime-lock.json"
     },
     "generator": {
@@ -3170,7 +3170,7 @@
       "sha256": "218c6f3734815066669f57ae1bc1ce14aace261f0865ebf25f903db3880dcb3e"
     }
   },
-  "indexSha256": "79107b0e839848b5ef4f82abedb7db51da38db0c18b1665873e6305354a31441",
+  "indexSha256": "999e75eeac5a9a79cf93ab98eaee587a5b0beeaaac4c3747d3f83e77ee6de8bc",
   "model": {
     "embeddingMode": "last",
     "family": "qwen3-embedding",
