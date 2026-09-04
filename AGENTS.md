@@ -85,6 +85,9 @@ component authority.
   before broad rewrites.
 - Training commands are operational commands. Start the requested workflow and
   report the server URL or exact blocker.
+- Open-ended development and data-source selection follow these instructions and
+  the applicable CATSCAN/docs; they are not catch-all skills. Use repository skills
+  only for their named debug, local training UI, or review-compilation operations.
 
 ## Delivery expectations
 

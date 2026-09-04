@@ -1,0 +1,4 @@
+interface:
+  display_name: "Simulatte Training UI"
+  short_description: "Operate the local human-review UI"
+  default_prompt: "Use $simulatte-train-ui to start, check, or stop Simulatte's local training interface."

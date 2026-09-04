@@ -542,11 +542,11 @@ test('training mode streams prompt-output critiques over localhost', () => {
   assert.match(server, /reviews\.jsonl/);
 });
 
-test('training launcher is shared by Codex and Claude skill surfaces', () => {
+test('training launcher is shared by agent skill surfaces', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   const launcher = fs.readFileSync(path.join(root, 'tools', 'train.mjs'), 'utf8');
-  const codexSkill = fs.readFileSync(path.join(root, '.agents', 'skills', 'train', 'SKILL.md'), 'utf8');
-  const claudeSkill = fs.readFileSync(path.join(root, '.claude', 'skills', 'train', 'SKILL.md'), 'utf8');
+  const codexSkill = fs.readFileSync(path.join(root, '.agents', 'skills', 'simulatte-train-ui', 'SKILL.md'), 'utf8');
+  const claudeSkill = fs.readFileSync(path.join(root, '.claude', 'skills', 'simulatte-train-ui', 'SKILL.md'), 'utf8');
   const claudeCommand = fs.readFileSync(path.join(root, '.claude', 'commands', 'train.md'), 'utf8');
 
   assert.equal(pkg.scripts.train, 'node tools/train.mjs');
@@ -557,11 +557,11 @@ test('training launcher is shared by Codex and Claude skill surfaces', () => {
   assert.match(launcher, /--stop/);
   assert.match(launcher, /reviews\.jsonl/);
   assert.match(launcher, /browser fallback: local queue plus Export reviews/);
-  assert.match(codexSkill, /^name: train/m);
+  assert.match(codexSkill, /^name: simulatte-train-ui/m);
   assert.match(codexSkill, /npm run train/);
   assert.match(codexSkill, /artifacts\/simulatte-human-reviews\/reviews\.jsonl/);
-  assert.match(codexSkill, /saved locally in the browser first/);
-  assert.match(claudeSkill, /^name: train/m);
+  assert.match(codexSkill, /stored in the browser first/);
+  assert.match(claudeSkill, /^name: simulatte-train-ui/m);
   assert.match(claudeSkill, /npm run train/);
   assert.match(claudeSkill, /selected\s+checkpoint/);
   assert.match(claudeCommand, /^description: Launch Simulatte training mode in Chrome/m);

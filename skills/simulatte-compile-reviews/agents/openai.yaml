@@ -1,0 +1,4 @@
+interface:
+  display_name: "Compile Simulatte Reviews"
+  short_description: "Compile reviews with a source-hash receipt"
+  default_prompt: "Use $simulatte-compile-reviews to compile this identified Simulatte review log and validate its receipt."
