@@ -1,0 +1,6 @@
+/* Create consumes the shared World/Create palette. */
+body {
+  color: var(--sim-ink);
+  background: var(--sim-paper);
+  font: 13px/1.5 var(--sim-font);
+}

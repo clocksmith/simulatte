@@ -1,0 +1,93 @@
+.neural-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--sim-line);
+  border-radius: 8px;
+  color: var(--sim-ink-soft);
+  background: var(--sim-glass-soft);
+  font-size: 12px;
+  cursor: pointer;
+}
+.neural-mode-toggle input {
+  width: 30px;
+  height: 18px;
+  accent-color: var(--sim-accent);
+}
+.neural-consent-dialog {
+  width: min(460px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  border: 1px solid var(--sim-line-strong);
+  border-radius: 16px;
+  padding: 0;
+  color: var(--sim-ink);
+  background: var(--sim-glass);
+  box-shadow: var(--sim-shadow);
+}
+.neural-consent-dialog::backdrop {
+  background: var(--sim-paint-rgba-0-0-0-0-6);
+  backdrop-filter: blur(4px);
+}
+.neural-consent-body {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+.neural-consent-body h2,
+.neural-consent-body p {
+  margin: 0;
+}
+.neural-consent-body h2 {
+  font: 700 20px/1.2 var(--sim-font);
+}
+.neural-consent-body > p {
+  color: var(--sim-ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.neural-model-list {
+  display: grid;
+  gap: 1px;
+}
+.neural-model-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--sim-line);
+  font-size: 12px;
+}
+.neural-model-row span:last-child,
+.neural-consent-facts {
+  color: var(--sim-ink-faint);
+}
+.neural-consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  var(--sim-paint-white)-space: nowrap !important;
+  border: 0 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

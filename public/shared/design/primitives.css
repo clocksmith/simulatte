@@ -1,0 +1,75 @@
+* {
+  box-sizing: border-box;
+}
+[hidden] {
+  display: none !important;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+button,
+summary,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+.sim-surface,
+.sim-popover {
+  border: 1px solid var(--sim-line);
+  border-radius: var(--sim-radius);
+  color: var(--sim-ink);
+  background: var(--sim-glass);
+  box-shadow: var(--sim-shadow);
+  backdrop-filter: var(--sim-blur);
+}
+.sim-action {
+  display: inline-flex;
+  min-width: var(--sim-touch-target);
+  min-height: var(--sim-touch-target);
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--sim-line);
+  border-radius: var(--sim-radius-small);
+  padding: 8px 12px;
+  color: var(--sim-ink);
+  background: var(--sim-glass-soft);
+  font: 650 13px/1.3 var(--sim-font);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--sim-motion-fast),
+    border-color var(--sim-motion-fast);
+}
+.sim-action:hover:not(:disabled) {
+  border-color: var(--sim-line-strong);
+  background: var(--sim-glass);
+}
+.sim-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.sim-action-primary {
+  border-color: var(--sim-accent-line);
+  background: var(--sim-accent-soft);
+  color: var(--sim-accent);
+}
+:where(button, a, summary, input, select, textarea):focus-visible {
+  outline: 2px solid var(--sim-accent);
+  outline-offset: 3px;
+}
+.sim-field {
+  width: 100%;
+  min-height: var(--sim-touch-target);
+  padding: 10px 12px;
+  border: 1px solid var(--sim-line);
+  border-radius: var(--sim-radius-small);
+  color: var(--sim-ink);
+  background: var(--sim-paper);
+  font-family: var(--sim-font);
+}
+.sim-field:focus {
+  border-color: var(--sim-accent);
+}

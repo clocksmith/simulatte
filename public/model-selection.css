@@ -14,7 +14,7 @@
   font-size: 12px;
   font-weight: 700;
   list-style: none;
-  white-space: nowrap;
+  var(--sim-paint-white)-space: nowrap;
 }
 
 .model-selection-panel > summary::-webkit-details-marker {

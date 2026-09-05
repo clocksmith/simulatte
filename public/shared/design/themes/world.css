@@ -1,0 +1,7 @@
+:root {
+  --tier-city: var(--sim-accent);
+  --tier-country: var(--sim-accent);
+  --tier-world: var(--sim-ink);
+  --tier-solar-system: var(--sim-accent);
+  --tier-star-chart: var(--sim-ink);
+}

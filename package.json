@@ -139,6 +139,7 @@
     "sync:model-lock-references": "node tools/sync-model-runtime-lock-references.mjs --write",
     "sync:runtime-entrypoint": "node tools/sync-runtime-script-entrypoint.mjs --write",
     "test": "node tools/run-test-files.mjs",
+    "test:design": "node --test tests/design-system.test.cjs",
     "test:doppler-models": "node tools/simulatte/qualify-doppler-models.mjs",
     "test:fail-fast": "node tools/run-test-files.mjs --fail-fast",
     "test:vendor-inference": "node tools/run-vendor-inference-lane.mjs",

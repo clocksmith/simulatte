@@ -1,3 +1,4 @@
+@import '../shared/design/themes/create.css';
 /* Create layout. Controls, fields, editor and theme are shared with World. */
 html,
 body {
@@ -5,11 +6,6 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-}
-body {
-  color: var(--sim-ink);
-  background: var(--sim-paper);
-  font: 13px/1.5 var(--sim-font);
 }
 .physics-stage {
   position: fixed;

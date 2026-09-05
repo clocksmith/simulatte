@@ -10,7 +10,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #000;
+  background: var(--sim-paint-hex-000);
   color: var(--sim-ink);
   padding: 40px;
   overflow-y: auto;
@@ -97,7 +97,7 @@
 }
 
 .landing-title-line {
-  stroke: rgba(243, 245, 244, 0.84);
+  stroke: var(--sim-paint-rgba-243-245-244-0-84);
   stroke-width: 1.4;
   stroke-linecap: round;
   stroke-opacity: 0.85;
@@ -159,7 +159,7 @@
 
 .ambient-hex-cell {
   fill: none;
-  stroke: rgba(151, 164, 179, 0.16);
+  stroke: var(--sim-paint-rgba-151-164-179-0-16);
   stroke-width: 1;
 }
 
@@ -180,22 +180,22 @@
   justify-content: center;
   cursor: pointer;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  background: rgba(210, 179, 111, 0.48);
+  background: var(--sim-paint-rgba-210-179-111-0-48);
   padding: 1px;
   box-sizing: border-box;
-  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.58));
+  filter: drop-shadow(0 10px 28px var(--sim-paint-rgba-0-0-0-0-58));
   transition: filter 220ms ease;
 }
 
 .hex-hub:hover {
-  filter: drop-shadow(0 12px 34px rgba(0, 0, 0, 0.68));
+  filter: drop-shadow(0 12px 34px var(--sim-paint-rgba-0-0-0-0-68));
 }
 
 .hex-hub-inner {
   width: 100%;
   height: 100%;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  background: linear-gradient(145deg, #171817 0%, #0c0d0c 62%, #070807 100%);
+  background: linear-gradient(145deg, var(--sim-paint-hex-171817) 0%, var(--sim-paint-hex-0c0d0c) 62%, var(--sim-paint-hex-070807) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -211,7 +211,7 @@
   position: absolute;
   inset: 1px;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  background: radial-gradient(circle at 50% 28%, rgba(210, 179, 111, 0.12) 0%, transparent 64%);
+  background: radial-gradient(circle at 50% 28%, var(--sim-paint-rgba-210-179-111-0-12) 0%, transparent 64%);
   pointer-events: none;
 }
 
@@ -220,9 +220,9 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #d8c18f;
-  background: rgba(210, 179, 111, 0.08);
-  border: 1px solid rgba(210, 179, 111, 0.24);
+  color: var(--sim-paint-hex-d8c18f);
+  background: var(--sim-paint-rgba-210-179-111-0-08);
+  border: 1px solid var(--sim-paint-rgba-210-179-111-0-24);
   padding: 2px 8px;
   border-radius: 12px;
   margin-bottom: 6px;
@@ -234,11 +234,11 @@
   place-items: center;
   width: 30px;
   height: 30px;
-  border: 1px solid rgba(210, 179, 111, 0.3);
+  border: 1px solid var(--sim-paint-rgba-210-179-111-0-3);
   border-radius: 50%;
   font-size: 0.82rem;
   font-weight: 800;
-  color: #d8c18f;
+  color: var(--sim-paint-hex-d8c18f);
   margin-bottom: 4px;
   z-index: 2;
 }
@@ -248,7 +248,7 @@
   font-weight: 800;
   letter-spacing: -0.01em;
   margin: 0 0 6px;
-  color: #ffffff;
+  color: var(--sim-paint-hex-ffffff);
   z-index: 2;
 }
 
@@ -264,7 +264,7 @@
 .hex-hub-action {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #d8c18f;
+  color: var(--sim-paint-hex-d8c18f);
   z-index: 2;
   letter-spacing: 0.02em;
 }
@@ -280,9 +280,9 @@
   align-items: center;
   justify-content: center;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  filter: drop-shadow(0 7px 18px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 7px 18px var(--sim-paint-rgba-0-0-0-0-5));
   transition: filter 220ms ease;
-  background: rgba(137, 151, 166, 0.26);
+  background: var(--sim-paint-rgba-137-151-166-0-26);
   border: none;
   padding: 1px;
   box-shadow: none;
@@ -294,14 +294,14 @@
 
 .hex-satellite:hover {
   z-index: 15;
-  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.66));
+  filter: drop-shadow(0 10px 24px var(--sim-paint-rgba-0-0-0-0-66));
 }
 
 .hex-satellite-inner {
   width: 100%;
   height: 100%;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  background: linear-gradient(145deg, #121212 0%, #0a0a0a 100%);
+  background: linear-gradient(145deg, var(--sim-paint-hex-121212) 0%, var(--sim-paint-hex-0a0a0a) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -317,12 +317,12 @@
   position: absolute;
   inset: 1px;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  background: radial-gradient(circle at 50% 22%, rgba(151, 164, 179, 0.08) 0%, transparent 62%);
+  background: radial-gradient(circle at 50% 22%, var(--sim-paint-rgba-151-164-179-0-08) 0%, transparent 62%);
   pointer-events: none;
 }
 
 .hex-satellite:hover .hex-satellite-inner {
-  background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+  background: linear-gradient(145deg, var(--sim-paint-hex-1a1a1a) 0%, var(--sim-paint-hex-0f0f0f) 100%);
 }
 
 .hex-satellite .hex-badge {
@@ -334,8 +334,8 @@
   border-radius: 10px;
   margin-bottom: 6px;
   color: var(--sim-ink-soft);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--sim-paint-rgba-255-255-255-0-06);
+  border: 1px solid var(--sim-paint-rgba-255-255-255-0-12);
   z-index: 2;
 }
 
@@ -347,7 +347,7 @@
   border: 1px solid var(--sim-line);
   border-radius: 8px;
   margin-bottom: 6px;
-  background: #080808;
+  background: var(--sim-paint-hex-080808);
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--sim-ink-soft);
@@ -543,7 +543,7 @@
   }
 
   .hex-hub-title {
-    color: #fff;
+    color: var(--sim-paint-hex-fff);
     font-size: 0.86rem;
   }
 

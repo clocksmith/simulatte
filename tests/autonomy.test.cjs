@@ -1608,7 +1608,8 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
   const blankHtml = fs.readFileSync(path.join(root, 'public/blank/index.html'), 'utf8');
   const css = fs.readFileSync(path.join(publicDir, 'styles.css'), 'utf8');
-  const design = fs.readFileSync(path.join(publicDir, 'shared/design/simulatte.css'), 'utf8');
+  const design = ['tokens.css', 'primitives.css', 'components.css', 'compositions/consent.css']
+    .map((file) => fs.readFileSync(path.join(publicDir, 'shared/design', file), 'utf8')).join('\n');
   assert.match(html, /href="\.\/shared\/design\/simulatte\.css"/);
   assert.match(blankHtml, /href="\.\.\/shared\/design\/simulatte\.css"/);
   assert.match(html, /class="mission-dock sim-surface"/);
@@ -1639,7 +1640,8 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.doesNotMatch(blankHtml, /data-neural-model="reranker-name"/);
   assert.doesNotMatch(html, /WebGPU world model|Decision engine|Route search|Prediction settlement/);
   assert.match(css, /#autonomy-canvas[\s\S]*width: 100%;[\s\S]*height: 100%/);
-  assert.match(css, /\.sim-app \.neural-consent-dialog[\s\S]*background: rgba\(0, 0, 0, 0\.99\)/);
+  assert.match(css, /\.sim-app \.neural-consent-dialog[\s\S]*background: var\(--sim-paint-rgba-0-0-0-0-99\)/);
+  assert.match(design, /--sim-paint-rgba-0-0-0-0-99: rgba\(0, 0, 0, 0\.99\)/);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*translateY/);
   assert.match(design, /--sim-accent:/);
   assert.match(design, /\.sim-program-editor/);
