@@ -1,12 +1,9 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { CdpClient, findChrome } from './run-browser-smoke.mjs';
-import { createStaticSiteServer } from './static-site-server.mjs';
+import { openBrowserAudit } from './browser-session.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -40,32 +37,6 @@ function selectedViewport(argv = process.argv.slice(2)) {
   const match = /^(\d+)x(\d+)$/.exec(argv[index + 1] || '');
   if (!match) throw new Error('Experience UI viewport must use WIDTHxHEIGHT');
   return { width: Number(match[1]), height: Number(match[2]) };
-}
-
-async function availablePort() {
-  return new Promise((resolve, reject) => {
-    const server = net.createServer();
-    server.on('error', reject);
-    server.listen(0, '127.0.0.1', () => {
-      const port = server.address().port;
-      server.close(() => resolve(port));
-    });
-  });
-}
-
-async function waitForPage(port, chrome) {
-  for (let attempt = 0; attempt < 200; attempt += 1) {
-    if (chrome.exitCode !== null) throw new Error(`Chrome exited with ${chrome.exitCode}`);
-    try {
-      const response = await fetch(`http://127.0.0.1:${port}/json`);
-      if (response.ok) {
-        const page = (await response.json()).find((row) => row.type === 'page');
-        if (page) return page;
-      }
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  throw new Error('Chrome DevTools did not start');
 }
 
 async function evaluate(client, expression) {
@@ -326,29 +297,10 @@ async function probe(client) {
 }
 
 async function main() {
-  const chromePath = findChrome('');
-  const sitePort = await availablePort();
-  const debugPort = await availablePort();
   const viewport = selectedViewport();
-  const server = createStaticSiteServer({ publicRoot: PUBLIC });
-  await new Promise((resolve) => server.listen(sitePort, '127.0.0.1', resolve));
-  const profileDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-ui-probe-'));
-  const chrome = spawn(chromePath, [
-    '--headless=new',
-    '--enable-unsafe-webgpu',
-    '--disable-background-networking',
-    '--no-first-run',
-    '--no-default-browser-check',
-    `--user-data-dir=${profileDirectory}`,
-    `--remote-debugging-port=${debugPort}`,
-    `--window-size=${viewport.width},${viewport.height}`,
-    'about:blank',
-  ], { stdio: ['ignore', 'ignore', 'ignore'] });
-  let client;
+  const browser = await openBrowserAudit({ publicRoot: PUBLIC, viewport, webgpu: true, linuxVulkan: false });
+  const { client, host: { port: sitePort } } = browser;
   try {
-    const page = await waitForPage(debugPort, chrome);
-    client = new CdpClient(page.webSocketDebuggerUrl);
-    await client.connect();
     await client.send('Runtime.enable');
     await client.send('Page.enable');
     const results = [];
@@ -445,9 +397,7 @@ async function main() {
     console.log(JSON.stringify(report, null, 2));
     if (failures.length) process.exitCode = 1;
   } finally {
-    await client?.close();
-    chrome.kill();
-    server.close();
+    await browser.close();
   }
 }
 

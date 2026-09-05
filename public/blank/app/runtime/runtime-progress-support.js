@@ -174,7 +174,7 @@
     if (event.state === 'ready' || /^render\.(ready|blank)$/.test(stage)) {
       progress = 100;
       progressBasis = 'terminal';
-    } else if (event.state === 'error') {
+    } else if (['error', 'failed', 'not-proven'].includes(event.state)) {
       progress = 0;
       progressBasis = 'error';
     } else if (!taskChanged) {
@@ -189,7 +189,7 @@
       taskStartedAtMs,
       taskElapsedMs,
       taskExpectedDurationMs: expectedDurationMs,
-      taskRemainingMs: Math.max(0, expectedDurationMs - taskElapsedMs),
+      taskRemainingMs: ['terminal', 'error'].includes(progressBasis) ? 0 : Math.max(0, expectedDurationMs - taskElapsedMs),
       progress,
       progressBasis,
       progressEstimated: progressBasis === 'elapsed-time-forecast',
@@ -210,7 +210,7 @@
     ));
     if (event.state === 'ready' || /^render\.(ready|blank)$/.test(String(event.stage || ''))) {
       overallProgress = 100;
-    } else if (event.state === 'error') {
+    } else if (['error', 'failed', 'not-proven'].includes(event.state)) {
       overallProgress = progressClamp(previous.overallProgress || 0);
     } else if (!runChanged) {
       overallProgress = Math.max(progressClamp(previous.overallProgress || 0), overallProgress);
@@ -219,7 +219,8 @@
       runStartedAtMs,
       runElapsedMs,
       runExpectedDurationMs: expectedDurationMs,
-      runRemainingMs: Math.max(0, expectedDurationMs - runElapsedMs),
+      runRemainingMs: ['ready', 'error', 'failed', 'not-proven'].includes(event.state)
+        ? 0 : Math.max(0, expectedDurationMs - runElapsedMs),
       overallProgress,
       overallProgressBasis: 'observed-duration-forecast',
     };

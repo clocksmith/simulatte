@@ -3,7 +3,7 @@
 Parent: [Shared browser runtime](../CATSCAN.md)
 ## Target
 
-Provide deterministic simulation primitives reused by governed experiences.
+Provide deterministic simulation primitives and explicit pipeline lifecycle reused by workbench adapters and governed experiences.
 
 ## Authority
 
@@ -19,11 +19,14 @@ Provide deterministic simulation primitives reused by governed experiences.
 - Input: [shared contract charter](../contracts/CATSCAN.md)
 - Output: [civil time primitive](simulation/civil-time.js)
 - Output: [N-body primitive](simulation/n-body-propagation.js)
+- Output: [ordered pipeline runner](pipeline-runner.js), [point motion](simulation/point-motion.js), and [data execution](simulation/data-run.js)
 
 ## Invariants
 
 - Randomness and time derive from declared inputs.
 - A reusable primitive does not authorize a domain claim.
+- Pipeline stages consume the previous stage's exact output; cancellation and supersession cannot publish stale results.
+- Point motion is explicitly constant velocity in two dimensions, not a general physical solver. Data run receipts do not imply WorldProof or scientific validation.
 
 ## Acceptance
 
@@ -44,5 +47,4 @@ Provide deterministic simulation primitives reused by governed experiences.
 
 ## Freedom
 
-Any implementation is permitted if it preserves these boundaries and passes the
-acceptance evidence.
+Any implementation is permitted within these contracts.

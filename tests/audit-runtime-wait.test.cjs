@@ -139,7 +139,7 @@ test('visual audit CLI flushes output and terminates after owned-resource cleanu
     'utf8'
   );
 
-  assert.match(source, /await stopStaticServer\(local\.server\)/);
+  assert.match(source, /await browser\.close\(\)/);
   assert.match(source, /process\.stdout\.write\('', \(\) => process\.exit\(exitCode\)\)/);
   assert.match(source, /main\(\)\.then\(exitAfterOutputFlush\)/);
 });

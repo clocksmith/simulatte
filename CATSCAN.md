@@ -3,7 +3,7 @@
 Parent: none
 ## Target
 
-Compile bounded briefs into inspectable, executable worlds with explicit proof and refusal.
+Turn data and instructions into editable, executable, replayable simulations through one data-first workbench with explicit evidence and refusal.
 
 ## Authority
 
@@ -39,4 +39,3 @@ Compile bounded briefs into inspectable, executable worlds with explicit proof a
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

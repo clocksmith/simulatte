@@ -876,6 +876,7 @@
     IMMUTABLE_EDIT_ROOTS,
     WorldSpecError,
     canonicalJson,
+    canonicalValue,
     contentHash,
     finalizeWorldSpec,
     validateWorldSpec,

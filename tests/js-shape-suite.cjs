@@ -65,6 +65,13 @@ function blankPageSource() {
   ].join('\n');
 }
 
+function visualAuditSource() {
+  return ['audit-intent-scene-screenshots.mjs', 'visual-audit-page.mjs', 'visual-audit-run.mjs',
+    'visual-audit-report.mjs', 'visual-audit-pixels.mjs', 'visual-audit-diagnostics.mjs',
+    'simulatte/browser-session.mjs', 'simulatte/static-site-server.mjs']
+    .map((file) => fs.readFileSync(path.join(root, 'tools', file), 'utf8')).join('\n');
+}
+
 function runtimeSource(name) {
   const file = runtimeFile(name);
   return runtimeSourceFromFile(file, new Set());
@@ -755,10 +762,7 @@ test('physics renderer is a browser coordinator, not a legacy Canvas2D painter l
   const renderer = runtimeSource('prompt-controller.js');
   const runtimeProgress = runtimeSource('runtime-progress.js');
   const lab = runtimeSource('simulation-lab.js');
-  const auditTool = fs.readFileSync(
-    path.join(root, 'tools', 'audit-intent-scene-screenshots.mjs'),
-    'utf8'
-  );
+  const auditTool = visualAuditSource();
 
   assert.match(renderer, /function createBrowserLab/);
   assert.match(renderer, /runtimeProgressApi\.connect\(root/);
@@ -880,16 +884,17 @@ test('home prompt shuffle stays consistent between HTML and catalog', () => {
   assert.match(html, /id="prompt-more-menu"/);
   assert.match(html, /id="fps-readout"/);
   assert.match(html, /\.physics-fps/);
-  assert.match(html, /class="prompt-dock-head"[\s\S]{0,160}id="prompt-dock-toggle"/);
+  assert.match(html, /class="prompt-dock-head"[\s\S]*class="sim-product-nav"[\s\S]*id="prompt-dock-toggle"/);
   assert.doesNotMatch(html, /<h1>Simulatte<\/h1>/);
   assert.match(html, /id="prompt-more-menu"[\s\S]*id="lab-state"[\s\S]*id="fps-readout"[\s\S]*id="world-model-panel"[\s\S]*id="spec-preview"/);
   assert.match(html, /class="builder-row"[\s\S]*id="build-prompt"[\s\S]*class="prompt-actions"[\s\S]*id="shuffle-prompt"[\s\S]*<summary>Enhanced<\/summary>[\s\S]*id="build-lab"/);
-  assert.match(html, /\.prompt-dock \.builder-row \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/);
-  assert.match(html, /\.prompt-actions \{[\s\S]*display: grid;[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(0, auto\) minmax\(0, 1fr\);/);
-  assert.match(html, /\.prompt-dock \.prompt-actions > button,[\s\S]*position: relative;[\s\S]*inset: auto;/);
+  assert.match(html, /\.builder-row \{[^}]*display: grid/);
+  assert.match(html, /\.prompt-actions \{[^}]*grid-template-columns: 1fr auto 1fr/);
+  assert.match(html, /\.prompt-actions > \* \{\s*min-width: 0;/);
   assert.match(html, /id="run-details-menu"[\s\S]*id="phase-rail"[\s\S]*id="copy-run-receipt"/);
-  assert.match(html, /\.run-details-menu \.phase-rail-shell \{[\s\S]*position: absolute;[\s\S]*inset: auto 0 calc\(100% \+ 8px\) auto;[\s\S]*box-sizing: border-box;[\s\S]*background: rgba\(250, 248, 240, 0\.94\);/);
-  assert.match(html, /@media \(max-width: 620px\) \{[\s\S]*\.physics-panel:not\(\[data-collapsed="true"\]\) \{[\s\S]*right: 8px;[\s\S]*left: 8px;[\s\S]*width: auto;[\s\S]*transform: none;/);
+  assert.match(html, /class="create-inspectors"[\s\S]*id="world-spec-editor-panel"[\s\S]*id="prompt-more-menu"/);
+  assert.match(html, /\.create-inspectors > details\[open\] \{\s*flex-basis: 100%;/);
+  assert.match(html, /@media \(max-width: 620px\) \{[\s\S]*\.physics-panel \{\s*width: calc\(100vw - 16px\)/);
   assert.doesNotMatch(html, /id="prompt-more-menu"[\s\S]{0,500}id="shuffle-prompt"/);
   assert.doesNotMatch(html, /class="world-model-details"/);
   assert.doesNotMatch(html, /data-example-prompt=/);
@@ -934,24 +939,24 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   const renderer = runtimeSource('prompt-controller.js');
   const runtimeProgress = runtimeSource('runtime-progress.js');
 
-  assert.match(html, /--mosaic-pink/);
-  assert.match(html, /--mosaic-lilac/);
+  assert.match(html, /shared\/design\/simulatte\.css/);
+  assert.doesNotMatch(html, /--mosaic-pink|--mosaic-lilac/);
   assert.doesNotMatch(html, /intent-runtime-mosaic/);
   assert.match(html, /id="physics-canvas"/);
   assert.match(html, /id="physics-canvas"[^>]*data-scene-visible="false"/);
   assert.match(html, /#physics-canvas\[data-scene-visible="false"\] \{[\s\S]*opacity: 0;[\s\S]*visibility: hidden;/);
   assert.match(html, /id="loading-canvas"/);
-  assert.match(html, /#loading-canvas \{[\s\S]*position: fixed;[\s\S]*opacity: 0;[\s\S]*transition: opacity 160ms ease;/);
-  assert.match(html, /#loading-canvas\.is-active \{\n\s+opacity: 1;/);
+  assert.match(html, /#physics-canvas,\s*#loading-canvas \{[^}]*position: absolute/);
+  assert.match(html, /#loading-canvas \{[^}]*pointer-events: none;[^}]*opacity: 0;/);
+  assert.match(html, /#loading-canvas\.is-active \{\s+opacity: 1;/);
   assert.match(html, /loading-canvas\.js/);
   assert.match(html, /simulatte-webgpu-renderer\.js/);
   assert.doesNotMatch(html, /simulatte-particle-field\.js/);
   assert.doesNotMatch(html, /simulatte-cinematic-renderer\.js/);
-  assert.match(html, /repeating-linear-gradient/);
-  assert.match(html, /@keyframes mosaic-drift/);
-  assert.match(html, /@keyframes mosaic-sweep/);
+  assert.match(html, /\.intent-runtime-fill \{[^}]*background: var\(--sim-accent\)/);
+  assert.doesNotMatch(html, /@keyframes mosaic-drift|@keyframes mosaic-sweep/);
   assert.doesNotMatch(html, /\.intent-runtime\[data-state="active"\] \.intent-runtime-track::after/);
-  assert.match(html, /\.primary-action\.is-loading::after/);
+  assert.match(html, /id="build-lab"[^>]*sim-action-primary/);
   assert.doesNotMatch(renderer, /createCanvasSnakeLoader/);
   assert.doesNotMatch(renderer, /drawCanvasLoadingSnakes/);
   assert.match(runtimeProgress, /RUNTIME_PHASES = Object\.freeze/);
@@ -983,7 +988,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(renderer, /setSpec\(spec, \{ visible: false \}\)/);
   assert.match(renderer, /setSpec\(nextSpec, \{ visible: true \}\)/);
   assert.match(renderer, /SimulatteWebGpuRenderer\.create\(canvas/);
-  assert.match(renderer, /const ctx = null/);
+  assert.doesNotMatch(renderer, /canvas\.getContext\('2d'\)/);
   assert.doesNotMatch(renderer, /canvas\.getContext\('2d'\)/);
   assert.doesNotMatch(html, /id="field-canvas"/);
   assert.doesNotMatch(renderer, /fieldCanvas/);
@@ -1003,6 +1008,8 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /const GPU_OBJECT_PART_CAPACITY = 256/);
   assert.match(webgpuRenderer, /const GPU_OBJECT_PART_FLOATS = 40/);
   assert.match(webgpuRenderer, /motion: vec4f/);
+  assert.doesNotMatch(webgpuRenderer, /let pixelAspect/);
+  assert.match(webgpuRenderer, /vec2f\(local\.x \* row\.rect\.z, -local\.y \* row\.rect\.w\)/);
   assert.match(webgpuRenderer, /u\.viewport\.z \* row\.motion\.x/);
   assert.match(webgpuRenderer, /const WEBGPU_OPTIONAL_FEATURES = Object\.freeze/);
   assert.match(webgpuRenderer, /const WEBGPU_OPTIONAL_FEATURES = Object\.freeze\(\[\]\)/);
@@ -1069,7 +1076,8 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /material: vec4f/);
   assert.match(webgpuRenderer, /@group\(0\) @binding\(1\) var<storage, read> objectParts: array<ObjectPart>/);
   assert.match(webgpuRenderer, /depthStencil:[\s\S]*format: 'depth24plus'/);
-  assert.match(webgpuRenderer, /this\.depthTexture = this\.device[\s\S]*createTexture/);
+  assert.match(webgpuRenderer, /this\.renderTargets = targets\.resize/);
+  assert.match(webgpuRenderer, /this\.depthTexture = this\.renderTargets\.depth/);
   assert.match(webgpuRenderer, /out\.position = vec4f\(center \+ rotated, depth, 1\.0\)/);
   assert.match(webgpuRenderer, /let diffuse = max\(dot\(normal, lightDirection\), 0\.0\)/);
   assert.doesNotMatch(webgpuRenderer, /out\.position = vec4f\(center \+ rotated, 0\.0, 1\.0\)/);
@@ -1300,9 +1308,9 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.doesNotMatch(renderer, /publishCompiledPhaseProgress/);
   assert.match(renderer, /stage: 'render'/);
   assert.doesNotMatch(renderer, /stage: 'visual',\n\s+percent: 98/);
-  assert.match(html, /--runtime-progress: 0%/);
-  assert.match(html, /prompt-runtime-rainbow/);
-  assert.match(html, /\.prompt-dock \.intent-runtime \{[\s\S]*border: 0;[\s\S]*background: transparent;[\s\S]*box-shadow: none;/);
+  assert.match(runtimeProgress, /setProperty\('--runtime-progress'/);
+  assert.doesNotMatch(html, /prompt-runtime-rainbow/);
+  assert.match(html, /\.intent-runtime \{[^}]*min-width: 0;/);
   assert.doesNotMatch(runtimeProgress, /Math\.round\(percent\)/);
   assert.doesNotMatch(renderer, /runtimeDetailText/);
 });
@@ -1898,10 +1906,7 @@ test('runtime progress emits loader phase receipts with completion and duration'
 });
 
 test('visual audit auto-judges prompt fidelity and motion with a rubric', () => {
-  const tool = fs.readFileSync(
-    path.join(root, 'tools', 'audit-intent-scene-screenshots.mjs'),
-    'utf8'
-  );
+  const tool = visualAuditSource();
   const runtimeWait = fs.readFileSync(
     path.join(root, 'tools', 'audit-runtime-wait.mjs'),
     'utf8'
@@ -1914,13 +1919,13 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /positiveLanguageText\(prompt\)/);
   assert.match(tool, /const negated = new RegExp/);
   assert.match(tool, /visualRubricForResult/);
-  assert.match(tool, /'cache-control': 'no-store'/);
-  assert.match(tool, /path\.relative\(PUBLIC_DIR, requestedPath\)/);
-  assert.match(tool, /pathname\.endsWith\('\/'\) \? `\$\{pathname\}index\.html`/);
+  assert.match(tool, /cacheControl = 'no-store'/);
+  assert.match(tool, /function safeJoin/);
+  assert.match(tool, /path\.join\(candidate, 'index\.html'\)/);
   assert.match(tool, /Network\.clearBrowserCache/);
   assert.match(tool, /Network\.setCacheDisabled.*cacheDisabled: true/);
   assert.match(tool, /Network\.setBypassServiceWorker.*bypass: true/);
-  assert.match(tool, /startStaticServer\(options\.profileDir \? options\.localPort : 0\)/);
+  assert.match(tool, /port: options\.profileDir \? options\.localPort : 0/);
   assert.match(tool, /runtimeProgressLogs: \(window\.__simulatteRuntimeProgressLogs/);
   assert.match(tool, /runtimePerformanceLogs: \(window\.__simulatteRuntimePerformanceLogs/);
   assert.match(tool, /const browserEvents = cdp\.diagnostics\(\)/);
@@ -2047,13 +2052,13 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
 test('prompt dock minimizes to corners without drag placement', () => {
   const html = blankPageSource();
 
-  assert.match(html, /width: min\(520px, calc\(100vw - 24px\)\);/);
-  assert.match(html, /@media \(max-width: 820px\) \{[\s\S]*\.physics-panel \{[\s\S]*left: 50%;[\s\S]*right: auto;[\s\S]*width: min\(520px, calc\(100vw - 24px\)\);[\s\S]*transform: translateX\(-50%\);/);
-  assert.doesNotMatch(html, /@media \(max-width: 820px\) \{[\s\S]*\.physics-panel \{[\s\S]*right: 10px;[\s\S]*width: auto;/);
+  assert.match(html, /width: min\(680px, calc\(100vw - 24px\)\);/);
+  assert.match(html, /\.physics-stage \{[^}]*grid-template-rows: minmax\(0, 1fr\) auto/);
+  assert.match(html, /\.physics-panel \{[\s\S]*grid-row: 2;/);
   assert.match(html, /\.prompt-dock\[data-collapsed="true"\] \{/);
   assert.match(html, /\.prompt-dock\[data-dock-edge="top"\]\[data-collapsed="false"\] \{/);
-  assert.match(html, /rgba\(255, 255, 255, 0\.38\)/);
-  assert.match(html, /opacity: 0\.88;/);
+  assert.match(html, /prompt-dock-toggle sim-action/);
+  assert.match(html, /\.prompt-dock\[data-collapsed="true"\] \{[^}]*position: fixed/);
   assert.match(html, /\[data-corner="top-left"\]/);
   assert.match(html, /\[data-corner="top-right"\]/);
   assert.match(html, /\[data-corner="bottom-left"\]/);
@@ -2078,7 +2083,7 @@ test('browser product exposes compiled world model receipts', () => {
   const html = blankPageSource();
   const lab = runtimeSource('simulation-lab.js');
   const renderer = runtimeSource('prompt-controller.js');
-  const auditTool = fs.readFileSync(path.join(root, 'tools', 'audit-intent-scene-screenshots.mjs'), 'utf8');
+  const auditTool = visualAuditSource();
 
   assert.match(html, /id="world-model-panel"/);
   assert.match(html, /id="world-model-chips"/);
@@ -2498,13 +2503,11 @@ test('intent runtime keeps one visible line and does not silently fallback local
   assert.match(runtimeProgress, /'visual\.visual-ir', 'Building VisualIR'/);
   assert.match(runtimeProgress, /'render\.first-frame', 'Rendering scene'/);
   assert.match(runtimeProgress, /return 'Ready 100%'/);
-  assert.match(html, /\.prompt-dock \.intent-runtime-percent \{[\s\S]*display: block;/);
-  assert.match(html, /\.prompt-dock \.intent-runtime-track,[\s\S]*\.prompt-dock \.intent-runtime-meta \{\n\s+display: none;/);
-  assert.match(html, /\.prompt-dock \.intent-runtime-detail \{[\s\S]*display: block;/);
-  assert.match(html, /runtime-detail-heartbeat/);
-  assert.match(html, /runtime-pastel-flow/);
-  assert.match(html, /runtime-heartbeat-pulse/);
-  assert.match(html, /data-heartbeat="true"/);
+  assert.match(html, /\.intent-runtime-percent \{/);
+  assert.match(html, /\.intent-runtime-detail \{\s*display: none;/);
+  assert.match(html, /\.intent-runtime-meta \{[^}]*overflow-wrap: anywhere/);
+  assert.match(html, /\[data-state="failed"\][^}]*\.intent-runtime-percent[^}]*display: none/);
+  assert.match(runtimeProgress, /node\.dataset\.heartbeat/);
   assert.doesNotMatch(runtimeProgress, /node\.title = String\(state\.detail/);
 });
 

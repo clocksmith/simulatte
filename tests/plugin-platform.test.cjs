@@ -630,6 +630,7 @@ test('platform bootstrap has no named plugin import', () => {
 
 test('Main exposes governed profile selection and disposes plugins on teardown', () => {
   const main = fs.readFileSync(require.resolve('../public/simulatte/app/main.js'), 'utf8');
+  const pluginSession = fs.readFileSync(require.resolve('../public/simulatte/app/city-plugin-session.js'), 'utf8');
   const support = fs.readFileSync(require.resolve('../public/simulatte/app/main-support.js'), 'utf8');
   const html = fs.readFileSync(require.resolve('../public/index.html'), 'utf8');
   const styles = fs.readFileSync(require.resolve('../public/styles.css'), 'utf8');
@@ -650,7 +651,9 @@ test('Main exposes governed profile selection and disposes plugins on teardown',
     'experiment controls must precede generic journey evidence'
   );
   assert.doesNotMatch(main, /APPLICATION_PROFILE_IDS|\.label = 'Applications'|\.label = 'Plugins'/);
-  assert.match(html, /app\/application-profile-select\.js/);
+  const manifest = require('../public/simulatte/app/world-runtime-script-manifest.js');
+  assert.ok(manifest.profileRuntime.includes('simulatte/app/application-profile-select.js'));
+  assert.equal(manifest.eager.includes('simulatte/app/application-profile-select.js'), false);
   assert.match(main, /resource:\s*'plugin-runtime'/);
   assert.match(main, /resource:\s*'plugin-ui'/);
   assert.match(main, /mountLifecycleApi\.disposeAll/);
@@ -658,7 +661,8 @@ test('Main exposes governed profile selection and disposes plugins on teardown',
   assert.match(main, /navigate:\s*hooks\.navigate/);
   assert.match(support, /navigate\?\.\(\{ tier: 'city', experience: profileId \}\)/);
   assert.ok(
-    main.indexOf('experienceCameraApi.applyInitialCamera') < main.indexOf('pluginViewRuntime.sync'),
+    pluginSession.indexOf('experienceCameraApi.applyInitialCamera') >= 0 &&
+    pluginSession.indexOf('experienceCameraApi.applyInitialCamera') < pluginSession.indexOf('pluginViewRuntime.sync'),
     'the declarative View Director must arbitrate after legacy profile camera initialization'
   );
 });

@@ -1,4 +1,11 @@
 (function attachSimulatteWorldSpecEditor(root) {
+  const editorUi = typeof module === 'object' && module.exports
+    ? require('../../../shared/design/program-editor.js') : root.SimulatteProgramEditor;
+  if (!editorUi) throw new Error('program_editor_dependency_missing');
+  const inputSource = typeof module === 'object' && module.exports
+    ? require('../../../shared/contracts/input-source.js') : root.SimulatteInputSource;
+  if (!inputSource) throw new Error('world_spec_input_source_missing');
+  const { safeFilePart } = editorUi;
   function connect(documentRoot, options = {}) {
     const editor = documentRoot.getElementById('world-spec-editor');
     const rationale = documentRoot.getElementById('world-spec-edit-rationale');
@@ -21,36 +28,29 @@
       typeof options.serializeImprovementRecord !== 'function') {
       throw new Error('WorldSpec editor requires spec, import, and improvement-record functions');
     }
-    let dirty = false;
+    const draft = editorUi.createDraft({ editor, apply: applyButton, status });
     let pendingSpec = null;
 
     function setStatus(message, state = 'ready') {
-      status.textContent = String(message || '');
-      status.dataset.state = state;
+      editorUi.setStatus(status, message, state);
     }
 
     function sync(spec = options.getSpec(), syncOptions = {}) {
-      if (!spec || (dirty && syncOptions.force !== true)) return false;
+      if (!spec || (draft.isDirty() && syncOptions.force !== true)) return false;
       pendingSpec = spec;
       if (disclosure && !disclosure.open && syncOptions.force !== true) {
         const revision = Number(spec.authorship && spec.authorship.revision || 0);
         setStatus(`${spec.contentHash || 'unhashed'} · revision ${revision}`);
         return false;
       }
-      editor.value = options.serialize(spec);
-      dirty = false;
-      editor.dataset.dirty = 'false';
-      applyButton.disabled = true;
+      draft.setValue(options.serialize(spec));
       const revision = Number(spec.authorship && spec.authorship.revision || 0);
       setStatus(`${spec.contentHash || 'unhashed'} · revision ${revision}`);
       return true;
     }
 
     function markDirty() {
-      dirty = true;
-      editor.dataset.dirty = 'true';
-      applyButton.disabled = false;
-      setStatus('Unapplied edit', 'dirty');
+      draft.markDirty('Unapplied edit');
     }
 
     function reportError(error) {
@@ -98,20 +98,7 @@
     }
 
     async function exportPayload(payload, fileName) {
-      const view = documentRoot.defaultView || root;
-      if (view.Blob && view.URL && typeof view.URL.createObjectURL === 'function') {
-        const blob = new view.Blob([payload], { type: 'application/json' });
-        const url = view.URL.createObjectURL(blob);
-        const link = documentRoot.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        link.click();
-        view.URL.revokeObjectURL(url);
-      } else if (view.navigator && view.navigator.clipboard) {
-        await view.navigator.clipboard.writeText(payload);
-      } else {
-        throw new Error('JSON export is unavailable in this browser');
-      }
+      return editorUi.downloadJson(documentRoot, fileName, payload);
     }
 
     function syncImprovement(record = options.getImprovementRecord()) {
@@ -127,7 +114,9 @@
       const file = fileInput.files && fileInput.files[0];
       if (!file) return;
       try {
-        editor.value = await file.text();
+        const input = await inputSource.readFile(file);
+        if (!['worldSpec', 'legacySpec'].includes(input.kind)) throw new Error('Import expects a WorldSpec. Open the workbench to prepare CSV or JSON data.');
+        editor.value = input.kind === 'legacySpec' ? JSON.stringify(input.spec) : options.serialize(input.spec);
         markDirty();
         const next = options.import(editor.value, file.name || 'WorldSpec file');
         sync(next, { force: true });
@@ -146,7 +135,7 @@
     importButton.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', importSelectedFile);
     disclosure?.addEventListener('toggle', () => {
-      if (disclosure.open && !dirty) sync(pendingSpec || options.getSpec(), { force: true });
+      if (disclosure.open && !draft.isDirty()) sync(pendingSpec || options.getSpec(), { force: true });
     });
     sync(options.getSpec());
     syncImprovement();
@@ -155,16 +144,8 @@
       sync,
       syncImprovement,
       apply: applyEditorValue,
-      isDirty: () => dirty,
+      isDirty: draft.isDirty,
     });
-  }
-
-  function safeFilePart(value) {
-    return String(value || 'world')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9._-]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'world';
   }
 
   const api = Object.freeze({ connect, safeFilePart });

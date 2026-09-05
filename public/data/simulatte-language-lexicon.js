@@ -375,6 +375,10 @@
     }],
     ['road', 'entity', { entityClass: 'road', visualArchetype: 'road' }],
     ['floor lamp', 'entity', { entityClass: 'lamp', visualArchetype: 'lamp' }],
+    ['floor', 'entity', {
+      entityClass: 'floor', visualArchetype: 'floor', semanticRole: 'support-surface',
+      localGeometryGrammarId: 'object-grammar.floor',
+    }],
     ['bicycle', 'entity', { entityClass: 'bicycle', visualArchetype: 'bicycle' }],
     ['sofa', 'entity', { entityClass: 'sofa', visualArchetype: 'sofa' }],
     ['lamp', 'entity', { entityClass: 'lamp', visualArchetype: 'lamp' }],
@@ -439,6 +443,7 @@
     'readout', 'readouts', 'crash', 'crashes', 'crashing',
     'crosses', 'cross', 'crossing', 'watches', 'watch', 'watching',
     'sits', 'sit', 'sitting', 'orbits', 'orbit', 'orbiting',
+    'rest', 'rests', 'resting',
     'plays', 'play', 'playing', 'increases', 'increase', 'increasing',
     'focuses', 'focus', 'focusing', 'cooling', 'powered', 'powering',
     'bends', 'bend', 'bending', 'fracturing', 'collision',
@@ -486,6 +491,7 @@
   // Keep process semantics data-owned so new language cannot silently create a
   // second, unsynchronized keyword taxonomy downstream.
   const BEHAVIOR_PROCESS_LEXICON = Object.freeze([
+    { process: 'spatial_constraint', phrases: ['rest', 'rests', 'resting'] },
     { process: 'swimming', phrases: ['swim', 'swimming'] },
     { process: 'rotate', phrases: ['spin', 'spins', 'rotate', 'rotates', 'rotation', 'twist', 'twists', 'torque'] },
     { process: 'impact', phrases: ['hit', 'hits', 'impact', 'collision', 'collide', 'crash', 'crashes', 'crashing', 'fracture', 'fracturing', 'crack', 'jump', 'jumps', 'bounce', 'calve', 'calves', 'calving'] },

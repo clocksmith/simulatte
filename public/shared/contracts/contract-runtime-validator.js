@@ -157,10 +157,10 @@
     }
     requireObject(mission.constraints, contract, '$.constraints');
     const avoidStreetNames = requireArray(mission.constraints.avoidStreetNames, contract, '$.constraints.avoidStreetNames');
-    const governedStreetNames = new Set([
+    const governedStreetNames = new Set(avoidStreetNames.length ? [
       ...world.segments.map((segment) => segment.source && segment.source.street),
       ...(world.renderGeometry?.streets || []).map((street) => street.name),
-    ].filter(Boolean).map(normalizeStreetName));
+    ].filter(Boolean).map(normalizeStreetName) : []);
     avoidStreetNames.forEach((name, index) => {
       requireString(name, contract, `$.constraints.avoidStreetNames[${index}]`);
       if (!governedStreetNames.has(normalizeStreetName(name))) throw new AutonomyContractError(contract, `$.constraints.avoidStreetNames[${index}]`, 'street in governed route or display geometry', name);

@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import net from 'node:net';
-import os from 'node:os';
 import path from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { CdpClient } from './browser-harness.mjs';
+import { launchBrowser } from './browser-session.mjs';
+import { stopStaticServer } from '../audit-server-lifecycle.mjs';
 import { listenProfileReviewServer } from './profile-evidence-review-server.mjs';
 
 const TOOL_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
@@ -41,56 +39,6 @@ function parseArgs(argv) {
     } else throw new Error(`Unknown argument: ${argv[index]}`);
   }
   return options;
-}
-
-function findChrome(explicitPath) {
-  const candidates = [
-    explicitPath,
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/Applications/Chromium.app/Contents/MacOS/Chromium',
-    '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
-  ].filter(Boolean);
-  for (const candidate of candidates) if (fs.existsSync(candidate)) return candidate;
-  for (const command of ['google-chrome', 'chromium', 'chromium-browser']) {
-    if (spawnSync(command, ['--version'], { stdio: 'ignore' }).status === 0) return command;
-  }
-  throw new Error('Profile review audit requires Chrome or Chromium. Pass --chrome PATH.');
-}
-
-async function freePort() {
-  const server = net.createServer();
-  await new Promise((resolve, reject) => server.listen(0, '127.0.0.1', resolve).once('error', reject));
-  const port = server.address().port;
-  await new Promise((resolve) => server.close(resolve));
-  return port;
-}
-
-async function waitForDevtools(port, child) {
-  for (let attempt = 0; attempt < 160; attempt += 1) {
-    if (child.exitCode !== null) throw new Error(`Chrome exited before DevTools was ready with code ${child.exitCode}`);
-    try {
-      const response = await fetch(`http://127.0.0.1:${port}/json`);
-      if (response.ok) {
-        const targets = await response.json();
-        const page = targets.find((row) => row.type === 'page' && row.webSocketDebuggerUrl);
-        if (page) return page;
-      }
-    } catch {
-      // Chrome has not opened the debugging port yet.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  throw new Error(`Chrome DevTools did not become ready on port ${port}`);
-}
-
-async function stopChrome(child) {
-  if (!child || child.exitCode !== null || child.signalCode) return;
-  await new Promise((resolve) => {
-    const timer = setTimeout(resolve, 2000);
-    child.once('exit', () => { clearTimeout(timer); resolve(); });
-    child.once('error', () => { clearTimeout(timer); resolve(); });
-    child.kill('SIGTERM');
-  });
 }
 
 async function evaluate(client, expression) {
@@ -178,23 +126,10 @@ async function main() {
     host: '127.0.0.1',
     port: 0,
   });
-  const debugPort = await freePort();
-  const profileDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-profile-review-audit-'));
-  const chrome = spawn(findChrome(options.chromePath), [
-    '--headless=new',
-    '--disable-background-networking',
-    '--no-first-run',
-    '--no-default-browser-check',
-    `--user-data-dir=${profileDirectory}`,
-    `--remote-debugging-port=${debugPort}`,
-    `--window-size=${options.viewport.width},${options.viewport.height}`,
-    'about:blank',
-  ], { stdio: ['ignore', 'ignore', 'pipe'] });
-  let client = null;
+  let browser;
   try {
-    const page = await waitForDevtools(debugPort, chrome);
-    client = new CdpClient(page.webSocketDebuggerUrl);
-    await client.connect();
+    browser = await launchBrowser(options);
+    const { client } = browser;
     const exceptions = [];
     client.on('Runtime.exceptionThrown', (params) => exceptions.push(
       params.exceptionDetails.exception?.description || params.exceptionDetails.text || 'browser exception'
@@ -230,10 +165,7 @@ async function main() {
     }, null, 2)}\n`);
     console.log(`PROFILE-REVIEW-BROWSER viewport=${baseName} runs=${receipt.runCount} verdicts=${receipt.verdictFieldCount} overflow=${receipt.controlOverflowCount} status=pass`);
   } finally {
-    await client?.close();
-    await stopChrome(chrome);
-    await new Promise((resolve) => reviewServer.server.close(resolve));
-    fs.rmSync(profileDirectory, { recursive: true, force: true });
+    try { await browser?.close(); } finally { await stopStaticServer(reviewServer.server); }
   }
 }
 

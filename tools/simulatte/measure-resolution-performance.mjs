@@ -20,9 +20,9 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
-import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { launchBrowser, stopChild, removeLegacyProfile } from './browser-session.mjs';
+import { stopStaticServer } from '../audit-server-lifecycle.mjs';
 import { fileURLToPath } from 'node:url';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -64,20 +64,6 @@ function parseArgs(argv) {
     else throw new Error(`unknown argument: ${flag}`);
   }
   return options;
-}
-
-function findChrome(explicitPath) {
-  const candidates = [
-    explicitPath,
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/Applications/Chromium.app/Contents/MacOS/Chromium',
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium-browser',
-  ].filter(Boolean);
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) return candidate;
-  }
-  throw new Error('Chrome not found: pass --chrome or set CHROME_PATH');
 }
 
 function detectLocalModelDir(modelLock) {
@@ -164,118 +150,7 @@ async function createServer(mounts) {
   return { server, port: server.address().port };
 }
 
-async function freePort() {
-  return new Promise((resolve, reject) => {
-    const probe = http.createServer();
-    probe.listen(0, '127.0.0.1', () => {
-      const { port } = probe.address();
-      probe.close(() => resolve(port));
-    }).once('error', reject);
-  });
-}
-
-async function waitForDevtools(port, child) {
-  const url = `http://127.0.0.1:${port}/json`;
-  for (let attempt = 0; attempt < 200; attempt += 1) {
-    if (child.exitCode !== null) throw new Error(`Chrome exited before DevTools was ready with code ${child.exitCode}`);
-    try {
-      const response = await fetch(url);
-      if (response.ok) {
-        const page = (await response.json()).find((row) => row.type === 'page');
-        if (page) return page;
-      }
-    } catch {
-      // Connection refusal is expected until Chrome opens the DevTools port.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  throw new Error(`Chrome DevTools did not become ready on port ${port}`);
-}
-
-class CdpClient {
-  constructor(url) {
-    this.url = url;
-    this.socket = null;
-    this.nextId = 1;
-    this.pending = new Map();
-    this.listeners = new Map();
-  }
-
-  async connect() {
-    this.socket = new WebSocket(this.url);
-    await new Promise((resolve, reject) => {
-      this.socket.onopen = resolve;
-      this.socket.onerror = reject;
-    });
-    this.socket.onmessage = ({ data }) => this.receive(JSON.parse(data));
-  }
-
-  receive(message) {
-    if (message.id && this.pending.has(message.id)) {
-      const pending = this.pending.get(message.id);
-      this.pending.delete(message.id);
-      if (message.error) pending.reject(new Error(JSON.stringify(message.error)));
-      else pending.resolve(message.result);
-    }
-    for (const listener of this.listeners.get(message.method) || []) listener(message.params);
-  }
-
-  send(method, params = {}) {
-    return new Promise((resolve, reject) => {
-      const id = this.nextId++;
-      this.pending.set(id, { resolve, reject });
-      this.socket.send(JSON.stringify({ id, method, params }));
-    });
-  }
-
-  once(method) {
-    return new Promise((resolve) => {
-      const callback = (params) => {
-        this.listeners.set(method, (this.listeners.get(method) || []).filter((row) => row !== callback));
-        resolve(params);
-      };
-      this.listeners.set(method, [...(this.listeners.get(method) || []), callback]);
-    });
-  }
-
-  on(method, callback) {
-    this.listeners.set(method, [...(this.listeners.get(method) || []), callback]);
-  }
-
-  close() {
-    if (this.socket) this.socket.close();
-  }
-}
-
-async function stopChild(child) {
-  if (child.exitCode !== null || child.signalCode !== null) return;
-  let resolveExit;
-  const exited = new Promise((resolve) => { resolveExit = resolve; });
-  child.once('exit', resolveExit);
-  child.kill('SIGTERM');
-  const stopped = await Promise.race([
-    exited.then(() => true),
-    new Promise((resolve) => setTimeout(() => resolve(false), 2000)),
-  ]);
-  if (stopped || child.exitCode !== null || child.signalCode !== null) return;
-  child.kill('SIGKILL');
-  await exited;
-}
-
-async function removeProfileDirectory(profileDir, attempts = 20) {
-  let failure = null;
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    try {
-      fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 2, retryDelay: 50 });
-      return;
-    } catch (error) {
-      failure = error;
-      if (!['ENOTEMPTY', 'EBUSY', 'EPERM'].includes(error?.code) || attempt === attempts - 1) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 100 + attempt * 25));
-    }
-  }
-  if (failure) throw failure;
-}
+const removeProfileDirectory = (directory) => removeLegacyProfile(directory, 'simulatte-');
 
 function percentile(values, fraction) {
   if (!values.length) return null;
@@ -376,28 +251,13 @@ async function main() {
   const hybridAvailable = Boolean(modelBaseUrl);
 
   const staticHost = await createServer(mounts);
-  const devtoolsPort = await freePort();
-  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-resolution-perf-'));
-  const chrome = spawn(findChrome(options.chromePath), [
-    '--headless=new',
-    '--enable-unsafe-webgpu',
-    '--disable-background-networking',
-    '--no-first-run',
-    '--no-default-browser-check',
-    `--user-data-dir=${profileDir}`,
-    `--remote-debugging-port=${devtoolsPort}`,
-    '--window-size=1440,1000',
-    'about:blank',
-  ], { stdio: ['ignore', 'ignore', 'pipe'] });
-
+  let browser = null;
   const lanes = {};
   const checks = [];
   const skipped = [];
-  let client = null;
   try {
-    const page = await waitForDevtools(devtoolsPort, chrome);
-    client = new CdpClient(page.webSocketDebuggerUrl);
-    await client.connect();
+    browser = await launchBrowser({ chromePath: options.chromePath, webgpu: true, linuxVulkan: false });
+    const { client } = browser;
     await Promise.all([
       client.send('Runtime.enable'),
       client.send('Page.enable'),
@@ -476,10 +336,7 @@ async function main() {
       skipped.push({ lane: 'hybrid_optin', reason: 'no local model source: pass --model-base-url or provide the sibling doppler artifact' });
     }
   } finally {
-    await client?.close();
-    await stopChild(chrome);
-    await new Promise((resolve) => staticHost.server.close(resolve));
-    await removeProfileDirectory(profileDir);
+    try { await browser?.close(); } finally { await stopStaticServer(staticHost.server); }
   }
 
   const accepted = checks.every((row) => row.pass) && checks.length > 0;

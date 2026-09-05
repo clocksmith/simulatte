@@ -52,10 +52,17 @@ test('tier visualizer uses one pointer-capture orbit path for mouse and touch', 
 test('browser smoke lanes share one CDP client', () => {
   const browserSmoke = read('tools/simulatte/run-browser-smoke.mjs');
   const tierSmoke = read('tools/simulatte/run-tier-browser-smoke.mjs');
-  assert.match(browserSmoke, /from '\.\/browser-harness\.mjs'/);
-  assert.match(tierSmoke, /from '\.\/browser-harness\.mjs'/);
+  assert.match(browserSmoke, /from '\.\/browser-session\.mjs'/);
+  assert.match(tierSmoke, /from '\.\/browser-session\.mjs'/);
   assert.doesNotMatch(browserSmoke, /class CdpClient/);
   assert.doesNotMatch(tierSmoke, /class CdpClient/);
+  for (const file of ['run-browser-smoke.mjs', 'run-tier-browser-smoke.mjs', 'audit-experience-ui.mjs',
+    'audit-profile-evidence-review.mjs', 'profile-evidence-browser.mjs', 'qualify-recursive-reference.mjs',
+    'measure-resolution-performance.mjs']) {
+    const source = read(`tools/simulatte/${file}`);
+    assert.match(source, /browser-session\.mjs/, file);
+    assert.doesNotMatch(source, /class CdpClient|function waitForDevtools|spawn\(/, file);
+  }
   assert.match(tierSmoke, /getElementById\('runtime-status'\)/);
   assert.doesNotMatch(tierSmoke, /document\.body\s*\?\s*document\.body\.innerText/);
 });
@@ -63,6 +70,15 @@ test('browser smoke lanes share one CDP client', () => {
 test('completed TODO trackers stay removed', () => {
   for (const name of ['TODO_PLUGINS.md', 'TODO_PLUGINS_IMPLEMENTATION.md', 'TODO_SIMULATTE.md']) {
     assert.equal(fs.existsSync(path.join(ROOT, name)), false, `${name} must not return`);
+  }
+});
+
+test('browser audit coordination and evidence modules stay below the source ceiling', () => {
+  for (const file of ['audit-intent-scene-screenshots.mjs', 'audit-world-spec-editor.mjs',
+    'visual-audit-run.mjs', 'visual-audit-page.mjs', 'visual-audit-report.mjs', 'visual-audit-diagnostics.mjs',
+    'visual-audit-pixels.mjs', 'simulatte/run-browser-smoke.mjs', 'simulatte/browser-profile-probes.mjs',
+    'simulatte/browser-journey-probe.mjs', 'simulatte/browser-session.mjs']) {
+    assert.ok(read(`tools/${file}`).split(/\r?\n/).length <= 999, `${file} exceeds 999 lines`);
   }
 });
 

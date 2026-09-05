@@ -61,7 +61,9 @@ test('World profile editor turns one scenario selector edit into a complete gove
 test('World profile imports verify declared identity before entering the governed editor', () => {
   const source = fs.readFileSync(path.join(ROOT, 'public/simulatte/app/profile-program.js'), 'utf8');
 
-  assert.match(source, /const imported = worldSpec\.parseWorldSpec\(await file\.text\(\)\)/);
+  assert.match(source, /const input = await inputSource\.readFile\(file\)/);
+  assert.match(source, /input\.kind !== 'worldSpec'/);
+  assert.doesNotMatch(source, /await file\.text\(\)/);
   assert.match(source, /worldSpec\.parseWorldSpecEditCandidate\(elements\.editor\.value\)/);
 });
 
@@ -242,11 +244,13 @@ test('World page loads the profile program after shared contracts and exposes ev
     runtimeManifest.browser.indexOf('simulatte/app/profile-program.js'));
   assert.ok(runtimeManifest.browser.indexOf('simulatte/app/profile-program.js') <
     runtimeManifest.browser.indexOf('simulatte/app/world-tiers-boot.js'));
-  assert.match(html, /src="\.\/simulatte\/app\/profile-program\.js\?/);
+  assert.ok(runtimeManifest.profileRuntime.includes('simulatte/app/profile-program.js'));
+  assert.equal(runtimeManifest.eager.includes('simulatte/app/profile-program.js'), false);
 });
 
 test('World browser audit verifies governed intent at runtime proof rather than in the export form', () => {
-  const source = fs.readFileSync(path.join(ROOT, 'tools/simulatte/run-browser-smoke.mjs'), 'utf8');
+  const source = ['run-browser-smoke.mjs', 'browser-profile-probes.mjs'].map((file) =>
+    fs.readFileSync(path.join(ROOT, 'tools/simulatte', file), 'utf8')).join('\n');
   assert.match(source, /proof\.proofClasses\.intent\.status === 'pass'/);
   assert.match(source, /proof\.proofClasses\.semantic\.status === 'pass'/);
   assert.doesNotMatch(source, /active\.phaseArtifacts/);

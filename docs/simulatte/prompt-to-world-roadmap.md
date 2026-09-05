@@ -1,5 +1,12 @@
 # Simulatte Strategic & Performance Consolidation Roadmap
 
+Status: superseded product-direction proposal, retained for historical context.
+The user-selected data-first direction is [GOALS.md](../../GOALS.md); current
+implementation and limits are in [the workbench guide](../workbench.md).
+The compiler-first ranking and proposed profile archival below are not active
+instructions. Existing profiles remain supported under their individual contracts.
+Historical payload estimates and proposed savings below are not current measurements.
+
 ## Authority and Purpose
 
 This document records the strategic consolidation and performance optimization roadmap for Simulatte. It translates the core principles in [GOALS.md](../../GOALS.md) and [STYLE_GUIDE.md](../../STYLE_GUIDE.md) into concrete architectural milestones, demo portfolio curation, and payload reduction targets.

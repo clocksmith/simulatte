@@ -3,11 +3,11 @@
 Parent: [Browser surface](../CATSCAN.md)
 ## Target
 
-Turn a brief into inspectable phase artifacts, rendered pixels, and bounded scene proof.
+Provide the workbench's optional brief compiler with inspectable phase artifacts, rendered pixels, and bounded scene proof.
 
 ## Authority
 
-- Owns the Create user journey and exact eight-phase compiler.
+- Owns the optional Create input journey and exact eight-phase compiler.
 - Does not own World profiles, plugin simulations, or scientific truth.
 
 ## Scope
@@ -39,4 +39,3 @@ Turn a brief into inspectable phase artifacts, rendered pixels, and bounded scen
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

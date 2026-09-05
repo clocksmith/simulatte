@@ -10,6 +10,7 @@
     '../shared/deterministic-values.js',
     '../shared/contracts/world-spec-authorship.js',
     '../shared/contracts/world-spec.js',
+    '../shared/contracts/input-source.js',
     '../shared/contracts/world-proof-compiler.js',
     '../shared/contracts/world-proof-intent.js',
       '../shared/contracts/world-proof-semantic.js',
@@ -242,6 +243,7 @@
     'app/prompt/world-spec-reconciliation-controller.js',
     'app/prompt/prompt-controller-compiler-proof.js',
     'app/prompt/world-improvement-session.js',
+    'app/prompt/prompt-proof-session.js',
     'app/prompt/prompt-controller-lab-controller.js',
     'app/prompt/prompt-controller.js'
   );
@@ -256,6 +258,9 @@
   const browser = join(
     group(
       '../neural-model-consent.js',
+      '../shared/design/program-editor.js',
+      '../shared/design/product-navigation.js',
+      '../shared/render/render-targets.js',
       '../model-selection.js'
     ),
     runtimeFoundation,

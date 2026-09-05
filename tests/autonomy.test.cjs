@@ -67,6 +67,18 @@ function assets() {
   };
 }
 
+test('mission validation skips street indexing only when no avoidance is requested', () => {
+  const rows = assets();
+  const mission = missionApi.compileMission(SYNTHETIC_MISSION, rows.world, rows.embodiment);
+  let scans = 0;
+  const world = { ...rows.world, get segments() { scans++; return rows.world.segments; } };
+  assert.equal(contracts.validateMission(mission, world, rows.embodiment), mission);
+  assert.equal(scans, 0);
+  const invalid = { ...mission, constraints: { ...mission.constraints, avoidStreetNames: ['nonexistent test avenue'] } };
+  assert.throws(() => contracts.validateMission(invalid, world, rows.embodiment), /avoidStreetNames/);
+  assert.equal(scans, 1);
+});
+
 function governedAssets() {
   const manifest = readJson('public/data/simulatte/autonomy-manifest.json');
   const embodiments = manifest.embodiments.map((reference) => readJson(`public/data/simulatte/${reference.path.replace(/^\.\//, '')}`));
@@ -1519,13 +1531,17 @@ test('governed artifact dependency graphs are immutable and cache-bound to their
   assert.equal(reads.filter((url) => url.endsWith('/root.json')).length, 3);
 });
 
-test('autonomy browser surface loads every declared module and stays independent of compiler phases', () => {
+test('workbench eagerly loads its declared shell and profile runtime retains dependency order without compiler phases', () => {
   const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
   const compatibilityHtml = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
   const compilerHtml = fs.readFileSync(path.join(root, 'public/blank/index.html'), 'utf8');
-  const scripts = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g))
+  const eagerScripts = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g))
     .map((match) => match[1].replace(/\?v=.*$/, ''));
-  assert.ok(scripts.length >= 15);
+  const manifest = require('../public/simulatte/app/world-runtime-script-manifest.js');
+  const scripts = manifest.profileRuntime.map((source) => `./${source}`);
+  assert.deepEqual(eagerScripts.filter((source) => !source.endsWith('/world-runtime-script-manifest.js') && !source.endsWith('/world-runtime-loader.js')), manifest.eager.map((source) => `./${source}`));
+  assert.equal(eagerScripts.includes('./simulatte/app/main.js'), false);
+  assert.ok(eagerScripts.includes('./simulatte/app/data-workbench.js'));
   assert.ok(scripts.indexOf('./simulatte/runtime/runtime-log.js') < scripts.indexOf('./simulatte/platform/transport/browser-transport.js'));
   assert.ok(scripts.indexOf('./simulatte/platform/transport/browser-transport.js') < scripts.indexOf('./simulatte/platform/artifacts/governed-artifact-store.js'));
   assert.ok(scripts.indexOf('./simulatte/platform/transport/browser-transport.js') < scripts.indexOf('./simulatte/world/world-tile-manager.js'));
@@ -1540,7 +1556,7 @@ test('autonomy browser surface loads every declared module and stays independent
   assert.match(html, /id="follow-minimap"/);
   assert.match(html, /id="shuffle-button"[^>]*>[\s\S]*?id="shuffle-label">Shuffle<\/span>/);
   assert.match(html, /id="start-button"[^>]*>[\s\S]*?id="start-label">Start<\/span>/);
-  assert.doesNotMatch(html, /href="https:\/\/create\.simulatte\.world\/"[^>]*>Create<\/a>/);
+  assert.match(html, /class="sim-product-nav"[\s\S]*href="https:\/\/create\.simulatte\.world\/"[^>]*>Prompt<\/a>/);
   assert.match(html, /id="experience-doc-link" class="sim-text-link experience-doc-link"[^>]*target="_blank"[^>]*hidden>Experience docs<\/a>/);
   assert.doesNotMatch(html, /id="experience-doc-link"[^>]*sim-surface/);
   const missionDockStart = html.indexOf('<section class="mission-dock');
@@ -1549,7 +1565,7 @@ test('autonomy browser surface loads every declared module and stays independent
   assert.ok(missionDockStart >= 0 && experienceDocsPosition > missionDockStart && experienceDocsPosition < missionDockEnd);
   assert.doesNotMatch(html, /class="blank-link"/);
   assert.match(compatibilityHtml, /Simulatte/);
-  assert.match(compilerHtml, /class="prompt-dock-autonomy" href="https:\/\/simulatte\.world\/"/);
+  assert.match(compilerHtml, /class="sim-product-nav"[\s\S]*href="https:\/\/simulatte\.world\/" data-local-href="\.\.\/"/);
   assert.doesNotMatch(html, /Every autonomous choice, exposed and settled/);
   assert.doesNotMatch(html, /observe, retrieve, choose, settle/);
   assert.doesNotMatch(html, /Mission compiler/);
@@ -1625,7 +1641,9 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.match(css, /#autonomy-canvas[\s\S]*width: 100%;[\s\S]*height: 100%/);
   assert.match(css, /\.sim-app \.neural-consent-dialog[\s\S]*background: rgba\(0, 0, 0, 0\.99\)/);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*translateY/);
-  assert.match(design, /--sim-spectrum:/);
+  assert.match(design, /--sim-accent:/);
+  assert.match(design, /\.sim-program-editor/);
+  assert.match(design, /--sim-touch-target: 44px/);
   assert.match(design, /prefers-reduced-motion/);
 });
 

@@ -8,15 +8,21 @@
   const profileWorldProof = typeof module === 'object' && module.exports
     ? require('../../shared/contracts/profile-world-proof.js')
     : root.SimulatteProfileWorldProof;
-  const api = factory(root, worldSpec, profileWorldSpec, profileWorldProof);
+  const editorUi = typeof module === 'object' && module.exports
+    ? require('../../shared/design/program-editor.js') : root.SimulatteProgramEditor;
+  const api = factory(root, worldSpec, profileWorldSpec, profileWorldProof, editorUi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteProfileProgram = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createProfileProgramApi(
   root,
   worldSpec,
   profileWorldSpec,
-  profileWorldProof
+  profileWorldProof,
+  editorUi
 ) {
+  if (!editorUi) throw new Error('program_editor_dependency_missing');
+  const { safeFilePart, downloadJson } = editorUi;
+  const { canonicalJson, canonicalValue } = worldSpec;
   const ALLOWED_EDITOR_PATHS = new Set(['/params/scenarioId']);
   const SETTLED_STATES = new Set(['settled', 'completed']);
   const RECEIPT_WAIT_MS = 60000;
@@ -40,7 +46,7 @@
     const getCanvas = typeof options.getCanvas === 'function'
       ? options.getCanvas
       : () => defaultRenderCanvas(documentRoot);
-    let dirty = false;
+    const draft = editorUi.createDraft({ editor: elements.editor, apply: elements.apply, status: elements.specStatus });
     let disposed = false;
     let latestProof = null;
     let replayEvidence = emptyReplayEvidence();
@@ -58,11 +64,8 @@
     function sync() {
       if (disposed) return null;
       const spec = currentSpec();
-      elements.editor.value = worldSpec.serializeWorldSpec(spec);
-      elements.editor.dataset.dirty = 'false';
-      elements.apply.disabled = true;
+      draft.setValue(worldSpec.serializeWorldSpec(spec));
       elements.reset.disabled = false;
-      dirty = false;
       baselineContentHash = spec.contentHash;
       setSpecStatus(elements, `${spec.contentHash} · ${spec.params.scenarioId}`, 'ready');
       updateReplayAvailability();
@@ -71,10 +74,7 @@
 
     function markDirty() {
       if (disposed) return;
-      dirty = true;
-      elements.editor.dataset.dirty = 'true';
-      elements.apply.disabled = false;
-      setSpecStatus(elements, 'Unapplied scenario selection', 'dirty');
+      draft.markDirty('Unapplied edit');
     }
 
     async function applyEditor() {
@@ -225,17 +225,25 @@
       sync();
     }
 
-    function exportSpec() {
-      const spec = currentSpec();
-      downloadJson(documentRoot, `${safeFilePart(spec.id)}.world.json`, worldSpec.serializeWorldSpec(spec));
-      setSpecStatus(elements, `Exported ${spec.contentHash}`, 'ready');
+    async function exportSpec() {
+      try {
+        const spec = currentSpec();
+        await downloadJson(documentRoot, `${safeFilePart(spec.id)}.world.json`, worldSpec.serializeWorldSpec(spec));
+        setSpecStatus(elements, `Exported ${spec.contentHash}`, 'ready');
+      } catch (error) {
+        setSpecStatus(elements, error.message || String(error), 'error');
+      }
     }
 
     async function importSpec() {
       const file = elements.importFile.files && elements.importFile.files[0];
       if (!file) return;
       try {
-        const imported = worldSpec.parseWorldSpec(await file.text());
+        const inputSource = root.SimulatteInputSource || (typeof module === 'object' && module.exports && require('../../shared/contracts/input-source.js'));
+        if (!inputSource) throw programError('profile_program_input_reader_missing', 'Shared input reader is unavailable');
+        const input = await inputSource.readFile(file);
+        if (input.kind !== 'worldSpec') throw programError('profile_program_input_kind', 'Import expects a WorldSpec. Prepare raw data in the workbench.');
+        const imported = input.spec;
         elements.editor.value = worldSpec.serializeWorldSpec(imported);
         markDirty();
         setSpecStatus(elements, `Verified ${file.name || 'WorldSpec file'} for governed recompile`, 'dirty');
@@ -258,7 +266,7 @@
     listeners.forEach(([target, type, handler]) => target.addEventListener(type, handler));
     const observer = new MutationObserver(() => {
       updateReplayAvailability();
-      if (!dirty) {
+      if (!draft.isDirty()) {
         try {
           if (currentSpec().contentHash !== baselineContentHash) sync();
         } catch (error) {
@@ -288,7 +296,7 @@
       refreshProof,
       replay: replayExactSpec,
       sync,
-      isDirty: () => dirty,
+      isDirty: draft.isDirty,
     });
   }
 
@@ -526,30 +534,11 @@
   }
 
   function setSpecStatus(elements, message, state) {
-    elements.specStatus.textContent = String(message || '');
-    elements.specStatus.dataset.state = state;
+    editorUi.setStatus(elements.specStatus, message, state);
   }
 
   function setProofStatus(elements, message, state) {
-    elements.proofStatus.textContent = String(message || '');
-    elements.proofStatus.dataset.state = state;
-  }
-
-  function downloadJson(documentRoot, filename, text) {
-    const view = documentRoot.defaultView || root;
-    const url = view.URL.createObjectURL(new view.Blob([text], { type: 'application/json' }));
-    const link = documentRoot.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.click();
-    view.URL.revokeObjectURL(url);
-  }
-
-  function safeFilePart(value) {
-    return String(value || 'world')
-      .toLowerCase()
-      .replace(/[^a-z0-9._-]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'world';
+    editorUi.setStatus(elements.proofStatus, message, state);
   }
 
   function emptyReplayEvidence() {
@@ -570,18 +559,6 @@
   async function sha256Bytes(bytes) {
     const digest = await crypto.subtle.digest('SHA-256', bytes);
     return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-  }
-
-  function canonicalValue(value) {
-    if (Array.isArray(value)) return value.map(canonicalValue);
-    if (!value || typeof value !== 'object') return value;
-    return Object.fromEntries(Object.keys(value).sort().flatMap((key) => (
-      value[key] === undefined ? [] : [[key, canonicalValue(value[key])]]
-    )));
-  }
-
-  function canonicalJson(value) {
-    return JSON.stringify(canonicalValue(value));
   }
 
   function isPlainObject(value) {

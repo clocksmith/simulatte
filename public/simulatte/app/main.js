@@ -52,13 +52,16 @@
       ? require('./main-support.js')
       : root.SimulatteMainSupport,
     profileProgramApi: typeof module === 'object' && module.exports ? require('./profile-program.js') : root.SimulatteProfileProgram,
+    journeyRecorderApi: typeof module === 'object' && module.exports ? require('./journey-recorder.js') : root.SimulatteJourneyRecorder,
+    cityRunControlsApi: typeof module === 'object' && module.exports ? require('./city-run-controls.js') : root.SimulatteCityRunControls,
+    cityPluginSessionApi: typeof module === 'object' && module.exports ? require('./city-plugin-session.js') : root.SimulatteCityPluginSession,
     appRenderWorkApi: typeof module === 'object' && module.exports ? require('./app-render-work.js') : root.SimulatteAppRenderWork,
   }));
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dependencies) {
-  const { hostRoot, dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, pluginViewRuntimeApi, mountLifecycleApi, mainViewApi, pluginPlaybackApi, cityInterfaceApi, mainControllerBuilderApi, mainSupportApi, profileProgramApi, appRenderWorkApi } = dependencies;
-  if (!cityInterfaceApi || !mainViewApi || !mainControllerBuilderApi || !mainSupportApi || !profileProgramApi || !appRenderWorkApi) {
+  const { hostRoot, dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, pluginViewRuntimeApi, mountLifecycleApi, mainViewApi, pluginPlaybackApi, cityInterfaceApi, mainControllerBuilderApi, mainSupportApi, profileProgramApi, appRenderWorkApi, cityPluginSessionApi, cityRunControlsApi, journeyRecorderApi } = dependencies;
+  if (!journeyRecorderApi || !cityRunControlsApi || !cityPluginSessionApi || !cityInterfaceApi || !mainViewApi || !mainControllerBuilderApi || !mainSupportApi || !profileProgramApi || !appRenderWorkApi) {
     throw new Error('simulatte_app_view_dependency_missing');
   }
   const { collectElements, populateApplicationProfiles, applicationProfileLabel, setRuntimeStatus, runtimeLabel, renderIdentity, renderPlaceResolution, renderPlanning, configureExperienceShell, renderExperienceSummary, renderPlayback } = mainViewApi;
@@ -102,20 +105,14 @@
     let rendererPromise = null;
     let placeResolver = null;
     let frameRequest = null;
-    let pluginClock = null;
+    let pluginSession = null;
     let pluginViewRuntime = null;
     let pluginPlayback = null, pluginUi = null;
     let profileProgram = null, latestJourneyReceipt = null;
     let neuralGate = null;
     let buildRevision = 0;
-    let pluginRenderGeneration = 0;
     let routeParametersApplied = false;
     let missionUrlTimer = null;
-    let lastPluginContributions = Object.freeze([]);
-    const renderWork = {
-      samples: [],
-      phases: Object.fromEntries(['platform', 'pluginUi', 'renderer', 'viewRuntime', 'total'].map((key) => [key, []])),
-    };
     let isRunning = false;
     let disposal = null;
 
@@ -126,7 +123,7 @@
         if (missionUrlTimer !== null) clearTimeout(missionUrlTimer);
         missionUrlTimer = null;
         buildRevision += 1;
-        pluginClock?.pause();
+        pluginSession?.dispose();
         if (frameRequest !== null) cancelAnimationFrame(frameRequest);
         frameRequest = null;
         lifecycle.abort();
@@ -316,9 +313,17 @@
     let retrievalLaneLogged = false;
     let terminalJourneyLogged = false;
     let hasJourneyStarted = false;
-    let hasAppliedInitialCamera = false;
     const journeyLedger = ledgerApi.createJourneyLedger();
-    const recordedJourneyHashes = new Set();
+    const journeyRecorder = journeyRecorderApi.create({
+      getContext: () => ({ revision: buildRevision, runtime: extensions, mission: activeMission }),
+      isCurrent: (context) => !lifecycle.signal.aborted && context.revision === buildRevision && context.runtime === extensions,
+      ledger: journeyLedger,
+      async onReceipt(receipt, mission) {
+        latestJourneyReceipt = receipt; void profileProgram?.refreshProof();
+        await renderPluginExperience({ mission, journey: receipt });
+      },
+      refreshLedger: () => renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion),
+    });
     const stepIntervalMs = 18;
     const yieldToFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     neuralGate = await neuralConsentApi.createGate({
@@ -379,127 +384,28 @@
       stopLoop,
       renderPlanning,
     });
-    async function renderPluginExperience(context) {
-      const renderGeneration = ++pluginRenderGeneration;
-      const renderStartedAt = performance.now();
-      const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
-      const platformStartedAt = performance.now();
-      const platform = extensions.platformV4(pluginContext);
-      recordRenderWork(renderWork.phases.platform, performance.now() - platformStartedAt);
-      Object.entries(platform.workCpuMs || {}).forEach(([phase, durationMs]) => {
-        const key = `platform:${phase}`;
-        if (!renderWork.phases[key]) renderWork.phases[key] = [];
-        recordRenderWork(renderWork.phases[key], durationMs);
-      });
-      lastPluginContributions = platform.contributions;
-      const uiStartedAt = performance.now();
-      pluginUi.render(extensions.views(pluginContext), platform.contributions);
-      if (!routeParametersApplied) {
+    pluginSession = cityPluginSessionApi.create({
+      hostRoot, extensions, pluginUi, elements, profile: data.applicationProfile, interaction, playbackStorage,
+      experienceCameraApi, simulationClockApi, pluginPlaybackApi, pluginViewRuntimeApi, log,
+      recordRenderWork, renderWorkReceipt, renderExperienceSummary,
+      summarize: hostRoot.SimulatteWorldTiersBoot.experienceHudSummary, yieldToFrame,
+      getScenario: () => activeScenario, getCameraMode: () => activeCameraMode, getRenderer: () => renderer,
+      selectCamera: (mode) => { activeCameraMode = mode; selectCameraMode(elements, mode); },
+      selectViewMode: (mode) => selectCameraMode(elements, mode),
+      applyRouteParameters() {
+        if (routeParametersApplied) return false;
         const accepted = acceptedRouteParameters(routeSimulation);
         Object.entries(accepted).forEach(([pluginId, values]) => pluginUi.setValues(pluginId, values));
         routeParametersApplied = true;
-        if (Object.keys(accepted).length) pluginUi.render(extensions.views(pluginContext), platform.contributions);
-      }
-      recordRenderWork(renderWork.phases.pluginUi, performance.now() - uiStartedAt);
-      const controlCount = platform.contributions.reduce((total, contribution) => total + contribution.controls.controls.length, 0);
-      elements.decisionsButton.textContent = controlCount ? `Controls (${controlCount})` : 'Evidence';
-      renderPluginSummary(pluginPlayback?.snapshot().phase || 'ready');
-      if (!renderer) return;
-      await yieldToFrame();
-      if (renderGeneration !== pluginRenderGeneration || !renderer) return;
-      const selected = renderer.cameraState?.()?.focusId || 'route';
-      const semanticPresentations = platform.contributions.map((contribution) => ({
-        pluginId: contribution.pluginId,
-        presentation: contribution.presentation,
-      }));
-      const platformTime = Math.max(0, ...platform.contributions.map((contribution) => contribution.state?.simulationTimeMs || 0));
-      const rendererStartedAt = performance.now();
-      renderer.setPluginPresentations(semanticPresentations, {
-        simulationTimeMs: platformTime,
-        selectedIds: [selected],
-        provenanceReceipts: platform.provenanceReceipts,
-      });
-      recordRenderWork(renderWork.phases.renderer, performance.now() - rendererStartedAt);
-      if (!hasAppliedInitialCamera) hasAppliedInitialCamera = experienceCameraApi.applyInitialCamera({
-        configuration: activeCameraMode ? { ...data.applicationProfile.camera, initialMode: activeCameraMode } : data.applicationProfile.camera,
-        renderer,
-        onModeSelected: (mode) => { activeCameraMode = mode; selectCameraMode(elements, mode); },
-      });
-      if (!pluginClock) pluginClock = simulationClockApi.createClock({
-        timeline: platform.timeline,
-        wallIntervalMs: data.applicationProfile.interaction?.stepDelayMs || 450,
-      });
-      const clockState = pluginClock.snapshot();
-      const timelineReceipt = platform.timeline.receipt();
-      if (clockState.timelineId !== timelineReceipt.id
-        || clockState.eventCount !== timelineReceipt.eventCount
-        || (clockState.state !== 'playing' && clockState.currentMs !== platformTime)) {
-        pluginClock.useTimeline(platform.timeline, { atMs: platformTime });
-      }
-      if (interaction.mode === 'playback' && !pluginPlayback) {
-        if (!pluginPlaybackApi?.createController) throw new Error('Plugin playback dependency is unavailable');
-        const ownerPluginId = data.applicationProfile.interaction?.simulationOwnerPluginId || extensions.activePluginIds[0];
-        pluginPlayback = pluginPlaybackApi.createController({
-          runtime: extensions,
-          ownerPluginId,
-          scenario: activeScenario,
-          clock: pluginClock,
-          getControlValues: pluginUi.values,
-          setControlValues: pluginUi.setValues,
-          render: () => renderPluginExperience({ mission: null }),
-          onPhase: reflectPluginPlaybackPhase,
-          onSettled: (receipt) => {
-            hostRoot.__simulattePluginRunReceipt = receipt;
-            hostRoot.__simulatteComparisonExecutionReceipts = Object.freeze(
-              receipt.comparisonExecutionReceipts
-                || (receipt.comparisonExecutionReceipt ? [receipt.comparisonExecutionReceipt] : [])
-            );
-            const persisted = pluginPlaybackApi.saveStoredReceipt(
-              playbackStorage,
-              data.applicationProfile.id,
-              receipt
-            );
-            if (!persisted) log.warn('plugin.playback.persistence.skipped', {
-              profileId: data.applicationProfile.id,
-              reason: 'browser_storage_unavailable',
-            });
-          },
-          onError: (error) => failRuntime(elements, error),
-        });
-      }
-      if (!pluginViewRuntime) {
-        pluginViewRuntime = pluginViewRuntimeApi.createCoordinator({
-          renderer,
-          onModeSelected: (mode) => selectCameraMode(elements, mode),
-        });
-      }
-      const viewStartedAt = performance.now();
-      const viewReceipt = pluginViewRuntime.sync(platform.contributions, platform.provenanceReceipts);
-      recordRenderWork(renderWork.phases.viewRuntime, performance.now() - viewStartedAt);
-      hostRoot.__simulattePluginPlatformV4 = Object.freeze({
-        receipt: platform.receipt,
-        contributions: platform.contributions,
-        contributionSources: platform.contributionSources,
-        provenance: platform.provenanceCoverage,
-        clock: pluginClock.receipt(),
-        view: viewReceipt,
-        compositor: renderer.receipt().pluginCompositor,
-      });
-      recordRenderWork(renderWork.phases.total, performance.now() - renderStartedAt);
-      hostRoot.__simulatteAppRenderReceipt = () => renderWorkReceipt(renderWork);
-    }
-    function renderPluginSummary(runState) {
-      renderExperienceSummary(elements, hostRoot.SimulatteWorldTiersBoot.experienceHudSummary({
-        profileId: data.applicationProfile.id,
-        profile: data.applicationProfile,
-        profileLabel: elements.applicationProfileLabel.textContent,
-        scenario: activeScenario,
-        contributions: lastPluginContributions,
-        runState,
-        playback: pluginPlayback?.snapshot() || null,
-        comparisonReceipts: hostRoot.__simulatteComparisonExecutionReceipts || [],
-      }));
-    }
+        return Object.keys(accepted).length > 0;
+      },
+      onPhase: reflectPluginPlaybackPhase,
+      onPlayback: (value) => { pluginPlayback = value; },
+      onViewRuntime: (value) => { pluginViewRuntime = value; },
+      onError: (error) => failRuntime(elements, error),
+    });
+    function renderPluginExperience(context) { return pluginSession.render(context); }
+    function renderPluginSummary(state) { return pluginSession.summary(state); }
 
     function scenarioForRoute(simulation) {
       const scenarioId = simulation?.scenarioId || null;
@@ -649,26 +555,7 @@
     async function buildController({ keepMissionLocked = false } = {}) {
       latestJourneyReceipt = null; return controllerBuilder.build({ keepMissionLocked });
     }
-    async function recordJourney(targetController) {
-      const revision = buildRevision;
-      const activeExtensions = extensions;
-      const mission = activeMission;
-      const receipt = await targetController.journeyReceipt();
-      receipt.pluginSettlement = await activeExtensions.settle({ journey: receipt });
-      receipt.pluginRuntime = activeExtensions.runtimeReceipt();
-      if (revision === buildRevision && activeExtensions === extensions) {
-        latestJourneyReceipt = receipt; void profileProgram?.refreshProof();
-        renderPluginExperience({ mission, journey: receipt });
-      }
-      const identity = `${receipt.mission.id}:${receipt.integrity.terminalHash}:${receipt.finalState.status}`;
-      if (recordedJourneyHashes.has(identity)) return receipt;
-      recordedJourneyHashes.add(identity);
-      await journeyLedger.append(receipt);
-      if (revision === buildRevision && activeExtensions === extensions) {
-        await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
-      }
-      return receipt;
-    }
+    function recordJourney(targetController) { return journeyRecorder.record(targetController); }
     async function tickFrame(timestamp) {
       if (!isRunning || !controller) return;
       try {
@@ -719,37 +606,25 @@
       updateButtons(elements, false, Boolean(controller), status, hasJourneyStarted);
     }
 
-    const startRun = async () => {
-      try {
-        await runLoop();
-      } catch (error) {
-        stopLoop();
-        failRuntime(elements, error);
-      }
-    };
-    const startSelectedExperience = async () => {
-      try {
-        if (interaction.mode === 'playback') {
-          selectGovernedCamera(experienceCameraApi.runCameraMode(data.applicationProfile.camera), true);
-          if (pluginPlayback.snapshot().phase === 'paused') await pluginPlayback.resume();
-          else await pluginPlayback.start();
-        } else await startRun();
-      } catch (error) {
-        failRuntime(elements, error);
-      }
-    };
-    on(elements.startButton, 'click', startSelectedExperience);
-    on(elements.resumeButton, 'click', startSelectedExperience);
-    on(elements.newMissionButton, 'click', () => {
-      stopLoop();
-      buildRevision += 1;
-      controller = null;
-      hasJourneyStarted = false;
-      updateButtons(elements, false, false, 'active', false);
-      setRuntimeStatus(elements, 'Ready', 'changed');
-      applicationProfileSelectApi.focusPrimary(interaction, elements);
+    cityRunControlsApi.connect({
+      elements, on, isActive: () => !lifecycle.signal.aborted, isRunning: () => isRunning,
+      interactionMode: interaction.mode, getPlayback: () => pluginPlayback,
+      getController: () => controller, getScenario: () => activeScenario,
+      buildController, runLoop, stopLoop, selectNextScenario,
+      selectRunCamera: () => selectGovernedCamera(experienceCameraApi.runCameraMode(data.applicationProfile.camera), true),
+      focusPrimary: () => applicationProfileSelectApi.focusPrimary(interaction, elements),
+      setPaused: () => setRuntimeStatus(elements, 'Paused', 'paused'),
+      onError: (error) => failRuntime(elements, error),
+      resetJourney({ clearController = false } = {}) {
+        hasJourneyStarted = false;
+        if (clearController) {
+          buildRevision += 1; controller = null;
+          updateButtons(elements, false, false, 'active', false);
+          setRuntimeStatus(elements, 'Ready', 'changed');
+        }
+      },
     });
-    on(elements.shuffleButton, 'click', async () => {
+    async function selectNextScenario() {
       if (isRunning) return;
       const nextScenario = applicationProfileSelectApi.nextScenario(interaction, activeScenario.id);
       if (hooks.navigate) {
@@ -786,68 +661,8 @@
       } finally {
         elements.shuffleButton.disabled = false;
       }
-    });
-    on(elements.pauseButton, 'click', () => {
-      if (pluginPlayback) {
-        pluginPlayback.pause();
-        return;
-      }
-      stopLoop();
-      setRuntimeStatus(elements, 'Paused', 'paused');
-    });
-    on(elements.stepButton, 'click', async () => {
-      try {
-        if (pluginPlayback) {
-          await pluginPlayback.step();
-          return;
-        }
-        stopLoop();
-        let targetController = controller;
-        if (!targetController || targetController.snapshot().state.status !== 'active') targetController = await buildController();
-        if (targetController) await targetController.step();
-      } catch (error) {
-        failRuntime(elements, error);
-      }
-    });
-    on(elements.resetButton, 'click', async () => {
-      stopLoop();
-      try {
-        hasJourneyStarted = false;
-        if (pluginPlayback) {
-          await pluginPlayback.reset(activeScenario);
-          return;
-        }
-        await buildController();
-      } catch (error) {
-        failRuntime(elements, error);
-      }
-    });
-    on(elements.replayButton, 'click', async () => {
-      try {
-        if (pluginPlayback) {
-          await pluginPlayback.replay();
-          return;
-        }
-        stopLoop();
-        hasJourneyStarted = false;
-        await buildController({ keepMissionLocked: true });
-        await runLoop();
-      } catch (error) {
-        stopLoop();
-        failRuntime(elements, error);
-      }
-    });
-    on(elements.playbackSpeed, 'change', () => {
-      pluginPlayback?.setPlaybackRate(Number(elements.playbackSpeed.value));
-    });
-    on(elements.playbackTimeline, 'change', async () => {
-      if (!pluginPlayback) return;
-      try {
-        await pluginPlayback.seek(Number(elements.playbackTimeline.value));
-      } catch (error) {
-        failRuntime(elements, error);
-      }
-  });
+    }
+
     function reflectPluginPlaybackPhase(phase, snapshot) {
       if (phase !== 'completed') profileProgramApi.invalidateRunReceipt(hostRoot, '__simulattePluginRunReceipt');
       const isActive = phase === 'running'; setJourneyPhase(phase);

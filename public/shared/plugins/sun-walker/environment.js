@@ -143,13 +143,17 @@
     const sameDay = weather.rows.filter((row) => row.observedAt.slice(5, 10) === monthDay);
     const pool = sameDay.length ? sameDay : weather.rows;
     const targetMinutes = target.getUTCHours() * 60 + target.getUTCMinutes();
-    const selected = pool.slice().sort((left, right) => {
-      const leftDate = new Date(left.observedAt);
-      const rightDate = new Date(right.observedAt);
-      const leftDistance = circularMinuteDistance(targetMinutes, leftDate.getUTCHours() * 60 + leftDate.getUTCMinutes());
-      const rightDistance = circularMinuteDistance(targetMinutes, rightDate.getUTCHours() * 60 + rightDate.getUTCMinutes());
-      return leftDistance - rightDistance || left.id.localeCompare(right.id);
-    })[0];
+    let selected = null;
+    let selectedDistance = Infinity;
+    for (const row of pool) {
+      const date = new Date(row.observedAt);
+      const distance = circularMinuteDistance(targetMinutes, date.getUTCHours() * 60 + date.getUTCMinutes());
+      if (!selected || distance < selectedDistance ||
+          (distance === selectedDistance && row.id.localeCompare(selected.id) < 0)) {
+        selected = row;
+        selectedDistance = distance;
+      }
+    }
     const directBeamFactor = weather.factors[selected.skyCode] ?? weather.factors.unknown;
     return {
       participation: true,

@@ -7,6 +7,19 @@ const { phaseFamily } = require('./phase-module-fixture.cjs');
 
 const rendererScope = phaseFamily('webGpuRenderer');
 
+test('neutral pixel colors retain bounded shading without requiring chromatic saturation', () => {
+  const { promptPixelColorSatisfied } = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+  assert.equal(promptPixelColorSatisfied([115, 123, 132, 255], '#737b84'), true);
+  assert.equal(promptPixelColorSatisfied([74, 89, 90, 255], '#737b84'), true, 'retained gray floor GPU readback');
+  assert.equal(promptPixelColorSatisfied([222, 222, 222, 255], '#ffffff'), true);
+  for (const wrong of [[0, 0, 0, 255], [255, 255, 255, 255], [80, 150, 80, 255], [230, 40, 40, 255]]) {
+    assert.equal(promptPixelColorSatisfied(wrong, '#737b84'), false);
+  }
+  assert.equal(promptPixelColorSatisfied([128, 128, 128, 255], '#ffffff'), false);
+  assert.equal(promptPixelColorSatisfied([128, 128, 128, 255], '#ef3340'), false);
+  assert.equal(promptPixelColorSatisfied([200, 35, 45, 255], '#ef3340'), true);
+});
+
 function pixelSampleSet(renderData, samples, source = 'phase7-test-readback') {
   return {
     schema: 'simulatte.phase7PixelSampleSet.v1',

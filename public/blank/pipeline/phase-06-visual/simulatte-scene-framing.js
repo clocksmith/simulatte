@@ -314,32 +314,52 @@
     }
 
     function enforcePacketSurfaceContacts(entities = []) {
-      const rows = entities.slice();
+      const rows = entities.map(row => ({
+        ...row,
+        transform: {
+          ...row.transform,
+          position: (row.transform?.position || [0.5, 0.5, 0]).slice(),
+          scale: (row.transform?.scale || [0.16, 0.14, 1]).slice(),
+        },
+      }));
       const contacts = [];
       const constraintIds = scope.uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
       for (const constraintId of constraintIds) {
         const members = rows.filter((row) => (row.layoutConstraints || []).includes(constraintId));
-        const source = members.find((row) => (row.layoutRelationRoles || []).some((role) => (
+        const sources = members.filter((row) => (row.layoutRelationRoles || []).some((role) => (
           /^(?:on|onto|seated-on):source$/.test(role) || role === 'supports:target'
         )));
         const target = members.find((row) => (row.layoutRelationRoles || []).some((role) => (
           /^(?:on|onto|seated-on):target$/.test(role) || role === 'supports:source'
         )));
-        if (!source || !target || source === target) continue;
-        const before = sceneEntitySupportBounds(source);
+        if (!sources.length || !target) continue;
         const support = sceneEntitySupportBounds(target);
-        const clearanceBefore = support[1] - (before[1] + before[3]);
-        const clearance = -0.004;
-        source.transform.position[1] += clearanceBefore - clearance;
-        const after = sceneEntitySupportBounds(source);
-        contacts.push({
-          constraintId,
-          sourceId: source.id,
-          targetId: target.id,
-          clearanceBefore: Number(clearanceBefore.toFixed(5)),
-          clearanceAfter: Number((support[1] - (after[1] + after[3])).toFixed(5)),
-          contactInset: Number(Math.abs(clearance).toFixed(5)),
-        });
+        const occupants = sources.filter((source) => source !== target);
+        const totalWidth = occupants.reduce((sum, source) => sum + sceneEntitySupportBounds(source)[2], 0);
+        const fit = Math.min(1, support[2] * 0.9 / Math.max(0.001, totalWidth * 1.12));
+        let cursor = support[0] + (support[2] - totalWidth * fit * 1.12) / 2;
+        for (const source of occupants) {
+          if (occupants.length > 1) {
+            source.transform.scale[0] *= fit;
+            source.transform.scale[1] *= fit;
+            const bounds = sceneEntitySupportBounds(source);
+            source.transform.position[0] += cursor - bounds[0] + bounds[2] * 0.06;
+            cursor += bounds[2] * 1.12;
+          }
+          const before = sceneEntitySupportBounds(source);
+          const clearanceBefore = support[1] - (before[1] + before[3]);
+          const clearance = -0.004;
+          source.transform.position[1] += clearanceBefore - clearance;
+          const after = sceneEntitySupportBounds(source);
+          contacts.push({
+            constraintId,
+            sourceId: source.id,
+            targetId: target.id,
+            clearanceBefore: Number(clearanceBefore.toFixed(5)),
+            clearanceAfter: Number((support[1] - (after[1] + after[3])).toFixed(5)),
+            contactInset: Number(Math.abs(clearance).toFixed(5)),
+          });
+        }
       }
       return { entities: rows, contacts };
     }

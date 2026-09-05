@@ -1173,8 +1173,8 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.match(source, /withTimeout\(client\.send\('Runtime\.evaluate'/);
   assert.match(source, /180000, 'browser-probe'/);
   assert.match(source, /--js-flags=--expose-gc/);
-  assert.match(source, /client\.send\('Browser\.close'\)/);
-  assert.match(source, /await client\.close\(\)/);
+  assert.match(source, /launchBrowser\(/);
+  assert.match(source, /await browser\.close\(\)/);
   assert.match(source, /receipt\?\.adapter/);
   assert.doesNotMatch(source, /navigator\.gpu\.requestAdapter\(\)/);
 });

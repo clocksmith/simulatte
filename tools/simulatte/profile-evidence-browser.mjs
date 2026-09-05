@@ -1,15 +1,10 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import net from 'node:net';
-import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { CdpClient, findChrome } from './run-browser-smoke.mjs';
+import { launchBrowser, createAuditHost, findChrome } from './browser-session.mjs';
 import { encodeRgbaPng, inspectPng } from './profile-evidence-png.mjs';
 import { progressiveLifecycleProbeSource } from './profile-evidence-browser-lifecycle.mjs';
-import { removeGeneratedProfileDirectory, stopChild } from './profile-evidence-process.mjs';
-import { createStaticSiteServer } from './static-site-server.mjs';
 import {
   canonicalJson,
   pluginPlaybackIdentity,
@@ -114,31 +109,6 @@ async function withTimeout(promise, limitMs, label) {
   } finally {
     clearTimeout(timeoutId);
   }
-}
-
-async function freePort() {
-  const server = net.createServer();
-  await new Promise((resolve, reject) => server.listen(0, '127.0.0.1', resolve).once('error', reject));
-  const port = server.address().port;
-  await new Promise((resolve) => server.close(resolve));
-  return port;
-}
-
-async function waitForDevtools(port, child) {
-  for (let attempt = 0; attempt < 160; attempt += 1) {
-    if (child.exitCode !== null) throw new Error(`Chrome exited before DevTools was ready with code ${child.exitCode}`);
-    try {
-      const response = await fetch(`http://127.0.0.1:${port}/json`);
-      if (response.ok) {
-        const page = (await response.json()).find((row) => row.type === 'page');
-        if (page) return page;
-      }
-    } catch {
-      // Chrome has not opened the debugger port.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  throw new Error(`Chrome DevTools did not become ready on port ${port}`);
 }
 
 async function waitForReloadedDocument(client, previousTimeOrigin) {
@@ -741,29 +711,11 @@ async function captureBrowserRun({
   compilerError = null,
 }) {
   const renderCanvasId = run.tier === 'city' ? 'autonomy-canvas' : 'overlay-canvas';
-  const debugPort = await freePort();
-  const profileDirectory = fs.mkdtempSync(path.join(os.tmpdir(), `simulatte-profile-evidence-${run.profileId}-`));
-  const chrome = spawn(chromePath, [
-    '--headless=new',
-    '--enable-unsafe-webgpu',
-    ...(process.platform === 'linux' ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface'] : []),
-    '--enable-precise-memory-info',
-    '--js-flags=--expose-gc',
-    '--disable-background-networking',
-    '--no-first-run',
-    '--no-default-browser-check',
-    `--user-data-dir=${profileDirectory}`,
-    `--remote-debugging-port=${debugPort}`,
-    `--window-size=${run.viewport.width},${run.viewport.height}`,
-    'about:blank',
-  ], { stdio: ['ignore', 'ignore', 'pipe'] });
-  let client = null;
+  const browser = await launchBrowser({ chromePath, viewport: run.viewport, webgpu: true, preciseMemory: true, args: ['--js-flags=--expose-gc'] });
+  const { client } = browser;
   const consoleRows = [];
   const consoleErrors = [];
   try {
-    const page = await waitForDevtools(debugPort, chrome);
-    client = new CdpClient(page.webSocketDebuggerUrl);
-    await client.connect();
     await Promise.all([client.send('Runtime.enable'), client.send('Page.enable'), client.send('Log.enable')]);
     client.on('Runtime.consoleAPICalled', (params) => {
       const row = { type: params.type, values: (params.args || []).map((arg) => arg.value || arg.description || '').filter(Boolean) };
@@ -964,24 +916,12 @@ async function captureBrowserRun({
       claims: claims.map((claim) => ({ id: claim.id, sentence: claim.sentence })),
     };
   } finally {
-    if (client) {
-      try {
-        await withTimeout(client.send('Browser.close'), 5000, 'browser-close');
-      } catch {
-        // Chrome can close the protocol socket before acknowledging Browser.close.
-      }
-      await client.close();
-    }
-    await stopChild(chrome);
-    const cleanup = await removeGeneratedProfileDirectory(profileDirectory);
-    if (!cleanup.removed) console.warn(`PROFILE-EVIDENCE cleanup=deferred path=${cleanup.path} error=${cleanup.error}`);
+    await browser.close();
   }
 }
 
 async function createEvidenceServer(publicRoot) {
-  const server = createStaticSiteServer({ publicRoot });
-  await new Promise((resolve, reject) => server.listen(0, '127.0.0.1', resolve).once('error', reject));
-  return { server, baseUrl: `http://127.0.0.1:${server.address().port}/` };
+  return createAuditHost({ publicRoot });
 }
 
 export {

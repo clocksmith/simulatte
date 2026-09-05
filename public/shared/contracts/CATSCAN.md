@@ -7,8 +7,8 @@ Define restrictive shared browser contracts.
 
 ## Authority
 
-- Owns shared schemas and deterministic validators.
-- Does not own runtime defaults, product policy, or data activation.
+- Owns schemas and validators.
+- Does not own policy or activation.
 
 ## Scope
 
@@ -22,18 +22,21 @@ Define restrictive shared browser contracts.
 - Output: recursive [scopes](recursive-world-scope.schema.json), [frames](coordinate-frame.schema.json), [ports](simulation-port.schema.json), [couplings](coupling-plan.schema.json), [checkpoints](scope-checkpoint.schema.json), and [fidelity transitions](fidelity-transition.schema.json)
 - Output: [intent](world-proof-intent.js), [semantic](world-proof-semantic.js), [simulation](world-proof-simulation.js), [interaction](world-proof-interaction.js), and [safety](world-proof-safety.js) receipts
 - Output: [mission validator](contract-validator.js)
+- Output: [bounded input reader](input-source.js) and [data WorldSpec adapter](data-world-spec.js)
 
 ## Invariants
 
-- Absence and explicit disablement differ; validators reject undeclared structure.
-- Declared determinism classes are closed; proof cannot ignore them.
+- Absence differs from disablement; undeclared structure rejects.
+- Determinism classes are closed and enforced.
 - Compiler proof binds input, build, lane, baseline, and independent output.
-- Intent and semantic proof bind source, settlement, authority, and revision; proof classes remain independent.
+- Independent proof classes bind source, settlement, authority, and revision.
 - User edits cannot rewrite grounding evidence, refusals, or ambiguity records.
-- Imports verify identity. Recompilation retains reconciliation history and cannot replace accepted patches without a named user decision.
-- Governed profiles require a valid public WorldSpec, matching independent compile, canonical intent, and semantic evidence.
+- Imports verify identity; recompilation retains history and requires user decisions to replace patches.
+- File, pasted, and explicit URL inputs share bounded decoding and hashing. URLs omit credentials; data cannot authorize execution.
+- Data adapters enforce mapping, bounds, and supported semantics.
+- Profiles require WorldSpec, independent compilation, canonical intent, and semantic evidence.
 - Profile WorldProof keeps machine execution, replay, and human visual recognition as separate verdicts.
-- Improvement records bind the failed trace, exact user patches, successful replay, and review without admitting unadjudicated data into a training population.
+- Improvement records bind failures, patches, replay, and review; unadjudicated data cannot enter training.
 - Cross-scope ports require named mismatch adapters.
 - Zero-delay cycles require solvers; lossy fidelity is not exact.
 
@@ -53,5 +56,4 @@ Define restrictive shared browser contracts.
 
 ## Freedom
 
-Any implementation is permitted if it preserves these boundaries and passes the
-acceptance evidence.
+Any implementation is permitted within these contracts.

@@ -1,14 +1,10 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import net from 'node:net';
-import os from 'node:os';
 import path from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { CdpClient } from './browser-harness.mjs';
-import { createStaticSiteServer } from './static-site-server.mjs';
+import { openBrowserAudit } from './browser-session.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -48,55 +44,6 @@ function qualificationLaneId({ headed, viewport, platform = process.platform }) 
   const gpuBackend = platform === 'darwin' ? 'metal' : platform === 'linux' ? 'vulkan' : 'default';
   const viewportSuffix = viewport ? `-${viewport.width}x${viewport.height}` : '';
   return `${headed ? 'headed' : 'headless'}-chrome-${gpuBackend}-uncapped-120${viewportSuffix}`;
-}
-
-function resolveChromeExecutable(overridePath) {
-  if (overridePath && fs.existsSync(overridePath)) return overridePath;
-  const candidates = [
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
-    '/Applications/Chromium.app/Contents/MacOS/Chromium',
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium',
-    '/usr/bin/chromium-browser',
-  ];
-  return candidates.find((candidate) => fs.existsSync(candidate)) || '';
-}
-
-async function availablePort() {
-  return new Promise((resolve, reject) => {
-    const server = net.createServer();
-    server.on('error', reject);
-    server.listen(0, '127.0.0.1', () => {
-      const port = server.address().port;
-      server.close(() => resolve(port));
-    });
-  });
-}
-
-async function waitForDevtools(port, child) {
-  for (let attempt = 0; attempt < 300; attempt += 1) {
-    if (child.exitCode !== null) throw new Error(`recursive_qualification_chrome_exited: code ${child.exitCode}`);
-    try {
-      const response = await fetch(`http://127.0.0.1:${port}/json`);
-      if (response.ok) {
-        const page = (await response.json()).find((entry) => entry.type === 'page');
-        if (page) return page;
-      }
-    } catch { /* DevTools is still starting. */ }
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  throw new Error('recursive_qualification_devtools_timeout');
-}
-
-async function stopChild(child) {
-  if (!child || child.exitCode !== null) return;
-  child.kill('SIGTERM');
-  await Promise.race([
-    new Promise((resolve) => child.once('exit', resolve)),
-    new Promise((resolve) => setTimeout(resolve, 2000)),
-  ]);
-  if (child.exitCode === null) child.kill('SIGKILL');
 }
 
 function publicBuildIdentity() {
@@ -203,15 +150,14 @@ function validateResult(result, errors, expectedBuildId, expectedLaneId, expecte
 
 async function run() {
   const options = parseArgs(process.argv.slice(2));
-  const chromePath = resolveChromeExecutable(options.chromePath);
-  if (!chromePath) throw new Error('recursive_qualification_chrome_missing');
-  const [sitePort, devtoolsPort] = await Promise.all([availablePort(), availablePort()]);
-  const profileDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-recursive-qualification-'));
-  const server = createStaticSiteServer({ publicRoot: PUBLIC });
-  await new Promise((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(sitePort, '127.0.0.1', resolve);
-  });
+  const launchFlags = [
+    ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []),
+    '--disable-gpu-vsync', '--disable-frame-rate-limit',
+    '--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
+  ];
+  const browser = await openBrowserAudit({ ...options, publicRoot: PUBLIC, webgpu: true, args: launchFlags });
+  const { client, chromePath, host: { port: sitePort } } = browser;
   const buildIdentity = publicBuildIdentity();
   const buildId = buildIdentity.id;
   const laneId = qualificationLaneId(options);
@@ -219,33 +165,8 @@ async function run() {
   route.searchParams.set('build', buildId);
   route.searchParams.set('qualificationLane', laneId);
   route.searchParams.set('browserMode', options.headed ? 'headed' : 'headless');
-  const launchFlags = [
-    '--enable-unsafe-webgpu',
-    ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []),
-    ...(process.platform === 'linux' ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface'] : []),
-    '--disable-gpu-vsync',
-    '--disable-frame-rate-limit',
-    '--disable-background-networking',
-    '--disable-background-timer-throttling',
-    '--disable-backgrounding-occluded-windows',
-    '--disable-renderer-backgrounding',
-    '--no-first-run',
-    '--no-default-browser-check',
-    `--user-data-dir=${profileDirectory}`,
-    `--remote-debugging-port=${devtoolsPort}`,
-    `--window-size=${options.viewport?.width || 1440},${options.viewport?.height || 1000}`,
-    ...(options.headed ? [] : ['--headless=new']),
-    'about:blank',
-  ];
-  const chrome = spawn(chromePath, launchFlags, { stdio: ['ignore', 'ignore', 'pipe'] });
-  const chromeDiagnostics = [];
-  chrome.stderr.on('data', (chunk) => chromeDiagnostics.push(String(chunk).trim()));
-  let client = null;
   const browserErrors = [];
   try {
-    const page = await waitForDevtools(devtoolsPort, chrome);
-    client = new CdpClient(page.webSocketDebuggerUrl);
-    await client.connect();
     await client.send('Runtime.enable');
     await client.send('Page.enable');
     if (options.viewport) {
@@ -318,9 +239,9 @@ async function run() {
         browserMode: options.headed ? 'headed' : 'headless',
         requestedViewport: options.viewport,
         chromePath,
-        launchFlags,
+        launchFlags: browser.launchArguments,
         browserErrors,
-        chromeDiagnostics: chromeDiagnostics.filter(Boolean),
+        chromeDiagnostics: browser.processOutput.snapshot().stderr.tail.split('\n').filter(Boolean),
         error: error.message,
         result: rawResult,
       };
@@ -338,12 +259,12 @@ async function run() {
       browserMode: options.headed ? 'headed' : 'headless',
       requestedViewport: options.viewport,
       chromePath,
-      chromeVersion: spawnSync(chromePath, ['--version'], { encoding: 'utf8' }).stdout.trim(),
-      launchFlags,
+      chromeVersion: (await client.send('Browser.getVersion')).product,
+      launchFlags: browser.launchArguments,
       host: { platform: os.platform(), architecture: os.arch(), release: os.release(), cpu: os.cpus()[0]?.model || 'unreported', memoryBytes: os.totalmem() },
       route: route.toString(),
       browserErrors,
-      chromeDiagnostics: chromeDiagnostics.filter(Boolean),
+      chromeDiagnostics: browser.processOutput.snapshot().stderr.tail.split('\n').filter(Boolean),
       result,
     };
     fs.mkdirSync(path.dirname(options.output), { recursive: true });
@@ -351,10 +272,7 @@ async function run() {
     const performance = result.evidence.performanceReceipt;
     console.log(`RECURSIVE-QUALIFICATION status=pass lane=${laneId} build=${buildId} p95=${performance.p95FrameMilliseconds.toFixed(3)}ms proof=${result.proof.contentHash} output=${options.output}`);
   } finally {
-    if (client) await client.close();
-    await stopChild(chrome);
-    await new Promise((resolve) => server.close(resolve));
-    fs.rmSync(profileDirectory, { recursive: true, force: true });
+    await browser.close();
   }
 }
 

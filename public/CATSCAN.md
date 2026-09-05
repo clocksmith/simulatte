@@ -3,7 +3,7 @@
 Parent: [Simulatte](../CATSCAN.md)
 ## Target
 
-Boot Create and World from static assets with visible readiness, execution, proof, or refusal.
+Boot a data-first workbench, optional Create compiler, and governed World profiles from static assets with visible readiness, execution, proof, or refusal.
 
 ## Authority
 
@@ -39,4 +39,3 @@ Boot Create and World from static assets with visible readiness, execution, proo
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

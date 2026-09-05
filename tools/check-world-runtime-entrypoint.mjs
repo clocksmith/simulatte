@@ -13,7 +13,7 @@ const END = '<!-- SIMULATTE_WORLD_RUNTIME_SCRIPTS_END -->';
 const write = process.argv.includes('--write');
 let html = fs.readFileSync(htmlPath, 'utf8');
 let actual = eagerScripts(html);
-if (JSON.stringify(actual) !== JSON.stringify(manifest.eager) && write) {
+if (write && html !== synchronizeHtml(html, manifest.eager)) {
   html = synchronizeHtml(html, manifest.eager);
   fs.writeFileSync(htmlPath, html);
   actual = eagerScripts(html);
@@ -32,18 +32,13 @@ function eagerScripts(source) {
 function synchronizeHtml(source, eager) {
   const buildStamp = source.match(/<meta name="simulatte-build" content="([^"]+)">/)?.[1];
   if (!buildStamp) throw new Error('World entrypoint is missing the simulatte-build identity');
-  const lines = [START, scriptTag('simulatte/app/world-runtime-script-manifest.js', buildStamp)];
+  const lines = [START, scriptTag('simulatte/app/world-runtime-script-manifest.js', buildStamp), scriptTag('simulatte/app/world-runtime-loader.js', buildStamp)];
   eager.forEach((scriptPath) => {
     lines.push(scriptTag(scriptPath, buildStamp));
-    if (scriptPath === 'simulatte/platform/bootstrap/tier-application-loader.js') {
-      lines.push(scriptTag('simulatte/app/world-runtime-loader.js', buildStamp));
-    }
-    if (scriptPath === 'shared/core/simulation/n-body-propagation.js') {
-      lines.push('  <!-- generated-plugin-scripts:start -->');
-      lines.push('  <!-- Selected plugin scripts are loaded by world-runtime-loader.js after route selection. -->');
-      lines.push('  <!-- generated-plugin-scripts:end -->');
-    }
   });
+  lines.push('  <!-- generated-plugin-scripts:start -->');
+  lines.push('  <!-- Selected plugin scripts are loaded by world-runtime-loader.js after route selection. -->');
+  lines.push('  <!-- generated-plugin-scripts:end -->');
   lines.push(END);
   const block = lines.join('\n');
   const markedStart = source.indexOf(START);

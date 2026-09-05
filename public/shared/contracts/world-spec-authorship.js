@@ -26,6 +26,9 @@
     requireArray(authorship.fieldProvenance, '$.authorship.fieldProvenance', fail);
     requireArray(authorship.patches, '$.authorship.patches', fail);
     requireArray(authorship.reconciliations, '$.authorship.reconciliations', fail);
+    if (authorship.revision > authorship.patches.length) {
+      fail('Authorship revision does not match patch history', '$.authorship.revision');
+    }
 
     const sourceAuthorities = new Map();
     authorship.sources.forEach((source, index) => {

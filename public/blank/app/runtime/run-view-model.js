@@ -88,6 +88,8 @@
   function project(state = {}, event = {}, previous = null) {
     const runId = String(state.runId || previous?.runId || '');
     const reset = !previous || (runId && previous.runId && runId !== previous.runId);
+    // Settled evidence outranks progress notifications for the same execution.
+    if (!reset && previous.phases[7].outputIdentity !== '—') return previous;
     const prior = reset ? createViewModel(runId).phases : previous.phases;
     const activeStep = eventPhaseStep(state, event);
     const failed = state.state === 'error' || state.state === 'failed';
@@ -130,7 +132,7 @@
   function recordSpec(viewModel, spec = {}) {
     const envelopes = spec.phaseArtifacts || {};
     const phases = viewModel.phases.map((phase) => {
-      if (phase.step > 6) return phase;
+      if (phase.step > 6) return phaseRow(phase.step);
       const envelope = envelopes[`phase${phase.step}`];
       if (!envelope) return phase;
       const receipts = Array.isArray(envelope.receipts) ? envelope.receipts : [];

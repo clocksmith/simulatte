@@ -19,6 +19,32 @@ const governance = JSON.parse(fs.readFileSync(governancePath, 'utf8'));
 const environment = JSON.parse(fs.readFileSync(environmentPath, 'utf8'));
 const config = JSON.parse(fs.readFileSync(`${pluginRoot}default-config.json`, 'utf8'));
 
+test('linear weather selection preserves nearest-time, date fallback, and deterministic ties', () => {
+  const weather = { rows: [
+    ['z', '2025-07-19T23:30:00Z'], ['b', '2025-07-19T00:30:00Z'],
+    ['a', '2024-07-19T00:30:00Z'], ['c', '2025-07-20T12:00:00Z'],
+  ].map(([id, observedAt]) => ({ id, observedAt, sourceRowId: id, skyCode: 'CLR' })),
+  factors: { CLR: 1 }, interpolation: 'nearest' };
+  const original = JSON.stringify(weather);
+  const distance = (a, b) => Math.min(Math.abs(a - b), 1440 - Math.abs(a - b));
+  for (const day of ['07-19', '07-20', '12-31']) {
+    for (let minutes = 0; minutes < 1440; minutes += 15) {
+      const timestamp = `2026-${day}T${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}:00Z`;
+      const sameDay = weather.rows.filter(row => row.observedAt.slice(5, 10) === day);
+      const expected = (sameDay.length ? sameDay : weather.rows).slice().sort((left, right) => {
+        const minute = row => { const date = new Date(row.observedAt); return date.getUTCHours() * 60 + date.getUTCMinutes(); };
+        return distance(minutes, minute(left)) - distance(minutes, minute(right)) || left.id.localeCompare(right.id);
+      })[0];
+      const actual = environmentApi.weatherAt(timestamp, weather);
+      assert.equal(actual.observationId, expected.id);
+      assert.equal(actual.sourceRowId, expected.sourceRowId);
+      assert.equal(actual.analogFor, timestamp);
+    }
+  }
+  assert.equal(JSON.stringify(weather), original);
+  assert.throws(() => environmentApi.weatherAt('not-a-time', weather), /weather_timestamp_invalid/);
+});
+
 function fixture() {
   const segments = new Map([
     ['fast-1', {

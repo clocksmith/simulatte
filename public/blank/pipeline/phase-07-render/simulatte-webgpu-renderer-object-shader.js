@@ -64,8 +64,7 @@ fn objectVs(
   let sine = sin(angle);
   let depth = clamp(row.material.w, 0.02, 0.98);
   let depthScale = 1.0 + (u.camera.w - depth) * u.camera.x;
-  let pixelAspect = u.viewport.y / max(u.viewport.x, 1.0);
-  let scaled = vec2f(local.x * row.rect.z * pixelAspect, -local.y * row.rect.w) * motionScale * depthScale * u.camera.y;
+  let scaled = vec2f(local.x * row.rect.z, -local.y * row.rect.w) * motionScale * depthScale * u.camera.y;
   let rotated = vec2f(
     cosine * scaled.x - sine * scaled.y,
     sine * scaled.x + cosine * scaled.y

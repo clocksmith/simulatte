@@ -1,8 +1,8 @@
 # Simulatte Style Guide
-001. Purpose: Simulatte is a browser-native natural-language simulation pipeline.
-002. The prompt is source code; every visible artifact must trace back to it.
+001. Purpose: Simulatte is a data-first browser simulation workbench with an optional natural-language compiler.
+002. Source data, declared mappings, prompts, and accepted edits are authored inputs; every visible artifact must trace back to its actual authority.
 003. The compiled world model is the contract, not the visual template.
-004. The visible simulation is product truth and must carry prompt-specific meaning.
+004. The visible simulation is product truth and must preserve the declared program and source meaning.
 005. Do not hide unsupported prompt content behind plausible visuals.
 006. Do not let broad scene buckets override compiled semantic evidence.
 007. Treat each phase boundary as a typed pipeline boundary.
@@ -205,7 +205,7 @@
 204. Split any JavaScript file before it reaches 1,000 lines.
 205. Treat 750 lines as a proactive source-size warning and split by cohesive ownership before the hard ceiling.
 205. This guide is mandatory for Simulatte edits and supplements `AGENTS.md`.
-206. The product win condition is faithful natural language compiled into recognizable, obligation-proven pixels.
+206. The product win condition is supported input becoming an editable, correctly rendered, replayable simulation; prompt compilation additionally requires recognizable, obligation-proven pixels.
 207. Preserve required entities, counts, attributes, part bindings, materials, relations, poses, actions, environments, and negation from Phase 2 through Phase 8.
 208. Intermediate object fields, packet fields, camera names, light names, or receipt claims do not prove visual success unless Phase 7 consumes them and Phase 8 settles them.
 209. Treat semantic accuracy, visual obligation coverage, output correctness, data integrity, latency, memory, and main-thread responsiveness as release gates.

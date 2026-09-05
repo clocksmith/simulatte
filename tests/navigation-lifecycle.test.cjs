@@ -692,6 +692,25 @@ test('app shell aborts and releases a terminally failed boot attempt', async () 
   assert.equal(failedSignal.aborted, true);
 });
 
+test('app shell disposes a booted application whose resolved identity violates the route', async () => {
+  let signal;
+  let disposed = 0;
+  let shown = 0;
+  const shell = bootApi.createAppShell({
+    router: { canonicalize() { throw new Error('Invalid identity must not be canonicalized'); } },
+    boot: async (_tier, _experience, options) => {
+      signal = options.signal;
+      return { tier: 'city', experience: 'wrong', world: 'wrong-world', dispose() { disposed += 1; } };
+    },
+    landing: { classList: { add() {}, remove() { shown += 1; } } },
+  });
+  await assert.rejects(shell.renderRoute({ tier: 'city', experience: 'expected', profile: 'expected' }),
+    { code: 'route_profile_resolution_mismatch' });
+  assert.equal(signal.aborted, true);
+  assert.equal(disposed, 1);
+  assert.equal(shown, 1);
+});
+
 test('app shell recovers an unknown governed-tier experience with that tier default', async () => {
   const calls = [];
   const canonicalRoutes = [];

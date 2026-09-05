@@ -1,5 +1,8 @@
 (function attachSimulatteWebGpuRendererrendererclass(root) {
   const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+  const targets = typeof module === 'object' && module.exports
+    ? require('../../../shared/render/render-targets.js') : root.SimulatteRenderTargets;
+  if (!targets) throw new Error('render_targets_dependency_missing');
 
     function makeDefaultWebGpuFeatureReceipt() {
         return {
@@ -154,7 +157,10 @@
             const pipelineError = await this.device.popErrorScope();
             if (pipelineError) throw new Error(pipelineError.message || 'WebGPU pipeline validation failed');
             await this.setupObjectPartPipeline();
-            this.device.lost.then((info) => {
+            const activeDevice = this.device;
+            activeDevice.lost.then((info) => {
+              if (this.device !== activeDevice) return;
+              this.renderTargets?.destroy();
               this.ready = false;
               this.status = `WebGPU device lost: ${info && info.message ? info.message : 'unknown'}`;
               this.canvas.dataset.rendererStatus = this.status;
@@ -857,18 +863,17 @@
           const width = Math.max(2, Math.floor(rect.width * dpr));
           const height = Math.max(2, Math.floor(rect.height * dpr));
           const key = `${width}x${height}`;
-          if (key === this.lastSizeKey) return;
+          if (key === this.lastSizeKey && this.renderTargets?.device === this.device &&
+              !this.renderTargets.disposed) return;
+          this.renderTargets = targets.resize(this.renderTargets, this.device, {
+            width, height, sampleCount: 1, depthFormat: 'depth24plus',
+            usage: typeof GPUTextureUsage === 'undefined' ? 0x10 : GPUTextureUsage.RENDER_ATTACHMENT,
+            label: 'create',
+          });
+          this.depthTexture = this.renderTargets.depth;
           this.canvas.width = width;
           this.canvas.height = height;
           this.lastSizeKey = key;
-          if (this.depthTexture && typeof this.depthTexture.destroy === 'function') this.depthTexture.destroy();
-          this.depthTexture = this.device && typeof this.device.createTexture === 'function'
-            ? this.device.createTexture({
-              size: [width, height, 1],
-              format: 'depth24plus',
-              usage: typeof GPUTextureUsage === 'undefined' ? 0x10 : GPUTextureUsage.RENDER_ATTACHMENT,
-            })
-            : null;
         }
 
         writeUniforms(state, nowMs) {

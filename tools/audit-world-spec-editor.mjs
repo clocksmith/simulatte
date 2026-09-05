@@ -1,18 +1,14 @@
 #!/usr/bin/env node
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import net from 'node:net';
-import os from 'node:os';
 import path from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   beginBrowserMemoryWindow,
   endBrowserMemoryWindow,
   validateBrowserMemoryReceipt,
 } from './browser-memory-receipt.mjs';
-import { CdpClient } from './simulatte/browser-harness.mjs';
-import { createStaticSiteServer } from './simulatte/static-site-server.mjs';
+import { openBrowserAudit } from './simulatte/browser-session.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -105,62 +101,6 @@ function parseViewport(value) {
     throw new Error(`Expected viewport at least 320x480, received ${value}`);
   }
   return viewport;
-}
-
-function findChrome(explicitPath) {
-  const candidates = [
-    explicitPath,
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/Applications/Chromium.app/Contents/MacOS/Chromium',
-    '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
-  ].filter(Boolean);
-  for (const candidate of candidates) if (fs.existsSync(candidate)) return candidate;
-  for (const command of ['google-chrome', 'chromium', 'chromium-browser']) {
-    if (spawnSync(command, ['--version'], { stdio: 'ignore' }).status === 0) return command;
-  }
-  throw new Error('WorldSpec editor audit requires Chrome or Chromium. Pass --chrome PATH.');
-}
-
-async function freePort() {
-  const server = net.createServer();
-  await new Promise((resolve, reject) => server.listen(0, '127.0.0.1', resolve).once('error', reject));
-  const port = server.address().port;
-  await new Promise((resolve) => server.close(resolve));
-  return port;
-}
-
-async function waitForDevtools(port, child) {
-  for (let attempt = 0; attempt < 160; attempt += 1) {
-    if (child.exitCode !== null) throw new Error(`Chrome exited before DevTools was ready with code ${child.exitCode}`);
-    try {
-      const response = await fetch(`http://127.0.0.1:${port}/json`);
-      if (response.ok) {
-        const targets = await response.json();
-        const page = targets.find((row) => row.type === 'page' && row.webSocketDebuggerUrl);
-        if (page) return page;
-      }
-    } catch {
-      // Chrome has not opened the debugging port yet.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  throw new Error(`Chrome DevTools did not become ready on port ${port}`);
-}
-
-async function stopChrome(child) {
-  if (!child || child.exitCode !== null || child.signalCode) return;
-  await new Promise((resolve) => {
-    const timer = setTimeout(resolve, 2000);
-    child.once('exit', () => {
-      clearTimeout(timer);
-      resolve();
-    });
-    child.once('error', () => {
-      clearTimeout(timer);
-      resolve();
-    });
-    child.kill('SIGTERM');
-  });
 }
 
 async function evaluate(client, expression) {
@@ -848,32 +788,10 @@ export function assertReceipt(receipt, boundary) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const boundary = loadBoundary(options);
-  const chromePath = findChrome(options.chromePath);
-  const staticServer = options.url ? null : createStaticSiteServer({ publicRoot: PUBLIC });
-  if (staticServer) {
-    await new Promise((resolve, reject) => staticServer.listen(0, '127.0.0.1', resolve).once('error', reject));
-  }
-  const targetUrl = options.url || `http://127.0.0.1:${staticServer.address().port}/blank/?auditNoInitial=1`;
-  const debugPort = await freePort();
-  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-world-spec-editor-'));
-  const chrome = spawn(chromePath, [
-    '--headless=new',
-    '--enable-precise-memory-info',
-    '--enable-unsafe-webgpu',
-    ...(process.platform === 'linux' ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface'] : []),
-    '--disable-background-networking',
-    '--no-first-run',
-    '--no-default-browser-check',
-    `--user-data-dir=${profileDir}`,
-    `--remote-debugging-port=${debugPort}`,
-    `--window-size=${options.viewport.width},${options.viewport.height}`,
-    'about:blank',
-  ], { stdio: ['ignore', 'ignore', 'pipe'] });
-  let client = null;
+  const browser = await openBrowserAudit({ ...options, publicRoot: PUBLIC, webgpu: true, preciseMemory: true });
+  const { client } = browser;
+  const targetUrl = options.url || new URL('blank/?auditNoInitial=1', browser.host.baseUrl).toString();
   try {
-    const page = await waitForDevtools(debugPort, chrome);
-    client = new CdpClient(page.webSocketDebuggerUrl);
-    await client.connect();
     const errors = [];
     client.on('Runtime.exceptionThrown', (params) => errors.push(
       params.exceptionDetails.exception?.description || params.exceptionDetails.text || 'browser exception'
@@ -923,10 +841,7 @@ async function main() {
     fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
     console.log(JSON.stringify({ ok: true, report: reportPath, screenshot: screenshotPath, receipt: boundReceipt }, null, 2));
   } finally {
-    await client?.close();
-    await stopChrome(chrome);
-    if (staticServer) await new Promise((resolve) => staticServer.close(resolve));
-    fs.rmSync(profileDir, { recursive: true, force: true });
+    await browser.close();
   }
 }
 

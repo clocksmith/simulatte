@@ -4,6 +4,12 @@
   root.SimulatteWorldRuntimeLoader = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldRuntimeLoader(root) {
   const loaded = new Map();
+  for (const script of Array.from(root.document?.scripts || [])) {
+    if (!script.src) continue;
+    const url = new URL(script.src, root.document.baseURI);
+    const base = new URL(root.document.baseURI);
+    if (url.origin === base.origin) loaded.set(url.pathname.replace(/^\//, ''), Promise.resolve(url.pathname));
+  }
 
   function manifest() {
     const value = root.SimulatteWorldRuntimeScriptManifest;
@@ -102,4 +108,3 @@
 
   return Object.freeze({ loadSelectedProduct, loadOptionalModel, loadScript, loadModule, loadTierModules, loadSelectedRuntime, pluginScripts });
 });
-

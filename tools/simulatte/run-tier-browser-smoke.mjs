@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import net from 'node:net';
-import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createStaticSiteServer } from './static-site-server.mjs';
-import { CdpClient } from './browser-harness.mjs';
-import { profileProgramRoundTripExpression, removeTemporaryDirectory, stopChild } from './run-browser-smoke.mjs';
+import { launchBrowser, createAuditHost, findChrome } from './browser-session.mjs';
+import { profileProgramRoundTripExpression } from './browser-profile-probes.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -43,53 +39,6 @@ function parseArgs(argv) {
   return options;
 }
 
-function resolveChromeExecutable(overridePath) {
-  if (overridePath && fs.existsSync(overridePath)) return overridePath;
-  const candidates = [
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
-    '/Applications/Chromium.app/Contents/MacOS/Chromium',
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium',
-    '/usr/bin/chromium-browser',
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) return candidate;
-  }
-  return '';
-}
-
-async function findAvailablePort() {
-  return new Promise((resolve, reject) => {
-    const server = net.createServer();
-    server.listen(0, '127.0.0.1', () => {
-      const port = server.address().port;
-      server.close(() => resolve(port));
-    });
-    server.on('error', reject);
-  });
-}
-
-function startStaticServer(port) {
-  const server = createStaticSiteServer({ publicRoot: PUBLIC });
-  return new Promise((resolve) => server.listen(port, '127.0.0.1', () => resolve(server)));
-}
-
-// Minimal Chrome DevTools Protocol client over the debugger WebSocket.
-
-
-async function waitForDevtools(port, child) {
-  for (let attempt = 0; attempt < 200; attempt += 1) {
-    if (child.exitCode !== null) throw new Error(`Chrome exited before DevTools was ready (code ${child.exitCode})`);
-    try {
-      const response = await fetch(`http://127.0.0.1:${port}/json`);
-      if (response.ok) { const page = (await response.json()).find((row) => row.type === 'page'); if (page) return page; }
-    } catch { /* debugger port not open yet */ }
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  throw new Error(`Chrome DevTools did not become ready on port ${port}`);
-}
-
 // In-page probe: current runtime status plus the tier run receipt, which is set only
 // when Start dispatches scenario.run and settlement completes.
 const STATE_PROBE = `(() => {
@@ -118,14 +67,10 @@ async function waitFor(probe, predicate, label, timeoutMs) {
 // Boot a tier, wait for Ready, click Start, and require a settled run receipt.
 async function auditTier(chromePath, baseUrl, item) {
   const report = { tier: item.tier, profileId: item.profileId, pluginId: item.pluginId, pass: false, status: null, receipt: null, profileProgram: null, errors: [] };
-  const debugPort = await findAvailablePort();
-  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `simulatte-tier-${item.tier}-`));
-  const chrome = spawn(chromePath, ['--headless=new', '--enable-unsafe-webgpu', ...(process.platform === 'linux' ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface'] : []), '--disable-background-networking', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profileDir}`, `--remote-debugging-port=${debugPort}`, '--window-size=1440,1000', 'about:blank'], { stdio: ['ignore', 'ignore', 'ignore'] });
-  let client = null;
+  let browser;
   try {
-    const page = await waitForDevtools(debugPort, chrome);
-    client = new CdpClient(page.webSocketDebuggerUrl);
-    await client.connect();
+    browser = await launchBrowser({ chromePath, webgpu: true });
+    const { client } = browser;
     await client.send('Runtime.enable');
     await client.send('Page.enable');
     client.on('Runtime.exceptionThrown', (params) => report.errors.push(params?.exceptionDetails?.exception?.description || params?.exceptionDetails?.text || 'exception'));
@@ -157,9 +102,7 @@ async function auditTier(chromePath, baseUrl, item) {
   } catch (error) {
     report.errors.unshift(error.message);
   } finally {
-    if (client) await client.close();
-    await stopChild(chrome);
-    await removeTemporaryDirectory(profileDir);
+    await browser?.close();
   }
   return report;
 }
@@ -168,20 +111,10 @@ async function runTierBrowserSmoke() {
   const options = parseArgs(process.argv.slice(2));
   fs.mkdirSync(options.outDir, { recursive: true });
 
-  const chromePath = resolveChromeExecutable(options.chromePath);
-  if (!chromePath) {
-    console.log('TIER-SMOKE status=skipped reason=chrome_executable_not_found');
-    fs.writeFileSync(path.join(options.outDir, 'report.json'), JSON.stringify({ status: 'skipped', reason: 'chrome_executable_not_found' }, null, 2));
-    process.exit(options.checkOnly ? 1 : 0);
-  }
-
-  let server = null;
-  if (!options.baseUrl) {
-    const port = await findAvailablePort();
-    server = await startStaticServer(port);
-    options.baseUrl = `http://127.0.0.1:${port}/`;
-  }
-
+  const chromePath = findChrome(options.chromePath);
+  const host = await createAuditHost({ publicRoot: PUBLIC, url: options.baseUrl });
+  options.baseUrl = host.baseUrl;
+  try {
   const reports = [];
   const selectedTiers = options.profileId ? TIERS.filter((row) => row.profileId === options.profileId) : TIERS;
   if (!selectedTiers.length) throw new Error(`Unknown profile ${options.profileId}`);
@@ -195,10 +128,11 @@ async function runTierBrowserSmoke() {
   const passed = reports.filter((row) => row.pass).length;
   const allPass = passed === selectedTiers.length;
   fs.writeFileSync(path.join(options.outDir, 'report.json'), JSON.stringify({ timestamp: new Date().toISOString(), pass: allPass, totalTiers: selectedTiers.length, passedTiers: passed, reports }, null, 2));
-  if (server) server.close();
+
 
   console.log(`TIER-SMOKE status=${allPass ? 'pass' : 'fail'} total=${selectedTiers.length} passed=${passed}`);
-  process.exit(allPass ? 0 : 1);
+  process.exitCode = allPass ? 0 : 1;
+  } finally { await host.close(); }
 }
 
 runTierBrowserSmoke().catch((err) => {

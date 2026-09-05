@@ -36,7 +36,7 @@ test('pipeline audit stages browser evidence before promoting the canonical dire
 
 test('model audit selects the optional embedding lane instead of only granting consent', () => {
   const source = fs.readFileSync(
-    path.join(root, 'tools', 'audit-intent-scene-screenshots.mjs'),
+    path.join(root, 'tools', 'visual-audit-page.mjs'),
     'utf8'
   );
 

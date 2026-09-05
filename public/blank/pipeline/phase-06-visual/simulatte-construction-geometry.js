@@ -17,7 +17,7 @@
       const geometryPartHints = construction.sourcePartHints && construction.sourcePartHints.length
         ? construction.sourcePartHints
         : construction.partHints || [];
-      const graph = scope.constructionGraphForEvidence(construction, descriptors, layoutVariant);
+      const graph = scope.constructionGraphForEvidence(construction, descriptors, layoutVariant, identity);
       const graphParts = scope.constructionGraphParts(graph, materialPalette, layoutVariant);
       const topologyParts = graphParts.length ? graphParts : scope.constructionTopologyParts(construction, materialPalette);
       const parts = topologyParts.length ? topologyParts : scope.constructionParts(descriptors, materialPalette);

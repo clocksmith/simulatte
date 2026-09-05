@@ -1,33 +1,9 @@
 :root {
-  color-scheme: dark;
-  /* Monochrome base: black paper, white ink, neutral lines (no non-palette chroma) */
-  --sim-ink: #ffffff;
-  --sim-ink-soft: rgba(255, 255, 255, 0.72);
-  --sim-ink-faint: rgba(255, 255, 255, 0.46);
-  --sim-paper: #000000;
-  --sim-glass: rgba(0, 0, 0, 0.92);
-  --sim-glass-soft: rgba(0, 0, 0, 0.82);
-  --sim-glass-faint: rgba(0, 0, 0, 0.62);
-  --sim-line: rgba(255, 255, 255, 0.14);
-  --sim-line-strong: rgba(255, 255, 255, 0.30);
-  --sim-shadow: 0 18px 56px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.40);
-  --sim-shadow-small: 0 10px 28px rgba(0, 0, 0, 0.40);
-
-  /* Retro phosphor green = the single primary interactive accent */
-  --sim-accent: #00ff00;
-  --sim-accent-soft: rgba(0, 255, 0, 0.06);
-  --sim-accent-line: rgba(0, 255, 0, 0.25);
-  --sim-accent-glow: rgba(0, 255, 0, 0.04);
-  /* Route legacy accent tokens through the retro green so all chrome recolors DRY */
-  --sim-green: var(--sim-accent);
-
-  /* Green + monochrome control identity */
-  --tier-city: #00ff00;
-  --tier-country: #00ff00;
+  --tier-city: var(--sim-accent);
+  --tier-country: var(--sim-accent);
   --tier-world: var(--sim-ink);
-  --tier-solar-system: #00ff00;
-  --tier-star-chart: #ffffff;
-  --sim-spectrum: linear-gradient(122deg, #00ff00, #ffffff 50%, #00ff00);
+  --tier-solar-system: var(--sim-accent);
+  --tier-star-chart: var(--sim-ink);
 }
 
 * {
@@ -145,18 +121,11 @@ button {
   cursor: pointer;
 }
 
-.sim-action-primary {
-  background: var(--sim-glass);
-}
 
-.sim-action-primary::after {
-  background: rgba(0, 0, 0, 0.94);
-}
 
-.sim-action-primary:hover:not(:disabled)::after,
-.sim-action-primary:focus-visible::after {
-  background: rgba(0, 0, 0, 0.96);
-}
+
+
+
 
 .sim-segmented > button:hover,
 .sim-segmented > button:focus-visible,
@@ -335,7 +304,7 @@ button {
 
 .profile-selector .select-option {
   display: flex;
-  min-height: 38px;
+  min-height: var(--sim-touch-target);
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -472,7 +441,7 @@ button {
 .quiet-action,
 .drawer-close {
   width: fit-content;
-  min-height: 32px;
+  min-height: var(--sim-touch-target);
   border: 0;
   padding: 0;
   color: var(--sim-ink-soft);
@@ -983,7 +952,7 @@ body[data-journey-phase="ready"] .journey-hud {
 }
 
 .playback-actions .sim-action {
-  min-height: 36px;
+  min-height: var(--sim-touch-target);
   padding: 0 9px;
   font-size: 10px;
 }
@@ -993,7 +962,7 @@ body[data-journey-phase="ready"] .journey-hud {
 }
 
 .playback-speed-control select {
-  min-height: 36px;
+  min-height: var(--sim-touch-target);
   padding-block: 0;
 }
 
@@ -1105,9 +1074,9 @@ body[data-journey-phase="failed"] .scenario-field {
 }
 
 .drawer-close {
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
+  width: var(--sim-touch-target);
+  height: var(--sim-touch-target);
+  flex: 0 0 var(--sim-touch-target);
   border: 1px solid var(--sim-line);
   border-radius: 50%;
   padding: 0;
@@ -1577,7 +1546,7 @@ body[data-journey-phase="failed"] .scenario-field {
 }
 
 .plugin-map-card .sim-action {
-  min-height: 34px;
+  min-height: var(--sim-touch-target);
   padding: 0 10px;
   font-size: 10px;
 }
@@ -1589,7 +1558,7 @@ body[data-journey-phase="failed"] .scenario-field {
 }
 
 .receipt-actions .sim-action {
-  min-height: 40px;
+  min-height: var(--sim-touch-target);
   font-size: 11px;
 }
 
@@ -1598,24 +1567,9 @@ body[data-journey-phase="failed"] .scenario-field {
   gap: 7px;
 }
 
-.profile-program-section textarea {
-  width: 100%;
-  min-height: 220px;
-  max-height: 48vh;
-  resize: vertical;
-  padding: 10px;
-  border: 1px solid var(--sim-line);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.84);
-  color: var(--sim-ink);
-  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  tab-size: 2;
-}
 
-.profile-program-section textarea:focus {
-  border-color: var(--sim-accent);
-  outline: 1px solid var(--sim-accent);
-}
+
+
 
 .profile-program-actions {
   flex-wrap: wrap;
@@ -1633,18 +1587,7 @@ body[data-journey-phase="failed"] .scenario-field {
   line-height: 1.4;
 }
 
-.profile-world-proof {
-  max-height: 360px;
-  overflow: auto;
-  margin: 10px 0 0;
-  padding: 10px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.84);
-  color: var(--sim-ink);
-  font: 10px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
+
 
 #profile-world-spec-status[data-state="error"],
 #profile-world-proof-status[data-state="error"],
@@ -1852,16 +1795,16 @@ body[data-journey-phase="failed"] .scenario-field {
   }
 
   .profile-selector .select-trigger {
-    min-height: 40px;
+    min-height: var(--sim-touch-target);
     padding: 0 2px;
     font-size: 13px;
   }
 
   .status-pill {
     position: relative;
-    width: 36px;
-    min-width: 36px;
-    min-height: 40px;
+    width: var(--sim-touch-target);
+    min-width: var(--sim-touch-target);
+    min-height: var(--sim-touch-target);
     justify-content: center;
     padding: 0;
   }
@@ -2041,7 +1984,7 @@ body[data-journey-phase="failed"] .scenario-field {
   .decisions-button {
     right: max(10px, env(safe-area-inset-right));
     bottom: calc(max(10px, env(safe-area-inset-bottom)) + 152px);
-    min-height: 40px;
+    min-height: var(--sim-touch-target);
     font-size: 11px;
   }
 

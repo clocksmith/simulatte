@@ -338,7 +338,16 @@
       const immediateAfter = ordered.slice(index + 1).find((row) => row.kind !== 'modifier');
       const modifierAfter = ordered[index + 1] && ordered[index + 1].kind === 'modifier';
       const nearBefore = before && span.tokenStart - before.tokenEnd <= 2;
-      const nearAfter = immediateAfter && immediateAfter.tokenStart - span.tokenEnd <= (modifierAfter ? 3 : 2);
+      const bridgeModifiers = ordered.slice(index + 1).filter((row) =>
+        row.kind === 'modifier' && row.end <= (immediateAfter?.start || 0));
+      const bridgeText = tokens.slice(span.tokenEnd + 1, immediateAfter?.tokenStart)
+        .filter((row) => !bridgeModifiers.some((modifier) => row.start >= modifier.start && row.end <= modifier.end))
+        .map((row) => row.text).join(' ');
+      const spatialBridge = spatialPrepositionsInText(bridgeText).length > 0 &&
+        !SPATIAL_PREPOSITIONS.reduce((text, phrase) => text.replace(new RegExp(`\\b${phrase}\\b`, 'g'), ''), bridgeText)
+          .replace(/\b(?:a|an|the)\b/g, '').trim();
+      const nearAfter = immediateAfter && (spatialBridge ||
+        immediateAfter.tokenStart - span.tokenEnd <= (modifierAfter ? 3 : 2));
       const verbForm = /(?:ing|ed|en|ize|ise|ify|ates?|s)$/.test(token);
       const intransitiveTail = !immediateAfter && before && before.kind === 'entity' &&
         /(?:ing|ed)$/.test(token) && !String(sourceText).slice(before.end, span.start).trim();

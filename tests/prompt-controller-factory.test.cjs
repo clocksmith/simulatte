@@ -122,9 +122,15 @@ test('prompt controller browser layers publish the API in manifest order', () =>
     SimulatteModelSelection: require('../public/model-selection.js'),
     SimulatteRunViewModel: require('../public/blank/app/runtime/run-view-model.js'),
     SimulatteWorldProof: require('../public/shared/contracts/world-proof.js'),
+    SimulatteInputSource: require('../public/shared/contracts/input-source.js'),
     SimulatteWorldSpecReconciliation: require('../public/shared/contracts/world-spec-reconciliation.js'),
     SimulatteWorldImprovementRecord: require('../public/shared/contracts/world-improvement-record.js'),
   });
+  const editorSharedPath = '../shared/design/program-editor.js';
+  assert.ok(runtimeManifest.browser.indexOf(editorSharedPath) >= 0);
+  assert.ok(runtimeManifest.browser.indexOf(editorSharedPath) <
+    runtimeManifest.browser.indexOf('app/prompt/world-spec-editor.js'));
+  vm.runInContext(fs.readFileSync(path.join(root, 'public/blank', editorSharedPath), 'utf8'), context);
   for (const file of [
     'prompt-controller-runtime.js',
     'prompt-controller-workers.js',
@@ -134,6 +140,7 @@ test('prompt controller browser layers publish the API in manifest order', () =>
     'world-spec-reconciliation-controller.js',
     'prompt-controller-compiler-proof.js',
     'world-improvement-session.js',
+    'prompt-proof-session.js',
     'prompt-controller-lab-controller.js',
     'prompt-controller.js',
   ]) {

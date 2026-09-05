@@ -13,9 +13,14 @@ These files separate three kinds of information:
 
 Frontier descriptions are targets, not implementation claims. The canonical
 experience pages remain the source for behavior that executes today.
-Per the [Strategic & Performance Consolidation Roadmap](../../prompt-to-world-roadmap.md), active development focuses on the **Flagship Compiler** (Blank) and two **Hero Conformance Packs** (Sun Walker and Maritime Trade), while text-heavy/low-visual experiments are slated for archival into historical reference packs.
+Active direction is the data-first workbench in [GOALS.md](../../../../GOALS.md).
+Prompting is optional, and existing domain profiles remain available. The
+[former consolidation roadmap](../../prompt-to-world-roadmap.md) and the roles
+and scores below retain earlier review context; they do not authorize archival
+or establish current-build qualification.
 
-| Experience | Strategic Role | Baseline consistency | Baseline interest | Deep frontier review |
+| Experience | Historical proposed role | Baseline consistency | Baseline interest | Deep frontier review |
+| --- | --- | --- | --- | --- |
 | [256-GPU AI Supercluster](gpu-supercluster.md) | **Hero Datacenter Simulator** | 10/10 | 10/10 | Authored / Active |
 | [Sun Walker](sun-walker.md) | **Hero City Simulator** | 9/10 | 8/10 | Authored / Active |
 | [Maritime Trade](maritime-trade.md) | **Hero Planetary Simulator** | 8/10 | 9/10 | Authored / Active |

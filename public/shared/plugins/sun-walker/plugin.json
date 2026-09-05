@@ -92,7 +92,7 @@
       "path": "./truth.js"
     },
     {
-      "integrity": "sha384-a5ffca1799cf2d2f4b7f1032f639d3e698d171454b8c300698267c5b2bd7d6b69d1e4407fe2e0f15d0e2adfab6b56f94",
+      "integrity": "sha384-f78ec7161b0e2491795394d8193affbb60286194291bfa3631059b511ebee4174bc9df21ad44d026030e913a0c6d52e7",
       "path": "./environment.js"
     },
     {

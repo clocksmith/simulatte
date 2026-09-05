@@ -13,15 +13,17 @@ that every contract or workflow is implemented today.
 
 ## Product thesis
 
-Simulatte compiles a bounded natural-language brief into a versioned,
-declarative `WorldSpec` that a user can inspect, edit, execute, export, and
-replay. Every run produces `WorldProof` that connects the original prompt and
-subsequent edits to realized entities, dynamics, controls, safety decisions,
-and rendered evidence.
+Simulatte is a data-first browser simulation workbench. People bring data or
+instructions, prepare an editable `WorldSpec`, run it, inspect the result,
+change it, and reproduce or export it. Free local use is a complete product
+outcome. No model download, account, or prompt is required for supported data
+workflows.
 
-Simulatte Create is the primary product. World profiles are governed
-conformance packs that prove the same compiler and runtime contracts across
-domains. Plugins extend those contracts through explicit capabilities.
+The workbench is the primary product. Prompt compilation is an optional input
+adapter with its existing eight-phase contract. Governed World profiles supply
+domain data and behavior, not separate product architectures. Plugins extend
+explicit capabilities. A table visualization is not automatically a scientific
+simulation, and a deterministic replay is not independent validation of a model.
 
 The compiler must justify its ownership. Generating Three.js code, scene JSON,
 or instructions for an established engine is an eligible control. Simulatte
@@ -35,7 +37,7 @@ control.
 
 - a schema and semantic version;
 - canonical serialization and a content hash;
-- source prompt and compiler configuration;
+- source data identity, declared mapping, optional prompt, and compiler configuration;
 - entities, properties, quantities, relations, and negation;
 - initial state and environment;
 - dynamics, constraints, solvers, and terminal conditions;
@@ -77,27 +79,24 @@ silently rewrite its declared intent.
 The first complete product journey is:
 
 ```text
-brief
-  -> WorldSpec draft
-  -> inspect and edit
-  -> validate
-  -> execute
-  -> inspect proof failures
-  -> targeted edit
-  -> replay
-  -> publish or export
+bring input (file, pasted data, authorized URL, program, brief, or profile)
+  -> prepare and validate a WorldSpec
+  -> run
+  -> inspect data, drawing, and execution evidence
+  -> change and rerun
+  -> replay or export
 ```
 
 The decisive milestone is one coherent round trip:
 
 ```text
-prompt
+user-owned dataset
   -> editable WorldSpec
   -> execution
-  -> failed critical obligation
+  -> inspect an output or a surfaced failure
   -> targeted user edit
-  -> successful replay
-  -> bound WorldProof
+  -> changed output and reproducible replay
+  -> export and verified reimport
 ```
 
 Users see a result before they need to understand the internal phases. They can
@@ -106,9 +105,15 @@ artifacts when they inspect it.
 
 ## Product structure
 
-- Create owns prompting, `WorldSpec` editing, validation, execution, proof,
-  replay, and export. The current Blank route is an implementation surface, not
-  the long-term product identity.
+- The workbench owns input selection, preparation, inspection, and the common
+  run, edit, replay, and export journey. Existing routes remain compatible.
+- Create owns the optional prompt adapter and exact eight-phase compiler.
+- Reusable input readers own bounded acquisition and decoding. Dataset adapters
+  own explicit field mapping and source provenance. They do not infer physics.
+- Pipeline runners own ordered artifacts, cancellation, and stale-result
+  rejection. Each pipeline retains its own typed stages and validation.
+- Simulation owns state evolution. Drawing consumes scene data and cannot
+  reinterpret source text or choose simulation behavior.
 - World profiles are conformance packs, examples, and execution proofs. They do
   not define separate product architectures.
 - Governed packs contribute domain data and behavior through declared
@@ -191,14 +196,15 @@ human critiques.
 
 ## Initial market and value
 
-The initial users are technical creators and developers building small,
-interactive explanatory simulations. They need faster iteration than
+The initial users are technical creators and developers bringing datasets and
+building small interactive explanatory simulations. They need faster iteration than
 hand-written browser simulation code and more inspectability than generated
 images or video.
 
 The first product wins by:
 
-- turning a bounded brief into an editable program;
+- turning supported data or a bounded brief into an editable program;
+- keeping input preparation, execution, inspection, and replay in one workflow;
 - exposing unsupported or ambiguous requirements;
 - making targeted correction direct;
 - producing a replayable browser result;
@@ -213,10 +219,13 @@ earn promotion after the compiler workflow is reliable.
 
 The north-star metric is:
 
-> The percentage of a fixed, difficulty-stratified prompt population that
-> produces a valid executable `WorldSpec` for which every critical obligation
-> passes, unsupported invention stays below threshold, replay passes, and
-> latency stays within budget.
+> The percentage of a fixed, stratified input-and-edit population that completes
+> ingestion, validation, execution, inspection, a meaningful edit, replay, export,
+> and verified reimport with correct outputs and within declared resource bounds.
+
+Report data, imported programs, prompts, and governed profiles separately. The
+prompt population still requires every critical obligation to pass with bounded
+unsupported invention. Additional input adapters cannot dilute that gate.
 
 The evaluation also reports these dimensions separately:
 
@@ -254,7 +263,7 @@ explicit, replaceable lane with its own evidence.
 The durable asset is the governed improvement corpus:
 
 ```text
-brief
+source data or brief
   -> extracted obligations
   -> compiler decisions
   -> WorldSpec

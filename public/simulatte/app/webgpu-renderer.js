@@ -17,10 +17,13 @@
   const passApi = typeof module === 'object' && module.exports
     ? require('./webgpu-pass.js')
     : root.SimulatteAutonomyGpuPass;
-  const api = factory(math, geometry, cameraController, presentationCompiler, semanticLabels, passApi);
+  const targets = typeof module === 'object' && module.exports
+    ? require('../../shared/render/render-targets.js') : root.SimulatteRenderTargets;
+  const api = factory(math, geometry, cameraController, presentationCompiler, semanticLabels, passApi, targets);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, presentationCompiler, semanticLabels, passApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, presentationCompiler, semanticLabels, passApi, targets) {
+  if (!targets) throw new Error('render_targets_dependency_missing');
   const SAMPLE_COUNT = 1;
   const MINIMAP_RADIUS_M = 420;
   const MINIMAP_FRAME_INTERVAL_MS = 1000 / 10;
@@ -637,10 +640,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.pluginOverlayBuffer?.destroy();
       state.pluginShadowBuffer?.destroy();
       state.pluginDynamicBuffer?.destroy();
-      state.renderTargets?.color.destroy();
-      state.renderTargets?.depth.destroy();
-      state.minimapTargets?.color.destroy();
-      state.minimapTargets?.depth.destroy();
+      state.renderTargets?.destroy();
+      state.minimapTargets?.destroy();
       uniformBuffer.destroy();
       minimapUniformBuffer?.destroy();
       if (labelCanvas) labelCanvas.getContext('2d')?.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
@@ -692,30 +693,26 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const ratio = Math.min(2, globalThis.devicePixelRatio || 1);
     const width = Math.max(320, Math.round(canvas.clientWidth * ratio));
     const height = Math.max(260, Math.round(canvas.clientHeight * ratio));
-    if (canvas.width === width && canvas.height === height && state.renderTargets) return;
+    state.renderTargets = targets.resize(state.renderTargets, device, {
+      width, height, sampleCount: SAMPLE_COUNT, colorFormat: format,
+      depthFormat: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT, label: 'world',
+    });
+    if (canvas.width === width && canvas.height === height) return;
     canvas.width = width;
     canvas.height = height;
-    state.renderTargets?.color.destroy();
-    state.renderTargets?.depth.destroy();
-    state.renderTargets = {
-      color: device.createTexture({ label: 'autonomy-msaa-color', size: [width, height], sampleCount: SAMPLE_COUNT, format, usage: GPUTextureUsage.RENDER_ATTACHMENT }),
-      depth: device.createTexture({ label: 'autonomy-depth', size: [width, height], sampleCount: SAMPLE_COUNT, format: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT }),
-    };
   }
 
   function resizeMinimapCanvas(canvas, device, format, state) {
     const ratio = Math.min(2, globalThis.devicePixelRatio || 1);
     const width = Math.max(160, Math.round(canvas.clientWidth * ratio));
     const height = Math.max(120, Math.round(canvas.clientHeight * ratio));
-    if (canvas.width === width && canvas.height === height && state.minimapTargets) return;
+    state.minimapTargets = targets.resize(state.minimapTargets, device, {
+      width, height, sampleCount: SAMPLE_COUNT, colorFormat: format,
+      depthFormat: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT, label: 'world-minimap',
+    });
+    if (canvas.width === width && canvas.height === height) return;
     canvas.width = width;
     canvas.height = height;
-    state.minimapTargets?.color.destroy();
-    state.minimapTargets?.depth.destroy();
-    state.minimapTargets = {
-      color: device.createTexture({ label: 'autonomy-minimap-msaa-color', size: [width, height], sampleCount: SAMPLE_COUNT, format, usage: GPUTextureUsage.RENDER_ATTACHMENT }),
-      depth: device.createTexture({ label: 'autonomy-minimap-depth', size: [width, height], sampleCount: SAMPLE_COUNT, format: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT }),
-    };
   }
 
   function cameraForPose(pose, canvas) {

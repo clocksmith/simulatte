@@ -29,10 +29,12 @@
   const compilerProofApi = typeof module === 'object' && module.exports
     ? require('./prompt-controller-compiler-proof.js')
     : root.SimulattePromptCompilerProof;
+  const proofSessionApi = typeof module === 'object' && module.exports
+    ? require('./prompt-proof-session.js') : root.SimulattePromptProofSession;
   const worldImprovementSessionApi = typeof module === 'object' && module.exports
     ? require('./world-improvement-session.js')
     : root.SimulatteWorldImprovementSession;
-  if (!support || !workers || !training || !construction || !runtime || !promptModelSelection || !runViewModelApi || !worldSpecEditorApi || !reconciliationControllerApi || !compilerProofApi || !worldImprovementSessionApi) {
+  if (!proofSessionApi || !support || !workers || !training || !construction || !runtime || !promptModelSelection || !runViewModelApi || !worldSpecEditorApi || !reconciliationControllerApi || !compilerProofApi || !worldImprovementSessionApi) {
     throw new Error('SimulattePromptControllerLab requires support, workers, training, construction search, runtime, model selection, run view model, WorldSpec editing and reconciliation, compiler proof, and improvement records');
   }
   const {
@@ -53,11 +55,7 @@
   } = workers;
   const { createFpsMeter, createIntentWorkerClient, intentWorkerConfig, cloneIntentWorkerOptions, cloneWorkerValue, urlParam, unregisterLegacyModelCacheWorker, intentTraceEnabled, truthyParam, appBuildVersion, appendBuildVersion, versionedLocalUrl } = runtime;
   const { logGraphDebug, syncWorldModelReceipt } = training;
-  const {
-    createConstructionSearchState, observeConstructionSceneProof,
-    syncConstructionSearchDataset, constructionSearchSpec,
-  } = construction;
-
+  const { createConstructionSearchState } = construction;
     function createBrowserLab(root = document) {
         const canvas = root.getElementById('physics-canvas');
         if (!canvas) return null;
@@ -75,12 +73,10 @@
         const loadingCanvasController = root.defaultView && root.defaultView.SimulatteLoadingCanvas
           ? root.defaultView.SimulatteLoadingCanvas.createController(loadingCanvas, { maxDpr: 1.25 })
           : null;
-        const ctx = null;
         const controlStack = root.getElementById('control-stack');
         const nameInput = root.getElementById('simulation-name');
         const promptInput = root.getElementById('build-prompt');
         const specPreview = root.getElementById('spec-preview');
-        const worldProofPreview = root.getElementById('world-proof-preview');
         const replayWorldSpecButton = root.getElementById('replay-world-spec');
         const worldModelReceipt = worldModelReceiptElements(root, specPreview);
         const componentStack = root.getElementById('component-stack');
@@ -136,26 +132,23 @@
         let buildSerial = 0;
         let compileSerial = 0;
         const pendingInteractionCommands = [];
-        let constructionRetryPending = false;
         let activePromptRuntimeReceipt = null;
         let classificationPolicyPromise = null;
         let worldSpecEditor = null;
         let worldSpecReconciliation = null;
-        let latestReplayBaseline = null;
-        let pendingReplayBaseline = null;
         let intentProofReceipt = null;
         let semanticProofReceipt = null;
         let simulationReproducibilityReceipt = null;
         let safetyProofReceipt = null;
-        let improvementReportDiagnostics = null;
-        const improvementReportDiagnosticHistory = [];
         const worldImprovementSession = worldImprovementSessionApi.create();
         const pipelineCompiler = createPipelineCompiler(root);
+        const compilePromptSpec = runtime.createCompilerDispatch({
+          pipelineCompiler, publishRuntime, waitForLoadingPaint, createSpecFromPrompt,
+        });
         const compilerProof = compilerProofApi.create(root, {
           createPipelineCompiler,
           createSpecFromPrompt,
         });
-        let requestedCompilerProofKey = '';
         const worldInteractionApi = root.defaultView && root.defaultView.SimulatteWorldInteractionRuntime;
         const worldInteraction = worldInteractionApi && typeof worldInteractionApi.connect === 'function'
           ? worldInteractionApi.connect(canvas, {
@@ -189,175 +182,20 @@
           return classificationPolicyPromise;
         }
 
-        handleSceneProofReport = (report) => {
-          runView?.recordSceneProof(report);
-          const phase8Artifact = report && report.phase8Output && report.phase8Output.artifact || {};
-          const renderExecution = report && report.phase7Output && report.phase7Output.artifact &&
-            report.phase7Output.artifact.renderExecution || {};
-          const worldProofApi = root.defaultView && root.defaultView.SimulatteWorldProof;
-          const binding = renderExecution.worldProofBinding || null;
-          const reportMatchesSpec = Boolean(
-            binding && binding.worldSpec && binding.worldSpec.contentHash === spec.contentHash
-          );
-          improvementReportDiagnostics = {
-            schema: 'simulatte.worldImprovementReportDiagnostic.v1',
-            final: report && report.final === true,
-            reportMatchesSpec,
-            activeWorldSpecContentHash: String(spec && spec.contentHash || ''),
-            reportWorldSpecContentHash: String(binding && binding.worldSpec && binding.worldSpec.contentHash || ''),
-            sceneProofVerdict: String(phase8Artifact.sceneProof && phase8Artifact.sceneProof.verdict || ''),
-            worldProofVerdict: String(phase8Artifact.worldProof && phase8Artifact.worldProof.verdict || ''),
-            replayStatus: String(phase8Artifact.worldProof && phase8Artifact.worldProof.proofClasses &&
-              phase8Artifact.worldProof.proofClasses.replay &&
-              phase8Artifact.worldProof.proofClasses.replay.status || ''),
-          };
-          improvementReportDiagnosticHistory.push(improvementReportDiagnostics);
-          if (improvementReportDiagnosticHistory.length > 16) {
-            improvementReportDiagnosticHistory.shift();
-          }
-          if (reportMatchesSpec) {
-            try {
-              const improvementRecord = worldImprovementSession.observeProof(spec, report);
-              if (improvementRecord) worldSpecEditor?.syncImprovement(improvementRecord);
-            } catch (error) {
-              improvementReportDiagnostics.sessionError = error && error.message
-                ? error.message
-                : String(error || 'improvement session rejected report');
-            }
-          }
-          if (report && report.final === true && phase8Artifact.worldProof && worldProofApi &&
-              typeof worldProofApi.createReplayBaseline === 'function' && reportMatchesSpec) {
-            const compilerDeterminismReceipt = compilerProof.receiptFor(spec);
-            if (compilerProof.required(spec) && !compilerDeterminismReceipt) {
-              const proofKey = `${spec.contentHash}:${binding.replayIdentity && binding.replayIdentity.buildId || ''}`;
-              if (requestedCompilerProofKey !== proofKey) {
-                requestedCompilerProofKey = proofKey;
-                compilerProof.verify(spec, binding).then((receipt) => {
-                  if (!receipt || binding.worldSpec.contentHash !== spec.contentHash) return;
-                  requestedCompilerProofKey = '';
-                  renderExecutionInput = null;
-                  const nextRenderExecutionInput = refreshRenderExecutionInput();
-                  if (nextRenderExecutionInput && webGpuRenderer) {
-                    webGpuRenderer.setRenderExecutionInput(nextRenderExecutionInput);
-                  }
-                }).catch((error) => {
-                  requestedCompilerProofKey = '';
-                  publishRuntime({
-                    state: 'error',
-                    blocking: false,
-                    stage: 'compiler-proof',
-                    percent: 100,
-                    message: 'Compiler determinism proof failed',
-                    detail: error && error.message ? error.message : String(error || ''),
-                    canvasLoading: false,
-                  });
-                });
-              }
-            } else {
-              latestReplayBaseline = worldProofApi.createReplayBaseline({
-                binding,
-                sceneProof: phase8Artifact.sceneProof,
-                intentReceipt: phase8Artifact.worldProof.evidence &&
-                  phase8Artifact.worldProof.evidence.intentReceipt || null,
-                semanticReceipt: phase8Artifact.worldProof.evidence &&
-                  phase8Artifact.worldProof.evidence.semanticReceipt || null,
-                simulationReceipt: renderExecution.simulationReceipt,
-                interactionProofReceipt: phase8Artifact.sceneProof.interactionProof,
-                safetyReceipt: phase8Artifact.worldProof.evidence &&
-                  phase8Artifact.worldProof.evidence.safetyReceipt || null,
-                compilerDeterminismReceipt,
-                simulationReproducibilityReceipt,
-                deviceClass: renderExecution.optimization && renderExecution.optimization.deviceClass || '',
-              });
-              pendingReplayBaseline = null;
-              if (replayWorldSpecButton) replayWorldSpecButton.disabled = false;
-            }
-          }
-          if (worldProofPreview) {
-            worldProofPreview.textContent = JSON.stringify(
-              report && report.phase8Output && report.phase8Output.artifact &&
-                report.phase8Output.artifact.worldProof || {},
-              null,
-              2
-            );
-          }
-          if (!report || report.final !== true || !trainingRun.runId || !trainingRun.prompt) return;
-          const search = trainingRun.constructionSearch || createConstructionSearchState({ buildSerial });
-          trainingRun.constructionSearch = search;
-          const decision = observeConstructionSceneProof(report, spec, search);
-          syncConstructionSearchDataset(canvas, decision);
-          if (decision.action === 'duplicate' || decision.action === 'wait' || decision.action === 'ignore') return;
-          if (decision.action === 'accept') {
-            publishRuntime({
-              state: 'ready',
-              blocking: false,
-              stage: 'construction-proof',
-              percent: 100,
-              message: 'Scene obligations proven',
-              detail: `${search.attempts.length} construction attempt${search.attempts.length === 1 ? '' : 's'} receipted`,
-              canvasLoading: false,
-            });
-            return;
-          }
-          if (decision.action !== 'retry' || constructionRetryPending) {
-            publishRuntime({
-              state: 'ready',
-              blocking: false,
-              stage: 'construction-proof',
-              percent: 100,
-              message: 'Scene obligations not proven',
-              detail: decision.reason || search.terminalReason || 'construction search stopped',
-              canvasLoading: false,
-            });
-            return;
-          }
-          constructionRetryPending = true;
-          const retrySerial = buildSerial;
-          publishRuntime({
-            state: 'active',
-            blocking: false,
-            stage: 'construction-search',
-            taskPercent: 0,
-            progressScope: 'task',
-            percent: 99,
-            message: `Trying construction ${decision.nextApproach.attempt + 1}`,
-            detail: `rejected ${decision.nextApproach.rejectedGrammarIds.join(', ')}`,
-            canvasLoading: false,
-          });
-          Promise.resolve().then(() => {
-            if (retrySerial !== buildSerial || trainingRun.serial !== retrySerial) return;
-            const nextSpec = constructionSearchSpec(spec, decision.nextApproach);
-            setSpec(nextSpec, { visible: true });
-            publishRuntime({
-              state: 'ready',
-              blocking: false,
-              stage: 'construction-search',
-              percent: 100,
-              message: 'Construction candidate rendered',
-              detail: `attempt ${decision.nextApproach.attempt + 1} awaiting screenshot proof`,
-              canvasLoading: false,
-            });
-          }).catch((error) => {
-            search.status = 'failed';
-            search.terminalReason = error && error.message ? error.message : String(error || 'construction retry failed');
-            syncConstructionSearchDataset(canvas, {
-              ...decision,
-              action: 'error',
-              reason: search.terminalReason,
-            });
-            publishRuntime({
-              state: 'error',
-              blocking: false,
-              stage: 'construction-search',
-              percent: 100,
-              message: 'Construction search failed',
-              detail: search.terminalReason,
-              canvasLoading: false,
-            });
-          }).finally(() => {
-            constructionRetryPending = false;
-          });
-        };
+        const proofSession = proofSessionApi.create({
+          root, canvas, compilerProof, worldImprovementSession, trainingRun, runView,
+          getSpec: () => spec, getBuildSerial: () => buildSerial,
+          getSimulationReceipt: () => simulationReproducibilityReceipt,
+          onImprovement: (record) => worldSpecEditor?.syncImprovement(record),
+          setSpec: (next, options) => setSpec(next, options),
+          publishRuntime,
+          refreshRender() {
+            renderExecutionInput = null;
+            const input = refreshRenderExecutionInput();
+            if (input && webGpuRenderer) webGpuRenderer.setRenderExecutionInput(input);
+          },
+        });
+        handleSceneProofReport = proofSession.observe;
 
         const refreshRenderExecutionInput = () => {
           const phase6Output = spec && spec.phaseArtifacts && spec.phaseArtifacts.phase6 || null;
@@ -368,7 +206,7 @@
           renderExecutionInput = createRenderExecutionInput(spec, state, canvas, {
             buildId: appBuildVersion(root.defaultView),
             runtimeId: 'simulatte.blank.browser.webgpu.v1',
-            replayBaseline: pendingReplayBaseline,
+            replayBaseline: proofSession.pendingBaseline(),
             intentReceipt: intentProofReceipt,
             semanticReceipt: semanticProofReceipt,
             compilerDeterminismReceipt: compilerProof.receiptFor(spec),
@@ -394,11 +232,7 @@
           const visible = options.visible === true || simulationVisible;
           spec = normalizeSpec(nextSpec);
           worldImprovementSession.observeSpec(spec);
-          compilerProof.invalidate();
-          requestedCompilerProofKey = '';
-          latestReplayBaseline = null;
-          pendingReplayBaseline = null;
-          if (replayWorldSpecButton) replayWorldSpecButton.disabled = true;
+          proofSession.invalidate();
           pendingInteractionCommands.length = 0;
           worldInteraction?.reset();
           runView?.recordSpec(spec);
@@ -442,7 +276,7 @@
         };
 
         replayWorldSpecButton?.addEventListener('click', () => {
-          if (!latestReplayBaseline || !webGpuRenderer) return;
+          if (!webGpuRenderer || !proofSession.beginReplay()) return;
           const receipts = state && state.interaction && Array.isArray(state.interaction.receipts)
             ? state.interaction.receipts : [];
           const replayCommands = receipts
@@ -458,7 +292,6 @@
               delta: Array.isArray(row.delta) ? row.delta.slice(0, 2) : [0, 0],
               value: 0,
             }));
-          pendingReplayBaseline = latestReplayBaseline;
           state = createSimulationState(spec);
           pendingInteractionCommands.length = 0;
           pendingInteractionCommands.push(...replayCommands);
@@ -521,7 +354,7 @@
           worldSpecReconciliation.abort('superseded');
           if (embedder && typeof embedder.cancel === 'function') embedder.cancel();
           if (pipelineCompiler && typeof pipelineCompiler.cancel === 'function') pipelineCompiler.cancel();
-          constructionRetryPending = false;
+          proofSession.invalidate();
           if (!String(prompt || '').trim()) {
             beginTrainingRun(trainingRun, prompt, params, serial);
             publishRuntime({
@@ -828,58 +661,6 @@
           if (stateReadout) stateReadout.textContent = 'intent model failed';
         }
 
-        async function compilePromptSpec(prompt, options, event = {}) {
-          const workerDetail = pipelineCompiler ? 'pipeline worker' : 'main-thread fallback';
-          const onPhaseProgress = (progressEvent = {}) => publishRuntime({
-            ...progressEvent,
-            backend: event.backend,
-            canvasLoading: event.canvasLoading,
-          });
-          publishRuntime({
-            state: 'active',
-            stage: 'pipeline-dispatch',
-            taskPercent: 0,
-            progressScope: 'task',
-            percent: event.percent || 31,
-            message: 'Starting compiler',
-            backend: event.backend,
-            detail: event.detail || workerDetail,
-            canvasLoading: event.canvasLoading,
-          });
-          await waitForLoadingPaint();
-          if (pipelineCompiler) {
-            try {
-              return await pipelineCompiler.compile(prompt, {
-                ...options,
-                compilerLane: 'pipeline-worker',
-              }, onPhaseProgress);
-            } catch (error) {
-              if (error && error.code === 'SIMULATTE_PIPELINE_ABORTED') throw error;
-              if (!error || error.code !== 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE') throw error;
-              if (typeof console !== 'undefined' && console.warn) {
-                console.warn('[simulatte.pipeline] worker compile fell back to main thread', error);
-              }
-              publishRuntime({
-                state: 'active',
-                stage: 'pipeline-dispatch',
-                taskPercent: 0,
-                progressScope: 'task',
-                percent: event.percent || 31,
-                message: 'Restarting compiler on main thread',
-                backend: event.backend,
-                detail: error && error.message ? error.message : String(error || ''),
-                canvasLoading: event.canvasLoading,
-              });
-              await waitForLoadingPaint();
-            }
-          }
-          return createSpecFromPrompt(prompt, {
-            ...options,
-            compilerLane: 'main-thread',
-            onPhaseProgress,
-          });
-        }
-
         function tick(now) {
           const dt = clamp((now - last) / 1000 || 0.016, 0.001, 0.05);
           last = now;
@@ -953,8 +734,7 @@
           getImprovementRecords: () => worldImprovementSession.getRecords(),
           getImprovementDiagnostics: () => ({
             session: worldImprovementSession.getDiagnostics(),
-            report: improvementReportDiagnostics,
-            reportHistory: improvementReportDiagnosticHistory.map((entry) => ({ ...entry })),
+            ...proofSession.diagnostics(),
           }),
           setSpec,
         };

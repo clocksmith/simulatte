@@ -267,7 +267,63 @@
       return (view && view.document && view.document.baseURI) || view.location.href;
     }
 
+  function createCompilerDispatch({ pipelineCompiler, publishRuntime, waitForLoadingPaint, createSpecFromPrompt }) {
+        async function compilePromptSpec(prompt, options, event = {}) {
+          const workerDetail = pipelineCompiler ? 'pipeline worker' : 'main-thread fallback';
+          const onPhaseProgress = (progressEvent = {}) => publishRuntime({
+            ...progressEvent,
+            backend: event.backend,
+            canvasLoading: event.canvasLoading,
+          });
+          publishRuntime({
+            state: 'active',
+            stage: 'pipeline-dispatch',
+            taskPercent: 0,
+            progressScope: 'task',
+            percent: event.percent || 31,
+            message: 'Starting compiler',
+            backend: event.backend,
+            detail: event.detail || workerDetail,
+            canvasLoading: event.canvasLoading,
+          });
+          await waitForLoadingPaint();
+          if (pipelineCompiler) {
+            try {
+              return await pipelineCompiler.compile(prompt, {
+                ...options,
+                compilerLane: 'pipeline-worker',
+              }, onPhaseProgress);
+            } catch (error) {
+              if (error && error.code === 'SIMULATTE_PIPELINE_ABORTED') throw error;
+              if (!error || error.code !== 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE') throw error;
+              if (typeof console !== 'undefined' && console.warn) {
+                console.warn('[simulatte.pipeline] worker compile fell back to main thread', error);
+              }
+              publishRuntime({
+                state: 'active',
+                stage: 'pipeline-dispatch',
+                taskPercent: 0,
+                progressScope: 'task',
+                percent: event.percent || 31,
+                message: 'Restarting compiler on main thread',
+                backend: event.backend,
+                detail: error && error.message ? error.message : String(error || ''),
+                canvasLoading: event.canvasLoading,
+              });
+              await waitForLoadingPaint();
+            }
+          }
+          return createSpecFromPrompt(prompt, {
+            ...options,
+            compilerLane: 'main-thread',
+            onPhaseProgress,
+          });
+        }
+    return compilePromptSpec;
+  }
+
   return Object.freeze({
+    createCompilerDispatch,
     createFpsMeter,
     createIntentWorkerClient,
     intentWorkerConfig,

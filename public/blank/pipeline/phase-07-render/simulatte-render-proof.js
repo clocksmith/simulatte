@@ -682,10 +682,15 @@
     const actual = rgba.slice(0, 3).map(clampByte);
     const expectedMax = Math.max(...expected);
     if (expectedMax < 48) return Math.max(...actual) < 96;
+    const saturation = Math.max(...actual) - Math.min(...actual);
+    if (expectedMax - Math.min(...expected) < 24) {
+      // Neutral colors have no stable hue. Bound chroma and shading instead;
+      // the caller still requires packet-bound, visible, contrasting pixels.
+      return saturation < 24 && expected.every((channel, index) => Math.abs(channel - actual[index]) <= 64);
+    }
     const expectedHue = rgbHue(expected);
     const actualHue = rgbHue(actual);
     const distance = Math.min(Math.abs(expectedHue - actualHue), 360 - Math.abs(expectedHue - actualHue));
-    const saturation = Math.max(...actual) - Math.min(...actual);
     return distance <= 58 && saturation >= 24;
   }
 

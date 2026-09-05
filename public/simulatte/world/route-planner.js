@@ -11,7 +11,11 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyRoutePlanner(streetNames, deterministicValues) {
   const normalizeStreetName = streetNames.normalizeStreetName;
   const round = deterministicValues.round9;
-  function planRoute({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds = [], routeContributors = [], routeObjective = {} }) {
+  function planRoute(args) {
+    return planRouteWithContext(args, {});
+  }
+
+  function planRouteWithContext({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds = [], routeContributors = [], routeObjective = {} }, context) {
     const activeRouteContributors = contributorsForObjective(routeContributors, routeObjective);
     const contributorExecution = routeContributorExecution(routeContributors, activeRouteContributors);
     const governedOverride = declaredRouteOverride({
@@ -28,7 +32,9 @@
       return routeResult([], 0, [originNodeId], 0, routeCostBreakdown([], worldModel, mission, policy, activeRouteContributors, routeObjective, tick), 'a_star_v1', { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds), ...contributorExecution, pluginRejections });
     }
     const blocked = new Set(worldModel.blockedSegmentIds(tick));
-    const maximumSpeedMps = worldModel.world.segments.reduce((maximum, segment) => segment.allowedModes.includes(mode) ? Math.max(maximum, segment.speedLimitMps) : maximum, 1);
+    // Alternatives share one world and mode; do not rescan every road for each deviation.
+    // The context is private to this synchronous call, never retained across world changes.
+    const maximumSpeedMps = context.maximumSpeedMps ??= worldModel.world.segments.reduce((maximum, segment) => segment.allowedModes.includes(mode) ? Math.max(maximum, segment.speedLimitMps) : maximum, 1);
     const open = createMinHeap(compareOpenRows);
     open.push({ nodeId: originNodeId, cost: 0, estimate: heuristic(worldModel, originNodeId, destinationNodeId, maximumSpeedMps), path: [] });
     const bestCost = new Map([[originNodeId, 0]]);
@@ -55,7 +61,7 @@
         if (!segment.allowedModes.includes(mode)) continue;
         if (policy.route.blockedSegmentsAreIneligible && blocked.has(segment.id)) continue;
         if (candidateExcludedSegmentIds.has(segment.id)) continue;
-        if (avoidedStreetKeys.has(normalizeStreetName(segment.source?.street))) {
+        if (avoidedStreetKeys.size && avoidedStreetKeys.has(normalizeStreetName(segment.source?.street))) {
           excludedStreetSegmentIds.add(segment.id);
           continue;
         }
@@ -120,7 +126,8 @@
   }
 
   function planRouteAlternatives(args, maximumAlternatives = 3) {
-    const baseline = planRoute(args);
+    const context = {};
+    const baseline = planRouteWithContext(args, context);
     if (maximumAlternatives <= 1) {
       return [{
         ...baseline,
@@ -134,7 +141,7 @@
     for (const segmentId of baseline.segmentIds) {
       if (candidates.size >= maximumAlternatives * 4) break;
       try {
-        const route = planRoute({ ...args, excludedSegmentIds: [...(args.excludedSegmentIds || []), segmentId] });
+        const route = planRouteWithContext({ ...args, excludedSegmentIds: [...(args.excludedSegmentIds || []), segmentId] }, context);
         const key = route.segmentIds.join('|');
         if (route.segmentIds.length && !candidates.has(key)) candidates.set(key, { ...route, alternativeKind: 'single_edge_deviation', deviatedFromSegmentId: segmentId });
       } catch (error) {

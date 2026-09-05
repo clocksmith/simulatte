@@ -59,8 +59,8 @@
         Number(provenance.modelEvaluated === true) * 2;
     }
 
-    function constructionGraphForEvidence(construction = {}, descriptors = [], layoutVariant = {}) {
-      const topologySelection = constructionTopologySelectionForEvidence(construction, descriptors);
+    function constructionGraphForEvidence(construction = {}, descriptors = [], layoutVariant = {}, identity = {}) {
+      const topologySelection = constructionTopologySelectionForEvidence(construction, descriptors, identity);
       const topology = topologySelection.topology;
       const requested = new Map();
       for (const descriptor of descriptors) {
@@ -118,11 +118,12 @@
       return constructionTopologySelectionForEvidence(construction, descriptors).topology;
     }
 
-    function constructionTopologySelectionForEvidence(construction = {}, descriptors = []) {
+    function constructionTopologySelectionForEvidence(construction = {}, descriptors = [], identity = {}) {
       const basisIds = new Set([...(construction.basisIds || []), ...(construction.groundingIds || [])]);
       const roles = new Set(descriptors.map((row) => row.role));
       const targetText = constructionEvidenceText([
         String(construction.targetEntryId || '').replace(/^[a-z]+:/, ''),
+        identity.type,
       ]);
       const sourceText = constructionEvidenceText([
         construction.targetEntryId,

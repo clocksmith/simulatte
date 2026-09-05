@@ -1,14 +1,17 @@
 # Simulatte navigation
 
-Simulatte is a governed, local-first navigation simulator. It compiles a
+This guide covers Simulatte's governed navigation workflow, not the whole
+product. The [data-first workbench](../workbench.md) is the main entry;
+[GOALS.md](../../GOALS.md) owns product direction. Navigation compiles a
 natural-language mission into typed obligations, executes an embodied agent
 through repeated autonomous decisions, settles the predictions made at every
 tick, and emits a hash-linked journey receipt.
 
 The canonical product, control, data-truth, simulation, comparison, claim, and
 verification description for every experience is in the
-[experience index](experiences/README.md). Eleven profiles are registered and
-browser-verified in the bound evidence matrix. Exoplanet Survey remains a
+[experience index](experiences/README.md). The [claim inventory](../../public/data/application-profiles/profile-claim-inventory-v1.json)
+owns registered profile identities; the evidence matrix owns qualification.
+Exoplanet Survey remains a
 proposal with no registered runtime.
 
 The target cooperative-city architecture is specified in
@@ -22,8 +25,9 @@ and live renderer adoption of atomic tile residency remain outside the claim.
 
 The target application boundary and resumable extraction sequence are defined
 in [Simulatte plugin platform architecture](plugin-platform-architecture.md).
-The strategic consolidation of Simulatte into a Prompt-to-World simulation compiler and performance optimization plan is defined in [Strategic & Performance Consolidation Roadmap](prompt-to-world-roadmap.md).
-Blank remains the primary compiler surface. Sun Walker, P2P Delivery, Cable Trader,
+The [former compiler-first roadmap](prompt-to-world-roadmap.md) is historical,
+not current prioritization or an instruction to archive profiles.
+Create retains the optional eight-phase prompt compiler. Sun Walker, P2P Delivery, Cable Trader,
 Counterfactual Lab, Accessible Journey, Historical Streets, Amenity Router,
 and Gig Wage Truth are defined as independently versioned Simulatte World
 plugins composed through a shared host. Safety Explorer source remains

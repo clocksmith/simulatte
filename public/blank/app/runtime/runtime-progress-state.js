@@ -242,7 +242,7 @@
     const sourceProgress = monotonicEventPercent(previous, event, rawPercent);
     const passive = passiveEvent(event, stage);
     const state = event.state || stateForEvent(event, stage, sourceProgress, passive, previous);
-    const loading = !passive && state === 'active';
+    const loading = !passive && state === 'active' && event.blocking !== false;
     const canvasLoading = loading && event.canvasLoading !== false;
     const message = compactRuntimeMessage(event.message || stage);
     const eventAt = eventTimestampMs(event, context.timestampMs || previous.lastEventAt);
@@ -435,9 +435,9 @@
   }
 
   function passiveEvent(event = {}, stage = '') {
-    if (event.nonBlocking === true || event.blocking === false) return true;
-    if (event.state === 'error' || event.state === 'ready') return false;
-    return false;
+    if (event.nonBlocking === true) return true;
+    if (event.state) return false;
+    return event.blocking === false;
   }
 
   function stateForEvent(event, stage, percent, passive, previous) {
@@ -450,7 +450,8 @@
   function runtimeLineText(event, stage, phase, percent) {
     const timing = runtimeTimingSuffix(event);
     const resource = runtimeResourceSuffix(event, stage);
-    if (event.state === 'error' || stage === 'error') return 'Intent model failed';
+    if (event.state === 'error' || stage === 'error') return event.message || 'Run failed';
+    if (event.state === 'failed' || event.state === 'not-proven') return event.message || 'Scene not proven';
     if (event.state === 'ready' && phase.id === 'prompt-runtime') {
       return 'Prompt runtime ready 100%';
     }
@@ -480,6 +481,8 @@
   }
 
   function runtimeStageLabel(stage, phase = {}, event = {}) {
+    if (['error', 'failed', 'not-proven'].includes(event.state)) return event.message || 'Run failed';
+    if (/^construction-/.test(stage)) return event.message || 'Checking scene';
     const kind = String(event.resourceKind || event.resource && event.resource.kind || '').toLowerCase();
     const file = String(event.file || event.resourceFile || event.resource && event.resource.file || '').toLowerCase();
     const text = `${kind} ${file}`;
@@ -513,6 +516,9 @@
   }
 
   function shouldIgnoreCompletedRunActiveEvent(current = initialState(), event = {}) {
+    const sameRun = String(event.runId || '') === String(current.runId || '');
+    if (sameRun && ['failed', 'not-proven'].includes(current.state) &&
+        event.allowAfterReady !== true && event.stage !== 'construction-proof') return true;
     if (!current || current.state !== 'ready') return false;
     if (event.allowAfterReady === true) return false;
     if (event.state === 'ready' || event.state === 'error') return false;

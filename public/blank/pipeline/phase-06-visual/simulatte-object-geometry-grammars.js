@@ -4,6 +4,8 @@
     const OBJECT_GEOMETRY_PROGRAM_SCHEMA = 'simulatte.objectGeometryProgram.v1';
 
     const OBJECT_GEOMETRY_GRAMMARS = Object.freeze({
+      plane: flatSurfaceGrammar('plane'),
+      floor: flatSurfaceGrammar('floor'),
       dog: grammar('dog', [0.22, 0.12], 32, [
         part('body', 'ellipse', [-0.08, 0.02], [0.62, 0.46], '#9a6337'),
         part('head', 'ellipse', [0.31, -0.08], [0.31, 0.38], '#a96f3f'),
@@ -618,6 +620,13 @@
       return Object.freeze({ id, minScale: Object.freeze(minScale), zOrder, parts: Object.freeze(parts), literal });
     }
 
+    function flatSurfaceGrammar(id) {
+      return grammar(id, [0.6, 0.055], 8, [
+        part('planar-face', 'rounded-box', [0, 0], [1, 0.4], '#8295a8'),
+        part('front-edge', 'capsule', [0, 0.16], [1, 0.04], '#52677b'),
+      ]);
+    }
+
     function part(id, primitive, center, size, fill, rotation = 0, opacity = 1, texture = '', constructionRole = '') {
       return Object.freeze({
         id,
@@ -859,6 +868,10 @@
       const minScale = Array.isArray(program.minScale) ? program.minScale : [0.16, 0.14];
       scale[0] = Math.max(Number(scale[0] || 0), Number(minScale[0] || 0));
       scale[1] = Math.max(Number(scale[1] || 0), Number(minScale[1] || 0));
+      if (program.constructionGraph?.topologyId === 'spherical-body' &&
+          program.constructionReceipt?.topologyTargetFit === true) {
+        scale[0] = scale[1] = Math.max(scale[0], scale[1]);
+      }
       const relationRoles = new Set(entity.layoutRelationRoles || []);
       if (relationRoles.has('through:source')) {
         scale[0] = Math.min(scale[0], 0.15);

@@ -5,6 +5,10 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldRuntimeScriptManifest() {
   const browser = Object.freeze([
     'neural-model-consent.js',
+    'shared/design/program-editor.js',
+    'shared/design/data-table.js',
+    'shared/design/product-navigation.js',
+    'shared/render/render-targets.js',
     'model-selection.js',
     'shared/deterministic-values.js',
     'shared/language/positive-language.js',
@@ -16,6 +20,12 @@
     'shared/contracts/contract-validator.js',
     'shared/contracts/world-spec-authorship.js',
     'shared/contracts/world-spec.js',
+    'shared/contracts/input-source.js',
+    'shared/contracts/data-world-spec.js',
+    'shared/core/pipeline-runner.js',
+    'shared/core/simulation/point-motion.js',
+    'shared/core/simulation/data-run.js',
+    'shared/render/point-scene-view.js',
     'shared/contracts/world-proof-compiler.js',
     'shared/contracts/world-proof-intent.js',
     'shared/contracts/world-proof-semantic.js',
@@ -210,6 +220,7 @@
     'simulatte/app/experience-presentation.js',
     'simulatte/app/app-render-work.js',
     'simulatte/app/profile-program.js',
+    'simulatte/app/app-shell.js',
     'simulatte/app/world-tiers-boot.js',
     'simulatte/app/router.js',
     'simulatte/app/city-interface.js',
@@ -217,7 +228,12 @@
     'simulatte/app/main-controller-builder.js',
     'simulatte/app/main-support.js',
     'simulatte/app/plugin-playback.js',
+    'simulatte/app/journey-recorder.js',
+    'simulatte/app/city-run-controls.js',
+    'simulatte/app/city-plugin-session.js',
     'simulatte/app/main.js',
+    'simulatte/app/data-workbench.js',
+    'simulatte/app/workbench-entry.js',
   ]);
   const PROFILE_PLUGINS = Object.freeze({
     'gpu-supercluster-v1': Object.freeze(['gpu-supercluster']),
@@ -252,7 +268,16 @@
     selectedRuntime: Object.freeze(browser.filter((path) => !pluginPath(path) && !optionalModelPath(path) && !pageShellPath(path) && !requiredDataPath(path))),
     optionalModel: Object.freeze(browser.filter(optionalModelPath)),
   });
-  const eager = Object.freeze(browser.filter((path) => !pluginPath(path) && !optionalModelPath(path)));
+  const workbenchPaths = new Set([
+    'shared/design/program-editor.js', 'shared/design/product-navigation.js', 'shared/design/data-table.js',
+    'shared/contracts/world-spec-authorship.js', 'shared/contracts/world-spec.js',
+    'shared/contracts/input-source.js', 'shared/contracts/data-world-spec.js',
+    'shared/core/pipeline-runner.js', 'shared/core/simulation/point-motion.js',
+    'shared/core/simulation/data-run.js', 'shared/render/point-scene-view.js',
+    'simulatte/app/data-workbench.js', 'simulatte/app/workbench-entry.js',
+  ]);
+  const eager = Object.freeze(browser.filter((path) => workbenchPaths.has(path)));
+  const profileRuntime = Object.freeze(browser.filter((path) => !workbenchPaths.has(path) && !pluginPath(path) && !optionalModelPath(path)));
   function pluginIdsForSelection(options = {}) {
     if (Array.isArray(options.pluginIds)) return Object.freeze([...new Set(options.pluginIds)].sort());
     const profileId = options.profileId || TIER_DEFAULT_PROFILE[options.tierId || 'city'];
@@ -281,6 +306,7 @@
   return Object.freeze({
     browser,
     eager,
+    profileRuntime,
     stages,
     profilePlugins: PROFILE_PLUGINS,
     tierDefaultProfile: TIER_DEFAULT_PROFILE,
