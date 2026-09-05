@@ -78,7 +78,7 @@
   padding: 0 !important;
   overflow: hidden !important;
   clip-path: inset(50%) !important;
-  var(--sim-paint-white)-space: nowrap !important;
+  white-space: nowrap !important;
   border: 0 !important;
 }
 @media (prefers-reduced-motion: reduce) {

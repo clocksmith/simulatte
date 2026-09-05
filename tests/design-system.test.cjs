@@ -8,6 +8,12 @@ const TOKEN_FILE = "public/shared/design/tokens.css";
 const read = file => fs.readFileSync(path.join(ROOT, file), 'utf8');
 const clean = text => text.replace(/\/\*[\s\S]*?\*\//g, '');
 const imports = text => [...clean(text).matchAll(/@import\s+['"]([^'"]+)['"]\s*;/g)].map(match => match[1]);
+const PAGE_STYLES = ['public/styles.css', 'public/blank/styles.css', 'public/model-selection.css', 'public/world-tiers.css', 'public/shared/design/workbench.css'];
+
+function assertLiteralPropertyNames(text, file) {
+  assert.doesNotMatch(clean(text), /(?:^|[;{])\s*var\([^;{}\n]+\)[^:;{}\n]*:/m,
+    file + ': tokens belong in declaration values, not property names');
+}
 function closure(file, stack = []) {
   assert.ok(!stack.includes(file), 'stylesheet import cycle: ' + [...stack, file].join(' -> '));
   const text = read(file);
@@ -44,9 +50,19 @@ test('page entries use stylesheets instead of inline stylesheet forks', () => {
   for (const file of ["public/index.html","public/blank/index.html"]) assert.doesNotMatch(read(file), /<style(?:\s|>)/i, file);
 });
 
+test('paint extraction preserves property names including white-space', () => {
+  assert.throws(() => assertLiteralPropertyNames('.label { var(--sim-paint-white)-space: nowrap; }', 'broken fixture'));
+  assertLiteralPropertyNames('.label { white-space: nowrap; color: var(--sim-paint-white); }', 'valid fixture');
+  for (const entry of [ENTRY, ...PAGE_STYLES]) {
+    for (const {file, text} of closure(entry)) assertLiteralPropertyNames(text, file);
+  }
+  assert.match(read('public/shared/design/components.css'), /\.sim-code\s*\{[^}]*\bwhite-space:\s*pre-wrap;/);
+  assert.match(read('public/model-selection.css'), /\.model-selection-panel > summary\s*\{[^}]*\bwhite-space:\s*nowrap;/);
+});
+
 test('page compositions consume the shared theme without reviving retired theme forks', () => {
   assert.ok(closure('public/styles.css').some(row => row.file === 'public/shared/design/themes/world.css'));
-  const pages = ['public/styles.css', 'public/blank/styles.css', 'public/model-selection.css', 'public/world-tiers.css', 'public/shared/design/workbench.css'];
+  const pages = PAGE_STYLES;
   for (const file of pages) {
     assert.doesNotMatch(clean(read(file)), /:root\s*\{/);
   }

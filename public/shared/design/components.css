@@ -15,7 +15,7 @@
   border-radius: var(--sim-radius-small);
   color: var(--sim-ink-soft);
   font: 11px/1.5 var(--sim-mono);
-  var(--sim-paint-white)-space: pre-wrap;
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .sim-status {
