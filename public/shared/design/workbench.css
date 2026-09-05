@@ -1,11 +1,12 @@
-#world-tiers-landing-page.data-workbench-page {
+.data-workbench-page {
   display: block;
+  width: 100%;
   padding: 24px max(16px, calc((100vw - 1280px) / 2));
   overflow: auto;
   background: var(--sim-bg, var(--sim-paint-hex-0e131b));
   color: var(--sim-text, var(--sim-paint-hex-edf2f7));
 }
-#world-tiers-landing-page.data-workbench-page.hidden { display: none; }
+.data-workbench-page[hidden], #simulation-home[hidden] { display: none; }
 .data-workbench-page *, .data-workbench-page *::before, .data-workbench-page *::after { box-sizing: border-box; }
 .workbench-header { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
 .workbench-header h1 { margin: 0; font-size: 28px; font-weight: 650; }

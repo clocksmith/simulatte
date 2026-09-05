@@ -13,13 +13,16 @@ that every contract or workflow is implemented today.
 
 ## Product thesis
 
-Simulatte is a data-first browser simulation workbench. People bring data or
+Simulatte is a browser simulation platform. The homepage is the hexagon
+simulation chooser, with Create at its center and the simulations visible.
+Data tools are available through Use your data; they do not replace the homepage.
+People bring data or
 instructions, prepare an editable `WorldSpec`, run it, inspect the result,
 change it, and reproduce or export it. Free local use is a complete product
 outcome. No model download, account, or prompt is required for supported data
 workflows.
 
-The workbench is the primary product. Prompt compilation is an optional input
+The simulation is the product, not a data-entry form. Prompt compilation is an optional input
 adapter with its existing eight-phase contract. Governed World profiles supply
 domain data and behavior, not separate product architectures. Plugins extend
 explicit capabilities. A table visualization is not automatically a scientific

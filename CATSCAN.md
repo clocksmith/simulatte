@@ -3,7 +3,7 @@
 Parent: none
 ## Target
 
-Turn data and instructions into editable, executable, replayable simulations through one data-first workbench with explicit evidence and refusal.
+Let people choose, create, and edit executable browser simulations. Preserve the hexagon homepage and keep data tools optional.
 
 ## Authority
 

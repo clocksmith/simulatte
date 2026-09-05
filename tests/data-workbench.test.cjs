@@ -1,5 +1,8 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
+const { readFileSync } = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
 const input = require('../public/shared/contracts/input-source.js');
 const contract = require('../public/shared/contracts/data-world-spec.js');
 const world = require('../public/shared/contracts/world-spec.js');
@@ -8,9 +11,56 @@ const runs = require('../public/shared/core/simulation/data-run.js');
 const pipeline = require('../public/shared/core/pipeline-runner.js');
 const view = require('../public/shared/render/point-scene-view.js');
 const mapping = { id: 'id', label: null, x: 'x', y: 'y', vx: 'vx', vy: 'vy' };
+test('the hexagon homepage keeps simulations visible and data tools optional', () => {
+  const html = readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+  assert.match(html, /<section id="simulation-home">/);
+  assert.match(html, /class="hex-constellation-container"/);
+  assert.equal((html.match(/class="hex-satellite tier-card/g) || []).length, 6);
+  assert.match(html, /id="hex-center-create"/);
+  assert.match(html, /id="open-data" href="#data"/);
+  assert.match(html, /<section id="data-page" class="data-workbench-page" hidden>/);
+  assert.doesNotMatch(html, /id="workbench-profiles"/);
+  for (const profile of ['gpu-supercluster-v1', 'interstellar-relay-network-v1', 'orbital-transfer-planner-v1',
+    'maritime-trade-global-v1', 'subsea-network-global-v1', 'sun-walker-v1', 'food-recall-us-v1']) {
+    assert.ok(html.includes(`data-default-profile="${profile}"`));
+  }
+});
 async function fixture(text = 'id,x,y,vx,vy\na,0,2,1,-0.5\nb,4,4,-1,0') {
   return contract.compile(await input.decode(text), { mapping, duration: 4, steps: 4, units: 'meters' });
 }
+
+test('landing keyboard activation retains route identity and exposes failed loading for retry', async () => {
+  const events = {}, listeners = {}, loaded = [];
+  const nodes = Object.fromEntries(['world-tiers-landing-page', 'simulation-home', 'data-page', 'simulation-status'].map(id => [id, {
+    hidden: false, dataset: {}, classList: { remove() {} }, addEventListener(name, callback) { listeners[name] = callback; },
+  }]));
+  const location = { pathname: '/', hash: '' };
+  let fail = true;
+  const context = { location, document: { getElementById: id => nodes[id], body: { dataset: {} } },
+    history: { pushState(_state, _title, url) { location.pathname = url; } },
+    SimulatteWorldRuntimeScriptManifest: { profileRuntime: ['profile-runtime.js'] },
+    SimulatteWorldRuntimeLoader: { async loadScript(file) { if (fail) throw new Error('offline'); loaded.push(file); } },
+    addEventListener(name, callback) { events[name] = callback; },
+  };
+  vm.runInNewContext(readFileSync(path.join(__dirname, '../public/simulatte/app/workbench-entry.js'), 'utf8'), context);
+  assert.equal(nodes['data-page'].hidden, true);
+  location.hash = '#data'; events.hashchange();
+  assert.equal(nodes['simulation-home'].hidden, true);
+  location.hash = ''; events.hashchange();
+  const card = { dataset: { tier: 'city', defaultProfile: 'sun-walker-v1' }, click() {
+    listeners.click({ target: { closest: () => card }, preventDefault() {}, stopImmediatePropagation() {} });
+  } };
+  listeners.keydown({ key: 'Enter', target: { closest: () => card }, preventDefault() {} });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(location.pathname, '/city/sun-walker-v1');
+  assert.match(nodes['simulation-status'].textContent, /offline/);
+  assert.equal(nodes['simulation-home'].hidden, false);
+  fail = false;
+  listeners.keydown({ key: ' ', target: { closest: () => card }, preventDefault() {} });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(loaded, ['profile-runtime.js']);
+  assert.equal(nodes['simulation-status'].textContent, '');
+});
 
 test('CSV and JSON share typed ingestion, quoted fields, source hashing, and local provenance', async () => {
   const csv = await input.decode('\uFEFFid,label,x,y\r\na,"two, words",1,2\r\nb,"a ""quote""\nand line",3,4');

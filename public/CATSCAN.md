@@ -3,7 +3,7 @@
 Parent: [Simulatte](../CATSCAN.md)
 ## Target
 
-Boot a data-first workbench, optional Create compiler, and governed World profiles from static assets with visible readiness, execution, proof, or refusal.
+Boot the hexagon simulation chooser, optional data tools, Create compiler, and World profiles from static assets with visible readiness, execution, proof, or refusal.
 
 ## Authority
 

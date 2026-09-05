@@ -5,7 +5,7 @@ Intent owner: [GOALS.md](../GOALS.md). Browser owner:
 
 ## Workflow
 
-1. Paste CSV/JSON, open a file, explicitly fetch a public URL, or use the example.
+1. Select Use your data from the hexagon homepage (#data), then paste CSV/JSON, open a file, fetch a public URL, or use the example.
 2. Inspect source rows and confirm field mappings. Declare units, duration, and steps.
 3. Prepare a WorldSpec. This does not execute the program.
 4. Run. Inspect points, scrub the timeline, and read the output table.
@@ -34,7 +34,7 @@ unsupported semantics, and excessive work reject. Input is bounded to 8 MiB,
 | Scene drawing, projection, picking and resize | [point-scene-view.js](../public/shared/render/point-scene-view.js) | Data scene inspection |
 | Draft state and downloads | [program-editor.js](../public/shared/design/program-editor.js) | Workbench, Create editor, profile editor |
 | Bounded, text-only table rendering | [data-table.js](../public/shared/design/data-table.js) | Source preview and output inspection |
-| Page coordination | [data-workbench.js](../public/simulatte/app/data-workbench.js) | Root page |
+| Page coordination | [data-workbench.js](../public/simulatte/app/data-workbench.js) | Optional #data view |
 
 The root eagerly loads only workbench code. Profile runtime loads on selection
 through the existing build-bound loader; selected plugins still pass integrity

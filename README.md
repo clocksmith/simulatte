@@ -1,8 +1,7 @@
 # Simulatte
 
-Simulatte is a data-first browser simulation workbench. Bring data, prepare an
-editable program, run it, inspect the output, change it, and replay or export it.
-Prompt compilation and governed domain profiles are optional workflows.
+Simulatte runs simulations in your browser. Pick one from the hexagon homepage,
+create a world, or use your own data.
 
 - [Live site](https://simulatte.world)
 - [Prompt compiler](https://create.simulatte.world/)
@@ -18,7 +17,7 @@ profile is not required for supported data execution.
 
 ## How to use Simulatte
 
-The repository's root page provides CSV/JSON input, explicit column mapping,
+The root page shows the simulation chooser. Use your data opens CSV/JSON input, explicit column mapping,
 constant-velocity 2D point execution, a timeline and output table, WorldSpec
 editing, result comparison, exact replay, and program/result export. Local data
 does not leave the browser. URL acquisition happens only on Fetch URL.

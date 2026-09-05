@@ -37,6 +37,17 @@ try {
     await cdp.send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/` });
     await wait('Boolean(window.SimulatteDataWorkbench)');
     assert.equal(await evaluate('Boolean(window.SimulatteAutonomyApp)'), false, 'Data start must not boot profile runtime');
+    assert.equal(await evaluate('document.getElementById("data-page").hidden'), true, 'The data form must not replace the simulation home');
+    assert.equal(await evaluate('document.querySelectorAll("#simulation-home .hex-satellite").length'), 6);
+    assert.equal(await evaluate('document.getElementById("simulation-home").hidden'), false);
+    await evaluate(`Promise.all(document.getAnimations().filter(animation => animation.effect.getTiming().iterations !== Infinity).map(animation => animation.finished))`);
+    const homeLayout = await evaluate(`(() => { const home = document.getElementById('simulation-home'); return { width: home.clientWidth, scrollWidth: home.scrollWidth, opacity: getComputedStyle(document.querySelector('.hex-constellation-container')).opacity }; })()`);
+    assert.ok(homeLayout.scrollWidth <= homeLayout.width + 1, 'Simulation home must not overflow horizontally');
+    assert.equal(homeLayout.opacity, '1', 'Capture the settled home, not its entrance animation');
+    const homeShot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    await fs.writeFile(path.join(out, `home-${name}.png`), Buffer.from(homeShot.data, 'base64'));
+    await click('open-data');
+    await wait('!document.getElementById("data-page").hidden');
     await click('data-sample'); await wait('!document.getElementById("data-prepare-panel").hidden');
     await click('data-prepare'); await click('data-run');
     await wait('Boolean(window.SimulatteDataWorkbench.getResult())');
@@ -86,7 +97,11 @@ try {
     report.cases.push({ name, layout, receipt, exported, edit: 'pass', replay: 'pass', reimport: 'pass', malformedRecovery: 'pass', cancellation: 'pass' });
     console.log(`${name}: import/edit/run/replay/export/reimport/recovery/cancellation passed`);
   }
-  await evaluate(`document.getElementById('workbench-profiles').open = true; document.querySelector('.tier-card[data-tier="city"]').click()`);
+  await evaluate(`location.hash = ''`);
+  await wait('!document.getElementById("simulation-home").hidden');
+  await evaluate(`document.querySelector('.tier-card[data-tier="city"]').focus()`);
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
   await wait('Boolean(window.SimulatteAutonomyApp)', 30000);
   await wait('document.getElementById("world-tiers-landing-page").classList.contains("hidden")', 30000);
   report.profileRuntime = { lazyLoaded: true, route: await evaluate('location.pathname') };

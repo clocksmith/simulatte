@@ -7,7 +7,7 @@ Execute governed profiles with deterministic controls, dynamics, safety, settlem
 
 ## Authority
 
-- Owns the root data-first workbench and selected profile lifecycle.
+- Owns the root hexagon chooser, optional data workbench, and selected profile lifecycle.
 - Owns explicit cross-plugin WorldSpec compositions, including the Earth and Virginia datacenter serial reference world.
 - Owns recursive spatial residency through content-addressed render payloads, atomic parent-child replacement, predictive prefetch, pinning, and eviction independent of simulation residency.
 - Does not own Create compilation or plugin-private logic.
