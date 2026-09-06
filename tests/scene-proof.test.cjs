@@ -447,7 +447,7 @@ test('every compiled scene carries a concrete Phase 6 pixel obligation', () => {
   assert.equal(phase8.verdict, 'pass');
 });
 
-test('scene proof selects realized exact compound geometry after generic support rows', () => {
+test('scene proof selects exact compound geometry while retaining unqualified action refusals', () => {
   const phase7 = renderedPhase7('warehouse robot arms sort parcels on conveyor belts');
   const realization = phase7.artifact.renderExecution.objectRealization;
   assert.ok(realization.rows.findIndex((row) => row.identityType === 'structure') <
@@ -465,5 +465,10 @@ test('scene proof selects realized exact compound geometry after generic support
   ));
   assert.equal(relation.status, 'preserved');
   assert.ok(relation.evidence.includes('visualObligationProof'));
-  assert.equal(proof.verdict, 'pass');
+  const upstreamRefused = phase7.artifact.compositionLedger.obligations.filter((row) => row.required && row.status === 'unsupported');
+  assert.ok(upstreamRefused.length > 0);
+  for (const refused of upstreamRefused) {
+    assert.equal(proof.settledObligations.find((row) => row.obligationId === refused.id).status, 'unsupported');
+  }
+  assert.equal(proof.verdict, 'fail');
 });

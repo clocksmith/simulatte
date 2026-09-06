@@ -125,7 +125,7 @@
   }
   function groundUniverseGraph(input = {}) {
     const promptParse = input.promptParse || {};
-    const spanRows = Array.isArray(promptParse.spans) ? promptParse.spans : [];
+    const spanRows = (promptParse.spans || []).filter((span) => span.negated !== true);
     const candidates = [];
     const nodes = [];
     const unresolved = [];

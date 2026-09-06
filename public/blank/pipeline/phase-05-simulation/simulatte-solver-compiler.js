@@ -73,7 +73,8 @@
     for (const entity of physicsIR.entities || []) {
       const entityId = String(entity.id || '');
       const interactionChannels = fields
-        .filter((field) => field.entityId === entityId && field.interactionWritable === true)
+        .filter((field) => field.entityId === entityId && field.interactionWritable === true &&
+          !steps.some((step) => ['free_fall', 'pendulum'].includes(step.operatorType) && step.outputs.includes(field.id)))
         .map((field) => field.id);
       if (!interactionChannels.some((id) => id.startsWith('position:'))) continue;
       const solver = registry.operatorFor ? registry.operatorFor('interaction_kinematics') : null;

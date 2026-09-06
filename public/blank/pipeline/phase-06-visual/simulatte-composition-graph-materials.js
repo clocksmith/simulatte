@@ -795,6 +795,8 @@
           },
           camera: {
             ...(context.camera || {}),
+            ...(packetEntities.some((entity) => entity.stateBindings?.simulationOperator)
+              ? { projection: 'orthographic', zoom: 1, tilt: 0 } : {}),
             coordinateSystem: 'normalized-canvas',
           },
           lights: scope.scenePacketLights(context.lighting, sceneKind),

@@ -233,7 +233,7 @@
     if (String(row.status || '') === 'unsupported') {
       return { ...base, status: 'unsupported', reason: 'carried unsupported status' };
     }
-    if (row.kind === 'visual') {
+    if (row.kind === 'visual' || row.simulationBinding) {
       const proof = context.visualProofByObligation.get(obligationId);
       if (carriedFailure) {
         return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };

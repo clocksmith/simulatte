@@ -1,22 +1,57 @@
-/* World presentation consumes the light monochrome tokens in themes/world.css. */
+/* World presentation consumes dark neomorphic glass and glitter tokens. */
 body.sim-app {
   font-size: 14px;
   line-height: 1.5;
   font-weight: 400;
+  color: var(--sim-ink);
 }
 
 .sim-app :is(h1, h2, h3, .experience-summary header strong, .evidence-heading strong, .scenario-label) {
   font-family: var(--sim-heading);
   font-weight: 600;
   letter-spacing: -0.015em;
+  color: var(--sim-ink);
 }
 
-.sim-app :is(.sim-surface, .sim-popover, .sim-segmented, .model-selection-panel, .model-selection-controls) {
+/* =========================================================================
+   Neomorphic Glass & Glitter Specular Elements
+   ========================================================================= */
+
+.sim-app :is(.sim-surface, .sim-popover, .sim-segmented, .model-selection-panel, .model-selection-controls, .sim-rail .rail-inner > *) {
   border-radius: var(--sim-radius);
   background: var(--sim-glass);
-  box-shadow: var(--sim-shadow);
+  box-shadow: var(--sim-shadow), var(--sim-shadow-inset);
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
+  border: 1px solid var(--sim-line);
 }
 
+/* Decorative surfaces defer placement to the owning dock, drawer, or popover. */
+:where(.sim-app :is(.sim-surface, .sim-popover, .sim-segmented, .model-selection-panel, .model-selection-controls, .sim-rail .rail-inner > *)) {
+  position: relative;
+}
+
+/* Glitter specular edge effect on cards and surfaces */
+.sim-app :is(.sim-surface, .runtime-anchor, .sim-action, .sim-segmented)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--sim-glitter-border);
+  -webkit-mask: linear-gradient(var(--sim-paint-hex-fff) 0 0) content-box, linear-gradient(var(--sim-paint-hex-fff) 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.55;
+  transition: opacity var(--sim-motion) var(--sim-ease);
+}
+
+.sim-app :is(.sim-surface, .runtime-anchor, .sim-action):hover::before {
+  opacity: 1;
+}
+
+/* Primitives & Action Buttons */
 .sim-app :is(.sim-action, .drawer-close, .sim-product-nav a, .sim-segmented > button, .sim-menu > button) {
   border-radius: var(--sim-radius-small);
   font-weight: 500;
@@ -24,39 +59,290 @@ body.sim-app {
 }
 
 .sim-app :is(.sim-action, .drawer-close) {
-  background: var(--sim-glass);
+  background: var(--sim-glass-soft);
   color: var(--sim-ink);
-  box-shadow: var(--sim-shadow-small);
+  box-shadow: var(--sim-shadow-small), var(--sim-shadow-inset);
+  border: 1px solid var(--sim-line);
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--sim-motion-fast) var(--sim-ease);
 }
 
 .sim-app :is(.sim-action, .drawer-close):hover:not(:disabled) {
-  background: var(--sim-highlight);
+  background: var(--sim-glass);
+  color: var(--sim-ink);
   border-color: var(--sim-line-strong);
+  box-shadow: var(--sim-shadow), 0 0 16px var(--sim-paint-rgba-0-245-160-0-25);
+  transform: translateY(-1px);
 }
-
-.sim-app .decisions-button { box-shadow: var(--sim-shadow); }
 
 .sim-app .sim-action:active:not(:disabled) {
-  box-shadow: var(--sim-shadow-inset);
+  box-shadow: inset 2px 2px 6px var(--sim-paint-rgba-0-0-0-0-7), inset -1px -1px 3px var(--sim-paint-rgba-255-255-255-0-1);
+  transform: translateY(1px);
 }
 
-.sim-app .sim-action-primary,
-.sim-app .sim-segmented > button.is-active {
-  color: var(--sim-on-accent);
-  border-color: var(--sim-accent);
-  background: var(--sim-accent);
-  box-shadow: none;
+/* Primary Action Button (e.g. Run distributed step) */
+.sim-app .sim-action-primary {
+  color: var(--sim-paint-hex-000000) !important;
+  border-color: var(--sim-paint-rgba-255-255-255-0-5) !important;
+  background: linear-gradient(135deg, var(--sim-paint-hex-00f5a0) 0%, var(--sim-paint-hex-00d4ff) 100%) !important;
+  box-shadow: 0 4px 20px var(--sim-paint-rgba-0-245-160-0-4), var(--sim-shadow-inset) !important;
+  font-weight: 700 !important;
 }
 
 .sim-app .sim-action-primary:hover:not(:disabled) {
-  color: var(--sim-on-accent);
-  background: var(--sim-ink-soft);
+  background: linear-gradient(135deg, var(--sim-paint-hex-20ffb0) 0%, var(--sim-paint-hex-33deff) 100%) !important;
+  box-shadow: 0 6px 28px var(--sim-paint-rgba-0-245-160-0-65), 0 0 20px var(--sim-paint-rgba-0-212-255-0-4), var(--sim-shadow-inset) !important;
+  transform: translateY(-2px);
+}
+
+/* Camera Segmented Mode Buttons */
+.sim-app .sim-segmented {
+  background: var(--sim-paint-rgba-10-14-20-0-7);
+  box-shadow: inset 0 2px 6px var(--sim-paint-rgba-0-0-0-0-6), 0 0 0 1px var(--sim-line);
+  padding: 3px;
+  border-radius: var(--sim-radius-small);
+  display: inline-flex;
+}
+
+.sim-app .sim-segmented > button {
+  color: var(--sim-ink-soft);
+  background: transparent;
+  border: 0;
+  transition: all var(--sim-motion-fast) var(--sim-ease);
+}
+
+.sim-app .sim-segmented > button.is-active {
+  color: var(--sim-paint-hex-000000) !important;
+  background: linear-gradient(135deg, var(--sim-paint-hex-00f5a0) 0%, var(--sim-paint-hex-00d4ff) 100%) !important;
+  box-shadow: 0 2px 10px var(--sim-paint-rgba-0-245-160-0-4) !important;
+  font-weight: 700;
+  border-radius: calc(var(--sim-radius-small) - 2px);
 }
 
 .sim-app .sim-segmented > button:hover:not(.is-active) {
   color: var(--sim-ink);
   background: var(--sim-glass-faint);
-  box-shadow: var(--sim-shadow-inset);
+}
+
+/* Status Pill with Jewel LED Glow */
+.sim-app .status-pill {
+  background: var(--sim-glass);
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
+  border: 1px solid var(--sim-line);
+  box-shadow: var(--sim-shadow-small), var(--sim-shadow-inset);
+  color: var(--sim-ink);
+}
+
+.sim-app .status-pill:has(.runtime-status) .status-dot {
+  background: var(--sim-accent);
+  box-shadow: 0 0 8px var(--sim-accent), 0 0 16px var(--sim-accent-glow);
+  border-radius: 50%;
+}
+
+@keyframes jewel-pulse {
+  0% { transform: scale(0.92); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 12px var(--sim-accent), 0 0 24px var(--sim-accent-glow); }
+  100% { transform: scale(0.92); opacity: 0.8; }
+}
+
+.sim-app .status-pill:has([data-kind="ready"], [data-kind="online"]) .status-dot {
+  animation: jewel-pulse 3s infinite ease-in-out;
+}
+
+.sim-app .status-pill:has([data-kind="error"], [data-kind="failed"]) {
+  border: 2px dashed var(--sim-red);
+}
+
+/* Profile / Tier Selectors */
+.sim-app .profile-selector .select-trigger {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sim-ink);
+  text-shadow: none;
+}
+.sim-app .profile-selector .select-trigger:focus-visible { outline: 2px solid var(--sim-accent); outline-offset: 3px; }
+.sim-app .profile-selector .select-option { color: var(--sim-ink-soft); }
+.sim-app .profile-selector .select-option:is(:hover, .selected, :focus-visible) {
+  color: var(--sim-ink);
+  background: var(--sim-glass-faint);
+}
+
+/* =========================================================================
+   Symmetrical Dual-Rail Layout & Collapsible Decks
+   ========================================================================= */
+
+.sim-app .sim-rail {
+  position: fixed;
+  top: 20px;
+  z-index: 20;
+  width: 330px;
+  max-width: calc(100vw - 40px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+  transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease;
+}
+
+.sim-app .sim-rail .rail-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.sim-app .sim-rail .rail-inner > * {
+  pointer-events: auto;
+}
+
+/* Left Rail Deck */
+.sim-app .sim-rail-left {
+  left: 20px;
+}
+
+.sim-app .sim-rail-left .runtime-anchor {
+  position: relative;
+  top: auto;
+  left: auto;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sim-app .sim-rail-left[data-collapsed="true"] {
+  transform: translateX(calc(-100% - 20px));
+}
+
+/* Right Rail Deck */
+.sim-app .sim-rail-right {
+  right: 20px;
+}
+
+.sim-app .sim-rail-right .camera-controls {
+  position: relative;
+  top: auto;
+  right: auto;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.sim-app .sim-rail-right .experience-summary {
+  position: relative;
+  top: auto;
+  right: auto;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.sim-app .sim-rail-right .rail-controls-action {
+  display: flex;
+  width: 100%;
+}
+
+.sim-app .sim-rail-right .decisions-button {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  width: 100%;
+  padding: 10px 14px;
+  justify-content: center;
+}
+
+.sim-app .sim-rail-right[data-collapsed="true"] {
+  transform: translateX(calc(100% + 20px));
+}
+
+/* Collapse Toggle Buttons (Sleek Neomorphic Tabs) */
+.sim-app .rail-collapse-toggle {
+  position: absolute;
+  top: 10px;
+  width: 28px;
+  height: 38px;
+  pointer-events: auto;
+  background: var(--sim-glass);
+  border: 1px solid var(--sim-line);
+  color: var(--sim-ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 25;
+  box-shadow: var(--sim-shadow-small);
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
+  transition: all var(--sim-motion-fast) var(--sim-ease);
+}
+
+.sim-app .sim-rail-left .rail-collapse-toggle {
+  right: -28px;
+  border-radius: 0 var(--sim-radius-small) var(--sim-radius-small) 0;
+  border-left: 0;
+}
+
+.sim-app .sim-rail-right .rail-collapse-toggle {
+  left: -28px;
+  border-radius: var(--sim-radius-small) 0 0 var(--sim-radius-small);
+  border-right: 0;
+}
+
+.sim-app .rail-collapse-toggle:hover {
+  color: var(--sim-accent);
+  background: var(--sim-glass-soft);
+  box-shadow: 0 0 12px var(--sim-paint-rgba-0-245-160-0-35);
+}
+
+.sim-app .toggle-glyph {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Centered Symmetrical Bottom Dock */
+.sim-app .mission-dock {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: min(860px, calc(100vw - 40px));
+  z-index: 18;
+  transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease;
+  box-sizing: border-box;
+}
+
+.sim-app .dock-collapse-toggle {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 24px;
+  background: var(--sim-glass);
+  border: 1px solid var(--sim-line);
+  border-bottom: 0;
+  border-radius: var(--sim-radius-small) var(--sim-radius-small) 0 0;
+  color: var(--sim-ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
+  box-shadow: 0 -4px 12px var(--sim-paint-rgba-0-0-0-0-3);
+  transition: all var(--sim-motion-fast) var(--sim-ease);
+}
+
+.sim-app .dock-collapse-toggle:hover {
+  color: var(--sim-accent);
+  background: var(--sim-glass-soft);
+}
+
+.sim-app .mission-dock[data-collapsed="true"] {
+  transform: translate(-50%, calc(100% - 10px));
 }
 
 .sim-app :is(input, select, textarea) {
@@ -77,9 +363,9 @@ body.sim-app {
   line-height: 1.5;
 }
 
-.sim-app .experience-summary header strong { font-size: 20px; }
-.sim-app .evidence-heading strong { font-size: 22px; }
-.sim-app .scenario-label { font-size: 17px; }
+.sim-app .experience-summary header strong { font-size: 18px; }
+.sim-app .evidence-heading strong { font-size: 20px; }
+.sim-app .scenario-label { font-size: 16px; }
 .sim-app .experience-summary dl > div { font: 400 12px/1.5 var(--sim-font); }
 .sim-app .experience-summary dd { font-weight: 500; font-variant-numeric: tabular-nums; }
 .sim-app :is(.playback-event, .playback-progress, .scenario-seed) { font-family: var(--sim-font); }
@@ -89,29 +375,20 @@ body.sim-app {
   color: var(--sim-ink);
   background: var(--sim-glass);
   border-color: var(--sim-line);
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
 }
 
 .sim-app .runtime-anchor {
-  padding: 8px;
+  padding: 10px;
   border: 1px solid var(--sim-line);
   border-radius: var(--sim-radius);
   background: var(--sim-glass);
   box-shadow: var(--sim-shadow);
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
 }
 
-.sim-app .profile-selector .select-trigger {
-  font-size: 14px;
-  font-weight: 500;
-  text-shadow: none;
-}
-.sim-app .profile-selector .select-trigger:focus-visible { outline: 2px solid var(--sim-accent); outline-offset: 3px; }
-.sim-app .profile-selector .select-option { color: var(--sim-ink-soft); }
-.sim-app .profile-selector .select-option:is(:hover, .selected, :focus-visible) {
-  color: var(--sim-ink);
-  background: var(--sim-glass-faint);
-}
-.sim-app .status-pill:has(.runtime-status) .status-dot { background: var(--sim-ink); box-shadow: none; border-radius: 2px; }
-.sim-app .status-pill:has([data-kind="error"], [data-kind="failed"]) { border: 2px dashed var(--sim-ink); }
 .sim-app .loading-status { color: var(--sim-ink-soft); font-family: var(--sim-font); letter-spacing: 0.04em; }
 .sim-app .loading-progress { background: var(--sim-line); }
 .sim-app .evidence-panel { scrollbar-color: var(--sim-line-strong) var(--sim-paper); }

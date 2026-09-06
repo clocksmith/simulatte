@@ -307,7 +307,7 @@
 
     function negativeEvidenceTargets(negativeEvidence = []) {
         return uniqueById((negativeEvidence || [])
-          .filter((row) => row.kind === 'negated-entry')
+          .filter((row) => row.kind === 'negated-entry' && !row.negationScope?.properties?.length)
           .map((row) => ({
             id: row.entryId || '',
             label: row.label || row.text || '',

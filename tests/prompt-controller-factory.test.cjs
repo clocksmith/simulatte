@@ -115,6 +115,7 @@ test('compiler proof coordinator performs a separate compile and rejects stale r
 
 test('prompt controller browser layers publish the API in manifest order', () => {
   const context = vm.createContext({
+    SimulattePhaseContracts: require('../public/blank/pipeline/simulatte-phase-contracts.js'),
     SimulattePromptControllerSupport: require(path.join(promptDir, 'prompt-controller-dependencies.js')),
     SimulatteConstructionSearch: require(path.join(promptDir, 'prompt-controller-construction-search.js')),
     SimulattePromptControllerRuntime: require(path.join(promptDir, 'prompt-controller-runtime.js')),

@@ -1618,7 +1618,10 @@ test('particle instrument VisualIR preserves causal affordance rows', () => {
   assert.ok(visualIR.geometry.some((row) => (row.evidence || []).some((item) => item.startsWith('causal-affordance:'))));
   assert.ok(visualIR.sceneRenderPacket.effects.some((row) => row.layerSlot === 'causal-affordance'));
   const requiredObligations = visualCompile.compositionLedger.obligations.filter((row) => row.required);
-  assert.deepEqual(requiredObligations.filter((row) => row.status !== 'preserved'), []);
+  const rejected = spec.phaseArtifacts.phase3.artifact.compositionLedger.obligations
+    .filter((row) => row.required && row.status === 'unsupported');
+  assert.deepEqual(rejected.map((row) => row.id), ['action:heat', 'action:impact', 'action:heat-transfer']);
+  assert.deepEqual(requiredObligations.filter((row) => row.status !== 'preserved'), rejected);
   const sourceLabels = visualCompile.sceneRenderPacket.entities.map((row) => row.identity.sourceLabel);
   for (const label of ['particle collider', 'muon tracks', 'detector slice', 'calorimeter']) {
     assert.ok(sourceLabels.some((value) => value.includes(label)), `missing scene identity for ${label}`);
@@ -1650,7 +1653,10 @@ test('Phase 4 reserves bounded grounding evidence for prompt-owned typed identit
   ]) {
     assert.ok(canonicalIds.has(id), `missing bounded grounding identity ${id}`);
   }
-  assert.deepEqual(requiredObligations.filter((row) => row.status !== 'preserved'), []);
+  const rejected = spec.phaseArtifacts.phase3.artifact.compositionLedger.obligations
+    .filter((row) => row.required && row.status === 'unsupported');
+  assert.deepEqual(rejected.map((row) => row.id), ['action:heat', 'action:impact', 'action:heat-transfer']);
+  assert.deepEqual(requiredObligations.filter((row) => row.status !== 'preserved'), rejected);
 });
 
 test('Phase 4 exact construction evidence outranks unrelated reranker confidence', () => {
@@ -3493,7 +3499,7 @@ test('solver integrator contracts are explicit, validated, and carried into comp
   const registry = solverRegistry.createSolverRegistry();
   const operators = Object.values(registry.operators);
 
-  assert.equal(operators.length, 24);
+  assert.equal(operators.length, 26);
   assert.equal(registry.operatorFor('interaction_kinematics').id, 'interaction-kinematics');
   assert.ok(operators.every((row) => solverRegistry.validateIntegrator(row.integrator)));
   assert.ok(operators.some((row) => row.integrator.scheme === 'semi_implicit_euler_v1'));

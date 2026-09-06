@@ -791,6 +791,7 @@
           semanticClass: slot.semanticClass || '',
           visualArchetype: slot.visualArchetype || '',
           shapeHints: slot.shapeHints || [],
+          operatorTypes: slot.operatorTypes || [],
           source: role === 'action' && slot.localEvidenceReason || 'prompt-typed-slot',
           score: 1,
           supportOnly: role === 'concept' || role === 'action' && slot.modelEvidenceRequired === true,

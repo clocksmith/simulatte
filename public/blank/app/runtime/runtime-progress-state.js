@@ -2,10 +2,12 @@
   const support = typeof module === 'object' && module.exports
     ? require('./runtime-progress-support.js')
     : root.SimulatteRuntimeProgressSupport;
-  const api = factory(support);
+  const contracts = typeof module === 'object' && module.exports
+    ? require('../../pipeline/simulatte-phase-contracts.js') : root.SimulattePhaseContracts;
+  const api = factory(support, contracts);
   root.SimulatteRuntimeProgressState = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createRuntimeProgressState(support) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createRuntimeProgressState(support, contracts) {
   if (!support) {
     throw new Error('SimulatteRuntimeProgressState requires runtime-progress-support.js to load first.');
   }
@@ -42,7 +44,7 @@
   } = support;
 
   function phaseRule(step, id, label, weight, stagePrefixes) {
-    return Object.freeze({ step, id, label, weight, stagePrefixes });
+    return Object.freeze({ step, id, label: contracts.PHASE_LABELS[step - 1], weight, stagePrefixes });
   }
 
   function stageAlias(match, id, label) {
@@ -70,37 +72,38 @@
       'start',
     ]),
     phaseRule(2, 'language-graph', 'Language graph', 5, ['language.', 'parse']),
-    phaseRule(3, 'retrieval', 'Embedding retrieval', 20, [
+    phaseRule(3, 'retrieval', 'Retrieval', 28, [
       'retrieval.',
       'embed',
       'prompt-embed',
       'rank',
-    ]),
-    phaseRule(4, 'activation-cloud', 'Activation cloud', 8, [
+      'slot-',
       'activation.',
       'span-',
     ]),
-    phaseRule(5, 'grounded-intent', 'Grounded intent', 10, [
+    phaseRule(4, 'grounded-intent', 'Grounding', 10, [
       'grounding.',
       'classification',
       'intent',
     ]),
-    phaseRule(6, 'simulation-compile', 'Simulation compile', 10, [
+    phaseRule(5, 'simulation-compile', 'Simulation', 10, [
       'simulation.',
       'compile',
     ]),
-    phaseRule(7, 'visual-ir', 'VisualIR compile', 10, ['visual.']),
-    phaseRule(8, 'webgpu-ready', 'WebGPU ready', 7, [
+    phaseRule(6, 'visual-ir', 'Visuals', 10, ['visual.', 'construction-search']),
+    phaseRule(7, 'render', 'Render', 4, [
       'render.',
       'ready',
       'blank',
     ]),
+    phaseRule(8, 'scene-proof', 'Proof', 3, ['construction-proof', 'scene-proof', 'compiler-proof']),
   ]);
 
   const PHASE_OFFSETS = Object.freeze(phaseOffsets(RUNTIME_PHASES));
 
   const STAGE_ALIASES = Object.freeze([
-    stageAlias(/error/, 'error', 'Runtime error'),
+    stageAlias(/construction-proof|scene-proof|compiler-proof/, 'scene-proof', 'Checking Scene Proof'),
+    stageAlias(/^error$/, 'error', 'Runtime error'),
     stageAlias(/blank/, 'render.blank', 'Ready'),
     stageAlias(/runtime-ready|runtime-reuse/, 'runtime.ready', 'Prompt runtime ready'),
     stageAlias(/manifest-fetch|manifest/, 'runtime.manifest.fetch', 'Loading intent manifest'),
@@ -360,16 +363,17 @@
   }
 
   function canonicalStage(event = {}) {
-    if (event.state === 'error') return 'error';
     const raw = String(event.stage || event.phase || DEFAULT_STAGE).toLowerCase();
     const match = STAGE_ALIASES.find((alias) => alias.match.test(raw));
     return match ? match.id : raw.replace(/[^a-z0-9.:-]+/g, '-');
   }
 
   function phaseForStage(stage, event = {}) {
-    if (event.state === 'error' || stage === 'error') {
-      return { step: 0, id: 'error', label: 'Runtime error', weight: 0 };
-    }
+    const explicit = Number(event.phaseStep);
+    if (Number.isInteger(explicit) && explicit >= 1 && explicit <= 8) return RUNTIME_PHASES[explicit - 1];
+    const numbered = String(stage).match(/^phase-?([1-8])(?:\D|$)/);
+    if (numbered) return RUNTIME_PHASES[Number(numbered[1]) - 1];
+    if (stage === 'error') return { step: 0, id: 'error', label: 'Runtime error', weight: 0 };
     const match = RUNTIME_PHASES.find((phase) => (
       phase.stagePrefixes.some((prefix) => stage === prefix || stage.startsWith(prefix))
     ));

@@ -35,9 +35,20 @@
     const latestCompletedSample = samples.at(-1) || null;
     const activeSample = latestCompletedSample || selected.samples[0];
     const exposureStatus = exposureSummaryApi.summarize(snapshot.state, latestCompletedSample);
-    const buildingRows = [...new Set(selected.samples.map((row) => row.occluderId).filter(Boolean))]
-      .filter((id) => selected.samples.some((row) => row.occluderId === id && row.occluderKind === 'building'))
-      .map((id) => builder.rowRecord(buildings, id, {}));
+    const corridorIds = corridorBuildingIds(world, selected.samples, 220);
+    const candidateBuildingIds = [
+      ...selected.samples.filter((row) => row.occluderKind === 'building').map((row) => row.occluderId),
+      ...corridorIds,
+    ];
+    const shadowAreas = shadowGeometry.projectedEvidenceShadows(
+      world,
+      candidateBuildingIds,
+      activeSample?.solarPosition,
+    );
+    const buildingRows = [...new Set([
+      ...selected.samples.map((row) => row.occluderId),
+      ...shadowAreas.map((row) => row.sourceBuildingId),
+    ].filter(Boolean))].map((id) => builder.rowRecord(buildings, id, {}));
     const canopyRows = [...new Set(samples
       .filter((row) => row.occluderKind === 'tree-canopy')
       .map((row) => row.environment.canopy.sourceRowId))]
@@ -52,11 +63,6 @@
       uncertainty: simulation.modelReceipt.uncertainty,
       records: [model],
     });
-    const shadowAreas = shadowGeometry.projectedEvidenceShadows(
-      world,
-      selected.samples.filter((row) => row.occluderKind === 'building').map((row) => row.occluderId),
-      activeSample?.solarPosition,
-    );
     const layers = [
       routeLayer('shade-selected-route', 'Shade-selected route', selected, 'route.shade-selected', 'primary', 1, claim),
       ...(fastest.id === selected.id
@@ -89,7 +95,7 @@
       ...[activeSample].filter(Boolean).map((sample) => builder.layer({
         id: 'sun-walker-actor',
         kind: 'actor',
-        label: `Walker · ${exposureStatus.current.geometricLabel} · ${sample.timestamp.slice(11, 16)} UTC`,
+        label: `Walker · ${exposureStatus.current.geometricLabel} · ${sample.sidewalk ? (sample.sidewalk === 'left' ? 'Left sidewalk · ' : 'Right sidewalk · ') : ''}${sample.timestamp.slice(11, 16)} UTC`,
         geometry: builder.geometry('point', 'city-local-m', [[sample.point.x, sample.point.y, 0]]),
         quantity: builder.quantity('actor.pedestrian.route-progress', snapshot.state.progress, 'ratio', [0, 1]),
         role: 'event',
@@ -211,6 +217,7 @@
           field('canopy-shade', 'Canopy shade so far', snapshot.state.canopyShadeSeconds, 'seconds', claim),
           field('unknown', 'Unknown exposure so far', snapshot.state.unknownSeconds, 'seconds', claim),
           field('night', 'Night exposure so far', snapshot.state.nightSeconds, 'seconds', claim),
+          field('sidewalk-side', 'Sidewalk curb', activeSample?.sidewalk === 'left' ? 'Left sidewalk (shaded curb)' : activeSample?.sidewalk === 'right' ? 'Right sidewalk (shaded curb)' : 'Street centerline', null, claim),
           field('shadow-display', 'Shadow display', exposureStatus.shadowDisplay, null, claim),
           field('shadow-calculation', 'Calculation', exposureStatus.shadowCalculation, null, claim),
           field('environment', 'Environmental evidence', 'Historical 2015 trees + pinned 2024 Central Park analog', null, claim),
@@ -284,6 +291,30 @@
       directSunWeight: { minimum: 0, maximum: 100, step: 0.1 },
       walkingSpeedMps: { minimum: 0.1, maximum: 3, step: 0.1 },
     }[id] || { minimum: null, maximum: null, step: null };
+  }
+
+  function corridorBuildingIds(world, samples, bufferM = 220) {
+    if (!samples?.length || !world?.renderGeometry?.buildings) return [];
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    samples.forEach((s) => {
+      minX = Math.min(minX, s.point.x);
+      maxX = Math.max(maxX, s.point.x);
+      minY = Math.min(minY, s.point.y);
+      maxY = Math.max(maxY, s.point.y);
+    });
+    minX -= bufferM;
+    maxX += bufferM;
+    minY -= bufferM;
+    maxY += bufferM;
+    return world.renderGeometry.buildings
+      .filter((b) => {
+        const c = b.centroid || b.footprint?.[0];
+        return c && c.x >= minX && c.x <= maxX && c.y >= minY && c.y <= maxY;
+      })
+      .map((b) => b.id);
   }
 
   function walkerNavigationMode(step, settled = false) {

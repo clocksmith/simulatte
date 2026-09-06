@@ -18,6 +18,13 @@
   ]);
 
   const ENTITY_PHRASES = Object.freeze([
+    ...['ball', 'balls', 'sphere', 'spheres', 'marble', 'marbles'].map((text) => [text, 'entity', {
+      entityClass: text.replace(/s$/, ''), semanticRole: 'rigid-body', visualArchetype: 'ball', domains: ['rigidBody'],
+    }]),
+    ...['pendulum', 'pendulums'].map((text) => [text, 'entity', {
+      entityClass: 'pendulum', semanticRole: 'constrained-body', visualArchetype: 'pendulum', localGeometryGrammarId: 'object-grammar.pendulum', domains: ['rigidBody', 'constraint'],
+    }]),
+    ['gravity', 'observable', { semanticRole: 'acceleration-field', entityClass: 'gravity', domains: ['field', 'gravity'] }],
     ['sunset', 'environment', {
       entityClass: 'sunset',
       semanticRole: 'lighting-environment',
@@ -424,7 +431,7 @@
   const PROCESS_PHRASES = Object.freeze([
     'gel diffusion', 'pressure waves', 'pressure wave', 'diffusion',
     'spins', 'spin', 'rotates', 'rotate', 'melts', 'melt', 'hits', 'hit',
-    'impacts', 'impact', 'burns', 'burn', 'ignites', 'ignite', 'igniting', 'flows', 'flow', 'falls', 'fall',
+    'impacts', 'impact', 'burns', 'burn', 'ignites', 'ignite', 'igniting', 'flows', 'flow', 'flowing', 'falls', 'fall', 'falling', 'swings', 'swing', 'swinging',
     'collides', 'collide', 'fractures', 'fracture', 'cracks', 'crack',
     'pushes', 'push', 'drives', 'drive', 'heats', 'heat', 'cools', 'cool',
     'diffuses', 'diffuse', 'oscillates', 'oscillate', 'trades', 'trade',
@@ -492,6 +499,8 @@
   // second, unsynchronized keyword taxonomy downstream.
   const BEHAVIOR_PROCESS_LEXICON = Object.freeze([
     { process: 'spatial_constraint', phrases: ['rest', 'rests', 'resting'] },
+    { process: 'falling', operatorTypes: ['free_fall'], phrases: ['fall', 'falls', 'falling'] },
+    { process: 'swinging', operatorTypes: ['pendulum'], phrases: ['swing', 'swings', 'swinging'] },
     { process: 'swimming', phrases: ['swim', 'swimming'] },
     { process: 'rotate', phrases: ['spin', 'spins', 'rotate', 'rotates', 'rotation', 'twist', 'twists', 'torque'] },
     { process: 'impact', phrases: ['hit', 'hits', 'impact', 'collision', 'collide', 'crash', 'crashes', 'crashing', 'fracture', 'fracturing', 'crack', 'jump', 'jumps', 'bounce', 'calve', 'calves', 'calving'] },

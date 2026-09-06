@@ -110,6 +110,7 @@
     }
     let highlightedPartCount = 0;
     let movedPartCount = 0;
+    const simulatedEntityIds = new Set();
     (parts || []).slice(0, scope.GPU_OBJECT_PART_CAPACITY).forEach((part, index) => {
       const entity = entities.get(part.entityId) || null;
       const targetId = entity && entity.collider && entity.collider.targetId || '';
@@ -133,6 +134,20 @@
         vector[offset + 1] = scope.clamp01(Number(baseData[offset + 1] || 0.5) + Number(visualPosition[1]) - sourceCenter[1]);
         movedPartCount += 1;
       }
+      const binding = entity.stateBindings || {};
+      if (binding.simulationOperator) {
+        const channels = simulationState.solverState?.channels || {};
+        const theta = Number(channels[binding.rotation] || 0);
+        if (binding.simulationType === 'pendulum') {
+          const center = entity.transform?.position || [0.5, 0.5];
+          const x = vector[offset] - center[0], y = vector[offset + 1] - center[1];
+          vector[offset] = center[0] + x * Math.cos(theta) - y * Math.sin(theta);
+          vector[offset + 1] = center[1] + x * Math.sin(theta) + y * Math.cos(theta);
+          vector[offset + 4] = Number(baseData[offset + 4] || 0) - theta;
+          movedPartCount += 1;
+        }
+        simulatedEntityIds.add(entity.id);
+      }
       const selected = interaction.selectedTargetId === targetId ? 1 : 0;
       const hovered = interaction.hoveredTargetId === targetId ? 1 : 0;
       const active = interaction.grabbedTargetId === targetId || interaction.activeTargetId === targetId ? 1 : 0;
@@ -153,6 +168,9 @@
         activeTargetId: interaction.grabbedTargetId || interaction.activeTargetId || '',
         highlightedPartCount,
         movedPartCount,
+        simulatedEntityIds: [...simulatedEntityIds],
+        solverFrame: Number(simulationState.solverState?.frame || 0),
+        executedOperatorIds: simulationState.solverState?.executionReceipt?.executedOperatorIds || [],
         consumed: highlightedPartCount > 0 || movedPartCount > 0,
       },
     };
@@ -167,6 +185,10 @@
     const currentPosition = current && typeof current === 'object'
       ? [Number(current.x), Number(current.y)]
       : null;
+    const projection = mapping.positionProjection;
+    if (currentPosition && projection?.space === 'normalized-solver-to-canvas') {
+      return currentPosition.map((value, axis) => value * projection.scale[axis] + projection.offset[axis]);
+    }
     const visual = interaction.visualPositions && interaction.visualPositions[mapping.targetId];
     const baseline = interaction.visualChannelBaselines &&
       interaction.visualChannelBaselines[mapping.targetId];

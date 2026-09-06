@@ -125,6 +125,7 @@
       polarity: entry.negated === true ? 'forbidden' : 'required',
       sourceSpanIds: entry.sourceSpanIds,
       targetIds: [entry.id],
+      ...(entry.negationScope?.properties?.length ? { predicate: 'qualified-absence', value: entry.negationScope } : {}),
     });
   }
 
@@ -132,7 +133,7 @@
     const spans = new Map((languageGraph.spans || []).map((row) => [row.id, row]));
     const attributes = sceneLanguageGraph.attributes || [];
     const relationModifierSpanIds = new Set((sceneLanguageGraph.relations || [])
-      .flatMap((relation) => modifierSpanIdsForRelation(languageGraph, relation)));
+      .flatMap((relation) => [...modifierSpanIdsForRelation(languageGraph, relation), ...(relation.sourceSpanIds || [])]));
     const boundAttributeSpans = new Set();
     const requirements = (languageGraph.modifiers || []).flatMap((row) => {
       const modifier = spans.get(row.modifierSpanId) || {};
@@ -594,7 +595,22 @@
     if (!row.id || !row.label || typeof row.critical !== 'boolean' || !['required', 'forbidden'].includes(row.polarity)) throw new IntentProofError('Invalid intent requirement identity', path);
     requireStringArray(row.sourceSpanIds, `${path}.sourceSpanIds`, true);
     requireStringArray(row.targetIds, `${path}.targetIds`);
-    if (!['string', 'number'].includes(typeof row.value) && row.value !== null) throw new IntentProofError('Requirement value must be string, number, or null', `${path}.value`);
+    if (row.predicate === 'qualified-absence') {
+      requireObject(row.value, `${path}.value`);
+      requireExactKeys(row.value, ['targetEntryId', 'targetIdentity', 'properties'], `${path}.value`);
+      if (row.polarity !== 'forbidden' || typeof row.value.targetEntryId !== 'string' ||
+          typeof row.value.targetIdentity !== 'string' || !Array.isArray(row.value.properties) ||
+          !row.value.properties.length || row.value.properties.length > 16) {
+        throw new IntentProofError('Invalid qualified absence', `${path}.value`);
+      }
+      for (const property of row.value.properties) {
+        requireExactKeys(property, ['kind', 'value', 'sourceSpanIds'], `${path}.value.properties`);
+        if (!['color', 'material', 'articulation'].includes(property.kind) || typeof property.value !== 'string') {
+          throw new IntentProofError('Invalid absence property', `${path}.value.properties`);
+        }
+        requireStringArray(property.sourceSpanIds, `${path}.value.properties.sourceSpanIds`, true);
+      }
+    } else if (!['string', 'number'].includes(typeof row.value) && row.value !== null) throw new IntentProofError('Requirement value must be string, number, or null', `${path}.value`);
     if (typeof row.value === 'number' && !Number.isFinite(row.value)) throw new IntentProofError('Requirement number must be finite', `${path}.value`);
     if (typeof row.unit !== 'string' || typeof row.predicate !== 'string') throw new IntentProofError('Requirement unit and predicate must be strings', path);
   }

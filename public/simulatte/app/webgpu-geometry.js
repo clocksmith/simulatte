@@ -11,6 +11,7 @@
   const PLUGIN_TRANSITION_SECONDS = 0.72;
   const PATH_METRICS_CACHE = new WeakMap();
   const TRIANGULATION_CACHE = new WeakMap();
+  const LAST_ACTOR_HEADING = new Map();
   const DEFAULT_MATERIAL = Object.freeze([0.02, 0.78]);
   const OVERVIEW_BUILDING_CELL_SIZE_M = 42;
   const OVERVIEW_BUILDING_CELL_GUTTER_M = 0.12;
@@ -76,6 +77,7 @@
       addRibbon(writer, park.outerRing, 3.2, 0.24, COLORS.parkPerimeter, 0.9);
     }
     for (const street of world.renderGeometry.streets) {
+      addRibbon(writer, street.geometry, street.widthM + 3.6, SURFACE_LAYERS.street - 0.015, [0.19, 0.23, 0.27, 1], 0.02);
       addRibbon(writer, street.geometry, street.widthM, SURFACE_LAYERS.street, isMajorStreet(street.highway) ? COLORS.roadMajor : COLORS.road, 0.03);
     }
     for (const facility of world.renderGeometry.bikeFacilities) {
@@ -98,7 +100,7 @@
     const writer = reusableWriter || createWriter();
     writer.reset();
     const routeIds = snapshot.route?.segmentIds || [];
-    routeIds.forEach((id) => addRibbon(writer, worldModel.segment(id).geometry, 9, 0.68, COLORS.route, 1.35));
+    routeIds.forEach((id) => addRibbon(writer, worldModel.segment(id).geometry, 8, 0.68, COLORS.route, 0.42));
     if (tracePositions.length > 1) addRibbon(writer, tracePositions, 7, 0.86, COLORS.trace, 1.25);
     worldModel.blockedSegmentIds(snapshot.state.tick).forEach((id) => addRibbon(writer, worldModel.segment(id).geometry, 4.5, 0.72, COLORS.blocked, 1.2));
     if (snapshot.state.taskType === 'delivery') {
@@ -195,7 +197,7 @@
         }
       }
     });
-    scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), row.intensity));
+    scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), Math.min(0.45, row.intensity || 0.45)));
     scene.markers.forEach((row) => {
       if (row.semanticKind === 'person-residences') {
         addTinyNode(writer, row.point, semanticColor(row), row.radiusM, row.intensity);
@@ -207,7 +209,7 @@
     // presentation compiler, so they draw with the same beacon/ribbon/polygon builders.
     (scene.choropleths || []).forEach((row) => addFlatPolygon(writer, row.points, 3, semanticColor(row, 'fill'), row.intensity));
     (scene.geoAreas || []).forEach((row) => addFlatPolygon(writer, row.points, row.heightM, semanticColor(row, 'fill'), row.intensity));
-    (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), row.intensity));
+    (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), Math.min(0.45, row.intensity || 0.45)));
     (scene.geoMarkers || []).forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
     if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
   }
@@ -275,7 +277,18 @@
       const pose = transitionFrom && row.points.length === 1
         ? poseBetweenPoints(transitionFrom, row.points[0], Math.min(1, elapsedSeconds / PLUGIN_TRANSITION_SECONDS))
         : poseAlongPath(row.points, row.phaseOffsetM + elapsedSeconds * visualSpeedMps);
-      if (row.kind === 'pedestrian' && row.isSelected) addBeacon(writer, pose.point, semanticColor(row), 0.4, 2.4, 1.2);
+      let heading = pose.heading;
+      if (Math.abs(heading) < 1e-4 && LAST_ACTOR_HEADING.has(row.id)) {
+        heading = LAST_ACTOR_HEADING.get(row.id);
+      } else if (Math.abs(heading) >= 1e-4) {
+        LAST_ACTOR_HEADING.set(row.id, heading);
+      } else if (row.points.length === 1 && scene.paths?.length > 0) {
+        const tangent = approximateHeadingFromPaths(scene.paths, pose.point);
+        if (tangent !== null) {
+          heading = tangent;
+          LAST_ACTOR_HEADING.set(row.id, heading);
+        }
+      }
       if (row.kind !== 'pedestrian') {
         addBeacon(writer, pose.point, semanticColor(row), row.isSelected ? 12 : 5, row.isSelected ? 3.2 : 1.8, row.isSelected ? 1.2 : 0.72);
       }
@@ -283,11 +296,32 @@
       actorGeometry.addActor(writer, {
         kind: row.kind,
         point: pose.point,
-        heading: pose.heading,
+        heading,
         motionPhase: elapsedSeconds * 3.2 + index * 1.7,
         isPrimary: row.isSelected,
       });
     });
+  }
+
+  function approximateHeadingFromPaths(paths, point) {
+    if (!paths || !paths.length || !point) return null;
+    let closestDistance = Infinity;
+    let bestHeading = null;
+    for (const row of paths) {
+      const points = row.points || [];
+      for (let i = 1; i < points.length; i += 1) {
+        const p0 = points[i - 1];
+        const p1 = points[i];
+        const midX = (p0.x + p1.x) / 2;
+        const midY = (p0.y + p1.y) / 2;
+        const dist = Math.hypot(point.x - midX, point.y - midY);
+        if (dist < closestDistance) {
+          closestDistance = dist;
+          bestHeading = Math.atan2(p1.y - p0.y, p1.x - p0.x);
+        }
+      }
+    }
+    return closestDistance < 60 ? bestHeading : null;
   }
 
   function poseAlongPath(points, distanceM) {
@@ -459,15 +493,14 @@
     const height = Number.isFinite(building.heightM) ? Math.max(3, building.heightM) : 3;
     const roofColor = buildingColor(height, true);
     const sideColor = buildingColor(height, false);
-    if (detail === 'overview') {
-      // At city scale the roof silhouette carries the useful signal. Omitting
-      // parcel walls removes the hidden-face overdraw that otherwise dominates
-      // the overview pass; POV remains full-fidelity below.
-      addFlatPolygon(writer, points, height, roofColor, 0.05);
-      return;
-    }
+    const outlineColor = [
+      Math.min(1, roofColor[0] * 1.35 + 0.1),
+      Math.min(1, roofColor[1] * 1.35 + 0.1),
+      Math.min(1, roofColor[2] * 1.35 + 0.12),
+      1,
+    ];
     const vertices = points.map((point) => [point.x, height, -point.y]);
-    triangulate(points).forEach(([a, b, c]) => writer.triangle(vertices[a], vertices[b], vertices[c], [0, 1, 0], roofColor, 0.05));
+    triangulate(points).forEach(([a, b, c]) => writer.triangle(vertices[a], vertices[b], vertices[c], [0, 1, 0], roofColor, 0.04));
     for (let index = 0; index < points.length; index += 1) {
       const next = (index + 1) % points.length;
       const a = [points[index].x, 0.12, -points[index].y];
@@ -478,6 +511,7 @@
       writer.triangle(a, b, c, normal, sideColor, 0.02);
       writer.triangle(a, c, d, normal, sideColor, 0.02);
     }
+    addRibbon(writer, [...points, points[0]], detail === 'overview' ? 1.5 : 0.85, height + 0.03, outlineColor, 0.15);
   }
 
   // Individual parcel edges are below pixel resolution at overview distance.
@@ -512,7 +546,27 @@
         { x: cell.maximumX, y: cell.maximumY },
         { x: cell.minimumX, y: cell.maximumY },
       ];
-      addFlatPolygon(writer, points, cell.heightM, buildingColor(cell.heightM, true), 0.05);
+      const height = cell.heightM;
+      const roofColor = buildingColor(height, true);
+      const sideColor = buildingColor(height, false);
+      const outlineColor = [
+        Math.min(1, roofColor[0] * 1.35 + 0.1),
+        Math.min(1, roofColor[1] * 1.35 + 0.1),
+        Math.min(1, roofColor[2] * 1.35 + 0.12),
+        1,
+      ];
+      addFlatPolygon(writer, points, height, roofColor, 0.04);
+      for (let index = 0; index < points.length; index += 1) {
+        const next = (index + 1) % points.length;
+        const a = [points[index].x, 0.12, -points[index].y];
+        const b = [points[next].x, 0.12, -points[next].y];
+        const c = [points[next].x, height, -points[next].y];
+        const d = [points[index].x, height, -points[index].y];
+        const normal = faceNormal(a, b, c);
+        writer.triangle(a, b, c, normal, sideColor, 0.02);
+        writer.triangle(a, c, d, normal, sideColor, 0.02);
+      }
+      addRibbon(writer, [...points, points[0]], 1.5, height + 0.03, outlineColor, 0.15);
     });
   }
 

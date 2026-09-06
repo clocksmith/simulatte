@@ -111,33 +111,61 @@
   function addPerson(writer, frame, { motionPhase = 0, gait = 'walk' } = {}) {
     const strideScale = gait === 'run' ? 0.5 : gait === 'stand' ? 0 : 0.28;
     const stride = Math.sin(motionPhase) * strideScale;
-    const leftHip = localPoint(frame, [0, 0.93, -0.12]);
-    const rightHip = localPoint(frame, [0, 0.93, 0.12]);
-    const leftKnee = localPoint(frame, [stride * 0.34, 0.5, -0.12]);
-    const rightKnee = localPoint(frame, [-stride * 0.34, 0.5, 0.12]);
-    const leftFoot = localPoint(frame, [stride * 0.78 + 0.08, 0.09, -0.12]);
-    const rightFoot = localPoint(frame, [-stride * 0.78 + 0.08, 0.09, 0.12]);
-    addLimb(writer, leftHip, leftKnee, 0.075, COLORS.trousers, MATERIALS.fabric);
-    addLimb(writer, leftKnee, leftFoot, 0.065, COLORS.trousers, MATERIALS.fabric);
-    addLimb(writer, rightHip, rightKnee, 0.075, COLORS.trousers, MATERIALS.fabric);
-    addLimb(writer, rightKnee, rightFoot, 0.065, COLORS.trousers, MATERIALS.fabric);
-    addOrientedBox(writer, frame, [stride * 0.78 + 0.17, 0.075, -0.12], [0.3, 0.1, 0.12], COLORS.graphite, MATERIALS.rubber);
-    addOrientedBox(writer, frame, [-stride * 0.78 + 0.17, 0.075, 0.12], [0.3, 0.1, 0.12], COLORS.graphite, MATERIALS.rubber);
-    addEllipsoid(writer, frame, [0, 1.28, 0], [0.22, 0.38, 0.17], COLORS.jacket, MATERIALS.fabric, 10, 6);
-    addOrientedBox(writer, frame, [-0.205, 1.34, 0], [0.035, 0.075, 0.31], COLORS.accent, MATERIALS.light, 0.28);
-    const leftShoulder = localPoint(frame, [0, 1.5, -0.23]);
-    const rightShoulder = localPoint(frame, [0, 1.5, 0.23]);
-    const leftElbow = localPoint(frame, [-stride * 0.42, 1.2, -0.27]);
-    const rightElbow = localPoint(frame, [stride * 0.42, 1.2, 0.27]);
-    const leftHand = localPoint(frame, [-stride * 0.72, 1.02, -0.24]);
-    const rightHand = localPoint(frame, [stride * 0.72, 1.02, 0.24]);
-    addLimb(writer, leftShoulder, leftElbow, 0.055, COLORS.jacket, MATERIALS.fabric);
-    addLimb(writer, leftElbow, leftHand, 0.05, COLORS.skin, MATERIALS.skin);
-    addLimb(writer, rightShoulder, rightElbow, 0.055, COLORS.jacket, MATERIALS.fabric);
-    addLimb(writer, rightElbow, rightHand, 0.05, COLORS.skin, MATERIALS.skin);
-    addCylinderBetween(writer, localPoint(frame, [0, 1.56, 0]), localPoint(frame, [0, 1.64, 0]), 0.075, 8, COLORS.skin, MATERIALS.skin);
-    addEllipsoid(writer, frame, [0.015, 1.76, 0], [0.125, 0.15, 0.12], COLORS.skin, MATERIALS.skin, 10, 6);
-    addEllipsoid(writer, frame, [-0.025, 1.84, 0], [0.13, 0.08, 0.125], COLORS.helmet, MATERIALS.polymer, 10, 4);
+    const armSwing = Math.cos(motionPhase) * strideScale;
+
+    // Contact drop shadow disk on ground directly under the pedestrian
+    addEllipsoid(writer, frame, [0, 0.02, 0], [0.55, 0.012, 0.38], [0.015, 0.025, 0.035, 0.62], MATERIALS.rubber, 8, 4);
+
+    // Hips and legs
+    const leftHip = localPoint(frame, [0, 0.94, -0.13]);
+    const rightHip = localPoint(frame, [0, 0.94, 0.13]);
+    const leftKnee = localPoint(frame, [stride * 0.38, 0.5, -0.13]);
+    const rightKnee = localPoint(frame, [-stride * 0.38, 0.5, 0.13]);
+    const leftFoot = localPoint(frame, [stride * 0.78 + 0.06, 0.09, -0.13]);
+    const rightFoot = localPoint(frame, [-stride * 0.78 + 0.06, 0.09, 0.13]);
+
+    addLimb(writer, leftHip, leftKnee, 0.082, COLORS.trousers, MATERIALS.fabric);
+    addLimb(writer, leftKnee, leftFoot, 0.072, COLORS.trousers, MATERIALS.fabric);
+    addLimb(writer, rightHip, rightKnee, 0.082, COLORS.trousers, MATERIALS.fabric);
+    addLimb(writer, rightKnee, rightFoot, 0.072, COLORS.trousers, MATERIALS.fabric);
+
+    // Sneakers with white soles
+    addOrientedBox(writer, frame, [stride * 0.78 + 0.16, 0.025, -0.13], [0.32, 0.035, 0.13], COLORS.whiteLight, MATERIALS.rubber);
+    addOrientedBox(writer, frame, [stride * 0.78 + 0.16, 0.07, -0.13], [0.3, 0.07, 0.12], COLORS.graphite, MATERIALS.rubber);
+    addOrientedBox(writer, frame, [-stride * 0.78 + 0.16, 0.025, 0.13], [0.32, 0.035, 0.13], COLORS.whiteLight, MATERIALS.rubber);
+    addOrientedBox(writer, frame, [-stride * 0.78 + 0.16, 0.07, 0.13], [0.3, 0.07, 0.12], COLORS.graphite, MATERIALS.rubber);
+
+    // Belt & Pelvis
+    addOrientedBox(writer, frame, [0, 0.98, 0], [0.24, 0.09, 0.35], COLORS.graphite, MATERIALS.rubber);
+
+    // Torso (Jacket/Shirt)
+    addOrientedBox(writer, frame, [0, 1.28, 0], [0.26, 0.48, 0.4], COLORS.jacket, MATERIALS.fabric);
+    // Jacket front zipper / accent trim
+    addOrientedBox(writer, frame, [0.132, 1.28, 0], [0.025, 0.44, 0.06], COLORS.accent, MATERIALS.fabric);
+
+    // Shoulders & Arms (swinging counter to legs)
+    const leftShoulder = localPoint(frame, [0, 1.5, -0.24]);
+    const rightShoulder = localPoint(frame, [0, 1.5, 0.24]);
+    const leftElbow = localPoint(frame, [-armSwing * 0.55, 1.2, -0.28]);
+    const rightElbow = localPoint(frame, [armSwing * 0.55, 1.2, 0.28]);
+    const leftHand = localPoint(frame, [-armSwing * 0.88, 0.98, -0.26]);
+    const rightHand = localPoint(frame, [armSwing * 0.88, 0.98, 0.26]);
+
+    addLimb(writer, leftShoulder, leftElbow, 0.062, COLORS.jacket, MATERIALS.fabric);
+    addLimb(writer, leftElbow, leftHand, 0.052, COLORS.skin, MATERIALS.skin);
+    addLimb(writer, rightShoulder, rightElbow, 0.062, COLORS.jacket, MATERIALS.fabric);
+    addLimb(writer, rightElbow, rightHand, 0.052, COLORS.skin, MATERIALS.skin);
+
+    // Neck & Head
+    addCylinderBetween(writer, localPoint(frame, [0, 1.52, 0]), localPoint(frame, [0, 1.62, 0]), 0.065, 8, COLORS.skin, MATERIALS.skin);
+    addEllipsoid(writer, frame, [0.02, 1.73, 0], [0.13, 0.15, 0.12], COLORS.skin, MATERIALS.skin, 10, 6);
+
+    // Cap with front visor
+    addEllipsoid(writer, frame, [-0.01, 1.82, 0], [0.135, 0.075, 0.13], COLORS.accent, MATERIALS.fabric, 10, 4);
+    addOrientedBox(writer, frame, [0.17, 1.81, 0], [0.14, 0.025, 0.2], COLORS.accent, MATERIALS.polymer);
+
+    // Dark Sunglasses / Sun-protection Visor
+    addOrientedBox(writer, frame, [0.14, 1.73, 0], [0.035, 0.05, 0.19], COLORS.graphite, MATERIALS.glass, 0.12);
   }
 
   function addBicycle(writer, frame, { motionPhase = 0, hasRider = true } = {}) {

@@ -149,6 +149,7 @@
           .filter(Boolean));
         for (const row of ledger.obligations) {
           if (row.kind !== 'action' && row.kind !== 'relation') continue;
+          if (['unsupported', 'lost', 'failed', 'refused', 'explicitly-refused', 'negated'].includes(row.status)) continue;
           const source = row.kind === 'relation' ? {
             ...row,
             ...(relationById.get(row.sourceRelationId || row.id) || {}),
@@ -212,7 +213,24 @@
         };
         const operatorBundle = source.provenance?.groundingPolicy?.operatorBundle ||
           source.groundingPolicy?.operatorBundle || [];
-        if (operatorBundle.length) operatorBundle.forEach((type) => add(type));
+        if (process === 'falling' || process === 'swinging') {
+          if (from.kind !== 'rigidBody') return;
+          const type = process === 'falling' ? 'free_fall' : 'pendulum';
+          const names = type === 'free_fall' ? ['position', 'velocity', 'force'] : ['angle', 'angularVelocity', 'torque'];
+          const channels = names.map((name) => `${name}:${from.entityId}`);
+          const op = addOperator(operators, type, from, {
+            reads: channels, writes: channels,
+            params: { acceleration: 9.81, worldSpanMeters: 10, lengthMeters: 1, massKg: 1,
+              initialAngle: Math.PI / 6, restitution: 0.42, floor: 0.9 },
+            receipt: behaviorChannelReceipt(source, type, channels, channels),
+          });
+          if (type === 'pendulum') {
+            const angle = fields.find((field) => field.id === `angle:${from.entityId}`);
+            if (angle) { angle.initial = Math.PI / 6; angle.bounds = [-Math.PI, Math.PI]; }
+          }
+          receipt.approximate.push({ promptSpan: source.id, reason: 'mechanics defaults: gravity 9.81 m/s^2, 10 m canvas, 1 kg body; closed floor restitution 0.42; pendulum length 1 m and initial angle pi/6' });
+          opRows.push(op);
+        } else if (operatorBundle.length) operatorBundle.forEach((type) => add(type));
         else if (process === 'rotate') add('rotational_torque', fluidDomain(from, to) || from, rotationalDomain(from, to) || to);
         else if (process === 'impact') {
           add('rigid_collision', movingDomain(from, to), impactDomain(from, to));

@@ -151,6 +151,7 @@
           cardinality: Number.isFinite(Number(entity.cardinality)) ? Number(entity.cardinality) : 1,
           visualTraits: entity.visualTraits || {},
           stateBindings: entity.stateBindings || {},
+          properties: (entity.properties || []).map((row) => ({ ...row })),
           layerSlot,
           transform,
           geometry: {

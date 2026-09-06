@@ -83,14 +83,19 @@
     const drawables = Array.isArray(renderData && renderData.drawables) ? renderData.drawables : [];
     const objectParts = Array.isArray(renderData && renderData.objectParts) ? renderData.objectParts : [];
     const rendererConsumption = renderData && renderData.rendererConsumption || {};
-    const packetMatches = semanticIdentityMatches(packetRows, targetIdentity);
-    const drawableMatches = semanticIdentityMatches(drawables, targetIdentity);
-    const objectPartMatches = semanticIdentityMatches(objectParts, targetIdentity);
+    const qualifies = (row) => qualifiedAbsenceMatches(row, obligation, packetRows);
+    const packetMatches = semanticIdentityMatches(packetRows, targetIdentity).filter(qualifies);
+    const drawableMatches = semanticIdentityMatches(drawables, targetIdentity).filter(qualifies);
+    const objectPartMatches = semanticIdentityMatches(objectParts, targetIdentity).filter(qualifies);
     const submittedSemanticCodes = submittedObjectPartSemanticCodes(renderData);
-    const targetCodeMatches = submittedSemanticCodes.filter((code) => (
-      targetSemanticCode > 0 && Math.abs(code - targetSemanticCode) < 0.001
+    const targetCodeMatches = submittedSemanticCodes.filter((code, index) => (
+      targetSemanticCode > 0 && Math.abs(code - targetSemanticCode) < 0.001 && qualifies(objectParts[index])
     ));
     const checks = [
+      detectorCheck('qualified-predicate-supported', (obligation.expectedProperties || []).every((property) => property.kind === 'color' && /^#[0-9a-f]{6}$/i.test(property.value)), true),
+      detectorCheck('qualified-color-vector-bound', !(obligation.expectedProperties || []).length || objectParts.every((part, index) =>
+        [0, 1, 2].every((channel) => Number.isFinite(part.fill?.[channel]) && Math.abs(part.fill[channel] -
+          Number(renderData?.objectPartData?.[index * renderData.objectPartFloatStride + 8 + channel])) < 0.00001)), true),
       detectorCheck('target-identity-bound', Boolean(targetIdentity), true),
       detectorCheck('target-semantic-code-bound', targetSemanticCode > 0, true),
       detectorCheck('scene-packet-binding', pixelBinding.valid, true),
@@ -114,6 +119,7 @@
       status: failed ? 'fail' : 'pass',
       satisfied: !failed,
       targetIdentity,
+      expectedProperties: obligation.expectedProperties || [],
       targetSemanticCode,
       detectorPolicy: 'compiled-semantic-identity-exclusion.v1',
       inspectedRegion: 'full-canvas-render-submission',
@@ -126,6 +132,17 @@
       forbiddenMatchCount: packetMatches.length + drawableMatches.length + objectPartMatches.length + targetCodeMatches.length,
       checks,
       reason: failed ? `semantic absence detector failed: ${failed.id}` : '',
+    });
+  }
+
+  function qualifiedAbsenceMatches(row = {}, obligation = {}, packetRows = []) {
+    const owner = packetRows.find((entity) => entity.id === (row.entityId || row.id)) || row;
+    return (obligation.expectedProperties || []).every((property) => {
+      if (property.kind === 'color' && Array.isArray(row.fill)) {
+        const color = String(property.value || '').match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+        return !color || color.slice(1).every((channel, index) => Math.abs(parseInt(channel, 16) / 255 - row.fill[index]) <= 0.08);
+      }
+      return (owner.properties || []).some((candidate) => candidate.kind === property.kind && candidate.value === property.value);
     });
   }
 
@@ -170,5 +187,6 @@
     phase7PixelSampleSource,
     phase7PixelSampleSetValidation,
     phase7SemanticAbsenceProof,
+    qualifiedAbsenceMatches,
   });
 });

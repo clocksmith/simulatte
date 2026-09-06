@@ -213,3 +213,197 @@ test('passing visual flags cannot erase a carried lost obligation', () => {
   assert.equal(output.artifact.sceneProof.settledObligations[0].status, 'lost');
   assert.equal(output.artifact.sceneProof.verdict, 'fail');
 });
+
+const lab = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+const support = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-ir-domains.js');
+const rigid = require('../public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-rigid-body-2d.js');
+const workers = require('../public/blank/app/prompt/prompt-controller-workers.js');
+const progress = require('../public/blank/app/runtime/runtime-progress-state.js');
+const phase7Proof = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
+const { phaseFamily } = require('./phase-module-fixture.cjs');
+const renderer = phaseFamily('webGpuRenderer');
+const compileBoundaryPrompt = (prompt) => lab.createSpecFromPrompt(prompt, {
+  allowPrototypeFallback: true, deterministicRuntime: true, retrievalPhase: 'deterministic-local',
+});
+const packetFor = (spec) => spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
+
+test('falling reaches one real body and a gravity operator without a visible gravity object or fluid substitution', () => {
+  const spec = compileBoundaryPrompt('a red ball falling under gravity');
+  assert.equal(spec.physicsIR.entities.length, 1);
+  assert.equal(spec.physicsIR.entities[0].semanticClass, 'ball');
+  assert.ok(spec.solverGraph.steps.some((row) => row.operatorType === 'free_fall'));
+  assert.ok(!spec.solverGraph.steps.some((row) => row.operatorType === 'advection'));
+  const step = spec.solverGraph.steps.find((row) => row.operatorType === 'free_fall');
+  assert.equal(step.integrator.scheme, 'constant_acceleration_v1');
+  const entity = spec.physicsIR.entities[0];
+  let state = lab.createSimulationState(spec);
+  const start = state.solverState.channels[`position:${entity.id}`].y;
+  for (let i = 0; i < 30; i += 1) state = lab.stepSimulation(state, spec, 1 / 60);
+  const channels = state.solverState.channels;
+  assert.ok(Math.abs(channels[`position:${entity.id}`].y - start - 9.81 * 0.5 ** 2 / 20) < 1e-8);
+  assert.ok(Math.abs(channels[`velocity:${entity.id}`].y - 4.905) < 1e-8);
+  assert.ok(state.solverState.executionReceipt.executedOperatorIds.includes(step.operatorId));
+  const packet = packetFor(spec);
+  const data = renderer.compileSceneRenderData(packet);
+  const binding = packet.interactionProgram.mappings[0];
+  assert.ok(binding.positionProjection);
+  for (let i = 0; i < 600; i += 1) state = lab.stepSimulation(state, spec, 1 / 60);
+  const projected = renderer.scenePacketInteractionPartData(data.objectPartData, data.objectParts, packet, state);
+  data.objectParts.forEach((part, i) => {
+    const centerY = projected.data[i * renderer.GPU_OBJECT_PART_FLOATS + 1];
+    assert.ok(centerY - part.size[1] / 2 >= 0 && centerY + part.size[1] / 2 <= 1, part.id);
+  });
+  assert.ok(Math.abs(state.solverState.channels[`velocity:${entity.id}`].y) < 1e-8);
+});
+
+test('pendulum integration oscillates with bounded energy and the rendered rod connects pivot to bob', () => {
+  const spec = compileBoundaryPrompt('a pendulum swinging under gravity');
+  const op = spec.solverGraph.steps.find((row) => row.operatorType === 'pendulum');
+  assert.equal(op.integrator.scheme, 'velocity_verlet_v1');
+  const id = spec.physicsIR.entities[0].id;
+  let state = lab.createSimulationState(spec);
+  const energy = (s) => 0.5 * s.solverState.channels[`angularVelocity:${id}`] ** 2 +
+    9.81 * (1 - Math.cos(s.solverState.channels[`angle:${id}`]));
+  const initialEnergy = energy(state);
+  let min = Infinity, max = -Infinity;
+  for (let i = 0; i < 600; i += 1) {
+    state = lab.stepSimulation(state, spec, 1 / 60);
+    const angle = state.solverState.channels[`angle:${id}`];
+    min = Math.min(min, angle); max = Math.max(max, angle);
+    assert.ok(Math.abs(energy(state) / initialEnergy - 1) < 0.002);
+  }
+  assert.ok(min < -0.5 && max > 0.5);
+  const packet = packetFor(spec);
+  assert.notEqual(packet.sceneKind, 'watershed');
+  const data = renderer.compileSceneRenderData(packet);
+  assert.equal(data.cameraState.perspective, 0);
+  const moved = renderer.scenePacketInteractionPartData(data.objectPartData, data.objectParts, packet, state);
+  const part = (id) => {
+    const index = data.objectParts.findIndex((row) => row.id.endsWith(`:${id}`));
+    assert.ok(index >= 0, id);
+    const offset = index * renderer.GPU_OBJECT_PART_FLOATS;
+    return { x: moved.data[offset], y: moved.data[offset + 1], angle: moved.data[offset + 4],
+      length: moved.data[offset + 3] };
+  };
+  const pivot = part('pivot'), bob = part('bob'), rod = part('rod');
+  assert.ok(Math.abs((pivot.x + bob.x) / 2 - rod.x) < 1e-6);
+  assert.ok(Math.abs((pivot.y + bob.y) / 2 - rod.y) < 1e-6);
+  assert.ok(Math.abs(Math.hypot(bob.x - pivot.x, bob.y - pivot.y) - rod.length) < 1e-6);
+  assert.ok(Math.abs(Math.atan2(bob.x - pivot.x, bob.y - pivot.y) - rod.angle) < 1e-6);
+});
+
+test('invalid mechanics cannot silently generate non-finite or energy-creating state', () => {
+  for (const params of [{ massKg: 0 }, { lengthMeters: -1 }, { acceleration: NaN }, { restitution: 1.2 }]) {
+    assert.throws(() => rigid.step({ step: { operatorType: 'pendulum', params }, dt: 0.01 }), /Mechanics|mechanics/);
+  }
+});
+
+test('autonomous solver frames refresh the uploaded parts without an interaction, and absent execution cannot prove motion', () => {
+  const spec = compileBoundaryPrompt('a red ball falling under gravity');
+  const packet = packetFor(spec);
+  const data = renderer.compileSceneRenderData(packet);
+  const host = Object.create(renderer.WebGpuRenderer.prototype);
+  Object.assign(host, { baseObjectPartData: data.objectPartData, baseObjectParts: data.objectParts,
+    sceneRenderPacket: packet, renderData: data, canvas: { dataset: {} } });
+  const before = lab.createSimulationState(spec);
+  host.updateInteractionVisualState(before);
+  const initial = host.objectPartData.slice();
+  let state = before;
+  for (let i = 0; i < 20; i += 1) state = lab.stepSimulation(state, spec, 1 / 60);
+  assert.equal(state.interaction.version, before.interaction.version);
+  host.updateInteractionVisualState(state);
+  assert.notDeepEqual(host.objectPartData, initial);
+  const advanced = host.objectPartData.slice();
+  host.updateInteractionVisualState(state);
+  assert.deepEqual(host.objectPartData, advanced, 'same-frame update must not compound displacement');
+  host.updateInteractionVisualState(before);
+  assert.deepEqual(host.objectPartData, initial, 'fresh solver state restores initial geometry');
+  const input = lab.createRenderExecutionInput(spec, state, { width: 640, height: 360 });
+  const action = input.visualObligations.find((row) => row.simulationBinding);
+  assert.ok(action);
+  const result = phase7Proof.renderObligationProof(packet, [action], input.compositionLedger, true, data)[0];
+  assert.equal(result.geometrySatisfied, false);
+  assert.equal(result.simulationProof.consumed, false);
+  assert.equal(result.status, 'fail');
+});
+
+test('qualified absence preserves positive mentions, including reversed clause order', () => {
+  for (const prompt of ['two red balls and no blue balls', 'no blue balls and two red balls']) {
+    const spec = compileBoundaryPrompt(prompt);
+    const entries = spec.phaseArtifacts.phase2.artifact.compositionLedger.entries;
+    assert.ok(entries.length > 0);
+    assert.equal(new Set(entries.map((row) => row.id)).size, entries.length);
+    const packet = packetFor(spec);
+    const balls = packet.entities.filter((row) => row.identity.type === 'ball');
+    assert.equal(balls.length, 2, prompt);
+    assert.ok(balls.every((row) => row.properties.some((property) => property.kind === 'color' && property.value === '#ef3340')));
+    const input = lab.createRenderExecutionInput(spec, lab.createSimulationState(spec), { width: 640, height: 360 });
+    const absence = input.visualObligations.find((row) => row.constraintKind === 'absence');
+    assert.equal(absence.targetIdentity, 'ball');
+    assert.deepEqual(absence.expectedProperties.map((row) => row.value), ['#3688d8']);
+    const data = renderer.compileSceneRenderData(packet);
+    data.rendererConsumption.objectSubmissionConsumed = true;
+    data.rendererConsumption.semanticCodesConsumed = true;
+    data.rendererConsumption.objectPartCountConsumed = data.objectPartCount;
+    data.requireLivePixelSamples = true;
+    // Synthetic submission/readback fixture; this is not hardware evidence.
+    data.pixelSamples = { schema: 'simulatte.phase7PixelSampleSet.v1', source: 'webgpu-texture-copy-readback',
+      packetKey: data.packetKey, readbackSerial: 1, samples: [{ id: 'fixture', rgba: [200, 35, 45, 255] }] };
+    const inspect = () => phase7Proof.renderObligationProof(packet, [absence], input.compositionLedger, true, data)[0];
+    assert.equal(inspect().status, 'pass');
+    data.objectPartData[8] = 0.21;
+    data.objectPartData[9] = 0.53;
+    data.objectPartData[10] = 0.85;
+    assert.equal(inspect().status, 'fail', 'mismatched uploaded color must fail');
+    data.pixelSamples.packetKey += ':stale';
+    assert.equal(inspect().status, 'fail', 'stale readback must fail');
+  }
+});
+
+test('Phase 5 retains adverse status and only associates operators with their own obligations', () => {
+  const rows = ['unsupported', 'lost', 'failed', 'refused', 'explicitly-refused', 'negated'].map((status) =>
+    ({ id: `action:${status}`, kind: 'action', status }));
+  const ledger = { obligations: [...rows, { id: 'action:falling', kind: 'action', status: 'supported' },
+    { id: 'action:swimming', kind: 'action', status: 'pending' }] };
+  const lowered = support.lowerCompositionLedgerForPhysics(ledger, [
+    ...rows.map((row) => ({ process: row.id.slice(7), operators: ['fake'], status: 'lowered' })),
+    { process: 'falling', operators: ['free_fall'], status: 'lowered' },
+  ]);
+  assert.deepEqual(lowered.obligations.slice(0, rows.length), rows);
+  assert.deepEqual(lowered.obligations.at(-2).loweredTo, ['free_fall']);
+  assert.equal(lowered.obligations.at(-1).status, 'pending');
+  assert.equal(lowered.currentPhase, 5);
+});
+
+test('training exposes exact adjacent envelopes, detached snapshots, and discards previous run proof', () => {
+  const spec = compileBoundaryPrompt('two red balls and no blue balls');
+  const run = workers.createTrainingRunState();
+  workers.beginTrainingRun(run, spec.prompt, {}, 1);
+  const snapshot = workers.trainingSnapshot(run, spec);
+  for (let phase = 1; phase <= 6; phase += 1) {
+    const row = snapshot.artifacts[`1->${phase}`];
+    assert.deepEqual(row.output, spec.phaseArtifacts[`phase${phase}`]);
+    assert.deepEqual(row.input, phase === 1 ? null : spec.phaseArtifacts[`phase${phase - 1}`]);
+  }
+  snapshot.artifacts['1->2'].output.artifact.languageGraph.sourceText = 'tampered';
+  assert.notEqual(workers.trainingSnapshot(run, spec).artifacts['1->2'].output.artifact.languageGraph.sourceText, 'tampered');
+  run.sceneProofReport = { phase7Output: { artifact: { renderExecution: { worldProofBinding: {
+    worldSpec: { contentHash: 'wrong-run' },
+  } } } }, phase8Output: { phase: 8 } };
+  assert.equal(workers.trainingSnapshot(run, spec).artifacts['1->8'], undefined);
+  workers.beginTrainingRun(run, 'another prompt', {}, 2);
+  assert.deepEqual(run.artifacts, {});
+  assert.equal(run.sceneProofReport, null);
+});
+
+test('progress assigns all proof events to Phase 8 and keeps the failing phase', () => {
+  for (const stage of ['construction-proof', 'compiler-proof', 'scene-proof']) {
+    for (const state of ['active', 'ready', 'error']) {
+      const event = { stage, state };
+      assert.equal(progress.phaseForStage(progress.canonicalStage(event), event).step, 8);
+    }
+  }
+  const event = { stage: 'simulation.compile', state: 'error' };
+  assert.equal(progress.phaseForStage(progress.canonicalStage(event), event).step, 5);
+});

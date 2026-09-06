@@ -5,19 +5,19 @@
   const worldProofContract = typeof module === 'object' && module.exports
     ? require('../../../shared/contracts/world-proof.js')
     : root.SimulatteWorldProof;
-  const api = factory(phaseContracts, worldProofContract);
+  const progress = typeof module === 'object' && module.exports
+    ? require('./runtime-progress-state.js') : root.SimulatteRuntimeProgressState;
+  const api = factory(phaseContracts, worldProofContract, progress);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRunViewModel = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createRunViewModelApi(
   phaseContracts,
-  worldProofContract
+  worldProofContract,
+  progress
 ) {
   if (!phaseContracts?.validatePhaseEnvelope) throw new Error('simulatte_run_view_model_phase_contracts_missing');
   if (!worldProofContract?.validateWorldProof) throw new Error('simulatte_run_view_model_world_proof_contract_missing');
-  const PHASES = Object.freeze([
-    'Runtime', 'Language', 'Retrieval', 'Grounding',
-    'Simulation', 'Visuals', 'Render', 'Proof',
-  ]);
+  const PHASES = phaseContracts.PHASE_LABELS;
 
   function identity(value) {
     if (!value) return '—';
@@ -42,14 +42,8 @@
     const explicit = Number(event.phaseStep);
     if (explicit >= 1 && explicit <= 8) return explicit;
     const stage = String(event.stage || event.phase || '').toLowerCase();
-    if (/construction-proof|scene-proof|phase-?8/.test(stage)) return 8;
-    if (/^render|first-frame|phase-?7/.test(stage)) return 7;
-    if (/visual|phase-?6/.test(stage)) return 6;
-    if (/simulation|compile|phase-?5/.test(stage)) return 5;
-    if (/ground|activation|phase-?4/.test(stage)) return 4;
-    if (/retriev|embed|rank|span|slot|phase-?3/.test(stage)) return 3;
-    if (/language|parse|phase-?2/.test(stage)) return 2;
-    if (/runtime|manifest|model|cache|start|phase-?1/.test(stage)) return 1;
+    if (stage) return progress.phaseForStage(progress.canonicalStage({ ...event, state: 'active' }), event).step ||
+      Number(state.phase?.step || 1);
     const fallback = Number(state.phase?.step || 1);
     return Math.max(1, Math.min(8, fallback));
   }

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <base href="/">
-  <meta name="simulatte-build" content="3d49eab013e126954cf135263b232f5d27018820-1609e820e447">
+  <meta name="simulatte-build" content="3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34">
   <title>Simulatte</title>
   <meta name="description" content="Explore simulations. Create a world or use your own data.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
@@ -82,91 +82,110 @@
         </script>
         <section id="plugin-map-ui" class="plugin-map-ui" aria-label="Experience view" data-semantic-label-exclusion></section>
 
-        <div class="runtime-anchor" data-semantic-label-exclusion>
-          <nav class="sim-product-nav" aria-label="Simulatte"><a href="https://simulatte.world/" data-local-href="./">Workbench</a><a href="https://create.simulatte.world/" data-local-href="./blank/">Prompt</a></nav>
-          <div class="runtime-toolbar">
-            <button id="runtime-toggle" class="status-pill sim-surface" type="button" aria-label="Runtime status and details" aria-controls="runtime-details" aria-expanded="false">
-              <span class="status-dot" aria-hidden="true"></span>
-              <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading</strong>
-            </button>
-            <div id="world-tier-control" class="profile-selector">
-              <button id="world-tier-trigger" class="select-trigger" type="button" aria-label="Switch world scale" aria-haspopup="listbox" aria-controls="world-tier-options" aria-expanded="false">
-                <span id="world-tier-label">Select scale</span>
-              </button>
-              <div id="world-tier-options" class="select-options" role="listbox" aria-label="Simulatte world scales" hidden>
-                <div class="select-option" data-value="datacenter" role="option">Datacenter</div>
-                <div class="select-option" data-value="city" role="option">City</div>
-                <div class="select-option" data-value="country" role="option">Country</div>
-                <div class="select-option" data-value="world" role="option">Planet</div>
-                <div class="select-option" data-value="solar-system" role="option">Solar System</div>
-                <div class="select-option" data-value="star-chart" role="option">Universe</div>
+        <!-- Symmetrical Left Rail Deck -->
+        <aside class="sim-rail sim-rail-left" id="sim-rail-left" aria-label="Workbench and scale navigation">
+          <button class="rail-collapse-toggle" id="rail-left-toggle" type="button" aria-label="Collapse or expand left deck" title="Collapse / Expand Left Deck" aria-expanded="true">
+            <span class="toggle-glyph" aria-hidden="true">◀</span>
+          </button>
+          <div class="rail-inner">
+            <div class="runtime-anchor" data-semantic-label-exclusion>
+              <nav class="sim-product-nav" aria-label="Simulatte"><a href="https://simulatte.world/" data-local-href="./">Workbench</a><a href="https://create.simulatte.world/" data-local-href="./blank/">Prompt</a></nav>
+              <div class="runtime-toolbar">
+                <button id="runtime-toggle" class="status-pill sim-surface" type="button" aria-label="Runtime status and details" aria-controls="runtime-details" aria-expanded="false">
+                  <span class="status-dot" aria-hidden="true"></span>
+                  <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading</strong>
+                </button>
+                <div id="world-tier-control" class="profile-selector">
+                  <button id="world-tier-trigger" class="select-trigger" type="button" aria-label="Switch world scale" aria-haspopup="listbox" aria-controls="world-tier-options" aria-expanded="false">
+                    <span id="world-tier-label">Select scale</span>
+                  </button>
+                  <div id="world-tier-options" class="select-options" role="listbox" aria-label="Simulatte world scales" hidden>
+                    <div class="select-option" data-value="datacenter" role="option">Datacenter</div>
+                    <div class="select-option" data-value="city" role="option">City</div>
+                    <div class="select-option" data-value="world" role="option">Planet</div>
+                    <div class="select-option" data-value="solar-system" role="option">Solar System</div>
+                    <div class="select-option" data-value="star-chart" role="option">Universe</div>
+                  </div>
+                </div>
+                <div id="application-profile-control" class="profile-selector">
+                  <select id="application-profile" aria-label="Experience" disabled hidden>
+                    <option>Loading experience</option>
+                  </select>
+                  <button id="application-profile-trigger" class="select-trigger" type="button" aria-label="Switch experience" aria-haspopup="listbox" aria-controls="application-profile-options" aria-expanded="false" disabled>
+                    <span id="application-profile-label">Loading experience</span>
+                  </button>
+                  <div id="application-profile-options" class="select-options" role="listbox" aria-label="Simulatte experiences" hidden></div>
+                </div>
+              </div>
+              <div id="runtime-details" class="runtime-details sim-popover" hidden>
+                <span class="sim-label">This device</span>
+                <span id="render-identity">Waiting for renderer</span>
+                <span id="runtime-context-label" class="sim-label">Map</span>
+                <div id="runtime-context-legend" class="legend" aria-label="Map legend">
+                  <span><i class="building"></i>Buildings</span>
+                  <span><i class="park"></i>Parks</span>
+                  <span><i class="protected"></i>Protected</span>
+                  <span><i class="shared"></i>Shared</span>
+                  <span><i class="route"></i>Planned</span>
+                  <span><i class="trace"></i>Traveled</span>
+                  <span><i class="prediction"></i>Prediction</span>
+                </div>
+                <p id="runtime-context-hint" class="map-hint">Drag to orbit. Shift-drag or use Top to pan. Scroll to zoom.</p>
+                <details class="map-data-details">
+                  <summary>Data and limits</summary>
+                  <div id="runtime-data-copy">
+                    <p>NYC bike routes, park properties, building footprints, and OpenStreetMap street context.</p>
+                    <p>Park circuits follow property boundaries, not surveyed sidewalks. Traffic, signals, risk, and outcomes are simulated.</p>
+                  </div>
+                </details>
+                <button id="runtime-details-close" class="quiet-action" type="button">Close</button>
               </div>
             </div>
-            <div id="application-profile-control" class="profile-selector">
-              <select id="application-profile" aria-label="Experience" disabled hidden>
-                <option>Loading experience</option>
-              </select>
-              <button id="application-profile-trigger" class="select-trigger" type="button" aria-label="Switch experience" aria-haspopup="listbox" aria-controls="application-profile-options" aria-expanded="false" disabled>
-                <span id="application-profile-label">Loading experience</span>
-              </button>
-              <div id="application-profile-options" class="select-options" role="listbox" aria-label="Simulatte experiences" hidden></div>
-            </div>
           </div>
-          <div id="runtime-details" class="runtime-details sim-popover" hidden>
-            <span class="sim-label">This device</span>
-            <span id="render-identity">Waiting for renderer</span>
-            <span id="runtime-context-label" class="sim-label">Map</span>
-            <div id="runtime-context-legend" class="legend" aria-label="Map legend">
-              <span><i class="building"></i>Buildings</span>
-              <span><i class="park"></i>Parks</span>
-              <span><i class="protected"></i>Protected</span>
-              <span><i class="shared"></i>Shared</span>
-              <span><i class="route"></i>Planned</span>
-              <span><i class="trace"></i>Traveled</span>
-              <span><i class="prediction"></i>Prediction</span>
-            </div>
-            <p id="runtime-context-hint" class="map-hint">Drag to orbit. Shift-drag or use Top to pan. Scroll to zoom.</p>
-            <details class="map-data-details">
-              <summary>Data and limits</summary>
-              <div id="runtime-data-copy">
-                <p>NYC bike routes, park properties, building footprints, and OpenStreetMap street context.</p>
-                <p>Park circuits follow property boundaries, not surveyed sidewalks. Traffic, signals, risk, and outcomes are simulated.</p>
+        </aside>
+
+        <!-- Symmetrical Right Rail Deck -->
+        <aside class="sim-rail sim-rail-right" id="sim-rail-right" aria-label="Camera and telemetry deck">
+          <button class="rail-collapse-toggle" id="rail-right-toggle" type="button" aria-label="Collapse or expand right deck" title="Collapse / Expand Right Deck" aria-expanded="true">
+            <span class="toggle-glyph" aria-hidden="true">▶</span>
+          </button>
+          <div class="rail-inner">
+            <div id="camera-controls" class="camera-controls" aria-label="Camera experiences" data-semantic-label-exclusion>
+              <div class="camera-modes sim-segmented" role="group" aria-label="Camera experiences">
+                <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
+                <button id="camera-pov" type="button" aria-pressed="false">POV</button>
+                <button id="camera-bird" class="is-active" type="button" aria-pressed="true">Overview</button>
+                <button id="camera-top" type="button" aria-pressed="false">Top</button>
+                <button id="camera-free" type="button" aria-pressed="false">Free</button>
+                <button id="camera-compare" type="button" aria-pressed="false">Compare</button>
               </div>
-            </details>
-            <button id="runtime-details-close" class="quiet-action" type="button">Close</button>
-          </div>
-        </div>
-
-        <section id="experience-summary" class="experience-summary sim-surface" aria-live="polite" data-semantic-label-exclusion hidden>
-          <header>
-            <span id="experience-summary-state" class="sim-label">Ready</span>
-            <strong id="experience-summary-title"></strong>
-          </header>
-          <p id="experience-summary-description"></p>
-          <div class="experience-story">
-            <div>
-              <span class="sim-label">Now</span>
-              <strong id="experience-summary-event"></strong>
             </div>
-            <div>
-              <span class="sim-label">Why</span>
-              <span id="experience-summary-narrative"></span>
+
+            <section id="experience-summary" class="experience-summary sim-surface" aria-live="polite" data-semantic-label-exclusion hidden>
+              <header>
+                <span id="experience-summary-state" class="sim-label">Ready</span>
+                <strong id="experience-summary-title"></strong>
+              </header>
+              <p id="experience-summary-description"></p>
+              <div class="experience-story">
+                <div>
+                  <span class="sim-label">Now</span>
+                  <strong id="experience-summary-event"></strong>
+                </div>
+                <div>
+                  <span class="sim-label">Why</span>
+                  <span id="experience-summary-narrative"></span>
+                </div>
+              </div>
+              <dl id="experience-summary-stats"></dl>
+              <p id="experience-summary-comparison" class="experience-summary-comparison"></p>
+            </section>
+
+            <div class="rail-controls-action">
+              <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false" data-semantic-label-exclusion>Controls (6)</button>
             </div>
           </div>
-          <dl id="experience-summary-stats"></dl>
-          <p id="experience-summary-comparison" class="experience-summary-comparison"></p>
-        </section>
-
-        <div id="camera-controls" class="camera-controls" aria-label="Camera experiences" data-semantic-label-exclusion>
-          <div class="camera-modes sim-segmented" role="group" aria-label="Camera experiences">
-            <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
-            <button id="camera-pov" type="button" aria-pressed="false">POV</button>
-            <button id="camera-bird" class="is-active" type="button" aria-pressed="true">Overview</button>
-            <button id="camera-top" type="button" aria-pressed="false">Top</button>
-            <button id="camera-free" type="button" aria-pressed="false">Free</button>
-            <button id="camera-compare" type="button" aria-pressed="false">Compare</button>
-          </div>
-        </div>
+        </aside>
 
         <section id="journey-hud" class="journey-hud sim-surface" role="button" tabindex="0" aria-label="Journey progress. Open decision details." title="Open decision details" data-semantic-label-exclusion>
           <div class="journey-progress" aria-hidden="true"><span id="journey-progress-fill"></span></div>
@@ -185,10 +204,10 @@
           </div>
         </section>
 
-        <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false" data-semantic-label-exclusion>Controls</button>
-
-
-        <section class="mission-dock sim-surface" aria-label="Mission" data-semantic-label-exclusion>
+        <section class="mission-dock sim-surface" id="sim-mission-dock" aria-label="Mission" data-semantic-label-exclusion>
+          <button class="dock-collapse-toggle" id="dock-bottom-toggle" type="button" aria-label="Collapse or expand mission dock" title="Collapse / Expand Mission Dock" aria-expanded="true">
+            <span class="toggle-glyph" aria-hidden="true">▼</span>
+          </button>
           <label id="mission-field" class="mission-field" for="mission-input">
             <span class="sr-only">Describe a mission</span>
             <textarea id="mission-input" rows="2" spellcheck="false" aria-describedby="mission-error" placeholder="Where should the agent go?"></textarea>
@@ -244,6 +263,70 @@
           <a id="experience-doc-link" class="sim-text-link experience-doc-link" target="_blank" rel="noopener noreferrer" hidden>Experience docs</a>
           <output id="mission-error" class="mission-error" aria-live="polite"></output>
         </section>
+        <script>
+          (function wireLayoutDecks() {
+            function init() {
+              var leftRail = document.getElementById('sim-rail-left');
+              var rightRail = document.getElementById('sim-rail-right');
+              var missionDock = document.getElementById('sim-mission-dock');
+              var leftToggle = document.getElementById('rail-left-toggle');
+              var rightToggle = document.getElementById('rail-right-toggle');
+              var dockToggle = document.getElementById('dock-bottom-toggle');
+
+              function toggleLeft(collapse) {
+                if (!leftRail) return;
+                var isCollapsed = collapse !== undefined ? collapse : leftRail.getAttribute('data-collapsed') !== 'true';
+                leftRail.setAttribute('data-collapsed', String(isCollapsed));
+                if (leftToggle) {
+                  leftToggle.setAttribute('aria-expanded', String(!isCollapsed));
+                  var glyph = leftToggle.querySelector('.toggle-glyph');
+                  if (glyph) glyph.textContent = isCollapsed ? '▶' : '◀';
+                }
+                window.dispatchEvent(new Event('resize'));
+              }
+
+              function toggleRight(collapse) {
+                if (!rightRail) return;
+                var isCollapsed = collapse !== undefined ? collapse : rightRail.getAttribute('data-collapsed') !== 'true';
+                rightRail.setAttribute('data-collapsed', String(isCollapsed));
+                if (rightToggle) {
+                  rightToggle.setAttribute('aria-expanded', String(!isCollapsed));
+                  var glyph = rightToggle.querySelector('.toggle-glyph');
+                  if (glyph) glyph.textContent = isCollapsed ? '◀' : '▶';
+                }
+                window.dispatchEvent(new Event('resize'));
+              }
+
+              function toggleDock(collapse) {
+                if (!missionDock) return;
+                var isCollapsed = collapse !== undefined ? collapse : missionDock.getAttribute('data-collapsed') !== 'true';
+                missionDock.setAttribute('data-collapsed', String(isCollapsed));
+                if (dockToggle) {
+                  dockToggle.setAttribute('aria-expanded', String(!isCollapsed));
+                  var glyph = dockToggle.querySelector('.toggle-glyph');
+                  if (glyph) glyph.textContent = isCollapsed ? '▲' : '▼';
+                }
+                window.dispatchEvent(new Event('resize'));
+              }
+
+              leftToggle && leftToggle.addEventListener('click', function() { toggleLeft(); });
+              rightToggle && rightToggle.addEventListener('click', function() { toggleRight(); });
+              dockToggle && dockToggle.addEventListener('click', function() { toggleDock(); });
+
+              document.addEventListener('keydown', function(e) {
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
+                if (e.key === '[') toggleLeft();
+                else if (e.key === ']') toggleRight();
+                else if (e.key === '\\') toggleDock();
+              });
+            }
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', init);
+            } else {
+              init();
+            }
+          })();
+        </script>
       </div>
     </section>
 
@@ -353,21 +436,21 @@
   </dialog>
 
 <!-- SIMULATTE_WORLD_RUNTIME_SCRIPTS_START -->
-  <script defer src="./simulatte/app/world-runtime-script-manifest.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./simulatte/app/world-runtime-loader.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/design/program-editor.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/design/data-table.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/design/product-navigation.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/contracts/world-spec-authorship.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/contracts/world-spec.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/contracts/input-source.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/contracts/data-world-spec.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/core/pipeline-runner.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/core/simulation/point-motion.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/core/simulation/data-run.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./shared/render/point-scene-view.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./simulatte/app/data-workbench.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
-  <script defer src="./simulatte/app/workbench-entry.js?v=3d49eab013e126954cf135263b232f5d27018820-1609e820e447"></script>
+  <script defer src="./simulatte/app/world-runtime-script-manifest.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./simulatte/app/world-runtime-loader.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/design/program-editor.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/design/data-table.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/design/product-navigation.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/contracts/world-spec-authorship.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/contracts/world-spec.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/contracts/input-source.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/contracts/data-world-spec.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/core/pipeline-runner.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/core/simulation/point-motion.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/core/simulation/data-run.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./shared/render/point-scene-view.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./simulatte/app/data-workbench.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
+  <script defer src="./simulatte/app/workbench-entry.js?v=3661eb49b98d2228df80cad7b89366043d9b7b02-36ea586a7f34"></script>
   <!-- generated-plugin-scripts:start -->
   <!-- Selected plugin scripts are loaded by world-runtime-loader.js after route selection. -->
   <!-- generated-plugin-scripts:end -->

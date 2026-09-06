@@ -22,6 +22,8 @@
     worldModelSnapshot,
   } = support;
   const { createConstructionSearchState } = construction;
+  const phases = (typeof module === 'object' && module.exports
+    ? require('../../pipeline/simulatte-phase-contracts.js') : root.SimulattePhaseContracts).phases;
   const { appendBuildVersion } = runtime;
 
     function createPipelineCompiler(root) {
@@ -153,11 +155,11 @@
         run.serial = Number(serial || 0);
         run.startedAt = new Date().toISOString();
         run.artifacts = {};
+        run.specHash = '';
+        run.sceneProofReport = null;
+        run.retrievalPreview = null;
         run.constructionSearch = createConstructionSearchState({ buildSerial: serial });
-        storeTrainingArtifact(run, 1, 'prompt-runtime', 'Prompt runtime', {
-          input: { prompt: run.prompt },
-          output: { params: run.params },
-        });
+
       }
 
     function syncTrainingRuntime(run, runtime, event = {}) {
@@ -220,114 +222,40 @@
           promptRuntime: compactObject(event.promptRuntimeReceipt || null, 24),
           loaderReceipt: compactObject(runtime.loaderReceipt || null, 32),
         };
-        if (event.promptRuntimeReceipt) {
-          storeTrainingArtifact(run, 1, 'prompt-runtime', 'Prompt runtime', {
-            input: { prompt: run.prompt },
-            output: compactObject({
-              params: run.params,
-              runtime: event.promptRuntimeReceipt,
-            }, 24),
-          });
-        }
+
       }
 
     function syncTrainingPreviewArtifacts(run, preview = {}) {
-        if (!run || !preview) return;
-        storeTrainingArtifact(run, 4, 'activation-cloud', 'Activation cloud', {
-          input: { prompt: run.prompt, backend: preview.backend || '' },
-          output: compactObject({
-            backend: preview.backend,
-            previewIds: idRows(preview.priors || preview.rows || preview.matches, 10),
-          }, 16),
-        });
+        if (run) run.retrievalPreview = compactObject(preview, 16);
       }
 
     function syncTrainingRankArtifacts(run, result = {}) {
-        if (!run || !result) return;
-        storeTrainingArtifact(run, 3, 'retrieval', 'Embedding retrieval', {
-          input: { prompt: run.prompt, backend: result.backend || '' },
-          output: compactObject({
-            backend: result.backend,
-            model: result.model,
-            primitiveIds: idRows(result.priors, 12),
-            cardIds: idRows(result.cardMatches, 12),
-            universeIds: idRows(result.universeMatches, 12),
-          }, 24),
-        });
-        storeTrainingArtifact(run, 4, 'activation-cloud', 'Activation cloud', {
-          input: { prompt: run.prompt, retrievalPhase: result.retrievalPhase || '' },
-          output: compactObject({
-            spanRetrieval: compactCountObject(result.spanRetrieval),
-            evidenceRows: rowCount(result.evidenceRows),
-            dopplerIntent: compactObject(result.dopplerIntent, 10),
-          }, 24),
-        });
+        if (run) run.retrievalPreview = compactObject(result, 24);
       }
 
-    function syncTrainingSpecArtifacts(run, spec = {}, state = {}, canvas = null) {
+    function syncTrainingSpecArtifacts(run, spec = {}) {
         if (!run) return;
-        const prompt = spec.renderIR && spec.renderIR.prompt ||
-          spec.universeGraph && spec.universeGraph.prompt ||
-          run.prompt ||
-          spec.name ||
-          '';
-        if (prompt && !run.prompt) run.prompt = String(prompt);
-        storeTrainingArtifact(run, 2, 'language-graph', 'Language graph', {
-          input: { prompt: run.prompt },
-          output: compactObject({
-            spans: rowCount(spec.promptParse && spec.promptParse.spans),
-            clauses: rowCount(spec.promptParse && spec.promptParse.clauses),
-            languageSpans: rowCount(spec.intent && spec.intent.intentBrief &&
-              spec.intent.intentBrief.languageEvidence && spec.intent.intentBrief.languageEvidence.spans),
-          }, 16),
-        });
-        storeTrainingArtifact(run, 5, 'grounded-intent', 'Grounded intent', {
-          input: phaseOutput(run, '1->4'),
-          output: compactObject({
-            contractFocus: spec.contract && spec.contract.layerFocus,
-            topLevel: spec.contract && spec.contract.topLevel,
-            assumptions: rowCount(spec.validationReceipt && spec.validationReceipt.assumptions),
-            unsupported: rowCount(spec.validationReceipt && spec.validationReceipt.unsupported),
-          }, 20),
-        });
-        storeTrainingArtifact(run, 6, 'simulation-compile', 'Simulation compile', {
-          input: phaseOutput(run, '1->5'),
-          output: compactObject({
-            physicsDomains: idRows(spec.physicsIR && spec.physicsIR.domains, 12),
-            operators: typeRows(spec.physicsIR && spec.physicsIR.operators, 12),
-            solverSteps: typeRows(spec.solverGraph && spec.solverGraph.steps, 12),
-            renderIRObjects: rowCount(spec.renderIR && spec.renderIR.objects),
-            renderIRFields: rowCount(spec.renderIR && spec.renderIR.fields),
-            visualAcceptance: visualAcceptanceCounts(spec),
-            valid: spec.validationReceipt && spec.validationReceipt.valid,
-          }, 28),
-        });
-        storeTrainingArtifact(run, 7, 'visual-ir', 'VisualIR compile', {
-          input: phaseOutput(run, '1->6'),
-          output: compactObject({
-            sceneHint: spec.renderIR && spec.renderIR.sceneHint,
-            sceneKind: spec.renderProgram && spec.renderProgram.visualIR &&
-              spec.renderProgram.visualIR.sceneKind,
-            objects: rowCount(spec.renderProgram && spec.renderProgram.objects),
-            rows: visualIRRowCounts(spec),
-            renderInstances: visualRenderInstanceCounts(spec),
-            rejectedRows: visualRejectedRows(spec),
-            atoms: graphicsAtomCounts(spec),
-          }, 24),
-        });
-        storeTrainingArtifact(run, 8, 'webgpu-ready', 'WebGPU ready', {
-          input: phaseOutput(run, '1->7'),
-          output: compactObject({
-            sceneKind: spec.renderProgram && spec.renderProgram.rendererPlan &&
-              spec.renderProgram.rendererPlan.sceneKind,
-            stateLabel: stateLabel(state, spec),
-            rendererStatus: canvas && canvas.dataset ? canvas.dataset.rendererStatus || '' : '',
-            sceneMix: canvas && canvas.dataset ? canvas.dataset.sceneMix || '' : '',
-            sceneMixSlots: canvas && canvas.dataset ? Number(canvas.dataset.sceneMixSlots || 0) : 0,
-            renderCount: canvas && canvas.dataset ? Number(canvas.dataset.renderCount || 0) : 0,
-            semanticCoverage: semanticRenderCoverage(spec),
-          }, 24),
-        });
+        if (run.specHash !== spec.contentHash) {
+          run.specHash = spec.contentHash;
+          run.sceneProofReport = null;
+          run.artifacts = {};
+        }
+        const envelopes = { ...(spec.phaseArtifacts || {}) };
+        const report = run.sceneProofReport;
+        const binding = report?.phase7Output?.artifact?.renderExecution?.worldProofBinding;
+        if (binding?.worldSpec?.contentHash === spec.contentHash) {
+          envelopes.phase7 = report.phase7Output;
+          envelopes.phase8 = report.phase8Output;
+        }
+        for (const phase of phases) {
+          const output = envelopes[`phase${phase.phase}`];
+          if (!output) continue;
+          if (run.artifacts[`1->${phase.phase}`]?.output === output) continue;
+          storeTrainingArtifact(run, phase.phase, phase.id, phase.label, {
+            input: phase.phase === 1 ? null : envelopes[`phase${phase.phase - 1}`] || null,
+            output,
+          });
+        }
       }
 
     function trainingSnapshot(run, spec = {}, state = {}, canvas = null) {
@@ -345,7 +273,7 @@
               spec.renderProgram.rendererPlan.sceneKind,
           }, 12),
           constructionSearch: compactObject(run.constructionSearch || createConstructionSearchState(), 64),
-          artifacts: { ...run.artifacts },
+          artifacts: structuredClone(run.artifacts),
         };
       }
 
@@ -357,8 +285,9 @@
           phaseTo: step,
           phaseId: id,
           phaseLabel: label,
-          input: compactObject(pair.input || {}, 24),
-          output: compactObject(pair.output || {}, 32),
+          input: pair.input || null,
+          inputCapture: pair.input ? 'previous-phase-envelope' : 'not-retained',
+          output: pair.output || null,
           summary: artifactSummary(step, label, pair.output || {}),
         };
       }

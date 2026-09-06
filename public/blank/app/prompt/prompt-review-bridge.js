@@ -376,7 +376,7 @@
     const tags = selectedTags.filter(Boolean);
     const id = reviewId();
     const build = document.querySelector('meta[name="simulatte-build"]')?.content || '';
-    const artifactHash = await hashText(JSON.stringify(artifact).slice(0, 60000));
+    const artifactHash = await hashText(JSON.stringify(artifact));
     let improvementRecord = status === 'draft' ? null : snapshot.improvementRecord || null;
     if (improvementRecord) {
       improvementRecordContract.validateWorldImprovementRecord(improvementRecord);
@@ -500,7 +500,7 @@
   }
 
   function targetName(target) {
-    if (!target || target.id === 'final') return 'Final render (1->8 WebGPU ready)';
+    if (!target || target.id === 'final') return 'Final render and Scene Proof (1->8)';
     return `${target.label} ${PHASE_NAMES[target.to] || `Phase ${target.to}`} output`;
   }
 

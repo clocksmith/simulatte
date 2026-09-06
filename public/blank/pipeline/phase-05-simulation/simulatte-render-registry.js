@@ -260,7 +260,7 @@
     if (/magnetism|magnetic_field|ferrofluid/.test(text)) return 'magnetic';
     if (/optics|field_refraction|field_reflection/.test(text)) return 'optical';
     if (/lava|fire|thermal|phase/.test(text)) return 'thermal';
-    if (/fluid|water|rain|wind/.test(text)) return 'fluid';
+    if (/\b(fluid|water|rain|wind)\b/.test(text)) return 'fluid';
     if (/network|queue|control/.test(text)) return 'network';
     if (/wave|oscillator|acoustic/.test(text)) return 'wave';
     if (/growth|bio/.test(text)) return 'biology';
@@ -297,7 +297,7 @@
       return 'magnetic-machine';
     }
     if (/ferrofluid|magnetic_fluid|magnetizes|spikes|magnetic_field/.test(text)) return 'ferrofluid';
-    if (/\b(terrain|erosion|sediment|river|rain|basalt|watershed|gravity)\b/.test(text)) return 'watershed';
+    if (/\b(terrain|erosion|sediment|river|rain|basalt|watershed)\b/.test(text)) return 'watershed';
     if (/acoustic|sound|wave_field|waveApparatus|resonance|amplitude/.test(text) &&
       !/biology|growth|mycelium|bacteria|membrane|protein|nutrient|biofilm|density/.test(text)) {
       return 'acoustic';

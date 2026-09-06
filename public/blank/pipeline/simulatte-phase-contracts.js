@@ -4,6 +4,10 @@
   root.SimulattePhaseContracts = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPhaseContractsApi() {
   const PHASE_ZERO_INPUT_SCHEMA = 'simulatte.phase0.input.v1';
+  const PHASE_LABELS = Object.freeze([
+    'Runtime', 'Language', 'Retrieval', 'Grounding',
+    'Simulation', 'Visuals', 'Render', 'Proof',
+  ]);
   const ENVELOPE_REQUIRED = Object.freeze([
     'schema',
     'phase',
@@ -27,6 +31,7 @@
     const contract = {
       id,
       phase: number,
+      label: PHASE_LABELS[number - 1],
       allowedInputs: Object.freeze(allowedInputs),
       outputSchema,
       artifactSchema,
@@ -382,6 +387,7 @@
       receiptsSchema: 'simulatte.phaseReceipt.v1',
     }),
     phases,
+    PHASE_LABELS,
     PHASE_ZERO_INPUT_SCHEMA,
     PHASE_OUTPUT_SCHEMAS,
     PHASE_CONTRACTS,

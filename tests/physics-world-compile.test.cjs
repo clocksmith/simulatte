@@ -795,7 +795,7 @@ test('planetary rings preserve the shepherd moon local construction grammar thro
   assert.equal(moonEntity.geometry.program.literal, true);
 });
 
-test('generic phase study remains a measurement process without restoring negated quantum hardware', () => {
+test('unsupported generic study cannot fabricate measurement or restore negated quantum hardware', () => {
   const spec = createPrototypeSpec('phase study in a generic lab with no qubits or quantum hardware');
   const phase2 = spec.intent.phaseArtifacts.phase2.artifact;
   const spans = phase2.promptParse.spans;
@@ -805,14 +805,15 @@ test('generic phase study remains a measurement process without restoring negate
   assert.ok(phase2.intentRequirements.requirements
     .filter((row) => /qubits|quantum|hardware/.test(row.label))
     .every((row) => row.polarity === 'forbidden'));
-  assert.ok(spec.renderProgram.visualIR.processes.some((row) => (
+  assert.ok(!spec.solverGraph.steps.some((row) => row.operatorType === 'derive_readout'));
+  assert.ok(!spec.renderProgram.visualIR.processes.some((row) => (
     (row.evidence || []).some((value) => /instrument-readout/.test(value))
   )));
   assert.deepEqual(
     spec.renderProgram.visualIR.sceneRenderPacket.compositionLedger.obligations
       .filter((row) => row.id === 'action:study' || row.id === 'action:measurement')
       .map((row) => [row.id, row.status]),
-    [['action:study', 'preserved'], ['action:measurement', 'preserved']]
+    [['action:study', 'unsupported'], ['action:measurement', 'unsupported']]
   );
   assert.equal(spec.renderProgram.visualIR.processes.some((row) => (
     (row.evidence || []).some((value) => /quantum-phase-readout/.test(value))

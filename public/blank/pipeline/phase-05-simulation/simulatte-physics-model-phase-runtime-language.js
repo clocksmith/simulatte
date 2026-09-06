@@ -235,11 +235,11 @@
           const relations = sceneRelationsFromLanguageGraph(languageGraph);
         const participantTermSpanIds = sceneParticipantTermSpanIds(languageGraph, spans);
         const termFallbackConcepts = spans
-        .filter((span) => span.kind === 'term' && !participantTermSpanIds.has(span.id))
+        .filter((span) => span.semanticRole === 'acceleration-field' || span.kind === 'term' && !participantTermSpanIds.has(span.id))
         .slice(0, TERM_FALLBACK_CONCEPT_MAX)
             .map((span) => ({
           ...sceneEntryForSpan(span, 'concept', languageGraph),
-              semanticClass: 'term',
+              semanticClass: span.semanticRole || 'term',
           source: 'term-concept-fallback',
               required: false,
             }));
@@ -368,7 +368,9 @@
           const predicate = kind === 'action'
             ? (languageGraph.predicates || []).find((row) => row.verbSpanId === span.id)
             : null;
+          const behavior = (scope.languageLexicon.BEHAVIOR_PROCESS_LEXICON || []).find((row) => row.process === predicate?.process);
           return {
+        operatorTypes: behavior?.operatorTypes || [],
         id: sceneEntryIdForSpan(span, kind, languageGraph),
             kind,
             label: span.text || target,
@@ -387,16 +389,30 @@
             required: negated ? false : true,
             inferred: false,
             negated,
+            ...(negated ? { negationScope: sceneNegationScope(span, languageGraph) } : {}),
             status: negated ? 'negated' : 'preserved',
           };
         }
 
+    function sceneNegationScope(span, languageGraph) {
+      const modifiers = languageGraph.modifiers || [];
+      const attributeBinding = modifiers.find((row) => row.modifierSpanId === span.id);
+      const target = attributeBinding ? sceneSpanById(languageGraph, attributeBinding.targetSpanId) : span;
+      const properties = modifiers.filter((row) => row.targetSpanId === target?.id &&
+        ['color', 'material', 'articulation'].includes(row.relation)).map((row) => ({
+          kind: row.relation, value: row.value, sourceSpanIds: [row.modifierSpanId, row.targetSpanId],
+        }));
+      return { targetEntryId: sceneNodeIdForSpan(languageGraph, target || span),
+        targetIdentity: target?.entityClass || target?.text || span.text, properties };
+    }
+
     function sceneEntryIdForSpan(span = {}, kind = '', languageGraph = {}) {
       const target = sceneTargetForSpan(span, kind);
       const baseId = `${kind}:${target}`;
-      if (!span.id || !['entity', 'environment', 'medium'].includes(kind)) return baseId;
+      if (!span.id || !['entity', 'concept', 'attribute', 'part', 'environment', 'medium'].includes(kind)) return baseId;
       const peers = (languageGraph.spans || []).filter((row) => {
-        const rowKind = row.kind === 'environment' ? 'environment' :
+        const rowKind = row.kind === 'term' ? kind === 'concept' ? 'concept' : 'entity' :
+          row.kind === 'modifier' ? 'attribute' : row.semanticRole === 'part' ? 'part' : row.kind === 'environment' ? 'environment' :
           row.kind === 'material' ? 'medium' : 'entity';
         return rowKind === kind && sceneTargetForSpan(row, kind) === target;
       });
@@ -443,7 +459,8 @@
             from: subjectId,
             to: `action:${actionTarget}`,
             target: objectId,
-                sourceSpanIds: [predicate.subjectSpanId, predicate.verbSpanId, predicate.objectSpanId].filter(Boolean),
+                sourceSpanIds: [predicate.subjectSpanId, predicate.verbSpanId, predicate.objectSpanId,
+                  ...spansBetweenFieldRelation(languageGraph, predicate, object)].filter(Boolean),
                 required: true,
                 status: 'preserved',
             evidenceIds: [predicate.id].filter(Boolean),
@@ -490,10 +507,18 @@
     }
 
   function sceneNodeIdForSpan(languageGraph = {}, span = {}) {
-      const kind = span.kind === 'environment' ? 'environment' : span.kind === 'material' ? 'medium' :
+      const kind = span.semanticRole === 'acceleration-field' ? 'concept' : span.kind === 'environment' ? 'environment' : span.kind === 'material' ? 'medium' :
         span.semanticRole === 'part' ? 'part' : 'entity';
     return sceneEntryIdForSpan(span, kind, languageGraph);
   }
+
+    function spansBetweenFieldRelation(languageGraph, predicate, object) {
+      if (object?.semanticRole !== 'acceleration-field') return [];
+      const verb = sceneSpanById(languageGraph, predicate.verbSpanId);
+      return (languageGraph.spans || []).filter((span) => span.kind === 'modifier' &&
+        span.modifierRelation === 'location' && span.start >= (verb?.end || 0) && span.end <= object.start)
+        .map((span) => span.id);
+    }
 
     function sceneRelationIdToken(value = '') {
       return String(value || '').replace(/:/g, '-');
@@ -523,6 +548,7 @@
             if (new RegExp(`${scope.NEGATION_RE.source}\\s+$`).test(prefix)) return true;
           }
           const spanTokenStart = Number.isInteger(span.tokenStart) ? span.tokenStart : -1;
+      if (typeof span.negated === 'boolean') return span.negated;
       const negations = languageGraph.negations || [];
       return negations.some((negation) => {
         const negToken = Number.isInteger(negation.tokenStart) ? negation.tokenStart :
@@ -635,7 +661,7 @@
           const actionVisualTargets = role === 'action' && typeof scope.visualSlotTargetsForAction === 'function'
             ? scope.visualSlotTargetsForAction(entry)
             : [];
-          const localActionEvidence = role === 'action' && Boolean(entry.poseHint || actionVisualTargets.length);
+          const localActionEvidence = role === 'action' && Boolean(entry.poseHint || actionVisualTargets.length || entry.operatorTypes?.length);
           return {
             schema: 'simulatte.sceneQuerySlot.v1',
             slotId: `slot.${role}.${String(entry.id || label).replace(/^[a-z]+:/, '').replace(/[^a-z0-9]+/gi, '_')}`,
@@ -652,7 +678,7 @@
           modelEvidenceRequired: !localActionEvidence,
           localEvidenceReason: entry.poseHint
             ? 'phase2-action-pose-contract'
-            : actionVisualTargets.length ? 'phase2-action-visual-contract' : '',
+            : actionVisualTargets.length ? 'phase2-action-visual-contract' : entry.operatorTypes?.length ? 'phase2-mechanical-action-contract' : '',
           poseHint: entry.poseHint || '',
           actionVisualTargets,
         } : {}),
@@ -748,7 +774,7 @@
             ...(sceneLanguageGraph.environments || []),
             ...(sceneLanguageGraph.mediums || []),
           ].filter((entry) => entry && entry.negated === true && entry.id);
-          return scope.uniqueById(entries.map((entry) => {
+          return scope.uniqueById(entries.filter((entry) => !(entry.kind === 'attribute' && entry.negationScope?.properties?.length)).map((entry) => {
             const entryId = String(entry.id);
             const target = String(entry.label || entryId.replace(/^[a-z]+:/, ''));
             return {
@@ -757,7 +783,8 @@
               ownedByPhase: 6,
               required: true,
               target,
-              targetIdentity: entryId.replace(/^[a-z]+:/, ''),
+              targetIdentity: entry.negationScope?.targetIdentity || entryId.replace(/^[a-z]+:/, ''),
+              expectedProperties: entry.negationScope?.properties || [],
               negatedEntryId: entryId,
               constraintKind: 'absence',
               sourceSpanIds: (entry.sourceSpanIds || []).slice(),
