@@ -6,11 +6,15 @@
   function buildClusterTopology(config = {}) {
     const totalGpus = Number(config.totalGpus || 256);
     const racksCount = Number(config.racks || 32);
-    const rowsCount = 4;
+    if (!Number.isInteger(totalGpus) || !Number.isInteger(racksCount) || racksCount < 1 || totalGpus < racksCount || totalGpus % racksCount !== 0) {
+      throw new Error('gpu_topology_requires_even_rack_population');
+    }
+    const rowsCount = Math.min(4, racksCount);
     const racksPerRow = Math.ceil(racksCount / rowsCount);
     const gpusPerRack = Math.floor(totalGpus / racksCount);
     const gpusPerNode = Number(config.gpusPerNode || Math.min(8, gpusPerRack));
     const nodesPerRack = Number(config.nodesPerRack || Math.max(1, Math.floor(gpusPerRack / gpusPerNode)));
+    if (nodesPerRack * gpusPerNode !== gpusPerRack) throw new Error('gpu_node_population_mismatch');
 
     const racks = [];
     const gpus = [];
@@ -80,7 +84,7 @@
           links.push(Object.freeze({
             id: `nvlink:${g1.id}-${g2.id}`,
             type: 'nvlink-mesh',
-            bandwidthGbps: Number(config.nvlinkBandwidthGbps || 900),
+            bandwidthGbps: Number(config.nvlinkBandwidthGbps || 3600),
             sourceGpuId: g1.id,
             targetGpuId: g2.id,
             lengthMeters: 0.35,

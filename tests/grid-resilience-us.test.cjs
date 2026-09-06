@@ -328,3 +328,16 @@ function datasetsById() {
 function json(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
+
+test('editing one service priority swaps ranks and preserves a full permutation', async () => {
+  const harness = createSdkHarness();
+  const instance = await plugin.activate({ sdk: harness.sdk, config, profile: null, scenario });
+  const values = Object.fromEntries(config.sheddingPriorities.map((id, index) => [`sheddingPriority${index + 1}`, id]));
+  values.sheddingPriority1 = config.sheddingPriorities[2];
+  const started = await instance.handleAction('scenario.run', { scenario, values: { ...values, phase: 'start' } });
+  const expected = [...config.sheddingPriorities];
+  [expected[0], expected[2]] = [expected[2], expected[0]];
+  assert.deepEqual(started.acceptedParameters.sheddingPriorities, expected);
+  await assert.rejects(async () => instance.handleAction('scenario.run', { scenario, values: { phase: 'start',
+    sheddingPriorities: [expected[0], expected[0], expected[2], expected[3]] } }), /grid_control_invalid/);
+});

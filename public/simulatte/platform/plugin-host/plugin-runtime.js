@@ -399,7 +399,13 @@
       const instance = instances.get(pluginId);
       if (!instance) throw runtimeError('plugin_action_plugin_missing', `Action targets inactive plugin ${pluginId}`, { pluginId, actionId });
       if (typeof instance.handleAction !== 'function') throw runtimeError('plugin_action_unsupported', `Plugin ${pluginId} does not handle actions`, { pluginId, actionId });
-      return stateApi.freezeClone(await instance.handleAction(actionId, stateApi.freezeClone(context)));
+      // Actions can mutate plugin-private state without dispatching a host reducer.
+      platformCache = null;
+      try {
+        return stateApi.freezeClone(await instance.handleAction(actionId, stateApi.freezeClone(context)));
+      } finally {
+        platformCache = null;
+      }
     }
 
     function invoke(capabilityId, input) {

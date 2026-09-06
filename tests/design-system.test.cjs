@@ -8,7 +8,7 @@ const TOKEN_FILE = "public/shared/design/tokens.css";
 const read = file => fs.readFileSync(path.join(ROOT, file), 'utf8');
 const clean = text => text.replace(/\/\*[\s\S]*?\*\//g, '');
 const imports = text => [...clean(text).matchAll(/@import\s+['"]([^'"]+)['"]\s*;/g)].map(match => match[1]);
-const PAGE_STYLES = ['public/styles.css', 'public/blank/styles.css', 'public/model-selection.css', 'public/world-tiers.css', 'public/shared/design/workbench.css'];
+const PAGE_STYLES = ['public/styles.css', 'public/blank/styles.css', 'public/model-selection.css', 'public/world-tiers.css', 'public/shared/design/workbench.css', 'public/shared/design/compositions/world-interface.css'];
 
 function assertLiteralPropertyNames(text, file) {
   assert.doesNotMatch(clean(text), /(?:^|[;{])\s*var\([^;{}\n]+\)[^:;{}\n]*:/m,

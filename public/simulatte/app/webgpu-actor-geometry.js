@@ -1,12 +1,17 @@
 (function attachAutonomyActorGeometry(root, factory) {
-  const api = factory();
+  const meshes = typeof module === 'object' && module.exports
+    ? require('../../shared/render/mesh-library.js') : root.SimulatteMeshLibrary;
+  const api = factory(meshes);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyActorGeometry = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyActorGeometry() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyActorGeometry(meshLibrary, meshDefinitions = []) {
   const ACTOR_MESH_SCHEMA = 'simulatte.autonomyActorMesh.v1';
   const FLOATS_PER_VERTEX = 13;
   const MATERIAL_MODEL = 'metallic_roughness_vertex_v1';
-  const SUPPORTED_ACTOR_KINDS = Object.freeze(['pedestrian', 'bicycle', 'scooter', 'car', 'package']);
+  const builtins = ['pedestrian', 'bicycle', 'scooter', 'car', 'package'];
+  const assets = meshLibrary.create(meshDefinitions);
+  if (assets.ids.some(id => builtins.includes(id))) throw new Error('actor_mesh_builtin_override');
+  const SUPPORTED_ACTOR_KINDS = Object.freeze([...builtins, ...assets.ids]);
   const MATERIALS = Object.freeze({
     fabric: Object.freeze([0.02, 0.86]),
     skin: Object.freeze([0.01, 0.68]),
@@ -41,7 +46,15 @@
     const motionPhase = Number.isFinite(options.motionPhase) ? options.motionPhase : 0;
     const before = writer.length;
     if (options.isPrimary) addGroundRing(writer, frame, kind === 'car' ? 2.7 : 1.18);
-    if (kind === 'pedestrian') addPerson(writer, frame, { motionPhase, gait: options.gait || 'walk' });
+    if (assets.has(kind)) {
+      const mesh = assets.get(kind);
+      const { color, metallic, roughness, emissive } = mesh.material;
+      for (let i = 0; i < mesh.positions.length; i += 3) {
+        writer.vertex(localPoint(frame, mesh.positions.slice(i, i + 3)),
+          localDirection(frame, mesh.normals.slice(i, i + 3)), color, emissive, [metallic, roughness]);
+      }
+    }
+    else if (kind === 'pedestrian') addPerson(writer, frame, { motionPhase, gait: options.gait || 'walk' });
     else if (kind === 'bicycle') addBicycle(writer, frame, { motionPhase, hasRider: true });
     else if (kind === 'scooter') addScooter(writer, frame, { motionPhase, hasRider: true });
     else if (kind === 'car') addCar(writer, frame);
@@ -407,5 +420,6 @@
     return value.map((row) => row / length);
   }
 
-  return { ACTOR_MESH_SCHEMA, COLORS, FLOATS_PER_VERTEX, MATERIALS, MATERIAL_MODEL, SUPPORTED_ACTOR_KINDS, addActor, canonicalKind };
+  return { ACTOR_MESH_SCHEMA, COLORS, FLOATS_PER_VERTEX, MATERIALS, MATERIAL_MODEL, SUPPORTED_ACTOR_KINDS, addActor, canonicalKind,
+    meshAssets: assets.entries(), create: meshes => createAutonomyActorGeometry(meshLibrary, meshes) };
 });

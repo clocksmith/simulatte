@@ -367,3 +367,22 @@ function datasetsById() {
 function json(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
+
+test('nearest-first repair follows arrival distance and skips depleted resources', () => {
+  const repair = require('../public/shared/plugins/subsea-network-global/repair-engine.js');
+  const points = [{ id: 'origin', coordinates: [0, 0] }, { id: 'near', coordinates: [1, 0] }, { id: 'far', coordinates: [30, 0] }];
+  const edges = [{ id: 'a-far', fromLandingId: 'origin', toLandingId: 'far' }, { id: 'z-near', fromLandingId: 'origin', toLandingId: 'near' }];
+  const resource = { id: 'ship', startLandingId: 'origin', speedKph: 20, spareCableKm: 10, spliceKits: 10 };
+  const repairScenario = { resources: [resource], spareCablePerRepairKm: 1, spliceKitsPerRepair: 1, repairDurationHours: 2, attemptFailureProbability: 0 };
+  const input = { failedResourceIds: ['a-far', 'z-near'], edges, points, repairScenario, repairPolicyId: 'nearest-first', repairResourceCount: 1, seed: 'test', unmetByEdge: {} };
+  const run = repair.buildRepairTimeline(input);
+  assert.equal(run.events.find(row => row.kind === 'repair.requested').targetId, 'z-near');
+  const supplied = repair.buildRepairTimeline({ ...input, repairResourceCount: 2, repairScenario: { ...repairScenario,
+    resources: [{ ...resource, id: 'empty', spareCableKm: 0 }, { ...resource, id: 'supplied' }] } });
+  assert.ok(supplied.restorations.every(row => row.resourceId === 'supplied'));
+  const wrapped = repair.buildRepairTimeline({ ...input, failedResourceIds: ['z-near'], points: [
+    { id: 'origin', coordinates: [179, 0] }, { id: 'near', coordinates: [-179, 0] }, points[2],
+  ] });
+  const midpoint = wrapped.events.find(row => row.transitProgressFraction === 0.5);
+  assert.equal(Math.abs(midpoint.position[0]), 180);
+});

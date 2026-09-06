@@ -315,8 +315,8 @@ test('applied mission state remains inspectable while step-time drafts cannot mu
   assert.equal(controls.deltaVWeight.value, 2);
   assert.equal(controls.timeWeight.value, 0.2);
   assert.equal(controls.spacecraftArchetypeId.value, 'crew-ship-v1');
-  assert.match(controls.prograde.label, /^Advanced:/);
-  assert.match(controls.verificationStepDays.label, /^Advanced:/);
+  assert.match(controls.prograde.label, /^Solver:/);
+  assert.match(controls.verificationStepDays.label, /^Solver:/);
 
   const fields = Object.fromEntries(contribution.inspections[0].fields.map((row) => [row.id, row.value]));
   assert.equal(fields['applied-scenario'], profile.seeds[0].label);
@@ -379,3 +379,11 @@ function fixture() {
 function json(filename) {
   return JSON.parse(fs.readFileSync(filename, 'utf8'));
 }
+
+test('launch search rejects nonadvancing, nonfinite, and excessive grids before iterating', () => {
+  const input = { ephemerisDataset: ephemerisData, arrivalBodyId: 'mars', gmSunAuD2: gmData.bodies.sun.gmAuD2 };
+  for (const patch of [{ departureStepDays: 0 }, { tofStepDays: -1 }, { departureEndDay: Infinity },
+    { departureStepDays: 1e-12 }, { tofMinDays: 0 }, { objectiveWeights: { deltaV: NaN } }]) {
+    assert.throws(() => launchWindow.scanLaunchWindow({ ...input, ...patch }), /launch_window_search_bounds_invalid/);
+  }
+});

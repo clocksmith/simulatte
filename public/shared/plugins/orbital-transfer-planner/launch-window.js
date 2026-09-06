@@ -21,6 +21,18 @@
       lambertOptions = { prograde: true, maxIterations: 96, toleranceDays: 1e-8 },
     } = options || {};
     if (!arrivalBodyId) throw new Error('launch_window_arrival_body_missing');
+    const bounds = [departureStartDay, departureEndDay, departureStepDays, tofMinDays, tofMaxDays, tofStepDays, gmSunAuD2];
+    const attempts = (Math.floor((departureEndDay - departureStartDay) / departureStepDays) + 1)
+      * (Math.floor((tofMaxDays - tofMinDays) / tofStepDays) + 1);
+    if (!bounds.every(Number.isFinite) || departureEndDay < departureStartDay || tofMaxDays < tofMinDays
+      || departureStepDays <= 0 || tofStepDays <= 0 || tofMinDays <= 0 || gmSunAuD2 <= 0
+      || !Number.isFinite(attempts) || attempts > 1000000
+      || departureStartDay + departureStepDays === departureStartDay || tofMinDays + tofStepDays === tofMinDays
+      || !Number.isInteger(maximumCandidates) || maximumCandidates < 1
+      || !Number.isInteger(maximumRejectionSamples) || maximumRejectionSamples < 0
+      || ![objectiveWeights.deltaV ?? 1, objectiveWeights.timeOfFlight ?? 0].every(value => Number.isFinite(value) && value >= 0)) {
+      throw new Error('launch_window_search_bounds_invalid');
+    }
     const rows = [];
     let attempted = 0;
     let failed = 0;

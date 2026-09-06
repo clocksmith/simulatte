@@ -1,8 +1,10 @@
 (function attachRecursiveWorldScene(root, factory) {
-  const api = factory();
+  const meshes = typeof module === 'object' && module.exports
+    ? require('../../shared/render/mesh-library.js') : root.SimulatteMeshLibrary;
+  const api = factory(meshes);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRecursiveWorldScene = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createRecursiveWorldSceneApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createRecursiveWorldSceneApi(meshLibrary) {
   const RENDER_PROGRAM_SCHEMA = 'simulatte.recursive-render-program/v1';
   const FRAME_STATE_SCHEMA = 'simulatte.recursive-render-frame-state/v1';
   const INSTANCE_FLOATS = 20;
@@ -29,6 +31,7 @@
     const graph = worldSpec.compositionGraph;
     const program = worldSpec.renderProgram;
     validateRenderProgram(program, graph);
+    const assets = meshLibrary.create(program.meshes || []);
     const frameTransforms = resolveFrameTransforms(graph.frames);
     const instances = [];
     program.representations.forEach((representation) => {
@@ -52,8 +55,8 @@
         instances.push(instanceRecord({
           id: `${representation.id}:${primitive.id}`,
           representation,
-          primitive,
-          meshKind: primitive.kind,
+          primitive: primitive.kind === 'mesh' ? { ...primitive, color: primitive.color || assets.get(primitive.meshId).material.color } : primitive,
+          meshKind: primitive.kind === 'mesh' ? primitive.meshId : primitive.kind,
           modelMatrix: multiplyMatrix(frameMatrix, multiplyMatrix(translationMatrix(primitive.center), scaleMatrix(size))),
         }));
       });
@@ -72,6 +75,7 @@
       contentHash: sceneContentHash,
       worldSpecContentHash: worldSpec.contentHash,
       renderProgram: program,
+      meshAssets: assets.entries(),
       frameTransforms: freezeRecords(frameTransforms),
       instances: Object.freeze(instances),
       groups: Object.freeze(groups.map(Object.freeze)),
@@ -142,7 +146,10 @@
 
   function validateRenderProgram(program, graph) {
     requireRecord(program, 'renderProgram');
-    if (program.schema !== RENDER_PROGRAM_SCHEMA) fail('recursive_scene_schema_invalid', `Expected ${RENDER_PROGRAM_SCHEMA}`);
+    if (![RENDER_PROGRAM_SCHEMA, 'simulatte.recursive-render-program/v2'].includes(program.schema)) fail('recursive_scene_schema_invalid', `Expected ${RENDER_PROGRAM_SCHEMA} or v2`);
+    if (program.schema === RENDER_PROGRAM_SCHEMA && program.meshes) fail('recursive_scene_schema_invalid', 'Mesh assets require render-program/v2');
+    const assets = meshLibrary.create(program.meshes || []);
+    if (assets.ids.some(id => ['box', 'sphere'].includes(id))) fail('recursive_scene_mesh_override', 'Mesh assets cannot replace built-in geometry');
     requireArray(program.representations, 'renderProgram.representations', 1);
     requireArray(program.cameraTargets, 'renderProgram.cameraTargets', 1);
     requireArray(program.stateBindings, 'renderProgram.stateBindings');
@@ -164,7 +171,7 @@
         fail('recursive_scene_fidelity_unknown', `Scope ${scope.id} does not declare ${representation.fidelityLevelId}`);
       }
       requireArray(representation.primitives, `${representation.id}.primitives`, 1);
-      representation.primitives.forEach(validatePrimitive);
+      representation.primitives.forEach(primitive => validatePrimitive(primitive, assets));
       representations.set(representation.id, representation);
     });
     program.cameraTargets.forEach((target) => {
@@ -187,10 +194,11 @@
     return program;
   }
 
-  function validatePrimitive(primitive) {
+  function validatePrimitive(primitive, assets) {
     requireRecord(primitive, 'primitive');
     requireString(primitive.id, 'primitive.id');
-    if (!['box', 'sphere', 'polyline'].includes(primitive.kind)) fail('recursive_scene_primitive_invalid', `Unsupported primitive ${primitive.kind}`);
+    if (!['box', 'sphere', 'polyline', 'mesh'].includes(primitive.kind)) fail('recursive_scene_primitive_invalid', `Unsupported primitive ${primitive.kind}`);
+    if (primitive.kind === 'mesh' && !assets.has(primitive.meshId)) fail('recursive_scene_mesh_missing', `Undeclared mesh ${primitive.meshId}`);
     if (primitive.kind === 'polyline') {
       requireArray(primitive.points, `${primitive.id}.points`, 2);
       primitive.points.forEach((point) => requireVector(point, 3, `${primitive.id}.point`));
@@ -198,7 +206,7 @@
       return;
     }
     requireVector(primitive.center, 3, `${primitive.id}.center`);
-    if (primitive.kind === 'box') {
+    if (primitive.kind === 'box' || primitive.kind === 'mesh') {
       requireVector(primitive.size, 3, `${primitive.id}.size`);
       primitive.size.forEach((value) => requirePositive(value, `${primitive.id}.size`));
     } else requirePositive(primitive.radius, `${primitive.id}.radius`);

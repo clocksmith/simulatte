@@ -452,6 +452,14 @@
     const selected = hasRankedEditorValues
       ? rankedValues.map((value, index) => value === undefined || value === '' ? fallback[index] : value)
       : arrayValue(values.sheddingPriorities, fallback, 'sheddingPriorities');
+    // A single rank edit swaps its previous occupant with the selected region.
+    // Multi-field/program inputs must still supply a complete permutation.
+    const changed = selected.map((value, index) => value !== fallback[index] ? index : -1).filter(index => index >= 0);
+    if (hasRankedEditorValues && changed.length === 1 && regionIds.has(selected[changed[0]])) {
+      const index = changed[0];
+      const displaced = fallback.indexOf(selected[index]);
+      if (displaced >= 0) selected[displaced] = fallback[index];
+    }
     if (selected.length !== regionIds.size || new Set(selected).size !== regionIds.size
       || selected.some((row) => !regionIds.has(row))) {
       throw pluginError('grid_control_invalid', 'Service priority must rank every region exactly once');

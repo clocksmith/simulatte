@@ -24,12 +24,12 @@
     const config = {
       totalGpus: 256,
       racks: 32,
-      nodesPerRack: 8,
+      nodesPerRack: 1,
       gpusPerNode: 8,
       parallelism: { tensorParallel: 8, pipelineParallel: 4, dataParallel: 8 },
       collectiveAlgorithm: 'ring-allreduce',
       tensorSizeGb: 14.2,
-      nvlinkBandwidthGbps: 900,
+      nvlinkBandwidthGbps: 3600,
       infinibandBandwidthGbps: 800,
       coolantInletTempC: 22,
       coolantFlowLpm: 120,
@@ -47,17 +47,18 @@
       cduFlowDegradationPercent: normalizedControls.cduFlowDegradationPercent,
     };
     const topology = topologyApi.buildClusterTopology(config);
-    const collectives = collectiveApi.solveCollectives({
+    const collectiveInputs = {
       totalGpus: config.totalGpus || 256,
       tensorSizeGb: config.tensorSizeGb || 14.2,
       algorithm: config.collectiveAlgorithm || 'ring-allreduce',
       parallelism: config.parallelism || { tensorParallel: 8, pipelineParallel: 4, dataParallel: 8 },
-      nvlinkBandwidthGbps: config.nvlinkBandwidthGbps || 900,
+      nvlinkBandwidthGbps: config.nvlinkBandwidthGbps || 3600,
       infinibandBandwidthGbps: config.infinibandBandwidthGbps || 800,
       stragglerThrottlePercent: config.stragglerThrottlePercent || 0,
       linkPacketDropRate: config.linkPacketDropRate || 0,
       gpuTdpW: config.gpuTdpW || 700,
-    });
+    };
+    let collectives = collectiveApi.solveCollectives(collectiveInputs);
 
     const thermals = thermalApi.solveThermals({
       totalGpus: config.totalGpus || 256,
@@ -69,6 +70,9 @@
       cduFlowDegradationPercent: config.cduFlowDegradationPercent || 0,
       activeMfuFraction: (collectives.modelFlopsUtilization || 55) / 100,
     });
+    if (thermals.thermalClockFraction < 1) {
+      collectives = collectiveApi.solveCollectives({ ...collectiveInputs, thermalClockFraction: thermals.thermalClockFraction });
+    }
 
     const receipt = receiptApi.createClusterReceipt({
       config,
@@ -109,12 +113,12 @@
     const activeConfig = {
       totalGpus: 256,
       racks: 32,
-      nodesPerRack: 8,
+      nodesPerRack: 1,
       gpusPerNode: 8,
       parallelism: { tensorParallel: 8, pipelineParallel: 4, dataParallel: 8 },
       collectiveAlgorithm: 'ring-allreduce',
       tensorSizeGb: 14.2,
-      nvlinkBandwidthGbps: 900,
+      nvlinkBandwidthGbps: 3600,
       infinibandBandwidthGbps: 800,
       coolantInletTempC: 22.0,
       coolantFlowLpm: 120.0,

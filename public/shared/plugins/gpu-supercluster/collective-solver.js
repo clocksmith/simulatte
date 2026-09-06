@@ -8,19 +8,21 @@
     tensorSizeGb = 14.2,
     algorithm = 'ring-allreduce',
     parallelism = { tensorParallel: 8, pipelineParallel: 4, dataParallel: 8 },
-    nvlinkBandwidthGbps = 900,
+    nvlinkBandwidthGbps = 3600,
     infinibandBandwidthGbps = 800,
     stragglerThrottlePercent = 0,
     linkPacketDropRate = 0,
     gpuTdpW = 700,
+    thermalClockFraction = 1,
   } = {}) {
     const tensorSizeBytes = tensorSizeGb * 1e9;
     const tp = Math.max(1, parallelism.tensorParallel || 8);
     const pp = Math.max(1, parallelism.pipelineParallel || 4);
     const dp = Math.max(1, parallelism.dataParallel || 8);
     const effectiveClusterGpus = tp * pp * dp;
+    if (effectiveClusterGpus !== totalGpus) throw new Error('gpu_parallelism_must_match_cluster');
 
-    // 1. Intra-Node Tensor Parallel Transfer Time (NVLink crossbar)
+    // H100's 900 GB/s bidirectional aggregate is modeled as 450 GB/s per direction.
     const tpBandwidthBps = (nvlinkBandwidthGbps * 1e9) / 8;
     const tpTransferTimeSec = (2 * (tp - 1) / tp) * (tensorSizeBytes / (pp * dp)) / tpBandwidthBps;
 
@@ -64,7 +66,10 @@
     const idealComputeTimeSec = stepFlops / (totalPeakClusterTflops * 1e12);
 
     // Compute execution time with pipeline bubbles
-    const computeTimeWithBubblesSec = idealComputeTimeSec * (1 + bubbleFraction);
+    if (!Number.isFinite(thermalClockFraction) || thermalClockFraction <= 0 || thermalClockFraction > 1) {
+      throw new Error('gpu_thermal_clock_invalid');
+    }
+    const computeTimeWithBubblesSec = idealComputeTimeSec / ((1 - bubbleFraction) * thermalClockFraction);
 
     // 5. Tail-Latency Straggler Drag
     // In synchronous AllReduce, the slowest worker sets the step barrier
@@ -80,7 +85,7 @@
     const totalStepTimeMs = totalStepTimeSec * 1000;
 
     // Actual MFU (Model FLOPs Utilization) and effective TFLOPS
-    const modelFlopsUtilization = Math.max(0.01, Math.min(0.85, idealComputeTimeSec / totalStepTimeSec));
+    const modelFlopsUtilization = idealComputeTimeSec / totalStepTimeSec;
     const effectiveClusterTflops = totalPeakClusterTflops * modelFlopsUtilization;
 
     // Communication vs Compute breakdown
@@ -103,6 +108,7 @@
       effectiveClusterTflops: Number(effectiveClusterTflops.toFixed(1)),
       totalPeakClusterTflops,
       bandwidthBottleneck: dpTransferTimeSec > tpTransferTimeSec ? 'InfiniBand Inter-Rack' : 'NVLink Intra-Node',
+      thermalClockFraction,
     });
   }
 

@@ -464,3 +464,38 @@ test('declarative UI bounds initial inspection DOM and hydrates the remainder on
   assert.ok(find(deferred, (node) => node.textContent === 'Inspection 261'));
   assert.equal(deferred.children.length, 251);
 });
+
+test('plugin-authored control groups collapse independently and retain their state after rendering', () => {
+  const doc = fakeDocument();
+  const inspector = new FakeNode('root', doc);
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {} });
+  const contribution = { pluginId: 'fixture', controls: { controls: [
+    { ...control('from', 'number', 1), label: 'Route: From' },
+    { ...control('to', 'number', 2), label: 'Route: To' },
+    { ...control('retry', 'number', 3), label: 'Operations · Retries' },
+  ] }, inspections: [] };
+  host.render([], [contribution]);
+  let operations = find(inspector, node => node.className === 'plugin-control-group' && node.children[0].textContent === 'Operations (1)');
+  assert.equal(operations.open, false);
+  operations.open = true;
+  operations.dispatch('toggle');
+  host.render([], [contribution]);
+  operations = find(inspector, node => node.className === 'plugin-control-group' && node.children[0].textContent === 'Operations (1)');
+  assert.equal(operations.open, true);
+  assert.deepEqual(host.values('fixture'), { from: 1, to: 2, retry: 3 });
+});
+
+test('failed control changes restore the applied value and report the owning control', async () => {
+  const doc = fakeDocument();
+  const inspector = new FakeNode('root', doc);
+  const errors = [];
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {},
+    onControlChange() { throw new Error('Route rejected'); }, onError(error, context) { errors.push({ error, context }); } });
+  host.render([], [{ pluginId: 'fixture', controls: { controls: [control('count', 'number', 2)] }, inspections: [] }]);
+  const input = find(inspector, node => node.dataset?.pluginControl === 'count');
+  input.value = '3';
+  await input.dispatch('change');
+  assert.equal(host.values('fixture').count, 2);
+  assert.equal(input.dataset.applyStatus, 'failed');
+  assert.deepEqual(errors[0].context, { controlId: 'count', pluginId: 'fixture' });
+});

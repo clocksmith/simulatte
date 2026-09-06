@@ -143,7 +143,7 @@
         await mountLifecycleApi.disposeAll([
           { resource: 'place-resolver', dispose: () => resources.placeResolver?.unload() },
           { resource: 'tier-visualizer', dispose: () => resources.tierVisualizer?.destroy() },
-          { resource: 'renderer', dispose: () => resources.renderer?.destroy() },
+          { resource: 'renderer', dispose: () => resources.renderer?.session.dispose() },
           { resource: 'plugin-playback', dispose: () => pluginPlayback?.dispose() },
           { resource: 'plugin-ui', dispose: () => resources.pluginUi?.dispose() },
           { resource: 'profile-program', dispose: () => resources.profileProgram?.dispose() },
@@ -496,7 +496,7 @@
       if (route.profile && route.profile !== data.applicationProfile.id) throw routeIdentityError('profile', route.profile, data.applicationProfile.id);
       if (route.world && route.world !== data.world.id) throw routeIdentityError('world', route.world, data.world.id);
       if (route.camera && route.camera !== activeCameraMode) selectGovernedCamera(route.camera);
-      if (hostRoot.SimulatteRouter.queryForSimulation(route.simulation) !== hostRoot.SimulatteRouter.queryForSimulation(simulationRouteState())) await updateSimulationFromRoute(route.simulation || null);
+      if (hostRoot.SimulatteRouter.queryForSimulation(route.simulation) !== hostRoot.SimulatteRouter.queryForSimulation({ ...simulationRouteState(), parameters: pluginSession.appliedParameters() })) await updateSimulationFromRoute(route.simulation || null);
       return governedRoute();
     }
     function routeIdentityError(kind, requested, resolved) { const error = new Error(`Requested ${kind} ${requested}; resolved ${resolved}`); error.code = `route_${kind}_resolution_mismatch`; return error; }
@@ -539,7 +539,7 @@
           },
         });
         if (lifecycle.signal.aborted) {
-          nextRenderer.destroy();
+          await nextRenderer.session.dispose();
           return null;
         }
         renderer = nextRenderer;
@@ -737,7 +737,7 @@
         : 'Deterministic place matching · 27/37 diagnostic · no model execution';
     });
     on(window, 'resize', () => {
-      if (renderer && controller) renderer.render(controller.snapshot());
+      if (renderer && controller) renderer.session.render({ snapshot: controller.snapshot() });
     });
 
     try {

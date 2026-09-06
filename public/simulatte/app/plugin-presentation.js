@@ -212,20 +212,12 @@
         if (actorKind) {
           const progress = semanticActorProgress(primitive.quantity);
           const rawPoints = rawLayerPoints.get(primitive.sourceId || primitive.id) || points;
-          const pathPoints = actorPathPoints(
-            primitive.sourceId || primitive.id,
-            primitive.quantity?.kind,
-            rawPoints,
-            presentation,
-            rawLayerPoints,
-          );
-          const pathLength = polylineLength(pathPoints);
           compiled.actors.push(Object.freeze({
             ...common,
-            points: Object.freeze(pathPoints),
+            points: Object.freeze([pointAlongPath(rawPoints, progress)]),
             kind: actorKind,
-            speedMps: pathLength > 0 ? pathLength * 0.24 : 0,
-            phaseOffsetM: pathLength * progress,
+            speedMps: 0,
+            phaseOffsetM: 0,
             isSelected: true,
           }));
         } else {
@@ -386,46 +378,6 @@
     return total;
   }
 
-  function actorPathPoints(actorId, quantityKind, actorPoints, presentation, rawLayerPoints) {
-    if (actorPoints.length > 1) return actorPoints;
-    if (!/route-progress|shipment-progress|repair|packet|spacecraft|vessel|pedestrian/.test(String(quantityKind || ''))) return actorPoints;
-    const pathLayers = presentation.layers.filter((layer) => layer.kind === 'path');
-    if (!pathLayers.length) return actorPoints;
-    const actor = String(actorId || '').toLowerCase();
-    const preferred = pathLayers.find((layer) => {
-      const id = String(layer.id || '').toLowerCase();
-      if (actor.includes('screening-spacecraft')) return id.includes('transfer-trajectory');
-      if (actor.includes('asteroid-active-clone')) return id.includes('representative-trajectory') || id.includes('clone-path');
-      if (actor.includes('voyage:')) return id.startsWith('route:');
-      if (actor.includes('sun-walker')) return id === 'shade-selected-route';
-      if (actor.includes('shipment:')) return id.startsWith('corridor:');
-      if (actor.includes('packet')) return id.startsWith('relay-link:');
-      return false;
-    });
-    const candidates = preferred ? [preferred, ...pathLayers.filter((layer) => layer !== preferred)] : pathLayers;
-    const selected = candidates
-      .map((layer) => ({ layer, points: rawLayerPoints.get(layer.id) || [] }))
-      .filter((row) => row.points.length > 1)
-      .sort((left, right) => pathDistanceToPoint(left.points, actorPoints[0]) - pathDistanceToPoint(right.points, actorPoints[0]))[0];
-    return selected?.points || actorPoints;
-  }
-
-  function pathDistanceToPoint(points, point) {
-    if (!point || points.length < 2) return Number.POSITIVE_INFINITY;
-    let best = Number.POSITIVE_INFINITY;
-    for (let index = 1; index < points.length; index += 1) {
-      const start = points[index - 1];
-      const end = points[index];
-      const dx = end.x - start.x;
-      const dy = end.y - start.y;
-      const denominator = dx * dx + dy * dy;
-      const ratio = denominator ? Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / denominator)) : 0;
-      const x = start.x + dx * ratio;
-      const y = start.y + dy * ratio;
-      best = Math.min(best, Math.hypot(point.x - x, point.y - y));
-    }
-    return best;
-  }
 
   function validViewport(value) {
     return value

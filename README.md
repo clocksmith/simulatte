@@ -6,6 +6,7 @@ create a world, or use your own data.
 - [Live site](https://simulatte.world)
 - [Prompt compiler](https://create.simulatte.world/)
 - [Workbench workflow and component contracts](docs/workbench.md)
+- [Renderer API, scene adapters, and extension examples](docs/simulatte/rendering-api.md)
 - Repository status: private npm package; source is MIT licensed.
 
 ## Mission, goal, and value

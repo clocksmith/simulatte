@@ -111,7 +111,16 @@ function fakeGpu() {
   let submissions = 0;
   let completions = 0;
   let clock = 0;
-  const buffer = () => ({ destroy() {} });
+  const resources = [];
+  let lose;
+  let unconfigured = 0;
+  let destroyedDevice = 0;
+  const buffer = (descriptor) => {
+    assert.ok(Number.isFinite(descriptor.size));
+    const value = { descriptor, destroyed: 0, destroy() { this.destroyed++; } };
+    resources.push(value);
+    return value;
+  };
   const pass = {
     setPipeline() {},
     setBindGroup() {},
@@ -120,8 +129,10 @@ function fakeGpu() {
     end() {},
   };
   const device = {
+    lost: new Promise(resolve => { lose = resolve; }),
+    destroy() { destroyedDevice++; },
     queue: {
-      writeBuffer(...args) { writes.push(args); },
+      writeBuffer(...args) { assert.ok(ArrayBuffer.isView(args[2])); writes.push(args); },
       submit() { submissions += 1; },
       async onSubmittedWorkDone() { completions += 1; },
     },
@@ -134,14 +145,76 @@ function fakeGpu() {
     createTexture() { return { createView() { return {}; }, destroy() {} }; },
     createCommandEncoder() { return { beginRenderPass() { return pass; }, finish() { return {}; } }; },
   };
-  const context = { configure() {}, getCurrentTexture() { return { createView() { return {}; } }; } };
+  const context = { configure() {}, unconfigure() { unconfigured++; }, getCurrentTexture() { return { createView() { return {}; } }; } };
   return {
     device,
     context,
     draws,
     writes,
+    resources, lose,
+    get unconfigured() { return unconfigured; },
+    get destroyedDevice() { return destroyedDevice; },
     get submissions() { return submissions; },
     get completions() { return completions; },
     now() { clock += 0.25; return clock; },
   };
 }
+
+test('recursive v2 adds a custom mesh through scene data and the common session', async () => {
+  const reference = referenceApi.createReferenceWorld(loadInputs());
+  await reference.coordinator.runUntil(3900);
+  const spec = structuredClone(reference.worldSpec);
+  spec.renderProgram.schema = 'simulatte.recursive-render-program/v2';
+  spec.renderProgram.meshes = [{ id: 'sail', positions: [0, 0, 0, 1, 0, 0, 0, 1, 0] }];
+  spec.renderProgram.representations[0].primitives.push({ id: 'sail', kind: 'mesh', meshId: 'sail', center: [0, 0, 0], size: [1, 1, 1] });
+  const scene = sceneApi.compileScene(spec);
+  assert.equal(scene.instances.length, 7);
+  const fake = fakeGpu();
+  const session = rendererApi.createSession({ canvas: { width: 128, height: 128 }, scene, device: fake.device, context: fake.context });
+  await session.ready;
+  const receipt = session.render({ observation: reference.coordinator.observePorts(), timeMs: 0 });
+  assert.equal(receipt.instanceCount, 7);
+  assert.ok(fake.draws.some(([vertices, instances]) => vertices === 3 && instances === 1));
+  assert.ok(fake.writes.some(([target, , bytes]) => target.descriptor.label === 'recursive-world-sail' && bytes.byteLength === 36));
+  fake.lose({ reason: 'unknown', message: 'test loss' });
+  await new Promise(setImmediate);
+  assert.equal(session.status().state, 'failed');
+  assert.ok(fake.resources.every(resource => resource.destroyed === 1));
+  assert.equal(fake.destroyedDevice, 0, 'injected device is not owned by the renderer');
+  await session.dispose();
+  assert.equal(fake.unconfigured, 1);
+  assert.throws(() => session.render({}), { code: 'renderer_disposed' });
+  spec.renderProgram.meshes = [];
+  assert.throws(() => sceneApi.compileScene(spec), { code: 'recursive_scene_mesh_missing' });
+});
+
+test('recursive initialization releases partial allocations without destroying a borrowed device', async () => {
+  const scene = sceneApi.compileScene(referenceApi.createReferenceWorld(loadInputs()).worldSpec);
+  const fake = fakeGpu();
+  fake.device.createBindGroup = () => { throw new Error('injected bind-group failure'); };
+  const session = rendererApi.createSession({ canvas: {}, scene, device: fake.device, context: fake.context });
+  await assert.rejects(session.ready, /injected bind-group failure/);
+  assert.ok(fake.resources.length >= 4);
+  assert.ok(fake.resources.every(resource => resource.destroyed === 1));
+  assert.equal(fake.destroyedDevice, 0);
+  assert.equal(fake.unconfigured, 1);
+});
+
+test('recursive capture rejects a replaced frame and stale asynchronous pixels', async () => {
+  const reference = referenceApi.createReferenceWorld(loadInputs());
+  await reference.coordinator.runUntil(3900);
+  const scene = sceneApi.compileScene(reference.worldSpec);
+  const fake = fakeGpu();
+  let complete;
+  const canvas = { width: 64, height: 64, convertToBlob: () => new Promise(resolve => { complete = resolve; }) };
+  const renderer = await rendererApi.createRenderer({ canvas, scene, device: fake.device, context: fake.context });
+  const observation = reference.coordinator.observePorts();
+  const old = renderer.session.render({ observation, timeMs: 0 });
+  const pending = renderer.session.capture();
+  await new Promise(setImmediate);
+  renderer.session.render({ observation, timeMs: 1 });
+  complete(new Blob(['pixels']));
+  await assert.rejects(pending, /capture_stale/);
+  await assert.rejects(renderer.captureVisualEvidence(old), /capture_stale/);
+  await renderer.session.dispose();
+});

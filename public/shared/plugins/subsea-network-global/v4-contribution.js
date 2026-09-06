@@ -10,7 +10,7 @@
   const MODEL_HASHES = Object.freeze({
     allocation: 'b74dd2870c3c28b1e08236ca30eea42535f1af79c849aaf3a3ec50be0497faab',
     fairAllocation: 'd8caa2bc05f9056604a9f13dd4b7f0b9c7b9454ee74b0f5b99c1293996f8d71c',
-    repair: '6935c49c5fd7496b70ed3db60fd38b26b5064b448b70ca7c54d74a1a8ac86017',
+    repair: 'adf7e2968ef989e189094668c5c8138c915f6ce8fab44deba3da70ddaea0709d',
   });
 
   function createContribution({

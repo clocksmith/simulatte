@@ -22,10 +22,12 @@ Mount the hexagon chooser, optional data workbench, or selected simulation; expo
 - Output: [run controller](tier-run-controller.js)
 - Output: [profile program](profile-program.js)
 - Output: [data workbench](data-workbench.js)
+- Output: [World scene adapter](world-render-scene.js), [GPU drawing](webgpu-renderer.js), and [tier drawing adapter](tier-scene-renderer.js).
 
 ## Invariants
 
 - URL identity and resolved profile identity must match.
+- Scene preparation owns World-specific geometry, route, and presentation decisions. Rendering sessions consume prepared inputs and do not acquire tier data or manage HUD elements.
 - UI completion follows settled runtime state.
 - Profile replay compares deterministic execution identity and retains unproven proof classes.
 - Data imports remain local unless the user explicitly requests a URL. Prepared data does not execute until Run is selected.

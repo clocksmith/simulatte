@@ -1,4 +1,76 @@
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("../fonts/IBMPlexSans-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("../fonts/IBMPlexSans-Medium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("../fonts/IBMPlexSans-SemiBold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Condensed";
+  src: url("../fonts/IBMPlexSansCondensed-SemiBold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../fonts/IBMPlexMono-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
+  color-scheme: light;
+  --sim-font: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --sim-sans: var(--sim-font);
+  --sim-heading: "IBM Plex Sans Condensed", var(--sim-font);
+  --sim-mono: "IBM Plex Mono", monospace;
+  --sim-ink: #171717;
+  --sim-ink-soft: #505050;
+  --sim-ink-faint: #626262;
+  --sim-paper: #ededed;
+  --sim-glass: #f3f3f3;
+  --sim-glass-soft: #eaeaea;
+  --sim-glass-faint: #e5e5e5;
+  --sim-line: #cccccc;
+  --sim-line-strong: #777777;
+  --sim-accent: #202020;
+  --sim-green: var(--sim-accent);
+  --sim-red: #242424;
+  --sim-warning: #414141;
+  --sim-accent-soft: #dedede;
+  --sim-accent-line: #888888;
+  --sim-accent-glow: transparent;
+  --sim-on-accent: #ffffff;
+  --sim-radius-small: 3px;
+  --sim-radius: 4px;
+  --sim-radius-large: 6px;
+  --sim-highlight: #ffffff;
+  --sim-lattice: #e2e2e2;
+  --sim-shadow: 0 5px 18px rgba(0, 0, 0, 0.18), inset 1px 1px 0 rgba(255, 255, 255, 0.9);
+  --sim-shadow-small: 3px 3px 7px rgba(0, 0, 0, 0.12), -2px -2px 6px rgba(255, 255, 255, 0.85);
+  --sim-shadow-inset: inset 2px 2px 5px rgba(0, 0, 0, 0.09), inset -2px -2px 5px rgba(255, 255, 255, 0.9);
+  --sim-blur: none;
+
   --tier-city: var(--sim-accent);
   --tier-country: var(--sim-accent);
   --tier-world: var(--sim-ink);

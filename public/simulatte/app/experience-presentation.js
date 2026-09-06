@@ -3,6 +3,13 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteExperiencePresentation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createExperiencePresentation() {
+  const MEASURE_LABELS = Object.freeze({
+    'cluster-tflops': 'Compute throughput',
+    'model-flops-utilization': 'Compute utilization',
+    'allreduce-latency-ms': 'Communication time',
+    'peak-gpu-temp-c': 'Peak GPU temperature',
+    'cooling-pue': 'Facility / IT power',
+  });
   function summarize({
     profile,
     profileLabel,
@@ -19,8 +26,9 @@
       || null;
     const measures = primary?.state?.measures || [];
     const progress = playbackProgress(playback, measures);
-    const stage = stageAt(experience.stages, progress);
     const latestEvent = latestStateEvent(primary);
+    const stage = experience.stages.find((row) => row.id === latestEvent?.kind?.split('.').at(-1))
+      || stageAt(experience.stages, progress);
     const exposesResults = !['idle', 'ready'].includes(runState);
     const stats = exposesResults
       ? selectedMeasures(measures, experience.primaryMeasureKinds)
@@ -45,7 +53,7 @@
     const byKind = new Map(measures.map((measure) => [measure.kind, measure]));
     return Object.fromEntries(kinds.flatMap((kind) => {
       const measure = byKind.get(kind);
-      return measure ? [[humanize(kind), formatMeasure(measure)]] : [];
+      return measure ? [[MEASURE_LABELS[kind] || humanize(kind), formatMeasure(measure)]] : [];
     }));
   }
 
@@ -100,6 +108,9 @@
       : value !== 0 && Math.abs(value) < 0.001
         ? value.toExponential(2)
         : value.toLocaleString('en-US', { maximumFractionDigits: 3 });
+    if (measure.unit === 'multiple') return `${formatted}×`;
+    if (measure.unit === 'percent') return `${formatted}%`;
+    if (measure.unit === 'C') return `${formatted} °C`;
     return measure.unit ? `${formatted} ${measure.unit}` : formatted;
   }
 

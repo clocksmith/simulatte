@@ -18,6 +18,7 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 
 - Input: [Phase 6 visual contract](../phase-06-visual/CATSCAN.md)
 - Output: [Phase 8 scene proof contract](../phase-08-scene-proof/CATSCAN.md)
+- Output: [renderer session adapter](simulatte-webgpu-renderer.js) and [GPU lifetime](simulatte-webgpu-renderer-lifecycle.js).
 
 ## Invariants
 
@@ -25,6 +26,7 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 - Renderer branches follow compiled scene data, not prompt keywords.
 - Bound semantic receipts pass through unchanged and never grant Phase 7 semantic authority.
 - Interaction receipts preserve the Phase 5 program hash, command transitions, changed channels, and visible-state consumption.
+- Disposal, failed initialization, and late device acquisition release owned resources and cannot restore readiness or publish stale proof.
 
 ## Acceptance
 

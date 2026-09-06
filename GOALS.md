@@ -26,6 +26,12 @@ change it, and reproduce or export it. Free local use is a complete product
 outcome. No model download, account, or prompt is required for supported data
 workflows.
 
+World's interface uses a monochrome, light neutral surface system inspired by
+Reploid: IBM Plex Sans body text, Plex Sans Condensed headings, square controls,
+subtle raised and inset shadows, and a quiet tessellating lattice. Simulation
+colors retain their domain meaning. Typography and controls remain readable and
+operable on narrow screens.
+
 The simulation is the product, not a data-entry form. Prompt compilation is an optional input
 adapter with its existing eight-phase contract. Governed World profiles supply
 domain data and behavior, not separate product architectures. Plugins extend

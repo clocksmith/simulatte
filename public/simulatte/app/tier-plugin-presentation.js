@@ -76,17 +76,10 @@
       }
       else if (primitive.kind === 'actor') {
         const progress = semanticProgress(primitive.quantity);
-        const pathCoordinates = actorPathCoordinates(
-          primitive.id,
-          primitive.quantity?.kind,
-          rawPointsById.get(primitive.id) || coordinates,
-          value,
-          rawPointsById,
-        );
         actors.push(freezeRow({
           ...row,
           position: normalizeTuple(pointAlongCoordinates(coordinates, progress, value.coordinateSystem), value.coordinateSystem),
-          pathCoordinates: pathCoordinates ? Object.freeze(pathCoordinates.map((point) => Object.freeze([...point]))) : null,
+          pathCoordinates: null,
           progress,
           radius: style.radiusPx || 5,
         }));
@@ -273,27 +266,6 @@
     return coordinates.at(-1);
   }
 
-  function actorPathCoordinates(actorId, quantityKind, actorCoordinates, presentation, rawPointsById) {
-    if (actorCoordinates.length > 1) return actorCoordinates;
-    if (!/route-progress|shipment-progress|repair|packet|spacecraft|vessel|pedestrian/.test(String(quantityKind || ''))) return null;
-    const pathLayers = presentation.layers.filter((layer) => layer.kind === 'path');
-    if (!pathLayers.length) return null;
-    const actor = String(actorId || '').toLowerCase();
-    const preferred = pathLayers.find((layer) => {
-      const id = String(layer.id || '').toLowerCase();
-      if (actor.includes('screening-spacecraft')) return id.includes('transfer-trajectory');
-      if (actor.includes('asteroid-active-clone')) return id.includes('representative-trajectory') || id.includes('clone-path');
-      if (actor.includes('voyage:')) return id.startsWith('route:');
-      if (actor.includes('sun-walker')) return id === 'shade-selected-route';
-      if (actor.includes('shipment:')) return id.startsWith('corridor:');
-      if (actor.includes('packet')) return id.startsWith('relay-link:');
-      return false;
-    });
-    const selected = preferred || pathLayers[0];
-    const coordinates = rawPointsById.get(selected.id);
-    return Array.isArray(coordinates) && coordinates.length > 1 ? coordinates : null;
-  }
-
   function focusDelta(cameraTargets, presentations, id, width, height, view) {
     const target = (cameraTargets || []).find((row) => row.id === id);
     if (!target) return null;
@@ -350,7 +322,7 @@
         const view = host.view();
         const animationElapsedSeconds = Math.max(0, (performance.now() - animationStartedAt) / 1000);
         draw(ctx, presentations, (position, system) => projectPoint(position, system, view), {
-            timeSeconds: simulationTimeSeconds,
+            timeSeconds: simulationTimeSeconds, drawMarker: host.drawMarker,
           animationElapsedSeconds,
             view,
         });
@@ -381,8 +353,8 @@
       if (presentation.coordinateSystem === 'wgs84') {
         presentation.areas.forEach((row) => drawPolygon(ctx, row.coordinates, projection, row));
         presentation.choropleths.forEach((row) => drawPolygon(ctx, row.coordinates, projection, row));
-        presentation.paths.forEach((row) => drawPath(ctx, row.coordinates, projection, row, timeSeconds));
-        presentation.markers.forEach((row) => drawMarker(ctx, projection(row.position), row, timeSeconds));
+        presentation.paths.forEach((row) => drawPath(ctx, row.coordinates, projection, row, timeSeconds, presentation.coordinateSystem));
+        presentation.markers.forEach((row) => drawMarker(ctx, projection(row.position), row, timeSeconds, options));
         presentation.actors.forEach((row) => drawActor(ctx, projection(actorPosition(row, animationElapsedSeconds, presentation.coordinateSystem)), row, timeSeconds));
       } else {
         const entries = [
@@ -397,12 +369,12 @@
         })).sort((left, right) => left.depth - right.depth || left.order - right.order);
         entries.forEach(({ kind, row }) => {
           if (kind === 'polygon') drawPolygon(ctx, row.coordinates, projection, row);
-          else if (kind === 'path') drawPath(ctx, row.coordinates, projection, row, timeSeconds);
-          else if (kind === 'marker') drawMarker(ctx, projection(row.position), row, timeSeconds);
+          else if (kind === 'path') drawPath(ctx, row.coordinates, projection, row, timeSeconds, presentation.coordinateSystem);
+          else if (kind === 'marker') drawMarker(ctx, projection(row.position), row, timeSeconds, options);
           else drawActor(ctx, projection(actorPosition(row, animationElapsedSeconds, presentation.coordinateSystem)), row, timeSeconds);
         });
       }
-      drawCollisionManagedLabels(ctx, presentation.labels, projection);
+      drawCollisionManagedLabels(ctx, presentation.coordinateSystem === 'datacenter-cartesian-meters' ? [] : presentation.labels, projection);
     });
   }
 
@@ -480,12 +452,12 @@
     return path;
   }
 
-  function drawPath(ctx, coordinates, project, path, timeSeconds) {
+  function drawPath(ctx, coordinates, project, path, timeSeconds, coordinateSystem) {
     if (!coordinates || coordinates.length < 2) return;
     const projected = coordinates.map(project);
     ctx.beginPath();
     projected.forEach((point, index) => {
-      const crossesDateLine = index > 0 && Math.abs(coordinates[index][0] - coordinates[index - 1][0]) > 180;
+      const crossesDateLine = coordinateSystem === 'wgs84' && index > 0 && Math.abs(coordinates[index][0] - coordinates[index - 1][0]) > 180;
       if (index === 0 || crossesDateLine) ctx.moveTo(point.x, point.y);
       else ctx.lineTo(point.x, point.y);
     });
@@ -495,7 +467,7 @@
     ctx.stroke();
     ctx.setLineDash([]);
     if (animatedFlow(path.quantityKind)) {
-      splitProjectedPath(coordinates, projected).forEach((segment) => {
+      splitProjectedPath(coordinates, projected, coordinateSystem).forEach((segment) => {
         drawFlowParticles(ctx, segment, path, timeSeconds);
       });
     }
@@ -514,7 +486,8 @@
     ctx.fill();
     ctx.stroke();
   }
-  function drawMarker(ctx, point, marker, timeSeconds) {
+  function drawMarker(ctx, point, marker, timeSeconds, options = {}) {
+    if (options.drawMarker?.(ctx, point, marker)) return;
     const radius = Math.max(
       2,
       Math.min(12, Number(marker.radius || marker.radiusM || 5)) * Number(point.scale || 1)
@@ -654,11 +627,11 @@
       y: points[index].y + (points[index + 1].y - points[index].y) * ratio,
     };
   }
-  function splitProjectedPath(coordinates, projected) {
+  function splitProjectedPath(coordinates, projected, coordinateSystem) {
     const segments = [];
     let active = [];
     projected.forEach((point, index) => {
-      if (index > 0 && Math.abs(coordinates[index][0] - coordinates[index - 1][0]) > 180) {
+      if (coordinateSystem === 'wgs84' && index > 0 && Math.abs(coordinates[index][0] - coordinates[index - 1][0]) > 180) {
         if (active.length >= 2) segments.push(active);
         active = [];
       }

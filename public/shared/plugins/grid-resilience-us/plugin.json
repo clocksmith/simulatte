@@ -116,7 +116,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginGridResilienceUs",
-    "integrity": "sha384-0b8730ea07003f2ae18821006beffdeb1d1e45a6de379f8c41862e85864211e2049694fbb1960bacdfc19ef0d2896da0",
+    "integrity": "sha384-5f3387302dc0ec2ba68e494c123cf3e23ba882dd88a74acfabb9e1000480f757b6060940d6e2cc1af57ed8b994ae3608",
     "path": "./index.js"
   },
   "extensionPoints": [

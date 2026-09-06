@@ -383,7 +383,7 @@
       if(route.profile&&route.profile!==data.applicationProfile.id)throw tierRouteError('profile',route.profile,data.applicationProfile.id);
       if(route.world&&route.world!==data.world.id)throw tierRouteError('world',route.world,data.world.id);
       if(route.camera&&route.camera!==activeCameraMode)applyTierCamera(route.camera);
-      if(root.SimulatteRouter.queryForSimulation(route.simulation)!==root.SimulatteRouter.queryForSimulation(simulationRouteState()))await updateSimulationFromRoute(route.simulation||null);
+      if(root.SimulatteRouter.queryForSimulation(route.simulation)!==root.SimulatteRouter.queryForSimulation(appliedSimulationRouteState(activeScenario,lastPluginContributions)))await updateSimulationFromRoute(route.simulation||null);
       return governedTierRoute();
     }
     function reportRunFailure(error){
@@ -443,6 +443,7 @@
             receipt.actionResult.comparisonExecutionReceipts
               || [receipt.actionResult.comparisonExecutionReceipt].filter(Boolean)
           );
+          renderTierSummary('settled');
           ctx.setJourneyPhase?.('completed');
           ctx.setRuntimeStatus?.(elements,'Complete','ready');
         },
@@ -597,6 +598,12 @@
 
   function labelForProfile(id){if(PROFILE_LABELS[id])return PROFILE_LABELS[id];return String(id).replace(/-v\d+$/,'').split('-').filter(Boolean).map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');}
   function experienceHudSummary(options) { return experiencePresentationApi.summarize(options); }
+  function appliedSimulationRouteState(scenario, contributions) {
+    const parameters = Object.fromEntries(contributions.map(({ pluginId, controls }) => [
+      pluginId, Object.fromEntries(controls.controls.map((control) => [control.id, structuredClone(control.value)])),
+    ]));
+    return { scenarioId: scenario.id, seed: scenario.seed, parameters };
+  }
   function createScenarioClock(scenario = {}) {
     const source = String(scenario?.epochStart || scenario?.startInstant || '').trim();
     const milliseconds = Date.parse(source);
@@ -631,6 +638,7 @@
     wireTierControls,
     bootGovernedTierExplorer,
     experienceHudSummary,
+    appliedSimulationRouteState,
     createScenarioClock,
     preferredTierCameraTarget,
     labelForProfile,

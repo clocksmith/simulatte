@@ -47,7 +47,8 @@
           if (frameTimes.length > 360) frameTimes.shift();
         }
         priorFrameAt = nowMs;
-        frameReceipt = renderer.render({ observation, nowMs });
+        if (renderer.session.status().state !== 'ready') return;
+        frameReceipt = renderer.session.render({ observation, timeMs: nowMs });
         updateMetrics(observation);
         updateFrameMeasurement(frameTimes);
         if (!advancing && observation.logicalTime < 3900 && nowMs >= nextAdvanceAt) {
@@ -67,6 +68,7 @@
         root.requestAnimationFrame(frame);
       }
       root.requestAnimationFrame(frame);
+      root.addEventListener('pagehide', () => renderer.session.dispose(), { once: true });
       return Object.freeze({
         reference,
         scene,

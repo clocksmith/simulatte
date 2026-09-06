@@ -231,13 +231,13 @@
           far: 20000,
         };
       }
-      const distance = state.followDistance;
+      const distance = pluginTarget ? Math.max(state.followDistance, pluginTarget.distance) : state.followDistance;
       const height = pluginTarget
-        ? clamp(distance * 0.92, 18, 110)
+        ? clamp(distance * 1.2, 120, 360)
         : clamp(distance * 0.58, 2.8, 92);
-      const trailingDistance = pluginTarget ? distance * 0.62 : distance;
+      const trailingDistance = pluginTarget ? distance * 0.15 : distance;
       const lookAhead = pluginTarget
-        ? clamp(distance * 0.24, 3, 32)
+        ? 0
         : clamp(distance * 0.68, 4, 96);
       const targetHeight = pluginTarget ? 1.4 : clamp(distance * 0.065, 1.35, 8);
       return {

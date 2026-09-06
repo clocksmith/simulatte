@@ -193,7 +193,7 @@
           refreshRender() {
             renderExecutionInput = null;
             const input = refreshRenderExecutionInput();
-            if (input && webGpuRenderer) webGpuRenderer.setRenderExecutionInput(input);
+            if (input && webGpuRenderer?.session.status().state === 'ready') webGpuRenderer.session.setScene(input);
           },
         });
         handleSceneProofReport = proofSession.observe;
@@ -268,7 +268,7 @@
           logGraphDebug(spec);
           if (visible && webGpuRenderer) {
             const nextRenderExecutionInput = refreshRenderExecutionInput();
-            if (nextRenderExecutionInput) webGpuRenderer.setRenderExecutionInput(nextRenderExecutionInput);
+            if (nextRenderExecutionInput && webGpuRenderer.session.status().state === 'ready') webGpuRenderer.session.setScene(nextRenderExecutionInput);
           }
           if (visible) {
             setSimulationCanvasVisible(true);
@@ -301,7 +301,7 @@
           worldInteraction?.reset();
           renderExecutionInput = null;
           const nextRenderExecutionInput = refreshRenderExecutionInput();
-          if (nextRenderExecutionInput) webGpuRenderer.setRenderExecutionInput(nextRenderExecutionInput);
+          if (nextRenderExecutionInput && webGpuRenderer.session.status().state === 'ready') webGpuRenderer.session.setScene(nextRenderExecutionInput);
           replayWorldSpecButton.disabled = true;
           publishRuntime({
             state: 'active',
@@ -666,6 +666,7 @@
         }
 
         function tick(now) {
+          if (webGpuRenderer?.disposed) return;
           const dt = Math.max(0, (now - last) / 1000);
           last = now;
           if (runtimeProgress.isBusy()) {
@@ -693,7 +694,7 @@
             if (input) {
               input.simulationState = state;
               input.canvas = canvas;
-              webGpuRenderer.render(input, now);
+              if (webGpuRenderer.session.status().state === 'ready') webGpuRenderer.session.render({ scene: input, timeMs: now });
             }
           }
           fpsMeter.sample(now, simulationVisible && webGpuRenderer);
@@ -702,6 +703,7 @@
         }
 
         setSpec(spec, { visible: false });
+        root.defaultView?.addEventListener('pagehide', () => webGpuRenderer?.session.dispose(), { once: true });
         root.getElementById('model-selection-controls')?.addEventListener('model-selection-change', () => {
           if (runtimeProgress.isBusy()) return;
           publishRuntime({

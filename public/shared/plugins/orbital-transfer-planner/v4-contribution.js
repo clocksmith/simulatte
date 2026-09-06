@@ -7,7 +7,7 @@
   root.OrbitalTransferV4 = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createOrbitalTransferV4(builder) {
   const PLUGIN_ID = 'orbital-transfer-planner';
-  const MODEL_HASH = 'c21e2c257506a1d550f9ce62ce0ea746afa7ed83285e4e72ab5e7c2473da29e6';
+  const MODEL_HASH = 'e292978e49f7d6b290715e8f484ba121cc7264ffd4bfb0b3e0b9dc5f2032aa98';
   const VERIFIER_HASH = 'df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03';
 
   function createContribution({
@@ -98,7 +98,7 @@
           quantity: builder.quantity('heliocentric-distance', magnitude(current), 'au'),
           role: id === result.targetBodyId || id === 'earth' ? 'primary' : 'context',
           importance: id === result.targetBodyId || id === 'earth' ? 0.9 : 0.35,
-          aggregationKey: 'solar-system-bodies',
+          aggregationKey: id === result.targetBodyId || id === 'earth' ? null : 'solar-system-bodies',
           provenance: stateVectorClaim(id),
         }));
       }
@@ -200,7 +200,10 @@
       },
       provenance: transferClaim,
     })] : [];
-    const targetIds = ['transfer-trajectory', `body:earth`, `body:${result.targetBodyId}`]
+    const targetIds = [
+      ...(searchVisible && !selectionVisible ? layers.filter(row => row.id.startsWith('transfer-candidate:')).map(row => row.id) : ['transfer-trajectory']),
+      'body:earth', `body:${result.targetBodyId}`,
+    ]
       .filter((id) => layers.some((row) => row.id === id));
     const actorVisible = layers.some((row) => row.id === 'screening-spacecraft');
     const viewMode = currentStep < 3
@@ -238,10 +241,10 @@
         })),
         transferClaim
       ),
-      toggleControl('prograde', 'Advanced: prograde Lambert branch', result.acceptedParameters.prograde, transferClaim),
+      toggleControl('prograde', 'Solver: prograde transfer (same direction as planets)', result.acceptedParameters.prograde, transferClaim),
       numericControl(
         'verificationStepDays',
-        'Advanced: verification integration step (days)',
+        'Solver: verification step (days)',
         result.acceptedParameters.verificationStepDays,
         0.05,
         5,

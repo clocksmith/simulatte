@@ -178,3 +178,136 @@ test('gpu-supercluster activates as a native v4 plugin with deterministic playba
   });
   assert.doesNotThrow(() => structuredClone(updatedState));
 });
+
+test('GPU controls preserve zero faults, clamp physical bounds, and refuse malformed input', () => {
+  assert.equal(controlsApi.normalizeControls({ tensorSizeGb: 0 }).tensorSizeGb, 0.1);
+  assert.equal(controlsApi.normalizeControls({ tensorSizeGb: 1200 }).tensorSizeGb, 1000);
+  assert.equal(controlsApi.normalizeControls({ coolantFlowLpm: 0 }).coolantFlowLpm, 10);
+  assert.equal(controlsApi.normalizeControls({ stragglerThrottlePercent: 0 }).stragglerThrottlePercent, 0);
+  for (const key of ['tensorSizeGb', 'stragglerThrottlePercent', 'coolantFlowLpm', 'linkPacketDropRate', 'cduFlowDegradationPercent']) {
+    for (const value of [NaN, Infinity, 'invalid', '', null]) {
+      assert.throws(() => controlsApi.normalizeControls({ [key]: value }), /gpu_control_invalid/);
+    }
+  }
+});
+
+test('pipeline time includes the full bubble share and throughput reconciles to work over time', () => {
+  const result = collectiveApi.solveCollectives();
+  const idealSeconds = 14.2e9 * 120000 / (256 * 1979 * 1e12);
+  // PP=4, M=16: productive time occupies 16/19 of the pipeline schedule.
+  assert.ok(Math.abs(result.computeTimeMs - idealSeconds * 19 / 16 * 1000) < 0.005);
+  assert.ok(Math.abs(result.effectiveClusterTflops - (14.2e9 * 120000 / (result.stepTimeMs / 1000) / 1e12)) < 10);
+  const single = collectiveApi.solveCollectives({ totalGpus: 1, parallelism: { tensorParallel: 1, pipelineParallel: 1, dataParallel: 1 } });
+  assert.equal(single.modelFlopsUtilization, 100, 'an ideal no-communication fixture must not be clipped to 85%');
+  assert.throws(() => collectiveApi.solveCollectives({ totalGpus: 128 }), /gpu_parallelism_must_match_cluster/);
+});
+
+test('default NVLink uses directional bits per second without changing explicit configured units', () => {
+  const nominal = collectiveApi.solveCollectives();
+  const slower = collectiveApi.solveCollectives({ nvlinkBandwidthGbps: 900 });
+  const expectedTransferDifferenceMs = (2 * 7 / 8) * (14.2e9 / 32) * (1 / 112.5e9 - 1 / 450e9) * 1000;
+  assert.ok(Math.abs((slower.commTimeMs - nominal.commTimeMs) - expectedTransferDifferenceMs) < 0.01);
+});
+
+test('coolant flow changes die temperature and thermal caps slow computation and conserve modeled heat', () => {
+  const nominal = pluginApi.simulate();
+  const reduced = pluginApi.simulate({ coolantFlowLpm: 40 });
+  assert.ok(reduced.thermals.peakJunctionTempC > nominal.thermals.peakJunctionTempC);
+  const hot = pluginApi.simulate({ coolantFlowLpm: 10, cduFlowDegradationPercent: 90 });
+  assert.ok(hot.thermals.demandedPeakJunctionTempC > 80);
+  assert.ok(hot.thermals.peakJunctionTempC <= 80);
+  assert.ok(hot.thermals.thermalClockFraction < 1);
+  assert.equal(hot.collectives.thermalClockFraction, hot.thermals.thermalClockFraction);
+  assert.ok(hot.collectives.computeTimeMs > nominal.collectives.computeTimeMs);
+  assert.ok(hot.collectives.effectiveClusterTflops < nominal.collectives.effectiveClusterTflops);
+  assert.equal(hot.thermals.throttledGpuCount, 256);
+  const heatKw = hot.thermals.effectiveFlowLpm / 60 * 4184 * hot.thermals.coolantDeltaTC / 1000;
+  assert.ok(Math.abs(heatKw - hot.thermals.totalItPowerKw) < 0.1);
+  const small = thermalApi.solveThermals({ totalGpus: 16, racksCount: 4, coolantFlowLpm: 10, gpuTdpW: 2000 });
+  assert.equal(small.throttledGpuCount, 16);
+  assert.ok(Math.abs(small.racks.reduce((sum, rack) => sum + rack.powerDrawKw, 0) - small.totalItPowerKw) < 0.1);
+});
+
+test('rack populations cannot silently drop GPUs or contradict the declared nodes', () => {
+  assert.throws(() => topologyApi.buildClusterTopology({ totalGpus: 255, racks: 32 }), /even_rack_population/);
+  assert.throws(() => topologyApi.buildClusterTopology({ totalGpus: 256, racks: 32, nodesPerRack: 8, gpusPerNode: 8 }), /node_population_mismatch/);
+  const config = require(path.join(pluginDir, 'default-config.json'));
+  assert.equal(config.racks * config.nodesPerRack * config.gpusPerNode, config.totalGpus);
+});
+
+test('rack visuals retain exact model temperatures and PUE remains a ratio', () => {
+  const result = pluginApi.simulate({ coolantFlowLpm: 40 });
+  const contribution = result.createContribution();
+  const racks = contribution.presentation.layers.filter((layer) => layer.id.startsWith('rack:'));
+  assert.equal(racks.length, 32);
+  for (const [index, rack] of racks.entries()) {
+    assert.equal(rack.quantity.value, result.thermals.racks[index].avgTempC);
+    assert.equal(rack.aggregationKey, null);
+  }
+  const format = require('../public/simulatte/app/experience-presentation.js').formatMeasure;
+  assert.equal(format(contribution.state.measures.find(row => row.kind === 'cooling-pue')), `${result.thermals.pue}×`);
+  assert.equal(format({ value: 0.25, unit: 'probability' }), '25%');
+});
+
+test('GPU model provenance binds the source bytes used by the simulation', () => {
+  const crypto = require('node:crypto');
+  const records = pluginApi.simulate().createContribution().provenanceRecords;
+  for (const [name, file] of [['topology', 'cluster-topology.js'], ['collectives', 'collective-solver.js'], ['thermals', 'thermal-model.js']]) {
+    const record = records.find((row) => row.id === `gpu-supercluster:model:${name}-v1`);
+    assert.equal(record.contentHash, crypto.createHash('sha256').update(fs.readFileSync(path.join(pluginDir, file))).digest('hex'));
+  }
+});
+
+test('rack glyph drawing uses model values unchanged across render calls', () => {
+  const renderer = require('../public/simulatte/app/tier-renderers.js');
+  const calls = [];
+  const ctx = { save() {}, restore() {}, fillRect: (...args) => calls.push(['fill', ...args]), strokeRect() {}, fillText: (...args) => calls.push(['text', ...args]) };
+  const marker = { quantityKind: 'modeled-rack-temperature', quantityValue: 0, label: 'R1-1 · 0°C' };
+  assert.equal(renderer.drawDatacenterMarker(ctx, { x: 100, y: 100 }, marker, 20), true);
+  const first = structuredClone(calls); calls.length = 0;
+  renderer.drawDatacenterMarker(ctx, { x: 100, y: 100 }, marker, 20);
+  assert.deepEqual(calls, first);
+  assert.ok(calls.some(row => row[0] === 'text' && row[1] === '0°C'));
+  assert.equal(calls.filter(row => row[0] === 'fill').length, 9);
+});
+
+test('datacenter overview fits the model coordinates inside the exposed canvas at both widths', () => {
+  const camera = require('../public/simulatte/app/multi-tier-visualizer.js');
+  const projection = require('../public/simulatte/app/tier-plugin-presentation.js');
+  const coordinates = topologyApi.buildClusterTopology().racks.map(rack => [rack.xM, rack.yM, rack.zM]);
+  for (const [width, height] of [[1440, 1000], [390, 844]]) {
+    const view = camera.coordinateEvidenceView({ coordinates, coordinateSystem: 'datacenter-cartesian-meters', width, height });
+    const points = coordinates.map(point => projection.projectPoint(point, 'datacenter-cartesian-meters', view));
+    assert.ok(points.every(point => point.x > 20 && point.x < width - 20));
+    if (width === 390) assert.ok(points.every(point => point.y >= 350 && point.y <= 570));
+    else assert.ok(points.every(point => point.x > 250 && point.y > 200 && point.y < 800));
+  }
+});
+
+test('playback explanation follows the emitted stage rather than advancing one chapter ahead', () => {
+  const presentation = require('../public/simulatte/app/experience-presentation.js');
+  const profile = require('../public/data/application-profiles/gpu-supercluster-v1.json');
+  const result = pluginApi.simulate();
+  const summary = presentation.summarize({ profile, contributions: [result.createContribution(1)], runState: 'paused', playback: { currentStep: 1, totalSteps: 4 } });
+  assert.equal(summary.stageLabel, 'Forward computation');
+  assert.equal(summary.narrative, profile.experience.stages[0].narrative);
+});
+
+test('host refreshes cached GPU contributions after private control and playback mutations', async () => {
+  const host = require('../public/simulatte/platform/plugin-host/plugin-runtime.js');
+  const catalog = require('../public/simulatte/platform/data-catalog/immutable-data-catalog.js');
+  const config = require(path.join(pluginDir, 'default-config.json'));
+  const row = { manifest, configs: { [config.id]: config }, factory: pluginApi };
+  const profile = require('../public/data/application-profiles/gpu-supercluster-v1.json');
+  const runtime = await host.createPluginRuntime({ registry: { entry: () => row }, profile, dataCatalog: catalog.createDataCatalog([]), corePorts: { clock: {}, worldQuery: {}, routing: {}, ui: {} } });
+  try {
+    const before = runtime.platformV4({});
+    assert.equal(before.contributions[0].controls.controls.find(c => c.id === 'coolantFlowLpm').value, 120);
+    await runtime.dispatchAction('gpu-supercluster', 'scenario.run', { values: { phase: 'start', coolantFlowLpm: 40 } });
+    const after = runtime.platformV4({});
+    assert.equal(after.contributions[0].controls.controls.find(c => c.id === 'coolantFlowLpm').value, 40);
+    assert.notEqual(after, before);
+    await runtime.dispatchAction('gpu-supercluster', 'scenario.run', { values: { phase: 'step' } });
+    assert.equal(runtime.platformV4({}).contributions[0].events.length, 1);
+  } finally { await runtime.dispose(); }
+});

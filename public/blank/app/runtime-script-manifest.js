@@ -190,6 +190,7 @@
     'pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-plan.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-scene-proof-observer.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-proof-datasets.js',
+    'pipeline/phase-07-render/simulatte-webgpu-renderer-lifecycle.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-part-segmentation.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-morphology.js',
@@ -261,6 +262,7 @@
       '../shared/design/program-editor.js',
       '../shared/design/product-navigation.js',
       '../shared/render/render-targets.js',
+      '../shared/render/renderer-session.js',
       '../model-selection.js'
     ),
     runtimeFoundation,

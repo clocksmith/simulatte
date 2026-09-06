@@ -1,0 +1,35 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const meshes = require('../public/shared/render/mesh-library.js');
+const geometry = require('../public/simulatte/app/webgpu-geometry.js');
+const actors = require('../public/simulatte/app/webgpu-actor-geometry.js');
+const triangle = () => ({ id: 'custom-sail', positions: [0, 0, 0, 1, 0, 0, 0, 1, 0], material: { color: [0, 1, 1, 1], roughness: 0.4 } });
+test('mesh assets validate, retain detached immutable geometry, and cannot shadow each other', () => {
+  const input = triangle();
+  const assets = meshes.create([input]);
+  input.positions[0] = 99;
+  input.material.color[0] = 1;
+  assert.equal(assets.get(input.id).positions[0], 0);
+  assert.equal(assets.get(input.id).material.color[0], 0);
+  assert.ok(Object.isFrozen(assets.get(input.id).positions));
+  assert.throws(() => meshes.create([triangle(), triangle()]), /Duplicate/);
+  assert.throws(() => assets.get('missing'), /Unknown/);
+  assert.throws(() => meshes.create([{ ...triangle(), positions: [NaN, 0, 0, 1, 0, 0, 0, 1, 0] }]), /positions/);
+  assert.throws(() => meshes.create([{ ...triangle(), positions: Array(9).fill(0) }]), /Degenerate/);
+  assert.throws(() => meshes.create([{ ...triangle(), positions: [1e100, 0, 0, 0, 1e100, 0, 0, 0, 1e100] }]), /float32/);
+  assert.throws(() => meshes.create([{ ...triangle(), positions: [0, 0, 0, 1e-100, 0, 0, 0, 1e-100, 0] }]), /Degenerate/);
+  assert.throws(() => meshes.create([{ ...triangle(), normals: Array(9).fill(Number.MAX_VALUE) }]), /normal/);
+});
+test('a sixth World actor mesh renders through the existing vertex format without editing the renderer', () => {
+  const custom = actors.create([triangle()]);
+  const writer = geometry.createWriter();
+  const receipt = custom.addActor(writer, { kind: 'custom-sail', point: { x: 2, y: 3 }, heading: 0 });
+  assert.equal(receipt.vertexCount, 3);
+  const data = writer.finish();
+  assert.equal(data.length, 3 * geometry.FLOATS_PER_VERTEX);
+  assert.deepEqual(Array.from(data.slice(0, 3)), [2, 0, -3]);
+  assert.deepEqual(Array.from(data.slice(6, 10)), [0, 1, 1, 1]);
+  assert.equal(actors.SUPPORTED_ACTOR_KINDS.includes('custom-sail'), false);
+  assert.throws(() => actors.create([{ ...triangle(), id: 'car' }]), /override/);
+  assert.ok(geometry.create([triangle()]).SUPPORTED_ACTOR_KINDS.includes('custom-sail'));
+});

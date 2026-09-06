@@ -770,6 +770,8 @@
   }
 
   return {
+    create: meshes => createAutonomyWebGpuGeometry(actorGeometry.create(meshes)),
+    meshAssets: actorGeometry.meshAssets,
     ACTOR_MESH_SCHEMA: actorGeometry.ACTOR_MESH_SCHEMA,
     COLORS,
     DEFAULT_MATERIAL,

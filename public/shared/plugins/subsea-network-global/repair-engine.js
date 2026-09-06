@@ -18,6 +18,7 @@
     seed,
     unmetByEdge,
   }) {
+    if (!['nearest-first', 'unmet-demand-first'].includes(repairPolicyId)) throw repairError('subsea_repair_policy_invalid', repairPolicyId);
     const targets = resolveTargets(failedResourceIds, edges);
     const resources = repairScenario.resources.slice(0, repairResourceCount).map((row) => ({
       ...row,
@@ -30,8 +31,17 @@
     const ordered = [...targets].sort((left, right) => compareTarget(left, right, repairPolicyId, unmetByEdge));
     const events = [];
     const restorations = [];
-    for (const target of ordered) {
-      const resource = selectResource(resources, target, points);
+    while (ordered.length) {
+      const supplied = resources.filter(row => row.remainingSpareCableKm >= repairScenario.spareCablePerRepairKm
+        && row.remainingSpliceKits >= repairScenario.spliceKitsPerRepair);
+      if (!supplied.length) throw repairError('subsea_repair_inventory_exhausted', 'No supplied resource remains');
+      if (repairPolicyId === 'nearest-first') ordered.sort((left, right) => {
+        const arrival = target => Math.min(...supplied.map(row => row.availableAtHours
+          + travelTimeHours(row.currentLandingId, target.landingId, points, row.speedKph)));
+        return arrival(left) - arrival(right) || left.id.localeCompare(right.id);
+      });
+      const target = ordered.shift();
+      const resource = selectResource(supplied, target, points);
       requireInventory(resource, repairScenario, target);
       const travelHours = travelTimeHours(resource.currentLandingId, target.landingId, points, resource.speedKph);
       const requestedAt = resource.availableAtHours;
@@ -228,7 +238,12 @@
   }
 
   function interpolate(start, end, fraction) {
-    return Object.freeze(start.map((value, index) => value + (end[index] - value) * fraction));
+    const longitudeDelta = ((end[0] - start[0] + 540) % 360) - 180;
+    return Object.freeze([
+      ((start[0] + longitudeDelta * fraction + 540) % 360) - 180,
+      start[1] + (end[1] - start[1]) * fraction,
+      start[2] + (end[2] - start[2]) * fraction,
+    ]);
   }
 
   function compareEvent(left, right) {

@@ -34,11 +34,11 @@
         {
           "id": "gpu-supercluster-v1",
           "path": "../application-profiles/gpu-supercluster-v1.json",
-          "sha256": "86333f22cb8b1162f04783f3b38ef1ee0ec450732c173e55d531c9197c98a971",
+          "sha256": "58636d6c5c69fa67aa93890b330d7e8756fec189c3510ead6f884aaca2d5224b",
           "world": {
             "id": "datacenter-supercluster-v1",
             "path": "./worlds/datacenter-supercluster-v1.json",
-            "sha256": "c916c0c35e86e32e54a778a64fea057356d825d48a1ad0b950cfd4cb1e15da5d"
+            "sha256": "3956c663e8ac6ff300e41d925232bccd53308f9b97b9b69dedb9017f89cb070d"
           }
         }
       ]

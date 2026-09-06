@@ -35,8 +35,11 @@
         return new WebGpuRenderer(canvas, context, options);
       }
 
-    class WebGpuRenderer {
+    class WebGpuRenderer extends scope.WebGpuRendererLifecycle {
         constructor(canvas, context, options = {}) {
+          super();
+          this.disposed = false;
+          this.onFailure = options.onFailure;
           this.canvas = canvas;
           this.context = context;
           this.canvas.dataset.renderer = 'webgpu-required';
@@ -97,144 +100,6 @@
           this.initPromise = this.init();
         }
 
-        async init() {
-          try {
-            const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
-            if (!adapter) throw new Error('WebGPU adapter unavailable');
-            this.deviceClass = webGpuDeviceClass(adapter);
-            const deviceRequest = await scope.requestWebGpuDevice(adapter);
-            this.device = deviceRequest.device;
-            this.webgpuFeatureReceipt = deviceRequest.receipt;
-            this.device.addEventListener('uncapturederror', (event) => {
-              const message = event && event.error && event.error.message
-                ? event.error.message
-                : 'uncaptured WebGPU error';
-              this.status = message;
-              this.errorLog.push(message);
-              this.canvas.dataset.rendererStatus = this.errorLog.slice(-4).join(' | ');
-            });
-            this.device.pushErrorScope('validation');
-            this.format = navigator.gpu.getPreferredCanvasFormat();
-            this.context.configure({
-              device: this.device,
-              format: this.format,
-              usage: canvasTextureUsage(),
-              alphaMode: 'opaque',
-            });
-            this.uniformBuffer = this.device.createBuffer({
-              size: this.uniforms.byteLength,
-              usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-            });
-            this.objectPartBuffer = this.device.createBuffer({
-              size: scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_BYTES,
-              usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-            });
-            this.objectUniformBuffer = this.device.createBuffer({
-              size: this.objectUniforms.byteLength,
-              usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-            });
-            this.bindGroupLayout = this.device.createBindGroupLayout({
-              entries: [
-                { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
-              ],
-            });
-            const shader = this.device.createShaderModule({ code: scope.WEBGPU_BACKGROUND_SHADER });
-            this.pipeline = this.device.createRenderPipeline({
-              layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.bindGroupLayout] }),
-              vertex: { module: shader, entryPoint: 'backgroundVs' },
-              fragment: { module: shader, entryPoint: 'backgroundFs', targets: [{ format: this.format }] },
-              primitive: { topology: 'triangle-list' },
-              depthStencil: {
-                format: 'depth24plus',
-                depthWriteEnabled: false,
-                depthCompare: 'always',
-              },
-            });
-            this.bindGroup = this.device.createBindGroup({
-              layout: this.bindGroupLayout,
-              entries: [
-                { binding: 0, resource: { buffer: this.uniformBuffer } },
-              ],
-            });
-            const pipelineError = await this.device.popErrorScope();
-            if (pipelineError) throw new Error(pipelineError.message || 'WebGPU pipeline validation failed');
-            await this.setupObjectPartPipeline();
-            const activeDevice = this.device;
-            activeDevice.lost.then((info) => {
-              if (this.device !== activeDevice) return;
-              this.renderTargets?.destroy();
-              this.ready = false;
-              this.status = `WebGPU device lost: ${info && info.message ? info.message : 'unknown'}`;
-              this.canvas.dataset.rendererStatus = this.status;
-            });
-            this.ready = true;
-            this.status = 'WebGPU renderer ready';
-            this.canvas.dataset.renderer = 'webgpu';
-            this.canvas.dataset.visualTier = 'webgpu-depth-lit-2-5d';
-            this.canvas.dataset.rendererStatus = this.status;
-            this.canvas.dataset.webgpuFeatureFlags = scope.webgpuFeatureSummary(this.webgpuFeatureReceipt);
-            this.canvas.dataset.webgpuOptimizationPath = this.gpuScenePath;
-          } catch (err) {
-            this.ready = false;
-            this.status = err && err.message ? err.message : 'WebGPU renderer failed';
-            this.canvas.dataset.renderer = 'webgpu-unavailable';
-            this.canvas.dataset.rendererStatus = this.status;
-          }
-        }
-
-        async setupObjectPartPipeline() {
-          this.device.pushErrorScope('validation');
-          this.objectBindGroupLayout = this.device.createBindGroupLayout({
-            entries: [
-              {
-                binding: 0,
-                visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-                buffer: { type: 'uniform' },
-              },
-              { binding: 1, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
-            ],
-          });
-          const shader = this.device.createShaderModule({ code: scope.WEBGPU_OBJECT_SHADER });
-          this.objectPipeline = this.device.createRenderPipeline({
-            layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.objectBindGroupLayout] }),
-            vertex: { module: shader, entryPoint: 'objectVs' },
-            fragment: {
-              module: shader,
-              entryPoint: 'objectFs',
-              targets: [{
-                format: this.format,
-                blend: {
-                  color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' },
-                  alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
-                },
-              }],
-            },
-            primitive: { topology: 'triangle-list' },
-            depthStencil: {
-              format: 'depth24plus',
-              depthWriteEnabled: true,
-              depthCompare: 'less',
-            },
-          });
-          this.objectBindGroup = this.device.createBindGroup({
-            layout: this.objectBindGroupLayout,
-            entries: [
-              { binding: 0, resource: { buffer: this.objectUniformBuffer } },
-              { binding: 1, resource: { buffer: this.objectPartBuffer } },
-            ],
-          });
-          const error = await this.device.popErrorScope();
-          if (error) throw new Error(error.message || 'WebGPU object-part pipeline validation failed');
-          this.gpuScenePath = 'background-plus-instanced-object-parts';
-          this.webgpuFeatureReceipt.used = [
-            'compiled-object-geometry-programs',
-            'storage-buffer-object-parts',
-            'instanced-bounded-quads',
-            'depth-buffer-occlusion',
-            'camera-perspective-transform',
-            'normal-material-lighting',
-          ];
-        }
 
         isReady() {
           return this.ready;
@@ -968,6 +833,7 @@
 
     root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-renderer-class.js', {
       makeDefaultWebGpuFeatureReceipt,
+      webGpuDeviceClass,
       create,
       WebGpuRenderer,
       canvasTextureUsage,

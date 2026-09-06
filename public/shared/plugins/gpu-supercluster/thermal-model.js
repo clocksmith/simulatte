@@ -20,10 +20,20 @@
 
     // Thermal resistance from GPU die junction to cooling fluid (C/W), scaled by convective flow velocity
     const baseThermalResistance = 0.075; // Nominal microchannel coldplate resistance at full flow
-    const rThermalDieToFluid = baseThermalResistance * Math.pow(coolantFlowLpm / effectiveFlowLpm, 0.6);
+    // The nominal reference stays fixed as the user changes pump flow.
+    const rThermalDieToFluid = baseThermalResistance * Math.pow(120 / effectiveFlowLpm, 0.6);
 
     // Actual power dissipation per GPU based on compute load
-    const activeGpuPowerW = gpuTdpW * Math.max(0.2, activeMfuFraction);
+    const demandedGpuPowerW = gpuTdpW * Math.max(0.2, activeMfuFraction);
+    const demandedDeltaTC = demandedGpuPowerW * totalGpus / (flowKgPerSec * cpWater);
+    const rackBaseTemp = (r) => coolantInletTempC + Math.floor(r / 8) * 1.5;
+    const demandedRise = (r) => demandedGpuPowerW * rThermalDieToFluid
+      + demandedDeltaTC * (cduFlowDegradationPercent / 100) * ((r + 1) / racksCount);
+    // A modeled uniform clock/power cap keeps the hottest die at 80 C.
+    // This is a linear scenario policy, not a calibrated hardware controller.
+    const thermalClockFraction = Math.max(0.01, Math.min(1, ...Array.from({ length: racksCount }, (_, r) =>
+      (80 - rackBaseTemp(r)) / demandedRise(r))));
+    const activeGpuPowerW = demandedGpuPowerW * thermalClockFraction;
     const totalClusterItPowerKw = (activeGpuPowerW * totalGpus) / 1000;
 
     // Total facility heat absorbed by coolant loop
@@ -42,14 +52,14 @@
       const rackCoolantInlet = coolantInletTempC + (rowIndex * 1.5) + loopHeatFactor;
 
       const avgJunctionTemp = rackCoolantInlet + (activeGpuPowerW * rThermalDieToFluid);
-      const isThrottled = avgJunctionTemp >= 80.0;
+      const isThrottled = thermalClockFraction < 1;
 
       if (avgJunctionTemp > peakJunctionTempC) {
         peakJunctionTempC = avgJunctionTemp;
       }
 
       if (isThrottled) {
-        throttledGpuCount += 8; // 8 GPUs per rack in this node
+        throttledGpuCount += totalGpus / racksCount;
       }
 
       rackThermals.push(Object.freeze({
@@ -57,7 +67,7 @@
         avgTempC: Number(avgJunctionTemp.toFixed(1)),
         coolantInletC: Number(rackCoolantInlet.toFixed(1)),
         coolantOutletC: Number((rackCoolantInlet + coolantDeltaTC).toFixed(1)),
-        powerDrawKw: Number(((activeGpuPowerW * 8) / 1000).toFixed(2)),
+        powerDrawKw: Number(((activeGpuPowerW * totalGpus / racksCount) / 1000).toFixed(2)),
         isThrottled,
       }));
     }
@@ -81,6 +91,8 @@
       effectiveFlowLpm: Number(effectiveFlowLpm.toFixed(1)),
       peakJunctionTempC: Number(peakJunctionTempC.toFixed(1)),
       throttledGpuCount,
+      thermalClockFraction,
+      demandedPeakJunctionTempC: Math.max(...Array.from({ length: racksCount }, (_, r) => rackBaseTemp(r) + demandedRise(r))),
       racks: Object.freeze(rackThermals),
     });
   }

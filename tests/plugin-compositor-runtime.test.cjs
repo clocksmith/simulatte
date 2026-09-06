@@ -847,3 +847,28 @@ test('coordinate-native compare framing remains distinct from overview and follo
   assert.ok(compare.zoom > follow.zoom);
   assert.ok([compare.panX, compare.panY, compare.zoom].every(Number.isFinite));
 });
+
+test('only geographic paths split at the antimeridian; long Cartesian edges remain connected', () => {
+  const trace = [];
+  const ctx = { beginPath() {}, moveTo(x, y) { trace.push(['move', x, y]); }, lineTo(x, y) { trace.push(['line', x, y]); }, setLineDash() {}, stroke() {} };
+  const scene = { pluginId: 'fixture', coordinateSystem: 'local-m', areas: [], choropleths: [], markers: [], actors: [], labels: [],
+    paths: [{ coordinates: [[179, 0, 0], [-179, 0, 0]], quantityKind: 'static', style: { widthPx: 1, strokeOpacity: 1, dash: [] } }] };
+  const project = p => ({ x: p[0], y: p[1], depth: 0 });
+  tierPresentation.draw(ctx, [scene], project);
+  assert.ok(trace.some(row => row[0] === 'line'));
+  trace.length = 0;
+  tierPresentation.draw(ctx, [{ ...scene, coordinateSystem: 'wgs84' }], project);
+  assert.equal(trace.filter(row => row[0] === 'line').length, 0);
+});
+
+test('mobile coordinate framing keeps the active path between the summary and playback panels', () => {
+  for (const coordinateSystem of ['heliocentric-ecliptic-au', 'icrs-cartesian-pc', 'wgs84']) {
+    const coordinates = [[-2, -1, 0], [2, 1, 0]];
+    const view = multiTierVisualizer.coordinateEvidenceView({ coordinates, coordinateSystem, width: 390, height: 844 });
+    for (const p of coordinates) {
+      const pixel = tierPresentation.projectPoint(p, coordinateSystem, view);
+      assert.ok(pixel.x >= 30 && pixel.x <= 360);
+      assert.ok(pixel.y >= 375 && pixel.y <= 620);
+    }
+  }
+});

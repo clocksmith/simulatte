@@ -56,7 +56,9 @@
       }
       const evaluated = evaluateEdge(from, to, distancePc);
       if (
-        !(evaluated?.latencySeconds >= 0)
+        ![evaluated?.latencySeconds, evaluated?.effectiveDataRateGbps, evaluated?.packetSuccessProbability].every(Number.isFinite)
+        || evaluated.packetSuccessProbability > 1
+        || !(evaluated?.latencySeconds >= 0)
         || !(evaluated?.effectiveDataRateGbps > 0)
         || !(evaluated?.packetSuccessProbability >= 0)
       ) {

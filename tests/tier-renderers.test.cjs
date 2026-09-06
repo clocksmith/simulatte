@@ -34,3 +34,9 @@ test('country agents interpolate toward their resolved outbound node', () => {
   }));
   assert.deepEqual(arcs.at(-1), { x: 10, y: 5, radius: 4.5 });
 });
+
+test('native astronomy scenes do not draw incompatible legacy sky positions underneath', () => {
+  const ctx = new Proxy({}, { get() { throw new Error('Legacy coordinate drawing must not run'); } });
+  renderers.drawStarChart({ ctx, nativeCoordinateSystems: ['icrs-cartesian-pc'] });
+  renderers.drawSolarSystem({ ctx, nativeCoordinateSystems: ['heliocentric-ecliptic-au'] });
+});

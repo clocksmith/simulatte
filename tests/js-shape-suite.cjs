@@ -774,8 +774,8 @@ test('physics renderer is a browser coordinator, not a legacy Canvas2D painter l
   assert.match(renderer, /if \(simulationVisible && webGpuRenderer\)/);
   assert.match(renderer, /let renderExecutionInput = null/);
   assert.match(renderer, /const refreshRenderExecutionInput = \(\) =>/);
-  assert.match(renderer, /webGpuRenderer\.render\(input, now\)/);
-  assert.match(renderer, /webGpuRenderer\.setRenderExecutionInput\(nextRenderExecutionInput\)/);
+  assert.match(renderer, /webGpuRenderer\.session\.render\(\{ scene: input, timeMs: now \}\)/);
+  assert.match(renderer, /webGpuRenderer\.session\.setScene\(nextRenderExecutionInput\)/);
   assert.doesNotMatch(renderer, /webGpuRenderer\.render\(createRenderExecutionInput\(spec, state, canvas\), now\)/);
   assert.doesNotMatch(renderer, /function drawSimulation/);
   assert.doesNotMatch(renderer, /function drawMaterialContinuumField/);
@@ -1021,7 +1021,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /entryPoint: 'backgroundVs'/);
   assert.match(webgpuRenderer, /entryPoint: 'backgroundFs'/);
   assert.match(webgpuRenderer, /const PIXEL_READBACK_BYTES_PER_ROW = 256/);
-  assert.match(webgpuRenderer, /usage: canvasTextureUsage\(\)/);
+  assert.match(webgpuRenderer, /usage: scope\.canvasTextureUsage\(\)/);
   assert.match(webgpuRenderer, /GPUTextureUsage\.RENDER_ATTACHMENT \| GPUTextureUsage\.COPY_SRC/);
   assert.match(webgpuRenderer, /function phase7PixelReadbackPlan\(renderData = null, sceneRenderPacket = \{\}, renderExecutionInput = null, canvas = null\)/);
   assert.match(webgpuRenderer, /phase7RequiredVisualObligations\(renderExecutionInput, sceneRenderPacket\)/);

@@ -161,7 +161,7 @@
       "path": "./metrics.js"
     },
     {
-      "integrity": "sha384-328d60d84d9dd37f6323cb49bfa617fe17bd8d86bfab18e742d619898458a2b787591e1f17e0e2bbed47b2013fb1ba44",
+      "integrity": "sha384-5baaef60d5f86e174d2368307c3ca52d3228293d28bba4fdd90f50a78f678026cbc66c28e364946a3cd078ce9468df60",
       "path": "./network-router.js"
     },
     {
@@ -197,7 +197,7 @@
       "path": "./stellar-state.js"
     },
     {
-      "integrity": "sha384-ed440da5db35b0c6a0a54fd2600bcf5dcd70f03c396e090e2b54b2fbac3c9168a7a3c898077fff7e7e040d0457d0d305",
+      "integrity": "sha384-ebd56e12a62ddc9ea47b950a0df50b10ec5de4606a12fddaafa00dceb6ea59d146bc07d86425c35953761361b0b82240",
       "path": "./v4-contribution.js"
     }
   ],

@@ -9,9 +9,9 @@
   const PLUGIN_ID = 'gpu-supercluster';
   const MODEL_DATASET_ID = 'repository-models:gpu-supercluster-v1';
   const MODEL_HASHES = Object.freeze({
-    topology: 'd0b6f84fc229959f71c08c71aa421adbb86f791df064ae36e5dcdb33eb508be4',
-    collectives: 'fb0a780c9869bb7307b275fc94e54ec7edc6a4368db32ff78aa1158f0d370a1a',
-    thermals: '6cfb1e60272ad0107b3d26baccc9df927d282c0f81f296c511e02d29fc93fcf4',
+    topology: '5f78aa4c2521d92c926e5a6c038949424cd8d665121bc9dad72a918caf1034f7',
+    collectives: '2ae62813d8249f7972ba7c7d0aa3decd47d9c901c22f74572a1a787ba0cecef5',
+    thermals: 'afabd35b2bba5a587d061c2e5303920de6077419abc5a4c491e3ebe590826548',
   });
   const STAGES = Object.freeze([
     'forward-pass',
@@ -44,12 +44,12 @@
       return builder.layer({
         id: `rack:${rack.id}`,
         kind: 'point',
-        label: `${rack.id}: ${rack.gpuCount} modeled GPUs`,
+        label: `${rack.id} · ${thermal?.avgTempC ?? 0}°C`,
         geometry: builder.geometry('point', 'datacenter-cartesian-meters', [[rack.xM, rack.yM, rack.zM]]),
         quantity: builder.quantity('modeled-rack-temperature', thermal?.avgTempC || 0, 'C', [0, 150]),
         role: thermal?.isThrottled ? 'event' : 'primary',
         importance: thermal?.isThrottled ? 1 : 0.72,
-        aggregationKey: 'gpu-supercluster-racks',
+        aggregationKey: null,
         provenance: modeled,
       });
     });
@@ -103,11 +103,11 @@
         option('tree-allreduce', 'Tree AllReduce'),
         option('2d-torus-all-to-all', '2D torus all-to-all'),
       ], modeled),
-      numberControl('tensorSizeGb', 'Tensor size', result.config.tensorSizeGb, 0.1, 1000, 0.1, modeled),
-      numberControl('stragglerThrottlePercent', 'Straggler throttle', result.config.stragglerThrottlePercent, 0, 95, 1, modeled),
-      numberControl('coolantFlowLpm', 'Coolant flow', result.config.coolantFlowLpm, 10, 1000, 1, modeled),
+      numberControl('tensorSizeGb', 'Tensor size (GB)', result.config.tensorSizeGb, 0.1, 1000, 0.1, modeled),
+      numberControl('stragglerThrottlePercent', 'Slowest GPU slowdown (%)', result.config.stragglerThrottlePercent, 0, 95, 1, modeled),
+      numberControl('coolantFlowLpm', 'Coolant flow (L/min)', result.config.coolantFlowLpm, 10, 1000, 1, modeled),
       numberControl('linkPacketDropRate', 'Link packet drop rate (fraction)', result.config.linkPacketDropRate, 0, 0.5, 0.001, modeled),
-      numberControl('cduFlowDegradationPercent', 'CDU flow degradation', result.config.cduFlowDegradationPercent, 0, 90, 1, modeled),
+      numberControl('cduFlowDegradationPercent', 'Cooling flow loss (%)', result.config.cduFlowDegradationPercent, 0, 90, 1, modeled),
     ], [{
       id: 'nominal-vs-degraded-cluster',
       label: 'Nominal cluster versus selected degradation scenario',
@@ -127,7 +127,7 @@
         builder.quantity('model-flops-utilization', collectives.modelFlopsUtilization, 'percent', [0, 100]),
         builder.quantity('allreduce-latency-ms', collectives.commTimeMs, 'ms'),
         builder.quantity('peak-gpu-temp-c', thermals.peakJunctionTempC, 'C', [0, 150]),
-        builder.quantity('cooling-pue', thermals.pue, 'ratio', [1, 3]),
+        builder.quantity('cooling-pue', thermals.pue, 'multiple', [1, 3]),
       ],
       provenance: modeled,
     });
@@ -149,6 +149,7 @@
           field('step-time', 'Modeled step time', collectives.stepTimeMs, 'ms', modeled),
           field('peak-temperature', 'Modeled peak junction temperature', thermals.peakJunctionTempC, 'C', modeled),
           field('throttled-gpus', 'Modeled throttled GPUs', thermals.throttledGpuCount, 'GPUs', modeled),
+          field('thermal-clock', 'Modeled thermal clock cap', thermals.thermalClockFraction * 100, 'percent', modeled),
         ],
       }],
       provenanceRecords: records,

@@ -5,7 +5,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginGpuSupercluster",
-    "integrity": "sha384-1093fa11865894bd3e1621dbbdf41edc8d0f870a873fa37d85c3dd79749c2292218ea5488c5c9373ab4cdced98f4cece",
+    "integrity": "sha384-6aeee4246a8e81e3d645c1a19ae242362e06cac31b93770cc24019af02b446bc7563d3f98ec1c617ded3a6320bcdb63e",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -50,19 +50,19 @@
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-f53d5aaf70dca4e317c9b79f3c2d5361e4f08fcd7e3f9a18106485107fb24d09a7d406a049f18539c8d2794f92f54f5b",
+      "integrity": "sha384-b7d9ab3bdf1bd282b097f9b83e86d562176a8f66d8150456d3a75b8a6a1a7e6da74b6212ea25afaa70e7a70f5da6739f",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-bdfe334a5f3615ca413370f9a9df0e39f5aa16fe14af569301a684f07db11a6e09f927adb423edcbe97414846ed08100",
+      "integrity": "sha384-37ca0ddf0ce83a5e9ecfeee6bbe80dadd99a95f03998e5316574e105a3960a8a6aa90242af265840462de907314f4978",
       "path": "./cluster-controls.js"
     },
     {
-      "integrity": "sha384-992bff27f7491e0ffb1975ca19506e22e5c68feeda2af8f8eecee45936afb548adcf4a064c77ad632f82308682765486",
+      "integrity": "sha384-7dd374e357d4df9ed86b681e34337b333ebe71836da53e3f255c0e090ba04332d5c0a16866599858b7275ff0336639ec",
       "path": "./cluster-topology.js"
     },
     {
-      "integrity": "sha384-0773d430474f5ef95ffad6ad33d9eb6b413447abb511c9c6f4b85001f529be13f34a3f20b38a6f8c10c77eb47f1af5fc",
+      "integrity": "sha384-32429c378e681e088abb46f98b9190c3ef2667a95b3fd5b6e5cd63c67d07d8ad7aa0f4c3b82d99b29746414719171ae9",
       "path": "./collective-solver.js"
     },
     {
@@ -70,7 +70,7 @@
       "path": "./dataset-validators.js"
     },
     {
-      "integrity": "sha384-7e9c1a3840a27ced803e49fc599c37885f55ba6e56bc5c748a522c37dbd9e9d9b5de5e71696ad311c23499b4ddf2a55e",
+      "integrity": "sha384-7e335edb0cc78b13788e54b05b505235f4dc16e7fda2d37c7923965b8392b088fffeb53f4b3dbc6979aa7b8b576296e6",
       "path": "./thermal-model.js"
     },
     {
@@ -86,7 +86,7 @@
       "path": "./receipt-factory.js"
     },
     {
-      "integrity": "sha384-ed8e71ce0d3ef13eca81f42247289bc6bca5510a4ff6d0502ec54bf6f0b829d6f4cbcfe2884acd2e6e242eeb130f888f",
+      "integrity": "sha384-9b69dce80ac5144da4f0f18f2d2f10c022626a8ad1dc4fddc3adc82d76e79a7233701d5e958c8c782b1d8f58c3589a44",
       "path": "./v4-contribution.js"
     }
   ],

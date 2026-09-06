@@ -51,7 +51,7 @@
       }));
       const platformTime = Math.max(0, ...platform.contributions.map((contribution) => contribution.state?.simulationTimeMs || 0));
       const rendererStartedAt = performance.now();
-      renderer.setPluginPresentations(semanticPresentations, {
+      renderer.session.setScene({ presentations: semanticPresentations,
         simulationTimeMs: platformTime,
         selectedIds: [selected],
         provenanceReceipts: platform.provenanceReceipts,
@@ -91,6 +91,7 @@
               receipt.comparisonExecutionReceipts
                 || (receipt.comparisonExecutionReceipt ? [receipt.comparisonExecutionReceipt] : [])
             );
+            renderPluginSummary('settled');
             const persisted = pluginPlaybackApi.saveStoredReceipt(
               playbackStorage,
               profile.id,
@@ -146,7 +147,7 @@
       pluginRenderGeneration += 1;
       pluginClock?.pause();
     }
-    return Object.freeze({ render: renderPluginExperience, summary: renderPluginSummary, dispose });
+    return Object.freeze({ render: renderPluginExperience, summary: renderPluginSummary, appliedParameters: () => Object.fromEntries(lastPluginContributions.map(row => [row.pluginId, Object.fromEntries(row.controls.controls.map(control => [control.id, structuredClone(control.value)]))])), dispose });
   }
   return Object.freeze({ create });
 });

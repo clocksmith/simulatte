@@ -557,13 +557,13 @@
 
   function controlDefinitions(config) {
     return truthApi.deepFreeze([
-      control('departureAt', 'datetime', null, 'scenario', 'Departure time (UTC)'),
-      control('maximumAddedTimeSeconds', 'number', config.maximumAddedTimeSeconds, 'scenario', 'Maximum absolute detour'),
-      control('maximumAddedRatio', 'number', config.maximumAddedRatio, 'scenario', 'Maximum relative detour'),
-      control('directSunWeight', 'number', config.directSunWeight, 'scenario', 'Direct-sun preference weight'),
-      control('walkingSpeedMps', 'number', config.walkingSpeedMps, 'scenario', 'Walking speed'),
-      control('treeCanopyParticipation', 'toggle', config.treeCanopyParticipation, 'scenario', 'Use historical 2015 tree identities with modeled crown envelopes'),
-      control('weatherParticipation', 'toggle', config.weatherParticipation, 'scenario', 'Use the pinned 2024 Central Park observation as a historical weather analog'),
+      control('departureAt', 'datetime', null, 'scenario', 'Walk: Departure time (UTC)'),
+      control('maximumAddedTimeSeconds', 'number', config.maximumAddedTimeSeconds, 'scenario', 'Detour limits: Extra time (seconds)'),
+      control('maximumAddedRatio', 'number', config.maximumAddedRatio, 'scenario', 'Detour limits: Extra time (fraction of fastest walk)'),
+      control('directSunWeight', 'number', config.directSunWeight, 'scenario', 'Walk: Direct-sun avoidance weight'),
+      control('walkingSpeedMps', 'number', config.walkingSpeedMps, 'scenario', 'Walk: Speed (meters/second)'),
+      control('treeCanopyParticipation', 'toggle', config.treeCanopyParticipation, 'scenario', 'Environment: Historical 2015 trees with modeled crowns'),
+      control('weatherParticipation', 'toggle', config.weatherParticipation, 'scenario', 'Environment: Pinned 2024 Central Park weather analog'),
     ]);
   }
 

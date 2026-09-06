@@ -23,10 +23,10 @@
       "peakHeapMiB": 64
     },
     "stages": [
-      { "id": "forward-pass", "label": "Forward computation", "narrative": "Micro-batch activations compute across Tensor Parallel groups via NVLink.", "fromProgress": 0 },
-      { "id": "backward-gradients", "label": "Backward pass", "narrative": "Gradients calculate locally; Pipeline bubbles settle across node stages.", "fromProgress": 0.25 },
-      { "id": "allreduce-sync", "label": "Ring-AllReduce barrier", "narrative": "Bucketed gradient tensors stream across 800G InfiniBand spine-leaf fabric.", "fromProgress": 0.55 },
-      { "id": "thermal-settlement", "label": "Thermal & MFU settlement", "narrative": "Coolant distribution units absorb TDP heat; cluster MFU and step time close.", "fromProgress": 0.85 }
+      { "id": "forward-pass", "label": "Forward computation", "narrative": "GPUs divide the training workload and exchange data within each rack.", "fromProgress": 0 },
+      { "id": "backward-gradients", "label": "Backward pass", "narrative": "GPUs calculate learning updates. Waiting between pipeline stages adds time.", "fromProgress": 0.25 },
+      { "id": "allreduce-sync", "label": "Collective synchronization", "narrative": "The selected collective exchanges updates between racks; the slowest worker holds up the group.", "fromProgress": 0.55 },
+      { "id": "thermal-settlement", "label": "Thermal & MFU settlement", "narrative": "Cooling carries away heat. Insufficient flow caps the modeled clock speed and slows computation.", "fromProgress": 0.85 }
     ]
   },
   "defaultSeedId": "gpt4-3d-parallelism",
@@ -47,8 +47,8 @@
     },
     {
       "id": "cdu-cooling-failure",
-      "label": "Row 3 CDU Coolant Surge",
-      "description": "Cooling distribution unit flow drops 50%, triggering die thermal throttling to 1.2 GHz.",
+      "label": "Cooling flow loss",
+      "description": "Facility coolant flow drops 50%; temperature determines whether the modeled thermal clock cap activates.",
       "seed": "supercluster-thermal-003",
       "scenarioId": "cdu-cooling-failure"
     },

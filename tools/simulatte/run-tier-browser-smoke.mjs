@@ -88,6 +88,15 @@ async function auditTier(chromePath, baseUrl, item) {
     report.receipt = final.receipt;
     if (final.receipt.actionStatus !== 'settled') throw new Error(`action status ${final.receipt.actionStatus}`);
     const profile = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'data', 'application-profiles', `${item.profileId}.json`), 'utf8'));
+    const comparison = await client.send('Runtime.evaluate', {
+      expression: `({ text: document.getElementById('experience-summary-comparison')?.textContent, count: (window.__simulatteComparisonExecutionReceipts || []).length })`,
+      returnByValue: true,
+    });
+    report.comparisonSummary = comparison.result.value;
+    if (profile.experience?.comparisonMode !== 'none'
+      && (!report.comparisonSummary.count || !/synchronized comparison.*settled/.test(report.comparisonSummary.text || ''))) {
+      throw new Error('Completed comparison receipt must reach the visible summary');
+    }
     const programEvaluation = await client.send('Runtime.evaluate', {
       expression: profileProgramRoundTripExpression(profile.seeds || []),
       awaitPromise: true,

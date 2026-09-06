@@ -53,6 +53,7 @@ function publicBuildIdentity() {
     path.join(PUBLIC, 'simulatte', 'runtime'),
     path.join(PUBLIC, 'simulatte', 'platform', 'transport'),
     path.join(PUBLIC, 'shared', 'contracts'),
+    path.join(PUBLIC, 'shared', 'render'),
     path.join(PUBLIC, 'shared', 'core', 'simulation'),
     path.join(PUBLIC, 'shared', 'plugins', 'subsea-network-global'),
     path.join(PUBLIC, 'shared', 'plugins', 'gpu-supercluster'),

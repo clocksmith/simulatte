@@ -184,6 +184,7 @@
         onManualNavigation,
       } = options;
       const renderer = await canvasApi.createCanvasRenderer(elements.autonomyCanvas, worldModel, {
+        signal: lifecycle.signal,
         minimapCanvas: elements.followMinimap,
         labelCanvas: elements.semanticLabelCanvas,
         regionRegistry: data.applicationProfile.experience?.worldDetail === 'plugin-owned' ? null : data.regionRegistry,

@@ -463,6 +463,11 @@ test('users can choose arbitrary endpoints and direct, automatic, or manual rout
   });
   let result = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
   assert.deepEqual(result.routeSelection.selectedPath, ['gaia-barnard', 'gaia-wolf-359']);
+  for (const row of host.instance.contributeV4().presentation.layers.filter(row => row.id.startsWith('star:'))) {
+    const selected = result.routeSelection.selectedPath.includes(row.id.slice(5));
+    assert.equal(row.role, selected ? 'primary' : 'context');
+    if (selected) assert.equal(row.aggregationKey, null);
+  }
   assert.deepEqual(result.controls.requiredRelayIds, []);
   assert.equal(result.presetStatus, 'customized');
   assert.equal(result.packet.sourceId, 'gaia-barnard');
@@ -696,4 +701,16 @@ test('plugin manifest locks every browser resource with a matching SHA-384 diges
     const actual = `sha384-${crypto.createHash('sha384').update(fs.readFileSync(path.resolve(pluginDirectory, resource.path))).digest('hex')}`;
     assert.equal(actual, resource.integrity, resource.path);
   });
+});
+
+test('routing rejects nonfinite link results and impossible success probabilities', () => {
+  const router = require('../public/shared/plugins/interstellar-relay-network/network-router.js');
+  const input = { stellarStates: [{ sourceId: 'a', positionPc: [0, 0, 0] }, { sourceId: 'b', positionPc: [1, 0, 0] }],
+    sourceId: 'a', targetId: 'b', routingMode: 'direct', maxHops: 1, maxHopDistancePc: 10,
+    objective: 'latency', processingDelayHours: 0 };
+  const edge = { latencySeconds: 1, effectiveDataRateGbps: 1, packetSuccessProbability: 0.9, transmissionEnergyJ: 1 };
+  assert.equal(router.selectRoute({ ...input, evaluateEdge: () => edge }).candidateCount, 1);
+  for (const patch of [{ latencySeconds: Infinity }, { effectiveDataRateGbps: Infinity }, { packetSuccessProbability: 1.1 }, { packetSuccessProbability: NaN }]) {
+    assert.throws(() => router.selectRoute({ ...input, evaluateEdge: () => ({ ...edge, ...patch }) }), /interstellar_route_unreachable/);
+  }
 });

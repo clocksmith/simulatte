@@ -33,6 +33,9 @@
       this.lifecycle = new AbortController();
       this.dataLoader = tierDataLoaderApi.createTierDataLoader();
       this.canvas = canvas;
+      const drawing = typeof module === 'object' && module.exports
+        ? require('./tier-scene-renderer.js') : globalThis.SimulatteTierSceneRenderer;
+      this.renderSession = drawing.createSession({ canvas, signal: this.lifecycle.signal });
       this.ctx = canvas.getContext('2d');
       this.container = document.getElementById(containerId);
       this.currentTier = 'city';
@@ -68,6 +71,8 @@
 
       this.hudElement = null;
       this.pluginLayer = tierPresentation?.createLayer({
+        drawMarker: (ctx, point, marker) => this.currentTier === 'datacenter'
+          && tierRenderers.drawDatacenterMarker(ctx, point, marker, this.zoom),
         width: () => this.width, height: () => this.height, pan: (dx, dy) => { this.panX += dx; this.panY += dy; },
         fit: (target, system) => this.fitPluginPresentationTarget(target, system),
         view: () => ({
@@ -109,8 +114,17 @@
 
     resize() {
       const rect = this.canvas.getBoundingClientRect();
+      const previousWidth = this.width;
+      const previousHeight = this.height;
       this.width = this.canvas.width = rect.width || window.innerWidth;
       this.height = this.canvas.height = rect.height || window.innerHeight;
+      this.panX += (this.width - previousWidth) / 2;
+      this.panY += (this.height - previousHeight) / 2;
+      if (this.defaultView) this.defaultView = Object.freeze({ ...this.defaultView,
+        panX: this.defaultView.panX + (this.width - previousWidth) / 2,
+        panY: this.defaultView.panY + (this.height - previousHeight) / 2,
+      });
+      if (this.fittedTarget) this.fitPluginPresentationTarget(...this.fittedTarget);
     }
 
     setupEvents() {
@@ -161,7 +175,7 @@
         this.notifyManualView('zoom');
         e.preventDefault();
         const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
-        const nextZoom = Math.max(0.01, Math.min(250.0, this.zoom * zoomFactor));
+        const nextZoom = Math.max(0.01, Math.min(this.currentTier === 'star-chart' ? 4000 : 250, this.zoom * zoomFactor));
 
         // Zoom relative to cursor point
         const rect = c.getBoundingClientRect();
@@ -175,6 +189,7 @@
     }
 
     notifyManualView(control) {
+      this.fittedTarget = null;
       this.manualViewListeners.forEach((listener) => listener({ control, mode: 'free', targetIds: [] }));
     }
 
@@ -277,6 +292,7 @@
     }
 
     async loadTier(tierName) {
+      this.fittedTarget = null;
       this.stop();
       this.currentTier = tierName;
       const tier = tierRegistry.tierDefinition(tierName);
@@ -654,9 +670,11 @@
           viewMode: this.viewMode,
         });
       if (!fitted) return false;
+      this.fittedTarget = [target, coordinateSystem];
       this.zoom = fitted.zoom;
       this.panX = fitted.panX;
       this.panY = fitted.panY;
+      if (this.pluginInputs) this.pluginLayer?.set(...this.pluginInputs);
       return true;
     }
 
@@ -673,6 +691,8 @@
     }
 
     setPluginPresentations(contributions, options = {}) {
+      this.pluginInputs = [contributions, options];
+      this.nativeCoordinateSystems = contributions.map(row => row.presentation?.coordinateSystem).filter(Boolean);
       return this.pluginLayer ? this.pluginLayer.set(contributions, options) : Object.freeze([]);
     }
 
@@ -722,32 +742,16 @@
     }
 
     draw() {
+      if (this.renderSession.status().state !== 'ready') return;
       const cpuStartedAt = performance.now();
-      const { ctx, width, height } = this;
-      ctx.clearRect(0, 0, width, height);
-
-      // Render dark cosmic background
-      ctx.fillStyle = '#060606';
-      ctx.fillRect(0, 0, width, height);
-
-      if (!this.data) {
-        this.recordFrame(cpuStartedAt);
-        return;
-      }
-
-      ctx.save();
-
-      const rendererMethod = tierRegistry.tierDefinition(this.currentTier)?.rendererMethod;
-      if (rendererMethod) {
-        const renderer = tierRenderers[rendererMethod];
-        if (typeof renderer !== 'function') {
-          throw new Error(`simulatte_tier_renderer_missing: ${rendererMethod}`);
-        }
-        renderer(this);
-      }
-
-      if (this.pluginLayer) this.pluginLayer.render(ctx);
-      ctx.restore();
+      this.renderSession.setScene({
+        tier: this.currentTier, data: this.data,
+        view: { width: this.width, height: this.height, zoom: this.zoom, panX: this.panX, panY: this.panY,
+          rotX: this.rotX, rotY: this.rotY, rotZ: this.rotZ, nativeCoordinateSystems: this.nativeCoordinateSystems,
+          projectCountryPoint: (x, y, bounds) => this.projectCountryPoint(x, y, bounds) },
+        drawOverlay: ctx => this.pluginLayer?.render(ctx),
+      });
+      this.renderSession.render();
       this.recordFrame(cpuStartedAt);
     }
 
@@ -801,7 +805,7 @@
     const evidenceLonSpan = Math.max(2, evidenceBounds.maxX - evidenceBounds.minX) * 1.18;
     const evidenceLatSpan = Math.max(2, evidenceBounds.maxY - evidenceBounds.minY) * 1.18;
     const availableWidth = width * (width < 600 ? 0.84 : 0.58);
-    const availableHeight = height * (height < 700 ? 0.48 : 0.58);
+    const availableHeight = width <= 820 ? Math.max(100, height - 660) : height * 0.58;
     const desiredScale = Math.min(availableWidth / evidenceLonSpan, availableHeight / evidenceLatSpan);
     const scalePerZoom = Math.min(width / countryLonSpan, height / countryLatSpan) * 0.06;
     const zoom = Math.max(0.01, Math.min(250, desiredScale / Math.max(scalePerZoom, 0.0001)));
@@ -813,7 +817,7 @@
     return Object.freeze({
       zoom,
       panX: width / 2 - (targetCenterX - countryCenterX) * scale,
-      panY: height / 2 + (targetCenterY - countryCenterY) * scale,
+      panY: (width <= 820 ? 375 + availableHeight / 2 : height / 2) + (targetCenterY - countryCenterY) * scale,
     });
   }
 
@@ -851,16 +855,20 @@
         : 0.76;
     const spanX = Math.max(0.000001, maximumX - minimumX);
     const spanY = Math.max(0.000001, maximumY - minimumY);
-    const zoom = Math.max(0.01, Math.min(250, Math.min(
-      width * coverage / spanX,
-      height * coverage / spanY,
+    const datacenter = coordinateSystem === 'datacenter-cartesian-meters';
+    const narrow = width <= 820;
+    const availableWidth = datacenter ? width * (narrow ? 0.84 : 0.48) : width * (narrow ? 0.80 : 0.62) * coverage / 0.76;
+    const availableHeight = datacenter ? Math.max(100, narrow ? height - 690 : height * 0.48) : Math.max(100, narrow ? height - 660 : height * 0.55) * coverage / 0.76;
+    const zoom = Math.max(0.01, Math.min(coordinateSystem === 'icrs-cartesian-pc' ? 4000 : 250, Math.min(
+      availableWidth / spanX,
+      availableHeight / spanY,
     )));
     const centerX = (minimumX + maximumX) / 2;
     const centerY = (minimumY + maximumY) / 2;
     return Object.freeze({
       zoom,
-      panX: width / 2 - centerX * zoom,
-      panY: height / 2 - centerY * zoom,
+      panX: width * (!narrow ? (datacenter ? 0.44 : 0.43) : 0.5) - centerX * zoom,
+      panY: (narrow ? 375 + availableHeight / 2 : height * (datacenter ? 0.46 : 0.5)) - centerY * zoom,
     });
   }
 

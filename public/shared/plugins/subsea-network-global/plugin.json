@@ -155,7 +155,7 @@
       "path": "./metrics.js"
     },
     {
-      "integrity": "sha384-f43da8e1e88e859f3fc366be8d249da832703979919db0dfc35745c1fc491a0678d030e0c2bf1fd25b01d62b99c92070",
+      "integrity": "sha384-73bf36a1102ca97a9dd0dabc91685089b8050e07e120365f6b319cdfb2d1250f5e5bc6f8ab33b2a52a666460556b9ec6",
       "path": "./repair-engine.js"
     },
     {
@@ -163,7 +163,7 @@
       "path": "./network-model.js"
     },
     {
-      "integrity": "sha384-63f026a6dac926fe6b2933b52c407ab132783977cae322d0a58e8d83d645c176bd170cfb1bacb72d6e7a35a8787043a2",
+      "integrity": "sha384-9776f123d6019feed43ad9b5cfc77915efb846678584f83f49e66371d36057ae62d49d2bb8997fe771d1b45aafae2062",
       "path": "./v4-contribution.js"
     },
     {

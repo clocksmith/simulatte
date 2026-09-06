@@ -8,9 +8,9 @@
   const cameraController = typeof module === 'object' && module.exports
     ? require('./camera-controller.js')
     : root.SimulatteAutonomyCamera;
-  const presentationCompiler = typeof module === 'object' && module.exports
-    ? require('./plugin-presentation.js')
-    : root.SimulattePluginPresentation;
+  const sceneSource = typeof module === 'object' && module.exports
+    ? require('./world-render-scene.js')
+    : root.SimulatteWorldRenderScene;
   const semanticLabels = typeof module === 'object' && module.exports
     ? require('./semantic-label-overlay.js')
     : root.SimulatteSemanticLabelOverlay;
@@ -19,10 +19,12 @@
     : root.SimulatteAutonomyGpuPass;
   const targets = typeof module === 'object' && module.exports
     ? require('../../shared/render/render-targets.js') : root.SimulatteRenderTargets;
-  const api = factory(math, geometry, cameraController, presentationCompiler, semanticLabels, passApi, targets);
+  const sessions = typeof module === 'object' && module.exports
+    ? require('../../shared/render/renderer-session.js') : root.SimulatteRendererSession;
+  const api = factory(math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, presentationCompiler, semanticLabels, passApi, targets) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions) {
   if (!targets) throw new Error('render_targets_dependency_missing');
   const SAMPLE_COUNT = 1;
   const MINIMAP_RADIUS_M = 420;
@@ -96,16 +98,36 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 `;
 
   async function createCanvasRenderer(canvas, worldModel, options = {}) {
+    const renderer = await createSceneRenderer(canvas, sceneSource.create(worldModel, options), options);
+    renderer.session = sessions.create({
+      backend: 'world-webgpu', signal: options.signal,
+      capabilities: ['setScene', 'render', 'resize', 'setCamera', 'capture', 'receipt'],
+      initialize: ({ fail }) => { renderer.onFailure(fail); return sessionAdapter(renderer); },
+    });
+    renderer.session.ready.catch(() => renderer.destroy());
+    await renderer.session.ready;
+    return renderer;
+  }
+
+  async function createSceneRenderer(canvas, source, options = {}) {
+    if (!canvas || !source?.geometry || ['staticGeometry', 'overviewGeometry', 'groundGeometry', 'dynamicGeometry', 'compilePresentations', 'createCameraState', 'advanceCamera', 'updateSnapshot'].some(name => typeof source[name] !== 'function')) {
+      throw rendererError('world_render_scene_invalid', 'Expected a canvas and compiled World render scene');
+    }
+    const geometry = source.geometry;
     const cameraApi = resolveCameraController(cameraController);
     if (!passApi?.createPipelines || !passApi?.encodeScene) {
       throw rendererError('webgpu_pass_runtime_missing', 'WebGPU pass composition runtime is unavailable');
     }
     if (!globalThis.navigator?.gpu) throw rendererError('webgpu_unavailable', 'This simulation requires a browser with WebGPU enabled');
-    if (!worldModel.world.renderGeometry) throw rendererError('render_geometry_missing', `World ${worldModel.world.id} has no compiled renderGeometry`);
     const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+    options.signal?.throwIfAborted();
     if (!adapter) throw rendererError('webgpu_adapter_missing', 'WebGPU did not return a compatible adapter');
     const device = await adapter.requestDevice();
-    const context = canvas.getContext('webgpu');
+    if (options.signal?.aborted) { device.destroy(); options.signal.throwIfAborted(); }
+    const inputLifetime = new AbortController();
+    let context;
+    try {
+    context = canvas.getContext('webgpu');
     if (!context) throw rendererError('webgpu_context_missing', 'Canvas did not provide a WebGPU context');
     const minimapCanvas = options.minimapCanvas || null;
     const minimapContext = minimapCanvas ? minimapCanvas.getContext('webgpu') : null;
@@ -123,6 +145,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     minimapContext?.configure({ device, format, alphaMode: 'opaque', colorSpace: 'srgb' });
     const shader = device.createShaderModule({ label: 'autonomy-map-shader', code: SHADER });
     const compilation = await shader.getCompilationInfo();
+    options.signal?.throwIfAborted();
     const shaderErrors = compilation.messages.filter((row) => row.type === 'error');
     if (shaderErrors.length) throw rendererError('webgpu_shader_invalid', shaderErrors.map((row) => `${row.lineNum}:${row.linePos} ${row.message}`).join('\n'));
     const cameraBindGroupLayout = device.createBindGroupLayout({
@@ -163,14 +186,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         entries: [{ binding: 0, resource: { buffer: minimapUniformBuffer } }],
       })
       : null;
-    const staticData = geometry.createStaticGeometry(worldModel.world, { detail: 'full' });
-    const overviewStaticData = geometry.createStaticGeometry(worldModel.world, { detail: 'overview' });
-    const groundOverlayData = geometry.createGroundOverlayGeometry(worldModel.world);
+    const staticData = source.staticGeometry();
+    const overviewStaticData = source.overviewGeometry();
+    const groundOverlayData = source.groundGeometry();
     const staticBuffer = createVertexBuffer(device, staticData, 'autonomy-static-geometry');
     const overviewStaticBuffer = createVertexBuffer(device, overviewStaticData, 'autonomy-overview-static-geometry');
     const groundOverlayBuffer = createVertexBuffer(device, groundOverlayData, 'autonomy-ground-overlay-geometry');
     const state = {
-      ...cameraApi.createCameraState(worldModel.world, worldModel, options.regionRegistry, options.regionPacks),
+      ...source.createCameraState(),
       routeIdentity: null,
       latestSnapshot: null,
       latestReceipt: null,
@@ -213,7 +236,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       staticBuffer,
       overviewStaticData,
       overviewStaticBuffer,
-      pluginScene: presentationCompiler.compile([], worldModel),
+      pluginScene: source.compilePresentations([]),
       pluginTransitionActors: new Map(),
       pluginSimulationTimeSeconds: 0,
       pluginAnimationStartedAt: performance.now(),
@@ -232,9 +255,9 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.dataset.actorMeshSchema = geometry.ACTOR_MESH_SCHEMA;
     canvas.dataset.actorMeshKinds = geometry.SUPPORTED_ACTOR_KINDS.join(',');
     canvas.dataset.materialModel = geometry.MATERIAL_MODEL;
-    canvas.dataset.worldSurfaceOwner = worldModel.world.renderGeometry.surfaceOwner || 'core';
-    canvas.dataset.ambientActorCount = String(worldModel.ambientCompilation.actors.length);
-    canvas.dataset.ambientActorKinds = Object.entries(worldModel.ambientCompilation.counts)
+    canvas.dataset.worldSurfaceOwner = source.metadata.worldSurfaceOwner;
+    canvas.dataset.ambientActorCount = String(source.metadata.ambientTraffic.actorCount);
+    canvas.dataset.ambientActorKinds = Object.entries(source.metadata.ambientTraffic.counts)
       .filter(([, count]) => count > 0).map(([kind]) => kind).join(',');
     canvas.dataset.cameraMode = state.mode;
     canvas.dataset.cameraFocus = state.focusId;
@@ -244,21 +267,20 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       minimapCanvas.dataset.projection = 'orthographic_top_north_up';
       minimapCanvas.dataset.radiusM = String(MINIMAP_RADIUS_M);
     }
-    installCameraControls(canvas, state, cameraApi, options.onCameraInteraction);
+    let failureListener = null;
+    installCameraControls(canvas, state, cameraApi, options.onCameraInteraction, inputLifetime.signal);
     device.lost.then((info) => {
+      if (state.isDestroyed) return;
       canvas.dataset.rendererLost = 'true';
-      if (!state.isDestroyed && typeof options.onFailure === 'function') options.onFailure(rendererError('webgpu_device_lost', `${info.reason}: ${info.message}`));
+      const error = rendererError('webgpu_device_lost', `${info.reason}: ${info.message}`);
+      try { options.onFailure?.(error); } finally { failureListener?.(error); destroy(); }
     });
 
     function render(snapshot, tickReceipt = null) {
+      if (state.isDestroyed) throw rendererError('renderer_disposed', 'Cannot render a disposed World renderer');
       state.latestSnapshot = snapshot;
       state.latestReceipt = tickReceipt || state.latestReceipt;
-      if (!state.routeIdentity && snapshot.route?.segmentIds?.length) {
-        state.routeIdentity = snapshot.route.segmentIds.join('|');
-        cameraApi.updateRouteTarget(state, snapshot.route.segmentIds, worldModel, worldModel.world, performance.now());
-      }
-      const position = snapshot.state.position;
-      if (position && (!state.tracePositions.length || pointDistance(position, state.tracePositions.at(-1)) > 0.15)) state.tracePositions.push({ ...position });
+      source.updateSnapshot(state, snapshot, performance.now());
       refreshDynamicGeometry();
     }
 
@@ -269,7 +291,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         || state.coreDynamicReceipt !== state.latestReceipt
         || state.coreDynamicTraceLength !== state.tracePositions.length) {
         const coreStartedAt = performance.now();
-        state.dynamicData = geometry.createDynamicGeometry(worldModel, snapshot, state.latestReceipt, state.tracePositions, state.dynamicWriter);
+        state.dynamicData = source.dynamicGeometry(snapshot, state.latestReceipt, state.tracePositions, state.dynamicWriter);
         recordWorkCpu(state.workCpuMs.coreDynamicGeometry, performance.now() - coreStartedAt);
         ensureGeometryBuffer(device, state, state.dynamicData, 'dynamicBuffer', 'dynamicCapacity', 'autonomy-dynamic-geometry');
         state.coreDynamicSnapshot = state.latestSnapshot;
@@ -298,7 +320,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.pluginAnimationStartedAt = performance.now();
       const compileStartedAt = performance.now();
       const previousActors = new Map((state.pluginScene?.actors || []).map((row) => [row.id, row]));
-      const nextScene = presentationCompiler.compile(contributions, worldModel, {
+      const nextScene = source.compilePresentations(contributions, {
         ...presentationOptions,
         viewport: {
           width: Math.max(1, canvas.clientWidth || canvas.width),
@@ -361,18 +383,18 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     function drawFrame(timestamp = performance.now()) {
-      if (state.isDestroyed || !state.latestSnapshot) return;
+      if (state.isDestroyed || !state.latestSnapshot) return false;
       const cpuStartedAt = performance.now();
       resizeCanvas(canvas, device, format, state);
-      const pose = cameraApi.advanceCamera(state, state.latestSnapshot, worldModel, canvas.width / canvas.height, timestamp);
+      const pose = source.advanceCamera(state, state.latestSnapshot, canvas.width / canvas.height, timestamp);
       const camera = cameraForPose(pose, canvas);
       recordCameraDataset(canvas, pose);
+      if (timestamp - state.lastSubmittedFrameAt < PRIMARY_RENDER_INTERVAL_MS) return false;
       const animationTimeSeconds = Math.max(0, (timestamp - state.pluginAnimationStartedAt) / 1000);
       refreshPluginDynamicGeometry(
         snapshotAtRenderTime(state.latestSnapshot, state.pluginSimulationTimeSeconds),
         animationTimeSeconds,
       );
-      if (timestamp - state.lastSubmittedFrameAt < PRIMARY_RENDER_INTERVAL_MS) return;
       state.lastSubmittedFrameAt = timestamp;
       const seconds = resolvedSimulationTimeSeconds(state.latestSnapshot, state.pluginSimulationTimeSeconds);
       writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun, uniformData);
@@ -433,16 +455,17 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       canvas.dataset.dynamicVertexCount = String((state.dynamicData.length + state.pluginDynamicData.length) / geometry.FLOATS_PER_VERTEX);
       if (state.frameCpuMs.length >= 512) state.frameCpuMs.shift();
       state.frameCpuMs.push(performance.now() - cpuStartedAt);
+      return true;
     }
 
     async function capturePixels(options = {}) {
       if (state.isDestroyed) throw rendererError('webgpu_capture_disposed', 'Cannot capture a disposed renderer');
       if (!state.latestSnapshot) throw rendererError('webgpu_capture_state_missing', 'Cannot capture before a simulation state is rendered');
       resizeCanvas(canvas, device, format, state);
-      const pose = cameraApi.advanceCamera(
+      const width = canvas.width, height = canvas.height, sourceFrameCount = state.frameCount;
+      const pose = source.advanceCamera(
         state,
         state.latestSnapshot,
-        worldModel,
         canvas.width / canvas.height,
         performance.now(),
       );
@@ -462,26 +485,27 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         geometry: sceneGeometry(useOverviewStatic),
         clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
       });
-      const rowBytes = canvas.width * 4;
+      const rowBytes = width * 4;
       const bytesPerRow = Math.ceil(rowBytes / 256) * 256;
       const readback = device.createBuffer({
         label: 'autonomy-evidence-readback',
-        size: bytesPerRow * canvas.height,
+        size: bytesPerRow * height,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
       });
       encoder.copyTextureToBuffer(
         { texture: currentTexture },
-        { buffer: readback, bytesPerRow, rowsPerImage: canvas.height },
-        { width: canvas.width, height: canvas.height, depthOrArrayLayers: 1 },
+        { buffer: readback, bytesPerRow, rowsPerImage: height },
+        { width, height, depthOrArrayLayers: 1 },
       );
       device.queue.submit([encoder.finish()]);
-      const rgba = new Uint8Array(rowBytes * canvas.height);
+      const rgba = new Uint8Array(rowBytes * height);
       let mapped = false;
       try {
         await readback.mapAsync(GPUMapMode.READ);
         mapped = true;
+        if (state.isDestroyed) throw rendererError('webgpu_capture_disposed', 'Renderer disposed during capture');
         const bytes = new Uint8Array(readback.getMappedRange());
-        for (let y = 0; y < canvas.height; y += 1) {
+        for (let y = 0; y < height; y += 1) {
           rgba.set(bytes.subarray(y * bytesPerRow, y * bytesPerRow + rowBytes), y * rowBytes);
         }
         if (format.startsWith('bgra')) {
@@ -497,12 +521,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       }
       const capture = {
         schema: 'simulatte.autonomyRenderPixels.v1',
-        width: canvas.width,
-        height: canvas.height,
+        width, height,
         format: 'rgba8unorm',
         sourceBackend: 'webgpu',
         sourceFormat: format,
-        sourceFrameCount: state.frameCount,
+        sourceFrameCount,
       };
       if (options.encoding === 'bytes') {
         return Object.freeze({ ...capture, rgbaBytes: rgba });
@@ -555,7 +578,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
     function receipt() {
       return {
-        schema: 'simulatte.autonomyWebGpuRenderReceipt.v5',
+        schema: source.metadata.meshAssets ? 'simulatte.autonomyWebGpuRenderReceipt.v6' : 'simulatte.autonomyWebGpuRenderReceipt.v5',
         backend: 'webgpu',
         adapter: adapterInfo,
         format,
@@ -585,26 +608,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           maxMs: Math.max(0, ...values),
         }])),
         firstFrameMs: state.firstFrameAt ? Number((state.firstFrameAt - state.startedAt).toFixed(3)) : null,
-        worldId: worldModel.world.id,
-        worldSurfaceOwner: worldModel.world.renderGeometry.surfaceOwner || 'core',
-        buildingCount: worldModel.world.renderGeometry.buildings.length,
-        streetCount: worldModel.world.renderGeometry.streets.length,
-        parkCount: worldModel.world.renderGeometry.parks.length,
-        circuitCount: worldModel.world.circuits.length,
-        bikeFacilityCount: worldModel.world.renderGeometry.bikeFacilities.length,
+        ...structuredClone(source.metadata),
         actorGeometry: {
           schema: geometry.ACTOR_MESH_SCHEMA,
           supportedKinds: [...geometry.SUPPORTED_ACTOR_KINDS],
           materialModel: geometry.MATERIAL_MODEL,
-        },
-        ambientTraffic: {
-          schema: worldModel.ambientCompilation.schema,
-          actorCount: worldModel.ambientCompilation.actors.length,
-          counts: structuredClone(worldModel.ambientCompilation.counts),
-          interactionModel: worldModel.ambientCompilation.interactionModel,
-          animationModel: worldModel.ambientCompilation.animationModel,
-          sourceGeometryIds: [...worldModel.ambientCompilation.sourceGeometryIds],
-          claimBoundary: worldModel.ambientCompilation.claimBoundary,
         },
         camera: {
           mode: state.mode,
@@ -628,7 +636,9 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     function destroy() {
+      if (state.isDestroyed) return;
       state.isDestroyed = true;
+      inputLifetime.abort();
       delete canvas.__simulatteCaptureRenderPixels;
       delete canvas.__simulatteRenderReceipt;
       if (state.animationFrame !== null) cancelAnimationFrame(state.animationFrame);
@@ -646,13 +656,18 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       minimapUniformBuffer?.destroy();
       if (labelCanvas) labelCanvas.getContext('2d')?.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
       device.destroy();
+      context.unconfigure?.();
+      minimapContext?.unconfigure?.();
     }
 
     canvas.__simulatteCaptureRenderPixels = capturePixels;
     canvas.__simulatteRenderReceipt = receipt;
-    state.animationFrame = requestAnimationFrame(animationFrame);
+    if (options.autoRender !== false) state.animationFrame = requestAnimationFrame(animationFrame);
     return {
       render,
+      onFailure: listener => { failureListener = listener; },
+      drawFrame,
+      resize: () => resizeCanvas(canvas, device, format, state),
       reset,
       setCameraMode,
       focusCameraTarget,
@@ -665,6 +680,12 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       device,
       adapterInfo,
     };
+    } catch (error) {
+      inputLifetime.abort();
+      context?.unconfigure?.();
+      device.destroy();
+      throw error;
+    }
   }
 
   function createVertexBuffer(device, data, label) {
@@ -766,9 +787,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     return Math.min(0.00013, 0.22 / altitude);
   }
 
-  function installCameraControls(canvas, state, camera, onInteraction) {
+  function installCameraControls(canvas, state, camera, onInteraction, signal) {
+    const on = (type, listener, options) => canvas.addEventListener(type, listener, { ...options, signal });
     let pointer = null;
-    canvas.addEventListener('pointerdown', (event) => {
+    on('pointerdown', (event) => {
       const action = state.mode === 'top' || event.shiftKey || event.button !== 0 ? 'pan' : 'orbit';
       camera.setCameraMode(state, 'free', performance.now());
       pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, action };
@@ -776,7 +798,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       onInteraction?.({ control: action, mode: 'free', targetIds: [] });
       canvas.setPointerCapture(event.pointerId);
     });
-    canvas.addEventListener('pointermove', (event) => {
+    on('pointermove', (event) => {
       if (!pointer || pointer.id !== event.pointerId) return;
       const deltaX = event.clientX - pointer.x;
       const deltaY = event.clientY - pointer.y;
@@ -788,10 +810,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const release = (event) => {
       if (pointer?.id === event.pointerId) pointer = null;
     };
-    canvas.addEventListener('pointerup', release);
-    canvas.addEventListener('pointercancel', release);
-    canvas.addEventListener('contextmenu', (event) => event.preventDefault());
-    canvas.addEventListener('wheel', (event) => {
+    on('pointerup', release);
+    on('pointercancel', release);
+    on('contextmenu', (event) => event.preventDefault());
+    on('wheel', (event) => {
       event.preventDefault();
       const trackedMode = ['follow', 'pov'].includes(state.mode);
       if (!trackedMode) camera.setCameraMode(state, 'free', performance.now());
@@ -838,10 +860,6 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     return power;
   }
 
-  function pointDistance(left, right) {
-    return Math.hypot(left.x - right.x, left.y - right.y);
-  }
-
   function resolvedSimulationTimeSeconds(snapshot, pluginSimulationTimeSeconds = 0) {
     return Math.max(
       0,
@@ -869,5 +887,28 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     error.code = code;
     return error;
   }
-  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, fogDensityForEye, readAdapterInfo, rendererError, resolveCameraController, resolvedSimulationTimeSeconds, snapshotAtRenderTime };
+  function createSession({ canvas, scene, signal, ...options } = {}) {
+    return sessions.create({
+      backend: 'world-webgpu', signal,
+      capabilities: ['setScene', 'render', 'resize', 'setCamera', 'capture', 'receipt'],
+      async initialize({ signal: lifetime, fail }) {
+        const renderer = await createSceneRenderer(canvas, scene, { autoRender: false, ...options, signal: lifetime, onFailure: fail });
+        if (lifetime.aborted) { renderer.destroy(); throw rendererError('renderer_disposed', 'Renderer disposed during initialization'); }
+        return sessionAdapter(renderer);
+      },
+    });
+  }
+  function sessionAdapter(renderer) {
+    return {
+      setScene: ({ presentations, ...settings }) => renderer.setPluginPresentations(presentations, settings),
+      render: ({ snapshot, receipt, timeMs } = {}) => { renderer.render(snapshot, receipt); return renderer.drawFrame(timeMs); },
+      resize: renderer.resize,
+      setCamera: ({ targetId, mode } = {}) => {
+        if (Boolean(targetId) === Boolean(mode)) throw rendererError('world_camera_invalid', 'Specify exactly one camera targetId or mode');
+        return targetId ? renderer.focusCameraTarget(targetId) : renderer.setCameraMode(mode);
+      },
+      capture: renderer.capturePixels, receipt: renderer.receipt, dispose: renderer.destroy,
+    };
+  }
+  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, createSceneRenderer, createSession, fogDensityForEye, readAdapterInfo, rendererError, resolveCameraController, resolvedSimulationTimeSeconds, snapshotAtRenderTime };
 });

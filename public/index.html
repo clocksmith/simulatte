@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./world-tiers.css">
   <link rel="stylesheet" href="./shared/design/workbench.css">
+  <link rel="stylesheet" href="./shared/design/compositions/world-interface.css">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LS3SFGCZSL"></script>
   <script>
@@ -95,6 +96,7 @@
               <div id="world-tier-options" class="select-options" role="listbox" aria-label="Simulatte world scales" hidden>
                 <div class="select-option" data-value="datacenter" role="option">Datacenter</div>
                 <div class="select-option" data-value="city" role="option">City</div>
+                <div class="select-option" data-value="country" role="option">Country</div>
                 <div class="select-option" data-value="world" role="option">Planet</div>
                 <div class="select-option" data-value="solar-system" role="option">Solar System</div>
                 <div class="select-option" data-value="star-chart" role="option">Universe</div>
@@ -376,14 +378,7 @@
   <div id="world-tiers-landing-page">
   <section id="simulation-home">
     <header class="landing-header">
-      <h1 class="landing-title" aria-label="SIMULATTE">
-        <svg class="landing-title-svg" viewBox="0 0 760 200" role="img" aria-hidden="true">
-          <line class="landing-title-line" x1="180" y1="28" x2="580" y2="28"></line>
-          <line class="landing-title-line" x1="215" y1="44" x2="545" y2="44"></line>
-          <line class="landing-title-line" x1="250" y1="60" x2="510" y2="60"></line>
-          <text x="50%" y="132" text-anchor="middle" dominant-baseline="middle">SIMULATTE</text>
-        </svg>
-      </h1>
+      <h1 class="landing-title">Simulatte</h1>
       <p class="landing-subtitle">Choose a simulation.</p>
       <nav class="landing-links" aria-label="Simulatte"><a id="open-data" href="#data">Use your data</a></nav>
       <p id="simulation-status" role="status" aria-live="polite"></p>

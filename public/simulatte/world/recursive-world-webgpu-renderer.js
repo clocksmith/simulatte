@@ -5,10 +5,12 @@
   const viewApi = typeof module === 'object' && module.exports
     ? require('./recursive-world-view.js')
     : root.SimulatteRecursiveWorldView;
-  const api = factory(sceneApi, viewApi);
+  const sessions = typeof module === 'object' && module.exports
+    ? require('../../shared/render/renderer-session.js') : root.SimulatteRendererSession;
+  const api = factory(sceneApi, viewApi, sessions);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRecursiveWorldWebGpuRenderer = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createRecursiveWorldWebGpuRendererApi(sceneApi, viewApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createRecursiveWorldWebGpuRendererApi(sceneApi, viewApi, sessions) {
   const BUFFER_USAGE = typeof GPUBufferUsage === 'undefined'
     ? { COPY_DST: 8, INDEX: 16, VERTEX: 32, UNIFORM: 64 }
     : GPUBufferUsage;
@@ -43,7 +45,7 @@ struct VertexOutput {
   return input.color;
 }`;
 
-  async function createRenderer(options) {
+  async function createBackend(options) {
     const {
       canvas,
       scene,
@@ -59,12 +61,32 @@ struct VertexOutput {
     if (!canvas) throw new Error('recursive_webgpu_canvas_missing: A canvas is required');
     if (!scene) throw new Error('recursive_webgpu_scene_missing: A compiled scene is required');
     let device = providedDevice;
+    let context = null;
+    let disposed = false;
+    const resources = new Set();
+    function dispose() {
+      if (disposed) return;
+      disposed = true;
+      resources.forEach(resource => resource.destroy?.());
+      resources.clear();
+      context?.unconfigure?.();
+      if (!providedDevice) device?.destroy?.();
+    }
+    function allocate(size, usage, label) {
+      const buffer = createBuffer(device, size, usage, label);
+      resources.add(buffer);
+      return buffer;
+    }
+    try {
+    options.signal?.throwIfAborted();
     if (!device) {
       const adapter = await globalThis.navigator?.gpu?.requestAdapter();
+      options.signal?.throwIfAborted();
       if (!adapter) throw new Error('recursive_webgpu_adapter_unavailable: WebGPU adapter unavailable');
       device = await adapter.requestDevice();
     }
-    const context = providedContext || canvas.getContext('webgpu');
+    options.signal?.throwIfAborted();
+    context = providedContext || canvas.getContext('webgpu');
     if (!context) throw new Error('recursive_webgpu_context_unavailable: WebGPU canvas context unavailable');
     context.configure({ device, format, alphaMode: 'opaque' });
     const module = device.createShaderModule({ label: 'recursive-world-shader', code: SHADER });
@@ -96,20 +118,28 @@ struct VertexOutput {
       primitive: { topology: 'triangle-list', cullMode: 'back' },
       depthStencil: { format: 'depth24plus', depthWriteEnabled: true, depthCompare: 'less' },
     });
-    const uniformBuffer = createBuffer(device, 64, BUFFER_USAGE.UNIFORM | BUFFER_USAGE.COPY_DST, 'recursive-world-camera');
+    const uniformBuffer = allocate(64, BUFFER_USAGE.UNIFORM | BUFFER_USAGE.COPY_DST, 'recursive-world-camera');
     let instanceCapacity = nextPowerOfTwo(Math.max(scene.instances.length, 1));
-    let instanceBuffer = createBuffer(device, instanceCapacity * scene.instanceStrideFloats * 4, BUFFER_USAGE.VERTEX | BUFFER_USAGE.COPY_DST, 'recursive-world-instances');
+    let instanceBuffer = allocate(instanceCapacity * scene.instanceStrideFloats * 4, BUFFER_USAGE.VERTEX | BUFFER_USAGE.COPY_DST, 'recursive-world-instances');
+    if ((scene.meshAssets || []).some(mesh => ['box', 'sphere'].includes(mesh.id))) throw new Error('recursive_webgpu_mesh_reserved');
     const meshes = {
-      box: createMesh(device, cubeVertices(), 'recursive-world-box'),
-      sphere: createMesh(device, sphereVertices(12, 24), 'recursive-world-sphere'),
+      box: createMesh(device, cubeVertices(), 'recursive-world-box', resources),
+      sphere: createMesh(device, sphereVertices(12, 24), 'recursive-world-sphere', resources),
+      ...Object.fromEntries((scene.meshAssets || []).map(mesh => [mesh.id, createMesh(device, mesh.positions, `recursive-world-${mesh.id}`, resources)])),
     };
     const bindGroup = device.createBindGroup({ layout: bindGroupLayout, entries: [{ binding: 0, resource: { buffer: uniformBuffer } }] });
     const view = viewApi.createViewController(scene, { initialTargetId: options.initialTargetId });
     let depthTexture = null;
     let depthSize = '';
     let frameSequence = 0;
+    let latestReceipt = null;
+
+    function assertActive() {
+      if (disposed) throw Object.assign(new Error('Recursive renderer disposed'), { code: 'renderer_disposed' });
+    }
 
     function render({ observation, nowMs = now() } = {}) {
+      assertActive();
       const started = now();
       resizeCanvas(canvas, pixelRatio);
       const camera = view.sample({ nowMs, aspect: canvas.width / Math.max(canvas.height, 1) });
@@ -117,20 +147,23 @@ struct VertexOutput {
       const relativeData = applyFloatingOrigin(frameState.instanceData, camera.floatingOrigin, scene.instanceStrideFloats);
       if (scene.instances.length > instanceCapacity) {
         instanceBuffer.destroy?.();
+        resources.delete(instanceBuffer);
         instanceCapacity = nextPowerOfTwo(scene.instances.length);
-        instanceBuffer = createBuffer(device, instanceCapacity * scene.instanceStrideFloats * 4, BUFFER_USAGE.VERTEX | BUFFER_USAGE.COPY_DST, 'recursive-world-instances');
+        instanceBuffer = allocate(instanceCapacity * scene.instanceStrideFloats * 4, BUFFER_USAGE.VERTEX | BUFFER_USAGE.COPY_DST, 'recursive-world-instances');
       }
       device.queue.writeBuffer(uniformBuffer, 0, camera.viewProjection);
       device.queue.writeBuffer(instanceBuffer, 0, relativeData);
       const sizeKey = `${canvas.width}x${canvas.height}`;
       if (sizeKey !== depthSize) {
         depthTexture?.destroy?.();
+        resources.delete(depthTexture);
         depthTexture = device.createTexture({
           label: 'recursive-world-depth',
           size: [canvas.width, canvas.height],
           format: 'depth24plus',
           usage: typeof GPUTextureUsage === 'undefined' ? 16 : GPUTextureUsage.RENDER_ATTACHMENT,
         });
+        resources.add(depthTexture);
         depthSize = sizeKey;
       }
       const encoder = device.createCommandEncoder({ label: 'recursive-world-frame' });
@@ -175,23 +208,21 @@ struct VertexOutput {
         frameBudgetClaimed: false,
       };
       receipt.contentHash = sceneApi.contentHash(receipt);
-      return Object.freeze(receipt);
-    }
-
-    function dispose() {
-      depthTexture?.destroy?.();
-      instanceBuffer.destroy?.();
-      uniformBuffer.destroy?.();
-      Object.values(meshes).forEach((mesh) => mesh.buffer.destroy?.());
+      latestReceipt = Object.freeze(receipt);
+      return latestReceipt;
     }
 
     async function captureVisualEvidence(frameReceipt) {
+      assertActive();
       if (!frameReceipt || sceneApi.contentHash(frameReceipt) !== frameReceipt.contentHash) {
         throw new Error('recursive_webgpu_frame_receipt_invalid: Frame receipt is missing or tampered');
       }
+      if (frameReceipt.contentHash !== latestReceipt?.contentHash) throw new Error('recursive_webgpu_capture_stale: Capture requires the latest submitted frame');
       await device.queue.onSubmittedWorkDone?.();
       const blob = await canvasBlob(canvas);
       const pixelEvidenceHash = await sha256(await blob.arrayBuffer());
+      assertActive();
+      if (frameReceipt.contentHash !== latestReceipt?.contentHash) throw new Error('recursive_webgpu_capture_stale: Frame changed during capture');
       const receipt = {
         ...frameReceipt,
         source: 'browser-webgpu',
@@ -205,15 +236,24 @@ struct VertexOutput {
     }
 
     async function waitForSubmittedWork() {
+      assertActive();
       if (typeof device.queue.onSubmittedWorkDone !== 'function') {
         throw new Error('recursive_webgpu_completion_unavailable: GPUQueue.onSubmittedWorkDone is required for completed-frame evidence');
       }
       const started = now();
       await device.queue.onSubmittedWorkDone();
+      assertActive();
       return now() - started;
     }
 
-    return Object.freeze({ captureVisualEvidence, dispose, focus: view.focus, render, viewSnapshot: view.snapshot, waitForSubmittedWork });
+    device.lost?.then(info => {
+      if (!disposed) { dispose(); options.onFailure?.(new Error(`WebGPU device lost: ${info.message || info.reason}`)); }
+    });
+    return Object.freeze({ captureVisualEvidence, dispose, render, waitForSubmittedWork,
+      focus: (...args) => { assertActive(); return view.focus(...args); },
+      viewSnapshot: () => { assertActive(); return view.snapshot(); },
+      resize: () => resizeCanvas(canvas, pixelRatio), receipt: () => latestReceipt });
+    } catch (error) { dispose(); throw error; }
   }
 
   function canvasBlob(canvas) {
@@ -246,8 +286,10 @@ struct VertexOutput {
     return result;
   }
 
-  function createMesh(device, vertices, label) {
+  function createMesh(device, points, label, resources) {
+    const vertices = new Float32Array(points);
     const buffer = createBuffer(device, vertices.byteLength, BUFFER_USAGE.VERTEX | BUFFER_USAGE.COPY_DST, label);
+    resources.add(buffer);
     device.queue.writeBuffer(buffer, 0, vertices);
     return Object.freeze({ buffer, vertexCount: vertices.length / 3 });
   }
@@ -296,5 +338,28 @@ struct VertexOutput {
 
   function nextPowerOfTwo(value) { let result = 1; while (result < value) result *= 2; return result; }
 
-  return Object.freeze({ SHADER, applyFloatingOrigin, createRenderer, cubeVertices, sphereVertices });
+  function createSession(options, onReady) {
+    return sessions.create({
+      backend: 'recursive-webgpu', signal: options?.signal,
+      capabilities: ['render', 'resize', 'setCamera', 'capture', 'receipt'],
+      async initialize({ signal, fail }) {
+        const renderer = await createBackend({ ...options, signal, onFailure: fail });
+        onReady?.(renderer);
+        return {
+          render: ({ observation, timeMs } = {}) => renderer.render({ observation, nowMs: timeMs }),
+          resize: renderer.resize,
+          setCamera: ({ targetId, ...settings }) => renderer.focus(targetId, settings),
+          capture: () => renderer.captureVisualEvidence(renderer.receipt()),
+          receipt: renderer.receipt, dispose: renderer.dispose,
+        };
+      },
+    });
+  }
+  async function createRenderer(options) {
+    let renderer;
+    const session = createSession(options, value => { renderer = value; });
+    await session.ready;
+    return Object.freeze({ ...renderer, session, dispose: session.dispose });
+  }
+  return Object.freeze({ SHADER, applyFloatingOrigin, createRenderer, createSession, cubeVertices, sphereVertices });
 });

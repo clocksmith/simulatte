@@ -740,3 +740,14 @@ test('app shell recovers an unknown governed-tier experience with that tier defa
   ]);
   assert.deepEqual(canonicalRoutes, [{ tier: 'world', experience: 'subsea-network-global-v1', world: null, profile: 'subsea-network-global-v1', camera: null }]);
 });
+
+test('route updates compare controls against applied plugin state, not a pending form edit', () => {
+  const scenario = { id: 'nominal', seed: 'seed-1' };
+  const contribution = { pluginId: 'gpu-supercluster', controls: { controls: [{ id: 'coolantFlowLpm', value: 120 }] } };
+  const applied = bootApi.appliedSimulationRouteState(scenario, [contribution]);
+  const pending = { ...applied, parameters: { 'gpu-supercluster': { coolantFlowLpm: 40 } } };
+  assert.notEqual(routerApi.queryForSimulation(pending), routerApi.queryForSimulation(applied));
+  contribution.controls.controls[0].value = 40;
+  assert.equal(applied.parameters['gpu-supercluster'].coolantFlowLpm, 120);
+  assert.equal(routerApi.queryForSimulation(pending), routerApi.queryForSimulation(bootApi.appliedSimulationRouteState(scenario, [contribution])));
+});

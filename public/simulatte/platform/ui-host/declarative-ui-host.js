@@ -20,6 +20,7 @@
     const roots = rootElements || { inspector: rootElement };
     const requiredSlots = ['inspector', 'map'];
     const controlValues = new Map();
+    const controlGroups = new Map();
     if (!roots.inspector || typeof roots.inspector.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', 'Declarative UI host expected an inspector root element', null);
     Object.entries(roots).forEach(([slot, element]) => {
       if (!requiredSlots.includes(slot) || !element || typeof element.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', `Declarative UI host received an invalid ${slot} root`, null);
@@ -47,7 +48,7 @@
             contribution.controls.controls,
             controlValues,
             onControlChange,
-            values,
+            values, controlGroups, onError,
           ));
         }
       });
@@ -187,7 +188,7 @@
     controls,
     controlValues,
     onControlChange,
-    readValues,
+    readValues, controlGroups, onError,
   ) {
     const section = documentRef.createElement('details');
     section.className = 'evidence-section plugin-evidence plugin-parameter-section';
@@ -205,15 +206,27 @@
     controls.forEach((control) => {
       if (!values.has(control.id)) values.set(control.id, cloneControlValue(control.value));
     });
-    const fields = renderControlFields(
-      documentRef,
-      pluginId,
-      controls,
-      values,
-      onControlChange,
-      readValues,
-    );
-    section.append(heading, fields);
+    section.append(heading);
+    const groups = new Map();
+    controls.forEach(control => {
+      const match = control.label.match(/^([^:·]+)\s*[:·]\s*(.+)$/);
+      const name = match ? match[1].trim() : '';
+      if (!groups.has(name)) groups.set(name, []);
+      groups.get(name).push(match ? { ...control, label: match[2] } : control);
+    });
+    [...groups].forEach(([name, rows], index) => {
+      const fields = renderControlFields(documentRef, pluginId, rows, values, onControlChange, readValues, onError);
+      if (!name) { section.append(fields); return; }
+      const group = documentRef.createElement('details');
+      group.className = 'plugin-control-group';
+      const key = `${pluginId}:${name}`;
+      group.open = controlGroups.get(key) ?? index === 0;
+      group.addEventListener('toggle', () => controlGroups.set(key, group.open));
+      const title = documentRef.createElement('summary');
+      title.textContent = `${name} (${rows.length})`;
+      group.append(title, fields);
+      section.append(group);
+    });
     return section;
   }
 
@@ -223,7 +236,7 @@
     controls,
     values,
     onControlChange,
-    readValues,
+    readValues, onError,
   ) {
     const fields = documentRef.createElement('div');
     fields.className = 'plugin-controls';
@@ -265,11 +278,12 @@
           if (revision !== applyRevision) return;
           appliedValue = cloneControlValue(nextValue);
           input.dataset.applyStatus = 'applied';
-        } catch (_error) {
+        } catch (error) {
           if (revision !== applyRevision) return;
           values.set(control.id, cloneControlValue(appliedValue));
           writeControlInput(input, control, appliedValue);
           input.dataset.applyStatus = 'failed';
+          onError?.(error, { controlId: control.id, pluginId });
         }
       });
       label.append(caption, ...(optionSearch ? [optionSearch, input] : [input]));

@@ -4,6 +4,7 @@
   root.SimulatteTierRenderers = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createTierRenderers() {
   function drawSolarSystem(view) {
+      if (view.nativeCoordinateSystems?.includes('heliocentric-ecliptic-au')) return;
       const { ctx, data, zoom, panX, panY } = view;
 
       // Draw Sun in center
@@ -80,6 +81,7 @@
   }
 
   function drawStarChart(view) {
+      if (view.nativeCoordinateSystems?.includes('icrs-cartesian-pc')) return;
       const { ctx, data, zoom, panX, panY, rotX, rotY } = view;
 
       // Projection parameters
@@ -466,199 +468,40 @@
   }
 
   function drawDatacenter(view) {
-    const { ctx, data, zoom, panX, panY, timeSeconds = 0 } = view;
-
-    // Facility parameters
-    const cx = panX;
-    const cy = panY;
-    const rows = 4;
-    const racksPerRow = 8;
-    const rackWidth = 28 * zoom;
-    const rackDepth = 48 * zoom;
-    const rackHeight = 72 * zoom;
-    const rowSpacing = 90 * zoom;
-    const rackSpacing = 38 * zoom;
-
-    // 1. Draw Facility Floor & Raised Tile Grid
-    ctx.save();
-    const floorWidth = racksPerRow * rackSpacing + 120 * zoom;
-    const floorHeight = rows * rowSpacing + 100 * zoom;
-    const floorX = cx - floorWidth / 2;
-    const floorY = cy - floorHeight / 2;
-
-    ctx.fillStyle = '#080c14';
-    ctx.fillRect(floorX - 40 * zoom, floorY - 40 * zoom, floorWidth + 80 * zoom, floorHeight + 80 * zoom);
-
-    // Floor Grid Lines
-    ctx.strokeStyle = 'rgba(70, 110, 180, 0.08)';
+    // Rack geometry and heat arrive through the governed plugin presentation.
+    const { ctx, width, height } = view;
+    ctx.strokeStyle = 'rgba(180, 195, 205, 0.05)';
     ctx.lineWidth = 1;
-    const tileSize = 20 * zoom;
-    for (let x = floorX - 40 * zoom; x <= floorX + floorWidth + 40 * zoom; x += tileSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, floorY - 40 * zoom);
-      ctx.lineTo(x, floorY + floorHeight + 40 * zoom);
-      ctx.stroke();
+    for (let x = 0; x < width; x += 48) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
     }
-    for (let y = floorY - 40 * zoom; y <= floorY + floorHeight + 40 * zoom; y += tileSize) {
-      ctx.beginPath();
-      ctx.moveTo(floorX - 40 * zoom, y);
-      ctx.lineTo(floorX + floorWidth + 40 * zoom, y);
-      ctx.stroke();
+    for (let y = 0; y < height; y += 48) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
     }
-
-    // 2. Draw Cold / Hot Aisle Containment Bands
-    for (let r = 0; r < rows; r++) {
-      const rowY = floorY + 40 * zoom + r * rowSpacing;
-      const isColdAisle = r % 2 === 0;
-      ctx.fillStyle = isColdAisle ? 'rgba(0, 190, 255, 0.04)' : 'rgba(255, 90, 50, 0.04)';
-      ctx.fillRect(floorX, rowY - 14 * zoom, floorWidth, 18 * zoom);
-
-      ctx.fillStyle = isColdAisle ? 'rgba(0, 210, 255, 0.25)' : 'rgba(255, 110, 70, 0.25)';
-      ctx.font = `${Math.max(8, 10 * zoom)}px monospace`;
-      ctx.fillText(isColdAisle ? 'COLD AISLE (INLET 22°C)' : 'HOT AISLE (EXHAUST 42°C)', floorX + 10 * zoom, rowY - 2 * zoom);
-    }
-    ctx.restore();
-
-    // 3. Draw 32 42U Server Racks in 3D Isometric Projection
-    const t = timeSeconds || (Date.now() / 1000);
-    const rackStates = data?.racks || [];
-
-    for (let r = 0; r < rows; r++) {
-      const rowY = floorY + 50 * zoom + r * rowSpacing;
-
-      for (let c = 0; c < racksPerRow; c++) {
-        const rackIndex = r * racksPerRow + c;
-        const rackX = floorX + 30 * zoom + c * rackSpacing;
-        const state = rackStates[rackIndex] || {};
-        const avgTemp = Number(state.avgTempC || 52 + Math.sin(t * 0.5 + rackIndex) * 8);
-        const isThrottled = avgTemp > 80;
-
-        // Base Rack Body
-        ctx.save();
-        ctx.fillStyle = '#111827';
-        ctx.strokeStyle = isThrottled ? '#ff3b30' : (state.selected ? '#00e5ff' : 'rgba(75, 85, 99, 0.6)');
-        ctx.lineWidth = state.selected ? 2 : 1;
-        ctx.fillRect(rackX, rowY, rackWidth, rackDepth);
-        ctx.strokeRect(rackX, rowY, rackWidth, rackDepth);
-
-        // Rack Face Panel (Top / Isometric Lid)
-        ctx.fillStyle = '#1f2937';
-        ctx.beginPath();
-        ctx.moveTo(rackX, rowY);
-        ctx.lineTo(rackX + 6 * zoom, rowY - 8 * zoom);
-        ctx.lineTo(rackX + rackWidth + 6 * zoom, rowY - 8 * zoom);
-        ctx.lineTo(rackX + rackWidth, rowY);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // 8 GPU Server Chassis Units per Rack
-        const chassisHeight = (rackDepth - 6 * zoom) / 8;
-        for (let u = 0; u < 8; u++) {
-          const uY = rowY + 3 * zoom + u * chassisHeight;
-          const gpuIndex = rackIndex * 8 + u;
-          const gpuTemp = avgTemp + Math.sin(t * 2 + gpuIndex * 0.3) * 4;
-
-          // Chassis Slot
-          ctx.fillStyle = '#0f172a';
-          ctx.fillRect(rackX + 2 * zoom, uY, rackWidth - 4 * zoom, chassisHeight - 1.5 * zoom);
-
-          // Die Thermal Heatmap Glow (Cool Cyan -> Amber -> Magenta/Red)
-          let dieColor = '#00f0ff';
-          if (gpuTemp > 78) dieColor = '#ff3366';
-          else if (gpuTemp > 65) dieColor = '#ffb300';
-          else if (gpuTemp > 55) dieColor = '#00e676';
-
-          ctx.fillStyle = dieColor;
-          ctx.fillRect(rackX + 4 * zoom, uY + 1 * zoom, 4 * zoom, chassisHeight - 3.5 * zoom);
-
-          // Activity LED
-          const ledBlink = Math.sin(t * 8 + gpuIndex) > 0;
-          ctx.fillStyle = ledBlink ? '#00e676' : '#054020';
-          ctx.beginPath();
-          ctx.arc(rackX + rackWidth - 5 * zoom, uY + chassisHeight / 2, 1.2 * zoom, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Rack Label
-        ctx.fillStyle = 'rgba(156, 163, 175, 0.7)';
-        ctx.font = `${Math.max(7, 8 * zoom)}px monospace`;
-        ctx.fillText(`R${r + 1}-${c + 1}`, rackX + 2 * zoom, rowY + rackDepth + 10 * zoom);
-        ctx.restore();
-      }
-    }
-
-    // 4. Overhead High-Speed InfiniBand / NVLink Fiber Trunks & AllReduce Pulses
-    ctx.save();
-    for (let r = 0; r < rows; r++) {
-      const rowY = floorY + 50 * zoom + r * rowSpacing;
-      const startX = floorX + 30 * zoom;
-      const endX = floorX + 30 * zoom + (racksPerRow - 1) * rackSpacing + rackWidth;
-
-      // Optical Cable Tray Trunk
-      ctx.beginPath();
-      ctx.moveTo(startX, rowY - 12 * zoom);
-      ctx.lineTo(endX, rowY - 12 * zoom);
-      ctx.strokeStyle = 'rgba(0, 229, 255, 0.35)';
-      ctx.lineWidth = 2 * zoom;
-      ctx.stroke();
-
-      // Traveling AllReduce Gradient Tensor Pulses
-      const pulsePhase = (t * 1.8 + r * 0.4) % 1;
-      const pulseX = startX + (endX - startX) * pulsePhase;
-
-      ctx.beginPath();
-      ctx.arc(pulseX, rowY - 12 * zoom, 4 * zoom, 0, Math.PI * 2);
-      ctx.fillStyle = '#00e5ff';
-      ctx.shadowBlur = 12 * zoom;
-      ctx.shadowColor = '#00e5ff';
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-
-    // Inter-Row Spine Switch Vertical Fiber Trays
-    const spineX = floorX + floorWidth / 2;
-    ctx.beginPath();
-    ctx.moveTo(spineX, floorY + 20 * zoom);
-    ctx.lineTo(spineX, floorY + floorHeight - 20 * zoom);
-    ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)';
-    ctx.lineWidth = 3 * zoom;
-    ctx.setLineDash([4 * zoom, 4 * zoom]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
-
-    // 5. CDUs (Coolant Distribution Units) at row ends
-    ctx.save();
-    for (let r = 0; r < rows; r++) {
-      const cduX = floorX + floorWidth - 30 * zoom;
-      const cduY = floorY + 50 * zoom + r * rowSpacing;
-
-      ctx.fillStyle = '#0e7490';
-      ctx.strokeStyle = '#22d3ee';
-      ctx.lineWidth = 1.5;
-      ctx.fillRect(cduX, cduY, 18 * zoom, rackDepth);
-      ctx.strokeRect(cduX, cduY, 18 * zoom, rackDepth);
-
-      // Coolant pump animation
-      const pumpAngle = (t * 4 + r) % (Math.PI * 2);
-      ctx.save();
-      ctx.translate(cduX + 9 * zoom, cduY + rackDepth / 2);
-      ctx.rotate(pumpAngle);
-      ctx.strokeStyle = '#67e8f9';
-      ctx.lineWidth = 2 * zoom;
-      ctx.beginPath();
-      ctx.moveTo(-5 * zoom, 0);
-      ctx.lineTo(5 * zoom, 0);
-      ctx.stroke();
-      ctx.restore();
-
-      ctx.fillStyle = '#a5f3fc';
-      ctx.font = `${Math.max(6, 7 * zoom)}px monospace`;
-      ctx.fillText(`CDU-${r + 1}`, cduX - 2 * zoom, cduY + rackDepth + 8 * zoom);
-    }
-    ctx.restore();
   }
 
-  return Object.freeze({ drawSolarSystem, drawStarChart, drawWorld, drawCountry, drawDatacenter });
+  function drawDatacenterMarker(ctx, point, marker, zoom) {
+    if (marker.quantityKind !== 'modeled-rack-temperature') return false;
+    const width = Math.max(12, Math.min(44, zoom * 1.05));
+    const height = width * 1.35;
+    const temperature = Number(marker.quantityValue);
+    const heat = temperature >= 80 ? '#ff5c66' : temperature >= 65 ? '#ffb347' : '#4de8ff';
+    ctx.save();
+    ctx.fillStyle = '#18232c'; ctx.strokeStyle = heat; ctx.lineWidth = 1.5;
+    ctx.fillRect(point.x - width / 2, point.y - height / 2, width, height);
+    ctx.strokeRect(point.x - width / 2, point.y - height / 2, width, height);
+    ctx.fillStyle = heat;
+    for (let slot = 0; slot < 8; slot += 1) {
+      ctx.fillRect(point.x - width / 2 + 3, point.y - height / 2 + 3 + slot * (height - 6) / 8, width - 6, Math.max(1, (height - 6) / 12));
+    }
+    ctx.font = '500 10px "IBM Plex Sans", sans-serif';
+    ctx.textAlign = 'center'; ctx.fillStyle = '#edf5f3';
+    const [id, temperatureLabel] = marker.label.split(' · ');
+    ctx.fillText(id, point.x, point.y + height / 2 + 12);
+    if (temperatureLabel) ctx.fillText(width < 20 ? `${Math.round(temperature)}°C` : temperatureLabel, point.x, point.y + height / 2 + 24);
+    ctx.restore();
+    return true;
+  }
+
+  return Object.freeze({ drawSolarSystem, drawStarChart, drawWorld, drawCountry, drawDatacenter, drawDatacenterMarker });
 });

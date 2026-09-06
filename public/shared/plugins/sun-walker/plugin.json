@@ -108,11 +108,11 @@
       "path": "./sun-exposure.js"
     },
     {
-      "integrity": "sha384-95ff8923b34c29b08af884b875b9f6f0046ab2f2ef0446ca42fa2999e223ac00c6c96a53f9c0e81e8f271138f35aa9e4",
+      "integrity": "sha384-9383ef31b39f10b2b4421cb39bf98e6ccece76423a60e9c26dda11482c983ba8e7137099c98297288fadee539e117e7e",
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-8c20950b6e0273d77df628b5e5df52251f9df8ed6e988a616d4ba2cf83c63a0dd8920d08f8b9617aaa208e014b8cefd5",
+      "integrity": "sha384-f19758b22c76914bb5ced15981af0b7b0a99f068c3c64ffc342459985b88bc0114953c0cd21da04321c08617ba129dd9",
       "path": "./v4-contribution.js"
     }
   ],

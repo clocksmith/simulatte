@@ -138,7 +138,7 @@
         mission,
         regionComposition: data.regionComposition,
         onTick: ({ entry, snapshot }) => {
-          getRenderer().render(snapshot, entry.payload);
+          getRenderer().session.render({ snapshot, receipt: entry.payload });
           traceView.renderTick(entry, snapshot);
           setRuntimeStatus(elements, runtimeLabel(snapshot.state), snapshot.state.status);
           const retrieval = entry.payload?.observation?.featureRetrieval;
@@ -180,7 +180,7 @@
       const renderer = getRenderer();
       renderer.reset();
       const snapshot = nextController.snapshot();
-      renderer.render(snapshot);
+      renderer.session.render({ snapshot });
       await yieldToFrame();
       if (!isCurrent()) return null;
       setActiveState({ controller: nextController, mission });
@@ -227,7 +227,7 @@
       };
       const renderer = getRenderer();
       renderer.reset();
-      renderer.render(snapshot);
+      renderer.session.render({ snapshot });
       setActiveState({ controller: null, mission: null });
       await renderPluginExperience({ mission: null });
       elements.renderIdentity.textContent = renderIdentity(renderer.receipt());
