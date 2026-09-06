@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { restorePinnedCompression } from './pinned-package-compression.mjs';
 import {
   MODEL_RUNTIME_LOCK_PATH,
   readModelRuntimeLock,
@@ -177,7 +178,11 @@ function main() {
       '--json',
       '--silent',
     ]);
-    const entry = verifyPackument(JSON.parse(output), packagePin, WRITE);
+    const packument = JSON.parse(output);
+    if (!WRITE && Array.isArray(packument) && packument.length === 1) {
+      packument[0] = restorePinnedCompression(packument[0], path.join(packDir, packument[0].filename), packagePin, run('npm', ['config', 'get', 'cache']).trim());
+    }
+    const entry = verifyPackument(packument, packagePin, WRITE);
     run('tar', ['-xzf', path.join(packDir, entry.filename), '-C', packDir]);
     const packageRoot = path.join(packDir, 'package');
     const initial = compareTrees(packageRoot, VENDOR_ROOT);

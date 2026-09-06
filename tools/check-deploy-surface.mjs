@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readModelRuntimeLock } from './model-runtime-lock-utils.mjs';
+import { restorePinnedCompression } from './pinned-package-compression.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MODEL_RUNTIME_LOCK = readModelRuntimeLock();
@@ -187,6 +188,9 @@ function main() {
       '--silent',
     ]);
     const packument = JSON.parse(packOutput);
+    if (Array.isArray(packument) && packument.length === 1) {
+      packument[0] = restorePinnedCompression(packument[0], path.join(tempDir, packument[0].filename), DOPPLER_PACKAGE, run('npm', ['config', 'get', 'cache']).trim());
+    }
     const entry = verifyPackageMetadata(packument);
     const tarballPath = path.join(tempDir, entry.filename);
     run('tar', ['-xzf', tarballPath, '-C', tempDir], { cwd: ROOT });

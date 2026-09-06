@@ -530,7 +530,8 @@ test('training mode streams prompt-output critiques over localhost', () => {
   assert.match(renderer, /getTrainingSnapshot/);
   assert.match(renderer, /simulatte\.trainingSnapshot\.v1/);
   assert.match(renderer, /syncTrainingSpecArtifacts/);
-  assert.match(renderer, /storeTrainingArtifact\(run, 8, 'webgpu-ready'/);
+  assert.match(renderer, /storeTrainingArtifact\(run, phase\.phase, phase\.id, phase\.label/);
+  assert.match(renderer, /input: phase\.phase === 1 \? null : envelopes\[`phase\$\{phase\.phase - 1\}`\] \|\| null/);
   assert.match(server, /\/reviews\/latest/);
   assert.match(server, /\/summary/);
   assert.match(server, /summarizeReviews/);
@@ -1275,7 +1276,9 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /seed: scope\.seedForScenePacket\(packet, spatialHash, summary\)/);
   assert.doesNotMatch(webgpuRenderer, /visualIR\.fields|visualIR\.processes|visualIR\.motion|visualIR\.causalAffordances|visualIR\.graphicsAtoms/);
   assert.doesNotMatch(webgpuRenderer, /graphicsAtoms\.languageSignals|ranked\.slice\(0, 10\)/);
-  assert.match(renderer, /sceneMix: canvas && canvas\.dataset \? canvas\.dataset\.sceneMix/);
+  assert.match(renderer, /envelopes\.phase7 = report\.phase7Output/);
+  assert.match(renderer, /envelopes\.phase8 = report\.phase8Output/);
+  assert.match(renderer, /artifacts: structuredClone\(run\.artifacts\)/);
     assert.match(renderer, /resolveWithEmbedding\(prompt, params, serial, true, modelSelection\)/);
     assert.match(renderer, /resolveDeterministically\(prompt, params, serial, true, modelSelection\)/);
     assert.match(renderer, /classificationTierId: selectedClassificationTierId\(modelSelection\)/);
@@ -2563,7 +2566,7 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.match(developmentSync, /public', 'vendor', 'doppler'/);
   assert.match(developmentSync, /const targetSourceSha = WRITE/);
   assert.match(developmentSync, /git', \['cat-file', '-e'/);
-  assert.match(developmentSync, /const entry = verifyPackument\(JSON\.parse\(output\), packagePin, WRITE\)/);
+  assert.match(developmentSync, /const entry = verifyPackument\(packument, packagePin, WRITE\)/);
   assert.doesNotMatch(developmentSync, /fail\(`sibling HEAD/);
   assert.match(developmentSync, /packagePin\.integrity = entry\.integrity/);
   assert.match(developmentSync, /development\.gitSha = targetSourceSha/);
