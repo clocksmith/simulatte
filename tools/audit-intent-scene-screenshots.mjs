@@ -198,7 +198,7 @@ async function main() {
   ]);
   const browser = await openBrowserAudit({
     ...options, publicRoot: PUBLIC_DIR, port: options.profileDir ? options.localPort : 0,
-    viewport: { width: options.width, height: options.height }, preciseMemory: true,
+    viewport: { width: options.width, height: options.height }, webgpu: true, preciseMemory: true,
     args: ['--disable-features=Translate,MediaRouter,OptimizationHints'],
   });
   const { client: cdp, chromePath, profileDir, host: local, processOutput: chromeProcessOutput } = browser;

@@ -173,7 +173,11 @@
           /^prompt\./.test(String(object.semanticRef || object.physicalRef || ''))
         ));
         return scope.positiveLanguageText([
-          renderIR && renderIR.prompt,
+          ...(renderIR && renderIR.compositionLedger && renderIR.compositionLedger.relations || [])
+            .filter((row) => !['lost', 'contradicted', 'unsupported', 'blocked'].includes(row.status))
+            .map((row) => [row.process, row.predicate, row.spatialRelation, row.causalAffordance].filter(Boolean).join(' ')),
+          ...(renderIR && renderIR.behaviorRelations || []).map((row) => row.process || row.type || row.kind || ''),
+          ...(renderIR && renderIR.causalAffordances || []).flatMap((row) => row.motionHints || []),
           ...promptOwnedObjects.map((object) => [
             object.sourceLabel,
             object.label,

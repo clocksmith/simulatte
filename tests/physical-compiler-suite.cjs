@@ -1252,6 +1252,7 @@ test('Phase 3 strips Phase 4 conclusion fields from retrieval evidence side chan
     allowPrototypeFallback: true,
     phase3RetrievalEvidence: {
       schema: 'simulatte.phase3.retrievalEvidence.v1',
+      sourcePromptHash: phaseFamily('physicsModel').stableTextHash('dogs swimming in a lake'),
       rankedPrimitives: [
         { id: 'dog', label: 'dog', source: 'prompt-explicit', score: 1 },
       ],
@@ -1635,7 +1636,7 @@ test('Phase 4 reserves bounded grounding evidence for prompt-owned typed identit
   }));
   const spec = lab.createSpecFromPrompt(prompt, {
     allowPrototypeFallback: true,
-    phase3RetrievalEvidence: { rankedUniverseRows },
+    phase3RetrievalEvidence: { rankedUniverseRows, sourcePromptHash: phaseFamily('physicsModel').stableTextHash(prompt) },
   });
   const canonicalIds = new Set(spec.universeGraph.nodes.map((row) => row.canonicalId));
   const requiredObligations = spec.phaseArtifacts.phase6.artifact.visualCompile.compositionLedger.obligations
@@ -2539,9 +2540,13 @@ test('Phase 6 solves typed spatial constraints and canonicalizes visual concepts
   assert.equal(renderAnchors[0].id, 'render-waves');
 });
 
-test('Phase 6 takes relation and prompt authority only from RenderIR', () => {
+test('Phase 6 takes typed identity and relation authority only from RenderIR', () => {
   const renderIR = {
     prompt: 'a red cube above a blue sphere',
+    objects: [
+      { id: 'cube', label: 'red cube', directlyGrounded: true },
+      { id: 'sphere', label: 'blue sphere', directlyGrounded: true },
+    ],
     compositionLedger: {
       relations: [{
         id: 'relation:spatial:entity-cube:above:entity-sphere',
@@ -2574,7 +2579,11 @@ test('Phase 6 takes relation and prompt authority only from RenderIR', () => {
     },
   };
 
-  assert.equal(compositionGraphScope.directPromptSceneText(renderIR, poisonedSpec), renderIR.prompt);
+  const sceneText = compositionGraphScope.directPromptSceneText(renderIR, poisonedSpec);
+  assert.match(sceneText, /red cube/);
+  assert.match(sceneText, /blue sphere/);
+  assert.match(sceneText, /above/);
+  assert.doesNotMatch(sceneText, /optics|galaxy|volcano/);
   assert.deepEqual(compositionGraphScope.relationsFromRenderIR(poisonedSpec), [{
     id: 'relation:spatial:entity-cube:above:entity-sphere',
     kind: 'spatial-constraint',
@@ -3095,7 +3104,7 @@ test('legacy custom specs migrate to pipeline artifacts during normalization', (
   assert.equal(spec.renderProgram.provenance.solverGraph, 'simulatte.solverGraph.v1');
 });
 
-test('generic RenderIR scene fallback routes identity without inventing executable fields', () => {
+test('typed RenderIR scene fallback routes identity without inventing executable fields', () => {
   const cases = [
     ['forest fire with flame smoke and wind through pine fuel', 'fire'],
     ['lab bench optics with glass lens mirror prism and laser sensor', 'optics'],
@@ -3118,7 +3127,7 @@ test('generic RenderIR scene fallback routes identity without inventing executab
         schema: 'simulatte.renderIR.v1',
         sceneHint: 'generic',
         prompt,
-        objects: [],
+        objects: [{ id: sceneKind, label: prompt, directlyGrounded: true }],
         fields: [],
       },
       solverGraph: {

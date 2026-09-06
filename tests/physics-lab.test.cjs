@@ -1723,7 +1723,7 @@ test('Phase 3 keeps known visual identities local and model-ranks unresolved con
       max: 8,
       queryPlan: {
         schema: 'simulatte.sceneQueryPlan.v1',
-        sourcePromptHash: 'fnv1a:glorp',
+        sourcePromptHash: phaseFamily('physicsModel').stableTextHash('glorp'),
         slots: [{
           schema: 'simulatte.sceneQuerySlot.v1',
           slotId: 'slot.concept.glorp',
@@ -1809,9 +1809,11 @@ test('Qwen surface-card retrieval feeds typed graph synthesis', async () => {
       max: 12,
       maxCards: 12,
     });
+    assert.equal(result.sourcePromptHash, phaseFamily('physicsModel').stableTextHash(prompt));
     const spec = lab.createSpecFromPrompt(prompt, {
       allowPrototypeFallback: true,
       embeddingPriors: result.priors,
+      retrievalSourcePromptHash: result.sourcePromptHash,
       embeddingModel: result.model,
       embeddingBackend: result.rankBackend,
       intentRerank: result.rerank,

@@ -44,6 +44,31 @@
     return state;
   }
 
+  function createSimulationPlaybackClock(spec) {
+    const policy = spec.source && spec.source.compilerConfig && spec.source.compilerConfig.simulationProof ||
+      scope.DEFAULT_SIMULATION_PROOF_POLICY;
+    validateExecutionPolicy(policy);
+    const stepSeconds = policy.stepSeconds;
+    let accumulatedSeconds = 0;
+    return Object.freeze({
+      stepSeconds,
+      advance(state, currentSpec, elapsedSeconds) {
+        if (!Number.isFinite(elapsedSeconds) || elapsedSeconds < 0) {
+          throw proofPolicyError('SIMULATTE_PLAYBACK_INTERVAL_INVALID', 'Playback interval must be finite and non-negative');
+        }
+        accumulatedSeconds += elapsedSeconds;
+        const available = Math.floor((accumulatedSeconds + stepSeconds * 1e-9) / stepSeconds);
+        // Retain excess work as debt instead of changing the simulation timestep.
+        const steps = Math.min(available, 64);
+        for (let index = 0; index < steps; index += 1) {
+          state = scope.stepSimulation(state, currentSpec, stepSeconds);
+          accumulatedSeconds = Math.max(0, accumulatedSeconds - stepSeconds);
+        }
+        return state;
+      },
+    });
+  }
+
   function validateExecutionPolicy(policy) {
     if (!policy || policy.schema !== 'simulatte.simulationReproducibilityPolicy.v1') {
       throw proofPolicyError('SIMULATTE_SIMULATION_PROOF_POLICY_MISSING', 'Simulation proof policy is missing');
@@ -78,5 +103,6 @@
   registry.define('physicsModel', 'simulatte-simulation-reproducibility.js', {
     createSimulationReproducibilityReceiptForSpec,
     runFixedStepSimulation,
+    createSimulationPlaybackClock,
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

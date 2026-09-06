@@ -244,8 +244,12 @@
 
         async rankPrompt(prompt, primitives, options = {}) {
           const promptText = String(prompt || '').trim();
-          const sourcePromptHash = String(options.queryPlan && options.queryPlan.sourcePromptHash
-            || options.sceneLanguageGraph && options.sceneLanguageGraph.sourcePromptHash || '');
+          const sourcePromptHash = `fnv1a:${scope.fnv1a32(promptText).toString(16).padStart(8, '0')}`;
+          for (const input of [options.queryPlan, options.sceneLanguageGraph]) {
+            if (input && input.sourcePromptHash && input.sourcePromptHash !== sourcePromptHash) {
+              throw new Error('Intent retrieval sourcePromptHash does not match the ranked prompt');
+            }
+          }
           const progress = scope.progressHandler(options, this.onProgress);
           const trace = this.traceEnabled || scope.traceEnabled(options);
           const rankId = ++this.rankSerial;

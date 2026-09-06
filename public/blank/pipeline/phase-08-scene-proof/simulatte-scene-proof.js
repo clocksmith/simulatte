@@ -235,11 +235,11 @@
     }
     if (row.kind === 'visual') {
       const proof = context.visualProofByObligation.get(obligationId);
-      if (proof && proof.status === 'pass') {
-        return { ...base, status: 'preserved', reason: 'visual pixel proof passed', evidence: ['visualObligationProof'] };
-      }
       if (carriedFailure) {
         return { ...base, status: 'lost', reason: `carried failure status ${row.status}` };
+      }
+      if (proof && proof.status === 'pass') {
+        return { ...base, status: 'preserved', reason: 'visual pixel proof passed', evidence: ['visualObligationProof'] };
       }
       if (proof && proof.status === 'fail') {
         return { ...base, status: base.required ? 'lost' : 'unsupported', reason: 'visual pixel proof failed', evidence: ['visualObligationProof'] };

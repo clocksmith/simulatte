@@ -90,6 +90,7 @@
     createSemanticRag: scope.createSemanticRag,
     createReactionState: scope.createReactionState,
     createSimulationState: scope.createSimulationState,
+    createSimulationPlaybackClock: scope.createSimulationPlaybackClock,
     createSimulationReproducibilityReceiptForSpec:
       scope.createSimulationReproducibilityReceiptForSpec,
     createIntentProofReceiptForSpec: scope.createIntentProofReceiptForSpec,

@@ -2211,7 +2211,8 @@ test('composition renderer diversity lives in compiled graph and WebGPU operator
   assert.match(graph, /function compiledDnaForGenome/);
   assert.match(graph, /function semanticVisualsForGenome/);
   assert.match(graph, /function compositionPromptText/);
-  assert.match(graph, /renderIR\.prompt/);
+  assert.doesNotMatch(graph, /renderIR\.prompt/);
+  assert.match(graph, /directPromptSceneText/);
   assert.doesNotMatch(graph, /const promptText = '';/);
   assert.match(graph, /deterministic-compiled-artifact-seeded/);
   assert.match(graph, /constraintLayoutObjects/);

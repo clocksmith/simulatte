@@ -35,7 +35,6 @@
     function compiledIntentText(spec = {}) {
         const renderIR = spec.renderIR || {};
         return [
-          renderIR.prompt,
           ...(renderIR.objects || []).map((object) => [
             object.id,
             object.label,
@@ -68,7 +67,10 @@
       }
 
     function selectGraphNodes(spec, priors) {
-        const components = Array.isArray(spec.objects) ? spec.objects : [];
+        const hasVisibleSource = (spec.renderIR && spec.renderIR.objects || []).length > 0 ||
+          (spec.renderIR && spec.renderIR.fields || []).length > 0;
+        const components = (Array.isArray(spec.objects) ? spec.objects : [])
+          .filter((component) => hasVisibleSource || component.supportOnly !== true);
         const byId = new Map(components.map((component) => [component.id, component]));
         const top = spec.contract && Array.isArray(spec.contract.topLevel) ? spec.contract.topLevel : [];
         const promptText = compiledPromptTextForSelection(spec);
@@ -105,9 +107,7 @@
       }
 
     function compiledPromptTextForSelection(spec = {}) {
-        return [
-          spec.renderIR && spec.renderIR.prompt,
-        ].filter(Boolean).join(' ').toLowerCase();
+        return scope.directPromptSceneText(spec.renderIR || {});
       }
 
     function selectionSceneKindForSpec(spec = {}, promptText = '') {

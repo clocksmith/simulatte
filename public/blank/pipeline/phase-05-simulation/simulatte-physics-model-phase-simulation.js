@@ -249,6 +249,7 @@
           const compatibilityPhase1 = scope.withPhase1RetrievalEvidence(
             phaseArtifacts.phase1 || scope.runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true }),
             {
+              sourcePromptHash: scope.stableTextHash(prompt),
               semanticRag: intent.semanticRag,
               universeMatches: intent.universeMatches || [],
               intentBrief: intent.intentBrief || null,

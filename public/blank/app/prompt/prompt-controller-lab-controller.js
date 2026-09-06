@@ -43,7 +43,7 @@
     createSimulationReproducibilityReceiptForSpec,
     createSafetyProofReceiptForSpec,
     createSpec, createSpecFromPrompt, deserializeSpec,
-    applyWorldSpecEdit, normalizeSpec, remixSpec, serializeSpec, stepSimulation,
+    applyWorldSpecEdit, normalizeSpec, remixSpec, serializeSpec,
   } = support;
   const {
     createPipelineCompiler, worldModelReceiptElements, createTrainingRunState,
@@ -126,6 +126,7 @@
           : EXAMPLE_INTENTS[0].params;
         let spec = createSpec('blank-world', { params: initialParams });
         let state = createSimulationState(spec);
+        let playbackClock = model.createSimulationPlaybackClock(spec);
         let renderExecutionInput = null;
         let last = performance.now();
         let paused = false;
@@ -237,6 +238,7 @@
           worldInteraction?.reset();
           runView?.recordSpec(spec);
           state = createSimulationState(spec);
+          playbackClock = model.createSimulationPlaybackClock(spec);
           intentProofReceipt = createIntentProofReceiptForSpec(spec, {
             buildId: appBuildVersion(root.defaultView),
             runtimeId: 'simulatte.blank.browser.webgpu.v1',
@@ -293,6 +295,7 @@
               value: 0,
             }));
           state = createSimulationState(spec);
+          playbackClock = model.createSimulationPlaybackClock(spec);
           pendingInteractionCommands.length = 0;
           pendingInteractionCommands.push(...replayCommands);
           worldInteraction?.reset();
@@ -447,6 +450,7 @@
               compileSerial = token;
               const nextSpec = await compilePromptSpec(prompt, {
                 params,
+                retrievalSourcePromptHash: result.sourcePromptHash,
                 embeddingPriors: result.priors,
                 embeddingModel: result.model,
                 embeddingBackend: result.backend,
@@ -662,7 +666,7 @@
         }
 
         function tick(now) {
-          const dt = clamp((now - last) / 1000 || 0.016, 0.001, 0.05);
+          const dt = Math.max(0, (now - last) / 1000);
           last = now;
           if (runtimeProgress.isBusy()) {
             fpsMeter.sample(now, false);
@@ -672,6 +676,7 @@
           const previousSpec = spec;
           spec = readSpecFromUi(spec, controlStack, nameInput);
           if (spec !== previousSpec) {
+            playbackClock = model.createSimulationPlaybackClock(spec);
             renderExecutionInput = null;
             worldSpecEditor?.sync(spec);
             if (previewDisclosure && previewDisclosure.open) syncSpecPreview(specPreview, spec);
@@ -681,10 +686,7 @@
             state = applyInteractionCommands(state, spec.interactionIR, commands);
           }
           if (!paused && canvas.dataset.auditFreezeFrame !== 'true') {
-            const substeps = spec.templateId === 'reaction-diffusion' ? 2 : 3;
-            for (let i = 0; i < substeps; i += 1) {
-              state = stepSimulation(state, spec, dt / substeps);
-            }
+            state = playbackClock.advance(state, spec, dt);
           }
           if (simulationVisible && webGpuRenderer) {
             const input = renderExecutionInput || refreshRenderExecutionInput();

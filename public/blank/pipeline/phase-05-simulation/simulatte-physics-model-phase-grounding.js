@@ -232,8 +232,18 @@
       } = {}) {
         if (!scope.groundUniverseGraph) return null;
         if (!groundingEvidence || !Object.keys(groundingEvidence).length) return null;
-        const promptParse = promptParseFromLanguageGraph(languageGraph) || promptParseFromLanguageEvidence(languageEvidence);
-        if (!promptParse) return null;
+        const sourceParse = promptParseFromLanguageGraph(languageGraph) || promptParseFromLanguageEvidence(languageEvidence);
+        if (!sourceParse) return null;
+        const excluded = new Set((languageGraph.spans || []).filter((span) =>
+          scope.sceneSpanIsNegated(languageGraph, span)).map((span) => span.id));
+        const promptParse = {
+          ...sourceParse,
+          spans: (sourceParse.spans || []).filter((span) => !excluded.has(span.id)),
+          clauses: (sourceParse.clauses || []).filter((row) =>
+            ![row.subjectSpanId, row.objectSpanId, row.verbSpanId].some((id) => excluded.has(id))),
+          quantities: (sourceParse.quantities || []).filter((row) => !excluded.has(row.targetSpanId)),
+          modifiers: (sourceParse.modifiers || []).filter((row) => !excluded.has(row.targetSpanId)),
+        };
         const universeCandidateEvidence = candidateEvidenceFromUniverseGraphCandidates(
           groundingEvidence.universeGraphCandidates || null
         );

@@ -98,6 +98,7 @@
         }
         return sanitizePhase3RetrievalEvidence({
           schema: 'simulatte.phase3.retrievalEvidence.v1',
+          sourcePromptHash: options.retrievalSourcePromptHash || '',
           rankedPrimitives: arrayClone(options.rankedPrimitives || options.embeddingPriors || options.primitiveMatches),
           rankedCards: arrayClone(options.rankedCards || options.cardMatches || options.surfaceCardMatches),
           rankedUniverseRows: arrayClone(options.rankedUniverseRows || options.universeMatches),
@@ -149,9 +150,11 @@
         const carried = retrievalEvidence && typeof retrievalEvidence === 'object' ? retrievalEvidence : {};
         const existingRuntime = runtimeContextFromPhase(phase1Output);
         const promptIngress = phase1Output.artifact && phase1Output.artifact.promptIngress || {};
-        const sourcePromptHash = carried.sourcePromptHash ||
-          existingRuntime.retrievalEvidence && existingRuntime.retrievalEvidence.sourcePromptHash ||
-          stableTextHash(promptIngress.sourceText || '');
+        const expectedHash = stableTextHash(promptIngress.sourceText || '');
+        scope.assertPhase3RetrievalEvidencePromptHash(carried, expectedHash);
+        scope.assertPhase3RetrievalEvidencePromptHash(existingRuntime.retrievalEvidence, expectedHash);
+        const sourcePromptHash = carried.sourcePromptHash || carried.promptHash ||
+          existingRuntime.retrievalEvidence && existingRuntime.retrievalEvidence.sourcePromptHash || '';
         const runtimeContext = {
           ...existingRuntime,
           retrievalEvidence: clonePhaseValue({
@@ -529,7 +532,9 @@
           const processBetween = (languageGraph.spans || []).some((row) => (
             row.kind === 'process' && row.tokenStart > negToken && row.tokenEnd < spanTokenStart
           ));
-          return distance > 0 && distance <= 6 && !processBetween;
+          const between = sourceText.slice(negation.end, span.start);
+          const clauseBoundary = /[;.!?]|\b(?:but|only|instead|except|however|yet)\b|,\s*(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/.test(between);
+          return distance > 0 && distance <= 6 && !processBetween && !clauseBoundary;
         }
             if (Number.isFinite(negation.end) && Number.isFinite(span.start)) {
               return negation.end <= span.start && span.start - negation.end <= 16;
@@ -803,6 +808,7 @@
     function runPhase1RuntimeGate(sourceText = '', options = {}) {
           const runtimeContext = runtimeContextFromOptions(options);
           const promptText = String(sourceText || '').trim();
+          scope.assertPhase3RetrievalEvidencePromptHash(runtimeContext.retrievalEvidence, stableTextHash(promptText));
           if (phase1RequiresModelProof(promptText, options, runtimeContext)) {
             throw new Error('Phase 1 runtime gate requires promptRuntimeReceipt with providerReady=true for nonblank browser prompt');
           }

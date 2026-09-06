@@ -146,7 +146,7 @@
     function hasSwimmingSceneSignal(spec = {}, sceneKind = '') {
         const text = [
           sceneKind,
-          spec && spec.renderIR && (spec.renderIR.intentText || spec.renderIR.prompt || ''),
+          scope.directPromptSceneText(spec.renderIR || {}),
           spec && spec.renderIR && spec.renderIR.compositionLedger &&
             (spec.renderIR.compositionLedger.obligations || []).map((row) => row.id).join(' '),
           spec && spec.solverGraph && (spec.solverGraph.steps || []).map((row) => row.operatorType || row.solverId).join(' '),

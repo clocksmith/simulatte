@@ -359,6 +359,7 @@ test('math layer stays neutral and leaves physical quantities to higher layers',
 
 test('downloaded embedding priors steer retrieval, regimes, and solver plans', () => {
   const modelOptions = {
+    retrievalSourcePromptHash: phaseFamily('physicsModel').stableTextHash('soft fungal membrane colony with gel diffusion and pressure waves'),
     embeddingPriors: [
       { primitiveId: 'mycelium', score: 0.98 },
       { primitiveId: 'membrane', score: 0.94 },
@@ -413,7 +414,7 @@ test('downloaded embedding priors steer retrieval, regimes, and solver plans', (
 
   const inactive = lab.createSpecFromPrompt(
     'soft fungal membrane colony beside gel and a pressure gauge',
-    modelOptions
+    { ...modelOptions, retrievalSourcePromptHash: phaseFamily('physicsModel').stableTextHash('soft fungal membrane colony beside gel and a pressure gauge') }
   );
   assert.equal(inactive.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators.some((row) => (
     ['growth_decay', 'reaction_diffusion', 'wave_field'].includes(row.type)

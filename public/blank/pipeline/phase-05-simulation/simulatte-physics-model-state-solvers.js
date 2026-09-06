@@ -876,6 +876,7 @@
       }
 
     root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-state-solvers.js', {
+      DEFAULT_SIMULATION_PROOF_POLICY,
       addSynthesisComponents,
       materialForSynthesisNode,
       visualRegimeForSynthesisNode,

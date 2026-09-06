@@ -6,6 +6,7 @@ const {
   test,
   pathToFileURL,
   lab,
+  phaseFamily,
   intentEmbedder,
   semanticRagApi,
   graphSynthesis,
@@ -364,6 +365,7 @@ test('negated visual operator language does not satisfy positive graphics requir
 
 test('provided residual hints can steer the selected physical graph without naming a model', () => {
   const spec = lab.createSpecFromPrompt('quiet demonstration plane', {
+    retrievalSourcePromptHash: phaseFamily('physicsModel').stableTextHash('quiet demonstration plane'),
     dopplerIntent: {
       schema: 'simulatte.dopplerIntentHints.v1',
       source: 'provided-intent-hints',

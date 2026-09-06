@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 const lab = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+const { phaseFamily } = require('./phase-module-fixture.cjs');
 
 const INJECTED_PRIMITIVES = [
   { id: 'dog', label: 'dog', source: 'prompt-explicit', score: 0.9, modelRerankScore: 0.9, lexicalScore: 1 },
@@ -12,6 +13,7 @@ const INJECTED_PRIMITIVES = [
 function fusedActivationCloud(prompt) {
   const spec = lab.createSpecFromPrompt(prompt, {
     allowPrototypeFallback: true,
+    retrievalSourcePromptHash: phaseFamily('physicsModel').stableTextHash(prompt),
     rankedPrimitives: INJECTED_PRIMITIVES,
   });
   return {

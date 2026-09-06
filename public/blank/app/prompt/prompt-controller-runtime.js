@@ -58,11 +58,15 @@
         let failed = false;
         let nextId = 0;
         let queue = Promise.resolve();
+        let generation = 0;
         const pending = new Map();
         const config = intentWorkerConfig(view);
 
         function rejectAll(error) {
           failed = true;
+          generation += 1;
+          if (worker) worker.terminate();
+          worker = null;
           pending.forEach((entry) => entry.reject(error));
           pending.clear();
         }
@@ -85,7 +89,9 @@
             failed = true;
             throw error;
           }
+          const activeWorker = worker;
           worker.addEventListener('message', (event) => {
+            if (worker !== activeWorker) return;
             const data = event && event.data || {};
             const entry = pending.get(data.id);
             if (data.type === 'simulatte:intent-worker:progress') {
@@ -102,16 +108,20 @@
             else entry.reject(new Error(data.error || 'Intent worker failed'));
           });
           worker.addEventListener('error', (event) => {
+            if (worker !== activeWorker) return;
             rejectAll(new Error(event.message || 'Intent worker failed'));
           });
           worker.addEventListener('messageerror', () => {
+            if (worker !== activeWorker) return;
             rejectAll(new Error('Intent worker message clone failed'));
           });
           return worker;
         }
 
         function request(type, payload = {}, options = {}) {
+          const requestGeneration = generation;
           const run = () => {
+            if (requestGeneration !== generation) return Promise.reject(abortedError());
             try {
               ensureWorker();
             } catch (error) {
@@ -147,7 +157,7 @@
         return {
           backend: 'intent-worker',
           cancel(message) {
-            if (!worker && !pending.size) return;
+            generation += 1;
             const error = abortedError(message);
             pending.forEach((entry) => entry.reject(error));
             pending.clear();

@@ -62,9 +62,11 @@
           this.renderData = null;
           this.phase7Output = null;
           this.phase7OutputPacketKey = '';
+          this.phase7SimulationReceiptKey = '';
           this.phase8Output = null;
           this.lastSceneProofMs = 0;
           this.pixelReadbackSerial = 0;
+          this.pixelReadbackGeneration = 0;
           this.pendingPixelReadbackPromise = null;
           this.pendingPixelReadbackPacketKey = '';
           this.lastPixelReadbackReceipt = null;
@@ -399,7 +401,13 @@
 
         refreshPhase7Output(renderCount = this.renderCount, frameMs = this.lastFrameMs) {
           const packetKey = this.renderData && this.renderData.packetKey || '';
-          if (!this.phase7Output || packetKey !== this.phase7OutputPacketKey) {
+          const receipt = this.renderExecutionInput?.simulationState?.solverState?.executionReceipt;
+          // Frame counters change without changing execution proof. A first step,
+          // missing operator, or non-finite channel must invalidate cached proof.
+          const simulationKey = JSON.stringify([receipt?.status, receipt?.finiteChannels,
+            receipt?.expectedOperatorIds, receipt?.executedOperatorIds, receipt?.missingOperatorIds]);
+          if (!this.phase7Output || packetKey !== this.phase7OutputPacketKey ||
+              simulationKey !== this.phase7SimulationReceiptKey) {
             this.phase7Output = scope.phase7OutputEnvelope(
               this.renderExecutionInput,
               this.sceneRenderPacket,
@@ -410,6 +418,7 @@
               this.webgpuOptimizationReceipt()
             );
             this.phase7OutputPacketKey = packetKey;
+            this.phase7SimulationReceiptKey = simulationKey;
             this.canvas.dataset.phase7Output = this.phase7Output.schema;
             this.canvas.dataset.phase7OutputInput = this.phase7Output.inputSchema;
             this.settleSceneProof();
@@ -481,6 +490,7 @@
             if (plan) {
               this.recordPixelReadbackFailure({
                 serial: this.pixelReadbackSerial += 1,
+                generation: this.pixelReadbackGeneration,
                 packetKey,
                 plan,
                 buffer: null,
@@ -514,6 +524,7 @@
           const readback = {
             schema: 'simulatte.phase7PixelReadback.v1',
             serial: this.pixelReadbackSerial += 1,
+            generation: this.pixelReadbackGeneration,
             packetKey: this.renderData && this.renderData.packetKey || '',
             plan,
             buffer,
@@ -554,7 +565,8 @@
               this.recordPixelReadbackFailure(readback, err);
             })
             .finally(() => {
-              if (this.pendingPixelReadbackPacketKey === readback.packetKey) {
+              if (this.pendingPixelReadbackPacketKey === readback.packetKey &&
+                  readback.generation === this.pixelReadbackGeneration) {
                 this.pendingPixelReadbackPacketKey = '';
               }
             });
@@ -562,7 +574,8 @@
         }
 
         applyPixelReadbackSamples(readback, samples, renderCount, frameMs) {
-          if (!this.renderData || this.renderData.packetKey !== readback.packetKey) return;
+          if (!this.renderData || this.renderData.packetKey !== readback.packetKey ||
+              readback.generation !== this.pixelReadbackGeneration) return;
           const sampleSet = scope.immutableRenderEvidence({
             schema: 'simulatte.phase7PixelSampleSet.v1',
             source: 'webgpu-texture-copy-readback',
@@ -627,6 +640,17 @@
         }
 
         recordPixelReadbackFailure(readback, err) {
+          const buffer = readback && readback.buffer;
+          if (buffer) {
+            try {
+              if (buffer.mapState === 'mapped' && typeof buffer.unmap === 'function') buffer.unmap();
+              if (typeof buffer.destroy === 'function') buffer.destroy();
+            } catch (_cleanupError) {
+              // The original readback failure remains the authoritative error.
+            }
+          }
+          if (!readback || !this.renderData || this.renderData.packetKey !== readback.packetKey ||
+              readback.generation !== this.pixelReadbackGeneration) return;
           const message = err && err.message ? err.message : 'WebGPU pixel readback failed';
           this.lastPixelReadbackReceipt = {
             schema: 'simulatte.phase7PixelReadbackReceipt.v1',
@@ -640,15 +664,6 @@
             readbackSerial: readback && readback.serial || 0,
             message,
           };
-          const buffer = readback && readback.buffer;
-          if (buffer) {
-            try {
-              if (buffer.mapState === 'mapped' && typeof buffer.unmap === 'function') buffer.unmap();
-              if (typeof buffer.destroy === 'function') buffer.destroy();
-            } catch (_cleanupError) {
-              // The original readback failure remains the authoritative error.
-            }
-          }
           this.errorLog.push(message);
           if (this.renderData) {
             this.renderData.livePixelSamplesStatus = 'fail';
@@ -662,6 +677,7 @@
         }
 
         resetPixelReadbackForPacket(packetKey = '') {
+          this.pixelReadbackGeneration += 1;
           this.pendingPixelReadbackPacketKey = '';
           this.lastPixelReadbackReceipt = null;
           this.phase7Output = null;

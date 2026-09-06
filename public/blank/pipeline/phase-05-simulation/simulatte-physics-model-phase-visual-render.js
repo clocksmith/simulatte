@@ -565,6 +565,7 @@
             });
           }
           const phase1WithRetrieval = scope.withPhase1RetrievalEvidence(phase1Output, {
+          sourcePromptHash: scope.stableTextHash(sourceText),
             rankedPrimitives: [],
             rankedCards: options.cardMatches || options.surfaceCardMatches || [],
             rankedUniverseRows: Array.isArray(universeMatches) ? universeMatches : [],
@@ -760,6 +761,7 @@
         }
 
         const phase1WithRetrieval = scope.withPhase1RetrievalEvidence(phase1Output, {
+          sourcePromptHash: scope.stableTextHash(sourceText),
           rankedPrimitives: ranked,
           rankedCards: options.cardMatches || options.surfaceCardMatches || [],
           rankedUniverseRows: Array.isArray(universeMatches) ? universeMatches : [],

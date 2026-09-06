@@ -112,7 +112,7 @@
     function compositionPromptText(graph = {}, spec = {}) {
         const renderIR = spec.renderIR || {};
         return scope.positiveLanguageText([
-          renderIR.prompt,
+          scope.directPromptSceneText(renderIR),
           graph.intentText,
         ].filter(Boolean).join(' '));
       }
