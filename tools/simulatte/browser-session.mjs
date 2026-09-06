@@ -43,7 +43,7 @@ export function browserArguments({ profileDir, viewport, webgpu = false, linuxVu
     '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
     ...(preciseMemory ? ['--enable-precise-memory-info'] : []),
     ...(webgpu ? ['--enable-unsafe-webgpu', ...(linuxVulkan && process.platform === 'linux'
-      ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface'] : [])] : []),
+      ? ['--use-angle=vulkan', '--enable-features=Vulkan'] : [])] : []),
     `--window-size=${viewport.width},${viewport.height}`, ...args, 'about:blank',
   ];
 }

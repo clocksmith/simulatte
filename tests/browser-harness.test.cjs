@@ -57,6 +57,7 @@ test('browser arguments retain explicit GPU, memory, and headed lanes without pr
   assert.ok(!plain.includes('--enable-unsafe-webgpu'));
   const gpu = browserArguments({ ...options, webgpu: true, preciseMemory: true, headed: true });
   assert.ok(gpu.includes('--enable-unsafe-webgpu'));
+  assert.ok(!gpu.includes('--disable-vulkan-surface'), 'pixel audits require canvas presentation as well as texture readback');
   assert.ok(gpu.includes('--enable-precise-memory-info'));
   assert.ok(!gpu.includes('--headless=new'));
   const native = browserArguments({ ...options, webgpu: true, linuxVulkan: false });
