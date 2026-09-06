@@ -309,7 +309,8 @@
     const sphericalIdentitySignature =
       program.constructionGraph && program.constructionGraph.topologyId === 'spherical-body' &&
       program.constructionReceipt && program.constructionReceipt.topologyTargetFit === true &&
-      featureClasses.includes('sphere') && featureClasses.includes('specular');
+      parts.some((part) => part.constructionRole === 'core' && part.contourProfile === 'ellipse') &&
+      parts.some((part) => part.visualFeatureClass === 'specular' && part.contourProfile === 'ellipse');
     const pass = parts.length >= 2 &&
       (distinctive >= 1 || signatureContourCount >= 1) &&
       (contours.length >= 2 || featureClasses.length >= 3 || signatureContourCount >= 1 ||

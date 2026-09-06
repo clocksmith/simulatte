@@ -645,7 +645,7 @@ test('Main exposes governed profile selection and disposes plugins on teardown',
   assert.doesNotMatch(html, /plugin-hud-ui/);
   assert.doesNotMatch(styles, /plugin-hud/);
   assert.doesNotMatch(main, /pluginHudUi/);
-  assert.match(html, /id="decisions-button"[^>]*>Controls<\/button>/);
+  assert.match(html, /id="decisions-button"[^>]*>Controls(?: \(\d+\))?<\/button>/);
   assert.ok(
     html.indexOf('id="plugin-inspector"') < html.indexOf('id="journey-section"'),
     'experiment controls must precede generic journey evidence'

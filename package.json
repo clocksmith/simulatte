@@ -46,7 +46,7 @@
     "check:world": "npm run plugins:check && npm run check:simulatte && node tools/run-test-files.mjs --fail-fast tests/autonomy.test.cjs && npm run audit:simulatte:browser -- --check && npm run audit:simulatte:browser -- --check --viewport 390x844 && npm run audit:simulatte:experience-ui",
     "check:release": "npm test && npm run check:blank && npm run check:world && npm run audit:blank:gold:mobile && npm run audit:simulatte:governing-metric && npm run audit:simulatte:tiers -- --check && npm run audit:simulatte:evidence",
     "check:compact-classifiers": "python3 tools/samer/build-browser-linear-classifiers.py --check",
-    "check:deploy": "npm run simulatte:tiers:check && npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && npm run check:runtime-entrypoint && npm run check:world-entrypoint && npm run check:artifacts && npm run check:hosting && node tools/check-deploy-surface.mjs && npm run check:simulatte",
+    "check:deploy": "npm run simulatte:tiers:check && npm run plugins:check && npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && npm run check:runtime-entrypoint && npm run check:world-entrypoint && npm run check:artifacts && npm run check:hosting && node tools/check-deploy-surface.mjs && npm run check:simulatte",
     "check:hosting": "node tools/package-hosting-surfaces.mjs --check && node tools/run-test-files.mjs --fail-fast tests/hosting-surfaces.test.cjs",
     "check:doppler:development": "node tools/sync-doppler-development.mjs --check",
     "check:gold:adjudication": "node tools/samer/verify-gold-adjudication.mjs",
