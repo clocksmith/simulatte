@@ -476,7 +476,7 @@ test('semantic volume compiles into an extruded City mesh and retains height in 
   assert.equal(tier.areas[0].height, 48);
 });
 
-test('City compiles a semantic actor into a moving actor mesh and camera target', () => {
+test('City binds the actor mesh and camera to the same governed progress', () => {
   const base = semanticPresentation();
   const presentation = {
     ...base,
@@ -516,7 +516,9 @@ test('City compiles a semantic actor into a moving actor mesh and camera target'
   });
   assert.equal(compiled.actors.length, 1);
   assert.equal(compiled.actors[0].kind, 'pedestrian');
-  assert.deepEqual(compiled.actors[0].points, [{ x: 0, y: 0 }, { x: 80, y: 0 }, { x: 80, y: 80 }]);
+  assert.deepEqual(compiled.actors[0].points, [{ x: 40, y: 0 }]);
+  assert.equal(compiled.actors[0].speedMps, 0);
+  assert.equal(compiled.actors[0].phaseOffsetM, 0);
   const cameraTarget = compiled.cameraTargets.find((row) => row.id === 'plugin:fixture:walker');
   assert.deepEqual(cameraTarget.target, [40, 0, -0]);
 });
@@ -871,4 +873,19 @@ test('mobile coordinate framing keeps the active path between the summary and pl
       assert.ok(pixel.y >= 375 && pixel.y <= 620);
     }
   }
+});
+
+test('a point actor never borrows a nearby route or drifts away from its model position', () => {
+  const base = semanticPresentation();
+  const actor = { ...base.layers[0], id: 'sun-walker-actor', kind: 'actor', label: 'Walker',
+    geometry: { kind: 'point', coordinateSystem: 'local-m', coordinates: [[12, 34, 0]] },
+    quantity: { kind: 'actor.pedestrian.route-progress', value: 0.75, unit: 'ratio', domain: [0, 1] } };
+  const presentation = { ...base, layers: [base.layers[0], actor], viewIntents: [] };
+  const options = { provenanceReceipts: [provenanceReceipt(presentation)] };
+  const city = cityPresentation.compile([{ pluginId: 'fixture', presentation }], { world: {}, node() {}, segment() {} }, options);
+  assert.deepEqual(city.actors[0].points, [{ x: 12, y: 34 }]);
+  assert.equal(city.actors[0].speedMps, 0);
+  const tier = tierPresentation.compileContributions([{ pluginId: 'fixture', presentation }], options)[0];
+  assert.deepEqual(tier.actors[0].position, [12, 34, 0]);
+  assert.equal(tier.actors[0].pathCoordinates, null);
 });

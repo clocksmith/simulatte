@@ -212,6 +212,7 @@
         if (actorKind) {
           const progress = semanticActorProgress(primitive.quantity);
           const rawPoints = rawLayerPoints.get(primitive.sourceId || primitive.id) || points;
+          // Governed positions advance on plugin updates; the renderer must not invent a route or clock.
           compiled.actors.push(Object.freeze({
             ...common,
             points: Object.freeze([pointAlongPath(rawPoints, progress)]),

@@ -197,7 +197,7 @@
       "path": "./stellar-state.js"
     },
     {
-      "integrity": "sha384-ebd56e12a62ddc9ea47b950a0df50b10ec5de4606a12fddaafa00dceb6ea59d146bc07d86425c35953761361b0b82240",
+      "integrity": "sha384-9b7470c2f0f5ce2a2e44dc582d770ec189f906189a90ebfa3c3f103ef543a3b3540b07735715beba54635b3cf693e887",
       "path": "./v4-contribution.js"
     }
   ],

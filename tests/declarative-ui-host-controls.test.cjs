@@ -499,3 +499,17 @@ test('failed control changes restore the applied value and report the owning con
   assert.equal(input.dataset.applyStatus, 'failed');
   assert.deepEqual(errors[0].context, { controlId: 'count', pluginId: 'fixture' });
 });
+
+test('range controls show their numeric value and restore it after a rejected edit', async () => {
+  const doc = fakeDocument();
+  const inspector = new FakeNode('root', doc);
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {}, onControlChange() { throw new Error('Rejected'); } });
+  host.render([], [{ pluginId: 'fixture', controls: { controls: [{ ...control('weight', 'range', 3), minimum: 0, maximum: 10, step: 1 }] }, inspections: [] }]);
+  const input = find(inspector, node => node.dataset?.pluginControl === 'weight');
+  const readout = find(inspector, node => node.tagName === 'output');
+  assert.equal(readout.textContent, '3');
+  input.value = '5'; input.dispatch('input');
+  assert.equal(readout.textContent, '5');
+  await input.dispatch('change');
+  assert.equal(readout.textContent, '3');
+});

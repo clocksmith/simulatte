@@ -250,12 +250,16 @@
       input.dataset.pluginControl = control.id;
       const optionSearch = createOptionSearch(documentRef, control, input);
       label.htmlFor = input.id;
+      const readout = control.kind === 'range' ? documentRef.createElement('output') : null;
+      if (readout) { readout.htmlFor = input.id; readout.textContent = String(values.get(control.id)); }
+
       let appliedValue = cloneControlValue(values.get(control.id));
       let applyRevision = 0;
       const updateValue = () => {
         const nextValue = readControlInput(input, control);
         if (nextValue === undefined) return undefined;
         values.set(control.id, nextValue);
+        if (readout) readout.textContent = String(nextValue);
         return nextValue;
       };
       if (control.kind === 'range') input.addEventListener('input', updateValue);
@@ -264,6 +268,7 @@
         if (nextValue === undefined) {
           values.set(control.id, cloneControlValue(appliedValue));
           writeControlInput(input, control, appliedValue);
+          if (readout) readout.textContent = String(appliedValue);
           return;
         }
         if (!onControlChange) return;
@@ -282,11 +287,12 @@
           if (revision !== applyRevision) return;
           values.set(control.id, cloneControlValue(appliedValue));
           writeControlInput(input, control, appliedValue);
+          if (readout) readout.textContent = String(appliedValue);
           input.dataset.applyStatus = 'failed';
           onError?.(error, { controlId: control.id, pluginId });
         }
       });
-      label.append(caption, ...(optionSearch ? [optionSearch, input] : [input]));
+      label.append(caption, ...(optionSearch ? [optionSearch, input] : [input]), ...(readout ? [readout] : []));
       fields.append(label);
     });
     return fields;

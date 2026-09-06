@@ -234,7 +234,7 @@ test('Sun Walker labels UTC inputs and separates geometric sun from adjusted exp
   const sample = result.candidates.find((row) => row.id === result.selectedCandidateId).samples[0];
   const status = exposureSummaryApi.currentExposure(sample);
 
-  assert.equal(departure.description, 'Departure time (UTC)');
+  assert.equal(departure.description, 'Walk: Departure time (UTC)');
   assert.ok(['direct', 'shade', 'unknown', 'night'].includes(sample.geometricState));
   assert.equal(status.geometricState, sample.geometricState);
   assert.equal(status.adjustedDirectBeamPercent, Math.round(sample.directBeamFactor * 100));

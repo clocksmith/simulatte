@@ -142,7 +142,7 @@
       "path": "./radiation.js"
     },
     {
-      "integrity": "sha384-cb52bd3902d09d988667d4ebe8d9135074b09f6dd343460d7a628ec2ad33ece7fa0c9482f5f40c5f93d0df877088c5c2",
+      "integrity": "sha384-fbca29395506f4cd9e88058db311c058116afb18b4b67233220f7331c3ef9084b5615c49405eb7fe4b351a2dfc31f3aa",
       "path": "./v4-contribution.js"
     }
   ],
