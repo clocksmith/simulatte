@@ -22,6 +22,8 @@
     async function renderPluginExperience(context) {
       if (disposed) return;
       const renderGeneration = ++pluginRenderGeneration;
+      await yieldToFrame();
+      if (disposed || renderGeneration !== pluginRenderGeneration) return;
       const renderStartedAt = performance.now();
       const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
       const platformStartedAt = performance.now();

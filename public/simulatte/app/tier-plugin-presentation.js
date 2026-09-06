@@ -656,10 +656,11 @@
       if (!Number.isFinite(point?.x) || !Number.isFinite(point?.y)) return;
       ctx.font = '600 10px system-ui, sans-serif';
       const width = ctx.measureText(String(label.label)).width;
-      const box = { x: point.x + 3, y: point.y - 15, width: width + 9, height: 18 };
+      const x = ctx.canvas?.width ? Math.max(4, Math.min(point.x + 5, ctx.canvas.width - width - 5)) : point.x + 5;
+      const box = { x: x - 2, y: point.y - 15, width: width + 9, height: 18 };
       if (placed.some((row) => overlaps(row, box))) return;
       placed.push(box);
-      drawLabel(ctx, label.label, point.x + 5, point.y - 5);
+      drawLabel(ctx, label.label, x, point.y - 5);
     });
   }
   function overlaps(left, right) {

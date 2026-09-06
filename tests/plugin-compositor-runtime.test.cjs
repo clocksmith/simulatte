@@ -521,6 +521,13 @@ test('City binds the actor mesh and camera to the same governed progress', () =>
   assert.equal(compiled.actors[0].phaseOffsetM, 0);
   const cameraTarget = compiled.cameraTargets.find((row) => row.id === 'plugin:fixture:walker');
   assert.deepEqual(cameraTarget.target, [40, 0, -0]);
+  const terminalPresentation = { ...presentation, viewIntents: [] };
+  const terminal = cityPresentation.compile([{ pluginId: 'fixture', presentation: terminalPresentation }], { world: {}, node() {}, segment() {} }, {
+    viewport: { width: 400, height: 300 }, provenanceReceipts: [provenanceReceipt(terminalPresentation)],
+  });
+  const manualFollow = terminal.cameraTargets.find(row => row.viewMode === 'follow');
+  assert.ok(manualFollow, 'An actor remains followable after its automatic navigation intent expires');
+  assert.deepEqual(manualFollow.target, [40, 0, -0]);
 });
 
 test('City segment-set paths render independently without invented connector geometry', () => {

@@ -291,6 +291,15 @@
         }));
       });
     });
+    // Manual Follow remains available when a terminal intent switches to an overview.
+    compiled.actors.filter(actor => actor.pluginId === pluginId).forEach(actor => {
+      if (compiled.cameraTargets.some(target => target.sourceId === actor.sourceId && target.viewMode === 'follow')) return;
+      compiled.cameraTargets.push(Object.freeze({
+        id: `${actor.id}:follow`, sourceId: actor.sourceId, pluginId, kind: 'plugin',
+        label: actor.label, target: Object.freeze(centerForPoints(actor.points)),
+        distance: distanceForPoints(actor.points), viewMode: 'follow', priority: 0, reasonEventId: null,
+      }));
+    });
     if (presentation.sun) {
       if (compiled.sun) throw presentationError('plugin_presentation_sun_conflict', `Plugins ${compiled.sun.pluginId} and ${pluginId} both declared solar lighting`);
       const anchorPoints = pointsForSegments(worldModel, pluginId, presentation.sun.anchorSegmentIds, presentation.sun.id);

@@ -113,7 +113,12 @@ authoritative until the user releases it.
 Controls use a consistent host-rendered definition. Comparison definitions
 name baseline and variant scenario IDs and declare whether clocks synchronize.
 Controls describe scenario parameters. They do not directly mutate camera or
-renderer state.
+renderer state. Optional `selectionGroup` on select controls declares an ordered
+permutation of one shared option set. The host swaps the displaced selection
+before applying the complete parameter snapshot, and restores the group if the
+change fails. The plugin still validates the resulting order. Label prefixes
+separated by `:` or `·` form collapsible presentation groups; they confer no
+simulation authority.
 
 ## Compatibility
 

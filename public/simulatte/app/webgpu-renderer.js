@@ -425,7 +425,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           || timestamp - state.minimapLastRenderAt >= MINIMAP_FRAME_INTERVAL_MS;
         if (shouldRenderMinimap && pose.transitionState === 'settled') {
           resizeMinimapCanvas(minimapCanvas, device, format, state);
-          const minimapCamera = cameraForMinimap(state.latestSnapshot, minimapCanvas);
+          const minimapTarget = state.targets.find(target => target.id === state.focusId && target.kind === 'plugin');
+          const minimapCamera = cameraForMinimap(state.latestSnapshot, minimapCanvas, minimapTarget?.target);
           writeUniforms(device, minimapUniformBuffer, minimapCamera, minimapCanvas, seconds, state.pluginScene.sun, minimapUniformData);
           passApi.encodeScene(encoder, {
             label: 'autonomy-minimap-pass',
@@ -440,7 +441,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           state.minimapLastRenderAt = timestamp;
           state.minimapFrameCount += 1;
           minimapCanvas.dataset.frameCount = String(state.minimapFrameCount);
-          minimapCanvas.dataset.center = `${state.latestSnapshot.state.position.x.toFixed(2)},${state.latestSnapshot.state.position.y.toFixed(2)}`;
+          minimapCanvas.dataset.center = minimapCamera.center.map(value => value.toFixed(2)).join(',');
         }
         state.minimapWasVisible = true;
       } else if (minimapCanvas) {
@@ -747,13 +748,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     };
   }
 
-  function cameraForMinimap(snapshot, canvas) {
-    const point = snapshot.state.position;
+  function cameraForMinimap(snapshot, canvas, followedTarget = null) {
+    const point = followedTarget ? { x: followedTarget[0], y: -followedTarget[2] } : snapshot.state.position;
     const eye = [point.x, 1800, -point.y];
     const target = [point.x, 0, -point.y];
     const aspect = canvas.width / canvas.height;
     return {
       eye,
+      center: [point.x, point.y],
       viewProjection: math.multiply(
         math.orthographic(-MINIMAP_RADIUS_M * aspect, MINIMAP_RADIUS_M * aspect, -MINIMAP_RADIUS_M, MINIMAP_RADIUS_M, 1, 4000),
         math.lookAt(eye, target, [0, 0, -1])

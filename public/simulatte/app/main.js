@@ -487,6 +487,8 @@
       const canonical = experienceCameraApi.canonicalMode(mode);
       if (!(data.applicationProfile.experience?.supportedViews || []).includes(canonical)) throw routeIdentityError('camera', canonical, data.applicationProfile.experience?.supportedViews?.join(',') || 'none');
       activeCameraMode = canonical;
+      const target = renderer && cityInterfaceApi.preferredCameraTarget(renderer.cameraTargets(), canonical);
+      if (target) renderer.focusCameraTarget(target.id);
       renderer?.setCameraMode(canonical);
       selectCameraMode(elements, canonical);
       if (navigate) void hooks.navigate?.(governedRoute(), { replace: true });
@@ -768,6 +770,15 @@
       await timedLoadStage('tier.visualizer', () => selectWorldTier(initialTier));
       lifecycle.throwIfAborted();
       await timedLoadStage('first.render', () => renderPluginExperience({ mission: activeMissionForPlugins }));
+      if (pluginPlayback && routeSimulation?.parameters) {
+        const owner = data.applicationProfile.interaction?.simulationOwnerPluginId || extensions.activePluginIds[0];
+        const requested = acceptedRouteParameters(routeSimulation)[owner];
+        const applied = pluginSession.appliedParameters()[owner] || {};
+        if (requested && Object.entries(requested).some(([id, value]) => JSON.stringify(value) !== JSON.stringify(applied[id]))) {
+          await pluginPlayback.applyControls(requested);
+          lifecycle.throwIfAborted();
+        }
+      }
       profileProgram = profileProgramApi.connect({
         documentRoot: document, profile: data.applicationProfile, registry: pluginRegistry,
         getRuntime: () => extensions, getScenario: () => activeScenario, getCanvas: () => elements.autonomyCanvas,

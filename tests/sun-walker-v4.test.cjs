@@ -277,6 +277,24 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   });
   assert.equal(contribution.missionPatch.routeOverride.algorithm, 'sun_walker_arrival_sample_route_v2');
   assert.equal(instance.semanticPresentation().schema, 'simulatte.presentationLayerSet.v4');
+  const createdCount = () => proposed.filter(row => row.kind === 'sun-walker.simulation-created').length;
+  const beforeStart = createdCount();
+  const previewContribution = instance.contributeV4();
+  assert.equal(instance.contributeV4(), previewContribution);
+  const unchangedValues = Object.fromEntries(instance.controlModel().filter(row => row.id !== 'departureAt').map(row => [row.id, row.defaultValue]));
+  const firstStart = instance.handleAction('scenario.run', { values: { ...unchangedValues, phase: 'start', departureAt: '2026-07-19T17:00' } });
+  assert.equal(createdCount(), beforeStart, 'Starting the existing preview must not recompute the route');
+  assert.equal(firstStart.presentationChanged, false);
+  assert.deepEqual(instance.contributeV4(), previewContribution, 'Only an unchanged presentation may skip the host redraw');
+  instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  assert.notEqual(instance.contributeV4(), previewContribution, 'Advancing the model invalidates the contribution cache');
+  const restarted = instance.handleAction('scenario.run', { values: { ...unchangedValues, phase: 'start', departureAt: '2026-07-19T17:00:00Z' } });
+  assert.equal(restarted.currentStep, 0);
+  assert.equal(restarted.presentationChanged, true);
+  assert.equal(restarted.simulationId, firstStart.simulationId);
+  assert.equal(createdCount(), beforeStart);
+  assert.throws(() => instance.handleAction('scenario.run', { values: { phase: 'start', walkingSpeedMps: 2, departureAt: 'invalid' } }), /sun_control_invalid/);
+  assert.equal(instance.controlModel().find(row => row.id === 'walkingSpeedMps').defaultValue, unchangedValues.walkingSpeedMps);
   const previousTravelSeconds = instance.comparisonModel().metrics.travelSeconds.intervention;
   const started = instance.handleAction('scenario.run', {
     values: {
@@ -291,6 +309,7 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
     },
   });
   assert.equal(started.status, 'running');
+  assert.equal(createdCount(), beforeStart + 1, 'Changed controls must rebuild the modeled route');
   assert.ok(instance.comparisonModel().metrics.travelSeconds.intervention < previousTravelSeconds);
   const controlValues = Object.fromEntries(instance.controlModel().map((row) => [row.id, row.defaultValue]));
   assert.equal(controlValues.walkingSpeedMps, 2);
@@ -303,6 +322,7 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
     result = instance.handleAction('scenario.run', { values: { phase: 'step' } });
   }
   assert.equal(result.status, 'settled');
+  assert.equal(result.simulationTimeMs, instance.contributeV4().state.simulationTimeMs);
   const settlement = instance.settle();
   contracts.validateSettlementContribution('sun-walker', settlement);
   assert.equal(settlement.obligationResults[0].status, 'settled');

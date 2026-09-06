@@ -137,13 +137,13 @@
         option('reserve-preserving', 'Reserve preserving'),
       ], scenario),
       range('demandResponseMaximumFraction', 'Flexibility · Maximum demand response (share)', result.configurationIdentity.demandResponseMaximumFraction, 0, 0.2, 0.01, scenario),
-      ...result.configurationIdentity.sheddingPriorities.map((regionId, index) => select(
+      ...result.configurationIdentity.sheddingPriorities.map((regionId, index) => ({ ...select(
         `sheddingPriority${index + 1}`,
         `Flexibility · Service priority ${index + 1}${index === 0 ? ' (highest)' : ''}`,
         regionId,
         datasets.topology.regions.map((row) => option(row.id, row.name)),
         scenario
-      )),
+      ), selectionGroup: 'service-priority' })),
       select('restorationPolicyId', 'Restoration · Policy', result.policies.restorationPolicyId, [
         option('nearest-first', 'Nearest first'),
         option('dependency-aware', 'Dependency aware'),

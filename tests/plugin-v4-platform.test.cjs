@@ -550,3 +550,14 @@ test('City WGS84 plugin geometry uses the world local origin instead of the coun
   assert.ok(neighborhood.x > 3000 && neighborhood.x < 3500);
   assert.ok(neighborhood.y > 7500 && neighborhood.y < 8000);
 });
+
+test('ranked select groups require a complete unique shared option set', () => {
+  const options = ['a', 'b'].map(value => ({ value, label: value }));
+  const controls = options.map((row, index) => ({ id: `rank${index}`, label: `Rank ${index}`, kind: 'select', value: row.value,
+    options, minimum: null, maximum: null, step: null, provenance: SIMULATED, selectionGroup: 'rank' }));
+  const value = { schema: 'simulatte.pluginControls.v4', controls, comparisons: [] };
+  assert.doesNotThrow(() => contracts.validateControls(value));
+  assert.throws(() => contracts.validateControls({ ...value, controls: controls.map(row => ({ ...row, value: 'a' })) }), /grouped values/);
+  assert.throws(() => contracts.validateControls({ ...value, controls: [controls[0]] }), /shared option set/);
+  assert.throws(() => contracts.validateControls({ ...value, controls: [{ ...controls[0], kind: 'number' }, controls[1]] }), /grouped control kind/);
+});

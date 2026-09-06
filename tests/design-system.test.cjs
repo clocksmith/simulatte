@@ -75,3 +75,14 @@ test('page compositions consume the shared theme without reviving retired theme 
   assert.match(read('public/blank/index.html'), /href="\.\.\/shared\/design\/simulatte\.css"/);
   assert.match(read('public/index.html'), /href="\.\/shared\/design\/workbench\.css"/);
 });
+
+test('empty plugin map slots cannot hide governed scene labels', () => {
+  const css = require('node:fs').readFileSync(require('node:path').join(__dirname, '../public/shared/design/compositions/world-interface.css'), 'utf8');
+  assert.match(css, /\.sim-app \.plugin-map-ui:empty\s*\{\s*display:\s*none;/);
+});
+
+test('Create shares the World typography and monochrome theme rather than forking its palette', () => {
+  const files = closure('public/blank/styles.css').map(row => row.file);
+  assert.ok(files.includes('public/shared/design/themes/world.css'));
+  assert.ok(files.includes('public/shared/design/themes/create.css'));
+});

@@ -45,6 +45,18 @@ const worldModel = {
   },
 };
 
+test('minimap follows the governed plugin actor and retains the core journey fallback', () => {
+  const canvas = { width: 160, height: 120 };
+  const target = cameraState().targets[1].target;
+  const plugin = webgpuRenderer.cameraForMinimap(snapshot, canvas, target);
+  assert.deepEqual(plugin.eye, [100, 1800, -200]);
+  assert.deepEqual(plugin.center, [100, 200]);
+  const core = webgpuRenderer.cameraForMinimap(snapshot, canvas);
+  assert.deepEqual(core.eye, [-900, 1800, 900]);
+  assert.deepEqual(core.center, [-900, -900]);
+  assert.notDeepEqual(plugin.viewProjection, core.viewProjection);
+});
+
 test('plugin follow mode centers the camera on the moving plugin actor', () => {
   const state = cameraState();
   const pose = camera.advanceCamera(state, snapshot, worldModel, 1.5, 0);
@@ -165,4 +177,15 @@ test('City plugin playback drives rendering from simulation time without mutatin
     state: { simulatedTimeSeconds: 5 },
   }, 2), 5);
   assert.equal(webgpuRenderer.snapshotAtRenderTime(worldSnapshot, 0), worldSnapshot);
+});
+
+test('plugin follow zoom changes the rendered camera distance as well as its control value', () => {
+  const state = cameraState();
+  const before = camera.advanceCamera(state, snapshot, worldModel, 1.5, 0);
+  camera.zoomCamera(state, -200);
+  state.pose = null;
+  const after = camera.advanceCamera(state, snapshot, worldModel, 1.5, 1000);
+  assert.ok(after.eye[1] < before.eye[1]);
+  assert.ok(Math.hypot(...after.eye.map((value, index) => value - after.target[index]))
+    < Math.hypot(...before.eye.map((value, index) => value - before.target[index])));
 });

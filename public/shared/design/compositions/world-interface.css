@@ -181,7 +181,7 @@ body.sim-app {
   .sim-app .camera-controls { top: 120px; right: 8px; left: 8px; justify-content: flex-end; }
   .sim-app .experience-summary { top: 178px; right: 8px; left: 8px; max-height: 170px; }
   .sim-app .experience-summary dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sim-app .mission-dock { max-height: 210px; overflow-y: auto; }
+  .sim-app .mission-dock { max-height: min(40dvh, 280px); overflow-y: auto; }
   body.sim-app .mission-actions .sim-action {
     white-space: normal;
     min-height: 44px;
@@ -189,7 +189,7 @@ body.sim-app {
     font-size: 12px;
     line-height: 1.3;
   }
-  body.sim-app .decisions-button { bottom: 232px; right: 8px; }
+  body.sim-app .decisions-button { bottom: calc(min(40dvh, 280px) + 22px); right: 8px; }
   .sim-app .camera-modes > button { padding-inline: 12px; }
   .sim-app :is(.plugin-controls input, .plugin-controls select, .mission-field textarea) { font-size: 16px; }
   .sim-app .profile-selector .select-options { max-height: calc(100dvh - 140px); }
@@ -212,3 +212,6 @@ body.sim-app {
     max-height: calc(100vh - 260px);
   }
 }
+
+/* Empty plugin slots must not reserve space or suppress scene labels. */
+.sim-app .plugin-map-ui:empty { display: none; }

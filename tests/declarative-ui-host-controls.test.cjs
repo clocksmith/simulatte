@@ -513,3 +513,30 @@ test('range controls show their numeric value and restore it after a rejected ed
   await input.dispatch('change');
   assert.equal(readout.textContent, '3');
 });
+
+test('ranked controls apply complete permutations across repeated edits and roll back atomically', async () => {
+  const doc = fakeDocument();
+  const inspector = new FakeNode('root', doc);
+  const applied = [];
+  let reject = false;
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {}, onControlChange({ values }) {
+    if (reject) throw new Error('Rejected');
+    assert.equal(new Set(Object.values(values)).size, 3);
+    applied.push(values);
+  } });
+  const options = ['a', 'b', 'c'].map(value => ({ value, label: value }));
+  host.render([], [{ pluginId: 'fixture', controls: { controls: ['a', 'b', 'c'].map((value, index) => ({
+    ...control(`rank${index}`, 'select', value, options), selectionGroup: 'rank',
+  })) }, inspections: [] }]);
+  const input = index => find(inspector, node => node.dataset?.pluginControl === `rank${index}`);
+  input(0).value = 'c'; await input(0).dispatch('change');
+  assert.deepEqual(host.values('fixture'), { rank0: 'c', rank1: 'b', rank2: 'a' });
+  input(1).value = 'a'; await input(1).dispatch('change');
+  assert.deepEqual(host.values('fixture'), { rank0: 'c', rank1: 'a', rank2: 'b' });
+  reject = true;
+  input(2).value = 'c'; await input(2).dispatch('change');
+  assert.deepEqual(host.values('fixture'), { rank0: 'c', rank1: 'a', rank2: 'b' });
+  assert.equal(input(0).value, 'c');
+  assert.equal(input(2).value, 'b');
+  assert.equal(applied.length, 2);
+});

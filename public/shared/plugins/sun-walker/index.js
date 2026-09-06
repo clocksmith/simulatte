@@ -47,6 +47,7 @@
     let activeScenario = scenario;
     let activeMission = null;
     let activeDepartureAt = null;
+    let contributionCache = null;
     sdk.state.register(reduce, {
       simulation: null,
       playback: { status: 'idle', step: 0 },
@@ -190,18 +191,25 @@
       if (actionId !== 'scenario.run') return { status: 'refused', reason: 'unknown_action', actionId };
       const phase = context.values?.phase;
       let state = sdk.state.read();
+      let presentationChanged = true;
       if (phase === 'start') {
+        const previousScenario = activeScenario;
+        const previousConfig = activeConfig;
         activeScenario = context.scenario || activeScenario;
-        if (hasControlValues(context.values) || !state.simulation) {
-          applyControlValues(context.values || {});
+        const scenarioChanged = ['id', 'seed', 'missionText'].some(key => activeScenario?.[key] !== previousScenario?.[key]);
+        if (scenarioChanged) activeMission = null;
+        if (hasControlValues(context.values)) applyControlValues(context.values);
+        const controlsChanged = Object.keys(activeConfig).some(key => activeConfig[key] !== previousConfig[key])
+          || (activeDepartureAt !== null && activeDepartureAt !== state.simulation?.departureAt);
+        if (scenarioChanged || controlsChanged || !state.simulation) {
           simulateMission(activeMission || sdk.routing.resolveMission(activeScenario?.missionText || ''));
           state = sdk.state.read();
-        }
+        } else presentationChanged = state.playback.step !== 0;
       }
       if (!state.simulation) return { status: 'refused', reason: 'simulation_missing' };
       if (phase === 'start') {
         sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.playback-started' });
-        return playbackAction(sdk.state.read());
+        return { ...playbackAction(sdk.state.read()), presentationChanged };
       }
       if (phase === 'step') {
         if (state.playback.status !== 'running') return { status: 'refused', reason: 'playback_not_running' };
@@ -216,7 +224,7 @@
     }
 
     function applyControlValues(values) {
-      activeConfig = {
+      const nextConfig = {
         ...activeConfig,
         maximumAddedTimeSeconds: finiteControl(values.maximumAddedTimeSeconds, activeConfig.maximumAddedTimeSeconds, 0, Infinity, 'maximumAddedTimeSeconds'),
         maximumAddedRatio: finiteControl(values.maximumAddedRatio, activeConfig.maximumAddedRatio, 0, Infinity, 'maximumAddedRatio'),
@@ -225,7 +233,9 @@
         treeCanopyParticipation: booleanControl(values.treeCanopyParticipation, activeConfig.treeCanopyParticipation, 'treeCanopyParticipation'),
         weatherParticipation: booleanControl(values.weatherParticipation, activeConfig.weatherParticipation, 'weatherParticipation'),
       };
-      if (values.departureAt !== undefined) activeDepartureAt = datetimeControl(values.departureAt, 'departureAt');
+      const nextDepartureAt = values.departureAt !== undefined ? datetimeControl(values.departureAt, 'departureAt') : activeDepartureAt;
+      activeConfig = nextConfig;
+      activeDepartureAt = nextDepartureAt;
     }
 
     function appendPlaybackReceipt(state) {
@@ -251,7 +261,8 @@
     function contributeV4() {
       const state = sdk.state.read();
       if (!state.simulation) return null;
-      return v4Api.createContribution({
+      if (contributionCache?.simulation === state.simulation && contributionCache.step === state.playback.step) return contributionCache.value;
+      const value = v4Api.createContribution({
         simulation: state.simulation,
         step: state.playback.step,
         world,
@@ -259,6 +270,8 @@
         governanceReceipt,
         environmentReceipt,
       });
+      contributionCache = { simulation: state.simulation, step: state.playback.step, value };
+      return value;
     }
 
     function present() {
@@ -381,6 +394,7 @@
       currentStep: state.playback.step,
       totalSteps: finalStep,
       simulationId: state.simulation.id,
+      simulationTimeMs: Math.max(0, Date.parse(state.simulation.timeline.events[state.playback.step].timestamp) - Date.parse(state.simulation.departureAt)),
       state: state.simulation.timeline.snapshots[state.playback.step],
       viewIntents: presentationApi.semanticPresentation(state.simulation, state.playback.step).viewIntents,
     };

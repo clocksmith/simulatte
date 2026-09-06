@@ -107,6 +107,15 @@ async function auditTier(chromePath, baseUrl, item) {
     }
     report.profileProgram = programEvaluation.result.value;
     if (!report.profileProgram?.pass) throw new Error('profile program round trip failed');
+    const controlsExpression = `Object.fromEntries((window.__simulattePluginPlatformV4?.contributions || []).map(row => [row.pluginId, Object.fromEntries(row.controls.controls.map(c => [c.id, c.value]).sort(([a],[b]) => a.localeCompare(b)))]))`;
+    const beforeReload = (await client.send('Runtime.evaluate', { expression: controlsExpression, returnByValue: true })).result.value;
+    await client.send('Runtime.evaluate', { expression: `window.__controlReloadSentinel = true; window.SimulatteTierRunController.clearStoredReceipt(window.sessionStorage, ${JSON.stringify(item.profileId)});` });
+    await client.send('Page.reload');
+    await waitFor(async () => ({ ...(await probe()), fresh: (await client.send('Runtime.evaluate', { expression: 'window.__controlReloadSentinel === undefined', returnByValue: true })).result.value }),
+      state => state.fresh && state.status === 'Ready', 'saved-controls-reloaded', 45000);
+    const afterReload = (await client.send('Runtime.evaluate', { expression: controlsExpression, returnByValue: true })).result.value;
+    report.savedControlsReload = { pass: JSON.stringify(beforeReload) === JSON.stringify(afterReload), parameters: afterReload };
+    if (!report.savedControlsReload.pass) throw new Error('Reloaded model controls differ from the saved URL');
     report.pass = report.errors.length === 0;
   } catch (error) {
     report.errors.unshift(error.message);

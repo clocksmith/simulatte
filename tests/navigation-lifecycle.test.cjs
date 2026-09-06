@@ -751,3 +751,37 @@ test('route updates compare controls against applied plugin state, not a pending
   assert.equal(applied.parameters['gpu-supercluster'].coolantFlowLpm, 120);
   assert.equal(routerApi.queryForSimulation(pending), routerApi.queryForSimulation(bootApi.appliedSimulationRouteState(scenario, [contribution])));
 });
+
+test('City presentation yields before collecting work and drops superseded or disposed renders', async () => {
+  const yields = [];
+  let collections = 0;
+  const session = require('../public/simulatte/app/city-plugin-session.js').create({
+    hostRoot: {},
+    extensions: {
+      activePluginIds: [],
+      platformV4() { collections += 1; return { contributions: [] }; },
+      views() { return []; },
+    },
+    pluginUi: { render() {} },
+    elements: { decisionsButton: {}, applicationProfileLabel: { textContent: 'Test' } },
+    profile: { id: 'test' },
+    recordRenderWork() {}, renderExperienceSummary() {}, summarize() {},
+    applyRouteParameters: () => false,
+    getScenario: () => ({}), getRenderer: () => null,
+    yieldToFrame: () => new Promise(resolve => yields.push(resolve)),
+  });
+  const superseded = session.render({});
+  const latest = session.render({});
+  assert.equal(collections, 0);
+  yields.shift()();
+  await superseded;
+  assert.equal(collections, 0);
+  yields.shift()();
+  await latest;
+  assert.equal(collections, 1);
+  const disposed = session.render({});
+  session.dispose();
+  yields.shift()();
+  await disposed;
+  assert.equal(collections, 1);
+});

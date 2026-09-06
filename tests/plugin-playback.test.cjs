@@ -21,6 +21,7 @@ function fixture({
   scenarioChanges = null,
   scenario = { id: 'fixture-scenario', seed: 'fixture-seed' },
   interventionDispatches = null,
+  runtimeReceipt = null,
 } = {}) {
   const provenance = contracts.createProvenance({
     origin: 'simulated',
@@ -143,7 +144,7 @@ function fixture({
         }],
       }];
     },
-    runtimeReceipt() { return { schema: 'fixture.runtimeReceipt.v1', day }; },
+    runtimeReceipt() { return runtimeReceipt || { schema: 'fixture.runtimeReceipt.v1', day }; },
     ...(comparisonIds.length ? {
       activePluginIds: ['fixture'],
       platformV4() {
@@ -218,6 +219,20 @@ test('plugin playback fails closed when terminal obligations remain unmet', asyn
   await lane.controller.step();
   assert.equal(lane.controller.snapshot().phase, 'failed');
   assert.equal(lane.settledReceipt(), null);
+});
+
+test('settlement retains immutable runtime history and snapshots mutable adapter receipts', async () => {
+  const event = Object.freeze({ kind: 'fixture.event', step: 1 });
+  const immutable = Object.freeze({ events: Object.freeze([event]) });
+  const frozenLane = fixture({ runtimeReceipt: immutable, terminalAtStart: true });
+  await frozenLane.controller.start();
+  assert.equal(frozenLane.settledReceipt().runtime, immutable);
+  const mutable = { events: [{ kind: 'fixture.event', step: 1 }] };
+  const mutableLane = fixture({ runtimeReceipt: mutable, terminalAtStart: true });
+  await mutableLane.controller.start();
+  mutable.events[0].step = 9;
+  assert.equal(mutableLane.settledReceipt().runtime.events[0].step, 1);
+  assert.ok(Object.isFrozen(mutableLane.settledReceipt().runtime.events[0]));
 });
 
 test('plugin playback restores a settled run deterministically from its receipt', async () => {
@@ -568,7 +583,7 @@ test('plugin playback time-slices large cheap histories without forcing a frame 
     const preview = await lane.controller.seek(999);
     assert.equal(preview.currentStep, 365);
     assert.equal(preview.terminalPreview, true);
-    assert.equal(yieldedFrames, 2);
+    assert.equal(yieldedFrames, 3, 'Yield before reconstruction, after start, and before publishing the preview');
   } finally {
     globalThis.performance = originalPerformance;
     if (originalRequestAnimationFrame === undefined) delete globalThis.requestAnimationFrame;

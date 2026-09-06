@@ -175,6 +175,19 @@
     array(value.controls, 'plugin_v4_controls_rows_invalid', `${label} controls`);
     array(value.comparisons, 'plugin_v4_comparison_rows_invalid', `${label} comparisons`);
     value.controls.forEach((row, index) => validateControl(row, `${label} controls[${index}]`));
+    const groups = new Map();
+    value.controls.filter(row => row.selectionGroup).forEach(row => {
+      if (!groups.has(row.selectionGroup)) groups.set(row.selectionGroup, []);
+      groups.get(row.selectionGroup).push(row);
+    });
+    groups.forEach(rows => {
+      unique(rows.map(row => row.value), 'plugin_v4_control_group_duplicate', `${label} grouped values`);
+      const options = new Set(rows[0].options.map(row => row.value));
+      if (options.size !== rows.length || rows.some(row => row.options.length !== options.size
+        || row.options.some(option => !options.has(option.value)))) {
+        fail('plugin_v4_control_group_options_invalid', `${label} grouped controls must rank one shared option set`);
+      }
+    });
     value.comparisons.forEach((row, index) => validateComparison(row, `${label} comparisons[${index}]`));
     unique(value.controls.map((row) => row.id), 'plugin_v4_control_duplicate', `${label} control IDs`);
     unique(value.comparisons.map((row) => row.id), 'plugin_v4_comparison_duplicate', `${label} comparison IDs`);
@@ -183,10 +196,14 @@
 
   function validateControl(value, label) {
     object(value, 'plugin_v4_control_invalid', `${label} expected an object`);
-    exactKeys(value, ['id', 'label', 'kind', 'value', 'options', 'minimum', 'maximum', 'step', 'provenance'], label);
+    allowedKeys(value, ['id', 'label', 'kind', 'value', 'options', 'minimum', 'maximum', 'step', 'provenance', 'selectionGroup'], ['id', 'label', 'kind', 'value', 'options', 'minimum', 'maximum', 'step', 'provenance'], label);
     text(value.id, 'plugin_v4_control_text_invalid', `${label} id`);
     text(value.label, 'plugin_v4_control_text_invalid', `${label} label`);
     enumValue(value.kind, CONTROL_KINDS, 'plugin_v4_control_kind_invalid', `${label} kind`);
+    if (value.selectionGroup !== undefined) {
+      text(value.selectionGroup, 'plugin_v4_control_group_invalid', `${label} selectionGroup`);
+      equal(value.kind, 'select', 'plugin_v4_control_group_invalid', `${label} grouped control kind`);
+    }
     if (value.value === undefined) fail('plugin_v4_control_value_missing', `${label} value is missing`);
     if (value.options !== null) {
       array(value.options, 'plugin_v4_control_options_invalid', `${label} options`);

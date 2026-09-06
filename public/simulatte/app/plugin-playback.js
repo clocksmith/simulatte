@@ -263,6 +263,7 @@
         : normalizeValues(parameterValues);
       try {
         await actionQueue;
+        await yieldToHost();
         if (generation !== runGeneration) return snapshot();
         await resetState(activeScenario, generation, { renderReadyState: false });
         if (generation !== runGeneration) return snapshot();
@@ -427,6 +428,7 @@
         throw playbackError('plugin_playback_settlement_incomplete', `Plugin ${ownerPluginId} did not settle every obligation`, { settlements });
       }
       const comparisonExecutionReceipts = await executeComparisons();
+      await yieldToHost();
       if (generation !== runGeneration) return snapshot();
       return publishSettlement(settlements, comparisonExecutionReceipts, { render: comparisonExecutionReceipts.length > 0 });
     }
@@ -466,7 +468,8 @@
       // the presentation after they execute so the terminal map and receipts
       // describe the same settled run.
       if (shouldRender) render();
-      const receipt = freezeClone({
+      const runtimeReceipt = runtime.runtimeReceipt();
+      const receipt = Object.freeze({ ...freezeClone({
         schema: 'simulatte.pluginPlaybackRunReceipt.v1',
         ownerPluginId,
         scenario: activeScenario,
@@ -481,7 +484,10 @@
         comparisonExecutionReceipt: frozenComparisons[0] || null,
         comparisonExecutionReceipts: frozenComparisons,
         clock: clock.receipt(),
-        runtime: runtime.runtimeReceipt(),
+      }),
+        // The host returns a deeply frozen receipt. Keep its immutable event
+        // history instead of copying every simulation snapshot at settlement.
+        runtime: Object.isFrozen(runtimeReceipt) ? runtimeReceipt : freezeClone(runtimeReceipt),
       });
       onSettled?.(receipt);
       setPhase('completed');
@@ -506,7 +512,8 @@
       const completed = stepIndex + 1;
       if (completed >= targetStep) return false;
       const boundedHistory = targetStep <= 64;
-      if (!boundedHistory && hostNow() - sliceStartedAt < 16) return false;
+      // Leave part of the frame available for camera drawing and input.
+      if (!boundedHistory && hostNow() - sliceStartedAt < 8) return false;
       await yieldToHost();
       return true;
     }

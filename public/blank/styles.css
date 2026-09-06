@@ -256,7 +256,7 @@ body {
   min-height: 44px;
   padding: 6px;
   border: 1px solid var(--sim-line);
-  border-radius: 8px;
+  border-radius: var(--sim-radius);
   background: var(--sim-glass-soft);
   color: var(--sim-ink-soft);
   font-size: 11px;
@@ -342,7 +342,7 @@ body {
   overflow: auto;
   padding: 12px;
   border: 1px solid var(--sim-line);
-  border-radius: 14px;
+  border-radius: var(--sim-radius-large);
   background: var(--sim-glass);
   color: var(--sim-ink);
   box-shadow: var(--sim-shadow);
@@ -408,7 +408,7 @@ body {
   min-height: 44px;
   padding: 8px;
   border: 1px solid var(--sim-line);
-  border-radius: 8px;
+  border-radius: var(--sim-radius);
   color: var(--sim-ink);
   background: var(--sim-glass-soft);
   cursor: pointer;
@@ -431,7 +431,7 @@ body {
   resize: vertical;
   padding: 8px;
   border: 1px solid var(--sim-line);
-  border-radius: 8px;
+  border-radius: var(--sim-radius);
   background: var(--sim-paper);
   color: var(--sim-ink);
 }

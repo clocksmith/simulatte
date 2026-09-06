@@ -1,6 +1,14 @@
+@import './world.css';
 /* Create consumes the shared World/Create palette. */
 body {
   color: var(--sim-ink);
   background: var(--sim-paper);
-  font: 13px/1.5 var(--sim-font);
+  font: 14px/1.5 var(--sim-font);
+}
+
+:is(h1, h2, h3, .prompt-dock-head, .intent-runtime-head strong, .world-spec-disclosure > summary) {
+  font-family: var(--sim-heading);
+}
+:is(.sim-surface, .sim-action, .sim-field, .model-selection-panel, .model-selection-controls) {
+  border-radius: var(--sim-radius);
 }

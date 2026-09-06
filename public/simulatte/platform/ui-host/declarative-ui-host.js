@@ -207,6 +207,7 @@
       if (!values.has(control.id)) values.set(control.id, cloneControlValue(control.value));
     });
     section.append(heading);
+    const editing = { controls, inputs: new Map(), applied: new Map(values), revisions: new Map() };
     const groups = new Map();
     controls.forEach(control => {
       const match = control.label.match(/^([^:·]+)\s*[:·]\s*(.+)$/);
@@ -215,7 +216,7 @@
       groups.get(name).push(match ? { ...control, label: match[2] } : control);
     });
     [...groups].forEach(([name, rows], index) => {
-      const fields = renderControlFields(documentRef, pluginId, rows, values, onControlChange, readValues, onError);
+      const fields = renderControlFields(documentRef, pluginId, rows, values, onControlChange, readValues, onError, editing);
       if (!name) { section.append(fields); return; }
       const group = documentRef.createElement('details');
       group.className = 'plugin-control-group';
@@ -236,7 +237,7 @@
     controls,
     values,
     onControlChange,
-    readValues, onError,
+    readValues, onError, editing,
   ) {
     const fields = documentRef.createElement('div');
     fields.className = 'plugin-controls';
@@ -248,16 +249,26 @@
       input.id = `plugin-control-${domId(pluginId)}-${domId(control.id)}`;
       input.className = 'sim-field';
       input.dataset.pluginControl = control.id;
+      editing.inputs.set(control.id, input);
+      const peers = control.selectionGroup ? editing.controls.filter(row => row.selectionGroup === control.selectionGroup) : [control];
+      const revisionKey = control.selectionGroup ? `group:${control.selectionGroup}` : `control:${control.id}`;
       const optionSearch = createOptionSearch(documentRef, control, input);
       label.htmlFor = input.id;
       const readout = control.kind === 'range' ? documentRef.createElement('output') : null;
       if (readout) { readout.htmlFor = input.id; readout.textContent = String(values.get(control.id)); }
 
       let appliedValue = cloneControlValue(values.get(control.id));
-      let applyRevision = 0;
       const updateValue = () => {
         const nextValue = readControlInput(input, control);
         if (nextValue === undefined) return undefined;
+        if (control.selectionGroup) {
+          const displaced = peers.find(row => row.id !== control.id && values.get(row.id) === nextValue);
+          if (displaced) {
+            const previous = values.get(control.id);
+            values.set(displaced.id, previous);
+            writeControlInput(editing.inputs.get(displaced.id), displaced, previous);
+          }
+        }
         values.set(control.id, nextValue);
         if (readout) readout.textContent = String(nextValue);
         return nextValue;
@@ -272,22 +283,28 @@
           return;
         }
         if (!onControlChange) return;
-        const revision = ++applyRevision;
+        const revision = (editing.revisions.get(revisionKey) || 0) + 1;
+        editing.revisions.set(revisionKey, revision);
+        const requestedValues = readValues(pluginId);
         input.dataset.applyStatus = 'applying';
         try {
           await onControlChange({
             pluginId,
             controlId: control.id,
-            values: readValues(pluginId),
+            values: requestedValues,
           });
-          if (revision !== applyRevision) return;
+          if (revision !== editing.revisions.get(revisionKey)) return;
+          peers.forEach(row => editing.applied.set(row.id, cloneControlValue(requestedValues[row.id])));
           appliedValue = cloneControlValue(nextValue);
           input.dataset.applyStatus = 'applied';
         } catch (error) {
-          if (revision !== applyRevision) return;
-          values.set(control.id, cloneControlValue(appliedValue));
-          writeControlInput(input, control, appliedValue);
-          if (readout) readout.textContent = String(appliedValue);
+          if (revision !== editing.revisions.get(revisionKey)) return;
+          peers.forEach(row => {
+            const restored = cloneControlValue(editing.applied.get(row.id));
+            values.set(row.id, restored);
+            writeControlInput(editing.inputs.get(row.id), row, restored);
+          });
+          if (readout) readout.textContent = String(editing.applied.get(control.id));
           input.dataset.applyStatus = 'failed';
           onError?.(error, { controlId: control.id, pluginId });
         }

@@ -231,7 +231,7 @@
           far: 20000,
         };
       }
-      const distance = pluginTarget ? Math.max(state.followDistance, pluginTarget.distance) : state.followDistance;
+      const distance = pluginTarget ? state.followDistance * pluginTarget.distance / DEFAULT_FOLLOW_DISTANCE : state.followDistance;
       const height = pluginTarget
         ? clamp(distance * 1.2, 120, 360)
         : clamp(distance * 0.58, 2.8, 92);

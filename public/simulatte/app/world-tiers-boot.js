@@ -232,10 +232,10 @@
     }
 
     async function activateScenario(scenario,routeSimulation=null){
-      pluginUi?.dispose?.();
+      pluginUi?.resetValues?.();
       if(runtime)await runtime.dispose();
       runtime=await root.SimulattePluginRuntime.createPluginRuntime({registry:root.SimulatteGeneratedPluginRegistry,profile:data.applicationProfile,scenario,dataCatalog:data.dataCatalog,artifactStore:data.artifactStore,registryBaseUrl:data.registryBaseUrl,corePorts:createCorePorts(scenario)});
-      pluginUi=root.SimulatteDeclarativeUiHost.createDeclarativeUiHost({
+      if(!pluginUi)pluginUi=root.SimulatteDeclarativeUiHost.createDeclarativeUiHost({
         rootElements:{inspector:elements.pluginInspector,map:elements.pluginMapUi},
         onAction:async({pluginId,actionId,command,values})=>{
           if(command?.kind==='camera.focus'){viewDirector?.setManualOverride({mode:'free',targetIds:[command.targetId]});tierVisualizer.focusPluginTarget?.(`plugin:${pluginId}:${command.targetId}`);return;}
@@ -371,6 +371,7 @@
         renderScenario();
         await activateScenario(activeScenario,nextSimulation);
         configureRunController(owner);
+        if(requestedParameters[owner])await runController.applyControls(requestedParameters[owner]);
       }else{
         // The URL is authoritative. Clear controls first so removing a query
         // parameter cannot resurrect a stale in-memory value.
@@ -544,7 +545,12 @@
         scenarioId: activeScenario.id,
       });
       lifecycle.throwIfAborted();
-      if(!restored){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');}
+      if(!restored){
+        const parameters=acceptedRouteParameters(requestedSimulation)[owner];
+        if(parameters)await runController.applyControls(parameters);
+        lifecycle.throwIfAborted();
+        ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');
+      }
       profileProgram=root.SimulatteProfileProgram.connect({
         documentRoot:document,
         profile:data.applicationProfile,
