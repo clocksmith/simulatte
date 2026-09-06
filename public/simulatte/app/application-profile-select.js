@@ -21,7 +21,7 @@
         const options = isGroup ? [...child.children] : [child];
         return {
           label: isGroup ? child.label : null,
-          options: options.filter((option) => option.tagName === 'OPTION').map((option) => ({
+          options: options.filter((option) => option.tagName === 'OPTION' && !option.hidden).map((option) => ({
             label: option.textContent,
             value: option.value,
             isDisabled: option.disabled,
@@ -61,7 +61,7 @@
     }
 
     function syncSelection() {
-      const selected = optionElements.find((option) => option.dataset.value === select.value) || optionElements[0];
+      const selected = optionElements.find((option) => option.dataset.value === select.value);
       label.textContent = selected?.textContent || select.selectedOptions?.[0]?.textContent || 'Choose experience';
       optionElements.forEach((option) => {
         const isSelected = option === selected;

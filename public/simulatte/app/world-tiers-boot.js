@@ -17,6 +17,17 @@
   if (!tierRegistry) throw new Error('world_tiers_boot_tier_registry_missing');
   if (!experiencePresentationApi) throw new Error('world_tiers_boot_experience_presentation_missing');
   const TIER_LABELS = tierRegistry.TIER_LABELS;
+  // Discovery policy only; retained profiles still resolve through explicit URLs.
+  const DISCOVERY_PROFILE_BY_TIER = Object.freeze({
+    datacenter: 'gpu-supercluster-v1',
+    city: 'sun-walker-v1',
+    country: 'grid-resilience-us-v1',
+    world: 'subsea-network-global-v1',
+    'solar-system': 'orbital-transfer-planner-v1',
+    'star-chart': 'interstellar-relay-network-v1',
+  });
+  const DISCOVERY_PROFILE_IDS = Object.freeze(Object.values(DISCOVERY_PROFILE_BY_TIER));
+
   const GITHUB_EXPERIENCE_DOC_BASE_URL = 'https://github.com/clocksmith/simulatte/blob/main/docs/simulatte/experiences/';
   const EXPERIENCE_DOC_PATHS = Object.freeze({
     'gpu-supercluster-v1': 'gpu-supercluster.md',
@@ -68,7 +79,11 @@
   }
 
   function createAppShell(options) {
-    return appShellApi.create({ ...options, updateExperienceDocLink, labelForProfile, tierLabels: TIER_LABELS });
+    return appShellApi.create({
+      ...options,
+      boot: (tier, profileId, hooks) => options.boot(tier, profileId || DISCOVERY_PROFILE_BY_TIER[tier] || null, hooks),
+      updateExperienceDocLink, labelForProfile, tierLabels: TIER_LABELS,
+    });
   }
 
   // Wires the scale (tier) dropdown and reflects the active tier. Selecting a different tier asks
@@ -567,7 +582,19 @@
     }
   }
 
-  function populateProfileSelect(select,entries,selectedId){select.replaceChildren(...entries.map((entry)=>{const option=document.createElement('option');option.value=entry.id;option.textContent=labelForProfile(entry.id);option.selected=entry.id===selectedId;return option;}));select.value=selectedId;}
+  function populateProfileSelect(select, entries, selectedId) {
+    const visible = entries.filter((entry) => DISCOVERY_PROFILE_IDS.includes(entry.id) || entry.id === selectedId);
+    select.replaceChildren(...visible.map((entry) => {
+      const option = document.createElement('option');
+      option.value = entry.id;
+      option.textContent = labelForProfile(entry.id);
+      option.selected = entry.id === selectedId;
+      option.hidden = !DISCOVERY_PROFILE_IDS.includes(entry.id);
+      return option;
+    }));
+    select.value = selectedId;
+  }
+
   function labelForProfile(id){if(PROFILE_LABELS[id])return PROFILE_LABELS[id];return String(id).replace(/-v\d+$/,'').split('-').filter(Boolean).map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');}
   function experienceHudSummary(options) { return experiencePresentationApi.summarize(options); }
   function createScenarioClock(scenario = {}) {
@@ -594,6 +621,8 @@
 
   return Object.freeze({
     TIER_LABELS,
+    DISCOVERY_PROFILE_BY_TIER,
+    DISCOVERY_PROFILE_IDS,
     PROFILE_LABELS,
     EXPERIENCE_DOC_PATHS,
     experienceDocUrl,

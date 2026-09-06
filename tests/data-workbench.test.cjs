@@ -16,12 +16,15 @@ test('the hexagon homepage keeps simulations visible and data tools optional', (
   assert.match(html, /<section id="simulation-home">/);
   assert.match(html, /class="hex-constellation-container"/);
   assert.equal((html.match(/class="hex-satellite tier-card/g) || []).length, 6);
+  const discovery = require('../public/simulatte/app/world-tiers-boot.js');
+  const cards = [...html.matchAll(/data-default-profile="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(cards.sort(), [...discovery.DISCOVERY_PROFILE_IDS].sort());
   assert.match(html, /id="hex-center-create"/);
   assert.match(html, /id="open-data" href="#data"/);
   assert.match(html, /<section id="data-page" class="data-workbench-page" hidden>/);
   assert.doesNotMatch(html, /id="workbench-profiles"/);
   for (const profile of ['gpu-supercluster-v1', 'interstellar-relay-network-v1', 'orbital-transfer-planner-v1',
-    'maritime-trade-global-v1', 'subsea-network-global-v1', 'sun-walker-v1', 'food-recall-us-v1']) {
+    'grid-resilience-us-v1', 'subsea-network-global-v1', 'sun-walker-v1']) {
     assert.ok(html.includes(`data-default-profile="${profile}"`));
   }
 });

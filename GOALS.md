@@ -16,6 +16,10 @@ that every contract or workflow is implemented today.
 Simulatte is a browser simulation platform. The homepage is the hexagon
 simulation chooser, with Create at its center and the simulations visible.
 Data tools are available through Use your data; they do not replace the homepage.
+For now, homepage and selector discovery focus on GPU Supercluster, Interstellar
+Relay Network, Orbital Transfer Planner, Subsea Network, Sun Walker, and Grid
+Resilience. Other implemented demos retain their source and direct routes but
+are hidden from discovery. Country opens Grid Resilience; Planet opens Subsea.
 People bring data or
 instructions, prepare an editable `WorldSpec`, run it, inspect the result,
 change it, and reproduce or export it. Free local use is a complete product

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
+import discovery from '../../public/simulatte/app/world-tiers-boot.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createAuditHost, openBrowserAudit, findChrome, stopChild, removeTemporaryDirectory } from './browser-session.mjs';
@@ -72,7 +73,8 @@ async function runBrowserSmoke(options) {
   const pathSegments = new URL(options.url || 'http://localhost/city').pathname.split('/').filter(Boolean);
   const expectedProfileId = (pathSegments[0] === 'city' ? pathSegments[1] : null) || defaultCityProfileId();
   const expectedProfile = profileDefinition(expectedProfileId);
-  const expectedProfileIds = cityProfileIds();
+  const visibleProfileIds = cityProfileIds().filter((id) => discovery.DISCOVERY_PROFILE_IDS.includes(id));
+  const expectedProfileIds = cityProfileIds().filter((id) => visibleProfileIds.includes(id) || id === expectedProfileId);
   const expectedPluginIds = new Set(expectedProfile.plugins.map((row) => row.id));
   const configuredRunMode = expectedProfile.camera?.runMode || 'follow';
   const expectedRunCameraMode = configuredRunMode === 'bird' ? 'overview' : configuredRunMode;
@@ -351,8 +353,10 @@ async function runBrowserSmoke(options) {
       && result.applicationProfile.custom.enabled
       && result.applicationProfile.custom.opened
       && result.applicationProfile.custom.groupLabels.length === 0
-      && result.applicationProfile.custom.optionCount === expectedProfileIds.length
-      && result.applicationProfile.custom.selectedLabel.length > 0
+      && result.applicationProfile.custom.optionCount === visibleProfileIds.length
+      && (visibleProfileIds.includes(expectedProfileId)
+        ? result.applicationProfile.custom.selectedLabel.length > 0
+        : result.applicationProfile.custom.selectedLabel.length === 0)
       && result.applicationProfile.custom.escapeClosed
       && decisionView.open
       && decisionView.hidden === 'false'
@@ -393,7 +397,7 @@ async function runBrowserSmoke(options) {
       profileScope: result.applicationProfile.selectedId === expectedProfileId
         && result.applicationProfile.optionIds.length === expectedProfileIds.length
         && result.applicationProfile.optionIds.every((id, index) => id === expectedProfileIds[index])
-        && result.applicationProfile.custom.optionCount === expectedProfileIds.length,
+        && result.applicationProfile.custom.optionCount === visibleProfileIds.length,
       visualRuntime: result.state === 'completed'
         && result.rendererBackend === 'webgpu'
         && result.rendererFrames > 0

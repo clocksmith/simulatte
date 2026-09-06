@@ -472,11 +472,11 @@ test('app shell reloads the tier default when browser history removes an experie
 
   assert.deepEqual(calls, [
     { tier: 'world', experience: 'alternate-v1' },
-    { tier: 'world', experience: null },
+    { tier: 'world', experience: 'subsea-network-global-v1' },
   ]);
   assert.deepEqual(canonicalRoutes, [
     { tier: 'world', experience: 'alternate-v1', world: null, profile: 'alternate-v1', camera: null },
-    { tier: 'world', experience: 'tier-default-v1', world: null, profile: 'tier-default-v1', camera: null },
+    { tier: 'world', experience: 'subsea-network-global-v1', world: null, profile: 'subsea-network-global-v1', camera: null },
   ]);
 });
 
@@ -718,12 +718,12 @@ test('app shell recovers an unknown governed-tier experience with that tier defa
     router: { canonicalize(route) { canonicalRoutes.push(route); }, start() {} },
     boot: async (tier, experience) => {
       calls.push({ tier, experience });
-      if (experience) {
+      if (experience !== 'subsea-network-global-v1') {
         const error = new Error('Profile is not available for tier');
         error.code = 'tier_profile_unknown';
         throw error;
       }
-      return { tier, experience: 'tier-default-v1', dispose() {} };
+      return { tier, experience: 'subsea-network-global-v1', dispose() {} };
     },
     landing: {
       classList: { add() {}, remove() {} },
@@ -736,7 +736,7 @@ test('app shell recovers an unknown governed-tier experience with that tier defa
 
   assert.deepEqual(calls, [
     { tier: 'world', experience: 'removed-experience-v1' },
-    { tier: 'world', experience: null },
+    { tier: 'world', experience: 'subsea-network-global-v1' },
   ]);
-  assert.deepEqual(canonicalRoutes, [{ tier: 'world', experience: 'tier-default-v1', world: null, profile: 'tier-default-v1', camera: null }]);
+  assert.deepEqual(canonicalRoutes, [{ tier: 'world', experience: 'subsea-network-global-v1', world: null, profile: 'subsea-network-global-v1', camera: null }]);
 });
