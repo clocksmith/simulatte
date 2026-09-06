@@ -371,15 +371,6 @@
     };
   }
 
-  function polylineLength(points) {
-    let total = 0;
-    for (let index = 1; index < points.length; index += 1) {
-      total += Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
-    }
-    return total;
-  }
-
-
   function validViewport(value) {
     return value
       && Number.isFinite(value.width)

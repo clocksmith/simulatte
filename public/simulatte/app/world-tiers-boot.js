@@ -307,6 +307,9 @@
         tierVisualizer.setViewMode?.(viewState.decision.mode);
         candidates.some((id)=>tierVisualizer.focusPluginTarget?.(id));
         selectTierViewMode(viewState.decision.mode);
+      } else if (viewState.manualOverride && ['overview', 'compare'].includes(activeCameraMode)) {
+        // A chosen framing mode follows new evidence; a manually panned Free view stays put.
+        applyTierCamera(activeCameraMode);
       }
       root.__simulattePluginPlatformV4=Object.freeze({receipt:platform.receipt,contributions:platform.contributions,contributionSources:platform.contributionSources,provenance:platform.provenanceCoverage,clock:simulationClock.receipt(),view:viewDirector.receipt(),compositor:tierVisualizer.pluginPresentationReceipt?.()||[]});
     }

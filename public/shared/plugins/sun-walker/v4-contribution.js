@@ -89,7 +89,7 @@
       ...[activeSample].filter(Boolean).map((sample) => builder.layer({
         id: 'sun-walker-actor',
         kind: 'actor',
-        label: `Walker · ${exposureStatus.current.label} · ${sample.timestamp} UTC`,
+        label: `Walker · ${exposureStatus.current.geometricLabel} · ${sample.timestamp.slice(11, 16)} UTC`,
         geometry: builder.geometry('point', 'city-local-m', [[sample.point.x, sample.point.y, 0]]),
         quantity: builder.quantity('actor.pedestrian.route-progress', snapshot.state.progress, 'ratio', [0, 1]),
         role: 'event',

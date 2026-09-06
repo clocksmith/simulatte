@@ -275,6 +275,7 @@
       const pose = transitionFrom && row.points.length === 1
         ? poseBetweenPoints(transitionFrom, row.points[0], Math.min(1, elapsedSeconds / PLUGIN_TRANSITION_SECONDS))
         : poseAlongPath(row.points, row.phaseOffsetM + elapsedSeconds * visualSpeedMps);
+      if (row.kind === 'pedestrian' && row.isSelected) addBeacon(writer, pose.point, semanticColor(row), 0.4, 2.4, 1.2);
       if (row.kind !== 'pedestrian') {
         addBeacon(writer, pose.point, semanticColor(row), row.isSelected ? 12 : 5, row.isSelected ? 3.2 : 1.8, row.isSelected ? 1.2 : 0.72);
       }
