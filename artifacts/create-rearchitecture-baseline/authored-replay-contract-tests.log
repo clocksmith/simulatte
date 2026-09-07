@@ -29,3 +29,186 @@ ok 5 - governing metric rejects stale builds and incomplete boundary evidence
   duration_ms: 254.437801
   type: 'test'
   ...
+# Subtest: worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+ok 6 - worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+  ---
+  duration_ms: 12265.472263
+  type: 'test'
+  ...
+# Subtest: phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+ok 7 - phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+  ---
+  duration_ms: 8.084357
+  type: 'test'
+  ...
+# Subtest: authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+ok 8 - authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+  ---
+  duration_ms: 16242.127368
+  type: 'test'
+  ...
+# Subtest: authored replay rejects changed provenance, cross-world sources and ignored authoring
+ok 9 - authored replay rejects changed provenance, cross-world sources and ignored authoring
+  ---
+  duration_ms: 7300.255339
+  type: 'test'
+  ...
+# Subtest: cancelling a worker phase stops its worker and stale events cannot poison its replacement
+ok 10 - cancelling a worker phase stops its worker and stale events cannot poison its replacement
+  ---
+  duration_ms: 1.840042
+  type: 'test'
+  ...
+# Subtest: worker failure terminates the failed instance and rejects pending and future calls
+ok 11 - worker failure terminates the failed instance and rejects pending and future calls
+  ---
+  duration_ms: 0.889502
+  type: 'test'
+  ...
+# Subtest: compatibility compile retains its WorldSpec result through the same worker protocol
+ok 12 - compatibility compile retains its WorldSpec result through the same worker protocol
+  ---
+  duration_ms: 3459.051125
+  type: 'test'
+  ...
+# Subtest: part candidates preserve optional quantities without publishing undefined fields
+ok 13 - part candidates preserve optional quantities without publishing undefined fields
+  ---
+  duration_ms: 5203.971452
+  type: 'test'
+  ...
+# Subtest: explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+ok 14 - explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+  ---
+  duration_ms: 2678.199649
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+ok 15 - WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+  ---
+  duration_ms: 8311.576239
+  type: 'test'
+  ...
+# Subtest: actual runner outputs project a WorldSpec without changing accepted bindings
+ok 16 - actual runner outputs project a WorldSpec without changing accepted bindings
+  ---
+  duration_ms: 9058.97857
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+ok 17 - WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+  ---
+  duration_ms: 4624.643847
+  type: 'test'
+  ...
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+ok 18 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 5043.899925
+  type: 'test'
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+ok 19 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 2461.835996
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+ok 20 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 3109.106312
+  type: 'test'
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+ok 21 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 2764.032997
+  type: 'test'
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+ok 22 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 4390.904209
+  type: 'test'
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+ok 23 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 4292.594446
+  type: 'test'
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+ok 24 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 4973.035302
+  type: 'test'
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+ok 25 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 2632.915252
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+ok 26 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 3769.138604
+  type: 'test'
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 27 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 2.217019
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+ok 28 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 4302.504816
+  type: 'test'
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+ok 29 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 2355.996496
+  type: 'test'
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+ok 30 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 3633.307095
+  type: 'test'
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+ok 31 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 1740.302627
+  type: 'test'
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+ok 32 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 1327.93512
+  type: 'test'
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 33 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 1.012823
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+ok 34 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 1315.209183
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 49763.321868
