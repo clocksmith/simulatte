@@ -100,6 +100,11 @@ test('segmented limbs attach through their chain and detached chains fail proof'
   const evaluate = () => proof.renderObligationProof(input.sceneRenderPacket, [obligation], null, true, data)[0];
   assert.equal(evaluate().geometrySatisfied, true);
   const original = structuredClone(data.objectParts);
+  for (const part of data.objectParts.filter(row => /arm-(upper|lower)$/.test(row.constructionPartId))) {
+    part.rotation = -part.rotation;
+  }
+  assert.equal(evaluate().geometrySatisfied, false, 'overlapping axis-aligned bounds do not connect rotated segments');
+
   for (const ids of [['right-arm-hand'], ['right-arm-upper', 'right-arm-lower', 'right-arm-hand']]) {
     data.objectParts = structuredClone(original);
     for (const part of data.objectParts.filter(row => ids.includes(row.constructionPartId))) {

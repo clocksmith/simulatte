@@ -443,15 +443,18 @@
     const submitted = (renderData?.objectParts || []).filter((part) => part.entityId === binding.entityId);
     const parts = submitted.filter((part) => ids.has(part.constructionPartId));
     const parent = submitted.filter((part) => !ids.has(part.constructionPartId));
-    const bounds = (part) => {
-      const angle = Number(part.rotation || 0), size = part.size || [0, 0];
-      const w = Math.abs(Math.cos(angle)) * size[0] + Math.abs(Math.sin(angle)) * size[1];
-      const h = Math.abs(Math.sin(angle)) * size[0] + Math.abs(Math.cos(angle)) * size[1];
-      return [part.center[0] - w / 2, part.center[1] - h / 2, part.center[0] + w / 2, part.center[1] + h / 2];
+    const axes = (part) => {
+      const angle = -Number(part.rotation || 0);
+      return [[Math.cos(angle), Math.sin(angle)], [-Math.sin(angle), Math.cos(angle)]];
     };
     const touches = (left, right) => {
-      const a = bounds(left), b = bounds(right);
-      return a[0] <= b[2] + 0.01 && a[2] >= b[0] - 0.01 && a[1] <= b[3] + 0.01 && a[3] >= b[1] - 0.01;
+      const leftAxes = axes(left), rightAxes = axes(right);
+      const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
+      const radius = (part, basis, axis) => basis.reduce((sum, direction, index) =>
+        sum + Math.abs(dot(direction, axis)) * Number(part.size?.[index] || 0) / 2, 0);
+      const delta = [left.center[0] - right.center[0], left.center[1] - right.center[1]];
+      return [...leftAxes, ...rightAxes].every(axis => Math.abs(dot(delta, axis)) <=
+        radius(left, leftAxes, axis) + radius(right, rightAxes, axis) + 0.01);
     };
     // A segmented limb attaches through its own chain, not every segment directly to the torso.
     const attached = parent.slice();
