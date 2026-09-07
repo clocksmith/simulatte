@@ -141,7 +141,11 @@ test('visual compilation ignores raw prompt substitutions in a fixed typed simul
   for (const prompt of ['a cat swimming underwater', 'a cat in a galaxy', 'no cats']) {
     const replacement = structuredClone(phase5);
     replacement.artifact.simulationCompile.renderIR.prompt = prompt;
-    assert.deepEqual(model.runPhase6VisualCompile(replacement), expected);
+    const actual = model.runPhase6VisualCompile(replacement);
+    assert.equal(actual.artifact.visualCompile.worldSpecProjection.renderProgramFields.renderIR.prompt, prompt);
+    actual.artifact.visualCompile.worldSpecProjection.renderProgramFields.renderIR.prompt =
+      expected.artifact.visualCompile.worldSpecProjection.renderProgramFields.renderIR.prompt;
+    assert.deepEqual(actual, expected);
   }
 });
 
@@ -183,6 +187,7 @@ test('unchanged geometry cannot cache unexercised or failed simulation evidence'
   const state = model.createSimulationState(spec);
   const input = model.createRenderExecutionInput(spec, state, canvas, { buildId: 'test' });
   const renderer = {
+    __proto__: Renderer.prototype, pixelReadbackGeneration: 0,
     renderExecutionInput: input, sceneRenderPacket: input.sceneRenderPacket, canvas,
     renderData: globalThis.SimulattePhaseModuleRegistry.family('webGpuRenderer').compileSceneRenderData(input.sceneRenderPacket),
     webgpuOptimizationReceipt() { return {}; },

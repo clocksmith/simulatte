@@ -43,7 +43,8 @@ test('Create replaces disposed or previous-device targets even when canvas size 
   const previousWindow = global.window;
   global.window = { devicePixelRatio: 1 };
   try {
-    const renderer = { device: device(), maxDpr: 2, quality: 1,
+    const renderer = { __proto__: phaseFamily('webGpuRenderer').WebGpuRenderer.prototype,
+      pixelReadbackGeneration: 0, device: device(), maxDpr: 2, quality: 1,
       canvas: { getBoundingClientRect: () => ({ width: 640, height: 480 }) } };
     resize.call(renderer);
     const first = renderer.renderTargets;

@@ -215,7 +215,7 @@
           : lower.slice(start, end).trim().replace(/\s+/g, '-'),
         visualArchetype: existing.visualArchetype || span.visualArchetype || '',
         localGeometryGrammarId: existing.localGeometryGrammarId === span.localGeometryGrammarId
-          ? existing.localGeometryGrammarId
+          ? existing.localGeometryGrammarId || ''
           : '',
       };
     }

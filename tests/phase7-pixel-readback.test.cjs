@@ -90,6 +90,30 @@ test('part ownership proof rejects missing, detached, and wrongly owned submitte
   }
 });
 
+test('segmented limbs attach through their chain and detached chains fail proof', () => {
+  const proof = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+  const spec = lab.createSpecFromPrompt('robot with red eyes and bendable straw arms', { deterministicRuntime: true });
+  const input = lab.createRenderExecutionInput(spec);
+  const data = rendererScope.compileSceneRenderData(input.sceneRenderPacket);
+  const obligation = input.visualObligations.find(row => row.partBinding?.partId === 'prompt-part-arm');
+  assert.ok(obligation);
+  const evaluate = () => proof.renderObligationProof(input.sceneRenderPacket, [obligation], null, true, data)[0];
+  assert.equal(evaluate().geometrySatisfied, true);
+  const original = structuredClone(data.objectParts);
+  for (const part of data.objectParts.filter(row => /arm-(upper|lower)$/.test(row.constructionPartId))) {
+    part.rotation = -part.rotation;
+  }
+  assert.equal(evaluate().geometrySatisfied, false, 'overlapping axis-aligned bounds do not connect rotated segments');
+
+  for (const ids of [['right-arm-hand'], ['right-arm-upper', 'right-arm-lower', 'right-arm-hand']]) {
+    data.objectParts = structuredClone(original);
+    for (const part of data.objectParts.filter(row => ids.includes(row.constructionPartId))) {
+      part.center = [part.center[0] + 2, part.center[1] + 2];
+    }
+    assert.equal(evaluate().geometrySatisfied, false);
+  }
+});
+
 function glacierReadbackFixture() {
   const spec = lab.createSpecFromPrompt('glacier calving into fjord with sea ice waves', {
     allowPrototypeFallback: true,
@@ -214,7 +238,7 @@ test('color evidence covers each repeated drawable and rejects a wrong color on 
   assert.equal(ids.length, 2);
   assert.ok(rows.every(row => row.expectedDrawableIds.length === 2));
   const proof = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
-  const audit = samples => proof.auditLivePixelSamples(proof.normalizePhase7PixelSamples({ samples }), {
+  const audit = samples => proof.auditLivePixelSamples(proof.normalizePhase7PixelSamples(pixelSampleSet(data, samples)), {
     required: true, drawableCount: 2, proofSummary: { requiredObligationIds: [color.obligationId] },
   });
   const valid = rows.map(row => ({ ...row, rgba: [200, 35, 45, 255] }));
