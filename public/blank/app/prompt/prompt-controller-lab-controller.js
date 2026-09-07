@@ -325,6 +325,7 @@
           getSpec: () => spec,
           getImprovementRecord: () => worldImprovementSession.getCurrentRecord(),
           serialize: serializeSpec,
+          serializeExport: (accepted) => serializeSpec(accepted, { retainPhaseSources: true }),
           serializeImprovementRecord: worldImprovementSessionApi.serializeRecord,
           apply: (payload, rationale) => {
             const next = applyWorldSpecEdit(spec, payload, { rationale });

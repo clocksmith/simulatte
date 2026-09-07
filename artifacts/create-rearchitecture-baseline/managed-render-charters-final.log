@@ -1,0 +1,5 @@
+
+> catscan:sync
+> node tools/check-catscan.mjs --write
+
+CATSCAN index wrote docs/component-index.md with 39 components.

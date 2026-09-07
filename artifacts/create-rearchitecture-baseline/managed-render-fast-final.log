@@ -1,0 +1,192 @@
+
+> check:fast
+> npm run catscan:check && npm run folder-contracts:ci && npm run check:source-size && npm run check:runtime-entrypoint && npm run check:world-entrypoint && npm run check:artifacts && npm run check:pipeline-map && node tools/run-test-files.mjs --fail-fast tests/data-workbench.test.cjs tests/browser-harness.test.cjs tests/browser-memory-receipt.test.cjs tests/catscan.test.cjs tests/causal-phase-diagnosis.test.cjs tests/compile-human-reviews.test.cjs tests/governing-metric.test.cjs tests/gpu-supercluster.test.cjs tests/phase-module-registry.test.cjs tests/profile-program.test.cjs tests/profile-world-spec.test.cjs tests/shared-domain-contracts.test.cjs tests/world-spec-reconciliation.test.cjs tests/world-spec-reconciliation-controller.test.cjs tests/world-spec.test.cjs tests/world-proof.test.cjs tests/world-runtime-loader.test.cjs tests/js-shape-architecture.test.cjs tests/js-shape-model-data.test.cjs tests/js-shape-runtime-progress.test.cjs tests/js-shape-browser-render.test.cjs
+
+
+> catscan:check
+> node tools/check-catscan.mjs
+
+CATSCAN valid: 39 recursive component charters and synchronized index.
+
+> folder-contracts:ci
+> node tools/check-folder-contracts.mjs --contract docs/simulatte/folder-contract.json --schema docs/simulatte/folder-contract.schema.json --repository-root . --allow-unavailable-external-sources
+
+Folder contract valid: simulatte; 850 directories, 70 nodes, 58 affected nodes.
+{
+  "changedFiles": 48,
+  "commands": [
+    "git diff --check",
+    "node --test tests/asteroid-defense.test.cjs",
+    "node --test tests/autonomy.test.cjs",
+    "node --test tests/cable-trader.test.cjs",
+    "node --test tests/folder-contracts.test.cjs",
+    "node --test tests/gpu-supercluster.test.cjs",
+    "node --test tests/multirate-coordinator.test.cjs tests/simulation-residency-manager.test.cjs tests/plugin-compositor-runtime.test.cjs tests/tier-run-controller.test.cjs",
+    "node --test tests/navigation-lifecycle.test.cjs tests/plugin-compositor-runtime.test.cjs",
+    "node --test tests/neighborhood-bulk-pool.test.cjs",
+    "node --test tests/nyc-real-estate.test.cjs",
+    "node --test tests/plugin-platform.test.cjs",
+    "node --test tests/plugin-platform.test.cjs tests/tier-application-loader.test.cjs",
+    "node --test tests/sun-walker-visual-storytelling.test.cjs",
+    "node --test tests/world-tile-manager.test.cjs tests/recursive-spatial-residency.test.cjs tests/recursive-world-webgpu-renderer.test.cjs tests/recursive-world-proof.test.cjs",
+    "npm run audit:simulatte:browser -- --check",
+    "npm run audit:simulatte:evidence",
+    "npm run audit:simulatte:reviews",
+    "npm run check:artifacts",
+    "npm run check:blank",
+    "npm run check:deploy",
+    "npm run check:fast",
+    "npm run check:hosting",
+    "npm run check:model-candidates",
+    "npm run check:model-lock",
+    "npm run check:model-populations",
+    "npm run check:runtime-entrypoint",
+    "npm run check:simulatte",
+    "npm run check:simulatte:evidence",
+    "npm run check:simulatte:reviews",
+    "npm run check:world",
+    "npm run check:world-entrypoint",
+    "npm run folder-contracts:check",
+    "npm run plugins:check",
+    "npm run qualify:recursive-reference",
+    "npm run samer:simulatte:check",
+    "npm run simulatte:tiers:check",
+    "npm run validate:universe",
+    "npm run validate:visual-cards",
+    "npm test"
+  ],
+  "browserJourneys": [
+    "/city/cable-trader-pickup-v1",
+    "/city/neighborhood-bulk-pool-v1",
+    "/city/nyc-development-atlas-v1",
+    "/city/sun-walker-v1",
+    "/country/food-recall-us-v1",
+    "/country/grid-resilience-us-v1",
+    "/datacenter/gpu-supercluster-v1",
+    "/recursive-reference.html",
+    "/solar-system/asteroid-defense-v1",
+    "/solar-system/orbital-transfer-planner-v1",
+    "/star-chart/interstellar-relay-network-v1",
+    "/world/maritime-trade-global-v1",
+    "/world/subsea-network-global-v1"
+  ]
+}
+
+> check:source-size
+> node tools/check-source-size.mjs
+
+SOURCE-SIZE warning 979 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js
+SOURCE-SIZE warning 978 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval.js
+SOURCE-SIZE warning 953 public/shared/plugins/nyc-real-estate/forecast-model.js
+SOURCE-SIZE warning 952 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js
+SOURCE-SIZE warning 950 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js
+SOURCE-SIZE warning 946 public/blank/pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js
+SOURCE-SIZE warning 938 public/blank/pipeline/phase-06-visual/simulatte-object-geometry-grammars.js
+SOURCE-SIZE warning 930 public/simulatte/language/simulatte-universe-parser.js
+SOURCE-SIZE warning 929 public/blank/pipeline/phase-05-simulation/simulatte-physics-ir-builder.js
+SOURCE-SIZE warning 928 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-selection-layout.js
+SOURCE-SIZE warning 923 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-programs.js
+SOURCE-SIZE warning 923 public/shared/core/simulation/multirate-coordinator.js
+SOURCE-SIZE warning 919 public/shared/plugins/neighborhood-bulk-pool/pool-solver.js
+SOURCE-SIZE warning 917 public/blank/pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js
+SOURCE-SIZE warning 917 public/simulatte/app/webgpu-renderer.js
+SOURCE-SIZE warning 913 public/simulatte/app/multi-tier-visualizer.js
+SOURCE-SIZE warning 912 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-runtime-language.js
+SOURCE-SIZE warning 910 public/shared/plugins/nyc-real-estate/v4-contribution.js
+SOURCE-SIZE warning 905 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js
+SOURCE-SIZE warning 900 public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js
+SOURCE-SIZE warning 890 public/shared/contracts/world-spec.js
+SOURCE-SIZE warning 877 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank.js
+SOURCE-SIZE warning 875 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-materials.js
+SOURCE-SIZE warning 870 public/blank/pipeline/phase-05-simulation/simulatte-physics-catalog-templates.js
+SOURCE-SIZE warning 869 public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js
+SOURCE-SIZE warning 866 public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag-helpers.js
+SOURCE-SIZE warning 865 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-helpers.js
+SOURCE-SIZE warning 860 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js
+SOURCE-SIZE warning 860 public/blank/pipeline/phase-07-render/simulatte-render-proof.js
+SOURCE-SIZE warning 857 public/blank/app/prompt/prompt-controller-workers.js
+SOURCE-SIZE warning 854 public/simulatte/app/webgpu-geometry.js
+SOURCE-SIZE warning 836 public/shared/plugins/sun-walker/sun-route-simulation.js
+SOURCE-SIZE warning 832 public/simulatte/mission/mission-compiler.js
+SOURCE-SIZE warning 826 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js
+SOURCE-SIZE warning 825 public/simulatte/app/main.js
+SOURCE-SIZE warning 824 public/blank/pipeline/phase-05-simulation/simulatte-solver-compiler.js
+SOURCE-SIZE warning 803 public/shared/plugins/sun-walker/sun-exposure.js
+SOURCE-SIZE warning 799 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js
+SOURCE-SIZE warning 799 public/shared/plugins/interstellar-relay-network/index.js
+SOURCE-SIZE warning 796 public/blank/app/loading/loading-canvas.js
+SOURCE-SIZE warning 787 public/shared/plugins/neighborhood-bulk-pool/index.js
+SOURCE-SIZE warning 785 public/blank/app/runtime/runtime-progress-support.js
+SOURCE-SIZE warning 785 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-spec-api.js
+SOURCE-SIZE warning 785 public/blank/pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js
+SOURCE-SIZE warning 784 public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag-surface-cards.js
+SOURCE-SIZE warning 769 public/shared/plugins/maritime-trade-global/index.js
+SOURCE-SIZE warning 767 public/blank/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-helpers.js
+SOURCE-SIZE warning 767 public/shared/contracts/world-proof-intent.js
+SOURCE-SIZE warning 762 public/blank/pipeline/phase-06-visual/simulatte-visual-operator-compiler.js
+SOURCE-SIZE warning 757 public/blank/app/prompt/prompt-controller-lab-controller.js
+SOURCE-SIZE warning 757 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-visual-genome.js
+SOURCE-SIZE pass warnings=51 maximum=999
+
+> check:runtime-entrypoint
+> node tools/sync-runtime-script-entrypoint.mjs
+
+runtime script entrypoint is synchronized
+
+> check:world-entrypoint
+> node tools/check-world-runtime-entrypoint.mjs
+
+World runtime entrypoint is synchronized (13 eager scripts, 235 inventoried, 5 exclusive stages).
+
+> check:artifacts
+> node tools/sync-generated-artifact-inventory.mjs
+
+Generated artifact inventory is synchronized (9 artifacts).
+
+> check:pipeline-map
+> node tools/check-pipeline-engineering-map.mjs
+
+Pipeline engineering map resolved 16 jobs with owners, tests, validators, browser gates, and evidence.
+START browser-harness.test.cjs
+START browser-memory-receipt.test.cjs
+PASSED browser-memory-receipt.test.cjs tests=2
+START catscan.test.cjs
+PASSED browser-harness.test.cjs tests=7
+START causal-phase-diagnosis.test.cjs
+PASSED catscan.test.cjs tests=5
+START compile-human-reviews.test.cjs
+PASSED causal-phase-diagnosis.test.cjs tests=5
+START data-workbench.test.cjs
+PASSED compile-human-reviews.test.cjs tests=1
+START governing-metric.test.cjs
+PASSED data-workbench.test.cjs tests=11
+START gpu-supercluster.test.cjs
+PASSED governing-metric.test.cjs tests=3
+START js-shape-architecture.test.cjs
+PASSED gpu-supercluster.test.cjs tests=18
+START js-shape-browser-render.test.cjs
+PASSED js-shape-architecture.test.cjs tests=8
+PASSED js-shape-browser-render.test.cjs tests=13
+START js-shape-model-data.test.cjs
+START js-shape-runtime-progress.test.cjs
+PASSED js-shape-runtime-progress.test.cjs tests=11
+START phase-module-registry.test.cjs
+PASSED phase-module-registry.test.cjs tests=3
+START profile-program.test.cjs
+PASSED js-shape-model-data.test.cjs tests=17
+START profile-world-spec.test.cjs
+PASSED profile-program.test.cjs tests=10
+START shared-domain-contracts.test.cjs
+PASSED shared-domain-contracts.test.cjs tests=6
+START world-proof.test.cjs
+PASSED profile-world-spec.test.cjs tests=9
+START world-runtime-loader.test.cjs
+PASSED world-runtime-loader.test.cjs tests=3
+START world-spec-reconciliation-controller.test.cjs
+PASSED world-spec-reconciliation-controller.test.cjs tests=3
+START world-spec-reconciliation.test.cjs
+PASSED world-spec-reconciliation.test.cjs tests=7
+START world-spec.test.cjs
+PASSED world-proof.test.cjs tests=26
+PASSED world-spec.test.cjs tests=17
+TEST-RUN files=21/21 tests=185 passed=21 failed=0

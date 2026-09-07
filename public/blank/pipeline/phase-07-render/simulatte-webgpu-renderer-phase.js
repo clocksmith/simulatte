@@ -10,10 +10,8 @@
 
   async function executeRenderPhase(renderer, previous, suppliedInvocation, signal) {
     contracts.assertPhaseEnvelope(previous, 6, 'Managed render predecessor');
+    previous = contracts.immutableArtifact(previous);
     const invocation = contracts.immutableArtifact(contracts.validateInvocation(7, suppliedInvocation));
-    if (invocation.simulationSnapshot.t !== invocation.frame.simulationTime) {
-      throw phaseError('SIMULATTE_PHASE_INVALID', 'Simulation snapshot t contradicts the declared frame time');
-    }
     if (renderer.phaseInvocation) throw phaseError('SIMULATTE_RENDER_BUSY', 'Renderer already owns an active phase');
     const token = { invocation, input: null, cancelled: false };
     renderer.phaseInvocation = token;
@@ -30,6 +28,11 @@
     signal?.addEventListener('abort', abort, { once: true });
     try {
       assertCurrent();
+      const snapshot = await inputs.resolveSimulationSnapshot(invocation.simulationSnapshot, previous);
+      if (snapshot.state.t !== invocation.frame.simulationTime) {
+        throw phaseError('SIMULATTE_PHASE_INVALID', 'Simulation snapshot t contradicts the declared frame time');
+      }
+      assertCurrent();
       await renderer.initPromise;
       assertCurrent();
       if (!renderer.isReady()) throw renderer.initializationError || phaseError('webgpu_unavailable', 'Renderer is not ready');
@@ -38,8 +41,8 @@
       if (!Number.isSafeInteger(maximum) || invocation.viewport.width > maximum || invocation.viewport.height > maximum) {
         throw phaseError('SIMULATTE_RESOURCE_EXHAUSTED', 'Viewport exceeds the qualified device texture limit');
       }
-      token.input = contracts.immutableArtifact(inputs.createRenderExecutionInput(previous,
-        invocation.simulationSnapshot, invocation.viewport));
+      token.input = contracts.immutableArtifact({ ...inputs.createRenderExecutionInput(previous,
+        snapshot.state, invocation.viewport), worldProofBinding: snapshot.worldProofBinding });
       renderer.setRenderExecutionInput(token.input);
       const started = performance.now();
       let attempts = 0;

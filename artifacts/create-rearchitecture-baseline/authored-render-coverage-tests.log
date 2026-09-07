@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: neutral pixel colors retain bounded shading without requiring chromatic saturation
+ok 1 - neutral pixel colors retain bounded shading without requiring chromatic saturation
+  ---
+  duration_ms: 4.718791
+  type: 'test'
+  ...
+# Subtest: directed action pixel evidence must include both exact participants
+ok 2 - directed action pixel evidence must include both exact participants
+  ---
+  duration_ms: 3665.661416
+  type: 'test'
+  ...
+# Subtest: part ownership proof rejects missing, detached, and wrongly owned submitted parts
+ok 3 - part ownership proof rejects missing, detached, and wrongly owned submitted parts
+  ---
+  duration_ms: 2509.183538
+  type: 'test'
+  ...
+# Subtest: Phase 7 sparse readback covers every required construction obligation above the old cap
+ok 4 - Phase 7 sparse readback covers every required construction obligation above the old cap
+  ---
+  duration_ms: 3517.838174
+  type: 'test'
+  ...
+# Subtest: Phase 7 retries a failed contrast proof at most three times for the same packet
+ok 5 - Phase 7 retries a failed contrast proof at most three times for the same packet
+  ---
+  duration_ms: 3395.784127
+  type: 'test'
+  ...
+# Subtest: Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+ok 6 - Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+  ---
+  duration_ms: 3640.999425
+  type: 'test'
+  ...
+# Subtest: Phase 7 samples the exact target entity before token-similar drawables
+ok 7 - Phase 7 samples the exact target entity before token-similar drawables
+  ---
+  duration_ms: 0.710375
+  type: 'test'
+  ...
+# Subtest: Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+ok 8 - Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+  ---
+  duration_ms: 2348.418869
+  type: 'test'
+  ...
+# Subtest: Phase 7 action proof samples the relation owner instead of a nearby object
+ok 9 - Phase 7 action proof samples the relation owner instead of a nearby object
+  ---
+  duration_ms: 2083.230308
+  type: 'test'
+  ...
+# Subtest: Phase 7 count proof requires every declared visible instance
+ok 10 - Phase 7 count proof requires every declared visible instance
+  ---
+  duration_ms: 2230.286319
+  type: 'test'
+  ...
+# Subtest: Phase 7 does not certify required visuals without live pixel readback
+ok 11 - Phase 7 does not certify required visuals without live pixel readback
+  ---
+  duration_ms: 1702.356162
+  type: 'test'
+  ...
+# Subtest: Phase 7 absence proof binds the compiled semantic submission to current texture readback
+ok 12 - Phase 7 absence proof binds the compiled semantic submission to current texture readback
+  ---
+  duration_ms: 1781.135569
+  type: 'test'
+  ...
+# Subtest: Phase 7 reports readback capacity overflow instead of truncating proof
+ok 13 - Phase 7 reports readback capacity overflow instead of truncating proof
+  ---
+  duration_ms: 2486.466549
+  type: 'test'
+  ...
+# Subtest: Phase 7 proves through only when final projected source geometry crosses the target
+ok 14 - Phase 7 proves through only when final projected source geometry crosses the target
+  ---
+  duration_ms: 4.488684
+  type: 'test'
+  ...
+# Subtest: Phase 7 rejects pixel evidence captured for a different scene packet
+ok 15 - Phase 7 rejects pixel evidence captured for a different scene packet
+  ---
+  duration_ms: 1744.876805
+  type: 'test'
+  ...
+# Subtest: Phase 6 lays out containment, entry, and between relations for final part geometry
+ok 16 - Phase 6 lays out containment, entry, and between relations for final part geometry
+  ---
+  duration_ms: 13326.368241
+  type: 'test'
+  ...
+# Subtest: worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+ok 17 - worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+  ---
+  duration_ms: 9745.630771
+  type: 'test'
+  ...
+# Subtest: phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+ok 18 - phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+  ---
+  duration_ms: 6.534524
+  type: 'test'
+  ...
+# Subtest: authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+ok 19 - authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+  ---
+  duration_ms: 13877.82627
+  type: 'test'
+  ...
+# Subtest: authored replay rejects changed provenance, cross-world sources and ignored authoring
+ok 20 - authored replay rejects changed provenance, cross-world sources and ignored authoring
+  ---
+  duration_ms: 7001.992605
+  type: 'test'
+  ...
+# Subtest: cancelling a worker phase stops its worker and stale events cannot poison its replacement
+ok 21 - cancelling a worker phase stops its worker and stale events cannot poison its replacement
+  ---
+  duration_ms: 1.785128
+  type: 'test'
+  ...
+# Subtest: worker failure terminates the failed instance and rejects pending and future calls
+ok 22 - worker failure terminates the failed instance and rejects pending and future calls
+  ---
+  duration_ms: 0.95994
+  type: 'test'
+  ...
+# Subtest: compatibility compile retains its WorldSpec result through the same worker protocol
+ok 23 - compatibility compile retains its WorldSpec result through the same worker protocol
+  ---
+  duration_ms: 3318.338793
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44993.706708

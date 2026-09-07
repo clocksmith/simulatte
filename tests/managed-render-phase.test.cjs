@@ -58,6 +58,18 @@ test('managed Phase 7 consumes explicit state and viewport and waits for both GP
   assert.equal(model.createRenderExecutionInput, inputs.createRenderExecutionInput);
 });
 
+test('managed rendering snapshots a mutable predecessor before asynchronous initialization', async () => {
+  const { renderer, invocation, previous, fence, mapped, calls } = fixture();
+  const mutable = JSON.parse(JSON.stringify(previous));
+  const originalPacket = contracts.canonicalJson(mutable.artifact.visualCompile.sceneRenderPacket);
+  const pending = renderer.renderPhase(mutable, invocation);
+  mutable.artifact.visualCompile.sceneRenderPacket.entities.length = 0;
+  await new Promise(setImmediate);
+  assert.equal(contracts.canonicalJson(calls[0].input.sceneRenderPacket), originalPacket);
+  fence.resolve(); mapped.resolve();
+  await pending;
+});
+
 test('cancellation clears evidence but retains ownership until in-flight GPU work settles', async () => {
   const { renderer, invocation, previous, fence, mapped } = fixture();
   const abort = new AbortController();
@@ -81,11 +93,47 @@ test('invalid predecessor, malformed invocation, contradictory time and texture 
   for (const [source, value, pattern] of [
     [{ ...previous, phase: 5 }, invocation, /predecessor/],
     [previous, { ...invocation, hidden: true }, /undeclared/],
+    [previous, { ...invocation, viewport: { ...invocation.viewport, hidden: true } }, /Undeclared/],
+    [previous, { ...invocation, frame: { ...invocation.frame, hidden: true } }, /Undeclared/],
+    [previous, { ...invocation, simulationSnapshot: { t: 0.25, params: { promptParse: {} } } }, /forbidden/],
     [previous, { ...invocation, simulationSnapshot: { t: 7 } }, /contradicts/],
     [previous, { ...invocation, viewport: { width: 2048, height: 200 } }, /texture limit/],
   ]) await assert.rejects(renderer.renderPhase(source, value), pattern);
   assert.equal(calls.length, 0);
   assert.equal(renderer.phaseInvocation, null);
+});
+
+test('declared simulation snapshots bind the authored program to its exact Phase 6 artifact', async () => {
+  const { renderer, previous, fence, mapped, calls } = fixture();
+  const state = model.stepSimulation(model.createSimulationState(spec), spec, 1 / 60);
+  const invocationPending = model.createRenderInvocation(spec, state,
+    { index: 1, simulationTime: state.t }, { width: 300, height: 200 });
+  state.t = 19;
+  const invocation = await invocationPending;
+  assert.equal(invocation.simulationSnapshot.state.t, 1 / 60);
+  const original = JSON.stringify(invocation);
+  state.t = 20;
+  assert.equal(JSON.stringify(invocation), original, 'The submitted snapshot is detached from live state');
+  const changed = JSON.parse(original);
+  changed.simulationSnapshot.worldProofBinding.worldSpec.contentHash = 'fnv1a32:00000000';
+  await assert.rejects(renderer.renderPhase(previous, changed), /snapshot digest mismatch/);
+  await assert.rejects(renderer.renderPhase({ ...previous, runtimeReceiptId: 'another-revision' }, invocation), /another Phase 6/);
+  const rebound = JSON.parse(original);
+  rebound.simulationSnapshot.worldProofBinding.interaction.contentHash = 'fnv1a32:00000000';
+  const { contentDigest, ...reboundContent } = rebound.simulationSnapshot;
+  rebound.simulationSnapshot.contentDigest = await contracts.artifactDigest(reboundContent);
+  await assert.rejects(renderer.renderPhase(previous, rebound), /interaction identity contradicts/);
+  assert.equal(calls.length, 0);
+  const pending = renderer.renderPhase(previous, invocation);
+  await new Promise(setImmediate);
+  fence.resolve(); mapped.resolve();
+  const output = await pending;
+  const execution = output.artifact.renderExecution;
+  assert.equal(execution.worldProofBinding.worldSpec.contentHash, spec.contentHash);
+  assert.equal(execution.worldProofBinding.interaction.contentHash, spec.interactionIR.contentHash);
+  assert.equal(execution.frameInvocation.simulationSnapshot.phase6Digest, await contracts.artifactDigest(previous));
+  assert.equal(calls[0].input.simulationState.t, 1 / 60);
+  assert.equal(calls[0].input.simulationState.worldProofBinding, undefined, 'Evidence is separate from solver state');
 });
 
 test('device loss and viewport corruption cannot produce a completed phase', async () => {

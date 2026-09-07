@@ -1,0 +1,190 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 12.321561
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 99.364308
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 19.168901
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 6.063424
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 63.963858
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.938245
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.61157
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 4460.209645
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+ok 9 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 2882.9953
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+ok 10 - WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+  ---
+  duration_ms: 1903.414684
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+ok 11 - WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+  ---
+  duration_ms: 885.647723
+  type: 'test'
+  ...
+# Subtest: synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+ok 12 - synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+  ---
+  duration_ms: 1328.228002
+  type: 'test'
+  ...
+# Subtest: compiled water state channels retain their entity owner through serializable phase artifacts
+ok 13 - compiled water state channels retain their entity owner through serializable phase artifacts
+  ---
+  duration_ms: 1413.443317
+  type: 'test'
+  ...
+# Subtest: invocation acquisition obeys cancellation and the phase deadline
+ok 14 - invocation acquisition obeys cancellation and the phase deadline
+  ---
+  duration_ms: 32.070086
+  type: 'test'
+  ...
+# Subtest: resource selection and immutable assets cannot change while a run waits
+ok 15 - resource selection and immutable assets cannot change while a run waits
+  ---
+  duration_ms: 10.166951
+  type: 'test'
+  ...
+# Subtest: integrity rejects array metadata and non-enumerable artifact fields
+ok 16 - integrity rejects array metadata and non-enumerable artifact fields
+  ---
+  duration_ms: 0.311748
+  type: 'test'
+  ...
+# Subtest: binding snapshots receipts and metadata and detects tampering outside artifact payloads
+ok 17 - binding snapshots receipts and metadata and detects tampering outside artifact payloads
+  ---
+  duration_ms: 3.361925
+  type: 'test'
+  ...
+# Subtest: public governing metric keeps machine proof, human proof, scope, and dimensions separate
+ok 18 - public governing metric keeps machine proof, human proof, scope, and dimensions separate
+  ---
+  duration_ms: 162.43748
+  type: 'test'
+  ...
+# Subtest: one critical prompt failure fails the governing machine gate instead of averaging away
+ok 19 - one critical prompt failure fails the governing machine gate instead of averaging away
+  ---
+  duration_ms: 140.151366
+  type: 'test'
+  ...
+# Subtest: governing metric rejects stale builds and incomplete boundary evidence
+ok 20 - governing metric rejects stale builds and incomplete boundary evidence
+  ---
+  duration_ms: 145.590035
+  type: 'test'
+  ...
+# Subtest: managed Phase 7 consumes explicit state and viewport and waits for both GPU and mapping completion
+ok 21 - managed Phase 7 consumes explicit state and viewport and waits for both GPU and mapping completion
+  ---
+  duration_ms: 2418.284872
+  type: 'test'
+  ...
+# Subtest: cancellation clears evidence but retains ownership until in-flight GPU work settles
+ok 22 - cancellation clears evidence but retains ownership until in-flight GPU work settles
+  ---
+  duration_ms: 14.840379
+  type: 'test'
+  ...
+# Subtest: invalid predecessor, malformed invocation, contradictory time and texture exhaustion submit no work
+ok 23 - invalid predecessor, malformed invocation, contradictory time and texture exhaustion submit no work
+  ---
+  duration_ms: 6.711736
+  type: 'test'
+  ...
+# Subtest: declared simulation snapshots bind the authored program to its exact Phase 6 artifact
+ok 24 - declared simulation snapshots bind the authored program to its exact Phase 6 artifact
+  ---
+  duration_ms: 213.680627
+  type: 'test'
+  ...
+# Subtest: device loss and viewport corruption cannot produce a completed phase
+ok 25 - device loss and viewport corruption cannot produce a completed phase
+  ---
+  duration_ms: 52.394967
+  type: 'test'
+  ...
+# Subtest: published Phase 7 evidence cannot change when live state or frame counters advance
+ok 26 - published Phase 7 evidence cannot change when live state or frame counters advance
+  ---
+  duration_ms: 2601.386558
+  type: 'test'
+  ...
+# Subtest: replacing input with the same packet invalidates its pending pixels and published evidence
+ok 27 - replacing input with the same packet invalidates its pending pixels and published evidence
+  ---
+  duration_ms: 1049.438898
+  type: 'test'
+  ...
+# Subtest: delayed texture readback proves the submitted state and viewport, not newer mutable inputs
+ok 28 - delayed texture readback proves the submitted state and viewport, not newer mutable inputs
+  ---
+  duration_ms: 1357.459253
+  type: 'test'
+  ...
+# Subtest: replacement, resize and disposal prevent late texture readback publication
+ok 29 - replacement, resize and disposal prevent late texture readback publication
+  ---
+  duration_ms: 3789.202083
+  type: 'test'
+  ...
+# Subtest: frame snapshots separate typed numeric state from runtime canvas handles
+ok 30 - frame snapshots separate typed numeric state from runtime canvas handles
+  ---
+  duration_ms: 1092.621835
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13217.003358

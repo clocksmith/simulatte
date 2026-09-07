@@ -1,0 +1,132 @@
+TAP version 13
+# Subtest: neutral pixel colors retain bounded shading without requiring chromatic saturation
+ok 1 - neutral pixel colors retain bounded shading without requiring chromatic saturation
+  ---
+  duration_ms: 2.064735
+  type: 'test'
+  ...
+# Subtest: directed action pixel evidence must include both exact participants
+ok 2 - directed action pixel evidence must include both exact participants
+  ---
+  duration_ms: 1277.885649
+  type: 'test'
+  ...
+# Subtest: part ownership proof rejects missing, detached, and wrongly owned submitted parts
+ok 3 - part ownership proof rejects missing, detached, and wrongly owned submitted parts
+  ---
+  duration_ms: 763.427892
+  type: 'test'
+  ...
+# Subtest: Phase 7 sparse readback covers every required construction obligation above the old cap
+ok 4 - Phase 7 sparse readback covers every required construction obligation above the old cap
+  ---
+  duration_ms: 1341.389818
+  type: 'test'
+  ...
+# Subtest: Phase 7 retries a failed contrast proof at most three times for the same packet
+ok 5 - Phase 7 retries a failed contrast proof at most three times for the same packet
+  ---
+  duration_ms: 1466.583172
+  type: 'test'
+  ...
+# Subtest: Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+ok 6 - Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+  ---
+  duration_ms: 1451.888794
+  type: 'test'
+  ...
+# Subtest: Phase 7 samples the exact target entity before token-similar drawables
+ok 7 - Phase 7 samples the exact target entity before token-similar drawables
+  ---
+  duration_ms: 0.38027
+  type: 'test'
+  ...
+# Subtest: Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+ok 8 - Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+  ---
+  duration_ms: 1247.204487
+  type: 'test'
+  ...
+# Subtest: color evidence covers each repeated drawable and rejects a wrong color on the second object
+not ok 9 - color evidence covers each repeated drawable and rejects a wrong color on the second object
+  ---
+  duration_ms: 857.934584
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/phase7-pixel-readback.test.cjs:205:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'fail' !== 'pass'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'pass'
+  actual: 'fail'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/phase7-pixel-readback.test.cjs:221:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Phase 7 action proof samples the relation owner instead of a nearby object
+ok 10 - Phase 7 action proof samples the relation owner instead of a nearby object
+  ---
+  duration_ms: 1179.428373
+  type: 'test'
+  ...
+# Subtest: Phase 7 count proof requires every declared visible instance
+ok 11 - Phase 7 count proof requires every declared visible instance
+  ---
+  duration_ms: 1399.131333
+  type: 'test'
+  ...
+# Subtest: Phase 7 does not certify required visuals without live pixel readback
+ok 12 - Phase 7 does not certify required visuals without live pixel readback
+  ---
+  duration_ms: 1082.938348
+  type: 'test'
+  ...
+# Subtest: Phase 7 absence proof binds the compiled semantic submission to current texture readback
+ok 13 - Phase 7 absence proof binds the compiled semantic submission to current texture readback
+  ---
+  duration_ms: 1072.644343
+  type: 'test'
+  ...
+# Subtest: Phase 7 reports readback capacity overflow instead of truncating proof
+ok 14 - Phase 7 reports readback capacity overflow instead of truncating proof
+  ---
+  duration_ms: 1381.690679
+  type: 'test'
+  ...
+# Subtest: Phase 7 proves through only when final projected source geometry crosses the target
+ok 15 - Phase 7 proves through only when final projected source geometry crosses the target
+  ---
+  duration_ms: 2.56083
+  type: 'test'
+  ...
+# Subtest: Phase 7 rejects pixel evidence captured for a different scene packet
+ok 16 - Phase 7 rejects pixel evidence captured for a different scene packet
+  ---
+  duration_ms: 941.009973
+  type: 'test'
+  ...
+# Subtest: Phase 6 lays out containment, entry, and between relations for final part geometry
+ok 17 - Phase 6 lays out containment, entry, and between relations for final part geometry
+  ---
+  duration_ms: 9325.77683
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 16
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 25135.036479

@@ -27,6 +27,8 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 - Bound semantic receipts pass through unchanged and never grant Phase 7 semantic authority.
 - Interaction receipts preserve the Phase 5 program hash, command transitions, changed channels, and visible-state consumption.
 - Published frame evidence is immutable. Delayed readback uses submitted state and viewport; replacement inputs, interaction revisions, and resizing invalidate old pixels.
+- Managed rendering consumes a declared snapshot, frame, and viewport. WorldSpec evidence binds that snapshot to the exact Phase 6 artifact; it supplies no prompt or semantic authority.
+- Cancellation clears publication immediately and retains resource ownership until submitted work settles. Phase 8 remains a separate consumer.
 - Disposal, failed initialization, and late device acquisition release owned resources and cannot restore readiness or publish stale proof.
 
 ## Acceptance
@@ -34,8 +36,8 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 - Part ownership fails on detached, missing, or wrongly owned geometry. Directed motion requires execution evidence and visible pixels for both bound participants.
 - Evidence: [pixel and corruption regressions](../../../../tests/phase7-pixel-readback.test.cjs).
 - Pixel readback binds the executed packet, device, and frame result.
-- Evidence: [pixel readback tests](../../../../tests/phase7-pixel-readback.test.cjs).
 - Evidence: [frame evidence regressions](../../../../tests/renderer-frame-evidence.test.cjs).
+- Evidence: [managed rendering regressions](../../../../tests/managed-render-phase.test.cjs).
 
 ## Non-goals
 

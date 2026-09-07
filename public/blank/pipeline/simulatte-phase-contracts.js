@@ -419,7 +419,24 @@
     const allowed = phaseNumber === 7 ? ['simulationSnapshot', 'frame', 'viewport'] : [];
     if (Object.keys(invocation).some(key => !allowed.includes(key))) throw new Error(`Phase ${phaseNumber}: undeclared invocation input`);
     if (phaseNumber === 7) {
-      for (const key of allowed) if (!invocation[key] || typeof invocation[key] !== 'object') throw new Error(`Phase 7 invocation requires ${key}`);
+      for (const key of allowed) if (!invocation[key] || typeof invocation[key] !== 'object' || Array.isArray(invocation[key])) throw new Error(`Phase 7 invocation requires ${key}`);
+      const keys = (value, permitted, label) => {
+        if (Object.keys(value).some(key => !permitted.includes(key))) throw new Error(`Undeclared ${label} field`);
+      };
+      keys(invocation.frame, ['index', 'simulationTime'], 'frame');
+      keys(invocation.viewport, ['width', 'height'], 'viewport');
+      const snapshot = invocation.simulationSnapshot;
+      if (Object.hasOwn(snapshot, 'schema')) {
+        if (snapshot.schema !== 'simulatte.renderSimulationSnapshot.v1') throw new Error('Unsupported render simulation snapshot schema');
+        keys(snapshot, ['schema', 'state', 'worldProofBinding', 'phase6Digest', 'contentDigest'], 'simulation snapshot');
+        if (!snapshot.state || typeof snapshot.state !== 'object' || Array.isArray(snapshot.state)) throw new Error('Simulation snapshot requires state');
+        if (!snapshot.worldProofBinding || typeof snapshot.worldProofBinding !== 'object' || Array.isArray(snapshot.worldProofBinding)) throw new Error('Simulation snapshot requires WorldSpec binding');
+        for (const key of ['phase6Digest', 'contentDigest']) {
+          if (!/^sha256:[a-f0-9]{64}$/.test(snapshot[key] || '')) throw new Error(`Invalid simulation snapshot ${key}`);
+        }
+      }
+      const forbidden = firstForbiddenField(snapshot, PHASE_CONTRACTS[7].forbiddenUpstreamReads);
+      if (forbidden) throw new Error(`Phase 7 invocation contains forbidden upstream field ${forbidden}`);
       for (const key of ['width', 'height']) {
         if (!Number.isSafeInteger(invocation.viewport[key]) || invocation.viewport[key] < 1) throw new Error(`Invalid viewport ${key}`);
       }

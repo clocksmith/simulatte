@@ -202,6 +202,28 @@ test('Phase 7 color proof samples distinct bound parts instead of one occludable
   assert.ok(samples.some((row) => ['panel', 'appendage'].includes(row.constructionRole)));
 });
 
+test('color evidence covers each repeated drawable and rejects a wrong color on the second object', () => {
+  const spec = lab.createSpecFromPrompt('two red cats', { deterministicRuntime: true });
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 480 });
+  const data = rendererScope.compileSceneRenderData(input.sceneRenderPacket);
+  data.requireLivePixelSamples = true;
+  const color = input.visualObligations.find(row => row.expectedValue === '#ef3340');
+  const plan = rendererScope.phase7PixelReadbackPlan(data, input.sceneRenderPacket, input, { width: 640, height: 480 });
+  const rows = plan.samples.filter(row => row.obligationId === color.obligationId);
+  const ids = [...new Set(rows.map(row => row.drawableId))];
+  assert.equal(ids.length, 2);
+  assert.ok(rows.every(row => row.expectedDrawableIds.length === 2));
+  const proof = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+  const audit = samples => proof.auditLivePixelSamples(proof.normalizePhase7PixelSamples(samples), {
+    required: true, drawableCount: 2, proofSummary: { requiredObligationIds: [color.obligationId] },
+  });
+  const valid = rows.map(row => ({ ...row, rgba: [200, 35, 45, 255] }));
+  assert.equal(audit(valid).status, 'pass');
+  const invalid = valid.map(row => row.drawableId === ids[1] ? { ...row, rgba: [17, 118, 50, 255] } : row);
+  assert.equal(audit(invalid).drawableCoverageSatisfied, false);
+  assert.equal(audit(invalid).status, 'fail');
+});
+
 test('Phase 7 action proof samples the relation owner instead of a nearby object', () => {
   const spec = lab.createSpecFromPrompt('airplane flying over trees', { allowPrototypeFallback: true });
   const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });

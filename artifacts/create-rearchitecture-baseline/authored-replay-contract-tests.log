@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: editor audit retains page evidence and screenshot identity without replacing the failure
+ok 1 - editor audit retains page evidence and screenshot identity without replacing the failure
+  ---
+  duration_ms: 78.03921
+  type: 'test'
+  ...
+# Subtest: a lost browser still leaves the original failure and capture errors on disk
+ok 2 - a lost browser still leaves the original failure and capture errors on disk
+  ---
+  duration_ms: 2.185505
+  type: 'test'
+  ...
+# Subtest: public governing metric keeps machine proof, human proof, scope, and dimensions separate
+ok 3 - public governing metric keeps machine proof, human proof, scope, and dimensions separate
+  ---
+  duration_ms: 326.541694
+  type: 'test'
+  ...
+# Subtest: one critical prompt failure fails the governing machine gate instead of averaging away
+ok 4 - one critical prompt failure fails the governing machine gate instead of averaging away
+  ---
+  duration_ms: 143.774012
+  type: 'test'
+  ...
+# Subtest: governing metric rejects stale builds and incomplete boundary evidence
+ok 5 - governing metric rejects stale builds and incomplete boundary evidence
+  ---
+  duration_ms: 254.437801
+  type: 'test'
+  ...

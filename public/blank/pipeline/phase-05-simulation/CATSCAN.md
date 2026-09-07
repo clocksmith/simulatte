@@ -12,7 +12,7 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 
 ## Scope
 
-- Phase 5 compilation and solvers.
+- Compilation and solvers.
 
 ## Contracts
 
@@ -30,9 +30,9 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 - Render-addressable rows retain source evidence.
 - Directed motion binds subject and target state channels using bounded planar steering, without cognition or collision physics.
 - Solver receipts name executed operators and reject missing or non-finite state.
-- Create owns its explicit WorldSpec determinism, dependency, and safety defaults; shared validators do not invent them.
+- Create owns WorldSpec determinism, dependency, and safety defaults; shared validators cannot invent them.
 - Imported WorldSpec programs rebuild typed phase evidence, retain authored authority, and fail closed when their execution bindings are incompatible.
-- WorldSpec projects authoring, ordered channels, and visuals; normalization preserves Phase 6 bindings and rejects contradictions.
+- WorldSpec projections preserve authoring, channels, visuals, and Phase 6 bindings; contradictions reject. Render snapshots bind WorldSpec and exact Phase 6.
 - Simulation reproducibility uses two fresh states, the declared fixed-step policy, and a typed state comparison receipt.
 - Every applied interaction command retains its program identity and recomputable before/after state; a no-op cannot prove a transition.
 - Declared safety rules execute at every fixed-step checkpoint in two fresh runs; missing, blocking, or divergent decisions fail closed.

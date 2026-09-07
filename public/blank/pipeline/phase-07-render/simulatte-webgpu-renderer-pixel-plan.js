@@ -221,12 +221,13 @@
       }
       const matched = drawablesForPixelObligation(drawables, obligation).slice(0, expectedSamples);
       if (phase7ExpectedColor(obligation.expectedValue)) {
-        const drawable = matched[0];
+        const expectedDrawableIds = matched.map(row => row.id);
+        for (const drawable of matched) {
         const projectedParts = uniqueProjectedConstructionParts(phase7ProjectedObjectPartPoints(
           renderData,
           { ...obligation, targetEntityId: drawable && drawable.id || obligation.targetEntityId },
           Number(renderData.pixelReadbackTimeMs || 0) * 0.001
-        )).slice(0, expectedSamples);
+        )).slice(0, PHASE7_COLOR_PROPERTY_SAMPLE_LIMIT);
         for (const projected of projectedParts) {
           const sample = drawable && scope.pixelSampleForDrawable(
             drawable,
@@ -238,7 +239,10 @@
           );
           if (!sample) continue;
           applyProjectedPixelSample(sample, projected, width, height, obligation);
+          sample.schema = 'simulatte.phase7PixelSample.v2';
+          sample.expectedDrawableIds = expectedDrawableIds;
           samples.push(sample);
+        }
         }
         return;
       }
@@ -368,10 +372,10 @@
       if (obligation.simulationBinding?.targetEntityId) return (obligation.simulationBinding.entityIds?.length || 1) +
         (obligation.simulationBinding.targetEntityIds?.length || 1);
       if (phase7ExpectedColor(obligation.expectedValue)) {
-        const candidateCount = phase7ProjectedObjectPartPoints(
-          renderData || {}, obligation, Number(renderData && renderData.pixelReadbackTimeMs || 0) * 0.001
-        ).length;
-        return Math.max(1, Math.min(PHASE7_COLOR_PROPERTY_SAMPLE_LIMIT, candidateCount || 1));
+        const drawables = drawablesForPixelObligation(renderData?.drawables || [], obligation);
+        return Math.max(1, drawables.reduce((count, drawable) => count + Math.max(1, Math.min(PHASE7_COLOR_PROPERTY_SAMPLE_LIMIT,
+          uniqueProjectedConstructionParts(phase7ProjectedObjectPartPoints(renderData,
+            { ...obligation, targetEntityId: drawable.id }, Number(renderData.pixelReadbackTimeMs || 0) * 0.001)).length)), 0));
       }
       return phase7VisualRelationObligation(obligation)
         ? phase7DynamicRelationObligation(obligation) ? 1 : 2

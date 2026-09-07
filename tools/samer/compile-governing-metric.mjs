@@ -197,7 +197,7 @@ function evaluateBoundaryReport(source, boundarySet, boundarySetSha256, buildId)
   const boundary = boundarySet.rows.find((row) => row.id === binding.boundaryRowId);
   if (!boundary) throw new Error(`Boundary report references unknown row ${binding.boundaryRowId}`);
   const viewport = binding.viewport;
-  if (report?.schema !== 'simulatte.worldSpecEditorBrowserAudit.v1') {
+  if (!['simulatte.worldSpecEditorBrowserAudit.v1', 'simulatte.worldSpecEditorBrowserAudit.v2'].includes(report?.schema)) {
     throw new Error(`Boundary report ${source.pointer.path} has invalid schema`);
   }
   if (report.boundarySetId !== boundarySet.id || report.boundaryRowId !== boundary.id ||

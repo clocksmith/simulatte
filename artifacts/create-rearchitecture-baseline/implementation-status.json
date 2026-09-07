@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.createRearchitectureCheckpoint.v1",
-  "capturedAt": "2026-09-07T18:50:33.544284+00:00",
+  "capturedAt": "2026-09-07T19:30:34.858535+00:00",
   "contract": {
     "path": "/home/clocksmith/deco/simulatte/docs/create-pipeline-rearchitecture.md",
     "sha256": "403e868860cf981a6c5ae9da21b81adc7d9e333e466da092492c703162f5aed2"
@@ -41,7 +41,12 @@
     "Existing compiler worker supports individual declared phases 1 through 6 and 8, reusing localPhaseAdapters; Phase 7 remains the renderer owner. Cancellation terminates work, obsolete worker errors cannot poison replacement workers, failed workers cannot accept new requests, and compiler resource configuration must match ingress.",
     "Phase 7 pixel readback captures submitted simulation state, geometry, viewport, and timing before awaiting GPU mapping. Published output is immutable; advancing live state and counters cannot rewrite a retained receipt.",
     "Replacing an input with the same scene packet, changing interaction revision, resizing, and disposal invalidate stale pixel work. Invalidation clears obsolete Phase 8 and displayed WorldProof evidence. Readback settles and notifies only after its pixel status is current.",
-    "Browser editor audit verifies readback serial, render count, captured simulation receipt and viewport consistency; optional CPU profiling and per-boundary timing retain investigation evidence without changing acceptance limits."
+    "Browser editor audit verifies readback serial, render count, captured simulation receipt and viewport consistency; optional CPU profiling and per-boundary timing retain investigation evidence without changing acceptance limits.",
+    "Managed renderer.renderPhase consumes the exact Phase 6 predecessor and explicit simulation/frame/viewport invocation, awaits GPU completion and mapping, preserves exclusive ownership through cancellation, and leaves Phase 8 settlement to the runner.",
+    "Phase 7 owns render-execution input construction, with the existing model API retained as a compatibility alias.",
+    "Versioned immutable simulation snapshots carry WorldSpec evidence separately from solver state and bind the exact Phase 6 SHA-256. Mutation, mismatched predecessors, contradictory interaction program identity, forbidden upstream fields and undeclared frame/viewport fields reject.",
+    "Governing-metric component tests use a hashed frozen input fixture rather than mutable historical evidence pointers; fixture evidence does not qualify the current build.",
+    "WorldSpec runtime owns createRenderInvocation; Phase 7 validates and consumes the evidence projection without reading WorldSpec renderProgram fields. Direct render calls snapshot mutable Phase 6 inputs before awaiting initialization."
   ],
   "evidence": [
     {
@@ -260,6 +265,41 @@
       "command": "npm run catscan:sync; npm run catscan:check; node scripts/sync-simulatte-folder-contract.mjs --write (Ouroboros); npm run folder-contracts:update; npm run sync:artifacts",
       "result": "passed",
       "path": "render-frame-charters.log"
+    },
+    {
+      "command": "node --test tests/managed-render-phase.test.cjs tests/create-phase-runner.test.cjs tests/renderer-frame-evidence.test.cjs tests/governing-metric.test.cjs",
+      "result": "30 passed, exit 0",
+      "path": "managed-render-snapshot-final-tests.log"
+    },
+    {
+      "command": "node --test tests/managed-render-phase.test.cjs",
+      "result": "Retained failed mutable-predecessor regression used noncanonical JSON ordering; corrected regression passes in managed-render-shape-snapshot-final.log",
+      "path": "managed-render-snapshot-tamper-tests.log"
+    },
+    {
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-create-phase-worker.mjs --render",
+      "result": "Actual Chromium workers, Intel Gen12LP WebGPU, eight bound phases, passing pixel/scene proof, cancellation and recovery; component integration, not active application promotion",
+      "path": "managed-render-browser/receipt.json"
+    },
+    {
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --out artifacts/create-rearchitecture-baseline/managed-render-editor-compatibility",
+      "result": "exit 0; compatibility editor, edits, reconciliation, interaction and replay pass unchanged acceptance",
+      "path": "managed-render-editor-compatibility/1440x1000.json"
+    },
+    {
+      "command": "node --test tests/js-shape-browser-render.test.cjs tests/managed-render-phase.test.cjs",
+      "result": "19 passed, exit 0; 13 architecture checks and 6 managed rendering regressions",
+      "path": "managed-render-shape-snapshot-final.log"
+    },
+    {
+      "command": "npm run check:fast",
+      "result": "exit 0; TEST-RUN files=21/21 tests=185 passed=21 failed=0",
+      "path": "managed-render-fast-final.log"
+    },
+    {
+      "command": "git diff --check",
+      "result": "exit 0",
+      "path": null
     }
   ],
   "retainedFailures": [
@@ -293,7 +333,15 @@
     "render-frame-editor-isolated/1440x1000-failure.json",
     "render-frame-editor-profile/1440x1000-failure.json",
     "render-frame-editor-settlement/1440x1000-failure.json",
-    "render-frame-control/1440x1000-failure.json"
+    "render-frame-control/1440x1000-failure.json",
+    "managed-render-browser/failure.4379f12c047599e2b2b540254bd7f52cf2fc75ec85f6402a9ec0fcf668168031.json",
+    "managed-render-browser/failure.json",
+    "managed-render-charters.log",
+    "managed-render-fast.log",
+    "managed-render-fast-shape-failure.log",
+    "managed-render-shape-tests.log",
+    "managed-render-snapshot-tamper-tests.log",
+    "managed-render-fast-mixed-revision.log"
   ],
   "remainingRequirements": [
     "Integrate the runner into active asynchronous compiler dispatch and rendering without adding a ninth phase; initial WorldSpec projection is implemented and verified, but full authored-program runner integration remains",
@@ -310,7 +358,7 @@
     "Full unit/integration/Create/World/render/browser checks, physical hardware evidence, required human review, and final deployment status",
     "Catalog documentation check has an unrelated missing Doppler ADR reference: docs/adr/0001-dual-hexagon-pack-spine.md; retained in catalog-doc-check.log"
   ],
-  "nextBoundary": "Add the actual renderer resource operation for declared Phase 7 simulationSnapshot/frame/viewport invocation, await GPU completion with cancellation/revision ownership, and connect the active controller to the runner while preserving authored reconciliation and replay. Current worker phase RPC and immutable frame readback are implemented; managed runner rendering and application dispatch are not.",
+  "nextBoundary": "Integrate the existing runner into active asynchronous compiler dispatch and renderer coordination, preserving authored reconciliation/import/replay, compiler proof, cancellation, construction attempts and UI publication. Actual worker RPC, managed renderer operation and bound snapshot/WorldSpec evidence now execute through eight phases in Chrome; the active page still uses compatibility orchestration.",
   "latestChangedSourceFiles": [
     "public/blank/app/CATSCAN.md",
     "public/blank/app/prompt/prompt-controller-workers.js",
@@ -336,10 +384,15 @@
     "public/blank/pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js",
     "public/blank/pipeline/phase-07-render/CATSCAN.md",
     "public/blank/pipeline/phase-07-render/simulatte-render-evidence-binding.js",
+    "public/blank/pipeline/phase-07-render/simulatte-render-execution-input.js",
     "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-frame-evidence.js",
+    "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-phase.js",
     "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js",
     "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js",
+    "public/blank/pipeline/simulatte-phase-contracts.js",
+    "public/data/generated-artifact-inventory.json",
     "tests/js-shape-suite.cjs",
+    "tests/managed-render-phase.test.cjs",
     "tests/pipeline-worker-phases.test.cjs",
     "tests/renderer-frame-evidence.test.cjs",
     "tests/world-spec-phase-projection.test.cjs",
@@ -359,42 +412,60 @@
     "Initial new-renderer browser runs exceeded 20000ms and are retained. Final desktop and narrow runs pass that same limit after obsolete proof clearing and single observer notification. Profiles are diagnostic; no universal performance improvement is claimed.",
     "The first prior-renderer substitution omitted an earlier uncommitted requiredFailures repair and failed before the journey; it is not a valid performance control. The corrected control retains that repair and passed.",
     "render-frame-desktop-final wrote a passing 16374ms report but the command exited 143 after receipt output. No browser process remained. The repeated render-frame-desktop-verified command exited 0; the earlier result is retained without claiming clean command completion.",
-    "Current frame evidence is from compatibility rendering; the active page still does not invoke the eight-phase runner. Explicit renderPhase invocation, strict nested frame contracts, learned generation qualification, full lantern behavior, and human acceptance remain required."
+    "The managed browser probe renders two catalog cats and verifies count/identity bindings; its screenshot does not establish human recognizability or open-language composition quality.",
+    "Managed-render browser integration does not establish active page dispatch, full WorldProof, learned generation, model/graphics co-residency, physical GPU allocation telemetry or human acceptance. No hosting deployment occurred.",
+    "Initial managed probe used the legacy magnetic-wheel state constructor; the subsequent corrected-state probe exposed missing WorldSpec interaction binding. Both failed artifacts remain retained; no acceptance verdict was weakened.",
+    "The architecture gate detected WorldSpec renderProgram access in the initial render-owned snapshot factory. The factory moved into the existing WorldSpec runtime; the renderer prohibition remains intact. A mutable-predecessor regression initially compared noncanonical JSON ordering, then used canonical serialization.",
+    "The broad gate correctly rejected a mixed revision when the browser cancellation probe changed while tests ran; the stable rerun passed, recorded in managed-render-fast-final.log. The latest browser probe cancels synchronously after actual GPU submission; previous preflight cancellation receipts do not establish in-flight GPU cancellation."
   ],
-  "sourceRevision": "80fd56ac0620a833a98359c2ad0a9d2d3f7f5bb6",
+  "sourceRevision": "e66528e2d7b1be6f371048b23932b5668ee6e38f",
   "changedSourceDigests": {
     "public/blank/app/CATSCAN.md": "1d9b32a9195d02332a6c866c21c9a1dd759b7e15e7ec89eada873a0970b46f6a",
     "public/blank/app/prompt/prompt-controller-workers.js": "174405ee3a8b79b06288d363868befc29645c484280bd950c04ee40d9e9848ae",
-    "public/blank/app/runtime-script-manifest.js": "535eb7188672e5066750b14aae0649579565d1c3fd30ea2b667116390609cfb6",
-    "public/blank/app/runtime/phase-runner.js": "932256238044d7f31e65f6d3203af5274bd893a376953684fce22d991132df5a",
+    "public/blank/app/runtime-script-manifest.js": "44b1b59bc12a0afed220a8d3c3f952a4bed31539520550ff16d02e791ef5aa6b",
+    "public/blank/app/runtime/phase-runner.js": "c32610231520d907dbbe37f4363ad66511fe4db0f795caa130e382020f2d607f",
     "public/blank/app/workers/simulatte-pipeline-worker.js": "076bd331fdeb36682fe73fd42593d987d325d020020fb921afbd22f9c758d6a4",
-    "public/blank/index.html": "c7c60b7c2bedb43eee8b3366e8febb6ba794acbeb601c4e0556858f21897f304",
+    "public/blank/index.html": "968ea6030a683e42a6ebe881da892acdd1967b78483472890e38495e78ddc1a8",
     "public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js": "13ffb80dbca649af3d9d04c60441f807e6c4a97adb9c044f1b1f876b0f0ee6a5",
     "public/blank/pipeline/phase-04-grounded-intent/CATSCAN.md": "0e3ab9aa984e27e7ec27839b16266979a285e1565ef9f111819af08e40890bd6",
     "public/blank/pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js": "772fb107e4ecf964d795a748fbff9bde9d13b6e1c1316449e2532b5ffd9f0310",
     "public/blank/pipeline/phase-04-grounded-intent/simulatte-user-override-grounding.js": "69e33dfbc8471edeafa381f2480b493d9f5ae76ad4b82cccbe78591bc2023b3e",
     "public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js": "4af6f06baebc67971b6d93f655eda3df1e68afa75b4d88f46210efdf5afb651f",
-    "public/blank/pipeline/phase-05-simulation/CATSCAN.md": "8176ca4fb7f99cfa5d23cf0d3b6d64760d25ac64f4f1f8248754e8ea45ff42ab",
+    "public/blank/pipeline/phase-05-simulation/CATSCAN.md": "6ec06e0970c40d346b62d5e3184e664b680ec98ffe6c231128c8a3a709086fe0",
     "public/blank/pipeline/phase-05-simulation/simulatte-physics-ir-builder.js": "fa119aab0ca62dc51e005264e7c6262bcbe7a177d1b40ada138f3dfba0dd278f",
     "public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js": "8a6d2ed8beae577147a96de4afe73102f1eeddd53ed16f1bb87aa2d210320b9e",
     "public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js": "cf8bf30c66c4bb46ad17eb330125761c80d8a64d685baeb3fa428c6ae88167d1",
-    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-execution.js": "dcdd2d8834a54500d8bcaa8129a9b4b7655ac51532b9ac2e7262eaeb93262d99",
+    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-execution.js": "8027449de258168609e464742a56d94b11258f057ae2a7487d6f54b3604ffb0a",
     "public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js": "2be5bff57ed659f60e1a1479e8037f8c355d03b4dbb43a2f3341fb6e214d7c53",
-    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js": "630a519df811b687312661e5f026b3e81c14017e235c30a46ab4f2daf723bb39",
-    "public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js": "572b2265bc7ad84328dc5d9d94d8fb4697833a0dda8257dacc870a47fa6438c8",
+    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js": "9ce7ddec46de4a405150d58f60162dae57f6a5a97f80d6628c134b7ab1d863c2",
+    "public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js": "d82942e6a3eb1a5fffe0ddddfcff550580a74a36958d477ba6e4761afc9edd47",
     "public/blank/pipeline/phase-06-visual/CATSCAN.md": "3fcf72f1293f441b13550945178628cd92544861bc248fa19df9efa19ee9f0ea",
     "public/blank/pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js": "c978ffe128e0fedc06b8476ccd2ff521e1929d3cc9f6b1708befb706f12771f5",
     "public/blank/pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js": "36f6ea6f0961ab753aefc4ac988ac4fd95d4ba561c58da7f72430d721b9da556",
-    "public/blank/pipeline/phase-07-render/CATSCAN.md": "14c5a1b2799051a8dc3f7cf9439c1391f509c33e24550776c2f531e429d5cedf",
+    "public/blank/pipeline/phase-07-render/CATSCAN.md": "307fe81d9ee1e25cc1923861d2dfe2719ad2377de6ff942f5486eeb3c44508de",
     "public/blank/pipeline/phase-07-render/simulatte-render-evidence-binding.js": "70713040cbda04d043afa845ef9c4d97df0cbaf729e88cec2a73068b9541c616",
+    "public/blank/pipeline/phase-07-render/simulatte-render-execution-input.js": "b25e8f29c87348ed3c88bb0ba627d6429d913eebd55808681d5b7d179ec975f2",
     "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-frame-evidence.js": "b55936df2e6fcb81a281bab28996e72b2b1c33ec0ecce98b67fab4559f3b99ea",
-    "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js": "8178f25b8c5378de0baa95b8974b80a6188af89c9bda3e70ac8a3e839f9768c9",
-    "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js": "aa8e6d36a7c9982f05b1d25980a603c1b750deff2db57e65dff7ebf5db588bfa",
-    "tests/js-shape-suite.cjs": "5a9b4835e8aa062d2c32225aaae4a319051930183c1183caaf0d5fa60239195b",
+    "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-phase.js": "5ebac1e1f27bb8e4ac928e51c594ba6bf69e3ff25efcf9adbcbe709b90b744bc",
+    "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js": "66119e5416267725c9a1b881161e233d9c7a5d6b0fcbeadd007c144f6c0bf7fc",
+    "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js": "b179a9034e2ec2a37503ec20acf275544ab6fd5c770dea889e8073577d755d9b",
+    "public/blank/pipeline/simulatte-phase-contracts.js": "85eae04e062b588dd9a6f6fc2915ce05c5b0353df26ab904f9b095fe61626bfe",
+    "public/data/generated-artifact-inventory.json": "2d0a2443eebf595804e3a5ba670900ecb886f5c27ba97e0baa41bcdd428b7cfd",
+    "tests/js-shape-suite.cjs": "6fb43de116aed382d20867d508c81bfaf9884a785f5b0f1989a453184b6e17e0",
+    "tests/managed-render-phase.test.cjs": "d5ada26a801213591139ea3cacc3de0e21cca9ac233a7fb862614f47cf2898dd",
     "tests/pipeline-worker-phases.test.cjs": "e02fb7a47ef0ead2a50ff341c07b9e7334c2997026c44021889ff9f386630243",
     "tests/renderer-frame-evidence.test.cjs": "634e351a4872254e7e461c7e68be9dc7f42d0aba4205893f1ee2c282b43efc25",
     "tests/world-spec-phase-projection.test.cjs": "e3408e4bf445065d448dbf489ab3e86f082dbdd8a011800b007d90f6e508bfe6",
-    "tools/audit-create-phase-worker.mjs": "9440cde41ead49dd5d88df833cd491c1d8f372d70d80962fd8ce0a92caf00652",
+    "tools/audit-create-phase-worker.mjs": "32ce6f3aedc19888d7d3cda9cd41fc69541ff5ec065aebe7edbb3186ae13ae9d",
     "tools/audit-world-spec-editor.mjs": "c28ac977fd10f93ba87323a16ad418a4cc5d3f6a8eeeea13b042b8f988eef620"
+  },
+  "workspaceSync": {
+    "rdpush": "completed, exit 0; published e66528e2d7b1be6f371048b23932b5668ee6e38f",
+    "rdpull": "completed, exit 0; aligned at the same revision",
+    "continuedChanges": "local working tree after synchronization",
+    "logs": [
+      "/tmp/simulatte-goal-rdpush.log",
+      "/tmp/simulatte-goal-rdpull.log"
+    ]
   }
 }

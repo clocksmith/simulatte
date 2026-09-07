@@ -142,12 +142,13 @@
           compile(prompt, options, onProgress = null) {
             return request('simulatte:pipeline-worker:compile', { prompt, options }, 'spec', onProgress);
           },
-          runPhase(phase, call, resources = {}, { signal, onProgress } = {}) {
+          runPhase(phase, call, resources = {}, { signal, onProgress, sourceMode = 'prompt' } = {}) {
             try {
               if (!Number.isInteger(phase) || phase < 1 || phase > 8 || phase === 7) {
                 throw new Error('Pipeline worker supports phases 1–6 and 8; Phase 7 requires the graphics owner');
               }
-              const payload = phaseContracts.immutableArtifact({ phase, call, resources });
+              if (!['prompt', 'authored'].includes(sourceMode)) throw new Error('Unsupported phase source mode');
+              const payload = phaseContracts.immutableArtifact({ phase, call, resources, sourceMode });
               return request('simulatte:pipeline-worker:phase', payload, 'output', onProgress, signal);
             } catch (error) {
               return Promise.reject(error);

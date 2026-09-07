@@ -661,7 +661,7 @@
           row.backgroundRgba || row.background || row.expectedBackground
         ));
       return {
-        schema: 'simulatte.phase7PixelSample.v1',
+        schema: 'simulatte.phase7PixelSample.v2',
         id: row && row.id || `sample:${index + 1}`,
         obligationId: row && (
           row.obligationId || row.obligation || row.targetObligationId
@@ -681,6 +681,7 @@
         constructionRole: row && row.constructionRole || '',
         constructionPartId: row && row.constructionPartId || '',
         expectedSampleCount: Math.max(1, Number(row && row.expectedSampleCount || 1)),
+        expectedDrawableIds: Array.isArray(row && row.expectedDrawableIds) ? [...new Set(row.expectedDrawableIds.map(String))] : [],
         colorSatisfied: promptPixelColorSatisfied(rgba, row && row.expectedValue),
         visible: row && row.visible === false ? false : rgba[3] >= 8 && contrast >= 0.02,
       };
@@ -715,11 +716,14 @@
     const minContrastValue = visibleSamples.length
       ? Math.min(...visibleSamples.map((row) => Number(row.contrast || 0)))
       : 0;
+    const drawableCoverageSatisfied = samples.every(row => (row.expectedDrawableIds || []).every(id =>
+      visibleSamples.some(sample => sample.obligationId === row.obligationId && sample.drawableId === id)));
     const obligationsSampled = (!required || pixelRequiredIds.length === 0 ||
-      pixelRequiredIds.every((id) => sampledRequiredIds.has(id))) && constructionCountsSatisfied;
+      pixelRequiredIds.every((id) => sampledRequiredIds.has(id))) && constructionCountsSatisfied && drawableCoverageSatisfied;
     const settledRequiredObligationCount = sampledRequiredIds.size + semanticAbsenceIds.length;
     return {
-      schema: 'simulatte.phase7LivePixelAudit.v1',
+      schema: 'simulatte.phase7LivePixelAudit.v2',
+      drawableCoverageSatisfied,
       required,
       sampleCount: samples.length,
       visibleSampleCount: visibleSamples.length,

@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: physics renderer is a browser coordinator, not a legacy Canvas2D painter library
+ok 1 - physics renderer is a browser coordinator, not a legacy Canvas2D painter library
+  ---
+  duration_ms: 4.424924
+  type: 'test'
+  ...
+# Subtest: physics loading uses a phase-reactive canvas Snake game instead of a card mosaic
+ok 2 - physics loading uses a phase-reactive canvas Snake game instead of a card mosaic
+  ---
+  duration_ms: 16.973303
+  type: 'test'
+  ...
+# Subtest: visual audit auto-judges prompt fidelity and motion with a rubric
+ok 3 - visual audit auto-judges prompt fidelity and motion with a rubric
+  ---
+  duration_ms: 4.477415
+  type: 'test'
+  ...
+# Subtest: prompt dock minimizes to corners without drag placement
+ok 4 - prompt dock minimizes to corners without drag placement
+  ---
+  duration_ms: 1.834689
+  type: 'test'
+  ...
+# Subtest: browser product exposes compiled world model receipts
+ok 5 - browser product exposes compiled world model receipts
+  ---
+  duration_ms: 1.857587
+  type: 'test'
+  ...
+# Subtest: composition renderer diversity lives in compiled graph and WebGPU operators
+ok 6 - composition renderer diversity lives in compiled graph and WebGPU operators
+  ---
+  duration_ms: 11.820072
+  type: 'test'
+  ...
+# Subtest: phase 8 renders compiled scene packets without semantic inference
+ok 7 - phase 8 renders compiled scene packets without semantic inference
+  ---
+  duration_ms: 7.180153
+  type: 'test'
+  ...
+# Subtest: WebGPU scene ids and object-part contracts cover emitted visual artifacts
+ok 8 - WebGPU scene ids and object-part contracts cover emitted visual artifacts
+  ---
+  duration_ms: 2.383171
+  type: 'test'
+  ...
+# Subtest: physics graph debug data is explicit and does not log every compiled world
+ok 9 - physics graph debug data is explicit and does not log every compiled world
+  ---
+  duration_ms: 1.622809
+  type: 'test'
+  ...
+# Subtest: pipeline phases consume only neighboring compiled artifacts after intent grounding
+ok 10 - pipeline phases consume only neighboring compiled artifacts after intent grounding
+  ---
+  duration_ms: 17.524543
+  type: 'test'
+  ...
+# Subtest: composition shape inference does not classify catalog provenance as cats
+ok 11 - composition shape inference does not classify catalog provenance as cats
+  ---
+  duration_ms: 1.335839
+  type: 'test'
+  ...
+# Subtest: Phase 6 composition accepts semantic authority only from its Phase 5 render boundary
+ok 12 - Phase 6 composition accepts semantic authority only from its Phase 5 render boundary
+  ---
+  duration_ms: 1.948902
+  type: 'test'
+  ...
+# Subtest: pipeline phases load Phase 3 retrieval boundary checks before retrieval work
+ok 13 - pipeline phases load Phase 3 retrieval boundary checks before retrieval work
+  ---
+  duration_ms: 0.289011
+  type: 'test'
+  ...
+# Subtest: managed Phase 7 consumes explicit state and viewport and waits for both GPU and mapping completion
+ok 14 - managed Phase 7 consumes explicit state and viewport and waits for both GPU and mapping completion
+  ---
+  duration_ms: 1197.118596
+  type: 'test'
+  ...
+# Subtest: managed rendering snapshots a mutable predecessor before asynchronous initialization
+ok 15 - managed rendering snapshots a mutable predecessor before asynchronous initialization
+  ---
+  duration_ms: 38.82014
+  type: 'test'
+  ...
+# Subtest: cancellation clears evidence but retains ownership until in-flight GPU work settles
+ok 16 - cancellation clears evidence but retains ownership until in-flight GPU work settles
+  ---
+  duration_ms: 42.9385
+  type: 'test'
+  ...
+# Subtest: invalid predecessor, malformed invocation, contradictory time and texture exhaustion submit no work
+ok 17 - invalid predecessor, malformed invocation, contradictory time and texture exhaustion submit no work
+  ---
+  duration_ms: 86.718816
+  type: 'test'
+  ...
+# Subtest: declared simulation snapshots bind the authored program to its exact Phase 6 artifact
+ok 18 - declared simulation snapshots bind the authored program to its exact Phase 6 artifact
+  ---
+  duration_ms: 211.796859
+  type: 'test'
+  ...
+# Subtest: device loss and viewport corruption cannot produce a completed phase
+ok 19 - device loss and viewport corruption cannot produce a completed phase
+  ---
+  duration_ms: 56.077529
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1961.858978

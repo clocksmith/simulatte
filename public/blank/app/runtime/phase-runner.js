@@ -191,7 +191,9 @@
 
   // Migration adapters call the existing transformations. Projection changes only
   // envelope versions; the exact predecessor artifact remains immutable.
-  function localPhaseAdapters(model, { workerResourceId = '' } = {}) {
+  function localPhaseAdapters(model, { workerResourceId = '', sourceMode = 'prompt' } = {}) {
+    if (!['prompt', 'authored'].includes(sourceMode)) throw new Error('Unsupported phase source mode');
+    const authored = sourceMode === 'authored';
     const operations = [
       (call, resources) => model.runPhase1RuntimeGate(call.previous.request.text, resources['compiler-options']),
       call => model.runPhase2LanguageGraph(call.previous),
@@ -205,12 +207,14 @@
     ];
     return operations.map((operation, index) => Object.freeze({
       phase: index + 1,
-      resourceIds: [...(index === 0 || index === 2 ? ['compiler-options'] : index === 6 ? ['renderer'] : []),
+      resourceIds: [...(index === 0 || index === 2 && !authored ? ['compiler-options'] : index === 6 ? ['renderer'] : []),
+        ...(authored && index < 6 ? [`authored-phase-${index + 1}`] : []),
         ...(workerResourceId && index !== 6 ? [workerResourceId] : [])],
       validateInput(call) {
         if (index === 0) {
-          if (call.previous.schema !== contracts.PHASE_ZERO_INPUT_SCHEMA || call.previous.request.kind !== 'prompt') throw new Error('Local interpretation requires prompt ingress');
+          if (call.previous.schema !== contracts.PHASE_ZERO_INPUT_SCHEMA || call.previous.request.kind !== (authored ? 'world-spec' : 'prompt')) throw new Error('Phase source mode contradicts request ingress');
           contracts.createRequestEnvelope(call.previous);
+          if (authored ? call.previous.authoredInputs.length !== 1 : call.previous.authoredInputs.length !== 0) throw new Error('Phase source mode does not admit these authored inputs');
         } else contracts.assertPhaseEnvelope(call.previous, index);
       },
       validateOutput(output) { contracts.assertPhaseEnvelope(output, index + 1); },
@@ -222,9 +226,10 @@
         if (workerResourceId && index !== 6) {
           const worker = resources[workerResourceId];
           if (!worker || typeof worker.runPhase !== 'function') throw new Error('Declared pipeline worker requires runPhase');
-          const permitted = index === 0 || index === 2 ? { 'compiler-options': resources['compiler-options'] } : {};
-          return worker.runPhase(index + 1, call, permitted, { signal });
+          const permitted = Object.fromEntries(Object.entries(resources).filter(([id]) => id !== workerResourceId));
+          return worker.runPhase(index + 1, call, permitted, { signal, sourceMode });
         }
+        if (authored && index < 6) return model.runAuthoredPhase(index + 1, call, resources);
         const compatible = index === 0 || index === 6 ? call : { ...call, previous: contracts.legacyPhaseProjection(call.previous) };
         return operation(compatible, resources, signal);
       },

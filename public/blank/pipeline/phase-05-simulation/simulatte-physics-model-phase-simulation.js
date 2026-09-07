@@ -339,7 +339,12 @@
         scope.worldSpec.validateWorldSpec(raw);
         scope.worldSpec.compilerBaselineContentHash(raw);
         if (raw.phaseArtifacts && raw.phaseArtifacts.phase6) {
-          return acceptNormalizedWorldSpec(raw);
+          const phaseArtifacts = Object.fromEntries(Array.from({ length: 6 }, (_, index) =>
+            [`phase${index + 1}`, raw.phaseArtifacts[`phase${index + 1}`]]));
+          const projected = scope.projectWorldSpec(phaseArtifacts);
+          if (projected.contentHash !== raw.contentHash) throw importedCompatibilityError('phase sources contradict authored WorldSpec');
+          return acceptNormalizedWorldSpec({ ...raw, phaseArtifacts, intent: projected.intent,
+            promptParse: projected.promptParse, validationReceipt: projected.validationReceipt });
         }
         const validationReceipt = validateImportedExecutionProgram(raw);
         const compiled = compileCompilerArtifacts(raw);

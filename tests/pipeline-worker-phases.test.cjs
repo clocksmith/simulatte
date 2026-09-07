@@ -94,6 +94,69 @@ test('phase RPC rejects undeclared resources, malformed predecessors, invocation
   client.cancel();
 });
 
+test('authored worker phases preserve admitted artifacts without fresh interpretation or retrieval', async () => {
+  const { client, workers } = harness();
+  const spec = model.createSpecFromPrompt('a red ball', { deterministicRuntime: true });
+  const source = await model.createAuthoredPhaseResources(spec);
+  const descriptor = { contentDigest: await contracts.artifactDigest({ fixture: 'authored-replay' }),
+    capabilities: ['component-test'], residentBytes: 100 };
+  const policy = { schema: 'simulatte.phaseRunPolicy.v1', id: 'authored-replay-test',
+    maxInputBytes: 10000, maxEvidenceBytes: 20000000,
+    phases: Array.from({ length: 8 }, (_, i) => ({ phase: i + 1, maxDurationMs: 30000,
+      maxArtifactBytes: 5000000, maxResidentBytes: 10000000 })) };
+  const outputs = [];
+  const instance = runner.create({ phases: runner.localPhaseAdapters(model, { sourceMode: 'authored', workerResourceId: 'worker' }),
+    policy, producer: { id: 'authored-worker-test', buildDigest: descriptor.contentDigest }, onPublish: output => outputs.push(output) });
+  const original = contracts.canonicalJson(source.worldSpec);
+  try {
+    await instance.run(source.request, { resources: { ...source.resources,
+      worker: { descriptor: { ...descriptor, id: 'worker' }, handle: client },
+      renderer: { descriptor: { ...descriptor, id: 'renderer' }, handle: {
+        renderPhase: (previous, invocation) => model.runPhase7RenderExecution(previous, invocation.simulationSnapshot.state, null, {}),
+      } },
+    }, invocationForPhase: (phase, previous) => phase === 7
+      ? model.createRenderInvocation(source.worldSpec, { t: 0 }, { index: 0, simulationTime: 0 },
+        { width: 300, height: 200 }, { phase6Output: previous }) : {} });
+    assert.deepEqual(outputs.map(row => row.phase), [1, 2, 3, 4, 5, 6, 7, 8]);
+    for (let phase = 2; phase <= 6; phase++) {
+      const expected = { ...spec.phaseArtifacts[`phase${phase}`].artifact };
+      if (Object.hasOwn(expected, 'runtimeContext')) expected.runtimeContext = outputs[phase - 2].artifact.runtimeContext;
+      assert.deepEqual(outputs[phase - 1].artifact, expected);
+      const receipt = outputs[phase - 1].receipts.find(row => row.id === 'authored-phase-replay');
+      assert.equal(receipt.mode, 'authored-artifact-replay');
+      assert.equal(receipt.interpreted, false);
+    }
+    assert.equal(contracts.canonicalJson(source.worldSpec), original);
+    assert.ok(workers[0].messages.every(message => message.sourceMode === 'authored'));
+    const restored = model.deserializeSpec(model.serializeSpec(source.worldSpec, { retainPhaseSources: true }));
+    assert.equal(restored.contentHash, spec.contentHash);
+    await model.createAuthoredPhaseResources(restored);
+  } finally { instance.dispose(); client.cancel(); }
+});
+
+test('authored replay rejects changed provenance, cross-world sources and ignored authoring', async () => {
+  const { client } = harness();
+  const first = await model.createAuthoredPhaseResources(model.createSpecFromPrompt('two cats', { deterministicRuntime: true }));
+  const second = await model.createAuthoredPhaseResources(model.createSpecFromPrompt('three cats', { deterministicRuntime: true }));
+  const initialCall = { previous: first.request, invocation: {} };
+  const handles = ids => Object.fromEntries(ids.map(id => [id, first.resources[id].handle]));
+  try {
+    await assert.rejects(client.runPhase(1, initialCall, handles(['compiler-options'])), /source mode/);
+    await assert.rejects(client.runPhase(1, initialCall, { ...handles(['compiler-options']),
+      'authored-phase-1': second.resources['authored-phase-1'].handle }, { sourceMode: 'authored' }), /provenance/);
+    const phase1 = await client.runPhase(1, initialCall, handles(['compiler-options', 'authored-phase-1']), { sourceMode: 'authored' });
+    await assert.rejects(client.runPhase(2, { previous: phase1, invocation: {} },
+      { 'authored-phase-2': second.resources['authored-phase-2'].handle }, { sourceMode: 'authored' }), /provenance/);
+    const corrupted = structuredClone(first.resources['authored-phase-2'].handle);
+    corrupted.output.artifact.promptParse = {};
+    await assert.rejects(client.runPhase(2, { previous: phase1, invocation: {} },
+      { 'authored-phase-2': corrupted }, { sourceMode: 'authored' }), /digest mismatch/);
+    await assert.rejects(client.runPhase(2, { previous: phase1, invocation: {} },
+      { ...handles(['authored-phase-2']), 'authored-phase-3': first.resources['authored-phase-3'].handle },
+      { sourceMode: 'authored' }), /declared dependencies/);
+  } finally { client.cancel(); }
+});
+
 test('cancelling a worker phase stops its worker and stale events cannot poison its replacement', async () => {
   const { client, workers } = harness({ execute: false });
   const controller = new AbortController();

@@ -39,6 +39,15 @@
     });
     const groundedIntent = {
       ...current,
+      worldSpecInput: scope.validateWorldSpecInput({ schema: 'simulatte.worldSpecInput.v1',
+        ...Object.fromEntries(['id', 'templateId', 'name', 'kind', 'description', 'modules',
+          'objects', 'controls', 'params', 'contract'].map(key => [key, worldSpec[key]])),
+      }),
+      worldSpecAuthoring: { schema: 'simulatte.worldSpecAuthoringProjection.v1',
+        ...Object.fromEntries(['source', 'authorship', 'determinism', 'dependencies', 'safety',
+          'unsupportedRequirements', 'unresolvedAmbiguities', 'createdAt', 'remixOf', 'universeGraph']
+          .map(key => [key, worldSpec[key]])),
+      },
       acceptedGraph,
       components: worldSpec.objects,
       params: worldSpec.params,

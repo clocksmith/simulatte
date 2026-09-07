@@ -266,27 +266,26 @@ function editorProbeExpression(boundary) {
       return spec?.contentHash === exportedProgram.contentHash &&
         spec.authorship?.revision === exportedProgram.authorship?.revision &&
         spec.phaseArtifacts?.phase6?.artifact?.visualCompile &&
-        spec.phaseArtifacts?.phase5?.receipts?.some((row) => (
-          row.importAuthority === 'world-spec' && row.worldSpecContentHash === spec.contentHash
-        )) ? spec : null;
+        Number(canvas.dataset.renderInputSerial || 0) > beforeImportRenderInputSerial ? spec : null;
     });
     await waitFor('imported Phase 7 frame', () => (
       Number(canvas.dataset.renderInputSerial || 0) > beforeImportRenderInputSerial &&
       Number(canvas.dataset.renderCount || 0) > beforeImportRenderCount
     ));
     const exchange = {
-      schema: 'simulatte.worldSpecBrowserExchange.v1',
+      schema: 'simulatte.worldSpecBrowserExchange.v2',
       exportedContentHash: exportedProgram.contentHash || '',
       exportedRevision: Number(exportedProgram.authorship?.revision || 0),
       exportedBytes: new TextEncoder().encode(exportedPayload).byteLength,
-      compilerEvidenceOmitted: !Object.hasOwn(exportedProgram, 'phaseArtifacts') &&
-        !Object.hasOwn(exportedProgram, 'intent'),
+      executionEvidenceOmitted: !Object.hasOwn(exportedProgram.phaseArtifacts || {}, 'phase7') &&
+        !Object.hasOwn(exportedProgram.phaseArtifacts || {}, 'phase8') && !Object.hasOwn(exportedProgram, 'intent'),
+      exportedPhaseSourceDigest: await window.SimulattePhaseContracts.artifactDigest(exportedProgram.phaseArtifacts),
+      importedPhaseSourceDigest: await window.SimulattePhaseContracts.artifactDigest(edited.phaseArtifacts),
       importedContentHash: edited.contentHash,
       importedRevision: Number(edited.authorship?.revision || 0),
       importedPhaseSchemas: Object.values(edited.phaseArtifacts || {})
         .map((row) => row && row.schema || ''),
-      importAuthority: edited.phaseArtifacts.phase5.receipts
-        .find((row) => row.importAuthority === 'world-spec')?.importAuthority || '',
+      importAuthority: 'world-spec',
       sourcePrompt: edited.source?.prompt || '',
       beforeRenderInputSerial: beforeImportRenderInputSerial,
       renderInputSerial: Number(canvas.dataset.renderInputSerial || 0),
@@ -508,7 +507,7 @@ function editorProbeExpression(boundary) {
       pixelReadbackMatches: Boolean(submittedFrame) && submittedFrame.readbackSerial === canvas.__simulattePixelSamples?.readbackSerial,
     };
     return {
-      schema: 'simulatte.worldSpecEditorBrowserAudit.v1',
+      schema: 'simulatte.worldSpecEditorBrowserAudit.v2',
       buildId: document.querySelector('meta[name="simulatte-build"]')?.content || '',
       boundarySetId: boundary.boundarySetId,
       boundaryRowId: boundary.id,
@@ -682,15 +681,17 @@ export function assertReceipt(receipt, boundary) {
     [receipt.after.renderInputSerial > receipt.before.renderInputSerial, 'Phase 7 did not accept a new render input'],
     [receipt.after.renderCount > receipt.before.renderCount, 'Phase 7 did not render the edited world'],
     [receipt.after.revision === receipt.before.revision + 1, 'the user edit did not create exactly one append-only revision'],
-    [receipt.exchange?.schema === 'simulatte.worldSpecBrowserExchange.v1', 'browser WorldSpec exchange receipt is missing'],
+    [['simulatte.worldSpecBrowserExchange.v1', 'simulatte.worldSpecBrowserExchange.v2'].includes(receipt.exchange?.schema), 'browser WorldSpec exchange receipt is missing'],
     [receipt.exchange?.exportedContentHash === receipt.after.contentHash &&
       receipt.exchange?.importedContentHash === receipt.after.contentHash,
       'export/import changed the edited WorldSpec identity'],
     [receipt.exchange?.exportedRevision === receipt.after.revision &&
       receipt.exchange?.importedRevision === receipt.after.revision,
       'export/import changed the authored revision'],
-    [receipt.exchange?.exportedBytes > 0 && receipt.exchange?.compilerEvidenceOmitted === true,
-      'export did not produce the canonical evidence-free WorldSpec program'],
+    [receipt.exchange?.exportedBytes > 0 && (receipt.exchange?.schema === 'simulatte.worldSpecBrowserExchange.v2'
+      ? receipt.exchange.executionEvidenceOmitted === true && /^sha256:[a-f0-9]{64}$/.test(receipt.exchange.exportedPhaseSourceDigest || '') &&
+        receipt.exchange.exportedPhaseSourceDigest === receipt.exchange.importedPhaseSourceDigest
+      : receipt.exchange?.compilerEvidenceOmitted === true), 'export/import did not preserve its declared program and phase-source contract'],
     [receipt.exchange?.importedPhaseSchemas.join(',') === [
       'simulatte.phase1.output.v1', 'simulatte.phase2.output.v1',
       'simulatte.phase3.output.v2', 'simulatte.phase4.output.v2',

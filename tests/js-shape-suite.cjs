@@ -2377,7 +2377,12 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
   assert.match(model, /function phase6InputFromSimulationCompile\(phase5Output\)/);
   assert.match(model, /function compilePhase6VisualProgram\(phase5Output, compositionGraph = null\)/);
   assert.doesNotMatch(model, /function createVisualCompileEnvelope\(phase5Output, compositionGraph = null, renderProgram/);
-    assert.match(model, /renderExecutionInput source expected/);
+    assert.match(model, /const createRenderExecutionInput = renderInput\.createRenderExecutionInput/);
+    const renderInputSource = fs.readFileSync(path.join(publicDir, 'blank', 'pipeline',
+      'phase-07-render', 'simulatte-render-execution-input.js'), 'utf8');
+    assert.match(renderInputSource, /renderExecutionInput source expected/);
+    assert.match(renderInputSource, /contracts\.assertPhaseEnvelope\(phase6Output, 6/);
+    assert.doesNotMatch(model, /function createRenderExecutionInput\(/);
     const renderProofSource = fs.readFileSync(
       path.join(publicDir, 'blank', 'pipeline', 'phase-07-render', 'simulatte-render-proof.js'),
       'utf8'

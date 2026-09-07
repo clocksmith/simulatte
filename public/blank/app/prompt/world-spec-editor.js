@@ -75,7 +75,7 @@
     async function exportCurrentSpec() {
       try {
         const spec = options.getSpec();
-        const payload = options.serialize(spec);
+        const payload = (options.serializeExport || options.serialize)(spec);
         await exportPayload(payload, `${safeFilePart(spec.id || spec.name || 'world')}.world.json`);
         setStatus(`Exported ${spec.contentHash || spec.id}`, 'ready');
       } catch (error) {

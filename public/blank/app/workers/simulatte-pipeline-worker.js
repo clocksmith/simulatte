@@ -71,7 +71,7 @@
           throw new Error('Pipeline worker supports phases 1–6 and 8; Phase 7 requires the graphics owner');
         }
         const contracts = root.SimulattePhaseContracts;
-        const adapter = root.SimulattePhaseRunner.localPhaseAdapters(model)[phase - 1];
+        const adapter = root.SimulattePhaseRunner.localPhaseAdapters(model, { sourceMode: data.sourceMode || 'prompt' })[phase - 1];
         const call = contracts.immutableArtifact(data.call);
         const resources = contracts.immutableArtifact(data.resources);
         if (Object.keys(resources).some(id => !adapter.resourceIds.includes(id)) ||
