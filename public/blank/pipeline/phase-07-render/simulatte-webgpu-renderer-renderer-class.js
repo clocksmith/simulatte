@@ -101,6 +101,10 @@
         }
 
 
+        renderPhase(previous, invocation, signal) {
+          return scope.executeRenderPhase(this, previous, invocation, signal);
+        }
+
         isReady() {
           return this.ready;
         }
@@ -110,6 +114,9 @@
         }
 
         setRenderExecutionInput(renderExecutionInput) {
+          if (this.phaseInvocation && renderExecutionInput !== this.phaseInvocation.input) {
+            throw Object.assign(new Error('Renderer owns an active phase input'), { code: 'SIMULATTE_RENDER_BUSY' });
+          }
           const scenePacket = sceneRenderPacketFromExecutionInput(renderExecutionInput);
           const nextRenderExecutionInput = renderExecutionInput && renderExecutionInput.schema === 'simulatte.renderExecutionInput.v1'
             ? renderExecutionInput
@@ -157,6 +164,7 @@
         }
 
         pick(clientX, clientY) {
+          if (this.phaseInvocation) throw Object.assign(new Error('Renderer owns an active frame'), { code: 'SIMULATTE_RENDER_BUSY' });
           const point = scope.scenePacketPointerPoint(this.canvas, clientX, clientY);
           const receipt = scope.scenePacketHitTest(
             this.sceneRenderPacket || {},
@@ -208,6 +216,7 @@
         }
 
         render(renderExecutionInput, nowMs) {
+          if (this.phaseInvocation && renderExecutionInput !== this.phaseInvocation.input) return false;
           if (!this.ready || !this.device || !this.pipeline) return false;
           const started = typeof performance !== 'undefined' ? performance.now() : nowMs;
           if (renderExecutionInput && renderExecutionInput !== this.renderExecutionInput) {
@@ -253,7 +262,7 @@
           this.device.queue.submit([encoder.finish()]);
           if (typeof performance !== 'undefined') {
             this.lastFrameMs = performance.now() - started;
-            this.adaptQuality();
+            if (!this.phaseInvocation) this.adaptQuality();
           }
           this.renderCount += 1;
           this.canvas.dataset.renderCount = String(this.renderCount);
@@ -292,6 +301,7 @@
         }
 
         settleSceneProof() {
+          if (this.phaseInvocation) return null;
           const proofStartedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
           const api = typeof globalThis !== 'undefined' ? globalThis.SimulatteSceneProof : null;
           if (!api || typeof api.settleSceneProof !== 'function' || !this.phase7Output) {
@@ -717,7 +727,7 @@
           this.objectUniforms = scope.scenePacketCameraLightUniformVector(
             this.cameraState,
             this.lightState,
-            this.canvas.dataset.auditFreezeFrame === 'true' ? 0 : nowMs * 0.001,
+            !this.phaseInvocation && this.canvas.dataset.auditFreezeFrame === 'true' ? 0 : nowMs * 0.001,
             this.canvas.width,
             this.canvas.height
           );
@@ -752,10 +762,11 @@
         }
 
         resize() {
-          const rect = this.canvas.getBoundingClientRect();
-          const dpr = Math.max(1, Math.min(this.maxDpr, window.devicePixelRatio || 1)) * this.quality;
-          const width = Math.max(2, Math.floor(rect.width * dpr));
-          const height = Math.max(2, Math.floor(rect.height * dpr));
+          const viewport = this.phaseInvocation?.invocation.viewport;
+          const rect = viewport || this.canvas.getBoundingClientRect();
+          const dpr = viewport ? 1 : Math.max(1, Math.min(this.maxDpr, window.devicePixelRatio || 1)) * this.quality;
+          const width = viewport ? viewport.width : Math.max(2, Math.floor(rect.width * dpr));
+          const height = viewport ? viewport.height : Math.max(2, Math.floor(rect.height * dpr));
           const key = `${width}x${height}`;
           if (key === this.lastSizeKey && this.renderTargets?.device === this.device &&
               !this.renderTargets.disposed) return;
@@ -775,7 +786,7 @@
           const u = this.uniforms;
           u[0] = this.canvas.width;
           u[1] = this.canvas.height;
-          u[2] = this.canvas.dataset.auditFreezeFrame === 'true' ? 0 : nowMs * 0.001;
+          u[2] = !this.phaseInvocation && this.canvas.dataset.auditFreezeFrame === 'true' ? 0 : nowMs * 0.001;
           u[3] = this.sceneId;
           u[4] = scope.dynamicMetric(this.metrics.heat, state, 'heat');
           u[5] = scope.dynamicMetric(this.metrics.flow, state, 'motion');

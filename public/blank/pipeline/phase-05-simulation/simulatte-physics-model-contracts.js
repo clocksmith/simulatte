@@ -1,5 +1,8 @@
 (function attachSimulattePhysicsModelcontracts(root) {
   const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+  const renderInput = typeof module === 'object' && module.exports
+    ? require('../phase-07-render/simulatte-render-execution-input.js') : root.SimulatteRenderExecutionInput;
+  if (!renderInput) throw new Error('Physics contracts require the Phase 7 render input contract');
 
     const {
         CONTROL_LIBRARY,
@@ -155,7 +158,7 @@
       throw new Error('Simulatte phase contract module unavailable');
     }
 
-    const RENDER_EXECUTION_INPUT_SCHEMA = 'simulatte.renderExecutionInput.v1';
+    const RENDER_EXECUTION_INPUT_SCHEMA = renderInput.RENDER_EXECUTION_INPUT_SCHEMA;
 
     const SCENE_COMPOSITION_LEDGER_SCHEMA = 'simulatte.sceneCompositionLedger.v1';
 

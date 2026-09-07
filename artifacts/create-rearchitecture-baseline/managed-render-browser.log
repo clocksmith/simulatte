@@ -1,0 +1,14 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+Error: Error: phase boundary contains forbidden upstream field promptParse
+    at Object.assertPhaseEnvelope (http://127.0.0.1:34579/blank/pipeline/simulatte-phase-contracts.js?v=96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19:324:26)
+    at Object.validateOutput (http://127.0.0.1:34579/blank/app/runtime/phase-runner.js?v=96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19:216:42)
+    at http://127.0.0.1:34579/blank/app/runtime/phase-runner.js?v=96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19:149:36
+    at async Object.run (http://127.0.0.1:34579/blank/app/runtime/phase-runner.js?v=96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19:163:28)
+    at async <anonymous>:29:7
+    at evaluate (file:///home/clocksmith/deco/simulatte/tools/audit-create-phase-worker.mjs:38:40)
+    at async file:///home/clocksmith/deco/simulatte/tools/audit-create-phase-worker.mjs:47:18
+
+Node.js v22.23.2

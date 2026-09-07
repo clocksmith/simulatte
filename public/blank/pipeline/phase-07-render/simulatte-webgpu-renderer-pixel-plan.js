@@ -105,7 +105,7 @@
       );
       const hasCurrentSamples = liveBinding.valid;
       if (hasCurrentSamples && renderData.livePixelSamplesStatus === 'pass') return null;
-      if (hasCurrentSamples && Number(renderData.livePixelReadbackAttemptCount || 0) >= 3) return null;
+      if (hasCurrentSamples && Number(renderData.livePixelReadbackAttemptCount || 0) >= scope.PHASE7_PIXEL_READBACK_MAX_ATTEMPTS) return null;
       const width = Number(canvas && canvas.width || 0);
       const height = Number(canvas && canvas.height || 0);
       if (!width || !height) return null;

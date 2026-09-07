@@ -225,7 +225,7 @@
           const permitted = index === 0 || index === 2 ? { 'compiler-options': resources['compiler-options'] } : {};
           return worker.runPhase(index + 1, call, permitted, { signal });
         }
-        const compatible = index === 0 ? call : { ...call, previous: contracts.legacyPhaseProjection(call.previous) };
+        const compatible = index === 0 || index === 6 ? call : { ...call, previous: contracts.legacyPhaseProjection(call.previous) };
         return operation(compatible, resources, signal);
       },
     }));

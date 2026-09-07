@@ -181,6 +181,7 @@
     'app/runtime/world-interaction-runtime.js'
   );
   const renderProof = group(
+    'pipeline/phase-07-render/simulatte-render-execution-input.js',
     'pipeline/phase-07-render/simulatte-object-realization.js',
     'pipeline/phase-07-render/simulatte-render-evidence-binding.js',
     'pipeline/phase-07-render/simulatte-render-proof-relations.js',
@@ -194,6 +195,7 @@
     'pipeline/phase-07-render/simulatte-webgpu-renderer-proof-datasets.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-lifecycle.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-frame-evidence.js',
+    'pipeline/phase-07-render/simulatte-webgpu-renderer-phase.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-part-segmentation.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-morphology.js',

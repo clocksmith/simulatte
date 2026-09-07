@@ -1,5 +1,9 @@
 (function attachSimulattePhysicsModelPhaseVisualExecution(root) {
   const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+  const renderInput = typeof module === 'object' && module.exports
+    ? require('../phase-07-render/simulatte-render-execution-input.js') : root.SimulatteRenderExecutionInput;
+  if (!renderInput) throw new Error('Physics compatibility requires the Phase 7 render input adapter');
+  const createRenderExecutionInput = renderInput.createRenderExecutionInput;
 
   function phase6InputFromSimulationCompile(phase5Output) {
     scope.assertPhaseEnvelope(phase5Output, 5, 'Phase 6 input');
@@ -159,40 +163,6 @@
     return createVisualCompileEnvelope(phase5Output, compositionGraph);
   }
 
-  function createRenderExecutionInput(source = {}, simulationState = null, canvas = null, options = {}) {
-    const phase6Output = source && source.schema === scope.phaseOutputSchema(6)
-      ? source
-      : source && source.phaseArtifacts && source.phaseArtifacts.phase6 || null;
-    if (!phase6Output) {
-      throw new Error(
-        `renderExecutionInput source expected ${scope.phaseOutputSchema(6)}, received ${source && source.schema || 'missing phase6 artifact'}`
-      );
-    }
-    scope.assertPhaseEnvelope(phase6Output, 6, 'renderExecutionInput source');
-    const visualCompile = phase6Output.artifact.visualCompile || null;
-    if (!visualCompile || !visualCompile.sceneRenderPacket) {
-      throw new Error('renderExecutionInput source missing artifact.visualCompile.sceneRenderPacket');
-    }
-    return {
-      schema: scope.RENDER_EXECUTION_INPUT_SCHEMA,
-      inputSchema: phase6Output.schema,
-      runtimeReceiptId: phase6Output.runtimeReceiptId || source && source.runtimeReceiptId || 'runtime:unknown',
-      sceneRenderPacket: visualCompile.sceneRenderPacket,
-      renderInstances: Array.isArray(visualCompile.renderInstances) ? visualCompile.renderInstances : [],
-      visualObligations: Array.isArray(visualCompile.visualObligations) ? visualCompile.visualObligations : [],
-      compositionLedger: visualCompile.compositionLedger || phase6Output.artifact.compositionLedger || null,
-      worldProofBinding: scope.worldProof.createWorldProofBinding(source, options),
-      replayBaseline: options.replayBaseline || null,
-      intentReceipt: options.intentReceipt || null,
-      semanticReceipt: options.semanticReceipt || null,
-      compilerDeterminismReceipt: options.compilerDeterminismReceipt || null,
-      simulationReproducibilityReceipt: options.simulationReproducibilityReceipt || null,
-      safetyReceipt: options.safetyReceipt || null,
-      simulationState,
-      canvas,
-    };
-  }
-
   function runPhase7RenderExecution(source, simulationState = null, canvas = null, frameReceipt = {}) {
     let renderExecutionInput = null;
     let inputSchema = '';
@@ -213,7 +183,7 @@
     } else {
       scope.assertPhaseEnvelope(source, 6, 'Phase 7 input');
       renderExecutionInput = createRenderExecutionInput(source, simulationState, canvas);
-      inputSchema = source.schema;
+      inputSchema = renderExecutionInput.inputSchema;
       runtimeReceiptId = source.runtimeReceiptId || runtimeReceiptId;
     }
     const sceneRenderPacket = renderExecutionInput.sceneRenderPacket || {};

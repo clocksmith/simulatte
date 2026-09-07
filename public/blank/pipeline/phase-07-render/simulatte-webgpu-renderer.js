@@ -7,6 +7,7 @@
     require('./simulatte-webgpu-renderer-proof-datasets.js');
     require('./simulatte-webgpu-renderer-lifecycle.js');
     require('./simulatte-webgpu-renderer-frame-evidence.js');
+    require('./simulatte-webgpu-renderer-phase.js');
     require('./simulatte-webgpu-renderer-renderer-class.js');
     require('./simulatte-webgpu-renderer-part-segmentation.js');
     require('./simulatte-webgpu-renderer-morphology.js');

@@ -15,7 +15,7 @@
       const pixelAuditStatus = String(renderData.livePixelSamplesStatus || '');
       const readbackAttemptCount = Number(renderData.livePixelReadbackAttemptCount || 0);
       const pixelEvidenceSettled = sampleBinding.valid && (
-        pixelAuditStatus === 'pass' || readbackAttemptCount >= 3
+        pixelAuditStatus === 'pass' || readbackAttemptCount >= scope.PHASE7_PIXEL_READBACK_MAX_ATTEMPTS
       );
       const final = renderData.requireLivePixelSamples !== true ||
         pixelEvidenceSettled || Boolean(readbackFailure);
