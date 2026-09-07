@@ -33,9 +33,9 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 
 ## Acceptance
 
-- Part ownership fails on detached, missing, or wrongly owned geometry. Directed motion requires execution evidence and visible pixels for both bound participants.
+- Part ownership rejects detached, missing, or wrongly owned geometry. Directed motion needs both participants' execution and pixels. Color readback covers every bound drawable.
 - Evidence: [pixel and corruption regressions](../../../../tests/phase7-pixel-readback.test.cjs).
-- Pixel readback binds the executed packet, device, and frame result.
+- Readback binds packet, device, and frame.
 - Evidence: [frame evidence regressions](../../../../tests/renderer-frame-evidence.test.cjs).
 - Evidence: [managed rendering regressions](../../../../tests/managed-render-phase.test.cjs).
 

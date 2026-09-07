@@ -1,0 +1,414 @@
+{
+  "schema": "simulatte.worldSpecEditorFailure.v1",
+  "capturedAt": "2026-09-07T20:43:10.656Z",
+  "error": {
+    "message": "Error: Timed out waiting for compiled WorldSpec\n    at waitFor (<anonymous>:9:60)\n    at async <anonymous>:34:22",
+    "stack": "Error: Error: Timed out waiting for compiled WorldSpec\n    at waitFor (<anonymous>:9:60)\n    at async <anonymous>:34:22\n    at main (file:///home/clocksmith/deco/simulatte/tools/audit-world-spec-editor.mjs:901:13)"
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "diagnostics": [
+    {
+      "method": "Runtime.consoleAPICalled",
+      "params": {
+        "type": "error",
+        "args": [
+          {
+            "type": "string",
+            "value": "[simulatte.intent] deterministic intent failed"
+          },
+          {
+            "type": "object",
+            "subtype": "error",
+            "className": "Error",
+            "description": "Error: $.artifact.simulationCompile.physicsIR.receipt.exact.1.confidence: expected serializable finite value\n    at pipelineWorkerError (http://127.0.0.1:37073/blank/app/prompt/prompt-controller-workers.js?v=96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19:47:25)\n    at Worker.<anonymous> (http://127.0.0.1:37073/blank/app/prompt/prompt-controller-workers.js?v=96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19:79:28)",
+            "objectId": "-4791459844674132334.2.16",
+            "preview": {
+              "type": "object",
+              "subtype": "error",
+              "description": "Error: $.artifact.simulationCompile.physicsIR.receipt.exact.1.confidence: expected serializable finite value\n    at pipelineWorkerError (http://127.0.0.1:37073/blank/app/prompt/prompt-controller-workers.js?v=96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19:47:25)\n    at Worker.<anonymous> (http://127.0.0.1:37073/blank/app/prompt/prompt-controller-workers.js?v=96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19:79:28)",
+              "overflow": false,
+              "properties": [
+                {
+                  "name": "code",
+                  "type": "string",
+                  "value": "SIMULATTE_PIPELINE_COMPILE_FAILED"
+                },
+                {
+                  "name": "stack",
+                  "type": "string",
+                  "value": "Error: $.artifact.simulationCompile.physicsIR.rece…95b6d36257f272d78ebb11b8411f0-5b754ed3ad19:79:28)"
+                },
+                {
+                  "name": "message",
+                  "type": "string",
+                  "value": "$.artifact.simulationCompile.physicsIR.receipt.exa….1.confidence: expected serializable finite value"
+                }
+              ]
+            }
+          }
+        ],
+        "executionContextId": 2,
+        "timestamp": 1788813773317.876,
+        "stackTrace": {
+          "callFrames": [
+            {
+              "functionName": "resolveDeterministically",
+              "scriptId": "221",
+              "url": "http://127.0.0.1:37073/blank/app/prompt/prompt-controller-lab-controller.js?v=96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19",
+              "lineNumber": 632,
+              "columnNumber": 20
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "captureErrors": [],
+  "auditReceipt": null,
+  "boundary": {
+    "id": "unsupported-neologism-edit-replay",
+    "boundaryKind": "unsupported-edit-replay",
+    "prompt": "a red ball beside a qzxwplk",
+    "supportedEntityType": "ball",
+    "unsupportedLabel": "qzxwplk",
+    "edit": {
+      "originalColor": "#ef3340",
+      "replacementColor": "#00aa44",
+      "rationale": "Refuse qzxwplk, make the ball green, and bind a fixed-step safety gate"
+    },
+    "acceptance": {
+      "initialSceneProofVerdict": "fail",
+      "finalSceneProofVerdict": "pass",
+      "finalWorldProofVerdict": "pass",
+      "expectedTopologyId": "spherical-body",
+      "requiredPartIds": [
+        "sphere-body",
+        "specular-highlight"
+      ],
+      "forbiddenPartPatterns": [
+        "spin-axis",
+        "neck",
+        "string",
+        "soundhole",
+        "bridge"
+      ],
+      "supersededObligationId": "visual:prompt-property-ball-color-#ef3340",
+      "acceptedIntentCount": 2,
+      "refusedIntentCount": 2,
+      "unresolvedIntentCount": 0,
+      "lostIntentCount": 0,
+      "reconciliationRequired": true,
+      "recompilationDecision": "preserve-overrides"
+    },
+    "boundarySetId": "simulatte-public-boundary-v1",
+    "boundarySetSchema": "simulatte.promptBoundarySet.v1",
+    "boundaryContractSha256": "ec03f020d14b5fb4af51eed04c7b4b04f0a1fa38ebb292f0588acff4f854e9f0",
+    "maximumAuditDurationMs": 20000,
+    "maximumObservedJsHeapBytes": 536870912,
+    "adHocPromptOverride": false
+  },
+  "page": {
+    "url": "http://127.0.0.1:37073/blank/?auditNoInitial=1",
+    "text": "Workbench\nPrompt\n−\nSimulation request\n⇄\nShuffle\nEnhanced\n↵\nRun\nNo neural model consent\nDeterministic compiler failed\nDeterministic compiler failed\nEdit WorldSpec\nWorldProof\nRun details\nAdvanced\n\nClick an object to select it. Drag to move or push it. Use arrow keys to nudge it, Space to apply an impulse, Enter to activate it, and Escape to clear the selection.",
+    "canvas": {
+      "sceneVisible": "false",
+      "renderer": "webgpu",
+      "renderInputSerial": "0",
+      "interactionRuntime": "deterministic-command-queue",
+      "interactionSelectedTarget": "",
+      "interactionHoveredTarget": "",
+      "interactionGrabbedTarget": "",
+      "interactionSequence": "0",
+      "fps": "0",
+      "visualTier": "webgpu-depth-lit-2-5d",
+      "rendererStatus": "WebGPU renderer ready",
+      "webgpuFeatureFlags": "enabled:standard;used:compiled-object-geometry-programs+storage-buffer-object-parts+instanced-bounded-quads+depth-buffer-occlusion+camera-perspective-transform+normal-material-lighting",
+      "webgpuOptimizationPath": "background-plus-instanced-object-parts"
+    },
+    "spec": {
+      "schema": "simulatte.worldSpec.v1",
+      "schemaVersion": "1.2.0",
+      "id": "blank-construction-plane-q5vkef",
+      "templateId": "blank-world",
+      "name": "Blank Construction Plane",
+      "kind": "blank-construction",
+      "description": "An empty simulation plane with no modules or objects until the builder prompt creates them.",
+      "modules": [],
+      "objects": [],
+      "controls": [
+        [
+          "guideDensity",
+          "guide density",
+          0,
+          1,
+          0.01
+        ],
+        [
+          "canvasScale",
+          "canvas scale",
+          0.2,
+          1,
+          0.01
+        ]
+      ],
+      "params": {
+        "guideDensity": 0.42,
+        "canvasScale": 0.62,
+        "energyInput": 0.74,
+        "heatTransfer": 0.8,
+        "pressure": 0.72,
+        "flowRate": 0.82,
+        "turbulence": 0.76,
+        "viscosity": 0.29,
+        "density": 0.51,
+        "damping": 0.14,
+        "surfaceTension": 0.19,
+        "waveAmplitude": 0.41,
+        "soundFrequency": 0.76,
+        "magnetization": 0.82,
+        "fieldStrength": 0.84,
+        "irradiance": 759,
+        "gravity": 0.2,
+        "queueBacklog": 0.22,
+        "serviceRate": 0.43,
+        "marketDemand": 0.65,
+        "populationGrowth": 1.1,
+        "lightIntensity": 0.34,
+        "moisture": 0.55,
+        "erosionRate": 0.77,
+        "conductivity": 0.76,
+        "refractiveIndex": 1.43,
+        "hardness": 0.67,
+        "thermalFlux": 0.72
+      },
+      "intent": null,
+      "contract": null,
+      "promptParse": null,
+      "universeGraph": null,
+      "physicsIR": null,
+      "validationReceipt": null,
+      "solverGraph": null,
+      "renderIR": null,
+      "interactionIR": null,
+      "phaseArtifacts": {},
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "remixOf": "",
+      "source": {
+        "schema": "simulatte.worldSpecSource.v1",
+        "prompt": "",
+        "compilerConfig": {}
+      },
+      "authorship": {
+        "schema": "simulatte.worldSpecAuthoring.v2",
+        "revision": 0,
+        "sources": [
+          {
+            "id": "source:prompt",
+            "authority": "prompt",
+            "label": "No source brief"
+          },
+          {
+            "id": "source:compiler",
+            "authority": "compilerInference",
+            "label": "Simulatte compiler"
+          }
+        ],
+        "fieldProvenance": [
+          {
+            "path": "/source/prompt",
+            "authority": "prompt",
+            "sourceId": "source:prompt"
+          },
+          {
+            "path": "/",
+            "authority": "compilerInference",
+            "sourceId": "source:compiler"
+          }
+        ],
+        "patches": [],
+        "reconciliations": []
+      },
+      "determinism": {
+        "pixelPolicy": null,
+        "requiredClasses": [
+          "replay-identified"
+        ],
+        "schema": "simulatte.worldSpecDeterminism.v1",
+        "seed": null,
+        "simulationTolerance": null
+      },
+      "dependencies": {
+        "assets": [],
+        "governedPacks": [],
+        "plugins": [],
+        "schema": "simulatte.worldSpecDependencies.v1"
+      },
+      "safety": {
+        "rules": [],
+        "schema": "simulatte.worldSpecSafety.v1",
+        "status": "not-declared"
+      },
+      "unsupportedRequirements": [],
+      "unresolvedAmbiguities": [],
+      "compositionGraph": null,
+      "renderProgram": null,
+      "physicalSpec": null,
+      "contentHash": "fnv1a32:725a5aea"
+    },
+    "state": {
+      "kind": "blank-world",
+      "t": 17.466666666666956,
+      "params": {
+        "guideDensity": 0.42,
+        "canvasScale": 0.62,
+        "energyInput": 0.74,
+        "heatTransfer": 0.8,
+        "pressure": 0.72,
+        "flowRate": 0.82,
+        "turbulence": 0.76,
+        "viscosity": 0.29,
+        "density": 0.51,
+        "damping": 0.14,
+        "surfaceTension": 0.19,
+        "waveAmplitude": 0.41,
+        "soundFrequency": 0.76,
+        "magnetization": 0.82,
+        "fieldStrength": 0.84,
+        "irradiance": 759,
+        "gravity": 0.2,
+        "queueBacklog": 0.22,
+        "serviceRate": 0.43,
+        "marketDemand": 0.65,
+        "populationGrowth": 1.1,
+        "lightIntensity": 0.34,
+        "moisture": 0.55,
+        "erosionRate": 0.77,
+        "conductivity": 0.76,
+        "refractiveIndex": 1.43,
+        "hardness": 0.67,
+        "thermalFlux": 0.72
+      },
+      "modules": [],
+      "objects": []
+    },
+    "training": {
+      "schema": "simulatte.trainingSnapshot.v1",
+      "runId": "mtrpj72q-1",
+      "prompt": "a red ball beside a qzxwplk",
+      "phase": {
+        "step": 0,
+        "id": "error",
+        "label": "Runtime error",
+        "stage": "error",
+        "state": "error",
+        "percent": 0,
+        "overallPercent": 10,
+        "progressBasis": "error",
+        "taskKey": "error",
+        "taskElapsedMs": 0,
+        "taskRemainingMs": 0,
+        "line": "Deterministic compiler failed",
+        "backend": "deterministic-local",
+        "timing": {
+          "timestamp": "2026-09-07T20:42:53.318Z",
+          "durationMs": 0,
+          "elapsedMs": 0,
+          "timing": "",
+          "traceId": "",
+          "rankId": 0,
+          "reuse": false,
+          "providerReady": false
+        },
+        "model": {
+          "id": "",
+          "baseUrl": "",
+          "artifactMode": "",
+          "sourceSizeBytes": 0,
+          "cachePrefetch": false,
+          "cacheSkipReason": ""
+        },
+        "resource": {
+          "kind": "",
+          "url": "",
+          "file": "",
+          "fileKind": "",
+          "status": 0,
+          "byteLength": 0,
+          "completedBytes": 0,
+          "totalBytes": 0,
+          "cacheMode": ""
+        },
+        "embeddings": {
+          "promptChars": 0,
+          "embeddingDim": 0,
+          "candidateCount": 0,
+          "rankBackend": "",
+          "spanCount": 0,
+          "embeddedSpanCount": 0,
+          "cachedSpanCount": 0,
+          "cacheHitCount": 0,
+          "cacheMissCount": 0,
+          "batchEmbedding": false
+        },
+        "promptRuntime": null,
+        "loaderReceipt": {
+          "schema": "simulatte.loaderPhaseReceipt.v2",
+          "id": "loader-10",
+          "runId": "mtrpj72q-1",
+          "stage": "error",
+          "sourceStage": "error",
+          "phaseId": "error",
+          "phaseLabel": "Runtime error",
+          "pipelineStep": 0,
+          "label": "Deterministic compiler failed",
+          "subline": "",
+          "status": "error",
+          "state": "error",
+          "blocking": false,
+          "indeterminate": false,
+          "startedAt": "2026-09-07T20:42:53.318Z",
+          "updatedAt": "2026-09-07T20:42:53.318Z",
+          "completedAt": "2026-09-07T20:42:53.318Z",
+          "durationMs": 0,
+          "taskKey": "error",
+          "progressBasis": "error",
+          "progressEstimated": false,
+          "expectedDurationMs": 1200,
+          "percentStart": 0,
+          "percentEnd": 0,
+          "overallPercentStart": 10,
+          "overallPercentEnd": 10,
+          "sourcePercentStart": 0,
+          "sourcePercentEnd": 0,
+          "completedBytes": 0,
+          "totalBytes": 0,
+          "byteLength": 0,
+          "byteText": ""
+        }
+      },
+      "currentSpec": {
+        "id": "blank-construction-plane-q5vkef",
+        "name": "Blank Construction Plane",
+        "templateId": "blank-world",
+        "sceneKind": null
+      },
+      "constructionSearch": {
+        "schema": "simulatte.constructionSearchState.v1",
+        "status": "idle",
+        "buildSerial": 1,
+        "maxAttempts": 5,
+        "handledPacketKeys": [],
+        "rejectedGrammarIds": [],
+        "attempts": [],
+        "terminalReason": ""
+      },
+      "artifacts": {},
+      "improvementRecord": null
+    }
+  },
+  "screenshot": "artifacts/create-rearchitecture-baseline/page-dispatch-editor-initial/1440x1000-failure.png",
+  "screenshotSha256": "6a07cbd9addc0701a5ba1083677b92e2fccae030d409f799130361c96b86809f"
+}

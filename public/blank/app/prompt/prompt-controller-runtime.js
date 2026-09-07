@@ -277,7 +277,8 @@
       return (view && view.document && view.document.baseURI) || view.location.href;
     }
 
-  function createCompilerDispatch({ pipelineCompiler, publishRuntime, waitForLoadingPaint, createSpecFromPrompt }) {
+  function createCompilerDispatch({ pipelineCompiler, publishRuntime, waitForLoadingPaint, createSpecFromPrompt, phaseExecutor }) {
+    if (phaseExecutor) return phaseExecutor.compile;
         async function compilePromptSpec(prompt, options, event = {}) {
           const workerDetail = pipelineCompiler ? 'pipeline worker' : 'main-thread fallback';
           const onPhaseProgress = (progressEvent = {}) => publishRuntime({

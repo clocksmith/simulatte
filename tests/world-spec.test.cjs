@@ -9,6 +9,20 @@ const runtimeManifest = require('../public/blank/app/runtime-script-manifest.js'
 
 const root = path.resolve(__dirname, '..');
 
+test('canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys', () => {
+  const records = require('../public/shared/contracts/world-improvement-record.js');
+  const value = JSON.parse('{"z":0,"10":"ten","__proto__":{"safe":true},"2":"two"}');
+  value.a = [undefined, { z: -1, a: 'é' }];
+  value.omitted = undefined;
+  value.z = -0;
+  const expected = '{"2":"two","10":"ten","__proto__":{"safe":true},"a":[null,{"a":"é","z":-1}],"z":0}';
+  assert.equal(worldSpec.canonicalJson(value), expected);
+  assert.equal(records.canonicalJson(value), expected);
+  assert.equal(Object.getPrototypeOf(worldSpec.canonicalValue(value)), Object.prototype);
+  assert.equal(Object.prototype.safe, undefined);
+  assert.ok(Object.hasOwn(value, 'omitted'), 'canonicalization cannot mutate the input');
+});
+
 function compileFixture() {
   return lab.createSpecFromPrompt('a red ball rests beside a blue wall', {
     allowPrototypeFallback: true,
@@ -407,6 +421,16 @@ test('compiler baseline reverses append-only user patches and rejects a false pa
   assert.ok(edited.authorship.patches.every((patch) => (
     patch.compilerBaselineContentHash === spec.contentHash
   )));
+  const beforeValidation = worldSpec.canonicalJson(edited);
+  assert.equal(worldSpec.compilerBaselineContentHash(edited), spec.contentHash);
+  assert.equal(worldSpec.canonicalJson(edited), beforeValidation, 'reverse validation cannot mutate retained authoring');
+  let unrelatedEvidenceReads = 0;
+  const evidenceProbe = { ...edited, phaseArtifacts: { get unrelatedCompilerPayload() {
+    unrelatedEvidenceReads += 1;
+    return 'excluded compiler evidence';
+  } } };
+  assert.equal(worldSpec.compilerBaselineContentHash(evidenceProbe), spec.contentHash);
+  assert.equal(unrelatedEvidenceReads, 0, 'patch validation cannot traverse evidence outside its addressed roots');
 
   const tampered = JSON.parse(JSON.stringify(edited));
   tampered.authorship.patches[0].newValue = 99;

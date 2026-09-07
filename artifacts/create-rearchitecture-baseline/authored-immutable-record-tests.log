@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: public governing metric keeps machine proof, human proof, scope, and dimensions separate
+ok 1 - public governing metric keeps machine proof, human proof, scope, and dimensions separate
+  ---
+  duration_ms: 226.348316
+  type: 'test'
+  ...
+# Subtest: one critical prompt failure fails the governing machine gate instead of averaging away
+ok 2 - one critical prompt failure fails the governing machine gate instead of averaging away
+  ---
+  duration_ms: 110.827672
+  type: 'test'
+  ...
+# Subtest: governing metric rejects stale builds and incomplete boundary evidence
+ok 3 - governing metric rejects stale builds and incomplete boundary evidence
+  ---
+  duration_ms: 172.036888
+  type: 'test'
+  ...
+# Subtest: current editor evidence cannot downgrade its retained phase-source exchange contract
+ok 4 - current editor evidence cannot downgrade its retained phase-source exchange contract
+  ---
+  duration_ms: 137.825168
+  type: 'test'
+  ...
+# Subtest: improvement record binds the full failure-edit-success chain without claiming adjudication
+ok 5 - improvement record binds the full failure-edit-success chain without claiming adjudication
+  ---
+  duration_ms: 5015.67318
+  type: 'test'
+  ...
+# Subtest: human adjudication creates a new hash-bound corpus disposition and cannot be overwritten
+ok 6 - human adjudication creates a new hash-bound corpus disposition and cannot be overwritten
+  ---
+  duration_ms: 3857.362038
+  type: 'test'
+  ...
+# Subtest: improvement session captures a failure once and emits only after a later exact replay passes
+ok 7 - improvement session captures a failure once and emits only after a later exact replay passes
+  ---
+  duration_ms: 2769.226337
+  type: 'test'
+  ...
+# Subtest: improvement session retains an exact failed baseline across same-prompt compiler candidates
+ok 8 - improvement session retains an exact failed baseline across same-prompt compiler candidates
+  ---
+  duration_ms: 2952.724061
+  type: 'test'
+  ...
+# Subtest: improvement session does not pair an edit of an unproven alternate with an older failure
+ok 9 - improvement session does not pair an edit of an unproven alternate with an older failure
+  ---
+  duration_ms: 2539.091202
+  type: 'test'
+  ...
+# Subtest: final-phase training review binds human adjudication to the successful correction record
+ok 10 - final-phase training review binds human adjudication to the successful correction record
+  ---
+  duration_ms: 3614.825619
+  type: 'test'
+  ...
+# Subtest: improvement record schema is restrictive and delegates exact WorldSpec and WorldProof validation
+ok 11 - improvement record schema is restrictive and delegates exact WorldSpec and WorldProof validation
+  ---
+  duration_ms: 0.799142
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21375.699169

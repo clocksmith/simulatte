@@ -681,7 +681,9 @@ export function assertReceipt(receipt, boundary) {
     [receipt.after.renderInputSerial > receipt.before.renderInputSerial, 'Phase 7 did not accept a new render input'],
     [receipt.after.renderCount > receipt.before.renderCount, 'Phase 7 did not render the edited world'],
     [receipt.after.revision === receipt.before.revision + 1, 'the user edit did not create exactly one append-only revision'],
-    [['simulatte.worldSpecBrowserExchange.v1', 'simulatte.worldSpecBrowserExchange.v2'].includes(receipt.exchange?.schema), 'browser WorldSpec exchange receipt is missing'],
+    [(['simulatte.worldSpecEditorBrowserAudit.v1', 'simulatte.worldSpecEditorBrowserAudit.v2'].includes(receipt.schema) &&
+      receipt.exchange?.schema === receipt.schema.replace('EditorBrowserAudit', 'BrowserExchange')),
+      'browser WorldSpec exchange schema must match its audit version'],
     [receipt.exchange?.exportedContentHash === receipt.after.contentHash &&
       receipt.exchange?.importedContentHash === receipt.after.contentHash,
       'export/import changed the edited WorldSpec identity'],
@@ -840,7 +842,7 @@ export async function retainEditorFailure(client, options, error, evidence = {})
       const lab = window.SimulattePhysicsLab?._browserLab;
       const canvas = document.getElementById('physics-canvas');
       return { url: location.href, text: document.body.innerText, canvas: {...canvas?.dataset},
-        spec: lab?.getSpec() || null, state: lab?.getState() || null,
+        spec: lab?.getSpec() || null, state: lab?.getState() || null, pipelineRun: lab?.getPipelineRun?.() || null,
         training: lab?.getTrainingSnapshot() || null };
     })()`);
   } catch (captureError) { failure.captureErrors.push({ boundary: 'page-state', message: captureError.message }); }

@@ -29,8 +29,8 @@ Expose controls and evidence around the compiler.
 
 - Preserved reconciled edits compile through typed phases before publication.
 - The runner bounds phases, resources, and revisions; cancelled work cannot publish or release in-flight leases.
-- Worker phases reject undeclared resources; cancelled and failed workers cannot publish or poison replacements.
-- Displayed completion requires receipts.
+- Workers reject undeclared resources; cancellation and failure cannot publish or poison replacements.
+- Authored replay admits per-phase sources; file exchange preserves sources, excluding stale execution proof.
 - Edits record user authority before execution; fresh compilation cannot replace them without an explicit preserve or supersede decision.
 - Compiler determinism compares an independently compiled artifact with the reconstructed pre-edit baseline.
 - Exact replay performs a second execution and compares bound outcomes under one execution identity.
@@ -41,10 +41,10 @@ Expose controls and evidence around the compiler.
 
 ## Acceptance
 
-- Evidence: [registry tests](../../../tests/phase-module-registry.test.cjs) and [worker boundary tests](../../../tests/pipeline-worker-phases.test.cjs).
+- Evidence: [worker tests](../../../tests/pipeline-worker-phases.test.cjs).
 - Evidence: [WorldSpec editor tests](../../../tests/world-spec.test.cjs).
-- Evidence: [WorldSpec editor browser audit](../../../tools/audit-world-spec-editor.mjs).
-- Evidence: [improvement record tests](../../../tests/world-improvement-record.test.cjs).
+- Evidence: [browser audit](../../../tools/audit-world-spec-editor.mjs).
+- Evidence: [correction tests](../../../tests/world-improvement-record.test.cjs).
 - Evidence: [runner component tests](../../../tests/create-phase-runner.test.cjs).
 
 ## Non-goals

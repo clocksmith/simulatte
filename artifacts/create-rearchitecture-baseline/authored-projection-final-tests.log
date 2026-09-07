@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: public governing metric keeps machine proof, human proof, scope, and dimensions separate
+ok 1 - public governing metric keeps machine proof, human proof, scope, and dimensions separate
+  ---
+  duration_ms: 132.9171
+  type: 'test'
+  ...
+# Subtest: one critical prompt failure fails the governing machine gate instead of averaging away
+ok 2 - one critical prompt failure fails the governing machine gate instead of averaging away
+  ---
+  duration_ms: 62.403013
+  type: 'test'
+  ...
+# Subtest: governing metric rejects stale builds and incomplete boundary evidence
+ok 3 - governing metric rejects stale builds and incomplete boundary evidence
+  ---
+  duration_ms: 114.528532
+  type: 'test'
+  ...
+# Subtest: current editor evidence cannot downgrade its retained phase-source exchange contract
+ok 4 - current editor evidence cannot downgrade its retained phase-source exchange contract
+  ---
+  duration_ms: 58.6206
+  type: 'test'
+  ...
+# Subtest: part candidates preserve optional quantities without publishing undefined fields
+ok 5 - part candidates preserve optional quantities without publishing undefined fields
+  ---
+  duration_ms: 1601.051651
+  type: 'test'
+  ...
+# Subtest: explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+ok 6 - explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+  ---
+  duration_ms: 832.716538
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+ok 7 - WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+  ---
+  duration_ms: 2466.125236
+  type: 'test'
+  ...
+# Subtest: actual runner outputs project a WorldSpec without changing accepted bindings
+ok 8 - actual runner outputs project a WorldSpec without changing accepted bindings
+  ---
+  duration_ms: 2657.786257
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+ok 9 - WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+  ---
+  duration_ms: 1431.968516
+  type: 'test'
+  ...
+# Subtest: authored phase exports preserve edits and reject contradictory imports without reusing execution proof
+ok 10 - authored phase exports preserve edits and reject contradictory imports without reusing execution proof
+  ---
+  duration_ms: 2282.499118
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11599.753963

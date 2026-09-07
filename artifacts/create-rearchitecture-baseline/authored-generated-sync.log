@@ -1,0 +1,11 @@
+
+> folder-contracts:update
+> node tools/sync-folder-contracts.mjs --write --catalog-root=../ouroboros
+
+Wrote docs/simulatte/folder-contract.json.
+Folder-contract mirrors synchronized from /home/clocksmith/deco/ouroboros.
+
+> sync:artifacts
+> node tools/sync-generated-artifact-inventory.mjs --write
+
+Wrote public/data/generated-artifact-inventory.json.

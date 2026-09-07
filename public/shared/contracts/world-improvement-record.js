@@ -55,9 +55,14 @@
   function canonicalValue(value) {
     if (Array.isArray(value)) return value.map(canonicalValue);
     if (!value || typeof value !== 'object') return value;
-    return Object.fromEntries(Object.keys(value).sort().flatMap((key) => (
-      value[key] === undefined ? [] : [[key, canonicalValue(value[key])]]
-    )));
+    const result = {};
+    for (const key of Object.keys(value).sort()) {
+      if (value[key] === undefined) continue;
+      const child = canonicalValue(value[key]);
+      if (key === '__proto__') Object.defineProperty(result, key, { value: child, enumerable: true, writable: true, configurable: true });
+      else result[key] = child;
+    }
+    return result;
   }
 
   function canonicalJson(value, spacing = 0) {
@@ -75,7 +80,7 @@
   }
 
   function contentHash(value) {
-    const copy = canonicalValue(value || {});
+    const copy = { ...(value || {}) };
     delete copy.contentHash;
     return `${HASH_PREFIX}${fnv1a32(canonicalJson(copy)).toString(16).padStart(8, '0')}`;
   }
@@ -85,9 +90,18 @@
   }
 
   function deepFreeze(value) {
-    if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+    if (!value || typeof value !== 'object') return value;
     Object.values(value).forEach(deepFreeze);
     return Object.freeze(value);
+  }
+
+  const validatedRecords = new WeakSet();
+
+  function freezeValidatedRecord(record) {
+    validateWorldImprovementRecord(record);
+    deepFreeze(record);
+    validatedRecords.add(record);
+    return record;
   }
 
   function createWorldSpecSnapshot(spec) {
@@ -256,7 +270,7 @@
       createdAt: requiredIso(options.nowIso || successExecution.worldProof.createdAt, '$.createdAt'),
     };
     record.contentHash = contentHash(record);
-    return deepFreeze(validateWorldImprovementRecord(record));
+    return freezeValidatedRecord(record);
   }
 
   function createDiagnosis(proof) {
@@ -321,10 +335,11 @@
     next.adjudication = { schema: ADJUDICATION_SCHEMA, status, review };
     next.corpusDisposition = status === 'accepted' ? 'adjudicated-positive' : 'adjudicated-negative';
     next.contentHash = contentHash(next);
-    return deepFreeze(validateWorldImprovementRecord(next));
+    return freezeValidatedRecord(next);
   }
 
   function validateWorldImprovementRecord(record) {
+    if (validatedRecords.has(record)) return record;
     requireObject(record, '$');
     requireExactKeys(record, [
       'schema', 'contentHash', 'status', 'brief', 'failureBoundary', 'intervention',

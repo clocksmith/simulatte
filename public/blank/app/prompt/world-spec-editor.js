@@ -59,10 +59,10 @@
       if (typeof options.onError === 'function') options.onError(error);
     }
 
-    function applyEditorValue(reason = '') {
+    async function applyEditorValue(reason = '') {
       try {
         setStatus('Validating and recompiling', 'active');
-        const next = options.apply(editor.value, reason || rationale && rationale.value || 'User edited WorldSpec in Create');
+        const next = await options.apply(editor.value, reason || rationale && rationale.value || 'User edited WorldSpec in Create');
         sync(next, { force: true });
         if (rationale) rationale.value = '';
         return next;
@@ -116,9 +116,9 @@
       try {
         const input = await inputSource.readFile(file);
         if (!['worldSpec', 'legacySpec'].includes(input.kind)) throw new Error('Import expects a WorldSpec. Open the workbench to prepare CSV or JSON data.');
-        editor.value = input.kind === 'legacySpec' ? JSON.stringify(input.spec) : options.serialize(input.spec);
+        editor.value = JSON.stringify(input.spec);
         markDirty();
-        const next = options.import(editor.value, file.name || 'WorldSpec file');
+        const next = await options.import(editor.value, file.name || 'WorldSpec file');
         sync(next, { force: true });
       } catch (error) {
         reportError(error);

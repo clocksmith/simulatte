@@ -112,3 +112,55 @@ test('WorldSpec projection rejects mixed requests and incomplete or contradictor
   channels.phase5.artifact.simulationCompile.stateChannels.push('unbound-channel');
   assert.throws(() => model.projectWorldSpec(channels), /state channels contradict/);
 });
+
+test('authored phase exports preserve edits and reject contradictory imports without reusing execution proof', async () => {
+  const original = model.createSpecFromPrompt('two red cats', { deterministicRuntime: true });
+  const candidate = JSON.parse(model.serializeSpec(original));
+  const node = candidate.universeGraph.nodes.find(row => row.properties?.some(property => property.kind === 'color'));
+  node.properties.find(property => property.kind === 'color').value = '#00aa44';
+  const edited = model.applyWorldSpecEdit(original, candidate, { rationale: 'Keep both cats green on replay' });
+  const projected = model.projectWorldSpec(edited.phaseArtifacts);
+  assert.equal(projected.contentHash, edited.contentHash);
+  assert.deepEqual(projected.authorship, edited.authorship);
+  assert.deepEqual(projected.universeGraph, edited.universeGraph);
+  const exported = JSON.parse(model.serializeSpec(edited, { retainPhaseSources: true }));
+  exported.phaseArtifacts.phase7 = { staleExecutionProof: true };
+  exported.phaseArtifacts.phase8 = { staleExecutionProof: true };
+  const imported = model.deserializeSpec(JSON.stringify(exported));
+  assert.equal(imported.contentHash, edited.contentHash);
+  assert.deepEqual(imported.authorship, edited.authorship);
+  assert.deepEqual(Object.keys(imported.phaseArtifacts).sort(), ['phase1', 'phase2', 'phase3', 'phase4', 'phase5', 'phase6']);
+  const admitted = await model.createAuthoredPhaseResources(imported);
+  assert.equal(admitted.worldSpec.contentHash, edited.contentHash);
+  const contradictory = structuredClone(exported);
+  contradictory.phaseArtifacts.phase4.artifact.groundedIntent.worldSpecAuthoring.authorship.revision += 1;
+  assert.throws(() => model.deserializeSpec(JSON.stringify(contradictory)), /Authorship revision does not match patch history/);
+  const missing = structuredClone(exported);
+  delete missing.phaseArtifacts.phase4.artifact.groundedIntent.worldSpecAuthoring.source;
+  assert.throws(() => model.deserializeSpec(JSON.stringify(missing)), /authoring metadata/);
+});
+
+test('editor file import passes retained phase sources to execution before preparing the editable draft', async () => {
+  const editor = require('../public/blank/app/prompt/world-spec-editor.js');
+  const spec = model.createSpecFromPrompt('two cats', { deterministicRuntime: true });
+  const payload = model.serializeSpec(spec, { retainPhaseSources: true });
+  const nodes = new Map();
+  const document = { getElementById(id) {
+    if (!nodes.has(id)) nodes.set(id, { value: '', dataset: {}, listeners: {},
+      addEventListener(event, fn) { this.listeners[event] = fn; } });
+    return nodes.get(id);
+  } };
+  let imported;
+  editor.connect(document, { getSpec: () => spec, getImprovementRecord: () => null,
+    serialize: model.serializeSpec, serializeImprovementRecord: JSON.stringify,
+    apply: () => { throw new Error('Import cannot be an edit'); },
+    import(text) { imported = JSON.parse(text); return model.deserializeSpec(text); },
+    onError(error) { throw error; } });
+  const input = nodes.get('world-spec-import-file');
+  input.files = [new File([payload], 'cats.world.json', { type: 'application/json' })];
+  await input.listeners.change();
+  assert.deepEqual(imported.phaseArtifacts, JSON.parse(payload).phaseArtifacts);
+  assert.equal(imported.contentHash, spec.contentHash);
+  assert.equal(JSON.parse(nodes.get('world-spec-editor').value).phaseArtifacts, undefined,
+    'editing projection excludes compiler evidence after the complete import');
+});

@@ -1,0 +1,232 @@
+TAP version 13
+# Subtest: managed Phase 7 consumes explicit state and viewport and waits for both GPU and mapping completion
+ok 1 - managed Phase 7 consumes explicit state and viewport and waits for both GPU and mapping completion
+  ---
+  duration_ms: 2219.146793
+  type: 'test'
+  ...
+# Subtest: managed rendering snapshots a mutable predecessor before asynchronous initialization
+ok 2 - managed rendering snapshots a mutable predecessor before asynchronous initialization
+  ---
+  duration_ms: 46.344592
+  type: 'test'
+  ...
+# Subtest: cancellation clears evidence but retains ownership until in-flight GPU work settles
+ok 3 - cancellation clears evidence but retains ownership until in-flight GPU work settles
+  ---
+  duration_ms: 43.361299
+  type: 'test'
+  ...
+# Subtest: invalid predecessor, malformed invocation, contradictory time and texture exhaustion submit no work
+ok 4 - invalid predecessor, malformed invocation, contradictory time and texture exhaustion submit no work
+  ---
+  duration_ms: 109.401517
+  type: 'test'
+  ...
+# Subtest: declared simulation snapshots bind the authored program to its exact Phase 6 artifact
+ok 5 - declared simulation snapshots bind the authored program to its exact Phase 6 artifact
+  ---
+  duration_ms: 599.541185
+  type: 'test'
+  ...
+# Subtest: device loss and viewport corruption cannot produce a completed phase
+ok 6 - device loss and viewport corruption cannot produce a completed phase
+  ---
+  duration_ms: 72.237735
+  type: 'test'
+  ...
+# Subtest: neutral pixel colors retain bounded shading without requiring chromatic saturation
+ok 7 - neutral pixel colors retain bounded shading without requiring chromatic saturation
+  ---
+  duration_ms: 1.890171
+  type: 'test'
+  ...
+# Subtest: directed action pixel evidence must include both exact participants
+ok 8 - directed action pixel evidence must include both exact participants
+  ---
+  duration_ms: 2385.752199
+  type: 'test'
+  ...
+# Subtest: part ownership proof rejects missing, detached, and wrongly owned submitted parts
+ok 9 - part ownership proof rejects missing, detached, and wrongly owned submitted parts
+  ---
+  duration_ms: 1545.402837
+  type: 'test'
+  ...
+# Subtest: Phase 7 sparse readback covers every required construction obligation above the old cap
+ok 10 - Phase 7 sparse readback covers every required construction obligation above the old cap
+  ---
+  duration_ms: 2385.577293
+  type: 'test'
+  ...
+# Subtest: Phase 7 retries a failed contrast proof at most three times for the same packet
+ok 11 - Phase 7 retries a failed contrast proof at most three times for the same packet
+  ---
+  duration_ms: 2689.378191
+  type: 'test'
+  ...
+# Subtest: Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+ok 12 - Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+  ---
+  duration_ms: 2230.532436
+  type: 'test'
+  ...
+# Subtest: Phase 7 samples the exact target entity before token-similar drawables
+ok 13 - Phase 7 samples the exact target entity before token-similar drawables
+  ---
+  duration_ms: 0.595271
+  type: 'test'
+  ...
+# Subtest: Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+ok 14 - Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+  ---
+  duration_ms: 2365.862098
+  type: 'test'
+  ...
+# Subtest: color evidence covers each repeated drawable and rejects a wrong color on the second object
+ok 15 - color evidence covers each repeated drawable and rejects a wrong color on the second object
+  ---
+  duration_ms: 1524.36397
+  type: 'test'
+  ...
+# Subtest: Phase 7 action proof samples the relation owner instead of a nearby object
+ok 16 - Phase 7 action proof samples the relation owner instead of a nearby object
+  ---
+  duration_ms: 2993.504291
+  type: 'test'
+  ...
+# Subtest: Phase 7 count proof requires every declared visible instance
+ok 17 - Phase 7 count proof requires every declared visible instance
+  ---
+  duration_ms: 2652.437177
+  type: 'test'
+  ...
+# Subtest: Phase 7 does not certify required visuals without live pixel readback
+ok 18 - Phase 7 does not certify required visuals without live pixel readback
+  ---
+  duration_ms: 2197.92695
+  type: 'test'
+  ...
+# Subtest: Phase 7 absence proof binds the compiled semantic submission to current texture readback
+ok 19 - Phase 7 absence proof binds the compiled semantic submission to current texture readback
+  ---
+  duration_ms: 3858.668788
+  type: 'test'
+  ...
+# Subtest: Phase 7 reports readback capacity overflow instead of truncating proof
+ok 20 - Phase 7 reports readback capacity overflow instead of truncating proof
+  ---
+  duration_ms: 3767.652147
+  type: 'test'
+  ...
+# Subtest: Phase 7 proves through only when final projected source geometry crosses the target
+ok 21 - Phase 7 proves through only when final projected source geometry crosses the target
+  ---
+  duration_ms: 3.094338
+  type: 'test'
+  ...
+# Subtest: Phase 7 rejects pixel evidence captured for a different scene packet
+ok 22 - Phase 7 rejects pixel evidence captured for a different scene packet
+  ---
+  duration_ms: 2684.592535
+  type: 'test'
+  ...
+# Subtest: Phase 6 lays out containment, entry, and between relations for final part geometry
+ok 23 - Phase 6 lays out containment, entry, and between relations for final part geometry
+  ---
+  duration_ms: 14238.182257
+  type: 'test'
+  ...
+# Subtest: worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+ok 24 - worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+  ---
+  duration_ms: 7054.754699
+  type: 'test'
+  ...
+# Subtest: phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+ok 25 - phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+  ---
+  duration_ms: 3.38616
+  type: 'test'
+  ...
+# Subtest: authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+ok 26 - authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+  ---
+  duration_ms: 14477.72042
+  type: 'test'
+  ...
+# Subtest: authored replay rejects changed provenance, cross-world sources and ignored authoring
+ok 27 - authored replay rejects changed provenance, cross-world sources and ignored authoring
+  ---
+  duration_ms: 11104.58004
+  type: 'test'
+  ...
+# Subtest: cancelling a worker phase stops its worker and stale events cannot poison its replacement
+ok 28 - cancelling a worker phase stops its worker and stale events cannot poison its replacement
+  ---
+  duration_ms: 2.404735
+  type: 'test'
+  ...
+# Subtest: worker failure terminates the failed instance and rejects pending and future calls
+ok 29 - worker failure terminates the failed instance and rejects pending and future calls
+  ---
+  duration_ms: 4.317765
+  type: 'test'
+  ...
+# Subtest: compatibility compile retains its WorldSpec result through the same worker protocol
+ok 30 - compatibility compile retains its WorldSpec result through the same worker protocol
+  ---
+  duration_ms: 4315.553438
+  type: 'test'
+  ...
+# Subtest: part candidates preserve optional quantities without publishing undefined fields
+ok 31 - part candidates preserve optional quantities without publishing undefined fields
+  ---
+  duration_ms: 3466.079494
+  type: 'test'
+  ...
+# Subtest: explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+ok 32 - explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+  ---
+  duration_ms: 1794.225137
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+ok 33 - WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+  ---
+  duration_ms: 6801.139111
+  type: 'test'
+  ...
+# Subtest: actual runner outputs project a WorldSpec without changing accepted bindings
+ok 34 - actual runner outputs project a WorldSpec without changing accepted bindings
+  ---
+  duration_ms: 9780.325691
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+ok 35 - WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+  ---
+  duration_ms: 5822.323401
+  type: 'test'
+  ...
+# Subtest: authored phase exports preserve edits and reject contradictory imports without reusing execution proof
+ok 36 - authored phase exports preserve edits and reject contradictory imports without reusing execution proof
+  ---
+  duration_ms: 6081.015767
+  type: 'test'
+  ...
+# Subtest: editor file import passes retained phase sources to execution before preparing the editable draft
+ok 37 - editor file import passes retained phase sources to execution before preparing the editable draft
+  ---
+  duration_ms: 2354.016625
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48110.525081

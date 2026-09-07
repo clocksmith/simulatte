@@ -36,6 +36,7 @@ Produce the accepted semantic world graph with assumptions, refusals, and proven
 - Removing an accepted node also reconciles its dependent relations and execution obligations.
 - Every Phase 2 critical requirement remains accepted, explicitly refused, unresolved, or lost.
 - User-edited semantic fields bind append-only patch IDs instead of retaining false prompt authority.
+- Public authoring history remains an explicit projection beside the effective execution graph; replay preserves both.
 - Grounding evidence, unsupported rows, and unresolved rows remain compiler-owned when a user edits executable intent.
 
 ## Acceptance

@@ -214,7 +214,7 @@ test('color evidence covers each repeated drawable and rejects a wrong color on 
   assert.equal(ids.length, 2);
   assert.ok(rows.every(row => row.expectedDrawableIds.length === 2));
   const proof = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
-  const audit = samples => proof.auditLivePixelSamples(proof.normalizePhase7PixelSamples(samples), {
+  const audit = samples => proof.auditLivePixelSamples(proof.normalizePhase7PixelSamples({ samples }), {
     required: true, drawableCount: 2, proofSummary: { requiredObligationIds: [color.obligationId] },
   });
   const valid = rows.map(row => ({ ...row, rgba: [200, 35, 45, 255] }));

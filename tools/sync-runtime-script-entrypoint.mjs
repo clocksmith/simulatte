@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -29,7 +30,13 @@ function runtimeScriptBlock(html, browserScripts) {
     const src = relativePath.startsWith('../') ? relativePath : `./${relativePath}`;
     return `  <script defer src="${src}?v=${buildStamp}"></script>`;
   });
-  return [START, ...tags, `  ${END}`].join('\n');
+  const sourceFiles = [...new Set([...paths, ...manifest.pipelineWorker,
+    'app/workers/simulatte-pipeline-worker.js', 'app/workers/simulatte-worker-bootstrap.js',
+    '../data/create-phase-run-policy.json'])].sort();
+  const sourceIdentity = sourceFiles.map(file => ({ file,
+    sha256: crypto.createHash('sha256').update(fs.readFileSync(path.resolve(repoRoot, 'public/blank', file))).digest('hex') }));
+  const buildDigest = crypto.createHash('sha256').update(JSON.stringify(sourceIdentity)).digest('hex');
+  return [START, `  <meta name="simulatte-runtime-source" content="sha256:${buildDigest}">`, ...tags, `  ${END}`].join('\n');
 }
 
 function replaceGeneratedBlock(html, block) {

@@ -1,0 +1,110 @@
+TAP version 13
+# Subtest: editor audit retains page evidence and screenshot identity without replacing the failure
+ok 1 - editor audit retains page evidence and screenshot identity without replacing the failure
+  ---
+  duration_ms: 49.280244
+  type: 'test'
+  ...
+# Subtest: a lost browser still leaves the original failure and capture errors on disk
+ok 2 - a lost browser still leaves the original failure and capture errors on disk
+  ---
+  duration_ms: 1.675964
+  type: 'test'
+  ...
+# Subtest: public governing metric keeps machine proof, human proof, scope, and dimensions separate
+ok 3 - public governing metric keeps machine proof, human proof, scope, and dimensions separate
+  ---
+  duration_ms: 150.811442
+  type: 'test'
+  ...
+# Subtest: one critical prompt failure fails the governing machine gate instead of averaging away
+ok 4 - one critical prompt failure fails the governing machine gate instead of averaging away
+  ---
+  duration_ms: 55.243091
+  type: 'test'
+  ...
+# Subtest: governing metric rejects stale builds and incomplete boundary evidence
+ok 5 - governing metric rejects stale builds and incomplete boundary evidence
+  ---
+  duration_ms: 116.096235
+  type: 'test'
+  ...
+# Subtest: current editor evidence cannot downgrade its retained phase-source exchange contract
+ok 6 - current editor evidence cannot downgrade its retained phase-source exchange contract
+  ---
+  duration_ms: 67.453505
+  type: 'test'
+  ...
+# Subtest: part candidates preserve optional quantities without publishing undefined fields
+ok 7 - part candidates preserve optional quantities without publishing undefined fields
+  ---
+  duration_ms: 1679.692319
+  type: 'test'
+  ...
+# Subtest: explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+ok 8 - explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+  ---
+  duration_ms: 1040.400813
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+ok 9 - WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+  ---
+  duration_ms: 4160.472726
+  type: 'test'
+  ...
+# Subtest: actual runner outputs project a WorldSpec without changing accepted bindings
+ok 10 - actual runner outputs project a WorldSpec without changing accepted bindings
+  ---
+  duration_ms: 6147.786721
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+ok 11 - WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+  ---
+  duration_ms: 3514.977255
+  type: 'test'
+  ...
+# Subtest: authored phase exports preserve edits and reject contradictory imports without reusing execution proof
+not ok 12 - authored phase exports preserve edits and reject contradictory imports without reusing execution proof
+  ---
+  duration_ms: 4639.118564
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:116:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /contradict|hash/i. Input:
+    
+    'WorldSpecError: Authorship revision does not match patch history at $.authorship.revision'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  error: 'Authorship revision does not match patch history at $.authorship.revision'
+  stack: |-
+    fail (/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec.js:334:35)
+    Object.validateAuthorship (/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec-authorship.js:30:7)
+    validateAuthorship (/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec.js:327:31)
+    validateWorldSpec (/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec.js:303:5)
+    Object.finalizeWorldSpec (/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec.js:276:5)
+    Object.createSpec (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js:125:43)
+    Object.projectWorldSpec (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js:153:18)
+    Object.hydrateImportedWorldSpec (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js:344:35)
+    Object.deserializeSpec (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js:177:18)
+    /home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:137:29
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:137:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 11
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21575.602431

@@ -1,0 +1,3 @@
+Error: WorldSpec editor browser audit failed: editor audit exceeded 20000ms
+    at assertReceipt (file:///home/clocksmith/deco/simulatte/tools/audit-world-spec-editor.mjs:830:30)
+    at main (file:///home/clocksmith/deco/simulatte/tools/audit-world-spec-editor.mjs:907:5)

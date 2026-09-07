@@ -68,8 +68,17 @@
         const domainByNode = new Map();
         const materialAssignments = materialAssignmentsForGraph(universeGraph);
         const environmentPrograms = (universeGraph.environmentPrograms || []).map((row) => ({ ...row }));
+        const unresolvedTexts = new Set((universeGraph.unresolved || []).map(row => row.text));
 
         for (const node of universeGraph.nodes || []) {
+          if (node.unresolved === true) {
+            const promptSpan = node.sourceLabel || node.label;
+            if (!unresolvedTexts.has(promptSpan)) {
+              receipt.unresolved.push({ promptSpan, reason: 'accepted graph retains unresolved meaning' });
+              unresolvedTexts.add(promptSpan);
+            }
+            continue;
+          }
           if (materialAssignments.sourceNodeIds.has(node.id)) {
             receipt.exact.push({
               promptSpan: node.label,

@@ -1,0 +1,22 @@
+{
+  "schema": "simulatte.createPageExecutionPolicy.v1",
+  "residencyEvidence": "declared-resource-bounds; physical GPU residency remains unqualified",
+  "workerResidentBytes": 33554432,
+  "rendererResidentBytes": 67108864,
+  "policy": {
+    "schema": "simulatte.phaseRunPolicy.v1",
+    "id": "create-page-local-v1",
+    "maxInputBytes": 8388608,
+    "maxEvidenceBytes": 20000000,
+    "phases": [
+      { "phase": 1, "maxDurationMs": 30000, "maxArtifactBytes": 5000000, "maxResidentBytes": 100663296 },
+      { "phase": 2, "maxDurationMs": 30000, "maxArtifactBytes": 5000000, "maxResidentBytes": 100663296 },
+      { "phase": 3, "maxDurationMs": 30000, "maxArtifactBytes": 5000000, "maxResidentBytes": 100663296 },
+      { "phase": 4, "maxDurationMs": 30000, "maxArtifactBytes": 5000000, "maxResidentBytes": 100663296 },
+      { "phase": 5, "maxDurationMs": 30000, "maxArtifactBytes": 5000000, "maxResidentBytes": 100663296 },
+      { "phase": 6, "maxDurationMs": 30000, "maxArtifactBytes": 5000000, "maxResidentBytes": 100663296 },
+      { "phase": 7, "maxDurationMs": 30000, "maxArtifactBytes": 5000000, "maxResidentBytes": 100663296 },
+      { "phase": 8, "maxDurationMs": 30000, "maxArtifactBytes": 5000000, "maxResidentBytes": 100663296 }
+    ]
+  }
+}

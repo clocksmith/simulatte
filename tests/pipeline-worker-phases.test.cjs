@@ -48,6 +48,36 @@ const request = { request: { kind: 'prompt', text: 'two cats' },
 const call = () => ({ previous: contracts.createRequestEnvelope(request), invocation: {} });
 const resources = () => ({ 'compiler-options': { deterministicRuntime: true } });
 
+test('page dispatch executes and retains eight bound phases through the existing worker', async () => {
+  const dispatch = require('../public/blank/app/prompt/prompt-controller-phase-dispatch.js');
+  const policy = require('../public/data/create-phase-run-policy.json');
+  const { client } = harness();
+  const events = [];
+  const producer = { id: 'page-dispatch-test', buildDigest: await contracts.artifactDigest({ fixture: 'page-dispatch' }) };
+  const instance = dispatch.create({ model, worker: client, configuration: { ...policy, producer },
+    renderer: { renderPhase: (previous, invocation) => model.runPhase7RenderExecution(previous, invocation.simulationSnapshot.state, null, {}) },
+    reconcileProgram: async program => program,
+    invocationForProgram: (program, previous, _signal, authored) => model.createRenderInvocation(program,
+      model.createSimulationState(program), { index: 0, simulationTime: 0 }, { width: 640, height: 480 },
+      authored ? { phase6Output: previous } : {}),
+    publishRuntime: event => events.push(event.phaseStep),
+  });
+  try {
+    const prompt = 'a red ball beside a qzxwplk';
+    const program = await instance.compile(prompt, { deterministicRuntime: true });
+    const record = instance.getLatest();
+    assert.equal(record.status, 'completed');
+    assert.equal(record.attempts.length, 1);
+    assert.deepEqual(record.attempts[0].outputs.map(output => output.phase), [1, 2, 3, 4, 5, 6, 7, 8]);
+    assert.deepEqual(events, [1, 2, 3, 4, 5, 6, 7, 8]);
+    assert.equal(program.contentHash, model.createSpecFromPrompt(prompt, { deterministicRuntime: true, compilerLane: 'pipeline-worker' }).contentHash);
+    assert.ok(program.physicsIR.receipt.unresolved.some(row => row.promptSpan === 'qzxwplk'));
+    assert.ok(program.physicsIR.receipt.exact.every(row => row.canonicalId !== 'unresolved.qzxwplk'));
+    assert.notEqual(record.attempts[0].outputs[7].artifact.sceneProof.verdict, 'pass', 'diagnostic component renderer cannot prove pixels');
+    assert.ok(Object.isFrozen(record.attempts[0].outputs[0]));
+  } finally { instance.dispose(); client.cancel(); }
+});
+
 test('worker phase RPC and runner execute the same eight transformations with explicit graphics ownership', async () => {
   const { client, workers } = harness();
   const digest = await contracts.artifactDigest(request.configuration);

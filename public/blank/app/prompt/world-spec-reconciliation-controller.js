@@ -22,6 +22,7 @@
     }
     let pending = null;
     let latestReceipt = null;
+    let latestAuthoredResult = null;
     const publishRuntime = typeof options.publishRuntime === 'function'
       ? options.publishRuntime
       : () => {};
@@ -84,6 +85,7 @@
           { planId: active.plan.id, decidedBy: String(options.decidedBy || 'local-user') }
         );
         const result = prepareReconciledExecution(accepted, options.compileWorldSpec);
+        latestAuthoredResult = result;
         latestReceipt = result.receipt;
         dialog.dataset.receipt = JSON.stringify(result.receipt);
         finish(active, result, decision);
@@ -154,6 +156,14 @@
       abort,
       getPlan: () => pending && pending.plan || null,
       getLatestReceipt: () => latestReceipt,
+      bindExecution(worldSpec) {
+        const record = worldSpec?.authorship?.reconciliations?.at(-1);
+        if (!latestAuthoredResult || record?.id !== latestReceipt?.id) return null;
+        const result = prepareReconciledExecution(latestAuthoredResult, () => worldSpec);
+        latestReceipt = Object.freeze({ ...result.receipt, resultWorldSpecContentHash: worldSpec.contentHash });
+        dialog.dataset.receipt = JSON.stringify(latestReceipt);
+        return latestReceipt;
+      },
     });
   }
 
@@ -178,5 +188,5 @@
     }) });
   }
 
-  return Object.freeze({ connect, statusLabel, prepareReconciledExecution });
+  return Object.freeze({ connect, statusLabel, prepareReconciledExecution, needsReconciliation: reconciliation.needsReconciliation });
 });

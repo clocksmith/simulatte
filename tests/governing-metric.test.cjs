@@ -108,3 +108,22 @@ test('governing metric rejects stale builds and incomplete boundary evidence', a
     /requires every declared boundary report/
   );
 });
+
+test('current editor evidence cannot downgrade its retained phase-source exchange contract', async () => {
+  const { assertReceipt } = await import('../tools/audit-world-spec-editor.mjs');
+  const input = loadArchivedEvidenceFixture();
+  const receipt = structuredClone(input.pointers.boundaryReports[0].pointer.value);
+  const set = input.pointers.boundarySet.value;
+  const boundary = { ...set.rows.find(row => row.id === receipt.boundaryRowId),
+    boundarySetId: set.id, boundaryContractSha256: receipt.boundaryContractSha256,
+    ...set.governingMetric };
+  assert.doesNotThrow(() => assertReceipt(receipt, boundary), 'historical v1 remains readable');
+  receipt.schema = 'simulatte.worldSpecEditorBrowserAudit.v2';
+  assert.throws(() => assertReceipt(receipt, boundary), /exchange schema must match/);
+  Object.assign(receipt.exchange, { schema: 'simulatte.worldSpecBrowserExchange.v2',
+    executionEvidenceOmitted: true, exportedPhaseSourceDigest: `sha256:${'1'.repeat(64)}`,
+    importedPhaseSourceDigest: `sha256:${'1'.repeat(64)}` });
+  assert.doesNotThrow(() => assertReceipt(receipt, boundary));
+  receipt.exchange.importedPhaseSourceDigest = `sha256:${'2'.repeat(64)}`;
+  assert.throws(() => assertReceipt(receipt, boundary), /phase-source contract/);
+});

@@ -4,7 +4,7 @@
     : root.SimulattePhaseModuleRegistry;
   const scope = registry.family('physicsModel');
 
-  function createUserOverridePhase4(phase4Output, worldSpec) {
+  function createUserOverridePhase4(phase4Output, worldSpec, options = {}) {
     scope.assertPhaseEnvelope(phase4Output, 4, 'WorldSpec user override input');
     if (!worldSpec || worldSpec.schema !== scope.worldSpec.WORLD_SPEC_SCHEMA) {
       throw new Error(`WorldSpec user override expected ${scope.worldSpec.WORLD_SPEC_SCHEMA}`);
@@ -76,7 +76,7 @@
         patchIds: patches.filter((patch) => patch.revision === revision).map((patch) => patch.id),
       },
     };
-    const intentRequirements = worldSpec.phaseArtifacts && worldSpec.phaseArtifacts.phase2 &&
+    const intentRequirements = Object.hasOwn(options, 'intentRequirements') ? options.intentRequirements : worldSpec.phaseArtifacts && worldSpec.phaseArtifacts.phase2 &&
       worldSpec.phaseArtifacts.phase2.artifact &&
       worldSpec.phaseArtifacts.phase2.artifact.intentRequirements;
     const semanticProvenance = scope.worldProof.createSemanticProvenanceLedger(

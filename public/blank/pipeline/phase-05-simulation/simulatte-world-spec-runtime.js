@@ -4,13 +4,16 @@
     : root.SimulattePhaseModuleRegistry;
   const scope = registry.family('physicsModel');
 
-  async function createAuthoredPhaseResources(inputSpec, configuration = { deterministicRuntime: true }) {
+  async function createAuthoredPhaseResources(inputSpec, configuration = { deterministicRuntime: true }, { recompile = false } = {}) {
     const contracts = scope.phaseContracts;
     const spec = contracts.immutableArtifact(inputSpec);
     const options = contracts.immutableArtifact(configuration);
     scope.worldSpec.validateWorldSpec(spec);
-    const projected = projectWorldSpec(spec.phaseArtifacts);
-    if (projected.contentHash !== spec.contentHash) throw new Error('Authored WorldSpec contradicts its accepted phase artifacts');
+    scope.worldSpec.compilerBaselineContentHash(spec);
+    if (!recompile) {
+      const projected = projectWorldSpec(spec.phaseArtifacts);
+      if (projected.contentHash !== spec.contentHash) throw new Error('Authored WorldSpec contradicts its accepted phase artifacts');
+    }
     const worldSpecDigest = await contracts.artifactDigest(spec);
     const resources = {};
     const sourceDigests = {};
@@ -18,7 +21,8 @@
     for (let phase = 1; phase <= 6; phase++) {
       const output = spec.phaseArtifacts[`phase${phase}`];
       const sourceArtifactDigest = await contracts.artifactDigest(output);
-      const source = contracts.immutableArtifact({ schema: 'simulatte.authoredPhaseSource.v1', phase,
+      const source = contracts.immutableArtifact({ schema: 'simulatte.authoredPhaseSource.v2', phase,
+        mode: recompile ? 'authored-edit' : 'replay', authoring: recompile && phase === 4 ? spec : null,
         worldSpecDigest, predecessorSourceDigest, sourceArtifactDigest, output });
       const id = `authored-phase-${phase}`;
       const contentDigest = await contracts.artifactDigest(source);
@@ -36,14 +40,19 @@
       request: { kind: 'world-spec', text: spec.source.prompt || '' }, configuration: options,
       authoredInputs: [{ id: 'authored-world-spec', contentDigest: worldSpecDigest, sourceDigests }], retryPolicy: null,
     });
-    return Object.freeze({ worldSpec: spec, request, resources: Object.freeze(resources) });
+    return Object.freeze({ worldSpec: spec, request, recompile, resources: Object.freeze(resources) });
   }
 
   async function runAuthoredPhase(phase, call, resources) {
     const contracts = scope.phaseContracts;
     const source = resources[`authored-phase-${phase}`];
-    if (!source || source.schema !== 'simulatte.authoredPhaseSource.v1' || source.phase !== phase) {
+    if (!source || !['simulatte.authoredPhaseSource.v1', 'simulatte.authoredPhaseSource.v2'].includes(source.schema) || source.phase !== phase) {
       throw new Error(`Authored Phase ${phase} requires its admitted source`);
+    }
+    const mode = source.schema === 'simulatte.authoredPhaseSource.v1' ? 'replay' : source.mode;
+    if (!['replay', 'authored-edit'].includes(mode) ||
+        (source.schema === 'simulatte.authoredPhaseSource.v2' && Boolean(source.authoring) !== (mode === 'authored-edit' && phase === 4))) {
+      throw new Error('Authored phase source mode or authoring resource is invalid');
     }
     contracts.assertPhaseEnvelope(source.output, phase, 'Authored phase source');
     if (await contracts.artifactDigest(source.output) !== source.sourceArtifactDigest) throw new Error('Authored phase source artifact digest mismatch');
@@ -56,10 +65,21 @@
     if (phase === 1 ? source.predecessorSourceDigest !== null : prior?.sourceArtifactDigest !== source.predecessorSourceDigest) {
       throw new Error('Authored phase source does not follow its declared predecessor');
     }
+    if (phase > 1 && (prior.sourceMode || 'replay') !== mode) throw new Error('Authored phase source mode changed within the request');
     let output;
     if (phase === 1) {
       if (call.previous.request.text !== source.output.artifact.promptIngress.sourceText) throw new Error('Authored request prompt provenance mismatch');
       output = scope.runPhase1RuntimeGate(call.previous.request.text, resources['compiler-options']);
+    } else if (mode === 'authored-edit' && phase >= 4) {
+      const previous = contracts.legacyPhaseProjection(call.previous);
+      if (phase === 4) {
+        scope.worldSpec.validateWorldSpec(source.authoring);
+        if (await contracts.artifactDigest(source.authoring) !== source.worldSpecDigest) throw new Error('Authored edit program digest mismatch');
+        output = scope.createUserOverridePhase4(contracts.legacyPhaseProjection(source.output), source.authoring,
+          { intentRequirements: previous.artifact.intentRequirements });
+        output = { ...output, runtimeReceiptId: call.previous.runtimeReceiptId,
+          artifact: { ...output.artifact, runtimeContext: previous.artifact.runtimeContext } };
+      } else output = phase === 5 ? scope.runPhase5SimulationCompile(previous) : scope.runPhase6VisualCompile(previous);
     } else {
       const compatible = contracts.legacyPhaseProjection(source.output);
       const artifact = { ...compatible.artifact };
@@ -67,8 +87,8 @@
       output = { ...compatible, runtimeReceiptId: call.previous.runtimeReceiptId, artifact };
     }
     return contracts.immutableArtifact({ ...output, receipts: [...output.receipts.filter(row => row.id !== 'authored-phase-replay'), {
-      id: 'authored-phase-replay', schema: 'simulatte.phaseReceipt.v1', phase,
-      mode: phase === 1 ? 'runtime-requalification' : 'authored-artifact-replay',
+      id: 'authored-phase-replay', schema: 'simulatte.phaseReceipt.v1', phase, sourceMode: mode,
+      mode: phase === 1 ? 'runtime-requalification' : mode === 'authored-edit' && phase >= 4 ? 'authored-recompile' : 'authored-artifact-replay',
       interpreted: false, authoredInput: reference, sourceArtifactDigest: source.sourceArtifactDigest,
     }] });
   }

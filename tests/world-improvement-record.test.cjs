@@ -168,6 +168,17 @@ test('improvement record binds the full failure-edit-success chain without claim
   assert.equal(JSON.parse(recordContract.serializeWorldImprovementRecord(record)).contentHash, record.contentHash);
   assert.ok(Object.isFrozen(record));
   assert.ok(Object.isFrozen(record.failureBoundary.compilerTrace.phases[0].envelope));
+  const callerOwned = Object.freeze(JSON.parse(recordContract.canonicalJson(record)));
+  assert.equal(recordContract.validateWorldImprovementRecord(callerOwned), callerOwned);
+  callerOwned.population.rowId = 'changed-after-validation';
+  assert.throws(() => recordContract.validateWorldImprovementRecord(callerOwned), /population|contentHash/i,
+    'shallow-frozen caller input must never acquire the owned immutable validation cache');
+  const visit = value => {
+    if (!value || typeof value !== 'object') return;
+    assert.ok(Object.isFrozen(value), 'every cached record descendant must be frozen');
+    Object.values(value).forEach(visit);
+  };
+  visit(record);
 });
 
 test('human adjudication creates a new hash-bound corpus disposition and cannot be overwritten', () => {

@@ -1,0 +1,184 @@
+TAP version 13
+# Subtest: public governing metric keeps machine proof, human proof, scope, and dimensions separate
+ok 1 - public governing metric keeps machine proof, human proof, scope, and dimensions separate
+  ---
+  duration_ms: 112.969823
+  type: 'test'
+  ...
+# Subtest: one critical prompt failure fails the governing machine gate instead of averaging away
+ok 2 - one critical prompt failure fails the governing machine gate instead of averaging away
+  ---
+  duration_ms: 69.014095
+  type: 'test'
+  ...
+# Subtest: governing metric rejects stale builds and incomplete boundary evidence
+ok 3 - governing metric rejects stale builds and incomplete boundary evidence
+  ---
+  duration_ms: 97.505974
+  type: 'test'
+  ...
+# Subtest: current editor evidence cannot downgrade its retained phase-source exchange contract
+ok 4 - current editor evidence cannot downgrade its retained phase-source exchange contract
+  ---
+  duration_ms: 59.19438
+  type: 'test'
+  ...
+# Subtest: improvement record binds the full failure-edit-success chain without claiming adjudication
+ok 5 - improvement record binds the full failure-edit-success chain without claiming adjudication
+  ---
+  duration_ms: 2566.873736
+  type: 'test'
+  ...
+# Subtest: human adjudication creates a new hash-bound corpus disposition and cannot be overwritten
+ok 6 - human adjudication creates a new hash-bound corpus disposition and cannot be overwritten
+  ---
+  duration_ms: 2093.776817
+  type: 'test'
+  ...
+# Subtest: improvement session captures a failure once and emits only after a later exact replay passes
+ok 7 - improvement session captures a failure once and emits only after a later exact replay passes
+  ---
+  duration_ms: 1535.25827
+  type: 'test'
+  ...
+# Subtest: improvement session retains an exact failed baseline across same-prompt compiler candidates
+ok 8 - improvement session retains an exact failed baseline across same-prompt compiler candidates
+  ---
+  duration_ms: 1551.985789
+  type: 'test'
+  ...
+# Subtest: improvement session does not pair an edit of an unproven alternate with an older failure
+ok 9 - improvement session does not pair an edit of an unproven alternate with an older failure
+  ---
+  duration_ms: 1145.713076
+  type: 'test'
+  ...
+# Subtest: final-phase training review binds human adjudication to the successful correction record
+ok 10 - final-phase training review binds human adjudication to the successful correction record
+  ---
+  duration_ms: 2050.453485
+  type: 'test'
+  ...
+# Subtest: improvement record schema is restrictive and delegates exact WorldSpec and WorldProof validation
+ok 11 - improvement record schema is restrictive and delegates exact WorldSpec and WorldProof validation
+  ---
+  duration_ms: 0.369209
+  type: 'test'
+  ...
+# Subtest: canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys
+ok 12 - canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys
+  ---
+  duration_ms: 1.708857
+  type: 'test'
+  ...
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+ok 13 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 1298.401639
+  type: 'test'
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+ok 14 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 716.717791
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+ok 15 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 780.455143
+  type: 'test'
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+ok 16 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 713.224262
+  type: 'test'
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+ok 17 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 986.492402
+  type: 'test'
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+ok 18 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 980.828183
+  type: 'test'
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+ok 19 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 1184.105205
+  type: 'test'
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+ok 20 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 810.581493
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+ok 21 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 1018.620091
+  type: 'test'
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 22 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 0.578223
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+ok 23 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 1079.67768
+  type: 'test'
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+ok 24 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 952.391813
+  type: 'test'
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+ok 25 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 1937.695622
+  type: 'test'
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+ok 26 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 942.019257
+  type: 'test'
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+ok 27 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 820.43328
+  type: 'test'
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 28 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 0.602915
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+ok 29 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 738.526107
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15299.128844

@@ -100,10 +100,14 @@
   function canonicalValue(value) {
     if (Array.isArray(value)) return value.map((row) => canonicalValue(row));
     if (!value || typeof value !== 'object') return value;
-    return Object.fromEntries(Object.keys(value).sort().flatMap((key) => {
-      if (value[key] === undefined) return [];
-      return [[key, canonicalValue(value[key])]];
-    }));
+    const result = {};
+    for (const key of Object.keys(value).sort()) {
+      if (value[key] === undefined) continue;
+      const child = canonicalValue(value[key]);
+      if (key === '__proto__') Object.defineProperty(result, key, { value: child, enumerable: true, writable: true, configurable: true });
+      else result[key] = child;
+    }
+    return result;
   }
 
   function canonicalJson(value, spacing = 0) {
@@ -700,8 +704,13 @@
 
   function validateCompilerPatchChain(spec) {
     validateWorldSpec(spec);
-    const baseline = JSON.parse(canonicalJson(spec));
-    const patches = baseline.authorship.patches.slice().reverse();
+    const patches = JSON.parse(canonicalJson(spec.authorship.patches)).reverse();
+    // Reversing patches needs only their addressed roots. Compiler evidence can
+    // dwarf the editable program and is not part of unrelated patch comparisons.
+    const roots = new Set(patches.map(patch => pointerTokens(patch.targetPath)[0]));
+    const baseline = JSON.parse(canonicalJson(Object.fromEntries(
+      [...roots].filter(key => Object.hasOwn(spec, key)).map(key => [key, spec[key]])
+    )));
     for (const patch of patches) {
       const currentValue = valueAtPointer(baseline, patch.targetPath);
       if (canonicalJson(patchValue(currentValue)) !== canonicalJson(patch.newValue)) {

@@ -244,6 +244,7 @@
     'app/prompt/prompt-controller-dependencies.js',
     'app/prompt/prompt-controller-construction-search.js',
     'app/prompt/prompt-controller-runtime.js',
+    'app/prompt/prompt-controller-phase-dispatch.js',
     'app/prompt/prompt-controller-workers.js',
     'app/prompt/prompt-controller-training.js',
     'app/prompt/prompt-model-selection.js',
