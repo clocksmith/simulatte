@@ -100,18 +100,23 @@
       const simulation = row.simulationBinding;
       const simulationEntity = simulation && (sceneRenderPacket.entities || []).find((entity) => entity.id === simulation.entityId &&
         entity.stateBindings?.simulationOperator === simulation.operatorId);
+      const simulationTarget = simulation?.targetEntityId && (sceneRenderPacket.entities || []).find((entity) =>
+        entity.id === simulation.targetEntityId && entity.stateBindings?.position === simulation.targetChannel);
+      const targetConsumed = !simulation?.targetEntityId || Boolean(simulationTarget &&
+        (renderData?.objectParts || []).some((part) => part.entityId === simulationTarget.id));
+      const partProof = row.partBinding ? boundPartProof(row.partBinding, sceneRenderPacket, renderData) : null;
       const simulationReceipt = renderData?.interactionVisualReceipt;
       const simulationConsumed = Boolean(simulationEntity && Number(simulationReceipt?.solverFrame) > 0 &&
         simulationReceipt.simulatedEntityIds?.includes(simulationEntity.id) &&
         simulationReceipt.executedOperatorIds?.includes(simulation.operatorId));
-      const packetSatisfied = simulation ? Boolean(simulationEntity) : relationPacketSatisfied != null ? relationPacketSatisfied :
+      const packetSatisfied = partProof ? partProof.packetSatisfied : simulation ? Boolean(simulationEntity && targetConsumed) : relationPacketSatisfied != null ? relationPacketSatisfied :
         constructionPacketSatisfied != null ? constructionPacketSatisfied :
         promptPacketSatisfied == null ? visualObligationPacketSatisfied(
         target,
         packetText,
         distinctEntityIdentityCount
       ) : promptPacketSatisfied;
-      const geometrySatisfied = simulation ? simulationConsumed && (renderData?.objectParts || []).some((part) => part.entityId === simulation.entityId) : visualObligationGeometrySatisfied(
+      const geometrySatisfied = partProof ? partProof.geometrySatisfied : simulation ? targetConsumed && simulationConsumed && (renderData?.objectParts || []).some((part) => part.entityId === simulation.entityId) : visualObligationGeometrySatisfied(
         target,
         objectRealization,
         row,
@@ -134,7 +139,9 @@
         packetSatisfied,
         geometrySatisfied,
         ...(geometryProof ? { geometryProof } : {}),
+        ...(partProof ? { partProof } : {}),
         ...(simulation ? { simulationProof: { operatorId: simulation.operatorId, entityId: simulation.entityId,
+          targetEntityId: simulation.targetEntityId || '', targetConsumed,
           solverFrame: Number(simulationReceipt?.solverFrame || 0), consumed: simulationConsumed } } : {}),
         pixelSatisfied,
         pixelProof,
@@ -392,7 +399,10 @@
         reason: 'required visual obligation has no live pixel readback',
       };
     }
-    const expectedDrawableIds = obligation.sourceKind === 'action'
+    const directedTargets = obligation.simulationBinding?.targetEntityId
+      ? [obligation.simulationBinding.entityId, obligation.simulationBinding.targetEntityId].map(normalizeForProof)
+      : [];
+    const expectedDrawableIds = directedTargets.length ? directedTargets : obligation.sourceKind === 'action'
       ? Array.from(new Set([...(obligation.evidence || []), ...(obligation.visualEvidence || [])]
         .map((value) => String(value || '').match(/^phase6:entity:(.+)$/))
         .filter(Boolean).map((match) => normalizeForProof(match[1]))))
@@ -403,21 +413,66 @@
         return drawableId === id || drawableId.startsWith(`${id} instance`);
       })
     ));
-    const expectedCount = visualRelationObligation(obligation)
+    const expectedCount = obligation.partBinding || obligation.simulationBinding?.targetEntityId ? 2 : visualRelationObligation(obligation)
       ? dynamicVisualRelationObligation(obligation) ? 1 : 2
       : obligation.constraintKind === 'construction-part' || obligation.constraintKind === 'count'
       ? Math.max(1, Number(obligation.expectedCount || 1))
       : 1;
+    const directedTargetsVisible = directedTargets.every((id) => visible.some((row) => normalizeForProof(row.drawableId) === id));
+    const satisfied = visible.length >= expectedCount && directedTargetsVisible;
     return {
       required: true,
-      satisfied: visible.length >= expectedCount,
+      satisfied,
       expectedCount,
       visibleCount: visible.length,
       sampleIds: rows.map((row) => row.id),
       expectedDrawableIds,
       sampledDrawableIds: rows.map((row) => row.drawableId).filter(Boolean),
-      evidence: visible.length >= expectedCount ? ['webgpu-texture-copy-readback'] : [],
+      evidence: satisfied ? ['webgpu-texture-copy-readback'] : [],
     };
+  }
+
+  function boundPartProof(binding, packet, renderData) {
+    const entity = (packet.entities || []).find((row) => row.id === binding.entityId);
+    const expected = entity?.geometry?.program?.parts?.filter((part) => part.promptPartId === binding.partId) || [];
+    const ids = new Set(expected.map((part) => part.id));
+    const submitted = (renderData?.objectParts || []).filter((part) => part.entityId === binding.entityId);
+    const parts = submitted.filter((part) => ids.has(part.constructionPartId));
+    const parent = submitted.filter((part) => !ids.has(part.constructionPartId));
+    const bounds = (part) => {
+      const angle = Number(part.rotation || 0), size = part.size || [0, 0];
+      const w = Math.abs(Math.cos(angle)) * size[0] + Math.abs(Math.sin(angle)) * size[1];
+      const h = Math.abs(Math.sin(angle)) * size[0] + Math.abs(Math.cos(angle)) * size[1];
+      return [part.center[0] - w / 2, part.center[1] - h / 2, part.center[0] + w / 2, part.center[1] + h / 2];
+    };
+    const connected = parts.every((part) => parent.some((row) => {
+      const a = bounds(part), b = bounds(row);
+      return a[0] <= b[2] + 0.01 && a[2] >= b[0] - 0.01 && a[1] <= b[3] + 0.01 && a[3] >= b[1] - 0.01;
+    }));
+    return { entityId: binding.entityId, partId: binding.partId,
+      expectedPartIds: [...ids], submittedPartIds: [...new Set(parts.map((part) => part.constructionPartId))],
+      packetSatisfied: expected.length > 0,
+      geometrySatisfied: expected.length > 0 && connected && expected.every((part) => parts.some((row) => row.constructionPartId === part.id)),
+    };
+  }
+
+  function partCountOwners(obligation, packet) {
+    if (obligation.constraintKind !== 'count') return [];
+    return (packet.entities || []).filter((entity) =>
+      (entity.geometry?.program?.promptPropertyBindings || []).some((binding) =>
+        binding.propertyKind === 'count' && binding.partId === obligation.targetNodeId));
+  }
+
+  function partCountSatisfied(obligation, owners) {
+    return owners.every((entity) => {
+      const program = entity.geometry.program;
+      const binding = program.promptPropertyBindings.find((row) =>
+        row.propertyKind === 'count' && row.partId === obligation.targetNodeId);
+      const actual = program.parts.filter((part) => part.promptPartId === obligation.targetNodeId);
+      return binding.status === 'bound' && binding.value === Number(obligation.expectedCount) &&
+        actual.length === Number(obligation.expectedCount) &&
+        actual.every((part) => binding.matchedPartIds.includes(part.id));
+    });
   }
 
   function promptVisualObligationPacketSatisfied(obligation = {}, sceneRenderPacket = {}) {
@@ -427,6 +482,8 @@
     if (obligation.constraintKind === 'absence') return !matching.some((row) =>
       evidenceBinding.qualifiedAbsenceMatches(row, obligation, sceneRenderPacket.entities || []));
     if (obligation.constraintKind === 'count') {
+      const owners = partCountOwners(obligation, sceneRenderPacket);
+      if (owners.length) return partCountSatisfied(obligation, owners);
       return matching.length === Number(obligation.expectedCount || 0) && matching.every((row) => (
         row.cardinalityReceipt && Number(row.cardinalityReceipt.instanceCount) === Number(obligation.expectedCount)
       ));
@@ -463,6 +520,9 @@
     if (obligation.constraintKind === 'absence') return !matching.some((row) =>
       evidenceBinding.qualifiedAbsenceMatches(row, obligation, sceneRenderPacket.entities || []));
     if (obligation.constraintKind === 'count') {
+      const owners = partCountOwners(obligation, sceneRenderPacket);
+      if (owners.length) return partCountSatisfied(obligation, owners) && owners.every((owner) =>
+        rows.some((row) => row.entityId === owner.id && row.realized === true && row.submitted === true));
       return matching.length === Number(obligation.expectedCount || 0) && matching.every((row) => row.realized === true);
     }
     if (obligation.constraintKind === 'pose') {

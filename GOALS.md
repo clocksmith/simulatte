@@ -44,6 +44,27 @@ owns compilation only where typed intent preservation, controlled editing,
 governed execution, or bound proof provides a material advantage over that
 control.
 
+## Open-language composition
+
+Create's target is natural-language composition across unfamiliar vocabulary and
+novel combinations. A successful result must represent the prompt's entities,
+attributes, relationships, actions, and environment through the eight phases.
+Selecting a familiar scene or adding a new whole-prompt special case does not
+establish that capability. Retrieval supplies reusable knowledge and candidate
+components; the compiler composes them according to the prompt.
+
+Determinism means reproducibility for the same declared inputs. It does not
+restrict different prompts to a fixed set of outputs. Meaningful changes in
+counts, roles, relationships, or actions must change the corresponding program
+and visible behavior. Equivalent paraphrases may share a representation.
+Changing a seed, color, or packet hash alone does not prove semantic specificity.
+
+Test unfamiliar compositions and close semantic contrasts through the complete
+pipeline. Keep unsupported requirements visible, but count their refusal as an
+unfulfilled request when evaluating this product goal. Bounded execution and
+honest proof remain requirements; they do not redefine broad language support
+as success on a catalog of examples.
+
 ## Product object: WorldSpec
 
 `WorldSpec` is the canonical public simulation program. It has:

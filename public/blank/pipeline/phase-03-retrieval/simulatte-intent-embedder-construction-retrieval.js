@@ -29,6 +29,7 @@
     function slotNeedsModelRetrievalEvidence(slot = {}) {
       const role = String(slot.slotRole || '');
       if (role === 'concept' && slot.required === false) return false;
+      if (role === 'action') return slot.modelEvidenceRequired !== false;
       if (/^(actor|concept|object|part|environment|medium)$/.test(role)) return true;
       if (role !== 'relation' || slot.required === false) return false;
       if (slot.modelEvidenceRequired === false) return false;
@@ -91,9 +92,10 @@
         visualArchetype: slot.visualArchetype || '',
         localGeometryGrammarId: localGeometryGrammarForSlot(slot),
         shapeHints: slot.shapeHints || [],
+        operatorTypes: slot.operatorTypes || [],
         identityEvidence: !/^(?:action|concept|relation|visual)$/.test(role),
         constructionEvidence: false,
-        supportOnly: role === 'concept',
+        supportOnly: role === 'concept' || role === 'action' && slot.modelEvidenceRequired !== false,
         slotId: slot.slotId || '',
         slotRole: role,
         entryId: slot.entryId || '',

@@ -3,7 +3,7 @@
 
     const SPATIAL_CONSTRAINTS = Object.freeze(new Set([
       'in', 'inside', 'into', 'within', 'on', 'onto', 'at', 'over', 'above', 'under',
-      'below', 'beside', 'near', 'outside', 'around', 'behind', 'in-front-of',
+      'below', 'left-of', 'right-of', 'beside', 'near', 'outside', 'around', 'behind', 'in-front-of',
       'attached-to', 'against', 'through', 'between',
       'supports', 'seated-on', 'with', 'holding',
       'coating',
@@ -478,7 +478,9 @@
         inner.y += (outer.y - inner.y) * 0.72;
         inner.z = (Number.isFinite(outer.z) ? outer.z : 0) - 0.5;
         outer.z = Number.isFinite(outer.z) ? outer.z : 0.5;
-      } else if (type === 'beside' || type === 'near' || type === 'with') {
+      } else if (type === 'beside' || type === 'near' || type === 'with' || type === 'left-of' || type === 'right-of') {
+        if (type === 'left-of') direction = -1;
+        if (type === 'right-of') direction = 1;
         const gap = type === 'with' ? 0.012 : type === 'near' ? 0.015 : 0.035;
         const availableWidth = 0.95;
         const requiredWidth = a.w + b.w + gap;

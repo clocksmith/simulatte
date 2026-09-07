@@ -2,12 +2,15 @@
   const lexiconApi = typeof module === 'object' && module.exports
     ? require('../../data/simulatte-language-lexicon.js')
     : root.SimulatteLanguageLexicon;
-  const api = factory(lexiconApi || {});
+  const structure = typeof module === 'object' && module.exports
+    ? require('./simulatte-language-structure.js') : root.SimulatteLanguageStructure;
+  const api = factory(lexiconApi || {}, structure);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteUniverseParser = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createUniverseParserApi(lexiconApi = {}) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createUniverseParserApi(lexiconApi = {}, structure) {
+  if (!structure) throw new Error('Phase 2 requires SimulatteLanguageStructure');
   const PROMPT_PARSE_SCHEMA = 'simulatte.promptParse.v1';
 
   const LANGUAGE_LEXICON = lexiconApi.LANGUAGE_LEXICON || lexiconApi;
@@ -31,11 +34,7 @@
     eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40,
     fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90,
   });
-  const SPATIAL_PREPOSITIONS = Object.freeze([
-    'in front of', 'attached to', 'inside', 'outside', 'within', 'through', 'between',
-    'beside', 'behind', 'around', 'above', 'below', 'under', 'over', 'onto', 'into',
-    'near', 'against', 'with', 'on', 'in', 'at',
-  ]);
+  const SPATIAL_PREPOSITIONS = Object.freeze(Object.keys(structure.SPATIAL_PHRASES));
 
   function parsePrompt(promptInput = '') {
     const prompt = String(promptInput || '');
@@ -56,9 +55,9 @@
     ), lower);
     addQuantitySpans(recognized, tokenRows);
     addUnmatchedTermSpans(recognized, tokenRows);
-    const compact = promoteSyntacticProcessTerms(recognized
-      .sort((a, b) => a.start - b.start || b.end - a.end)
-      .map((span, index) => ({ ...span, id: `span${index + 1}` })), tokenRows, lower);
+    const compact = structure.extractStructure(recognized
+      .sort((a, b) => a.start - b.start || b.end - a.end), tokenRows, lower, LANGUAGE_LEXICON)
+      .map((span, index) => ({ ...span, id: `span${index + 1}` }));
     for (const span of compact) span.negated = spanIsNegated(lower, span, compact.filter((row) => row.kind === 'process'));
     const clauses = buildClauses(compact, lower);
     const modifiers = buildModifiers(compact);
@@ -68,6 +67,7 @@
       prompt,
       tokens: tokenRows.map(({ text, start, end }) => ({ text, start, end })),
       spans: compact,
+      syntax: structure.spatialMatches(lower),
       clauses,
       modifiers,
       quantities,
@@ -122,7 +122,7 @@
 
   function tokenize(prompt) {
     const rows = [];
-    const matcher = /[a-z0-9]+(?:'[a-z0-9]+)?/gi;
+    const matcher = /[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu;
     let match = matcher.exec(prompt);
     while (match) {
       rows.push({ text: match[0].toLowerCase(), start: match.index, end: match.index + match[0].length });
@@ -326,43 +326,6 @@
         tokenEnd: index,
       });
     }
-  }
-
-  function promoteSyntacticProcessTerms(spans, tokens, sourceText = '') {
-    const argumentKinds = new Set(['entity', 'environment', 'material', 'term']);
-    const ordered = spans.slice().sort((a, b) => a.start - b.start || b.end - a.end);
-    return ordered.map((span, index) => {
-      if (span.kind !== 'term') return span;
-      const token = String(tokens[span.tokenStart] && tokens[span.tokenStart].text || span.text || '');
-      const singularEntity = token.endsWith('s') && ENTITY_SURFACE_FORMS.has(token.slice(0, -1));
-      const before = ordered.slice(0, index).reverse().find((row) => argumentKinds.has(row.kind));
-      const immediateAfter = ordered.slice(index + 1).find((row) => row.kind !== 'modifier');
-      const modifierAfter = ordered[index + 1] && ordered[index + 1].kind === 'modifier';
-      const nearBefore = before && span.tokenStart - before.tokenEnd <= 2;
-      const bridgeModifiers = ordered.slice(index + 1).filter((row) =>
-        row.kind === 'modifier' && row.end <= (immediateAfter?.start || 0));
-      const bridgeText = tokens.slice(span.tokenEnd + 1, immediateAfter?.tokenStart)
-        .filter((row) => !bridgeModifiers.some((modifier) => row.start >= modifier.start && row.end <= modifier.end))
-        .map((row) => row.text).join(' ');
-      const spatialBridge = spatialPrepositionsInText(bridgeText).length > 0 &&
-        !SPATIAL_PREPOSITIONS.reduce((text, phrase) => text.replace(new RegExp(`\\b${phrase}\\b`, 'g'), ''), bridgeText)
-          .replace(/\b(?:a|an|the)\b/g, '').trim();
-      const nearAfter = immediateAfter && (spatialBridge ||
-        immediateAfter.tokenStart - span.tokenEnd <= (modifierAfter ? 3 : 2));
-      const verbForm = /(?:ing|ed|en|ize|ise|ify|ates?|s)$/.test(token);
-      const intransitiveTail = !immediateAfter && before && before.kind === 'entity' &&
-        /(?:ing|ed)$/.test(token) && !String(sourceText).slice(before.end, span.start).trim();
-      const listSeparatorBeforeObject = /[,;]/.test(String(sourceText).slice(span.end, immediateAfter && immediateAfter.start));
-      const subjectProcessObject = nearAfter && argumentKinds.has(immediateAfter.kind);
-      if (!nearBefore || (!subjectProcessObject && !intransitiveTail) || !verbForm || singularEntity || listSeparatorBeforeObject) {
-        return span;
-      }
-      return {
-        ...span,
-        kind: 'process',
-        syntacticPromotion: intransitiveTail ? 'subject-process' : 'subject-process-object',
-      };
-    });
   }
 
   function buildClauses(spans, lower) {
@@ -587,7 +550,8 @@
     const parts = entities.filter((span) => span.semanticRole === 'part');
     const clauses = [];
     for (const partSpan of parts) {
-      const owner = owners.filter((span) => span.end <= partSpan.start).sort((a, b) => b.end - a.end)
+      const owner = owners.find((span) => span.tokenStart === partSpan.partOwnerTokenStart) ||
+        owners.filter((span) => span.end <= partSpan.start).sort((a, b) => b.end - a.end)
         .find((span) => /\bwith\b/.test(lower.slice(span.end, partSpan.start)));
       if (!owner) continue;
       clauses.push({
@@ -726,9 +690,7 @@
   }
 
   function spatialPrepositionsInText(text = '') {
-    return SPATIAL_PREPOSITIONS.filter((word) => (
-      new RegExp(`\\b${word.replace(/\\s+/g, '\\s+')}\\b`).test(String(text || '').toLowerCase())
-    ));
+    return structure.spatialMatches(text).map((row) => row.phrase);
   }
 
   function normalizeProcess(text = '') {
@@ -804,28 +766,9 @@
   function spatialRelationFor(prepositions = [], object = null) {
     if (object?.semanticRole === 'acceleration-field') return 'influenced-by';
     if (!object) return '';
-    if (prepositions.includes('inside')) return 'inside';
-    if (prepositions.includes('in')) return 'in';
-    if (prepositions.includes('through')) return 'through';
-    if (prepositions.includes('into')) return 'into';
-    if (prepositions.includes('on')) return 'on';
-    if (prepositions.includes('near')) return 'near';
-    if (prepositions.includes('within')) return 'inside';
-    if (prepositions.includes('onto')) return 'on';
-    if (prepositions.includes('outside')) return 'outside';
-    if (prepositions.includes('beside')) return 'beside';
-    if (prepositions.includes('above')) return 'above';
-    if (prepositions.includes('below')) return 'below';
-    if (prepositions.includes('under')) return 'under';
-    if (prepositions.includes('over')) return 'over';
-    if (prepositions.includes('around')) return 'around';
-    if (prepositions.includes('behind')) return 'behind';
-    if (prepositions.includes('in front of')) return 'in-front-of';
-    if (prepositions.includes('attached to')) return 'attached-to';
-    if (prepositions.includes('against')) return 'against';
-    if (prepositions.includes('between')) return 'between';
-    if (prepositions.includes('at')) return 'at';
-    if (prepositions.includes('with')) return 'with';
+    for (const phrase of prepositions) {
+      if (structure.SPATIAL_PHRASES[phrase]) return structure.SPATIAL_PHRASES[phrase];
+    }
     return '';
   }
 

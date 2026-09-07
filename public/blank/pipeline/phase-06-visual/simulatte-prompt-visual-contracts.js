@@ -181,7 +181,7 @@
         size: (row.size || []).slice(),
         rotation: promptPosePartRotation(row, index, entity),
       })), entity);
-      const bindings = [];
+      const bindings = applyPartCardinalities(parts, entity);
       for (const property of entity.properties || []) {
         if (!property.value) continue;
         if (property.kind === 'color') {
@@ -208,6 +208,7 @@
       for (const scopedPart of entity.partGraph || []) {
         const target = promptSingular(scopedPart.semanticClass || scopedPart.label);
         const matched = parts.filter((row) => promptPartMatches(row.id, target));
+        for (const part of matched) part.promptPartId = scopedPart.id;
         for (const property of scopedPart.properties || []) {
           if (property.kind === 'color' && property.value) {
             for (const part of matched) {
@@ -246,6 +247,38 @@
         parts,
         promptPropertyBindings: bindings,
       };
+    }
+
+    function applyPartCardinalities(parts, entity) {
+      const bindings = [];
+      for (const requested of entity.partGraph || []) {
+        if (!Number.isInteger(requested.cardinality)) continue;
+        const count = requested.cardinality;
+        if (count < 0 || count > 64) throw new Error('Phase 6 part cardinality exceeds supported range 0..64');
+        const target = promptSingular(requested.semanticClass || requested.label);
+        const templates = parts.filter((row) => promptPartMatches(row.id, target));
+        if (!templates.length) continue;
+        const centers = templates.map((row) => row.center[0]);
+        const low = Math.min(...centers);
+        const high = Math.max(...centers);
+        const width = Math.max(high - low, templates[0].size[0] * 2);
+        const replacements = Array.from({ length: count }, (_, index) => {
+          const template = templates[index % templates.length];
+          return {
+            ...template, id: `${target}-instance-${index + 1}`, promptPartId: requested.id,
+            center: [count === 1 ? (low + high) / 2 : (low + high - width) / 2 + width * index / (count - 1), template.center[1]],
+            size: [Math.min(template.size[0], width / Math.max(1, count) * 0.7), template.size[1]],
+          };
+        });
+        const removed = new Set(templates);
+        const retained = parts.filter((row) => !removed.has(row));
+        parts.splice(0, parts.length, ...retained, ...replacements);
+        parts.forEach((part, order) => { part.order = order; });
+        bindings.push({ schema: 'simulatte.promptGeometryBinding.v1', entityId: entity.id,
+          partId: requested.id, propertyKind: 'count', value: count,
+          matchedPartIds: replacements.map((row) => row.id), status: 'bound' });
+      }
+      return bindings;
     }
 
     function promptSpatialRelationParts(parts = [], entity = {}) {
@@ -522,7 +555,9 @@
       const partTarget = obligation.kind === 'part' ? id.replace(/^part:/, '') :
         (id.match(/:(?:part-composition|material-assignment):(?:entity|part)-([^:]+)$/) || [])[1] || '';
       const materialTarget = (id.match(/relation:medium-([^:]+):material-assignment:/) || [])[1] || '';
-      const parts = entities.flatMap((entity) => entity.partGraph || []);
+      const ownerId = (id.match(/^relation:entity-([^:]+):part-composition:/) || [])[1];
+      const owners = ownerId ? entities.filter((entity) => promptEntityMatches(entity, { targetIdentity: ownerId })) : entities;
+      const parts = owners.flatMap((entity) => entity.partGraph || []);
       const matches = parts.filter((part) => promptPartMatches(part.semanticClass || part.label, partTarget));
       const directEntityMaterial = materialTarget && entities.some((entity) => (
         promptEntityMatches(entity, { targetIdentity: partTarget }) && (entity.properties || []).some((property) => (
@@ -538,6 +573,10 @@
       return {
         schema: 'simulatte.promptVisualObligationSettlement.v1',
         status: satisfied ? 'preserved' : 'lost',
+        ...(satisfied && ownerId ? { partBinding: {
+          entityId: owners.find((entity) => entity.partGraph?.some((part) => part.id === matches[0]?.id))?.id || '',
+          partId: matches[0]?.id || '', targetIdentity: partTarget,
+        } } : {}),
         evidence,
       };
     }
@@ -568,6 +607,8 @@
         satisfied = expectedCount === 0
           ? matchingEntities.length === 0 || matchingEntities.every((entity) => Number(entity.cardinality) === 0)
           : matchingEntities.some((entity) => Number(entity.cardinality || 1) === expectedCount);
+        if (!satisfied) satisfied = matchingEntities.some((entity) => (entity.partGraph || []).some((part) =>
+          part.id === obligation.targetNodeId && part.cardinality === expectedCount));
         if (satisfied) evidence.push(`cardinality:${obligation.targetIdentity}:${obligation.expectedCount}`);
       } else if (obligation.constraintKind === 'pose') {
         satisfied = matchingEntities.some((entity) => (

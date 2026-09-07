@@ -1069,8 +1069,14 @@ test('slot lexical evidence separates local identity from model construction wor
     localGeometryGrammarId: 'object-grammar.cat',
   }), true);
   assert.equal(scope.slotUsesPromptOwnedLocalEvidence({
-    slotRole: 'action', entryId: 'action:swimming', required: true,
+    slotRole: 'action', entryId: 'action:swimming', required: true, modelEvidenceRequired: false,
   }), true);
+  for (const modelEvidenceRequired of [true, undefined]) {
+    const action = { slotRole: 'action', entryId: 'action:exchanging', required: true, modelEvidenceRequired };
+    assert.equal(scope.slotUsesPromptOwnedLocalEvidence(action), false);
+    assert.equal(scope.slotNeedsModelRetrievalEvidence(action), true);
+    assert.equal(scope.promptOwnedLocalCandidate(action).supportOnly, true);
+  }
   assert.equal(scope.slotUsesPromptOwnedLocalEvidence({
     slotRole: 'concept', entryId: 'concept:renderer', required: false,
   }), true);
@@ -1744,6 +1750,51 @@ test('Phase 3 keeps known visual identities local and model-ranks unresolved con
     assert.equal(unresolvedSlot.receipt.candidateOutputs.length, unresolvedSlot.receipt.candidateOutputCount);
     assert.ok(rerankInputs.some((input) => input.slot && input.slot.slotId === 'slot.concept.glorp'));
   });
+});
+
+test('unresolved action slots reach model retrieval with their prompt context', async () => {
+  await withIntentArtifactFetch(async ({ index }) => {
+    const prompt = 'a magnetic field deflecting charged particles';
+    const phase2 = lab.runPhase2LanguageGraph(lab.runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true }));
+    const actionSlots = phase2.artifact.queryPlan.slots.filter((slot) => (
+      slot.slotRole === 'action' && slot.modelEvidenceRequired === true
+    ));
+    assert.ok(actionSlots.length > 0);
+    const requests = [];
+    const provider = probeAwareEmbedProvider({
+      index,
+      targetVector: indexedVectorByOrder(index, 0),
+      onEmbed: (args) => requests.push(String(args.text || '')),
+    });
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+      embedProvider: provider,
+    });
+    const result = await embedder.rankPrompt(prompt, lab.PHYSICAL_PRIMITIVES, {
+      max: 8, queryPlan: phase2.artifact.queryPlan,
+    });
+    for (const slot of actionSlots) {
+      const row = result.slotRetrieval.bySlot.find((candidate) => candidate.slotId === slot.slotId);
+      assert.ok(row.vectorHash, `${slot.slotId} must execute its embedding query`);
+      assert.ok(requests.some((text) => text.includes(prompt) &&
+        text.includes(`Resolve the required action: ${slot.sourceLabel}`)));
+      assert.notEqual(row.receipt.skipReason, 'prompt-owned-local-identity');
+      assert.equal(row.candidates.some((candidate) => candidate.candidateType === 'prompt-literal'), false);
+    }
+  });
+});
+
+test('local mechanics preserve operator identity through the language and retrieval boundary', () => {
+  for (const [prompt, operator] of [
+    ['a red ball falling under gravity', 'free_fall'],
+    ['a pendulum swinging under gravity', 'pendulum'],
+  ]) {
+    const phase2 = lab.runPhase2LanguageGraph(lab.runPhase1RuntimeGate(prompt, { deterministicRuntime: true }));
+    const slot = phase2.artifact.queryPlan.slots.find((row) => row.slotRole === 'action');
+    assert.deepEqual(slot.operatorTypes, [operator]);
+    assert.deepEqual(phaseFamily('intentEmbedder').promptOwnedLocalCandidate(slot).operatorTypes, [operator]);
+    assert.equal(slot.modelEvidenceRequired, false);
+  }
 });
 
 test('Doppler model handles normalize URL provenance to the manifest model id', async () => {

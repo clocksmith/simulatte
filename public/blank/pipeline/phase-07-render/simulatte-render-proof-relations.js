@@ -111,6 +111,12 @@
           targetParts.some((row) => row.centerY > sourceBounds.bottom + 0.006);
         return horizontal || vertical;
       }
+      if (/^left[ -]of$/.test(parts.relation)) {
+        return sourceBounds.right < targetBounds.left;
+      }
+      if (/^right[ -]of$/.test(parts.relation)) {
+        return sourceBounds.left > targetBounds.right;
+      }
       if (/^(?:beside|near)$/.test(parts.relation)) {
         const horizontal = Math.abs(sourceBounds.centerX - targetBounds.centerX);
         const vertical = Math.abs(sourceBounds.centerY - targetBounds.centerY);

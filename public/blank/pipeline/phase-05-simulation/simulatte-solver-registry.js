@@ -48,6 +48,7 @@
   };
 
   const SOLVER_OPERATORS = Object.freeze({
+    directed_motion: solver('directed-motion', ['directed_motion'], ['position', 'velocity'], ['position', 'velocity'], 0.01, moduleStep('rigid')),
     free_fall: solver('free-fall', ['free_fall'], ['position', 'velocity', 'force'], ['position', 'velocity'], 0.01, moduleStep('rigid')),
     pendulum: solver('pendulum', ['pendulum'], ['angle', 'angularVelocity', 'torque'], ['angle', 'angularVelocity'], 0.01, moduleStep('rigid')),
     heat_source: solver('thermal-source', ['heat_source'], ['temperature'], ['temperature'], 0.05, moduleStep('thermal')),

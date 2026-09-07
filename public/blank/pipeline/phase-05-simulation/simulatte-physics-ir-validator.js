@@ -8,6 +8,7 @@
   const VALIDATION_RECEIPT_SCHEMA = 'simulatte.validationReceipt.v1';
 
   const OPERATOR_CONTRACTS = Object.freeze({
+    directed_motion: contract(['position', 'velocity'], ['position', 'velocity'], ['rigidBody']),
     free_fall: contract(['position', 'velocity', 'force'], ['position', 'velocity'], ['rigidBody']),
     pendulum: contract(['angle', 'angularVelocity', 'torque'], ['angle', 'angularVelocity'], ['rigidBody']),
     heat_source: contract([], ['temperature'], ['thermal']),

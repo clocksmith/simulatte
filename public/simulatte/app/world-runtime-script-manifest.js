@@ -186,6 +186,7 @@
     'simulatte/mission/capability-matrix.js',
     'simulatte/mission/mission-compiler.js',
     'data/simulatte-language-lexicon.js',
+    'simulatte/language/simulatte-language-structure.js',
     'simulatte/language/simulatte-universe-parser.js',
     'simulatte/world/ambient-actors.js',
     'simulatte/world/world-model.js',

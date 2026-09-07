@@ -149,6 +149,8 @@
     return {
       ...part,
       primitive,
+      ...(primitive === 'tapered-capsule' && part.size?.[1] > part.size?.[0]
+        ? { size: [part.size[1], part.size[0]], rotation: Number(part.rotation || 0) + Math.PI / 2 } : {}),
       contourProfile: primitive,
       shapeParameters: profile,
       surfacePattern,

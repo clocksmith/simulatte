@@ -16,6 +16,12 @@
     for (const entity of entities) {
       const target = interactionTargetForEntity(entity, interactionIR.targets || []);
       if (!target || !entity.collider) continue;
+      if (entity.stateBindings?.simulationType === 'directed_motion') {
+        const position = (target.initialPosition || []).map((value) => 0.2 + value * 0.6);
+        const prior = entity.transform.position;
+        entity.collider.bounds = entity.collider.bounds.map((value, axis) => axis < 2 ? value + position[axis] - prior[axis] : value);
+        entity.transform = { ...entity.transform, position: [...position, prior[2]] };
+      }
       const capabilities = (target.capabilities || []).slice();
       entity.collider = {
         ...entity.collider,
@@ -39,7 +45,9 @@
         capabilities,
         channels: { ...(target.channels || {}) },
         ...(entity.stateBindings?.simulationType === 'free_fall'
-          ? { positionProjection: mechanicsPositionProjection(entity, target) } : {}),
+          ? { positionProjection: mechanicsPositionProjection(entity, target) }
+          : entity.stateBindings?.simulationType === 'directed_motion'
+            ? { positionProjection: { space: 'normalized-solver-to-canvas', scale: [0.6, 0.6], offset: [0.2, 0.2] } } : {}),
         initialPosition: (target.initialPosition || [0.5, 0.5]).slice(0, 2),
       });
     }

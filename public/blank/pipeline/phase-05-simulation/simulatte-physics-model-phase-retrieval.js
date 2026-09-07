@@ -127,7 +127,7 @@
 
     function languageGraphFromPromptParse(sourceText = '', promptParse = {}) {
         const tokens = Array.isArray(promptParse.tokens) ? promptParse.tokens : [];
-        const spans = languageGraphSpans(tokens, Array.isArray(promptParse.spans) ? promptParse.spans : []);
+        const spans = languageGraphSpans(tokens, Array.isArray(promptParse.spans) ? promptParse.spans : [], promptParse.syntax || []);
         const clauses = Array.isArray(promptParse.clauses) ? promptParse.clauses : [];
         const modifiers = Array.isArray(promptParse.modifiers) ? promptParse.modifiers : [];
         const clauseRelations = languageGraphClauseRelations(clauses);
@@ -242,7 +242,7 @@
         return relations;
       }
 
-    function languageGraphSpans(tokens = [], parsedSpans = []) {
+    function languageGraphSpans(tokens = [], parsedSpans = [], syntax = []) {
         const covered = new Set(parsedSpans.flatMap((span) => {
           if (Number.isInteger(span.tokenStart) && Number.isInteger(span.tokenEnd)) {
             const indexes = [];
@@ -255,7 +255,7 @@
         const fallback = tokens
           .map((token, index) => ({ token, index }))
           .filter(({ token, index }) => {
-            if (covered.has(index)) return false;
+            if (covered.has(index) || syntax.some((row) => row.start <= token.start && row.end >= token.end)) return false;
             const text = String(token.text || '').toLowerCase();
             if (!text || semanticStopwordHas(text)) return false;
             return /[a-z0-9]/.test(text);
@@ -831,8 +831,10 @@
         const slotId = String(slot.slotId || '');
         if (!slotId || !slotRetrieval || !Array.isArray(slotRetrieval.bySlot)) return [];
         const row = slotRetrieval.bySlot.find((entry) => entry && entry.slotId === slotId);
-        if (!row) return [];
-        const candidates = (row.candidates || []).map((candidate) => ({
+        if (!row || row.entryId && row.entryId !== slot.entryId) return [];
+        const candidates = (row.candidates || []).filter((candidate) =>
+          (!candidate.slotId || candidate.slotId === slotId) &&
+          (!candidate.entryId || candidate.entryId === slot.entryId)).map((candidate) => ({
           ...candidate,
           id: candidate.candidateId || candidate.id || candidate.primitiveId || '',
           source: candidate.source || 'slot-embedding-retrieval',
@@ -841,8 +843,11 @@
           vectorHash: row.vectorHash || '',
         }));
         const constructionRows = candidates.filter((candidate) => candidate.constructionEvidence === true);
+        const modelRows = candidates.filter((candidate) => candidate.modelEvaluated === true &&
+          candidate.vectorHash && Number.isFinite(candidate.modelScore));
         return uniquePhase3SlotRows([
           ...constructionRows,
+          ...modelRows,
           ...phase3FilterRowsForEntry(candidates, String(slot.entryId || '')),
         ]);
       }
@@ -875,6 +880,7 @@
               row.objectText,
               row.process,
               row.causalAffordance,
+              ...(row.aliases || []), ...(row.labels || []),
             ].filter(Boolean).join(' '));
             if (!target || !text) return false;
             return scope.phase3PhraseInPrompt(target, text) ||

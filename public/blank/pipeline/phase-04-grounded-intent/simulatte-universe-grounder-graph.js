@@ -16,6 +16,8 @@
     under: 'below',
     below: 'below',
     beside: 'beside',
+    'left-of': 'left-of',
+    'right-of': 'right-of',
     near: 'near',
     outside: 'outside',
     around: 'around',
@@ -771,6 +773,8 @@
           materialId: explicitMaterial || object.materialId || '',
           properties: propertiesBySpan.get(clause.objectSpanId) || object.properties || [],
           sourceNodeId: object.id,
+          cardinality: object.cardinality,
+          sourceSpanIds: [clause.subjectSpanId, clause.objectSpanId].filter(Boolean),
         };
         subject.partGraph = uniqueParts([...(subject.partGraph || []), part]);
         if (explicitMaterial) {

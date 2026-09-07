@@ -4,6 +4,12 @@
     const OBJECT_GEOMETRY_PROGRAM_SCHEMA = 'simulatte.objectGeometryProgram.v1';
 
     const OBJECT_GEOMETRY_GRAMMARS = Object.freeze({
+      cube: grammar('cube', [0.2, 0.2], 25, [
+        part('body', 'hexagon', [0, 0], [0.86, 0.86], '#8dabbf', Math.PI / 6, 1, '', 'core'),
+        part('edge-down', 'capsule', [0, 0.21], [0.42, 0.018], '#294b61', Math.PI / 2, 1, '', 'detail'),
+        part('edge-left', 'capsule', [-0.182, -0.105], [0.42, 0.018], '#294b61', Math.PI / 6, 1, '', 'detail'),
+        part('edge-right', 'capsule', [0.182, -0.105], [0.42, 0.018], '#294b61', -Math.PI / 6, 1, '', 'detail'),
+      ]),
       pendulum: grammar('pendulum', [0.28, 0.34], 32, [
         part('pivot', 'ellipse', [0, 0], [0.1, 0.1], '#a8b4c3', 0, 1, '', 'joint'),
         part('rod', 'box', [0, 0.23], [0.035, 0.46], '#a8b4c3', 0, 1, '', 'appendage'),

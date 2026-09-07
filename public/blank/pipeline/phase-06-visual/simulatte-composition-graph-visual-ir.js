@@ -306,11 +306,13 @@
         const obligations = sourceObligations.map((row) => {
           if (['unsupported', 'lost', 'failed', 'refused', 'explicitly-refused', 'negated'].includes(row.status)) return row;
           const mechanics = mechanicalVisualBinding(row, spec.renderIR, entities);
+          const partBinding = facts.promptVisualSettlements[row.id]?.partBinding;
           const status = mechanics ? 'preserved' : visualObligationStatus(row, facts);
           const targetSemanticCode = visualAbsenceTargetSemanticCode(row);
           return {
             ...row,
             ...(targetSemanticCode > 0 ? { targetSemanticCode } : {}),
+            ...(partBinding ? { ownedByPhase: 6, partBinding } : {}),
             ...(mechanics ? { ownedByPhase: 6, constraintKind: 'simulation', targetIdentity: mechanics.targetIdentity,
               target: mechanics.targetIdentity, simulationBinding: mechanics } : {}),
             status,
@@ -364,7 +366,7 @@
     function mechanicalVisualBinding(row, renderIR = {}, entities = []) {
       if (row.status !== 'lowered' || !['action', 'relation'].includes(row.kind)) return null;
       const behavior = (renderIR.behaviorRelations || []).find((relation) =>
-        ['falling', 'swinging'].includes(relation.process) &&
+        ['falling', 'swinging', 'pursuit', 'avoidance'].includes(relation.process) &&
         (row.id === `action:${relation.process}` || (relation.evidence || []).includes(row.id)));
       if (!behavior) return null;
       const entity = entities.find((candidate) => candidate.physicalRef === behavior.agentEntityId &&
@@ -374,6 +376,10 @@
         targetIdentity: entity.semanticClass || entity.label,
         operatorId: entity.stateBindings.simulationOperator,
         operatorType: entity.stateBindings.simulationType,
+        ...(behavior.process === 'pursuit' || behavior.process === 'avoidance' ? {
+          targetEntityId: entities.find((candidate) => candidate.physicalRef === behavior.mediumEntityId)?.id || '',
+          targetChannel: `position:${behavior.mediumEntityId}`,
+        } : {}),
         channels: [entity.stateBindings.position, entity.stateBindings.rotation].filter(Boolean) };
     }
 
@@ -435,7 +441,7 @@
     function dynamicRelationRequiresProcessEvidence(row = {}) {
         const id = String(row.id || row.obligationId || '');
         if (row.kind !== 'relation' || !id) return false;
-        if (/^relation:spatial:|:spatial-constraint:|:(?:coexists|material-assignment):/.test(id)) return false;
+        if (/^relation:spatial:|:spatial-constraint:|:(?:coexists|material-assignment|part-composition):/.test(id)) return false;
         if (/^relation:[^:]+:(?:hold|holds|holding|grasp|grasps|grasping|carry|carries|carrying|clutch|clutches|clutching):/.test(id)) return false;
         return !(row.visualEvidence || []).some((value) => /^(?:part-binding|material-binding):/.test(String(value || '')));
       }

@@ -10,7 +10,7 @@
       const contactLayout = enforcePacketSurfaceContacts(
         graspLayout.entities
       );
-      const rows = contactLayout.entities;
+      const rows = enforcePacketDirections(contactLayout.entities);
       if (!rows.length) return { entities: [], receipt: emptySceneFramingReceipt() };
       const sourceBounds = sceneEntityGroupBounds(rows);
       const targetCenter = [
@@ -61,6 +61,29 @@
           pass: readableCount === framed.length && projectedArea >= minimumArea && centerOffset <= 0.025,
         },
       };
+    }
+
+    function enforcePacketDirections(rows) {
+      const ids = scope.uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
+      for (let pass = 0; pass < Math.max(1, rows.length); pass += 1) {
+        for (const id of ids) {
+          const match = id.match(/:(left-of|right-of|above|over|below|under):/);
+          if (!match) continue;
+          const type = match[1], members = rows.filter((row) => row.layoutConstraints?.includes(id));
+          const source = members.find((row) => row.layoutRelationRoles?.includes(`${type}:source`));
+          const target = members.find((row) => row.layoutRelationRoles?.includes(`${type}:target`));
+          if (!source || !target || source === target) continue;
+          const axis = /^(left-of|right-of)$/.test(type) ? 0 : 1;
+          const before = /^(left-of|above|over)$/.test(type) ? source : target;
+          const after = before === source ? target : source;
+          const a = sceneEntityVisibleBounds(before), b = sceneEntityVisibleBounds(after);
+          const overlap = a[axis] + a[axis + 2] + 0.018 - b[axis];
+          if (overlap <= 0) continue;
+          before.transform.position[axis] -= overlap / 2;
+          after.transform.position[axis] += overlap / 2;
+        }
+      }
+      return rows;
     }
 
     function enforcePacketContainment(entities = []) {

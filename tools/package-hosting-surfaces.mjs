@@ -20,6 +20,7 @@ const CREATE_ENTRIES = Object.freeze([
   'data/simulatte-universe',
   'shared',
   'vendor',
+  'simulatte/language/simulatte-language-structure.js',
   'simulatte/language/simulatte-universe-parser.js',
   'favicon.svg',
   'model-selection.css',

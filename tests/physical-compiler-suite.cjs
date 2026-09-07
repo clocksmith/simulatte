@@ -461,9 +461,10 @@ test('Phase 2 promotes only syntactic term participants to required canonical en
     allowPrototypeFallback: true,
   }).phaseArtifacts.phase2.artifact.sceneLanguageGraph;
   assert.deepEqual(control.entities.map((row) => row.id), ['entity:texture', 'entity:atmosphere']);
-  assert.deepEqual(control.concepts.map((row) => [row.id, row.required]), [
-    ['concept:quiet', false],
-    ['concept:amber', false],
+  assert.deepEqual(control.concepts, []);
+  assert.deepEqual(control.attributes.map((row) => [row.id, row.required]), [
+    ['attribute:quiet', true],
+    ['attribute:amber', true],
   ]);
 });
 
@@ -2795,10 +2796,15 @@ test('scene framing makes literal objects readable without changing relation geo
   assert.ok(Math.abs(dogVisibleBounds[0] + dogVisibleBounds[2] * 0.5 - 0.5) <= 0.01);
   assert.ok(Math.abs(dogVisibleBounds[1] + dogVisibleBounds[3] * 0.5 - 0.48) <= 0.01);
   assert.equal(dog.transform.rotation[2], 0);
-  assert.ok(Math.abs(dogParts.get('front-leg').rotation) <= 0.1);
-  assert.ok(Math.abs(dogParts.get('back-leg').rotation) <= 0.1);
+  const verticalLongAxis = (part) => {
+    const x = Math.abs(Math.cos(part.rotation)) * part.size[0] + Math.abs(Math.sin(part.rotation)) * part.size[1];
+    const y = Math.abs(Math.sin(part.rotation)) * part.size[0] + Math.abs(Math.cos(part.rotation)) * part.size[1];
+    return y > x * 2;
+  };
+  assert.ok(verticalLongAxis(dogParts.get('front-leg')));
+  assert.ok(verticalLongAxis(dogParts.get('back-leg')));
   assert.ok(dogParts.has('nose'));
-  assert.equal(flowerParts.get('stem').rotation, 0);
+  assert.ok(verticalLongAxis(flowerParts.get('stem')));
   assert.equal([...flowerParts.keys()].filter((id) => id.startsWith('petal')).length, 5);
   assert.ok(flowerParts.has('leaf-left'));
   assert.ok(flowerParts.has('leaf-right'));

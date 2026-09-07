@@ -213,7 +213,26 @@
         };
         const operatorBundle = source.provenance?.groundingPolicy?.operatorBundle ||
           source.groundingPolicy?.operatorBundle || [];
-        if (process === 'falling' || process === 'swinging') {
+        if (process === 'pursuit' || process === 'avoidance') {
+          if (from === to || from.kind !== 'rigidBody' || to.kind !== 'rigidBody') return;
+          ensureMotionFields(fields, from);
+          ensureMotionFields(fields, to);
+          const position = `position:${from.entityId}`, velocity = `velocity:${from.entityId}`;
+          const target = `position:${to.entityId}`;
+          const sourceField = fields.find((field) => field.id === position);
+          const targetField = fields.find((field) => field.id === target);
+          if (sourceField.initial.x === targetField.initial.x && sourceField.initial.y === targetField.initial.y) {
+            sourceField.initial = { x: 0.2, y: 0.5 };
+            targetField.initial = { x: 0.8, y: 0.5 };
+          }
+          const reads = [position, velocity, target], writes = [position, velocity];
+          opRows.push(addOperator(operators, 'directed_motion', from, { reads, writes,
+            params: { targetChannel: target, targetEntityId: to.entityId, mode: process === 'pursuit' ? 'seek' : 'flee',
+              maxSpeed: 0.24, maxAcceleration: 0.6, stoppingDistance: 0.18 },
+            receipt: behaviorChannelReceipt(source, 'directed_motion', reads, writes),
+          }));
+          receipt.approximate.push({ promptSpan: source.id, reason: 'bounded planar steering model: declared subject seeks or avoids the declared target; speed 0.24 canvas units/s, acceleration 0.6, stand-off 0.18; no animal cognition or collision model' });
+        } else if (process === 'falling' || process === 'swinging') {
           if (from.kind !== 'rigidBody') return;
           const type = process === 'falling' ? 'free_fall' : 'pendulum';
           const names = type === 'free_fall' ? ['position', 'velocity', 'force'] : ['angle', 'angularVelocity', 'torque'];

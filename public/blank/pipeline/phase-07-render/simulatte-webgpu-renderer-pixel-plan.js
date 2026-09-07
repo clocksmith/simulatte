@@ -15,7 +15,8 @@
           scope.normalizeForProof(part.identityType).includes(target)
         ) : true;
         const roleMatches = role ? scope.normalizeForProof(part.constructionRole) === role : true;
-        return entityMatches && identityMatches && roleMatches;
+        const partMatches = !obligation.targetPartIds || obligation.targetPartIds.includes(part.constructionPartId);
+        return entityMatches && identityMatches && roleMatches && partMatches;
       });
       const expectedColor = phase7ExpectedColor(obligation.expectedValue);
       if (expectedColor) {
@@ -177,9 +178,46 @@
       width,
       height
     ) {
+      if (obligation.partBinding || obligation.simulationBinding?.targetEntityId) {
+        const binding = obligation.partBinding || obligation.simulationBinding;
+        const owner = drawables.find((row) => row.id === binding.entityId);
+        const requests = obligation.partBinding ? [
+          { id: binding.entityId, target: '', partIds: owner?.geometry?.program?.parts?.filter((part) => part.promptPartId !== binding.partId).map((part) => part.id) },
+          { id: binding.entityId, target: '', partIds: owner?.geometry?.program?.parts?.filter((part) => part.promptPartId === binding.partId).map((part) => part.id) },
+        ] : [{ id: binding.entityId }, { id: binding.targetEntityId }];
+        for (const request of requests) {
+          const drawable = drawables.find((row) => row.id === request.id);
+          if (!drawable) continue;
+          const projected = phase7ProjectedObjectPartPoint(renderData, { targetEntityId: request.id,
+            targetPartIds: request.partIds }, Number(renderData.pixelReadbackTimeMs || 0) * 0.001);
+          const sample = projected && scope.pixelSampleForDrawable(drawable, obligation, width, height, samples.length, drawables.length);
+          if (!sample) continue;
+          applyProjectedPixelSample(sample, projected, width, height, obligation);
+          samples.push(sample);
+        }
+        return;
+      }
       if (phase7VisualRelationObligation(obligation)) {
         appendRelationPixelSamples(samples, drawables, renderData, obligation, expectedSamples, width, height);
         return;
+      }
+      if (obligation.constraintKind === 'count') {
+        const owner = drawables.find((row) => (row.geometry?.program?.promptPropertyBindings || []).some((binding) =>
+          binding.propertyKind === 'count' && binding.partId === obligation.targetNodeId));
+        if (owner) {
+          const binding = owner.geometry.program.promptPropertyBindings.find((row) =>
+            row.propertyKind === 'count' && row.partId === obligation.targetNodeId);
+          const projectedParts = uniqueProjectedConstructionParts(phase7ProjectedObjectPartPoints(renderData, {
+            ...obligation, targetEntityId: owner.id, targetIdentity: '', target: '', targetPartIds: binding.matchedPartIds,
+          }, Number(renderData.pixelReadbackTimeMs || 0) * 0.001));
+          for (const projected of projectedParts) {
+            const sample = scope.pixelSampleForDrawable(owner, obligation, width, height, samples.length, drawables.length);
+            if (!sample) continue;
+            applyProjectedPixelSample(sample, projected, width, height, obligation);
+            samples.push(sample);
+          }
+          return;
+        }
       }
       const matched = drawablesForPixelObligation(drawables, obligation).slice(0, expectedSamples);
       if (phase7ExpectedColor(obligation.expectedValue)) {
@@ -326,6 +364,7 @@
 
     function phase7ObligationPixelSampleCount(obligation = {}, renderData = null) {
       if (phase7SemanticAbsenceObligation(obligation)) return 0;
+      if (obligation.partBinding || obligation.simulationBinding?.targetEntityId) return 2;
       if (phase7ExpectedColor(obligation.expectedValue)) {
         const candidateCount = phase7ProjectedObjectPartPoints(
           renderData || {}, obligation, Number(renderData && renderData.pixelReadbackTimeMs || 0) * 0.001

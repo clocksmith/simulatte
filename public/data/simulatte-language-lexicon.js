@@ -21,6 +21,10 @@
     ...['ball', 'balls', 'sphere', 'spheres', 'marble', 'marbles'].map((text) => [text, 'entity', {
       entityClass: text.replace(/s$/, ''), semanticRole: 'rigid-body', visualArchetype: 'ball', domains: ['rigidBody'],
     }]),
+    ...['cube', 'cubes', 'cuboid', 'cuboids', 'box', 'boxes'].map((text) => [text, 'entity', {
+      entityClass: text === 'boxes' ? 'box' : text.replace(/s$/, ''), semanticRole: 'rigid-body', visualArchetype: 'cube',
+      localGeometryGrammarId: 'object-grammar.cube', domains: ['rigidBody'],
+    }]),
     ...['pendulum', 'pendulums'].map((text) => [text, 'entity', {
       entityClass: 'pendulum', semanticRole: 'constrained-body', visualArchetype: 'pendulum', localGeometryGrammarId: 'object-grammar.pendulum', domains: ['rigidBody', 'constraint'],
     }]),
@@ -462,6 +466,8 @@
     'dispersion', 'dispersing', 'resonance',
     'layers', 'layer', 'layering', 'shepherds', 'shepherd', 'shepherding',
     'throttles', 'throttle', 'throttling', 'studies', 'study', 'studying',
+    'chase', 'chases', 'chasing', 'pursue', 'pursues', 'pursuing', 'follow', 'follows', 'following',
+    'approach', 'approaches', 'approaching', 'flee', 'flees', 'fleeing', 'avoid', 'avoids', 'avoiding',
   ]);
 
   const ACTION_POSE_LEXICON = Object.freeze([
@@ -499,6 +505,8 @@
   // second, unsynchronized keyword taxonomy downstream.
   const BEHAVIOR_PROCESS_LEXICON = Object.freeze([
     { process: 'spatial_constraint', phrases: ['rest', 'rests', 'resting'] },
+    { process: 'pursuit', operatorTypes: ['directed_motion'], phrases: ['chase', 'chases', 'chasing', 'pursue', 'pursues', 'pursuing', 'follow', 'follows', 'following', 'approach', 'approaches', 'approaching'] },
+    { process: 'avoidance', operatorTypes: ['directed_motion'], phrases: ['flee', 'flees', 'fleeing', 'avoid', 'avoids', 'avoiding'] },
     { process: 'falling', operatorTypes: ['free_fall'], phrases: ['fall', 'falls', 'falling'] },
     { process: 'swinging', operatorTypes: ['pendulum'], phrases: ['swing', 'swings', 'swinging'] },
     { process: 'swimming', phrases: ['swim', 'swimming'] },

@@ -21,6 +21,7 @@
       return 'fields';
     }
     if ([
+      'directed_motion',
       'heat_transfer',
       'rotational_torque',
       'phase_transition',
