@@ -5,14 +5,15 @@
   root.SimulattePromptProofSession = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createProofSessionModule(construction) {
   if (!construction) throw new Error('prompt_proof_session_construction_missing');
-  const { createConstructionSearchState, observeConstructionSceneProof, syncConstructionSearchDataset, constructionSearchSpec } = construction;
+  const { createConstructionSearchState, observeConstructionSceneProof, syncConstructionSearchDataset } = construction;
   function create({ root, canvas, compilerProof, worldImprovementSession, trainingRun, runView,
-    getSpec, getBuildSerial, getSimulationReceipt, refreshRender, setSpec, publishRuntime, onImprovement }) {
+    getSpec, getBuildSerial, getSimulationReceipt, refreshRender, retryConstruction, setSpec, publishRuntime, onImprovement }) {
     const worldProofPreview = root.getElementById('world-proof-preview');
     const replayWorldSpecButton = root.getElementById('replay-world-spec');
     let generation = 0;
     let requestedCompilerProofKey = '';
     let constructionRetryPending = false;
+    let retryController = null;
     let latestReplayBaseline = null;
     let pendingReplayBaseline = null;
     let improvementReportDiagnostics = null;
@@ -112,6 +113,7 @@
             );
           }
           if (!report || report.final !== true || !trainingRun.runId || !trainingRun.prompt) return;
+          if (constructionRetryPending) return;
           const search = trainingRun.constructionSearch || createConstructionSearchState({ buildSerial });
           trainingRun.constructionSearch = search;
           const decision = observeConstructionSceneProof(report, spec, search);
@@ -142,6 +144,8 @@
             return;
           }
           constructionRetryPending = true;
+          const controller = new AbortController();
+          retryController = controller;
           const retrySerial = buildSerial;
           publishRuntime({
             state: 'active',
@@ -155,10 +159,12 @@
             detail: `rejected ${decision.nextApproach.rejectedGrammarIds.join(', ')}`,
             canvasLoading: false,
           });
-          Promise.resolve().then(() => {
+          Promise.resolve().then(async () => {
             if (token !== generation || retrySerial !== getBuildSerial() || trainingRun.serial !== retrySerial) return;
-            const nextSpec = constructionSearchSpec(spec, decision.nextApproach);
-            setSpec(nextSpec, { visible: true });
+            if (typeof retryConstruction !== 'function') throw new Error('Construction retry requires the forward phase dispatcher');
+            const result = await retryConstruction(spec, decision, report, controller.signal);
+            if (token !== generation || retrySerial !== getBuildSerial() || trainingRun.serial !== retrySerial) return;
+            setSpec(result.program, { visible: true, phaseRun: result.phaseRun });
             publishRuntime({
               state: 'active',
               allowAfterReady: true,
@@ -170,7 +176,7 @@
               canvasLoading: false,
             });
           }).catch((error) => {
-            if (token !== generation) return;
+            if (token !== generation || retrySerial !== getBuildSerial()) return;
             search.status = 'failed';
             search.terminalReason = error && error.message ? error.message : String(error || 'construction retry failed');
             syncConstructionSearchDataset(canvas, {
@@ -188,17 +194,20 @@
               canvasLoading: false,
             });
           }).finally(() => {
+            if (retryController === controller) retryController = null;
             if (token === generation) constructionRetryPending = false;
           });
   }
 
-    function invalidate() {
+    function invalidate({ replayBaseline = null, preserveCompilerProof = false } = {}) {
       generation += 1;
-      compilerProof.invalidate();
+      retryController?.abort();
+      retryController = null;
+      if (!preserveCompilerProof) compilerProof.invalidate();
       requestedCompilerProofKey = '';
       constructionRetryPending = false;
       latestReplayBaseline = null;
-      pendingReplayBaseline = null;
+      pendingReplayBaseline = replayBaseline;
       if (replayWorldSpecButton) replayWorldSpecButton.disabled = true;
     }
     function beginReplay() {

@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: late compiler proof completion and failure cannot publish into a newer program
+ok 1 - late compiler proof completion and failure cannot publish into a newer program
+  ---
+  duration_ms: 5.625043
+  type: 'test'
+  ...
+# Subtest: run controls do not step a controller after the application unmounts
+ok 2 - run controls do not step a controller after the application unmounts
+  ---
+  duration_ms: 0.517453
+  type: 'test'
+  ...
+# Subtest: journey recording is single-flight and rejects superseded settlement before persistence
+ok 3 - journey recording is single-flight and rejects superseded settlement before persistence
+  ---
+  duration_ms: 1.675371
+  type: 'test'
+  ...
+# Subtest: failed ledger writes can retry without discarding the completed receipt
+ok 4 - failed ledger writes can retry without discarding the completed receipt
+  ---
+  duration_ms: 2.580652
+  type: 'test'
+  ...
+# Subtest: plugin session initializes the camera before view arbitration and cancels deferred drawing on disposal
+ok 5 - plugin session initializes the camera before view arbitration and cancels deferred drawing on disposal
+  ---
+  duration_ms: 2.708589
+  type: 'test'
+  ...
+# Subtest: invalidating a construction retry aborts execution and suppresses late publication and failure
+ok 6 - invalidating a construction retry aborts execution and suppresses late publication and failure
+  ---
+  duration_ms: 5.309715
+  type: 'test'
+  ...
+# Subtest: counted motion retains each instance in the actual render upload data
+ok 7 - counted motion retains each instance in the actual render upload data
+  ---
+  duration_ms: 1285.257547
+  type: 'test'
+  ...
+# Subtest: Phase 5 compiles device bindings, targets, and executable interaction kinematics
+ok 8 - Phase 5 compiles device bindings, targets, and executable interaction kinematics
+  ---
+  duration_ms: 1063.448081
+  type: 'test'
+  ...
+# Subtest: pointer commands deterministically mutate solver channels before subsequent stepping
+ok 9 - pointer commands deterministically mutate solver channels before subsequent stepping
+  ---
+  duration_ms: 971.778579
+  type: 'test'
+  ...
+# Subtest: InteractionIR and command replay survive spec serialization without state drift
+ok 10 - InteractionIR and command replay survive spec serialization without state drift
+  ---
+  duration_ms: 1196.766023
+  type: 'test'
+  ...
+# Subtest: unsupported target actions reject without inventing state changes
+ok 11 - unsupported target actions reject without inventing state changes
+  ---
+  duration_ms: 1092.428437
+  type: 'test'
+  ...
+# Subtest: Phase 7 hit testing and GPU feedback consume the final Phase 6 collider mapping
+ok 12 - Phase 7 hit testing and GPU feedback consume the final Phase 6 collider mapping
+  ---
+  duration_ms: 992.266288
+  type: 'test'
+  ...
+# Subtest: inverse nudges restore authored layout instead of treating physics coordinates as canvas positions
+ok 13 - inverse nudges restore authored layout instead of treating physics coordinates as canvas positions
+  ---
+  duration_ms: 727.228449
+  type: 'test'
+  ...
+# Subtest: browser adapter maps pointer and keyboard events into one monotonic command queue
+ok 14 - browser adapter maps pointer and keyboard events into one monotonic command queue
+  ---
+  duration_ms: 915.889472
+  type: 'test'
+  ...
+# Subtest: Phase 8 distinguishes causal interaction proof from unexercised and dropped feedback
+ok 15 - Phase 8 distinguishes causal interaction proof from unexercised and dropped feedback
+  ---
+  duration_ms: 914.477037
+  type: 'test'
+  ...
+# Subtest: broad generated worlds map every physical packet entity without generic helper targets
+ok 16 - broad generated worlds map every physical packet entity without generic helper targets
+  ---
+  duration_ms: 2913.865658
+  type: 'test'
+  ...
+# Subtest: exact simulation replay preserves original command values, rejected actions and fixed-step timing
+ok 17 - exact simulation replay preserves original command values, rejected actions and fixed-step timing
+  ---
+  duration_ms: 1421.647227
+  type: 'test'
+  ...
+# Subtest: page dispatch executes and retains eight bound phases through the existing worker
+ok 18 - page dispatch executes and retains eight bound phases through the existing worker
+  ---
+  duration_ms: 6391.776346
+  type: 'test'
+  ...
+# Subtest: worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+ok 19 - worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+  ---
+  duration_ms: 1428.933196
+  type: 'test'
+  ...
+# Subtest: phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+ok 20 - phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+  ---
+  duration_ms: 1.865652
+  type: 'test'
+  ...
+# Subtest: authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+ok 21 - authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+  ---
+  duration_ms: 1583.097834
+  type: 'test'
+  ...
+# Subtest: authored replay rejects changed provenance, cross-world sources and ignored authoring
+ok 22 - authored replay rejects changed provenance, cross-world sources and ignored authoring
+  ---
+  duration_ms: 1372.173697
+  type: 'test'
+  ...
+# Subtest: cancelling a worker phase stops its worker and stale events cannot poison its replacement
+ok 23 - cancelling a worker phase stops its worker and stale events cannot poison its replacement
+  ---
+  duration_ms: 0.58222
+  type: 'test'
+  ...
+# Subtest: worker failure terminates the failed instance and rejects pending and future calls
+ok 24 - worker failure terminates the failed instance and rejects pending and future calls
+  ---
+  duration_ms: 0.276116
+  type: 'test'
+  ...
+# Subtest: compatibility compile retains its WorldSpec result through the same worker protocol
+ok 25 - compatibility compile retains its WorldSpec result through the same worker protocol
+  ---
+  duration_ms: 932.425172
+  type: 'test'
+  ...
+# Subtest: page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+ok 26 - page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+  ---
+  duration_ms: 2739.717812
+  type: 'test'
+  ...
+# Subtest: page cancellation settles pending ingress and malformed options retain their failure
+ok 27 - page cancellation settles pending ingress and malformed options retain their failure
+  ---
+  duration_ms: 0.653527
+  type: 'test'
+  ...
+# Subtest: construction retries retain failure identities and preserve edits before the replacement draws
+ok 28 - construction retries retain failure identities and preserve edits before the replacement draws
+  ---
+  duration_ms: 5070.325205
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19841.241606

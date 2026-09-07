@@ -57,9 +57,11 @@ test('page dispatch executes and retains eight bound phases through the existing
   const instance = dispatch.create({ model, worker: client, configuration: { ...policy, producer },
     renderer: { renderPhase: (previous, invocation) => model.runPhase7RenderExecution(previous, invocation.simulationSnapshot.state, null, {}) },
     reconcileProgram: async program => program,
-    invocationForProgram: (program, previous, _signal, authored) => model.createRenderInvocation(program,
-      model.createSimulationState(program), { index: 0, simulationTime: 0 }, { width: 640, height: 480 },
-      authored ? { phase6Output: previous } : {}),
+    invocationForProgram: async (program, previous, signal, authored, replay) => {
+      const state = replay ? await model.replaySimulationState(program, replay, signal) : model.createSimulationState(program);
+      return model.createRenderInvocation(program, state, { index: replay ? replay.totalSteps : 0, simulationTime: state.t },
+        { width: 640, height: 480 }, { ...(authored ? { phase6Output: previous } : {}), replayBaseline: replay?.baseline || null });
+    },
     publishRuntime: event => events.push(event.phaseStep),
   });
   try {
@@ -111,6 +113,20 @@ test('page dispatch executes and retains eight bound phases through the existing
     const replayed = await instance.executeProgram(imported);
     assert.equal(replayed.contentHash, recompiled.contentHash);
     assert.equal(replayed.universeGraph.nodes.find(row => row.id === colored.id).properties.find(row => row.kind === 'color').value, '#00aa44');
+    let replayState = model.stepSimulation(model.createSimulationState(replayed), replayed, replayed.source.compilerConfig.simulationProof.stepSeconds);
+    replayState = model.applyInteractionCommands(replayState, replayed.interactionIR, [{ sequence: 1, actionId: 'impulse',
+      targetId: replayed.interactionIR.targets.find(row => row.capabilities.includes('impulse')).id, delta: [0.2, -0.3], value: 0.7 }]);
+    const proof = require('../public/shared/contracts/world-proof.js');
+    const replayBaseline = proof.createReplayBaseline({ binding: proof.createWorldProofBinding(replayed) });
+    const executed = await instance.executeProgram(replayed, { replayState, replayBaseline });
+    const execution = instance.getLatest();
+    assert.equal(executed.contentHash, replayed.contentHash);
+    assert.deepEqual(execution.attempts[0].outputs.map(row => row.phase), [1, 2, 3, 4, 5, 6, 7, 8]);
+    assert.equal(execution.attempts[0].request.request.kind, 'world-spec');
+    const replayInput = execution.attempts[0].request.configuration.executionReplay;
+    assert.equal(replayInput.commands[0].step, 1);
+    assert.equal(replayInput.commands[0].command.value, 0.7);
+    assert.equal(execution.attempts[0].outputs[1].receipts.find(row => row.id === 'authored-phase-replay').interpreted, false);
   } finally { instance.dispose(); client.cancel(); }
 });
 
@@ -322,4 +338,92 @@ test('page cancellation settles pending ingress and malformed options retain the
     assert.equal(instance.getLatest().status, 'failed');
     assert.match(instance.getLatest().error.message, /invalid/);
   } finally { instance.dispose(); }
+});
+
+
+test('construction retries retain failure identities and preserve edits before the replacement draws', async () => {
+  const dispatch = require('../public/blank/app/prompt/prompt-controller-phase-dispatch.js');
+  const search = require('../public/blank/app/prompt/prompt-controller-construction-search.js');
+  const reconciliation = require('../public/shared/contracts/world-spec-reconciliation.js');
+  const { client } = harness();
+  const drawn = [];
+  let decisions = 0;
+  const instance = dispatch.create({ model, worker: client,
+    configuration: { ...require('../public/data/create-phase-run-policy.json'),
+      producer: { id: 'retry-test', buildDigest: await contracts.artifactDigest({ fixture: 'retry' }) } },
+    renderer: { renderPhase(previous, invocation) {
+      drawn.push(previous);
+      return model.runPhase7RenderExecution(previous, invocation.simulationSnapshot.state, null, {});
+    } },
+    reconcileProgram(candidate, _signal, authored) {
+      decisions++;
+      return reconciliation.applyDecision(authored, candidate, 'preserve-overrides', { decidedBy: 'fixture-user' }).worldSpec;
+    },
+    invocationForProgram: (program, previous, _signal, authored) => model.createRenderInvocation(program,
+      model.createSimulationState(program), { index: 0, simulationTime: 0 }, { width: 640, height: 480 },
+      authored ? { phase6Output: previous } : {}),
+  });
+  try {
+    const original = await instance.compile('a red cat', { deterministicRuntime: true });
+    const draft = JSON.parse(model.serializeSpec(original));
+    const cat = draft.universeGraph.nodes.find(row => row.properties?.some(p => p.kind === 'color'));
+    cat.properties.find(p => p.kind === 'color').value = '#00aa44';
+    const edited = await instance.executeProgram(model.recordWorldSpecEdit(original, draft,
+      { rationale: 'Keep the cat green' }), { recompile: true });
+    const packet = edited.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
+    const phase7Output = model.runPhase7RenderExecution(edited.phaseArtifacts.phase6, model.createSimulationState(edited), null, {});
+    phase7Output.artifact.renderExecution.worldProofBinding = require('../public/shared/contracts/world-proof.js').createWorldProofBinding(edited);
+    const phase8Output = model.runPhase8SceneProof(phase7Output);
+    const obligation = phase8Output.artifact.compositionLedger.obligations.find(row => row.id === 'entity:cat');
+    obligation.status = 'lost';
+    phase8Output.artifact.sceneProof = { verdict: 'fail', evidence: { pixelAuditStatus: 'fail' },
+      settledObligations: [{ obligationId: 'entity:cat', status: 'lost', required: true }] };
+    const report = { final: true, packetKey: 'cat:retry-fixture', sceneRenderPacket: packet, phase7Output, phase8Output };
+    const decision = search.observeConstructionSceneProof(report, edited, search.createConstructionSearchState());
+    assert.equal(decision.action, 'retry');
+    const before = await contracts.artifactDigest(edited);
+    const drawCount = drawn.length;
+    const next = await instance.retryConstruction(edited, decision, report);
+    const record = instance.getLatest();
+    assert.equal(record.status, 'completed');
+    assert.deepEqual(record.attempts.map(row => row.outputs.length), [6, 8]);
+    assert.equal(decisions, 1);
+    assert.equal(drawn.length, drawCount + 1, 'unreconciled prompt candidate must not draw');
+    assert.equal(next.universeGraph.nodes.find(row => row.id === cat.id).properties.find(p => p.kind === 'color').value, '#00aa44');
+    assert.equal(await contracts.artifactDigest(edited), before);
+    assert.equal(record.attempts[0].request.retryPolicy.previousWorldSpecDigest, before);
+    assert.equal(record.attempts[0].request.retryPolicy.failureEvidenceDigest, await contracts.artifactDigest(phase8Output));
+    assert.deepEqual(record.attempts[1].request.retryPolicy.constructionRetry, record.attempts[0].request.retryPolicy);
+    assert.deepEqual(next.source.compilerConfig.constructionApproach, decision.nextApproach);
+    assert.equal(model.projectWorldSpec(next.phaseArtifacts).contentHash, next.contentHash);
+    assert.notEqual(next.phaseArtifacts.phase5.binding.predecessorDigest, edited.phaseArtifacts.phase5.binding.predecessorDigest);
+    const wrongReport = structuredClone(report);
+    wrongReport.phase7Output.artifact.renderExecution.worldProofBinding.worldSpec.contentHash = original.contentHash;
+    await assert.rejects(instance.retryConstruction(edited, decision, wrongReport), /does not bind/);
+    assert.equal(instance.getLatest().status, 'failed');
+    assert.equal(drawn.length, drawCount + 1);
+    const exhausted = structuredClone(decision);
+    exhausted.state.maxAttempts = exhausted.state.attempts.length;
+    await assert.rejects(instance.retryConstruction(edited, exhausted, report), /attempt budget/);
+    const cancelled = instance.retryConstruction(edited, decision, report);
+    instance.cancel('fixture cancellation');
+    await assert.rejects(cancelled, /cancellation/);
+    assert.equal(instance.getLatest().status, 'cancelled');
+    assert.equal(drawn.length, drawCount + 1);
+    const original7 = model.runPhase7RenderExecution(original.phaseArtifacts.phase6, model.createSimulationState(original), null, {});
+    original7.artifact.renderExecution.worldProofBinding = require('../public/shared/contracts/world-proof.js').createWorldProofBinding(original);
+    const original8 = model.runPhase8SceneProof(original7);
+    original8.artifact.sceneProof = structuredClone(phase8Output.artifact.sceneProof);
+    const originalReport = { ...report, phase7Output: original7, phase8Output: original8,
+      sceneRenderPacket: original.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket };
+    const originalDecision = search.observeConstructionSceneProof(originalReport, original, search.createConstructionSearchState());
+    const retried = await instance.retryConstruction(original, originalDecision, originalReport);
+    assert.deepEqual(instance.getLatest().attempts.map(row => row.outputs.length), [8]);
+    assert.equal(decisions, 1);
+    assert.deepEqual(retried.source.compilerConfig.constructionApproach, originalDecision.nextApproach);
+    const retainedFailure = originalDecision.attempt.evidence.phase8Output;
+    original8.artifact.sceneProof.verdict = 'pass';
+    assert.equal(retainedFailure.artifact.sceneProof.verdict, 'fail');
+    assert.ok(Object.isFrozen(retainedFailure.artifact.sceneProof));
+  } finally { instance.dispose(); client.cancel(); }
 });

@@ -148,25 +148,27 @@
         const phaseCompiler = phaseDispatchApi.create({ model, worker: pipelineCompiler, renderer: webGpuRenderer,
           configuration: phaseDispatchApi.loadConfiguration(root), publishRuntime,
           requiresReconciliation: () => reconciliationControllerApi.needsReconciliation(spec),
-          reconcileProgram: async (candidate, signal) => {
+          reconcileProgram: async (candidate, signal, authoredSource) => {
             const abort = () => worldSpecReconciliation.abort('superseded');
             signal.addEventListener('abort', abort, { once: true });
             try {
-              const result = await worldSpecReconciliation.resolve(spec, candidate);
+              const result = await worldSpecReconciliation.resolve(authoredSource || spec, candidate);
               return result?.worldSpec || null;
             } finally { signal.removeEventListener('abort', abort); }
           },
-          invocationForProgram: async (program, previous, signal, authored) => {
+          invocationForProgram: async (program, previous, signal, authored, replay) => {
             await webGpuRenderer.session.ready;
             if (signal.aborted) throw signal.reason;
             setSimulationCanvasVisible(true);
             await webGpuRenderer.session.resize();
             if (signal.aborted) throw signal.reason;
-            const initialState = model.stepSimulation(createSimulationState(program), program,
-              program.source.compilerConfig.simulationProof.stepSeconds);
+            const initialState = replay ? await model.replaySimulationState(program, replay, signal)
+              : model.stepSimulation(createSimulationState(program), program, program.source.compilerConfig.simulationProof.stepSeconds);
             const proofOptions = { buildId: appBuildVersion(root.defaultView), runtimeId: 'simulatte.blank.browser.webgpu.v1' };
-            return model.createRenderInvocation(program, initialState, { index: 1, simulationTime: initialState.t },
+            return model.createRenderInvocation(program, initialState, { index: replay ? replay.totalSteps : 1, simulationTime: initialState.t },
               { width: canvas.width, height: canvas.height }, { ...proofOptions,
+                replayBaseline: replay?.baseline || null,
+                compilerDeterminismReceipt: compilerProof.receiptFor(program),
                 intentReceipt: createIntentProofReceiptForSpec(program, proofOptions),
                 semanticReceipt: createSemanticProofReceiptForSpec(program, proofOptions),
                 simulationReproducibilityReceipt: createSimulationReproducibilityReceiptForSpec(program, proofOptions),
@@ -220,6 +222,15 @@
           getSpec: () => spec, getBuildSerial: () => buildSerial,
           getSimulationReceipt: () => simulationReproducibilityReceipt,
           onImprovement: (record) => worldSpecEditor?.syncImprovement(record),
+          retryConstruction: async (source, decision, report, signal) => {
+            if (signal.aborted) throw signal.reason;
+            const abort = () => phaseCompiler.cancel('Construction retry superseded');
+            signal.addEventListener('abort', abort, { once: true });
+            try {
+              const program = await phaseCompiler.retryConstruction(source, decision, report);
+              return { program, phaseRun: phaseCompiler.getLatest() };
+            } finally { signal.removeEventListener('abort', abort); }
+          },
           setSpec: (next, options) => setSpec(next, options),
           publishRuntime,
           refreshRender() {
@@ -287,7 +298,8 @@
           };
           spec = nextProgram;
           worldImprovementSession.observeSpec(spec);
-          proofSession.invalidate();
+          proofSession.invalidate({ replayBaseline: managedFrame?.replayBaseline || null,
+            preserveCompilerProof: Boolean(managedFrame?.replayBaseline) });
           pendingInteractionCommands.length = 0;
           worldInteraction?.reset();
           runView?.recordSpec(spec);
@@ -322,43 +334,27 @@
           last = performance.now();
         };
 
-        replayWorldSpecButton?.addEventListener('click', () => {
+        replayWorldSpecButton?.addEventListener('click', async () => {
           if (!webGpuRenderer || !proofSession.beginReplay()) return;
-          const receipts = state && state.interaction && Array.isArray(state.interaction.receipts)
-            ? state.interaction.receipts : [];
-          const replayCommands = receipts
-            .filter((row) => row.status === 'applied')
-            .map((row, index) => ({
-              schema: 'simulatte.interactionCommand.v1',
-              sequence: index + 1,
-              actionId: row.actionId,
-              targetId: row.targetId,
-              source: 'world-spec-replay',
-              bindingId: row.bindingId || '',
-              point: Array.isArray(row.point) ? row.point.slice(0, 2) : [0.5, 0.5],
-              delta: Array.isArray(row.delta) ? row.delta.slice(0, 2) : [0, 0],
-              value: 0,
-            }));
-          state = createSimulationState(spec);
-          playbackClock = model.createSimulationPlaybackClock(spec);
-          pendingInteractionCommands.length = 0;
-          pendingInteractionCommands.push(...replayCommands);
-          worldInteraction?.reset();
-          renderExecutionInput = null;
-          const nextRenderExecutionInput = refreshRenderExecutionInput();
-          if (nextRenderExecutionInput && webGpuRenderer.session.status().state === 'ready') webGpuRenderer.session.setScene(nextRenderExecutionInput);
+          const replayBaseline = proofSession.pendingBaseline();
+          const replayState = state;
+          const serial = ++buildSerial;
+          worldSpecEditor?.cancel();
+          worldSpecReconciliation.abort('replay started');
+          proofSession.invalidate({ preserveCompilerProof: true });
           replayWorldSpecButton.disabled = true;
-          publishRuntime({
-            state: 'active',
-            blocking: false,
-            stage: 'replay',
-            taskPercent: 0,
-            progressScope: 'task',
-            percent: 99,
-            message: 'Replaying exact WorldSpec',
-            detail: spec.contentHash,
-            canvasLoading: false,
-          });
+          publishRuntime({ state: 'active', blocking: false, stage: 'replay', taskPercent: 0,
+            progressScope: 'task', percent: 99, message: 'Replaying exact WorldSpec',
+            detail: spec.contentHash, canvasLoading: false });
+          try {
+            const program = await phaseCompiler.executeProgram(spec, { replayState, replayBaseline });
+            if (serial !== buildSerial) return;
+            setSpec(program, { visible: true, phaseRun: phaseCompiler.getLatest() });
+          } catch (error) {
+            if (serial !== buildSerial || error.name === 'AbortError') return;
+            publishRuntime({ state: 'error', blocking: false, stage: 'replay', percent: 100,
+              message: 'Exact replay failed', detail: error.message, canvasLoading: false });
+          }
         });
 
         worldSpecReconciliation = reconciliationControllerApi.connect(root, {

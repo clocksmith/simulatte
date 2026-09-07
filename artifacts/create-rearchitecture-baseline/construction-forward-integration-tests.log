@@ -1,0 +1,289 @@
+TAP version 13
+# Subtest: cancellation invalidates queued intent work, including before a worker starts
+ok 1 - cancellation invalidates queued intent work, including before a worker starts
+  ---
+  duration_ms: 24.251953
+  type: 'test'
+  ...
+# Subtest: a crashed intent worker cannot retain queued requests or receive future work
+ok 2 - a crashed intent worker cannot retain queued requests or receive future work
+  ---
+  duration_ms: 11.18349
+  type: 'test'
+  ...
+# Subtest: negation ends at a new clause without losing an affirmative count
+ok 3 - negation ends at a new clause without losing an affirmative count
+  ---
+  duration_ms: 12269.254641
+  type: 'test'
+  ...
+# Subtest: grounding cannot reintroduce excluded language spans or positive count obligations
+ok 4 - grounding cannot reintroduce excluded language spans or positive count obligations
+  ---
+  duration_ms: 1922.590832
+  type: 'test'
+  ...
+# Subtest: retrieval carriers reject absent and mismatched provenance instead of stamping evidence
+ok 5 - retrieval carriers reject absent and mismatched provenance instead of stamping evidence
+  ---
+  duration_ms: 13.861536
+  type: 'test'
+  ...
+# Subtest: interactive playback uses the proof timestep independently of display frequency
+ok 6 - interactive playback uses the proof timestep independently of display frequency
+  ---
+  duration_ms: 14.776674
+  type: 'test'
+  ...
+# Subtest: retrieval producers reject stale query provenance before loading model artifacts
+ok 7 - retrieval producers reject stale query provenance before loading model artifacts
+  ---
+  duration_ms: 2.093803
+  type: 'test'
+  ...
+# Subtest: visual compilation ignores raw prompt substitutions in a fixed typed simulation artifact
+ok 8 - visual compilation ignores raw prompt substitutions in a fixed typed simulation artifact
+  ---
+  duration_ms: 1446.813579
+  type: 'test'
+  ...
+# Subtest: stale readback failures clean their buffer without changing the active scene
+ok 9 - stale readback failures clean their buffer without changing the active scene
+  ---
+  duration_ms: 0.686968
+  type: 'test'
+  ...
+# Subtest: a current readback failure still marks current proof failed
+ok 10 - a current readback failure still marks current proof failed
+  ---
+  duration_ms: 0.508529
+  type: 'test'
+  ...
+# Subtest: unchanged geometry cannot cache unexercised or failed simulation evidence
+ok 11 - unchanged geometry cannot cache unexercised or failed simulation evidence
+  ---
+  duration_ms: 1229.288723
+  type: 'test'
+  ...
+# Subtest: passing visual flags cannot erase a carried lost obligation
+ok 12 - passing visual flags cannot erase a carried lost obligation
+  ---
+  duration_ms: 2.227507
+  type: 'test'
+  ...
+# Subtest: falling reaches one real body and a gravity operator without a visible gravity object or fluid substitution
+ok 13 - falling reaches one real body and a gravity operator without a visible gravity object or fluid substitution
+  ---
+  duration_ms: 1195.625426
+  type: 'test'
+  ...
+# Subtest: pendulum integration oscillates with bounded energy and the rendered rod connects pivot to bob
+ok 14 - pendulum integration oscillates with bounded energy and the rendered rod connects pivot to bob
+  ---
+  duration_ms: 1339.046873
+  type: 'test'
+  ...
+# Subtest: invalid mechanics cannot silently generate non-finite or energy-creating state
+ok 15 - invalid mechanics cannot silently generate non-finite or energy-creating state
+  ---
+  duration_ms: 0.576193
+  type: 'test'
+  ...
+# Subtest: autonomous solver frames refresh the uploaded parts without an interaction, and absent execution cannot prove motion
+ok 16 - autonomous solver frames refresh the uploaded parts without an interaction, and absent execution cannot prove motion
+  ---
+  duration_ms: 1286.732911
+  type: 'test'
+  ...
+# Subtest: qualified absence preserves positive mentions, including reversed clause order
+ok 17 - qualified absence preserves positive mentions, including reversed clause order
+  ---
+  duration_ms: 2107.142596
+  type: 'test'
+  ...
+# Subtest: Phase 5 retains adverse status and only associates operators with their own obligations
+ok 18 - Phase 5 retains adverse status and only associates operators with their own obligations
+  ---
+  duration_ms: 0.358032
+  type: 'test'
+  ...
+# Subtest: training exposes exact adjacent envelopes, detached snapshots, and discards previous run proof
+ok 19 - training exposes exact adjacent envelopes, detached snapshots, and discards previous run proof
+  ---
+  duration_ms: 1001.585746
+  type: 'test'
+  ...
+# Subtest: progress assigns all proof events to Phase 8 and keeps the failing phase
+ok 20 - progress assigns all proof events to Phase 8 and keeps the failing phase
+  ---
+  duration_ms: 1.246719
+  type: 'test'
+  ...
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 21 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 14.768755
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 22 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 103.98423
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 23 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 53.063127
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 24 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 9.074514
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 25 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 56.254649
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 26 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.807135
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 27 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.54802
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 28 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 4775.282714
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+ok 29 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 2644.869506
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+ok 30 - WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+  ---
+  duration_ms: 2323.736198
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+ok 31 - WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+  ---
+  duration_ms: 1247.81902
+  type: 'test'
+  ...
+# Subtest: synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+ok 32 - synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+  ---
+  duration_ms: 2398.023339
+  type: 'test'
+  ...
+# Subtest: compiled water state channels retain their entity owner through serializable phase artifacts
+ok 33 - compiled water state channels retain their entity owner through serializable phase artifacts
+  ---
+  duration_ms: 2746.615862
+  type: 'test'
+  ...
+# Subtest: invocation acquisition obeys cancellation and the phase deadline
+ok 34 - invocation acquisition obeys cancellation and the phase deadline
+  ---
+  duration_ms: 35.805773
+  type: 'test'
+  ...
+# Subtest: resource selection and immutable assets cannot change while a run waits
+ok 35 - resource selection and immutable assets cannot change while a run waits
+  ---
+  duration_ms: 8.596202
+  type: 'test'
+  ...
+# Subtest: integrity rejects array metadata and non-enumerable artifact fields
+ok 36 - integrity rejects array metadata and non-enumerable artifact fields
+  ---
+  duration_ms: 0.279532
+  type: 'test'
+  ...
+# Subtest: binding snapshots receipts and metadata and detects tampering outside artifact payloads
+ok 37 - binding snapshots receipts and metadata and detects tampering outside artifact payloads
+  ---
+  duration_ms: 9.076246
+  type: 'test'
+  ...
+# Subtest: owned snapshots reuse only validated immutable trees and preserve canonical integrity
+ok 38 - owned snapshots reuse only validated immutable trees and preserve canonical integrity
+  ---
+  duration_ms: 0.905019
+  type: 'test'
+  ...
+# Subtest: bounded classification loads before the model-backed embedder
+ok 39 - bounded classification loads before the model-backed embedder
+  ---
+  duration_ms: 0.990978
+  type: 'test'
+  ...
+# Subtest: prompt controller keeps its public CommonJS API
+ok 40 - prompt controller keeps its public CommonJS API
+  ---
+  duration_ms: 699.387607
+  type: 'test'
+  ...
+# Subtest: prompt controller resolves root-hosted workers against Blank asset base
+ok 41 - prompt controller resolves root-hosted workers against Blank asset base
+  ---
+  duration_ms: 0.428891
+  type: 'test'
+  ...
+# Subtest: compiler proof coordinator performs a separate compile and rejects stale receipts
+ok 42 - compiler proof coordinator performs a separate compile and rejects stale receipts
+  ---
+  duration_ms: 6478.85978
+  type: 'test'
+  ...
+# Subtest: prompt controller browser layers publish the API in manifest order
+not ok 43 - prompt controller browser layers publish the API in manifest order
+  ---
+  duration_ms: 12.096065
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/prompt-controller-factory.test.cjs:116:1'
+  failureType: 'testCodeFailure'
+  error: 'SimulattePromptControllerLab requires support, workers, training, construction search, runtime, model selection, run view model, WorldSpec editing and reconciliation, compiler proof, and improvement records'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    attachSimulattePromptControllerLab (evalmachine.<anonymous>:40:11)
+    evalmachine.<anonymous>:824:3
+    Script.runInContext (node:vm:149:12)
+    Object.runInContext (node:vm:301:6)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/prompt-controller-factory.test.cjs:148:8)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: prompt controller browser layers reject missing dependencies
+ok 44 - prompt controller browser layers reject missing dependencies
+  ---
+  duration_ms: 15.101973
+  type: 'test'
+  ...
+1..44
+# tests 44
+# suites 0
+# pass 43
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24515.427589

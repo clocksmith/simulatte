@@ -399,3 +399,42 @@ function keyEvent(code) {
     preventDefault() {},
   };
 }
+
+test('exact simulation replay preserves original command values, rejected actions and fixed-step timing', async () => {
+  const spec = lab.createSpecFromPrompt('a red ball', { deterministicRuntime: true });
+  const target = dynamicTarget(spec);
+  const dt = spec.source.compilerConfig.simulationProof.stepSeconds;
+  let state = lab.createSimulationState(spec);
+  for (let index = 0; index < 6; index++) {
+    if (index === 2) state = lab.applyInteractionCommands(state, spec.interactionIR, [{
+      sequence: 1, actionId: 'impulse', targetId: target.id, delta: [0.3, -0.4], value: 0.75,
+    }]);
+    if (index === 4) state = lab.applyInteractionCommands(state, spec.interactionIR, [{
+      sequence: 2, actionId: 'unknown-fixture-action', targetId: target.id, value: -0.5,
+    }]);
+    state = lab.stepSimulation(state, spec, dt);
+  }
+  const baseline = require('../public/shared/contracts/world-proof.js').createReplayBaseline({
+    binding: require('../public/shared/contracts/world-proof.js').createWorldProofBinding(spec),
+  });
+  const policy = { schema: 'simulatte.simulationReplayPolicy.v1', maxSteps: 64, maxCommands: 64 };
+  const input = await lab.createSimulationReplayInput(spec, state, policy, baseline);
+  assert.deepEqual(input.commands.map(row => row.step), [2, 4]);
+  assert.deepEqual(input.commands.map(row => row.command.value), [0.75, -0.5]);
+  assert.equal(state.interaction.receipts[1].status, 'rejected');
+  assert.deepEqual(await lab.replaySimulationState(spec, input), state);
+  const modified = JSON.parse(JSON.stringify(input));
+  modified.commands[0].command.value = 0;
+  await assert.rejects(lab.replaySimulationState(spec, modified), /schedule contradicts/);
+  const late = structuredClone(input);
+  late.expectedState.interaction.receipts[0].simulationTime = dt;
+  const earlier = await lab.createSimulationReplayInput(spec, late.expectedState, policy, baseline);
+  await assert.rejects(lab.replaySimulationState(spec, earlier), /did not reproduce/);
+  const truncated = structuredClone(state); truncated.interaction.receipts.shift();
+  await assert.rejects(lab.createSimulationReplayInput(spec, truncated, policy, baseline), /complete bounded interaction history/);
+  const legacy = structuredClone(state); legacy.interaction.receipts[0].schema = 'simulatte.interactionCommandReceipt.v1';
+  await assert.rejects(lab.createSimulationReplayInput(spec, legacy, policy, baseline), /original normalized command inputs/);
+  await assert.rejects(lab.createSimulationReplayInput(spec, state, { ...policy, maxSteps: 2 }, baseline), /fixed-step budget/);
+  const controller = new AbortController(); controller.abort(new Error('replay fixture cancelled'));
+  await assert.rejects(lab.replaySimulationState(spec, input, controller.signal), /fixture cancelled/);
+});

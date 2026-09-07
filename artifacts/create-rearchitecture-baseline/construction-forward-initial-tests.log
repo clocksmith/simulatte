@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: construction retries retain failure identities and preserve edits before the replacement draws
+not ok 1 - construction retries retain failure identities and preserve edits before the replacement draws
+  ---
+  duration_ms: 3808.926935
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/pipeline-worker-phases.test.cjs:328:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing field schema at $.worldSpec.schema'
+  code: 'ERR_TEST_FAILURE'
+  name: 'WorldProofError'
+  stack: |-
+    requireExactKeys (/home/clocksmith/deco/simulatte/public/shared/contracts/world-proof.js:678:45)
+    validateWorldProof (/home/clocksmith/deco/simulatte/public/shared/contracts/world-proof.js:585:5)
+    Object.createWorldProof (/home/clocksmith/deco/simulatte/public/shared/contracts/world-proof.js:552:12)
+    Object.settleSceneProof (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-08-scene-proof/simulatte-scene-proof.js:116:28)
+    Object.runPhase8SceneProof (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-runtime-language.js:23:46)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/pipeline-worker-phases.test.cjs:362:32)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: failed screenshot obligations enter an identified forward request for the next candidate
+not ok 2 - failed screenshot obligations enter an identified forward request for the next candidate
+  ---
+  duration_ms: 1863.944242
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/samer-construction.test.cjs:155:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing field schema at $.worldSpec.schema'
+  code: 'ERR_TEST_FAILURE'
+  name: 'WorldProofError'
+  stack: |-
+    requireExactKeys (/home/clocksmith/deco/simulatte/public/shared/contracts/world-proof.js:678:45)
+    validateWorldProof (/home/clocksmith/deco/simulatte/public/shared/contracts/world-proof.js:585:5)
+    Object.createWorldProof (/home/clocksmith/deco/simulatte/public/shared/contracts/world-proof.js:552:12)
+    Object.settleSceneProof (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-08-scene-proof/simulatte-scene-proof.js:116:28)
+    Object.runPhase8SceneProof (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-runtime-language.js:23:46)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/samer-construction.test.cjs:186:28)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4196.072491

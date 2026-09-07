@@ -1,0 +1,5 @@
+
+> catscan:check
+> node tools/check-catscan.mjs
+
+CATSCAN valid: 39 recursive component charters and synchronized index.

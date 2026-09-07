@@ -152,8 +152,8 @@ test('construction approaches use the same candidates and emit strategy receipts
   assert.equal(byLane.construction_control.constructionSelectionReceipt.strategy, 'deterministic-control');
 });
 
-test('failed screenshot obligations reject a grammar and deterministically compile the next candidate', () => {
-  const spec = lab.createSpecFromPrompt('5 cats in a galaxy', { allowPrototypeFallback: true });
+test('failed screenshot obligations enter an identified forward request for the next candidate', async () => {
+  const spec = lab.createSpecFromPrompt('5 cats in a galaxy', { deterministicRuntime: true });
   const packet = packetForPhase6(spec.phaseArtifacts.phase6);
   const firstCat = packet.entities.find((row) => row.identity.type === 'cat');
   const firstGrammar = firstCat.geometry.program.grammarId;
@@ -170,17 +170,22 @@ test('failed screenshot obligations reject a grammar and deterministically compi
       compositionLedger: ledger,
     },
   };
+  const model = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+  const phase7 = model.runPhase7RenderExecution(spec.phaseArtifacts.phase6, model.createSimulationState(spec), null, {});
+  phase7.artifact.renderExecution.worldProofBinding = require('../public/shared/contracts/world-proof.js').createWorldProofBinding(spec);
+  const fullPhase8 = model.runPhase8SceneProof(phase7);
+  const report = { final: true, packetKey: 'cat:first', sceneRenderPacket: packet, phase7Output: phase7,
+    phase8Output: { ...fullPhase8, artifact: { ...fullPhase8.artifact, ...phase8Output.artifact } } };
   const searchState = constructionSearch.createConstructionSearchState();
-  const decision = constructionSearch.observeConstructionSceneProof({
-    final: true,
-    packetKey: 'cat:first',
-    phase8Output,
-    sceneRenderPacket: packet,
-  }, spec, searchState);
-
+  const decision = constructionSearch.observeConstructionSceneProof(report, spec, searchState);
   assert.equal(decision.action, 'retry');
   assert.deepEqual(decision.nextApproach.rejectedGrammarIds, [firstGrammar]);
-  const next = lab.normalizeSpec(constructionSearch.constructionSearchSpec(spec, decision.nextApproach));
+  const before = JSON.stringify(spec);
+  const request = await constructionSearch.createConstructionRetryRequest(spec, decision, report);
+  assert.equal(request.retryPolicy.id, 'construction-search-v1');
+  assert.equal(request.retryPolicy.failureEvidenceDigest, await require('../public/blank/pipeline/simulatte-phase-contracts.js').artifactDigest(report.phase8Output));
+  assert.equal(JSON.stringify(spec), before, 'retry must not rewrite accepted artifacts');
+  const next = lab.createSpecFromPrompt(request.request.text, request.configuration);
   const nextCat = packetForPhase6(next.phaseArtifacts.phase6).entities.find((row) => row.identity.type === 'cat');
   const receipt = nextCat.geometry.program.constructionSelectionReceipt;
   assert.notEqual(nextCat.geometry.program.grammarId, firstGrammar);

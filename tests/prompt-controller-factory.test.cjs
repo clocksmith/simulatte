@@ -116,6 +116,7 @@ test('compiler proof coordinator performs a separate compile and rejects stale r
 test('prompt controller browser layers publish the API in manifest order', () => {
   const context = vm.createContext({
     SimulattePhaseContracts: require('../public/blank/pipeline/simulatte-phase-contracts.js'),
+    SimulattePhaseRunner: require('../public/blank/app/runtime/phase-runner.js'),
     SimulattePromptControllerSupport: require(path.join(promptDir, 'prompt-controller-dependencies.js')),
     SimulatteConstructionSearch: require(path.join(promptDir, 'prompt-controller-construction-search.js')),
     SimulattePromptControllerRuntime: require(path.join(promptDir, 'prompt-controller-runtime.js')),
@@ -134,6 +135,7 @@ test('prompt controller browser layers publish the API in manifest order', () =>
   vm.runInContext(fs.readFileSync(path.join(root, 'public/blank', editorSharedPath), 'utf8'), context);
   for (const file of [
     'prompt-controller-runtime.js',
+    'prompt-controller-phase-dispatch.js',
     'prompt-controller-workers.js',
     'prompt-controller-training.js',
     'prompt-model-selection.js',
@@ -147,6 +149,9 @@ test('prompt controller browser layers publish the API in manifest order', () =>
   ]) {
     vm.runInContext(fs.readFileSync(path.join(promptDir, file), 'utf8'), context);
   }
+  assert.equal(typeof context.SimulatteCreatePhaseDispatch.create, 'function');
+  assert.ok(runtimeManifest.browser.indexOf('app/prompt/prompt-controller-phase-dispatch.js') <
+    runtimeManifest.browser.indexOf('app/prompt/prompt-controller-lab-controller.js'));
   assert.equal(typeof context.SimulattePhysicsRenderer.createBrowserLab, 'function');
   assert.equal(context.SimulattePhysicsRenderer.start(), null);
 });

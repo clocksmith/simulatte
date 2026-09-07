@@ -201,7 +201,19 @@
     const declaredChangedChannelIds = uniqueStrings(row.changedChannels).sort();
     const allowedChannelIds = new Set(target && target.channelIds || []);
     const failureCodes = [];
-    if (row.schema !== 'simulatte.interactionCommandReceipt.v1') failureCodes.push('command-receipt-schema-invalid');
+    if (!['simulatte.interactionCommandReceipt.v1', 'simulatte.interactionCommandReceipt.v2'].includes(row.schema)) {
+      failureCodes.push('command-receipt-schema-invalid');
+    }
+    if (row.schema === 'simulatte.interactionCommandReceipt.v2') {
+      const command = row.command;
+      if (!command || command.schema !== 'simulatte.interactionCommand.v1' ||
+          !Number.isFinite(command.value) || Math.abs(command.value) > 1 ||
+          !Number.isFinite(row.simulationTime) || row.simulationTime < 0 ||
+          ['sequence', 'actionId', 'targetId', 'bindingId', 'point', 'delta'].some(key =>
+            canonicalJson(command[key] ?? null) !== canonicalJson(row[key] ?? null))) {
+        failureCodes.push('command-input-evidence-invalid');
+      }
+    }
     if (!action) failureCodes.push('action-not-declared');
     if (targetId && !target) failureCodes.push('target-not-declared');
     if (action && action.requiredCapability && (!target || !target.capabilities.includes(action.requiredCapability))) {

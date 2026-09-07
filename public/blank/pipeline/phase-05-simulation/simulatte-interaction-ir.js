@@ -6,7 +6,7 @@
   const INTERACTION_IR_SCHEMA = 'simulatte.interactionIR.v1';
   const INTERACTION_STATE_SCHEMA = 'simulatte.interactionState.v1';
   const INTERACTION_COMMAND_SCHEMA = 'simulatte.interactionCommand.v1';
-  const INTERACTION_RECEIPT_SCHEMA = 'simulatte.interactionCommandReceipt.v1';
+  const INTERACTION_RECEIPT_SCHEMA = 'simulatte.interactionCommandReceipt.v2';
   const INTERACTION_TRANSITION_STATE_SCHEMA = 'simulatte.interactionTransitionState.v1';
   const INTERACTION_HASH_PREFIX = 'fnv1a32:';
   const MAX_RECEIPTS = 64;
@@ -310,6 +310,8 @@
     const afterState = interactionTransitionState(state, target);
     nextInteraction.receipts.push({
       schema: INTERACTION_RECEIPT_SCHEMA,
+      command: clone(command),
+      simulationTime: Number.isFinite(state.t) && state.t >= 0 ? state.t : null,
       sequence: command.sequence,
       actionId: command.actionId,
       targetId: command.targetId,

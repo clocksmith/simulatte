@@ -3,10 +3,12 @@
     ? require('../../pipeline/simulatte-phase-contracts.js') : root.SimulattePhaseContracts;
   const runner = typeof module === 'object' && module.exports
     ? require('../runtime/phase-runner.js') : root.SimulattePhaseRunner;
-  const api = factory(contracts, runner);
+  const construction = typeof module === 'object' && module.exports
+    ? require('./prompt-controller-construction-search.js') : root.SimulatteConstructionSearch;
+  const api = factory(contracts, runner, construction);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCreatePhaseDispatch = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createDispatchApi(contracts, runner) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createDispatchApi(contracts, runner, construction) {
   if (!contracts || !runner) throw new Error('Create dispatch requires the phase contracts and runner');
   const STAGES = ['manifest', 'language', 'retrieval', 'grounded-intent', 'simulation', 'visual', 'render', 'scene-proof'];
   function aborted(message = 'Create execution superseded') {
@@ -43,7 +45,7 @@
       active = null;
     }
 
-    async function compile(prompt, options, event = {}, authoredInput = null) {
+    async function compile(prompt, options, event = {}, authoredInput = null, retryInput = null) {
       if (disposed) throw aborted('Create execution disposed');
       cancel();
       const revision = generation;
@@ -56,6 +58,7 @@
       const attempts = [];
       let config;
       let program = null;
+      let executionReplay = null;
       const retain = (status, error = null) => {
         const record = contracts.immutableArtifact({ schema: 'simulatte.createPageExecution.v1', revision,
           status, producer: config?.producer || null, policy: config?.policy || null, attempts,
@@ -66,7 +69,11 @@
       };
       retain('running');
       try {
-        configurationInput = contracts.immutableArtifact({ ...options, compilerLane: 'pipeline-worker' });
+        const authored = authoredInput ? contracts.immutableArtifact(authoredInput) : null;
+        const retry = retryInput ? contracts.immutableArtifact(retryInput) : null;
+        const retryRequest = retry ? await construction.createConstructionRetryRequest(retry.spec, retry.decision, retry.report) : null;
+        assertCurrent();
+        configurationInput = retryRequest?.configuration || contracts.immutableArtifact({ ...options, compilerLane: 'pipeline-worker' });
         config = contracts.immutableArtifact(await awaitCancellable(() => resolvedConfiguration, controller.signal));
         assertCurrent();
         if (!worker?.runPhase || !renderer?.renderPhase) throw new Error('Create requires a compiler worker and WebGPU renderer');
@@ -74,6 +81,13 @@
         runner.validatePolicy(config.policy);
         for (const key of ['workerResidentBytes', 'rendererResidentBytes']) {
           if (!Number.isSafeInteger(config[key]) || config[key] < 0) throw new Error(`Invalid declared ${key}`);
+        }
+        if (authored?.replay) {
+          if (authored.recompile) throw new Error('Exact replay cannot reinterpret authored edits');
+          executionReplay = await model.createSimulationReplayInput(authored.worldSpec, authored.replay.state,
+            config.replayPolicy, authored.replay.baseline);
+          assertCurrent();
+          configurationInput = contracts.immutableArtifact({ ...configurationInput, executionReplay });
         }
         const optionsDigest = await contracts.artifactDigest(configurationInput);
         assertCurrent();
@@ -105,12 +119,12 @@
                   percent: Math.round((phase - 1) * 100 / 8), message: contracts.PHASE_LABELS[phase - 1] });
                 if (phase !== 7) return {};
                 program = source && !source.recompile ? source.worldSpec : model.projectWorldSpec(Object.fromEntries(outputs.map(output => [`phase${output.phase}`, output])));
-                if (!source && requiresReconciliation(program)) {
+                if (!source && (retryRequest?.retryPolicy.acceptedEdits === 'require-reconciliation' || requiresReconciliation(program))) {
                   replacement = program;
                   throw Object.assign(new Error('Reconciliation is required before drawing this candidate'), { code: 'SIMULATTE_AUTHORED_RESTART' });
                 }
                 assertCurrent();
-                return invocationForProgram(program, previous, signal, Boolean(source && !source.recompile));
+                return invocationForProgram(program, previous, signal, Boolean(source && !source.recompile), executionReplay);
               },
             });
             assertCurrent();
@@ -124,22 +138,23 @@
           } finally { instance.dispose(); }
         }
 
-        const initialSource = authoredInput ? await model.createAuthoredPhaseResources(authoredInput.worldSpec,
-          configurationInput, { recompile: authoredInput.recompile }) : null;
+        const initialSource = authored ? await model.createAuthoredPhaseResources(authored.worldSpec,
+          configurationInput, { recompile: authored.recompile }) : null;
         assertCurrent();
-        let result = await execute(initialSource?.request || contracts.createRequestEnvelope({ request: { kind: 'prompt', text: String(prompt) },
+        let result = await execute(initialSource?.request || retryRequest || contracts.createRequestEnvelope({ request: { kind: 'prompt', text: String(prompt) },
           configuration: configurationInput, authoredInputs: [], retryPolicy: null }), initialSource);
         assertCurrent();
         if (result.replacement) {
           if (typeof reconcileProgram !== 'function') throw new Error('Required reconciliation has no decision owner');
           retain('awaiting-reconciliation');
-          const accepted = await awaitCancellable(() => reconcileProgram(result.replacement, controller.signal), controller.signal);
+          const accepted = await awaitCancellable(() => reconcileProgram(result.replacement, controller.signal, retry?.spec || null), controller.signal);
           assertCurrent();
           if (!accepted) throw aborted('WorldSpec reconciliation cancelled');
           const source = await model.createAuthoredPhaseResources(accepted, configurationInput, { recompile: true });
           assertCurrent();
           result = await execute({ ...source.request, retryPolicy: { id: 'authored-reconciliation-v1', attempt: 1,
-            previousPhase6Digest: await contracts.artifactDigest(result.outputs[5]) } }, source);
+            previousPhase6Digest: await contracts.artifactDigest(result.outputs[5]),
+            ...(retryRequest ? { constructionRetry: retryRequest.retryPolicy } : {}) } }, source);
         }
         assertCurrent();
         retain('completed');
@@ -151,8 +166,12 @@
     }
 
     return Object.freeze({ compile, cancel, getLatest: () => latest,
-      executeProgram(worldSpec, { recompile = false } = {}) {
-        return compile(worldSpec.source.prompt, { deterministicRuntime: true }, {}, { worldSpec, recompile });
+      retryConstruction(spec, decision, report) {
+        return compile(spec.source.prompt, {}, {}, null, { spec, decision, report });
+      },
+      executeProgram(worldSpec, { recompile = false, replayState = null, replayBaseline = null } = {}) {
+        const replay = replayState !== null || replayBaseline !== null ? { state: replayState, baseline: replayBaseline } : null;
+        return compile(worldSpec.source.prompt, { deterministicRuntime: true }, {}, { worldSpec, recompile, replay });
       },
       dispose() { disposed = true; cancel('Create execution disposed'); } });
   }

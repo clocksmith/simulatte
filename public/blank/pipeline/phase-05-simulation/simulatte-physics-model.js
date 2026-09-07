@@ -98,6 +98,8 @@
     createReactionState: scope.createReactionState,
     createSimulationState: scope.createSimulationState,
     createSimulationPlaybackClock: scope.createSimulationPlaybackClock,
+    createSimulationReplayInput: scope.createSimulationReplayInput,
+    replaySimulationState: scope.replaySimulationState,
     createSimulationReproducibilityReceiptForSpec:
       scope.createSimulationReproducibilityReceiptForSpec,
     createIntentProofReceiptForSpec: scope.createIntentProofReceiptForSpec,

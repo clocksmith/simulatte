@@ -27,7 +27,7 @@ Expose controls and evidence around the compiler.
 
 ## Invariants
 
-- Page dispatch runs eight phases; edits and reconciliation restart through authored requests.
+- Page dispatch runs eight phases; edits, retries, and reconciliation enter identified forward requests.
 - The runner bounds phases, resources, and revisions; cancelled work cannot publish or release in-flight leases.
 - Workers reject undeclared resources; cancellation and failure cannot publish or poison replacements.
 - Authored replay admits phase sources; file exchange preserves them, excluding stale proof.

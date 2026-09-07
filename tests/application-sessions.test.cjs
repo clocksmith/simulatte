@@ -111,3 +111,42 @@ test('plugin session initializes the camera before view arbitration and cancels 
   session.dispose(); release(); await pending;
   assert.deepEqual(events, ['draw', 'initial-camera', 'view']);
 });
+
+
+test('invalidating a construction retry aborts execution and suppresses late publication and failure', async () => {
+  for (const fails of [false, true]) {
+    let resolve, reject, signal;
+    const pending = new Promise((a, b) => { resolve = a; reject = b; });
+    let published = 0;
+    const events = [];
+    const trainingRun = { runId: 'fixture', prompt: 'a cat', serial: 1 };
+    const packet = { entities: [{ id: 'cat', identity: { type: 'cat' }, geometry: { program: {
+      grammarId: 'cat-first', constructionSelectionReceipt: { attempt: 0, seed: 0,
+        candidates: [{ grammarId: 'cat-first' }, { grammarId: 'cat-next' }] },
+    } } }] };
+    const session = proofApi.create({
+      root: { getElementById: () => null, defaultView: {} }, canvas: {}, trainingRun,
+      compilerProof: { invalidate() {} }, worldImprovementSession: { observeProof() {} },
+      getSpec: () => ({ contentHash: 'original' }), getBuildSerial: () => 1,
+      retryConstruction(_spec, _decision, _report, invocationSignal) { signal = invocationSignal; return pending; },
+      setSpec() { published++; }, publishRuntime: event => events.push(event),
+    });
+    const report = { final: true, sceneRenderPacket: packet, packetKey: 'fixture-packet',
+      phase7Output: { artifact: { renderExecution: { worldProofBinding: { worldSpec: { contentHash: 'original' } } } } },
+      phase8Output: { artifact: { compositionLedger: { obligations: [{ id: 'entity:cat', required: true, targetIdentity: 'cat' }] },
+        sceneProof: { verdict: 'fail', settledObligations: [{ obligationId: 'entity:cat', status: 'lost' }] } } },
+    };
+    session.observe(report);
+    await new Promise(done => setImmediate(done));
+    assert.equal(signal.aborted, false);
+    const count = events.length;
+    session.observe({ ...report, packetKey: 'concurrent-report' });
+    assert.equal(trainingRun.constructionSearch.attempts.length, 1, 'pending retry cannot consume another attempt');
+    session.invalidate();
+    assert.equal(signal.aborted, true);
+    if (fails) reject(new Error('late retry failure')); else resolve({ program: {}, phaseRun: {} });
+    await new Promise(done => setImmediate(done));
+    assert.equal(published, 0);
+    assert.equal(events.length, count);
+  }
+});

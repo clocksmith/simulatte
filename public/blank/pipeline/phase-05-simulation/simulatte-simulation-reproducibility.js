@@ -69,6 +69,87 @@
     });
   }
 
+  function validateReplayPolicy(policy) {
+    if (policy?.schema !== 'simulatte.simulationReplayPolicy.v1' ||
+        !Number.isSafeInteger(policy.maxSteps) || policy.maxSteps < 1 || policy.maxSteps > 4096 ||
+        !Number.isSafeInteger(policy.maxCommands) || policy.maxCommands < 1 || policy.maxCommands > 64) {
+      throw proofPolicyError('SIMULATTE_REPLAY_BUDGET_INVALID', 'Replay requires bounded steps and commands');
+    }
+  }
+
+  async function createSimulationReplayInput(inputSpec, inputState, inputPolicy, baseline) {
+    const contracts = scope.phaseContracts;
+    const captured = contracts.immutableArtifact({ spec: inputSpec, state: inputState, policy: inputPolicy, baseline });
+    const { spec, state, policy } = captured;
+    scope.worldSpec.validateWorldSpec(spec);
+    validateReplayPolicy(policy);
+    const simulationPolicy = spec.source.compilerConfig.simulationProof;
+    validateExecutionPolicy(simulationPolicy);
+    const stepSeconds = simulationPolicy.stepSeconds;
+    const stepFor = time => {
+      const step = Math.round(time / stepSeconds);
+      if (!Number.isFinite(time) || time < 0 || !Number.isSafeInteger(step) || step > policy.maxSteps ||
+          Math.abs(time - step * stepSeconds) > stepSeconds * 1e-8) {
+        throw proofPolicyError('SIMULATTE_REPLAY_TIME_INVALID', 'Replay time is outside its fixed-step budget or grid');
+      }
+      return step;
+    };
+    const totalSteps = stepFor(state.t);
+    const interaction = state.interaction;
+    if (!interaction || !Array.isArray(interaction.receipts) ||
+        interaction.commandCount !== interaction.receipts.length || interaction.commandCount > policy.maxCommands) {
+      throw proofPolicyError('SIMULATTE_REPLAY_HISTORY_INCOMPLETE', 'Replay requires the complete bounded interaction history');
+    }
+    let previousStep = 0;
+    const commands = interaction.receipts.map(row => {
+      if (row.schema !== 'simulatte.interactionCommandReceipt.v2' || !row.command ||
+          contracts.canonicalJson(scope.createInteractionCommand(row.command)) !== contracts.canonicalJson(row.command) ||
+          ['sequence', 'actionId', 'targetId', 'bindingId', 'point', 'delta'].some(key =>
+            contracts.canonicalJson(row.command[key]) !== contracts.canonicalJson(row[key]))) {
+        throw proofPolicyError('SIMULATTE_REPLAY_INPUT_MISSING', 'Replay requires original normalized command inputs');
+      }
+      const step = stepFor(row.simulationTime);
+      if (step < previousStep || step > totalSteps) throw proofPolicyError('SIMULATTE_REPLAY_TIME_INVALID', 'Replay command order contradicts execution time');
+      previousStep = step;
+      return { step, command: row.command };
+    });
+    if (captured.baseline?.schema !== 'simulatte.replayBaseline.v1' ||
+        captured.baseline.identity?.worldSpecContentHash !== spec.contentHash) {
+      throw proofPolicyError('SIMULATTE_REPLAY_BASELINE_INVALID', 'Replay baseline does not bind this WorldSpec');
+    }
+    return contracts.immutableArtifact({ schema: 'simulatte.simulationReplayInput.v1',
+      worldSpecDigest: await contracts.artifactDigest(spec), policy, stepSeconds, totalSteps,
+      commands, expectedState: state, baseline: captured.baseline });
+  }
+
+  async function replaySimulationState(spec, input, signal) {
+    const contracts = scope.phaseContracts;
+    input = contracts.immutableArtifact(input);
+    if (input.schema !== 'simulatte.simulationReplayInput.v1' ||
+        input.worldSpecDigest !== await contracts.artifactDigest(spec)) {
+      throw proofPolicyError('SIMULATTE_REPLAY_SOURCE_INVALID', 'Replay input belongs to another authored program');
+    }
+    const verified = await createSimulationReplayInput(spec, input.expectedState, input.policy, input.baseline);
+    if (contracts.canonicalJson(verified) !== contracts.canonicalJson(input)) {
+      throw proofPolicyError('SIMULATTE_REPLAY_INPUT_INVALID', 'Replay schedule contradicts its captured execution');
+    }
+    let state = scope.createSimulationState(spec);
+    let cursor = 0;
+    for (let step = 0; step <= input.totalSteps; step++) {
+      if (signal?.aborted) throw signal.reason;
+      while (cursor < input.commands.length && input.commands[cursor].step === step) {
+        state = scope.applyInteractionCommands(state, spec.interactionIR, [input.commands[cursor++].command]);
+      }
+      if (step < input.totalSteps) state = scope.stepSimulation(state, spec, input.stepSeconds);
+      if (step > 0 && step % 64 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    if (signal?.aborted) throw signal.reason;
+    if (contracts.canonicalJson(state) !== contracts.canonicalJson(input.expectedState)) {
+      throw proofPolicyError('SIMULATTE_REPLAY_STATE_DIVERGED', 'Independent replay did not reproduce the captured simulation state');
+    }
+    return state;
+  }
+
   function validateExecutionPolicy(policy) {
     if (!policy || policy.schema !== 'simulatte.simulationReproducibilityPolicy.v1') {
       throw proofPolicyError('SIMULATTE_SIMULATION_PROOF_POLICY_MISSING', 'Simulation proof policy is missing');
@@ -103,6 +184,8 @@
   registry.define('physicsModel', 'simulatte-simulation-reproducibility.js', {
     createSimulationReproducibilityReceiptForSpec,
     runFixedStepSimulation,
+    createSimulationReplayInput,
+    replaySimulationState,
     createSimulationPlaybackClock,
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

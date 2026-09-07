@@ -1,8 +1,10 @@
 (function attachSimulatteConstructionSearch(root, factory) {
-  const api = factory();
+  const contracts = typeof module === 'object' && module.exports
+    ? require('../../pipeline/simulatte-phase-contracts.js') : root.SimulattePhaseContracts;
+  const api = factory(contracts);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteConstructionSearch = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createConstructionSearchApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createConstructionSearchApi(contracts) {
   const DEFAULT_MAX_ATTEMPTS = 5;
   const FAILURE_STATUSES = new Set(['lost', 'failed', 'wrong-identity', 'not-proven']);
 
@@ -48,7 +50,8 @@
     const retryPrograms = constructionRetryPrograms(failed, programRows);
     const retryGrammarIds = uniqueStrings(retryPrograms.map((row) => row.grammarId));
     const attempt = {
-      schema: 'simulatte.constructionSearchAttempt.v1',
+      schema: 'simulatte.constructionSearchAttempt.v2',
+      evidence: contracts.immutableArtifact({ phase7Output: report.phase7Output || null, phase8Output: phase8 }),
       attempt: attemptNumber,
       packetKey,
       verdict: proof.verdict || 'not-proven',
@@ -178,35 +181,65 @@
     return values.length ? Math.max(...values) : 0;
   }
 
-  function constructionSearchSpec(spec = {}, approach = {}) {
-    const phase5 = cloneValue(spec.phaseArtifacts && spec.phaseArtifacts.phase5);
-    const simulationCompile = phase5 && phase5.artifact && phase5.artifact.simulationCompile;
-    if (!simulationCompile || !simulationCompile.renderIR) {
-      throw new Error('Construction search requires a Phase 5 simulationCompile.renderIR artifact');
+  async function createConstructionRetryRequest(inputSpec, inputDecision, inputReport) {
+    const { spec, decision, report } = contracts.immutableArtifact({
+      spec: inputSpec, decision: inputDecision, report: inputReport,
+    });
+    const approach = decision.nextApproach;
+    const search = decision.state;
+    const binding = report.phase7Output?.artifact?.renderExecution?.worldProofBinding?.worldSpec;
+    if (report.final !== true || binding?.contentHash !== spec.contentHash ||
+        binding.revision !== spec.authorship.revision) {
+      throw new Error('Construction retry failure does not bind the accepted WorldSpec');
     }
-    simulationCompile.renderIR.constructionApproach = cloneValue(approach);
-    const phaseArtifacts = {};
-    for (let phase = 1; phase <= 4; phase += 1) {
-      const value = spec.phaseArtifacts && spec.phaseArtifacts[`phase${phase}`];
-      if (value) phaseArtifacts[`phase${phase}`] = value;
+    if (decision.schema !== 'simulatte.constructionSearchDecision.v1' || decision.action !== 'retry' ||
+        search?.status !== 'retrying' || !Number.isInteger(search.maxAttempts) || search.maxAttempts < 1 ||
+        search.maxAttempts > 8 || !search.attempts.length || search.attempts.length >= search.maxAttempts ||
+        contracts.canonicalJson(search.attempts.at(-1)) !== contracts.canonicalJson(decision.attempt)) {
+      throw new Error('Construction retry requires a retained decision within its attempt budget');
     }
-    phaseArtifacts.phase5 = phase5;
-    const intent = cloneValue(spec.intent || {});
-    if (intent && typeof intent === 'object') intent.phaseArtifacts = phaseArtifacts;
-    const source = cloneValue(spec.source || {});
-    source.compilerConfig = {
-      ...(source.compilerConfig || {}),
-      constructionApproach: cloneValue(approach),
+    const failed = constructionFailedObligations(report.phase8Output.artifact.sceneProof,
+      report.phase8Output.artifact.compositionLedger).map(row => row.id).slice(0, 32);
+    if (!approach || approach.schema !== 'simulatte.constructionApproach.v2' ||
+        approach.id !== 'prompt-obligation-coverage' || !Number.isSafeInteger(approach.seed) || approach.seed < 0 ||
+        approach.attempt !== decision.attempt.attempt + 1 || approach.attempt < 1 ||
+        !failed.length || contracts.canonicalJson(failed) !== contracts.canonicalJson(approach.failedObligationIds) ||
+        contracts.canonicalJson(search.rejectedGrammarIds) !== contracts.canonicalJson(approach.rejectedGrammarIds) ||
+        report.phase8Output.artifact.sceneProof.verdict === 'pass') {
+      throw new Error('Construction retry policy contradicts its retained failure');
+    }
+    if (contracts.canonicalJson(report.sceneRenderPacket) !== contracts.canonicalJson(constructionScenePacket(spec)) ||
+        contracts.canonicalJson(decision.attempt.evidence) !== contracts.canonicalJson({
+          phase7Output: report.phase7Output, phase8Output: report.phase8Output,
+        })) throw new Error('Construction retry evidence differs from its retained attempt or source packet');
+    const previousSearch = { ...search, status: 'idle', terminalReason: '',
+      attempts: search.attempts.slice(0, -1),
+      handledPacketKeys: search.handledPacketKeys.filter(key => key !== decision.attempt.packetKey),
+      rejectedGrammarIds: decision.attempt.rejectedGrammarIds,
     };
-    return {
-      ...spec,
-      source,
-      intent,
-      renderIR: cloneValue(simulationCompile.renderIR),
-      phaseArtifacts,
-      compositionGraph: null,
-      renderProgram: null,
-    };
+    const expected = observeConstructionSceneProof(report, spec, previousSearch);
+    if (contracts.canonicalJson(expected) !== contracts.canonicalJson(decision)) {
+      throw new Error('Construction retry decision cannot be reproduced from its failure');
+    }
+    contracts.assertPhaseEnvelope(spec.phaseArtifacts.phase6, 6, 'Construction retry source');
+    contracts.assertPhaseEnvelope(report.phase7Output, 7, 'Construction retry render evidence');
+    contracts.assertPhaseEnvelope(report.phase8Output, 8, 'Construction retry failure evidence');
+    return contracts.createRequestEnvelope({
+      request: { kind: 'prompt', text: spec.source.prompt },
+      configuration: { ...spec.source.compilerConfig, constructionApproach: approach, compilerLane: 'pipeline-worker' },
+      authoredInputs: [],
+      retryPolicy: {
+        id: 'construction-search-v1', attempt: approach.attempt, maxAttempts: search.maxAttempts,
+        priorAttemptCount: search.attempts.length,
+        previousWorldSpecDigest: await contracts.artifactDigest(spec),
+        previousPhase6Digest: await contracts.artifactDigest(spec.phaseArtifacts.phase6),
+        renderEvidenceDigest: await contracts.artifactDigest(report.phase7Output),
+        failureEvidenceDigest: await contracts.artifactDigest(report.phase8Output),
+        decisionDigest: await contracts.artifactDigest(decision),
+        rejectedGrammarIds: approach.rejectedGrammarIds, failedObligationIds: approach.failedObligationIds,
+        acceptedEdits: spec.authorship.patches.length ? 'require-reconciliation' : 'none',
+      },
+    });
   }
 
   function constructionScenePacket(spec = {}) {
@@ -230,10 +263,11 @@
     canvas.dataset.constructionSearchAttemptCount = String((state.attempts || []).length);
     canvas.dataset.constructionSearchRejectedGrammarIds = (state.rejectedGrammarIds || []).join(',');
     canvas.dataset.constructionSearchDecision = decision.action || '';
+    const attempt = decision.attempt ? Object.fromEntries(Object.entries(decision.attempt).filter(([key]) => key !== 'evidence')) : null;
     canvas.dataset.constructionSearchReceipt = JSON.stringify({
       action: decision.action || '',
       reason: decision.reason || '',
-      attempt: decision.attempt || null,
+      attempt,
       nextApproach: decision.nextApproach || null,
     }).slice(0, 4000);
   }
@@ -268,11 +302,6 @@
     return Number.isInteger(parsed) ? Math.max(min, Math.min(max, parsed)) : fallback;
   }
 
-  function cloneValue(value) {
-    if (typeof structuredClone === 'function') return structuredClone(value);
-    return value == null ? value : JSON.parse(JSON.stringify(value));
-  }
-
   return Object.freeze({
     DEFAULT_MAX_ATTEMPTS,
     createConstructionSearchState,
@@ -281,7 +310,7 @@
     constructionProgramRows,
     constructionRetryPrograms,
     constructionAlternativeExists,
-    constructionSearchSpec,
+    createConstructionRetryRequest,
     syncConstructionSearchDataset,
   });
 });

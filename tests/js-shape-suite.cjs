@@ -987,7 +987,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(renderer, /function setSimulationCanvasVisible\(visible\)/);
   assert.match(renderer, /canvas\.dataset\.sceneVisible = simulationVisible \? 'true' : 'false'/);
   assert.match(renderer, /setSpec\(spec, \{ visible: false \}\)/);
-  assert.match(renderer, /setSpec\(nextSpec, \{ visible: true \}\)/);
+  assert.match(renderer, /setSpec\(nextSpec, \{ visible: true, phaseRun: phaseCompiler\.getLatest\(\) \}\)/);
   assert.match(renderer, /SimulatteWebGpuRenderer\.create\(canvas/);
   assert.doesNotMatch(renderer, /canvas\.getContext\('2d'\)/);
   assert.doesNotMatch(renderer, /canvas\.getContext\('2d'\)/);

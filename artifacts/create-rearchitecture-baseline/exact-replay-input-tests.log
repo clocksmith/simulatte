@@ -1,0 +1,87 @@
+TAP version 13
+# Subtest: counted motion retains each instance in the actual render upload data
+ok 1 - counted motion retains each instance in the actual render upload data
+  ---
+  duration_ms: 1024.681895
+  type: 'test'
+  ...
+# Subtest: Phase 5 compiles device bindings, targets, and executable interaction kinematics
+ok 2 - Phase 5 compiles device bindings, targets, and executable interaction kinematics
+  ---
+  duration_ms: 929.870992
+  type: 'test'
+  ...
+# Subtest: pointer commands deterministically mutate solver channels before subsequent stepping
+ok 3 - pointer commands deterministically mutate solver channels before subsequent stepping
+  ---
+  duration_ms: 848.917339
+  type: 'test'
+  ...
+# Subtest: InteractionIR and command replay survive spec serialization without state drift
+ok 4 - InteractionIR and command replay survive spec serialization without state drift
+  ---
+  duration_ms: 924.579587
+  type: 'test'
+  ...
+# Subtest: unsupported target actions reject without inventing state changes
+ok 5 - unsupported target actions reject without inventing state changes
+  ---
+  duration_ms: 908.055404
+  type: 'test'
+  ...
+# Subtest: Phase 7 hit testing and GPU feedback consume the final Phase 6 collider mapping
+ok 6 - Phase 7 hit testing and GPU feedback consume the final Phase 6 collider mapping
+  ---
+  duration_ms: 869.578367
+  type: 'test'
+  ...
+# Subtest: inverse nudges restore authored layout instead of treating physics coordinates as canvas positions
+ok 7 - inverse nudges restore authored layout instead of treating physics coordinates as canvas positions
+  ---
+  duration_ms: 619.095835
+  type: 'test'
+  ...
+# Subtest: browser adapter maps pointer and keyboard events into one monotonic command queue
+ok 8 - browser adapter maps pointer and keyboard events into one monotonic command queue
+  ---
+  duration_ms: 806.011762
+  type: 'test'
+  ...
+# Subtest: Phase 8 distinguishes causal interaction proof from unexercised and dropped feedback
+ok 9 - Phase 8 distinguishes causal interaction proof from unexercised and dropped feedback
+  ---
+  duration_ms: 828.877244
+  type: 'test'
+  ...
+# Subtest: broad generated worlds map every physical packet entity without generic helper targets
+ok 10 - broad generated worlds map every physical packet entity without generic helper targets
+  ---
+  duration_ms: 2688.706986
+  type: 'test'
+  ...
+# Subtest: exact simulation replay preserves original command values, rejected actions and fixed-step timing
+not ok 11 - exact simulation replay preserves original command values, rejected actions and fixed-step timing
+  ---
+  duration_ms: 817.319996
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/generated-world-interaction.test.cjs:403:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/generated-world-interaction.test.cjs:428:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 10
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11486.513081
