@@ -737,12 +737,13 @@
           }))
           .filter(Boolean)
         ).slice(0, 32);
-        const sceneFraming = scope.frameScenePacketEntities(rawPacketEntities);
         const interactionBinding = scope.bindScenePacketInteractions(
-          sceneFraming.entities,
+          rawPacketEntities,
           context.interactionIR || null
         );
-        const packetEntities = interactionBinding.entities;
+        const sceneFraming = scope.frameScenePacketEntities(interactionBinding.entities);
+        const packetEntities = sceneFraming.entities;
+        scope.reframeScenePacketInteractions(interactionBinding.program, sceneFraming);
         const packetFields = fields
           .map((field, index) => scope.scenePacketField({
             field,

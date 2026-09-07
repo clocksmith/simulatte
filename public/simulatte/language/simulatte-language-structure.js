@@ -99,7 +99,7 @@
       const after = rows.slice(index + 1).find((row) => row.kind !== 'modifier' && !row.processQualifier);
       const tail = !after && /(?:ing|ed)$/.test(token);
       if (!tail && (!after || !ARGUMENT_KINDS.has(after.kind) ||
-          /[.;,]/.test(source.slice(span.end, after.start)))) continue;
+          /[.;,]|\b(?:and|or)\b/.test(source.slice(span.end, after.start)))) continue;
       Object.assign(span, {
         kind: 'process', syntacticPromotion: tail ? 'subject-process' : 'subject-process-object',
       });
@@ -111,13 +111,9 @@
       const span = rows[index];
       if (span.kind !== 'term') continue;
       const next = rows[index + 1];
-      const previous = rows[index - 1];
-      const followingHead = next && ['term', 'entity', 'environment'].includes(next.kind) &&
+      const followingHead = next && ['term', 'entity', 'environment', 'material'].includes(next.kind) &&
         /^\s+$/.test(source.slice(span.end, next.start));
-      const precedingHead = previous && ['entity', 'environment'].includes(previous.kind) &&
-        previous.syntacticPromotion !== 'open-noun-phrase' &&
-        /^\s+$/.test(source.slice(previous.end, span.start));
-      if (followingHead || precedingHead) {
+      if (followingHead) {
         Object.assign(span, {
           kind: 'modifier', modifierRelation: 'descriptor', propertyValue: span.text,
           syntacticPromotion: 'open-noun-phrase-modifier',

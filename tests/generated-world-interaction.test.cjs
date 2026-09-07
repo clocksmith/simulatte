@@ -11,6 +11,27 @@ const worldProof = require('../public/shared/contracts/world-proof.js');
 const renderer = registry.family('webGpuRenderer');
 const PROMPT = 'a robot pushes a rolling metal wheel';
 
+test('counted motion retains each instance in the actual render upload data', () => {
+  const spec = lab.createSpecFromPrompt('two dogs chasing three cats', { deterministicRuntime: true });
+  const packet = spec.renderProgram.sceneRenderPacket;
+  const renderData = renderer.compileSceneRenderData(packet, packet.sceneKind, 'counted-motion-test');
+  let state = lab.createSimulationState(spec);
+  for (let step = 0; step < 10; step += 1) state = lab.stepSimulation(state, spec, 0.05);
+  const applied = renderer.scenePacketInteractionPartData(
+    renderData.objectPartData, renderData.objectParts, packet, state
+  );
+  for (const [type, count] of [['dog', 2], ['cat', 3]]) {
+    const centers = packet.entities.filter((row) => row.identity.type === type).map((entity) => {
+      const index = renderData.objectParts.findIndex((part) => part.entityId === entity.id);
+      assert.ok(index >= 0, 'each instance has submitted geometry');
+      const offset = index * renderer.GPU_OBJECT_PART_FLOATS;
+      return Array.from(applied.data.slice(offset, offset + 2)).join(',');
+    });
+    assert.equal(centers.length, count);
+    assert.equal(new Set(centers).size, count, 'sharing a solver channel must not collapse instances');
+  }
+});
+
 function compile() {
   return lab.createSpecFromPrompt(PROMPT, { allowPrototypeFallback: true });
 }

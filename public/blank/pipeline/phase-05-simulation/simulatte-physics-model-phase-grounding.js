@@ -1,6 +1,25 @@
 (function attachSimulattePhysicsModelphasegrounding(root) {
   const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
 
+    function settleUnresolvedParticipants(ledger, graph) {
+      if (!ledger || !graph) return ledger;
+      const unresolvedSpans = new Set((graph.nodes || [])
+        .filter((node) => node.unresolved === true).map((node) => node.spanId));
+      const blocked = new Set((ledger.relations || [])
+        .filter((row) => (row.sourceSpanIds || []).some((id) => unresolvedSpans.has(id)))
+        .map((row) => row.id));
+      if (!blocked.size) return ledger;
+      const refuse = (row) => blocked.has(row.id) ? { ...row, status: 'unsupported', phase: 4,
+        reason: 'relation participant has no grounded implementation', receiptId: 'phase4-grounded-intent' } : row;
+      return { ...ledger,
+        relations: (ledger.relations || []).map(refuse),
+        obligations: (ledger.obligations || []).map(refuse),
+        phaseDeltas: [...(ledger.phaseDeltas || []), ...[...blocked].map((entryId) => ({
+          phase: 4, entryId, operation: 'unsupported', receiptId: 'phase4-grounded-intent',
+        }))],
+      };
+    }
+
     function uniqueByJson(rows = []) {
         const seen = new Set();
         return rows.filter((row) => {
@@ -53,13 +72,14 @@
             });
           const rejectedGraph = rejectedGraphFromGrounding(acceptedGraph, groundingEvidence, groundedInterpretation);
           const compositionLedger = scope.advanceCompositionLedger(
-            activationCloud.compositionLedger ||
+            settleUnresolvedParticipants(activationCloud.compositionLedger ||
             groundingEvidence.compositionLedger ||
             intentBrief.compositionLedger ||
-            null,
+            null, acceptedGraph),
             4,
             'phase4-grounded-intent'
           );
+          if (acceptedGraph) acceptedGraph.compositionLedger = scope.phaseCarryObject(compositionLedger);
           const groundedSceneContract = scope.groundedSceneContractFromPhase4({
             acceptedGraph,
             rejectedGraph,

@@ -1690,7 +1690,7 @@ test('city renderer keeps static map layers in stable depth bands and pulses onl
   assert.equal(cameraApi.overviewNearPlane(100), 1);
   assert.equal(cameraApi.overviewNearPlane(5000), 50);
   assert.equal(cameraApi.overviewNearPlane(50000), 200);
-  assert.match(rendererApi.SHADER, /input\.emissive > 0\.8/);
+  assert.match(rendererApi.SHADER, /input\.emissive > 1\.4/);
   assert.match(rendererApi.SHADER, /select\(1\.0, 0\.82 \+ 0\.18 \* sin/);
 });
 

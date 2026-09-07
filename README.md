@@ -155,6 +155,7 @@ execution lane is claimed.
 - [`CATSCAN.md`](CATSCAN.md): root component authority and invariant charter
 - [`docs/component-index.md`](docs/component-index.md): generated recursive component index
 - [`docs/catscan-template.md`](docs/catscan-template.md): component charter format
+- [Create pipeline rearchitecture](docs/create-pipeline-rearchitecture.md): proposed phase contracts, composable examples, implementation sequence, and acceptance
 - [`STYLE_GUIDE.md`](STYLE_GUIDE.md) — phase contracts and browser implementation rules
 - [`docs/simulatte/experiences/README.md`](docs/simulatte/experiences/README.md) — experience index
 

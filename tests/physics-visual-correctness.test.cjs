@@ -929,15 +929,16 @@ test('compiled render programs keep objects positioned inside the visible world'
   }
 });
 
-test('solar magnetic machine constructs and separates its core mechanism parts', () => {
+test('explicit solar mechanism components retain their geometry and remain separated', () => {
   const spec = lab.createSpecFromPrompt(
-    'build a solar magnetic perpetual motion machine with a moving magnetic slider powered by the sun'
+    'a solar panel powers a rotor wheel with a stator slider and a motor load'
   );
   const byId = Object.fromEntries(spec.renderProgram.objects.map((object) => [object.id, object]));
-  const ids = ['rotor-wheel', 'stator-slider', 'solar-panel', 'motor-load'];
+  const identities = ['wheel', 'slider', 'solar-panel', 'meter'];
+  const ids = identities.map((type) => spec.renderProgram.sceneRenderPacket.entities.find((entity) => entity.identity.type === type).id);
   const centers = ids.map((id) => renderObjectCenter(byId[id]));
   const packetById = Object.fromEntries(spec.renderProgram.sceneRenderPacket.entities.map((entity) => [entity.id, entity]));
-  assert.deepEqual(ids.map((id) => packetById[id].identity.type), ['wheel', 'slider', 'panel', 'meter']);
+  assert.deepEqual(ids.map((id) => packetById[id].identity.type), identities);
   assert.ok(ids.every((id) => packetById[id].geometry.coverage.realized));
   assert.ok(ids.every((id) => packetById[id].geometry.coverage.partCount >= 3));
   for (let left = 0; left < centers.length; left += 1) {

@@ -29,6 +29,7 @@ Produce the accepted semantic world graph with assumptions, refusals, and proven
 - Every accepted node has provenance.
 - Every accepted entity, relation, property, exact quantity, and prohibition has source-bound provenance.
 - Inferences remain distinguishable from direct grounding.
+- Unresolved prompt nodes remain editable requirements; they do not acquire executable causal edges from rule or label matches.
 - User overrides replace the accepted graph only through explicit patch provenance.
 - Removing an accepted node also reconciles its dependent relations and execution obligations.
 - Every Phase 2 critical requirement remains accepted, explicitly refused, unresolved, or lost.

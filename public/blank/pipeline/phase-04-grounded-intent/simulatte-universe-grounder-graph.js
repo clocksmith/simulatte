@@ -366,7 +366,7 @@
     for (const clause of clauses) {
       const from = bySpan.get(clause.subjectSpanId) || null;
       const to = bySpan.get(clause.objectSpanId) || null;
-      if (!from || !to || from.id === to.id) continue;
+      if (!from || !to || from.unresolved === true || to.unresolved === true || from.id === to.id) continue;
       const spatialRelation = String(clause.spatialRelation || '');
       const fuel = groundedFuelEvidence(from, from) ? from : groundedFuelEvidence(to, to) ? to : null;
       const fire = groundedFireEvidence(from, from) ? from : groundedFireEvidence(to, to) ? to : null;
@@ -468,7 +468,7 @@
     return intentBrief.causalGraph.flatMap((causalEdge, index) => {
       const from = nodeForCausalRef(nodes, causalEdge.sourceRef, causalEdge.sourceLabel);
       const to = nodeForCausalRef(nodes, causalEdge.targetRef, causalEdge.targetLabel);
-      if (!from || !to || from.id === to.id) return [];
+      if (!from || !to || from.unresolved === true || to.unresolved === true || from.id === to.id) return [];
       const direct = directCausalPromptEdge(promptEdges, from.id, to.id, causalEdge);
       const policyResult = direct
         ? { accepted: true, path: [direct] }
@@ -476,6 +476,7 @@
       if (!policyResult.accepted) return [];
       const path = direct ? [direct] : policyResult.path;
       const target = materialAssignmentTarget(nodes, promptEdges, to) || to;
+      if (target.unresolved === true) return [];
       const pathEdgeIds = path.map((edge) => edge.id);
       const inferenceMode = direct
         ? 'direct-causal-clause'

@@ -821,8 +821,9 @@ test('causal grounding policies admit direct clauses and reject disconnected nou
   const laser = lab.createSpecFromPrompt('laser heats metal', { allowPrototypeFallback: true });
   const heatOperators = laser.physicsIR.operators.filter((operator) => operator.type === 'heat_transfer');
   assert.equal(heatOperators.length, 1);
+  const laserBody = laser.physicsIR.entities.find((row) => row.label.toLowerCase() === 'laser');
   assert.deepEqual(heatOperators[0].reads, [
-    'temperature:prompt-body-laser',
+    `temperature:${laserBody.id}`,
     'temperature:metal',
   ]);
   assert.deepEqual(heatOperators[0].writes, ['temperature:metal']);
@@ -864,10 +865,10 @@ test('Phase 2 spatial clauses use grounded nouns instead of nearby terms or nomi
   const zoning = universeParser.parsePrompt(
     'city zoning shadow allocation between building masses with sunlight volumes'
   );
-  const cityZoning = zoning.spans.find((span) => span.text === 'city zoning');
+  const shadow = zoning.spans.find((span) => span.text === 'shadow');
   const buildingMasses = zoning.spans.find((span) => span.text === 'building masses');
   const between = zoning.clauses.find((clause) => clause.spatialRelation === 'between');
-  assert.equal(between.subjectSpanId, cityZoning.id);
+  assert.equal(between.subjectSpanId, shadow.id);
   assert.equal(between.objectSpanId, buildingMasses.id);
 
   const fire = universeParser.parsePrompt(
@@ -3505,7 +3506,8 @@ test('solver integrator contracts are explicit, validated, and carried into comp
   const registry = solverRegistry.createSolverRegistry();
   const operators = Object.values(registry.operators);
 
-  assert.equal(operators.length, 26);
+  assert.equal(operators.length, 27);
+  assert.equal(registry.operatorFor('directed_motion').id, 'directed-motion');
   assert.equal(registry.operatorFor('interaction_kinematics').id, 'interaction-kinematics');
   assert.ok(operators.every((row) => solverRegistry.validateIntegrator(row.integrator)));
   assert.ok(operators.some((row) => row.integrator.scheme === 'semi_implicit_euler_v1'));

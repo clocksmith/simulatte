@@ -695,36 +695,53 @@
 
   function normalizeProcess(text = '') {
     const value = String(text || '').toLowerCase();
-    const canonical = BEHAVIOR_PROCESS_LEXICON.find((row) => (
-      (row.phrases || []).some((phrase) => String(phrase || '').toLowerCase() === value)
-    ));
+    const forms = verbForms(value);
+    const matches = (pattern) => forms.some((form) => pattern.test(form));
+    const canonical = forms.map((form) => BEHAVIOR_PROCESS_LEXICON.find((row) => (
+      (row.phrases || []).some((phrase) => String(phrase || '').toLowerCase() === form)
+    ))).find(Boolean);
     if (canonical && canonical.process) return canonical.process;
-    if (/swim|swam/.test(value)) return 'swimming';
-    if (/spin|rotate|drive/.test(value)) return 'rotate';
-    if (/melt/.test(value)) return 'phase_transition';
-    if (/hit|impact|collide|crash|crack|fracture/.test(value)) return 'impact';
-    if (/cool/.test(value)) return 'cooling';
-    if (/freez/.test(value)) return 'phase_transition';
-    if (/flow|push|carve|erode|pour|sink|float|buffer|settle|calv|bend|reduc/.test(value)) return 'flow';
-    if (/diffuse|dissolv/.test(value)) return 'diffusion';
-    if (/orbit/.test(value)) return 'oscillation';
-    if (/oscillate|flex|wave/.test(value)) return 'oscillation';
-    if (/grow|ferment/.test(value)) return 'growth';
-    if (/trade|exchange/.test(value)) return 'exchange';
-    if (/split/.test(value)) return 'split';
-    if (/join/.test(value)) return 'join';
-    if (/eat/.test(value)) return 'consume';
-    if (/run|jump|bounce|fly|cross|sit|play/.test(value)) return 'motion';
-    if (/watch|observ/.test(value)) return 'measurement';
-    if (/focus/.test(value)) return 'measurement';
-    if (/power/.test(value)) return 'motion';
-    if (/support/.test(value)) return 'support';
-    if (/leak|spill|seep|drip/.test(value)) return 'leak';
-    if (/fold/.test(value)) return 'folding';
-    if (/twist/.test(value)) return 'rotate';
-    if (/readout/.test(value)) return 'measurement';
-    if (/sort|resolv|recirculat|allocat|minimiz|sampl/.test(value)) return 'network_flow';
+    if (matches(/^(?:swim|swam)$/)) return 'swimming';
+    if (matches(/^(?:spin|rotate|drive)$/)) return 'rotate';
+    if (matches(/^(?:melt)$/)) return 'phase_transition';
+    if (matches(/^(?:hit|impact|collide|crash|crack|fracture)$/)) return 'impact';
+    if (matches(/^(?:cool)$/)) return 'cooling';
+    if (matches(/^(?:freeze)$/)) return 'phase_transition';
+    if (matches(/^(?:flow|push|carve|erode|pour|sink|float|buffer|settle|calve|bend|reduce)$/)) return 'flow';
+    if (matches(/^(?:diffuse|dissolve)$/)) return 'diffusion';
+    if (matches(/^(?:orbit)$/)) return 'oscillation';
+    if (matches(/^(?:oscillate|flex|wave)$/)) return 'oscillation';
+    if (matches(/^(?:grow|ferment)$/)) return 'growth';
+    if (matches(/^(?:trade|exchange)$/)) return 'exchange';
+    if (matches(/^(?:split)$/)) return 'split';
+    if (matches(/^(?:join)$/)) return 'join';
+    if (matches(/^(?:eat)$/)) return 'consume';
+    if (matches(/^(?:run|jump|bounce|fly|cross|sit|play)$/)) return 'motion';
+    if (matches(/^(?:watch|observe)$/)) return 'measurement';
+    if (matches(/^(?:focus)$/)) return 'measurement';
+    if (matches(/^(?:power)$/)) return 'motion';
+    if (matches(/^(?:support)$/)) return 'support';
+    if (matches(/^(?:leak|spill|seep|drip)$/)) return 'leak';
+    if (matches(/^(?:fold)$/)) return 'folding';
+    if (matches(/^(?:twist)$/)) return 'rotate';
+    if (matches(/^(?:readout)$/)) return 'measurement';
+    if (matches(/^(?:sort|resolve|recirculate|allocate|minimize|sample)$/)) return 'network_flow';
     return value || 'interact';
+  }
+
+  function verbForms(value) {
+    const forms = [value];
+    if (/ies$/.test(value)) forms.push(value.slice(0, -3) + 'y');
+    if (/s$/.test(value)) forms.push(value.slice(0, -1));
+    if (/es$/.test(value)) forms.push(value.slice(0, -2));
+    for (const suffix of ['ing', 'ed']) {
+      if (!value.endsWith(suffix)) continue;
+      const stem = value.slice(0, -suffix.length);
+      forms.push(stem, stem + 'e');
+      if (/([^aeiou])\1$/.test(stem)) forms.push(stem.slice(0, -1));
+      if (suffix === 'ed' && stem.endsWith('i')) forms.push(stem.slice(0, -1) + 'y');
+    }
+    return [...new Set(forms)];
   }
 
   function processQualifierForVerb(spans = [], verb = {}, object = null) {

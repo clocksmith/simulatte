@@ -85,8 +85,24 @@
     const centers = group.map((row) => row.transform.position);
     const center = [0, 1].map((axis) => centers.reduce((sum, row) => sum + row[axis], 0) / centers.length);
     const delta = entity.transform.position.slice(0, 2).map((value, axis) => value - center[axis]);
-    return { space: 'normalized-solver-to-canvas', scale: [0.6, 0.6],
-      offset: delta.map((value) => 0.2 + value) };
+    return { space: 'normalized-solver-to-canvas', scale: [0.5, 0.5],
+      offset: delta.map((value) => 0.25 + value) };
+  }
+
+  function reframeScenePacketInteractions(program, framing) {
+    const factor = Number(framing.receipt.scaleFactor || 1);
+    for (const mapping of program.mappings || []) {
+      if (mapping.positionProjection?.space !== 'normalized-solver-to-canvas') continue;
+      const entity = framing.entities.find((row) => row.id === mapping.packetEntityId);
+      if (!entity) continue;
+      if (entity.stateBindings?.simulationType === 'free_fall') {
+        mapping.positionProjection = mechanicsPositionProjection(entity, mapping);
+        continue;
+      }
+      const scale = mapping.positionProjection.scale.map((value) => value * factor);
+      mapping.positionProjection = { ...mapping.positionProjection, scale,
+        offset: mapping.initialPosition.map((value, axis) => entity.transform.position[axis] - value * scale[axis]) };
+    }
   }
 
   function mechanicsPositionProjection(entity, target) {
@@ -164,6 +180,7 @@
     'simulatte-scene-interaction.js',
     {
       bindScenePacketInteractions,
+      reframeScenePacketInteractions,
       interactionTargetForEntity,
       emptyInteractionProgram,
     }

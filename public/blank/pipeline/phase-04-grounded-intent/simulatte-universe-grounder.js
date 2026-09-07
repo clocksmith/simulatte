@@ -138,13 +138,22 @@
       if (!['entity', 'material', 'environment', 'observable', 'term'].includes(span.kind)) continue;
       const row = bestCandidateForSpan(span, candidateRows);
       candidates.push({ spanId: span.id, span: span.text, candidates: row.matches });
-      if (!row.best || row.best.confidence < 0.34) {
+      if (!row.best || row.best.confidence < 0.34 || /^unresolved[.:]/.test(row.best.canonicalId || '')) {
         unresolved.push({
           spanId: span.id,
           text: span.text,
           kind: span.kind,
           reason: 'no grounded concept or primitive support',
         });
+        if (span.syntacticPromotion === 'open-noun-phrase') {
+          const node = { id: `unresolved-${span.id}`, spanId: span.id, label: labelFromSpan(span.text),
+            canonicalId: `unresolved.${slugify(span.text)}`, semanticType: 'concept', semanticClass: '',
+            supportOnly: true, directlyGrounded: false, unresolved: true, domains: [],
+            primitiveHints: [], operatorTypes: [], operatorHints: [],
+            evidence: [`prompt-span:${span.id}`] };
+          nodes.push(node);
+          bySpan.set(span.id, node);
+        }
         continue;
       }
       const key = `${row.best.canonicalId}:${span.text}`;

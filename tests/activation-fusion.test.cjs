@@ -186,13 +186,13 @@ test('verdict rows settle negation conflicts and slot ambiguity deterministicall
 });
 
 test('Phase 3 carries deferred slots instead of recording an unaccepted optional slot as lost', () => {
-  const { spec } = fusedActivationCloud('a red cube');
+  const { spec } = fusedActivationCloud('a dog beside a cat');
   const ledger = spec.phaseArtifacts.phase3.artifact.compositionLedger;
-  const cube = ledger.obligations.find((row) => row.id === 'concept:cube');
-  const delta = ledger.phaseDeltas.find((row) => row.phase === 3 && row.entryId === 'concept:cube');
+  const optional = ledger.obligations.find((row) => row.id === 'action:spatial-constraint');
+  const delta = ledger.phaseDeltas.find((row) => row.phase === 3 && row.entryId === optional.id);
 
-  assert.equal(cube.status, 'preserved');
-  assert.equal(cube.required, false);
+  assert.equal(optional.status, 'preserved');
+  assert.equal(optional.required, false);
   assert.equal(delta.operation, 'carried');
-  assert.equal(ledger.losses.some((row) => row.entryId === 'concept:cube'), false);
+  assert.equal(ledger.losses.some((row) => row.entryId === optional.id), false);
 });

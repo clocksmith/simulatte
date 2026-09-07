@@ -400,7 +400,9 @@
 
     function mergeConstructionVisualObligations(compositionLedger = null, sceneRenderPacket = {}) {
       const additions = constructionVisualObligationsForScenePacket(sceneRenderPacket, compositionLedger);
-      if (!additions.length) return compositionLedger;
+      if (!additions.length && !(compositionLedger?.obligations || []).some((row) => row.simulationBinding)) {
+        return compositionLedger;
+      }
       const source = compositionLedger || {};
       const byId = new Map((source.obligations || []).map((row) => [row.id, row]));
       for (const row of additions) byId.set(row.id, row);
@@ -693,7 +695,7 @@
     }
 
     function promptCardinalityPacket(row = {}, index = 0, count = 1) {
-      const columns = Math.ceil(Math.sqrt(count));
+      const columns = row.stateBindings?.simulationType === 'directed_motion' ? Math.ceil(count / 4) : Math.ceil(Math.sqrt(count));
       const rows = Math.ceil(count / columns);
       const column = index % columns;
       const line = Math.floor(index / columns);

@@ -537,7 +537,7 @@ test('prompt worlds compile into Grid-like classifier composition graphs', () =>
     'city grid with traffic system, power grid, market queue, sensors, delays, and conservation ledger'
   );
   const machine = createPrototypeSpec(
-    'build a solar magnetic perpetual motion machine with a moving magnetic slider powered by the sun'
+    'a moving magnetic slider powers a wheel'
   );
 
   assert.equal(fire.physicalSpec.schema, 'simulatte.physicalSpec.v1');
@@ -559,7 +559,7 @@ test('prompt worlds compile into Grid-like classifier composition graphs', () =>
     .causalGraph.some((row) => row.ruleId === 'causal.arrivals-create-queue'), false);
   assert.equal(staticCity.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
     .some((row) => row.type === 'network_flow'), false);
-  assert.ok(machine.compositionGraph.nodes.some((node) => node.primitiveId === 'rotor-wheel'));
+  assert.ok(machine.renderProgram.sceneRenderPacket.entities.some((node) => node.identity.type === 'wheel'));
   assert.ok(machine.renderProgram.objects.some((object) => object.shape === 'wheel'));
   const magneticField = machine.physicsIR.operators.find((row) => (
     row.type === 'wave_field' &&
@@ -901,7 +901,8 @@ test('direct prompt objects outrank inferred scene tags and remain peer-scale be
   assert.equal(violin.renderProgram.visualIR.graphicsAtoms.mappings.length, 0,
     'an instrument identity alone does not invent a measurement readout');
   const violinContact = violinPacket.receipts.framing.surfaceContacts.find((row) => (
-    row.sourceId === 'prompt-body-violin' && row.targetId === 'prompt-body-stool'
+    row.sourceId === violinPacket.entities.find((entity) => entity.identity.type === 'violin').id &&
+    row.targetId === violinPacket.entities.find((entity) => entity.label === 'stool').id
   ));
   assert.ok(violinContact, 'the on relation compiles a realized surface-contact receipt');
   assert.ok(violinContact.clearanceAfter >= -0.005 && violinContact.clearanceAfter <= -0.003,
@@ -1282,7 +1283,7 @@ test('semantic visual atlas maps prompts to distinct archetype material and proc
 test('visual operator atlas maps grounded physics to distinct graphics atom plans', () => {
   const cases = [
     [
-      'data center cooling loop where hot server racks increase coolant flow and controller throttles fan speed',
+      'data center where hot server racks heat coolant flow flowing through cooling aisles and controller throttles fan speed',
       ['visual.operator.control-feedback.v1', 'visual.operator.fluid-advection.v1', 'visual.operator.heat-transfer.v1'],
       ['controller-node', 'ribbon-streamline', 'thermal-glow-gradient'],
       ['feedback', 'fluid', 'thermal'],
@@ -1382,7 +1383,7 @@ test('visual operator atlas maps grounded physics to distinct graphics atom plan
     assert.ok(atoms.languageSignals.length > 0, `${prompt} missing span-backed language signals`);
     assert.equal(atoms.uniforms.schema, 'simulatte.graphicsAtomUniforms.v1');
     assert.equal(atoms.uniforms.values.length, 24);
-    assert.ok(atoms.wgslOperators.length >= expectedMappings.length);
+    assert.ok(atoms.wgslOperators.length >= expectedMappings.length, `${prompt} missing compiled graphics operators`);
     expectedMappings.forEach((id) => {
       assert.ok(mappingIds.includes(id), `${prompt} missing mapping ${id}`);
     });
@@ -1462,7 +1463,7 @@ test('solver-channel receipts match executable reads and writes for corrected pr
     'glacier calving into fjord with internal ocean waves and iceberg collisions',
     'skateboard rider carves a bowl with friction loss and centripetal arcs',
     'protein folding energy minimization with bond constraints and collapse motion',
-    'build a solar magnetic perpetual motion machine with a moving magnetic slider powered by the sun',
+    'a moving magnetic slider powers a wheel',
   ];
 
   for (const prompt of prompts) {

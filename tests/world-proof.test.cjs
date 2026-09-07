@@ -216,7 +216,7 @@ test('intent proof preserves exact counts, attributes, and negation as separate 
     row.kind === 'attribute' && row.label === 'red' && row.polarity === 'required'
   )));
   assert.ok(requirements.requirements.some((row) => (
-    row.kind === 'concept' && row.label === 'cubes' && row.polarity === 'forbidden'
+    row.kind === 'entity' && row.label === 'cubes' && row.polarity === 'forbidden'
   )));
   assert.equal(settlement.schema, worldProof.INTENT_SETTLEMENT_LEDGER_SCHEMA);
   assert.equal(settlement.status, 'pass');

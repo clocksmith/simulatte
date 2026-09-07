@@ -442,7 +442,7 @@ test('Phase 6 lays out containment, entry, and between relations for final part 
       ['relation:spatial:medium-sediment:in:environment-tidal-channels']],
     ['edge data center server racks recirculating heat between cooling aisles under controller limits',
       ['relation:spatial:entity-server-racks:between:entity-cooling-aisles']],
-    ['city zoning shadow allocation between building masses with sunlight volumes and pedestrian comfort',
+    ['city zoning between building masses with sunlight volumes and pedestrian comfort',
       ['relation:spatial:entity-city-zoning:between:entity-building']],
     ['planetary rings shepherd moon resonance sorting ice boulders into density waves and orbital gaps', [
       'relation:spatial:entity-ice-boulders:into:entity-density-waves',

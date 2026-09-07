@@ -41,6 +41,34 @@ test('part cardinality changes one owner geometry, without creating extra owners
   }
 });
 
+test('repeated nouns keep separate source spans, construction identities, and colors', () => {
+  const spec = compile('a red ball to the left of a blue ball');
+  const balls = packet(spec).entities.filter((row) => row.identity.type === 'ball');
+  assert.equal(balls.length, 2);
+  assert.notEqual(balls[0].id, balls[1].id);
+  const ordered = balls.toSorted((a, b) => a.transform.position[0] - b.transform.position[0]);
+  for (const [index, color] of ['#ef3340', '#3688d8'].entries()) {
+    assert.ok(ordered[index].geometry.program.parts.some((part) => part.fill === color));
+  }
+  const slots = spec.phaseArtifacts.phase4.artifact.groundedIntent.acceptedGraph.slotEvidence
+    .filter((row) => row.entryId?.startsWith('entity:ball'));
+  assert.equal(slots.length, 2);
+  assert.ok(slots.every((row) => row.sourceSpanIds.length === 1));
+  assert.notDeepEqual(slots[0].sourceSpanIds, slots[1].sourceSpanIds);
+});
+
+test('an unspecified machine does not acquire a rotor or executable mechanics from its noun', () => {
+  const spec = compile('build a solar magnetic perpetual motion machine with a moving magnetic slider powered by the sun');
+  assert.equal(spec.renderProgram.objects.some((row) => row.shape === 'wheel'), false);
+  assert.ok(spec.unsupportedRequirements.some((row) => /machine/i.test(row.label)));
+  assert.equal(spec.physicsIR.operators.some((row) => row.type === 'wave_field'), false);
+  const missingActor = compile('a quuxophone pushing a ball');
+  assert.equal(missingActor.physicsIR.operators.length, 0,
+    'a missing actor must not be replaced by the remaining object to invent self-driven flow');
+  assert.equal(compile('a quuxophone pushes water').physicsIR.operators.length, 0,
+    'an existing fluid domain does not supply the missing actor');
+});
+
 test('part ownership paraphrases change the same owner and preserve unrelated objects', () => {
   for (const prompt of ['a three-legged chair', 'a chair with three legs', 'a chair has three legs']) {
     const spec = compile(prompt);
@@ -62,9 +90,15 @@ test('directed motion preserves distinct counted instances and their formation o
     assert.equal(new Set(rows.map((row) => row.transform.position.slice(0, 2).join(','))).size, count);
     for (const row of rows) {
       const mapping = scene.interactionProgram.mappings.find((map) => map.packetEntityId === row.id);
-      assert.deepEqual(mapping.positionProjection.scale, [0.6, 0.6]);
-      assert.deepEqual(mapping.initialPosition.map((value, axis) => value * 0.6 + mapping.positionProjection.offset[axis]), row.transform.position.slice(0, 2));
+      assert.ok(mapping.positionProjection.scale.every((value) => Number.isFinite(value) && value > 0));
+      assert.deepEqual(mapping.initialPosition.map((value, axis) => value * mapping.positionProjection.scale[axis] + mapping.positionProjection.offset[axis]), row.transform.position.slice(0, 2));
     }
+  }
+  assert.equal(scene.receipts.framing.pass, true);
+  for (const row of scene.compositionLedger.obligations.filter((row) => row.simulationBinding)) {
+    const binding = row.simulationBinding;
+    assert.deepEqual(binding.entityIds, scene.entities.filter((entity) => entity.identity.type === 'dog').map((entity) => entity.id));
+    assert.deepEqual(binding.targetEntityIds, scene.entities.filter((entity) => entity.identity.type === 'cat').map((entity) => entity.id));
   }
 });
 
@@ -78,6 +112,11 @@ test('novel nouns remain required and unknown actions request retrieval', () => 
   assert.equal(phase2.queryPlan.slots.find((row) => row.entryId === 'action:deflecting').modelEvidenceRequired, true);
   assert.ok(packet(spec).compositionLedger.obligations.some((row) => row.required && row.status !== 'preserved'));
   assert.deepEqual(parser.parsePrompt('球と立方体').tokens.map((row) => row.text), ['球と立方体']);
+  const shadow = compile('city zoning shadow allocation between building masses with sunlight volumes and pedestrian comfort');
+  const relations = packet(shadow).compositionLedger.obligations.filter((row) => row.kind === 'relation');
+  assert.ok(relations.some((row) => row.id === 'relation:spatial:entity-shadow:between:entity-building'));
+  assert.equal(relations.some((row) => row.id === 'relation:spatial:entity-city-zoning:between:entity-building'), false,
+    'an unrecognized head must not silently transfer its relation to the preceding known object');
 });
 
 test('qualifying observables and materials do not become spurious actions', () => {
@@ -88,6 +127,26 @@ test('qualifying observables and materials do not become spurious actions', () =
   const chair = parser.parsePrompt('a three-legged brass chair');
   assert.equal(chair.spans.some((row) => row.kind === 'process'), false);
   assert.ok(chair.clauses.some((row) => row.process === 'part_composition'));
+  const instruments = parser.parsePrompt('force glorbometers and feedback');
+  assert.equal(instruments.spans.find((row) => row.text === 'glorbometers').kind, 'entity',
+    'plural nouns in a conjunction are not subject-verb-object evidence');
+  const rolling = parser.parsePrompt('a robot pushes a rolling metal wheel');
+  assert.equal(rolling.spans.find((row) => row.text === 'rolling').kind, 'modifier');
+  assert.equal(rolling.spans.filter((row) => row.kind === 'process').length, 1);
+  const relative = parser.parsePrompt('a data center where server racks transfer heat to coolant flow');
+  assert.equal(relative.spans.some((row) => row.text === 'where'), false,
+    'relative clause markers must not become simulation participants');
+});
+
+test('verb inflections preserve thermal semantics without substring action matches', () => {
+  for (const phrase of ['heats', 'heating', 'heated', 'transfers heat to', 'transferring heat to']) {
+    const spec = compile(`a kettle ${phrase} water`);
+    assert.ok(spec.phaseArtifacts.phase2.artifact.promptParse.clauses.some((row) => row.process === 'heat_transfer'), phrase);
+    assert.ok(spec.physicsIR.operators.some((row) => row.type === 'heat_transfer'), phrase);
+    assert.equal(spec.phaseArtifacts.phase2.artifact.promptParse.clauses.some((row) => row.process === 'consume'), false, phrase);
+  }
+  const creating = parser.parsePrompt('a robot creating a ball');
+  assert.equal(creating.clauses.some((row) => row.process === 'consume'), false);
 });
 
 test('pursuit and avoidance compile the declared subject and target', () => {
