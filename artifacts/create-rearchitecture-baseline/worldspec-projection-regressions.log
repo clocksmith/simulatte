@@ -1,0 +1,3924 @@
+TAP version 13
+# Subtest: part candidates preserve optional quantities without publishing undefined fields
+ok 1 - part candidates preserve optional quantities without publishing undefined fields
+  ---
+  duration_ms: 1226.823039
+  type: 'test'
+  ...
+# Subtest: explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+ok 2 - explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+  ---
+  duration_ms: 568.845409
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+not ok 3 - WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+  ---
+  duration_ms: 37.353359
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:32:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    blank: renderProgram
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        camera: {
+          framing: 'composition-2d',
+          padding: 0.08,
+          sceneKind: 'generic'
+    ...
+                        grammarId: 'object-grammar.structure',
+    +                   obligationScore: 0,
+    +                   score: 0,
+    -                   obligationScore: -0,
+    -                   score: -0,
+                        selectionRole: 'identity-catalog',
+                        status: 'selected',
+                        targetFitScore: 0
+                      }
+                    ],
+    ...
+                          grammarId: 'object-grammar.structure',
+    +                     obligationScore: 0,
+    +                     score: 0,
+    -                     obligationScore: -0,
+    -                     score: -0,
+                          selectionRole: 'identity-catalog',
+                          status: 'selected',
+                          targetFitScore: 0
+                        }
+                      ],
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    schema: 'simulatte.renderProgram.v1'
+    sourceGraphId: 'compiled-scene-cg'
+    intentText: ''
+    materials:
+      air:
+        fill: '#dff7ff'
+        stroke: '#76c7e7'
+        alpha: 0.18
+      biomass:
+        fill: '#5a8f52'
+        stroke: '#2f6130'
+        alpha: 0.72
+      brine:
+        fill: '#8edbe8'
+        stroke: '#2d8ba4'
+        alpha: 0.58
+      carbon:
+        fill: '#55606a'
+        stroke: '#252b32'
+        alpha: 0.76
+      copper:
+        fill: '#d08b62'
+        stroke: '#8a4b38'
+        alpha: 0.82
+      bacteria:
+        fill: '#9adf8f'
+        stroke: '#458947'
+        alpha: 0.48
+      ferrofluid:
+        fill: '#2b303b'
+        stroke: '#111820'
+        alpha: 0.88
+      fire:
+        fill: '#ff8f4f'
+        stroke: '#c65361'
+        alpha: 0.68
+      foam:
+        fill: '#efffff'
+        stroke: '#86cfd9'
+        alpha: 0.26
+      gel:
+        fill: '#c4f4ef'
+        stroke: '#6bb7aa'
+        alpha: 0.36
+      glass:
+        fill: '#dff9ff'
+        stroke: '#66b8e8'
+        alpha: 0.34
+      concrete:
+        fill: '#aeb4ad'
+        stroke: '#5d665f'
+        alpha: 0.78
+      gold:
+        fill: '#ffd760'
+        stroke: '#b47a23'
+        alpha: 0.86
+      ice:
+        fill: '#dcf7ff'
+        stroke: '#72b8da'
+        alpha: 0.58
+      lava:
+        fill: '#ff6b2a'
+        stroke: '#872b1a'
+        alpha: 0.88
+      leaf:
+        fill: '#8fd878'
+        stroke: '#3f7d3c'
+        alpha: 0.68
+      light:
+        fill: '#ffe873'
+        stroke: '#efb425'
+        alpha: 0.84
+      magnet:
+        fill: '#d44a8f'
+        stroke: '#2959c6'
+        alpha: 0.88
+      matte:
+        fill: '#b7b4aa'
+        stroke: '#66635c'
+        alpha: 0.56
+      membrane:
+        fill: '#eadcff'
+        stroke: '#a884d8'
+        alpha: 0.42
+      metal:
+        fill: '#b8c1ca'
+        stroke: '#68737e'
+        alpha: 0.74
+      mercury:
+        fill: '#dce8ef'
+        stroke: '#667985'
+        alpha: 0.66
+      mycelium:
+        fill: '#f2f1dc'
+        stroke: '#9e9a72'
+        alpha: 0.52
+      protein:
+        fill: '#e8d6ff'
+        stroke: '#9277bd'
+        alpha: 0.42
+      rock:
+        fill: '#8f8b82'
+        stroke: '#54524d'
+        alpha: 0.86
+      sand:
+        fill: '#d9bd7b'
+        stroke: '#a8793d'
+        alpha: 0.76
+      silicon:
+        fill: '#9eb7ce'
+        stroke: '#5d748a'
+        alpha: 0.64
+      signal:
+        fill: '#ffd760'
+        stroke: '#3b5f8a'
+        alpha: 0.78
+      quartz:
+        fill: '#e6f6ff'
+        stroke: '#8db9d4'
+        alpha: 0.54
+      smoke:
+        fill: '#aeb5ba'
+        stroke: '#687077'
+        alpha: 0.28
+      soil:
+        fill: '#8a6845'
+        stroke: '#4d3826'
+        alpha: 0.78
+      water:
+        fill: '#56b7e8'
+        stroke: '#216b9c'
+        alpha: 0.62
+      wood:
+        fill: '#9b6236'
+        stroke: '#57351d'
+        alpha: 0.8
+    objects:
+      0:
+        id: 'canvas'
+        kind: 'plane'
+        material: 'matte'
+        role: 'empty 2d construction surface'
+        shape: 'body'
+        visualRegime: 'generic'
+        assembly: ''
+        phrase: ''
+        source: ''
+        pose:
+          x: 0.5
+          y: 0.5
+          w: 0.08
+          h: 0.07
+          rotation: 0
+        dynamics:
+          guideDensity: 0.42
+          canvasScale: 0.62
+        primitiveProgram:
+          schema: 'simulatte.primitiveProgram.v1'
+          source: 'composition-primitive-program'
+          shapeKey: 'cg_3f0b0c74'
+          phrase: 'empty 2d construction surface'
+          assembly: 'body'
+          visualRegime: 'generic'
+          material: 'matte'
+          parts:
+            0:
+              kind: 'ripple'
+              count: 6
+              alpha: 0.08
+            1:
+              kind: 'particle'
+              count: 18
+              alpha: 0.08
+          provenance:
+            primitiveId: 'canvas'
+            tokenHash: 1057688692
+        required: true
+        evidence:
+        layoutConstraints:
+        layoutRelationRoles:
+        layoutReceipt:
+          schema: 'simulatte.constraintLayoutReceipt.v1'
+          solver: 'typed-spatial-constraints'
+          sceneKind: 'generic'
+          topology: 'specimen'
+          placementStrategy: 'single-focal-subject'
+          placementSeed: 4113769415
+          initialAnchor:
+            0: 0.5
+            1: 0.5
+          relationIds: <Circular>
+          relationCount: 0
+        visualStatus: 'accepted'
+        visualConfidence: 0.48
+        visualReason: 'scene-compatible support retained only to seed a sparse visual graph'
+        visualSourceGraphId: 'canvas'
+        visualSourceKind: 'compiled-object'
+        visualSourceIds:
+          0: 'canvas'
+        visualSupportOnly: true
+    supportObjects:
+    visualAcceptance:
+      0:
+        schema: 'simulatte.visualObjectAcceptance.v1'
+        id: 'canvas'
+        sourceGraphId: 'canvas'
+        sourceKind: 'compiled-object'
+        sourceIds: <Circular>
+        sceneKind: 'generic'
+        phrase: 'empty 2d construction surface'
+        status: 'accepted'
+        confidence: 0.48
+        reason: 'scene-compatible support retained only to seed a sparse visual graph'
+        promptGrounded: false
+        supportOnly: true
+    relations:
+    fields:
+    emitters:
+    solverPlan:
+      schema: 'simulatte.solverPlan.v1'
+      integrator: 'mixed-semi-implicit'
+      families:
+      state:
+      steps:
+      executableSteps:
+    visualGenome:
+      schema: 'simulatte.visualGenome.v1'
+      id: 'vg_cou0lx'
+      seed: 767305365
+      sourceHash: 1372385274
+      source: 'compiled-artifact-seeded-procedural'
+      sceneKind: 'generic'
+      visualDialect: 'generic/compiled-scene'
+      compositionTopology: 'specimen'
+      cameraArchetype: 'instrument-panel'
+      scaleTier: 'human'
+      evidence:
+        schema: 'simulatte.visualDialectEvidence.v1'
+        sourceMode: 'compiled-support-objects'
+        objectIds:
+        fieldIds:
+        solverSteps:
+        semanticRows:
+        matchedTerms:
+        candidateScores:
+      dialect:
+        geometryGrammar: 'compiled-object-silhouettes'
+        layoutGrammar: 'specimen'
+        motionGrammar: 'compiled-process-motion'
+        paletteAnchor: 'generic'
+      palette:
+        hue: 156
+        accentHue: 252
+        shadowHue: 12
+        warmth: 0.42
+        contrast: 0.72
+        lightness: 0.58
+      morphology:
+        layoutMode: 'specimen'
+        textureKind: 'cutaway-lines'
+        strokeWeight: 2.316
+        grain: 0.267
+        bandCount: 6
+        particleDensity: 40
+        flowCurl: 0.192
+        objectScale: 0.897
+        fieldComplexity: 5
+        asymmetry: 0.242
+      motifs:
+      tokens:
+      visualDna:
+        schema: 'simulatte.compiledVisualDna.v1'
+        catalog: 'simulatte.proceduralVisualBase.v1'
+        hash: 2936231382
+        tokenCount: 1
+        ngramCount: 1
+        ngrams:
+          0:
+            text: 'blank'
+            n: 1
+            index: 0
+            hash: 2092129348
+            lane: 1
+            mark: 4
+            hue: 148
+            weight: 0.979
+        paletteShift: 33
+        densityBias: 1.486
+        laneBias: 4
+      semanticVisuals:
+        schema: 'simulatte.semanticVisualPlan.v1'
+        atlas: 'simulatte.semanticVisualAtlas.v1'
+        signature: 1372385274
+        sceneKind: 'generic'
+        archetypes:
+        materials:
+        processes:
+        overlays:
+        quality:
+          semanticTokens: 0
+          addressableTokens: 0
+          matchedTokens: 0
+          coverage: 1
+          unmatchedTokens:
+          layerCount: 0
+      objectSignature: 2166136261
+      fieldSignature: 2166136261
+      stochastic:
+        mode: 'deterministic-compiled-artifact-seeded'
+        sampler: 'hash-noise'
+        dimensions:
+          0: 'semantic-atlas'
+          1: 'semantic-archetype'
+          2: 'material-shader'
+          3: 'process-overlay'
+          4: 'ngram-dna'
+          5: 'texture'
+          6: 'motif'
+          7: 'field-density'
+    camera:
+      framing: 'composition-2d'
+      padding: 0.08
+      sceneKind: 'generic'
+    provenance:
+      compiler: 'simulatte.composition-to-render-program.v1'
+      nodeCount: 1
+      relationCount: 0
+      operatorCount: 0
+      visualRegimes:
+        0: 'generic'
+      dominantRegime: 'generic'
+      sceneKind: 'generic'
+      visualIdentity:
+        schema: 'simulatte.visualIdentity.v1'
+        sceneKind: 'generic'
+        dominantRegime: 'generic'
+        shapeSignature: 'body'
+        materialSignature: 'matte'
+        fieldKinds:
+        solverFamilies:
+        objectCount: 1
+        visualGenomeId: 'vg_cou0lx'
+        visualGenomeSeed: 767305365
+        visualDialect: 'generic/compiled-scene'
+        compositionTopology: 'specimen'
+        cameraArchetype: 'instrument-panel'
+        scaleTier: 'human'
+        motifs: <Circular>
+      visualGenome: <Circular>
+      visualObjectLedger:
+        schema: 'simulatte.visualObjectAcceptanceLedger.v1'
+        sceneKind: 'generic'
+        promptGroundedCount: 0
+        acceptedCount: 1
+        rejectedCount: 0
+        acceptedIds:
+          0: 'canvas'
+        rejectedIds:
+        rows:
+          0: <Circular>
+      signature: 'body'
+    visualIR:
+      schema: 'simulatte.visualIR.v1'
+      compiler: 'simulatte.visual-ir.compiler.v1'
+      intentText: ''
+      sceneKind: 'generic'
+      painterKind: 'generic'
+      scale: 'bench'
+      scaleTier: 'human'
+      visualDialect: 'generic/compiled-scene'
+      compositionTopology: 'specimen'
+      camera:
+        mode: 'instrumented-lab-depth'
+        scale: 'bench'
+        scaleTier: 'human'
+        archetype: 'instrument-panel'
+        framing: 'explanatory-three-quarter'
+        depth: 'layered'
+        atoms:
+      lighting:
+        model: 'soft-lab'
+        keyHue: 156
+        rimHue: 252
+        shadowHue: 12
+        contrast: 0.72
+      entities:
+        0:
+          id: 'canvas'
+          sourceObject: 'canvas'
+          label: 'empty 2d construction surface'
+          sourceLabel: 'empty 2d construction surface'
+          aliases:
+          semanticClass: ''
+          visualArchetype: ''
+          shapeHints:
+          construction: ~
+          constructionHypotheses:
+          constructionProvenance:
+          constructionApproachId: 'prompt-obligation-coverage'
+          constructionApproachSeed: 0
+          constructionApproachAttempt: 0
+          constructionApproachRejectedGrammarIds:
+          properties:
+          partGraph:
+          cardinality: 1
+          poseHint: ~
+          directlyGrounded: false
+          domainTags:
+          kind: 'object'
+          role: 'primary'
+          material: 'matte'
+          shape: 'body'
+          visualRegime: 'generic'
+          pose: <Circular>
+          layoutConstraints:
+          layoutRelationRoles:
+          layoutReceipt: <Circular>
+          semanticRef: ''
+          physicalRef: ''
+          sourceGraphId: 'canvas'
+          sourceKind: 'compiled-object'
+          sourceIds: <Circular>
+          behavior: ~
+          physicsOperators:
+          stateBindings:
+          status: 'accepted'
+          confidence: 0.48
+          reason: 'scene-compatible support retained only to seed a sparse visual graph'
+          supportOnly: true
+          evidence:
+            0: 'compiled-object'
+            1: 'shape:body'
+            2: 'material:matte'
+            3: 'regime:generic'
+      materials:
+        0:
+          id: 'matte'
+          family: 'matte'
+          shader: 'soft-lambert-fill'
+          fill: '#b7b4aa'
+          stroke: '#66635c'
+          opacity: 0.56
+          roughness: 0.56
+          emissive: false
+          evidence:
+            0: 'material:matte'
+            1: 'family:matte'
+          status: 'accepted'
+          confidence: 0.48
+          reason: 'material selected from accepted object canvas'
+          sourceGraphId: 'canvas'
+      fields:
+      processes:
+      geometry:
+        0:
+          id: 'geometry:canvas'
+          entityId: 'canvas'
+          primitive: 'sectioned-surface'
+          instancing:
+            mode: 'single'
+            count: 1
+          layout: 'anchored'
+          scale: 'specified'
+          constraints:
+          graphicsAtomBindings: ~
+          sourceGraphId: 'canvas'
+          sourceKind: 'compiled-object'
+          sourceIds: <Circular>
+          status: 'accepted'
+          confidence: 0.48
+          reason: 'scene-compatible support retained only to seed a sparse visual graph'
+          evidence: <Circular>
+        1:
+          id: 'geometry:atom:composition-topology-specimen'
+          entityId: 'graphics-atom:composition-topology-specimen'
+          primitive: 'instrument-glyph'
+          sceneKind: 'generic'
+          label: 'Composition topology specimen'
+          description: 'Graphics atom composition-topology-specimen'
+          evidence:
+            0: 'graphics-atom:composition-topology-specimen'
+            1: 'visual-dialect:generic/compiled-scene'
+            2: 'composition-topology:specimen'
+          order: 200
+          atomId: 'composition-topology-specimen'
+          status: 'accepted'
+          confidence: 0.64
+          reason: 'graphics atom geometry compiled from accepted VisualIR operator mapping'
+      motion:
+        0:
+          id: 'motion:state-pulse'
+          processId: 'process:coupled-state'
+          grammar: 'bounded-state-pulses'
+          phase: 0
+          speed: 0.28
+          density: 24
+          status: 'rejected'
+          confidence: 0.2
+          reason: 'fallback motion only; no accepted process motion was available'
+      renderInstances:
+        0:
+          schema: 'simulatte.renderInstance.v1'
+          id: 'instance:geometry:geometry-canvas'
+          type: 'geometry'
+          sceneKind: 'generic'
+          layerSlot: 'material-surface'
+          entityId: 'canvas'
+          geometryId: 'geometry:canvas'
+          fieldId: ''
+          processId: ''
+          materialId: 'matte'
+          primitive: 'sectioned-surface'
+          shader: 'soft-lambert-fill'
+          transform:
+            position:
+              0: 0.5
+              1: 0.5
+              2: 0.193
+            rotation:
+              0: 0
+              1: 0
+              2: 0
+            scale:
+              0: 0.08
+              1: 0.07
+              2: 1
+            anchor:
+              0: 0.5
+              1: 0.5
+          geometry:
+            id: 'geometry:canvas'
+            kind: 'anchored'
+            primitive: 'sectioned-surface'
+            bounds:
+              0: 0.46
+              1: 0.46499999999999997
+              2: 0.08
+              3: 0.07
+            instancing: <Circular>
+            constraints: <Circular>
+          material:
+            id: 'matte'
+            kind: 'matte'
+            shader: 'soft-lambert-fill'
+            fill: '#b7b4aa'
+            stroke: '#66635c'
+            opacity: 0.56
+            roughness: 0.56
+            metallic: 0
+            emissive: false
+            emissiveStrength: 0
+          animation:
+            kind: 'state-pulse'
+            stateBinding: 'simulation-time'
+            speed: 0.34
+            amplitude: 0.035
+            phase: 0.412
+            affects:
+              0: 'canvas'
+          collider:
+            kind: 'bounds'
+            bounds:
+              0: 0.46
+              1: 0.46499999999999997
+              2: 0.08
+              3: 0.07
+            pickId: 'canvas'
+            selectable: true
+          identity:
+            schema: 'simulatte.sceneEntityIdentity.v1'
+            type: 'structure'
+            category: 'surface'
+            label: 'structure'
+            renderClass: 'material-surface'
+            role: 'primary'
+            sourceLabel: 'empty 2d construction surface'
+            aliases: <Circular>
+            semanticClass: ''
+            visualArchetype: ''
+            directlyGrounded: false
+            primitive: 'sectioned-surface'
+            material: 'matte'
+            semanticRef: ''
+            physicalRef: ''
+          sourceGraphId: 'canvas'
+          sourceIds:
+            0: 'canvas'
+          status: 'accepted'
+          confidence: 0.48
+          reason: 'scene-compatible support retained only to seed a sparse visual graph'
+          drawOrder: 0
+          evidence:
+            0: 'compiled-object'
+            1: 'shape:body'
+            2: 'material:matte'
+            3: 'regime:generic'
+            4: 'family:matte'
+        1:
+          schema: 'simulatte.renderInstance.v1'
+          id: 'instance:geometry:geometry-atom-composition-topology-specimen'
+          type: 'geometry'
+          sceneKind: 'generic'
+          layerSlot: 'detector-geometry'
+          entityId: 'graphics-atom:composition-topology-specimen'
+          geometryId: 'geometry:atom:composition-topology-specimen'
+          fieldId: ''
+          processId: ''
+          materialId: 'matte'
+          primitive: 'instrument-glyph'
+          shader: 'soft-lambert-fill'
+          transform:
+            position:
+              0: 0.7905397006754158
+              1: 0.6093915996536128
+              2: 0.662
+            rotation:
+              0: 0
+              1: 0
+              2: 0.09503502403736
+            scale:
+              0: 0.16
+              1: 0.12
+              2: 1
+            anchor:
+              0: 0.5
+              1: 0.5
+          geometry:
+            id: 'geometry:atom:composition-topology-specimen'
+            kind: 'anchored'
+            primitive: 'instrument-glyph'
+            bounds:
+              0: 0.7105397006754158
+              1: 0.5493915996536127
+              2: 0.16
+              3: 0.12
+            instancing: ~
+            constraints:
+          material:
+            id: 'matte'
+            kind: 'matte'
+            shader: 'soft-lambert-fill'
+            fill: '#b7b4aa'
+            stroke: '#66635c'
+            opacity: 0.56
+            roughness: 0.56
+            metallic: 0
+            emissive: false
+            emissiveStrength: 0
+          animation:
+            kind: 'particle-track'
+            stateBinding: 'simulation-time'
+            speed: 0.74
+            amplitude: 0.08
+            phase: 0.412
+            affects:
+          collider:
+            kind: 'bounds'
+            bounds:
+              0: 0.7105397006754158
+              1: 0.5493915996536127
+              2: 0.16
+              3: 0.12
+            pickId: 'graphics-atom:composition-topology-specimen'
+            selectable: true
+          identity:
+            schema: 'simulatte.sceneEntityIdentity.v1'
+            type: 'object'
+            category: 'object'
+            label: 'object'
+            renderClass: 'detector-geometry'
+            primitive: 'instrument-glyph'
+            semanticRef: ''
+            physicalRef: ''
+          sourceGraphId: 'graphics-atom:composition-topology-specimen'
+          sourceIds:
+            0: 'graphics-atom:composition-topology-specimen'
+          status: 'accepted'
+          confidence: 0.48
+          reason: 'graphics atom geometry compiled from accepted VisualIR operator mapping'
+          drawOrder: 200
+          evidence:
+            0: 'graphics-atom:composition-topology-specimen'
+            1: 'visual-dialect:generic/compiled-scene'
+            2: 'composition-topology:specimen'
+            3: 'material:matte'
+            4: 'family:matte'
+      sceneRenderPacket:
+        schema: 'simulatte.sceneRenderPacket.v1'
+        compiler: 'simulatte.visual-ir.scene-render-packet.compiler.v1'
+        sceneKind: 'generic'
+        visualDialect: 'generic/compiled-scene'
+        compositionTopology: 'specimen'
+        cameraArchetype: 'instrument-panel'
+        scaleTier: 'human'
+        coordinateSystem:
+          space: 'normalized-canvas'
+          origin: 'top-left'
+          bounds:
+            0: 0
+            1: 0
+            2: 1
+            3: 1
+        time:
+          unit: 'seconds'
+          stateBinding: 'simulation-time'
+        camera:
+          mode: 'instrumented-lab-depth'
+          scale: 'bench'
+          scaleTier: 'human'
+          archetype: 'instrument-panel'
+          framing: 'explanatory-three-quarter'
+          depth: 'layered'
+          atoms: <Circular>
+          coordinateSystem: 'normalized-canvas'
+        lights:
+          0:
+            id: 'key'
+            kind: 'directional'
+            direction:
+              0: -0.36
+              1: -0.58
+              2: 0.72
+            color:
+              0: 0.96
+              1: 0.96
+              2: 0.9
+            intensity: 0.86
+          1:
+            id: 'fill'
+            kind: 'ambient'
+            color:
+              0: 0.28
+              1: 0.36
+              2: 0.44
+            intensity: 0.34
+        environmentProgram: ~
+        entities:
+          0:
+            schema: 'simulatte.sceneEntity.v1'
+            id: 'canvas'
+            label: 'structure'
+            identity:
+              schema: 'simulatte.sceneEntityIdentity.v1'
+              type: 'structure'
+              category: 'surface'
+              label: 'structure'
+              renderClass: 'material-surface'
+              role: 'primary'
+              sourceLabel: 'empty 2d construction surface'
+              aliases: <Circular>
+              semanticClass: ''
+              visualArchetype: ''
+              directlyGrounded: false
+              primitive: 'sectioned-surface'
+              material: 'matte'
+              semanticRef: ''
+              physicalRef: ''
+            semanticRef: ''
+            physicalRef: ''
+            sourceGraphId: 'canvas'
+            sourceIds: <Circular>
+            directlyGrounded: false
+            supportOnly: true
+            layoutConstraints:
+            layoutRelationRoles:
+            layoutReceipt: <Circular>
+            representedEntityIds:
+              0: 'canvas'
+            cardinality: 1
+            visualTraits:
+            stateBindings: <Circular>
+            properties:
+            layerSlot: 'material-surface'
+            transform:
+              position:
+                0: 0.5
+                1: 0.46985999999999994
+                2: 0
+              rotation:
+                0: 0
+                1: 0
+                2: 0
+              scale:
+                0: 0.39
+                1: 0.338
+                2: 1
+              anchor:
+                0: 0.5
+                1: 0.5
+            geometry:
+              id: 'geometry:canvas'
+              kind: 'anchored'
+              primitive: 'sectioned-surface'
+              bounds:
+                0: 0.305
+                1: 0.3008599999999999
+                2: 0.39
+                3: 0.338
+              program:
+                schema: 'simulatte.objectGeometryProgram.v1'
+                grammarId: 'object-grammar.structure'
+                identityType: 'structure'
+                visualArchetype: 'structure'
+                pose: ''
+                literal: false
+                minScale:
+                  0: 0.22
+                  1: 0.2
+                zOrder: 8
+                parts:
+                  0:
+                    id: 'body'
+                    primitive: 'rounded-box'
+                    center:
+                      0: 0
+                      1: 0
+                    size:
+                      0: 0.88
+                      1: 0.78
+                    rotation: 0
+                    fill: '#87929c'
+                    opacity: 1
+                    texture: ''
+                    order: 0
+                  1:
+                    id: 'support-left'
+                    primitive: 'rounded-box'
+                    center:
+                      0: -0.3
+                      1: 0.24
+                    size:
+                      0: 0.12
+                      1: 0.42
+                    rotation: 0
+                    fill: '#5d6872'
+                    opacity: 1
+                    texture: ''
+                    order: 1
+                  2:
+                    id: 'support-right'
+                    primitive: 'rounded-box'
+                    center:
+                      0: 0.3
+                      1: 0.24
+                    size:
+                      0: 0.12
+                      1: 0.42
+                    rotation: 0
+                    fill: '#5d6872'
+                    opacity: 1
+                    texture: ''
+                    order: 2
+                source: 'phase6-data-owned-part-graph'
+                sourcePrimitive: 'sectioned-surface'
+                constructionReceipt: ~
+                selectionRole: 'identity-catalog'
+                promptPropertyBindings:
+                constructionSelectionReceipt:
+                  schema: 'simulatte.constructionSelectionReceipt.v3'
+                  strategy: 'prompt-obligation-coverage'
+                  seed: 0
+                  attempt: 0
+                  rejectedGrammarIds:
+                  searchExhausted: false
+                  selectedGrammarId: 'object-grammar.structure'
+                  candidates:
+                    0:
+                      grammarId: 'object-grammar.structure'
+                      selectionRole: 'identity-catalog'
+                      score: -0
+                      obligationScore: -0
+                      targetFitScore: 0
+                      status: 'selected'
+              coverage:
+                schema: 'simulatte.objectGeometryCoverage.v1'
+                grammarId: 'object-grammar.structure'
+                identityType: 'structure'
+                literal: false
+                partCount: 3
+                primitiveCount: 1
+                partIds:
+                  0: 'body'
+                  1: 'support-left'
+                  2: 'support-right'
+                minScale:
+                  0: 0.22
+                  1: 0.2
+                realized: false
+              instancing: <Circular>
+              constraints: <Circular>
+            material:
+              id: 'matte'
+              kind: 'matte'
+              shader: 'soft-lambert-fill'
+              fill: '#b7b4aa'
+              stroke: '#66635c'
+              opacity: 0.56
+              roughness: 0.56
+              metallic: 0
+              emissive: false
+              emissiveStrength: 0
+            animation:
+              kind: 'state-pulse'
+              stateBinding: 'simulation-time'
+              speed: 0.34
+              amplitude: 0.035
+              phase: 0
+              affects:
+                0: 'canvas'
+            renderCodes:
+              schema: 'simulatte.sceneRenderCodes.v1'
+              layerCode: 12
+              animationCode: 57
+              semanticCode: 13
+              categoryCode: 4
+              variantCode: 0.59101
+              packetKindCode: 1
+            collider:
+              kind: 'bounds'
+              bounds: <Circular>
+              pickId: 'canvas'
+              selectable: true
+            renderPriority: 12.96
+            drawOrder: 0
+            evidence:
+              0: 'compiled-object'
+              1: 'shape:body'
+              2: 'material:matte'
+              3: 'regime:generic'
+              4: 'family:matte'
+            confidence: 0.48
+            reason: 'scene-compatible support retained only to seed a sparse visual graph'
+        fields:
+        effects:
+        interactionProgram:
+          schema: 'simulatte.sceneInteractionProgram.v1'
+          compiler: 'simulatte.phase6.scene-interaction.compiler.v1'
+          sourceProgramSchema: ''
+          sourceProgramContentHash: ''
+          coordinateSystem: 'normalized-canvas'
+          commandOrdering: ''
+          actions:
+          bindings:
+          mappings:
+          targetCount: 0
+          receipt:
+            schema: 'simulatte.sceneInteractionCompileReceipt.v1'
+            phase: 6
+            sourceTargetCount: 0
+            mappedTargetCount: 0
+            unmappedTargetIds:
+        compositionLedger:
+          schema: 'simulatte.sceneCompositionLedger.v1'
+          sourcePhase: 3
+          currentPhase: 6
+          entries:
+          relations:
+          obligations:
+            0:
+              id: 'visual:compiled-scene-packet'
+              kind: 'visual'
+              ownedByPhase: 6
+              target: 'empty 2d construction surface'
+              required: true
+              status: 'preserved'
+              phase: 6
+              visualEvidence:
+                0: 'phase6:render-instance:instance:geometry:geometry-canvas'
+          phaseDeltas:
+            0:
+              phase: 6
+              entryId: 'visual:compiled-scene-packet'
+              operation: 'preserved'
+              receiptId: 'phase6-visual-compile'
+          losses:
+          unsupported:
+          facts:
+            hasDog: false
+            hasCat: false
+            hasWater: false
+            hasLake: false
+            hasSwimming: false
+            hasWake: false
+            hasSubmersion: false
+            hasSpeciesDistinct: false
+            dogMaterialIds:
+            catMaterialIds:
+            swimRows:
+            wakeRows:
+            submersionRows:
+            genericEvidenceByObligation:
+            promptVisualSettlements:
+          summary:
+            obligationCount: 1
+            preservedCount: 1
+            loweredCount: 0
+            failedCount: 0
+        uniforms:
+          schema: 'simulatte.sceneRenderPacketUniforms.v1'
+          compiler: 'simulatte.visual-ir.scene-render-packet.uniforms.v1'
+          phase: 6
+          source: 'sceneRenderPacket.renderCodes'
+          sceneId: 3
+          atomUniforms:
+            0: 0
+            1: 0
+            2: 0
+            3: 0
+            4: 0
+            5: 0
+            6: 0
+            7: 0
+            8: 0
+            9: 0
+            10: 0
+            11: 0
+            12: 0
+            13: 0
+            14: 0
+            15: 0
+            16: 0
+            17: 0
+            18: 0
+            19: 0
+            20: 0
+            21: 0
+            22: 0
+            23: 0
+          sceneMix:
+            0: 0
+            1: 0
+            2: 0
+            3: 0
+            4: 0
+            5: 0
+            6: 0
+            7: 0
+            8: 0
+            9: 0
+            10: 0
+            11: 0
+            12: 0
+            13: 0
+            14: 0
+            15: 0
+          atmosphere:
+            schema: 'simulatte.sceneAtmosphereProgram.v1'
+            compiler: 'phase6-scene-mix-atmosphere'
+            source: 'sceneRenderPacket.uniforms.sceneMix'
+            dominantSlot: 'ambient'
+            layers:
+            layerCount: 0
+            boundedSlotCount: 16
+            complexity: 'O(16)'
+          visualLayers:
+            0: 0
+            1: 0
+            2: 0
+            3: 0
+            4: 0
+            5: 0
+            6: 0
+            7: 0
+            8: 0
+            9: 0
+            10: 0
+            11: 0.96
+            12: 0
+            13: 0
+            14: 0
+            15: 0
+            16: 0
+            17: 0
+            18: 0
+            19: 0
+            20: 0
+            21: 0
+            22: 0
+            23: 0
+          palette:
+            0: 0.1201
+            1: 0.2511
+            2: 0.1987
+            3: 1
+            4: 0.3045
+            5: 0.8555
+            6: 0.6351
+            7: 1
+            8: 0.3365
+            9: 0.1623
+            10: 0.1187
+            11: 1
+            12: 0.4498
+            13: 0.3368
+            14: 0.9016
+            15: 1
+        passes:
+          0: 'background'
+          1: 'entities'
+        receipts:
+          entityCount: 1
+          fieldCount: 0
+          effectCount: 0
+          source: 'visualIR.acceptedRows'
+          primaryArtifact: 'sceneRenderPacket'
+          renderCodeCount: 1
+          visualDialect: 'generic/compiled-scene'
+          compositionTopology: 'specimen'
+          cameraArchetype: 'instrument-panel'
+          scaleTier: 'human'
+          framing:
+            schema: 'simulatte.sceneFramingReceipt.v1'
+            method: 'group-bounds-fit'
+            sourceBounds:
+              0: 0.4165
+              1: 0.4318
+              2: 0.167
+              3: 0.1442
+            framedBounds:
+              0: 0.3109
+              1: 0.32054
+              2: 0.3782
+              3: 0.31892
+            targetBounds:
+              0: 0.1
+              1: 0.12
+              2: 0.8
+              3: 0.72
+            scaleFactor: 2.6
+            projectedArea: 0.13182
+            minimumProjectedArea: 0.045
+            centerOffset: 0
+            entityCount: 1
+            readableCount: 1
+            surfaceContacts:
+            graspContacts:
+            pass: true
+          interaction: <Circular>
+          compositionLedger:
+            schema: 'simulatte.sceneCompositionLedger.v1'
+            obligationCount: 1
+            preservedCount: 1
+            failedCount: 0
+      interactionProgram: <Circular>
+      compositionLedger: <Circular>
+      rejectedRows:
+        0:
+          schema: 'simulatte.visualRejectedRow.v1'
+          id: 'visual.operator.heat-transfer.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+          reason: 'missing-executable-or-causal-evidence'
+        1:
+          schema: 'simulatte.visualRejectedRow.v1'
+          id: 'visual.operator.fluid-advection.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+          reason: 'missing-executable-or-causal-evidence'
+        2:
+          schema: 'simulatte.visualRejectedRow.v1'
+          id: 'visual.operator.stress-fracture.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+          reason: 'missing-executable-or-causal-evidence'
+        3:
+          schema: 'simulatte.visualRejectedRow.v1'
+          id: 'visual.operator.structural-stress.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+          reason: 'missing-executable-or-causal-evidence'
+        4:
+          schema: 'simulatte.visualRejectedRow.v1'
+          id: 'visual.operator.control-feedback.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+          reason: 'missing-executable-or-causal-evidence'
+        5:
+          schema: 'simulatte.visualRejectedRow.v1'
+          id: 'visual.operator.orbital-gravity.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+          reason: 'missing-executable-or-causal-evidence'
+        6:
+          schema: 'simulatte.visualRejectedRow.v1'
+          id: 'visual.operator.electromagnetic-field.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+          reason: 'missing-executable-or-causal-evidence'
+        7:
+          schema: 'simulatte.visualRejectedRow.v1'
+          id: 'visual.operator.optical-ray.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+          reason: 'missing-executable-or-causal-evidence'
+        8:
+          schema: 'simulatte.visualRejectedRow.v1'
+          id: 'visual.operator.thin-film-interference.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+          reason: 'missing-executable-or-causal-evidence'
+        9:
+          schema: 'simulatte.visualRejectedRow.v1'
+          id: 'visual.operator.quantum-phase-readout.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+          reason: 'missing-executable-or-causal-evidence'
+      graphicsAtoms:
+        schema: 'simulatte.graphicsAtomPlan.v1'
+        compiler: 'simulatte.visualOperatorCompiler.v1'
+        atlas: 'simulatte.visualOperatorAtlas.v1'
+        atlasId: 'simulatte-visual-operator-atlas-v1'
+        source: 'handwritten-operator-graphics-basis'
+        contextHash: 'fnv1a32:51cceffa'
+        mappings:
+        geometry:
+          0:
+            id: 'composition-topology-specimen'
+            category: 'geometry'
+            label: 'Composition topology specimen'
+            sourceMappingIds:
+            evidence:
+              0: 'visual-dialect:generic/compiled-scene'
+              1: 'composition-topology:specimen'
+        fields:
+        materials:
+        processes:
+        motion:
+        camera: <Circular>
+        languageSignals:
+        uniforms:
+          schema: 'simulatte.graphicsAtomUniforms.v1'
+          order:
+            0: 'thermal'
+            1: 'fluid'
+            2: 'stress'
+            3: 'feedback'
+            4: 'orbital'
+            5: 'electromagnetic'
+            6: 'optical'
+            7: 'quantum'
+            8: 'acoustic'
+            9: 'biological'
+            10: 'chemical'
+            11: 'network'
+            12: 'granular'
+            13: 'instrument'
+            14: 'combustion'
+            15: 'phase'
+            16: 'robotic'
+            17: 'measurement'
+            18: 'motion'
+            19: 'density'
+            20: 'emission'
+            21: 'constraint'
+            22: 'signal'
+            23: 'surface'
+          values:
+            0: 0
+            1: 0
+            2: 0
+            3: 0
+            4: 0
+            5: 0
+            6: 0
+            7: 0
+            8: 0
+            9: 0
+            10: 0
+            11: 0
+            12: 0
+            13: 0
+            14: 0
+            15: 0
+            16: 0
+            17: 0
+            18: 0
+            19: 0
+            20: 0
+            21: 0
+            22: 0
+            23: 0
+          bySlot:
+            thermal: 0
+            fluid: 0
+            stress: 0
+            feedback: 0
+            orbital: 0
+            electromagnetic: 0
+            optical: 0
+            quantum: 0
+            acoustic: 0
+            biological: 0
+            chemical: 0
+            network: 0
+            granular: 0
+            instrument: 0
+            combustion: 0
+            phase: 0
+            robotic: 0
+            measurement: 0
+            motion: 0
+            density: 0
+            emission: 0
+            constraint: 0
+            signal: 0
+            surface: 0
+        wgslOperators:
+        receipts:
+        rejections:
+          0:
+            id: 'visual.operator.heat-transfer.v1'
+            score: 0
+            reason: 'missing-executable-or-causal-evidence'
+            matchedTerms:
+          1:
+            id: 'visual.operator.fluid-advection.v1'
+            score: 0
+            reason: 'missing-executable-or-causal-evidence'
+            matchedTerms:
+          2:
+            id: 'visual.operator.stress-fracture.v1'
+            score: 0
+            reason: 'missing-executable-or-causal-evidence'
+            matchedTerms:
+          3:
+            id: 'visual.operator.structural-stress.v1'
+            score: 0
+            reason: 'missing-executable-or-causal-evidence'
+            matchedTerms:
+          4:
+            id: 'visual.operator.control-feedback.v1'
+            score: 0
+            reason: 'missing-executable-or-causal-evidence'
+            matchedTerms:
+          5:
+            id: 'visual.operator.orbital-gravity.v1'
+            score: 0
+            reason: 'missing-executable-or-causal-evidence'
+            matchedTerms:
+          6:
+            id: 'visual.operator.electromagnetic-field.v1'
+            score: 0
+            reason: 'missing-executable-or-causal-evidence'
+            matchedTerms:
+          7:
+            id: 'visual.operator.optical-ray.v1'
+            score: 0
+            reason: 'missing-executable-or-causal-evidence'
+            matchedTerms:
+          8:
+            id: 'visual.operator.thin-film-interference.v1'
+            score: 0
+            reason: 'missing-executable-or-causal-evidence'
+            matchedTerms:
+          9:
+            id: 'visual.operator.quantum-phase-readout.v1'
+            score: 0
+            reason: 'missing-executable-or-causal-evidence'
+            matchedTerms:
+      operators:
+        0:
+          id: 'camera-frame'
+          stage: 'camera'
+          reason: 'sets explanatory view before drawing'
+        1:
+          id: 'material-shaders'
+          stage: 'material'
+          reason: 'draws material-specific surface and volume cues'
+        2:
+          id: 'geometry-instances'
+          stage: 'geometry'
+          reason: 'places objects, agents, media, and instruments'
+        3:
+          id: 'field-overlays'
+          stage: 'field'
+          reason: 'renders scalar/vector fields as contours, rays, or graph pressure'
+        4:
+          id: 'process-motion'
+          stage: 'process'
+          reason: 'animates evolving physical processes'
+        5:
+          id: 'receipt-marks'
+          stage: 'receipt'
+          reason: 'adds minimal evidence ticks for why marks exist'
+        6:
+          id: 'visual-operator-atlas'
+          stage: 'operator-basis'
+          reason: 'composes reusable graphics atoms from grounded physical operators'
+      causalAffordances:
+      receipts:
+        0:
+          id: 'receipt:entities'
+          reason: '1 grounded visual entities compiled from graph objects'
+          count: 1
+          acceptedCount: 1
+          rejectedSourceObjectCount: 0
+          sourceGraphIds:
+            0: 'canvas'
+        1:
+          id: 'receipt:materials'
+          reason: '1 material shader rows selected from object materials and semantic plan'
+          count: 1
+          acceptedCount: 1
+        2:
+          id: 'receipt:fields'
+          reason: '0 visible field encodings compiled from PhysicsIR/render fields'
+          count: 0
+          acceptedCount: 0
+        3:
+          id: 'receipt:processes'
+          reason: '0 process motion grammars compiled from solver families'
+          count: 0
+          acceptedCount: 0
+        4:
+          id: 'receipt:visual-object-acceptance'
+          reason: '1 accepted visual graph objects; 0 support objects rejected from visual evidence'
+          count: 1
+          acceptedCount: 1
+          rejectedCount: 0
+          acceptedIds:
+            0: 'canvas'
+          rejectedIds:
+        5:
+          id: 'receipt:render-instances'
+          reason: '2 explicit render instances compiled from accepted VisualIR rows'
+          count: 2
+          acceptedCount: 2
+          instanceIds:
+            0: 'instance:geometry:geometry-canvas'
+            1: 'instance:geometry:geometry-atom-composition-topology-specimen'
+          layerSlots:
+            0: 'material-surface'
+            1: 'detector-geometry'
+        6:
+          id: 'receipt:operators'
+          reason: '7 low-level renderer operators scheduled'
+          count: 7
+        7:
+          id: 'receipt:recipe'
+          reason: 'no style recipe; VisualIR uses object and field structure'
+          count: 0
+        8:
+          id: 'receipt:causal-affordances'
+          reason: '0 causal affordance rows compiled into visual program hints'
+          count: 0
+          affordanceIds:
+          causalRelationIds:
+          shaderHints:
+          motionHints:
+        9:
+          id: 'receipt:graphics-atoms'
+          reason: '1 reusable graphics atoms compiled from the visual operator atlas'
+          count: 1
+          atlasId: 'simulatte-visual-operator-atlas-v1'
+          compiler: 'simulatte.visualOperatorCompiler.v1'
+          mappingIds:
+          uniformSlots:
+          wgslOperators:
+          geometryAtoms:
+            0: 'composition-topology-specimen'
+          fieldAtoms:
+          materialAtoms:
+          processAtoms:
+          motionAtoms:
+          languageSignalCount: 0
+          languageSignals:
+        10:
+          id: 'receipt:composition-ledger'
+          schema: 'simulatte.phaseReceipt.v1'
+          obligationCount: 1
+          preservedCount: 1
+          lostCount: 0
+          lostIds:
+        11:
+          id: 'receipt:swimming-visual-obligations'
+          schema: 'simulatte.phaseReceipt.v1'
+          agentCount: 0
+          agentIds:
+          species:
+          materialIds:
+          wakeFieldIds:
+          effectIds:
+          lowered: false
+    sceneRenderPacket: <Circular>
+    rendererPlan:
+      schema: 'simulatte.rendererPlan.v1'
+      renderer: 'simulatte.regime.generic.v1'
+      sceneKind: 'generic'
+      dominantRegime: 'generic'
+      passOrder:
+        0: 'clear'
+        1: 'world-field'
+        2: 'solver-overlay'
+        3: 'objects'
+        4: 'emissions'
+      visualRecipe: ~
+      visualIdentity: <Circular>
+      visualGenome: <Circular>
+      visualObjectLedger: <Circular>
+  actual:
+    camera:
+      framing: 'composition-2d'
+      padding: 0.08
+      sceneKind: 'generic'
+    emitters:
+    fields:
+    intentText: ''
+    materials:
+      air:
+        alpha: 0.18
+        fill: '#dff7ff'
+        stroke: '#76c7e7'
+      bacteria:
+        alpha: 0.48
+        fill: '#9adf8f'
+        stroke: '#458947'
+      biomass:
+        alpha: 0.72
+        fill: '#5a8f52'
+        stroke: '#2f6130'
+      brine:
+        alpha: 0.58
+        fill: '#8edbe8'
+        stroke: '#2d8ba4'
+      carbon:
+        alpha: 0.76
+        fill: '#55606a'
+        stroke: '#252b32'
+      concrete:
+        alpha: 0.78
+        fill: '#aeb4ad'
+        stroke: '#5d665f'
+      copper:
+        alpha: 0.82
+        fill: '#d08b62'
+        stroke: '#8a4b38'
+      ferrofluid:
+        alpha: 0.88
+        fill: '#2b303b'
+        stroke: '#111820'
+      fire:
+        alpha: 0.68
+        fill: '#ff8f4f'
+        stroke: '#c65361'
+      foam:
+        alpha: 0.26
+        fill: '#efffff'
+        stroke: '#86cfd9'
+      gel:
+        alpha: 0.36
+        fill: '#c4f4ef'
+        stroke: '#6bb7aa'
+      glass:
+        alpha: 0.34
+        fill: '#dff9ff'
+        stroke: '#66b8e8'
+      gold:
+        alpha: 0.86
+        fill: '#ffd760'
+        stroke: '#b47a23'
+      ice:
+        alpha: 0.58
+        fill: '#dcf7ff'
+        stroke: '#72b8da'
+      lava:
+        alpha: 0.88
+        fill: '#ff6b2a'
+        stroke: '#872b1a'
+      leaf:
+        alpha: 0.68
+        fill: '#8fd878'
+        stroke: '#3f7d3c'
+      light:
+        alpha: 0.84
+        fill: '#ffe873'
+        stroke: '#efb425'
+      magnet:
+        alpha: 0.88
+        fill: '#d44a8f'
+        stroke: '#2959c6'
+      matte:
+        alpha: 0.56
+        fill: '#b7b4aa'
+        stroke: '#66635c'
+      membrane:
+        alpha: 0.42
+        fill: '#eadcff'
+        stroke: '#a884d8'
+      mercury:
+        alpha: 0.66
+        fill: '#dce8ef'
+        stroke: '#667985'
+      metal:
+        alpha: 0.74
+        fill: '#b8c1ca'
+        stroke: '#68737e'
+      mycelium:
+        alpha: 0.52
+        fill: '#f2f1dc'
+        stroke: '#9e9a72'
+      protein:
+        alpha: 0.42
+        fill: '#e8d6ff'
+        stroke: '#9277bd'
+      quartz:
+        alpha: 0.54
+        fill: '#e6f6ff'
+        stroke: '#8db9d4'
+      rock:
+        alpha: 0.86
+        fill: '#8f8b82'
+        stroke: '#54524d'
+      sand:
+        alpha: 0.76
+        fill: '#d9bd7b'
+        stroke: '#a8793d'
+      signal:
+        alpha: 0.78
+        fill: '#ffd760'
+        stroke: '#3b5f8a'
+      silicon:
+        alpha: 0.64
+        fill: '#9eb7ce'
+        stroke: '#5d748a'
+      smoke:
+        alpha: 0.28
+        fill: '#aeb5ba'
+        stroke: '#687077'
+      soil:
+        alpha: 0.78
+        fill: '#8a6845'
+        stroke: '#4d3826'
+      water:
+        alpha: 0.62
+        fill: '#56b7e8'
+        stroke: '#216b9c'
+      wood:
+        alpha: 0.8
+        fill: '#9b6236'
+        stroke: '#57351d'
+    objects:
+      0:
+        assembly: ''
+        dynamics:
+          canvasScale: 0.62
+          guideDensity: 0.42
+        evidence:
+        id: 'canvas'
+        kind: 'plane'
+        layoutConstraints:
+        layoutReceipt:
+          initialAnchor:
+            0: 0.5
+            1: 0.5
+          placementSeed: 4113769415
+          placementStrategy: 'single-focal-subject'
+          relationCount: 0
+          relationIds:
+          sceneKind: 'generic'
+          schema: 'simulatte.constraintLayoutReceipt.v1'
+          solver: 'typed-spatial-constraints'
+          topology: 'specimen'
+        layoutRelationRoles:
+        material: 'matte'
+        phrase: ''
+        pose:
+          h: 0.07
+          rotation: 0
+          w: 0.08
+          x: 0.5
+          y: 0.5
+        primitiveProgram:
+          assembly: 'body'
+          material: 'matte'
+          parts:
+            0:
+              alpha: 0.08
+              count: 6
+              kind: 'ripple'
+            1:
+              alpha: 0.08
+              count: 18
+              kind: 'particle'
+          phrase: 'empty 2d construction surface'
+          provenance:
+            primitiveId: 'canvas'
+            tokenHash: 1057688692
+          schema: 'simulatte.primitiveProgram.v1'
+          shapeKey: 'cg_3f0b0c74'
+          source: 'composition-primitive-program'
+          visualRegime: 'generic'
+        required: true
+        role: 'empty 2d construction surface'
+        shape: 'body'
+        source: ''
+        visualConfidence: 0.48
+        visualReason: 'scene-compatible support retained only to seed a sparse visual graph'
+        visualRegime: 'generic'
+        visualSourceGraphId: 'canvas'
+        visualSourceIds:
+          0: 'canvas'
+        visualSourceKind: 'compiled-object'
+        visualStatus: 'accepted'
+        visualSupportOnly: true
+    provenance:
+      compiler: 'simulatte.composition-to-render-program.v1'
+      dominantRegime: 'generic'
+      nodeCount: 1
+      operatorCount: 0
+      relationCount: 0
+      sceneKind: 'generic'
+      signature: 'body'
+      visualGenome:
+        cameraArchetype: 'instrument-panel'
+        compositionTopology: 'specimen'
+        dialect:
+          geometryGrammar: 'compiled-object-silhouettes'
+          layoutGrammar: 'specimen'
+          motionGrammar: 'compiled-process-motion'
+          paletteAnchor: 'generic'
+        evidence:
+          candidateScores:
+          fieldIds:
+          matchedTerms:
+          objectIds:
+          schema: 'simulatte.visualDialectEvidence.v1'
+          semanticRows:
+          solverSteps:
+          sourceMode: 'compiled-support-objects'
+        fieldSignature: 2166136261
+        id: 'vg_cou0lx'
+        morphology:
+          asymmetry: 0.242
+          bandCount: 6
+          fieldComplexity: 5
+          flowCurl: 0.192
+          grain: 0.267
+          layoutMode: 'specimen'
+          objectScale: 0.897
+          particleDensity: 40
+          strokeWeight: 2.316
+          textureKind: 'cutaway-lines'
+        motifs:
+        objectSignature: 2166136261
+        palette:
+          accentHue: 252
+          contrast: 0.72
+          hue: 156
+          lightness: 0.58
+          shadowHue: 12
+          warmth: 0.42
+        scaleTier: 'human'
+        sceneKind: 'generic'
+        schema: 'simulatte.visualGenome.v1'
+        seed: 767305365
+        semanticVisuals:
+          archetypes:
+          atlas: 'simulatte.semanticVisualAtlas.v1'
+          materials:
+          overlays:
+          processes:
+          quality:
+            addressableTokens: 0
+            coverage: 1
+            layerCount: 0
+            matchedTokens: 0
+            semanticTokens: 0
+            unmatchedTokens:
+          sceneKind: 'generic'
+          schema: 'simulatte.semanticVisualPlan.v1'
+          signature: 1372385274
+        source: 'compiled-artifact-seeded-procedural'
+        sourceHash: 1372385274
+        stochastic:
+          dimensions:
+            0: 'semantic-atlas'
+            1: 'semantic-archetype'
+            2: 'material-shader'
+            3: 'process-overlay'
+            4: 'ngram-dna'
+            5: 'texture'
+            6: 'motif'
+            7: 'field-density'
+          mode: 'deterministic-compiled-artifact-seeded'
+          sampler: 'hash-noise'
+        tokens:
+        visualDialect: 'generic/compiled-scene'
+        visualDna:
+          catalog: 'simulatte.proceduralVisualBase.v1'
+          densityBias: 1.486
+          hash: 2936231382
+          laneBias: 4
+          ngramCount: 1
+          ngrams:
+            0:
+              hash: 2092129348
+              hue: 148
+              index: 0
+              lane: 1
+              mark: 4
+              n: 1
+              text: 'blank'
+              weight: 0.979
+          paletteShift: 33
+          schema: 'simulatte.compiledVisualDna.v1'
+          tokenCount: 1
+      visualIdentity:
+        cameraArchetype: 'instrument-panel'
+        compositionTopology: 'specimen'
+        dominantRegime: 'generic'
+        fieldKinds:
+        materialSignature: 'matte'
+        motifs:
+        objectCount: 1
+        scaleTier: 'human'
+        sceneKind: 'generic'
+        schema: 'simulatte.visualIdentity.v1'
+        shapeSignature: 'body'
+        solverFamilies:
+        visualDialect: 'generic/compiled-scene'
+        visualGenomeId: 'vg_cou0lx'
+        visualGenomeSeed: 767305365
+      visualObjectLedger:
+        acceptedCount: 1
+        acceptedIds:
+          0: 'canvas'
+        promptGroundedCount: 0
+        rejectedCount: 0
+        rejectedIds:
+        rows:
+          0:
+            confidence: 0.48
+            id: 'canvas'
+            phrase: 'empty 2d construction surface'
+            promptGrounded: false
+            reason: 'scene-compatible support retained only to seed a sparse visual graph'
+            sceneKind: 'generic'
+            schema: 'simulatte.visualObjectAcceptance.v1'
+            sourceGraphId: 'canvas'
+            sourceIds:
+              0: 'canvas'
+            sourceKind: 'compiled-object'
+            status: 'accepted'
+            supportOnly: true
+        sceneKind: 'generic'
+        schema: 'simulatte.visualObjectAcceptanceLedger.v1'
+      visualRegimes:
+        0: 'generic'
+    relations:
+    schema: 'simulatte.renderProgram.v1'
+    solverPlan:
+      executableSteps:
+      families:
+      integrator: 'mixed-semi-implicit'
+      schema: 'simulatte.solverPlan.v1'
+      state:
+      steps:
+    sourceGraphId: 'compiled-scene-cg'
+    supportObjects:
+    visualAcceptance:
+      0:
+        confidence: 0.48
+        id: 'canvas'
+        phrase: 'empty 2d construction surface'
+        promptGrounded: false
+        reason: 'scene-compatible support retained only to seed a sparse visual graph'
+        sceneKind: 'generic'
+        schema: 'simulatte.visualObjectAcceptance.v1'
+        sourceGraphId: 'canvas'
+        sourceIds:
+          0: 'canvas'
+        sourceKind: 'compiled-object'
+        status: 'accepted'
+        supportOnly: true
+    visualGenome:
+      cameraArchetype: 'instrument-panel'
+      compositionTopology: 'specimen'
+      dialect:
+        geometryGrammar: 'compiled-object-silhouettes'
+        layoutGrammar: 'specimen'
+        motionGrammar: 'compiled-process-motion'
+        paletteAnchor: 'generic'
+      evidence:
+        candidateScores:
+        fieldIds:
+        matchedTerms:
+        objectIds:
+        schema: 'simulatte.visualDialectEvidence.v1'
+        semanticRows:
+        solverSteps:
+        sourceMode: 'compiled-support-objects'
+      fieldSignature: 2166136261
+      id: 'vg_cou0lx'
+      morphology:
+        asymmetry: 0.242
+        bandCount: 6
+        fieldComplexity: 5
+        flowCurl: 0.192
+        grain: 0.267
+        layoutMode: 'specimen'
+        objectScale: 0.897
+        particleDensity: 40
+        strokeWeight: 2.316
+        textureKind: 'cutaway-lines'
+      motifs:
+      objectSignature: 2166136261
+      palette:
+        accentHue: 252
+        contrast: 0.72
+        hue: 156
+        lightness: 0.58
+        shadowHue: 12
+        warmth: 0.42
+      scaleTier: 'human'
+      sceneKind: 'generic'
+      schema: 'simulatte.visualGenome.v1'
+      seed: 767305365
+      semanticVisuals:
+        archetypes:
+        atlas: 'simulatte.semanticVisualAtlas.v1'
+        materials:
+        overlays:
+        processes:
+        quality:
+          addressableTokens: 0
+          coverage: 1
+          layerCount: 0
+          matchedTokens: 0
+          semanticTokens: 0
+          unmatchedTokens:
+        sceneKind: 'generic'
+        schema: 'simulatte.semanticVisualPlan.v1'
+        signature: 1372385274
+      source: 'compiled-artifact-seeded-procedural'
+      sourceHash: 1372385274
+      stochastic:
+        dimensions:
+          0: 'semantic-atlas'
+          1: 'semantic-archetype'
+          2: 'material-shader'
+          3: 'process-overlay'
+          4: 'ngram-dna'
+          5: 'texture'
+          6: 'motif'
+          7: 'field-density'
+        mode: 'deterministic-compiled-artifact-seeded'
+        sampler: 'hash-noise'
+      tokens:
+      visualDialect: 'generic/compiled-scene'
+      visualDna:
+        catalog: 'simulatte.proceduralVisualBase.v1'
+        densityBias: 1.486
+        hash: 2936231382
+        laneBias: 4
+        ngramCount: 1
+        ngrams:
+          0:
+            hash: 2092129348
+            hue: 148
+            index: 0
+            lane: 1
+            mark: 4
+            n: 1
+            text: 'blank'
+            weight: 0.979
+        paletteShift: 33
+        schema: 'simulatte.compiledVisualDna.v1'
+        tokenCount: 1
+    visualIR:
+      camera:
+        archetype: 'instrument-panel'
+        atoms:
+        depth: 'layered'
+        framing: 'explanatory-three-quarter'
+        mode: 'instrumented-lab-depth'
+        scale: 'bench'
+        scaleTier: 'human'
+      causalAffordances:
+      compiler: 'simulatte.visual-ir.compiler.v1'
+      compositionLedger:
+        currentPhase: 6
+        entries:
+        facts:
+          catMaterialIds:
+          dogMaterialIds:
+          genericEvidenceByObligation:
+          hasCat: false
+          hasDog: false
+          hasLake: false
+          hasSpeciesDistinct: false
+          hasSubmersion: false
+          hasSwimming: false
+          hasWake: false
+          hasWater: false
+          promptVisualSettlements:
+          submersionRows:
+          swimRows:
+          wakeRows:
+        losses:
+        obligations:
+          0:
+            id: 'visual:compiled-scene-packet'
+            kind: 'visual'
+            ownedByPhase: 6
+            phase: 6
+            required: true
+            status: 'preserved'
+            target: 'empty 2d construction surface'
+            visualEvidence:
+              0: 'phase6:render-instance:instance:geometry:geometry-canvas'
+        phaseDeltas:
+          0:
+            entryId: 'visual:compiled-scene-packet'
+            operation: 'preserved'
+            phase: 6
+            receiptId: 'phase6-visual-compile'
+        relations:
+        schema: 'simulatte.sceneCompositionLedger.v1'
+        sourcePhase: 3
+        summary:
+          failedCount: 0
+          loweredCount: 0
+          obligationCount: 1
+          preservedCount: 1
+        unsupported:
+      compositionTopology: 'specimen'
+      entities:
+        0:
+          aliases:
+          behavior: ~
+          cardinality: 1
+          confidence: 0.48
+          construction: ~
+          constructionApproachAttempt: 0
+          constructionApproachId: 'prompt-obligation-coverage'
+          constructionApproachRejectedGrammarIds:
+          constructionApproachSeed: 0
+          constructionHypotheses:
+          constructionProvenance:
+          directlyGrounded: false
+          domainTags:
+          evidence:
+            0: 'compiled-object'
+            1: 'shape:body'
+            2: 'material:matte'
+            3: 'regime:generic'
+          id: 'canvas'
+          kind: 'object'
+          label: 'empty 2d construction surface'
+          layoutConstraints:
+          layoutReceipt:
+            initialAnchor:
+              0: 0.5
+              1: 0.5
+            placementSeed: 4113769415
+            placementStrategy: 'single-focal-subject'
+            relationCount: 0
+            relationIds:
+            sceneKind: 'generic'
+            schema: 'simulatte.constraintLayoutReceipt.v1'
+            solver: 'typed-spatial-constraints'
+            topology: 'specimen'
+          layoutRelationRoles:
+          material: 'matte'
+          partGraph:
+          physicalRef: ''
+          physicsOperators:
+          pose:
+            h: 0.07
+            rotation: 0
+            w: 0.08
+            x: 0.5
+            y: 0.5
+          poseHint: ~
+          properties:
+          reason: 'scene-compatible support retained only to seed a sparse visual graph'
+          role: 'primary'
+          semanticClass: ''
+          semanticRef: ''
+          shape: 'body'
+          shapeHints:
+          sourceGraphId: 'canvas'
+          sourceIds:
+            0: 'canvas'
+          sourceKind: 'compiled-object'
+          sourceLabel: 'empty 2d construction surface'
+          sourceObject: 'canvas'
+          stateBindings:
+          status: 'accepted'
+          supportOnly: true
+          visualArchetype: ''
+          visualRegime: 'generic'
+      fields:
+      geometry:
+        0:
+          confidence: 0.48
+          constraints:
+          entityId: 'canvas'
+          evidence:
+            0: 'compiled-object'
+            1: 'shape:body'
+            2: 'material:matte'
+            3: 'regime:generic'
+          graphicsAtomBindings: ~
+          id: 'geometry:canvas'
+          instancing:
+            count: 1
+            mode: 'single'
+          layout: 'anchored'
+          primitive: 'sectioned-surface'
+          reason: 'scene-compatible support retained only to seed a sparse visual graph'
+          scale: 'specified'
+          sourceGraphId: 'canvas'
+          sourceIds:
+            0: 'canvas'
+          sourceKind: 'compiled-object'
+          status: 'accepted'
+        1:
+          atomId: 'composition-topology-specimen'
+          confidence: 0.64
+          description: 'Graphics atom composition-topology-specimen'
+          entityId: 'graphics-atom:composition-topology-specimen'
+          evidence:
+            0: 'graphics-atom:composition-topology-specimen'
+            1: 'visual-dialect:generic/compiled-scene'
+            2: 'composition-topology:specimen'
+          id: 'geometry:atom:composition-topology-specimen'
+          label: 'Composition topology specimen'
+          order: 200
+          primitive: 'instrument-glyph'
+          reason: 'graphics atom geometry compiled from accepted VisualIR operator mapping'
+          sceneKind: 'generic'
+          status: 'accepted'
+      graphicsAtoms:
+        atlas: 'simulatte.visualOperatorAtlas.v1'
+        atlasId: 'simulatte-visual-operator-atlas-v1'
+        camera:
+        compiler: 'simulatte.visualOperatorCompiler.v1'
+        contextHash: 'fnv1a32:51cceffa'
+        fields:
+        geometry:
+          0:
+            category: 'geometry'
+            evidence:
+              0: 'visual-dialect:generic/compiled-scene'
+              1: 'composition-topology:specimen'
+            id: 'composition-topology-specimen'
+            label: 'Composition topology specimen'
+            sourceMappingIds:
+        languageSignals:
+        mappings:
+        materials:
+        motion:
+        processes:
+        receipts:
+        rejections:
+          0:
+            id: 'visual.operator.heat-transfer.v1'
+            matchedTerms:
+            reason: 'missing-executable-or-causal-evidence'
+            score: 0
+          1:
+            id: 'visual.operator.fluid-advection.v1'
+            matchedTerms:
+            reason: 'missing-executable-or-causal-evidence'
+            score: 0
+          2:
+            id: 'visual.operator.stress-fracture.v1'
+            matchedTerms:
+            reason: 'missing-executable-or-causal-evidence'
+            score: 0
+          3:
+            id: 'visual.operator.structural-stress.v1'
+            matchedTerms:
+            reason: 'missing-executable-or-causal-evidence'
+            score: 0
+          4:
+            id: 'visual.operator.control-feedback.v1'
+            matchedTerms:
+            reason: 'missing-executable-or-causal-evidence'
+            score: 0
+          5:
+            id: 'visual.operator.orbital-gravity.v1'
+            matchedTerms:
+            reason: 'missing-executable-or-causal-evidence'
+            score: 0
+          6:
+            id: 'visual.operator.electromagnetic-field.v1'
+            matchedTerms:
+            reason: 'missing-executable-or-causal-evidence'
+            score: 0
+          7:
+            id: 'visual.operator.optical-ray.v1'
+            matchedTerms:
+            reason: 'missing-executable-or-causal-evidence'
+            score: 0
+          8:
+            id: 'visual.operator.thin-film-interference.v1'
+            matchedTerms:
+            reason: 'missing-executable-or-causal-evidence'
+            score: 0
+          9:
+            id: 'visual.operator.quantum-phase-readout.v1'
+            matchedTerms:
+            reason: 'missing-executable-or-causal-evidence'
+            score: 0
+        schema: 'simulatte.graphicsAtomPlan.v1'
+        source: 'handwritten-operator-graphics-basis'
+        uniforms:
+          bySlot:
+            acoustic: 0
+            biological: 0
+            chemical: 0
+            combustion: 0
+            constraint: 0
+            density: 0
+            electromagnetic: 0
+            emission: 0
+            feedback: 0
+            fluid: 0
+            granular: 0
+            instrument: 0
+            measurement: 0
+            motion: 0
+            network: 0
+            optical: 0
+            orbital: 0
+            phase: 0
+            quantum: 0
+            robotic: 0
+            signal: 0
+            stress: 0
+            surface: 0
+            thermal: 0
+          order:
+            0: 'thermal'
+            1: 'fluid'
+            2: 'stress'
+            3: 'feedback'
+            4: 'orbital'
+            5: 'electromagnetic'
+            6: 'optical'
+            7: 'quantum'
+            8: 'acoustic'
+            9: 'biological'
+            10: 'chemical'
+            11: 'network'
+            12: 'granular'
+            13: 'instrument'
+            14: 'combustion'
+            15: 'phase'
+            16: 'robotic'
+            17: 'measurement'
+            18: 'motion'
+            19: 'density'
+            20: 'emission'
+            21: 'constraint'
+            22: 'signal'
+            23: 'surface'
+          schema: 'simulatte.graphicsAtomUniforms.v1'
+          values:
+            0: 0
+            1: 0
+            2: 0
+            3: 0
+            4: 0
+            5: 0
+            6: 0
+            7: 0
+            8: 0
+            9: 0
+            10: 0
+            11: 0
+            12: 0
+            13: 0
+            14: 0
+            15: 0
+            16: 0
+            17: 0
+            18: 0
+            19: 0
+            20: 0
+            21: 0
+            22: 0
+            23: 0
+        wgslOperators:
+      intentText: ''
+      interactionProgram:
+        actions:
+        bindings:
+        commandOrdering: ''
+        compiler: 'simulatte.phase6.scene-interaction.compiler.v1'
+        coordinateSystem: 'normalized-canvas'
+        mappings:
+        receipt:
+          mappedTargetCount: 0
+          phase: 6
+          schema: 'simulatte.sceneInteractionCompileReceipt.v1'
+          sourceTargetCount: 0
+          unmappedTargetIds:
+        schema: 'simulatte.sceneInteractionProgram.v1'
+        sourceProgramContentHash: ''
+        sourceProgramSchema: ''
+        targetCount: 0
+      lighting:
+        contrast: 0.72
+        keyHue: 156
+        model: 'soft-lab'
+        rimHue: 252
+        shadowHue: 12
+      materials:
+        0:
+          confidence: 0.48
+          emissive: false
+          evidence:
+            0: 'material:matte'
+            1: 'family:matte'
+          family: 'matte'
+          fill: '#b7b4aa'
+          id: 'matte'
+          opacity: 0.56
+          reason: 'material selected from accepted object canvas'
+          roughness: 0.56
+          shader: 'soft-lambert-fill'
+          sourceGraphId: 'canvas'
+          status: 'accepted'
+          stroke: '#66635c'
+      motion:
+        0:
+          confidence: 0.2
+          density: 24
+          grammar: 'bounded-state-pulses'
+          id: 'motion:state-pulse'
+          phase: 0
+          processId: 'process:coupled-state'
+          reason: 'fallback motion only; no accepted process motion was available'
+          speed: 0.28
+          status: 'rejected'
+      operators:
+        0:
+          id: 'camera-frame'
+          reason: 'sets explanatory view before drawing'
+          stage: 'camera'
+        1:
+          id: 'material-shaders'
+          reason: 'draws material-specific surface and volume cues'
+          stage: 'material'
+        2:
+          id: 'geometry-instances'
+          reason: 'places objects, agents, media, and instruments'
+          stage: 'geometry'
+        3:
+          id: 'field-overlays'
+          reason: 'renders scalar/vector fields as contours, rays, or graph pressure'
+          stage: 'field'
+        4:
+          id: 'process-motion'
+          reason: 'animates evolving physical processes'
+          stage: 'process'
+        5:
+          id: 'receipt-marks'
+          reason: 'adds minimal evidence ticks for why marks exist'
+          stage: 'receipt'
+        6:
+          id: 'visual-operator-atlas'
+          reason: 'composes reusable graphics atoms from grounded physical operators'
+          stage: 'operator-basis'
+      painterKind: 'generic'
+      processes:
+      receipts:
+        0:
+          acceptedCount: 1
+          count: 1
+          id: 'receipt:entities'
+          reason: '1 grounded visual entities compiled from graph objects'
+          rejectedSourceObjectCount: 0
+          sourceGraphIds:
+            0: 'canvas'
+        1:
+          acceptedCount: 1
+          count: 1
+          id: 'receipt:materials'
+          reason: '1 material shader rows selected from object materials and semantic plan'
+        2:
+          acceptedCount: 0
+          count: 0
+          id: 'receipt:fields'
+          reason: '0 visible field encodings compiled from PhysicsIR/render fields'
+        3:
+          acceptedCount: 0
+          count: 0
+          id: 'receipt:processes'
+          reason: '0 process motion grammars compiled from solver families'
+        4:
+          acceptedCount: 1
+          acceptedIds:
+            0: 'canvas'
+          count: 1
+          id: 'receipt:visual-object-acceptance'
+          reason: '1 accepted visual graph objects; 0 support objects rejected from visual evidence'
+          rejectedCount: 0
+          rejectedIds:
+        5:
+          acceptedCount: 2
+          count: 2
+          id: 'receipt:render-instances'
+          instanceIds:
+            0: 'instance:geometry:geometry-canvas'
+            1: 'instance:geometry:geometry-atom-composition-topology-specimen'
+          layerSlots:
+            0: 'material-surface'
+            1: 'detector-geometry'
+          reason: '2 explicit render instances compiled from accepted VisualIR rows'
+        6:
+          count: 7
+          id: 'receipt:operators'
+          reason: '7 low-level renderer operators scheduled'
+        7:
+          count: 0
+          id: 'receipt:recipe'
+          reason: 'no style recipe; VisualIR uses object and field structure'
+        8:
+          affordanceIds:
+          causalRelationIds:
+          count: 0
+          id: 'receipt:causal-affordances'
+          motionHints:
+          reason: '0 causal affordance rows compiled into visual program hints'
+          shaderHints:
+        9:
+          atlasId: 'simulatte-visual-operator-atlas-v1'
+          compiler: 'simulatte.visualOperatorCompiler.v1'
+          count: 1
+          fieldAtoms:
+          geometryAtoms:
+            0: 'composition-topology-specimen'
+          id: 'receipt:graphics-atoms'
+          languageSignalCount: 0
+          languageSignals:
+          mappingIds:
+          materialAtoms:
+          motionAtoms:
+          processAtoms:
+          reason: '1 reusable graphics atoms compiled from the visual operator atlas'
+          uniformSlots:
+          wgslOperators:
+        10:
+          id: 'receipt:composition-ledger'
+          lostCount: 0
+          lostIds:
+          obligationCount: 1
+          preservedCount: 1
+          schema: 'simulatte.phaseReceipt.v1'
+        11:
+          agentCount: 0
+          agentIds:
+          effectIds:
+          id: 'receipt:swimming-visual-obligations'
+          lowered: false
+          materialIds:
+          schema: 'simulatte.phaseReceipt.v1'
+          species:
+          wakeFieldIds:
+      rejectedRows:
+        0:
+          id: 'visual.operator.heat-transfer.v1'
+          reason: 'missing-executable-or-causal-evidence'
+          schema: 'simulatte.visualRejectedRow.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+        1:
+          id: 'visual.operator.fluid-advection.v1'
+          reason: 'missing-executable-or-causal-evidence'
+          schema: 'simulatte.visualRejectedRow.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+        2:
+          id: 'visual.operator.stress-fracture.v1'
+          reason: 'missing-executable-or-causal-evidence'
+          schema: 'simulatte.visualRejectedRow.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+        3:
+          id: 'visual.operator.structural-stress.v1'
+          reason: 'missing-executable-or-causal-evidence'
+          schema: 'simulatte.visualRejectedRow.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+        4:
+          id: 'visual.operator.control-feedback.v1'
+          reason: 'missing-executable-or-causal-evidence'
+          schema: 'simulatte.visualRejectedRow.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+        5:
+          id: 'visual.operator.orbital-gravity.v1'
+          reason: 'missing-executable-or-causal-evidence'
+          schema: 'simulatte.visualRejectedRow.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+        6:
+          id: 'visual.operator.electromagnetic-field.v1'
+          reason: 'missing-executable-or-causal-evidence'
+          schema: 'simulatte.visualRejectedRow.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+        7:
+          id: 'visual.operator.optical-ray.v1'
+          reason: 'missing-executable-or-causal-evidence'
+          schema: 'simulatte.visualRejectedRow.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+        8:
+          id: 'visual.operator.thin-film-interference.v1'
+          reason: 'missing-executable-or-causal-evidence'
+          schema: 'simulatte.visualRejectedRow.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+        9:
+          id: 'visual.operator.quantum-phase-readout.v1'
+          reason: 'missing-executable-or-causal-evidence'
+          schema: 'simulatte.visualRejectedRow.v1'
+          sourceKind: 'graphics-atom'
+          status: 'rejected'
+      renderInstances:
+        0:
+          animation:
+            affects:
+              0: 'canvas'
+            amplitude: 0.035
+            kind: 'state-pulse'
+            phase: 0.412
+            speed: 0.34
+            stateBinding: 'simulation-time'
+          collider:
+            bounds:
+              0: 0.46
+              1: 0.46499999999999997
+              2: 0.08
+              3: 0.07
+            kind: 'bounds'
+            pickId: 'canvas'
+            selectable: true
+          confidence: 0.48
+          drawOrder: 0
+          entityId: 'canvas'
+          evidence:
+            0: 'compiled-object'
+            1: 'shape:body'
+            2: 'material:matte'
+            3: 'regime:generic'
+            4: 'family:matte'
+          fieldId: ''
+          geometry:
+            bounds:
+              0: 0.46
+              1: 0.46499999999999997
+              2: 0.08
+              3: 0.07
+            constraints:
+            id: 'geometry:canvas'
+            instancing:
+              count: 1
+              mode: 'single'
+            kind: 'anchored'
+            primitive: 'sectioned-surface'
+          geometryId: 'geometry:canvas'
+          id: 'instance:geometry:geometry-canvas'
+          identity:
+            aliases:
+            category: 'surface'
+            directlyGrounded: false
+            label: 'structure'
+            material: 'matte'
+            physicalRef: ''
+            primitive: 'sectioned-surface'
+            renderClass: 'material-surface'
+            role: 'primary'
+            schema: 'simulatte.sceneEntityIdentity.v1'
+            semanticClass: ''
+            semanticRef: ''
+            sourceLabel: 'empty 2d construction surface'
+            type: 'structure'
+            visualArchetype: ''
+          layerSlot: 'material-surface'
+          material:
+            emissive: false
+            emissiveStrength: 0
+            fill: '#b7b4aa'
+            id: 'matte'
+            kind: 'matte'
+            metallic: 0
+            opacity: 0.56
+            roughness: 0.56
+            shader: 'soft-lambert-fill'
+            stroke: '#66635c'
+          materialId: 'matte'
+          primitive: 'sectioned-surface'
+          processId: ''
+          reason: 'scene-compatible support retained only to seed a sparse visual graph'
+          sceneKind: 'generic'
+          schema: 'simulatte.renderInstance.v1'
+          shader: 'soft-lambert-fill'
+          sourceGraphId: 'canvas'
+          sourceIds:
+            0: 'canvas'
+          status: 'accepted'
+          transform:
+            anchor:
+              0: 0.5
+              1: 0.5
+            position:
+              0: 0.5
+              1: 0.5
+              2: 0.193
+            rotation:
+              0: 0
+              1: 0
+              2: 0
+            scale:
+              0: 0.08
+              1: 0.07
+              2: 1
+          type: 'geometry'
+        1:
+          animation:
+            affects:
+            amplitude: 0.08
+            kind: 'particle-track'
+            phase: 0.412
+            speed: 0.74
+            stateBinding: 'simulation-time'
+          collider:
+            bounds:
+              0: 0.7105397006754158
+              1: 0.5493915996536127
+              2: 0.16
+              3: 0.12
+            kind: 'bounds'
+            pickId: 'graphics-atom:composition-topology-specimen'
+            selectable: true
+          confidence: 0.48
+          drawOrder: 200
+          entityId: 'graphics-atom:composition-topology-specimen'
+          evidence:
+            0: 'graphics-atom:composition-topology-specimen'
+            1: 'visual-dialect:generic/compiled-scene'
+            2: 'composition-topology:specimen'
+            3: 'material:matte'
+            4: 'family:matte'
+          fieldId: ''
+          geometry:
+            bounds:
+              0: 0.7105397006754158
+              1: 0.5493915996536127
+              2: 0.16
+              3: 0.12
+            constraints:
+            id: 'geometry:atom:composition-topology-specimen'
+            instancing: ~
+            kind: 'anchored'
+            primitive: 'instrument-glyph'
+          geometryId: 'geometry:atom:composition-topology-specimen'
+          id: 'instance:geometry:geometry-atom-composition-topology-specimen'
+          identity:
+            category: 'object'
+            label: 'object'
+            physicalRef: ''
+            primitive: 'instrument-glyph'
+            renderClass: 'detector-geometry'
+            schema: 'simulatte.sceneEntityIdentity.v1'
+            semanticRef: ''
+            type: 'object'
+          layerSlot: 'detector-geometry'
+          material:
+            emissive: false
+            emissiveStrength: 0
+            fill: '#b7b4aa'
+            id: 'matte'
+            kind: 'matte'
+            metallic: 0
+            opacity: 0.56
+            roughness: 0.56
+            shader: 'soft-lambert-fill'
+            stroke: '#66635c'
+          materialId: 'matte'
+          primitive: 'instrument-glyph'
+          processId: ''
+          reason: 'graphics atom geometry compiled from accepted VisualIR operator mapping'
+          sceneKind: 'generic'
+          schema: 'simulatte.renderInstance.v1'
+          shader: 'soft-lambert-fill'
+          sourceGraphId: 'graphics-atom:composition-topology-specimen'
+          sourceIds:
+            0: 'graphics-atom:composition-topology-specimen'
+          status: 'accepted'
+          transform:
+            anchor:
+              0: 0.5
+              1: 0.5
+            position:
+              0: 0.7905397006754158
+              1: 0.6093915996536128
+              2: 0.662
+            rotation:
+              0: 0
+              1: 0
+              2: 0.09503502403736
+            scale:
+              0: 0.16
+              1: 0.12
+              2: 1
+          type: 'geometry'
+      scale: 'bench'
+      scaleTier: 'human'
+      sceneKind: 'generic'
+      sceneRenderPacket:
+        camera:
+          archetype: 'instrument-panel'
+          atoms:
+          coordinateSystem: 'normalized-canvas'
+          depth: 'layered'
+          framing: 'explanatory-three-quarter'
+          mode: 'instrumented-lab-depth'
+          scale: 'bench'
+          scaleTier: 'human'
+        cameraArchetype: 'instrument-panel'
+        compiler: 'simulatte.visual-ir.scene-render-packet.compiler.v1'
+        compositionLedger:
+          currentPhase: 6
+          entries:
+          facts:
+            catMaterialIds:
+            dogMaterialIds:
+            genericEvidenceByObligation:
+            hasCat: false
+            hasDog: false
+            hasLake: false
+            hasSpeciesDistinct: false
+            hasSubmersion: false
+            hasSwimming: false
+            hasWake: false
+            hasWater: false
+            promptVisualSettlements:
+            submersionRows:
+            swimRows:
+            wakeRows:
+          losses:
+          obligations:
+            0:
+              id: 'visual:compiled-scene-packet'
+              kind: 'visual'
+              ownedByPhase: 6
+              phase: 6
+              required: true
+              status: 'preserved'
+              target: 'empty 2d construction surface'
+              visualEvidence:
+                0: 'phase6:render-instance:instance:geometry:geometry-canvas'
+          phaseDeltas:
+            0:
+              entryId: 'visual:compiled-scene-packet'
+              operation: 'preserved'
+              phase: 6
+              receiptId: 'phase6-visual-compile'
+          relations:
+          schema: 'simulatte.sceneCompositionLedger.v1'
+          sourcePhase: 3
+          summary:
+            failedCount: 0
+            loweredCount: 0
+            obligationCount: 1
+            preservedCount: 1
+          unsupported:
+        compositionTopology: 'specimen'
+        coordinateSystem:
+          bounds:
+            0: 0
+            1: 0
+            2: 1
+            3: 1
+          origin: 'top-left'
+          space: 'normalized-canvas'
+        effects:
+        entities:
+          0:
+            animation:
+              affects:
+                0: 'canvas'
+              amplitude: 0.035
+              kind: 'state-pulse'
+              phase: 0
+              speed: 0.34
+              stateBinding: 'simulation-time'
+            cardinality: 1
+            collider:
+              bounds:
+                0: 0.305
+                1: 0.3008599999999999
+                2: 0.39
+                3: 0.338
+              kind: 'bounds'
+              pickId: 'canvas'
+              selectable: true
+            confidence: 0.48
+            directlyGrounded: false
+            drawOrder: 0
+            evidence:
+              0: 'compiled-object'
+              1: 'shape:body'
+              2: 'material:matte'
+              3: 'regime:generic'
+              4: 'family:matte'
+            geometry:
+              bounds:
+                0: 0.305
+                1: 0.3008599999999999
+                2: 0.39
+                3: 0.338
+              constraints:
+              coverage:
+                grammarId: 'object-grammar.structure'
+                identityType: 'structure'
+                literal: false
+                minScale:
+                  0: 0.22
+                  1: 0.2
+                partCount: 3
+                partIds:
+                  0: 'body'
+                  1: 'support-left'
+                  2: 'support-right'
+                primitiveCount: 1
+                realized: false
+                schema: 'simulatte.objectGeometryCoverage.v1'
+              id: 'geometry:canvas'
+              instancing:
+                count: 1
+                mode: 'single'
+              kind: 'anchored'
+              primitive: 'sectioned-surface'
+              program:
+                constructionReceipt: ~
+                constructionSelectionReceipt:
+                  attempt: 0
+                  candidates:
+                    0:
+                      grammarId: 'object-grammar.structure'
+                      obligationScore: 0
+                      score: 0
+                      selectionRole: 'identity-catalog'
+                      status: 'selected'
+                      targetFitScore: 0
+                  rejectedGrammarIds:
+                  schema: 'simulatte.constructionSelectionReceipt.v3'
+                  searchExhausted: false
+                  seed: 0
+                  selectedGrammarId: 'object-grammar.structure'
+                  strategy: 'prompt-obligation-coverage'
+                grammarId: 'object-grammar.structure'
+                identityType: 'structure'
+                literal: false
+                minScale:
+                  0: 0.22
+                  1: 0.2
+                parts:
+                  0:
+                    center:
+                      0: 0
+                      1: 0
+                    fill: '#87929c'
+                    id: 'body'
+                    opacity: 1
+                    order: 0
+                    primitive: 'rounded-box'
+                    rotation: 0
+                    size:
+                      0: 0.88
+                      1: 0.78
+                    texture: ''
+                  1:
+                    center:
+                      0: -0.3
+                      1: 0.24
+                    fill: '#5d6872'
+                    id: 'support-left'
+                    opacity: 1
+                    order: 1
+                    primitive: 'rounded-box'
+                    rotation: 0
+                    size:
+                      0: 0.12
+                      1: 0.42
+                    texture: ''
+                  2:
+                    center:
+                      0: 0.3
+                      1: 0.24
+                    fill: '#5d6872'
+                    id: 'support-right'
+                    opacity: 1
+                    order: 2
+                    primitive: 'rounded-box'
+                    rotation: 0
+                    size:
+                      0: 0.12
+                      1: 0.42
+                    texture: ''
+                pose: ''
+                promptPropertyBindings:
+                schema: 'simulatte.objectGeometryProgram.v1'
+                selectionRole: 'identity-catalog'
+                source: 'phase6-data-owned-part-graph'
+                sourcePrimitive: 'sectioned-surface'
+                visualArchetype: 'structure'
+                zOrder: 8
+            id: 'canvas'
+            identity:
+              aliases:
+              category: 'surface'
+              directlyGrounded: false
+              label: 'structure'
+              material: 'matte'
+              physicalRef: ''
+              primitive: 'sectioned-surface'
+              renderClass: 'material-surface'
+              role: 'primary'
+              schema: 'simulatte.sceneEntityIdentity.v1'
+              semanticClass: ''
+              semanticRef: ''
+              sourceLabel: 'empty 2d construction surface'
+              type: 'structure'
+              visualArchetype: ''
+            label: 'structure'
+            layerSlot: 'material-surface'
+            layoutConstraints:
+            layoutReceipt:
+              initialAnchor:
+                0: 0.5
+                1: 0.5
+              placementSeed: 4113769415
+              placementStrategy: 'single-focal-subject'
+              relationCount: 0
+              relationIds:
+              sceneKind: 'generic'
+              schema: 'simulatte.constraintLayoutReceipt.v1'
+              solver: 'typed-spatial-constraints'
+              topology: 'specimen'
+            layoutRelationRoles:
+            material:
+              emissive: false
+              emissiveStrength: 0
+              fill: '#b7b4aa'
+              id: 'matte'
+              kind: 'matte'
+              metallic: 0
+              opacity: 0.56
+              roughness: 0.56
+              shader: 'soft-lambert-fill'
+              stroke: '#66635c'
+            physicalRef: ''
+            properties:
+            reason: 'scene-compatible support retained only to seed a sparse visual graph'
+            renderCodes:
+              animationCode: 57
+              categoryCode: 4
+              layerCode: 12
+              packetKindCode: 1
+              schema: 'simulatte.sceneRenderCodes.v1'
+              semanticCode: 13
+              variantCode: 0.59101
+            renderPriority: 12.96
+            representedEntityIds:
+              0: 'canvas'
+            schema: 'simulatte.sceneEntity.v1'
+            semanticRef: ''
+            sourceGraphId: 'canvas'
+            sourceIds:
+              0: 'canvas'
+            stateBindings:
+            supportOnly: true
+            transform:
+              anchor:
+                0: 0.5
+                1: 0.5
+              position:
+                0: 0.5
+                1: 0.46985999999999994
+                2: 0
+              rotation:
+                0: 0
+                1: 0
+                2: 0
+              scale:
+                0: 0.39
+                1: 0.338
+                2: 1
+            visualTraits:
+        environmentProgram: ~
+        fields:
+        interactionProgram:
+          actions:
+          bindings:
+          commandOrdering: ''
+          compiler: 'simulatte.phase6.scene-interaction.compiler.v1'
+          coordinateSystem: 'normalized-canvas'
+          mappings:
+          receipt:
+            mappedTargetCount: 0
+            phase: 6
+            schema: 'simulatte.sceneInteractionCompileReceipt.v1'
+            sourceTargetCount: 0
+            unmappedTargetIds:
+          schema: 'simulatte.sceneInteractionProgram.v1'
+          sourceProgramContentHash: ''
+          sourceProgramSchema: ''
+          targetCount: 0
+        lights:
+          0:
+            color:
+              0: 0.96
+              1: 0.96
+              2: 0.9
+            direction:
+              0: -0.36
+              1: -0.58
+              2: 0.72
+            id: 'key'
+            intensity: 0.86
+            kind: 'directional'
+          1:
+            color:
+              0: 0.28
+              1: 0.36
+              2: 0.44
+            id: 'fill'
+            intensity: 0.34
+            kind: 'ambient'
+        passes:
+          0: 'background'
+          1: 'entities'
+        receipts:
+          cameraArchetype: 'instrument-panel'
+          compositionLedger:
+            failedCount: 0
+            obligationCount: 1
+            preservedCount: 1
+            schema: 'simulatte.sceneCompositionLedger.v1'
+          compositionTopology: 'specimen'
+          effectCount: 0
+          entityCount: 1
+          fieldCount: 0
+          framing:
+            centerOffset: 0
+            entityCount: 1
+            framedBounds:
+              0: 0.3109
+              1: 0.32054
+              2: 0.3782
+              3: 0.31892
+            graspContacts:
+            method: 'group-bounds-fit'
+            minimumProjectedArea: 0.045
+            pass: true
+            projectedArea: 0.13182
+            readableCount: 1
+            scaleFactor: 2.6
+            schema: 'simulatte.sceneFramingReceipt.v1'
+            sourceBounds:
+              0: 0.4165
+              1: 0.4318
+              2: 0.167
+              3: 0.1442
+            surfaceContacts:
+            targetBounds:
+              0: 0.1
+              1: 0.12
+              2: 0.8
+              3: 0.72
+          interaction:
+            mappedTargetCount: 0
+            phase: 6
+            schema: 'simulatte.sceneInteractionCompileReceipt.v1'
+            sourceTargetCount: 0
+            unmappedTargetIds:
+          primaryArtifact: 'sceneRenderPacket'
+          renderCodeCount: 1
+          scaleTier: 'human'
+          source: 'visualIR.acceptedRows'
+          visualDialect: 'generic/compiled-scene'
+        scaleTier: 'human'
+        sceneKind: 'generic'
+        schema: 'simulatte.sceneRenderPacket.v1'
+        time:
+          stateBinding: 'simulation-time'
+          unit: 'seconds'
+        uniforms:
+          atmosphere:
+            boundedSlotCount: 16
+            compiler: 'phase6-scene-mix-atmosphere'
+            complexity: 'O(16)'
+            dominantSlot: 'ambient'
+            layerCount: 0
+            layers:
+            schema: 'simulatte.sceneAtmosphereProgram.v1'
+            source: 'sceneRenderPacket.uniforms.sceneMix'
+          atomUniforms:
+            0: 0
+            1: 0
+            2: 0
+            3: 0
+            4: 0
+            5: 0
+            6: 0
+            7: 0
+            8: 0
+            9: 0
+            10: 0
+            11: 0
+            12: 0
+            13: 0
+            14: 0
+            15: 0
+            16: 0
+            17: 0
+            18: 0
+            19: 0
+            20: 0
+            21: 0
+            22: 0
+            23: 0
+          compiler: 'simulatte.visual-ir.scene-render-packet.uniforms.v1'
+          palette:
+            0: 0.1201
+            1: 0.2511
+            2: 0.1987
+            3: 1
+            4: 0.3045
+            5: 0.8555
+            6: 0.6351
+            7: 1
+            8: 0.3365
+            9: 0.1623
+            10: 0.1187
+            11: 1
+            12: 0.4498
+            13: 0.3368
+            14: 0.9016
+            15: 1
+          phase: 6
+          sceneId: 3
+          sceneMix:
+            0: 0
+            1: 0
+            2: 0
+            3: 0
+            4: 0
+            5: 0
+            6: 0
+            7: 0
+            8: 0
+            9: 0
+            10: 0
+            11: 0
+            12: 0
+            13: 0
+            14: 0
+            15: 0
+          schema: 'simulatte.sceneRenderPacketUniforms.v1'
+          source: 'sceneRenderPacket.renderCodes'
+          visualLayers:
+            0: 0
+            1: 0
+            2: 0
+            3: 0
+            4: 0
+            5: 0
+            6: 0
+            7: 0
+            8: 0
+            9: 0
+            10: 0
+            11: 0.96
+            12: 0
+            13: 0
+            14: 0
+            15: 0
+            16: 0
+            17: 0
+            18: 0
+            19: 0
+            20: 0
+            21: 0
+            22: 0
+            23: 0
+        visualDialect: 'generic/compiled-scene'
+      schema: 'simulatte.visualIR.v1'
+      visualDialect: 'generic/compiled-scene'
+    sceneRenderPacket:
+      camera:
+        archetype: 'instrument-panel'
+        atoms:
+        coordinateSystem: 'normalized-canvas'
+        depth: 'layered'
+        framing: 'explanatory-three-quarter'
+        mode: 'instrumented-lab-depth'
+        scale: 'bench'
+        scaleTier: 'human'
+      cameraArchetype: 'instrument-panel'
+      compiler: 'simulatte.visual-ir.scene-render-packet.compiler.v1'
+      compositionLedger:
+        currentPhase: 6
+        entries:
+        facts:
+          catMaterialIds:
+          dogMaterialIds:
+          genericEvidenceByObligation:
+          hasCat: false
+          hasDog: false
+          hasLake: false
+          hasSpeciesDistinct: false
+          hasSubmersion: false
+          hasSwimming: false
+          hasWake: false
+          hasWater: false
+          promptVisualSettlements:
+          submersionRows:
+          swimRows:
+          wakeRows:
+        losses:
+        obligations:
+          0:
+            id: 'visual:compiled-scene-packet'
+            kind: 'visual'
+            ownedByPhase: 6
+            phase: 6
+            required: true
+            status: 'preserved'
+            target: 'empty 2d construction surface'
+            visualEvidence:
+              0: 'phase6:render-instance:instance:geometry:geometry-canvas'
+        phaseDeltas:
+          0:
+            entryId: 'visual:compiled-scene-packet'
+            operation: 'preserved'
+            phase: 6
+            receiptId: 'phase6-visual-compile'
+        relations:
+        schema: 'simulatte.sceneCompositionLedger.v1'
+        sourcePhase: 3
+        summary:
+          failedCount: 0
+          loweredCount: 0
+          obligationCount: 1
+          preservedCount: 1
+        unsupported:
+      compositionTopology: 'specimen'
+      coordinateSystem:
+        bounds:
+          0: 0
+          1: 0
+          2: 1
+          3: 1
+        origin: 'top-left'
+        space: 'normalized-canvas'
+      effects:
+      entities:
+        0:
+          animation:
+            affects:
+              0: 'canvas'
+            amplitude: 0.035
+            kind: 'state-pulse'
+            phase: 0
+            speed: 0.34
+            stateBinding: 'simulation-time'
+          cardinality: 1
+          collider:
+            bounds:
+              0: 0.305
+              1: 0.3008599999999999
+              2: 0.39
+              3: 0.338
+            kind: 'bounds'
+            pickId: 'canvas'
+            selectable: true
+          confidence: 0.48
+          directlyGrounded: false
+          drawOrder: 0
+          evidence:
+            0: 'compiled-object'
+            1: 'shape:body'
+            2: 'material:matte'
+            3: 'regime:generic'
+            4: 'family:matte'
+          geometry:
+            bounds:
+              0: 0.305
+              1: 0.3008599999999999
+              2: 0.39
+              3: 0.338
+            constraints:
+            coverage:
+              grammarId: 'object-grammar.structure'
+              identityType: 'structure'
+              literal: false
+              minScale:
+                0: 0.22
+                1: 0.2
+              partCount: 3
+              partIds:
+                0: 'body'
+                1: 'support-left'
+                2: 'support-right'
+              primitiveCount: 1
+              realized: false
+              schema: 'simulatte.objectGeometryCoverage.v1'
+            id: 'geometry:canvas'
+            instancing:
+              count: 1
+              mode: 'single'
+            kind: 'anchored'
+            primitive: 'sectioned-surface'
+            program:
+              constructionReceipt: ~
+              constructionSelectionReceipt:
+                attempt: 0
+                candidates:
+                  0:
+                    grammarId: 'object-grammar.structure'
+                    obligationScore: 0
+                    score: 0
+                    selectionRole: 'identity-catalog'
+                    status: 'selected'
+                    targetFitScore: 0
+                rejectedGrammarIds:
+                schema: 'simulatte.constructionSelectionReceipt.v3'
+                searchExhausted: false
+                seed: 0
+                selectedGrammarId: 'object-grammar.structure'
+                strategy: 'prompt-obligation-coverage'
+              grammarId: 'object-grammar.structure'
+              identityType: 'structure'
+              literal: false
+              minScale:
+                0: 0.22
+                1: 0.2
+              parts:
+                0:
+                  center:
+                    0: 0
+                    1: 0
+                  fill: '#87929c'
+                  id: 'body'
+                  opacity: 1
+                  order: 0
+                  primitive: 'rounded-box'
+                  rotation: 0
+                  size:
+                    0: 0.88
+                    1: 0.78
+                  texture: ''
+                1:
+                  center:
+                    0: -0.3
+                    1: 0.24
+                  fill: '#5d6872'
+                  id: 'support-left'
+                  opacity: 1
+                  order: 1
+                  primitive: 'rounded-box'
+                  rotation: 0
+                  size:
+                    0: 0.12
+                    1: 0.42
+                  texture: ''
+                2:
+                  center:
+                    0: 0.3
+                    1: 0.24
+                  fill: '#5d6872'
+                  id: 'support-right'
+                  opacity: 1
+                  order: 2
+                  primitive: 'rounded-box'
+                  rotation: 0
+                  size:
+                    0: 0.12
+                    1: 0.42
+                  texture: ''
+              pose: ''
+              promptPropertyBindings:
+              schema: 'simulatte.objectGeometryProgram.v1'
+              selectionRole: 'identity-catalog'
+              source: 'phase6-data-owned-part-graph'
+              sourcePrimitive: 'sectioned-surface'
+              visualArchetype: 'structure'
+              zOrder: 8
+          id: 'canvas'
+          identity:
+            aliases:
+            category: 'surface'
+            directlyGrounded: false
+            label: 'structure'
+            material: 'matte'
+            physicalRef: ''
+            primitive: 'sectioned-surface'
+            renderClass: 'material-surface'
+            role: 'primary'
+            schema: 'simulatte.sceneEntityIdentity.v1'
+            semanticClass: ''
+            semanticRef: ''
+            sourceLabel: 'empty 2d construction surface'
+            type: 'structure'
+            visualArchetype: ''
+          label: 'structure'
+          layerSlot: 'material-surface'
+          layoutConstraints:
+          layoutReceipt:
+            initialAnchor:
+              0: 0.5
+              1: 0.5
+            placementSeed: 4113769415
+            placementStrategy: 'single-focal-subject'
+            relationCount: 0
+            relationIds:
+            sceneKind: 'generic'
+            schema: 'simulatte.constraintLayoutReceipt.v1'
+            solver: 'typed-spatial-constraints'
+            topology: 'specimen'
+          layoutRelationRoles:
+          material:
+            emissive: false
+            emissiveStrength: 0
+            fill: '#b7b4aa'
+            id: 'matte'
+            kind: 'matte'
+            metallic: 0
+            opacity: 0.56
+            roughness: 0.56
+            shader: 'soft-lambert-fill'
+            stroke: '#66635c'
+          physicalRef: ''
+          properties:
+          reason: 'scene-compatible support retained only to seed a sparse visual graph'
+          renderCodes:
+            animationCode: 57
+            categoryCode: 4
+            layerCode: 12
+            packetKindCode: 1
+            schema: 'simulatte.sceneRenderCodes.v1'
+            semanticCode: 13
+            variantCode: 0.59101
+          renderPriority: 12.96
+          representedEntityIds:
+            0: 'canvas'
+          schema: 'simulatte.sceneEntity.v1'
+          semanticRef: ''
+          sourceGraphId: 'canvas'
+          sourceIds:
+            0: 'canvas'
+          stateBindings:
+          supportOnly: true
+          transform:
+            anchor:
+              0: 0.5
+              1: 0.5
+            position:
+              0: 0.5
+              1: 0.46985999999999994
+              2: 0
+            rotation:
+              0: 0
+              1: 0
+              2: 0
+            scale:
+              0: 0.39
+              1: 0.338
+              2: 1
+          visualTraits:
+      environmentProgram: ~
+      fields:
+      interactionProgram:
+        actions:
+        bindings:
+        commandOrdering: ''
+        compiler: 'simulatte.phase6.scene-interaction.compiler.v1'
+        coordinateSystem: 'normalized-canvas'
+        mappings:
+        receipt:
+          mappedTargetCount: 0
+          phase: 6
+          schema: 'simulatte.sceneInteractionCompileReceipt.v1'
+          sourceTargetCount: 0
+          unmappedTargetIds:
+        schema: 'simulatte.sceneInteractionProgram.v1'
+        sourceProgramContentHash: ''
+        sourceProgramSchema: ''
+        targetCount: 0
+      lights:
+        0:
+          color:
+            0: 0.96
+            1: 0.96
+            2: 0.9
+          direction:
+            0: -0.36
+            1: -0.58
+            2: 0.72
+          id: 'key'
+          intensity: 0.86
+          kind: 'directional'
+        1:
+          color:
+            0: 0.28
+            1: 0.36
+            2: 0.44
+          id: 'fill'
+          intensity: 0.34
+          kind: 'ambient'
+      passes:
+        0: 'background'
+        1: 'entities'
+      receipts:
+        cameraArchetype: 'instrument-panel'
+        compositionLedger:
+          failedCount: 0
+          obligationCount: 1
+          preservedCount: 1
+          schema: 'simulatte.sceneCompositionLedger.v1'
+        compositionTopology: 'specimen'
+        effectCount: 0
+        entityCount: 1
+        fieldCount: 0
+        framing:
+          centerOffset: 0
+          entityCount: 1
+          framedBounds:
+            0: 0.3109
+            1: 0.32054
+            2: 0.3782
+            3: 0.31892
+          graspContacts:
+          method: 'group-bounds-fit'
+          minimumProjectedArea: 0.045
+          pass: true
+          projectedArea: 0.13182
+          readableCount: 1
+          scaleFactor: 2.6
+          schema: 'simulatte.sceneFramingReceipt.v1'
+          sourceBounds:
+            0: 0.4165
+            1: 0.4318
+            2: 0.167
+            3: 0.1442
+          surfaceContacts:
+          targetBounds:
+            0: 0.1
+            1: 0.12
+            2: 0.8
+            3: 0.72
+        interaction:
+          mappedTargetCount: 0
+          phase: 6
+          schema: 'simulatte.sceneInteractionCompileReceipt.v1'
+          sourceTargetCount: 0
+          unmappedTargetIds:
+        primaryArtifact: 'sceneRenderPacket'
+        renderCodeCount: 1
+        scaleTier: 'human'
+        source: 'visualIR.acceptedRows'
+        visualDialect: 'generic/compiled-scene'
+      scaleTier: 'human'
+      sceneKind: 'generic'
+      schema: 'simulatte.sceneRenderPacket.v1'
+      time:
+        stateBinding: 'simulation-time'
+        unit: 'seconds'
+      uniforms:
+        atmosphere:
+          boundedSlotCount: 16
+          compiler: 'phase6-scene-mix-atmosphere'
+          complexity: 'O(16)'
+          dominantSlot: 'ambient'
+          layerCount: 0
+          layers:
+          schema: 'simulatte.sceneAtmosphereProgram.v1'
+          source: 'sceneRenderPacket.uniforms.sceneMix'
+        atomUniforms:
+          0: 0
+          1: 0
+          2: 0
+          3: 0
+          4: 0
+          5: 0
+          6: 0
+          7: 0
+          8: 0
+          9: 0
+          10: 0
+          11: 0
+          12: 0
+          13: 0
+          14: 0
+          15: 0
+          16: 0
+          17: 0
+          18: 0
+          19: 0
+          20: 0
+          21: 0
+          22: 0
+          23: 0
+        compiler: 'simulatte.visual-ir.scene-render-packet.uniforms.v1'
+        palette:
+          0: 0.1201
+          1: 0.2511
+          2: 0.1987
+          3: 1
+          4: 0.3045
+          5: 0.8555
+          6: 0.6351
+          7: 1
+          8: 0.3365
+          9: 0.1623
+          10: 0.1187
+          11: 1
+          12: 0.4498
+          13: 0.3368
+          14: 0.9016
+          15: 1
+        phase: 6
+        sceneId: 3
+        sceneMix:
+          0: 0
+          1: 0
+          2: 0
+          3: 0
+          4: 0
+          5: 0
+          6: 0
+          7: 0
+          8: 0
+          9: 0
+          10: 0
+          11: 0
+          12: 0
+          13: 0
+          14: 0
+          15: 0
+        schema: 'simulatte.sceneRenderPacketUniforms.v1'
+        source: 'sceneRenderPacket.renderCodes'
+        visualLayers:
+          0: 0
+          1: 0
+          2: 0
+          3: 0
+          4: 0
+          5: 0
+          6: 0
+          7: 0
+          8: 0
+          9: 0
+          10: 0
+          11: 0.96
+          12: 0
+          13: 0
+          14: 0
+          15: 0
+          16: 0
+          17: 0
+          18: 0
+          19: 0
+          20: 0
+          21: 0
+          22: 0
+          23: 0
+      visualDialect: 'generic/compiled-scene'
+    rendererPlan:
+      dominantRegime: 'generic'
+      passOrder:
+        0: 'clear'
+        1: 'world-field'
+        2: 'solver-overlay'
+        3: 'objects'
+        4: 'emissions'
+      renderer: 'simulatte.regime.generic.v1'
+      sceneKind: 'generic'
+      schema: 'simulatte.rendererPlan.v1'
+      visualGenome:
+        cameraArchetype: 'instrument-panel'
+        compositionTopology: 'specimen'
+        dialect:
+          geometryGrammar: 'compiled-object-silhouettes'
+          layoutGrammar: 'specimen'
+          motionGrammar: 'compiled-process-motion'
+          paletteAnchor: 'generic'
+        evidence:
+          candidateScores:
+          fieldIds:
+          matchedTerms:
+          objectIds:
+          schema: 'simulatte.visualDialectEvidence.v1'
+          semanticRows:
+          solverSteps:
+          sourceMode: 'compiled-support-objects'
+        fieldSignature: 2166136261
+        id: 'vg_cou0lx'
+        morphology:
+          asymmetry: 0.242
+          bandCount: 6
+          fieldComplexity: 5
+          flowCurl: 0.192
+          grain: 0.267
+          layoutMode: 'specimen'
+          objectScale: 0.897
+          particleDensity: 40
+          strokeWeight: 2.316
+          textureKind: 'cutaway-lines'
+        motifs:
+        objectSignature: 2166136261
+        palette:
+          accentHue: 252
+          contrast: 0.72
+          hue: 156
+          lightness: 0.58
+          shadowHue: 12
+          warmth: 0.42
+        scaleTier: 'human'
+        sceneKind: 'generic'
+        schema: 'simulatte.visualGenome.v1'
+        seed: 767305365
+        semanticVisuals:
+          archetypes:
+          atlas: 'simulatte.semanticVisualAtlas.v1'
+          materials:
+          overlays:
+          processes:
+          quality:
+            addressableTokens: 0
+            coverage: 1
+            layerCount: 0
+            matchedTokens: 0
+            semanticTokens: 0
+            unmatchedTokens:
+          sceneKind: 'generic'
+          schema: 'simulatte.semanticVisualPlan.v1'
+          signature: 1372385274
+        source: 'compiled-artifact-seeded-procedural'
+        sourceHash: 1372385274
+        stochastic:
+          dimensions:
+            0: 'semantic-atlas'
+            1: 'semantic-archetype'
+            2: 'material-shader'
+            3: 'process-overlay'
+            4: 'ngram-dna'
+            5: 'texture'
+            6: 'motif'
+            7: 'field-density'
+          mode: 'deterministic-compiled-artifact-seeded'
+          sampler: 'hash-noise'
+        tokens:
+        visualDialect: 'generic/compiled-scene'
+        visualDna:
+          catalog: 'simulatte.proceduralVisualBase.v1'
+          densityBias: 1.486
+          hash: 2936231382
+          laneBias: 4
+          ngramCount: 1
+          ngrams:
+            0:
+              hash: 2092129348
+              hue: 148
+              index: 0
+              lane: 1
+              mark: 4
+              n: 1
+              text: 'blank'
+              weight: 0.979
+          paletteShift: 33
+          schema: 'simulatte.compiledVisualDna.v1'
+          tokenCount: 1
+      visualIdentity:
+        cameraArchetype: 'instrument-panel'
+        compositionTopology: 'specimen'
+        dominantRegime: 'generic'
+        fieldKinds:
+        materialSignature: 'matte'
+        motifs:
+        objectCount: 1
+        scaleTier: 'human'
+        sceneKind: 'generic'
+        schema: 'simulatte.visualIdentity.v1'
+        shapeSignature: 'body'
+        solverFamilies:
+        visualDialect: 'generic/compiled-scene'
+        visualGenomeId: 'vg_cou0lx'
+        visualGenomeSeed: 767305365
+      visualObjectLedger:
+        acceptedCount: 1
+        acceptedIds:
+          0: 'canvas'
+        promptGroundedCount: 0
+        rejectedCount: 0
+        rejectedIds:
+        rows:
+          0:
+            confidence: 0.48
+            id: 'canvas'
+            phrase: 'empty 2d construction surface'
+            promptGrounded: false
+            reason: 'scene-compatible support retained only to seed a sparse visual graph'
+            sceneKind: 'generic'
+            schema: 'simulatte.visualObjectAcceptance.v1'
+            sourceGraphId: 'canvas'
+            sourceIds:
+              0: 'canvas'
+            sourceKind: 'compiled-object'
+            status: 'accepted'
+            supportOnly: true
+        sceneKind: 'generic'
+        schema: 'simulatte.visualObjectAcceptanceLedger.v1'
+      visualRecipe: ~
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:40:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: actual runner outputs project a WorldSpec without changing accepted bindings
+not ok 4 - actual runner outputs project a WorldSpec without changing accepted bindings
+  ---
+  duration_ms: 2117.52424
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:47:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fnv1a32:7482c48e'
+    - 'fnv1a32:31f5e036'
+               ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'fnv1a32:31f5e036'
+  actual: 'fnv1a32:7482c48e'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:75:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 2
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4161.985657

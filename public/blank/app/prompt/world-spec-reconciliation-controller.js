@@ -77,12 +77,13 @@
       if (!pending) return null;
       const active = pending;
       try {
-        const result = reconciliation.applyDecision(
+        const accepted = reconciliation.applyDecision(
           active.authoredSpec,
           active.compiledSpec,
           decision,
           { planId: active.plan.id, decidedBy: String(options.decidedBy || 'local-user') }
         );
+        const result = prepareReconciledExecution(accepted, options.compileWorldSpec);
         latestReceipt = result.receipt;
         dialog.dataset.receipt = JSON.stringify(result.receipt);
         finish(active, result, decision);
@@ -165,5 +166,17 @@
     })[status] || String(status || 'unknown');
   }
 
-  return Object.freeze({ connect, statusLabel });
+  function prepareReconciledExecution(result, compileWorldSpec) {
+    if (result.receipt.decision !== 'preserve-overrides' || typeof compileWorldSpec !== 'function') return result;
+    const worldSpec = compileWorldSpec(result.worldSpec);
+    if (!worldSpec || typeof worldSpec.then === 'function' || !worldSpec.contentHash || !worldSpec.phaseArtifacts?.phase6) {
+      throw new Error('Preserved WorldSpec requires synchronous compiled execution artifacts');
+    }
+    return Object.freeze({ worldSpec, receipt: Object.freeze({ ...result.receipt,
+      authoredResultWorldSpecContentHash: result.worldSpec.contentHash,
+      resultWorldSpecContentHash: worldSpec.contentHash,
+    }) });
+  }
+
+  return Object.freeze({ connect, statusLabel, prepareReconciledExecution });
 });

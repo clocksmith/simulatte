@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: deterministic structured intent receipts its implementation without claiming model execution
+ok 1 - deterministic structured intent receipts its implementation without claiming model execution
+  ---
+  duration_ms: 152.15404
+  type: 'test'
+  ...
+# Subtest: causal endpoints prefer direct prompt concepts over retrieved analog support
+ok 2 - causal endpoints prefer direct prompt concepts over retrieved analog support
+  ---
+  duration_ms: 35.04889
+  type: 'test'
+  ...
+# Subtest: intent forensics emits retrieval-grounded causal brief
+ok 3 - intent forensics emits retrieval-grounded causal brief
+  ---
+  duration_ms: 116.951462
+  type: 'test'
+  ...
+# Subtest: intent forensics grounds sparse prompts into explicit semantic roles
+ok 4 - intent forensics grounds sparse prompts into explicit semantic roles
+  ---
+  duration_ms: 43.065254
+  type: 'test'
+  ...
+# Subtest: compiled prompt carries intent brief into PhysicsIR and VisualIR receipts
+ok 5 - compiled prompt carries intent brief into PhysicsIR and VisualIR receipts
+  ---
+  duration_ms: 1546.054362
+  type: 'test'
+  ...
+# Subtest: unsupported intent records negative knowledge and degradation
+ok 6 - unsupported intent records negative knowledge and degradation
+  ---
+  duration_ms: 33.838667
+  type: 'test'
+  ...
+# Subtest: runtime ingress and Phase 2 retain original whitespace and UTF-16 source coordinates
+ok 7 - runtime ingress and Phase 2 retain original whitespace and UTF-16 source coordinates
+  ---
+  duration_ms: 51.325717
+  type: 'test'
+  ...
+# Subtest: normalized evidence retains source spans across tabs, newlines, Unicode and repeated mentions
+ok 8 - normalized evidence retains source spans across tabs, newlines, Unicode and repeated mentions
+  ---
+  duration_ms: 8.280223
+  type: 'test'
+  ...
+# Subtest: normalization is reversible using retained verbatim segments and original source
+ok 9 - normalization is reversible using retained verbatim segments and original source
+  ---
+  duration_ms: 1.589059
+  type: 'test'
+  ...
+# Subtest: directed spatial phrases preserve both nouns, colors, and argument order
+ok 10 - directed spatial phrases preserve both nouns, colors, and argument order
+  ---
+  duration_ms: 3640.625751
+  type: 'test'
+  ...
+# Subtest: part cardinality changes one owner geometry, without creating extra owners
+ok 11 - part cardinality changes one owner geometry, without creating extra owners
+  ---
+  duration_ms: 2400.776917
+  type: 'test'
+  ...
+# Subtest: repeated nouns keep separate source spans, construction identities, and colors
+ok 12 - repeated nouns keep separate source spans, construction identities, and colors
+  ---
+  duration_ms: 559.199464
+  type: 'test'
+  ...
+# Subtest: an unspecified machine does not acquire a rotor or executable mechanics from its noun
+ok 13 - an unspecified machine does not acquire a rotor or executable mechanics from its noun
+  ---
+  duration_ms: 1919.12149
+  type: 'test'
+  ...
+# Subtest: part ownership paraphrases change the same owner and preserve unrelated objects
+ok 14 - part ownership paraphrases change the same owner and preserve unrelated objects
+  ---
+  duration_ms: 2107.339054
+  type: 'test'
+  ...
+# Subtest: directed motion preserves distinct counted instances and their formation offsets
+ok 15 - directed motion preserves distinct counted instances and their formation offsets
+  ---
+  duration_ms: 593.113155
+  type: 'test'
+  ...
+# Subtest: novel nouns remain required and unknown actions request retrieval
+ok 16 - novel nouns remain required and unknown actions request retrieval
+  ---
+  duration_ms: 1101.455463
+  type: 'test'
+  ...
+# Subtest: qualifying observables and materials do not become spurious actions
+ok 17 - qualifying observables and materials do not become spurious actions
+  ---
+  duration_ms: 5.959471
+  type: 'test'
+  ...
+# Subtest: verb inflections preserve thermal semantics without substring action matches
+ok 18 - verb inflections preserve thermal semantics without substring action matches
+  ---
+  duration_ms: 4292.158609
+  type: 'test'
+  ...
+# Subtest: pursuit and avoidance compile the declared subject and target
+ok 19 - pursuit and avoidance compile the declared subject and target
+  ---
+  duration_ms: 2382.331498
+  type: 'test'
+  ...
+# Subtest: directed motion responds to target changes, respects speed, and rejects invalid state
+ok 20 - directed motion responds to target changes, respects speed, and rejects invalid state
+  ---
+  duration_ms: 1.783522
+  type: 'test'
+  ...
+# Subtest: slot-bound semantic candidates survive vocabulary differences and reject wrong bindings
+ok 21 - slot-bound semantic candidates survive vocabulary differences and reject wrong bindings
+  ---
+  duration_ms: 0.36965
+  type: 'test'
+  ...
+# Subtest: retrieval retains required slots beyond a single embedding batch
+ok 22 - retrieval retains required slots beyond a single embedding batch
+  ---
+  duration_ms: 0.222925
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19480.530763

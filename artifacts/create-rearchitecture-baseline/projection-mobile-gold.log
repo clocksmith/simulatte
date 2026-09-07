@@ -1,0 +1,655 @@
+
+> audit:blank:gold:mobile
+> node tools/audit-intent-scene-screenshots.mjs --curated 0 --broad 0 --four 0 --eighty 0 --gold-set tools/samer/simulatte-public-gold-v1.json --machine-only-gold --exact-replay --intent-mode local --width 390 --height 844 --out artifacts/blank-gold-mobile
+
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"runtime-wait","elapsedMs":1}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"intent-compile","elapsedMs":16}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"scene-proof","elapsedMs":1485}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"exact-replay","elapsedMs":2136}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"diagnostics","elapsedMs":2829}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"viewport-screenshot","elapsedMs":2845}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"temporal-canvas-capture","elapsedMs":2925}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"frozen-canvas-capture","elapsedMs":3729}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"analyze","elapsedMs":4340}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"complete","elapsedMs":4345}
+1/8 gold 7b3f619f planetary-space
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"runtime-wait","elapsedMs":1}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"intent-compile","elapsedMs":7}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"scene-proof","elapsedMs":1340}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"exact-replay","elapsedMs":1993}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"diagnostics","elapsedMs":2708}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"viewport-screenshot","elapsedMs":2727}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"temporal-canvas-capture","elapsedMs":2805}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"frozen-canvas-capture","elapsedMs":3583}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"analyze","elapsedMs":4191}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"complete","elapsedMs":4195}
+2/8 gold bac0fee3 mechanical
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"runtime-wait","elapsedMs":1}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"intent-compile","elapsedMs":4}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"scene-proof","elapsedMs":1535}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"exact-replay","elapsedMs":2187}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"diagnostics","elapsedMs":3217}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"viewport-screenshot","elapsedMs":3244}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"temporal-canvas-capture","elapsedMs":3317}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"frozen-canvas-capture","elapsedMs":4074}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"analyze","elapsedMs":4697}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"complete","elapsedMs":4700}
+3/8 gold d9e3daed biology
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"runtime-wait","elapsedMs":6}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"intent-compile","elapsedMs":9}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"scene-proof","elapsedMs":1303}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"exact-replay","elapsedMs":1955}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"diagnostics","elapsedMs":3035}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"viewport-screenshot","elapsedMs":3055}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"temporal-canvas-capture","elapsedMs":3130}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"frozen-canvas-capture","elapsedMs":3915}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"analyze","elapsedMs":4511}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"complete","elapsedMs":4514}
+4/8 gold a934ffeb biology
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"runtime-wait","elapsedMs":2}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"intent-compile","elapsedMs":5}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"scene-proof","elapsedMs":1397}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"exact-replay","elapsedMs":2048}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"diagnostics","elapsedMs":3148}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"viewport-screenshot","elapsedMs":3172}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"temporal-canvas-capture","elapsedMs":3248}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"frozen-canvas-capture","elapsedMs":4039}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"analyze","elapsedMs":4639}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"complete","elapsedMs":4643}
+5/8 gold 46695b9f biology
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"runtime-wait","elapsedMs":3}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"intent-compile","elapsedMs":7}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"scene-proof","elapsedMs":1572}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"exact-replay","elapsedMs":2224}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"diagnostics","elapsedMs":3398}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"viewport-screenshot","elapsedMs":3426}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"temporal-canvas-capture","elapsedMs":3509}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"frozen-canvas-capture","elapsedMs":4297}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"analyze","elapsedMs":4938}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"complete","elapsedMs":4940}
+6/8 gold 769d1270 acoustic
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"runtime-wait","elapsedMs":1}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"intent-compile","elapsedMs":7}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"scene-proof","elapsedMs":1416}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"exact-replay","elapsedMs":2068}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"diagnostics","elapsedMs":3040}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"viewport-screenshot","elapsedMs":3071}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"temporal-canvas-capture","elapsedMs":3153}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"frozen-canvas-capture","elapsedMs":3932}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"analyze","elapsedMs":4543}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"complete","elapsedMs":4546}
+7/8 gold 401d079f mechanical
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"runtime-wait","elapsedMs":1}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"intent-compile","elapsedMs":8}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"scene-proof","elapsedMs":1316}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"exact-replay","elapsedMs":1968}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"diagnostics","elapsedMs":3158}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"viewport-screenshot","elapsedMs":3184}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"temporal-canvas-capture","elapsedMs":3250}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"frozen-canvas-capture","elapsedMs":4035}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"analyze","elapsedMs":4634}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"complete","elapsedMs":4638}
+8/8 gold 1ff25d5e biology
+{
+  "outDir": "/home/clocksmith/deco/simulatte/artifacts/blank-gold-mobile",
+  "ok": true,
+  "failures": [],
+  "promptCount": 8,
+  "screenshotCount": 8,
+  "uniqueCanvasHashes": 8,
+  "uniqueScreenshotHashes": 8,
+  "uniqueCanvasPerceptualHashes": 8,
+  "minCanvasPerceptualHashDistance": {
+    "left": 7,
+    "right": 8,
+    "bits": 6,
+    "distance": 0.0938
+  },
+  "uniqueCanvasDiversityPerceptualHashes": 8,
+  "minCanvasDiversityPerceptualHashDistance": {
+    "left": 4,
+    "right": 8,
+    "bits": 2,
+    "distance": 0.0313
+  },
+  "perceptualHashCalibration": {
+    "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+    "hashKind": "audit:visual-clean-canvas-dhash-64",
+    "hashBits": 64,
+    "promptCount": 8,
+    "usablePromptCount": 8,
+    "bitMargin": 1,
+    "maxTemporalBits": 0,
+    "maxTemporalDistance": 0,
+    "minPairwiseBits": 2,
+    "minPairwiseDistance": 0.0313,
+    "closestPair": {
+      "left": 4,
+      "right": 8
+    },
+    "recommendedHashFloorBits": 1,
+    "recommendedHashFloor": 0.0156,
+    "calibrated": true
+  },
+  "sceneKinds": [
+    "acoustic",
+    "biology",
+    "mechanical",
+    "planetary-space"
+  ],
+  "visualIRSceneKinds": [
+    "acoustic",
+    "biology",
+    "mechanical",
+    "planetary-space"
+  ],
+  "visualIRCameras": [
+    "aerial-map-depth",
+    "dynamic-motion-depth",
+    "grounded-perspective-depth",
+    "instrumented-lab-depth"
+  ],
+  "graphicsAtoms": {
+    "totalAtoms": 43,
+    "mappingIds": [],
+    "uniformSlots": [],
+    "wgslOperators": []
+  },
+  "visualRubric": {
+    "scope": "machine-structural-and-pixel-presence",
+    "recognizabilityStatus": "human-adjudication-required",
+    "averageScore": 92,
+    "passCount": 8,
+    "failCount": 0,
+    "expectedSignals": [],
+    "missingSignals": [],
+    "dynamicFailures": [],
+    "representationFailures": [],
+    "averageRepresentationQuality": 0.911
+  },
+  "intentBriefs": {
+    "totalEvidence": 594,
+    "totalCausalEdges": 0,
+    "totalAffordances": 0,
+    "totalDegraded": 0
+  },
+  "physicalReceipts": {
+    "totalIntentEvidence": 137,
+    "totalCausalEdges": 0,
+    "totalCausalAffordances": 0,
+    "totalAssumptions": 0,
+    "totalUnsupported": 0,
+    "totalDegraded": 0
+  },
+  "causalRequirements": {
+    "promptCount": 0,
+    "promptsMissingAffordances": []
+  },
+  "templateIds": [
+    "custom-world"
+  ],
+  "goldEvaluation": {
+    "schema": "simulatte.goldVisualEvaluation.v1",
+    "goldSetId": "simulatte-public-gold-v1",
+    "promptCount": 8,
+    "status": "not-proven",
+    "machinePassCount": 8,
+    "humanPassCount": 0,
+    "passCount": 0,
+    "machinePassRate": 1,
+    "humanPassRate": 0,
+    "gatedPassRate": 0,
+    "pass": false,
+    "governingMetric": {
+      "schema": "simulatte.promptGoldGoverningMetric.v1",
+      "difficulties": [
+        "easy",
+        "medium",
+        "hard"
+      ],
+      "minimumRowsPerDifficulty": 2,
+      "exactReplayRequired": true,
+      "maximumAuditDurationMs": 12000,
+      "maximumObservedJsHeapBytes": 536870912,
+      "maximumUnexpectedEntityCount": 0,
+      "maximumReportedUnsupportedCount": 0,
+      "measures": [
+        "requirement-extraction-recall",
+        "critical-entity-relation-pose-and-property-settlement",
+        "negation-preservation",
+        "close-semantic-distractor-separation",
+        "unsupported-invention",
+        "canonical-world-spec-and-world-proof-binding",
+        "compiler-and-simulation-replay",
+        "browser-audit-latency",
+        "browser-js-heap-memory"
+      ],
+      "doesNotMeasure": [
+        "refusal-correctness",
+        "human-recognizability-without-current-adjudication",
+        "physical-gpu-allocation-memory"
+      ],
+      "everyCriticalPromptMustPass": true,
+      "difficultySummaries": [
+        {
+          "difficulty": "easy",
+          "promptCount": 3,
+          "machinePassCount": 3,
+          "humanPassCount": 0,
+          "passCount": 0,
+          "machinePassRate": 1,
+          "humanPassRate": 0,
+          "gatedPassRate": 0,
+          "pass": false
+        },
+        {
+          "difficulty": "medium",
+          "promptCount": 3,
+          "machinePassCount": 3,
+          "humanPassCount": 0,
+          "passCount": 0,
+          "machinePassRate": 1,
+          "humanPassRate": 0,
+          "gatedPassRate": 0,
+          "pass": false
+        },
+        {
+          "difficulty": "hard",
+          "promptCount": 2,
+          "machinePassCount": 2,
+          "humanPassCount": 0,
+          "passCount": 0,
+          "machinePassRate": 1,
+          "humanPassRate": 0,
+          "gatedPassRate": 0,
+          "pass": false
+        }
+      ]
+    },
+    "rows": [
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "cats-in-galaxy",
+        "prompt": "5 cats in a galaxy",
+        "difficulty": "medium",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:e0f1ad6c",
+              "sourcePromptHash": "fnv1a32:94067469"
+            },
+            "auditDurationMs": 4345,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 12595174,
+              "finalUsedJsHeapBytes": 18452168,
+              "retainedDeltaBytes": 5856994,
+              "observedPeakUsedJsHeapBytes": 31374499,
+              "sampleCount": 166,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "airplane-over-trees",
+        "prompt": "airplane flying over trees",
+        "difficulty": "easy",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:f56f3fe5",
+              "sourcePromptHash": "fnv1a32:3fab49c9"
+            },
+            "auditDurationMs": 4195,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 18439404,
+              "finalUsedJsHeapBytes": 18823669,
+              "retainedDeltaBytes": 384265,
+              "observedPeakUsedJsHeapBytes": 31324415,
+              "sampleCount": 163,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "dogs-playing-with-people",
+        "prompt": "3 dogs playing with 7 people",
+        "difficulty": "hard",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 6,
+              "matchedCount": 6,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:7110602d",
+              "sourcePromptHash": "fnv1a32:6ce3fc73"
+            },
+            "auditDurationMs": 4700,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 18804909,
+              "finalUsedJsHeapBytes": 20105567,
+              "retainedDeltaBytes": 1300658,
+              "observedPeakUsedJsHeapBytes": 40677142,
+              "sampleCount": 177,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "dog-beside-cat",
+        "prompt": "a dog beside a cat",
+        "difficulty": "easy",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 3,
+              "matchedCount": 3,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:bda6df6f",
+              "sourcePromptHash": "fnv1a32:887aeb77"
+            },
+            "auditDurationMs": 4514,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 19155007,
+              "finalUsedJsHeapBytes": 21663475,
+              "retainedDeltaBytes": 2508468,
+              "observedPeakUsedJsHeapBytes": 41589741,
+              "sampleCount": 165,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "dog-tree-without-cat",
+        "prompt": "a dog beside a tree with no cat",
+        "difficulty": "medium",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:668cd635",
+              "sourcePromptHash": "fnv1a32:15388198"
+            },
+            "auditDurationMs": 4643,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 21535679,
+              "finalUsedJsHeapBytes": 22056659,
+              "retainedDeltaBytes": 520980,
+              "observedPeakUsedJsHeapBytes": 49252607,
+              "sampleCount": 169,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "purple-violin-on-wooden-stool",
+        "prompt": "purple violin on a wooden stool",
+        "difficulty": "hard",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:cd0dddb1",
+              "sourcePromptHash": "fnv1a32:4cf635bf"
+            },
+            "auditDurationMs": 4940,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 22024287,
+              "finalUsedJsHeapBytes": 23340492,
+              "retainedDeltaBytes": 1316205,
+              "observedPeakUsedJsHeapBytes": 44450364,
+              "sampleCount": 177,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "excavator-beside-greenhouse",
+        "prompt": "yellow excavator beside a glass greenhouse",
+        "difficulty": "medium",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:97d1f34f",
+              "sourcePromptHash": "fnv1a32:37acde9c"
+            },
+            "auditDurationMs": 4546,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 22356836,
+              "finalUsedJsHeapBytes": 20810409,
+              "retainedDeltaBytes": -1546427,
+              "observedPeakUsedJsHeapBytes": 41259440,
+              "sampleCount": 170,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "octopus-holding-teapot",
+        "prompt": "an octopus holding a teapot",
+        "difficulty": "easy",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:d946188b",
+              "sourcePromptHash": "fnv1a32:5a4ea04a"
+            },
+            "auditDurationMs": 4638,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 19860941,
+              "finalUsedJsHeapBytes": 22215515,
+              "retainedDeltaBytes": 2354574,
+              "observedPeakUsedJsHeapBytes": 45839216,
+              "sampleCount": 168,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      }
+    ]
+  },
+  "goldGate": "machine-phase8-pixel-and-scene-proof",
+  "autoRating": {
+    "schema": "simulatte.liveVisualAutoRating.v1",
+    "scope": "machine-structural-and-pixel-presence",
+    "recognizabilityVerified": false,
+    "humanAdjudicationRequired": true,
+    "score": 95,
+    "grade": "unverified",
+    "verdict": "not-proven",
+    "machineStructuralVerdict": "pass",
+    "promptCount": 8,
+    "passRate": 1,
+    "sceneDiversity": 0.5,
+    "screenshotDiversity": 1,
+    "canvasDiversity": 1,
+    "diversityTelemetryOnly": true,
+    "causalCoverage": 1,
+    "failureCount": 0,
+    "dynamicFailureCount": 0,
+    "representationFailureCount": 0,
+    "averageRepresentationQuality": 0.911,
+    "missingSignals": []
+  }
+}

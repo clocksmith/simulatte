@@ -1,0 +1,214 @@
+{
+  "schema": "simulatte.createRearchitectureCheckpoint.v1",
+  "capturedAt": "2026-09-07T17:31:08.739926+00:00",
+  "contract": {
+    "path": "/home/clocksmith/deco/simulatte/docs/create-pipeline-rearchitecture.md",
+    "sha256": "403e868860cf981a6c5ae9da21b81adc7d9e333e466da092492c703162f5aed2"
+  },
+  "goalComplete": false,
+  "deployment": "not deployed by this task",
+  "phaseOrder": [
+    "runtime qualification",
+    "linguistic interpretation",
+    "component retrieval",
+    "grounded composition",
+    "simulation compilation",
+    "visual compilation",
+    "render execution",
+    "evidence settlement"
+  ],
+  "phaseZero": "request ingress only",
+  "implemented": [
+    "Bound v3 envelopes with v2 bindings cover artifacts, receipts and envelope metadata; asynchronous eight-phase runner is available, but active application dispatch still uses legacy orchestration",
+    "Explicit Phase 3 retrieval inputs; no active backward retrieval injection into Phase 1",
+    "Runner cancellation, deadlines including invocation acquisition, immutable artifact resources and stale publication protection",
+    "Original prompt retention and reversible UTF-16 source mapping in local language evidence",
+    "Doppler token-mask forwarding, per-token decode dispatch, fail-closed exceptions, generated-token context and constraint receipt identity",
+    "Incremental JSON object syntax mask; application schemas remain a separate validation boundary",
+    "Canonical Phase 8 required failures consumed by renderer; unsupported Phase 6 status cannot become a pixel proof pass",
+    "Browser audit retains failed page state, artifacts, screenshot, and original exception",
+    "WorldSpec normalization preserves accepted Phase 6 artifacts and bindings, rejects contradictory visual programs, and prioritizes explicit phase artifacts over embedded compatibility copies",
+    "Removed post-Phase-4 intent-brief rewriting and its two unused private helpers; synchronous and direct forward Phase 4/5 artifacts match",
+    "PhysicsIR state fields retain entityId from their owning domain; visual rule projections serialize inapplicable overlay/shader/motion as null",
+    "Failed browser audits retain the completed audit receipt and governing boundary as well as page and screenshot evidence",
+    "Reconciliation recompiles preserved authoring through existing Phase 4/5/6 edits without adding an authoring revision; receipt binds authored and executable results separately. Browser audit now requires matching reconciled grounding, geometry, semantic proof and rendered WorldSpec identity."
+  ],
+  "evidence": [
+    {
+      "layer": "component",
+      "command": "node --test tests/phase7-pixel-readback.test.cjs tests/scene-proof.test.cjs tests/create-phase-runner.test.cjs",
+      "result": "43 passed",
+      "path": "proof-runner-final.log"
+    },
+    {
+      "layer": "component",
+      "command": "node --test tests/world-spec.test.cjs tests/physical-compiler-language-grounding.test.cjs tests/physical-compiler-simulation-visual.test.cjs",
+      "result": "84 passed before final proof-projection edits",
+      "path": "world-compatibility-tests.log"
+    },
+    {
+      "layer": "component",
+      "command": "node --test tests/language-source-spans.test.cjs",
+      "result": "4 passed",
+      "path": "language-source-final.log"
+    },
+    {
+      "layer": "component",
+      "command": "node --test tests/editor-audit-failure.test.cjs",
+      "result": "2 passed",
+      "path": "editor-failure-tests.log"
+    },
+    {
+      "layer": "browser application compatibility",
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --out artifacts/create-rearchitecture-baseline/browser-editor-proof-fixed",
+      "result": "passed; one independently specified unsupported/edit/replay case",
+      "path": "browser-editor-proof-fixed/1440x1000.json"
+    },
+    {
+      "layer": "browser application compatibility",
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --viewport 390x844 --out artifacts/create-rearchitecture-baseline/browser-editor-mobile",
+      "result": "passed; emulated narrow viewport, not physical mobile hardware",
+      "path": "browser-editor-mobile/390x844.json"
+    },
+    {
+      "layer": "browser model component",
+      "repository": "doppler",
+      "path": "artifacts/create-generation-qualification/browser-verification.json",
+      "result": "JSON count cases 3/5/2, cancellation, constraint error and recovery; not qualified for Create"
+    },
+    {
+      "layer": "component",
+      "command": "node --test tests/create-phase-runner.test.cjs tests/blank-pipeline-boundaries.test.cjs",
+      "result": "33 passed, including receipt tampering and explicit legacy binding rebind",
+      "path": "envelope-integrity-tests.log"
+    },
+    {
+      "layer": "application compatibility",
+      "command": "npm run check:blank",
+      "result": "282 tests passed; desktop/mobile editor audits passed; 8 desktop gold machine cases passed; gold human acceptance remains not-proven",
+      "path": "check-blank-checkpoint.log"
+    },
+    {
+      "layer": "component and integration",
+      "command": "node --test tests/world-spec.test.cjs tests/create-phase-runner.test.cjs tests/physical-compiler-simulation-visual.test.cjs tests/blank-pipeline-boundaries.test.cjs tests/physical-compiler-language-grounding.test.cjs tests/phase-module-registry.test.cjs",
+      "result": "124 passed",
+      "path": "forward-projection-final.log"
+    },
+    {
+      "layer": "component",
+      "command": "npm run test:renderers",
+      "result": "60 passed",
+      "path": "projection-renderers.log"
+    },
+    {
+      "layer": "component",
+      "command": "node --test tests/editor-audit-failure.test.cjs",
+      "result": "2 passed; rejected receipt and boundary snapshots survive later mutation"
+    },
+    {
+      "layer": "compatibility comparison",
+      "result": "Five prompts retain identical params, PhysicsIR, solverGraph and sceneRenderPacket after removing post-Phase-4 rewriting; captured before subsequent state-owner and null-field repairs",
+      "path": "phase4-postprocessing-comparison.json",
+      "baseline": "phase4-postprocessing-baseline.json"
+    },
+    {
+      "layer": "browser application compatibility",
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --out artifacts/create-rearchitecture-baseline/browser-forward-projection-desktop-retry",
+      "result": "passed; scene/world proof pass; audit duration 19620 ms within original 20000 ms limit; human review pending",
+      "path": "browser-forward-projection-desktop-retry/1440x1000.json"
+    },
+    {
+      "layer": "browser application compatibility",
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --viewport 390x844 --out artifacts/create-rearchitecture-baseline/browser-forward-projection-mobile-retry",
+      "result": "passed; scene/world proof pass; audit duration 10002 ms within original 20000 ms limit; human review pending",
+      "path": "browser-forward-projection-mobile-retry/390x844.json"
+    },
+    {
+      "layer": "component",
+      "command": "node --test tests/create-phase-runner.test.cjs tests/world-spec-reconciliation.test.cjs tests/world-spec-reconciliation-controller.test.cjs tests/editor-audit-failure.test.cjs",
+      "result": "29 passed",
+      "path": "reconciliation-focused-final.log"
+    },
+    {
+      "layer": "browser application",
+      "command": "npm run audit:blank:gold:mobile",
+      "result": "8 machine cases passed; human acceptance not-proven",
+      "path": "../blank-gold-mobile/report.json"
+    },
+    {
+      "layer": "browser application authoring and reconciliation",
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --out artifacts/blank-world-spec-editor",
+      "result": "passed; green ball inspected in screenshot; Phase 4/geometry/semantic proof/rendered hash match; 14681 ms under unchanged 20000 ms limit",
+      "path": "../blank-world-spec-editor/1440x1000.json"
+    },
+    {
+      "layer": "browser application authoring and reconciliation",
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --viewport 390x844 --out artifacts/blank-world-spec-editor",
+      "result": "passed; green ball inspected in screenshot; Phase 4/geometry/semantic proof/rendered hash match; 9731 ms under unchanged 20000 ms limit",
+      "path": "../blank-world-spec-editor/390x844.json"
+    },
+    {
+      "layer": "repository component and source checks",
+      "command": "npm run check:fast",
+      "result": "passed; 21 test files, 185 tests; charters, folder contracts, source size, runtime and World entrypoints, generated artifact inventory and pipeline map pass",
+      "path": "reconciliation-fast-final.log"
+    }
+  ],
+  "retainedFailures": [
+    "browser-editor.log",
+    "browser-editor-retained/1440x1000-failure.json",
+    "charter-check.log",
+    "check-blank.log",
+    "check-blank-refreshed.log",
+    "catalog-doc-check.log",
+    "worldspec-bound-normalization-before.log",
+    "worldspec-bound-normalization-reproduced.log",
+    "worldspec-phase-priority-before.log",
+    "phase4-postprocessing-before.log",
+    "state-owner-before.log",
+    "browser-forward-projection-desktop/1440x1000-failure.json",
+    "browser-forward-projection-mobile/390x844-failure.json",
+    "projection-fast.log",
+    "reconciliation-execution-tests.log"
+  ],
+  "remainingRequirements": [
+    "Integrate the runner into active asynchronous compiler dispatch and rendering without adding a ninth phase; project WorldSpec from accepted outputs",
+    "Deep phase payload and reference validation, dependency revocation, stable requirement identities, cross-revision mapping and deterministic operational-record separation",
+    "Generation selection schema, numbered runtime lock, admitted refreshed manifest, consent and resource adapter, pinned Doppler migration",
+    "Qualify full linguistic structured output, source fidelity, actual graphics/model co-residency, memory pressure, device loss and recovery before promotion",
+    "Learned Phase 2 proposals preserving all clauses, counts, negation, references, events and ambiguity; measured deterministic control",
+    "Typed component metadata, examples/counterexamples, port-aware retrieval and grounded unfamiliar compositions in existing owners",
+    "Typed operations with units, coordinate frames, state writers, event semantics, bounded couplings and stability evidence",
+    "Lantern A/B/C bell behavior, partial stopping, stationary tree, material edits and held-out compositions through observable simulation and rendered output",
+    "Reusable Create geometry/material/layout/animation adapters preserving physical authority and simulation state",
+    "Independent artifact-bound evaluator, population custody and separation, full requirement accounting, matched baseline and established-engine comparison",
+    "Complete phase ownership moves and removal gates; preserve synchronous local compatibility and authored imports/replay",
+    "Full unit/integration/Create/World/render/browser checks, physical hardware evidence, required human review, and final deployment status",
+    "Catalog documentation check has an unrelated missing Doppler ADR reference: docs/adr/0001-dual-hexagon-pack-spine.md; retained in catalog-doc-check.log"
+  ],
+  "nextBoundary": "Active asynchronous application dispatch still bypasses the runner. WorldSpec assembly still chooses top-level parameters in resolveIntentToSpec; move those choices into admitted Phase 4/5 outputs and project the accepted Phase 6 program before connecting renderer execution. Normalization and Phase 4 postprocessing prerequisites are repaired.",
+  "latestChangedSourceFiles": [
+    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js",
+    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js",
+    "public/blank/pipeline/phase-05-simulation/simulatte-physics-ir-builder.js",
+    "public/blank/pipeline/phase-06-visual/simulatte-composition-graph-programs.js",
+    "tests/create-phase-runner.test.cjs",
+    "tests/editor-audit-failure.test.cjs",
+    "tools/audit-world-spec-editor.mjs",
+    "public/blank/pipeline/CATSCAN.md",
+    "public/blank/pipeline/phase-05-simulation/CATSCAN.md",
+    "public/blank/app/prompt/prompt-controller-lab-controller.js",
+    "public/blank/app/prompt/world-spec-reconciliation-controller.js",
+    "public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js",
+    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js",
+    "tests/world-spec-reconciliation.test.cjs",
+    "tests/world-spec-reconciliation-controller.test.cjs",
+    "public/blank/app/CATSCAN.md"
+  ],
+  "evidenceLimitations": [
+    "Earlier browser-forward-projection receipts passed the old oracle but failed to detect red geometry after preserving a green authoring override. Their artifacts remain retained; current reconciliation checks supersede that coverage.",
+    "The browser-forward-projection-mobile-retry screenshot was blank at capture; the strengthened audit waits for the reconciled rendered identity and settled proof before capture. Both final screenshots show the green ball.",
+    "The first projection-fast check failed because mutable live governing metric reports mixed old mobile and newer desktop build labels. After regenerating mobile gold and canonical editor reports, the final fast gate passes. Regression fixtures still depend on mutable live evidence; fixture isolation remains an evaluation architecture gap.",
+    "Published build labels remain the existing version.json stamp. These local worktree audits do not establish a deployed source identity, a qualified learned pipeline, physical mobile hardware evidence, or human adjudication."
+  ]
+}

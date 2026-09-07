@@ -1,0 +1,5 @@
+
+> sync:artifacts
+> node tools/sync-generated-artifact-inventory.mjs --write
+
+Wrote public/data/generated-artifact-inventory.json.

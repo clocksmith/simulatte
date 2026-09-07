@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 16.202127
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 80.915357
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 49.271068
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 9.935375
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 62.38588
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.636215
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.491326
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 3076.281997
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+ok 9 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 1802.918258
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+ok 10 - WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+  ---
+  duration_ms: 1006.108015
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+ok 11 - WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+  ---
+  duration_ms: 458.069437
+  type: 'test'
+  ...
+# Subtest: synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+ok 12 - synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+  ---
+  duration_ms: 844.450917
+  type: 'test'
+  ...
+# Subtest: compiled water state channels retain their entity owner through serializable phase artifacts
+ok 13 - compiled water state channels retain their entity owner through serializable phase artifacts
+  ---
+  duration_ms: 948.818192
+  type: 'test'
+  ...
+# Subtest: invocation acquisition obeys cancellation and the phase deadline
+ok 14 - invocation acquisition obeys cancellation and the phase deadline
+  ---
+  duration_ms: 31.954635
+  type: 'test'
+  ...
+# Subtest: resource selection and immutable assets cannot change while a run waits
+ok 15 - resource selection and immutable assets cannot change while a run waits
+  ---
+  duration_ms: 12.667338
+  type: 'test'
+  ...
+# Subtest: integrity rejects array metadata and non-enumerable artifact fields
+ok 16 - integrity rejects array metadata and non-enumerable artifact fields
+  ---
+  duration_ms: 0.249744
+  type: 'test'
+  ...
+# Subtest: binding snapshots receipts and metadata and detects tampering outside artifact payloads
+ok 17 - binding snapshots receipts and metadata and detects tampering outside artifact payloads
+  ---
+  duration_ms: 1.927946
+  type: 'test'
+  ...
+# Subtest: worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+ok 18 - worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+  ---
+  duration_ms: 4073.208772
+  type: 'test'
+  ...
+# Subtest: phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+ok 19 - phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+  ---
+  duration_ms: 2.243578
+  type: 'test'
+  ...
+# Subtest: cancelling a worker phase stops its worker and stale events cannot poison its replacement
+ok 20 - cancelling a worker phase stops its worker and stale events cannot poison its replacement
+  ---
+  duration_ms: 0.490138
+  type: 'test'
+  ...
+# Subtest: worker failure terminates the failed instance and rejects pending and future calls
+ok 21 - worker failure terminates the failed instance and rejects pending and future calls
+  ---
+  duration_ms: 0.362441
+  type: 'test'
+  ...
+# Subtest: compatibility compile retains its WorldSpec result through the same worker protocol
+ok 22 - compatibility compile retains its WorldSpec result through the same worker protocol
+  ---
+  duration_ms: 1083.344665
+  type: 'test'
+  ...
+# Subtest: bounded classification loads before the model-backed embedder
+ok 23 - bounded classification loads before the model-backed embedder
+  ---
+  duration_ms: 1.027698
+  type: 'test'
+  ...
+# Subtest: prompt controller keeps its public CommonJS API
+ok 24 - prompt controller keeps its public CommonJS API
+  ---
+  duration_ms: 334.977555
+  type: 'test'
+  ...
+# Subtest: prompt controller resolves root-hosted workers against Blank asset base
+ok 25 - prompt controller resolves root-hosted workers against Blank asset base
+  ---
+  duration_ms: 0.434718
+  type: 'test'
+  ...
+# Subtest: compiler proof coordinator performs a separate compile and rejects stale receipts
+ok 26 - compiler proof coordinator performs a separate compile and rejects stale receipts
+  ---
+  duration_ms: 2651.581212
+  type: 'test'
+  ...
+# Subtest: prompt controller browser layers publish the API in manifest order
+ok 27 - prompt controller browser layers publish the API in manifest order
+  ---
+  duration_ms: 4.231874
+  type: 'test'
+  ...
+# Subtest: prompt controller browser layers reject missing dependencies
+ok 28 - prompt controller browser layers reject missing dependencies
+  ---
+  duration_ms: 6.009739
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8481.064085

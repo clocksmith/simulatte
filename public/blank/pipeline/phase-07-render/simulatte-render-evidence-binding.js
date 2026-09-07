@@ -33,6 +33,9 @@
   }
 
   function immutableRenderEvidence(value) {
+    if (ArrayBuffer.isView(value) && !(value instanceof DataView)) {
+      return Object.freeze(Array.from(value, entry => immutableRenderEvidence(entry)));
+    }
     if (Array.isArray(value)) return Object.freeze(value.map((entry) => immutableRenderEvidence(entry)));
     if (!value || typeof value !== 'object') {
       if (typeof value === 'number') return Number.isFinite(value) ? value : String(value);

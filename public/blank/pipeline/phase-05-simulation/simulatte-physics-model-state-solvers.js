@@ -494,91 +494,24 @@
 
     function resolveIntentToSpec(intentInput, overrides = {}) {
         const intent = intentInput && intentInput.schema === 'simulatte.intent.v1'
-          ? intentInput
-          : scope.createIntentFromPrompt('');
-        const overrideParams = overrides && overrides.params && typeof overrides.params === 'object'
-          ? overrides.params
-          : {};
-        if (intent.domains.includes('blank')) {
-          const plane = intent.components.find((component) => component.id === 'canvas');
-          return scope.createSpec('blank-world', {
-            name: intent.title || 'Blank Construction Plane',
-            description: intent.prompt ? `Intent: ${intent.prompt}` : 'Empty 2d construction surface.',
-            params: { ...(plane ? plane.params : {}), ...overrideParams },
-            intent,
-            onPhaseProgress: overrides.onPhaseProgress,
-            phaseArtifacts: intent.phaseArtifacts || null,
+          ? intentInput : scope.createIntentFromPrompt('');
+        if (intent.phaseArtifacts && intent.phaseArtifacts.phase3) {
+          const phases = Object.fromEntries([1, 2, 3].map(phase => [`phase${phase}`,
+            scope.phaseContracts.legacyPhaseProjection(intent.phaseArtifacts[`phase${phase}`])]));
+          const candidate = {
+            schema: 'simulatte.worldSpecCandidate.v1',
+            intent: scope.phaseContracts.immutableArtifact({ ...intent, phaseArtifacts: {} }),
             compilerConfig: worldSpecCompilerConfig(overrides),
-          });
+          };
+          phases.phase3 = { ...phases.phase3, artifact: { ...phases.phase3.artifact,
+            retrievalRerankResult: { ...phases.phase3.artifact.retrievalRerankResult, worldSpecCandidate: candidate } } };
+          phases.phase4 = scope.runPhase4GroundedIntent(phases.phase3);
+          return compileWorldSpecPhases(phases, overrides);
         }
-
-        const modules = ['mechanics', 'field', 'energy-ledger'];
-        const objects = [];
-        const controls = ['energyInput', 'fieldStrength', 'damping', 'complexity'];
-        const params = { ...scope.templateById('custom-world').params };
-        const contract = intent.resolution && intent.resolution.contract
-          ? intent.resolution.contract
-          : null;
-        const addControl = (key) => {
-          if (scope.CONTROL_LIBRARY[key] && !controls.includes(key)) controls.push(key);
-        };
-        for (const domain of intent.domains) {
-          if (!modules.includes(domain)) modules.push(domain);
-        }
-        for (const component of intent.components) {
-          const graphNode = scope.graphNodeForSpec(contract, component.id);
-          objects.push({
-            id: component.id,
-            type: component.type,
-            role: component.role,
-            layer: component.layer || '',
-            domains: component.domains || [],
-            material: component.material || '',
-            visualRegime: component.visualRegime || '',
-            assembly: component.assembly || '',
-            phrase: component.phrase || '',
-            source: component.source || '',
-            primitiveProgram: component.primitiveProgram || null,
-            geometry: component.geometry || null,
-            ports: component.ports || null,
-            slots: component.slots || [],
-            synthesis: component.synthesis || null,
-            state: graphNode ? graphNode.state : null,
-          });
-          for (const key of component.controls || []) addControl(key);
-          for (const [key, value] of Object.entries(component.params || {})) {
-            params[key] = value;
-            addControl(key);
-          }
-        }
-        scope.applyContractDefaults(params, contract);
-        scope.applyCompiledParameterHints(scope.parameterHintTextForIntent(intent, contract), params, addControl);
-
-        const exactMachine = intent.title === 'Solar Magnetic Perpetual Motion Machine';
-        if (exactMachine) {
-          Object.assign(params, {
-            irradiance: 780,
-            sliderAmplitude: 0.42,
-            loadTorque: 0.16,
-          });
-        }
-        for (const [key, value] of Object.entries(overrideParams)) {
-          if (!Number.isFinite(Number(value))) continue;
-          params[key] = Number(value);
-          addControl(key);
-        }
-        if (contract && contract.graph) {
-          contract.graph.units = scope.unitsForParams(params);
-        }
-        return scope.createSpec('custom-world', {
-          name: exactMachine ? 'Solar Magnetic Perpetual Motion Machine' : intent.title || 'Custom Physics World',
-          description: intent.prompt ? `Intent: ${intent.prompt}` : 'Prompt resolved into 2d simulation components.',
-          modules,
-          objects,
-          controls,
-          params,
+        const { schema, templateId, ...worldSpecInput } = scope.buildWorldSpecInput(intent, overrides);
+        return scope.createSpec(templateId, {
+          ...worldSpecInput,
           intent,
-          contract,
           onPhaseProgress: overrides.onPhaseProgress,
           phaseArtifacts: intent.phaseArtifacts || null,
           compilerConfig: worldSpecCompilerConfig(overrides),
@@ -586,7 +519,18 @@
       }
 
     function createSpecFromPrompt(promptText = '', overrides = {}) {
-        return resolveIntentToSpec(scope.createIntentFromPrompt(promptText, overrides), overrides);
+        const intent = scope.createIntentFromPrompt(promptText, overrides);
+        return compileWorldSpecPhases(intent.phaseArtifacts, overrides);
+      }
+
+    function compileWorldSpecPhases(phases, overrides) {
+        scope.reportCompilePhaseProgress(overrides, 'simulation', 0, 'Compiling simulation');
+        const phase5 = scope.runPhase5SimulationCompile(phases.phase4);
+        scope.reportCompilePhaseProgress(overrides, 'simulation', 100, 'Simulation compiled');
+        scope.reportCompilePhaseProgress(overrides, 'visual', 0, 'Building VisualIR');
+        const phase6 = scope.runPhase6VisualCompile(phase5);
+        scope.reportCompilePhaseProgress(overrides, 'visual', 100, 'VisualIR ready');
+        return scope.projectWorldSpec({ ...phases, phase5, phase6 });
       }
 
     function titleFromPrompt(words) {
@@ -892,6 +836,7 @@
       dopplerHintPrimitives,
       explicitPromptPrimitiveRows,
       mergeRankedPrimitives,
+      worldSpecCompilerConfig,
       resolveIntentToSpec,
       createSpecFromPrompt,
       titleFromPrompt,

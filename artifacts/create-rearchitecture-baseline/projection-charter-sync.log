@@ -1,0 +1,5 @@
+
+> catscan:sync
+> node tools/check-catscan.mjs --write
+
+catscan_invalid: public/blank/pipeline/phase-05-simulation/CATSCAN.md exceeds 300 words

@@ -63,7 +63,7 @@
         const couplings = [];
         const behaviorRelations = [];
         const boundaryConditions = [];
-        const controls = Object.keys(params).map((key) => ({ id: key, value: params[key] }));
+        const controls = Object.keys(params).sort().map((key) => ({ id: key, value: params[key] }));
         const receipt = emptyReceipt();
         const domainByNode = new Map();
         const materialAssignments = materialAssignmentsForGraph(universeGraph);
@@ -551,6 +551,7 @@
         fields.push({
           id,
           domainId: domain.id,
+          entityId: domain.entityId,
           name,
           type,
           units,

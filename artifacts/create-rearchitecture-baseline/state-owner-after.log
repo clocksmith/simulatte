@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: compiled water state channels retain their entity owner through serializable phase artifacts
+ok 1 - compiled water state channels retain their entity owner through serializable phase artifacts
+  ---
+  duration_ms: 2607.987024
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2767.795857

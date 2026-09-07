@@ -51,8 +51,8 @@
           renderIR: overrides.renderIR || null,
           interactionIR: overrides.interactionIR || null,
           phaseArtifacts: scope.mergePhaseArtifacts(
-            overrides.phaseArtifacts,
-            overrides.intent && overrides.intent.phaseArtifacts
+            overrides.intent && overrides.intent.phaseArtifacts,
+            overrides.phaseArtifacts
           ),
           createdAt: overrides.createdAt || new Date(0).toISOString(),
           remixOf: overrides.remixOf || '',
@@ -85,7 +85,9 @@
           typeof compilerConfig.constructionApproach === 'object'
           ? JSON.parse(JSON.stringify(compilerConfig.constructionApproach))
           : null;
-        if (declaredConstructionApproach && spec.phaseArtifacts && spec.phaseArtifacts.phase5) {
+        const preserveVisualProgram = overrides.preserveCompiledWorldSpec === true &&
+          Boolean(spec.phaseArtifacts && spec.phaseArtifacts.phase6);
+        if (declaredConstructionApproach && !preserveVisualProgram && spec.phaseArtifacts && spec.phaseArtifacts.phase5) {
           const simulationCompile = spec.phaseArtifacts.phase5.artifact &&
             spec.phaseArtifacts.phase5.artifact.simulationCompile;
           if (simulationCompile && simulationCompile.renderIR) {
@@ -93,7 +95,11 @@
             spec.renderIR = simulationCompile.renderIR;
           }
         }
-        if (spec.phaseArtifacts && spec.phaseArtifacts.phase5) {
+        if (preserveVisualProgram) {
+          validateAcceptedVisualProgram(spec.phaseArtifacts.phase6, overrides.renderProgram, overrides.compositionGraph);
+          spec.compositionGraph = overrides.compositionGraph;
+          spec.renderProgram = overrides.renderProgram;
+        } else if (spec.phaseArtifacts && spec.phaseArtifacts.phase5) {
           reportCompilePhaseProgress(overrides, 'visual', 0, 'Building VisualIR');
           const phase6Compiled = scope.compilePhase6VisualProgram(spec.phaseArtifacts.phase5, overrides.compositionGraph || null);
           spec.compositionGraph = phase6Compiled.compositionGraph;
@@ -121,6 +127,24 @@
         });
         normalizedSimulationSpecs.add(finalized);
         return finalized;
+      }
+
+    function validateAcceptedVisualProgram(phase6, renderProgram, compositionGraph) {
+        scope.assertPhaseEnvelope(phase6, 6, 'WorldSpec visual projection');
+        const visualCompile = phase6.artifact.visualCompile;
+        if (!renderProgram || !compositionGraph || !visualCompile) {
+          throw new Error('WorldSpec visual program requires accepted Phase 6 artifacts');
+        }
+        // Normalization is a projection of the accepted program. Recompiling a
+        // contradiction here would replace both authored pixels and their binding.
+        const same = (left, right) => scope.phaseContracts.canonicalJson(left) ===
+          scope.phaseContracts.canonicalJson(right);
+        if (!same(renderProgram.visualIR, visualCompile.visualIR) ||
+            !same(renderProgram.sceneRenderPacket, visualCompile.sceneRenderPacket) ||
+            !same(renderProgram.rendererPlan, visualCompile.rendererPlan) ||
+            compositionGraph.graphId !== visualCompile.compositionGraphId) {
+          throw new Error('WorldSpec visual program contradicts accepted Phase 6 artifact');
+        }
       }
 
     function defaultWorldSpecDeterminism(params = {}, compilerConfig = {}) {
@@ -238,7 +262,7 @@
             })
             : null
           );
-        const universeGraph = mergeUniverseGraphIntentBrief(selectedUniverseGraph, intent.intentBrief || null);
+        const universeGraph = selectedUniverseGraph;
         const nextIntent = intent && promptParse && universeGraph
           ? { ...intent, promptParse, universeGraph }
           : intent;
@@ -278,7 +302,6 @@
             nextPhase4
           );
         }
-        nextPhase4 = scope.mergePhase4IntentBrief(nextPhase4, intent.intentBrief || null);
         const nextPhase5 = phaseArtifacts.phase5 || scope.runPhase5SimulationCompile(nextPhase4, runtimeContext);
         const simulationCompile = nextPhase5.artifact && nextPhase5.artifact.simulationCompile || {};
         return {
@@ -451,7 +474,16 @@
         const renderProgram = spec.renderProgram || {};
         const solverPlan = renderProgram.solverPlan || scope.solverPlanForGraph(graph);
         const solverGraph = spec.solverGraph || null;
-        const solverChannels = solverGraph ? Object.keys(solverGraph.channels || {}) : [];
+        const compiledChannels = spec.phaseArtifacts && spec.phaseArtifacts.phase5 &&
+          spec.phaseArtifacts.phase5.artifact.simulationCompile.stateChannels;
+        const solverChannels = solverGraph
+          ? compiledChannels ? compiledChannels.slice() : Object.keys(solverGraph.channels || {})
+          : [];
+        if (solverGraph && (new Set(solverChannels).size !== solverChannels.length ||
+            solverChannels.length !== Object.keys(solverGraph.channels || {}).length ||
+            solverChannels.some(id => !Object.hasOwn(solverGraph.channels, id)))) {
+          throw new Error('WorldSpec state channels contradict accepted Phase 5 solver channels');
+        }
         const solverSteps = solverGraph ? solverGraph.steps || [] : [];
         const nodes = graph.nodes || [];
         // Prefer the executable solverGraph channels as the source of truth for state
@@ -530,39 +562,6 @@
         };
       }
 
-    function mergeUniverseGraphIntentBrief(universeGraph = null, authoritativeBrief = null) {
-        if (!universeGraph || typeof universeGraph !== 'object') return universeGraph;
-        if (!authoritativeBrief || typeof authoritativeBrief !== 'object') return universeGraph;
-        const current = universeGraph.intentBrief || null;
-        const authoritativeReceipt = scope.intentBriefReceipt(authoritativeBrief);
-        if (!authoritativeReceipt) return universeGraph;
-        return {
-          ...universeGraph,
-          intentBrief: {
-            ...(current || {}),
-            ...authoritativeReceipt,
-            activationSummary: current && current.activationSummary || authoritativeBrief.activationSummary || null,
-            languageEvidence: current && current.languageEvidence || authoritativeBrief.languageEvidence || null,
-            groundedInterpretation: current && current.groundedInterpretation || authoritativeBrief.groundedInterpretation || null,
-            retrievedEvidence: current && current.retrievedEvidence || authoritativeBrief.retrievedEvidence || [],
-            causalGraph: current && Array.isArray(current.causalGraph) && current.causalGraph.length
-              ? current.causalGraph
-              : authoritativeBrief.causalGraph || [],
-            assumptions: current && current.assumptions || authoritativeBrief.assumptions || [],
-            alternatives: current && current.alternatives || authoritativeBrief.alternatives || [],
-            unsupported: current && current.unsupported || authoritativeBrief.unsupported || [],
-            degradedTo: current && current.degradedTo || authoritativeBrief.degradedTo || [],
-            negativeKnowledge: current && current.negativeKnowledge || authoritativeBrief.negativeKnowledge || [],
-            visualIntent: current && current.visualIntent || authoritativeBrief.visualIntent || null,
-          },
-          visualAffordances: Array.isArray(universeGraph.visualAffordances) && universeGraph.visualAffordances.length
-            ? universeGraph.visualAffordances
-            : authoritativeBrief.visualIntent && Array.isArray(authoritativeBrief.visualIntent.affordances)
-              ? authoritativeBrief.visualIntent.affordances.slice(0, 8).map((row) => ({ ...row }))
-              : universeGraph.visualAffordances || [],
-        };
-      }
-
     root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-phase-simulation.js', {
       reportCompilePhaseProgress,
       createSpec,
@@ -572,7 +571,7 @@
       compileCompilerArtifacts,
       attachRenderIRPhaseInputs,
       compilePhysicalSpec,
-      mergeUniverseGraphIntentBrief,
+      deterministicSpecId,
     });
 
 })(typeof globalThis !== 'undefined' ? globalThis : window);

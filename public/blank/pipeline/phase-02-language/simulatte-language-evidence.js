@@ -78,7 +78,8 @@
 
   function extractLanguageEvidence(prompt) {
     const rawText = String(prompt || '');
-    const normalizedText = rawText.replace(/\s+/g, ' ').trim();
+    const normalization = normalizeSourceWhitespace(rawText);
+    const normalizedText = normalization.text;
     const tokens = tokenize(normalizedText);
     const clauses = extractClauses(normalizedText);
     const predicateFrames = extractPredicateFrames(clauses);
@@ -103,10 +104,21 @@
       predicateFrames
     });
 
+    const collections = { tokens, spans, clauses, nounPhrases, verbPhrases, predicateFrames,
+      modifiers, prepositions, negations, comparisons, quantities, temporalOrdering,
+      causalConnectives, resultClauses, ambiguityMarkers };
+    for (const rows of Object.values(collections)) {
+      for (const row of rows) {
+        const reference = row.tokenId ? tokens.find(token => token.id === row.tokenId)
+          : row.clauseId ? clauses.find(clause => clause.id === row.clauseId) : null;
+        row.sourceSpans = reference?.sourceSpans || sourceSpansForRow(row, normalization, rawText);
+      }
+    }
     return {
       schema: 'simulatte.languageEvidence.v1',
       rawText,
       normalizedText,
+      normalization,
       tokens,
       spans,
       clauses,
@@ -132,6 +144,43 @@
         hasUncertaintyLanguage: ambiguityMarkers.length > 0
       }
     };
+  }
+
+  // Legacy start/end fields address normalized text. Source spans explicitly
+  // address the untouched request; collapsed whitespace retains both boundaries.
+  function normalizeSourceWhitespace(rawText) {
+    let text = '';
+    const segments = [];
+    for (const match of rawText.matchAll(/\S+|\s+/g)) {
+      const whitespace = /^\s/.test(match[0]);
+      if (whitespace && (!text || match.index + match[0].length === rawText.length)) continue;
+      const value = whitespace ? ' ' : match[0];
+      segments.push({ normalizedStart: text.length, normalizedEnd: text.length + value.length,
+        sourceStart: match.index, sourceEnd: match.index + match[0].length,
+        kind: whitespace ? 'whitespace' : 'verbatim' });
+      text += value;
+    }
+    return { schema: 'simulatte.languageNormalization.v1', coordinateSystem: 'utf16-half-open', text, segments };
+  }
+
+  function sourceSpansForRow(row, normalization, rawText) {
+    const ranges = [];
+    if (Number.isInteger(row.start) && Number.isInteger(row.end)) {
+      ranges.push([row.start, row.end]);
+    } else {
+      const text = row.phrase || row.text || '';
+      if (!text) return [];
+      const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      for (const match of normalization.text.matchAll(new RegExp(escaped, 'gi'))) ranges.push([match.index, match.index + match[0].length]);
+    }
+    return ranges.map(([start, end]) => {
+      const first = normalization.segments.find(segment => start >= segment.normalizedStart && start < segment.normalizedEnd);
+      const last = normalization.segments.find(segment => end > segment.normalizedStart && end <= segment.normalizedEnd);
+      if (!first || !last || end <= start) throw new Error('Language evidence has an invalid normalized source range');
+      const sourceStart = first.sourceStart + (first.kind === 'verbatim' ? start - first.normalizedStart : 0);
+      const sourceEnd = last.kind === 'verbatim' ? last.sourceStart + end - last.normalizedStart : last.sourceEnd;
+      return { start: sourceStart, end: sourceEnd, text: rawText.slice(sourceStart, sourceEnd) };
+    });
   }
 
   function tokenize(text) {
@@ -363,6 +412,7 @@
 
   return {
     extractLanguageEvidence,
+    normalizeSourceWhitespace,
     tokenize,
     extractPredicateFrames,
     NEGATIONS

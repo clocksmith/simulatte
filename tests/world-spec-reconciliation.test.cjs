@@ -4,6 +4,7 @@ const test = require('node:test');
 const lab = require('../public/blank/app/simulation/simulation-lab.js');
 const worldSpec = require('../public/shared/contracts/world-spec.js');
 const reconciliation = require('../public/shared/contracts/world-spec-reconciliation.js');
+const controller = require('../public/blank/app/prompt/world-spec-reconciliation-controller.js');
 
 function compileFixture() {
   return lab.createSpecFromPrompt('a red ball rests beside a blue wall', {
@@ -24,6 +25,24 @@ function editedFixture() {
     }),
   };
 }
+
+test('preserved color edits reach compiled grounding and geometry without creating another authoring revision', () => {
+  const compiled = compileFixture();
+  const draft = JSON.parse(lab.serializeSpec(compiled));
+  draft.universeGraph.nodes.find(node => node.label === 'Ball').properties.find(row => row.kind === 'color').value = '#00aa44';
+  const edited = lab.applyWorldSpecEdit(compiled, draft, { rationale: 'Make the ball green' });
+  const accepted = reconciliation.applyDecision(edited, compileFixture(), 'preserve-overrides');
+  const model = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+  const result = controller.prepareReconciledExecution(accepted, model.compileWorldSpecEdits);
+  const spec = result.worldSpec;
+  assert.deepEqual(spec.authorship, accepted.worldSpec.authorship);
+  assert.equal(result.receipt.authoredResultWorldSpecContentHash, accepted.worldSpec.contentHash);
+  assert.equal(result.receipt.resultWorldSpecContentHash, spec.contentHash);
+  const node = spec.phaseArtifacts.phase4.artifact.groundedIntent.acceptedGraph.nodes.find(row => row.label === 'Ball');
+  assert.equal(node.properties.find(row => row.kind === 'color').value, '#00aa44');
+  const ball = spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket.entities.find(row => row.identity.type === 'ball');
+  assert.ok(ball.geometry.program.parts.some(part => part.fill === '#00aa44'));
+});
 
 test('recompile plans expose every accepted override before execution', () => {
   const { compiled, edited } = editedFixture();

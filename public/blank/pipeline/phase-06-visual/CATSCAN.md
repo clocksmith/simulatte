@@ -22,6 +22,7 @@ Compile simulation artifacts into a renderable scene program that preserves spec
 ## Invariants
 
 - Specific prompt objects do not collapse into generic helpers.
+- WorldSpec visual projections retain the accepted composition graph and program fields without recompilation.
 - Support-only geometry stays distinct from visible obligations.
 - Layout constraints apply to final visible part bounds. Part cardinality changes the owner's geometry, and motion preserves distinct counted instances.
 - Motion bindings retain the executing operator and both participants; part bindings retain exact owner and part identities for Phase 7 verification.

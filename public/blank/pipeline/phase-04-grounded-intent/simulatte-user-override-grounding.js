@@ -42,6 +42,7 @@
       acceptedGraph,
       components: worldSpec.objects,
       params: worldSpec.params,
+      controls: worldSpec.controls,
       contract: worldSpec.contract,
       compositionLedger,
       groundedSceneContract,

@@ -154,6 +154,15 @@
           intentRequirements,
           { groundedIntent, groundedSceneContract, compositionLedger }
         );
+        const worldSpecCandidate = phase3Output.artifact.retrievalRerankResult.worldSpecCandidate;
+        if (worldSpecCandidate) {
+          if (worldSpecCandidate.schema !== 'simulatte.worldSpecCandidate.v1') throw new Error('Invalid WorldSpec candidate schema');
+          groundedIntent.worldSpecInput = scope.buildWorldSpecInput(worldSpecCandidate.intent, worldSpecCandidate.compilerConfig);
+          groundedIntent.worldSpecCompilerConfig = worldSpecCandidate.compilerConfig;
+          groundedIntent.params = groundedIntent.worldSpecInput.params;
+          groundedIntent.controls = groundedIntent.worldSpecInput.controls;
+          groundedIntent.visualSource = { ...groundedIntent.visualSource, params: groundedIntent.params };
+        }
         return scope.createPhaseEnvelope({
           phase: 4,
           inputSchema: phase3Output.schema,
@@ -484,6 +493,7 @@
         const components = Array.isArray(groundedIntent.components) ? groundedIntent.components : [];
         const contract = groundedIntent.contract || null;
         const params = groundedIntent.params || {};
+        const controls = groundedIntent.controls || uniqueControlsFromComponents(components);
         let physicsIR = null;
         if (scope.buildPhysicsIR && acceptedGraph) {
           physicsIR = scope.buildPhysicsIR({
@@ -509,13 +519,18 @@
           const renderIR = physicsIR && solverGraph && scope.compileRenderIR
             ? scope.attachRenderIRPhaseInputs(scope.compileRenderIR(physicsIR, solverGraph, acceptedGraph), acceptedGraph)
             : null;
+          const constructionApproach = groundedIntent.worldSpecCompilerConfig &&
+            groundedIntent.worldSpecCompilerConfig.constructionApproach;
+          if (renderIR && constructionApproach) {
+            renderIR.constructionApproach = scope.phaseContracts.immutableArtifact(constructionApproach);
+          }
           const interactionIR = physicsIR && solverGraph && scope.compileInteractionIR
             ? scope.compileInteractionIR({
               acceptedGraph,
               physicsIR,
               solverGraph,
               renderIR,
-              controls: uniqueControlsFromComponents(components),
+              controls,
             })
             : null;
           const visualSource = groundedIntent.visualSource || {};
@@ -541,7 +556,7 @@
               : [],
             compositionLedger,
             stateChannels: stateChannelsForSolverGraph(solverGraph),
-            controls: uniqueControlsFromComponents(components),
+            controls,
             readouts: readoutLabelsForContract(contract),
             visualSource: {
             ...visualSource,

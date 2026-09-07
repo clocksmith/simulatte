@@ -22,8 +22,9 @@
     worldModelSnapshot,
   } = support;
   const { createConstructionSearchState } = construction;
-  const phases = (typeof module === 'object' && module.exports
-    ? require('../../pipeline/simulatte-phase-contracts.js') : root.SimulattePhaseContracts).phases;
+  const phaseContracts = typeof module === 'object' && module.exports
+    ? require('../../pipeline/simulatte-phase-contracts.js') : root.SimulattePhaseContracts;
+  const phases = phaseContracts.phases;
   const { appendBuildVersion } = runtime;
 
     function createPipelineCompiler(root) {
@@ -36,6 +37,8 @@
 
         function rejectAll(error) {
           failed = true;
+          if (worker) worker.terminate();
+          worker = null;
           pending.forEach((entry) => entry.reject(error));
           pending.clear();
         }
@@ -58,7 +61,9 @@
             failed = true;
             throw pipelineWorkerError(error && error.message || 'Pipeline worker unavailable', 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE');
           }
+          const activeWorker = worker;
           worker.addEventListener('message', (event) => {
+            if (worker !== activeWorker) return;
             const data = event && event.data || {};
             const entry = pending.get(data.id);
             if (!entry) return;
@@ -69,22 +74,23 @@
             if (data.type !== 'simulatte:pipeline-worker:result') return;
             pending.delete(data.id);
             if (data.ok) {
-              entry.resolve(data.spec);
+              entry.resolve(entry.resultKey === 'output' ? data.output : data.spec);
             } else {
               entry.reject(pipelineWorkerError(data.error || 'Pipeline worker compile failed', 'SIMULATTE_PIPELINE_COMPILE_FAILED'));
             }
           });
           worker.addEventListener('error', (event) => {
+            if (worker !== activeWorker) return;
             rejectAll(pipelineWorkerError(event.message || 'Pipeline worker failed', 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE'));
           });
           worker.addEventListener('messageerror', () => {
+            if (worker !== activeWorker) return;
             rejectAll(pipelineWorkerError('Pipeline worker message clone failed', 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE'));
           });
           return worker;
         }
 
-        return {
-          cancel(message = 'Pipeline worker request superseded') {
+        function cancel(message = 'Pipeline worker request superseded') {
             if (!worker && !pending.size) return;
             const error = pipelineWorkerError(message, 'SIMULATTE_PIPELINE_ABORTED');
             error.name = 'AbortError';
@@ -92,8 +98,11 @@
             pending.clear();
             if (worker) worker.terminate();
             worker = null;
-          },
-          compile(prompt, options, onProgress = null) {
+          }
+
+        function request(type, payload, resultKey, onProgress = null, signal = null) {
+            if (signal?.aborted) return Promise.reject(Object.assign(new Error('Pipeline phase cancelled'), {
+              name: 'AbortError', code: 'SIMULATTE_PIPELINE_ABORTED' }));
             try {
               ensureWorker();
             } catch (error) {
@@ -102,23 +111,47 @@
             const id = nextId + 1;
             nextId = id;
             return new Promise((resolve, reject) => {
+              const abort = () => cancel('Pipeline phase cancelled');
+              const finish = callback => value => {
+                signal?.removeEventListener('abort', abort);
+                callback(value);
+              };
               pending.set(id, {
-                resolve,
-                reject,
+                resolve: finish(resolve),
+                reject: finish(reject),
+                resultKey,
                 onProgress: typeof onProgress === 'function' ? onProgress : null,
               });
+              signal?.addEventListener('abort', abort, { once: true });
               try {
                 worker.postMessage({
-                  type: 'simulatte:pipeline-worker:compile',
+                  type,
                   id,
-                  prompt,
-                  options,
+                  ...payload,
                 });
               } catch (error) {
+                const entry = pending.get(id);
                 pending.delete(id);
-                reject(pipelineWorkerError(error && error.message || 'Pipeline worker request could not be sent', 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE'));
+                entry.reject(pipelineWorkerError(error && error.message || 'Pipeline worker request could not be sent', 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE'));
               }
             });
+          }
+
+        return {
+          cancel,
+          compile(prompt, options, onProgress = null) {
+            return request('simulatte:pipeline-worker:compile', { prompt, options }, 'spec', onProgress);
+          },
+          runPhase(phase, call, resources = {}, { signal, onProgress } = {}) {
+            try {
+              if (!Number.isInteger(phase) || phase < 1 || phase > 8 || phase === 7) {
+                throw new Error('Pipeline worker supports phases 1–6 and 8; Phase 7 requires the graphics owner');
+              }
+              const payload = phaseContracts.immutableArtifact({ phase, call, resources });
+              return request('simulatte:pipeline-worker:phase', payload, 'output', onProgress, signal);
+            } catch (error) {
+              return Promise.reject(error);
+            }
           },
         };
       }

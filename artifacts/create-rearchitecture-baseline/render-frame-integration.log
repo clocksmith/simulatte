@@ -1,0 +1,232 @@
+TAP version 13
+# Subtest: neutral pixel colors retain bounded shading without requiring chromatic saturation
+ok 1 - neutral pixel colors retain bounded shading without requiring chromatic saturation
+  ---
+  duration_ms: 7.110426
+  type: 'test'
+  ...
+# Subtest: directed action pixel evidence must include both exact participants
+ok 2 - directed action pixel evidence must include both exact participants
+  ---
+  duration_ms: 3878.291718
+  type: 'test'
+  ...
+# Subtest: part ownership proof rejects missing, detached, and wrongly owned submitted parts
+ok 3 - part ownership proof rejects missing, detached, and wrongly owned submitted parts
+  ---
+  duration_ms: 2334.663064
+  type: 'test'
+  ...
+# Subtest: Phase 7 sparse readback covers every required construction obligation above the old cap
+ok 4 - Phase 7 sparse readback covers every required construction obligation above the old cap
+  ---
+  duration_ms: 2924.119463
+  type: 'test'
+  ...
+# Subtest: Phase 7 retries a failed contrast proof at most three times for the same packet
+ok 5 - Phase 7 retries a failed contrast proof at most three times for the same packet
+  ---
+  duration_ms: 2206.069068
+  type: 'test'
+  ...
+# Subtest: Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+ok 6 - Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+  ---
+  duration_ms: 2738.159299
+  type: 'test'
+  ...
+# Subtest: Phase 7 samples the exact target entity before token-similar drawables
+ok 7 - Phase 7 samples the exact target entity before token-similar drawables
+  ---
+  duration_ms: 0.362493
+  type: 'test'
+  ...
+# Subtest: Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+ok 8 - Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+  ---
+  duration_ms: 2518.03927
+  type: 'test'
+  ...
+# Subtest: Phase 7 action proof samples the relation owner instead of a nearby object
+ok 9 - Phase 7 action proof samples the relation owner instead of a nearby object
+  ---
+  duration_ms: 3731.063828
+  type: 'test'
+  ...
+# Subtest: Phase 7 count proof requires every declared visible instance
+ok 10 - Phase 7 count proof requires every declared visible instance
+  ---
+  duration_ms: 2703.336628
+  type: 'test'
+  ...
+# Subtest: Phase 7 does not certify required visuals without live pixel readback
+ok 11 - Phase 7 does not certify required visuals without live pixel readback
+  ---
+  duration_ms: 2087.394427
+  type: 'test'
+  ...
+# Subtest: Phase 7 absence proof binds the compiled semantic submission to current texture readback
+ok 12 - Phase 7 absence proof binds the compiled semantic submission to current texture readback
+  ---
+  duration_ms: 2123.381758
+  type: 'test'
+  ...
+# Subtest: Phase 7 reports readback capacity overflow instead of truncating proof
+ok 13 - Phase 7 reports readback capacity overflow instead of truncating proof
+  ---
+  duration_ms: 2724.247828
+  type: 'test'
+  ...
+# Subtest: Phase 7 proves through only when final projected source geometry crosses the target
+ok 14 - Phase 7 proves through only when final projected source geometry crosses the target
+  ---
+  duration_ms: 2.876214
+  type: 'test'
+  ...
+# Subtest: Phase 7 rejects pixel evidence captured for a different scene packet
+ok 15 - Phase 7 rejects pixel evidence captured for a different scene packet
+  ---
+  duration_ms: 1970.4133
+  type: 'test'
+  ...
+# Subtest: Phase 6 lays out containment, entry, and between relations for final part geometry
+ok 16 - Phase 6 lays out containment, entry, and between relations for final part geometry
+  ---
+  duration_ms: 12008.225677
+  type: 'test'
+  ...
+# Subtest: Tier drawing works without a controller, network, HUD, or animation loop
+ok 17 - Tier drawing works without a controller, network, HUD, or animation loop
+  ---
+  duration_ms: 10.10233
+  type: 'test'
+  ...
+# Subtest: Create session preserves the exact phase-6 input, phase-7 output, and pick coordinates
+ok 18 - Create session preserves the exact phase-6 input, phase-7 output, and pick coordinates
+  ---
+  duration_ms: 2.790826
+  type: 'test'
+  ...
+# Subtest: Create lifecycle destroys a device acquired after disposal
+ok 19 - Create lifecycle destroys a device acquired after disposal
+  ---
+  duration_ms: 14.875103
+  type: 'test'
+  ...
+# Subtest: published Phase 7 evidence cannot change when live state or frame counters advance
+ok 20 - published Phase 7 evidence cannot change when live state or frame counters advance
+  ---
+  duration_ms: 3573.59653
+  type: 'test'
+  ...
+# Subtest: replacing input with the same packet invalidates its pending pixels and published evidence
+ok 21 - replacing input with the same packet invalidates its pending pixels and published evidence
+  ---
+  duration_ms: 2161.190945
+  type: 'test'
+  ...
+# Subtest: delayed texture readback proves the submitted state and viewport, not newer mutable inputs
+ok 22 - delayed texture readback proves the submitted state and viewport, not newer mutable inputs
+  ---
+  duration_ms: 2228.209529
+  type: 'test'
+  ...
+# Subtest: scene proof settles every ledger obligation into a terminal status
+ok 23 - scene proof settles every ledger obligation into a terminal status
+  ---
+  duration_ms: 4421.091421
+  type: 'test'
+  ...
+# Subtest: scene proof fails closed when a required entity never rendered
+ok 24 - scene proof fails closed when a required entity never rendered
+  ---
+  duration_ms: 2306.406104
+  type: 'test'
+  ...
+# Subtest: scene proof never certifies a required unsupported obligation
+ok 25 - scene proof never certifies a required unsupported obligation
+  ---
+  duration_ms: 2008.434757
+  type: 'test'
+  ...
+# Subtest: scene proof fails a required identity when its live pixel obligation fails
+ok 26 - scene proof fails a required identity when its live pixel obligation fails
+  ---
+  duration_ms: 2025.659112
+  type: 'test'
+  ...
+# Subtest: scene proof rejects literal pixels compiled from a topology that does not fit the target identity
+ok 27 - scene proof rejects literal pixels compiled from a topology that does not fit the target identity
+  ---
+  duration_ms: 1741.350658
+  type: 'test'
+  ...
+# Subtest: scene proof preserves negated identities only with bound semantic absence proof
+ok 28 - scene proof preserves negated identities only with bound semantic absence proof
+  ---
+  duration_ms: 2170.276656
+  type: 'test'
+  ...
+# Subtest: scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone
+ok 29 - scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone
+  ---
+  duration_ms: 2525.717445
+  type: 'test'
+  ...
+# Subtest: scene proof may settle a relation source only through its linked spatial Phase 7 proof
+ok 30 - scene proof may settle a relation source only through its linked spatial Phase 7 proof
+  ---
+  duration_ms: 3337.866216
+  type: 'test'
+  ...
+# Subtest: scene proof settles a material relation through its linked Phase 7 material proof
+ok 31 - scene proof settles a material relation through its linked Phase 7 material proof
+  ---
+  duration_ms: 2859.296902
+  type: 'test'
+  ...
+# Subtest: scene proof identity settlement requires whole-word identity evidence
+ok 32 - scene proof identity settlement requires whole-word identity evidence
+  ---
+  duration_ms: 2831.125835
+  type: 'test'
+  ...
+# Subtest: scene proof reports not-proven without a rendered frame and rejects wrong inputs
+ok 33 - scene proof reports not-proven without a rendered frame and rejects wrong inputs
+  ---
+  duration_ms: 1887.411663
+  type: 'test'
+  ...
+# Subtest: scene proof normalizes browser renderer identity summary receipts
+ok 34 - scene proof normalizes browser renderer identity summary receipts
+  ---
+  duration_ms: 2727.104898
+  type: 'test'
+  ...
+# Subtest: scene proof requires Phase 7 to consume a compiled environment atmosphere
+ok 35 - scene proof requires Phase 7 to consume a compiled environment atmosphere
+  ---
+  duration_ms: 2267.355436
+  type: 'test'
+  ...
+# Subtest: every compiled scene carries a concrete Phase 6 pixel obligation
+ok 36 - every compiled scene carries a concrete Phase 6 pixel obligation
+  ---
+  duration_ms: 1897.123984
+  type: 'test'
+  ...
+# Subtest: scene proof selects exact compound geometry while retaining unqualified action refusals
+ok 37 - scene proof selects exact compound geometry while retaining unqualified action refusals
+  ---
+  duration_ms: 3193.682321
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44906.791189

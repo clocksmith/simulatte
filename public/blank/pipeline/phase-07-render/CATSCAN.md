@@ -26,6 +26,7 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 - Renderer branches follow compiled scene data, not prompt keywords.
 - Bound semantic receipts pass through unchanged and never grant Phase 7 semantic authority.
 - Interaction receipts preserve the Phase 5 program hash, command transitions, changed channels, and visible-state consumption.
+- Published frame evidence is immutable. Delayed readback uses submitted state and viewport; replacement inputs, interaction revisions, and resizing invalidate old pixels.
 - Disposal, failed initialization, and late device acquisition release owned resources and cannot restore readiness or publish stale proof.
 
 ## Acceptance
@@ -34,6 +35,7 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 - Evidence: [pixel and corruption regressions](../../../../tests/phase7-pixel-readback.test.cjs).
 - Pixel readback binds the executed packet, device, and frame result.
 - Evidence: [pixel readback tests](../../../../tests/phase7-pixel-readback.test.cjs).
+- Evidence: [frame evidence regressions](../../../../tests/renderer-frame-evidence.test.cjs).
 
 ## Non-goals
 

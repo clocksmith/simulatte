@@ -33,7 +33,7 @@
           (construction.provenance.targetIdentityBound === true || promptConstructionSourceNamesTarget(construction))
         );
       const scored = candidates.map((program, index) => {
-        const obligationScore = hasPromptContracts ? promptGeometryCandidateScore(program, entity) : -index;
+        const obligationScore = hasPromptContracts ? promptGeometryCandidateScore(program, entity) : 0 - index;
         return {
           program,
           index,

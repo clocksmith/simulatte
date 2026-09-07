@@ -1,0 +1,5 @@
+Documentation check failed:
+- docs/strategy/doppler-strategy-playbooks.md -> ../../../doppler/docs/adr/0001-dual-hexagon-pack-spine.md
+- docs/strategy/portfolio-strategy-matrix.md -> ../../../doppler/docs/adr/0001-dual-hexagon-pack-spine.md
+- Strategy taxonomy repository check failed:
+- doppler-play-invisible-pack-lifecycle evidence does not exist: doppler/docs/adr/0001-dual-hexagon-pack-spine.md

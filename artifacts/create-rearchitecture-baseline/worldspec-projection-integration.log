@@ -1,0 +1,1221 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 9.213528
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 49.447054
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 12.166853
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 5.347708
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 49.383061
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.899071
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.522431
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+not ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 1254.341548
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:129:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:131:26)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+not ok 9 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 1448.300088
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:142:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    /home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:200:21
+    Object.run (/home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:217:16)
+    /home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:145:51
+    async Object.run (/home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:163:28)
+    async TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:149:19)
+    async Test.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+not ok 10 - WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+  ---
+  duration_ms: 688.924919
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:161:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:163:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+not ok 11 - WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+  ---
+  duration_ms: 710.763859
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:183:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:185:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+not ok 12 - synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+  ---
+  duration_ms: 629.393075
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:192:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:196:26)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: compiled water state channels retain their entity owner through serializable phase artifacts
+not ok 13 - compiled water state channels retain their entity owner through serializable phase artifacts
+  ---
+  duration_ms: 1244.448812
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:207:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:209:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: invocation acquisition obeys cancellation and the phase deadline
+ok 14 - invocation acquisition obeys cancellation and the phase deadline
+  ---
+  duration_ms: 34.040738
+  type: 'test'
+  ...
+# Subtest: resource selection and immutable assets cannot change while a run waits
+ok 15 - resource selection and immutable assets cannot change while a run waits
+  ---
+  duration_ms: 20.468935
+  type: 'test'
+  ...
+# Subtest: integrity rejects array metadata and non-enumerable artifact fields
+ok 16 - integrity rejects array metadata and non-enumerable artifact fields
+  ---
+  duration_ms: 0.250761
+  type: 'test'
+  ...
+# Subtest: binding snapshots receipts and metadata and detects tampering outside artifact payloads
+ok 17 - binding snapshots receipts and metadata and detects tampering outside artifact payloads
+  ---
+  duration_ms: 2.721887
+  type: 'test'
+  ...
+# Subtest: Phase 4 carries causal rule identity into connected lava heat and ice phase inference
+not ok 18 - Phase 4 carries causal rule identity into connected lava heat and ice phase inference
+  ---
+  duration_ms: 1601.672538
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter diffusionA violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:196:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+  ...
+# Subtest: Phase 2 marks typed relations as local evidence instead of requesting model identity work
+not ok 19 - Phase 2 marks typed relations as local evidence instead of requesting model identity work
+  ---
+  duration_ms: 968.12665
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter diffusionA violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:416:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: cryosphere identities select exact recognizable construction topologies
+not ok 20 - cryosphere identities select exact recognizable construction topologies
+  ---
+  duration_ms: 764.311244
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:1031:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: Phase 6 renders laboratories as workspaces rather than exterior buildings
+not ok 21 - Phase 6 renders laboratories as workspaces rather than exterior buildings
+  ---
+  duration_ms: 789.27456
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter diffusionA violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:1057:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: Phase 6 solved boxes govern packet placement even when an object also owns a motion path
+not ok 22 - Phase 6 solved boxes govern packet placement even when an object also owns a motion path
+  ---
+  duration_ms: 984.794922
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter irradiance violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:1068:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: Phase 3 treats a synthesized context phrase as support, not object identity
+ok 23 - Phase 3 treats a synthesized context phrase as support, not object identity
+  ---
+  duration_ms: 0.840342
+  type: 'test'
+  ...
+# Subtest: Phase 6 applies accepted orbital process motion to every affected prompt entity
+not ok 24 - Phase 6 applies accepted orbital process motion to every affected prompt entity
+  ---
+  duration_ms: 826.844642
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:1231:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: Phase 5 physics obligations prove operators beyond the swimming vertical
+not ok 25 - Phase 5 physics obligations prove operators beyond the swimming vertical
+  ---
+  duration_ms: 910.235867
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter diffusionA violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:1399:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: Phase 5 and 7 lower swimming into behavior physics and preserve dog cat identities
+not ok 26 - Phase 5 and 7 lower swimming into behavior physics and preserve dog cat identities
+  ---
+  duration_ms: 842.162061
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:1499:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: particle instrument VisualIR preserves causal affordance rows
+not ok 27 - particle instrument VisualIR preserves causal affordance rows
+  ---
+  duration_ms: 1185.697686
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:1609:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: Phase 4 exact construction evidence outranks unrelated reranker confidence
+ok 28 - Phase 4 exact construction evidence outranks unrelated reranker confidence
+  ---
+  duration_ms: 0.708568
+  type: 'test'
+  ...
+# Subtest: exact construction families exclude unrelated embedding neighbours through Phase 6
+ok 29 - exact construction families exclude unrelated embedding neighbours through Phase 6
+  ---
+  duration_ms: 22.460085
+  type: 'test'
+  ...
+# Subtest: ball construction selects spherical geometry instead of an unrelated instrument topology
+not ok 30 - ball construction selects spherical geometry instead of an unrelated instrument topology
+  ---
+  duration_ms: 827.678433
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:1801:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: data-owned target labels bind compound nouns before analogous construction reranking
+ok 31 - data-owned target labels bind compound nouns before analogous construction reranking
+  ---
+  duration_ms: 2.224914
+  type: 'test'
+  ...
+# Subtest: abstract control entities do not acquire unrelated physical construction graphs
+not ok 32 - abstract control entities do not acquire unrelated physical construction graphs
+  ---
+  duration_ms: 1193.810143
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:1863:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: fields skip part graphs while protein chains and plumes use data-owned topology
+not ok 33 - fields skip part graphs while protein chains and plumes use data-owned topology
+  ---
+  duration_ms: 1455.528884
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:1898:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: unknown object retrieval reserves an embedding-ranked construction topology inside the fixed card budget
+ok 34 - unknown object retrieval reserves an embedding-ranked construction topology inside the fixed card budget
+  ---
+  duration_ms: 2.826326
+  type: 'test'
+  ...
+# Subtest: construction retrieval admits physical part graphs and rejects process or visual-effect rows
+ok 35 - construction retrieval admits physical part graphs and rejects process or visual-effect rows
+  ---
+  duration_ms: 0.403457
+  type: 'test'
+  ...
+# Subtest: Phase 4 attaches construction to the slot target instead of a material context span
+ok 36 - Phase 4 attaches construction to the slot target instead of a material context span
+  ---
+  duration_ms: 0.326148
+  type: 'test'
+  ...
+# Subtest: Phase 4 construction target selection prefers a direct label over a shared canonical tail
+ok 37 - Phase 4 construction target selection prefers a direct label over a shared canonical tail
+  ---
+  duration_ms: 0.217402
+  type: 'test'
+  ...
+# Subtest: Phase 6 lowers unmatched typed physics entities for expanded scene kinds
+not ok 38 - Phase 6 lowers unmatched typed physics entities for expanded scene kinds
+  ---
+  duration_ms: 1024.743481
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:2081:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: common-world and celestial nouns survive grounding as literal object geometry
+not ok 39 - common-world and celestial nouns survive grounding as literal object geometry
+  ---
+  duration_ms: 712.183508
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:2138:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: part-scoped properties bind robot eyes and articulated straw arms into one object graph
+not ok 40 - part-scoped properties bind robot eyes and articulated straw arms into one object graph
+  ---
+  duration_ms: 577.13107
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter diffusionA violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:2229:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: cardinality pose spatial color and environment contracts lower into one rendered scene
+not ok 41 - cardinality pose spatial color and environment contracts lower into one rendered scene
+  ---
+  duration_ms: 580.806557
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:2283:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: Phase 6 solves typed spatial constraints and canonicalizes visual concepts
+ok 42 - Phase 6 solves typed spatial constraints and canonicalizes visual concepts
+  ---
+  duration_ms: 3.43738
+  type: 'test'
+  ...
+# Subtest: Phase 6 takes typed identity and relation authority only from RenderIR
+not ok 43 - Phase 6 takes typed identity and relation authority only from RenderIR
+  ---
+  duration_ms: 533.478756
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:2613:24)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: prompt-owned identities override an incorrect network render layer
+ok 44 - prompt-owned identities override an incorrect network render layer
+  ---
+  duration_ms: 0.724323
+  type: 'test'
+  ...
+# Subtest: prompt-owned scientific identities require construction evidence before claiming literal geometry
+ok 45 - prompt-owned scientific identities require construction evidence before claiming literal geometry
+  ---
+  duration_ms: 9.058313
+  type: 'test'
+  ...
+# Subtest: construction support failures apply only to required identities without a literal representative
+ok 46 - construction support failures apply only to required identities without a literal representative
+  ---
+  duration_ms: 0.871558
+  type: 'test'
+  ...
+# Subtest: scene framing makes literal objects readable without changing relation geometry
+not ok 47 - scene framing makes literal objects readable without changing relation geometry
+  ---
+  duration_ms: 493.984514
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:25:10'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/physical-compiler-suite.cjs:2779:25)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: typed RenderIR scene fallback routes identity without inventing executable fields
+ok 48 - typed RenderIR scene fallback routes identity without inventing executable fields
+  ---
+  duration_ms: 34.133874
+  type: 'test'
+  ...
+# Subtest: part candidates preserve optional quantities without publishing undefined fields
+not ok 49 - part candidates preserve optional quantities without publishing undefined fields
+  ---
+  duration_ms: 1475.750431
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:7:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter diffusionA violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:8:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+  ...
+# Subtest: explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+not ok 50 - explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+  ---
+  duration_ms: 734.900816
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:24:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:25:24)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+  ...
+# Subtest: WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+not ok 51 - WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+  ---
+  duration_ms: 63.0758
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:32:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec projection Phase 6 belongs to another request or revision'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.projectWorldSpec (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js:19:15)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:517:22)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:34:24)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: actual runner outputs project a WorldSpec without changing accepted bindings
+not ok 52 - actual runner outputs project a WorldSpec without changing accepted bindings
+  ---
+  duration_ms: 1272.327421
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:47:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    /home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:200:21
+    Object.run (/home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:217:16)
+    /home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:145:51
+    async Object.run (/home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:163:28)
+    async TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:63:19)
+    async Test.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+not ok 53 - WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+  ---
+  duration_ms: 548.255407
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:85:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:86:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: preserved color edits reach compiled grounding and geometry without creating another authoring revision
+not ok 54 - preserved color edits reach compiled grounding and geometry without creating another authoring revision
+  ---
+  duration_ms: 1458.441145
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:29:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:10:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:30:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: recompile plans expose every accepted override before execution
+not ok 55 - recompile plans expose every accepted override before execution
+  ---
+  duration_ms: 833.300375
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:47:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:10:14)
+    editedFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:18:20)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:48:32)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+  ...
+# Subtest: preserving overrides rebases them and appends a reconciliation record
+not ok 56 - preserving overrides rebases them and appends a reconciliation record
+  ---
+  duration_ms: 942.482704
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:67:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:10:14)
+    editedFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:18:20)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:68:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+  ...
+# Subtest: accepting a fresh compilation records the explicit supersession decision
+not ok 57 - accepting a fresh compilation records the explicit supersession decision
+  ---
+  duration_ms: 646.44839
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:88:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:10:14)
+    editedFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:18:20)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:89:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+  ...
+# Subtest: compiler conflicts remain visible and require a named decision
+not ok 58 - compiler conflicts remain visible and require a named decision
+  ---
+  duration_ms: 747.8426
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:107:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:10:14)
+    editedFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:18:20)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:108:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+  ...
+# Subtest: reconciliation history is append-only across repeated recompiles
+not ok 59 - reconciliation history is append-only across repeated recompiles
+  ---
+  duration_ms: 853.091541
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:133:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:10:14)
+    editedFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:18:20)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:134:22)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+  ...
+# Subtest: WorldSpec 1.1 artifacts migrate into the reconciliation-aware authoring schema
+not ok 60 - WorldSpec 1.1 artifacts migrate into the reconciliation-aware authoring schema
+  ---
+  duration_ms: 1103.291121
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:144:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:10:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:145:49)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+not ok 61 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 1173.538733
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:35:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:36:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+not ok 62 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 941.229522
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:51:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:52:20)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+not ok 63 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 920.543481
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:72:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:73:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+not ok 64 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 818.56093
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:105:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:106:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+not ok 65 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 1002.858559
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:145:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:146:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+not ok 66 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 676.774629
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:165:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:166:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+not ok 67 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 991.299653
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:199:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:200:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+not ok 68 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 874.669471
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:224:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:225:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+not ok 69 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 526.5119
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:235:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:236:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 70 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 3.331623
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+not ok 71 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 552.581321
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:296:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:297:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+not ok 72 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 553.829836
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:320:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:321:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+not ok 73 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 574.409536
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:348:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:349:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+not ok 74 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 556.776907
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:397:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:398:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+not ok 75 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 516.959344
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:420:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec input parameter friction violates its control'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    validateWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:128:15)
+    finishWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:98:12)
+    Object.buildWorldSpecInput (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js:78:16)
+    Object.runPhase4GroundedIntent (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js:160:49)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:426:34)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:509:30)
+    compileFixture (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:13:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:421:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 76 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 8.769401
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+ok 77 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 1024.94212
+  type: 'test'
+  ...
+1..77
+# tests 77
+# suites 0
+# pass 27
+# fail 50
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18278.511693

@@ -157,3 +157,133 @@ test('local adapters execute actual transformations in order and retain missing 
   assert.notEqual(outputs[7].artifact.sceneProof.verdict, 'pass');
   assert.equal(outputs[5].artifact.visualCompile.sceneRenderPacket.entities.filter(row => row.identity.type === 'cat').length, 2);
 });
+
+test('WorldSpec normalization preserves the accepted bound visual artifact across worker transfer', async () => {
+  const model = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+  const spec = model.createSpecFromPrompt('two cats', { deterministicRuntime: true });
+  const expected = { producer, dependencies: [], revision: 1 };
+  let previous = contracts.createRequestEnvelope({ ...request, request: { kind: 'prompt', text: 'two cats' } });
+  for (let phase = 1; phase <= 6; phase += 1) {
+    const key = `phase${phase}`;
+    spec.phaseArtifacts[key] = await contracts.bindPhaseOutput(spec.phaseArtifacts[key], { previous, invocation: {} }, expected);
+    previous = spec.phaseArtifacts[key];
+  }
+  const call = { previous: spec.phaseArtifacts.phase5, invocation: {} };
+  const received = structuredClone(spec);
+  const accepted = received.phaseArtifacts.phase6;
+  const normalized = model.normalizeSpec(received);
+  assert.deepEqual(normalized.phaseArtifacts, spec.phaseArtifacts);
+  assert.deepEqual(normalized.phaseArtifacts.phase6, accepted);
+  await contracts.validateBoundOutput(normalized.phaseArtifacts.phase6, call, expected);
+  assert.equal(normalized.contentHash, spec.contentHash);
+  assert.deepEqual(normalized.renderProgram, spec.renderProgram);
+  assert.deepEqual(normalized.compositionGraph, spec.compositionGraph);
+});
+
+test('WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them', () => {
+  const model = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+  const spec = model.createSpecFromPrompt('two cats', { deterministicRuntime: true });
+  const contradictory = structuredClone(spec);
+  contradictory.renderProgram = structuredClone(contradictory.renderProgram);
+  contradictory.renderProgram.sceneRenderPacket.entities.pop();
+  assert.throws(() => model.normalizeSpec(contradictory), /visual program.*Phase 6/);
+});
+
+test('synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution', () => {
+  const model = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+  const options = { deterministicRuntime: true };
+  const prompt = 'two cats';
+  const compiled = model.createSpecFromPrompt(prompt, options);
+  const phase1 = model.runPhase1RuntimeGate(prompt, options);
+  const phase2 = model.runPhase2LanguageGraph(phase1);
+  const phase3 = model.retrieveIntentCandidates(phase2, model.runtimeContextFromOptions(options), options).phase3Output;
+  const phase4 = model.runPhase4GroundedIntent(phase3);
+  const phase5 = model.runPhase5SimulationCompile(phase4);
+  assert.deepEqual(compiled.phaseArtifacts.phase4, phase4);
+  assert.deepEqual(compiled.phaseArtifacts.phase5, phase5);
+  assert.deepEqual(compiled.universeGraph, phase4.artifact.groundedIntent.acceptedGraph);
+});
+
+test('compiled water state channels retain their entity owner through serializable phase artifacts', () => {
+  const model = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
+  const spec = model.createSpecFromPrompt('water flows through a pipe', { deterministicRuntime: true });
+  assert.ok(spec.physicsIR.stateFields.length > 0);
+  const domains = new Map(spec.physicsIR.domains.map(domain => [domain.id, domain]));
+  for (const field of spec.physicsIR.stateFields) {
+    assert.equal(field.entityId, domains.get(field.domainId).entityId);
+    assert.equal(spec.solverGraph.channelMetadata[field.id].entityId, field.entityId);
+  }
+  for (const output of Object.values(spec.phaseArtifacts)) contracts.immutableArtifact(output);
+});
+
+test('invocation acquisition obeys cancellation and the phase deadline', async () => {
+  const entered = deferred(), finish = deferred();
+  const rows = phases(); let executed = 0;
+  rows[0].run = () => { executed += 1; return output(1); };
+  let suppliedSignal;
+  const instance = runner.create({ phases: rows, policy, producer });
+  const pending = instance.run(request, { invocationForPhase: async (_phase, _previous, signal) => {
+    suppliedSignal = signal; entered.resolve(); await finish.promise; return {};
+  } });
+  const rejected = assert.rejects(pending, { name: 'AbortError' });
+  await entered.promise;
+  instance.cancel();
+  await rejected;
+  assert.equal(suppliedSignal.aborted, true);
+  finish.resolve(); await new Promise(setImmediate);
+  assert.equal(executed, 0);
+  const timed = runner.create({ phases: rows, policy: { ...policy, phases: policy.phases.map(p => ({ ...p, maxDurationMs: 30 })) }, producer });
+  await assert.rejects(timed.run(request, { invocationForPhase: () => new Promise(() => {}) }), /deadline/);
+  assert.equal(executed, 0);
+});
+
+test('resource selection and immutable assets cannot change while a run waits', async () => {
+  const entered = deferred(), finish = deferred();
+  const rows = phases(); rows[0].resourceIds = ['asset']; rows[1].resourceIds = ['asset'];
+  const asset = { value: 'original' };
+  const resources = { asset: { descriptor: { id: 'asset', kind: 'artifact', contentDigest: await contracts.artifactDigest(asset), capabilities: ['test'], residentBytes: 10 }, handle: asset,
+    acquire: async () => () => { released += 1; } } };
+  let released = 0;
+  rows[0].run = (call, handles) => { assert.deepEqual(handles.asset, { value: 'original' }); return output(1); };
+  rows[1].run = (call, handles) => { assert.deepEqual(handles.asset, { value: 'original' }); return output(2); };
+  const instance = runner.create({ phases: rows, policy, producer });
+  const pending = instance.run(request, { resources, invocationForPhase: async phase => {
+    if (phase === 1) { entered.resolve(); await finish.promise; }
+    return invocationForPhase(phase);
+  } });
+  await entered.promise;
+  asset.value = 'mutated';
+  resources.asset = { ...resources.asset, handle: { value: 'replacement' }, acquire() { throw new Error('replacement must not execute'); } };
+  finish.resolve();
+  await pending;
+  assert.equal(released, 2);
+  await assert.rejects(instance.run(request, { resources, invocationForPhase }), /Artifact content identity mismatch/);
+});
+
+test('integrity rejects array metadata and non-enumerable artifact fields', () => {
+  const array = [1]; array.extra = 'silently lost';
+  const hidden = {}; Object.defineProperty(hidden, 'secret', { value: 1 });
+  assert.throws(() => contracts.canonicalJson(array), /extra field/);
+  assert.throws(() => contracts.canonicalJson(hidden), /hidden/);
+});
+
+test('binding snapshots receipts and metadata and detects tampering outside artifact payloads', async () => {
+  const value = output(1);
+  value.receipts[0].ready = true;
+  const call = { previous: contracts.createRequestEnvelope(request), invocation: {} };
+  const expected = { producer, dependencies: [], revision: 1 };
+  const pending = contracts.bindPhaseOutput(value, call, expected);
+  value.receipts[0].ready = false;
+  value.runtimeReceiptId = 'changed-during-hash';
+  const bound = await pending;
+  assert.equal(bound.runtimeReceiptId, 'test-runtime');
+  assert.equal(bound.receipts[0].ready, true);
+  for (const mutate of [out => {out.receipts[0].ready = false;}, out => {out.runtimeReceiptId = 'forged-runtime';}]) {
+    const forged = structuredClone(bound); mutate(forged);
+    await assert.rejects(contracts.validateBoundOutput(forged, call, expected), /envelopeDigest mismatch/);
+  }
+  const legacy = structuredClone(bound);
+  legacy.binding.schema = 'simulatte.phaseBinding.v1'; delete legacy.binding.envelopeDigest;
+  assert.doesNotThrow(() => contracts.legacyPhaseProjection(legacy));
+  await assert.rejects(contracts.validateBoundOutput(legacy, call, expected), /explicit rebind/);
+});

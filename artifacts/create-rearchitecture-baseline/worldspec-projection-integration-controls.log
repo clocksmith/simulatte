@@ -1,0 +1,486 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 11.087884
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 65.60257
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 16.048723
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 5.97833
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 60.226661
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.652206
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.496329
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 2708.478653
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+ok 9 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 3420.921556
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+ok 10 - WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+  ---
+  duration_ms: 1470.34701
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+ok 11 - WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+  ---
+  duration_ms: 626.167652
+  type: 'test'
+  ...
+# Subtest: synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+ok 12 - synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+  ---
+  duration_ms: 1478.831353
+  type: 'test'
+  ...
+# Subtest: compiled water state channels retain their entity owner through serializable phase artifacts
+ok 13 - compiled water state channels retain their entity owner through serializable phase artifacts
+  ---
+  duration_ms: 1489.10725
+  type: 'test'
+  ...
+# Subtest: invocation acquisition obeys cancellation and the phase deadline
+ok 14 - invocation acquisition obeys cancellation and the phase deadline
+  ---
+  duration_ms: 32.517418
+  type: 'test'
+  ...
+# Subtest: resource selection and immutable assets cannot change while a run waits
+ok 15 - resource selection and immutable assets cannot change while a run waits
+  ---
+  duration_ms: 13.086073
+  type: 'test'
+  ...
+# Subtest: integrity rejects array metadata and non-enumerable artifact fields
+ok 16 - integrity rejects array metadata and non-enumerable artifact fields
+  ---
+  duration_ms: 0.294419
+  type: 'test'
+  ...
+# Subtest: binding snapshots receipts and metadata and detects tampering outside artifact payloads
+ok 17 - binding snapshots receipts and metadata and detects tampering outside artifact payloads
+  ---
+  duration_ms: 3.846012
+  type: 'test'
+  ...
+# Subtest: Phase 4 carries causal rule identity into connected lava heat and ice phase inference
+ok 18 - Phase 4 carries causal rule identity into connected lava heat and ice phase inference
+  ---
+  duration_ms: 2865.433902
+  type: 'test'
+  ...
+# Subtest: Phase 2 marks typed relations as local evidence instead of requesting model identity work
+ok 19 - Phase 2 marks typed relations as local evidence instead of requesting model identity work
+  ---
+  duration_ms: 1448.249223
+  type: 'test'
+  ...
+# Subtest: cryosphere identities select exact recognizable construction topologies
+ok 20 - cryosphere identities select exact recognizable construction topologies
+  ---
+  duration_ms: 1841.884604
+  type: 'test'
+  ...
+# Subtest: Phase 6 renders laboratories as workspaces rather than exterior buildings
+ok 21 - Phase 6 renders laboratories as workspaces rather than exterior buildings
+  ---
+  duration_ms: 605.516958
+  type: 'test'
+  ...
+# Subtest: Phase 6 solved boxes govern packet placement even when an object also owns a motion path
+ok 22 - Phase 6 solved boxes govern packet placement even when an object also owns a motion path
+  ---
+  duration_ms: 1437.711502
+  type: 'test'
+  ...
+# Subtest: Phase 3 treats a synthesized context phrase as support, not object identity
+ok 23 - Phase 3 treats a synthesized context phrase as support, not object identity
+  ---
+  duration_ms: 0.670481
+  type: 'test'
+  ...
+# Subtest: Phase 6 applies accepted orbital process motion to every affected prompt entity
+ok 24 - Phase 6 applies accepted orbital process motion to every affected prompt entity
+  ---
+  duration_ms: 892.115854
+  type: 'test'
+  ...
+# Subtest: Phase 5 physics obligations prove operators beyond the swimming vertical
+ok 25 - Phase 5 physics obligations prove operators beyond the swimming vertical
+  ---
+  duration_ms: 2198.746022
+  type: 'test'
+  ...
+# Subtest: Phase 5 and 7 lower swimming into behavior physics and preserve dog cat identities
+ok 26 - Phase 5 and 7 lower swimming into behavior physics and preserve dog cat identities
+  ---
+  duration_ms: 974.911817
+  type: 'test'
+  ...
+# Subtest: particle instrument VisualIR preserves causal affordance rows
+ok 27 - particle instrument VisualIR preserves causal affordance rows
+  ---
+  duration_ms: 1258.436315
+  type: 'test'
+  ...
+# Subtest: Phase 4 exact construction evidence outranks unrelated reranker confidence
+ok 28 - Phase 4 exact construction evidence outranks unrelated reranker confidence
+  ---
+  duration_ms: 0.50801
+  type: 'test'
+  ...
+# Subtest: exact construction families exclude unrelated embedding neighbours through Phase 6
+ok 29 - exact construction families exclude unrelated embedding neighbours through Phase 6
+  ---
+  duration_ms: 4.29262
+  type: 'test'
+  ...
+# Subtest: ball construction selects spherical geometry instead of an unrelated instrument topology
+ok 30 - ball construction selects spherical geometry instead of an unrelated instrument topology
+  ---
+  duration_ms: 1010.874227
+  type: 'test'
+  ...
+# Subtest: data-owned target labels bind compound nouns before analogous construction reranking
+ok 31 - data-owned target labels bind compound nouns before analogous construction reranking
+  ---
+  duration_ms: 2.401067
+  type: 'test'
+  ...
+# Subtest: abstract control entities do not acquire unrelated physical construction graphs
+ok 32 - abstract control entities do not acquire unrelated physical construction graphs
+  ---
+  duration_ms: 1063.221098
+  type: 'test'
+  ...
+# Subtest: fields skip part graphs while protein chains and plumes use data-owned topology
+ok 33 - fields skip part graphs while protein chains and plumes use data-owned topology
+  ---
+  duration_ms: 3095.485268
+  type: 'test'
+  ...
+# Subtest: unknown object retrieval reserves an embedding-ranked construction topology inside the fixed card budget
+ok 34 - unknown object retrieval reserves an embedding-ranked construction topology inside the fixed card budget
+  ---
+  duration_ms: 2.915155
+  type: 'test'
+  ...
+# Subtest: construction retrieval admits physical part graphs and rejects process or visual-effect rows
+ok 35 - construction retrieval admits physical part graphs and rejects process or visual-effect rows
+  ---
+  duration_ms: 0.416713
+  type: 'test'
+  ...
+# Subtest: Phase 4 attaches construction to the slot target instead of a material context span
+ok 36 - Phase 4 attaches construction to the slot target instead of a material context span
+  ---
+  duration_ms: 0.344729
+  type: 'test'
+  ...
+# Subtest: Phase 4 construction target selection prefers a direct label over a shared canonical tail
+ok 37 - Phase 4 construction target selection prefers a direct label over a shared canonical tail
+  ---
+  duration_ms: 0.228625
+  type: 'test'
+  ...
+# Subtest: Phase 6 lowers unmatched typed physics entities for expanded scene kinds
+ok 38 - Phase 6 lowers unmatched typed physics entities for expanded scene kinds
+  ---
+  duration_ms: 1663.74794
+  type: 'test'
+  ...
+# Subtest: common-world and celestial nouns survive grounding as literal object geometry
+ok 39 - common-world and celestial nouns survive grounding as literal object geometry
+  ---
+  duration_ms: 5722.26773
+  type: 'test'
+  ...
+# Subtest: part-scoped properties bind robot eyes and articulated straw arms into one object graph
+ok 40 - part-scoped properties bind robot eyes and articulated straw arms into one object graph
+  ---
+  duration_ms: 1253.40644
+  type: 'test'
+  ...
+# Subtest: cardinality pose spatial color and environment contracts lower into one rendered scene
+ok 41 - cardinality pose spatial color and environment contracts lower into one rendered scene
+  ---
+  duration_ms: 1629.551558
+  type: 'test'
+  ...
+# Subtest: Phase 6 solves typed spatial constraints and canonicalizes visual concepts
+ok 42 - Phase 6 solves typed spatial constraints and canonicalizes visual concepts
+  ---
+  duration_ms: 3.304099
+  type: 'test'
+  ...
+# Subtest: Phase 6 takes typed identity and relation authority only from RenderIR
+ok 43 - Phase 6 takes typed identity and relation authority only from RenderIR
+  ---
+  duration_ms: 1237.407129
+  type: 'test'
+  ...
+# Subtest: prompt-owned identities override an incorrect network render layer
+ok 44 - prompt-owned identities override an incorrect network render layer
+  ---
+  duration_ms: 0.403854
+  type: 'test'
+  ...
+# Subtest: prompt-owned scientific identities require construction evidence before claiming literal geometry
+ok 45 - prompt-owned scientific identities require construction evidence before claiming literal geometry
+  ---
+  duration_ms: 4.995095
+  type: 'test'
+  ...
+# Subtest: construction support failures apply only to required identities without a literal representative
+ok 46 - construction support failures apply only to required identities without a literal representative
+  ---
+  duration_ms: 0.365707
+  type: 'test'
+  ...
+# Subtest: scene framing makes literal objects readable without changing relation geometry
+ok 47 - scene framing makes literal objects readable without changing relation geometry
+  ---
+  duration_ms: 3597.275401
+  type: 'test'
+  ...
+# Subtest: typed RenderIR scene fallback routes identity without inventing executable fields
+ok 48 - typed RenderIR scene fallback routes identity without inventing executable fields
+  ---
+  duration_ms: 19.904404
+  type: 'test'
+  ...
+# Subtest: part candidates preserve optional quantities without publishing undefined fields
+ok 49 - part candidates preserve optional quantities without publishing undefined fields
+  ---
+  duration_ms: 2179.644832
+  type: 'test'
+  ...
+# Subtest: explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+ok 50 - explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+  ---
+  duration_ms: 858.376415
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+not ok 51 - WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+  ---
+  duration_ms: 17.806572
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:32:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec projection Phase 6 belongs to another request or revision'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.projectWorldSpec (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js:19:15)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:517:22)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-phase-projection.test.cjs:34:24)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: actual runner outputs project a WorldSpec without changing accepted bindings
+ok 52 - actual runner outputs project a WorldSpec without changing accepted bindings
+  ---
+  duration_ms: 4074.122995
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+ok 53 - WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+  ---
+  duration_ms: 2030.122503
+  type: 'test'
+  ...
+# Subtest: preserved color edits reach compiled grounding and geometry without creating another authoring revision
+ok 54 - preserved color edits reach compiled grounding and geometry without creating another authoring revision
+  ---
+  duration_ms: 4320.386322
+  type: 'test'
+  ...
+# Subtest: recompile plans expose every accepted override before execution
+ok 55 - recompile plans expose every accepted override before execution
+  ---
+  duration_ms: 2288.297086
+  type: 'test'
+  ...
+# Subtest: preserving overrides rebases them and appends a reconciliation record
+ok 56 - preserving overrides rebases them and appends a reconciliation record
+  ---
+  duration_ms: 3043.35257
+  type: 'test'
+  ...
+# Subtest: accepting a fresh compilation records the explicit supersession decision
+ok 57 - accepting a fresh compilation records the explicit supersession decision
+  ---
+  duration_ms: 2361.884682
+  type: 'test'
+  ...
+# Subtest: compiler conflicts remain visible and require a named decision
+ok 58 - compiler conflicts remain visible and require a named decision
+  ---
+  duration_ms: 5493.989355
+  type: 'test'
+  ...
+# Subtest: reconciliation history is append-only across repeated recompiles
+ok 59 - reconciliation history is append-only across repeated recompiles
+  ---
+  duration_ms: 4801.799382
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.1 artifacts migrate into the reconciliation-aware authoring schema
+ok 60 - WorldSpec 1.1 artifacts migrate into the reconciliation-aware authoring schema
+  ---
+  duration_ms: 1205.8996
+  type: 'test'
+  ...
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+ok 61 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 1563.60352
+  type: 'test'
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+ok 62 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 702.113645
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+ok 63 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 1020.773377
+  type: 'test'
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+ok 64 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 971.745106
+  type: 'test'
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+ok 65 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 1850.901917
+  type: 'test'
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+ok 66 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 1155.874284
+  type: 'test'
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+ok 67 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 1358.655609
+  type: 'test'
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+ok 68 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 1200.821388
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+ok 69 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 2053.866316
+  type: 'test'
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 70 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 2.325891
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+ok 71 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 1785.644291
+  type: 'test'
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+ok 72 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 1898.461382
+  type: 'test'
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+ok 73 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 5505.571097
+  type: 'test'
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+ok 74 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 1701.238452
+  type: 'test'
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+ok 75 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 950.566334
+  type: 'test'
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 76 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 0.636455
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+ok 77 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 954.979822
+  type: 'test'
+  ...
+1..77
+# tests 77
+# suites 0
+# pass 76
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 36491.419614

@@ -1,10 +1,13 @@
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const fs = require('node:fs');
+const crypto = require('node:crypto');
+const zlib = require('node:zlib');
 const test = require('node:test');
 const { pathToFileURL } = require('node:url');
 
 const root = path.resolve(__dirname, '..');
-const contractFile = path.join(root, 'tools/samer/simulatte-public-governing-metric-v1.json');
+const fixtureRoot = path.join(__dirname, 'fixtures/governing-metric');
 
 async function modules() {
   const compiler = await import(pathToFileURL(
@@ -20,8 +23,12 @@ function dimension(report, id) {
   return report.dimensions.find((row) => row.id === id);
 }
 
-function loadArchivedEvidenceFixture(compiler) {
-  const input = compiler.loadGoverningMetricInputs(contractFile);
+function loadArchivedEvidenceFixture() {
+  const manifest = JSON.parse(fs.readFileSync(path.join(fixtureRoot, 'manifest.json'), 'utf8'));
+  const bytes = zlib.gunzipSync(fs.readFileSync(path.join(fixtureRoot, manifest.file)));
+  assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), manifest.sha256);
+  assert.equal(manifest.evidenceLayer, 'component-fixture');
+  const input = JSON.parse(bytes);
   const buildIds = new Set([
     ...input.pointers.goldReports.flatMap(({ pointer }) => (
       pointer.value.results.map((row) => row.buildId)
@@ -29,7 +36,7 @@ function loadArchivedEvidenceFixture(compiler) {
     ...input.pointers.boundaryReports.map(({ pointer }) => pointer.value.buildId),
   ]);
   assert.equal(buildIds.size, 1, 'archived governing-metric evidence must bind one build');
-  input.pointers.build.value.build = [...buildIds][0];
+  assert.equal(input.pointers.build.value.build, [...buildIds][0]);
   return input;
 }
 

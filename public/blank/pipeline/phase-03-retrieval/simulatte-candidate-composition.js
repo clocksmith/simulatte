@@ -63,7 +63,7 @@
           : null;
         const intent = {
           schema: 'simulatte.intent.v1',
-          prompt: String(sourceText || '').trim(),
+          prompt: String(sourceText || ''),
           title: title || 'Custom Physics World',
           domains: [],
           components: [],
@@ -149,7 +149,7 @@
             },
           });
           const phase3Output = scope.runPhase3Retrieval(phase2Output, retrievalRuntimeContext);
-          return { intent, phase3Output };
+          return finishCandidate(intent, phase3Output, options);
         }
 
         const synthesis = scope.synthesizeWorldIntent
@@ -342,8 +342,17 @@
           },
         });
         const phase3Output = scope.runPhase3Retrieval(phase2Output, retrievalRuntimeContext);
-        return { intent, phase3Output };
+        return finishCandidate(intent, phase3Output, options);
       }
+
+  function finishCandidate(intent, phase3Output, options) {
+    phase3Output.artifact.retrievalRerankResult.worldSpecCandidate = {
+      schema: 'simulatte.worldSpecCandidate.v1',
+      intent: scope.phaseContracts.immutableArtifact(intent),
+      compilerConfig: scope.worldSpecCompilerConfig(options),
+    };
+    return { intent, phase3Output };
+  }
 
   root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-candidate-composition.js', { retrieveIntentCandidates });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

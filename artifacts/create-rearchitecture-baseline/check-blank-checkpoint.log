@@ -1,0 +1,1848 @@
+
+> check:blank
+> npm run check:fast && node tools/run-test-files.mjs --fail-fast tests/physical-compiler-language-grounding.test.cjs tests/physical-compiler-simulation-visual.test.cjs tests/physical-compiler-render-proof.test.cjs tests/physical-compiler-solvers.test.cjs tests/phase7-pixel-readback.test.cjs && npm run audit:blank:world-spec && npm run audit:blank:gold:desktop
+
+
+> check:fast
+> npm run catscan:check && npm run folder-contracts:ci && npm run check:source-size && npm run check:runtime-entrypoint && npm run check:world-entrypoint && npm run check:artifacts && npm run check:pipeline-map && node tools/run-test-files.mjs --fail-fast tests/data-workbench.test.cjs tests/browser-harness.test.cjs tests/browser-memory-receipt.test.cjs tests/catscan.test.cjs tests/causal-phase-diagnosis.test.cjs tests/compile-human-reviews.test.cjs tests/governing-metric.test.cjs tests/gpu-supercluster.test.cjs tests/phase-module-registry.test.cjs tests/profile-program.test.cjs tests/profile-world-spec.test.cjs tests/shared-domain-contracts.test.cjs tests/world-spec-reconciliation.test.cjs tests/world-spec-reconciliation-controller.test.cjs tests/world-spec.test.cjs tests/world-proof.test.cjs tests/world-runtime-loader.test.cjs tests/js-shape-architecture.test.cjs tests/js-shape-model-data.test.cjs tests/js-shape-runtime-progress.test.cjs tests/js-shape-browser-render.test.cjs
+
+
+> catscan:check
+> node tools/check-catscan.mjs
+
+CATSCAN valid: 39 recursive component charters and synchronized index.
+
+> folder-contracts:ci
+> node tools/check-folder-contracts.mjs --contract docs/simulatte/folder-contract.json --schema docs/simulatte/folder-contract.schema.json --repository-root . --allow-unavailable-external-sources
+
+Folder contract valid: simulatte; 823 directories, 70 nodes, 61 affected nodes.
+{
+  "changedFiles": 53,
+  "commands": [
+    "git diff --check",
+    "node --test tests/asteroid-defense.test.cjs",
+    "node --test tests/autonomy.test.cjs",
+    "node --test tests/cable-trader.test.cjs",
+    "node --test tests/folder-contracts.test.cjs",
+    "node --test tests/gpu-supercluster.test.cjs",
+    "node --test tests/multirate-coordinator.test.cjs tests/simulation-residency-manager.test.cjs tests/plugin-compositor-runtime.test.cjs tests/tier-run-controller.test.cjs",
+    "node --test tests/navigation-lifecycle.test.cjs tests/plugin-compositor-runtime.test.cjs",
+    "node --test tests/neighborhood-bulk-pool.test.cjs",
+    "node --test tests/nyc-real-estate.test.cjs",
+    "node --test tests/plugin-platform.test.cjs",
+    "node --test tests/plugin-platform.test.cjs tests/tier-application-loader.test.cjs",
+    "node --test tests/sun-walker-visual-storytelling.test.cjs",
+    "node --test tests/world-tile-manager.test.cjs tests/recursive-spatial-residency.test.cjs tests/recursive-world-webgpu-renderer.test.cjs tests/recursive-world-proof.test.cjs",
+    "npm run audit:simulatte:browser -- --check",
+    "npm run audit:simulatte:evidence",
+    "npm run audit:simulatte:reviews",
+    "npm run check:artifacts",
+    "npm run check:blank",
+    "npm run check:deploy",
+    "npm run check:fast",
+    "npm run check:hosting",
+    "npm run check:model-candidates",
+    "npm run check:model-lock",
+    "npm run check:model-populations",
+    "npm run check:runtime-entrypoint",
+    "npm run check:simulatte",
+    "npm run check:simulatte:evidence",
+    "npm run check:simulatte:reviews",
+    "npm run check:world",
+    "npm run check:world-entrypoint",
+    "npm run folder-contracts:check",
+    "npm run plugins:check",
+    "npm run qualify:recursive-reference",
+    "npm run samer:simulatte:check",
+    "npm run simulatte:tiers:check",
+    "npm run validate:universe",
+    "npm run validate:visual-cards",
+    "npm test"
+  ],
+  "browserJourneys": [
+    "/city/cable-trader-pickup-v1",
+    "/city/neighborhood-bulk-pool-v1",
+    "/city/nyc-development-atlas-v1",
+    "/city/sun-walker-v1",
+    "/country/food-recall-us-v1",
+    "/country/grid-resilience-us-v1",
+    "/datacenter/gpu-supercluster-v1",
+    "/recursive-reference.html",
+    "/solar-system/asteroid-defense-v1",
+    "/solar-system/orbital-transfer-planner-v1",
+    "/star-chart/interstellar-relay-network-v1",
+    "/world/maritime-trade-global-v1",
+    "/world/subsea-network-global-v1"
+  ]
+}
+
+> check:source-size
+> node tools/check-source-size.mjs
+
+SOURCE-SIZE warning 979 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js
+SOURCE-SIZE warning 978 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval.js
+SOURCE-SIZE warning 953 public/shared/plugins/nyc-real-estate/forecast-model.js
+SOURCE-SIZE warning 952 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js
+SOURCE-SIZE warning 950 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js
+SOURCE-SIZE warning 946 public/blank/pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js
+SOURCE-SIZE warning 938 public/blank/pipeline/phase-06-visual/simulatte-object-geometry-grammars.js
+SOURCE-SIZE warning 930 public/simulatte/language/simulatte-universe-parser.js
+SOURCE-SIZE warning 928 public/blank/pipeline/phase-05-simulation/simulatte-physics-ir-builder.js
+SOURCE-SIZE warning 928 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-selection-layout.js
+SOURCE-SIZE warning 923 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-programs.js
+SOURCE-SIZE warning 923 public/shared/core/simulation/multirate-coordinator.js
+SOURCE-SIZE warning 919 public/shared/plugins/neighborhood-bulk-pool/pool-solver.js
+SOURCE-SIZE warning 917 public/blank/pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js
+SOURCE-SIZE warning 917 public/simulatte/app/webgpu-renderer.js
+SOURCE-SIZE warning 915 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js
+SOURCE-SIZE warning 913 public/simulatte/app/multi-tier-visualizer.js
+SOURCE-SIZE warning 912 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-runtime-language.js
+SOURCE-SIZE warning 910 public/shared/plugins/nyc-real-estate/v4-contribution.js
+SOURCE-SIZE warning 905 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js
+SOURCE-SIZE warning 900 public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js
+SOURCE-SIZE warning 890 public/shared/contracts/world-spec.js
+SOURCE-SIZE warning 877 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank.js
+SOURCE-SIZE warning 875 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-materials.js
+SOURCE-SIZE warning 870 public/blank/pipeline/phase-05-simulation/simulatte-physics-catalog-templates.js
+SOURCE-SIZE warning 866 public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag-helpers.js
+SOURCE-SIZE warning 865 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-helpers.js
+SOURCE-SIZE warning 860 public/blank/pipeline/phase-07-render/simulatte-render-proof.js
+SOURCE-SIZE warning 854 public/simulatte/app/webgpu-geometry.js
+SOURCE-SIZE warning 851 public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js
+SOURCE-SIZE warning 836 public/shared/plugins/sun-walker/sun-route-simulation.js
+SOURCE-SIZE warning 832 public/simulatte/mission/mission-compiler.js
+SOURCE-SIZE warning 826 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js
+SOURCE-SIZE warning 825 public/simulatte/app/main.js
+SOURCE-SIZE warning 824 public/blank/app/prompt/prompt-controller-workers.js
+SOURCE-SIZE warning 824 public/blank/pipeline/phase-05-simulation/simulatte-solver-compiler.js
+SOURCE-SIZE warning 803 public/shared/plugins/sun-walker/sun-exposure.js
+SOURCE-SIZE warning 799 public/shared/plugins/interstellar-relay-network/index.js
+SOURCE-SIZE warning 798 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js
+SOURCE-SIZE warning 796 public/blank/app/loading/loading-canvas.js
+SOURCE-SIZE warning 787 public/shared/plugins/neighborhood-bulk-pool/index.js
+SOURCE-SIZE warning 785 public/blank/app/runtime/runtime-progress-support.js
+SOURCE-SIZE warning 785 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-spec-api.js
+SOURCE-SIZE warning 785 public/blank/pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js
+SOURCE-SIZE warning 784 public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag-surface-cards.js
+SOURCE-SIZE warning 769 public/shared/plugins/maritime-trade-global/index.js
+SOURCE-SIZE warning 767 public/blank/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-helpers.js
+SOURCE-SIZE warning 767 public/shared/contracts/world-proof-intent.js
+SOURCE-SIZE warning 762 public/blank/pipeline/phase-06-visual/simulatte-visual-operator-compiler.js
+SOURCE-SIZE warning 757 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-visual-genome.js
+SOURCE-SIZE warning 754 public/blank/app/prompt/prompt-controller-lab-controller.js
+SOURCE-SIZE pass warnings=51 maximum=999
+
+> check:runtime-entrypoint
+> node tools/sync-runtime-script-entrypoint.mjs
+
+runtime script entrypoint is synchronized
+
+> check:world-entrypoint
+> node tools/check-world-runtime-entrypoint.mjs
+
+World runtime entrypoint is synchronized (13 eager scripts, 235 inventoried, 5 exclusive stages).
+
+> check:artifacts
+> node tools/sync-generated-artifact-inventory.mjs
+
+Generated artifact inventory is synchronized (9 artifacts).
+
+> check:pipeline-map
+> node tools/check-pipeline-engineering-map.mjs
+
+Pipeline engineering map resolved 16 jobs with owners, tests, validators, browser gates, and evidence.
+START browser-harness.test.cjs
+START browser-memory-receipt.test.cjs
+PASSED browser-memory-receipt.test.cjs tests=2
+START catscan.test.cjs
+PASSED browser-harness.test.cjs tests=7
+START causal-phase-diagnosis.test.cjs
+PASSED catscan.test.cjs tests=5
+START compile-human-reviews.test.cjs
+PASSED compile-human-reviews.test.cjs tests=1
+PASSED causal-phase-diagnosis.test.cjs tests=5
+START data-workbench.test.cjs
+START governing-metric.test.cjs
+PASSED data-workbench.test.cjs tests=11
+START gpu-supercluster.test.cjs
+PASSED governing-metric.test.cjs tests=3
+START js-shape-architecture.test.cjs
+PASSED gpu-supercluster.test.cjs tests=18
+START js-shape-browser-render.test.cjs
+PASSED js-shape-browser-render.test.cjs tests=13
+PASSED js-shape-architecture.test.cjs tests=8
+START js-shape-model-data.test.cjs
+START js-shape-runtime-progress.test.cjs
+PASSED js-shape-runtime-progress.test.cjs tests=11
+START phase-module-registry.test.cjs
+PASSED phase-module-registry.test.cjs tests=3
+START profile-program.test.cjs
+PASSED js-shape-model-data.test.cjs tests=17
+START profile-world-spec.test.cjs
+PASSED profile-program.test.cjs tests=10
+START shared-domain-contracts.test.cjs
+PASSED shared-domain-contracts.test.cjs tests=6
+START world-proof.test.cjs
+PASSED profile-world-spec.test.cjs tests=9
+START world-runtime-loader.test.cjs
+PASSED world-runtime-loader.test.cjs tests=3
+START world-spec-reconciliation-controller.test.cjs
+PASSED world-spec-reconciliation-controller.test.cjs tests=2
+START world-spec-reconciliation.test.cjs
+PASSED world-spec-reconciliation.test.cjs tests=6
+START world-spec.test.cjs
+PASSED world-proof.test.cjs tests=26
+PASSED world-spec.test.cjs tests=17
+TEST-RUN files=21/21 tests=183 passed=21 failed=0
+START phase7-pixel-readback.test.cjs
+START physical-compiler-language-grounding.test.cjs
+PASSED phase7-pixel-readback.test.cjs tests=16
+START physical-compiler-render-proof.test.cjs
+PASSED physical-compiler-render-proof.test.cjs tests=6
+START physical-compiler-simulation-visual.test.cjs
+PASSED physical-compiler-simulation-visual.test.cjs tests=31
+START physical-compiler-solvers.test.cjs
+PASSED physical-compiler-language-grounding.test.cjs tests=36
+PASSED physical-compiler-solvers.test.cjs tests=10
+TEST-RUN files=5/5 tests=99 passed=5 failed=0
+
+> audit:blank:world-spec
+> node tools/audit-world-spec-editor.mjs --viewport 1440x1000 && node tools/audit-world-spec-editor.mjs --viewport 390x844
+
+{
+  "ok": true,
+  "report": "/home/clocksmith/deco/simulatte/artifacts/blank-world-spec-editor/1440x1000.json",
+  "screenshot": "/home/clocksmith/deco/simulatte/artifacts/blank-world-spec-editor/1440x1000.png",
+  "receipt": {
+    "schema": "simulatte.worldSpecEditorBrowserAudit.v1",
+    "buildId": "96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19",
+    "boundarySetId": "simulatte-public-boundary-v1",
+    "boundaryRowId": "unsupported-neologism-edit-replay",
+    "boundaryKind": "unsupported-edit-replay",
+    "boundaryContractSha256": "ec03f020d14b5fb4af51eed04c7b4b04f0a1fa38ebb292f0588acff4f854e9f0",
+    "adHocPromptOverride": false,
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "prompt": "a red ball beside a qzxwplk",
+    "supportedEntityType": "ball",
+    "unsupportedLabel": "qzxwplk",
+    "unsupportedNodeId": "unresolved-span3",
+    "initialUnsupportedRequirements": [
+      {
+        "id": "span3",
+        "label": "qzxwplk",
+        "reason": "no grounded concept or primitive support"
+      },
+      {
+        "canonicalId": "unresolved.qzxwplk",
+        "id": "unresolved-span3",
+        "label": "Qzxwplk",
+        "reason": "semantic node has no simulator primitive mapping"
+      }
+    ],
+    "editedUnsupportedRequirements": [
+      {
+        "id": "span3",
+        "label": "qzxwplk",
+        "reason": "no grounded concept or primitive support"
+      },
+      {
+        "canonicalId": "unresolved.qzxwplk",
+        "id": "unresolved-span3",
+        "label": "Qzxwplk",
+        "reason": "semantic node has no simulator primitive mapping"
+      }
+    ],
+    "unsupportedNodeRemoved": true,
+    "initialSceneProofVerdict": "fail",
+    "initialRequiredFailures": [
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "entity:qzxwplk",
+        "kind": "object",
+        "target": "qzxwplk",
+        "required": true,
+        "sourceStatus": "unsupported",
+        "evidence": [],
+        "status": "unsupported",
+        "reason": "carried unsupported status"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+        "kind": "relation",
+        "target": "entity-ball:spatial-constraint:entity-qzxwplk",
+        "required": true,
+        "sourceStatus": "unsupported",
+        "evidence": [],
+        "status": "unsupported",
+        "reason": "carried unsupported status"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "relation:spatial:entity-ball:beside:entity-qzxwplk",
+        "kind": "relation",
+        "target": "spatial:entity-ball:beside:entity-qzxwplk",
+        "required": true,
+        "sourceStatus": "unsupported",
+        "evidence": [],
+        "status": "unsupported",
+        "reason": "carried unsupported status"
+      }
+    ],
+    "originalColor": "#ef3340",
+    "editedColor": "#00aa44",
+    "visualColor": "#00aa44",
+    "replacementColorGeometryPartCount": 1,
+    "constructionTopologyId": "spherical-body",
+    "constructionTopologyTargetFit": true,
+    "constructionPartIds": [
+      "sphere-body",
+      "specular-highlight"
+    ],
+    "propertyObligationIds": [
+      "visual:user-override-property-ball-color-#00aa44"
+    ],
+    "propertyObligationValues": [
+      "#00aa44"
+    ],
+    "propertyObligationStatuses": [
+      "preserved"
+    ],
+    "propertyObligationAuthorities": [
+      "userOverride"
+    ],
+    "patchAuthority": "userOverride",
+    "propertyPatchId": "patch:1:1c073065",
+    "patchAffectedObligationIds": [
+      "entity:ball",
+      "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+      "relation:spatial:entity-ball:beside:entity-qzxwplk",
+      "visual:prompt-property-ball-color-#ef3340"
+    ],
+    "semanticPropertyAuthority": "userOverride",
+    "semanticPropertyPatchIds": [
+      "patch:1:1c073065"
+    ],
+    "improvementRecord": {
+      "schema": "simulatte.worldImprovementRecord.v1",
+      "contentHash": "fnv1a32:6230b141",
+      "status": "successful-replay",
+      "promptHash": "fnv1a32:189b70b6",
+      "failureWorldSpecContentHash": "fnv1a32:d77a3386",
+      "failureWorldProofContentHash": "fnv1a32:4350571b",
+      "failureWorldProofVerdict": "fail",
+      "failurePhaseCount": 6,
+      "failurePhaseSchemas": [
+        "simulatte.phase1.output.v1",
+        "simulatte.phase2.output.v1",
+        "simulatte.phase3.output.v2",
+        "simulatte.phase4.output.v2",
+        "simulatte.phase5.output.v2",
+        "simulatte.phase6.output.v2"
+      ],
+      "patchIds": [
+        "patch:1:ee981e07",
+        "patch:1:0d53d7e7",
+        "patch:1:1c073065",
+        "patch:1:7f66c7f5"
+      ],
+      "affectedObligationIds": [
+        "entity:ball",
+        "entity:qzxwplk",
+        "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+        "relation:spatial:entity-ball:beside:entity-qzxwplk",
+        "visual:prompt-property-ball-color-#ef3340"
+      ],
+      "successWorldSpecContentHash": "fnv1a32:5b8e4d76",
+      "successWorldProofContentHash": "fnv1a32:29917475",
+      "successWorldProofVerdict": "pass",
+      "successReplayStatus": "pass",
+      "successPhaseCount": 6,
+      "earliestObservableDivergence": {
+        "schema": "simulatte.worldImprovementDivergence.v1",
+        "phase": 8,
+        "proofClass": "visual",
+        "status": "fail",
+        "failure": "required visible obligations did not all pass"
+      },
+      "causalAttributionStatus": "not-attributed",
+      "adjudicationStatus": "pending",
+      "populationPartition": "unassigned",
+      "generalizationStatus": "not-evaluated",
+      "corpusDisposition": "diagnostic-only",
+      "exportInitiallyDisabled": true,
+      "exportEnabled": true,
+      "exportStatus": "ready",
+      "exportedBytes": 10547408,
+      "exportedSchema": "simulatte.worldImprovementRecord.v1",
+      "exportedContentHash": "fnv1a32:6230b141"
+    },
+    "exchange": {
+      "schema": "simulatte.worldSpecBrowserExchange.v1",
+      "exportedContentHash": "fnv1a32:5b8e4d76",
+      "exportedRevision": 1,
+      "exportedBytes": 729327,
+      "compilerEvidenceOmitted": true,
+      "importedContentHash": "fnv1a32:5b8e4d76",
+      "importedRevision": 1,
+      "importedPhaseSchemas": [
+        "simulatte.phase1.output.v1",
+        "simulatte.phase2.output.v1",
+        "simulatte.phase3.output.v2",
+        "simulatte.phase4.output.v2",
+        "simulatte.phase5.output.v2",
+        "simulatte.phase6.output.v2"
+      ],
+      "importAuthority": "world-spec",
+      "sourcePrompt": "a red ball beside a qzxwplk",
+      "beforeRenderInputSerial": 2,
+      "renderInputSerial": 3,
+      "beforeRenderCount": 9,
+      "renderCount": 13
+    },
+    "reconciliation": {
+      "pendingPlanId": "reconciliation-plan:623ba29f",
+      "pendingWorldSpecContentHash": "fnv1a32:5b8e4d76",
+      "acceptedPatchCount": 4,
+      "fieldCount": 4,
+      "preserveControlEnabled": true,
+      "controlsFitViewport": true,
+      "receipt": {
+        "schema": "simulatte.worldSpecReconciliationReceipt.v1",
+        "id": "reconciliation:1bf77578",
+        "planId": "reconciliation-plan:623ba29f",
+        "decision": "preserve-overrides",
+        "decidedBy": "local-user",
+        "previousWorldSpecContentHash": "fnv1a32:5b8e4d76",
+        "compiledWorldSpecContentHash": "fnv1a32:d77a3386",
+        "resultWorldSpecContentHash": "fnv1a32:845934cc",
+        "acceptedPatchIds": [
+          "patch:1:ee981e07",
+          "patch:1:0d53d7e7",
+          "patch:1:1c073065",
+          "patch:1:7f66c7f5"
+        ],
+        "effectiveOverrideCount": 4,
+        "conflictCount": 0,
+        "unavailableCount": 0,
+        "preservedTargetPaths": [
+          "/safety/rules/0",
+          "/safety/status",
+          "/universeGraph/nodes/0/properties/0/value",
+          "/universeGraph/nodes/1"
+        ]
+      },
+      "record": {
+        "compiledWorldSpec": {
+          "contentHash": "fnv1a32:d77a3386",
+          "id": "red-ball-beside-qzxwplk-1fbnvv7",
+          "revision": 0
+        },
+        "decidedBy": "local-user",
+        "decision": "preserve-overrides",
+        "effectiveOverrides": [
+          {
+            "acceptedValue": {
+              "description": "Keep the proof trajectory within one simulated second",
+              "expected": null,
+              "id": "safety:elapsed-time-bound",
+              "maximum": 1,
+              "minimum": 0,
+              "operator": "between",
+              "schema": "simulatte.worldSpecSafetyRule.v1",
+              "severity": "block",
+              "statePath": "/t",
+              "tolerance": 1e-12
+            },
+            "priorCompilerValue": {
+              "schema": "simulatte.absentValue.v1"
+            },
+            "recompiledValue": {
+              "schema": "simulatte.absentValue.v1"
+            },
+            "status": "unchanged-baseline",
+            "targetPath": "/safety/rules/0"
+          },
+          {
+            "acceptedValue": "declared",
+            "priorCompilerValue": "not-declared",
+            "recompiledValue": "not-declared",
+            "status": "unchanged-baseline",
+            "targetPath": "/safety/status"
+          },
+          {
+            "acceptedValue": "#00aa44",
+            "priorCompilerValue": "#ef3340",
+            "recompiledValue": "#ef3340",
+            "status": "unchanged-baseline",
+            "targetPath": "/universeGraph/nodes/0/properties/0/value"
+          },
+          {
+            "acceptedValue": {
+              "schema": "simulatte.absentValue.v1"
+            },
+            "priorCompilerValue": {
+              "canonicalId": "unresolved.qzxwplk",
+              "directlyGrounded": false,
+              "domains": [],
+              "evidence": [
+                "prompt-span:span3"
+              ],
+              "id": "unresolved-span3",
+              "label": "Qzxwplk",
+              "operatorHints": [],
+              "operatorTypes": [],
+              "primitiveHints": [],
+              "semanticClass": "",
+              "semanticRole": "",
+              "semanticType": "concept",
+              "sourceLabel": "qzxwplk",
+              "spanId": "span3",
+              "supportOnly": true,
+              "unresolved": true
+            },
+            "recompiledValue": {
+              "canonicalId": "unresolved.qzxwplk",
+              "directlyGrounded": false,
+              "domains": [],
+              "evidence": [
+                "prompt-span:span3"
+              ],
+              "id": "unresolved-span3",
+              "label": "Qzxwplk",
+              "operatorHints": [],
+              "operatorTypes": [],
+              "primitiveHints": [],
+              "semanticClass": "",
+              "semanticRole": "",
+              "semanticType": "concept",
+              "sourceLabel": "qzxwplk",
+              "spanId": "span3",
+              "supportOnly": true,
+              "unresolved": true
+            },
+            "status": "unchanged-baseline",
+            "targetPath": "/universeGraph/nodes/1"
+          }
+        ],
+        "id": "reconciliation:1bf77578",
+        "previousWorldSpec": {
+          "contentHash": "fnv1a32:5b8e4d76",
+          "id": "red-ball-beside-qzxwplk-1fbnvv7",
+          "patchIds": [
+            "patch:1:ee981e07",
+            "patch:1:0d53d7e7",
+            "patch:1:1c073065",
+            "patch:1:7f66c7f5"
+          ],
+          "revision": 1
+        },
+        "schema": "simulatte.worldSpecReconciliation.v1"
+      },
+      "resultContentHash": "fnv1a32:845934cc",
+      "resultRevision": 1,
+      "resultColor": "#00aa44",
+      "unsupportedNodeRemoved": true,
+      "beforeRenderInputSerial": 5,
+      "renderInputSerial": 6,
+      "dialogState": "preserve-overrides",
+      "dialogOpen": false
+    },
+    "before": {
+      "contentHash": "fnv1a32:d77a3386",
+      "revision": 0,
+      "renderCount": 5,
+      "renderInputSerial": 1,
+      "sceneProofVerdict": "fail",
+      "requiredFailures": [
+        {
+          "schema": "simulatte.sceneProofObligation.v1",
+          "obligationId": "entity:qzxwplk",
+          "kind": "object",
+          "target": "qzxwplk",
+          "required": true,
+          "sourceStatus": "unsupported",
+          "evidence": [],
+          "status": "unsupported",
+          "reason": "carried unsupported status"
+        },
+        {
+          "schema": "simulatte.sceneProofObligation.v1",
+          "obligationId": "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+          "kind": "relation",
+          "target": "entity-ball:spatial-constraint:entity-qzxwplk",
+          "required": true,
+          "sourceStatus": "unsupported",
+          "evidence": [],
+          "status": "unsupported",
+          "reason": "carried unsupported status"
+        },
+        {
+          "schema": "simulatte.sceneProofObligation.v1",
+          "obligationId": "relation:spatial:entity-ball:beside:entity-qzxwplk",
+          "kind": "relation",
+          "target": "spatial:entity-ball:beside:entity-qzxwplk",
+          "required": true,
+          "sourceStatus": "unsupported",
+          "evidence": [],
+          "status": "unsupported",
+          "reason": "carried unsupported status"
+        }
+      ]
+    },
+    "after": {
+      "contentHash": "fnv1a32:5b8e4d76",
+      "revision": 1,
+      "renderCount": 117,
+      "renderInputSerial": 5
+    },
+    "editorStatus": "ready",
+    "sceneVisible": "true",
+    "renderer": "webgpu",
+    "rendererStatus": "WebGPU renderer ready",
+    "sceneProofVerdict": "pass",
+    "sceneProofRequiredFailures": [],
+    "worldProofVerdict": "pass",
+    "worldProofContentHash": "fnv1a32:29917475",
+    "worldProofWorldSpecHash": "fnv1a32:5b8e4d76",
+    "worldProofCriticalFailures": [],
+    "worldProofClassStatuses": {
+      "intent": "pass",
+      "semantic": "pass",
+      "compilation": "pass",
+      "simulation": "pass",
+      "interaction": "pass",
+      "safety": "pass",
+      "visual": "pass",
+      "replay": "pass"
+    },
+    "intentProofStatus": "pass",
+    "intentProofRequirementHash": "fnv1a32:977ad4d5",
+    "intentProofSettlementHash": "fnv1a32:1ce33e43",
+    "intentProofAcceptedCount": 2,
+    "intentProofRefusalCount": 2,
+    "intentProofUnresolvedCount": 0,
+    "intentProofLostCount": 0,
+    "semanticProofStatus": "pass",
+    "semanticProofLedgerHash": "fnv1a32:797ff7f1",
+    "semanticProofGraphHash": "fnv1a32:b251c341",
+    "semanticProofBindingCount": 2,
+    "semanticProofProvenCount": 2,
+    "semanticProofMissingCount": 0,
+    "compilerDeterminismStatus": "pass",
+    "compilerDeterminismInputHash": "fnv1a32:685ddf1e",
+    "compilerDeterminismBaselineHash": "fnv1a32:d77a3386",
+    "compilerDeterminismRecompiledHash": "fnv1a32:d77a3386",
+    "compilerDeterminismLane": "pipeline-worker",
+    "simulationReproducibilityStatus": "pass",
+    "simulationReproducibilityBaselineHash": "fnv1a32:6eb38e40",
+    "simulationReproducibilityReplayHash": "fnv1a32:6eb38e40",
+    "simulationReproducibilityMaxDelta": 0,
+    "interactionProofStatus": "pass",
+    "interactionProofContentHash": "fnv1a32:c694c523",
+    "interactionProofProgramHash": "fnv1a32:9160b87e",
+    "interactionProofTransitionHash": "fnv1a32:4b1492d1",
+    "interactionProofProvenTransitionCount": 4,
+    "interactionProofInvalidTransitionCount": 0,
+    "interactionProofChangedChannelCount": 2,
+    "safetyProofStatus": "pass",
+    "safetyProofDecision": "allow",
+    "safetyProofRulesHash": "fnv1a32:7f74947a",
+    "safetyProofBaselineHash": "fnv1a32:411c8480",
+    "safetyProofReplayHash": "fnv1a32:411c8480",
+    "auditTiming": {
+      "schema": "simulatte.worldSpecEditorAuditTiming.v1",
+      "durationMs": 10097
+    },
+    "documentFitsViewport": true,
+    "controlsFitViewport": true,
+    "browserMemory": {
+      "schema": "simulatte.browserMemoryReceipt.v1",
+      "status": "pass",
+      "basis": "single-prompt-browser-execution-window",
+      "measurementMode": "forced-gc-retained-heap-plus-periodic-observed-peak",
+      "sampleIntervalMs": 25,
+      "sampleCount": 195,
+      "initialUsedJsHeapBytes": 12779416,
+      "finalUsedJsHeapBytes": 28742897,
+      "finalBeforeGcUsedJsHeapBytes": 56857985,
+      "retainedDeltaBytes": 15963481,
+      "observedPeakUsedJsHeapBytes": 92186413,
+      "observedPeakAtMs": 10103.7,
+      "maximumTotalJsHeapBytes": 140479429,
+      "boundarySamples": [
+        {
+          "atMs": 0,
+          "boundary": "window-start",
+          "usedJsHeapBytes": 12779416,
+          "totalJsHeapBytes": 13510908
+        },
+        {
+          "atMs": 10107.4,
+          "boundary": "window-end-before-gc",
+          "usedJsHeapBytes": 56857985,
+          "totalJsHeapBytes": 128596109
+        },
+        {
+          "atMs": 10268.1,
+          "boundary": "window-end",
+          "usedJsHeapBytes": 28742897,
+          "totalJsHeapBytes": 30088221
+        }
+      ],
+      "physicalGpuMemory": {
+        "status": "not-measured",
+        "reason": "WebGPU does not expose physical driver allocation telemetry"
+      }
+    }
+  }
+}
+{
+  "ok": true,
+  "report": "/home/clocksmith/deco/simulatte/artifacts/blank-world-spec-editor/390x844.json",
+  "screenshot": "/home/clocksmith/deco/simulatte/artifacts/blank-world-spec-editor/390x844.png",
+  "receipt": {
+    "schema": "simulatte.worldSpecEditorBrowserAudit.v1",
+    "buildId": "96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19",
+    "boundarySetId": "simulatte-public-boundary-v1",
+    "boundaryRowId": "unsupported-neologism-edit-replay",
+    "boundaryKind": "unsupported-edit-replay",
+    "boundaryContractSha256": "ec03f020d14b5fb4af51eed04c7b4b04f0a1fa38ebb292f0588acff4f854e9f0",
+    "adHocPromptOverride": false,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "prompt": "a red ball beside a qzxwplk",
+    "supportedEntityType": "ball",
+    "unsupportedLabel": "qzxwplk",
+    "unsupportedNodeId": "unresolved-span3",
+    "initialUnsupportedRequirements": [
+      {
+        "id": "span3",
+        "label": "qzxwplk",
+        "reason": "no grounded concept or primitive support"
+      },
+      {
+        "canonicalId": "unresolved.qzxwplk",
+        "id": "unresolved-span3",
+        "label": "Qzxwplk",
+        "reason": "semantic node has no simulator primitive mapping"
+      }
+    ],
+    "editedUnsupportedRequirements": [
+      {
+        "id": "span3",
+        "label": "qzxwplk",
+        "reason": "no grounded concept or primitive support"
+      },
+      {
+        "canonicalId": "unresolved.qzxwplk",
+        "id": "unresolved-span3",
+        "label": "Qzxwplk",
+        "reason": "semantic node has no simulator primitive mapping"
+      }
+    ],
+    "unsupportedNodeRemoved": true,
+    "initialSceneProofVerdict": "fail",
+    "initialRequiredFailures": [
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "entity:qzxwplk",
+        "kind": "object",
+        "target": "qzxwplk",
+        "required": true,
+        "sourceStatus": "unsupported",
+        "evidence": [],
+        "status": "unsupported",
+        "reason": "carried unsupported status"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+        "kind": "relation",
+        "target": "entity-ball:spatial-constraint:entity-qzxwplk",
+        "required": true,
+        "sourceStatus": "unsupported",
+        "evidence": [],
+        "status": "unsupported",
+        "reason": "carried unsupported status"
+      },
+      {
+        "schema": "simulatte.sceneProofObligation.v1",
+        "obligationId": "relation:spatial:entity-ball:beside:entity-qzxwplk",
+        "kind": "relation",
+        "target": "spatial:entity-ball:beside:entity-qzxwplk",
+        "required": true,
+        "sourceStatus": "unsupported",
+        "evidence": [],
+        "status": "unsupported",
+        "reason": "carried unsupported status"
+      }
+    ],
+    "originalColor": "#ef3340",
+    "editedColor": "#00aa44",
+    "visualColor": "#00aa44",
+    "replacementColorGeometryPartCount": 1,
+    "constructionTopologyId": "spherical-body",
+    "constructionTopologyTargetFit": true,
+    "constructionPartIds": [
+      "sphere-body",
+      "specular-highlight"
+    ],
+    "propertyObligationIds": [
+      "visual:user-override-property-ball-color-#00aa44"
+    ],
+    "propertyObligationValues": [
+      "#00aa44"
+    ],
+    "propertyObligationStatuses": [
+      "preserved"
+    ],
+    "propertyObligationAuthorities": [
+      "userOverride"
+    ],
+    "patchAuthority": "userOverride",
+    "propertyPatchId": "patch:1:1c073065",
+    "patchAffectedObligationIds": [
+      "entity:ball",
+      "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+      "relation:spatial:entity-ball:beside:entity-qzxwplk",
+      "visual:prompt-property-ball-color-#ef3340"
+    ],
+    "semanticPropertyAuthority": "userOverride",
+    "semanticPropertyPatchIds": [
+      "patch:1:1c073065"
+    ],
+    "improvementRecord": {
+      "schema": "simulatte.worldImprovementRecord.v1",
+      "contentHash": "fnv1a32:518cf11d",
+      "status": "successful-replay",
+      "promptHash": "fnv1a32:189b70b6",
+      "failureWorldSpecContentHash": "fnv1a32:d77a3386",
+      "failureWorldProofContentHash": "fnv1a32:b72362ae",
+      "failureWorldProofVerdict": "fail",
+      "failurePhaseCount": 6,
+      "failurePhaseSchemas": [
+        "simulatte.phase1.output.v1",
+        "simulatte.phase2.output.v1",
+        "simulatte.phase3.output.v2",
+        "simulatte.phase4.output.v2",
+        "simulatte.phase5.output.v2",
+        "simulatte.phase6.output.v2"
+      ],
+      "patchIds": [
+        "patch:1:ee981e07",
+        "patch:1:0d53d7e7",
+        "patch:1:1c073065",
+        "patch:1:7f66c7f5"
+      ],
+      "affectedObligationIds": [
+        "entity:ball",
+        "entity:qzxwplk",
+        "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+        "relation:spatial:entity-ball:beside:entity-qzxwplk",
+        "visual:prompt-property-ball-color-#ef3340"
+      ],
+      "successWorldSpecContentHash": "fnv1a32:5b8e4d76",
+      "successWorldProofContentHash": "fnv1a32:bef8c22c",
+      "successWorldProofVerdict": "pass",
+      "successReplayStatus": "pass",
+      "successPhaseCount": 6,
+      "earliestObservableDivergence": {
+        "schema": "simulatte.worldImprovementDivergence.v1",
+        "phase": 8,
+        "proofClass": "visual",
+        "status": "fail",
+        "failure": "required visible obligations did not all pass"
+      },
+      "causalAttributionStatus": "not-attributed",
+      "adjudicationStatus": "pending",
+      "populationPartition": "unassigned",
+      "generalizationStatus": "not-evaluated",
+      "corpusDisposition": "diagnostic-only",
+      "exportInitiallyDisabled": true,
+      "exportEnabled": true,
+      "exportStatus": "ready",
+      "exportedBytes": 10547401,
+      "exportedSchema": "simulatte.worldImprovementRecord.v1",
+      "exportedContentHash": "fnv1a32:518cf11d"
+    },
+    "exchange": {
+      "schema": "simulatte.worldSpecBrowserExchange.v1",
+      "exportedContentHash": "fnv1a32:5b8e4d76",
+      "exportedRevision": 1,
+      "exportedBytes": 729327,
+      "compilerEvidenceOmitted": true,
+      "importedContentHash": "fnv1a32:5b8e4d76",
+      "importedRevision": 1,
+      "importedPhaseSchemas": [
+        "simulatte.phase1.output.v1",
+        "simulatte.phase2.output.v1",
+        "simulatte.phase3.output.v2",
+        "simulatte.phase4.output.v2",
+        "simulatte.phase5.output.v2",
+        "simulatte.phase6.output.v2"
+      ],
+      "importAuthority": "world-spec",
+      "sourcePrompt": "a red ball beside a qzxwplk",
+      "beforeRenderInputSerial": 2,
+      "renderInputSerial": 3,
+      "beforeRenderCount": 9,
+      "renderCount": 12
+    },
+    "reconciliation": {
+      "pendingPlanId": "reconciliation-plan:623ba29f",
+      "pendingWorldSpecContentHash": "fnv1a32:5b8e4d76",
+      "acceptedPatchCount": 4,
+      "fieldCount": 4,
+      "preserveControlEnabled": true,
+      "controlsFitViewport": true,
+      "receipt": {
+        "schema": "simulatte.worldSpecReconciliationReceipt.v1",
+        "id": "reconciliation:1bf77578",
+        "planId": "reconciliation-plan:623ba29f",
+        "decision": "preserve-overrides",
+        "decidedBy": "local-user",
+        "previousWorldSpecContentHash": "fnv1a32:5b8e4d76",
+        "compiledWorldSpecContentHash": "fnv1a32:d77a3386",
+        "resultWorldSpecContentHash": "fnv1a32:845934cc",
+        "acceptedPatchIds": [
+          "patch:1:ee981e07",
+          "patch:1:0d53d7e7",
+          "patch:1:1c073065",
+          "patch:1:7f66c7f5"
+        ],
+        "effectiveOverrideCount": 4,
+        "conflictCount": 0,
+        "unavailableCount": 0,
+        "preservedTargetPaths": [
+          "/safety/rules/0",
+          "/safety/status",
+          "/universeGraph/nodes/0/properties/0/value",
+          "/universeGraph/nodes/1"
+        ]
+      },
+      "record": {
+        "compiledWorldSpec": {
+          "contentHash": "fnv1a32:d77a3386",
+          "id": "red-ball-beside-qzxwplk-1fbnvv7",
+          "revision": 0
+        },
+        "decidedBy": "local-user",
+        "decision": "preserve-overrides",
+        "effectiveOverrides": [
+          {
+            "acceptedValue": {
+              "description": "Keep the proof trajectory within one simulated second",
+              "expected": null,
+              "id": "safety:elapsed-time-bound",
+              "maximum": 1,
+              "minimum": 0,
+              "operator": "between",
+              "schema": "simulatte.worldSpecSafetyRule.v1",
+              "severity": "block",
+              "statePath": "/t",
+              "tolerance": 1e-12
+            },
+            "priorCompilerValue": {
+              "schema": "simulatte.absentValue.v1"
+            },
+            "recompiledValue": {
+              "schema": "simulatte.absentValue.v1"
+            },
+            "status": "unchanged-baseline",
+            "targetPath": "/safety/rules/0"
+          },
+          {
+            "acceptedValue": "declared",
+            "priorCompilerValue": "not-declared",
+            "recompiledValue": "not-declared",
+            "status": "unchanged-baseline",
+            "targetPath": "/safety/status"
+          },
+          {
+            "acceptedValue": "#00aa44",
+            "priorCompilerValue": "#ef3340",
+            "recompiledValue": "#ef3340",
+            "status": "unchanged-baseline",
+            "targetPath": "/universeGraph/nodes/0/properties/0/value"
+          },
+          {
+            "acceptedValue": {
+              "schema": "simulatte.absentValue.v1"
+            },
+            "priorCompilerValue": {
+              "canonicalId": "unresolved.qzxwplk",
+              "directlyGrounded": false,
+              "domains": [],
+              "evidence": [
+                "prompt-span:span3"
+              ],
+              "id": "unresolved-span3",
+              "label": "Qzxwplk",
+              "operatorHints": [],
+              "operatorTypes": [],
+              "primitiveHints": [],
+              "semanticClass": "",
+              "semanticRole": "",
+              "semanticType": "concept",
+              "sourceLabel": "qzxwplk",
+              "spanId": "span3",
+              "supportOnly": true,
+              "unresolved": true
+            },
+            "recompiledValue": {
+              "canonicalId": "unresolved.qzxwplk",
+              "directlyGrounded": false,
+              "domains": [],
+              "evidence": [
+                "prompt-span:span3"
+              ],
+              "id": "unresolved-span3",
+              "label": "Qzxwplk",
+              "operatorHints": [],
+              "operatorTypes": [],
+              "primitiveHints": [],
+              "semanticClass": "",
+              "semanticRole": "",
+              "semanticType": "concept",
+              "sourceLabel": "qzxwplk",
+              "spanId": "span3",
+              "supportOnly": true,
+              "unresolved": true
+            },
+            "status": "unchanged-baseline",
+            "targetPath": "/universeGraph/nodes/1"
+          }
+        ],
+        "id": "reconciliation:1bf77578",
+        "previousWorldSpec": {
+          "contentHash": "fnv1a32:5b8e4d76",
+          "id": "red-ball-beside-qzxwplk-1fbnvv7",
+          "patchIds": [
+            "patch:1:ee981e07",
+            "patch:1:0d53d7e7",
+            "patch:1:1c073065",
+            "patch:1:7f66c7f5"
+          ],
+          "revision": 1
+        },
+        "schema": "simulatte.worldSpecReconciliation.v1"
+      },
+      "resultContentHash": "fnv1a32:845934cc",
+      "resultRevision": 1,
+      "resultColor": "#00aa44",
+      "unsupportedNodeRemoved": true,
+      "beforeRenderInputSerial": 5,
+      "renderInputSerial": 6,
+      "dialogState": "preserve-overrides",
+      "dialogOpen": false
+    },
+    "before": {
+      "contentHash": "fnv1a32:d77a3386",
+      "revision": 0,
+      "renderCount": 5,
+      "renderInputSerial": 1,
+      "sceneProofVerdict": "fail",
+      "requiredFailures": [
+        {
+          "schema": "simulatte.sceneProofObligation.v1",
+          "obligationId": "entity:qzxwplk",
+          "kind": "object",
+          "target": "qzxwplk",
+          "required": true,
+          "sourceStatus": "unsupported",
+          "evidence": [],
+          "status": "unsupported",
+          "reason": "carried unsupported status"
+        },
+        {
+          "schema": "simulatte.sceneProofObligation.v1",
+          "obligationId": "relation:entity-ball:spatial-constraint:entity-qzxwplk",
+          "kind": "relation",
+          "target": "entity-ball:spatial-constraint:entity-qzxwplk",
+          "required": true,
+          "sourceStatus": "unsupported",
+          "evidence": [],
+          "status": "unsupported",
+          "reason": "carried unsupported status"
+        },
+        {
+          "schema": "simulatte.sceneProofObligation.v1",
+          "obligationId": "relation:spatial:entity-ball:beside:entity-qzxwplk",
+          "kind": "relation",
+          "target": "spatial:entity-ball:beside:entity-qzxwplk",
+          "required": true,
+          "sourceStatus": "unsupported",
+          "evidence": [],
+          "status": "unsupported",
+          "reason": "carried unsupported status"
+        }
+      ]
+    },
+    "after": {
+      "contentHash": "fnv1a32:5b8e4d76",
+      "revision": 1,
+      "renderCount": 88,
+      "renderInputSerial": 5
+    },
+    "editorStatus": "ready",
+    "sceneVisible": "true",
+    "renderer": "webgpu",
+    "rendererStatus": "WebGPU renderer ready",
+    "sceneProofVerdict": "pass",
+    "sceneProofRequiredFailures": [],
+    "worldProofVerdict": "pass",
+    "worldProofContentHash": "fnv1a32:bef8c22c",
+    "worldProofWorldSpecHash": "fnv1a32:5b8e4d76",
+    "worldProofCriticalFailures": [],
+    "worldProofClassStatuses": {
+      "intent": "pass",
+      "semantic": "pass",
+      "compilation": "pass",
+      "simulation": "pass",
+      "interaction": "pass",
+      "safety": "pass",
+      "visual": "pass",
+      "replay": "pass"
+    },
+    "intentProofStatus": "pass",
+    "intentProofRequirementHash": "fnv1a32:977ad4d5",
+    "intentProofSettlementHash": "fnv1a32:1ce33e43",
+    "intentProofAcceptedCount": 2,
+    "intentProofRefusalCount": 2,
+    "intentProofUnresolvedCount": 0,
+    "intentProofLostCount": 0,
+    "semanticProofStatus": "pass",
+    "semanticProofLedgerHash": "fnv1a32:797ff7f1",
+    "semanticProofGraphHash": "fnv1a32:b251c341",
+    "semanticProofBindingCount": 2,
+    "semanticProofProvenCount": 2,
+    "semanticProofMissingCount": 0,
+    "compilerDeterminismStatus": "pass",
+    "compilerDeterminismInputHash": "fnv1a32:685ddf1e",
+    "compilerDeterminismBaselineHash": "fnv1a32:d77a3386",
+    "compilerDeterminismRecompiledHash": "fnv1a32:d77a3386",
+    "compilerDeterminismLane": "pipeline-worker",
+    "simulationReproducibilityStatus": "pass",
+    "simulationReproducibilityBaselineHash": "fnv1a32:6eb38e40",
+    "simulationReproducibilityReplayHash": "fnv1a32:6eb38e40",
+    "simulationReproducibilityMaxDelta": 0,
+    "interactionProofStatus": "pass",
+    "interactionProofContentHash": "fnv1a32:c694c523",
+    "interactionProofProgramHash": "fnv1a32:9160b87e",
+    "interactionProofTransitionHash": "fnv1a32:4b1492d1",
+    "interactionProofProvenTransitionCount": 4,
+    "interactionProofInvalidTransitionCount": 0,
+    "interactionProofChangedChannelCount": 2,
+    "safetyProofStatus": "pass",
+    "safetyProofDecision": "allow",
+    "safetyProofRulesHash": "fnv1a32:7f74947a",
+    "safetyProofBaselineHash": "fnv1a32:411c8480",
+    "safetyProofReplayHash": "fnv1a32:411c8480",
+    "auditTiming": {
+      "schema": "simulatte.worldSpecEditorAuditTiming.v1",
+      "durationMs": 8724
+    },
+    "documentFitsViewport": true,
+    "controlsFitViewport": true,
+    "browserMemory": {
+      "schema": "simulatte.browserMemoryReceipt.v1",
+      "status": "pass",
+      "basis": "single-prompt-browser-execution-window",
+      "measurementMode": "forced-gc-retained-heap-plus-periodic-observed-peak",
+      "sampleIntervalMs": 25,
+      "sampleCount": 165,
+      "initialUsedJsHeapBytes": 12676428,
+      "finalUsedJsHeapBytes": 28898770,
+      "finalBeforeGcUsedJsHeapBytes": 58171937,
+      "retainedDeltaBytes": 16222342,
+      "observedPeakUsedJsHeapBytes": 119457400,
+      "observedPeakAtMs": 6130.1,
+      "maximumTotalJsHeapBytes": 171355459,
+      "boundarySamples": [
+        {
+          "atMs": 0.1,
+          "boundary": "window-start",
+          "usedJsHeapBytes": 12676428,
+          "totalJsHeapBytes": 13559568
+        },
+        {
+          "atMs": 8734.2,
+          "boundary": "window-end-before-gc",
+          "usedJsHeapBytes": 58171937,
+          "totalJsHeapBytes": 129642229
+        },
+        {
+          "atMs": 8898.9,
+          "boundary": "window-end",
+          "usedJsHeapBytes": 28898770,
+          "totalJsHeapBytes": 30350110
+        }
+      ],
+      "physicalGpuMemory": {
+        "status": "not-measured",
+        "reason": "WebGPU does not expose physical driver allocation telemetry"
+      }
+    }
+  }
+}
+
+> audit:blank:gold:desktop
+> node tools/audit-intent-scene-screenshots.mjs --curated 0 --broad 0 --four 0 --eighty 0 --gold-set tools/samer/simulatte-public-gold-v1.json --machine-only-gold --exact-replay --intent-mode local --width 1440 --height 1000 --out artifacts/blank-gold-desktop
+
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"runtime-wait","elapsedMs":2}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"intent-compile","elapsedMs":16}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"scene-proof","elapsedMs":1474}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"exact-replay","elapsedMs":2127}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"diagnostics","elapsedMs":2795}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"viewport-screenshot","elapsedMs":2811}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"temporal-canvas-capture","elapsedMs":2940}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"frozen-canvas-capture","elapsedMs":3811}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"analyze","elapsedMs":4492}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":1,"promptCount":8,"prompt":"5 cats in a galaxy","stage":"complete","elapsedMs":4497}
+1/8 gold e04901b2 planetary-space
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"runtime-wait","elapsedMs":1}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"intent-compile","elapsedMs":5}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"scene-proof","elapsedMs":1372}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"exact-replay","elapsedMs":2024}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"diagnostics","elapsedMs":2718}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"viewport-screenshot","elapsedMs":2736}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"temporal-canvas-capture","elapsedMs":2861}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"frozen-canvas-capture","elapsedMs":3708}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"analyze","elapsedMs":4378}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":2,"promptCount":8,"prompt":"airplane flying over trees","stage":"complete","elapsedMs":4382}
+2/8 gold 501265fd mechanical
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"runtime-wait","elapsedMs":3}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"intent-compile","elapsedMs":8}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"scene-proof","elapsedMs":1561}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"exact-replay","elapsedMs":2213}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"diagnostics","elapsedMs":3660}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"viewport-screenshot","elapsedMs":3683}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"temporal-canvas-capture","elapsedMs":3827}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"frozen-canvas-capture","elapsedMs":4673}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"analyze","elapsedMs":5382}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":3,"promptCount":8,"prompt":"3 dogs playing with 7 people","stage":"complete","elapsedMs":5385}
+3/8 gold 9d0cb0cb biology
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"runtime-wait","elapsedMs":6}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"intent-compile","elapsedMs":15}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"scene-proof","elapsedMs":1343}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"exact-replay","elapsedMs":1995}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"diagnostics","elapsedMs":2716}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"viewport-screenshot","elapsedMs":2736}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"temporal-canvas-capture","elapsedMs":2894}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"frozen-canvas-capture","elapsedMs":3748}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"analyze","elapsedMs":4421}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":4,"promptCount":8,"prompt":"a dog beside a cat","stage":"complete","elapsedMs":4424}
+4/8 gold 7ee17ffc biology
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"runtime-wait","elapsedMs":4}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"intent-compile","elapsedMs":7}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"scene-proof","elapsedMs":1420}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"exact-replay","elapsedMs":2072}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"diagnostics","elapsedMs":2906}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"viewport-screenshot","elapsedMs":2930}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"temporal-canvas-capture","elapsedMs":3072}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"frozen-canvas-capture","elapsedMs":3924}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"analyze","elapsedMs":4628}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":5,"promptCount":8,"prompt":"a dog beside a tree with no cat","stage":"complete","elapsedMs":4633}
+5/8 gold 8b9c516c biology
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"runtime-wait","elapsedMs":1}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"intent-compile","elapsedMs":8}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"scene-proof","elapsedMs":1393}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"exact-replay","elapsedMs":2045}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"diagnostics","elapsedMs":2975}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"viewport-screenshot","elapsedMs":3001}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"temporal-canvas-capture","elapsedMs":3178}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"frozen-canvas-capture","elapsedMs":4084}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"analyze","elapsedMs":4845}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":6,"promptCount":8,"prompt":"purple violin on a wooden stool","stage":"complete","elapsedMs":4848}
+6/8 gold df147a77 acoustic
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"runtime-wait","elapsedMs":1}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"intent-compile","elapsedMs":9}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"scene-proof","elapsedMs":1497}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"exact-replay","elapsedMs":2150}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"diagnostics","elapsedMs":3151}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"viewport-screenshot","elapsedMs":3180}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"temporal-canvas-capture","elapsedMs":3314}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"frozen-canvas-capture","elapsedMs":4137}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"analyze","elapsedMs":4803}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":7,"promptCount":8,"prompt":"yellow excavator beside a glass greenhouse","stage":"complete","elapsedMs":4805}
+7/8 gold 826737a6 mechanical
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"runtime-wait","elapsedMs":3}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"intent-compile","elapsedMs":7}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"scene-proof","elapsedMs":1356}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"exact-replay","elapsedMs":2008}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"diagnostics","elapsedMs":2826}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"viewport-screenshot","elapsedMs":2855}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"temporal-canvas-capture","elapsedMs":2972}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"frozen-canvas-capture","elapsedMs":3798}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"analyze","elapsedMs":4475}
+{"schema":"simulatte.visualAuditProgress.v1","promptIndex":8,"promptCount":8,"prompt":"an octopus holding a teapot","stage":"complete","elapsedMs":4478}
+8/8 gold b1b277e2 biology
+{
+  "outDir": "/home/clocksmith/deco/simulatte/artifacts/blank-gold-desktop",
+  "ok": true,
+  "failures": [],
+  "promptCount": 8,
+  "screenshotCount": 8,
+  "uniqueCanvasHashes": 8,
+  "uniqueScreenshotHashes": 8,
+  "uniqueCanvasPerceptualHashes": 8,
+  "minCanvasPerceptualHashDistance": {
+    "left": 2,
+    "right": 8,
+    "bits": 5,
+    "distance": 0.0781
+  },
+  "uniqueCanvasDiversityPerceptualHashes": 8,
+  "minCanvasDiversityPerceptualHashDistance": {
+    "left": 4,
+    "right": 8,
+    "bits": 3,
+    "distance": 0.0469
+  },
+  "perceptualHashCalibration": {
+    "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+    "hashKind": "audit:visual-clean-canvas-dhash-64",
+    "hashBits": 64,
+    "promptCount": 8,
+    "usablePromptCount": 8,
+    "bitMargin": 1,
+    "maxTemporalBits": 0,
+    "maxTemporalDistance": 0,
+    "minPairwiseBits": 3,
+    "minPairwiseDistance": 0.0469,
+    "closestPair": {
+      "left": 4,
+      "right": 8
+    },
+    "recommendedHashFloorBits": 1,
+    "recommendedHashFloor": 0.0156,
+    "calibrated": true
+  },
+  "sceneKinds": [
+    "acoustic",
+    "biology",
+    "mechanical",
+    "planetary-space"
+  ],
+  "visualIRSceneKinds": [
+    "acoustic",
+    "biology",
+    "mechanical",
+    "planetary-space"
+  ],
+  "visualIRCameras": [
+    "aerial-map-depth",
+    "dynamic-motion-depth",
+    "grounded-perspective-depth",
+    "instrumented-lab-depth"
+  ],
+  "graphicsAtoms": {
+    "totalAtoms": 43,
+    "mappingIds": [],
+    "uniformSlots": [],
+    "wgslOperators": []
+  },
+  "visualRubric": {
+    "scope": "machine-structural-and-pixel-presence",
+    "recognizabilityStatus": "human-adjudication-required",
+    "averageScore": 91.88,
+    "passCount": 8,
+    "failCount": 0,
+    "expectedSignals": [],
+    "missingSignals": [],
+    "dynamicFailures": [],
+    "representationFailures": [],
+    "averageRepresentationQuality": 0.911
+  },
+  "intentBriefs": {
+    "totalEvidence": 594,
+    "totalCausalEdges": 0,
+    "totalAffordances": 0,
+    "totalDegraded": 0
+  },
+  "physicalReceipts": {
+    "totalIntentEvidence": 137,
+    "totalCausalEdges": 0,
+    "totalCausalAffordances": 0,
+    "totalAssumptions": 102,
+    "totalUnsupported": 0,
+    "totalDegraded": 0
+  },
+  "causalRequirements": {
+    "promptCount": 0,
+    "promptsMissingAffordances": []
+  },
+  "templateIds": [
+    "custom-world"
+  ],
+  "goldEvaluation": {
+    "schema": "simulatte.goldVisualEvaluation.v1",
+    "goldSetId": "simulatte-public-gold-v1",
+    "promptCount": 8,
+    "status": "not-proven",
+    "machinePassCount": 8,
+    "humanPassCount": 0,
+    "passCount": 0,
+    "machinePassRate": 1,
+    "humanPassRate": 0,
+    "gatedPassRate": 0,
+    "pass": false,
+    "governingMetric": {
+      "schema": "simulatte.promptGoldGoverningMetric.v1",
+      "difficulties": [
+        "easy",
+        "medium",
+        "hard"
+      ],
+      "minimumRowsPerDifficulty": 2,
+      "exactReplayRequired": true,
+      "maximumAuditDurationMs": 12000,
+      "maximumObservedJsHeapBytes": 536870912,
+      "maximumUnexpectedEntityCount": 0,
+      "maximumReportedUnsupportedCount": 0,
+      "measures": [
+        "requirement-extraction-recall",
+        "critical-entity-relation-pose-and-property-settlement",
+        "negation-preservation",
+        "close-semantic-distractor-separation",
+        "unsupported-invention",
+        "canonical-world-spec-and-world-proof-binding",
+        "compiler-and-simulation-replay",
+        "browser-audit-latency",
+        "browser-js-heap-memory"
+      ],
+      "doesNotMeasure": [
+        "refusal-correctness",
+        "human-recognizability-without-current-adjudication",
+        "physical-gpu-allocation-memory"
+      ],
+      "everyCriticalPromptMustPass": true,
+      "difficultySummaries": [
+        {
+          "difficulty": "easy",
+          "promptCount": 3,
+          "machinePassCount": 3,
+          "humanPassCount": 0,
+          "passCount": 0,
+          "machinePassRate": 1,
+          "humanPassRate": 0,
+          "gatedPassRate": 0,
+          "pass": false
+        },
+        {
+          "difficulty": "medium",
+          "promptCount": 3,
+          "machinePassCount": 3,
+          "humanPassCount": 0,
+          "passCount": 0,
+          "machinePassRate": 1,
+          "humanPassRate": 0,
+          "gatedPassRate": 0,
+          "pass": false
+        },
+        {
+          "difficulty": "hard",
+          "promptCount": 2,
+          "machinePassCount": 2,
+          "humanPassCount": 0,
+          "passCount": 0,
+          "machinePassRate": 1,
+          "humanPassRate": 0,
+          "gatedPassRate": 0,
+          "pass": false
+        }
+      ]
+    },
+    "rows": [
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "cats-in-galaxy",
+        "prompt": "5 cats in a galaxy",
+        "difficulty": "medium",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:e0f1ad6c",
+              "sourcePromptHash": "fnv1a32:94067469"
+            },
+            "auditDurationMs": 4497,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 12596319,
+              "finalUsedJsHeapBytes": 19675307,
+              "retainedDeltaBytes": 7078988,
+              "observedPeakUsedJsHeapBytes": 37269995,
+              "sampleCount": 172,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "airplane-over-trees",
+        "prompt": "airplane flying over trees",
+        "difficulty": "easy",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:f56f3fe5",
+              "sourcePromptHash": "fnv1a32:3fab49c9"
+            },
+            "auditDurationMs": 4383,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 19662327,
+              "finalUsedJsHeapBytes": 20597490,
+              "retainedDeltaBytes": 935163,
+              "observedPeakUsedJsHeapBytes": 35529379,
+              "sampleCount": 170,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "dogs-playing-with-people",
+        "prompt": "3 dogs playing with 7 people",
+        "difficulty": "hard",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 6,
+              "matchedCount": 6,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:7110602d",
+              "sourcePromptHash": "fnv1a32:6ce3fc73"
+            },
+            "auditDurationMs": 5385,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 20527886,
+              "finalUsedJsHeapBytes": 25635201,
+              "retainedDeltaBytes": 5107315,
+              "observedPeakUsedJsHeapBytes": 61224763,
+              "sampleCount": 187,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "dog-beside-cat",
+        "prompt": "a dog beside a cat",
+        "difficulty": "easy",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 3,
+              "matchedCount": 3,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:bda6df6f",
+              "sourcePromptHash": "fnv1a32:887aeb77"
+            },
+            "auditDurationMs": 4424,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 25680205,
+              "finalUsedJsHeapBytes": 21132848,
+              "retainedDeltaBytes": -4547357,
+              "observedPeakUsedJsHeapBytes": 38439289,
+              "sampleCount": 174,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "dog-tree-without-cat",
+        "prompt": "a dog beside a tree with no cat",
+        "difficulty": "medium",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:668cd635",
+              "sourcePromptHash": "fnv1a32:15388198"
+            },
+            "auditDurationMs": 4633,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 21000016,
+              "finalUsedJsHeapBytes": 21484172,
+              "retainedDeltaBytes": 484156,
+              "observedPeakUsedJsHeapBytes": 32769617,
+              "sampleCount": 178,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "purple-violin-on-wooden-stool",
+        "prompt": "purple violin on a wooden stool",
+        "difficulty": "hard",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:cd0dddb1",
+              "sourcePromptHash": "fnv1a32:4cf635bf"
+            },
+            "auditDurationMs": 4848,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 21378052,
+              "finalUsedJsHeapBytes": 22469775,
+              "retainedDeltaBytes": 1091723,
+              "observedPeakUsedJsHeapBytes": 37069302,
+              "sampleCount": 185,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "excavator-beside-greenhouse",
+        "prompt": "yellow excavator beside a glass greenhouse",
+        "difficulty": "medium",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 5,
+              "matchedCount": 5,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:97d1f34f",
+              "sourcePromptHash": "fnv1a32:37acde9c"
+            },
+            "auditDurationMs": 4805,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 21523427,
+              "finalUsedJsHeapBytes": 23586499,
+              "retainedDeltaBytes": 2063072,
+              "observedPeakUsedJsHeapBytes": 40023583,
+              "sampleCount": 180,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      },
+      {
+        "schema": "simulatte.goldVisualResult.v1",
+        "goldRowId": "octopus-holding-teapot",
+        "prompt": "an octopus holding a teapot",
+        "difficulty": "easy",
+        "machine": {
+          "status": "pass",
+          "pass": true,
+          "failures": [],
+          "observations": {
+            "extraction": {
+              "status": "pass",
+              "expectedCount": 4,
+              "matchedCount": 4,
+              "recall": 1,
+              "missingRequirementIds": [],
+              "ledgerContentHash": "fnv1a32:d946188b",
+              "sourcePromptHash": "fnv1a32:5a4ea04a"
+            },
+            "auditDurationMs": 4478,
+            "browserMemory": {
+              "status": "pass",
+              "maximumObservedJsHeapBytes": 536870912,
+              "initialUsedJsHeapBytes": 22651239,
+              "finalUsedJsHeapBytes": 22328975,
+              "retainedDeltaBytes": -322264,
+              "observedPeakUsedJsHeapBytes": 32015744,
+              "sampleCount": 172,
+              "physicalGpuMemoryStatus": "not-measured"
+            },
+            "unexpectedEntityCount": 0,
+            "reportedUnsupportedCount": 0,
+            "exactReplayRequired": true
+          }
+        },
+        "human": {
+          "status": "not-proven",
+          "pass": false,
+          "failures": [
+            "human adjudication is absent"
+          ],
+          "receipt": null
+        },
+        "pass": false
+      }
+    ]
+  },
+  "goldGate": "machine-phase8-pixel-and-scene-proof",
+  "autoRating": {
+    "schema": "simulatte.liveVisualAutoRating.v1",
+    "scope": "machine-structural-and-pixel-presence",
+    "recognizabilityVerified": false,
+    "humanAdjudicationRequired": true,
+    "score": 95,
+    "grade": "unverified",
+    "verdict": "not-proven",
+    "machineStructuralVerdict": "pass",
+    "promptCount": 8,
+    "passRate": 1,
+    "sceneDiversity": 0.5,
+    "screenshotDiversity": 1,
+    "canvasDiversity": 1,
+    "diversityTelemetryOnly": true,
+    "causalCoverage": 1,
+    "failureCount": 0,
+    "dynamicFailureCount": 0,
+    "representationFailureCount": 0,
+    "averageRepresentationQuality": 0.911,
+    "missingSignals": []
+  }
+}

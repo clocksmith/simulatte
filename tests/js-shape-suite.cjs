@@ -2440,7 +2440,11 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
   assert.doesNotMatch(model, /spec\.intent && spec\.intent\.resolution/);
   assert.doesNotMatch(model, /spec\.intent && spec\.intent\.prompt/);
   assert.match(model, /function parameterHintTextForIntent/);
-  assert.match(model, /scope\.applyCompiledParameterHints\(scope\.parameterHintTextForIntent\(intent, contract\), params, addControl\)/);
+  const worldSpecInputSource = fs.readFileSync(path.join(publicDir, 'blank', 'pipeline',
+    'phase-04-grounded-intent', 'simulatte-world-spec-input.js'), 'utf8');
+  assert.match(worldSpecInputSource, /scope\.applyCompiledParameterHints\(scope\.parameterHintTextForIntent\(intent, contract\), params, addControl\)/);
+  assert.doesNotMatch(model, /scope\.applyCompiledParameterHints\(scope\.parameterHintTextForIntent\(intent, contract\), params, addControl\)/);
+  assert.match(model, /scope\.buildWorldSpecInput\(worldSpecCandidate\.intent, worldSpecCandidate\.compilerConfig\)/);
   assert.doesNotMatch(model, /applyPromptParameterHints\(intent\.prompt/);
   assert.match(activationCloud, /LANGUAGE_VISUAL_SIGNAL_RULES/);
   assert.match(activationCloud, /language-evidence-visual-signal/);

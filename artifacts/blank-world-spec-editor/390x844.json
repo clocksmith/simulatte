@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.worldSpecEditorBrowserAudit.v1",
-  "buildId": "8d7ab39c9ac79d0aeb3347e1cedaf3c534bcf946-de23dc8c8b5f",
+  "buildId": "96f2786134295b6d36257f272d78ebb11b8411f0-5b754ed3ad19",
   "boundarySetId": "simulatte-public-boundary-v1",
   "boundaryRowId": "unsupported-neologism-edit-replay",
   "boundaryKind": "unsupported-edit-replay",
@@ -13,29 +13,29 @@
   "prompt": "a red ball beside a qzxwplk",
   "supportedEntityType": "ball",
   "unsupportedLabel": "qzxwplk",
-  "unsupportedNodeId": "prompt-body-qzxwplk",
+  "unsupportedNodeId": "unresolved-span3",
   "initialUnsupportedRequirements": [
     {
-      "fallback": "visual adjacency only",
-      "promptSpan": "prompt-body-ball beside prompt-body-qzxwplk",
-      "reason": "no compatible physical operator"
+      "id": "span3",
+      "label": "qzxwplk",
+      "reason": "no grounded concept or primitive support"
     },
     {
-      "canonicalId": "prompt.body.qzxwplk",
-      "id": "prompt-body-qzxwplk",
+      "canonicalId": "unresolved.qzxwplk",
+      "id": "unresolved-span3",
       "label": "Qzxwplk",
       "reason": "semantic node has no simulator primitive mapping"
     }
   ],
   "editedUnsupportedRequirements": [
     {
-      "fallback": "visual adjacency only",
-      "promptSpan": "prompt-body-ball beside prompt-body-qzxwplk",
-      "reason": "no compatible physical operator"
+      "id": "span3",
+      "label": "qzxwplk",
+      "reason": "no grounded concept or primitive support"
     },
     {
-      "canonicalId": "prompt.body.qzxwplk",
-      "id": "prompt-body-qzxwplk",
+      "canonicalId": "unresolved.qzxwplk",
+      "id": "unresolved-span3",
       "label": "Qzxwplk",
       "reason": "semantic node has no simulator primitive mapping"
     }
@@ -49,14 +49,10 @@
       "kind": "object",
       "target": "qzxwplk",
       "required": true,
-      "sourceStatus": "preserved",
-      "evidence": [
-        "packetIdentitySummary",
-        "objectRealization",
-        "objectMorphologyReceipt"
-      ],
-      "status": "lost",
-      "reason": "identity qzxwplk lacks contour, topology, or surface specificity"
+      "sourceStatus": "unsupported",
+      "evidence": [],
+      "status": "unsupported",
+      "reason": "carried unsupported status"
     },
     {
       "schema": "simulatte.sceneProofObligation.v1",
@@ -64,12 +60,10 @@
       "kind": "relation",
       "target": "entity-ball:spatial-constraint:entity-qzxwplk",
       "required": true,
-      "sourceStatus": "preserved",
-      "evidence": [
-        "visualObligationProof"
-      ],
-      "status": "lost",
-      "reason": "relation failed Phase 7 visual proof"
+      "sourceStatus": "unsupported",
+      "evidence": [],
+      "status": "unsupported",
+      "reason": "carried unsupported status"
     },
     {
       "schema": "simulatte.sceneProofObligation.v1",
@@ -77,23 +71,10 @@
       "kind": "relation",
       "target": "spatial:entity-ball:beside:entity-qzxwplk",
       "required": true,
-      "sourceStatus": "preserved",
-      "evidence": [
-        "visualObligationProof"
-      ],
-      "status": "lost",
-      "reason": "relation failed Phase 7 visual proof"
-    },
-    {
-      "schema": "simulatte.sceneProofObligation.v1",
-      "obligationId": "visual:construction:prompt-body-qzxwplk:support",
-      "kind": "visual",
-      "target": "qzxwplk",
-      "required": true,
-      "sourceStatus": "lost",
+      "sourceStatus": "unsupported",
       "evidence": [],
-      "status": "lost",
-      "reason": "carried failure status lost"
+      "status": "unsupported",
+      "reason": "carried unsupported status"
     }
   ],
   "originalColor": "#ef3340",
@@ -119,7 +100,7 @@
     "userOverride"
   ],
   "patchAuthority": "userOverride",
-  "propertyPatchId": "patch:1:300723e0",
+  "propertyPatchId": "patch:1:1c073065",
   "patchAffectedObligationIds": [
     "entity:ball",
     "relation:entity-ball:spatial-constraint:entity-qzxwplk",
@@ -128,15 +109,15 @@
   ],
   "semanticPropertyAuthority": "userOverride",
   "semanticPropertyPatchIds": [
-    "patch:1:300723e0"
+    "patch:1:1c073065"
   ],
   "improvementRecord": {
     "schema": "simulatte.worldImprovementRecord.v1",
-    "contentHash": "fnv1a32:af1150ec",
+    "contentHash": "fnv1a32:b490ce9b",
     "status": "successful-replay",
     "promptHash": "fnv1a32:189b70b6",
-    "failureWorldSpecContentHash": "fnv1a32:b2673adc",
-    "failureWorldProofContentHash": "fnv1a32:7cad4af7",
+    "failureWorldSpecContentHash": "fnv1a32:f90662b9",
+    "failureWorldProofContentHash": "fnv1a32:06cdc963",
     "failureWorldProofVerdict": "fail",
     "failurePhaseCount": 6,
     "failurePhaseSchemas": [
@@ -150,9 +131,8 @@
     "patchIds": [
       "patch:1:ee981e07",
       "patch:1:0d53d7e7",
-      "patch:1:74847a60",
-      "patch:1:300723e0",
-      "patch:1:8d066b04"
+      "patch:1:1c073065",
+      "patch:1:7f66c7f5"
     ],
     "affectedObligationIds": [
       "entity:ball",
@@ -161,8 +141,8 @@
       "relation:spatial:entity-ball:beside:entity-qzxwplk",
       "visual:prompt-property-ball-color-#ef3340"
     ],
-    "successWorldSpecContentHash": "fnv1a32:041a1969",
-    "successWorldProofContentHash": "fnv1a32:c97c5afe",
+    "successWorldSpecContentHash": "fnv1a32:7bb6cc8d",
+    "successWorldProofContentHash": "fnv1a32:b0e10faa",
     "successWorldProofVerdict": "pass",
     "successReplayStatus": "pass",
     "successPhaseCount": 6,
@@ -181,17 +161,17 @@
     "exportInitiallyDisabled": true,
     "exportEnabled": true,
     "exportStatus": "ready",
-    "exportedBytes": 12680721,
+    "exportedBytes": 10433957,
     "exportedSchema": "simulatte.worldImprovementRecord.v1",
-    "exportedContentHash": "fnv1a32:af1150ec"
+    "exportedContentHash": "fnv1a32:b490ce9b"
   },
   "exchange": {
     "schema": "simulatte.worldSpecBrowserExchange.v1",
-    "exportedContentHash": "fnv1a32:041a1969",
+    "exportedContentHash": "fnv1a32:7bb6cc8d",
     "exportedRevision": 1,
-    "exportedBytes": 733840,
+    "exportedBytes": 714821,
     "compilerEvidenceOmitted": true,
-    "importedContentHash": "fnv1a32:041a1969",
+    "importedContentHash": "fnv1a32:7bb6cc8d",
     "importedRevision": 1,
     "importedPhaseSchemas": [
       "simulatte.phase1.output.v1",
@@ -206,45 +186,44 @@
     "beforeRenderInputSerial": 2,
     "renderInputSerial": 3,
     "beforeRenderCount": 10,
-    "renderCount": 11
+    "renderCount": 13
   },
   "reconciliation": {
-    "pendingPlanId": "reconciliation-plan:81e6b409",
-    "pendingWorldSpecContentHash": "fnv1a32:041a1969",
-    "acceptedPatchCount": 5,
-    "fieldCount": 5,
+    "pendingPlanId": "reconciliation-plan:fd54eaea",
+    "pendingWorldSpecContentHash": "fnv1a32:7bb6cc8d",
+    "acceptedPatchCount": 4,
+    "fieldCount": 4,
     "preserveControlEnabled": true,
     "controlsFitViewport": true,
     "receipt": {
       "schema": "simulatte.worldSpecReconciliationReceipt.v1",
-      "id": "reconciliation:b3891a7e",
-      "planId": "reconciliation-plan:81e6b409",
+      "id": "reconciliation:864a1c39",
+      "planId": "reconciliation-plan:fd54eaea",
       "decision": "preserve-overrides",
       "decidedBy": "local-user",
-      "previousWorldSpecContentHash": "fnv1a32:041a1969",
-      "compiledWorldSpecContentHash": "fnv1a32:b2673adc",
-      "resultWorldSpecContentHash": "fnv1a32:8166d402",
+      "previousWorldSpecContentHash": "fnv1a32:7bb6cc8d",
+      "compiledWorldSpecContentHash": "fnv1a32:f90662b9",
+      "resultWorldSpecContentHash": "fnv1a32:39ff78ac",
       "acceptedPatchIds": [
         "patch:1:ee981e07",
         "patch:1:0d53d7e7",
-        "patch:1:74847a60",
-        "patch:1:300723e0",
-        "patch:1:8d066b04"
+        "patch:1:1c073065",
+        "patch:1:7f66c7f5"
       ],
-      "effectiveOverrideCount": 5,
+      "effectiveOverrideCount": 4,
       "conflictCount": 0,
       "unavailableCount": 0,
       "preservedTargetPaths": [
         "/safety/rules/0",
         "/safety/status",
-        "/universeGraph/edges/0",
         "/universeGraph/nodes/0/properties/0/value",
         "/universeGraph/nodes/1"
-      ]
+      ],
+      "authoredResultWorldSpecContentHash": "fnv1a32:988b7372"
     },
     "record": {
       "compiledWorldSpec": {
-        "contentHash": "fnv1a32:b2673adc",
+        "contentHash": "fnv1a32:f90662b9",
         "id": "red-ball-beside-qzxwplk-1fbnvv7",
         "revision": 0
       },
@@ -281,45 +260,6 @@
           "targetPath": "/safety/status"
         },
         {
-          "acceptedValue": {
-            "schema": "simulatte.absentValue.v1"
-          },
-          "priorCompilerValue": {
-            "confidence": 0.82,
-            "evidence": [
-              "explicit-spatial-language"
-            ],
-            "from": "prompt-body-ball",
-            "id": "edge1",
-            "predicate": "beside",
-            "prepositions": [
-              "beside"
-            ],
-            "processId": "spatial_constraint",
-            "spatialRelation": "beside",
-            "to": "prompt-body-qzxwplk",
-            "type": "beside"
-          },
-          "recompiledValue": {
-            "confidence": 0.82,
-            "evidence": [
-              "explicit-spatial-language"
-            ],
-            "from": "prompt-body-ball",
-            "id": "edge1",
-            "predicate": "beside",
-            "prepositions": [
-              "beside"
-            ],
-            "processId": "spatial_constraint",
-            "spatialRelation": "beside",
-            "to": "prompt-body-qzxwplk",
-            "type": "beside"
-          },
-          "status": "unchanged-baseline",
-          "targetPath": "/universeGraph/edges/0"
-        },
-        {
           "acceptedValue": "#00aa44",
           "priorCompilerValue": "#ef3340",
           "recompiledValue": "#ef3340",
@@ -331,97 +271,71 @@
             "schema": "simulatte.absentValue.v1"
           },
           "priorCompilerValue": {
-            "aliases": [
-              "qzxwplk",
-              "prompt.object.qzxwplk"
-            ],
-            "canonicalId": "prompt.body.qzxwplk",
-            "conceptIds": [
-              "prompt.body.qzxwplk"
-            ],
-            "confidence": 1,
-            "directlyGrounded": true,
+            "canonicalId": "unresolved.qzxwplk",
+            "directlyGrounded": false,
             "domains": [],
             "evidence": [
-              "prompt.object.qzxwplk",
-              "phase3-prompt-identity"
+              "prompt-span:span3"
             ],
-            "id": "prompt-body-qzxwplk",
-            "indexName": "prompt-typed-slot",
+            "id": "unresolved-span3",
             "label": "Qzxwplk",
-            "materialId": "",
-            "materialIds": [],
             "operatorHints": [],
             "operatorTypes": [],
             "primitiveHints": [],
-            "rankSignals": null,
-            "sceneHints": [],
-            "semanticClass": "entity",
+            "semanticClass": "",
             "semanticRole": "",
-            "semanticType": "body",
-            "shapeHints": [],
+            "semanticType": "concept",
             "sourceLabel": "qzxwplk",
             "spanId": "span3",
-            "supportOnly": false,
-            "visualArchetype": ""
+            "supportOnly": true,
+            "unresolved": true
           },
           "recompiledValue": {
-            "aliases": [
-              "qzxwplk",
-              "prompt.object.qzxwplk"
-            ],
-            "canonicalId": "prompt.body.qzxwplk",
-            "conceptIds": [
-              "prompt.body.qzxwplk"
-            ],
-            "confidence": 1,
-            "directlyGrounded": true,
+            "canonicalId": "unresolved.qzxwplk",
+            "directlyGrounded": false,
             "domains": [],
             "evidence": [
-              "prompt.object.qzxwplk",
-              "phase3-prompt-identity"
+              "prompt-span:span3"
             ],
-            "id": "prompt-body-qzxwplk",
-            "indexName": "prompt-typed-slot",
+            "id": "unresolved-span3",
             "label": "Qzxwplk",
-            "materialId": "",
-            "materialIds": [],
             "operatorHints": [],
             "operatorTypes": [],
             "primitiveHints": [],
-            "rankSignals": null,
-            "sceneHints": [],
-            "semanticClass": "entity",
+            "semanticClass": "",
             "semanticRole": "",
-            "semanticType": "body",
-            "shapeHints": [],
+            "semanticType": "concept",
             "sourceLabel": "qzxwplk",
             "spanId": "span3",
-            "supportOnly": false,
-            "visualArchetype": ""
+            "supportOnly": true,
+            "unresolved": true
           },
           "status": "unchanged-baseline",
           "targetPath": "/universeGraph/nodes/1"
         }
       ],
-      "id": "reconciliation:b3891a7e",
+      "id": "reconciliation:864a1c39",
       "previousWorldSpec": {
-        "contentHash": "fnv1a32:041a1969",
+        "contentHash": "fnv1a32:7bb6cc8d",
         "id": "red-ball-beside-qzxwplk-1fbnvv7",
         "patchIds": [
           "patch:1:ee981e07",
           "patch:1:0d53d7e7",
-          "patch:1:74847a60",
-          "patch:1:300723e0",
-          "patch:1:8d066b04"
+          "patch:1:1c073065",
+          "patch:1:7f66c7f5"
         ],
         "revision": 1
       },
       "schema": "simulatte.worldSpecReconciliation.v1"
     },
-    "resultContentHash": "fnv1a32:8166d402",
+    "resultContentHash": "fnv1a32:39ff78ac",
     "resultRevision": 1,
     "resultColor": "#00aa44",
+    "groundedColor": "#00aa44",
+    "replacementColorPartCount": 1,
+    "sceneProofVerdict": "pass",
+    "semanticProofStatus": "pass",
+    "worldProofWorldSpecHash": "fnv1a32:39ff78ac",
     "unsupportedNodeRemoved": true,
     "beforeRenderInputSerial": 5,
     "renderInputSerial": 6,
@@ -429,9 +343,9 @@
     "dialogOpen": false
   },
   "before": {
-    "contentHash": "fnv1a32:b2673adc",
+    "contentHash": "fnv1a32:f90662b9",
     "revision": 0,
-    "renderCount": 5,
+    "renderCount": 6,
     "renderInputSerial": 1,
     "sceneProofVerdict": "fail",
     "requiredFailures": [
@@ -441,14 +355,10 @@
         "kind": "object",
         "target": "qzxwplk",
         "required": true,
-        "sourceStatus": "preserved",
-        "evidence": [
-          "packetIdentitySummary",
-          "objectRealization",
-          "objectMorphologyReceipt"
-        ],
-        "status": "lost",
-        "reason": "identity qzxwplk lacks contour, topology, or surface specificity"
+        "sourceStatus": "unsupported",
+        "evidence": [],
+        "status": "unsupported",
+        "reason": "carried unsupported status"
       },
       {
         "schema": "simulatte.sceneProofObligation.v1",
@@ -456,12 +366,10 @@
         "kind": "relation",
         "target": "entity-ball:spatial-constraint:entity-qzxwplk",
         "required": true,
-        "sourceStatus": "preserved",
-        "evidence": [
-          "visualObligationProof"
-        ],
-        "status": "lost",
-        "reason": "relation failed Phase 7 visual proof"
+        "sourceStatus": "unsupported",
+        "evidence": [],
+        "status": "unsupported",
+        "reason": "carried unsupported status"
       },
       {
         "schema": "simulatte.sceneProofObligation.v1",
@@ -469,30 +377,17 @@
         "kind": "relation",
         "target": "spatial:entity-ball:beside:entity-qzxwplk",
         "required": true,
-        "sourceStatus": "preserved",
-        "evidence": [
-          "visualObligationProof"
-        ],
-        "status": "lost",
-        "reason": "relation failed Phase 7 visual proof"
-      },
-      {
-        "schema": "simulatte.sceneProofObligation.v1",
-        "obligationId": "visual:construction:prompt-body-qzxwplk:support",
-        "kind": "visual",
-        "target": "qzxwplk",
-        "required": true,
-        "sourceStatus": "lost",
+        "sourceStatus": "unsupported",
         "evidence": [],
-        "status": "lost",
-        "reason": "carried failure status lost"
+        "status": "unsupported",
+        "reason": "carried unsupported status"
       }
     ]
   },
   "after": {
-    "contentHash": "fnv1a32:041a1969",
+    "contentHash": "fnv1a32:7bb6cc8d",
     "revision": 1,
-    "renderCount": 52,
+    "renderCount": 100,
     "renderInputSerial": 5
   },
   "editorStatus": "ready",
@@ -502,8 +397,8 @@
   "sceneProofVerdict": "pass",
   "sceneProofRequiredFailures": [],
   "worldProofVerdict": "pass",
-  "worldProofContentHash": "fnv1a32:c97c5afe",
-  "worldProofWorldSpecHash": "fnv1a32:041a1969",
+  "worldProofContentHash": "fnv1a32:b0e10faa",
+  "worldProofWorldSpecHash": "fnv1a32:7bb6cc8d",
   "worldProofCriticalFailures": [],
   "worldProofClassStatuses": {
     "intent": "pass",
@@ -517,28 +412,28 @@
   },
   "intentProofStatus": "pass",
   "intentProofRequirementHash": "fnv1a32:977ad4d5",
-  "intentProofSettlementHash": "fnv1a32:b6e937f7",
+  "intentProofSettlementHash": "fnv1a32:1ce33e43",
   "intentProofAcceptedCount": 2,
   "intentProofRefusalCount": 2,
   "intentProofUnresolvedCount": 0,
   "intentProofLostCount": 0,
   "semanticProofStatus": "pass",
-  "semanticProofLedgerHash": "fnv1a32:15d823f2",
+  "semanticProofLedgerHash": "fnv1a32:797ff7f1",
   "semanticProofGraphHash": "fnv1a32:b251c341",
   "semanticProofBindingCount": 2,
   "semanticProofProvenCount": 2,
   "semanticProofMissingCount": 0,
   "compilerDeterminismStatus": "pass",
-  "compilerDeterminismInputHash": "fnv1a32:eab26de3",
-  "compilerDeterminismBaselineHash": "fnv1a32:b2673adc",
-  "compilerDeterminismRecompiledHash": "fnv1a32:b2673adc",
+  "compilerDeterminismInputHash": "fnv1a32:685ddf1e",
+  "compilerDeterminismBaselineHash": "fnv1a32:f90662b9",
+  "compilerDeterminismRecompiledHash": "fnv1a32:f90662b9",
   "compilerDeterminismLane": "pipeline-worker",
   "simulationReproducibilityStatus": "pass",
   "simulationReproducibilityBaselineHash": "fnv1a32:6eb38e40",
   "simulationReproducibilityReplayHash": "fnv1a32:6eb38e40",
   "simulationReproducibilityMaxDelta": 0,
   "interactionProofStatus": "pass",
-  "interactionProofContentHash": "fnv1a32:f891311b",
+  "interactionProofContentHash": "fnv1a32:d04345a9",
   "interactionProofProgramHash": "fnv1a32:9160b87e",
   "interactionProofTransitionHash": "fnv1a32:4b1492d1",
   "interactionProofProvenTransitionCount": 4,
@@ -551,7 +446,7 @@
   "safetyProofReplayHash": "fnv1a32:411c8480",
   "auditTiming": {
     "schema": "simulatte.worldSpecEditorAuditTiming.v1",
-    "durationMs": 4883
+    "durationMs": 9731
   },
   "documentFitsViewport": true,
   "controlsFitViewport": true,
@@ -561,32 +456,32 @@
     "basis": "single-prompt-browser-execution-window",
     "measurementMode": "forced-gc-retained-heap-plus-periodic-observed-peak",
     "sampleIntervalMs": 25,
-    "sampleCount": 87,
-    "initialUsedJsHeapBytes": 12294206,
-    "finalUsedJsHeapBytes": 30582124,
-    "finalBeforeGcUsedJsHeapBytes": 148268528,
-    "retainedDeltaBytes": 18287918,
-    "observedPeakUsedJsHeapBytes": 148268528,
-    "observedPeakAtMs": 4894.4,
-    "maximumTotalJsHeapBytes": 191548636,
+    "sampleCount": 164,
+    "initialUsedJsHeapBytes": 12209545,
+    "finalUsedJsHeapBytes": 25700027,
+    "finalBeforeGcUsedJsHeapBytes": 84479114,
+    "retainedDeltaBytes": 13490482,
+    "observedPeakUsedJsHeapBytes": 149389043,
+    "observedPeakAtMs": 7150.3,
+    "maximumTotalJsHeapBytes": 192249271,
     "boundarySamples": [
       {
-        "atMs": 0,
+        "atMs": 0.1,
         "boundary": "window-start",
-        "usedJsHeapBytes": 12294206,
-        "totalJsHeapBytes": 12869586
+        "usedJsHeapBytes": 12209545,
+        "totalJsHeapBytes": 12732041
       },
       {
-        "atMs": 4894.4,
+        "atMs": 9764.7,
         "boundary": "window-end-before-gc",
-        "usedJsHeapBytes": 148268528,
-        "totalJsHeapBytes": 191548636
+        "usedJsHeapBytes": 84479114,
+        "totalJsHeapBytes": 133869818
       },
       {
-        "atMs": 5007.7,
+        "atMs": 10117.9,
         "boundary": "window-end",
-        "usedJsHeapBytes": 30582124,
-        "totalJsHeapBytes": 32478304
+        "usedJsHeapBytes": 25700027,
+        "totalJsHeapBytes": 27539671
       }
     ],
     "physicalGpuMemory": {
@@ -595,5 +490,5 @@
     }
   },
   "screenshot": "artifacts/blank-world-spec-editor/390x844.png",
-  "screenshotSha256": "1f0e4fac2d21053d29b046277f68ea0a2547c69737852cab406d2ed4dc865a53"
+  "screenshotSha256": "c5d0d47872d47fb9d57ac0f759aa790625ecc903ac88e7672f50d5d73a9ff1a1"
 }

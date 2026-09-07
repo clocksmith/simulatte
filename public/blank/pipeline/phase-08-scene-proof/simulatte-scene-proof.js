@@ -47,6 +47,7 @@
     const requiredLost = settledObligations.filter((row) => row.required === true && row.status === 'lost');
     const requiredUnsupported = settledObligations.filter((row) => row.required === true && row.status === 'unsupported');
     const requiredNotProven = settledObligations.filter((row) => row.required === true && row.status === 'not-proven');
+    const requiredFailures = settledObligations.filter((row) => row.required === true && row.status !== 'preserved');
     const worldProofBinding = renderExecution.worldProofBinding || null;
     const interactionProof = settleInteractionReceipt(
       renderExecution.interactionReceipt || null,
@@ -54,7 +55,7 @@
     );
     const verdict = !rendered
       ? 'not-proven'
-      : requiredLost.length || requiredUnsupported.length || requiredNotProven.length || interactionProof.status === 'fail'
+      : requiredFailures.length || interactionProof.status === 'fail'
         ? 'fail'
         : 'pass';
     const summary = {
@@ -72,6 +73,7 @@
       verdict,
       rendered,
       settledObligations,
+      requiredFailures,
       summary,
       interactionProof,
       evidence: {

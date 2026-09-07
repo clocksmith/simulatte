@@ -1,0 +1,514 @@
+TAP version 13
+# Subtest: prompt compile reports each real compiler task from zero through one hundred
+ok 1 - prompt compile reports each real compiler task from zero through one hundred
+  ---
+  duration_ms: 5080.719342
+  type: 'test'
+  ...
+# Subtest: Phase 1 browser gate does not bypass model proof for prompt keywords
+ok 2 - Phase 1 browser gate does not bypass model proof for prompt keywords
+  ---
+  duration_ms: 3.92451
+  type: 'test'
+  ...
+# Subtest: Phase 1 browser gate requires ready reranker when runtime receipt requires one
+ok 3 - Phase 1 browser gate requires ready reranker when runtime receipt requires one
+  ---
+  duration_ms: 2.059719
+  type: 'test'
+  ...
+# Subtest: Phase 2 preserves coordinated biological agents swimming inside water environments
+ok 4 - Phase 2 preserves coordinated biological agents swimming inside water environments
+  ---
+  duration_ms: 4512.921352
+  type: 'test'
+  ...
+# Subtest: Phase 2 does not invent water targets for unrelated intransitive clauses
+ok 5 - Phase 2 does not invent water targets for unrelated intransitive clauses
+  ---
+  duration_ms: 1717.373245
+  type: 'test'
+  ...
+# Subtest: Phase 2 preserves an unlisted trailing action and Phase 3 fails closed without capability evidence
+ok 6 - Phase 2 preserves an unlisted trailing action and Phase 3 fails closed without capability evidence
+  ---
+  duration_ms: 2933.592852
+  type: 'test'
+  ...
+# Subtest: Phase 2 promotes only syntactic term participants to required canonical entities
+ok 7 - Phase 2 promotes only syntactic term participants to required canonical entities
+  ---
+  duration_ms: 9465.217938
+  type: 'test'
+  ...
+# Subtest: Phase 2 carries negation without creating required slots for negated entities
+ok 8 - Phase 2 carries negation without creating required slots for negated entities
+  ---
+  duration_ms: 2922.923323
+  type: 'test'
+  ...
+# Subtest: Phase 2 extends coordinated negation and promotes syntactic process terms
+ok 9 - Phase 2 extends coordinated negation and promotes syntactic process terms
+  ---
+  duration_ms: 13007.453717
+  type: 'test'
+  ...
+# Subtest: Phase 2 keeps comma-delimited fuel nouns out of the process ledger
+ok 10 - Phase 2 keeps comma-delimited fuel nouns out of the process ledger
+  ---
+  duration_ms: 3843.872722
+  type: 'test'
+  ...
+# Subtest: Phase 4 activates combustion for each grounded fuel only when prompt-owned fire evidence exists
+ok 11 - Phase 4 activates combustion for each grounded fuel only when prompt-owned fire evidence exists
+  ---
+  duration_ms: 14253.297917
+  type: 'test'
+  ...
+# Subtest: typed flow domains separate queue traffic from coolant transport
+ok 12 - typed flow domains separate queue traffic from coolant transport
+  ---
+  duration_ms: 2877.130431
+  type: 'test'
+  ...
+# Subtest: typed optical rules activate executable lens and thin-film phase fields without noun shortcuts
+ok 13 - typed optical rules activate executable lens and thin-film phase fields without noun shortcuts
+  ---
+  duration_ms: 4038.371586
+  type: 'test'
+  ...
+# Subtest: particle measurement paths lower two receipt-bound readouts and reject noun co-occurrence
+ok 14 - particle measurement paths lower two receipt-bound readouts and reject noun co-occurrence
+  ---
+  duration_ms: 2771.998886
+  type: 'test'
+  ...
+# Subtest: causal grounding policies admit direct clauses and reject disconnected noun pairs
+ok 15 - causal grounding policies admit direct clauses and reject disconnected noun pairs
+  ---
+  duration_ms: 3159.344715
+  type: 'test'
+  ...
+# Subtest: Phase 2 phrase parser matches multi-word entities across whitespace
+ok 16 - Phase 2 phrase parser matches multi-word entities across whitespace
+  ---
+  duration_ms: 1.121847
+  type: 'test'
+  ...
+# Subtest: Phase 2 spatial clauses use grounded nouns instead of nearby terms or nominal verbs
+ok 17 - Phase 2 spatial clauses use grounded nouns instead of nearby terms or nominal verbs
+  ---
+  duration_ms: 6.875885
+  type: 'test'
+  ...
+# Subtest: Phase 4 proximity policies accept explicit co-location without accepting unrelated relations
+ok 18 - Phase 4 proximity policies accept explicit co-location without accepting unrelated relations
+  ---
+  duration_ms: 0.09889
+  type: 'test'
+  ...
+# Subtest: Phase 4 remaps retrieved causal endpoints onto direct prompt nodes
+ok 19 - Phase 4 remaps retrieved causal endpoints onto direct prompt nodes
+  ---
+  duration_ms: 0.234561
+  type: 'test'
+  ...
+# Subtest: thermal process qualifiers lower recirculated heat between concrete endpoints
+ok 20 - thermal process qualifiers lower recirculated heat between concrete endpoints
+  ---
+  duration_ms: 703.998233
+  type: 'test'
+  ...
+# Subtest: fuel-bearing environments lower explicit forest fire as combustion
+ok 21 - fuel-bearing environments lower explicit forest fire as combustion
+  ---
+  duration_ms: 593.970368
+  type: 'test'
+  ...
+# Subtest: Phase 2 keeps an agentive participle attached across spatial furniture phrases
+ok 22 - Phase 2 keeps an agentive participle attached across spatial furniture phrases
+  ---
+  duration_ms: 1.873203
+  type: 'test'
+  ...
+# Subtest: Phase 3 separates literal swimming retrieval from generic support physics
+ok 23 - Phase 3 separates literal swimming retrieval from generic support physics
+  ---
+  duration_ms: 531.73695
+  type: 'test'
+  ...
+# Subtest: qubit readout grounds the typed instrument relation without phase-change or machine-family leakage
+ok 24 - qubit readout grounds the typed instrument relation without phase-change or machine-family leakage
+  ---
+  duration_ms: 558.038746
+  type: 'test'
+  ...
+# Subtest: Phase 3 strips Phase 4 conclusion fields from retrieval evidence side channels
+ok 25 - Phase 3 strips Phase 4 conclusion fields from retrieval evidence side channels
+  ---
+  duration_ms: 499.135159
+  type: 'test'
+  ...
+# Subtest: Phase 3 rejects stale slot retrieval from another prompt hash
+ok 26 - Phase 3 rejects stale slot retrieval from another prompt hash
+  ---
+  duration_ms: 2.111159
+  type: 'test'
+  ...
+# Subtest: Phase 3 rejects retrieval evidence whose top-level prompt hash is stale
+ok 27 - Phase 3 rejects retrieval evidence whose top-level prompt hash is stale
+  ---
+  duration_ms: 2.087773
+  type: 'test'
+  ...
+# Subtest: Phase 3 rejects missing Phase 2 artifacts and unbound retrieval evidence
+ok 28 - Phase 3 rejects missing Phase 2 artifacts and unbound retrieval evidence
+  ---
+  duration_ms: 1.851693
+  type: 'test'
+  ...
+# Subtest: Phase 3 span embedding cache detaches mutable provider and consumer vectors
+ok 29 - Phase 3 span embedding cache detaches mutable provider and consumer vectors
+  ---
+  duration_ms: 1.53219
+  type: 'test'
+  ...
+# Subtest: grounding rejects associative generated identities lacking prompt evidence
+ok 30 - grounding rejects associative generated identities lacking prompt evidence
+  ---
+  duration_ms: 713.238062
+  type: 'test'
+  ...
+# Subtest: metabolite exchange and soot layering lower into executable behavior evidence
+ok 31 - metabolite exchange and soot layering lower into executable behavior evidence
+  ---
+  duration_ms: 1269.784834
+  type: 'test'
+  ...
+# Subtest: Phase 4 reserves bounded grounding evidence for prompt-owned typed identities
+ok 32 - Phase 4 reserves bounded grounding evidence for prompt-owned typed identities
+  ---
+  duration_ms: 726.260833
+  type: 'test'
+  ...
+# Subtest: Phase 4 attaches an analogous candidate to the exact prompt target node
+ok 33 - Phase 4 attaches an analogous candidate to the exact prompt target node
+  ---
+  duration_ms: 0.248403
+  type: 'test'
+  ...
+# Subtest: overlapping aliases canonicalize once while distinct prompt identities keep evidence-owned grammars
+ok 34 - overlapping aliases canonicalize once while distinct prompt identities keep evidence-owned grammars
+  ---
+  duration_ms: 3820.301481
+  type: 'test'
+  ...
+# Subtest: unsupported and unresolved concepts are preserved in validation receipt
+ok 35 - unsupported and unresolved concepts are preserved in validation receipt
+  ---
+  duration_ms: 574.398522
+  type: 'test'
+  ...
+# Subtest: legacy custom specs migrate to pipeline artifacts during normalization
+ok 36 - legacy custom specs migrate to pipeline artifacts during normalization
+  ---
+  duration_ms: 458.255243
+  type: 'test'
+  ...
+# Subtest: Phase 4 carries causal rule identity into connected lava heat and ice phase inference
+ok 37 - Phase 4 carries causal rule identity into connected lava heat and ice phase inference
+  ---
+  duration_ms: 8858.408394
+  type: 'test'
+  ...
+# Subtest: Phase 2 marks typed relations as local evidence instead of requesting model identity work
+ok 38 - Phase 2 marks typed relations as local evidence instead of requesting model identity work
+  ---
+  duration_ms: 2500.803003
+  type: 'test'
+  ...
+# Subtest: cryosphere identities select exact recognizable construction topologies
+ok 39 - cryosphere identities select exact recognizable construction topologies
+  ---
+  duration_ms: 1703.388385
+  type: 'test'
+  ...
+# Subtest: Phase 6 renders laboratories as workspaces rather than exterior buildings
+ok 40 - Phase 6 renders laboratories as workspaces rather than exterior buildings
+  ---
+  duration_ms: 1514.46172
+  type: 'test'
+  ...
+# Subtest: Phase 6 solved boxes govern packet placement even when an object also owns a motion path
+ok 41 - Phase 6 solved boxes govern packet placement even when an object also owns a motion path
+  ---
+  duration_ms: 3043.649675
+  type: 'test'
+  ...
+# Subtest: Phase 3 treats a synthesized context phrase as support, not object identity
+ok 42 - Phase 3 treats a synthesized context phrase as support, not object identity
+  ---
+  duration_ms: 0.817284
+  type: 'test'
+  ...
+# Subtest: Phase 6 applies accepted orbital process motion to every affected prompt entity
+ok 43 - Phase 6 applies accepted orbital process motion to every affected prompt entity
+  ---
+  duration_ms: 2933.55895
+  type: 'test'
+  ...
+# Subtest: Phase 5 physics obligations prove operators beyond the swimming vertical
+ok 44 - Phase 5 physics obligations prove operators beyond the swimming vertical
+  ---
+  duration_ms: 4597.106752
+  type: 'test'
+  ...
+# Subtest: Phase 5 and 7 lower swimming into behavior physics and preserve dog cat identities
+ok 45 - Phase 5 and 7 lower swimming into behavior physics and preserve dog cat identities
+  ---
+  duration_ms: 2386.457466
+  type: 'test'
+  ...
+# Subtest: particle instrument VisualIR preserves causal affordance rows
+ok 46 - particle instrument VisualIR preserves causal affordance rows
+  ---
+  duration_ms: 2535.573067
+  type: 'test'
+  ...
+# Subtest: Phase 4 exact construction evidence outranks unrelated reranker confidence
+ok 47 - Phase 4 exact construction evidence outranks unrelated reranker confidence
+  ---
+  duration_ms: 0.882975
+  type: 'test'
+  ...
+# Subtest: exact construction families exclude unrelated embedding neighbours through Phase 6
+ok 48 - exact construction families exclude unrelated embedding neighbours through Phase 6
+  ---
+  duration_ms: 16.028196
+  type: 'test'
+  ...
+# Subtest: ball construction selects spherical geometry instead of an unrelated instrument topology
+ok 49 - ball construction selects spherical geometry instead of an unrelated instrument topology
+  ---
+  duration_ms: 1610.905015
+  type: 'test'
+  ...
+# Subtest: data-owned target labels bind compound nouns before analogous construction reranking
+ok 50 - data-owned target labels bind compound nouns before analogous construction reranking
+  ---
+  duration_ms: 3.004842
+  type: 'test'
+  ...
+# Subtest: abstract control entities do not acquire unrelated physical construction graphs
+ok 51 - abstract control entities do not acquire unrelated physical construction graphs
+  ---
+  duration_ms: 2146.578372
+  type: 'test'
+  ...
+# Subtest: fields skip part graphs while protein chains and plumes use data-owned topology
+ok 52 - fields skip part graphs while protein chains and plumes use data-owned topology
+  ---
+  duration_ms: 6065.675073
+  type: 'test'
+  ...
+# Subtest: unknown object retrieval reserves an embedding-ranked construction topology inside the fixed card budget
+ok 53 - unknown object retrieval reserves an embedding-ranked construction topology inside the fixed card budget
+  ---
+  duration_ms: 5.547687
+  type: 'test'
+  ...
+# Subtest: construction retrieval admits physical part graphs and rejects process or visual-effect rows
+ok 54 - construction retrieval admits physical part graphs and rejects process or visual-effect rows
+  ---
+  duration_ms: 0.918931
+  type: 'test'
+  ...
+# Subtest: Phase 4 attaches construction to the slot target instead of a material context span
+ok 55 - Phase 4 attaches construction to the slot target instead of a material context span
+  ---
+  duration_ms: 0.49959
+  type: 'test'
+  ...
+# Subtest: Phase 4 construction target selection prefers a direct label over a shared canonical tail
+ok 56 - Phase 4 construction target selection prefers a direct label over a shared canonical tail
+  ---
+  duration_ms: 0.304245
+  type: 'test'
+  ...
+# Subtest: Phase 6 lowers unmatched typed physics entities for expanded scene kinds
+ok 57 - Phase 6 lowers unmatched typed physics entities for expanded scene kinds
+  ---
+  duration_ms: 3400.310157
+  type: 'test'
+  ...
+# Subtest: common-world and celestial nouns survive grounding as literal object geometry
+ok 58 - common-world and celestial nouns survive grounding as literal object geometry
+  ---
+  duration_ms: 11416.901138
+  type: 'test'
+  ...
+# Subtest: part-scoped properties bind robot eyes and articulated straw arms into one object graph
+ok 59 - part-scoped properties bind robot eyes and articulated straw arms into one object graph
+  ---
+  duration_ms: 1319.700259
+  type: 'test'
+  ...
+# Subtest: cardinality pose spatial color and environment contracts lower into one rendered scene
+ok 60 - cardinality pose spatial color and environment contracts lower into one rendered scene
+  ---
+  duration_ms: 989.27307
+  type: 'test'
+  ...
+# Subtest: Phase 6 solves typed spatial constraints and canonicalizes visual concepts
+ok 61 - Phase 6 solves typed spatial constraints and canonicalizes visual concepts
+  ---
+  duration_ms: 2.262465
+  type: 'test'
+  ...
+# Subtest: Phase 6 takes typed identity and relation authority only from RenderIR
+ok 62 - Phase 6 takes typed identity and relation authority only from RenderIR
+  ---
+  duration_ms: 752.140996
+  type: 'test'
+  ...
+# Subtest: prompt-owned identities override an incorrect network render layer
+ok 63 - prompt-owned identities override an incorrect network render layer
+  ---
+  duration_ms: 0.348372
+  type: 'test'
+  ...
+# Subtest: prompt-owned scientific identities require construction evidence before claiming literal geometry
+ok 64 - prompt-owned scientific identities require construction evidence before claiming literal geometry
+  ---
+  duration_ms: 3.983057
+  type: 'test'
+  ...
+# Subtest: construction support failures apply only to required identities without a literal representative
+ok 65 - construction support failures apply only to required identities without a literal representative
+  ---
+  duration_ms: 0.311716
+  type: 'test'
+  ...
+# Subtest: scene framing makes literal objects readable without changing relation geometry
+ok 66 - scene framing makes literal objects readable without changing relation geometry
+  ---
+  duration_ms: 2097.202841
+  type: 'test'
+  ...
+# Subtest: typed RenderIR scene fallback routes identity without inventing executable fields
+ok 67 - typed RenderIR scene fallback routes identity without inventing executable fields
+  ---
+  duration_ms: 19.072624
+  type: 'test'
+  ...
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+ok 68 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 4679.495321
+  type: 'test'
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+ok 69 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 1393.63324
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+ok 70 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 3678.464839
+  type: 'test'
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+ok 71 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 2086.658842
+  type: 'test'
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+ok 72 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 2426.881033
+  type: 'test'
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+ok 73 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 2637.811757
+  type: 'test'
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+ok 74 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 4792.600963
+  type: 'test'
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+ok 75 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 3194.55036
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+ok 76 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 4951.77795
+  type: 'test'
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 77 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 8.679112
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+ok 78 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 3846.407581
+  type: 'test'
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+ok 79 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 3222.914072
+  type: 'test'
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+ok 80 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 8875.807969
+  type: 'test'
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+ok 81 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 4917.212636
+  type: 'test'
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+ok 82 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 2646.011238
+  type: 'test'
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 83 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 1.132613
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+ok 84 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 2197.626735
+  type: 'test'
+  ...
+1..84
+# tests 84
+# suites 0
+# pass 84
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 81727.320965

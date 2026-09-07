@@ -808,7 +808,7 @@
   }
 
   function phase7FailureStatus(status = '') {
-    return status === 'lost' || status === 'failed' || status === 'wrong-identity' || status === 'not-proven';
+    return status === 'lost' || status === 'unsupported' || status === 'failed' || status === 'wrong-identity' || status === 'not-proven';
   }
 
   function normalizeForProof(value = '') {

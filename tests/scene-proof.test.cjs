@@ -132,6 +132,12 @@ test('scene proof never certifies a required unsupported obligation', () => {
   assert.equal(unsupported.status, 'unsupported');
   assert.equal(proof.verdict, 'fail');
   assert.ok(proof.summary.requiredUnsupportedIds.includes(unsupportedId));
+  assert.ok(proof.requiredFailures.some(row => row.obligationId === unsupportedId));
+  const renderer = { phase7Output: tampered, canvas: { dataset: {} }, renderData: {}, sceneRenderPacket: {} };
+  rendererScope.WebGpuRenderer.prototype.settleSceneProof.call(renderer);
+  assert.equal(renderer.canvas.dataset.sceneProofVerdict, 'fail');
+  assert.ok(JSON.parse(renderer.canvas.dataset.sceneProofRequiredFailures).some(row => row.obligationId === unsupportedId));
+  assert.ok(JSON.parse(renderer.canvas.dataset.sceneProofRequiredUnsupportedIds).includes(unsupportedId));
 });
 
 test('scene proof fails a required identity when its live pixel obligation fails', () => {

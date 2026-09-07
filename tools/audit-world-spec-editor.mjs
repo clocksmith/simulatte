@@ -22,6 +22,7 @@ function parseArgs(argv) {
     boundaryRowId: '',
     outDir: DEFAULT_OUT,
     prompt: '',
+    cpuProfilePath: '',
     url: '',
     viewport: { width: 1440, height: 1000 },
   };
@@ -33,6 +34,7 @@ function parseArgs(argv) {
     else if (key === '--boundary-row') options.boundaryRowId = String(value() || '');
     else if (key === '--out') options.outDir = path.resolve(value());
     else if (key === '--prompt') options.prompt = String(value() || '');
+    else if (key === '--cpu-profile') options.cpuProfilePath = path.resolve(value());
     else if (key === '--url') options.url = new URL(value()).toString();
     else if (key === '--viewport') options.viewport = parseViewport(value());
     else if (key === '--help') {
@@ -121,6 +123,7 @@ async function evaluate(client, expression) {
 function editorProbeExpression(boundary) {
   return String.raw`(async () => {
     const auditStarted = performance.now();
+    const auditBoundaries = [];
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const waitFor = async (label, read, timeoutMs = 20000) => {
       const started = performance.now();
@@ -129,6 +132,8 @@ function editorProbeExpression(boundary) {
         if (performance.now() - started > timeoutMs) throw new Error('Timed out waiting for ' + label);
         await delay(40);
       }
+      auditBoundaries.push({ label, startedAtMs: started - auditStarted,
+        settledAtMs: performance.now() - auditStarted });
       return value;
     };
     if (window.SimulatteStartPhysicsLab && !window.SimulattePhysicsLab?._browserLab) {
@@ -459,12 +464,18 @@ function editorProbeExpression(boundary) {
         current.contentHash !== edited.contentHash ? current : null;
     });
     await waitFor('reconciled Phase 7 frame', () => (
-      Number(canvas.dataset.renderInputSerial || 0) > reconciliationInputSerial
+      Number(canvas.dataset.renderInputSerial || 0) > reconciliationInputSerial &&
+      canvas.dataset.worldProofWorldSpecHash === reconciled.contentHash &&
+      canvas.dataset.sceneProofFinal === 'true' &&
+      canvas.dataset.sceneProofVerdict === 'pass' && canvas.dataset.semanticProofStatus === 'pass'
     ));
     const reconciliationReceipt = JSON.parse(reconciliationDialog.dataset.receipt || '{}');
     const reconciliationRecord = reconciled.authorship.reconciliations.at(-1);
     const reconciledSupportedNode = reconciled.universeGraph.nodes.find(matchesSupportedEntity);
     const reconciledColor = reconciledSupportedNode?.properties?.find((row) => row.kind === 'color')?.value || '';
+    const reconciledGroundedNode = reconciled.phaseArtifacts.phase4.artifact.groundedIntent.acceptedGraph.nodes.find(matchesSupportedEntity);
+    const reconciledPacketNode = reconciled.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket.entities
+      .find((row) => row.identity?.type === supportedEntityType);
     const propertyObligations = edited.phaseArtifacts.phase6.artifact.visualCompile.compositionLedger.obligations
       .filter((row) => row.constraintKind === 'property' && row.targetNodeId === acceptedNode.id);
     const patch = edited.authorship.patches.find((row) => (
@@ -483,6 +494,19 @@ function editorProbeExpression(boundary) {
     const dock = document.querySelector('.prompt-dock');
     dock.scrollTop = Math.max(0, editorPanel.offsetTop - 18);
     await delay(120);
+    const submitted = lab.getTrainingSnapshot().artifacts?.['1->7']?.output?.artifact?.renderExecution;
+    const submittedFrame = submitted?.frame;
+    const frameEvidence = {
+      schema: submittedFrame?.schema || '',
+      renderCount: submittedFrame?.renderCount,
+      readbackSerial: submittedFrame?.readbackSerial,
+      viewport: submittedFrame?.viewport,
+      simulationReceiptMatches: Boolean(submittedFrame) && JSON.stringify(submitted.simulationReceipt) ===
+        JSON.stringify(submittedFrame.simulationSnapshot?.solverState?.executionReceipt || null),
+      viewportMatches: Boolean(submittedFrame) && JSON.stringify(submitted.canvas) === JSON.stringify(submittedFrame.viewport),
+      frameMatches: Boolean(submittedFrame) && submitted.renderCount === submittedFrame.renderCount,
+      pixelReadbackMatches: Boolean(submittedFrame) && submittedFrame.readbackSerial === canvas.__simulattePixelSamples?.readbackSerial,
+    };
     return {
       schema: 'simulatte.worldSpecEditorBrowserAudit.v1',
       buildId: document.querySelector('meta[name="simulatte-build"]')?.content || '',
@@ -492,6 +516,7 @@ function editorProbeExpression(boundary) {
       boundaryContractSha256: boundary.boundaryContractSha256,
       adHocPromptOverride: boundary.adHocPromptOverride === true,
       viewport: { width: innerWidth, height: innerHeight },
+      frameEvidence,
       prompt,
       supportedEntityType: boundary.supportedEntityType,
       unsupportedLabel: boundary.unsupportedLabel,
@@ -531,6 +556,12 @@ function editorProbeExpression(boundary) {
         resultContentHash: reconciled.contentHash,
         resultRevision: reconciled.authorship.revision,
         resultColor: reconciledColor,
+        groundedColor: reconciledGroundedNode?.properties?.find((row) => row.kind === 'color')?.value || '',
+        replacementColorPartCount: (reconciledPacketNode?.geometry?.program?.parts || [])
+          .filter((part) => part.fill === boundary.edit.replacementColor).length,
+        sceneProofVerdict: canvas.dataset.sceneProofVerdict || '',
+        semanticProofStatus: canvas.dataset.semanticProofStatus || '',
+        worldProofWorldSpecHash: canvas.dataset.worldProofWorldSpecHash || '',
         unsupportedNodeRemoved: !reconciled.universeGraph.nodes.some((node) => node.id === unsupportedNode.id),
         beforeRenderInputSerial: reconciliationInputSerial,
         renderInputSerial: Number(canvas.dataset.renderInputSerial || 0),
@@ -598,6 +629,7 @@ function editorProbeExpression(boundary) {
       auditTiming: {
         schema: 'simulatte.worldSpecEditorAuditTiming.v1',
         durationMs: Math.round(performance.now() - auditStarted),
+        boundaries: auditBoundaries,
       },
       documentFitsViewport: document.documentElement.scrollWidth <= innerWidth + 1,
       controlsFitViewport: viewportFits,
@@ -615,6 +647,10 @@ export function assertReceipt(receipt, boundary) {
     receipt.constructionPartIds.some((id) => String(id || '').includes(pattern))
   ));
   const expected = [
+    [receipt.frameEvidence?.schema === 'simulatte.renderFrameEvidence.v1' &&
+      receipt.frameEvidence.simulationReceiptMatches === true && receipt.frameEvidence.viewportMatches === true &&
+      receipt.frameEvidence.frameMatches === true && receipt.frameEvidence.pixelReadbackMatches === true,
+    'pixel readback is not bound to one submitted simulation frame and viewport'],
     [Boolean(receipt.buildId), 'receipt is missing the page build identity'],
     [receipt.boundarySetId === boundary.boundarySetId && receipt.boundaryRowId === boundary.id,
       'receipt is not bound to the frozen boundary row'],
@@ -681,6 +717,12 @@ export function assertReceipt(receipt, boundary) {
     [receipt.reconciliation.record?.compiledWorldSpec?.contentHash === receipt.before.contentHash, 'WorldSpec reconciliation history lost the compiler baseline'],
     [receipt.reconciliation.resultRevision === receipt.after.revision, 'recompiled edits lost their authored revision'],
     [receipt.reconciliation.resultColor === boundary.edit.replacementColor, 'recompiled world discarded the accepted property override'],
+    [receipt.reconciliation.groundedColor === boundary.edit.replacementColor &&
+      receipt.reconciliation.replacementColorPartCount > 0,
+      'reconciliation did not compile the preserved property into grounding and geometry'],
+    [receipt.reconciliation.sceneProofVerdict === 'pass' && receipt.reconciliation.semanticProofStatus === 'pass' &&
+      receipt.reconciliation.worldProofWorldSpecHash === receipt.reconciliation.resultContentHash,
+      'reconciliation did not settle the rendered authored program'],
     [receipt.reconciliation.unsupportedNodeRemoved === true, 'recompiled world restored an explicitly refused node'],
     [receipt.reconciliation.renderInputSerial > receipt.reconciliation.beforeRenderInputSerial, 'Phase 7 did not execute the reconciled WorldSpec'],
     [receipt.reconciliation.dialogState === 'preserve-overrides' && receipt.reconciliation.dialogOpen === false, 'reconciliation dialog did not settle after the decision'],
@@ -785,12 +827,42 @@ export function assertReceipt(receipt, boundary) {
   if (failures.length) throw new Error(`WorldSpec editor browser audit failed: ${failures.join('; ')}`);
 }
 
+export async function retainEditorFailure(client, options, error, evidence = {}) {
+  fs.mkdirSync(options.outDir, { recursive: true });
+  const failure = { schema: 'simulatte.worldSpecEditorFailure.v1', capturedAt: new Date().toISOString(),
+    error: { message: error.message, stack: error.stack }, viewport: options.viewport,
+    diagnostics: client.diagnostics(), captureErrors: [],
+    auditReceipt: structuredClone(evidence.auditReceipt || null),
+    boundary: structuredClone(evidence.boundary || null) };
+  try {
+    failure.page = await evaluate(client, `(() => {
+      const lab = window.SimulattePhysicsLab?._browserLab;
+      const canvas = document.getElementById('physics-canvas');
+      return { url: location.href, text: document.body.innerText, canvas: {...canvas?.dataset},
+        spec: lab?.getSpec() || null, state: lab?.getState() || null,
+        training: lab?.getTrainingSnapshot() || null };
+    })()`);
+  } catch (captureError) { failure.captureErrors.push({ boundary: 'page-state', message: captureError.message }); }
+  try {
+    const screenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false, fromSurface: true });
+    const bytes = Buffer.from(screenshot.data, 'base64');
+    const screenshotPath = path.join(options.outDir, `${options.viewport.width}x${options.viewport.height}-failure.png`);
+    fs.writeFileSync(screenshotPath, bytes);
+    failure.screenshot = path.relative(ROOT, screenshotPath);
+    failure.screenshotSha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+  } catch (captureError) { failure.captureErrors.push({ boundary: 'screenshot', message: captureError.message }); }
+  fs.writeFileSync(path.join(options.outDir, `${options.viewport.width}x${options.viewport.height}-failure.json`), `${JSON.stringify(failure, null, 2)}\n`);
+  return failure;
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const boundary = loadBoundary(options);
   const browser = await openBrowserAudit({ ...options, publicRoot: PUBLIC, webgpu: true, preciseMemory: true });
   const { client } = browser;
   const targetUrl = options.url || new URL('blank/?auditNoInitial=1', browser.host.baseUrl).toString();
+  let auditReceipt = null;
+  let cpuProfileStarted = false;
   try {
     const errors = [];
     client.on('Runtime.exceptionThrown', (params) => errors.push(
@@ -811,16 +883,23 @@ async function main() {
     const loaded = client.once('Page.loadEventFired');
     await client.send('Page.navigate', { url: targetUrl });
     await loaded;
+    if (options.cpuProfilePath) {
+      await client.send('Profiler.enable');
+      await client.send('Profiler.start');
+      cpuProfileStarted = true;
+    }
     await beginBrowserMemoryWindow(client, evaluate);
     let receipt;
     try {
       receipt = await evaluate(client, editorProbeExpression(boundary));
+      auditReceipt = receipt;
     } catch (error) {
       const browserDetail = errors.length ? `; browser exceptions: ${errors.join(' | ')}` : '';
       throw new Error(`${error.message}${browserDetail}`);
     }
     const browserMemory = await endBrowserMemoryWindow(client, evaluate);
     const boundReceipt = { ...receipt, browserMemory };
+    auditReceipt = boundReceipt;
     if (errors.length) throw new Error(`Browser exceptions: ${errors.join(' | ')}`);
     assertReceipt(boundReceipt, boundary);
     const screenshot = await client.send('Page.captureScreenshot', {
@@ -840,8 +919,19 @@ async function main() {
     const reportPath = path.join(options.outDir, `${options.viewport.width}x${options.viewport.height}.json`);
     fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
     console.log(JSON.stringify({ ok: true, report: reportPath, screenshot: screenshotPath, receipt: boundReceipt }, null, 2));
+  } catch (error) {
+    await retainEditorFailure(client, options, error, { auditReceipt, boundary });
+    throw error;
   } finally {
-    await browser.close();
+    try {
+      if (cpuProfileStarted) {
+        const { profile } = await client.send('Profiler.stop');
+        fs.mkdirSync(path.dirname(options.cpuProfilePath), { recursive: true });
+        fs.writeFileSync(options.cpuProfilePath, `${JSON.stringify(profile)}\n`);
+      }
+    } finally {
+      await browser.close();
+    }
   }
 }
 

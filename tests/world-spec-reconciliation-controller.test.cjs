@@ -127,3 +127,18 @@ test('cancel retains the current artifact and fresh compilation requires its own
   assert.notEqual(fresh.worldSpec.params.energyInput, edited.params.energyInput);
   assert.equal(fresh.worldSpec.authorship.reconciliations.length, 1);
 });
+
+test('failed compilation of preserved edits cannot publish a reconciliation result', async () => {
+  const documentRoot = documentFixture();
+  const { compiled, edited } = editedFixture();
+  const controller = controllerApi.connect(documentRoot, {
+    compileWorldSpec() { throw new Error('authored operation unsupported'); },
+  });
+  const pending = controller.resolve(edited, compiled);
+  documentRoot.elements.get('preserve-world-spec-overrides').click();
+  assert.equal(controller.getLatestReceipt(), null);
+  assert.equal(documentRoot.elements.get('world-spec-reconciliation-dialog').open, true);
+  assert.match(documentRoot.elements.get('world-spec-reconciliation-conflicts').textContent, /authored operation unsupported/);
+  documentRoot.elements.get('cancel-world-spec-reconciliation').click();
+  assert.equal(await pending, null);
+});

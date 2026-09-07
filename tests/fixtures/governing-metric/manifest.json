@@ -1,0 +1,26 @@
+{
+  "schema": "simulatte.governingMetricFixture.v1",
+  "evidenceLayer": "component-fixture",
+  "capturedAt": "2026-09-07T18:52:34.753Z",
+  "file": "inputs.json.gz",
+  "sha256": "31a7ed1510b721c8524463870e6286502417313e481995346b3a19d7c53c49f8",
+  "purpose": "Frozen evaluator input. Expected outcomes are independently asserted in governing-metric.test.cjs. This mixed retained snapshot is not current-build qualification, physical hardware evidence, a sealed holdout, or human acceptance.",
+  "sources": [
+    {
+      "path": "artifacts/blank-gold-desktop/report.json",
+      "sha256": "d2018ca0228cf31f3d97122a893db273b72026193f86b084e2aeae990806e013"
+    },
+    {
+      "path": "artifacts/blank-gold-mobile/report.json",
+      "sha256": "9f8bff5f94c2487509b7d9da23414c3cd278a4d460c42453fcbec20abb91c149"
+    },
+    {
+      "path": "artifacts/create-rearchitecture-baseline/render-frame-desktop-verified/1440x1000.json",
+      "sha256": "f3e96c21c53d748aa5545df6f5d14985943f3b99febcb56609ea216e3282da43"
+    },
+    {
+      "path": "artifacts/create-rearchitecture-baseline/render-frame-mobile/390x844.json",
+      "sha256": "0b6094f72f0d273bac0ccf1a74110838d8b45cf7dce947e4d5b3c59cdf25b6b9"
+    }
+  ]
+}

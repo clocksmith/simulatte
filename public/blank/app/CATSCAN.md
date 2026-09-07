@@ -3,7 +3,7 @@
 Parent: [Create](../CATSCAN.md)
 ## Target
 
-Expose Create controls and evidence around the compiler.
+Expose controls and evidence around the compiler.
 
 ## Authority
 
@@ -23,25 +23,29 @@ Expose Create controls and evidence around the compiler.
 - Output: [compiler determinism coordinator](prompt/prompt-controller-compiler-proof.js)
 - Output: [WorldProof inspector and replay](prompt/prompt-controller-lab-controller.js)
 - Output: [run view model](runtime/run-view-model.js)
+- Output: [runner](runtime/phase-runner.js)
 
 ## Invariants
 
-- The application coordinates typed phase APIs rather than reimplementing them.
-- Displayed completion follows receipts, not optimistic UI state.
+- Preserved reconciled edits compile through typed phases before publication.
+- The runner bounds phases, resources, and revisions; cancelled work cannot publish or release in-flight leases.
+- Worker phases reject undeclared resources; cancelled and failed workers cannot publish or poison replacements.
+- Displayed completion requires receipts.
 - Edits record user authority before execution; fresh compilation cannot replace them without an explicit preserve or supersede decision.
 - Compiler determinism compares an independently compiled artifact with the reconstructed pre-edit baseline.
 - Exact replay performs a second execution and compares bound outcomes under one execution identity.
 - Deterministic runs bind independent fixed-step simulation and safety comparisons before replay can pass.
 - Execution and replay bind typed Phase 2 intent, Phase 4 settlement, and semantic provenance without reinterpretation.
-- A correction record exists only after a failed critical obligation, a later user-authored revision, and passing exact replay are bound together.
+- Correction records require a bound failed critical obligation, later user-authored revision, and passing exact replay.
 - Machine-only correction records remain diagnostic until a final-phase human action creates a hash-bound adjudication.
 
 ## Acceptance
 
-- The runtime manifest and phase registry resolve without hidden dependencies. Evidence: [registry tests](../../../tests/phase-module-registry.test.cjs).
+- Evidence: [registry tests](../../../tests/phase-module-registry.test.cjs) and [worker boundary tests](../../../tests/pipeline-worker-phases.test.cjs).
 - Evidence: [WorldSpec editor tests](../../../tests/world-spec.test.cjs).
 - Evidence: [WorldSpec editor browser audit](../../../tools/audit-world-spec-editor.mjs).
 - Evidence: [improvement record tests](../../../tests/world-improvement-record.test.cjs).
+- Evidence: [runner component tests](../../../tests/create-phase-runner.test.cjs).
 
 ## Non-goals
 

@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 12.685907
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 46.833935
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 20.915917
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 5.260833
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 45.954892
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.639074
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.534812
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 2144.169041
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+ok 9 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 2499.414197
+  type: 'test'
+  ...
+# Subtest: invocation acquisition obeys cancellation and the phase deadline
+ok 10 - invocation acquisition obeys cancellation and the phase deadline
+  ---
+  duration_ms: 32.172614
+  type: 'test'
+  ...
+# Subtest: resource selection and immutable assets cannot change while a run waits
+ok 11 - resource selection and immutable assets cannot change while a run waits
+  ---
+  duration_ms: 13.157794
+  type: 'test'
+  ...
+# Subtest: integrity rejects array metadata and non-enumerable artifact fields
+ok 12 - integrity rejects array metadata and non-enumerable artifact fields
+  ---
+  duration_ms: 0.926117
+  type: 'test'
+  ...
+# Subtest: neutral pixel colors retain bounded shading without requiring chromatic saturation
+ok 13 - neutral pixel colors retain bounded shading without requiring chromatic saturation
+  ---
+  duration_ms: 1.708858
+  type: 'test'
+  ...
+# Subtest: directed action pixel evidence must include both exact participants
+ok 14 - directed action pixel evidence must include both exact participants
+  ---
+  duration_ms: 1555.235928
+  type: 'test'
+  ...
+# Subtest: part ownership proof rejects missing, detached, and wrongly owned submitted parts
+ok 15 - part ownership proof rejects missing, detached, and wrongly owned submitted parts
+  ---
+  duration_ms: 969.201771
+  type: 'test'
+  ...
+# Subtest: Phase 7 sparse readback covers every required construction obligation above the old cap
+ok 16 - Phase 7 sparse readback covers every required construction obligation above the old cap
+  ---
+  duration_ms: 2024.689782
+  type: 'test'
+  ...
+# Subtest: Phase 7 retries a failed contrast proof at most three times for the same packet
+ok 17 - Phase 7 retries a failed contrast proof at most three times for the same packet
+  ---
+  duration_ms: 925.61157
+  type: 'test'
+  ...
+# Subtest: Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+ok 18 - Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+  ---
+  duration_ms: 776.286729
+  type: 'test'
+  ...
+# Subtest: Phase 7 samples the exact target entity before token-similar drawables
+ok 19 - Phase 7 samples the exact target entity before token-similar drawables
+  ---
+  duration_ms: 0.213441
+  type: 'test'
+  ...
+# Subtest: Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+ok 20 - Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+  ---
+  duration_ms: 715.349453
+  type: 'test'
+  ...
+# Subtest: Phase 7 action proof samples the relation owner instead of a nearby object
+ok 21 - Phase 7 action proof samples the relation owner instead of a nearby object
+  ---
+  duration_ms: 675.043631
+  type: 'test'
+  ...
+# Subtest: Phase 7 count proof requires every declared visible instance
+ok 22 - Phase 7 count proof requires every declared visible instance
+  ---
+  duration_ms: 716.241436
+  type: 'test'
+  ...
+# Subtest: Phase 7 does not certify required visuals without live pixel readback
+ok 23 - Phase 7 does not certify required visuals without live pixel readback
+  ---
+  duration_ms: 527.378185
+  type: 'test'
+  ...
+# Subtest: Phase 7 absence proof binds the compiled semantic submission to current texture readback
+ok 24 - Phase 7 absence proof binds the compiled semantic submission to current texture readback
+  ---
+  duration_ms: 572.194936
+  type: 'test'
+  ...
+# Subtest: Phase 7 reports readback capacity overflow instead of truncating proof
+ok 25 - Phase 7 reports readback capacity overflow instead of truncating proof
+  ---
+  duration_ms: 779.358894
+  type: 'test'
+  ...
+# Subtest: Phase 7 proves through only when final projected source geometry crosses the target
+ok 26 - Phase 7 proves through only when final projected source geometry crosses the target
+  ---
+  duration_ms: 1.530751
+  type: 'test'
+  ...
+# Subtest: Phase 7 rejects pixel evidence captured for a different scene packet
+ok 27 - Phase 7 rejects pixel evidence captured for a different scene packet
+  ---
+  duration_ms: 571.642721
+  type: 'test'
+  ...
+# Subtest: Phase 6 lays out containment, entry, and between relations for final part geometry
+ok 28 - Phase 6 lays out containment, entry, and between relations for final part geometry
+  ---
+  duration_ms: 4606.432165
+  type: 'test'
+  ...
+# Subtest: scene proof settles every ledger obligation into a terminal status
+ok 29 - scene proof settles every ledger obligation into a terminal status
+  ---
+  duration_ms: 1837.466104
+  type: 'test'
+  ...
+# Subtest: scene proof fails closed when a required entity never rendered
+ok 30 - scene proof fails closed when a required entity never rendered
+  ---
+  duration_ms: 1253.80862
+  type: 'test'
+  ...
+# Subtest: scene proof never certifies a required unsupported obligation
+ok 31 - scene proof never certifies a required unsupported obligation
+  ---
+  duration_ms: 1625.888149
+  type: 'test'
+  ...
+# Subtest: scene proof fails a required identity when its live pixel obligation fails
+ok 32 - scene proof fails a required identity when its live pixel obligation fails
+  ---
+  duration_ms: 737.680517
+  type: 'test'
+  ...
+# Subtest: scene proof rejects literal pixels compiled from a topology that does not fit the target identity
+ok 33 - scene proof rejects literal pixels compiled from a topology that does not fit the target identity
+  ---
+  duration_ms: 552.570302
+  type: 'test'
+  ...
+# Subtest: scene proof preserves negated identities only with bound semantic absence proof
+ok 34 - scene proof preserves negated identities only with bound semantic absence proof
+  ---
+  duration_ms: 621.790339
+  type: 'test'
+  ...
+# Subtest: scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone
+ok 35 - scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone
+  ---
+  duration_ms: 706.582598
+  type: 'test'
+  ...
+# Subtest: scene proof may settle a relation source only through its linked spatial Phase 7 proof
+ok 36 - scene proof may settle a relation source only through its linked spatial Phase 7 proof
+  ---
+  duration_ms: 708.266815
+  type: 'test'
+  ...
+# Subtest: scene proof settles a material relation through its linked Phase 7 material proof
+ok 37 - scene proof settles a material relation through its linked Phase 7 material proof
+  ---
+  duration_ms: 689.845231
+  type: 'test'
+  ...
+# Subtest: scene proof identity settlement requires whole-word identity evidence
+ok 38 - scene proof identity settlement requires whole-word identity evidence
+  ---
+  duration_ms: 651.826917
+  type: 'test'
+  ...
+# Subtest: scene proof reports not-proven without a rendered frame and rejects wrong inputs
+ok 39 - scene proof reports not-proven without a rendered frame and rejects wrong inputs
+  ---
+  duration_ms: 655.010428
+  type: 'test'
+  ...
+# Subtest: scene proof normalizes browser renderer identity summary receipts
+ok 40 - scene proof normalizes browser renderer identity summary receipts
+  ---
+  duration_ms: 708.793442
+  type: 'test'
+  ...
+# Subtest: scene proof requires Phase 7 to consume a compiled environment atmosphere
+ok 41 - scene proof requires Phase 7 to consume a compiled environment atmosphere
+  ---
+  duration_ms: 781.197052
+  type: 'test'
+  ...
+# Subtest: every compiled scene carries a concrete Phase 6 pixel obligation
+ok 42 - every compiled scene carries a concrete Phase 6 pixel obligation
+  ---
+  duration_ms: 580.169063
+  type: 'test'
+  ...
+# Subtest: scene proof selects exact compound geometry while retaining unqualified action refusals
+ok 43 - scene proof selects exact compound geometry while retaining unqualified action refusals
+  ---
+  duration_ms: 887.775108
+  type: 'test'
+  ...
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15744.959923

@@ -774,7 +774,7 @@
           materialId: explicitMaterial || object.materialId || '',
           properties: propertiesBySpan.get(clause.objectSpanId) || object.properties || [],
           sourceNodeId: object.id,
-          cardinality: object.cardinality,
+          ...(object.cardinality === undefined ? {} : { cardinality: object.cardinality }),
           sourceSpanIds: [clause.subjectSpanId, clause.objectSpanId].filter(Boolean),
         };
         subject.partGraph = uniqueParts([...(subject.partGraph || []), part]);

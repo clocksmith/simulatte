@@ -1,0 +1,850 @@
+(function attachSimulatteWebGpuRendererrendererclass(root) {
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+  const targets = typeof module === 'object' && module.exports
+    ? require('../../../shared/render/render-targets.js') : root.SimulatteRenderTargets;
+  if (!targets) throw new Error('render_targets_dependency_missing');
+
+    function makeDefaultWebGpuFeatureReceipt() {
+        return {
+          schema: scope.DEFAULT_WEBGPU_FEATURE_RECEIPT.schema,
+          available: [],
+          requested: [],
+          enabled: [],
+          failed: [],
+          used: scope.DEFAULT_WEBGPU_FEATURE_RECEIPT.used.slice(),
+          unsupportedNativeFeatures: scope.DEFAULT_WEBGPU_FEATURE_RECEIPT.unsupportedNativeFeatures.slice(),
+        };
+      }
+
+    function webGpuDeviceClass(adapter) {
+      const info = adapter && adapter.info || {};
+      const declared = [info.vendor, info.architecture, info.device, info.description]
+        .map((value) => String(value || '').trim())
+        .filter(Boolean)
+        .join(':');
+      const platform = typeof navigator !== 'undefined'
+        ? String(navigator.userAgentData && navigator.userAgentData.platform || navigator.platform || '').trim()
+        : '';
+      return `webgpu:${declared || platform || 'unreported'}`;
+    }
+
+    function create(canvas, options = {}) {
+        if (!canvas || typeof navigator === 'undefined' || !navigator.gpu) return null;
+        const context = canvas.getContext('webgpu');
+        if (!context) return null;
+        return new WebGpuRenderer(canvas, context, options);
+      }
+
+    class WebGpuRenderer extends scope.WebGpuRendererLifecycle {
+        constructor(canvas, context, options = {}) {
+          super();
+          this.disposed = false;
+          this.onFailure = options.onFailure;
+          this.canvas = canvas;
+          this.context = context;
+          this.canvas.dataset.renderer = 'webgpu-required';
+          this.maxDpr = Number(options.maxDpr || 2);
+          this.onSceneProof = typeof options.onSceneProof === 'function' ? options.onSceneProof : null;
+          this.quality = 1;
+          this.ready = false;
+          this.status = 'initializing WebGPU renderer';
+          this.sceneKind = 'mechanical';
+          this.sceneId = 3;
+          this.uniforms = new Float32Array(scope.UNIFORM_FLOAT_COUNT);
+          this.features = new Float32Array(48);
+          this.atomUniforms = new Float32Array(24);
+          this.sceneMix = new Float32Array(scope.SCENE_MIX_SLOTS.length);
+          this.sceneMix[scope.SCENE_MIX_SLOTS.indexOf('mechanical')] = 1;
+          this.atmosphereProgram = null;
+          this.visualIrLayers = new Float32Array(scope.VISUAL_IR_LAYER_SLOTS.length);
+          this.sceneRenderPacket = null;
+          this.sceneRenderPacketKey = '';
+          this.renderExecutionInput = null;
+          this.renderInputSerial = 0;
+          this.canvas.dataset.renderInputSerial = '0';
+          this.renderData = null;
+          this.phase7Output = null;
+          this.phase7OutputPacketKey = '';
+          this.phase7SimulationReceiptKey = '';
+          this.phase8Output = null;
+          this.lastSceneProofMs = 0;
+          this.pixelReadbackSerial = 0;
+          this.pixelReadbackGeneration = 0;
+          this.pendingPixelReadbackPromise = null;
+          this.pendingPixelReadbackPacketKey = '';
+          this.lastPixelReadbackReceipt = null;
+          this.sceneObjectUniforms = new Float32Array(scope.SCENE_PACKET_FLOATS);
+          this.sceneInstanceCount = 0;
+          this.objectPartData = new Float32Array(scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_FLOATS);
+          this.baseObjectPartData = new Float32Array(scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_FLOATS);
+          this.interactionVisualReceipt = scope.emptyInteractionVisualReceipt();
+          this.interactionVisualKey = '';
+          this.interactionProofVersion = -1;
+          this.lastHitTestReceipt = null;
+          this.objectUniforms = new Float32Array(scope.GPU_OBJECT_UNIFORM_FLOATS);
+          this.cameraState = {};
+          this.lightState = {};
+          this.rendererConsumption = null;
+          this.objectPartCount = 0;
+          this.objectPartBufferDirty = true;
+          this.gpuScenePath = 'background-plus-instanced-object-parts';
+          this.webgpuFeatureReceipt = makeDefaultWebGpuFeatureReceipt();
+          this.deviceClass = 'webgpu:uninitialized';
+          this.palette = scope.paletteToVec4(scope.PALETTES.machine);
+          this.metrics = { heat: 0.35, flow: 0.45, density: 0.48, bloom: 0.56, motion: 0.42 };
+          this.seed = 1;
+          this.lastSizeKey = '';
+          this.lastFrameMs = 16;
+          this.renderCount = 0;
+          this.errorLog = [];
+          this.initPromise = this.init();
+        }
+
+
+        isReady() {
+          return this.ready;
+        }
+
+        setLoading(active, percent, stage) {
+          this.canvas.dataset.loadingIgnored = active ? `${Number(percent || 0)}:${stage || ''}` : '';
+        }
+
+        setRenderExecutionInput(renderExecutionInput) {
+          const scenePacket = sceneRenderPacketFromExecutionInput(renderExecutionInput);
+          const nextRenderExecutionInput = renderExecutionInput && renderExecutionInput.schema === 'simulatte.renderExecutionInput.v1'
+            ? renderExecutionInput
+            : null;
+          if (nextRenderExecutionInput !== this.renderExecutionInput) {
+            this.renderInputSerial += 1;
+            this.canvas.dataset.renderInputSerial = String(this.renderInputSerial);
+            this.phase7OutputPacketKey = '';
+            this.phase8Output = null;
+          }
+          this.renderExecutionInput = nextRenderExecutionInput;
+          this.canvas.dataset.renderExecutionInput = this.renderExecutionInput
+            ? this.renderExecutionInput.schema
+            : 'missing-renderExecutionInput';
+          this.canvas.dataset.phase7InputVisualObligationCount = String(
+            this.renderExecutionInput && Array.isArray(this.renderExecutionInput.visualObligations)
+              ? this.renderExecutionInput.visualObligations.length
+              : 0
+          );
+          const packet = scenePacket || scope.emptySceneRenderPacket();
+          const sceneKind = packet.sceneKind || '';
+          if (this.renderData && packet === this.sceneRenderPacket) {
+            this.sceneKind = sceneKind;
+            this.applyPixelSampleOptions(renderExecutionInput);
+            return;
+          }
+          const packetKey = scope.sceneRenderPacketRenderDataKey(packet, sceneKind);
+          if (this.renderData && packetKey === this.sceneRenderPacketKey) {
+            this.sceneRenderPacket = packet;
+            this.sceneKind = sceneKind;
+            this.applyPixelSampleOptions(renderExecutionInput);
+            return;
+          }
+          this.sceneRenderPacket = packet;
+          this.sceneKind = sceneKind;
+          this.sceneRenderPacketKey = packetKey;
+          this.resetPixelReadbackForPacket(packetKey);
+          this.renderData = scope.compileSceneRenderData(packet, sceneKind, packetKey);
+          this.applyPixelSampleOptions(renderExecutionInput);
+          this.applyRenderData(this.renderData, scenePacket !== null);
+        }
+
+        setSpec(renderExecutionInput) {
+          this.setRenderExecutionInput(renderExecutionInput);
+        }
+
+        pick(clientX, clientY) {
+          const point = scope.scenePacketPointerPoint(this.canvas, clientX, clientY);
+          const receipt = scope.scenePacketHitTest(
+            this.sceneRenderPacket || {},
+            point,
+            this.renderExecutionInput && this.renderExecutionInput.simulationState || null
+          );
+          this.lastHitTestReceipt = receipt;
+          if (this.renderData) this.renderData.hitTestReceipt = receipt;
+          if (this.rendererConsumption) this.rendererConsumption.interactionHitTestingConsumed = true;
+          this.canvas.dataset.phase7HitTest = JSON.stringify(receipt);
+          this.phase7OutputPacketKey = '';
+          return receipt;
+        }
+
+        applyPixelSampleOptions(renderExecutionInput = null) {
+          if (!this.renderData) return;
+          const proof = renderExecutionInput && renderExecutionInput.phase7PixelProof || {};
+          const auditRequiresProof = this.canvas && this.canvas.dataset && this.canvas.dataset.auditRequirePixelProof === 'true';
+          const requiredObligationIds = scope.phase7RequiredVisualObligationIds(renderExecutionInput, this.sceneRenderPacket);
+          this.renderData.requireLivePixelSamples = renderExecutionInput && renderExecutionInput.requireLivePixelSamples === true ||
+            proof.required === true ||
+            auditRequiresProof ||
+            requiredObligationIds.length > 0;
+          this.canvas.dataset.phase7LivePixelSamplesRequired = this.renderData.requireLivePixelSamples ? 'true' : 'false';
+          this.canvas.dataset.phase7RequiredVisualObligationCount = String(requiredObligationIds.length);
+          const samples = renderExecutionInput && (
+            renderExecutionInput.pixelSamples ||
+            renderExecutionInput.livePixelSamples ||
+            proof.samples ||
+            proof.pixelSamples
+          ) || null;
+          if (samples) {
+            const binding = scope.phase7PixelSampleSetValidation(
+              this.sceneRenderPacket || {}, this.renderData, samples
+            );
+            if (binding.valid) {
+              this.renderData.pixelSamples = scope.immutableRenderEvidence(samples);
+              this.renderData.pixelSampleSource = 'renderExecutionInput';
+              delete this.renderData.pixelSampleRejection;
+            } else {
+              delete this.renderData.pixelSamples;
+              delete this.renderData.pixelSampleSource;
+              this.renderData.pixelSampleRejection = binding;
+            }
+          } else if (this.renderData.pixelSampleSource === 'renderExecutionInput') {
+            delete this.renderData.pixelSamples;
+            delete this.renderData.pixelSampleSource;
+          }
+        }
+
+        render(renderExecutionInput, nowMs) {
+          if (!this.ready || !this.device || !this.pipeline) return false;
+          const started = typeof performance !== 'undefined' ? performance.now() : nowMs;
+          if (renderExecutionInput && renderExecutionInput !== this.renderExecutionInput) {
+            this.setRenderExecutionInput(renderExecutionInput);
+          }
+          const state = this.renderExecutionInput && this.renderExecutionInput.simulationState || {};
+          this.resize();
+          this.refreshRendererConsumption();
+          this.updateInteractionVisualState(state);
+          this.writeUniforms(state, nowMs || 0);
+          this.device.queue.writeBuffer(this.uniformBuffer, 0, this.uniforms);
+          this.writeObjectUniforms(nowMs || 0);
+          this.writeObjectPartBuffer();
+          const encoder = this.device.createCommandEncoder();
+          const frameTexture = this.context.getCurrentTexture();
+          const pass = encoder.beginRenderPass({
+            colorAttachments: [{
+              view: frameTexture.createView(),
+              clearValue: { r: 0.98, g: 0.98, b: 1, a: 1 },
+              loadOp: 'clear',
+              storeOp: 'store',
+            }],
+            ...(this.depthTexture ? {
+              depthStencilAttachment: {
+                view: this.depthTexture.createView(),
+                depthClearValue: 1,
+                depthLoadOp: 'clear',
+                depthStoreOp: 'store',
+              },
+            } : {}),
+          });
+          pass.setPipeline(this.pipeline);
+          pass.setBindGroup(0, this.bindGroup);
+          pass.draw(3, 1, 0, 0);
+          if (this.objectPipeline && this.objectBindGroup && this.objectPartCount > 0) {
+            pass.setPipeline(this.objectPipeline);
+            pass.setBindGroup(0, this.objectBindGroup);
+            pass.draw(6, this.objectPartCount, 0, 0);
+          }
+          pass.end();
+          this.renderData.pixelReadbackTimeMs = nowMs || 0;
+          const pixelReadback = this.encodePixelReadback(encoder, frameTexture);
+          this.device.queue.submit([encoder.finish()]);
+          if (typeof performance !== 'undefined') {
+            this.lastFrameMs = performance.now() - started;
+            this.adaptQuality();
+          }
+          this.renderCount += 1;
+          this.canvas.dataset.renderCount = String(this.renderCount);
+          this.canvas.dataset.lastFrameMs = String(Number(this.lastFrameMs || 0).toFixed(3));
+          this.canvas.dataset.webgpuOptimizationPath = this.gpuScenePath;
+          this.refreshPhase7Output(this.renderCount, this.lastFrameMs);
+          this.schedulePixelReadback(pixelReadback, this.renderCount, this.lastFrameMs);
+          return true;
+        }
+
+        refreshPhase7Output(renderCount = this.renderCount, frameMs = this.lastFrameMs) {
+          const packetKey = this.renderData && this.renderData.packetKey || '';
+          const receipt = this.renderExecutionInput?.simulationState?.solverState?.executionReceipt;
+          // Frame counters change without changing execution proof. A first step,
+          // missing operator, or non-finite channel must invalidate cached proof.
+          const simulationKey = JSON.stringify([receipt?.status, receipt?.finiteChannels,
+            receipt?.expectedOperatorIds, receipt?.executedOperatorIds, receipt?.missingOperatorIds]);
+          if (!this.phase7Output || packetKey !== this.phase7OutputPacketKey ||
+              simulationKey !== this.phase7SimulationReceiptKey) {
+            this.phase7Output = scope.phase7OutputEnvelope(
+              this.renderExecutionInput,
+              this.sceneRenderPacket,
+              renderCount,
+              frameMs,
+              this.canvas,
+              this.renderData,
+              this.webgpuOptimizationReceipt()
+            );
+            this.phase7OutputPacketKey = packetKey;
+            this.phase7SimulationReceiptKey = simulationKey;
+            this.canvas.dataset.phase7Output = this.phase7Output.schema;
+            this.canvas.dataset.phase7OutputInput = this.phase7Output.inputSchema;
+            this.settleSceneProof();
+            return this.phase7Output;
+          }
+          const execution = this.phase7Output.artifact && this.phase7Output.artifact.renderExecution;
+          if (execution) {
+            execution.renderCount = Number(renderCount || 0);
+            execution.frameMs = Number(frameMs || 0);
+          }
+          return this.phase7Output;
+        }
+
+        settleSceneProof() {
+          const proofStartedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+          const api = typeof globalThis !== 'undefined' ? globalThis.SimulatteSceneProof : null;
+          if (!api || typeof api.settleSceneProof !== 'function' || !this.phase7Output) {
+            this.phase8Output = null;
+            return null;
+          }
+          try {
+            this.phase8Output = api.settleSceneProof(this.phase7Output);
+            const sceneProof = this.phase8Output.artifact.sceneProof;
+            const worldProof = this.phase8Output.artifact.worldProof || null;
+            this.canvas.dataset.phase8Output = this.phase8Output.schema;
+            this.canvas.dataset.sceneProofVerdict = sceneProof.verdict;
+            this.canvas.dataset.sceneProofError = '';
+            this.canvas.dataset.sceneProofLostCount = String(sceneProof.summary.lostCount);
+            this.canvas.dataset.sceneProofUnsupportedCount = String(sceneProof.summary.unsupportedCount);
+            this.canvas.dataset.sceneProofNotProvenCount = String(sceneProof.summary.notProvenCount);
+            this.canvas.dataset.sceneProofRequiredLostIds = JSON.stringify(sceneProof.summary.requiredLostIds || []);
+            this.canvas.dataset.sceneProofRequiredUnsupportedIds = JSON.stringify(sceneProof.summary.requiredUnsupportedIds || []);
+            this.canvas.dataset.sceneProofRequiredNotProvenIds = JSON.stringify(
+              sceneProof.summary.requiredNotProvenIds || []
+            );
+            this.canvas.dataset.sceneProofRequiredFailures = JSON.stringify(
+              sceneProof.requiredFailures
+            );
+            scope.syncWorldProofDatasets(this.canvas, worldProof);
+          } catch (error) {
+            this.phase8Output = null;
+            this.canvas.dataset.phase8Output = '';
+            this.canvas.dataset.sceneProofVerdict = 'error';
+            this.canvas.dataset.sceneProofError = error && error.message ? error.message : String(error);
+            this.canvas.dataset.sceneProofRequiredLostIds = '[]';
+            this.canvas.dataset.sceneProofRequiredUnsupportedIds = '[]';
+            this.canvas.dataset.sceneProofRequiredNotProvenIds = '[]';
+            this.canvas.dataset.sceneProofRequiredFailures = '[]';
+            scope.resetWorldProofDatasets(this.canvas);
+          }
+          const proofFinishedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+          this.lastSceneProofMs = Math.max(0, proofFinishedAt - proofStartedAt);
+          scope.notifyRendererSceneProof(this);
+          return this.phase8Output;
+        }
+
+        encodePixelReadback(encoder, frameTexture) {
+          const packetKey = this.renderData && this.renderData.packetKey || '';
+          if (packetKey && this.pendingPixelReadbackPacketKey === packetKey) return null;
+          const plan = scope.phase7PixelReadbackPlan(
+            this.renderData,
+            this.sceneRenderPacket,
+            this.renderExecutionInput,
+            this.canvas
+          );
+          if (!plan || !plan.samples.length) {
+            this.canvas.dataset.phase7PixelReadbackPlan = plan
+              ? `${plan.status}:0/${plan.requiredSampleCount}`
+              : 'none';
+            if (plan) {
+              this.recordPixelReadbackFailure({
+                serial: this.pixelReadbackSerial += 1,
+                generation: this.pixelReadbackGeneration,
+                packetKey,
+                plan,
+                buffer: null,
+              }, new Error(`Phase 7 pixel readback plan failed: ${plan.status}`));
+            }
+            return null;
+          }
+          this.canvas.dataset.phase7PixelReadbackPlan = `${plan.samples.length}/${plan.requiredSampleCount}`;
+          if (!this.device || typeof this.device.createBuffer !== 'function') return null;
+          if (!encoder || typeof encoder.copyTextureToBuffer !== 'function') return null;
+          const size = Math.max(scope.PIXEL_READBACK_BYTES_PER_ROW, plan.samples.length * scope.PIXEL_READBACK_BYTES_PER_ROW);
+          const buffer = this.device.createBuffer({
+            size,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+          });
+          plan.samples.forEach((sample, index) => {
+            encoder.copyTextureToBuffer(
+              {
+                texture: frameTexture,
+                origin: { x: sample.x, y: sample.y, z: 0 },
+              },
+              {
+                buffer,
+                offset: index * scope.PIXEL_READBACK_BYTES_PER_ROW,
+                bytesPerRow: scope.PIXEL_READBACK_BYTES_PER_ROW,
+                rowsPerImage: 1,
+              },
+              { width: 1, height: 1, depthOrArrayLayers: 1 }
+            );
+          });
+          const readback = {
+            schema: 'simulatte.phase7PixelReadback.v1',
+            serial: this.pixelReadbackSerial += 1,
+            generation: this.pixelReadbackGeneration,
+            packetKey: this.renderData && this.renderData.packetKey || '',
+            plan,
+            buffer,
+            bytesPerRow: scope.PIXEL_READBACK_BYTES_PER_ROW,
+          };
+          this.renderData.livePixelReadbackAttemptCount =
+            Number(this.renderData.livePixelReadbackAttemptCount || 0) + 1;
+          this.pendingPixelReadbackPacketKey = readback.packetKey;
+          this.canvas.dataset.phase7PixelReadback = 'pending';
+          this.canvas.dataset.phase7PixelReadbackMessage = '';
+          this.canvas.dataset.phase7PixelProofStatus = 'pending';
+          return readback;
+        }
+
+        schedulePixelReadback(readback, renderCount, frameMs) {
+          if (!readback) return;
+          const done = Promise.resolve()
+            .then(() => readback.buffer.mapAsync(GPUMapMode.READ))
+            .then(() => {
+              const mapped = new Uint8Array(readback.buffer.getMappedRange());
+              const samples = readback.plan.samples.map((sample, index) => {
+                const raw = [
+                  mapped[index * readback.bytesPerRow],
+                  mapped[index * readback.bytesPerRow + 1],
+                  mapped[index * readback.bytesPerRow + 2],
+                  mapped[index * readback.bytesPerRow + 3],
+                ];
+                return {
+                  ...sample,
+                  rgba: /^bgra/.test(this.format) ? [raw[2], raw[1], raw[0], raw[3]] : raw,
+                };
+              });
+              if (typeof readback.buffer.unmap === 'function') readback.buffer.unmap();
+              if (typeof readback.buffer.destroy === 'function') readback.buffer.destroy();
+              this.applyPixelReadbackSamples(readback, samples, renderCount, frameMs);
+            })
+            .catch((err) => {
+              this.recordPixelReadbackFailure(readback, err);
+            })
+            .finally(() => {
+              if (this.pendingPixelReadbackPacketKey === readback.packetKey &&
+                  readback.generation === this.pixelReadbackGeneration) {
+                this.pendingPixelReadbackPacketKey = '';
+              }
+            });
+          this.pendingPixelReadbackPromise = done;
+        }
+
+        applyPixelReadbackSamples(readback, samples, renderCount, frameMs) {
+          if (!this.renderData || this.renderData.packetKey !== readback.packetKey ||
+              readback.generation !== this.pixelReadbackGeneration) return;
+          const sampleSet = scope.immutableRenderEvidence({
+            schema: 'simulatte.phase7PixelSampleSet.v1',
+            source: 'webgpu-texture-copy-readback',
+            packetKey: readback.packetKey,
+            readbackSerial: readback.serial,
+            samples,
+          });
+          this.renderData.livePixelSamples = sampleSet;
+          this.renderData.livePixelReadbackFailed = false;
+          this.canvas.__simulattePixelSamples = sampleSet;
+          this.lastPixelReadbackReceipt = {
+            schema: 'simulatte.phase7PixelReadbackReceipt.v1',
+            status: 'pass',
+            source: sampleSet.source,
+            packetKey: readback.packetKey,
+            sampleCount: samples.length,
+            requiredSampleCount: readback.plan.requiredSampleCount,
+            requiredObligationCount: readback.plan.requiredObligationCount,
+            unmatchedObligationIds: readback.plan.unmatchedObligationIds.slice(),
+            readbackSerial: readback.serial,
+          };
+          this.phase7OutputPacketKey = '';
+          this.refreshPhase7Output(renderCount, frameMs);
+          const pixelAudit = this.phase7Output && this.phase7Output.artifact &&
+            this.phase7Output.artifact.renderExecution &&
+            this.phase7Output.artifact.renderExecution.pixelAudit;
+          this.renderData.livePixelSamplesStatus = pixelAudit && pixelAudit.status || 'unknown';
+          this.canvas.dataset.phase7PixelReadback = 'pass';
+          this.canvas.dataset.phase7PixelSampleCount = String(samples.length);
+          this.canvas.dataset.phase7PixelProofStatus = pixelAudit && pixelAudit.status || 'unknown';
+          this.canvas.dataset.phase7PixelVisibleSampleCount = String(
+            pixelAudit && pixelAudit.livePixelAudit && pixelAudit.livePixelAudit.visibleSampleCount || 0
+          );
+          this.canvas.dataset.phase7PixelMinContrast = String(
+            pixelAudit && pixelAudit.livePixelAudit && pixelAudit.livePixelAudit.minContrast || 0
+          );
+          this.canvas.dataset.phase7PixelSampledObligationCount = String(
+            pixelAudit && pixelAudit.livePixelAudit && pixelAudit.livePixelAudit.sampledRequiredObligationCount || 0
+          );
+          this.canvas.dataset.phase7SemanticAbsenceObligationCount = String(
+            pixelAudit && pixelAudit.livePixelAudit && pixelAudit.livePixelAudit.semanticAbsenceObligationCount || 0
+          );
+          this.canvas.dataset.phase7PixelSettledObligationCount = String(
+            pixelAudit && pixelAudit.livePixelAudit && pixelAudit.livePixelAudit.settledRequiredObligationCount || 0
+          );
+          this.canvas.dataset.phase7PixelRequiredObligationCount = String(
+            pixelAudit && pixelAudit.livePixelAudit && pixelAudit.livePixelAudit.requiredObligationCount || 0
+          );
+          this.canvas.dataset.phase7PixelSampledObligations = pixelAudit && pixelAudit.livePixelAudit
+            ? pixelAudit.livePixelAudit.sampledObligationIds.join(',')
+            : '';
+          const visualObligationProof = this.phase7Output && this.phase7Output.artifact &&
+            this.phase7Output.artifact.renderExecution.visualObligationProof || [];
+          const visualObligationProofSummary = this.phase7Output && this.phase7Output.artifact &&
+            this.phase7Output.artifact.renderExecution.visualObligationProofSummary || null;
+          this.canvas.dataset.phase7VisualObligationProof = JSON.stringify(visualObligationProof);
+          this.canvas.dataset.phase7PassedVisualObligationIds = visualObligationProofSummary
+            ? visualObligationProofSummary.passedObligationIds.join(',')
+            : '';
+          this.canvas.dataset.phase7PixelAuditChecks = JSON.stringify(pixelAudit && pixelAudit.checks || []).slice(0, 2000);
+          scope.notifyRendererSceneProof(this);
+        }
+
+        recordPixelReadbackFailure(readback, err) {
+          const buffer = readback && readback.buffer;
+          if (buffer) {
+            try {
+              if (buffer.mapState === 'mapped' && typeof buffer.unmap === 'function') buffer.unmap();
+              if (typeof buffer.destroy === 'function') buffer.destroy();
+            } catch (_cleanupError) {
+              // The original readback failure remains the authoritative error.
+            }
+          }
+          if (!readback || !this.renderData || this.renderData.packetKey !== readback.packetKey ||
+              readback.generation !== this.pixelReadbackGeneration) return;
+          const message = err && err.message ? err.message : 'WebGPU pixel readback failed';
+          this.lastPixelReadbackReceipt = {
+            schema: 'simulatte.phase7PixelReadbackReceipt.v1',
+            status: 'fail',
+            source: 'webgpu-texture-copy-readback',
+            packetKey: readback && readback.packetKey || '',
+            sampleCount: readback && readback.plan && readback.plan.samples.length || 0,
+            requiredSampleCount: readback && readback.plan && readback.plan.requiredSampleCount || 0,
+            requiredObligationCount: readback && readback.plan && readback.plan.requiredObligationCount || 0,
+            unmatchedObligationIds: readback && readback.plan && readback.plan.unmatchedObligationIds || [],
+            readbackSerial: readback && readback.serial || 0,
+            message,
+          };
+          this.errorLog.push(message);
+          if (this.renderData) {
+            this.renderData.livePixelSamplesStatus = 'fail';
+            this.renderData.livePixelReadbackFailed = true;
+          }
+          this.canvas.dataset.phase7PixelReadback = 'fail';
+          this.canvas.dataset.phase7PixelReadbackMessage = message;
+          this.canvas.dataset.phase7PixelProofStatus = 'fail';
+          this.phase7OutputPacketKey = '';
+          this.refreshPhase7Output(this.renderCount, this.lastFrameMs);
+        }
+
+        resetPixelReadbackForPacket(packetKey = '') {
+          this.pixelReadbackGeneration += 1;
+          this.pendingPixelReadbackPacketKey = '';
+          this.lastPixelReadbackReceipt = null;
+          this.phase7Output = null;
+          this.phase7OutputPacketKey = '';
+          if (!this.canvas || !this.canvas.dataset) return;
+          this.canvas.dataset.phase7PixelReadback = '';
+          this.canvas.dataset.phase7PixelReadbackMessage = '';
+          this.canvas.dataset.phase7PixelProofStatus = '';
+          this.canvas.dataset.phase7PixelSampleCount = '0';
+          this.canvas.dataset.phase7PixelVisibleSampleCount = '0';
+          this.canvas.dataset.phase7PixelMinContrast = '0';
+          this.canvas.dataset.phase7PixelSampledObligationCount = '0';
+          this.canvas.dataset.phase7SemanticAbsenceObligationCount = '0';
+          this.canvas.dataset.phase7PixelSettledObligationCount = '0';
+          this.canvas.dataset.phase7PixelRequiredObligationCount = '0';
+          this.canvas.dataset.phase7PixelSampledObligations = '';
+          this.canvas.dataset.phase7VisualObligationProof = '';
+          this.canvas.dataset.phase7PassedVisualObligationIds = '';
+          this.canvas.dataset.phase7PixelAuditChecks = '';
+          this.canvas.dataset.phase7PixelPacketKey = packetKey;
+        }
+
+        applyRenderData(renderData, hasScenePacket) {
+          this.sceneId = renderData.sceneId;
+          this.features = renderData.features;
+          this.atomUniforms = renderData.atomUniforms;
+          this.sceneMix = renderData.sceneMix;
+          this.atmosphereProgram = renderData.atmosphereProgram || null;
+          this.visualIrLayers = renderData.visualIrLayers;
+          this.sceneObjectUniforms = renderData.sceneObjectUniforms;
+          this.sceneInstanceCount = renderData.objectPartCount;
+          this.baseObjectPartData = new Float32Array(renderData.objectPartData);
+          this.baseObjectParts = renderData.objectParts;
+          this.objectPartData = new Float32Array(renderData.objectPartData);
+          this.objectPartCount = renderData.objectPartCount;
+          this.cameraState = renderData.cameraState || {};
+          this.lightState = renderData.lightState || {};
+          this.rendererConsumption = renderData.rendererConsumption || null;
+          this.interactionVisualReceipt = scope.emptyInteractionVisualReceipt(this.sceneRenderPacket || {});
+          this.interactionVisualKey = '';
+          this.interactionProofVersion = -1;
+          this.objectPartBufferDirty = true;
+          this.palette = scope.paletteForScene(this.sceneKind, this.atomUniforms, renderData.palette);
+          this.metrics = renderData.metrics;
+          this.seed = renderData.seed;
+          this.canvas.dataset.sceneKind = this.sceneKind;
+          this.canvas.dataset.sceneId = String(this.sceneId);
+          this.canvas.dataset.sceneMix = scope.sceneMixSummary(this.sceneMix);
+          this.canvas.dataset.sceneMixSlots = String(scope.activeSceneMixSlots(this.sceneMix));
+          this.canvas.dataset.visualIrLayers = scope.visualIrLayerSummary(this.visualIrLayers);
+          this.canvas.dataset.visualIrLayerSlots = String(scope.activeVisualIrLayerSlots(this.visualIrLayers));
+          this.canvas.dataset.phase7Input = this.renderExecutionInput
+            ? this.renderExecutionInput.schema
+            : 'missing-renderExecutionInput';
+          this.canvas.dataset.phase7SceneRenderPacketInput = hasScenePacket
+            ? this.sceneRenderPacket.schema
+            : 'missing-sceneRenderPacket';
+          this.canvas.dataset.phase7RenderData = renderData.schema;
+          this.canvas.dataset.phase7RenderDataKey = renderData.packetKey;
+          this.canvas.dataset.phase7RenderPath = renderData.path;
+          this.canvas.dataset.sceneRenderDrawCount = String(renderData.drawCount);
+          this.canvas.dataset.sceneRenderPacket = renderData.summary;
+          this.canvas.dataset.sceneRenderEntityCount = String(renderData.entityCount);
+          this.canvas.dataset.sceneRenderFieldCount = String(renderData.fieldCount);
+          this.canvas.dataset.sceneRenderEffectCount = String(renderData.effectCount);
+          this.canvas.dataset.sceneRenderSpatialHash = renderData.spatialHash;
+          this.canvas.dataset.sceneObjectUniforms = renderData.sceneObjectUniformSummary;
+          this.canvas.dataset.sceneObjectIdentities = renderData.sceneObjectIdentitySummary;
+          this.canvas.dataset.webgpuOptimizationPath = this.gpuScenePath;
+          this.canvas.dataset.webgpuSceneInstanceCapacity = String(scope.GPU_OBJECT_PART_CAPACITY);
+          this.canvas.dataset.webgpuSceneInstanceCount = String(renderData.objectPartCount);
+          this.canvas.dataset.webgpuSceneInstances = renderData.objectPartSummary;
+          this.canvas.dataset.webgpuObjectPartCapacity = String(scope.GPU_OBJECT_PART_CAPACITY);
+          this.canvas.dataset.webgpuObjectPartCount = String(renderData.objectPartCount);
+          this.canvas.dataset.webgpuObjectParts = renderData.objectPartSummary;
+          this.canvas.dataset.webgpuObjectRealization = JSON.stringify(renderData.objectRealization);
+          this.canvas.dataset.webgpuStorageBytes = String(scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_BYTES);
+          this.canvas.dataset.phase7RendererConsumption = JSON.stringify(this.rendererConsumption || {});
+          this.canvas.dataset.phase7CameraConsumed = this.rendererConsumption && this.rendererConsumption.cameraConsumed ? 'true' : 'false';
+          this.canvas.dataset.phase7LightCountConsumed = String(this.rendererConsumption && this.rendererConsumption.lightCountConsumed || 0);
+          this.canvas.dataset.phase7MaterialCountConsumed = String(this.rendererConsumption && this.rendererConsumption.materialCountConsumed || 0);
+          this.canvas.dataset.phase7DepthEnabled = this.rendererConsumption && this.rendererConsumption.depthEnabled ? 'true' : 'false';
+          this.canvas.dataset.phase7InteractionTargetCount = String(
+            this.sceneRenderPacket && this.sceneRenderPacket.interactionProgram &&
+            this.sceneRenderPacket.interactionProgram.targetCount || 0
+          );
+        }
+
+        updateInteractionVisualState(state = {}) {
+          const interaction = state && state.interaction || {};
+          const key = [
+            Number(interaction.version || 0),
+            interaction.selectedTargetId || '',
+            interaction.hoveredTargetId || '',
+            interaction.grabbedTargetId || '',
+            interaction.activeTargetId || '',
+            (interaction.modifiedChannels || []).length || this.sceneRenderPacket?.entities?.some((entity) => entity.stateBindings?.simulationOperator)
+              ? Number(state.solverState && state.solverState.frame || 0)
+              : 0,
+          ].join(':');
+          if (key === this.interactionVisualKey) return this.interactionVisualReceipt;
+          const applied = scope.scenePacketInteractionPartData(
+            this.baseObjectPartData,
+            this.baseObjectParts || [],
+            this.sceneRenderPacket || {},
+            state
+          );
+          this.objectPartData = applied.data;
+          this.interactionVisualReceipt = applied.receipt;
+          this.interactionVisualKey = key;
+          this.objectPartBufferDirty = true;
+          if (this.renderData) {
+            this.renderData.interactionVisualReceipt = applied.receipt;
+            this.renderData.objectPartData = applied.data;
+            this.renderData.objectParts = (this.baseObjectParts || []).map((part, index) => {
+              const offset = index * scope.GPU_OBJECT_PART_FLOATS;
+              return { ...part, center: [applied.data[offset], applied.data[offset + 1]], rotation: applied.data[offset + 4] };
+            });
+            if (this.renderData.rendererConsumption) {
+              this.renderData.rendererConsumption.interactionVisualStateConsumed = applied.receipt.consumed === true;
+            }
+          }
+          this.canvas.dataset.phase7InteractionVisual = JSON.stringify(applied.receipt);
+          const interactionVersion = Number(interaction.version || 0);
+          if (interactionVersion !== this.interactionProofVersion) {
+            this.phase7OutputPacketKey = '';
+            this.interactionProofVersion = interactionVersion;
+          }
+          return applied.receipt;
+        }
+
+        refreshRendererConsumption() {
+          if (!this.rendererConsumption) return;
+          const objectPathActive = Boolean(
+            this.objectPipeline && this.objectBindGroup && this.objectUniformBuffer && this.objectPartCount > 0
+          );
+          this.rendererConsumption.cameraConsumed = objectPathActive &&
+            this.rendererConsumption.cameraConfigured === true;
+          this.rendererConsumption.lightCountConsumed = objectPathActive
+            ? Number(this.rendererConsumption.sourceLightCount || 0)
+            : 0;
+          this.rendererConsumption.materialCountConsumed = objectPathActive
+            ? Number(this.rendererConsumption.sourceMaterialCount || 0)
+            : 0;
+          this.rendererConsumption.objectSubmissionConsumed = this.objectPartCount === 0 || objectPathActive;
+          this.rendererConsumption.semanticCodesConsumed = this.objectPartCount === 0 || objectPathActive;
+          this.rendererConsumption.objectPartCountConsumed = objectPathActive ? this.objectPartCount : 0;
+          this.rendererConsumption.depthEnabled = objectPathActive && Boolean(this.depthTexture);
+          this.rendererConsumption.normalShading = objectPathActive;
+          this.rendererConsumption.atmosphereConsumed = Boolean(
+            this.pipeline && this.rendererConsumption.atmosphereConfigured === true
+          );
+          this.rendererConsumption.interactionVisualStateConsumed =
+            this.interactionVisualReceipt && this.interactionVisualReceipt.consumed === true;
+          if (this.renderData) this.renderData.rendererConsumption = this.rendererConsumption;
+          this.canvas.dataset.phase7RendererConsumption = JSON.stringify(this.rendererConsumption);
+          this.canvas.dataset.phase7CameraConsumed = this.rendererConsumption.cameraConsumed ? 'true' : 'false';
+          this.canvas.dataset.phase7LightCountConsumed = String(this.rendererConsumption.lightCountConsumed);
+          this.canvas.dataset.phase7MaterialCountConsumed = String(this.rendererConsumption.materialCountConsumed);
+          this.canvas.dataset.phase7DepthEnabled = this.rendererConsumption.depthEnabled ? 'true' : 'false';
+        }
+
+        writeObjectUniforms(nowMs = 0) {
+          if (!this.objectUniformBuffer) return;
+          this.objectUniforms = scope.scenePacketCameraLightUniformVector(
+            this.cameraState,
+            this.lightState,
+            this.canvas.dataset.auditFreezeFrame === 'true' ? 0 : nowMs * 0.001,
+            this.canvas.width,
+            this.canvas.height
+          );
+          this.device.queue.writeBuffer(this.objectUniformBuffer, 0, this.objectUniforms);
+        }
+
+        writeObjectPartBuffer() {
+          if (!this.objectPartBuffer || !this.objectPartBufferDirty) return;
+          this.device.queue.writeBuffer(this.objectPartBuffer, 0, this.objectPartData);
+          this.objectPartBufferDirty = false;
+        }
+
+        webgpuOptimizationReceipt() {
+          return {
+            schema: 'simulatte.phase7.webgpuOptimization.v1',
+            path: this.gpuScenePath,
+            computeSceneReady: false,
+            instanceCapacity: scope.GPU_OBJECT_PART_CAPACITY,
+            instanceCount: this.objectPartCount,
+            objectPartCapacity: scope.GPU_OBJECT_PART_CAPACITY,
+            objectPartCount: this.objectPartCount,
+            storageBytes: scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_BYTES,
+            indirectDraw: 'not-used-direct-instancing',
+            drawCalls: this.objectPartCount > 0 ? 2 : 1,
+            translatedTechniques: scope.WEBGPU_TRANSLATED_TECHNIQUES.slice(),
+            unsupportedNativeFeatures: scope.WEBGPU_NATIVE_ONLY_FEATURES.slice(),
+            features: this.webgpuFeatureReceipt,
+            deviceClass: this.deviceClass,
+            pixelReadback: this.lastPixelReadbackReceipt,
+            rendererConsumption: this.rendererConsumption,
+          };
+        }
+
+        resize() {
+          const rect = this.canvas.getBoundingClientRect();
+          const dpr = Math.max(1, Math.min(this.maxDpr, window.devicePixelRatio || 1)) * this.quality;
+          const width = Math.max(2, Math.floor(rect.width * dpr));
+          const height = Math.max(2, Math.floor(rect.height * dpr));
+          const key = `${width}x${height}`;
+          if (key === this.lastSizeKey && this.renderTargets?.device === this.device &&
+              !this.renderTargets.disposed) return;
+          this.renderTargets = targets.resize(this.renderTargets, this.device, {
+            width, height, sampleCount: 1, depthFormat: 'depth24plus',
+            usage: typeof GPUTextureUsage === 'undefined' ? 0x10 : GPUTextureUsage.RENDER_ATTACHMENT,
+            label: 'create',
+          });
+          this.depthTexture = this.renderTargets.depth;
+          this.canvas.width = width;
+          this.canvas.height = height;
+          this.lastSizeKey = key;
+        }
+
+        writeUniforms(state, nowMs) {
+          const u = this.uniforms;
+          u[0] = this.canvas.width;
+          u[1] = this.canvas.height;
+          u[2] = this.canvas.dataset.auditFreezeFrame === 'true' ? 0 : nowMs * 0.001;
+          u[3] = this.sceneId;
+          u[4] = scope.dynamicMetric(this.metrics.heat, state, 'heat');
+          u[5] = scope.dynamicMetric(this.metrics.flow, state, 'motion');
+          u[6] = scope.dynamicMetric(this.metrics.density, state, 'matter');
+          u[7] = this.metrics.bloom;
+          u[8] = this.metrics.motion;
+          u[9] = this.quality;
+          u[10] = this.seed;
+          u[11] = this.seed;
+          u[12] = 0;
+          u[13] = 1;
+          u[14] = 0;
+          u[15] = scope.featureStrength(this.features);
+          let offset = 16;
+          for (const color of this.palette) {
+            u.set(color, offset);
+            offset += 4;
+          }
+          for (let i = 0; i < 48; i += 1) {
+            u[offset + i] = this.features[i] || 0;
+          }
+          offset += 48;
+          for (let i = 0; i < 24; i += 1) {
+            u[offset + i] = this.atomUniforms[i] || 0;
+          }
+          offset += 24;
+          for (let i = 0; i < scope.SCENE_MIX_SLOTS.length; i += 1) {
+            u[offset + i] = this.sceneMix[i] || 0;
+          }
+          offset += scope.SCENE_MIX_SLOTS.length;
+          for (let i = 0; i < scope.VISUAL_IR_LAYER_SLOTS.length; i += 1) {
+            u[offset + i] = this.visualIrLayers[i] || 0;
+          }
+          offset += scope.VISUAL_IR_LAYER_SLOTS.length;
+          for (let i = 0; i < scope.SCENE_PACKET_FLOATS; i += 1) {
+            u[offset + i] = this.sceneObjectUniforms[i] || 0;
+          }
+        }
+
+        adaptQuality() {
+          if (this.lastFrameMs > 18 && this.quality > 0.62) this.quality *= 0.965;
+          else if (this.lastFrameMs < 10 && this.quality < 1) this.quality = Math.min(1, this.quality * 1.01 + 0.002);
+        }
+      }
+
+    function canvasTextureUsage() {
+        const fallback = 0x10 | 0x01;
+        if (typeof GPUTextureUsage === 'undefined') return fallback;
+        return GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC;
+      }
+
+    function sceneRenderPacketFromExecutionInput(renderExecutionInput) {
+        if (!renderExecutionInput) return null;
+        if (renderExecutionInput.schema === 'simulatte.sceneRenderPacket.v1') {
+          throw new Error('Phase 7 expected simulatte.renderExecutionInput.v1, received bare simulatte.sceneRenderPacket.v1');
+        }
+        if (renderExecutionInput.schema !== scope.RENDER_EXECUTION_INPUT_SCHEMA) {
+          throw new Error(`Phase 7 expected ${scope.RENDER_EXECUTION_INPUT_SCHEMA}, received ${renderExecutionInput.schema || typeof renderExecutionInput}`);
+        }
+        if (renderExecutionInput.inputSchema !== scope.PHASE6_OUTPUT_SCHEMA) {
+          throw new Error(`Phase 7 expected inputSchema ${scope.PHASE6_OUTPUT_SCHEMA}, received ${renderExecutionInput.inputSchema || 'missing'}`);
+        }
+        const packet = renderExecutionInput && renderExecutionInput.sceneRenderPacket || null;
+        if (!packet || packet.schema !== 'simulatte.sceneRenderPacket.v1') {
+          throw new Error(`Phase 7 expected sceneRenderPacket simulatte.sceneRenderPacket.v1, received ${packet && packet.schema || 'missing'}`);
+        }
+        return packet;
+      }
+
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-renderer-class.js', {
+      makeDefaultWebGpuFeatureReceipt,
+      webGpuDeviceClass,
+      create,
+      WebGpuRenderer,
+      canvasTextureUsage,
+      sceneRenderPacketFromExecutionInput,
+    });
+
+})(typeof globalThis !== 'undefined' ? globalThis : window);

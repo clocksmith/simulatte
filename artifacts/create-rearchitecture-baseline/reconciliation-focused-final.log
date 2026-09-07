@@ -1,0 +1,184 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 11.61855
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 81.833663
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 18.098846
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 8.442189
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 62.476913
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.682368
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.491525
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 3403.726307
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+ok 9 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 2401.539401
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+ok 10 - WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+  ---
+  duration_ms: 1837.947747
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+ok 11 - WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+  ---
+  duration_ms: 1143.664773
+  type: 'test'
+  ...
+# Subtest: synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+ok 12 - synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+  ---
+  duration_ms: 1842.750732
+  type: 'test'
+  ...
+# Subtest: compiled water state channels retain their entity owner through serializable phase artifacts
+ok 13 - compiled water state channels retain their entity owner through serializable phase artifacts
+  ---
+  duration_ms: 1899.017318
+  type: 'test'
+  ...
+# Subtest: invocation acquisition obeys cancellation and the phase deadline
+ok 14 - invocation acquisition obeys cancellation and the phase deadline
+  ---
+  duration_ms: 32.600832
+  type: 'test'
+  ...
+# Subtest: resource selection and immutable assets cannot change while a run waits
+ok 15 - resource selection and immutable assets cannot change while a run waits
+  ---
+  duration_ms: 16.262563
+  type: 'test'
+  ...
+# Subtest: integrity rejects array metadata and non-enumerable artifact fields
+ok 16 - integrity rejects array metadata and non-enumerable artifact fields
+  ---
+  duration_ms: 0.34027
+  type: 'test'
+  ...
+# Subtest: binding snapshots receipts and metadata and detects tampering outside artifact payloads
+ok 17 - binding snapshots receipts and metadata and detects tampering outside artifact payloads
+  ---
+  duration_ms: 4.792007
+  type: 'test'
+  ...
+# Subtest: editor audit retains page evidence and screenshot identity without replacing the failure
+ok 18 - editor audit retains page evidence and screenshot identity without replacing the failure
+  ---
+  duration_ms: 53.751106
+  type: 'test'
+  ...
+# Subtest: a lost browser still leaves the original failure and capture errors on disk
+ok 19 - a lost browser still leaves the original failure and capture errors on disk
+  ---
+  duration_ms: 1.20635
+  type: 'test'
+  ...
+# Subtest: the controller blocks replacement until an explicit preserve decision
+ok 20 - the controller blocks replacement until an explicit preserve decision
+  ---
+  duration_ms: 3988.859431
+  type: 'test'
+  ...
+# Subtest: cancel retains the current artifact and fresh compilation requires its own decision
+ok 21 - cancel retains the current artifact and fresh compilation requires its own decision
+  ---
+  duration_ms: 1987.004783
+  type: 'test'
+  ...
+# Subtest: failed compilation of preserved edits cannot publish a reconciliation result
+ok 22 - failed compilation of preserved edits cannot publish a reconciliation result
+  ---
+  duration_ms: 3385.019685
+  type: 'test'
+  ...
+# Subtest: preserved color edits reach compiled grounding and geometry without creating another authoring revision
+ok 23 - preserved color edits reach compiled grounding and geometry without creating another authoring revision
+  ---
+  duration_ms: 5471.89934
+  type: 'test'
+  ...
+# Subtest: recompile plans expose every accepted override before execution
+ok 24 - recompile plans expose every accepted override before execution
+  ---
+  duration_ms: 3630.974175
+  type: 'test'
+  ...
+# Subtest: preserving overrides rebases them and appends a reconciliation record
+ok 25 - preserving overrides rebases them and appends a reconciliation record
+  ---
+  duration_ms: 3678.235261
+  type: 'test'
+  ...
+# Subtest: accepting a fresh compilation records the explicit supersession decision
+ok 26 - accepting a fresh compilation records the explicit supersession decision
+  ---
+  duration_ms: 2661.38835
+  type: 'test'
+  ...
+# Subtest: compiler conflicts remain visible and require a named decision
+ok 27 - compiler conflicts remain visible and require a named decision
+  ---
+  duration_ms: 5655.050939
+  type: 'test'
+  ...
+# Subtest: reconciliation history is append-only across repeated recompiles
+ok 28 - reconciliation history is append-only across repeated recompiles
+  ---
+  duration_ms: 4073.914086
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.1 artifacts migrate into the reconciliation-aware authoring schema
+ok 29 - WorldSpec 1.1 artifacts migrate into the reconciliation-aware authoring schema
+  ---
+  duration_ms: 1189.495637
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 26866.837004

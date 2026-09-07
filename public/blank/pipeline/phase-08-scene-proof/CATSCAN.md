@@ -23,6 +23,7 @@ Settle composition obligations against render receipts and pixel evidence withou
 ## Invariants
 
 - An obligation without render evidence cannot silently pass.
+- Phase 8 supplies the canonical required-failure list; downstream displays cannot drop unsupported obligations.
 - Screenshots and hashes are evidence, not proof by themselves.
 - WorldProof receives typed intent, semantic, and interaction receipts without Phase 8 borrowing one proof class for another.
 

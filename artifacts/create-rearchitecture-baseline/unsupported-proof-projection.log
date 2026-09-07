@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: editor audit retains page evidence and screenshot identity without replacing the failure
+ok 1 - editor audit retains page evidence and screenshot identity without replacing the failure
+  ---
+  duration_ms: 89.320042
+  type: 'test'
+  ...
+# Subtest: a lost browser still leaves the original failure and capture errors on disk
+ok 2 - a lost browser still leaves the original failure and capture errors on disk
+  ---
+  duration_ms: 1.3962
+  type: 'test'
+  ...
+# Subtest: scene proof settles every ledger obligation into a terminal status
+ok 3 - scene proof settles every ledger obligation into a terminal status
+  ---
+  duration_ms: 2825.847498
+  type: 'test'
+  ...
+# Subtest: scene proof fails closed when a required entity never rendered
+ok 4 - scene proof fails closed when a required entity never rendered
+  ---
+  duration_ms: 1822.929038
+  type: 'test'
+  ...
+# Subtest: scene proof never certifies a required unsupported obligation
+ok 5 - scene proof never certifies a required unsupported obligation
+  ---
+  duration_ms: 1647.415602
+  type: 'test'
+  ...
+# Subtest: scene proof fails a required identity when its live pixel obligation fails
+ok 6 - scene proof fails a required identity when its live pixel obligation fails
+  ---
+  duration_ms: 1597.233024
+  type: 'test'
+  ...
+# Subtest: scene proof rejects literal pixels compiled from a topology that does not fit the target identity
+ok 7 - scene proof rejects literal pixels compiled from a topology that does not fit the target identity
+  ---
+  duration_ms: 1338.670261
+  type: 'test'
+  ...
+# Subtest: scene proof preserves negated identities only with bound semantic absence proof
+ok 8 - scene proof preserves negated identities only with bound semantic absence proof
+  ---
+  duration_ms: 1322.560667
+  type: 'test'
+  ...
+# Subtest: scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone
+ok 9 - scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone
+  ---
+  duration_ms: 949.691234
+  type: 'test'
+  ...
+# Subtest: scene proof may settle a relation source only through its linked spatial Phase 7 proof
+ok 10 - scene proof may settle a relation source only through its linked spatial Phase 7 proof
+  ---
+  duration_ms: 612.801013
+  type: 'test'
+  ...
+# Subtest: scene proof settles a material relation through its linked Phase 7 material proof
+ok 11 - scene proof settles a material relation through its linked Phase 7 material proof
+  ---
+  duration_ms: 592.900686
+  type: 'test'
+  ...
+# Subtest: scene proof identity settlement requires whole-word identity evidence
+ok 12 - scene proof identity settlement requires whole-word identity evidence
+  ---
+  duration_ms: 659.997704
+  type: 'test'
+  ...
+# Subtest: scene proof reports not-proven without a rendered frame and rejects wrong inputs
+ok 13 - scene proof reports not-proven without a rendered frame and rejects wrong inputs
+  ---
+  duration_ms: 592.34705
+  type: 'test'
+  ...
+# Subtest: scene proof normalizes browser renderer identity summary receipts
+ok 14 - scene proof normalizes browser renderer identity summary receipts
+  ---
+  duration_ms: 604.68137
+  type: 'test'
+  ...
+# Subtest: scene proof requires Phase 7 to consume a compiled environment atmosphere
+ok 15 - scene proof requires Phase 7 to consume a compiled environment atmosphere
+  ---
+  duration_ms: 582.227836
+  type: 'test'
+  ...
+# Subtest: every compiled scene carries a concrete Phase 6 pixel obligation
+ok 16 - every compiled scene carries a concrete Phase 6 pixel obligation
+  ---
+  duration_ms: 507.946197
+  type: 'test'
+  ...
+# Subtest: scene proof selects exact compound geometry while retaining unqualified action refusals
+ok 17 - scene proof selects exact compound geometry while retaining unqualified action refusals
+  ---
+  duration_ms: 727.947236
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16921.790655

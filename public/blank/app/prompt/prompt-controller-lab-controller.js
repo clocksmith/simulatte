@@ -316,7 +316,10 @@
           });
         });
 
-        worldSpecReconciliation = reconciliationControllerApi.connect(root, { publishRuntime });
+        worldSpecReconciliation = reconciliationControllerApi.connect(root, {
+          publishRuntime,
+          compileWorldSpec: (accepted) => model.compileWorldSpecEdits(accepted),
+        });
 
         worldSpecEditor = worldSpecEditorApi.connect(root, {
           getSpec: () => spec,

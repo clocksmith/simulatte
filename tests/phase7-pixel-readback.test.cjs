@@ -72,6 +72,9 @@ test('part ownership proof rejects missing, detached, and wrongly owned submitte
   renderData.pixelSamples = pixelSampleSet(renderData, plan.samples.map((sample) => ({ ...sample, rgba: [80, 160, 220, 255] })));
   const evaluate = () => proof.renderObligationProof(packet, [obligation], null, true, renderData)[0];
   assert.equal(evaluate().status, 'pass');
+  const refused = proof.renderObligationProof(packet, [{ ...obligation, status: 'unsupported' }], null, true, renderData)[0];
+  assert.equal(refused.pixelSatisfied, true);
+  assert.equal(refused.status, 'fail', 'visible pixels cannot override an upstream refusal');
   const original = structuredClone(renderData.objectParts);
   const legIndex = original.findIndex((row) => row.constructionPartId === 'leg-instance-1');
   assert.ok(legIndex >= 0);

@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: public governing metric keeps machine proof, human proof, scope, and dimensions separate
+ok 1 - public governing metric keeps machine proof, human proof, scope, and dimensions separate
+  ---
+  duration_ms: 93.998394
+  type: 'test'
+  ...
+# Subtest: one critical prompt failure fails the governing machine gate instead of averaging away
+ok 2 - one critical prompt failure fails the governing machine gate instead of averaging away
+  ---
+  duration_ms: 51.301841
+  type: 'test'
+  ...
+# Subtest: governing metric rejects stale builds and incomplete boundary evidence
+ok 3 - governing metric rejects stale builds and incomplete boundary evidence
+  ---
+  duration_ms: 80.37615
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 283.850386

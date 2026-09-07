@@ -1,0 +1,26 @@
+{
+  "capturedAt": "2026-09-07T17:10:05.799Z",
+  "comparison": "legacy JSON transport equality for params, PhysicsIR, solverGraph, sceneRenderPacket",
+  "rows": [
+    {
+      "prompt": "two cats",
+      "changed": []
+    },
+    {
+      "prompt": "a red ball rests beside a blue wall",
+      "changed": []
+    },
+    {
+      "prompt": "a dog but no cat",
+      "changed": []
+    },
+    {
+      "prompt": "water flows through a pipe",
+      "changed": []
+    },
+    {
+      "prompt": "a bird flying above a tree",
+      "changed": []
+    }
+  ]
+}

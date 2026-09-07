@@ -73,19 +73,25 @@
         assertCurrent();
         let previous = contracts.createRequestEnvelope(request);
         if (byteLength(previous) > limits.maxInputBytes) throw failure('SIMULATTE_RESOURCE_EXHAUSTED', 'Request exceeds input byte budget');
+        const runResources = Object.create(null);
+        for (const id of new Set(implementations.flatMap(phase => phase.resourceIds))) {
+          const resource = resources[id];
+          if (!resource || resource.descriptor?.id !== id || !resource.handle) throw failure('SIMULATTE_DEPENDENCY_INVALID', `Missing declared resource: ${id}`);
+          const descriptor = contracts.immutableArtifact(resource.descriptor);
+          runResources[id] = Object.freeze({ descriptor,
+            handle: descriptor.kind === 'artifact' ? contracts.immutableArtifact(resource.handle) : resource.handle,
+            acquire: resource.acquire?.bind(resource),
+          });
+        }
         for (const implementation of implementations) {
           assertCurrent();
           phaseNumber = implementation.phase;
           const budget = limits.phases[phaseNumber - 1];
-          const invocation = contracts.immutableArtifact(await invocationForPhase(phaseNumber, previous));
-          assertCurrent();
-          contracts.validateInvocation(phaseNumber, invocation);
-          const call = Object.freeze({ previous, invocation });
           const descriptors = [];
           const handles = Object.create(null);
           let residentBytes = 0;
           for (const id of implementation.resourceIds) {
-            const resource = resources[id];
+            const resource = runResources[id];
             if (!resource || resource.descriptor?.id !== id || !resource.handle) throw failure('SIMULATTE_DEPENDENCY_INVALID', `Phase ${phaseNumber} requires ${id}`);
             const descriptor = contracts.immutableArtifact(resource.descriptor);
             if (!Number.isSafeInteger(descriptor.residentBytes) || descriptor.residentBytes < 0) throw failure('SIMULATTE_DEPENDENCY_INVALID', `Missing residency bound: ${id}`);
@@ -114,11 +120,20 @@
           const work = (async () => {
             const releases = [];
             try {
+              const invocation = contracts.immutableArtifact(await invocationForPhase(phaseNumber, previous, phaseController.signal));
+              assertCurrent();
+              if (phaseController.signal.aborted) throw phaseController.signal.reason;
+              contracts.validateInvocation(phaseNumber, invocation);
+              const call = Object.freeze({ previous, invocation });
               for (const id of implementation.resourceIds) {
                 assertCurrent();
                 if (phaseController.signal.aborted) throw phaseController.signal.reason;
-                if (resources[id].acquire) {
-                  const release = await resources[id].acquire(phaseController.signal);
+                const resource = runResources[id];
+                if (resource.descriptor.kind === 'artifact' && await contracts.artifactDigest(resource.handle) !== resource.descriptor.contentDigest) {
+                  throw failure('SIMULATTE_DEPENDENCY_INVALID', `Artifact content identity mismatch: ${id}`);
+                }
+                if (resource.acquire) {
+                  const release = await resource.acquire(phaseController.signal);
                   if (typeof release !== 'function') throw new Error(`Invalid release lease: ${id}`);
                   releases.push(release);
                 }
@@ -176,7 +191,7 @@
 
   // Migration adapters call the existing transformations. Projection changes only
   // envelope versions; the exact predecessor artifact remains immutable.
-  function localPhaseAdapters(model) {
+  function localPhaseAdapters(model, { workerResourceId = '' } = {}) {
     const operations = [
       (call, resources) => model.runPhase1RuntimeGate(call.previous.request.text, resources['compiler-options']),
       call => model.runPhase2LanguageGraph(call.previous),
@@ -190,14 +205,26 @@
     ];
     return operations.map((operation, index) => Object.freeze({
       phase: index + 1,
-      resourceIds: index === 0 || index === 2 ? ['compiler-options'] : index === 6 ? ['renderer'] : [],
+      resourceIds: [...(index === 0 || index === 2 ? ['compiler-options'] : index === 6 ? ['renderer'] : []),
+        ...(workerResourceId && index !== 6 ? [workerResourceId] : [])],
       validateInput(call) {
         if (index === 0) {
           if (call.previous.schema !== contracts.PHASE_ZERO_INPUT_SCHEMA || call.previous.request.kind !== 'prompt') throw new Error('Local interpretation requires prompt ingress');
+          contracts.createRequestEnvelope(call.previous);
         } else contracts.assertPhaseEnvelope(call.previous, index);
       },
       validateOutput(output) { contracts.assertPhaseEnvelope(output, index + 1); },
       run(call, resources, signal) {
+        if (index === 0 && contracts.canonicalJson(call.previous.configuration) !==
+            contracts.canonicalJson(resources['compiler-options'])) {
+          throw new Error('Compiler resource options contradict request configuration');
+        }
+        if (workerResourceId && index !== 6) {
+          const worker = resources[workerResourceId];
+          if (!worker || typeof worker.runPhase !== 'function') throw new Error('Declared pipeline worker requires runPhase');
+          const permitted = index === 0 || index === 2 ? { 'compiler-options': resources['compiler-options'] } : {};
+          return worker.runPhase(index + 1, call, permitted, { signal });
+        }
         const compatible = index === 0 ? call : { ...call, previous: contracts.legacyPhaseProjection(call.previous) };
         return operation(compatible, resources, signal);
       },

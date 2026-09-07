@@ -10,6 +10,7 @@
     require('./simulatte-physics-model-phase3-ledger.js');
     require('./simulatte-interaction-ir.js');
     require('../phase-04-grounded-intent/simulatte-semantic-provenance.js');
+    require('../phase-04-grounded-intent/simulatte-world-spec-input.js');
     require('./simulatte-physics-model-phase-grounding.js');
     require('../phase-04-grounded-intent/simulatte-user-override-grounding.js');
     require('../phase-04-grounded-intent/simulatte-intent-proof.js');
@@ -109,6 +110,8 @@
     createState: scope.createState,
     deserializeSpec: scope.deserializeSpec,
     applyWorldSpecEdit: scope.applyWorldSpecEdit,
+    compileWorldSpecEdits: scope.compileWorldSpecEdits,
+    projectWorldSpec: scope.projectWorldSpec,
     deserializeSolverCheckpoint: scope.deserializeSolverCheckpoint,
     energyLedger: scope.energyLedger,
     formatMetric: scope.formatMetric,

@@ -1,0 +1,5 @@
+
+> catscan:check
+> node tools/check-catscan.mjs
+
+catscan_invalid: public/blank/app/CATSCAN.md exceeds 300 words

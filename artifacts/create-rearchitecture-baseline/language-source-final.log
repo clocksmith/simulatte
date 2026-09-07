@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: runtime ingress and Phase 2 retain original whitespace and UTF-16 source coordinates
+ok 1 - runtime ingress and Phase 2 retain original whitespace and UTF-16 source coordinates
+  ---
+  duration_ms: 48.724826
+  type: 'test'
+  ...
+# Subtest: normalized evidence retains source spans across tabs, newlines, Unicode and repeated mentions
+ok 2 - normalized evidence retains source spans across tabs, newlines, Unicode and repeated mentions
+  ---
+  duration_ms: 4.610553
+  type: 'test'
+  ...
+# Subtest: normalization is reversible using retained verbatim segments and original source
+ok 3 - normalization is reversible using retained verbatim segments and original source
+  ---
+  duration_ms: 4.933951
+  type: 'test'
+  ...
+# Subtest: authored WorldSpec projection preserves the original request through retrieval and grounding
+ok 4 - authored WorldSpec projection preserves the original request through retrieval and grounding
+  ---
+  duration_ms: 1529.192587
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1961.096528

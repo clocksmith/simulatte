@@ -1,0 +1,14 @@
+
+> check:fast
+> npm run catscan:check && npm run folder-contracts:ci && npm run check:source-size && npm run check:runtime-entrypoint && npm run check:world-entrypoint && npm run check:artifacts && npm run check:pipeline-map && node tools/run-test-files.mjs --fail-fast tests/data-workbench.test.cjs tests/browser-harness.test.cjs tests/browser-memory-receipt.test.cjs tests/catscan.test.cjs tests/causal-phase-diagnosis.test.cjs tests/compile-human-reviews.test.cjs tests/governing-metric.test.cjs tests/gpu-supercluster.test.cjs tests/phase-module-registry.test.cjs tests/profile-program.test.cjs tests/profile-world-spec.test.cjs tests/shared-domain-contracts.test.cjs tests/world-spec-reconciliation.test.cjs tests/world-spec-reconciliation-controller.test.cjs tests/world-spec.test.cjs tests/world-proof.test.cjs tests/world-runtime-loader.test.cjs tests/js-shape-architecture.test.cjs tests/js-shape-model-data.test.cjs tests/js-shape-runtime-progress.test.cjs tests/js-shape-browser-render.test.cjs
+
+
+> catscan:check
+> node tools/check-catscan.mjs
+
+CATSCAN valid: 39 recursive component charters and synchronized index.
+
+> folder-contracts:ci
+> node tools/check-folder-contracts.mjs --contract docs/simulatte/folder-contract.json --schema docs/simulatte/folder-contract.schema.json --repository-root . --allow-unavailable-external-sources
+
+folder_contract_coverage_count_stale: Coverage trackedFiles is 6350; actual is 6356

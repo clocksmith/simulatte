@@ -1,0 +1,5 @@
+{
+  "layer": "source-substitution-performance-control",
+  "sha256": "1aa5d6623cac9076da7b5e709fef3240b2c0e026db77ce7f84c8ee4ab20979e4",
+  "intervention": "HEAD renderer class with preexisting canonical requiredFailures fix retained; all other assets from current worktree"
+}

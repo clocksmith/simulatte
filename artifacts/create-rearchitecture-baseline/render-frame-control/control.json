@@ -1,0 +1,6 @@
+{
+  "layer": "source-substitution-performance-control",
+  "overridePath": "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js",
+  "sha256": "31be946f7fb7a0302a6ddaaf0603eb4aab85efe92aea7fd392eff3e5fb805837",
+  "remainingSources": "current worktree; renderer class replaced by HEAD only"
+}

@@ -208,7 +208,8 @@
       }
 
     function visualCompositionLedgerForSpec(spec = {}, entities = [], renderInstances = [], processes = [], fields = []) {
-        const sourceLedger = spec && spec.renderIR && spec.renderIR.compositionLedger || null;
+        const sourceLedger = spec.renderIR && spec.renderIR.compositionLedger ||
+          spec.simulationCompile && spec.simulationCompile.compositionLedger || null;
         const sourceObligations = sourceLedger && Array.isArray(sourceLedger.obligations) ? sourceLedger.obligations : [];
         const sourceEntries = sourceLedger && Array.isArray(sourceLedger.entries) ? sourceLedger.entries : [];
         const sourceRelations = sourceLedger && Array.isArray(sourceLedger.relations) ? sourceLedger.relations : [];

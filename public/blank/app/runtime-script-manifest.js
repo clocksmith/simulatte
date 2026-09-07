@@ -23,7 +23,8 @@
     'app/runtime/require-runtime-dependency.js'
   );
   const phaseContracts = group(
-    'pipeline/simulatte-phase-contracts.js'
+    'pipeline/simulatte-phase-contracts.js',
+    'app/runtime/phase-runner.js'
   );
   const catalog = group(
     'pipeline/phase-05-simulation/simulatte-physics-catalog-dependencies.js',
@@ -192,6 +193,7 @@
     'pipeline/phase-07-render/simulatte-webgpu-renderer-scene-proof-observer.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-proof-datasets.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-lifecycle.js',
+    'pipeline/phase-07-render/simulatte-webgpu-renderer-frame-evidence.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-part-segmentation.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-morphology.js',
@@ -217,6 +219,7 @@
     'pipeline/phase-05-simulation/simulatte-physics-model-phase3-ledger.js',
     'pipeline/phase-04-grounded-intent/simulatte-semantic-provenance.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js',
+    'pipeline/phase-04-grounded-intent/simulatte-world-spec-input.js',
     'pipeline/phase-04-grounded-intent/simulatte-user-override-grounding.js',
     'pipeline/phase-04-grounded-intent/simulatte-intent-proof.js',
     'pipeline/phase-04-grounded-intent/simulatte-semantic-proof.js',
@@ -306,6 +309,7 @@
     solverAndRenderIr,
     visualCompile,
     renderProof,
+    sceneProof,
     physicsModel
   );
   const intentWorker = join(

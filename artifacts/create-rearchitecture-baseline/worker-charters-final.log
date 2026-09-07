@@ -1,0 +1,10 @@
+
+> catscan:sync
+> node tools/check-catscan.mjs --write
+
+CATSCAN index wrote docs/component-index.md with 39 components.
+
+> catscan:check
+> node tools/check-catscan.mjs
+
+CATSCAN valid: 39 recursive component charters and synchronized index.

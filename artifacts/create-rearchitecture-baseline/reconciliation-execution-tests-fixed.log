@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: the controller blocks replacement until an explicit preserve decision
+ok 1 - the controller blocks replacement until an explicit preserve decision
+  ---
+  duration_ms: 2382.658222
+  type: 'test'
+  ...
+# Subtest: cancel retains the current artifact and fresh compilation requires its own decision
+ok 2 - cancel retains the current artifact and fresh compilation requires its own decision
+  ---
+  duration_ms: 1203.858988
+  type: 'test'
+  ...
+# Subtest: preserved color edits reach compiled grounding and geometry without creating another authoring revision
+ok 3 - preserved color edits reach compiled grounding and geometry without creating another authoring revision
+  ---
+  duration_ms: 3167.181166
+  type: 'test'
+  ...
+# Subtest: recompile plans expose every accepted override before execution
+ok 4 - recompile plans expose every accepted override before execution
+  ---
+  duration_ms: 1525.751403
+  type: 'test'
+  ...
+# Subtest: preserving overrides rebases them and appends a reconciliation record
+ok 5 - preserving overrides rebases them and appends a reconciliation record
+  ---
+  duration_ms: 1853.722809
+  type: 'test'
+  ...
+# Subtest: accepting a fresh compilation records the explicit supersession decision
+ok 6 - accepting a fresh compilation records the explicit supersession decision
+  ---
+  duration_ms: 1451.042276
+  type: 'test'
+  ...
+# Subtest: compiler conflicts remain visible and require a named decision
+ok 7 - compiler conflicts remain visible and require a named decision
+  ---
+  duration_ms: 2430.534733
+  type: 'test'
+  ...
+# Subtest: reconciliation history is append-only across repeated recompiles
+ok 8 - reconciliation history is append-only across repeated recompiles
+  ---
+  duration_ms: 2457.416031
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.1 artifacts migrate into the reconciliation-aware authoring schema
+ok 9 - WorldSpec 1.1 artifacts migrate into the reconciliation-aware authoring schema
+  ---
+  duration_ms: 631.515761
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13766.739008

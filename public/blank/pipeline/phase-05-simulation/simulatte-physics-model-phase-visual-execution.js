@@ -54,6 +54,8 @@
     const compositionLedger = visualIR && visualIR.compositionLedger ||
       sceneRenderPacket && sceneRenderPacket.compositionLedger ||
       null;
+    const { visualIR: projectedVisualIR, sceneRenderPacket: projectedPacket,
+      rendererPlan: projectedPlan, ...renderProgramFields } = visualProgram || {};
     const visualCompile = {
       schema: scope.VISUAL_COMPILE_SCHEMA,
       visualIR,
@@ -71,6 +73,11 @@
       rendererPlan: visualProgram && visualProgram.rendererPlan || null,
       visualAcceptance: visualProgram && visualProgram.visualAcceptance || [],
       compositionGraphId: compiled.compositionGraph && compiled.compositionGraph.graphId || '',
+      worldSpecProjection: {
+        schema: 'simulatte.worldSpecVisualProjection.v1',
+        compositionGraph: compiled.compositionGraph || null,
+        renderProgramFields,
+      },
     };
     return scope.createPhaseEnvelope({
       phase: 6,

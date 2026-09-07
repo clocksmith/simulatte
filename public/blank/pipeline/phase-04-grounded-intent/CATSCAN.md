@@ -20,6 +20,7 @@ Produce the accepted semantic world graph with assumptions, refusals, and proven
 - Input: [WorldSpec contract](../../../shared/contracts/world-spec.js)
 - Output: [user override grounding](simulatte-user-override-grounding.js)
 - Output: [semantic provenance projection](simulatte-semantic-provenance.js)
+- Output: [validated WorldSpec authoring input](simulatte-world-spec-input.js)
 - Output: [intent settlement helper](simulatte-intent-proof.js)
 - Output: [semantic proof helper](simulatte-semantic-proof.js)
 - Output: [Phase 5 simulation contract](../phase-05-simulation/CATSCAN.md)
@@ -27,6 +28,7 @@ Produce the accepted semantic world graph with assumptions, refusals, and proven
 ## Invariants
 
 - Every accepted node has provenance.
+- WorldSpec authoring fields normalize before publication; controls require declared finite parameters within their bounds.
 - Every accepted entity, relation, property, exact quantity, and prohibition has source-bound provenance.
 - Inferences remain distinguishable from direct grounding.
 - Unresolved prompt nodes remain editable requirements; they do not acquire executable causal edges from rule or label matches.

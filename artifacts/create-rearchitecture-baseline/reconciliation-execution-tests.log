@@ -1,0 +1,79 @@
+TAP version 13
+# Subtest: the controller blocks replacement until an explicit preserve decision
+ok 1 - the controller blocks replacement until an explicit preserve decision
+  ---
+  duration_ms: 2174.512554
+  type: 'test'
+  ...
+# Subtest: cancel retains the current artifact and fresh compilation requires its own decision
+ok 2 - cancel retains the current artifact and fresh compilation requires its own decision
+  ---
+  duration_ms: 1177.10364
+  type: 'test'
+  ...
+# Subtest: preserved color edits reach compiled grounding and geometry without creating another authoring revision
+not ok 3 - preserved color edits reach compiled grounding and geometry without creating another authoring revision
+  ---
+  duration_ms: 3118.669398
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:29:1'
+  failureType: 'testCodeFailure'
+  error: 'WorldSpec edit did not change an editable field at $'
+  code: 'SIMULATTE_WORLD_SPEC_INVALID'
+  name: 'WorldSpecError'
+  stack: |-
+    Object.prepareUserEdit (/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec.js:568:32)
+    Object.applyWorldSpecEdit (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js:25:36)
+    /home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:35:78
+    Object.prepareReconciledExecution (/home/clocksmith/deco/simulatte/public/blank/app/prompt/world-spec-reconciliation-controller.js:171:23)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec-reconciliation.test.cjs:35:29)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: recompile plans expose every accepted override before execution
+ok 4 - recompile plans expose every accepted override before execution
+  ---
+  duration_ms: 1477.868056
+  type: 'test'
+  ...
+# Subtest: preserving overrides rebases them and appends a reconciliation record
+ok 5 - preserving overrides rebases them and appends a reconciliation record
+  ---
+  duration_ms: 1842.353392
+  type: 'test'
+  ...
+# Subtest: accepting a fresh compilation records the explicit supersession decision
+ok 6 - accepting a fresh compilation records the explicit supersession decision
+  ---
+  duration_ms: 1440.911704
+  type: 'test'
+  ...
+# Subtest: compiler conflicts remain visible and require a named decision
+ok 7 - compiler conflicts remain visible and require a named decision
+  ---
+  duration_ms: 2445.937223
+  type: 'test'
+  ...
+# Subtest: reconciliation history is append-only across repeated recompiles
+ok 8 - reconciliation history is append-only across repeated recompiles
+  ---
+  duration_ms: 2433.033505
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.1 artifacts migrate into the reconciliation-aware authoring schema
+ok 9 - WorldSpec 1.1 artifacts migrate into the reconciliation-aware authoring schema
+  ---
+  duration_ms: 722.838185
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 8
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13770.254786

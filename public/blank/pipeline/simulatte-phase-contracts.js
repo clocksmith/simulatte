@@ -346,6 +346,10 @@
       active.add(current);
       const result = Array.isArray(current) ? [] : Object.create(null);
       const keys = Array.isArray(current) ? Array.from({ length: current.length }, (_, i) => String(i)) : Object.keys(current).sort();
+      const permittedKeys = new Set(Array.isArray(current) ? [...keys, 'length'] : keys);
+      if (Object.getOwnPropertyNames(current).some(key => !permittedKeys.has(key))) {
+        throw new Error(`${path}: hidden or extra field is not serializable`);
+      }
       for (const key of keys) {
         const descriptor = Object.getOwnPropertyDescriptor(current, key);
         if (!descriptor || !Object.hasOwn(descriptor, 'value')) throw new Error(`${path}.${key}: missing value or accessor`);
@@ -380,10 +384,11 @@
   }
 
   function assertBinding(binding) {
-    if (!binding || binding.schema !== 'simulatte.phaseBinding.v1') throw new Error('Missing phase binding');
+    if (!binding || !['simulatte.phaseBinding.v1', 'simulatte.phaseBinding.v2'].includes(binding.schema)) throw new Error('Missing phase binding');
     for (const key of ['predecessorDigest', 'invocationDigest', 'artifactDigest', 'dependencyDigest', 'producerDigest']) {
       requireDigest(binding[key], key);
     }
+    if (binding.schema === 'simulatte.phaseBinding.v2') requireDigest(binding.envelopeDigest, 'envelopeDigest');
     if (!Number.isSafeInteger(binding.revision) || binding.revision < 1) throw new Error('Invalid run revision');
     validateProducer(binding.producer);
     validateDependencies(binding.dependencies);
@@ -438,6 +443,7 @@
   }
 
   async function bindPhaseOutput(output, call, { producer, dependencies, revision }) {
+    output = immutableArtifact(output);
     call = immutableArtifact(call);
     producer = immutableArtifact(producer);
     dependencies = immutableArtifact(dependencies);
@@ -450,17 +456,20 @@
       if (call.previous.schema !== BOUND_OUTPUT_SCHEMAS[output.phase - 1]) throw new Error('Bound predecessor required');
     }
     const artifact = immutableArtifact(output.artifact);
+    const { binding: _previousBinding, ...payload } = { ...output, schema: BOUND_OUTPUT_SCHEMAS[output.phase],
+      inputSchema: call.previous.schema, artifact };
     const binding = {
-      schema: 'simulatte.phaseBinding.v1', revision,
+      schema: 'simulatte.phaseBinding.v2', revision,
       producer: immutableArtifact(producer), dependencies: immutableArtifact(dependencies),
       predecessorDigest: await artifactDigest(call.previous),
       invocationDigest: await artifactDigest(call.invocation),
       artifactDigest: await artifactDigest(artifact),
       dependencyDigest: await artifactDigest(dependencies),
       producerDigest: await artifactDigest(producer),
+      envelopeDigest: await artifactDigest(payload),
     };
     assertBinding(binding);
-    return immutableArtifact({ ...output, schema: BOUND_OUTPUT_SCHEMAS[output.phase], inputSchema: call.previous.schema, artifact, binding });
+    return immutableArtifact({ ...payload, binding });
   }
 
   async function validateBoundOutput(output, call, expected) {
@@ -470,11 +479,14 @@
     assertPhaseEnvelope(output, output.phase);
     if (output.schema !== BOUND_OUTPUT_SCHEMAS[output.phase]) throw new Error('Bound output required');
     const { binding } = output;
+    if (binding.schema !== 'simulatte.phaseBinding.v2') throw new Error('Complete envelope integrity requires a v2 binding; legacy artifacts need an explicit rebind');
+    const { binding: _binding, ...payload } = output;
     validateInvocation(output.phase, call.invocation);
     const actual = {
       predecessorDigest: await artifactDigest(call.previous), invocationDigest: await artifactDigest(call.invocation),
       artifactDigest: await artifactDigest(output.artifact), dependencyDigest: await artifactDigest(expected.dependencies),
       producerDigest: await artifactDigest(expected.producer),
+      envelopeDigest: await artifactDigest(payload),
     };
     for (const [key, value] of Object.entries(actual)) if (binding[key] !== value) throw new Error(`Phase ${output.phase}: ${key} mismatch`);
     if (await artifactDigest(binding.dependencies) !== binding.dependencyDigest) throw new Error('Dependency descriptors mutated');

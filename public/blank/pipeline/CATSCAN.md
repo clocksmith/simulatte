@@ -23,6 +23,9 @@ Preserve prompt obligations through eight typed, ordered phase boundaries.
 ## Invariants
 
 - Phase N consumes Phase N-1 output plus allowed runtime context only.
+- Versioned bound envelopes identify the exact predecessor, invocation, producer, dependencies, revision, and artifact with canonical UTF-8 SHA-256 digests. The compatible WorldSpec hash retains its existing meaning.
+- Runtime readiness does not carry later retrieval candidates; Phase 3 receives retrieval resources explicitly.
+- WorldSpec assembly preserves accepted Phase 4 evidence; compatibility intent metadata cannot rewrite grounding after publication.
 - The earliest divergence is diagnostic until artifact substitution establishes ownership.
 
 ## Acceptance
@@ -38,4 +41,3 @@ Preserve prompt obligations through eight typed, ordered phase boundaries.
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

@@ -1,0 +1,5 @@
+
+> sync:runtime-entrypoint
+> node tools/sync-runtime-script-entrypoint.mjs --write
+
+runtime script entrypoint is synchronized

@@ -1,0 +1,374 @@
+
+> test:renderers
+> node --test tests/renderer-session.test.cjs tests/renderer-backends.test.cjs tests/render-mesh-library.test.cjs tests/render-targets.test.cjs tests/recursive-world-webgpu-renderer.test.cjs tests/phase7-pixel-readback.test.cjs tests/js-shape-browser-render.test.cjs tests/world-runtime-loader.test.cjs tests/plugin-camera-follow.test.cjs
+
+TAP version 13
+# Subtest: physics renderer is a browser coordinator, not a legacy Canvas2D painter library
+ok 1 - physics renderer is a browser coordinator, not a legacy Canvas2D painter library
+  ---
+  duration_ms: 5.161771
+  type: 'test'
+  ...
+# Subtest: physics loading uses a phase-reactive canvas Snake game instead of a card mosaic
+ok 2 - physics loading uses a phase-reactive canvas Snake game instead of a card mosaic
+  ---
+  duration_ms: 34.594636
+  type: 'test'
+  ...
+# Subtest: visual audit auto-judges prompt fidelity and motion with a rubric
+ok 3 - visual audit auto-judges prompt fidelity and motion with a rubric
+  ---
+  duration_ms: 10.513105
+  type: 'test'
+  ...
+# Subtest: prompt dock minimizes to corners without drag placement
+ok 4 - prompt dock minimizes to corners without drag placement
+  ---
+  duration_ms: 0.899193
+  type: 'test'
+  ...
+# Subtest: browser product exposes compiled world model receipts
+ok 5 - browser product exposes compiled world model receipts
+  ---
+  duration_ms: 5.36862
+  type: 'test'
+  ...
+# Subtest: composition renderer diversity lives in compiled graph and WebGPU operators
+ok 6 - composition renderer diversity lives in compiled graph and WebGPU operators
+  ---
+  duration_ms: 20.005603
+  type: 'test'
+  ...
+# Subtest: phase 8 renders compiled scene packets without semantic inference
+ok 7 - phase 8 renders compiled scene packets without semantic inference
+  ---
+  duration_ms: 13.763228
+  type: 'test'
+  ...
+# Subtest: WebGPU scene ids and object-part contracts cover emitted visual artifacts
+ok 8 - WebGPU scene ids and object-part contracts cover emitted visual artifacts
+  ---
+  duration_ms: 1.856946
+  type: 'test'
+  ...
+# Subtest: physics graph debug data is explicit and does not log every compiled world
+ok 9 - physics graph debug data is explicit and does not log every compiled world
+  ---
+  duration_ms: 5.845014
+  type: 'test'
+  ...
+# Subtest: pipeline phases consume only neighboring compiled artifacts after intent grounding
+ok 10 - pipeline phases consume only neighboring compiled artifacts after intent grounding
+  ---
+  duration_ms: 49.148116
+  type: 'test'
+  ...
+# Subtest: composition shape inference does not classify catalog provenance as cats
+ok 11 - composition shape inference does not classify catalog provenance as cats
+  ---
+  duration_ms: 3.836869
+  type: 'test'
+  ...
+# Subtest: Phase 6 composition accepts semantic authority only from its Phase 5 render boundary
+ok 12 - Phase 6 composition accepts semantic authority only from its Phase 5 render boundary
+  ---
+  duration_ms: 4.113683
+  type: 'test'
+  ...
+# Subtest: pipeline phases load Phase 3 retrieval boundary checks before retrieval work
+ok 13 - pipeline phases load Phase 3 retrieval boundary checks before retrieval work
+  ---
+  duration_ms: 0.230179
+  type: 'test'
+  ...
+# Subtest: neutral pixel colors retain bounded shading without requiring chromatic saturation
+ok 14 - neutral pixel colors retain bounded shading without requiring chromatic saturation
+  ---
+  duration_ms: 1.690184
+  type: 'test'
+  ...
+# Subtest: directed action pixel evidence must include both exact participants
+ok 15 - directed action pixel evidence must include both exact participants
+  ---
+  duration_ms: 1541.504234
+  type: 'test'
+  ...
+# Subtest: part ownership proof rejects missing, detached, and wrongly owned submitted parts
+ok 16 - part ownership proof rejects missing, detached, and wrongly owned submitted parts
+  ---
+  duration_ms: 602.58972
+  type: 'test'
+  ...
+# Subtest: Phase 7 sparse readback covers every required construction obligation above the old cap
+ok 17 - Phase 7 sparse readback covers every required construction obligation above the old cap
+  ---
+  duration_ms: 853.451282
+  type: 'test'
+  ...
+# Subtest: Phase 7 retries a failed contrast proof at most three times for the same packet
+ok 18 - Phase 7 retries a failed contrast proof at most three times for the same packet
+  ---
+  duration_ms: 1083.004817
+  type: 'test'
+  ...
+# Subtest: Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+ok 19 - Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+  ---
+  duration_ms: 781.739878
+  type: 'test'
+  ...
+# Subtest: Phase 7 samples the exact target entity before token-similar drawables
+ok 20 - Phase 7 samples the exact target entity before token-similar drawables
+  ---
+  duration_ms: 0.225403
+  type: 'test'
+  ...
+# Subtest: Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+ok 21 - Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+  ---
+  duration_ms: 601.299089
+  type: 'test'
+  ...
+# Subtest: Phase 7 action proof samples the relation owner instead of a nearby object
+ok 22 - Phase 7 action proof samples the relation owner instead of a nearby object
+  ---
+  duration_ms: 556.454611
+  type: 'test'
+  ...
+# Subtest: Phase 7 count proof requires every declared visible instance
+ok 23 - Phase 7 count proof requires every declared visible instance
+  ---
+  duration_ms: 570.464298
+  type: 'test'
+  ...
+# Subtest: Phase 7 does not certify required visuals without live pixel readback
+ok 24 - Phase 7 does not certify required visuals without live pixel readback
+  ---
+  duration_ms: 498.402501
+  type: 'test'
+  ...
+# Subtest: Phase 7 absence proof binds the compiled semantic submission to current texture readback
+ok 25 - Phase 7 absence proof binds the compiled semantic submission to current texture readback
+  ---
+  duration_ms: 527.075357
+  type: 'test'
+  ...
+# Subtest: Phase 7 reports readback capacity overflow instead of truncating proof
+ok 26 - Phase 7 reports readback capacity overflow instead of truncating proof
+  ---
+  duration_ms: 687.298795
+  type: 'test'
+  ...
+# Subtest: Phase 7 proves through only when final projected source geometry crosses the target
+ok 27 - Phase 7 proves through only when final projected source geometry crosses the target
+  ---
+  duration_ms: 1.437676
+  type: 'test'
+  ...
+# Subtest: Phase 7 rejects pixel evidence captured for a different scene packet
+ok 28 - Phase 7 rejects pixel evidence captured for a different scene packet
+  ---
+  duration_ms: 523.793572
+  type: 'test'
+  ...
+# Subtest: Phase 6 lays out containment, entry, and between relations for final part geometry
+ok 29 - Phase 6 lays out containment, entry, and between relations for final part geometry
+  ---
+  duration_ms: 4213.680627
+  type: 'test'
+  ...
+# Subtest: minimap follows the governed plugin actor and retains the core journey fallback
+ok 30 - minimap follows the governed plugin actor and retains the core journey fallback
+  ---
+  duration_ms: 2.167289
+  type: 'test'
+  ...
+# Subtest: plugin follow mode centers the camera on the moving plugin actor
+ok 31 - plugin follow mode centers the camera on the moving plugin actor
+  ---
+  duration_ms: 2.213737
+  type: 'test'
+  ...
+# Subtest: POV mode uses the plugin actor rather than the hidden City journey state
+ok 32 - POV mode uses the plugin actor rather than the hidden City journey state
+  ---
+  duration_ms: 0.337862
+  type: 'test'
+  ...
+# Subtest: overview, free, and compare retain distinct camera modes and framing
+ok 33 - overview, free, and compare retain distinct camera modes and framing
+  ---
+  duration_ms: 0.391117
+  type: 'test'
+  ...
+# Subtest: wide plugin overviews expand the far plane to keep their evidence visible
+ok 34 - wide plugin overviews expand the far plane to keep their evidence visible
+  ---
+  duration_ms: 0.18159
+  type: 'test'
+  ...
+# Subtest: wide overview altitude reduces fog without changing the near-view ceiling
+ok 35 - wide overview altitude reduces fog without changing the near-view ceiling
+  ---
+  duration_ms: 0.161633
+  type: 'test'
+  ...
+# Subtest: City camera buttons send the exact advertised modes and select semantic targets
+ok 36 - City camera buttons send the exact advertised modes and select semantic targets
+  ---
+  duration_ms: 0.750672
+  type: 'test'
+  ...
+# Subtest: City plugin playback drives rendering from simulation time without mutating world state
+ok 37 - City plugin playback drives rendering from simulation time without mutating world state
+  ---
+  duration_ms: 0.300901
+  type: 'test'
+  ...
+# Subtest: plugin follow zoom changes the rendered camera distance as well as its control value
+ok 38 - plugin follow zoom changes the rendered camera distance as well as its control value
+  ---
+  duration_ms: 0.569417
+  type: 'test'
+  ...
+# Subtest: scene compiler resolves nested frames and emits stable instanced geometry
+ok 39 - scene compiler resolves nested frames and emits stable instanced geometry
+  ---
+  duration_ms: 117.8806
+  type: 'test'
+  ...
+# Subtest: frame state derives visual metrics only from published coordinator outputs
+ok 40 - frame state derives visual metrics only from published coordinator outputs
+  ---
+  duration_ms: 137.303641
+  type: 'test'
+  ...
+# Subtest: view controller uses the selected nested target as a floating origin
+ok 41 - view controller uses the selected nested target as a floating origin
+  ---
+  duration_ms: 53.524849
+  type: 'test'
+  ...
+# Subtest: WebGPU adapter submits instanced groups and emits a bounded frame receipt
+ok 42 - WebGPU adapter submits instanced groups and emits a bounded frame receipt
+  ---
+  duration_ms: 139.814152
+  type: 'test'
+  ...
+# Subtest: recursive v2 adds a custom mesh through scene data and the common session
+ok 43 - recursive v2 adds a custom mesh through scene data and the common session
+  ---
+  duration_ms: 223.639076
+  type: 'test'
+  ...
+# Subtest: recursive initialization releases partial allocations without destroying a borrowed device
+ok 44 - recursive initialization releases partial allocations without destroying a borrowed device
+  ---
+  duration_ms: 70.666197
+  type: 'test'
+  ...
+# Subtest: recursive capture rejects a replaced frame and stale asynchronous pixels
+ok 45 - recursive capture rejects a replaced frame and stale asynchronous pixels
+  ---
+  duration_ms: 153.780629
+  type: 'test'
+  ...
+# Subtest: mesh assets validate, retain detached immutable geometry, and cannot shadow each other
+ok 46 - mesh assets validate, retain detached immutable geometry, and cannot shadow each other
+  ---
+  duration_ms: 5.285119
+  type: 'test'
+  ...
+# Subtest: a sixth World actor mesh renders through the existing vertex format without editing the renderer
+ok 47 - a sixth World actor mesh renders through the existing vertex format without editing the renderer
+  ---
+  duration_ms: 5.720566
+  type: 'test'
+  ...
+# Subtest: attachments reuse only compatible device and descriptors and dispose once
+ok 48 - attachments reuse only compatible device and descriptors and dispose once
+  ---
+  duration_ms: 5.809489
+  type: 'test'
+  ...
+# Subtest: failed resize cleans partial allocation without invalidating live attachments
+ok 49 - failed resize cleans partial allocation without invalidating live attachments
+  ---
+  duration_ms: 0.647629
+  type: 'test'
+  ...
+# Subtest: Create replaces disposed or previous-device targets even when canvas size is unchanged
+ok 50 - Create replaces disposed or previous-device targets even when canvas size is unchanged
+  ---
+  duration_ms: 50.775624
+  type: 'test'
+  ...
+# Subtest: Tier drawing works without a controller, network, HUD, or animation loop
+ok 51 - Tier drawing works without a controller, network, HUD, or animation loop
+  ---
+  duration_ms: 4.663124
+  type: 'test'
+  ...
+# Subtest: Create session preserves the exact phase-6 input, phase-7 output, and pick coordinates
+ok 52 - Create session preserves the exact phase-6 input, phase-7 output, and pick coordinates
+  ---
+  duration_ms: 0.896443
+  type: 'test'
+  ...
+# Subtest: Create lifecycle destroys a device acquired after disposal
+ok 53 - Create lifecycle destroys a device acquired after disposal
+  ---
+  duration_ms: 7.180952
+  type: 'test'
+  ...
+# Subtest: sessions expose one checked API without rewriting scene input or native receipts
+ok 54 - sessions expose one checked API without rewriting scene input or native receipts
+  ---
+  duration_ms: 2.612243
+  type: 'test'
+  ...
+# Subtest: disposal during initialization settles readiness and releases a late adapter
+ok 55 - disposal during initialization settles readiness and releases a late adapter
+  ---
+  duration_ms: 5.986387
+  type: 'test'
+  ...
+# Subtest: capture cannot publish after disposal and device failure invalidates further calls
+ok 56 - capture cannot publish after disposal and device failure invalidates further calls
+  ---
+  duration_ms: 0.669944
+  type: 'test'
+  ...
+# Subtest: aborted construction never acquires resources and malformed adapters fail readiness
+ok 57 - aborted construction never acquires resources and malformed adapters fail readiness
+  ---
+  duration_ms: 0.709797
+  type: 'test'
+  ...
+# Subtest: World runtime selections load only the chosen profile plugin bundle
+ok 58 - World runtime selections load only the chosen profile plugin bundle
+  ---
+  duration_ms: 4.042568
+  type: 'test'
+  ...
+# Subtest: World optional model scripts remain outside every pre-consent selection
+ok 59 - World optional model scripts remain outside every pre-consent selection
+  ---
+  duration_ms: 4.735986
+  type: 'test'
+  ...
+# Subtest: World dynamic runtime loader loads selected runtime scripts
+ok 60 - World dynamic runtime loader loads selected runtime scripts
+  ---
+  duration_ms: 3.164278
+  type: 'test'
+  ...
+1..60
+# tests 60
+# suites 0
+# pass 60
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13625.657032

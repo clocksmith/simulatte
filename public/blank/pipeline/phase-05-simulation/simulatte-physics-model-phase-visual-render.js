@@ -1,29 +1,6 @@
 (function attachSimulattePhysicsModelphasevisualrender(root) {
   const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
 
-    function mergePhase4IntentBrief(phase4Output = null, authoritativeBrief = null) {
-        if (!phase4Output || !authoritativeBrief || typeof phase4Output !== 'object') return phase4Output;
-        const artifact = phase4Output.artifact || {};
-        const groundedIntent = artifact.groundedIntent || {};
-        const acceptedGraph = groundedIntent.acceptedGraph || null;
-        if (!acceptedGraph) return phase4Output;
-        const mergedAcceptedGraph = scope.mergeUniverseGraphIntentBrief(acceptedGraph, authoritativeBrief);
-        return {
-          ...phase4Output,
-          artifact: {
-            ...artifact,
-            groundedIntent: {
-              ...groundedIntent,
-              acceptedGraph: mergedAcceptedGraph,
-              intentBrief: {
-                ...(groundedIntent.intentBrief || {}),
-                ...intentBriefReceipt(authoritativeBrief),
-              },
-            },
-          },
-        };
-      }
-
     function intentBriefLedgerCounts(brief) {
         if (!brief) {
           return {
@@ -453,7 +430,6 @@
     }
 
     root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-phase-visual-render.js', {
-      mergePhase4IntentBrief,
       intentBriefLedgerCounts,
       intentBriefReceipt,
       intentBriefAcceptedActivations,

@@ -1,0 +1,424 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 21.189805
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 105.683642
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 34.434188
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 5.048672
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 62.519206
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.776113
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.575822
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 5411.511704
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+ok 9 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 4239.053007
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+ok 10 - WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+  ---
+  duration_ms: 2689.215645
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+ok 11 - WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+  ---
+  duration_ms: 1298.974129
+  type: 'test'
+  ...
+# Subtest: synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+ok 12 - synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+  ---
+  duration_ms: 2361.668998
+  type: 'test'
+  ...
+# Subtest: compiled water state channels retain their entity owner through serializable phase artifacts
+ok 13 - compiled water state channels retain their entity owner through serializable phase artifacts
+  ---
+  duration_ms: 2876.796974
+  type: 'test'
+  ...
+# Subtest: invocation acquisition obeys cancellation and the phase deadline
+ok 14 - invocation acquisition obeys cancellation and the phase deadline
+  ---
+  duration_ms: 33.567981
+  type: 'test'
+  ...
+# Subtest: resource selection and immutable assets cannot change while a run waits
+ok 15 - resource selection and immutable assets cannot change while a run waits
+  ---
+  duration_ms: 18.914226
+  type: 'test'
+  ...
+# Subtest: integrity rejects array metadata and non-enumerable artifact fields
+ok 16 - integrity rejects array metadata and non-enumerable artifact fields
+  ---
+  duration_ms: 0.409815
+  type: 'test'
+  ...
+# Subtest: binding snapshots receipts and metadata and detects tampering outside artifact payloads
+ok 17 - binding snapshots receipts and metadata and detects tampering outside artifact payloads
+  ---
+  duration_ms: 4.289089
+  type: 'test'
+  ...
+# Subtest: editor audit retains page evidence and screenshot identity without replacing the failure
+ok 18 - editor audit retains page evidence and screenshot identity without replacing the failure
+  ---
+  duration_ms: 43.474918
+  type: 'test'
+  ...
+# Subtest: a lost browser still leaves the original failure and capture errors on disk
+ok 19 - a lost browser still leaves the original failure and capture errors on disk
+  ---
+  duration_ms: 1.304811
+  type: 'test'
+  ...
+# Subtest: neutral pixel colors retain bounded shading without requiring chromatic saturation
+ok 20 - neutral pixel colors retain bounded shading without requiring chromatic saturation
+  ---
+  duration_ms: 2.062419
+  type: 'test'
+  ...
+# Subtest: directed action pixel evidence must include both exact participants
+ok 21 - directed action pixel evidence must include both exact participants
+  ---
+  duration_ms: 3320.335361
+  type: 'test'
+  ...
+# Subtest: part ownership proof rejects missing, detached, and wrongly owned submitted parts
+ok 22 - part ownership proof rejects missing, detached, and wrongly owned submitted parts
+  ---
+  duration_ms: 1632.616021
+  type: 'test'
+  ...
+# Subtest: Phase 7 sparse readback covers every required construction obligation above the old cap
+ok 23 - Phase 7 sparse readback covers every required construction obligation above the old cap
+  ---
+  duration_ms: 2352.462448
+  type: 'test'
+  ...
+# Subtest: Phase 7 retries a failed contrast proof at most three times for the same packet
+ok 24 - Phase 7 retries a failed contrast proof at most three times for the same packet
+  ---
+  duration_ms: 2331.466879
+  type: 'test'
+  ...
+# Subtest: Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+ok 25 - Phase 7 snapshots supplied pixel evidence without coercion or mutable references
+  ---
+  duration_ms: 2212.103592
+  type: 'test'
+  ...
+# Subtest: Phase 7 samples the exact target entity before token-similar drawables
+ok 26 - Phase 7 samples the exact target entity before token-similar drawables
+  ---
+  duration_ms: 0.385087
+  type: 'test'
+  ...
+# Subtest: Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+ok 27 - Phase 7 color proof samples distinct bound parts instead of one occludable entity center
+  ---
+  duration_ms: 2014.288627
+  type: 'test'
+  ...
+# Subtest: Phase 7 action proof samples the relation owner instead of a nearby object
+ok 28 - Phase 7 action proof samples the relation owner instead of a nearby object
+  ---
+  duration_ms: 1676.645121
+  type: 'test'
+  ...
+# Subtest: Phase 7 count proof requires every declared visible instance
+ok 29 - Phase 7 count proof requires every declared visible instance
+  ---
+  duration_ms: 1759.953133
+  type: 'test'
+  ...
+# Subtest: Phase 7 does not certify required visuals without live pixel readback
+ok 30 - Phase 7 does not certify required visuals without live pixel readback
+  ---
+  duration_ms: 1435.043995
+  type: 'test'
+  ...
+# Subtest: Phase 7 absence proof binds the compiled semantic submission to current texture readback
+ok 31 - Phase 7 absence proof binds the compiled semantic submission to current texture readback
+  ---
+  duration_ms: 1636.8215
+  type: 'test'
+  ...
+# Subtest: Phase 7 reports readback capacity overflow instead of truncating proof
+ok 32 - Phase 7 reports readback capacity overflow instead of truncating proof
+  ---
+  duration_ms: 2504.446712
+  type: 'test'
+  ...
+# Subtest: Phase 7 proves through only when final projected source geometry crosses the target
+ok 33 - Phase 7 proves through only when final projected source geometry crosses the target
+  ---
+  duration_ms: 3.678611
+  type: 'test'
+  ...
+# Subtest: Phase 7 rejects pixel evidence captured for a different scene packet
+ok 34 - Phase 7 rejects pixel evidence captured for a different scene packet
+  ---
+  duration_ms: 1430.674856
+  type: 'test'
+  ...
+# Subtest: Phase 6 lays out containment, entry, and between relations for final part geometry
+ok 35 - Phase 6 lays out containment, entry, and between relations for final part geometry
+  ---
+  duration_ms: 11657.096078
+  type: 'test'
+  ...
+# Subtest: worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+ok 36 - worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+  ---
+  duration_ms: 8092.79304
+  type: 'test'
+  ...
+# Subtest: phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+ok 37 - phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+  ---
+  duration_ms: 4.177737
+  type: 'test'
+  ...
+# Subtest: cancelling a worker phase stops its worker and stale events cannot poison its replacement
+ok 38 - cancelling a worker phase stops its worker and stale events cannot poison its replacement
+  ---
+  duration_ms: 0.904522
+  type: 'test'
+  ...
+# Subtest: worker failure terminates the failed instance and rejects pending and future calls
+ok 39 - worker failure terminates the failed instance and rejects pending and future calls
+  ---
+  duration_ms: 0.685126
+  type: 'test'
+  ...
+# Subtest: compatibility compile retains its WorldSpec result through the same worker protocol
+ok 40 - compatibility compile retains its WorldSpec result through the same worker protocol
+  ---
+  duration_ms: 2672.652552
+  type: 'test'
+  ...
+# Subtest: bounded classification loads before the model-backed embedder
+ok 41 - bounded classification loads before the model-backed embedder
+  ---
+  duration_ms: 1.17412
+  type: 'test'
+  ...
+# Subtest: prompt controller keeps its public CommonJS API
+ok 42 - prompt controller keeps its public CommonJS API
+  ---
+  duration_ms: 429.967397
+  type: 'test'
+  ...
+# Subtest: prompt controller resolves root-hosted workers against Blank asset base
+ok 43 - prompt controller resolves root-hosted workers against Blank asset base
+  ---
+  duration_ms: 0.511644
+  type: 'test'
+  ...
+# Subtest: compiler proof coordinator performs a separate compile and rejects stale receipts
+ok 44 - compiler proof coordinator performs a separate compile and rejects stale receipts
+  ---
+  duration_ms: 4231.167981
+  type: 'test'
+  ...
+# Subtest: prompt controller browser layers publish the API in manifest order
+ok 45 - prompt controller browser layers publish the API in manifest order
+  ---
+  duration_ms: 7.190024
+  type: 'test'
+  ...
+# Subtest: prompt controller browser layers reject missing dependencies
+ok 46 - prompt controller browser layers reject missing dependencies
+  ---
+  duration_ms: 11.157128
+  type: 'test'
+  ...
+# Subtest: Tier drawing works without a controller, network, HUD, or animation loop
+ok 47 - Tier drawing works without a controller, network, HUD, or animation loop
+  ---
+  duration_ms: 5.741962
+  type: 'test'
+  ...
+# Subtest: Create session preserves the exact phase-6 input, phase-7 output, and pick coordinates
+ok 48 - Create session preserves the exact phase-6 input, phase-7 output, and pick coordinates
+  ---
+  duration_ms: 0.970055
+  type: 'test'
+  ...
+# Subtest: Create lifecycle destroys a device acquired after disposal
+ok 49 - Create lifecycle destroys a device acquired after disposal
+  ---
+  duration_ms: 12.415256
+  type: 'test'
+  ...
+# Subtest: published Phase 7 evidence cannot change when live state or frame counters advance
+ok 50 - published Phase 7 evidence cannot change when live state or frame counters advance
+  ---
+  duration_ms: 2542.897559
+  type: 'test'
+  ...
+# Subtest: replacing input with the same packet invalidates its pending pixels and published evidence
+ok 51 - replacing input with the same packet invalidates its pending pixels and published evidence
+  ---
+  duration_ms: 1857.818615
+  type: 'test'
+  ...
+# Subtest: delayed texture readback proves the submitted state and viewport, not newer mutable inputs
+ok 52 - delayed texture readback proves the submitted state and viewport, not newer mutable inputs
+  ---
+  duration_ms: 2076.998223
+  type: 'test'
+  ...
+# Subtest: replacement, resize and disposal prevent late texture readback publication
+ok 53 - replacement, resize and disposal prevent late texture readback publication
+  ---
+  duration_ms: 4494.326064
+  type: 'test'
+  ...
+# Subtest: frame snapshots separate typed numeric state from runtime canvas handles
+ok 54 - frame snapshots separate typed numeric state from runtime canvas handles
+  ---
+  duration_ms: 1485.875446
+  type: 'test'
+  ...
+# Subtest: scene proof settles every ledger obligation into a terminal status
+ok 55 - scene proof settles every ledger obligation into a terminal status
+  ---
+  duration_ms: 4029.346332
+  type: 'test'
+  ...
+# Subtest: scene proof fails closed when a required entity never rendered
+ok 56 - scene proof fails closed when a required entity never rendered
+  ---
+  duration_ms: 1920.857366
+  type: 'test'
+  ...
+# Subtest: scene proof never certifies a required unsupported obligation
+ok 57 - scene proof never certifies a required unsupported obligation
+  ---
+  duration_ms: 1951.151093
+  type: 'test'
+  ...
+# Subtest: scene proof fails a required identity when its live pixel obligation fails
+ok 58 - scene proof fails a required identity when its live pixel obligation fails
+  ---
+  duration_ms: 1854.942028
+  type: 'test'
+  ...
+# Subtest: scene proof rejects literal pixels compiled from a topology that does not fit the target identity
+ok 59 - scene proof rejects literal pixels compiled from a topology that does not fit the target identity
+  ---
+  duration_ms: 1653.49959
+  type: 'test'
+  ...
+# Subtest: scene proof preserves negated identities only with bound semantic absence proof
+ok 60 - scene proof preserves negated identities only with bound semantic absence proof
+  ---
+  duration_ms: 1508.451516
+  type: 'test'
+  ...
+# Subtest: scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone
+ok 61 - scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone
+  ---
+  duration_ms: 1087.06357
+  type: 'test'
+  ...
+# Subtest: scene proof may settle a relation source only through its linked spatial Phase 7 proof
+ok 62 - scene proof may settle a relation source only through its linked spatial Phase 7 proof
+  ---
+  duration_ms: 1464.137976
+  type: 'test'
+  ...
+# Subtest: scene proof settles a material relation through its linked Phase 7 material proof
+ok 63 - scene proof settles a material relation through its linked Phase 7 material proof
+  ---
+  duration_ms: 1041.047197
+  type: 'test'
+  ...
+# Subtest: scene proof identity settlement requires whole-word identity evidence
+ok 64 - scene proof identity settlement requires whole-word identity evidence
+  ---
+  duration_ms: 1348.417063
+  type: 'test'
+  ...
+# Subtest: scene proof reports not-proven without a rendered frame and rejects wrong inputs
+ok 65 - scene proof reports not-proven without a rendered frame and rejects wrong inputs
+  ---
+  duration_ms: 1064.953401
+  type: 'test'
+  ...
+# Subtest: scene proof normalizes browser renderer identity summary receipts
+ok 66 - scene proof normalizes browser renderer identity summary receipts
+  ---
+  duration_ms: 1018.318941
+  type: 'test'
+  ...
+# Subtest: scene proof requires Phase 7 to consume a compiled environment atmosphere
+ok 67 - scene proof requires Phase 7 to consume a compiled environment atmosphere
+  ---
+  duration_ms: 935.191833
+  type: 'test'
+  ...
+# Subtest: every compiled scene carries a concrete Phase 6 pixel obligation
+ok 68 - every compiled scene carries a concrete Phase 6 pixel obligation
+  ---
+  duration_ms: 744.649418
+  type: 'test'
+  ...
+# Subtest: scene proof selects exact compound geometry while retaining unqualified action refusals
+ok 69 - scene proof selects exact compound geometry while retaining unqualified action refusals
+  ---
+  duration_ms: 1047.034285
+  type: 'test'
+  ...
+1..69
+# tests 69
+# suites 0
+# pass 69
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42512.277824

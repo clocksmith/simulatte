@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: published Phase 7 evidence cannot change when live state or frame counters advance
+ok 1 - published Phase 7 evidence cannot change when live state or frame counters advance
+  ---
+  duration_ms: 1961.069242
+  type: 'test'
+  ...
+# Subtest: replacing input with the same packet invalidates its pending pixels and published evidence
+ok 2 - replacing input with the same packet invalidates its pending pixels and published evidence
+  ---
+  duration_ms: 1123.469026
+  type: 'test'
+  ...
+# Subtest: delayed texture readback proves the submitted state and viewport, not newer mutable inputs
+ok 3 - delayed texture readback proves the submitted state and viewport, not newer mutable inputs
+  ---
+  duration_ms: 909.856586
+  type: 'test'
+  ...
+# Subtest: replacement, resize and disposal prevent late texture readback publication
+ok 4 - replacement, resize and disposal prevent late texture readback publication
+  ---
+  duration_ms: 2941.000164
+  type: 'test'
+  ...
+# Subtest: frame snapshots separate typed numeric state from runtime canvas handles
+ok 5 - frame snapshots separate typed numeric state from runtime canvas handles
+  ---
+  duration_ms: 939.709673
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8280.499107

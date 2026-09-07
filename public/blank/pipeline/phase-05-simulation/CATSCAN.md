@@ -12,7 +12,7 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 
 ## Scope
 
-- Applies to Phase 5 simulation compilation and solver code.
+- Phase 5 compilation and solvers.
 
 ## Contracts
 
@@ -29,9 +29,10 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 - Solver support does not masquerade as prompt-visible intent.
 - Render-addressable rows retain source evidence.
 - Directed motion binds subject and target state channels using bounded planar steering, without cognition or collision physics.
-- A solver execution receipt names the operators actually invoked and fails on missing or non-finite state.
+- Solver receipts name executed operators and reject missing or non-finite state.
 - Create owns its explicit WorldSpec determinism, dependency, and safety defaults; shared validators do not invent them.
 - Imported WorldSpec programs rebuild typed phase evidence, retain authored authority, and fail closed when their execution bindings are incompatible.
+- WorldSpec projects authoring, ordered channels, and visuals; normalization preserves Phase 6 bindings and rejects contradictions.
 - Simulation reproducibility uses two fresh states, the declared fixed-step policy, and a typed state comparison receipt.
 - Every applied interaction command retains its program identity and recomputable before/after state; a no-op cannot prove a transition.
 - Declared safety rules execute at every fixed-step checkpoint in two fresh runs; missing, blocking, or divergent decisions fail closed.
@@ -41,7 +42,7 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 - Compiled simulations satisfy solver and state-transition fixtures.
 - Evidence: [simulation compiler tests](../../../../tests/physical-compiler-simulation-visual.test.cjs).
 - Evidence: [WorldSpec replay tests](../../../../tests/world-spec.test.cjs).
-- Evidence: [WorldProof tests](../../../../tests/world-proof.test.cjs).
+- Evidence: [WorldSpec projection tests](../../../../tests/world-spec-phase-projection.test.cjs).
 
 ## Non-goals
 
@@ -49,5 +50,4 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 
 ## Freedom
 
-Any implementation is permitted if it preserves these boundaries and passes the
-acceptance evidence.
+Any implementation is permitted within these contracts and acceptance evidence.

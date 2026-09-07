@@ -1,0 +1,190 @@
+TAP version 13
+# Subtest: physics renderer is a browser coordinator, not a legacy Canvas2D painter library
+ok 1 - physics renderer is a browser coordinator, not a legacy Canvas2D painter library
+  ---
+  duration_ms: 3.247281
+  type: 'test'
+  ...
+# Subtest: physics loading uses a phase-reactive canvas Snake game instead of a card mosaic
+ok 2 - physics loading uses a phase-reactive canvas Snake game instead of a card mosaic
+  ---
+  duration_ms: 12.852894
+  type: 'test'
+  ...
+# Subtest: visual audit auto-judges prompt fidelity and motion with a rubric
+ok 3 - visual audit auto-judges prompt fidelity and motion with a rubric
+  ---
+  duration_ms: 3.512131
+  type: 'test'
+  ...
+# Subtest: prompt dock minimizes to corners without drag placement
+ok 4 - prompt dock minimizes to corners without drag placement
+  ---
+  duration_ms: 1.199448
+  type: 'test'
+  ...
+# Subtest: browser product exposes compiled world model receipts
+ok 5 - browser product exposes compiled world model receipts
+  ---
+  duration_ms: 1.227859
+  type: 'test'
+  ...
+# Subtest: composition renderer diversity lives in compiled graph and WebGPU operators
+ok 6 - composition renderer diversity lives in compiled graph and WebGPU operators
+  ---
+  duration_ms: 8.623803
+  type: 'test'
+  ...
+# Subtest: phase 8 renders compiled scene packets without semantic inference
+ok 7 - phase 8 renders compiled scene packets without semantic inference
+  ---
+  duration_ms: 4.833353
+  type: 'test'
+  ...
+# Subtest: WebGPU scene ids and object-part contracts cover emitted visual artifacts
+ok 8 - WebGPU scene ids and object-part contracts cover emitted visual artifacts
+  ---
+  duration_ms: 1.657673
+  type: 'test'
+  ...
+# Subtest: physics graph debug data is explicit and does not log every compiled world
+ok 9 - physics graph debug data is explicit and does not log every compiled world
+  ---
+  duration_ms: 1.123045
+  type: 'test'
+  ...
+# Subtest: pipeline phases consume only neighboring compiled artifacts after intent grounding
+ok 10 - pipeline phases consume only neighboring compiled artifacts after intent grounding
+  ---
+  duration_ms: 13.729904
+  type: 'test'
+  ...
+# Subtest: composition shape inference does not classify catalog provenance as cats
+ok 11 - composition shape inference does not classify catalog provenance as cats
+  ---
+  duration_ms: 1.386428
+  type: 'test'
+  ...
+# Subtest: Phase 6 composition accepts semantic authority only from its Phase 5 render boundary
+ok 12 - Phase 6 composition accepts semantic authority only from its Phase 5 render boundary
+  ---
+  duration_ms: 1.425954
+  type: 'test'
+  ...
+# Subtest: pipeline phases load Phase 3 retrieval boundary checks before retrieval work
+ok 13 - pipeline phases load Phase 3 retrieval boundary checks before retrieval work
+  ---
+  duration_ms: 0.15069
+  type: 'test'
+  ...
+# Subtest: runtime source is owned by app, pipeline, data, and worker directories
+ok 14 - runtime source is owned by app, pipeline, data, and worker directories
+  ---
+  duration_ms: 1.090283
+  type: 'test'
+  ...
+# Subtest: intent forensics modules load before the physics model in the browser lab
+ok 15 - intent forensics modules load before the physics model in the browser lab
+  ---
+  duration_ms: 0.909133
+  type: 'test'
+  ...
+# Subtest: selected-token reranker runtime loads before the model-backed embedder class captures it
+ok 16 - selected-token reranker runtime loads before the model-backed embedder class captures it
+  ---
+  duration_ms: 0.508268
+  type: 'test'
+  ...
+# Subtest: training mode streams prompt-output critiques over localhost
+ok 17 - training mode streams prompt-output critiques over localhost
+  ---
+  duration_ms: 2.413356
+  type: 'test'
+  ...
+# Subtest: training launcher is shared by agent skill surfaces
+ok 18 - training launcher is shared by agent skill surfaces
+  ---
+  duration_ms: 0.445263
+  type: 'test'
+  ...
+# Subtest: pipeline audit records phase scores, baselines, and regressions
+ok 19 - pipeline audit records phase scores, baselines, and regressions
+  ---
+  duration_ms: 0.688363
+  type: 'test'
+  ...
+# Subtest: causal affordances compile into first-class VisualIR rows
+ok 20 - causal affordances compile into first-class VisualIR rows
+  ---
+  duration_ms: 3.823525
+  type: 'test'
+  ...
+# Subtest: visual operator atlas exposes reusable graphics atoms for Layer 7
+ok 21 - visual operator atlas exposes reusable graphics atoms for Layer 7
+  ---
+  duration_ms: 29.551953
+  type: 'test'
+  ...
+# Subtest: procedural visual base exposes a broad prompt-addressed catalog
+ok 22 - procedural visual base exposes a broad prompt-addressed catalog
+  ---
+  duration_ms: 0.933223
+  type: 'test'
+  ...
+# Subtest: prompt compilation has a worker boundary with main-thread fallback
+ok 23 - prompt compilation has a worker boundary with main-thread fallback
+  ---
+  duration_ms: 2.196115
+  type: 'test'
+  ...
+# Subtest: home prompt shuffle stays consistent between HTML and catalog
+ok 24 - home prompt shuffle stays consistent between HTML and catalog
+  ---
+  duration_ms: 2.056434
+  type: 'test'
+  ...
+# Subtest: Doppler residual intent cannot select a model outside the numbered runtime lock
+ok 25 - Doppler residual intent cannot select a model outside the numbered runtime lock
+  ---
+  duration_ms: 0.326277
+  type: 'test'
+  ...
+# Subtest: vendored Doppler shader cache resolves kernels beside the loaded module
+ok 26 - vendored Doppler shader cache resolves kernels beside the loaded module
+  ---
+  duration_ms: 0.099827
+  type: 'test'
+  ...
+# Subtest: Firebase hosting revalidates app lab and app JavaScript
+ok 27 - Firebase hosting revalidates app lab and app JavaScript
+  ---
+  duration_ms: 0.502356
+  type: 'test'
+  ...
+# Subtest: model-backed intent retrieval uses a 1024d Qwen index and keeps the unqualified reranker disabled
+ok 28 - model-backed intent retrieval uses a 1024d Qwen index and keeps the unqualified reranker disabled
+  ---
+  duration_ms: 58.899222
+  type: 'test'
+  ...
+# Subtest: model slot reranking stays in its own loaded Phase 3 retrieval shard
+ok 29 - model slot reranking stays in its own loaded Phase 3 retrieval shard
+  ---
+  duration_ms: 0.21798
+  type: 'test'
+  ...
+# Subtest: negation vocabulary is canonical in the universe parser with synced mirrors
+ok 30 - negation vocabulary is canonical in the universe parser with synced mirrors
+  ---
+  duration_ms: 126.047845
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 316.104401

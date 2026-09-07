@@ -117,7 +117,7 @@
           if (nextRenderExecutionInput !== this.renderExecutionInput) {
             this.renderInputSerial += 1;
             this.canvas.dataset.renderInputSerial = String(this.renderInputSerial);
-            this.phase7OutputPacketKey = '';
+            this.resetPixelReadbackForPacket(this.sceneRenderPacketKey);
             this.phase8Output = null;
           }
           this.renderExecutionInput = nextRenderExecutionInput;
@@ -266,14 +266,13 @@
 
         refreshPhase7Output(renderCount = this.renderCount, frameMs = this.lastFrameMs) {
           const packetKey = this.renderData && this.renderData.packetKey || '';
-          const receipt = this.renderExecutionInput?.simulationState?.solverState?.executionReceipt;
-          // Frame counters change without changing execution proof. A first step,
-          // missing operator, or non-finite channel must invalidate cached proof.
-          const simulationKey = JSON.stringify([receipt?.status, receipt?.finiteChannels,
-            receipt?.expectedOperatorIds, receipt?.executedOperatorIds, receipt?.missingOperatorIds]);
+          const simulationKey = scope.simulationEvidenceKey(this.renderExecutionInput);
+          if (this.phase7Output && simulationKey !== this.phase7SimulationReceiptKey) {
+            this.resetPixelReadbackForPacket(packetKey);
+          }
           if (!this.phase7Output || packetKey !== this.phase7OutputPacketKey ||
               simulationKey !== this.phase7SimulationReceiptKey) {
-            this.phase7Output = scope.phase7OutputEnvelope(
+            this.phase7Output = scope.immutableRenderEvidence(scope.phase7OutputEnvelope(
               this.renderExecutionInput,
               this.sceneRenderPacket,
               renderCount,
@@ -281,18 +280,13 @@
               this.canvas,
               this.renderData,
               this.webgpuOptimizationReceipt()
-            );
+            ));
             this.phase7OutputPacketKey = packetKey;
             this.phase7SimulationReceiptKey = simulationKey;
             this.canvas.dataset.phase7Output = this.phase7Output.schema;
             this.canvas.dataset.phase7OutputInput = this.phase7Output.inputSchema;
             this.settleSceneProof();
             return this.phase7Output;
-          }
-          const execution = this.phase7Output.artifact && this.phase7Output.artifact.renderExecution;
-          if (execution) {
-            execution.renderCount = Number(renderCount || 0);
-            execution.frameMs = Number(frameMs || 0);
           }
           return this.phase7Output;
         }
@@ -312,15 +306,15 @@
             this.canvas.dataset.sceneProofVerdict = sceneProof.verdict;
             this.canvas.dataset.sceneProofError = '';
             this.canvas.dataset.sceneProofLostCount = String(sceneProof.summary.lostCount);
+            this.canvas.dataset.sceneProofUnsupportedCount = String(sceneProof.summary.unsupportedCount);
             this.canvas.dataset.sceneProofNotProvenCount = String(sceneProof.summary.notProvenCount);
             this.canvas.dataset.sceneProofRequiredLostIds = JSON.stringify(sceneProof.summary.requiredLostIds || []);
+            this.canvas.dataset.sceneProofRequiredUnsupportedIds = JSON.stringify(sceneProof.summary.requiredUnsupportedIds || []);
             this.canvas.dataset.sceneProofRequiredNotProvenIds = JSON.stringify(
               sceneProof.summary.requiredNotProvenIds || []
             );
             this.canvas.dataset.sceneProofRequiredFailures = JSON.stringify(
-              (sceneProof.settledObligations || []).filter((row) => (
-                row.required === true && (row.status === 'lost' || row.status === 'not-proven')
-              ))
+              sceneProof.requiredFailures
             );
             scope.syncWorldProofDatasets(this.canvas, worldProof);
           } catch (error) {
@@ -329,6 +323,7 @@
             this.canvas.dataset.sceneProofVerdict = 'error';
             this.canvas.dataset.sceneProofError = error && error.message ? error.message : String(error);
             this.canvas.dataset.sceneProofRequiredLostIds = '[]';
+            this.canvas.dataset.sceneProofRequiredUnsupportedIds = '[]';
             this.canvas.dataset.sceneProofRequiredNotProvenIds = '[]';
             this.canvas.dataset.sceneProofRequiredFailures = '[]';
             scope.resetWorldProofDatasets(this.canvas);
@@ -406,6 +401,7 @@
 
         schedulePixelReadback(readback, renderCount, frameMs) {
           if (!readback) return;
+          readback.frame = scope.capturePixelReadbackFrame(this, renderCount, frameMs);
           const done = Promise.resolve()
             .then(() => readback.buffer.mapAsync(GPUMapMode.READ))
             .then(() => {
@@ -439,8 +435,7 @@
         }
 
         applyPixelReadbackSamples(readback, samples, renderCount, frameMs) {
-          if (!this.renderData || this.renderData.packetKey !== readback.packetKey ||
-              readback.generation !== this.pixelReadbackGeneration) return;
+          if (!scope.readbackFrameIsCurrent(this, readback)) return;
           const sampleSet = scope.immutableRenderEvidence({
             schema: 'simulatte.phase7PixelSampleSet.v1',
             source: 'webgpu-texture-copy-readback',
@@ -462,8 +457,11 @@
             unmatchedObligationIds: readback.plan.unmatchedObligationIds.slice(),
             readbackSerial: readback.serial,
           };
-          this.phase7OutputPacketKey = '';
-          this.refreshPhase7Output(renderCount, frameMs);
+          this.phase7Output = scope.outputFromReadbackFrame(readback.frame, sampleSet);
+          this.phase7OutputPacketKey = this.renderData.packetKey;
+          this.phase7SimulationReceiptKey = scope.simulationEvidenceKey(readback.frame.input);
+          this.canvas.dataset.phase7Output = this.phase7Output.schema;
+          this.canvas.dataset.phase7OutputInput = this.phase7Output.inputSchema;
           const pixelAudit = this.phase7Output && this.phase7Output.artifact &&
             this.phase7Output.artifact.renderExecution &&
             this.phase7Output.artifact.renderExecution.pixelAudit;
@@ -501,7 +499,7 @@
             ? visualObligationProofSummary.passedObligationIds.join(',')
             : '';
           this.canvas.dataset.phase7PixelAuditChecks = JSON.stringify(pixelAudit && pixelAudit.checks || []).slice(0, 2000);
-          scope.notifyRendererSceneProof(this);
+          this.settleSceneProof();
         }
 
         recordPixelReadbackFailure(readback, err) {
@@ -514,8 +512,7 @@
               // The original readback failure remains the authoritative error.
             }
           }
-          if (!readback || !this.renderData || this.renderData.packetKey !== readback.packetKey ||
-              readback.generation !== this.pixelReadbackGeneration) return;
+          if (!scope.readbackFrameIsCurrent(this, readback)) return;
           const message = err && err.message ? err.message : 'WebGPU pixel readback failed';
           this.lastPixelReadbackReceipt = {
             schema: 'simulatte.phase7PixelReadbackReceipt.v1',
@@ -546,8 +543,18 @@
           this.pendingPixelReadbackPacketKey = '';
           this.lastPixelReadbackReceipt = null;
           this.phase7Output = null;
+          this.phase8Output = null;
           this.phase7OutputPacketKey = '';
+          if (this.renderData) {
+            for (const key of ['livePixelSamples', 'livePixelSamplesStatus', 'livePixelReadbackFailed',
+              'livePixelReadbackAttemptCount', 'pixelSamples', 'pixelSampleSource']) delete this.renderData[key];
+          }
           if (!this.canvas || !this.canvas.dataset) return;
+          delete this.canvas.__simulattePixelSamples;
+          this.canvas.dataset.phase8Output = '';
+          this.canvas.dataset.sceneProofFinal = 'false';
+          this.canvas.dataset.sceneProofVerdict = 'not-proven';
+          scope.resetWorldProofDatasets(this.canvas);
           this.canvas.dataset.phase7PixelReadback = '';
           this.canvas.dataset.phase7PixelReadbackMessage = '';
           this.canvas.dataset.phase7PixelProofStatus = '';
@@ -668,7 +675,7 @@
           this.canvas.dataset.phase7InteractionVisual = JSON.stringify(applied.receipt);
           const interactionVersion = Number(interaction.version || 0);
           if (interactionVersion !== this.interactionProofVersion) {
-            this.phase7OutputPacketKey = '';
+            this.resetPixelReadbackForPacket(this.sceneRenderPacketKey);
             this.interactionProofVersion = interactionVersion;
           }
           return applied.receipt;
@@ -761,6 +768,7 @@
           this.canvas.width = width;
           this.canvas.height = height;
           this.lastSizeKey = key;
+          this.resetPixelReadbackForPacket(this.sceneRenderPacketKey);
         }
 
         writeUniforms(state, nowMs) {
