@@ -27,12 +27,12 @@ Expose controls and evidence around the compiler.
 
 ## Invariants
 
-- Preserved reconciled edits compile through typed phases before publication.
+- Page dispatch runs eight phases; edits and reconciliation restart through authored requests.
 - The runner bounds phases, resources, and revisions; cancelled work cannot publish or release in-flight leases.
 - Workers reject undeclared resources; cancellation and failure cannot publish or poison replacements.
-- Authored replay admits per-phase sources; file exchange preserves sources, excluding stale execution proof.
-- Edits record user authority before execution; fresh compilation cannot replace them without an explicit preserve or supersede decision.
-- Compiler determinism compares an independently compiled artifact with the reconstructed pre-edit baseline.
+- Authored replay admits phase sources; file exchange preserves them, excluding stale proof.
+- Edits record user authority; fresh compilation requires preserve or supersede decisions. Cancelled edits, imports, and decisions cannot publish.
+- Compiler determinism compares independent compilation with the pre-edit baseline.
 - Exact replay performs a second execution and compares bound outcomes under one execution identity.
 - Deterministic runs bind independent fixed-step simulation and safety comparisons before replay can pass.
 - Execution and replay bind typed Phase 2 intent, Phase 4 settlement, and semantic provenance without reinterpretation.

@@ -29,7 +29,7 @@ Define restrictive shared browser contracts.
 - Absence differs from disablement; undeclared structure rejects.
 - Determinism classes are closed and enforced.
 - Compiler proof binds input, build, lane, baseline, and independent output.
-- Independent proof classes bind source, settlement, authority, and revision.
+- Independent proof classes bind source, settlement, authority, and revision across compatible/bound schemas.
 - User edits cannot rewrite grounding evidence, refusals, or ambiguity records.
 - Imports verify identity; recompilation retains history and requires user decisions to replace patches.
 - File, pasted, and explicit URL inputs share bounded decoding and hashing. URLs omit credentials; data cannot authorize execution.

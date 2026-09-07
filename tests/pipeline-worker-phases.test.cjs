@@ -75,6 +75,42 @@ test('page dispatch executes and retains eight bound phases through the existing
     assert.ok(program.physicsIR.receipt.exact.every(row => row.canonicalId !== 'unresolved.qzxwplk'));
     assert.notEqual(record.attempts[0].outputs[7].artifact.sceneProof.verdict, 'pass', 'diagnostic component renderer cannot prove pixels');
     assert.ok(Object.isFrozen(record.attempts[0].outputs[0]));
+    assert.equal(model.createIntentProofReceiptForSpec(program).failureCode, '');
+    assert.equal(model.createSemanticProofReceiptForSpec(program).status, 'pass');
+    const invalidSchema = structuredClone(program);
+    invalidSchema.phaseArtifacts.phase4.schema = 'simulatte.phase4.output.v99';
+    assert.equal(model.createIntentProofReceiptForSpec(invalidSchema).status, 'fail');
+    assert.equal(model.createSemanticProofReceiptForSpec(invalidSchema).status, 'fail');
+    const invalidLedger = structuredClone(program);
+    invalidLedger.phaseArtifacts.phase2.artifact.intentRequirements.requirements[0].label = 'unbound replacement';
+    assert.equal(model.createIntentProofReceiptForSpec(invalidLedger).status, 'fail');
+    assert.equal(model.createSemanticProofReceiptForSpec(invalidLedger).status, 'fail');
+    const candidate = JSON.parse(model.serializeSpec(program));
+    const colored = candidate.universeGraph.nodes.find(row => row.properties?.some(property => property.kind === 'color'));
+    colored.properties.find(property => property.kind === 'color').value = '#00aa44';
+    const compatibleEdit = model.applyWorldSpecEdit(program, candidate, { rationale: 'Explicit synchronous local edit' });
+    assert.equal(model.projectWorldSpec(compatibleEdit.phaseArtifacts).contentHash, compatibleEdit.contentHash);
+    for (const phase of Object.values(compatibleEdit.phaseArtifacts)) assert.equal(phase.binding, undefined);
+    assert.deepEqual(compatibleEdit.phaseArtifacts.phase4.receipts.find(row => row.id === 'local-authored-source').sourceBinding,
+      program.phaseArtifacts.phase4.binding);
+    const edited = model.recordWorldSpecEdit(program, candidate, { rationale: 'Make the ball green' });
+    const recompiled = await instance.executeProgram(edited, { recompile: true });
+    const editRun = instance.getLatest();
+    assert.deepEqual(editRun.attempts[0].outputs.map(output => output.phase), [1, 2, 3, 4, 5, 6, 7, 8]);
+    assert.deepEqual(recompiled.authorship, edited.authorship);
+    assert.equal(model.projectWorldSpec(recompiled.phaseArtifacts).contentHash, recompiled.contentHash);
+    for (const phase of [2, 3]) {
+      const receipt = editRun.attempts[0].outputs[phase - 1].receipts.find(row => row.id === 'authored-phase-replay');
+      assert.equal(receipt.interpreted, false);
+      assert.equal(receipt.mode, 'authored-artifact-replay');
+    }
+    for (const phase of [4, 5, 6]) {
+      assert.equal(editRun.attempts[0].outputs[phase - 1].receipts.find(row => row.id === 'authored-phase-replay').mode, 'authored-recompile');
+    }
+    const imported = model.deserializeSpec(model.serializeSpec(recompiled, { retainPhaseSources: true }));
+    const replayed = await instance.executeProgram(imported);
+    assert.equal(replayed.contentHash, recompiled.contentHash);
+    assert.equal(replayed.universeGraph.nodes.find(row => row.id === colored.id).properties.find(row => row.kind === 'color').value, '#00aa44');
   } finally { instance.dispose(); client.cancel(); }
 });
 
@@ -220,4 +256,70 @@ test('compatibility compile retains its WorldSpec result through the same worker
   const spec = await client.compile('two cats', request.configuration);
   assert.equal(spec.contentHash, model.createSpecFromPrompt('two cats', request.configuration).contentHash);
   client.cancel();
+});
+
+test('page reconciliation starts an explicit authored request and cancellation cannot replay a late decision', async () => {
+  const dispatch = require('../public/blank/app/prompt/prompt-controller-phase-dispatch.js');
+  const policy = require('../public/data/create-phase-run-policy.json');
+  const { client } = harness();
+  let decide;
+  let waiting;
+  let needsDecision = true;
+  let draws = 0;
+  const decisionStarted = () => new Promise(resolve => { waiting = resolve; });
+  const instance = dispatch.create({ model, worker: client,
+    configuration: { ...policy, producer: { id: 'decision-test', buildDigest: await contracts.artifactDigest({ fixture: 'decision' }) } },
+    renderer: { renderPhase(previous, invocation) {
+      draws += 1;
+      return model.runPhase7RenderExecution(previous, invocation.simulationSnapshot.state, null, {});
+    } },
+    requiresReconciliation: () => needsDecision,
+    reconcileProgram: program => { waiting(program); return new Promise(resolve => { decide = resolve; }); },
+    invocationForProgram: (program, previous, _signal, authored) => model.createRenderInvocation(program,
+      model.createSimulationState(program), { index: 0, simulationTime: 0 }, { width: 640, height: 480 },
+      authored ? { phase6Output: previous } : {}),
+  });
+  try {
+    const firstDecision = decisionStarted();
+    const first = instance.compile('a red ball', { deterministicRuntime: true });
+    const cancelled = assert.rejects(first, { name: 'AbortError' });
+    const candidate = await firstDecision;
+    assert.equal(instance.getLatest().status, 'awaiting-reconciliation');
+    assert.equal(instance.getLatest().attempts[0].outputs.length, 6);
+    assert.equal(draws, 0);
+    instance.cancel();
+    await cancelled;
+    assert.equal(instance.getLatest().status, 'cancelled');
+    const obsoleteDecision = decide;
+    const nextDecision = decisionStarted();
+    const second = instance.compile('a blue ball', { deterministicRuntime: true });
+    const accepted = await nextDecision;
+    obsoleteDecision(candidate);
+    decide(accepted);
+    const result = await second;
+    const receipt = instance.getLatest();
+    assert.equal(receipt.status, 'completed');
+    assert.equal(result.source.prompt, 'a blue ball');
+    assert.deepEqual(receipt.attempts.map(row => row.outputs.length), [6, 8]);
+    assert.equal(receipt.attempts[1].sourceMode, 'authored');
+    assert.equal(receipt.attempts[1].request.retryPolicy.previousPhase6Digest,
+      await contracts.artifactDigest(receipt.attempts[0].outputs[5]));
+    assert.equal(draws, 1, 'only the accepted current program is drawn');
+  } finally { instance.dispose(); client.cancel(); }
+});
+
+test('page cancellation settles pending ingress and malformed options retain their failure', async () => {
+  const dispatch = require('../public/blank/app/prompt/prompt-controller-phase-dispatch.js');
+  const instance = dispatch.create({ model, configuration: new Promise(() => {}), invocationForProgram() {} });
+  try {
+    const pending = instance.compile('two cats', {});
+    const cancelled = assert.rejects(pending, { name: 'AbortError' });
+    instance.cancel();
+    await cancelled;
+    assert.equal(instance.getLatest().status, 'cancelled');
+    assert.deepEqual(instance.getLatest().attempts, []);
+    await assert.rejects(instance.compile('two cats', { invalid: undefined }), /serializable finite value/);
+    assert.equal(instance.getLatest().status, 'failed');
+    assert.match(instance.getLatest().error.message, /invalid/);
+  } finally { instance.dispose(); }
 });

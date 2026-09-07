@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: page dispatch executes and retains eight bound phases through the existing worker
+not ok 1 - page dispatch executes and retains eight bound phases through the existing worker
+  ---
+  duration_ms: 12032.544664
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/pipeline-worker-phases.test.cjs:51:1'
+  failureType: 'testCodeFailure'
+  error: '$.artifact.runtimeContext: expected serializable finite value'
+  code: 'SIMULATTE_PIPELINE_COMPILE_FAILED'
+  stack: |-
+    pipelineWorkerError (/home/clocksmith/deco/simulatte/public/blank/app/prompt/prompt-controller-workers.js:47:25)
+    /home/clocksmith/deco/simulatte/public/blank/app/prompt/prompt-controller-workers.js:79:28
+    Worker.emit (/home/clocksmith/deco/simulatte/tests/pipeline-worker-phases.test.cjs:33:51)
+    /home/clocksmith/deco/simulatte/tests/pipeline-worker-phases.test.cjs:26:58
+    node:internal/process/task_queues:149:7
+    AsyncResource.runInAsyncScope (node:async_hooks:214:14)
+    AsyncResource.runMicrotask (node:internal/process/task_queues:146:8)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12307.448292

@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+ok 1 - page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+  ---
+  duration_ms: 8432.72337
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8655.171098

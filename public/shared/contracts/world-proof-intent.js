@@ -8,8 +8,10 @@
   const INTENT_SETTLEMENT_LEDGER_SCHEMA = 'simulatte.intentSettlementLedger.v1';
   const INTENT_SETTLEMENT_SCHEMA = 'simulatte.intentSettlement.v1';
   const INTENT_PROOF_RECEIPT_SCHEMA = 'simulatte.intentProofReceipt.v1';
-  const PHASE2_OUTPUT_SCHEMA = 'simulatte.phase2.output.v1';
-  const PHASE4_OUTPUT_SCHEMA = 'simulatte.phase4.output.v2';
+  function isIntentPhaseSchemaPair(phase2, phase4) {
+    return (phase2 === 'simulatte.phase2.output.v1' && phase4 === 'simulatte.phase4.output.v2') ||
+      (phase2 === 'simulatte.phase2.output.v3' && phase4 === 'simulatte.phase4.output.v3');
+  }
   const HASH_PREFIX = 'fnv1a32:';
   const MAX_REQUIREMENTS = 256;
   const REQUIREMENT_KINDS = Object.freeze(new Set([
@@ -488,7 +490,7 @@
     let settlement = phase4.artifact && phase4.artifact.intentSettlement || null;
     let error = null;
     try {
-      if (phase2.schema !== PHASE2_OUTPUT_SCHEMA || phase4.schema !== PHASE4_OUTPUT_SCHEMA) {
+      if (!isIntentPhaseSchemaPair(phase2.schema, phase4.schema)) {
         throw new IntentProofError('Intent proof requires the canonical Phase 2 and Phase 4 outputs');
       }
       const reconstructed = createIntentRequirementLedger({
@@ -686,7 +688,7 @@
       : receipt.unresolvedCount ? 'not-proven' : 'pass';
     if (!receipt.failureCode && receipt.status !== expectedStatus) throw new IntentProofError('Intent receipt status does not match rows');
     if (receipt.status === 'pass' && (
-      receipt.phase2Schema !== PHASE2_OUTPUT_SCHEMA || receipt.phase4Schema !== PHASE4_OUTPUT_SCHEMA
+      !isIntentPhaseSchemaPair(receipt.phase2Schema, receipt.phase4Schema)
     )) throw new IntentProofError('Passing intent receipt does not bind the canonical phase schemas');
     if (receipt.status === 'pass' && (receipt.failureCode || !receipt.worldSpecContentHash || !receipt.promptHash || !receipt.requirementLedgerHash || !receipt.settlementLedgerHash)) throw new IntentProofError('Passing intent receipt is incomplete');
     validateHash(receipt.contentHash, contentHash(receipt), '$.intentProofReceipt.contentHash');
@@ -754,6 +756,7 @@
     INTENT_SETTLEMENT_SCHEMA,
     INTENT_PROOF_RECEIPT_SCHEMA,
     IntentProofError,
+    isIntentPhaseSchemaPair,
     createIntentRequirementLedger,
     validateIntentRequirementLedger,
     createIntentSettlementLedger,

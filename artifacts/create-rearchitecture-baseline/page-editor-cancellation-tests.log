@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: editor file import passes retained phase sources to execution before preparing the editable draft
+ok 1 - editor file import passes retained phase sources to execution before preparing the editable draft
+  ---
+  duration_ms: 1023.006106
+  type: 'test'
+  ...
+# Subtest: editor cancels obsolete apply results, errors, and file reads before they can publish
+ok 2 - editor cancels obsolete apply results, errors, and file reads before they can publish
+  ---
+  duration_ms: 0.706436
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1227.593997

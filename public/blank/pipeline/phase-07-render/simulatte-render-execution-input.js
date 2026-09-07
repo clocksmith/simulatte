@@ -9,11 +9,11 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createRenderInputApi(contracts, worldProof) {
   if (!contracts || !worldProof) throw new Error('Render input requires phase and WorldProof contracts');
   const RENDER_EXECUTION_INPUT_SCHEMA = 'simulatte.renderExecutionInput.v1';
-  const SIMULATION_SNAPSHOT_SCHEMA = 'simulatte.renderSimulationSnapshot.v1';
+  const SIMULATION_SNAPSHOT_SCHEMA = 'simulatte.renderSimulationSnapshot.v2';
 
   async function resolveSimulationSnapshot(snapshot, previous) {
     if (!snapshot.schema) return { state: snapshot, worldProofBinding: null };
-    if (snapshot.schema !== SIMULATION_SNAPSHOT_SCHEMA) throw new Error('Unsupported render simulation snapshot schema');
+    if (![SIMULATION_SNAPSHOT_SCHEMA, 'simulatte.renderSimulationSnapshot.v1'].includes(snapshot.schema)) throw new Error('Unsupported render simulation snapshot schema');
     const { contentDigest, ...content } = snapshot;
     if (contentDigest !== await contracts.artifactDigest(content)) throw new Error('Simulation snapshot digest mismatch');
     if (snapshot.phase6Digest !== await contracts.artifactDigest(previous)) throw new Error('Simulation snapshot belongs to another Phase 6 artifact');
@@ -26,7 +26,11 @@
         interaction.sourceProgramSchema !== binding.interaction?.schema)) {
       throw new Error('Simulation snapshot interaction identity contradicts Phase 6');
     }
-    return { state: snapshot.state, worldProofBinding: binding };
+    for (const [name, receipt] of Object.entries(snapshot.proofReceipts || {})) {
+      if (receipt && name !== 'replayBaseline' && (receipt.worldSpecContentHash !== binding.worldSpec.contentHash ||
+          receipt.worldSpecRevision !== binding.worldSpec.revision)) throw new Error(`Snapshot ${name} belongs to another WorldSpec`);
+    }
+    return { state: snapshot.state, worldProofBinding: binding, proofReceipts: snapshot.proofReceipts || {} };
   }
 
   function createRenderExecutionInput(source = {}, simulationState = null, canvas = null, options = {}) {

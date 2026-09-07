@@ -14,6 +14,18 @@
   }
   const bytes = value => new TextEncoder().encode(contracts.canonicalJson(value)).byteLength;
 
+  function awaitCancellable(work, signal) {
+    return new Promise((resolve, reject) => {
+      const abort = () => reject(signal.reason || aborted());
+      if (signal.aborted) return abort();
+      signal.addEventListener('abort', abort, { once: true });
+      Promise.resolve().then(() => {
+        if (signal.aborted) throw signal.reason || aborted();
+        return work();
+      }).then(resolve, reject).finally(() => signal.removeEventListener('abort', abort));
+    });
+  }
+
   function create({ model, worker, renderer, configuration, reconcileProgram, requiresReconciliation = () => false,
     invocationForProgram, publishRuntime = () => {} }) {
     if (!model || typeof invocationForProgram !== 'function') {
@@ -37,7 +49,7 @@
       const revision = generation;
       const controller = new AbortController();
       active = controller;
-      const configurationInput = contracts.immutableArtifact({ ...options, compilerLane: 'pipeline-worker' });
+      let configurationInput;
       const assertCurrent = () => {
         if (disposed || revision !== generation || controller.signal.aborted) throw controller.signal.reason || aborted();
       };
@@ -52,8 +64,10 @@
         if (revision === generation || latest?.revision === revision) latest = record;
         return record;
       };
+      retain('running');
       try {
-        config = contracts.immutableArtifact(await resolvedConfiguration);
+        configurationInput = contracts.immutableArtifact({ ...options, compilerLane: 'pipeline-worker' });
+        config = contracts.immutableArtifact(await awaitCancellable(() => resolvedConfiguration, controller.signal));
         assertCurrent();
         if (!worker?.runPhase || !renderer?.renderPhase) throw new Error('Create requires a compiler worker and WebGPU renderer');
         contracts.validateProducer(config.producer);
@@ -119,7 +133,7 @@
         if (result.replacement) {
           if (typeof reconcileProgram !== 'function') throw new Error('Required reconciliation has no decision owner');
           retain('awaiting-reconciliation');
-          const accepted = await reconcileProgram(result.replacement, controller.signal);
+          const accepted = await awaitCancellable(() => reconcileProgram(result.replacement, controller.signal), controller.signal);
           assertCurrent();
           if (!accepted) throw aborted('WorldSpec reconciliation cancelled');
           const source = await model.createAuthoredPhaseResources(accepted, configurationInput, { recompile: true });

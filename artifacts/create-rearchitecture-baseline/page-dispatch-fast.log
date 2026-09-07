@@ -1,0 +1,584 @@
+
+> check:fast
+> npm run catscan:check && npm run folder-contracts:ci && npm run check:source-size && npm run check:runtime-entrypoint && npm run check:world-entrypoint && npm run check:artifacts && npm run check:pipeline-map && node tools/run-test-files.mjs --fail-fast tests/data-workbench.test.cjs tests/browser-harness.test.cjs tests/browser-memory-receipt.test.cjs tests/catscan.test.cjs tests/causal-phase-diagnosis.test.cjs tests/compile-human-reviews.test.cjs tests/governing-metric.test.cjs tests/gpu-supercluster.test.cjs tests/phase-module-registry.test.cjs tests/profile-program.test.cjs tests/profile-world-spec.test.cjs tests/shared-domain-contracts.test.cjs tests/world-spec-reconciliation.test.cjs tests/world-spec-reconciliation-controller.test.cjs tests/world-spec.test.cjs tests/world-proof.test.cjs tests/world-runtime-loader.test.cjs tests/js-shape-architecture.test.cjs tests/js-shape-model-data.test.cjs tests/js-shape-runtime-progress.test.cjs tests/js-shape-browser-render.test.cjs
+
+
+> catscan:check
+> node tools/check-catscan.mjs
+
+CATSCAN valid: 39 recursive component charters and synchronized index.
+
+> folder-contracts:ci
+> node tools/check-folder-contracts.mjs --contract docs/simulatte/folder-contract.json --schema docs/simulatte/folder-contract.schema.json --repository-root . --allow-unavailable-external-sources
+
+Folder contract valid: simulatte; 869 directories, 70 nodes, 61 affected nodes.
+{
+  "changedFiles": 69,
+  "commands": [
+    "git diff --check",
+    "node --test tests/asteroid-defense.test.cjs",
+    "node --test tests/autonomy.test.cjs",
+    "node --test tests/cable-trader.test.cjs",
+    "node --test tests/folder-contracts.test.cjs",
+    "node --test tests/gpu-supercluster.test.cjs",
+    "node --test tests/multirate-coordinator.test.cjs tests/simulation-residency-manager.test.cjs tests/plugin-compositor-runtime.test.cjs tests/tier-run-controller.test.cjs",
+    "node --test tests/navigation-lifecycle.test.cjs tests/plugin-compositor-runtime.test.cjs",
+    "node --test tests/neighborhood-bulk-pool.test.cjs",
+    "node --test tests/nyc-real-estate.test.cjs",
+    "node --test tests/plugin-platform.test.cjs",
+    "node --test tests/plugin-platform.test.cjs tests/tier-application-loader.test.cjs",
+    "node --test tests/shared-domain-contracts.test.cjs",
+    "node --test tests/sun-walker-visual-storytelling.test.cjs",
+    "node --test tests/world-tile-manager.test.cjs tests/recursive-spatial-residency.test.cjs tests/recursive-world-webgpu-renderer.test.cjs tests/recursive-world-proof.test.cjs",
+    "npm run audit:simulatte:browser -- --check",
+    "npm run audit:simulatte:evidence",
+    "npm run audit:simulatte:reviews",
+    "npm run check:artifacts",
+    "npm run check:blank",
+    "npm run check:deploy",
+    "npm run check:fast",
+    "npm run check:hosting",
+    "npm run check:model-candidates",
+    "npm run check:model-lock",
+    "npm run check:model-populations",
+    "npm run check:runtime-entrypoint",
+    "npm run check:simulatte",
+    "npm run check:simulatte:evidence",
+    "npm run check:simulatte:reviews",
+    "npm run check:world",
+    "npm run check:world-entrypoint",
+    "npm run folder-contracts:check",
+    "npm run plugins:check",
+    "npm run qualify:recursive-reference",
+    "npm run samer:simulatte:check",
+    "npm run simulatte:tiers:check",
+    "npm run validate:universe",
+    "npm run validate:visual-cards",
+    "npm test"
+  ],
+  "browserJourneys": [
+    "/city/cable-trader-pickup-v1",
+    "/city/neighborhood-bulk-pool-v1",
+    "/city/nyc-development-atlas-v1",
+    "/city/sun-walker-v1",
+    "/country/food-recall-us-v1",
+    "/country/grid-resilience-us-v1",
+    "/datacenter/gpu-supercluster-v1",
+    "/recursive-reference.html",
+    "/solar-system/asteroid-defense-v1",
+    "/solar-system/orbital-transfer-planner-v1",
+    "/star-chart/interstellar-relay-network-v1",
+    "/world/maritime-trade-global-v1",
+    "/world/subsea-network-global-v1"
+  ]
+}
+
+> check:source-size
+> node tools/check-source-size.mjs
+
+SOURCE-SIZE warning 979 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js
+SOURCE-SIZE warning 978 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval.js
+SOURCE-SIZE warning 953 public/shared/plugins/nyc-real-estate/forecast-model.js
+SOURCE-SIZE warning 952 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js
+SOURCE-SIZE warning 950 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js
+SOURCE-SIZE warning 946 public/blank/pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js
+SOURCE-SIZE warning 938 public/blank/pipeline/phase-05-simulation/simulatte-physics-ir-builder.js
+SOURCE-SIZE warning 938 public/blank/pipeline/phase-06-visual/simulatte-object-geometry-grammars.js
+SOURCE-SIZE warning 930 public/simulatte/language/simulatte-universe-parser.js
+SOURCE-SIZE warning 928 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-selection-layout.js
+SOURCE-SIZE warning 923 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-programs.js
+SOURCE-SIZE warning 923 public/shared/core/simulation/multirate-coordinator.js
+SOURCE-SIZE warning 919 public/shared/plugins/neighborhood-bulk-pool/pool-solver.js
+SOURCE-SIZE warning 917 public/blank/pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js
+SOURCE-SIZE warning 917 public/simulatte/app/webgpu-renderer.js
+SOURCE-SIZE warning 913 public/simulatte/app/multi-tier-visualizer.js
+SOURCE-SIZE warning 912 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-runtime-language.js
+SOURCE-SIZE warning 910 public/shared/plugins/nyc-real-estate/v4-contribution.js
+SOURCE-SIZE warning 905 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js
+SOURCE-SIZE warning 900 public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js
+SOURCE-SIZE warning 899 public/shared/contracts/world-spec.js
+SOURCE-SIZE warning 880 public/blank/pipeline/phase-07-render/simulatte-render-proof.js
+SOURCE-SIZE warning 877 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank.js
+SOURCE-SIZE warning 875 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-materials.js
+SOURCE-SIZE warning 870 public/blank/pipeline/phase-05-simulation/simulatte-physics-catalog-templates.js
+SOURCE-SIZE warning 869 public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js
+SOURCE-SIZE warning 866 public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag-helpers.js
+SOURCE-SIZE warning 865 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-helpers.js
+SOURCE-SIZE warning 860 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js
+SOURCE-SIZE warning 858 public/blank/app/prompt/prompt-controller-workers.js
+SOURCE-SIZE warning 854 public/simulatte/app/webgpu-geometry.js
+SOURCE-SIZE warning 836 public/shared/plugins/sun-walker/sun-route-simulation.js
+SOURCE-SIZE warning 832 public/simulatte/mission/mission-compiler.js
+SOURCE-SIZE warning 826 public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js
+SOURCE-SIZE warning 825 public/simulatte/app/main.js
+SOURCE-SIZE warning 824 public/blank/pipeline/phase-05-simulation/simulatte-solver-compiler.js
+SOURCE-SIZE warning 816 public/blank/app/prompt/prompt-controller-lab-controller.js
+SOURCE-SIZE warning 803 public/shared/plugins/sun-walker/sun-exposure.js
+SOURCE-SIZE warning 799 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js
+SOURCE-SIZE warning 799 public/shared/plugins/interstellar-relay-network/index.js
+SOURCE-SIZE warning 796 public/blank/app/loading/loading-canvas.js
+SOURCE-SIZE warning 787 public/shared/plugins/neighborhood-bulk-pool/index.js
+SOURCE-SIZE warning 785 public/blank/app/runtime/runtime-progress-support.js
+SOURCE-SIZE warning 785 public/blank/pipeline/phase-05-simulation/simulatte-physics-model-spec-api.js
+SOURCE-SIZE warning 785 public/blank/pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js
+SOURCE-SIZE warning 784 public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag-surface-cards.js
+SOURCE-SIZE warning 770 public/shared/contracts/world-proof-intent.js
+SOURCE-SIZE warning 769 public/shared/plugins/maritime-trade-global/index.js
+SOURCE-SIZE warning 767 public/blank/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-helpers.js
+SOURCE-SIZE warning 762 public/blank/pipeline/phase-06-visual/simulatte-visual-operator-compiler.js
+SOURCE-SIZE warning 757 public/blank/pipeline/phase-06-visual/simulatte-composition-graph-visual-genome.js
+SOURCE-SIZE pass warnings=51 maximum=999
+
+> check:runtime-entrypoint
+> node tools/sync-runtime-script-entrypoint.mjs
+
+runtime script entrypoint is synchronized
+
+> check:world-entrypoint
+> node tools/check-world-runtime-entrypoint.mjs
+
+World runtime entrypoint is synchronized (13 eager scripts, 235 inventoried, 5 exclusive stages).
+
+> check:artifacts
+> node tools/sync-generated-artifact-inventory.mjs
+
+Generated artifact inventory is synchronized (9 artifacts).
+
+> check:pipeline-map
+> node tools/check-pipeline-engineering-map.mjs
+
+Pipeline engineering map resolved 16 jobs with owners, tests, validators, browser gates, and evidence.
+START browser-harness.test.cjs
+START browser-memory-receipt.test.cjs
+PASSED browser-memory-receipt.test.cjs tests=2
+START catscan.test.cjs
+PASSED browser-harness.test.cjs tests=7
+PASSED catscan.test.cjs tests=5
+START causal-phase-diagnosis.test.cjs
+START compile-human-reviews.test.cjs
+PASSED compile-human-reviews.test.cjs tests=1
+PASSED causal-phase-diagnosis.test.cjs tests=5
+START data-workbench.test.cjs
+START governing-metric.test.cjs
+PASSED data-workbench.test.cjs tests=11
+START gpu-supercluster.test.cjs
+PASSED governing-metric.test.cjs tests=4
+START js-shape-architecture.test.cjs
+PASSED gpu-supercluster.test.cjs tests=18
+START js-shape-browser-render.test.cjs
+PASSED js-shape-browser-render.test.cjs tests=13
+PASSED js-shape-architecture.test.cjs tests=8
+START js-shape-model-data.test.cjs
+START js-shape-runtime-progress.test.cjs
+PASSED js-shape-runtime-progress.test.cjs tests=11
+START phase-module-registry.test.cjs
+PASSED phase-module-registry.test.cjs tests=3
+START profile-program.test.cjs
+PASSED js-shape-model-data.test.cjs tests=17
+START profile-world-spec.test.cjs
+PASSED profile-program.test.cjs tests=10
+START shared-domain-contracts.test.cjs
+PASSED shared-domain-contracts.test.cjs tests=6
+START world-proof.test.cjs
+PASSED profile-world-spec.test.cjs tests=9
+START world-runtime-loader.test.cjs
+PASSED world-runtime-loader.test.cjs tests=3
+START world-spec-reconciliation-controller.test.cjs
+PASSED world-spec-reconciliation-controller.test.cjs tests=3
+START world-spec-reconciliation.test.cjs
+PASSED world-spec-reconciliation.test.cjs tests=7
+START world-spec.test.cjs
+PASSED world-proof.test.cjs tests=26
+FAILED world-spec.test.cjs tests=18
+
+--- world-spec.test.cjs (failed) ---
+TAP version 13
+# Subtest: canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys
+ok 1 - canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys
+  ---
+  duration_ms: 1.124522
+  type: 'test'
+  ...
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+ok 2 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 1353.513077
+  type: 'test'
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+ok 3 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 815.404108
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+ok 4 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 853.116445
+  type: 'test'
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+ok 5 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 850.769576
+  type: 'test'
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+ok 6 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 925.885184
+  type: 'test'
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+ok 7 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 762.12682
+  type: 'test'
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+ok 8 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 1047.113914
+  type: 'test'
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+ok 9 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 621.079875
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+ok 10 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 982.43766
+  type: 'test'
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 11 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 0.573034
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+ok 12 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 991.998845
+  type: 'test'
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+ok 13 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 932.954212
+  type: 'test'
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+ok 14 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 1988.67732
+  type: 'test'
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+ok 15 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 1292.453084
+  type: 'test'
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+not ok 16 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 860.878421
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:444:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Phase 1 evidence remains bound across a downstream user override
+    
+    ... Skipped lines
+    {
+      artifact: {
+        compositionLedger: {
+          currentPhase: 1,
+          entries: [
+            {
+              evidenceIds: [
+                'promptIngress.sourceText'
+              ],
+              id: 'prompt:source',
+              kind: 'prompt',
+              label: 'source prompt',
+              required: true,
+              source: 'prompt',
+              status: 'preserved',
+              supportOnly: false
+            }
+          ],
+          losses: [],
+          obligations: [],
+          phaseDeltas: [
+            {
+              entryId: 'prompt:source',
+              operation: 'preserved',
+              phase: 1,
+              receiptId: 'phase1-runtime-context'
+            }
+          ],
+          relations: [],
+          schema: 'simulatte.sceneCompositionLedger.v1',
+          sourcePhase: 1,
+          sourcePromptHash: 'fnv1a:96be00e8',
+          summary: {
+            entryCount: 1,
+            failedCount: 0,
+            obligationCount: 0,
+            relationCount: 0
+          },
+          unsupported: []
+        },
+        promptIngress: {
+          schema: 'simulatte.promptIngress.v1',
+          sourceText: 'a red ball rests beside a blue wall'
+        },
+        runtimeContext: {
+          backend: 'javascript',
+          cacheMode: 'static-in-memory-index',
+          deterministicReady: true,
+          modelId: 'simulatte-deterministic-language-runtime-v1',
+          modelSelection: null,
+    ...}
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    schema: 'simulatte.phase1.output.v1'
+    phase: 1
+    inputSchema: 'simulatte.phase0.input.v1'
+    runtimeReceiptId: 'runtime:21xk'
+    artifact:
+      runtimeContext:
+        schema: 'simulatte.phaseRuntimeContext.v1'
+        runtimeReceiptId: 'runtime:21xk'
+        modelId: 'simulatte-deterministic-language-runtime-v1'
+        backend: 'javascript'
+        cacheMode: 'static-in-memory-index'
+        providerReady: ~
+        deterministicReady: true
+        noFallback: true
+        promptRuntimeReceipt: ~
+        modelSelection: ~
+        retrievalPhase: 'deterministic-local'
+        runtimeMode: 'deterministic-local'
+      promptIngress:
+        schema: 'simulatte.promptIngress.v1'
+        sourceText: 'a red ball rests beside a blue wall'
+      compositionLedger:
+        schema: 'simulatte.sceneCompositionLedger.v1'
+        sourcePromptHash: 'fnv1a:96be00e8'
+        sourcePhase: 1
+        currentPhase: 1
+        entries:
+          0:
+            id: 'prompt:source'
+            kind: 'prompt'
+            label: 'source prompt'
+            source: 'prompt'
+            required: true
+            status: 'preserved'
+            evidenceIds:
+              0: 'promptIngress.sourceText'
+            supportOnly: false
+        relations:
+        obligations:
+        phaseDeltas:
+          0:
+            phase: 1
+            entryId: 'prompt:source'
+            operation: 'preserved'
+            receiptId: 'phase1-runtime-context'
+        losses:
+        unsupported:
+        summary:
+          entryCount: 1
+          relationCount: 0
+          obligationCount: 0
+          failedCount: 0
+    receipts:
+      0:
+        id: 'phase1-runtime-context'
+        schema: 'simulatte.phaseReceipt.v1'
+        modelId: 'simulatte-deterministic-language-runtime-v1'
+        backend: 'javascript'
+        cacheMode: 'static-in-memory-index'
+        providerReady: ~
+        runtimeMode: 'deterministic-local'
+        deterministicReady: true
+      1:
+        id: 'model-ready'
+        schema: 'simulatte.phaseReceipt.v1'
+        ready: true
+        required: false
+        skipReason: 'deterministic-runtime-selected'
+        modelId: 'simulatte-deterministic-language-runtime-v1'
+        backend: 'javascript'
+        providerReady: ~
+        noFallback: true
+      2:
+        id: 'model-probe'
+        schema: 'simulatte.phaseReceipt.v1'
+        ready: true
+        required: false
+        skipReason: 'deterministic-runtime-selected'
+        embeddingProbe: false
+        probeCount: 0
+        embeddingDim: 0
+        stabilitySimilarity: 0
+        maxDistinctProbeSimilarity: 0
+      3:
+        id: 'cache-health'
+        schema: 'simulatte.phaseReceipt.v1'
+        ready: true
+        cachePrefetch: false
+        cacheMode: 'static-in-memory-index'
+        modelBaseUrl: ''
+      4:
+        id: 'runtime-ready'
+        schema: 'simulatte.phaseReceipt.v1'
+        ready: true
+        providerReady: ~
+        deterministicReady: true
+        rerankerRequired: false
+        rerankerReady: true
+        rerankerStatus: ''
+        runtimeMode: 'deterministic-local'
+  actual:
+    artifact:
+      compositionLedger:
+        currentPhase: 1
+        entries:
+          0:
+            evidenceIds:
+              0: 'promptIngress.sourceText'
+            id: 'prompt:source'
+            kind: 'prompt'
+            label: 'source prompt'
+            required: true
+            source: 'prompt'
+            status: 'preserved'
+            supportOnly: false
+        losses:
+        obligations:
+        phaseDeltas:
+          0:
+            entryId: 'prompt:source'
+            operation: 'preserved'
+            phase: 1
+            receiptId: 'phase1-runtime-context'
+        relations:
+        schema: 'simulatte.sceneCompositionLedger.v1'
+        sourcePhase: 1
+        sourcePromptHash: 'fnv1a:96be00e8'
+        summary:
+          entryCount: 1
+          failedCount: 0
+          obligationCount: 0
+          relationCount: 0
+        unsupported:
+      promptIngress:
+        schema: 'simulatte.promptIngress.v1'
+        sourceText: 'a red ball rests beside a blue wall'
+      runtimeContext:
+        backend: 'javascript'
+        cacheMode: 'static-in-memory-index'
+        deterministicReady: true
+        modelId: 'simulatte-deterministic-language-runtime-v1'
+        modelSelection: ~
+        noFallback: true
+        promptRuntimeReceipt: ~
+        providerReady: ~
+        retrievalPhase: 'deterministic-local'
+        runtimeMode: 'deterministic-local'
+        runtimeReceiptId: 'runtime:21xk'
+        schema: 'simulatte.phaseRuntimeContext.v1'
+    inputSchema: 'simulatte.phase0.input.v1'
+    phase: 1
+    receipts:
+      0:
+        backend: 'javascript'
+        cacheMode: 'static-in-memory-index'
+        deterministicReady: true
+        id: 'phase1-runtime-context'
+        modelId: 'simulatte-deterministic-language-runtime-v1'
+        providerReady: ~
+        runtimeMode: 'deterministic-local'
+        schema: 'simulatte.phaseReceipt.v1'
+      1:
+        backend: 'javascript'
+        id: 'model-ready'
+        modelId: 'simulatte-deterministic-language-runtime-v1'
+        noFallback: true
+        providerReady: ~
+        ready: true
+        required: false
+        schema: 'simulatte.phaseReceipt.v1'
+        skipReason: 'deterministic-runtime-selected'
+      2:
+        embeddingDim: 0
+        embeddingProbe: false
+        id: 'model-probe'
+        maxDistinctProbeSimilarity: 0
+        probeCount: 0
+        ready: true
+        required: false
+        schema: 'simulatte.phaseReceipt.v1'
+        skipReason: 'deterministic-runtime-selected'
+        stabilitySimilarity: 0
+      3:
+        cacheMode: 'static-in-memory-index'
+        cachePrefetch: false
+        id: 'cache-health'
+        modelBaseUrl: ''
+        ready: true
+        schema: 'simulatte.phaseReceipt.v1'
+      4:
+        deterministicReady: true
+        id: 'runtime-ready'
+        providerReady: ~
+        ready: true
+        rerankerReady: true
+        rerankerRequired: false
+        rerankerStatus: ''
+        runtimeMode: 'deterministic-local'
+        schema: 'simulatte.phaseReceipt.v1'
+    runtimeReceiptId: 'runtime:21xk'
+    schema: 'simulatte.phase1.output.v1'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:459:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 17 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 0.664867
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+ok 18 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 804.784394
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 17
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15341.431168
+TEST-RUN files=21/21 tests=187 passed=20 failed=1

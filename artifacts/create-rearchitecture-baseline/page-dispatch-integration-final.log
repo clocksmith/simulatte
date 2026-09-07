@@ -1,0 +1,568 @@
+TAP version 13
+# Subtest: cancellation invalidates queued intent work, including before a worker starts
+ok 1 - cancellation invalidates queued intent work, including before a worker starts
+  ---
+  duration_ms: 29.277231
+  type: 'test'
+  ...
+# Subtest: a crashed intent worker cannot retain queued requests or receive future work
+ok 2 - a crashed intent worker cannot retain queued requests or receive future work
+  ---
+  duration_ms: 7.562373
+  type: 'test'
+  ...
+# Subtest: negation ends at a new clause without losing an affirmative count
+ok 3 - negation ends at a new clause without losing an affirmative count
+  ---
+  duration_ms: 13183.751281
+  type: 'test'
+  ...
+# Subtest: grounding cannot reintroduce excluded language spans or positive count obligations
+ok 4 - grounding cannot reintroduce excluded language spans or positive count obligations
+  ---
+  duration_ms: 1742.284055
+  type: 'test'
+  ...
+# Subtest: retrieval carriers reject absent and mismatched provenance instead of stamping evidence
+ok 5 - retrieval carriers reject absent and mismatched provenance instead of stamping evidence
+  ---
+  duration_ms: 21.159077
+  type: 'test'
+  ...
+# Subtest: interactive playback uses the proof timestep independently of display frequency
+ok 6 - interactive playback uses the proof timestep independently of display frequency
+  ---
+  duration_ms: 21.505077
+  type: 'test'
+  ...
+# Subtest: retrieval producers reject stale query provenance before loading model artifacts
+ok 7 - retrieval producers reject stale query provenance before loading model artifacts
+  ---
+  duration_ms: 1.668722
+  type: 'test'
+  ...
+# Subtest: visual compilation ignores raw prompt substitutions in a fixed typed simulation artifact
+ok 8 - visual compilation ignores raw prompt substitutions in a fixed typed simulation artifact
+  ---
+  duration_ms: 1716.409494
+  type: 'test'
+  ...
+# Subtest: stale readback failures clean their buffer without changing the active scene
+ok 9 - stale readback failures clean their buffer without changing the active scene
+  ---
+  duration_ms: 1.081192
+  type: 'test'
+  ...
+# Subtest: a current readback failure still marks current proof failed
+ok 10 - a current readback failure still marks current proof failed
+  ---
+  duration_ms: 0.649462
+  type: 'test'
+  ...
+# Subtest: unchanged geometry cannot cache unexercised or failed simulation evidence
+ok 11 - unchanged geometry cannot cache unexercised or failed simulation evidence
+  ---
+  duration_ms: 4128.661446
+  type: 'test'
+  ...
+# Subtest: passing visual flags cannot erase a carried lost obligation
+ok 12 - passing visual flags cannot erase a carried lost obligation
+  ---
+  duration_ms: 2.975448
+  type: 'test'
+  ...
+# Subtest: falling reaches one real body and a gravity operator without a visible gravity object or fluid substitution
+ok 13 - falling reaches one real body and a gravity operator without a visible gravity object or fluid substitution
+  ---
+  duration_ms: 3728.488784
+  type: 'test'
+  ...
+# Subtest: pendulum integration oscillates with bounded energy and the rendered rod connects pivot to bob
+ok 14 - pendulum integration oscillates with bounded energy and the rendered rod connects pivot to bob
+  ---
+  duration_ms: 3625.097697
+  type: 'test'
+  ...
+# Subtest: invalid mechanics cannot silently generate non-finite or energy-creating state
+ok 15 - invalid mechanics cannot silently generate non-finite or energy-creating state
+  ---
+  duration_ms: 0.608819
+  type: 'test'
+  ...
+# Subtest: autonomous solver frames refresh the uploaded parts without an interaction, and absent execution cannot prove motion
+ok 16 - autonomous solver frames refresh the uploaded parts without an interaction, and absent execution cannot prove motion
+  ---
+  duration_ms: 2719.751568
+  type: 'test'
+  ...
+# Subtest: qualified absence preserves positive mentions, including reversed clause order
+ok 17 - qualified absence preserves positive mentions, including reversed clause order
+  ---
+  duration_ms: 3717.908678
+  type: 'test'
+  ...
+# Subtest: Phase 5 retains adverse status and only associates operators with their own obligations
+ok 18 - Phase 5 retains adverse status and only associates operators with their own obligations
+  ---
+  duration_ms: 3.470738
+  type: 'test'
+  ...
+# Subtest: training exposes exact adjacent envelopes, detached snapshots, and discards previous run proof
+ok 19 - training exposes exact adjacent envelopes, detached snapshots, and discards previous run proof
+  ---
+  duration_ms: 2817.275548
+  type: 'test'
+  ...
+# Subtest: progress assigns all proof events to Phase 8 and keeps the failing phase
+ok 20 - progress assigns all proof events to Phase 8 and keeps the failing phase
+  ---
+  duration_ms: 1.26643
+  type: 'test'
+  ...
+# Subtest: historical page chains validate independently and reject altered artifacts, invocations, and provenance
+ok 21 - historical page chains validate independently and reject altered artifacts, invocations, and provenance
+  ---
+  duration_ms: 7258.641696
+  type: 'test'
+  ...
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 22 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 13.835685
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 23 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 51.975361
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 24 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 31.53208
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 25 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 4.156728
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 26 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 54.753458
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 27 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.881557
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 28 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.592726
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 29 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 2960.533905
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+ok 30 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 2568.701391
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+ok 31 - WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+  ---
+  duration_ms: 2509.986376
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+ok 32 - WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+  ---
+  duration_ms: 2280.433822
+  type: 'test'
+  ...
+# Subtest: synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+ok 33 - synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+  ---
+  duration_ms: 3862.378241
+  type: 'test'
+  ...
+# Subtest: compiled water state channels retain their entity owner through serializable phase artifacts
+ok 34 - compiled water state channels retain their entity owner through serializable phase artifacts
+  ---
+  duration_ms: 4064.154026
+  type: 'test'
+  ...
+# Subtest: invocation acquisition obeys cancellation and the phase deadline
+ok 35 - invocation acquisition obeys cancellation and the phase deadline
+  ---
+  duration_ms: 36.480728
+  type: 'test'
+  ...
+# Subtest: resource selection and immutable assets cannot change while a run waits
+ok 36 - resource selection and immutable assets cannot change while a run waits
+  ---
+  duration_ms: 24.097296
+  type: 'test'
+  ...
+# Subtest: integrity rejects array metadata and non-enumerable artifact fields
+ok 37 - integrity rejects array metadata and non-enumerable artifact fields
+  ---
+  duration_ms: 0.384632
+  type: 'test'
+  ...
+# Subtest: binding snapshots receipts and metadata and detects tampering outside artifact payloads
+ok 38 - binding snapshots receipts and metadata and detects tampering outside artifact payloads
+  ---
+  duration_ms: 39.304892
+  type: 'test'
+  ...
+# Subtest: owned snapshots reuse only validated immutable trees and preserve canonical integrity
+ok 39 - owned snapshots reuse only validated immutable trees and preserve canonical integrity
+  ---
+  duration_ms: 7.745775
+  type: 'test'
+  ...
+# Subtest: public governing metric keeps machine proof, human proof, scope, and dimensions separate
+ok 40 - public governing metric keeps machine proof, human proof, scope, and dimensions separate
+  ---
+  duration_ms: 213.088793
+  type: 'test'
+  ...
+# Subtest: one critical prompt failure fails the governing machine gate instead of averaging away
+ok 41 - one critical prompt failure fails the governing machine gate instead of averaging away
+  ---
+  duration_ms: 121.688032
+  type: 'test'
+  ...
+# Subtest: governing metric rejects stale builds and incomplete boundary evidence
+ok 42 - governing metric rejects stale builds and incomplete boundary evidence
+  ---
+  duration_ms: 163.537519
+  type: 'test'
+  ...
+# Subtest: current editor evidence cannot downgrade its retained phase-source exchange contract
+ok 43 - current editor evidence cannot downgrade its retained phase-source exchange contract
+  ---
+  duration_ms: 77.298835
+  type: 'test'
+  ...
+# Subtest: managed Phase 7 consumes explicit state and viewport and waits for both GPU and mapping completion
+ok 44 - managed Phase 7 consumes explicit state and viewport and waits for both GPU and mapping completion
+  ---
+  duration_ms: 3480.775631
+  type: 'test'
+  ...
+# Subtest: managed rendering snapshots a mutable predecessor before asynchronous initialization
+ok 45 - managed rendering snapshots a mutable predecessor before asynchronous initialization
+  ---
+  duration_ms: 41.020286
+  type: 'test'
+  ...
+# Subtest: cancellation clears evidence but retains ownership until in-flight GPU work settles
+ok 46 - cancellation clears evidence but retains ownership until in-flight GPU work settles
+  ---
+  duration_ms: 31.287623
+  type: 'test'
+  ...
+# Subtest: invalid predecessor, malformed invocation, contradictory time and texture exhaustion submit no work
+ok 47 - invalid predecessor, malformed invocation, contradictory time and texture exhaustion submit no work
+  ---
+  duration_ms: 59.837009
+  type: 'test'
+  ...
+# Subtest: declared simulation snapshots bind the authored program to its exact Phase 6 artifact
+ok 48 - declared simulation snapshots bind the authored program to its exact Phase 6 artifact
+  ---
+  duration_ms: 481.901171
+  type: 'test'
+  ...
+# Subtest: device loss and viewport corruption cannot produce a completed phase
+ok 49 - device loss and viewport corruption cannot produce a completed phase
+  ---
+  duration_ms: 90.808044
+  type: 'test'
+  ...
+# Subtest: page dispatch executes and retains eight bound phases through the existing worker
+ok 50 - page dispatch executes and retains eight bound phases through the existing worker
+  ---
+  duration_ms: 24175.815186
+  type: 'test'
+  ...
+# Subtest: worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+ok 51 - worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+  ---
+  duration_ms: 6464.408066
+  type: 'test'
+  ...
+# Subtest: phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+ok 52 - phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+  ---
+  duration_ms: 6.946543
+  type: 'test'
+  ...
+# Subtest: authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+ok 53 - authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+  ---
+  duration_ms: 7405.882397
+  type: 'test'
+  ...
+# Subtest: authored replay rejects changed provenance, cross-world sources and ignored authoring
+ok 54 - authored replay rejects changed provenance, cross-world sources and ignored authoring
+  ---
+  duration_ms: 5872.31643
+  type: 'test'
+  ...
+# Subtest: cancelling a worker phase stops its worker and stale events cannot poison its replacement
+ok 55 - cancelling a worker phase stops its worker and stale events cannot poison its replacement
+  ---
+  duration_ms: 1.017876
+  type: 'test'
+  ...
+# Subtest: worker failure terminates the failed instance and rejects pending and future calls
+ok 56 - worker failure terminates the failed instance and rejects pending and future calls
+  ---
+  duration_ms: 0.513779
+  type: 'test'
+  ...
+# Subtest: compatibility compile retains its WorldSpec result through the same worker protocol
+ok 57 - compatibility compile retains its WorldSpec result through the same worker protocol
+  ---
+  duration_ms: 4581.13359
+  type: 'test'
+  ...
+# Subtest: page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+ok 58 - page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+  ---
+  duration_ms: 12924.840314
+  type: 'test'
+  ...
+# Subtest: page cancellation settles pending ingress and malformed options retain their failure
+ok 59 - page cancellation settles pending ingress and malformed options retain their failure
+  ---
+  duration_ms: 1.261424
+  type: 'test'
+  ...
+# Subtest: WorldProof binds all eight proof classes to the exact WorldSpec revision
+ok 60 - WorldProof binds all eight proof classes to the exact WorldSpec revision
+  ---
+  duration_ms: 5043.794992
+  type: 'test'
+  ...
+# Subtest: WorldProof does not convert a visual failure into another proof class
+ok 61 - WorldProof does not convert a visual failure into another proof class
+  ---
+  duration_ms: 2561.177139
+  type: 'test'
+  ...
+# Subtest: WorldProof passes only when every required proof class has its own receipt
+ok 62 - WorldProof passes only when every required proof class has its own receipt
+  ---
+  duration_ms: 3033.559956
+  type: 'test'
+  ...
+# Subtest: intent proof preserves exact counts, attributes, and negation as separate critical requirements
+ok 63 - intent proof preserves exact counts, attributes, and negation as separate critical requirements
+  ---
+  duration_ms: 3241.0121
+  type: 'test'
+  ...
+# Subtest: intent proof treats an unsupported concept and its relation as explicit refusals
+ok 64 - intent proof treats an unsupported concept and its relation as explicit refusals
+  ---
+  duration_ms: 2837.598334
+  type: 'test'
+  ...
+# Subtest: semantic provenance binds accepted entities, relations, properties, quantities, and negation
+ok 65 - semantic provenance binds accepted entities, relations, properties, quantities, and negation
+  ---
+  duration_ms: 6090.07776
+  type: 'test'
+  ...
+# Subtest: semantic provenance fails closed when accepted node or relation evidence is lost
+ok 66 - semantic provenance fails closed when accepted node or relation evidence is lost
+  ---
+  duration_ms: 3658.017047
+  type: 'test'
+  ...
+# Subtest: WorldProof rejects tampered, rebound, or stale semantic receipts
+ok 67 - WorldProof rejects tampered, rebound, or stale semantic receipts
+  ---
+  duration_ms: 5004.328221
+  type: 'test'
+  ...
+# Subtest: interaction proof binds declared actions to recomputable before and after state
+ok 68 - interaction proof binds declared actions to recomputable before and after state
+  ---
+  duration_ms: 4705.650573
+  type: 'test'
+  ...
+# Subtest: WorldProof rejects fabricated, tampered, or rebound interaction proof
+ok 69 - WorldProof rejects fabricated, tampered, or rebound interaction proof
+  ---
+  duration_ms: 7849.135314
+  type: 'test'
+  ...
+# Subtest: replay proof detects a changed interaction transition trace
+ok 70 - replay proof detects a changed interaction transition trace
+  ---
+  duration_ms: 7238.288089
+  type: 'test'
+  ...
+# Subtest: replay proof compares an externally bound execution identity
+ok 71 - replay proof compares an externally bound execution identity
+  ---
+  duration_ms: 3171.683233
+  type: 'test'
+  ...
+# Subtest: intent settlement fails a dropped critical requirement and retains unresolved as not-proven
+ok 72 - intent settlement fails a dropped critical requirement and retains unresolved as not-proven
+  ---
+  duration_ms: 2983.952355
+  type: 'test'
+  ...
+# Subtest: WorldProof rejects tampered or rebound intent receipts
+ok 73 - WorldProof rejects tampered or rebound intent receipts
+  ---
+  duration_ms: 5031.010463
+  type: 'test'
+  ...
+# Subtest: WorldProof content hash rejects mutated verdicts
+ok 74 - WorldProof content hash rejects mutated verdicts
+  ---
+  duration_ms: 2162.540119
+  type: 'test'
+  ...
+# Subtest: live solver execution settles simulation proof without borrowing render evidence
+ok 75 - live solver execution settles simulation proof without borrowing render evidence
+  ---
+  duration_ms: 1959.607801
+  type: 'test'
+  ...
+# Subtest: replay proof compares identified semantic, behavioral, and visual outcomes
+ok 76 - replay proof compares identified semantic, behavioral, and visual outcomes
+  ---
+  duration_ms: 2196.575234
+  type: 'test'
+  ...
+# Subtest: compiler determinism binds an independent compile to the pre-edit baseline
+ok 77 - compiler determinism binds an independent compile to the pre-edit baseline
+  ---
+  duration_ms: 3573.748694
+  type: 'test'
+  ...
+# Subtest: simulation reproducibility compares independent fixed-step state within declared tolerance
+ok 78 - simulation reproducibility compares independent fixed-step state within declared tolerance
+  ---
+  duration_ms: 1605.185004
+  type: 'test'
+  ...
+# Subtest: declared safety gates evaluate every fixed-step checkpoint twice
+ok 79 - declared safety gates evaluate every fixed-step checkpoint twice
+  ---
+  duration_ms: 1654.119646
+  type: 'test'
+  ...
+# Subtest: a blocking safety violation fails independently of simulation and visual proof
+ok 80 - a blocking safety violation fails independently of simulation and visual proof
+  ---
+  duration_ms: 1762.379051
+  type: 'test'
+  ...
+# Subtest: a warning safety violation remains visible without blocking execution
+ok 81 - a warning safety violation remains visible without blocking execution
+  ---
+  duration_ms: 1741.16521
+  type: 'test'
+  ...
+# Subtest: WorldProof rejects untyped or rebound safety receipts
+ok 82 - WorldProof rejects untyped or rebound safety receipts
+  ---
+  duration_ms: 1780.886243
+  type: 'test'
+  ...
+# Subtest: compiler determinism fails on different inputs, output, lane, or build binding
+ok 83 - compiler determinism fails on different inputs, output, lane, or build binding
+  ---
+  duration_ms: 2879.803824
+  type: 'test'
+  ...
+# Subtest: declared determinism classes without a proving receipt remain not-proven
+ok 84 - declared determinism classes without a proving receipt remain not-proven
+  ---
+  duration_ms: 1543.041936
+  type: 'test'
+  ...
+# Subtest: published WorldProof schema names the canonical contract
+ok 85 - published WorldProof schema names the canonical contract
+  ---
+  duration_ms: 0.710634
+  type: 'test'
+  ...
+# Subtest: part candidates preserve optional quantities without publishing undefined fields
+ok 86 - part candidates preserve optional quantities without publishing undefined fields
+  ---
+  duration_ms: 5945.933027
+  type: 'test'
+  ...
+# Subtest: explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+ok 87 - explicit local intent resolution applies new parameter overrides without mutating the accepted intent
+  ---
+  duration_ms: 3760.736582
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+ok 88 - WorldSpec projection preserves blank and composed authoring fields, accepted physics and visuals
+  ---
+  duration_ms: 9083.665182
+  type: 'test'
+  ...
+# Subtest: actual runner outputs project a WorldSpec without changing accepted bindings
+ok 89 - actual runner outputs project a WorldSpec without changing accepted bindings
+  ---
+  duration_ms: 4848.544122
+  type: 'test'
+  ...
+# Subtest: WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+ok 90 - WorldSpec projection rejects mixed requests and incomplete or contradictory authoring inputs
+  ---
+  duration_ms: 4104.068892
+  type: 'test'
+  ...
+# Subtest: authored phase exports preserve edits and reject contradictory imports without reusing execution proof
+ok 91 - authored phase exports preserve edits and reject contradictory imports without reusing execution proof
+  ---
+  duration_ms: 5380.092219
+  type: 'test'
+  ...
+# Subtest: editor file import passes retained phase sources to execution before preparing the editable draft
+ok 92 - editor file import passes retained phase sources to execution before preparing the editable draft
+  ---
+  duration_ms: 4007.313139
+  type: 'test'
+  ...
+# Subtest: editor cancels obsolete apply results, errors, and file reads before they can publish
+ok 93 - editor cancels obsolete apply results, errors, and file reads before they can publish
+  ---
+  duration_ms: 1.494262
+  type: 'test'
+  ...
+1..93
+# tests 93
+# suites 0
+# pass 93
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 105009.050436

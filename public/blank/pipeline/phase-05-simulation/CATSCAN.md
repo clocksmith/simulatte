@@ -31,9 +31,9 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 - Directed motion binds subject and target state channels using bounded planar steering, without cognition or collision physics.
 - Solver receipts name executed operators and reject missing or non-finite state.
 - Create owns WorldSpec determinism, dependency, and safety defaults; shared validators cannot invent them.
-- Authored replay validates retained phase sources and exact program identity, requalifies runtime, and excludes stale execution proof.
+- Authored requests validate sources and program identity, requalify runtime, and recompile accepted edits. Synchronous compatibility projects sources without stale bindings.
 - WorldSpec projections preserve authoring, channels, visuals, and Phase 6 bindings; contradictions reject. Render snapshots bind WorldSpec and exact Phase 6.
-- Simulation reproducibility uses two fresh states, the declared fixed-step policy, and a typed state comparison receipt.
+- Simulation reproducibility uses two fresh states, declared fixed-step policy, and a typed state comparison receipt.
 - Every applied interaction command retains its program identity and recomputable before/after state; a no-op cannot prove a transition.
 - Declared safety rules execute at every fixed-step checkpoint in two fresh runs; missing, blocking, or divergent decisions fail closed.
 

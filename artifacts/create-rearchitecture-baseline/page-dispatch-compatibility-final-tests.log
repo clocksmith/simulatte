@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: page dispatch executes and retains eight bound phases through the existing worker
+ok 1 - page dispatch executes and retains eight bound phases through the existing worker
+  ---
+  duration_ms: 6445.538626
+  type: 'test'
+  ...
+# Subtest: worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+ok 2 - worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+  ---
+  duration_ms: 1524.872072
+  type: 'test'
+  ...
+# Subtest: phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+ok 3 - phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+  ---
+  duration_ms: 2.660388
+  type: 'test'
+  ...
+# Subtest: authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+ok 4 - authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+  ---
+  duration_ms: 1533.722284
+  type: 'test'
+  ...
+# Subtest: authored replay rejects changed provenance, cross-world sources and ignored authoring
+ok 5 - authored replay rejects changed provenance, cross-world sources and ignored authoring
+  ---
+  duration_ms: 1424.847188
+  type: 'test'
+  ...
+# Subtest: cancelling a worker phase stops its worker and stale events cannot poison its replacement
+ok 6 - cancelling a worker phase stops its worker and stale events cannot poison its replacement
+  ---
+  duration_ms: 0.574525
+  type: 'test'
+  ...
+# Subtest: worker failure terminates the failed instance and rejects pending and future calls
+ok 7 - worker failure terminates the failed instance and rejects pending and future calls
+  ---
+  duration_ms: 0.291514
+  type: 'test'
+  ...
+# Subtest: compatibility compile retains its WorldSpec result through the same worker protocol
+ok 8 - compatibility compile retains its WorldSpec result through the same worker protocol
+  ---
+  duration_ms: 1095.44043
+  type: 'test'
+  ...
+# Subtest: page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+ok 9 - page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+  ---
+  duration_ms: 3034.831092
+  type: 'test'
+  ...
+# Subtest: canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys
+ok 10 - canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys
+  ---
+  duration_ms: 1.738025
+  type: 'test'
+  ...
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+ok 11 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 1306.77811
+  type: 'test'
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+ok 12 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 689.547996
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+ok 13 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 818.613206
+  type: 'test'
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+ok 14 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 779.301322
+  type: 'test'
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+ok 15 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 1121.202431
+  type: 'test'
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+ok 16 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 848.684438
+  type: 'test'
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+ok 17 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 1130.890321
+  type: 'test'
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+ok 18 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 706.76434
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+ok 19 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 1054.068323
+  type: 'test'
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 20 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 0.574514
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+ok 21 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 1016.686734
+  type: 'test'
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+ok 22 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 961.685649
+  type: 'test'
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+ok 23 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 2260.703552
+  type: 'test'
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+ok 24 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 1153.667334
+  type: 'test'
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+ok 25 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 986.745144
+  type: 'test'
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 26 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 1.719578
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+ok 27 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 800.518179
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15900.319563

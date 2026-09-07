@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 23.107127
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 54.329896
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 24.608698
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 7.65959
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 47.652088
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.799744
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.643913
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 3790.959847
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+ok 9 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 1888.072544
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+ok 10 - WorldSpec normalization preserves the accepted bound visual artifact across worker transfer
+  ---
+  duration_ms: 1641.4874
+  type: 'test'
+  ...
+# Subtest: WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+ok 11 - WorldSpec normalization refuses contradictory accepted visual artifacts instead of recompiling them
+  ---
+  duration_ms: 1301.932113
+  type: 'test'
+  ...
+# Subtest: synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+ok 12 - synchronous compatibility assembly consumes the same Phase 4 and Phase 5 outputs as forward execution
+  ---
+  duration_ms: 2280.152287
+  type: 'test'
+  ...
+# Subtest: compiled water state channels retain their entity owner through serializable phase artifacts
+ok 13 - compiled water state channels retain their entity owner through serializable phase artifacts
+  ---
+  duration_ms: 2533.154219
+  type: 'test'
+  ...
+# Subtest: invocation acquisition obeys cancellation and the phase deadline
+ok 14 - invocation acquisition obeys cancellation and the phase deadline
+  ---
+  duration_ms: 39.098469
+  type: 'test'
+  ...
+# Subtest: resource selection and immutable assets cannot change while a run waits
+ok 15 - resource selection and immutable assets cannot change while a run waits
+  ---
+  duration_ms: 11.651122
+  type: 'test'
+  ...
+# Subtest: integrity rejects array metadata and non-enumerable artifact fields
+ok 16 - integrity rejects array metadata and non-enumerable artifact fields
+  ---
+  duration_ms: 0.369888
+  type: 'test'
+  ...
+# Subtest: binding snapshots receipts and metadata and detects tampering outside artifact payloads
+ok 17 - binding snapshots receipts and metadata and detects tampering outside artifact payloads
+  ---
+  duration_ms: 4.13903
+  type: 'test'
+  ...
+# Subtest: owned snapshots reuse only validated immutable trees and preserve canonical integrity
+ok 18 - owned snapshots reuse only validated immutable trees and preserve canonical integrity
+  ---
+  duration_ms: 1.114508
+  type: 'test'
+  ...
+# Subtest: page dispatch executes and retains eight bound phases through the existing worker
+ok 19 - page dispatch executes and retains eight bound phases through the existing worker
+  ---
+  duration_ms: 14172.832262
+  type: 'test'
+  ...
+# Subtest: worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+ok 20 - worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+  ---
+  duration_ms: 3231.436126
+  type: 'test'
+  ...
+# Subtest: phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+ok 21 - phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+  ---
+  duration_ms: 6.176931
+  type: 'test'
+  ...
+# Subtest: authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+ok 22 - authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+  ---
+  duration_ms: 3610.084073
+  type: 'test'
+  ...
+# Subtest: authored replay rejects changed provenance, cross-world sources and ignored authoring
+ok 23 - authored replay rejects changed provenance, cross-world sources and ignored authoring
+  ---
+  duration_ms: 3342.517787
+  type: 'test'
+  ...
+# Subtest: cancelling a worker phase stops its worker and stale events cannot poison its replacement
+ok 24 - cancelling a worker phase stops its worker and stale events cannot poison its replacement
+  ---
+  duration_ms: 0.986079
+  type: 'test'
+  ...
+# Subtest: worker failure terminates the failed instance and rejects pending and future calls
+ok 25 - worker failure terminates the failed instance and rejects pending and future calls
+  ---
+  duration_ms: 0.535072
+  type: 'test'
+  ...
+# Subtest: compatibility compile retains its WorldSpec result through the same worker protocol
+ok 26 - compatibility compile retains its WorldSpec result through the same worker protocol
+  ---
+  duration_ms: 2158.453981
+  type: 'test'
+  ...
+# Subtest: page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+ok 27 - page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+  ---
+  duration_ms: 6005.086871
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 33037.165678

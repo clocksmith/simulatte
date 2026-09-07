@@ -77,8 +77,7 @@
         if (await contracts.artifactDigest(source.authoring) !== source.worldSpecDigest) throw new Error('Authored edit program digest mismatch');
         output = scope.createUserOverridePhase4(contracts.legacyPhaseProjection(source.output), source.authoring,
           { intentRequirements: previous.artifact.intentRequirements });
-        output = { ...output, runtimeReceiptId: call.previous.runtimeReceiptId,
-          artifact: { ...output.artifact, runtimeContext: previous.artifact.runtimeContext } };
+        output = { ...output, runtimeReceiptId: call.previous.runtimeReceiptId };
       } else output = phase === 5 ? scope.runPhase5SimulationCompile(previous) : scope.runPhase6VisualCompile(previous);
     } else {
       const compatible = contracts.legacyPhaseProjection(source.output);
@@ -103,7 +102,8 @@
     const phase6 = contracts.immutableArtifact(options.phase6Output || spec.phaseArtifacts.phase6);
     contracts.assertPhaseEnvelope(phase6, 6, 'Render invocation predecessor');
     const captured = contracts.immutableArtifact({ state: simulationState,
-      worldProofBinding, frame, viewport });
+      worldProofBinding, frame, viewport,
+      proofReceipts: Object.fromEntries(contracts.RENDER_PROOF_RECEIPTS.map(key => [key, options[key] ?? null])) });
     if (contracts.canonicalJson(spec.renderProgram.sceneRenderPacket) !==
         contracts.canonicalJson(phase6.artifact.visualCompile.sceneRenderPacket)) {
       throw new Error('WorldSpec render program contradicts its Phase 6 artifact');
@@ -115,8 +115,9 @@
         throw new Error('Render predecessor is not bound to the authored WorldSpec');
       }
     }
-    const snapshot = contracts.immutableArtifact({ schema: 'simulatte.renderSimulationSnapshot.v1',
+    const snapshot = contracts.immutableArtifact({ schema: 'simulatte.renderSimulationSnapshot.v2',
       state: captured.state, worldProofBinding: captured.worldProofBinding,
+      proofReceipts: captured.proofReceipts,
       phase6Digest: await contracts.artifactDigest(phase6) });
     const invocation = contracts.immutableArtifact({ simulationSnapshot: {
       ...snapshot, contentDigest: await contracts.artifactDigest(snapshot),
@@ -214,7 +215,16 @@
     if (edited.authorship.revision === 0) return scope.acceptNormalizedWorldSpec(edited);
     const currentPhase4 = edited.phaseArtifacts && edited.phaseArtifacts.phase4;
     if (!currentPhase4) throw new Error('WorldSpec edit requires the compiled Phase 4 artifact');
-    const userOverridePhase4 = scope.createUserOverridePhase4(currentPhase4, edited);
+    const compatiblePhases = Object.fromEntries([1, 2, 3, 4].map(phase => {
+      const original = edited.phaseArtifacts[`phase${phase}`];
+      if (!original.binding) return [`phase${phase}`, original];
+      const projected = scope.phaseContracts.legacyPhaseProjection(original);
+      return [`phase${phase}`, { ...projected, receipts: [...projected.receipts.filter(row => row.id !== 'local-authored-source'), {
+        id: 'local-authored-source', schema: 'simulatte.phaseReceipt.v1',
+        mode: 'synchronous-compatibility-projection', sourceSchema: original.schema, sourceBinding: original.binding,
+      }] }];
+    }));
+    const userOverridePhase4 = scope.createUserOverridePhase4(compatiblePhases.phase4, edited);
     const intent = edited.intent && typeof edited.intent === 'object'
       ? {
         ...edited.intent,
@@ -240,9 +250,9 @@
       contract: edited.contract,
       universeGraph: edited.universeGraph,
       phaseArtifacts: {
-        phase1: edited.phaseArtifacts.phase1,
-        phase2: edited.phaseArtifacts.phase2,
-        phase3: edited.phaseArtifacts.phase3,
+        phase1: compatiblePhases.phase1,
+        phase2: compatiblePhases.phase2,
+        phase3: compatiblePhases.phase3,
         phase4: userOverridePhase4,
       },
       createdAt: edited.createdAt,

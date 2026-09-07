@@ -219,7 +219,7 @@
     const expectedSchema = number <= 2
       ? `simulatte.phase${number}.output.v1`
       : `simulatte.phase${number}.output.v2`;
-    return Boolean(phase && phase.schema === expectedSchema);
+    return Boolean(phase && (phase.schema === expectedSchema || phase.schema === `simulatte.phase${number}.output.v3`));
   }
 
   function statusFromReceipt(receipt, passStatuses = ['pass']) {

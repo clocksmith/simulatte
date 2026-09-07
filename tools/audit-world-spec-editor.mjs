@@ -8,6 +8,7 @@ import {
   endBrowserMemoryWindow,
   validateBrowserMemoryReceipt,
 } from './browser-memory-receipt.mjs';
+import { validateCreatePageExecutions } from './create-page-execution-evidence.mjs';
 import { openBrowserAudit } from './simulatte/browser-session.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -159,6 +160,7 @@ function editorProbeExpression(boundary) {
       return spec?.schema === 'simulatte.worldSpec.v1' &&
         spec.source?.prompt === prompt && spec.phaseArtifacts?.phase6 ? spec : null;
     });
+    const pipelineExecutions = { compiled: lab.getPipelineRun() };
     await waitFor('initial Phase 7 frame', () => Number(canvas.dataset.renderCount || 0) > 0);
     await waitFor('initial critical proof failure', () => {
       const failures = JSON.parse(canvas.dataset.sceneProofRequiredFailures || '[]');
@@ -235,6 +237,7 @@ function editorProbeExpression(boundary) {
       return spec?.authorship?.revision === before.revision + 1 && spec.contentHash !== before.contentHash
         ? spec : null;
     });
+    pipelineExecutions.edited = lab.getPipelineRun();
     await waitFor('edited Phase 7 frame', () => (
       Number(canvas.dataset.renderInputSerial || 0) > before.renderInputSerial &&
       Number(canvas.dataset.renderCount || 0) > before.renderCount
@@ -263,7 +266,9 @@ function editorProbeExpression(boundary) {
     importFile.dispatchEvent(new Event('change', { bubbles: true }));
     edited = await waitFor('imported executable WorldSpec', () => {
       const spec = lab.getSpec();
-      return spec?.contentHash === exportedProgram.contentHash &&
+      return lab.getPipelineRun()?.revision > pipelineExecutions.edited.revision &&
+        lab.getPipelineRun()?.status === 'completed' &&
+        spec?.contentHash === exportedProgram.contentHash &&
         spec.authorship?.revision === exportedProgram.authorship?.revision &&
         spec.phaseArtifacts?.phase6?.artifact?.visualCompile &&
         Number(canvas.dataset.renderInputSerial || 0) > beforeImportRenderInputSerial ? spec : null;
@@ -272,8 +277,9 @@ function editorProbeExpression(boundary) {
       Number(canvas.dataset.renderInputSerial || 0) > beforeImportRenderInputSerial &&
       Number(canvas.dataset.renderCount || 0) > beforeImportRenderCount
     ));
+    pipelineExecutions.imported = lab.getPipelineRun();
     const exchange = {
-      schema: 'simulatte.worldSpecBrowserExchange.v2',
+      schema: 'simulatte.worldSpecBrowserExchange.v3',
       exportedContentHash: exportedProgram.contentHash || '',
       exportedRevision: Number(exportedProgram.authorship?.revision || 0),
       exportedBytes: new TextEncoder().encode(exportedPayload).byteLength,
@@ -462,6 +468,7 @@ function editorProbeExpression(boundary) {
         reconciliation.previousWorldSpec.contentHash === edited.contentHash &&
         current.contentHash !== edited.contentHash ? current : null;
     });
+    pipelineExecutions.reconciled = lab.getPipelineRun();
     await waitFor('reconciled Phase 7 frame', () => (
       Number(canvas.dataset.renderInputSerial || 0) > reconciliationInputSerial &&
       canvas.dataset.worldProofWorldSpecHash === reconciled.contentHash &&
@@ -507,7 +514,9 @@ function editorProbeExpression(boundary) {
       pixelReadbackMatches: Boolean(submittedFrame) && submittedFrame.readbackSerial === canvas.__simulattePixelSamples?.readbackSerial,
     };
     return {
-      schema: 'simulatte.worldSpecEditorBrowserAudit.v2',
+      schema: 'simulatte.worldSpecEditorBrowserAudit.v3',
+      pipelineExecutions,
+      runtimeSourceDigest: document.querySelector('meta[name="simulatte-runtime-source"]')?.content || '',
       buildId: document.querySelector('meta[name="simulatte-build"]')?.content || '',
       boundarySetId: boundary.boundarySetId,
       boundaryRowId: boundary.id,
@@ -681,7 +690,7 @@ export function assertReceipt(receipt, boundary) {
     [receipt.after.renderInputSerial > receipt.before.renderInputSerial, 'Phase 7 did not accept a new render input'],
     [receipt.after.renderCount > receipt.before.renderCount, 'Phase 7 did not render the edited world'],
     [receipt.after.revision === receipt.before.revision + 1, 'the user edit did not create exactly one append-only revision'],
-    [(['simulatte.worldSpecEditorBrowserAudit.v1', 'simulatte.worldSpecEditorBrowserAudit.v2'].includes(receipt.schema) &&
+    [(['simulatte.worldSpecEditorBrowserAudit.v1', 'simulatte.worldSpecEditorBrowserAudit.v2', 'simulatte.worldSpecEditorBrowserAudit.v3'].includes(receipt.schema) &&
       receipt.exchange?.schema === receipt.schema.replace('EditorBrowserAudit', 'BrowserExchange')),
       'browser WorldSpec exchange schema must match its audit version'],
     [receipt.exchange?.exportedContentHash === receipt.after.contentHash &&
@@ -690,15 +699,16 @@ export function assertReceipt(receipt, boundary) {
     [receipt.exchange?.exportedRevision === receipt.after.revision &&
       receipt.exchange?.importedRevision === receipt.after.revision,
       'export/import changed the authored revision'],
-    [receipt.exchange?.exportedBytes > 0 && (receipt.exchange?.schema === 'simulatte.worldSpecBrowserExchange.v2'
+    [receipt.exchange?.exportedBytes > 0 && (['simulatte.worldSpecBrowserExchange.v2', 'simulatte.worldSpecBrowserExchange.v3'].includes(receipt.exchange?.schema)
       ? receipt.exchange.executionEvidenceOmitted === true && /^sha256:[a-f0-9]{64}$/.test(receipt.exchange.exportedPhaseSourceDigest || '') &&
         receipt.exchange.exportedPhaseSourceDigest === receipt.exchange.importedPhaseSourceDigest
       : receipt.exchange?.compilerEvidenceOmitted === true), 'export/import did not preserve its declared program and phase-source contract'],
-    [receipt.exchange?.importedPhaseSchemas.join(',') === [
+    [receipt.exchange?.importedPhaseSchemas.join(',') === (receipt.schema === 'simulatte.worldSpecEditorBrowserAudit.v3'
+      ? Array.from({ length: 6 }, (_, i) => `simulatte.phase${i + 1}.output.v3`) : [
       'simulatte.phase1.output.v1', 'simulatte.phase2.output.v1',
       'simulatte.phase3.output.v2', 'simulatte.phase4.output.v2',
       'simulatte.phase5.output.v2', 'simulatte.phase6.output.v2',
-    ].join(','), 'import did not reconstruct the typed compiler phase chain'],
+    ]).join(','), 'import did not reconstruct the typed compiler phase chain'],
     [receipt.exchange?.importAuthority === 'world-spec', 'imported phase evidence lost WorldSpec authority'],
     [receipt.exchange?.sourcePrompt === receipt.prompt, 'imported WorldSpec lost its exact source prompt'],
     [receipt.exchange?.renderInputSerial > receipt.exchange?.beforeRenderInputSerial &&
@@ -904,6 +914,7 @@ async function main() {
     const boundReceipt = { ...receipt, browserMemory };
     auditReceipt = boundReceipt;
     if (errors.length) throw new Error(`Browser exceptions: ${errors.join(' | ')}`);
+    await validateCreatePageExecutions(boundReceipt);
     assertReceipt(boundReceipt, boundary);
     const screenshot = await client.send('Page.captureScreenshot', {
       format: 'png',

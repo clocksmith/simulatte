@@ -12,8 +12,7 @@
   const SEMANTIC_PROVENANCE_LEDGER_SCHEMA = 'simulatte.semanticProvenanceLedger.v1';
   const SEMANTIC_PROVENANCE_BINDING_SCHEMA = 'simulatte.semanticProvenanceBinding.v1';
   const SEMANTIC_PROOF_RECEIPT_SCHEMA = 'simulatte.semanticProofReceipt.v1';
-  const PHASE2_OUTPUT_SCHEMA = 'simulatte.phase2.output.v1';
-  const PHASE4_OUTPUT_SCHEMA = 'simulatte.phase4.output.v2';
+  const { isIntentPhaseSchemaPair } = intentProofContract;
   const HASH_PREFIX = 'fnv1a32:';
   const MAX_BINDINGS = 2048;
   const SEMANTIC_KINDS = Object.freeze(new Set([
@@ -489,7 +488,7 @@
     const ledger = phase4.artifact && phase4.artifact.semanticProvenance || null;
     let contractValid = false;
     try {
-      if (phase2.schema !== PHASE2_OUTPUT_SCHEMA || phase4.schema !== PHASE4_OUTPUT_SCHEMA) {
+      if (!isIntentPhaseSchemaPair(phase2.schema, phase4.schema)) {
         throw new SemanticProofError('Semantic binding requires canonical Phase 2 and Phase 4 outputs');
       }
       intentProofContract.validateIntentRequirementLedger(requirements);
@@ -523,7 +522,7 @@
     let ledger = phase4.artifact && phase4.artifact.semanticProvenance || null;
     let error = null;
     try {
-      if (phase2.schema !== PHASE2_OUTPUT_SCHEMA || phase4.schema !== PHASE4_OUTPUT_SCHEMA) {
+      if (!isIntentPhaseSchemaPair(phase2.schema, phase4.schema)) {
         throw new SemanticProofError('Semantic proof requires the canonical Phase 2 and Phase 4 outputs');
       }
       intentProofContract.validateIntentRequirementLedger(requirements);
@@ -607,7 +606,7 @@
       throw new SemanticProofError('Semantic receipt status does not match bindings');
     }
     if (receipt.status === 'pass' && (
-      receipt.phase2Schema !== PHASE2_OUTPUT_SCHEMA || receipt.phase4Schema !== PHASE4_OUTPUT_SCHEMA
+      !isIntentPhaseSchemaPair(receipt.phase2Schema, receipt.phase4Schema)
     )) throw new SemanticProofError('Passing semantic receipt does not bind canonical phase schemas');
     if (receipt.status === 'pass' && (
       receipt.failureCode || !receipt.worldSpecContentHash || !receipt.promptHash ||

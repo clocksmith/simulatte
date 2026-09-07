@@ -26,6 +26,7 @@ Preserve prompt obligations through eight typed, ordered phase boundaries.
 - Versioned bound envelopes identify the exact predecessor, invocation, producer, dependencies, revision, and artifact with canonical UTF-8 SHA-256 digests. The compatible WorldSpec hash retains its existing meaning.
 - Runtime readiness does not carry later retrieval candidates; Phase 3 receives retrieval resources explicitly.
 - WorldSpec assembly preserves accepted Phase 4 evidence; compatibility intent metadata cannot rewrite grounding after publication.
+- Only module-owned validated immutable snapshots may reuse serialization work; caller freezing never bypasses validation.
 - The earliest divergence is diagnostic until artifact substitution establishes ownership.
 
 ## Acceptance

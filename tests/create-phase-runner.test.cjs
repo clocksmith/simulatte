@@ -287,3 +287,32 @@ test('binding snapshots receipts and metadata and detects tampering outside arti
   assert.doesNotThrow(() => contracts.legacyPhaseProjection(legacy));
   await assert.rejects(contracts.validateBoundOutput(legacy, call, expected), /explicit rebind/);
 });
+
+test('owned snapshots reuse only validated immutable trees and preserve canonical integrity', async () => {
+  const caller = { z: [1, -0], a: { unicode: '猫' } };
+  const snapshot = contracts.immutableArtifact(caller);
+  assert.equal(contracts.canonicalJson(snapshot), '{"a":{"unicode":"猫"},"z":[1,0]}');
+  assert.equal(contracts.immutableArtifact(snapshot), snapshot);
+  const extended = contracts.immutableArtifact({ prior: snapshot, added: true });
+  assert.equal(extended.prior, snapshot);
+  const digest = await contracts.artifactDigest(snapshot);
+  caller.a.unicode = 'changed';
+  assert.equal(await contracts.artifactDigest(snapshot), digest);
+  assert.notEqual(await contracts.artifactDigest(caller), digest);
+  const shallow = Object.freeze({ nested: { value: 1 } });
+  const detached = contracts.immutableArtifact(shallow);
+  const repeated = contracts.immutableArtifact({ first: shallow, second: shallow });
+  assert.equal(repeated.first, repeated.second);
+  assert.equal(contracts.canonicalJson(repeated), '{"first":{"nested":{"value":1}},"second":{"nested":{"value":1}}}');
+  shallow.nested.value = 2;
+  assert.equal(detached.nested.value, 1);
+  assert.notEqual(await contracts.artifactDigest(shallow), await contracts.artifactDigest(detached));
+  const hidden = Object.freeze(Object.defineProperty({}, 'hidden', { value: 1 }));
+  assert.throws(() => contracts.immutableArtifact(hidden), /hidden/);
+  const accessor = Object.freeze({ get value() { throw new Error('must not invoke getter'); } });
+  assert.throws(() => contracts.immutableArtifact(accessor), /accessor/);
+  const prototypeKey = contracts.immutableArtifact(JSON.parse('{"__proto__":{"safe":true},"2":"two","10":"ten"}'));
+  assert.equal(Object.getPrototypeOf(prototypeKey), Object.prototype);
+  assert.equal(contracts.canonicalJson(prototypeKey), '{"2":"two","10":"ten","__proto__":{"safe":true}}');
+  assert.equal(Object.isFrozen(prototypeKey.__proto__), true);
+});

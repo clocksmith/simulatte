@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.createRearchitectureCheckpoint.v1",
-  "capturedAt": "2026-09-07T20:26:21.924Z",
+  "capturedAt": "2026-09-07T21:43:00.308Z",
   "contract": {
     "path": "/home/clocksmith/deco/simulatte/docs/create-pipeline-rearchitecture.md",
     "sha256": "403e868860cf981a6c5ae9da21b81adc7d9e333e466da092492c703162f5aed2"
@@ -19,7 +19,7 @@
   ],
   "phaseZero": "request ingress only",
   "implemented": [
-    "Bound v3 envelopes with v2 bindings cover artifacts, receipts and envelope metadata; asynchronous eight-phase runner is available, but active application dispatch still uses legacy orchestration",
+    "The active Create prompt, authored edit, import and reconciliation paths execute the existing eight-phase runner through the actual compiler worker and WebGPU renderer. Blank creation, continuous frames, exact replay orchestration and construction retries still have explicit compatibility paths.",
     "Explicit Phase 3 retrieval inputs; no active backward retrieval injection into Phase 1",
     "Runner cancellation, deadlines including invocation acquisition, immutable artifact resources and stale publication protection",
     "Original prompt retention and reversible UTF-16 source mapping in local language evidence",
@@ -54,7 +54,15 @@
     "Editor audit v2 binds matching exported/imported phase-source SHA-256 digests and rejects downgrade to the legacy exchange contract; historical v1 fixtures remain readable.",
     "Patch-history validation clones only addressed roots while retaining full WorldSpec validation and reverse patch checks. This avoids copying unrelated compiler evidence for every independent proof dimension.",
     "WorldSpec and correction-record canonicalization preserve exact byte ordering while avoiding per-key flatMap/entry-array allocations; correction-record hashing canonicalizes once. Fixed fixtures cover Unicode, absent fields, arrays and prototype-named keys.",
-    "Correction-record validation reuse is limited to records created, validated and recursively frozen by the owning module. Imported or shallow-frozen caller records still validate every call."
+    "Correction-record validation reuse is limited to records created, validated and recursively frozen by the owning module. Imported or shallow-frozen caller records still validate every call.",
+    "Page execution records retain request revisions, attempts, exact outputs, producer source-closure SHA-256, declared resource policy, failures and cancellation. Reconciliation waits outside processing deadlines and starts a new authored request before drawing the accepted candidate.",
+    "Authored edit sources replay language and retrieval without new interpretation, recompile phases 4 through 6, and retain authorship in the projected executable WorldSpec. Synchronous local edits explicitly project compatible sources and retain original binding references without stale current bindings.",
+    "Editor operations carry cancellation through file reads, compilation and publication. New edits, imports, resets, prompt requests and disposal invalidate stale work; late decisions and failures cannot overwrite newer state.",
+    "WorldProof intent, semantic and compilation checks accept the explicit bound schema family while preserving ledger reconstruction, source and provenance validation. Mixed or unknown schema families reject.",
+    "Versioned v2 render snapshots include declared proof receipts bound to the exact WorldSpec and Phase 6. Phase 7 preserves them without semantic authority; publication validates matching receipts before changing page state. v1 snapshot readers remain compatible.",
+    "Canonical serialization reuses only recursively validated module-owned immutable snapshots and digest work, with per-copy alias sharing. Caller freezing, hidden fields, accessors, mutation and lossy JSON values cannot bypass validation.",
+    "Browser editor audit v3 retains four full page execution records and independently verifies SHA-256 envelope chains, invocations, revisions and authored restart provenance. Import waits for completed request publication rather than an intermediate GPU frame.",
+    "Configuration waits now settle on cancellation, ingress records exist before awaiting configuration, and malformed options retain their failure. Updated active Ouroboros links and registry evidence path to the existing renamed Doppler Capsule Spine ADR; historical score records remain untouched."
   ],
   "evidence": [
     {
@@ -406,6 +414,54 @@
       "command": "git diff --check",
       "result": "passed",
       "path": "authored-diff-check.log"
+    },
+    {
+      "layer": "component",
+      "command": "node --test tests/create-page-execution-evidence.test.cjs tests/create-phase-runner.test.cjs tests/managed-render-phase.test.cjs tests/pipeline-worker-phases.test.cjs tests/world-spec-phase-projection.test.cjs tests/world-proof.test.cjs tests/governing-metric.test.cjs tests/blank-pipeline-boundaries.test.cjs",
+      "result": "92 passed",
+      "path": "page-dispatch-integration-tests.log"
+    },
+    {
+      "layer": "browser with Intel Gen12LP WebGPU",
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --out artifacts/create-rearchitecture-baseline/page-dispatch-editor-receipts",
+      "result": "Desktop 1440x1000 passes every functional and resource assertion; 15345ms under unchanged 20000ms limit",
+      "path": "page-dispatch-editor-receipts/1440x1000.json"
+    },
+    {
+      "layer": "browser with narrow viewport emulation on Intel Gen12LP WebGPU",
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --viewport 390x844 --out artifacts/create-rearchitecture-baseline/page-dispatch-editor-narrow",
+      "result": "390x844 passes every functional and resource assertion; 15424ms under unchanged 20000ms limit",
+      "path": "page-dispatch-editor-narrow/390x844.json"
+    },
+    {
+      "layer": "component",
+      "command": "npm run check:fast",
+      "result": "187 tests passed across 21 files",
+      "path": "page-dispatch-fast-final.log"
+    },
+    {
+      "layer": "component",
+      "command": "same eight-file integration command retained in page-dispatch-integration-tests.log evidence entry",
+      "result": "93 passed including ingress cancellation regression",
+      "path": "page-dispatch-integration-final.log"
+    },
+    {
+      "layer": "browser",
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --out artifacts/create-rearchitecture-baseline/page-dispatch-current-desktop",
+      "result": "current-source desktop passes, 18111ms",
+      "path": "page-dispatch-current-desktop/1440x1000.json"
+    },
+    {
+      "layer": "browser",
+      "command": "TMPDIR=/home/clocksmith/deco/simulatte/artifacts/create-rearchitecture-baseline/browser-tmp node tools/audit-world-spec-editor.mjs --chrome /snap/bin/chromium --viewport 390x844 --out artifacts/create-rearchitecture-baseline/page-dispatch-current-narrow",
+      "result": "all functional checks pass; duration gate fails at 21991ms",
+      "path": "page-dispatch-current-narrow/390x844-failure.json"
+    },
+    {
+      "layer": "documentation integrity",
+      "command": "node scripts/check-docs.mjs; node scripts/render-strategy-index.mjs --check (Ouroboros)",
+      "result": "both pass",
+      "path": "/tmp/simulatte-page-dispatch-catalog-docs-fixed.log"
     }
   ],
   "retainedFailures": [
@@ -456,10 +512,23 @@
     "authored-export-editor-patch-optimized/1440x1000-failure.json: patch-copy optimization alone passes functional checks but exceeds the unchanged 20000ms gate at 27365ms.",
     "authored-export-editor-final-mobile/390x844-failure.json: all functional checks pass but 21214ms exceeds the unchanged 20000ms gate.",
     "authored-export-editor-cached-mobile/390x844-failure.json: functional checks pass; 26377ms exceeds unchanged 20000ms gate after immutable record validation reuse.",
-    "/tmp/simulatte-authored-catalog-doc-check.log: Ouroboros documentation and taxonomy validation still reject missing Doppler ADR docs/adr/0001-dual-hexagon-pack-spine.md; unrelated to generated Simulatte folder catalog."
+    "/tmp/simulatte-authored-catalog-doc-check.log: Ouroboros documentation and taxonomy validation still reject missing Doppler ADR docs/adr/0001-dual-hexagon-pack-spine.md; unrelated to generated Simulatte folder catalog.",
+    "page-dispatch-editor-authored/1440x1000-failure.json",
+    "page-dispatch-editor-proof/1440x1000-failure.json",
+    "page-dispatch-editor-import-boundary/1440x1000-failure.json",
+    "page-dispatch-editor-profile/1440x1000-failure.json",
+    "page-dispatch-editor-snapshots/1440x1000-failure.json",
+    "page-dispatch-editor-final-desktop/1440x1000-failure.json",
+    "page-dispatch-editor-proof-snapshot/1440x1000-failure.json",
+    "page-dispatch-authored-tests.log: invalid runtimeContext field in authored Phase 4 output; producer fixed.",
+    "page-dispatch-editor.cpuprofile: canonical traversal is the largest named CPU cost; profiled run exceeded the CDP deadline.",
+    "/tmp/simulatte-page-dispatch-catalog-docs.log: unchanged missing Doppler ADR reference in Ouroboros.",
+    "page-dispatch-fast.log: synchronous edit unnecessarily copied unchanged legacy Phase 1 evidence; original reference preservation restored; final fast gate passes.",
+    "page-dispatch-ingress-cancellation-tests.log: cancellation before configuration resolution settled without retaining its initial request; ingress record now exists before awaiting configuration.",
+    "page-dispatch-current-narrow/390x844-failure.json: all functional assertions pass; 21991ms exceeds unchanged 20000ms limit."
   ],
   "remainingRequirements": [
-    "Integrate the runner into active asynchronous compiler dispatch and rendering; standalone authored replay and browser worker/renderer integration pass, but active page dispatch remains compatibility orchestration.",
+    "Migrate blank creation, exact replay orchestration, construction retries and continuous rendering to the declared forward request/lifecycle contract; preserve current simulation state through rendering-only edits and retain explicit compatible interfaces until validated replacements pass.",
     "Deep phase payload and reference validation, dependency revocation, stable requirement identities, cross-revision mapping and deterministic operational-record separation",
     "Generation selection schema, numbered runtime lock, admitted refreshed manifest, consent and resource adapter, pinned Doppler migration",
     "Qualify full linguistic structured output, source fidelity, actual graphics/model co-residency, memory pressure, device loss and recovery before promotion",
@@ -471,47 +540,36 @@
     "Independent artifact-bound evaluator, population custody and separation, full requirement accounting, matched baseline and established-engine comparison",
     "Complete phase ownership moves and removal gates; preserve synchronous local compatibility and authored imports/replay",
     "Full unit/integration/Create/World/render/browser checks, physical hardware evidence, required human review, and final deployment status",
-    "Catalog documentation check has an unrelated missing Doppler ADR reference: docs/adr/0001-dual-hexagon-pack-spine.md; retained in catalog-doc-check.log",
     "Legacy source-free WorldSpec import still reconstructs compatibility phase evidence; migrate this authored-program path without fresh interpretation and retain honest missing-source provenance.",
-    "Pending asynchronous file imports need generation invalidation across replacement imports, edits and page lifecycle.",
-    "Resolve full editor journey performance under the unchanged 20000ms gate; desktop previously passed at 19827ms, but current narrow viewport run exceeds the gate."
+    "Current-source narrow browser audit exceeds the unchanged 20000ms limit at 21991ms despite passing all functional assertions. Earlier narrow and desktop runs pass. A separate Reploid GPU workload was observed after the latest run; its contribution is unmeasured. Preserve adverse evidence and qualify performance under documented matched conditions."
   ],
-  "nextBoundary": "Integrate the existing runner into active asynchronous compiler dispatch and renderer coordination, preserving authored reconciliation/import/replay, compiler proof, cancellation, construction attempts and UI publication. Actual worker RPC, managed renderer operation and bound snapshot/WorldSpec evidence now execute through eight phases in Chrome; the active page still uses compatibility orchestration.",
+  "nextBoundary": "Trace exact replay and construction retry ingress through active page state; replace remaining compatibility orchestration with explicit forward attempts while preserving simulation state and accepted edit authority. Then continue the full generation, composition, behavior and evaluation contract.",
   "latestChangedSourceFiles": [
-    "docs/component-index.md",
     "docs/simulatte/folder-contract.json",
     "public/blank/app/CATSCAN.md",
     "public/blank/app/prompt/prompt-controller-lab-controller.js",
-    "public/blank/app/prompt/prompt-controller-workers.js",
+    "public/blank/app/prompt/prompt-controller-phase-dispatch.js",
     "public/blank/app/prompt/world-spec-editor.js",
-    "public/blank/app/runtime/phase-runner.js",
-    "public/blank/app/workers/simulatte-pipeline-worker.js",
-    "public/blank/pipeline/phase-04-grounded-intent/CATSCAN.md",
-    "public/blank/pipeline/phase-04-grounded-intent/simulatte-user-override-grounding.js",
+    "public/blank/index.html",
+    "public/blank/pipeline/CATSCAN.md",
     "public/blank/pipeline/phase-05-simulation/CATSCAN.md",
-    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js",
-    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js",
     "public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js",
     "public/blank/pipeline/phase-07-render/CATSCAN.md",
     "public/blank/pipeline/phase-07-render/simulatte-render-execution-input.js",
-    "public/blank/pipeline/phase-07-render/simulatte-render-proof.js",
     "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-phase.js",
-    "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-plan.js",
     "public/blank/pipeline/simulatte-phase-contracts.js",
     "public/data/generated-artifact-inventory.json",
-    "public/shared/contracts/world-improvement-record.js",
-    "public/shared/contracts/world-spec.js",
-    "tests/governing-metric.test.cjs",
-    "tests/js-shape-suite.cjs",
+    "public/shared/contracts/CATSCAN.md",
+    "public/shared/contracts/world-proof-intent.js",
+    "public/shared/contracts/world-proof-semantic.js",
+    "public/shared/contracts/world-proof.js",
+    "tests/create-page-execution-evidence.test.cjs",
+    "tests/create-phase-runner.test.cjs",
     "tests/managed-render-phase.test.cjs",
-    "tests/phase7-pixel-readback.test.cjs",
     "tests/pipeline-worker-phases.test.cjs",
-    "tests/world-improvement-record.test.cjs",
     "tests/world-spec-phase-projection.test.cjs",
-    "tests/world-spec.test.cjs",
-    "tools/audit-create-phase-worker.mjs",
     "tools/audit-world-spec-editor.mjs",
-    "tools/samer/compile-governing-metric.mjs"
+    "tools/create-page-execution-evidence.mjs"
   ],
   "evidenceLimitations": [
     "Earlier browser-forward-projection receipts passed the old oracle but failed to detect red geometry after preserving a green authoring override. Their artifacts remain retained; current reconciliation checks supersede that coverage.",
@@ -535,58 +593,100 @@
     "Browser editor performance remains under investigation. Successful source identity checks do not override the unchanged 20000ms gate.",
     "Exported Phase 1 through 6 sources increase file size; current fixture remains within the existing 8MiB input budget. Source-free legacy imports remain a separate compatibility gap.",
     "Final desktop editor run passes at 19827ms; limited margin does not establish consistent performance across hardware or workloads. Earlier failures remain retained.",
-    "Current-source desktop compatibility audit passes at 15918ms and current-source authored runner GPU probe passes. Current-source narrow compatibility audit passes functional assertions but fails the 20000ms limit at 26377ms. Narrow device is viewport emulation, not physical mobile hardware."
+    "Earlier-source desktop compatibility audit passes at 15918ms and current-source authored runner GPU probe passes. Current-source narrow compatibility audit passes functional assertions but fails the 20000ms limit at 26377ms. Narrow device is viewport emulation, not physical mobile hardware.",
+    "Current active-page desktop and narrow audits pass the full retained edit/import/interaction/replay/reconciliation case with exact eight-phase execution chains. This does not qualify learned interpretation, broad novel composition, model/graphics residency, physical mobile hardware, human review or deployment. Earlier failed artifacts remain immutable.",
+    "Worker and renderer residency values in create-phase-run-policy.json are declared compatibility bounds, not measured physical GPU residency. Browser observed JS heap peaks remain below the unchanged 536870912-byte gate.",
+    "The latest desktop and narrow captures bind runtime source SHA-256 7ac0562dbee07de2a1c317af9644fc7ccbdc98578166a9fac93a696e80c01686. Desktop passes and narrow exceeds the duration limit. Previous passing narrow evidence is retained separately, not substituted for current-source acceptance."
   ],
-  "sourceRevision": "053e6bc5f3c0b8126e47a3fc79ffe40bdfc964d7",
+  "sourceRevision": "232d0753fd8896b31baa43a78f2da74334b5c146",
   "changedSourceDigests": {
-    "docs/component-index.md": "aa5026915a58ae7fa2b51c308fdab82deb008887e7875427cb88c1c0650f0d84",
-    "docs/simulatte/folder-contract.json": "6604e7b7956ccce5fa3a5108c1ab64e8c3f1d5926423eccca858cb44e5300415",
-    "public/blank/app/CATSCAN.md": "71b89fd7157d1b48ac4e13fce2933108d2062f44cbd87f559a806306a3bd6003",
-    "public/blank/app/prompt/prompt-controller-lab-controller.js": "230538c09e99f2adbe79a3579c914ef0c6eb1df88e39f43b7ced1f58b773b74c",
-    "public/blank/app/prompt/prompt-controller-workers.js": "8d47b0641562322301705559b4e9df09f11c4520b4851c472ca105bb5437f248",
-    "public/blank/app/prompt/world-spec-editor.js": "1bab26f76c309ba69d14bf311057839460620a284ea95ce6d36a9d86ef9188cc",
-    "public/blank/app/runtime/phase-runner.js": "7c599e71ed4c502cce85270e3ab2c8a4438aa494e43162a7ce6f760faae0e961",
-    "public/blank/app/workers/simulatte-pipeline-worker.js": "cabfdd05c16e802127425d1849854d98f2b8b594450fc5309be92b448ee5b56a",
-    "public/blank/pipeline/phase-04-grounded-intent/CATSCAN.md": "df11545c348b6b44294544824778e809b05fa4d45a20770029912daa0454efca",
-    "public/blank/pipeline/phase-04-grounded-intent/simulatte-user-override-grounding.js": "e50b556e2b47f1ffe7a06c0144d91c90442c9c61a7278a798471d85f641cf3d2",
-    "public/blank/pipeline/phase-05-simulation/CATSCAN.md": "0c5319f64de358497c7351b294e2101c749f2db45d85e131e940b4af75df1692",
-    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js": "a8048c04fb0044a6fb59915e05759a31207a5c9ec3d3ece5c607922ac4d7d580",
-    "public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js": "c562c29b59a9f9a2af00d80e07dc4a769cf0507463b9938022be45a9955b5702",
-    "public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js": "ca1ec524a73a9e1aef0c17f29d19188e198d2baef0b3a0642a26841c8b6e358b",
-    "public/blank/pipeline/phase-07-render/CATSCAN.md": "623b868e46b2daa2eda8f1a039ac1838ed5034d298fa9e50839189fd50172f59",
-    "public/blank/pipeline/phase-07-render/simulatte-render-execution-input.js": "b25e8f29c87348ed3c88bb0ba627d6429d913eebd55808681d5b7d179ec975f2",
-    "public/blank/pipeline/phase-07-render/simulatte-render-proof.js": "43dc8c8337f4139453514abaa6bb57dc9d54771d702f4baf996478db39ebffed",
-    "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-phase.js": "5ebac1e1f27bb8e4ac928e51c594ba6bf69e3ff25efcf9adbcbe709b90b744bc",
-    "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-plan.js": "750f514ff11add092b0f9fc43bf4f6fd1d71670b60d0edd306c37fdb6d7477af",
-    "public/blank/pipeline/simulatte-phase-contracts.js": "85eae04e062b588dd9a6f6fc2915ce05c5b0353df26ab904f9b095fe61626bfe",
-    "public/data/generated-artifact-inventory.json": "a5331957ff1a9d234de8da63ef13b6ffae88a62ee579d1bc43cc785eb2280465",
-    "public/shared/contracts/world-improvement-record.js": "7a8cf6764bc9e537273ff78fca5cc93cce71842ede6ec9e0f74977db3cf9f0ed",
-    "public/shared/contracts/world-spec.js": "c0a04e0be714d7c60843fe3e66f0b5fa718a308839a6133ff12b5f8967a1ae0e",
-    "tests/governing-metric.test.cjs": "d136d87f2db04afea7daa1e611abb192c50e393b7be98284b0a18ab5e28406a9",
-    "tests/js-shape-suite.cjs": "6fb43de116aed382d20867d508c81bfaf9884a785f5b0f1989a453184b6e17e0",
-    "tests/managed-render-phase.test.cjs": "d5ada26a801213591139ea3cacc3de0e21cca9ac233a7fb862614f47cf2898dd",
-    "tests/phase7-pixel-readback.test.cjs": "0074d4731240c570464d466a0dd91e2f706656a7084c61a7004ec9bc34ffb749",
-    "tests/pipeline-worker-phases.test.cjs": "06d0a11b656eda1c9d54b4a126df43d878bb25f432ac7f502d3b2e81abdd212c",
-    "tests/world-improvement-record.test.cjs": "44037e69c49ace2ec3951ca72292e842309c898fde14626d19bad08a214c260c",
-    "tests/world-spec-phase-projection.test.cjs": "46c01a445b8f95ef128934b058ecdf2781fc951fe84729315ee6fa846d9cc922",
-    "tests/world-spec.test.cjs": "8cce879c4159f09761614201d108628a5962a548aae5e3f1242e03195f77ee2e",
-    "tools/audit-create-phase-worker.mjs": "9a1e38f55962156a5d0794e334e76e7ac26d447619dcd33a68036b678f11e33a",
-    "tools/audit-world-spec-editor.mjs": "729bbba71a57c65a2e4ccb1b138abee50a18244e3604b3aef9b0ab1779eb0861",
-    "tools/samer/compile-governing-metric.mjs": "82b4f4067d650c3e07580de61aad2f106308d6020278453262ec70be0b6d174f"
+    "docs/simulatte/folder-contract.json": "f9f225fe23240bd288370d095ae0980c765533da3cdba2e546d0eb19096cb90c",
+    "public/blank/app/CATSCAN.md": "7cbacb18e980bff43d1697e4407fc0a551871a99910db365695c6484b215f0bf",
+    "public/blank/app/prompt/prompt-controller-lab-controller.js": "60c0e85b1b56be5079fe926e1c82744a19fab24548d121efb7e1ce62d8a32e04",
+    "public/blank/app/prompt/prompt-controller-phase-dispatch.js": "bac006d712aeeda33f11d60e09ddb781ea834fb8eddbf90c054a35f19f8ba768",
+    "public/blank/app/prompt/world-spec-editor.js": "a75f5ff262838fe61607b8923e159708da3a594c36fbcd10a5e312d752013759",
+    "public/blank/index.html": "cdc884e1e4db89ab196fc5cbd70b05f497d16b7252f89c864034cb2e3122129a",
+    "public/blank/pipeline/CATSCAN.md": "e4677f5636fe8319abe1e972df185bb133673af9c2d4658a60f6b586fd736ff1",
+    "public/blank/pipeline/phase-05-simulation/CATSCAN.md": "688f71e052a2bd896f2706219184771881d3b4e7086feef740246635174359a1",
+    "public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js": "eb5c28291b7c76b1ce57fa3997fb1674b248541b395a6ce2f61f8966fedce345",
+    "public/blank/pipeline/phase-07-render/CATSCAN.md": "915f897cef9994459cbdea0b791769c0c9a06546a2218f02fec33f51fdf5b07a",
+    "public/blank/pipeline/phase-07-render/simulatte-render-execution-input.js": "23e89a0ce647b73c785377634efa49b6cbc52ba111fd59df5f62929233944fa5",
+    "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-phase.js": "dc7ecbee69cf3e9f4e6016e08c7761cee8dbe35f93fb90f6244ebfbe9714b8b8",
+    "public/blank/pipeline/simulatte-phase-contracts.js": "523956e463d452f0d0f1a672a62208731dd47f545a88ab9e920cfd181f6bcce1",
+    "public/data/generated-artifact-inventory.json": "8dfac739b94a4ac686ccad3d9b96df4a770102298e603fa5674c16544ff58b44",
+    "public/shared/contracts/CATSCAN.md": "24e4663bb72a8faa7750a5e50cc1438237d4b72ba509ee097935b501869aa4a4",
+    "public/shared/contracts/world-proof-intent.js": "c4fca0dfa503b31530d111b5824e4ad6d6be17837d540f00d6dc8cad608be126",
+    "public/shared/contracts/world-proof-semantic.js": "8c2db3b8e7cc65011ad1f7d9ee53269a67a828ccdc002f91d6a3a2579f3b137f",
+    "public/shared/contracts/world-proof.js": "4bf7100367269246a36f33f5eb1c6d91fca1fd3af8ef1ded6b63e55f3f47af38",
+    "tests/create-page-execution-evidence.test.cjs": "82ec3356a06fd33cc18e5980cc6caefc6ae1acd3d5a4325ac186fa1a2ef8ca13",
+    "tests/create-phase-runner.test.cjs": "f061ce507d7cba36a68cfbe9074520c26d2a354ad8c6901c517623be3c3dad10",
+    "tests/managed-render-phase.test.cjs": "d33a575ffac244986f02bd4116ec68ac7f17ef3ffafec9c49894da3b4ae374b2",
+    "tests/pipeline-worker-phases.test.cjs": "4f1fd186d7007821ccca5206c0c42601dd37281aa0617112c38e7ad6df24607e",
+    "tests/world-spec-phase-projection.test.cjs": "798790dffbdc90a9933e15290fe53062f12a824265fde0d1569b7f03f681f3b8",
+    "tools/audit-world-spec-editor.mjs": "3fc9dad277e5fcfa1de23383885089b617f47d369c141ee647edaaf940c8cfec",
+    "tools/create-page-execution-evidence.mjs": "ea464cb01b782122f04e4af08a4ceac02175d903ff9d1d04c11e0c0ae2c711fd"
   },
   "workspaceSync": {
-    "rdpush": "completed, exit 0; published 053e6bc5",
-    "log": "/tmp/simulatte-goal-rdpush-continue.log",
-    "continuedChanges": "Local implementation and validation after requested push; no hosting deployment"
+    "rdpush": "completed, exit 0 after resolving incoming merge conflicts; Simulatte published 232d0753 and Ouroboros 78a20f34",
+    "log": "/tmp/simulatte-rdpush-resolved.log",
+    "initialLog": "/tmp/simulatte-rdpush-current.log",
+    "continuedChanges": "Local implementation and validation after the requested push; no hosting deployment"
   },
   "validationStatus": {
-    "focused": "37 passed",
-    "fast": "187 tests passed across 21 files",
+    "focused": "93 passed across 8 files; page-dispatch-integration-final.log",
+    "fast": "187 tests passed across 21 files; page-dispatch-fast-final.log",
     "authoredRunnerBrowser": "passed, eight phases with actual worker and WebGPU",
-    "editorDesktop": "passed, 15918ms",
-    "editorNarrow": "functional checks pass; duration gate fails at 26377ms",
+    "editorDesktop": "current source passes, 18111ms",
+    "editorNarrow": "current source passes all functional assertions but fails unchanged 20000ms limit at 21991ms; earlier source passed at 15424ms",
     "catscan": "39 valid",
     "diff": "passed",
-    "catalogDocs": "unrelated missing Doppler ADR reference"
+    "catalogDocs": "passed after repairing three active references to renamed Doppler ADR; strategy index check also passed"
+  },
+  "nextBoundaryDetails": {
+    "constructionRetries": {
+      "upstream": "public/blank/app/prompt/prompt-controller-construction-search.js: constructionSearchSpec clones Phase 5 and changes renderIR.constructionApproach while retaining its old binding",
+      "downstream": "public/blank/app/prompt/prompt-proof-session.js: observe calls constructionSearchSpec then synchronous setSpec; this does not create a forward Phase 0 attempt",
+      "required": "Move accepted retry policy and failure references into the existing dispatcher request; preserve explicit authored overrides and validate all eight forward phase outputs."
+    },
+    "exactReplay": {
+      "owner": "public/blank/app/prompt/prompt-controller-lab-controller.js: replayWorldSpecButton handler",
+      "current": "Fresh simulation state and replayed interaction commands feed the compatibility continuous-render loop.",
+      "required": "Use an identified authored replay request with explicit interaction/state invocation and replay evidence without fresh interpretation."
+    }
+  },
+  "owningRepositoryChanges": {
+    "simulatte": [
+      "docs/simulatte/folder-contract.json",
+      "public/blank/app/CATSCAN.md",
+      "public/blank/app/prompt/prompt-controller-lab-controller.js",
+      "public/blank/app/prompt/prompt-controller-phase-dispatch.js",
+      "public/blank/app/prompt/world-spec-editor.js",
+      "public/blank/index.html",
+      "public/blank/pipeline/CATSCAN.md",
+      "public/blank/pipeline/phase-05-simulation/CATSCAN.md",
+      "public/blank/pipeline/phase-05-simulation/simulatte-world-spec-runtime.js",
+      "public/blank/pipeline/phase-07-render/CATSCAN.md",
+      "public/blank/pipeline/phase-07-render/simulatte-render-execution-input.js",
+      "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-phase.js",
+      "public/blank/pipeline/simulatte-phase-contracts.js",
+      "public/data/generated-artifact-inventory.json",
+      "public/shared/contracts/CATSCAN.md",
+      "public/shared/contracts/world-proof-intent.js",
+      "public/shared/contracts/world-proof-semantic.js",
+      "public/shared/contracts/world-proof.js",
+      "tests/create-page-execution-evidence.test.cjs",
+      "tests/create-phase-runner.test.cjs",
+      "tests/managed-render-phase.test.cjs",
+      "tests/pipeline-worker-phases.test.cjs",
+      "tests/world-spec-phase-projection.test.cjs",
+      "tools/audit-world-spec-editor.mjs",
+      "tools/create-page-execution-evidence.mjs"
+    ],
+    "ouroboros": [
+      "docs/integration/folder-contracts/projects/simulatte.json",
+      "docs/strategy/doppler-strategy-playbooks.md",
+      "docs/strategy/portfolio-strategy-matrix.md",
+      "docs/strategy/strategy-registry.json"
+    ]
   }
 }

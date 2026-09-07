@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: page dispatch executes and retains eight bound phases through the existing worker
+ok 1 - page dispatch executes and retains eight bound phases through the existing worker
+  ---
+  duration_ms: 10857.453284
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11136.997236

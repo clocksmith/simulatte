@@ -42,7 +42,7 @@
         throw phaseError('SIMULATTE_RESOURCE_EXHAUSTED', 'Viewport exceeds the qualified device texture limit');
       }
       token.input = contracts.immutableArtifact({ ...inputs.createRenderExecutionInput(previous,
-        snapshot.state, invocation.viewport), worldProofBinding: snapshot.worldProofBinding });
+        snapshot.state, invocation.viewport, snapshot.proofReceipts), worldProofBinding: snapshot.worldProofBinding });
       renderer.setRenderExecutionInput(token.input);
       const started = performance.now();
       let attempts = 0;

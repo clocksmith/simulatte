@@ -1,0 +1,4 @@
+Error: Error: Timed out waiting for compiled WorldSpec
+    at waitFor (<anonymous>:9:60)
+    at async <anonymous>:34:22
+    at main (file:///home/clocksmith/deco/simulatte/tools/audit-world-spec-editor.mjs:911:13)

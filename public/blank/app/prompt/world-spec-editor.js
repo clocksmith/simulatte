@@ -30,12 +30,31 @@
     }
     const draft = editorUi.createDraft({ editor, apply: applyButton, status });
     let pendingSpec = null;
+    let activeOperation = null;
+    let activeFile = null;
+
+    function cancel() {
+      activeOperation?.abort(Object.assign(new Error('WorldSpec operation superseded'), { name: 'AbortError' }));
+      if (activeFile && fileInput.files?.[0] === activeFile) fileInput.value = '';
+      if (activeOperation) applyButton.disabled = !draft.isDirty();
+      activeOperation = null;
+      activeFile = null;
+    }
+
+    function begin() {
+      cancel();
+      activeOperation = new AbortController();
+      return activeOperation;
+    }
+
+    const isCurrent = operation => activeOperation === operation && !operation.signal.aborted;
 
     function setStatus(message, state = 'ready') {
       editorUi.setStatus(status, message, state);
     }
 
     function sync(spec = options.getSpec(), syncOptions = {}) {
+      if (spec && spec !== pendingSpec && syncOptions.signal !== activeOperation?.signal) cancel();
       if (!spec || (draft.isDirty() && syncOptions.force !== true)) return false;
       pendingSpec = spec;
       if (disclosure && !disclosure.open && syncOptions.force !== true) {
@@ -50,6 +69,7 @@
     }
 
     function markDirty() {
+      cancel();
       draft.markDirty('Unapplied edit');
     }
 
@@ -60,15 +80,23 @@
     }
 
     async function applyEditorValue(reason = '') {
+      const operation = begin();
       try {
         setStatus('Validating and recompiling', 'active');
-        const next = await options.apply(editor.value, reason || rationale && rationale.value || 'User edited WorldSpec in Create');
-        sync(next, { force: true });
+        applyButton.disabled = true;
+        const next = await options.apply(editor.value, reason || rationale && rationale.value || 'User edited WorldSpec in Create', operation.signal);
+        if (!isCurrent(operation)) return null;
+        sync(next, { force: true, signal: operation.signal });
         if (rationale) rationale.value = '';
         return next;
       } catch (error) {
-        reportError(error);
+        if (isCurrent(operation)) reportError(error);
         return null;
+      } finally {
+        if (isCurrent(operation)) {
+          activeOperation = null;
+          applyButton.disabled = !draft.isDirty();
+        }
       }
     }
 
@@ -113,23 +141,31 @@
     async function importSelectedFile() {
       const file = fileInput.files && fileInput.files[0];
       if (!file) return;
+      const operation = begin();
+      activeFile = file;
       try {
-        const input = await inputSource.readFile(file);
+        const input = await inputSource.readFile(file, { signal: operation.signal });
+        if (!isCurrent(operation)) return;
         if (!['worldSpec', 'legacySpec'].includes(input.kind)) throw new Error('Import expects a WorldSpec. Open the workbench to prepare CSV or JSON data.');
         editor.value = JSON.stringify(input.spec);
-        markDirty();
-        const next = await options.import(editor.value, file.name || 'WorldSpec file');
-        sync(next, { force: true });
+        draft.markDirty('Importing WorldSpec');
+        const next = await options.import(editor.value, file.name || 'WorldSpec file', operation.signal);
+        if (!isCurrent(operation)) return;
+        sync(next, { force: true, signal: operation.signal });
       } catch (error) {
-        reportError(error);
+        if (isCurrent(operation)) reportError(error);
       } finally {
-        fileInput.value = '';
+        if (isCurrent(operation)) {
+          activeOperation = null;
+          activeFile = null;
+          fileInput.value = '';
+        }
       }
     }
 
     editor.addEventListener('input', markDirty);
     applyButton.addEventListener('click', () => applyEditorValue());
-    resetButton.addEventListener('click', () => sync(options.getSpec(), { force: true }));
+    resetButton.addEventListener('click', () => { cancel(); sync(options.getSpec(), { force: true }); });
     exportButton.addEventListener('click', exportCurrentSpec);
     exportImprovementButton.addEventListener('click', exportImprovementRecord);
     importButton.addEventListener('click', () => fileInput.click());
@@ -142,6 +178,7 @@
 
     return Object.freeze({
       sync,
+      cancel,
       syncImprovement,
       apply: applyEditorValue,
       isDirty: draft.isDirty,

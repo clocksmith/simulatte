@@ -1,0 +1,4 @@
+Error: Error: Timed out waiting for bound intent proof
+    at waitFor (<anonymous>:9:60)
+    at async <anonymous>:214:5
+    at main (file:///home/clocksmith/deco/simulatte/tools/audit-world-spec-editor.mjs:901:13)

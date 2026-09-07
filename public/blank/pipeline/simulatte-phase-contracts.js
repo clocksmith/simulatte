@@ -329,14 +329,27 @@
     return envelope;
   }
 
-  // This serialization is intentionally stricter than the compatible WorldSpec hash.
-  // Handles, undefined values and lossy JSON values cannot become integrity evidence.
+  // Only snapshots constructed here can share validated descendants or digest work.
+  // Freezing a caller's object does not establish serializability or deep immutability.
+  const ownedSnapshots = new WeakSet();
+  const snapshotDigests = new WeakMap();
+  const RENDER_PROOF_RECEIPTS = Object.freeze(['intentReceipt', 'semanticReceipt', 'compilerDeterminismReceipt',
+    'simulationReproducibilityReceipt', 'safetyReceipt', 'replayBaseline']);
+
   function canonicalJson(value) {
+    if ('toJSON' in Object.prototype || 'toJSON' in Array.prototype) throw new Error('Inherited serialization hooks are not permitted');
+    return JSON.stringify(immutableArtifact(value));
+  }
+
+  function immutableArtifact(value) {
     const active = new WeakSet();
+    const copied = new WeakMap();
     function visit(current, path) {
       if (current === null || typeof current === 'boolean' || typeof current === 'string') return current;
-      if (typeof current === 'number' && Number.isFinite(current)) return current;
+      if (typeof current === 'number' && Number.isFinite(current)) return current === 0 ? 0 : current;
       if (!current || typeof current !== 'object') throw new Error(`${path}: expected serializable finite value`);
+      if (ownedSnapshots.has(current)) return current;
+      if (copied.has(current)) return copied.get(current);
       if (active.has(current)) throw new Error(`${path}: cyclic artifact`);
       const prototype = Object.getPrototypeOf(current);
       if (!Array.isArray(current) && prototype !== Object.prototype && prototype !== null) {
@@ -344,7 +357,7 @@
       }
       if (Object.getOwnPropertySymbols(current).length) throw new Error(`${path}: symbol field is not serializable`);
       active.add(current);
-      const result = Array.isArray(current) ? [] : Object.create(null);
+      const result = Array.isArray(current) ? [] : {};
       const keys = Array.isArray(current) ? Array.from({ length: current.length }, (_, i) => String(i)) : Object.keys(current).sort();
       const permittedKeys = new Set(Array.isArray(current) ? [...keys, 'length'] : keys);
       if (Object.getOwnPropertyNames(current).some(key => !permittedKeys.has(key))) {
@@ -353,30 +366,28 @@
       for (const key of keys) {
         const descriptor = Object.getOwnPropertyDescriptor(current, key);
         if (!descriptor || !Object.hasOwn(descriptor, 'value')) throw new Error(`${path}.${key}: missing value or accessor`);
-        result[key] = visit(descriptor.value, `${path}.${key}`);
+        Object.defineProperty(result, key, { value: visit(descriptor.value, `${path}.${key}`), enumerable: true,
+          writable: true, configurable: true });
       }
       active.delete(current);
+      Object.freeze(result);
+      ownedSnapshots.add(result);
+      copied.set(current, result);
       return result;
     }
-    return JSON.stringify(visit(value, '$'));
-  }
-
-  function immutableArtifact(value) {
-    const snapshot = JSON.parse(canonicalJson(value));
-    function freeze(current) {
-      if (current && typeof current === 'object') {
-        Object.values(current).forEach(freeze);
-        Object.freeze(current);
-      }
-      return current;
-    }
-    return freeze(snapshot);
+    return visit(value, '$');
   }
 
   async function artifactDigest(value) {
-    const bytes = new TextEncoder().encode(canonicalJson(value));
-    const hash = await globalThis.crypto.subtle.digest('SHA-256', bytes);
-    return `sha256:${Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('')}`;
+    const snapshot = immutableArtifact(value);
+    const cacheable = snapshot !== null && typeof snapshot === 'object';
+    if (cacheable && snapshotDigests.has(snapshot)) return snapshotDigests.get(snapshot);
+    const bytes = new TextEncoder().encode(canonicalJson(snapshot));
+    const pending = globalThis.crypto.subtle.digest('SHA-256', bytes).then(hash =>
+      `sha256:${Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('')}`);
+    if (cacheable) snapshotDigests.set(snapshot, pending);
+    try { return await pending; }
+    catch (error) { if (cacheable) snapshotDigests.delete(snapshot); throw error; }
   }
 
   function requireDigest(value, label) {
@@ -427,8 +438,19 @@
       keys(invocation.viewport, ['width', 'height'], 'viewport');
       const snapshot = invocation.simulationSnapshot;
       if (Object.hasOwn(snapshot, 'schema')) {
-        if (snapshot.schema !== 'simulatte.renderSimulationSnapshot.v1') throw new Error('Unsupported render simulation snapshot schema');
-        keys(snapshot, ['schema', 'state', 'worldProofBinding', 'phase6Digest', 'contentDigest'], 'simulation snapshot');
+        if (!['simulatte.renderSimulationSnapshot.v1', 'simulatte.renderSimulationSnapshot.v2'].includes(snapshot.schema)) throw new Error('Unsupported render simulation snapshot schema');
+        const extended = snapshot.schema === 'simulatte.renderSimulationSnapshot.v2';
+        keys(snapshot, ['schema', 'state', 'worldProofBinding', 'phase6Digest', 'contentDigest', ...(extended ? ['proofReceipts'] : [])], 'simulation snapshot');
+        if (extended) {
+          const receipts = snapshot.proofReceipts;
+          if (!receipts || typeof receipts !== 'object' || Array.isArray(receipts)) throw new Error('Simulation snapshot requires declared proof receipts');
+          keys(receipts, RENDER_PROOF_RECEIPTS, 'proof receipts');
+          for (const name of RENDER_PROOF_RECEIPTS) {
+            if (!Object.hasOwn(receipts, name) || (receipts[name] !== null && (typeof receipts[name] !== 'object' || Array.isArray(receipts[name])))) {
+              throw new Error(`Invalid simulation snapshot ${name}`);
+            }
+          }
+        }
         if (!snapshot.state || typeof snapshot.state !== 'object' || Array.isArray(snapshot.state)) throw new Error('Simulation snapshot requires state');
         if (!snapshot.worldProofBinding || typeof snapshot.worldProofBinding !== 'object' || Array.isArray(snapshot.worldProofBinding)) throw new Error('Simulation snapshot requires WorldSpec binding');
         for (const key of ['phase6Digest', 'contentDigest']) {
@@ -592,6 +614,7 @@
     BOUND_OUTPUT_SCHEMAS,
     canonicalJson,
     immutableArtifact,
+    RENDER_PROOF_RECEIPTS,
     artifactDigest,
     createRequestEnvelope,
     validateInvocation,

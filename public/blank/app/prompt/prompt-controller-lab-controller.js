@@ -263,35 +263,44 @@
 
         const setSpec = (nextSpec, options = {}) => {
           const visible = options.visible === true || simulationVisible;
-          spec = normalizeSpec(nextSpec);
+          const nextProgram = normalizeSpec(nextSpec);
+          const managedFrame = options.phaseRun?.worldSpecContentHash === nextProgram.contentHash
+            ? options.phaseRun.attempts.at(-1)?.outputs[6]?.artifact?.renderExecution : null;
+          const proofOptions = {
+            buildId: appBuildVersion(root.defaultView),
+            runtimeId: 'simulatte.blank.browser.webgpu.v1',
+          };
+          const receiptForSpec = (key, create) => {
+            if (!managedFrame) return create(nextProgram, proofOptions);
+            const receipt = managedFrame[key];
+            if (key === 'safetyReceipt' && nextProgram.safety.status === 'not-declared' && receipt === null) return null;
+            if (receipt?.worldSpecContentHash !== nextProgram.contentHash || receipt.worldSpecRevision !== nextProgram.authorship.revision) {
+              throw new Error(`Managed ${key} does not bind the published WorldSpec`);
+            }
+            return receipt;
+          };
+          const preparedProofs = {
+            intent: receiptForSpec('intentReceipt', createIntentProofReceiptForSpec),
+            semantic: receiptForSpec('semanticReceipt', createSemanticProofReceiptForSpec),
+            simulation: receiptForSpec('simulationReproducibilityReceipt', createSimulationReproducibilityReceiptForSpec),
+            safety: receiptForSpec('safetyReceipt', createSafetyProofReceiptForSpec),
+          };
+          spec = nextProgram;
           worldImprovementSession.observeSpec(spec);
           proofSession.invalidate();
           pendingInteractionCommands.length = 0;
           worldInteraction?.reset();
           runView?.recordSpec(spec);
           state = createSimulationState(spec);
-          if (options.phaseRun?.worldSpecContentHash === spec.contentHash) {
-            const captured = options.phaseRun.attempts.at(-1)?.outputs[6]?.artifact?.renderExecution?.frameInvocation?.simulationSnapshot?.state;
+          if (managedFrame) {
+            const captured = managedFrame.frameInvocation?.simulationSnapshot?.state;
             if (captured) state = JSON.parse(JSON.stringify(captured));
           }
           playbackClock = model.createSimulationPlaybackClock(spec);
-          intentProofReceipt = createIntentProofReceiptForSpec(spec, {
-            buildId: appBuildVersion(root.defaultView),
-            runtimeId: 'simulatte.blank.browser.webgpu.v1',
-          });
-          semanticProofReceipt = createSemanticProofReceiptForSpec(spec, {
-            buildId: appBuildVersion(root.defaultView),
-            runtimeId: 'simulatte.blank.browser.webgpu.v1',
-          });
-          simulationReproducibilityReceipt =
-            createSimulationReproducibilityReceiptForSpec(spec, {
-              buildId: appBuildVersion(root.defaultView),
-              runtimeId: 'simulatte.blank.browser.webgpu.v1',
-            });
-          safetyProofReceipt = createSafetyProofReceiptForSpec(spec, {
-            buildId: appBuildVersion(root.defaultView),
-            runtimeId: 'simulatte.blank.browser.webgpu.v1',
-          });
+          intentProofReceipt = preparedProofs.intent;
+          semanticProofReceipt = preparedProofs.semantic;
+          simulationReproducibilityReceipt = preparedProofs.simulation;
+          safetyProofReceipt = preparedProofs.safety;
           renderExecutionInput = null;
           if (nameInput) nameInput.value = spec.name;
           renderControls(controlStack, spec);
@@ -300,7 +309,7 @@
           syncReadoutLabels(readouts, spec);
           syncWorldModelReceipt(worldModelReceipt, spec);
           syncSpecPreview(specPreview, spec);
-          worldSpecEditor?.sync(spec);
+          worldSpecEditor?.sync(spec, { signal: options.editorSignal });
           logGraphDebug(spec);
           if (visible && webGpuRenderer) {
             const nextRenderExecutionInput = refreshRenderExecutionInput();
@@ -356,28 +365,29 @@
           publishRuntime,
         });
 
+        async function executeEditorProgram(payload, rationale, signal, recompile) {
+          const serial = ++buildSerial;
+          worldSpecReconciliation.abort('superseded by authored input');
+          const cancel = () => phaseCompiler.cancel('WorldSpec operation superseded');
+          signal.addEventListener('abort', cancel, { once: true });
+          try {
+            if (signal.aborted) throw signal.reason;
+            const authored = recompile ? model.recordWorldSpecEdit(spec, payload, { rationale }) : deserializeSpec(payload);
+            const next = await phaseCompiler.executeProgram(authored, { recompile });
+            if (signal.aborted || serial !== buildSerial) throw signal.reason || Object.assign(new Error('WorldSpec operation superseded'), { name: 'AbortError' });
+            setSpec(next, { visible: true, phaseRun: phaseCompiler.getLatest(), editorSignal: signal });
+            return next;
+          } finally { signal.removeEventListener('abort', cancel); }
+        }
+
         worldSpecEditor = worldSpecEditorApi.connect(root, {
           getSpec: () => spec,
           getImprovementRecord: () => worldImprovementSession.getCurrentRecord(),
           serialize: serializeSpec,
           serializeExport: (accepted) => serializeSpec(accepted, { retainPhaseSources: true }),
           serializeImprovementRecord: worldImprovementSessionApi.serializeRecord,
-          apply: async (payload, rationale) => {
-            buildSerial += 1;
-            worldSpecReconciliation.abort('superseded by edit');
-            const edited = model.recordWorldSpecEdit(spec, payload, { rationale });
-            const next = await phaseCompiler.executeProgram(edited, { recompile: true });
-            setSpec(next, { visible: true, phaseRun: phaseCompiler.getLatest() });
-            return next;
-          },
-          import: async (payload) => {
-            buildSerial += 1;
-            worldSpecReconciliation.abort('superseded by import');
-            const imported = deserializeSpec(payload);
-            const next = await phaseCompiler.executeProgram(imported);
-            setSpec(next, { visible: true, phaseRun: phaseCompiler.getLatest() });
-            return next;
-          },
+          apply: (payload, rationale, signal) => executeEditorProgram(payload, rationale, signal, true),
+          import: (payload, rationale, signal) => executeEditorProgram(payload, rationale, signal, false),
           onError: () => { if (stateReadout) stateReadout.textContent = 'WorldSpec edit failed'; },
         });
 
@@ -403,6 +413,7 @@
           if (embedder && typeof embedder.cancel === 'function') embedder.cancel();
           if (pipelineCompiler && typeof pipelineCompiler.cancel === 'function') pipelineCompiler.cancel();
           phaseCompiler.cancel();
+          worldSpecEditor.cancel();
           proofSession.invalidate();
           if (!String(prompt || '').trim()) {
             beginTrainingRun(trainingRun, prompt, params, serial);
@@ -749,6 +760,7 @@
         setSpec(spec, { visible: false });
         root.defaultView?.addEventListener('pagehide', () => {
           phaseCompiler.dispose();
+          worldSpecEditor.cancel();
           pipelineCompiler?.cancel();
           worldSpecReconciliation.abort('page closed');
           webGpuRenderer?.session.dispose();

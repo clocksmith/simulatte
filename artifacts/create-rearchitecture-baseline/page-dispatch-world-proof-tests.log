@@ -1,0 +1,220 @@
+TAP version 13
+# Subtest: page dispatch executes and retains eight bound phases through the existing worker
+ok 1 - page dispatch executes and retains eight bound phases through the existing worker
+  ---
+  duration_ms: 28460.502381
+  type: 'test'
+  ...
+# Subtest: worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+ok 2 - worker phase RPC and runner execute the same eight transformations with explicit graphics ownership
+  ---
+  duration_ms: 5262.95667
+  type: 'test'
+  ...
+# Subtest: phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+ok 3 - phase RPC rejects undeclared resources, malformed predecessors, invocation leaks and GPU execution
+  ---
+  duration_ms: 4.374955
+  type: 'test'
+  ...
+# Subtest: authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+ok 4 - authored worker phases preserve admitted artifacts without fresh interpretation or retrieval
+  ---
+  duration_ms: 8475.456479
+  type: 'test'
+  ...
+# Subtest: authored replay rejects changed provenance, cross-world sources and ignored authoring
+ok 5 - authored replay rejects changed provenance, cross-world sources and ignored authoring
+  ---
+  duration_ms: 3874.313
+  type: 'test'
+  ...
+# Subtest: cancelling a worker phase stops its worker and stale events cannot poison its replacement
+ok 6 - cancelling a worker phase stops its worker and stale events cannot poison its replacement
+  ---
+  duration_ms: 1.080513
+  type: 'test'
+  ...
+# Subtest: worker failure terminates the failed instance and rejects pending and future calls
+ok 7 - worker failure terminates the failed instance and rejects pending and future calls
+  ---
+  duration_ms: 0.507399
+  type: 'test'
+  ...
+# Subtest: compatibility compile retains its WorldSpec result through the same worker protocol
+ok 8 - compatibility compile retains its WorldSpec result through the same worker protocol
+  ---
+  duration_ms: 1509.732461
+  type: 'test'
+  ...
+# Subtest: page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+ok 9 - page reconciliation starts an explicit authored request and cancellation cannot replay a late decision
+  ---
+  duration_ms: 9264.582279
+  type: 'test'
+  ...
+# Subtest: WorldProof binds all eight proof classes to the exact WorldSpec revision
+ok 10 - WorldProof binds all eight proof classes to the exact WorldSpec revision
+  ---
+  duration_ms: 1724.416399
+  type: 'test'
+  ...
+# Subtest: WorldProof does not convert a visual failure into another proof class
+ok 11 - WorldProof does not convert a visual failure into another proof class
+  ---
+  duration_ms: 954.788429
+  type: 'test'
+  ...
+# Subtest: WorldProof passes only when every required proof class has its own receipt
+ok 12 - WorldProof passes only when every required proof class has its own receipt
+  ---
+  duration_ms: 929.330685
+  type: 'test'
+  ...
+# Subtest: intent proof preserves exact counts, attributes, and negation as separate critical requirements
+ok 13 - intent proof preserves exact counts, attributes, and negation as separate critical requirements
+  ---
+  duration_ms: 1063.870637
+  type: 'test'
+  ...
+# Subtest: intent proof treats an unsupported concept and its relation as explicit refusals
+ok 14 - intent proof treats an unsupported concept and its relation as explicit refusals
+  ---
+  duration_ms: 1227.249673
+  type: 'test'
+  ...
+# Subtest: semantic provenance binds accepted entities, relations, properties, quantities, and negation
+ok 15 - semantic provenance binds accepted entities, relations, properties, quantities, and negation
+  ---
+  duration_ms: 2945.878566
+  type: 'test'
+  ...
+# Subtest: semantic provenance fails closed when accepted node or relation evidence is lost
+ok 16 - semantic provenance fails closed when accepted node or relation evidence is lost
+  ---
+  duration_ms: 1340.165197
+  type: 'test'
+  ...
+# Subtest: WorldProof rejects tampered, rebound, or stale semantic receipts
+ok 17 - WorldProof rejects tampered, rebound, or stale semantic receipts
+  ---
+  duration_ms: 2459.562301
+  type: 'test'
+  ...
+# Subtest: interaction proof binds declared actions to recomputable before and after state
+ok 18 - interaction proof binds declared actions to recomputable before and after state
+  ---
+  duration_ms: 2390.446833
+  type: 'test'
+  ...
+# Subtest: WorldProof rejects fabricated, tampered, or rebound interaction proof
+ok 19 - WorldProof rejects fabricated, tampered, or rebound interaction proof
+  ---
+  duration_ms: 3508.441175
+  type: 'test'
+  ...
+# Subtest: replay proof detects a changed interaction transition trace
+ok 20 - replay proof detects a changed interaction transition trace
+  ---
+  duration_ms: 2198.94107
+  type: 'test'
+  ...
+# Subtest: replay proof compares an externally bound execution identity
+ok 21 - replay proof compares an externally bound execution identity
+  ---
+  duration_ms: 830.885834
+  type: 'test'
+  ...
+# Subtest: intent settlement fails a dropped critical requirement and retains unresolved as not-proven
+ok 22 - intent settlement fails a dropped critical requirement and retains unresolved as not-proven
+  ---
+  duration_ms: 695.615901
+  type: 'test'
+  ...
+# Subtest: WorldProof rejects tampered or rebound intent receipts
+ok 23 - WorldProof rejects tampered or rebound intent receipts
+  ---
+  duration_ms: 1985.986469
+  type: 'test'
+  ...
+# Subtest: WorldProof content hash rejects mutated verdicts
+ok 24 - WorldProof content hash rejects mutated verdicts
+  ---
+  duration_ms: 1142.652229
+  type: 'test'
+  ...
+# Subtest: live solver execution settles simulation proof without borrowing render evidence
+ok 25 - live solver execution settles simulation proof without borrowing render evidence
+  ---
+  duration_ms: 1379.76227
+  type: 'test'
+  ...
+# Subtest: replay proof compares identified semantic, behavioral, and visual outcomes
+ok 26 - replay proof compares identified semantic, behavioral, and visual outcomes
+  ---
+  duration_ms: 1405.448711
+  type: 'test'
+  ...
+# Subtest: compiler determinism binds an independent compile to the pre-edit baseline
+ok 27 - compiler determinism binds an independent compile to the pre-edit baseline
+  ---
+  duration_ms: 1312.140737
+  type: 'test'
+  ...
+# Subtest: simulation reproducibility compares independent fixed-step state within declared tolerance
+ok 28 - simulation reproducibility compares independent fixed-step state within declared tolerance
+  ---
+  duration_ms: 1418.091254
+  type: 'test'
+  ...
+# Subtest: declared safety gates evaluate every fixed-step checkpoint twice
+ok 29 - declared safety gates evaluate every fixed-step checkpoint twice
+  ---
+  duration_ms: 1229.822987
+  type: 'test'
+  ...
+# Subtest: a blocking safety violation fails independently of simulation and visual proof
+ok 30 - a blocking safety violation fails independently of simulation and visual proof
+  ---
+  duration_ms: 1543.63534
+  type: 'test'
+  ...
+# Subtest: a warning safety violation remains visible without blocking execution
+ok 31 - a warning safety violation remains visible without blocking execution
+  ---
+  duration_ms: 1773.567583
+  type: 'test'
+  ...
+# Subtest: WorldProof rejects untyped or rebound safety receipts
+ok 32 - WorldProof rejects untyped or rebound safety receipts
+  ---
+  duration_ms: 1471.844696
+  type: 'test'
+  ...
+# Subtest: compiler determinism fails on different inputs, output, lane, or build binding
+ok 33 - compiler determinism fails on different inputs, output, lane, or build binding
+  ---
+  duration_ms: 2269.014841
+  type: 'test'
+  ...
+# Subtest: declared determinism classes without a proving receipt remain not-proven
+ok 34 - declared determinism classes without a proving receipt remain not-proven
+  ---
+  duration_ms: 1026.681163
+  type: 'test'
+  ...
+# Subtest: published WorldProof schema names the canonical contract
+ok 35 - published WorldProof schema names the canonical contract
+  ---
+  duration_ms: 0.535954
+  type: 'test'
+  ...
+1..35
+# tests 35
+# suites 0
+# pass 35
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 57290.669118

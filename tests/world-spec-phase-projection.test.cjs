@@ -164,3 +164,55 @@ test('editor file import passes retained phase sources to execution before prepa
   assert.equal(JSON.parse(nodes.get('world-spec-editor').value).phaseArtifacts, undefined,
     'editing projection excludes compiler evidence after the complete import');
 });
+
+test('editor cancels obsolete apply results, errors, and file reads before they can publish', async () => {
+  const editorApi = require('../public/blank/app/prompt/world-spec-editor.js');
+  const nodes = new Map();
+  const document = { getElementById(id) {
+    if (!nodes.has(id)) nodes.set(id, { value: '', dataset: {}, listeners: {},
+      addEventListener(event, fn) { this.listeners[event] = fn; } });
+    return nodes.get(id);
+  } };
+  const original = { contentHash: 'original', authorship: { revision: 0 } };
+  let settle;
+  let applySignal;
+  let imports = 0;
+  const errors = [];
+  const connected = editorApi.connect(document, { getSpec: () => original,
+    getImprovementRecord: () => null, serialize: JSON.stringify, serializeImprovementRecord: JSON.stringify,
+    apply(_text, _reason, signal) { applySignal = signal; return new Promise(resolve => { settle = resolve; }); },
+    import() { imports += 1; }, onError: error => errors.push(error) });
+  const editor = nodes.get('world-spec-editor');
+  editor.value = 'first edit';
+  editor.listeners.input();
+  const pending = connected.apply();
+  editor.value = 'newer edit';
+  editor.listeners.input();
+  assert.equal(applySignal.aborted, true);
+  settle({ contentHash: 'stale', authorship: { revision: 1 } });
+  assert.equal(await pending, null);
+  assert.equal(editor.value, 'newer edit');
+  assert.equal(connected.isDirty(), true);
+  assert.equal(nodes.get('world-spec-editor-status').textContent, 'Unapplied edit');
+
+  let releaseFile;
+  const input = nodes.get('world-spec-import-file');
+  input.files = [{ size: 2, name: 'old.world.json', arrayBuffer: () => new Promise(resolve => { releaseFile = resolve; }) }];
+  input.value = 'old.world.json';
+  const reading = input.listeners.change();
+  nodes.get('reset-world-spec-edit').listeners.click();
+  input.value = 'new.world.json';
+  releaseFile(new TextEncoder().encode('{}').buffer);
+  await reading;
+  assert.equal(imports, 0);
+  assert.equal(input.value, 'new.world.json');
+  assert.equal(editor.value, JSON.stringify(original));
+  assert.deepEqual(errors, []);
+
+  const external = connected.apply();
+  connected.sync({ contentHash: 'external', authorship: { revision: 2 } }, { force: true });
+  assert.equal(applySignal.aborted, true);
+  settle({ contentHash: 'stale-again', authorship: { revision: 1 } });
+  assert.equal(await external, null);
+  assert.equal(JSON.parse(editor.value).contentHash, 'external');
+});

@@ -106,8 +106,14 @@ test('invalid predecessor, malformed invocation, contradictory time and texture 
 test('declared simulation snapshots bind the authored program to its exact Phase 6 artifact', async () => {
   const { renderer, previous, fence, mapped, calls } = fixture();
   const state = model.stepSimulation(model.createSimulationState(spec), spec, 1 / 60);
+  const proofOptions = {
+    intentReceipt: model.createIntentProofReceiptForSpec(spec),
+    semanticReceipt: model.createSemanticProofReceiptForSpec(spec),
+    simulationReproducibilityReceipt: model.createSimulationReproducibilityReceiptForSpec(spec),
+    safetyReceipt: model.createSafetyProofReceiptForSpec(spec),
+  };
   const invocationPending = model.createRenderInvocation(spec, state,
-    { index: 1, simulationTime: state.t }, { width: 300, height: 200 });
+    { index: 1, simulationTime: state.t }, { width: 300, height: 200 }, proofOptions);
   state.t = 19;
   const invocation = await invocationPending;
   assert.equal(invocation.simulationSnapshot.state.t, 1 / 60);
@@ -123,6 +129,14 @@ test('declared simulation snapshots bind the authored program to its exact Phase
   const { contentDigest, ...reboundContent } = rebound.simulationSnapshot;
   rebound.simulationSnapshot.contentDigest = await contracts.artifactDigest(reboundContent);
   await assert.rejects(renderer.renderPhase(previous, rebound), /interaction identity contradicts/);
+  const wrongProof = JSON.parse(original);
+  wrongProof.simulationSnapshot.proofReceipts.intentReceipt.worldSpecContentHash = 'fnv1a32:00000000';
+  const { contentDigest: _oldDigest, ...wrongProofContent } = wrongProof.simulationSnapshot;
+  wrongProof.simulationSnapshot.contentDigest = await contracts.artifactDigest(wrongProofContent);
+  await assert.rejects(renderer.renderPhase(previous, wrongProof), /intentReceipt belongs to another WorldSpec/);
+  const undeclared = JSON.parse(original);
+  undeclared.simulationSnapshot.proofReceipts.hiddenAuthority = {};
+  await assert.rejects(renderer.renderPhase(previous, undeclared), /Undeclared proof receipts/);
   assert.equal(calls.length, 0);
   const pending = renderer.renderPhase(previous, invocation);
   await new Promise(setImmediate);
@@ -131,6 +145,7 @@ test('declared simulation snapshots bind the authored program to its exact Phase
   const execution = output.artifact.renderExecution;
   assert.equal(execution.worldProofBinding.worldSpec.contentHash, spec.contentHash);
   assert.equal(execution.worldProofBinding.interaction.contentHash, spec.interactionIR.contentHash);
+  for (const [key, receipt] of Object.entries(proofOptions)) assert.deepEqual(execution[key], receipt);
   assert.equal(execution.frameInvocation.simulationSnapshot.phase6Digest, await contracts.artifactDigest(previous));
   assert.equal(calls[0].input.simulationState.t, 1 / 60);
   assert.equal(calls[0].input.simulationState.worldProofBinding, undefined, 'Evidence is separate from solver state');
