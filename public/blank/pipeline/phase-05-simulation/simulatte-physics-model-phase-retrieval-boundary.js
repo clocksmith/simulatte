@@ -45,8 +45,20 @@
     });
   }
 
+  function createPhase3Resources(phase2, runtimeContext, evidence) {
+    scope.assertPhaseEnvelope(phase2, 2, 'Retrieval resources predecessor');
+    const expected = phase2.artifact.sceneLanguageGraph.sourcePromptHash;
+    assertPhase3RetrievalEvidencePromptHash(evidence, expected);
+    const { retrievalEvidence: legacyEvidence, ...readiness } = runtimeContext;
+    if (legacyEvidence && hasPhase3RetrievalPayload(legacyEvidence)) {
+      throw new Error('Runtime readiness cannot carry semantic retrieval results');
+    }
+    return { ...readiness, retrievalEvidence: scope.clonePhaseValue(evidence) };
+  }
+
   root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-phase-retrieval-boundary.js', {
     assertPhase3RetrievalEvidencePromptHash,
+    createPhase3Resources,
     requiredPhase2Artifact,
     hasPhase3RetrievalPayload,
   });

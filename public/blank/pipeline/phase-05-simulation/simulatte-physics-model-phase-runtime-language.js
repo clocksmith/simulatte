@@ -60,7 +60,6 @@
           receipt && (receipt.runtimeReceiptId || receipt.receiptId || receipt.id) ||
           `runtime:${scope.seedFromString([modelId, backend, cacheMode].filter(Boolean).join(':') || 'local').toString(36)}`
         );
-        const retrievalEvidence = retrievalEvidenceFromOptions(options);
         return {
           schema: 'simulatte.phaseRuntimeContext.v1',
           runtimeReceiptId,
@@ -72,7 +71,6 @@
           noFallback: deterministicRuntime || receipt && receipt.noFallback === true,
           promptRuntimeReceipt: receipt,
           modelSelection: options.modelSelection || null,
-          retrievalEvidence,
           retrievalPhase: options.retrievalPhase || '',
           runtimeMode: deterministicRuntime
             ? 'deterministic-local'
@@ -840,7 +838,6 @@
     function runPhase1RuntimeGate(sourceText = '', options = {}) {
           const runtimeContext = runtimeContextFromOptions(options);
           const promptText = String(sourceText || '').trim();
-          scope.assertPhase3RetrievalEvidencePromptHash(runtimeContext.retrievalEvidence, stableTextHash(promptText));
           if (phase1RequiresModelProof(promptText, options, runtimeContext)) {
             throw new Error('Phase 1 runtime gate requires promptRuntimeReceipt with providerReady=true for nonblank browser prompt');
           }

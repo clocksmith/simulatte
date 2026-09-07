@@ -223,6 +223,7 @@
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-execution.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js',
     'pipeline/phase-05-simulation/simulatte-world-spec-runtime.js',
+    'pipeline/phase-03-retrieval/simulatte-candidate-composition.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js',
     'pipeline/phase-05-simulation/simulatte-simulation-reproducibility.js',

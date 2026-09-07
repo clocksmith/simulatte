@@ -1,0 +1,353 @@
+TAP version 13
+# Subtest: cancellation invalidates queued intent work, including before a worker starts
+ok 1 - cancellation invalidates queued intent work, including before a worker starts
+  ---
+  duration_ms: 9.355939
+  type: 'test'
+  ...
+# Subtest: a crashed intent worker cannot retain queued requests or receive future work
+ok 2 - a crashed intent worker cannot retain queued requests or receive future work
+  ---
+  duration_ms: 1.338551
+  type: 'test'
+  ...
+# Subtest: negation ends at a new clause without losing an affirmative count
+ok 3 - negation ends at a new clause without losing an affirmative count
+  ---
+  duration_ms: 3831.349827
+  type: 'test'
+  ...
+# Subtest: grounding cannot reintroduce excluded language spans or positive count obligations
+ok 4 - grounding cannot reintroduce excluded language spans or positive count obligations
+  ---
+  duration_ms: 556.275169
+  type: 'test'
+  ...
+# Subtest: retrieval carriers reject absent and mismatched provenance instead of stamping evidence
+ok 5 - retrieval carriers reject absent and mismatched provenance instead of stamping evidence
+  ---
+  duration_ms: 4.095371
+  type: 'test'
+  ...
+# Subtest: interactive playback uses the proof timestep independently of display frequency
+ok 6 - interactive playback uses the proof timestep independently of display frequency
+  ---
+  duration_ms: 6.694114
+  type: 'test'
+  ...
+# Subtest: retrieval producers reject stale query provenance before loading model artifacts
+ok 7 - retrieval producers reject stale query provenance before loading model artifacts
+  ---
+  duration_ms: 1.360754
+  type: 'test'
+  ...
+# Subtest: visual compilation ignores raw prompt substitutions in a fixed typed simulation artifact
+ok 8 - visual compilation ignores raw prompt substitutions in a fixed typed simulation artifact
+  ---
+  duration_ms: 646.55393
+  type: 'test'
+  ...
+# Subtest: stale readback failures clean their buffer without changing the active scene
+ok 9 - stale readback failures clean their buffer without changing the active scene
+  ---
+  duration_ms: 0.716433
+  type: 'test'
+  ...
+# Subtest: a current readback failure still marks current proof failed
+ok 10 - a current readback failure still marks current proof failed
+  ---
+  duration_ms: 0.52256
+  type: 'test'
+  ...
+# Subtest: unchanged geometry cannot cache unexercised or failed simulation evidence
+ok 11 - unchanged geometry cannot cache unexercised or failed simulation evidence
+  ---
+  duration_ms: 1455.868874
+  type: 'test'
+  ...
+# Subtest: passing visual flags cannot erase a carried lost obligation
+ok 12 - passing visual flags cannot erase a carried lost obligation
+  ---
+  duration_ms: 4.537636
+  type: 'test'
+  ...
+# Subtest: falling reaches one real body and a gravity operator without a visible gravity object or fluid substitution
+ok 13 - falling reaches one real body and a gravity operator without a visible gravity object or fluid substitution
+  ---
+  duration_ms: 1176.120618
+  type: 'test'
+  ...
+# Subtest: pendulum integration oscillates with bounded energy and the rendered rod connects pivot to bob
+ok 14 - pendulum integration oscillates with bounded energy and the rendered rod connects pivot to bob
+  ---
+  duration_ms: 807.112576
+  type: 'test'
+  ...
+# Subtest: invalid mechanics cannot silently generate non-finite or energy-creating state
+ok 15 - invalid mechanics cannot silently generate non-finite or energy-creating state
+  ---
+  duration_ms: 0.496297
+  type: 'test'
+  ...
+# Subtest: autonomous solver frames refresh the uploaded parts without an interaction, and absent execution cannot prove motion
+ok 16 - autonomous solver frames refresh the uploaded parts without an interaction, and absent execution cannot prove motion
+  ---
+  duration_ms: 1105.196699
+  type: 'test'
+  ...
+# Subtest: qualified absence preserves positive mentions, including reversed clause order
+ok 17 - qualified absence preserves positive mentions, including reversed clause order
+  ---
+  duration_ms: 1402.786723
+  type: 'test'
+  ...
+# Subtest: Phase 5 retains adverse status and only associates operators with their own obligations
+ok 18 - Phase 5 retains adverse status and only associates operators with their own obligations
+  ---
+  duration_ms: 0.453597
+  type: 'test'
+  ...
+# Subtest: training exposes exact adjacent envelopes, detached snapshots, and discards previous run proof
+ok 19 - training exposes exact adjacent envelopes, detached snapshots, and discards previous run proof
+  ---
+  duration_ms: 1048.272318
+  type: 'test'
+  ...
+# Subtest: progress assigns all proof events to Phase 8 and keeps the failing phase
+ok 20 - progress assigns all proof events to Phase 8 and keeps the failing phase
+  ---
+  duration_ms: 1.025052
+  type: 'test'
+  ...
+# Subtest: Doppler computes and preserves manifest SHA-256 provenance on model handles
+ok 21 - Doppler computes and preserves manifest SHA-256 provenance on model handles
+  ---
+  duration_ms: 237.937899
+  type: 'test'
+  ...
+# Subtest: Doppler single embeddings reset sequence state before and after every call
+ok 22 - Doppler single embeddings reset sequence state before and after every call
+  ---
+  duration_ms: 102.262223
+  type: 'test'
+  ...
+# Subtest: Doppler model qualification summarizes exact successful browser evidence
+ok 23 - Doppler model qualification summarizes exact successful browser evidence
+  ---
+  duration_ms: 10.751077
+  type: 'test'
+  ...
+# Subtest: Doppler model qualification rejects fallback-shaped or semantically invalid output
+ok 24 - Doppler model qualification rejects fallback-shaped or semantically invalid output
+  ---
+  duration_ms: 0.512323
+  type: 'test'
+  ...
+# Subtest: directed spatial phrases preserve both nouns, colors, and argument order
+ok 25 - directed spatial phrases preserve both nouns, colors, and argument order
+  ---
+  duration_ms: 6034.699733
+  type: 'test'
+  ...
+# Subtest: part cardinality changes one owner geometry, without creating extra owners
+ok 26 - part cardinality changes one owner geometry, without creating extra owners
+  ---
+  duration_ms: 3573.974778
+  type: 'test'
+  ...
+# Subtest: part ownership paraphrases change the same owner and preserve unrelated objects
+ok 27 - part ownership paraphrases change the same owner and preserve unrelated objects
+  ---
+  duration_ms: 2886.775065
+  type: 'test'
+  ...
+# Subtest: directed motion preserves distinct counted instances and their formation offsets
+ok 28 - directed motion preserves distinct counted instances and their formation offsets
+  ---
+  duration_ms: 676.492936
+  type: 'test'
+  ...
+# Subtest: novel nouns remain required and unknown actions request retrieval
+ok 29 - novel nouns remain required and unknown actions request retrieval
+  ---
+  duration_ms: 611.322794
+  type: 'test'
+  ...
+# Subtest: qualifying observables and materials do not become spurious actions
+ok 30 - qualifying observables and materials do not become spurious actions
+  ---
+  duration_ms: 3.464277
+  type: 'test'
+  ...
+# Subtest: pursuit and avoidance compile the declared subject and target
+ok 31 - pursuit and avoidance compile the declared subject and target
+  ---
+  duration_ms: 2407.312584
+  type: 'test'
+  ...
+# Subtest: directed motion responds to target changes, respects speed, and rejects invalid state
+ok 32 - directed motion responds to target changes, respects speed, and rejects invalid state
+  ---
+  duration_ms: 1.752943
+  type: 'test'
+  ...
+# Subtest: slot-bound semantic candidates survive vocabulary differences and reject wrong bindings
+ok 33 - slot-bound semantic candidates survive vocabulary differences and reject wrong bindings
+  ---
+  duration_ms: 0.518874
+  type: 'test'
+  ...
+# Subtest: retrieval retains required slots beyond a single embedding batch
+ok 34 - retrieval retains required slots beyond a single embedding batch
+  ---
+  duration_ms: 0.365392
+  type: 'test'
+  ...
+# Subtest: phase module registry rejects duplicate export ownership
+ok 35 - phase module registry rejects duplicate export ownership
+  ---
+  duration_ms: 2.311005
+  type: 'test'
+  ...
+# Subtest: phase module registry verifies required exports at finalization
+ok 36 - phase module registry verifies required exports at finalization
+  ---
+  duration_ms: 0.630952
+  type: 'test'
+  ...
+# Subtest: phase module registry returns one frozen finalized facade
+ok 37 - phase module registry returns one frozen finalized facade
+  ---
+  duration_ms: 0.444727
+  type: 'test'
+  ...
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+ok 38 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 1678.994817
+  type: 'test'
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+ok 39 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 959.692609
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+ok 40 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 1121.769574
+  type: 'test'
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+ok 41 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 1207.912527
+  type: 'test'
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+ok 42 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 1842.420548
+  type: 'test'
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+ok 43 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 1390.169637
+  type: 'test'
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+ok 44 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 2324.898265
+  type: 'test'
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+ok 45 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 728.09713
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+ok 46 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 1287.070208
+  type: 'test'
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 47 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 0.785063
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+ok 48 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 1256.89886
+  type: 'test'
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+ok 49 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 1056.272689
+  type: 'test'
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+ok 50 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 2588.529445
+  type: 'test'
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+ok 51 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 1127.965212
+  type: 'test'
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+ok 52 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 880.288053
+  type: 'test'
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 53 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 0.609071
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+not ok 54 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 565.708283
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:575:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(removedNode)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/world-spec.test.cjs:592:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..54
+# tests 54
+# suites 0
+# pass 53
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 20807.317084

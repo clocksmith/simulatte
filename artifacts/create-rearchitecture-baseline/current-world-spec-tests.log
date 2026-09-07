@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+ok 1 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 957.69462
+  type: 'test'
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+ok 2 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 519.165215
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+ok 3 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 663.599362
+  type: 'test'
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+ok 4 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 623.58227
+  type: 'test'
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+ok 5 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 910.711377
+  type: 'test'
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+ok 6 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 779.50342
+  type: 'test'
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+ok 7 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 1338.876198
+  type: 'test'
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+ok 8 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 601.984659
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+ok 9 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 1078.278533
+  type: 'test'
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 10 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 0.824146
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+ok 11 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 1070.408737
+  type: 'test'
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+ok 12 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 904.301185
+  type: 'test'
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+ok 13 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 2486.856328
+  type: 'test'
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+ok 14 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 1114.998772
+  type: 'test'
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+ok 15 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 867.967082
+  type: 'test'
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 16 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 0.611044
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+ok 17 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 914.908876
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15044.212943

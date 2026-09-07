@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 6.558466
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 35.817014
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 14.156294
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 2.208218
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 44.17296
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.670297
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.488234
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 1642.934603
+  type: 'test'
+  ...
+# Subtest: directed spatial phrases preserve both nouns, colors, and argument order
+ok 9 - directed spatial phrases preserve both nouns, colors, and argument order
+  ---
+  duration_ms: 3679.327129
+  type: 'test'
+  ...
+# Subtest: part cardinality changes one owner geometry, without creating extra owners
+ok 10 - part cardinality changes one owner geometry, without creating extra owners
+  ---
+  duration_ms: 2404.975881
+  type: 'test'
+  ...
+# Subtest: repeated nouns keep separate source spans, construction identities, and colors
+ok 11 - repeated nouns keep separate source spans, construction identities, and colors
+  ---
+  duration_ms: 552.985408
+  type: 'test'
+  ...
+# Subtest: an unspecified machine does not acquire a rotor or executable mechanics from its noun
+ok 12 - an unspecified machine does not acquire a rotor or executable mechanics from its noun
+  ---
+  duration_ms: 1892.62074
+  type: 'test'
+  ...
+# Subtest: part ownership paraphrases change the same owner and preserve unrelated objects
+ok 13 - part ownership paraphrases change the same owner and preserve unrelated objects
+  ---
+  duration_ms: 2110.676848
+  type: 'test'
+  ...
+# Subtest: directed motion preserves distinct counted instances and their formation offsets
+ok 14 - directed motion preserves distinct counted instances and their formation offsets
+  ---
+  duration_ms: 559.905344
+  type: 'test'
+  ...
+# Subtest: novel nouns remain required and unknown actions request retrieval
+ok 15 - novel nouns remain required and unknown actions request retrieval
+  ---
+  duration_ms: 1139.523545
+  type: 'test'
+  ...
+# Subtest: qualifying observables and materials do not become spurious actions
+ok 16 - qualifying observables and materials do not become spurious actions
+  ---
+  duration_ms: 5.841565
+  type: 'test'
+  ...
+# Subtest: verb inflections preserve thermal semantics without substring action matches
+ok 17 - verb inflections preserve thermal semantics without substring action matches
+  ---
+  duration_ms: 3108.500664
+  type: 'test'
+  ...
+# Subtest: pursuit and avoidance compile the declared subject and target
+ok 18 - pursuit and avoidance compile the declared subject and target
+  ---
+  duration_ms: 2117.010256
+  type: 'test'
+  ...
+# Subtest: directed motion responds to target changes, respects speed, and rejects invalid state
+ok 19 - directed motion responds to target changes, respects speed, and rejects invalid state
+  ---
+  duration_ms: 1.913052
+  type: 'test'
+  ...
+# Subtest: slot-bound semantic candidates survive vocabulary differences and reject wrong bindings
+ok 20 - slot-bound semantic candidates survive vocabulary differences and reject wrong bindings
+  ---
+  duration_ms: 0.358181
+  type: 'test'
+  ...
+# Subtest: retrieval retains required slots beyond a single embedding batch
+ok 21 - retrieval retains required slots beyond a single embedding batch
+  ---
+  duration_ms: 0.189238
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17829.087532

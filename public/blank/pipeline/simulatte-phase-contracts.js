@@ -4,6 +4,9 @@
   root.SimulattePhaseContracts = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPhaseContractsApi() {
   const PHASE_ZERO_INPUT_SCHEMA = 'simulatte.phase0.input.v1';
+  const BOUND_OUTPUT_SCHEMAS = Object.freeze(Object.fromEntries(
+    Array.from({ length: 8 }, (_, index) => [index + 1, `simulatte.phase${index + 1}.output.v3`])
+  ));
   const PHASE_LABELS = Object.freeze([
     'Runtime', 'Language', 'Retrieval', 'Grounding',
     'Simulation', 'Visuals', 'Render', 'Proof',
@@ -276,12 +279,14 @@
   function assertPhaseEnvelope(envelope, phaseNumber, label = 'phase boundary') {
     const phaseId = Number(phaseNumber);
     const expected = phaseOutputSchema(phaseId);
-    if (!envelope || envelope.schema !== expected || Number(envelope.phase) !== phaseId) {
+    const bound = envelope && envelope.schema === BOUND_OUTPUT_SCHEMAS[phaseId];
+    if (!envelope || (!bound && envelope.schema !== expected) || Number(envelope.phase) !== phaseId) {
       const received = envelope && envelope.schema ? envelope.schema : typeof envelope;
       throw new Error(`${label} expected ${expected}, received ${received}`);
     }
     const contract = PHASE_CONTRACTS[phaseId];
-    if (contract && envelope.inputSchema !== contract.inputSchema) {
+    const expectedInput = bound && phaseId > 1 ? BOUND_OUTPUT_SCHEMAS[phaseId - 1] : contract?.inputSchema;
+    if (contract && envelope.inputSchema !== expectedInput) {
       throw new Error(
         `${label} expected inputSchema ${contract.inputSchema}, received ${envelope.inputSchema || 'missing'}`
       );
@@ -317,7 +322,173 @@
       contract ? contract.forbiddenUpstreamReads : []
     );
     if (forbidden) throw new Error(`${label} contains forbidden upstream field ${forbidden}`);
+    if (bound) {
+      assertBinding(envelope.binding);
+      canonicalJson(envelope);
+    }
     return envelope;
+  }
+
+  // This serialization is intentionally stricter than the compatible WorldSpec hash.
+  // Handles, undefined values and lossy JSON values cannot become integrity evidence.
+  function canonicalJson(value) {
+    const active = new WeakSet();
+    function visit(current, path) {
+      if (current === null || typeof current === 'boolean' || typeof current === 'string') return current;
+      if (typeof current === 'number' && Number.isFinite(current)) return current;
+      if (!current || typeof current !== 'object') throw new Error(`${path}: expected serializable finite value`);
+      if (active.has(current)) throw new Error(`${path}: cyclic artifact`);
+      const prototype = Object.getPrototypeOf(current);
+      if (!Array.isArray(current) && prototype !== Object.prototype && prototype !== null) {
+        throw new Error(`${path}: runtime handle is not a serializable artifact`);
+      }
+      if (Object.getOwnPropertySymbols(current).length) throw new Error(`${path}: symbol field is not serializable`);
+      active.add(current);
+      const result = Array.isArray(current) ? [] : Object.create(null);
+      const keys = Array.isArray(current) ? Array.from({ length: current.length }, (_, i) => String(i)) : Object.keys(current).sort();
+      for (const key of keys) {
+        const descriptor = Object.getOwnPropertyDescriptor(current, key);
+        if (!descriptor || !Object.hasOwn(descriptor, 'value')) throw new Error(`${path}.${key}: missing value or accessor`);
+        result[key] = visit(descriptor.value, `${path}.${key}`);
+      }
+      active.delete(current);
+      return result;
+    }
+    return JSON.stringify(visit(value, '$'));
+  }
+
+  function immutableArtifact(value) {
+    const snapshot = JSON.parse(canonicalJson(value));
+    function freeze(current) {
+      if (current && typeof current === 'object') {
+        Object.values(current).forEach(freeze);
+        Object.freeze(current);
+      }
+      return current;
+    }
+    return freeze(snapshot);
+  }
+
+  async function artifactDigest(value) {
+    const bytes = new TextEncoder().encode(canonicalJson(value));
+    const hash = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+    return `sha256:${Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('')}`;
+  }
+
+  function requireDigest(value, label) {
+    if (!/^sha256:[a-f0-9]{64}$/.test(value || '')) throw new Error(`${label}: expected SHA-256 identity`);
+  }
+
+  function assertBinding(binding) {
+    if (!binding || binding.schema !== 'simulatte.phaseBinding.v1') throw new Error('Missing phase binding');
+    for (const key of ['predecessorDigest', 'invocationDigest', 'artifactDigest', 'dependencyDigest', 'producerDigest']) {
+      requireDigest(binding[key], key);
+    }
+    if (!Number.isSafeInteger(binding.revision) || binding.revision < 1) throw new Error('Invalid run revision');
+    validateProducer(binding.producer);
+    validateDependencies(binding.dependencies);
+  }
+
+  function validateProducer(producer) {
+    if (!producer || typeof producer.id !== 'string' || !producer.id.trim()) throw new Error('Missing phase producer');
+    requireDigest(producer.buildDigest, 'producer.buildDigest');
+    canonicalJson(producer);
+  }
+
+  function validateDependencies(dependencies) {
+    if (!Array.isArray(dependencies)) throw new Error('Missing dependency descriptors');
+    const ids = new Set();
+    for (const dependency of dependencies) {
+      if (!dependency || typeof dependency.id !== 'string' || !dependency.id || ids.has(dependency.id)) throw new Error('Invalid or duplicate dependency ID');
+      ids.add(dependency.id);
+      requireDigest(dependency.contentDigest, `dependency ${dependency.id}`);
+      if (!Array.isArray(dependency.capabilities) || dependency.capabilities.some(value => typeof value !== 'string' || !value)) {
+        throw new Error(`Invalid dependency capabilities: ${dependency.id}`);
+      }
+    }
+    canonicalJson(dependencies);
+  }
+
+  function validateInvocation(phaseNumber, invocation) {
+    if (!invocation || typeof invocation !== 'object' || Array.isArray(invocation)) throw new Error('Invocation must be an object');
+    const allowed = phaseNumber === 7 ? ['simulationSnapshot', 'frame', 'viewport'] : [];
+    if (Object.keys(invocation).some(key => !allowed.includes(key))) throw new Error(`Phase ${phaseNumber}: undeclared invocation input`);
+    if (phaseNumber === 7) {
+      for (const key of allowed) if (!invocation[key] || typeof invocation[key] !== 'object') throw new Error(`Phase 7 invocation requires ${key}`);
+      for (const key of ['width', 'height']) {
+        if (!Number.isSafeInteger(invocation.viewport[key]) || invocation.viewport[key] < 1) throw new Error(`Invalid viewport ${key}`);
+      }
+      if (!Number.isSafeInteger(invocation.frame.index) || invocation.frame.index < 0) throw new Error('Invalid frame index');
+      if (!Number.isFinite(invocation.frame.simulationTime) || invocation.frame.simulationTime < 0) throw new Error('Invalid simulation time');
+    }
+    canonicalJson(invocation);
+    return invocation;
+  }
+
+  function createRequestEnvelope({ request, configuration, authoredInputs, retryPolicy }) {
+    if (!request || typeof request.text !== 'string' || !['prompt', 'world-spec'].includes(request.kind)) throw new Error('Invalid request ingress');
+    if (!configuration || typeof configuration !== 'object' || Array.isArray(configuration)) throw new Error('Request configuration required');
+    if (!Array.isArray(authoredInputs)) throw new Error('Authored input references required');
+    for (const reference of authoredInputs) requireDigest(reference.contentDigest, 'authored input');
+    if (request.kind === 'world-spec' && !authoredInputs.length) throw new Error('WorldSpec ingress requires an authored input');
+    if (retryPolicy !== null && (!retryPolicy || typeof retryPolicy.id !== 'string' || !Number.isSafeInteger(retryPolicy.attempt) || retryPolicy.attempt < 1)) {
+      throw new Error('Explicit versioned retry policy or null required');
+    }
+    return immutableArtifact({ schema: PHASE_ZERO_INPUT_SCHEMA, request, configuration, authoredInputs, retryPolicy });
+  }
+
+  async function bindPhaseOutput(output, call, { producer, dependencies, revision }) {
+    call = immutableArtifact(call);
+    producer = immutableArtifact(producer);
+    dependencies = immutableArtifact(dependencies);
+    assertPhaseEnvelope(output, output.phase);
+    validateInvocation(output.phase, call.invocation);
+    if (output.phase === 1) {
+      if (call.previous?.schema !== PHASE_ZERO_INPUT_SCHEMA) throw new Error('Phase 1 requires request ingress');
+    } else {
+      assertPhaseEnvelope(call.previous, output.phase - 1, 'Bound predecessor');
+      if (call.previous.schema !== BOUND_OUTPUT_SCHEMAS[output.phase - 1]) throw new Error('Bound predecessor required');
+    }
+    const artifact = immutableArtifact(output.artifact);
+    const binding = {
+      schema: 'simulatte.phaseBinding.v1', revision,
+      producer: immutableArtifact(producer), dependencies: immutableArtifact(dependencies),
+      predecessorDigest: await artifactDigest(call.previous),
+      invocationDigest: await artifactDigest(call.invocation),
+      artifactDigest: await artifactDigest(artifact),
+      dependencyDigest: await artifactDigest(dependencies),
+      producerDigest: await artifactDigest(producer),
+    };
+    assertBinding(binding);
+    return immutableArtifact({ ...output, schema: BOUND_OUTPUT_SCHEMAS[output.phase], inputSchema: call.previous.schema, artifact, binding });
+  }
+
+  async function validateBoundOutput(output, call, expected) {
+    output = immutableArtifact(output);
+    call = immutableArtifact(call);
+    expected = immutableArtifact(expected);
+    assertPhaseEnvelope(output, output.phase);
+    if (output.schema !== BOUND_OUTPUT_SCHEMAS[output.phase]) throw new Error('Bound output required');
+    const { binding } = output;
+    validateInvocation(output.phase, call.invocation);
+    const actual = {
+      predecessorDigest: await artifactDigest(call.previous), invocationDigest: await artifactDigest(call.invocation),
+      artifactDigest: await artifactDigest(output.artifact), dependencyDigest: await artifactDigest(expected.dependencies),
+      producerDigest: await artifactDigest(expected.producer),
+    };
+    for (const [key, value] of Object.entries(actual)) if (binding[key] !== value) throw new Error(`Phase ${output.phase}: ${key} mismatch`);
+    if (await artifactDigest(binding.dependencies) !== binding.dependencyDigest) throw new Error('Dependency descriptors mutated');
+    if (await artifactDigest(binding.producer) !== binding.producerDigest) throw new Error('Producer identity mutated');
+    if (binding.revision !== expected.revision) throw new Error('Stale phase revision');
+    if (output.inputSchema !== call.previous.schema || output.phase !== (call.previous.phase || 0) + 1) throw new Error('Wrong predecessor phase');
+    return output;
+  }
+
+  function legacyPhaseProjection(envelope) {
+    assertPhaseEnvelope(envelope, envelope.phase, 'Compatibility phase input');
+    const { binding: _binding, ...legacy } = envelope;
+    return immutableArtifact({ ...legacy, schema: phaseOutputSchema(envelope.phase),
+      inputSchema: envelope.phase === 1 ? PHASE_ZERO_INPUT_SCHEMA : phaseOutputSchema(envelope.phase - 1) });
   }
 
   function firstForbiddenField(value, forbiddenRows = []) {
@@ -389,6 +560,17 @@
     phases,
     PHASE_LABELS,
     PHASE_ZERO_INPUT_SCHEMA,
+    BOUND_OUTPUT_SCHEMAS,
+    canonicalJson,
+    immutableArtifact,
+    artifactDigest,
+    createRequestEnvelope,
+    validateInvocation,
+    validateDependencies,
+    validateProducer,
+    bindPhaseOutput,
+    validateBoundOutput,
+    legacyPhaseProjection,
     PHASE_OUTPUT_SCHEMAS,
     PHASE_CONTRACTS,
     phaseOutputSchema,

@@ -1,0 +1,79 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 4.970315
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 27.487213
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 11.200072
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 1.830996
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 48.375812
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 1.035378
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.692071
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 1215.824217
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+not ok 9 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 965.835425
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:142:1'
+  failureType: 'testCodeFailure'
+  error: '$.artifact.sceneProof.evidence.atmosphereConsumed: expected serializable finite value'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    visit (/home/clocksmith/deco/simulatte/public/blank/pipeline/simulatte-phase-contracts.js:339:58)
+    visit (/home/clocksmith/deco/simulatte/public/blank/pipeline/simulatte-phase-contracts.js:352:23)
+    visit (/home/clocksmith/deco/simulatte/public/blank/pipeline/simulatte-phase-contracts.js:352:23)
+    visit (/home/clocksmith/deco/simulatte/public/blank/pipeline/simulatte-phase-contracts.js:352:23)
+    visit (/home/clocksmith/deco/simulatte/public/blank/pipeline/simulatte-phase-contracts.js:352:23)
+    Object.canonicalJson (/home/clocksmith/deco/simulatte/public/blank/pipeline/simulatte-phase-contracts.js:357:27)
+    byteLength (/home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:32:66)
+    /home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:135:19
+    async Object.run (/home/clocksmith/deco/simulatte/public/blank/app/runtime/phase-runner.js:148:28)
+    async TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:149:19)
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 8
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2328.792958

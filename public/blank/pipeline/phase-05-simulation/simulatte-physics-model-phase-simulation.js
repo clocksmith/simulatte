@@ -246,9 +246,9 @@
         let runtimeContext = phase4Output ? scope.runtimeContextFromPhase(phase4Output) : scope.runtimeContextFromOptions({});
         let nextPhase4 = phase4Output || null;
         if (!nextPhase4) {
-          const compatibilityPhase1 = scope.withPhase1RetrievalEvidence(
-            phaseArtifacts.phase1 || scope.runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true }),
-            {
+          const compatibilityPhase1 = phaseArtifacts.phase1 || scope.runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true });
+          const compatibilityPhase2 = phaseArtifacts.phase2 || scope.runPhase2LanguageGraph(compatibilityPhase1);
+          const retrievalResources = scope.createPhase3Resources(compatibilityPhase2, scope.runtimeContextFromPhase(compatibilityPhase1), {
               sourcePromptHash: scope.stableTextHash(prompt),
               semanticRag: intent.semanticRag,
               universeMatches: intent.universeMatches || [],
@@ -269,8 +269,7 @@
             }
           );
           runtimeContext = scope.runtimeContextFromPhase(compatibilityPhase1);
-          const compatibilityPhase2 = phaseArtifacts.phase2 || scope.runPhase2LanguageGraph(compatibilityPhase1);
-          const compatibilityPhase3 = scope.runPhase3Retrieval(compatibilityPhase2, runtimeContext);
+          const compatibilityPhase3 = scope.runPhase3Retrieval(compatibilityPhase2, retrievalResources);
           nextPhase4 = scope.runPhase4GroundedIntent(compatibilityPhase3, runtimeContext);
           generatedPhaseArtifacts = scope.phaseArtifactSet(
             compatibilityPhase1,

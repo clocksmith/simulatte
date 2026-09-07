@@ -83,8 +83,7 @@
         morphologySubmission: renderExecution.rendererConsumption &&
           renderExecution.rendererConsumption.morphologySubmission || null,
         atmosphereProgram: renderExecution.atmosphereProgram || null,
-        atmosphereConsumed: renderExecution.rendererConsumption &&
-          renderExecution.rendererConsumption.atmosphereConsumed === true,
+        atmosphereConsumed: renderExecution.rendererConsumption?.atmosphereConsumed === true,
         interactionReceipt: renderExecution.interactionReceipt || null,
       },
       nowIso: options.nowIso || new Date().toISOString(),

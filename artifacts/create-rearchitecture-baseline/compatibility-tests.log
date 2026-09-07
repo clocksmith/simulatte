@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: cancellation invalidates queued intent work, including before a worker starts
+ok 1 - cancellation invalidates queued intent work, including before a worker starts
+  ---
+  duration_ms: 15.717108
+  type: 'test'
+  ...
+# Subtest: a crashed intent worker cannot retain queued requests or receive future work
+ok 2 - a crashed intent worker cannot retain queued requests or receive future work
+  ---
+  duration_ms: 5.140548
+  type: 'test'
+  ...
+# Subtest: negation ends at a new clause without losing an affirmative count
+ok 3 - negation ends at a new clause without losing an affirmative count
+  ---
+  duration_ms: 3588.776102
+  type: 'test'
+  ...
+# Subtest: grounding cannot reintroduce excluded language spans or positive count obligations
+ok 4 - grounding cannot reintroduce excluded language spans or positive count obligations
+  ---
+  duration_ms: 514.51694
+  type: 'test'
+  ...
+# Subtest: retrieval carriers reject absent and mismatched provenance instead of stamping evidence
+ok 5 - retrieval carriers reject absent and mismatched provenance instead of stamping evidence
+  ---
+  duration_ms: 6.329381
+  type: 'test'
+  ...
+# Subtest: interactive playback uses the proof timestep independently of display frequency
+ok 6 - interactive playback uses the proof timestep independently of display frequency
+  ---
+  duration_ms: 4.506308
+  type: 'test'
+  ...
+# Subtest: retrieval producers reject stale query provenance before loading model artifacts
+ok 7 - retrieval producers reject stale query provenance before loading model artifacts
+  ---
+  duration_ms: 1.021284
+  type: 'test'
+  ...
+# Subtest: visual compilation ignores raw prompt substitutions in a fixed typed simulation artifact
+ok 8 - visual compilation ignores raw prompt substitutions in a fixed typed simulation artifact
+  ---
+  duration_ms: 529.71408
+  type: 'test'
+  ...
+# Subtest: stale readback failures clean their buffer without changing the active scene
+ok 9 - stale readback failures clean their buffer without changing the active scene
+  ---
+  duration_ms: 0.554551
+  type: 'test'
+  ...
+# Subtest: a current readback failure still marks current proof failed
+ok 10 - a current readback failure still marks current proof failed
+  ---
+  duration_ms: 0.33885
+  type: 'test'
+  ...
+# Subtest: unchanged geometry cannot cache unexercised or failed simulation evidence
+ok 11 - unchanged geometry cannot cache unexercised or failed simulation evidence
+  ---
+  duration_ms: 763.288265
+  type: 'test'
+  ...
+# Subtest: passing visual flags cannot erase a carried lost obligation
+ok 12 - passing visual flags cannot erase a carried lost obligation
+  ---
+  duration_ms: 1.508038
+  type: 'test'
+  ...
+# Subtest: falling reaches one real body and a gravity operator without a visible gravity object or fluid substitution
+ok 13 - falling reaches one real body and a gravity operator without a visible gravity object or fluid substitution
+  ---
+  duration_ms: 773.445615
+  type: 'test'
+  ...
+# Subtest: pendulum integration oscillates with bounded energy and the rendered rod connects pivot to bob
+ok 14 - pendulum integration oscillates with bounded energy and the rendered rod connects pivot to bob
+  ---
+  duration_ms: 1023.212912
+  type: 'test'
+  ...
+# Subtest: invalid mechanics cannot silently generate non-finite or energy-creating state
+ok 15 - invalid mechanics cannot silently generate non-finite or energy-creating state
+  ---
+  duration_ms: 0.492131
+  type: 'test'
+  ...
+# Subtest: autonomous solver frames refresh the uploaded parts without an interaction, and absent execution cannot prove motion
+ok 16 - autonomous solver frames refresh the uploaded parts without an interaction, and absent execution cannot prove motion
+  ---
+  duration_ms: 1173.796554
+  type: 'test'
+  ...
+# Subtest: qualified absence preserves positive mentions, including reversed clause order
+ok 17 - qualified absence preserves positive mentions, including reversed clause order
+  ---
+  duration_ms: 2083.948125
+  type: 'test'
+  ...
+# Subtest: Phase 5 retains adverse status and only associates operators with their own obligations
+ok 18 - Phase 5 retains adverse status and only associates operators with their own obligations
+  ---
+  duration_ms: 0.372248
+  type: 'test'
+  ...
+# Subtest: training exposes exact adjacent envelopes, detached snapshots, and discards previous run proof
+ok 19 - training exposes exact adjacent envelopes, detached snapshots, and discards previous run proof
+  ---
+  duration_ms: 956.876984
+  type: 'test'
+  ...
+# Subtest: progress assigns all proof events to Phase 8 and keeps the failing phase
+ok 20 - progress assigns all proof events to Phase 8 and keeps the failing phase
+  ---
+  duration_ms: 1.654799
+  type: 'test'
+  ...
+# Subtest: phase module registry rejects duplicate export ownership
+ok 21 - phase module registry rejects duplicate export ownership
+  ---
+  duration_ms: 2.587777
+  type: 'test'
+  ...
+# Subtest: phase module registry verifies required exports at finalization
+ok 22 - phase module registry verifies required exports at finalization
+  ---
+  duration_ms: 0.616063
+  type: 'test'
+  ...
+# Subtest: phase module registry returns one frozen finalized facade
+ok 23 - phase module registry returns one frozen finalized facade
+  ---
+  duration_ms: 0.48066
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11787.787149

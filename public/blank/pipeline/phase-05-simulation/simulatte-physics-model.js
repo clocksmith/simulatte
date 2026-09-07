@@ -17,6 +17,7 @@
     require('./simulatte-physics-model-phase-visual-execution.js');
     require('./simulatte-physics-model-phase-simulation.js');
     require('./simulatte-world-spec-runtime.js');
+    require('../phase-03-retrieval/simulatte-candidate-composition.js');
     require('./simulatte-physics-model-phase-visual-render.js');
     require('./simulatte-physics-model-state-solvers.js');
     require('./simulatte-simulation-reproducibility.js');
@@ -73,6 +74,8 @@
     runPhase1RuntimeGate: scope.runPhase1RuntimeGate,
     runPhase2LanguageGraph: scope.runPhase2LanguageGraph,
     runPhase3Retrieval: scope.runPhase3Retrieval,
+    retrieveIntentCandidates: scope.retrieveIntentCandidates,
+    runtimeContextFromOptions: scope.runtimeContextFromOptions,
     runPhase4GroundedIntent: scope.runPhase4GroundedIntent,
     runPhase5SimulationCompile: scope.runPhase5SimulationCompile,
     runPhase6VisualCompile: scope.runPhase6VisualCompile,

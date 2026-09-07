@@ -1,0 +1,295 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 17.788287
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 42.182883
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 16.960798
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 2.477201
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 40.800561
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.711623
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.477623
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+not ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 551.178536
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:129:1'
+  failureType: 'testCodeFailure'
+  error: 'spanRetrievalReceipt is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.retrieveIntentCandidates (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js:92:28)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:446:46)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:589:42)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/create-phase-runner.test.cjs:131:26)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: directed spatial phrases preserve both nouns, colors, and argument order
+not ok 9 - directed spatial phrases preserve both nouns, colors, and argument order
+  ---
+  duration_ms: 335.011084
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:13:1'
+  failureType: 'testCodeFailure'
+  error: 'spanRetrievalReceipt is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.retrieveIntentCandidates (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js:92:28)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:446:46)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:589:42)
+    compile (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:8:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:15:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: part cardinality changes one owner geometry, without creating extra owners
+not ok 10 - part cardinality changes one owner geometry, without creating extra owners
+  ---
+  duration_ms: 154.945079
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:28:1'
+  failureType: 'testCodeFailure'
+  error: 'spanRetrievalReceipt is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.retrieveIntentCandidates (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js:92:28)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:446:46)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:589:42)
+    compile (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:8:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:30:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: repeated nouns keep separate source spans, construction identities, and colors
+not ok 11 - repeated nouns keep separate source spans, construction identities, and colors
+  ---
+  duration_ms: 97.251435
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:44:1'
+  failureType: 'testCodeFailure'
+  error: 'spanRetrievalReceipt is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.retrieveIntentCandidates (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js:92:28)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:446:46)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:589:42)
+    compile (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:8:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:45:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: an unspecified machine does not acquire a rotor or executable mechanics from its noun
+not ok 12 - an unspecified machine does not acquire a rotor or executable mechanics from its noun
+  ---
+  duration_ms: 148.466173
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:60:1'
+  failureType: 'testCodeFailure'
+  error: 'spanRetrievalReceipt is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.retrieveIntentCandidates (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js:92:28)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:446:46)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:589:42)
+    compile (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:8:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:61:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: part ownership paraphrases change the same owner and preserve unrelated objects
+not ok 13 - part ownership paraphrases change the same owner and preserve unrelated objects
+  ---
+  duration_ms: 90.501634
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:72:1'
+  failureType: 'testCodeFailure'
+  error: 'spanRetrievalReceipt is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.retrieveIntentCandidates (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js:92:28)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:446:46)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:589:42)
+    compile (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:8:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:74:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: directed motion preserves distinct counted instances and their formation offsets
+not ok 14 - directed motion preserves distinct counted instances and their formation offsets
+  ---
+  duration_ms: 98.523797
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:84:1'
+  failureType: 'testCodeFailure'
+  error: 'spanRetrievalReceipt is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.retrieveIntentCandidates (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js:92:28)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:446:46)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:589:42)
+    compile (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:8:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:85:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: novel nouns remain required and unknown actions request retrieval
+not ok 15 - novel nouns remain required and unknown actions request retrieval
+  ---
+  duration_ms: 87.392455
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:105:1'
+  failureType: 'testCodeFailure'
+  error: 'spanRetrievalReceipt is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.retrieveIntentCandidates (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js:92:28)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:446:46)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:589:42)
+    compile (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:8:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:106:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: qualifying observables and materials do not become spurious actions
+ok 16 - qualifying observables and materials do not become spurious actions
+  ---
+  duration_ms: 9.985196
+  type: 'test'
+  ...
+# Subtest: verb inflections preserve thermal semantics without substring action matches
+not ok 17 - verb inflections preserve thermal semantics without substring action matches
+  ---
+  duration_ms: 97.834219
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:141:1'
+  failureType: 'testCodeFailure'
+  error: 'spanRetrievalReceipt is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.retrieveIntentCandidates (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js:92:28)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:446:46)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:589:42)
+    compile (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:8:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:143:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: pursuit and avoidance compile the declared subject and target
+not ok 18 - pursuit and avoidance compile the declared subject and target
+  ---
+  duration_ms: 98.83084
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:152:1'
+  failureType: 'testCodeFailure'
+  error: 'spanRetrievalReceipt is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.retrieveIntentCandidates (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-03-retrieval/simulatte-candidate-composition.js:92:28)
+    Object.createIntentFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js:446:46)
+    Object.createSpecFromPrompt (/home/clocksmith/deco/simulatte/public/blank/pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js:589:42)
+    compile (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:8:14)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/open-language-composition.test.cjs:157:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: directed motion responds to target changes, respects speed, and rejects invalid state
+ok 19 - directed motion responds to target changes, respects speed, and rejects invalid state
+  ---
+  duration_ms: 2.15875
+  type: 'test'
+  ...
+# Subtest: slot-bound semantic candidates survive vocabulary differences and reject wrong bindings
+ok 20 - slot-bound semantic candidates survive vocabulary differences and reject wrong bindings
+  ---
+  duration_ms: 0.823708
+  type: 'test'
+  ...
+# Subtest: retrieval retains required slots beyond a single embedding batch
+ok 21 - retrieval retains required slots beyond a single embedding batch
+  ---
+  duration_ms: 0.160909
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 11
+# fail 10
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1548.263762

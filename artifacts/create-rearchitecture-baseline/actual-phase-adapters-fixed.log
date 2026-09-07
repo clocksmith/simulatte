@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+ok 1 - canonical integrity uses UTF-8 SHA-256 and rejects lossy serialization and handles
+  ---
+  duration_ms: 6.398676
+  type: 'test'
+  ...
+# Subtest: all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+ok 2 - all eight outputs bind exact predecessors, invocation, dependencies, producer and revision
+  ---
+  duration_ms: 38.926032
+  type: 'test'
+  ...
+# Subtest: superseded work cannot publish and releases a resource only after actual completion
+ok 3 - superseded work cannot publish and releases a resource only after actual completion
+  ---
+  duration_ms: 12.444145
+  type: 'test'
+  ...
+# Subtest: budgets, invalid phase order and undeclared invocation fail before publication
+ok 4 - budgets, invalid phase order and undeclared invocation fail before publication
+  ---
+  duration_ms: 2.518203
+  type: 'test'
+  ...
+# Subtest: a timed-out attempt cannot publish after a successful retry
+ok 5 - a timed-out attempt cannot publish after a successful retry
+  ---
+  duration_ms: 39.834575
+  type: 'test'
+  ...
+# Subtest: disposed and externally cancelled runs never execute phases
+ok 6 - disposed and externally cancelled runs never execute phases
+  ---
+  duration_ms: 0.689446
+  type: 'test'
+  ...
+# Subtest: invalid dependencies fail before acquisition or model execution
+ok 7 - invalid dependencies fail before acquisition or model execution
+  ---
+  duration_ms: 0.478969
+  type: 'test'
+  ...
+# Subtest: current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+ok 8 - current local compilation has immutable serializable phase artifacts without runtime retrieval feedback
+  ---
+  duration_ms: 1651.111172
+  type: 'test'
+  ...
+# Subtest: local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+ok 9 - local adapters execute actual transformations in order and retain missing pixel evidence as unproven
+  ---
+  duration_ms: 1123.109864
+  type: 'test'
+  ...
+# Subtest: scene proof settles every ledger obligation into a terminal status
+ok 10 - scene proof settles every ledger obligation into a terminal status
+  ---
+  duration_ms: 1392.129977
+  type: 'test'
+  ...
+# Subtest: scene proof fails closed when a required entity never rendered
+ok 11 - scene proof fails closed when a required entity never rendered
+  ---
+  duration_ms: 770.016685
+  type: 'test'
+  ...
+# Subtest: scene proof never certifies a required unsupported obligation
+ok 12 - scene proof never certifies a required unsupported obligation
+  ---
+  duration_ms: 747.234193
+  type: 'test'
+  ...
+# Subtest: scene proof fails a required identity when its live pixel obligation fails
+ok 13 - scene proof fails a required identity when its live pixel obligation fails
+  ---
+  duration_ms: 622.902412
+  type: 'test'
+  ...
+# Subtest: scene proof rejects literal pixels compiled from a topology that does not fit the target identity
+ok 14 - scene proof rejects literal pixels compiled from a topology that does not fit the target identity
+  ---
+  duration_ms: 522.375184
+  type: 'test'
+  ...
+# Subtest: scene proof preserves negated identities only with bound semantic absence proof
+ok 15 - scene proof preserves negated identities only with bound semantic absence proof
+  ---
+  duration_ms: 527.79077
+  type: 'test'
+  ...
+# Subtest: scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone
+ok 16 - scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone
+  ---
+  duration_ms: 595.307747
+  type: 'test'
+  ...
+# Subtest: scene proof may settle a relation source only through its linked spatial Phase 7 proof
+ok 17 - scene proof may settle a relation source only through its linked spatial Phase 7 proof
+  ---
+  duration_ms: 604.531342
+  type: 'test'
+  ...
+# Subtest: scene proof settles a material relation through its linked Phase 7 material proof
+ok 18 - scene proof settles a material relation through its linked Phase 7 material proof
+  ---
+  duration_ms: 594.694301
+  type: 'test'
+  ...
+# Subtest: scene proof identity settlement requires whole-word identity evidence
+ok 19 - scene proof identity settlement requires whole-word identity evidence
+  ---
+  duration_ms: 626.19565
+  type: 'test'
+  ...
+# Subtest: scene proof reports not-proven without a rendered frame and rejects wrong inputs
+ok 20 - scene proof reports not-proven without a rendered frame and rejects wrong inputs
+  ---
+  duration_ms: 583.828126
+  type: 'test'
+  ...
+# Subtest: scene proof normalizes browser renderer identity summary receipts
+ok 21 - scene proof normalizes browser renderer identity summary receipts
+  ---
+  duration_ms: 604.918492
+  type: 'test'
+  ...
+# Subtest: scene proof requires Phase 7 to consume a compiled environment atmosphere
+ok 22 - scene proof requires Phase 7 to consume a compiled environment atmosphere
+  ---
+  duration_ms: 582.873646
+  type: 'test'
+  ...
+# Subtest: every compiled scene carries a concrete Phase 6 pixel obligation
+ok 23 - every compiled scene carries a concrete Phase 6 pixel obligation
+  ---
+  duration_ms: 515.99352
+  type: 'test'
+  ...
+# Subtest: scene proof selects exact compound geometry while retaining unqualified action refusals
+ok 24 - scene proof selects exact compound geometry while retaining unqualified action refusals
+  ---
+  duration_ms: 741.309713
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10299.834282
