@@ -663,6 +663,7 @@
   function materializeTypedPromptNodes(nodes = [], bySpan = new Map(), promptParse = {}) {
     const existingIds = new Set(nodes.map((node) => node.id));
     for (const span of promptParse.spans || []) {
+      if (span.negated === true) continue;
       if (!['entity', 'material', 'environment'].includes(span.kind) || bySpan.has(span.id)) continue;
       if (!['part', 'lighting-environment', 'visual-effect'].includes(span.semanticRole || '')) continue;
       const semanticType = span.semanticRole === 'visual-effect'
@@ -809,6 +810,7 @@
       }
     }
     for (const span of promptParse.spans || []) {
+      if (span.negated === true) continue;
       if (!span.environmentProgram) continue;
       const node = bySpan.get(span.id);
       if (!node) continue;

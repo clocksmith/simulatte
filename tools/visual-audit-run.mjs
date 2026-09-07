@@ -130,7 +130,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       return { ok: true };
     })()`);
     markStage('intent-compile');
-    const readyState = await waitForCondition(`intent ready for ${label}`, () => evaluate(cdp, `(() => {
+    const readyState = await waitForCondition(`intent output settled for ${label}`, () => evaluate(cdp, `(() => {
       const node = document.getElementById('intent-runtime');
       const run = document.getElementById('build-lab');
       const message = document.getElementById('intent-runtime-message');
@@ -149,13 +149,17 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       const normalizePrompt = (value) => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
       const promptMatches = normalizePrompt(compiledPrompt) === normalizePrompt(${JSON.stringify(prompt)});
       const renderInputAdvanced = renderInputSerial > ${Number(promptBaseline && promptBaseline.renderInputSerial || 0)};
+      const terminalProofFailure = node && ['failed', 'error', 'not-proven'].includes(node.dataset.state) &&
+        node.dataset.pipelineStep === '8' && canvas && canvas.dataset.sceneProofFinal === 'true' &&
+        ['fail', 'error', 'not-proven'].includes(canvas.dataset.sceneProofVerdict);
       const health = window.SimulatteIntentRuntimeHealth || (() => {
         try { return node && node.dataset.health ? JSON.parse(node.dataset.health) : null; }
         catch (_err) { return null; }
       })();
       return {
-        ok: !!node && node.dataset.state === 'ready' && (!run || run.disabled === false) &&
+        ok: !!node && (node.dataset.state === 'ready' || terminalProofFailure) && (!run || run.disabled === false) &&
           phase6Ready && sceneVisible && promptMatches && renderInputAdvanced,
+        terminalProofFailure: Boolean(terminalProofFailure),
         state: node && node.dataset.state,
         stageId: node && node.dataset.stage,
         lastStage: node && node.dataset.lastStage,

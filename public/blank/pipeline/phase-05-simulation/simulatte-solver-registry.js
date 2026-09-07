@@ -25,6 +25,8 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSolverRegistryApi(root = {}, solverModules = {}) {
   const SOLVER_REGISTRY_SCHEMA = 'simulatte.solverRegistry.v1';
   const INTEGRATOR_SCHEMES = Object.freeze({
+    constant_acceleration_v1: Object.freeze({ order: 2, symplectic: true }),
+    velocity_verlet_v1: Object.freeze({ order: 2, symplectic: true }),
     explicit_euler_v1: Object.freeze({ order: 1, symplectic: false }),
     semi_implicit_euler_v1: Object.freeze({ order: 1, symplectic: true }),
   });
@@ -46,6 +48,8 @@
   };
 
   const SOLVER_OPERATORS = Object.freeze({
+    free_fall: solver('free-fall', ['free_fall'], ['position', 'velocity', 'force'], ['position', 'velocity'], 0.01, moduleStep('rigid')),
+    pendulum: solver('pendulum', ['pendulum'], ['angle', 'angularVelocity', 'torque'], ['angle', 'angularVelocity'], 0.01, moduleStep('rigid')),
     heat_source: solver('thermal-source', ['heat_source'], ['temperature'], ['temperature'], 0.05, moduleStep('thermal')),
     interaction_kinematics: solver(
       'interaction-kinematics',
@@ -82,7 +86,7 @@
   function solver(id, operatorTypes, requiredFields, producedFields, stableDt, step) {
     const module = Object.values(moduleApi).find((candidate) => candidate && candidate.step === step);
     const integrator = normalizeIntegrator(
-      module && module.integrator,
+      module && (module.integrators?.[operatorTypes[0]] || module.integrator),
       [...new Set([...requiredFields, ...producedFields])].length
         ? [...new Set([...requiredFields, ...producedFields])]
         : ['scalar'],

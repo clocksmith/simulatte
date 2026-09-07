@@ -85,7 +85,11 @@ test('plugin session initializes the camera before view arbitration and cancels 
   const clock = { snapshot: () => ({ timelineId: 'timeline', eventCount: 0, currentMs: 0 }),
     receipt: () => ({}), pause() {} };
   const renderer = { cameraState: () => ({}),
-    setPluginPresentations: () => events.push('draw'), receipt: () => ({ pluginCompositor: {} }) };
+    session: { setScene: (scene) => {
+      assert.deepEqual(scene.presentations, []);
+      assert.deepEqual(scene.selectedIds, ['route']);
+      events.push('draw');
+    } }, receipt: () => ({ pluginCompositor: {} }) };
   let frame = Promise.resolve();
   const session = create({
     hostRoot: {}, extensions: { activePluginIds: [], views: () => [],

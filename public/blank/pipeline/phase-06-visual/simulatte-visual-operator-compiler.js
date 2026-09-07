@@ -175,6 +175,7 @@
     const mappingText = normalizeText([row.id, ...(row.matchTerms || [])].filter(Boolean).join(' '));
     const absence = obligations.find((obligation) => (
       obligation && obligation.required === true && obligation.constraintKind === 'absence' &&
+      !obligation.expectedProperties?.length &&
       phraseInText(mappingText, normalizeText(obligation.targetIdentity || obligation.target || ''))
     ));
     return absence ? normalizeText(absence.targetIdentity || absence.target || '') : '';

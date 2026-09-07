@@ -97,14 +97,21 @@
       const constructionPacketSatisfied = constructionVisualObligationPacketSatisfied(row, sceneRenderPacket);
       const promptPacketSatisfied = promptVisualObligationPacketSatisfied(row, sceneRenderPacket);
       const relationPacketSatisfied = relationVisualObligationPacketSatisfied(row, sceneRenderPacket);
-      const packetSatisfied = relationPacketSatisfied != null ? relationPacketSatisfied :
+      const simulation = row.simulationBinding;
+      const simulationEntity = simulation && (sceneRenderPacket.entities || []).find((entity) => entity.id === simulation.entityId &&
+        entity.stateBindings?.simulationOperator === simulation.operatorId);
+      const simulationReceipt = renderData?.interactionVisualReceipt;
+      const simulationConsumed = Boolean(simulationEntity && Number(simulationReceipt?.solverFrame) > 0 &&
+        simulationReceipt.simulatedEntityIds?.includes(simulationEntity.id) &&
+        simulationReceipt.executedOperatorIds?.includes(simulation.operatorId));
+      const packetSatisfied = simulation ? Boolean(simulationEntity) : relationPacketSatisfied != null ? relationPacketSatisfied :
         constructionPacketSatisfied != null ? constructionPacketSatisfied :
         promptPacketSatisfied == null ? visualObligationPacketSatisfied(
         target,
         packetText,
         distinctEntityIdentityCount
       ) : promptPacketSatisfied;
-      const geometrySatisfied = visualObligationGeometrySatisfied(
+      const geometrySatisfied = simulation ? simulationConsumed && (renderData?.objectParts || []).some((part) => part.entityId === simulation.entityId) : visualObligationGeometrySatisfied(
         target,
         objectRealization,
         row,
@@ -127,6 +134,8 @@
         packetSatisfied,
         geometrySatisfied,
         ...(geometryProof ? { geometryProof } : {}),
+        ...(simulation ? { simulationProof: { operatorId: simulation.operatorId, entityId: simulation.entityId,
+          solverFrame: Number(simulationReceipt?.solverFrame || 0), consumed: simulationConsumed } } : {}),
         pixelSatisfied,
         pixelProof,
         status,
@@ -415,7 +424,8 @@
     if (!/^visual:prompt-/.test(String(obligation.obligationId || obligation.id || ''))) return null;
     const entities = sceneRenderPacket.entities || [];
     const matching = entities.filter((row) => promptProofEntityMatches(row, obligation.targetIdentity || obligation.target));
-    if (obligation.constraintKind === 'absence') return matching.length === 0;
+    if (obligation.constraintKind === 'absence') return !matching.some((row) =>
+      evidenceBinding.qualifiedAbsenceMatches(row, obligation, sceneRenderPacket.entities || []));
     if (obligation.constraintKind === 'count') {
       return matching.length === Number(obligation.expectedCount || 0) && matching.every((row) => (
         row.cardinalityReceipt && Number(row.cardinalityReceipt.instanceCount) === Number(obligation.expectedCount)
@@ -450,7 +460,8 @@
       return Boolean(sceneRenderPacket.environmentProgram);
     }
     const matching = rows.filter((row) => promptProofRealizationMatches(row, obligation.targetIdentity || obligation.target));
-    if (obligation.constraintKind === 'absence') return matching.length === 0;
+    if (obligation.constraintKind === 'absence') return !matching.some((row) =>
+      evidenceBinding.qualifiedAbsenceMatches(row, obligation, sceneRenderPacket.entities || []));
     if (obligation.constraintKind === 'count') {
       return matching.length === Number(obligation.expectedCount || 0) && matching.every((row) => row.realized === true);
     }

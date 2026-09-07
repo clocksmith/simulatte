@@ -451,10 +451,11 @@
         const camera = packet.camera || {};
         const text = [camera.mode, camera.depth, camera.framing, camera.scale,
           camera.scaleTier, camera.archetype, packet.cameraArchetype].filter(Boolean).join(' ').toLowerCase();
-        const perspective = /orbital|perspective|three-quarter|depth/.test(text) ? 0.34 :
+        const orthographic = camera.projection === 'orthographic';
+        const perspective = orthographic ? 0 : /orbital|perspective|three-quarter|depth/.test(text) ? 0.34 :
           /cutaway|layered/.test(text) ? 0.24 : 0.08;
-        const zoom = /macro|micro|detail/.test(text) ? 1.16 : /wide|map|landscape|orbital/.test(text) ? 0.9 : 1;
-        const tilt = /ground|three-quarter|cutaway/.test(text) ? 0.16 : 0;
+        const zoom = orthographic ? Number(camera.zoom || 1) : /macro|micro|detail/.test(text) ? 1.16 : /wide|map|landscape|orbital/.test(text) ? 0.9 : 1;
+        const tilt = orthographic ? Number(camera.tilt || 0) : /ground|three-quarter|cutaway/.test(text) ? 0.16 : 0;
         return {
           schema: 'simulatte.phase7CameraState.v1',
           mode: camera.mode || '',

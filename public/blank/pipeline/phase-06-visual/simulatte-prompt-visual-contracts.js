@@ -560,7 +560,8 @@
       let satisfied = false;
       const evidence = [];
       if (obligation.constraintKind === 'absence') {
-        satisfied = matchingEntities.length === 0;
+        satisfied = !matchingEntities.some((entity) => (obligation.expectedProperties || []).every((property) =>
+          promptEntityPropertySatisfied(entity, { propertyKind: property.kind, expectedValue: property.value })));
         if (satisfied) evidence.push(`absence:${obligation.targetIdentity || obligation.target}`);
       } else if (obligation.constraintKind === 'count') {
         const expectedCount = Number(obligation.expectedCount);

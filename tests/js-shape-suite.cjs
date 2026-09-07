@@ -962,7 +962,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.doesNotMatch(renderer, /drawCanvasLoadingSnakes/);
   assert.match(runtimeProgress, /RUNTIME_PHASES = Object\.freeze/);
   assert.match(runtimeProgress, /phaseRule\(1, 'prompt-runtime', 'Prompt runtime', 30/);
-  assert.match(runtimeProgress, /phaseRule\(8, 'webgpu-ready', 'WebGPU ready', 7/);
+  assert.match(runtimeProgress, /phaseRule\(8, 'scene-proof', 'Proof', 3/);
     assert.match(runtimeProgress, /stageAlias\(\/model-probe\//);
     assert.match(runtimeProgress, /stageAlias\(\/model-ready\//);
     assert.match(runtimeProgress, /stageAlias\(\/reranker-ready\//);
@@ -1370,9 +1370,9 @@ test('runtime progress bus reduces granular producer events into one observable 
   assert.equal(cacheState.loaderReceipt.totalBytes, 100);
   controller.flush();
   assert.equal(seen.length, 1);
-  assert.equal(seen[0].phase.id, 'activation-cloud');
+  assert.equal(seen[0].phase.id, 'retrieval');
   assert.equal(seen[0].progress, 50);
-  assert.equal(seen[0].sourceProgress, 59);
+  assert.equal(seen[0].sourceProgress, 49);
   assert.equal(seen[0].line, 'Embedding prompt spans 50%');
 });
 

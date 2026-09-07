@@ -37,21 +37,17 @@
     phaseTarget('1-8', '1->8', 1, 8),
   ]);
 
-  const PHASE_NAMES = Object.freeze({
-    2: 'Language graph',
-    3: 'Embedding retrieval',
-    4: 'Activation cloud',
-    5: 'Grounded intent',
-    6: 'Simulation compile',
-    7: 'VisualIR compile',
-    8: 'WebGPU ready',
-  });
+  const contracts = typeof module === 'object' && module.exports
+    ? require('../../pipeline/simulatte-phase-contracts.js') : root.SimulattePhaseContracts;
+  const PHASE_NAMES = Object.freeze(Object.fromEntries(
+    contracts.phases.map((phase) => [phase.phase, phase.label])
+  ));
 
   async function canvasHash(canvas) {
     if (!canvas || typeof canvas.toDataURL !== 'function' || !root.crypto || !root.crypto.subtle) return '';
     try {
       const data = canvas.toDataURL('image/png');
-      const bytes = new TextEncoder().encode(data.slice(0, 180000));
+      const bytes = new TextEncoder().encode(data);
       const digest = await root.crypto.subtle.digest('SHA-256', bytes);
       return hexDigest(digest, 12);
     } catch (_err) {

@@ -169,7 +169,7 @@ function main() {
     runNode(visualArgs);
     promoteDirectory(liveStagingDir, outputDirs.live);
   } catch (error) {
-    fs.rmSync(liveStagingDir, { recursive: true, force: true });
+    console.error(`Failed browser evidence retained at ${liveStagingDir}`);
     throw error;
   }
   const scoreArgs = [

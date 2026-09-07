@@ -575,6 +575,7 @@
           this.sceneObjectUniforms = renderData.sceneObjectUniforms;
           this.sceneInstanceCount = renderData.objectPartCount;
           this.baseObjectPartData = new Float32Array(renderData.objectPartData);
+          this.baseObjectParts = renderData.objectParts;
           this.objectPartData = new Float32Array(renderData.objectPartData);
           this.objectPartCount = renderData.objectPartCount;
           this.cameraState = renderData.cameraState || {};
@@ -638,14 +639,14 @@
             interaction.hoveredTargetId || '',
             interaction.grabbedTargetId || '',
             interaction.activeTargetId || '',
-            (interaction.modifiedChannels || []).length
+            (interaction.modifiedChannels || []).length || this.sceneRenderPacket?.entities?.some((entity) => entity.stateBindings?.simulationOperator)
               ? Number(state.solverState && state.solverState.frame || 0)
               : 0,
           ].join(':');
           if (key === this.interactionVisualKey) return this.interactionVisualReceipt;
           const applied = scope.scenePacketInteractionPartData(
             this.baseObjectPartData,
-            this.renderData && this.renderData.objectParts || [],
+            this.baseObjectParts || [],
             this.sceneRenderPacket || {},
             state
           );
@@ -655,6 +656,11 @@
           this.objectPartBufferDirty = true;
           if (this.renderData) {
             this.renderData.interactionVisualReceipt = applied.receipt;
+            this.renderData.objectPartData = applied.data;
+            this.renderData.objectParts = (this.baseObjectParts || []).map((part, index) => {
+              const offset = index * scope.GPU_OBJECT_PART_FLOATS;
+              return { ...part, center: [applied.data[offset], applied.data[offset + 1]], rotation: applied.data[offset + 4] };
+            });
             if (this.renderData.rendererConsumption) {
               this.renderData.rendererConsumption.interactionVisualStateConsumed = applied.receipt.consumed === true;
             }

@@ -102,7 +102,7 @@
 
   function visualObligationsFromLedger(compositionLedger = null) {
     return (compositionLedger && compositionLedger.obligations || [])
-      .filter((row) => row.kind !== 'relation' &&
+      .filter((row) => (row.kind !== 'relation' || row.simulationBinding) &&
         !/^action:coexists/.test(String(row.id || '')) &&
         (row.kind === 'visual' || row.ownedByPhase === 6 || (
           row.required === true &&

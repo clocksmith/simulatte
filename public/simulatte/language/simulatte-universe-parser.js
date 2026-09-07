@@ -59,6 +59,7 @@
     const compact = promoteSyntacticProcessTerms(recognized
       .sort((a, b) => a.start - b.start || b.end - a.end)
       .map((span, index) => ({ ...span, id: `span${index + 1}` })), tokenRows, lower);
+    for (const span of compact) span.negated = spanIsNegated(lower, span, compact.filter((row) => row.kind === 'process'));
     const clauses = buildClauses(compact, lower);
     const modifiers = buildModifiers(compact);
     const quantities = buildQuantities(compact);
@@ -367,7 +368,7 @@
   function buildClauses(spans, lower) {
     const clauseEntities = spans.filter((span) => (
       span.kind === 'entity' || span.kind === 'material' || span.kind === 'environment' ||
-      span.kind === 'term' || span.kind === 'observable' && span.semanticRole === 'measurement-signal'
+      span.kind === 'term' || span.kind === 'observable' && ['measurement-signal', 'acceleration-field'].includes(span.semanticRole)
     ));
     const attributiveMaterials = attributiveMaterialSpanIds(clauseEntities, lower);
     const processes = spans.filter((span) => span.kind === 'process');
@@ -699,8 +700,8 @@
     if (!last) return false;
     const negationEnd = start + last.index + last[0].length;
     const scope = source.slice(negationEnd, span.start);
-    if (/[.;!?]/.test(scope) || /\\b(?:but|however|except|instead|then|while)\\b/.test(scope)) return false;
-    if (scope.trim().split(/\\s+/).filter(Boolean).length > 6) return false;
+    if (/[.;!?]/.test(scope) || /\b(?:and|but|however|except|instead|then|while|only|yet)\b|,\s*(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/.test(scope)) return false;
+    if (scope.trim().split(/\s+/).filter(Boolean).length > 6) return false;
     return !(processes || []).some((process) => (
       process.start >= negationEnd && process.end <= span.start
     ));
@@ -742,7 +743,7 @@
     if (/hit|impact|collide|crash|crack|fracture/.test(value)) return 'impact';
     if (/cool/.test(value)) return 'cooling';
     if (/freez/.test(value)) return 'phase_transition';
-    if (/flow|fall|push|carve|erode|pour|sink|float|buffer|settle|calv|bend|reduc/.test(value)) return 'flow';
+    if (/flow|push|carve|erode|pour|sink|float|buffer|settle|calv|bend|reduc/.test(value)) return 'flow';
     if (/diffuse|dissolv/.test(value)) return 'diffusion';
     if (/orbit/.test(value)) return 'oscillation';
     if (/oscillate|flex|wave/.test(value)) return 'oscillation';
@@ -791,6 +792,7 @@
   }
 
   function semanticRoleForObject(span = {}, prepositions = []) {
+    if (span.semanticRole === 'acceleration-field') return 'acceleration-field';
     const role = semanticRoleForSpan(span, 'object');
     if ((prepositions.includes('in') || prepositions.includes('inside')) &&
       (role === 'containing-environment' || role === 'fluid-medium')) {
@@ -800,6 +802,7 @@
   }
 
   function spatialRelationFor(prepositions = [], object = null) {
+    if (object?.semanticRole === 'acceleration-field') return 'influenced-by';
     if (!object) return '';
     if (prepositions.includes('inside')) return 'inside';
     if (prepositions.includes('in')) return 'in';
@@ -903,7 +906,7 @@
     }).filter((row) => row.targetSpanId);
     const explicitlyCounted = new Set(explicit.map((row) => row.targetSpanId));
     const pluralMinimums = targets.filter((target) => (
-      !explicitlyCounted.has(target.id) && promptSpanUsesPluralSurface(target)
+      !target.negated && !explicitlyCounted.has(target.id) && promptSpanUsesPluralSurface(target)
     )).map((target, index) => ({
       id: `quantity-plural-${index + 1}`,
       quantitySpanId: '',
@@ -961,5 +964,6 @@
     NEGATION_RE,
     SPATIAL_PREPOSITIONS,
     parsePrompt,
+    spanIsNegated,
   };
 });

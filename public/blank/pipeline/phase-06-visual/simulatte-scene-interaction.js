@@ -38,6 +38,8 @@
         physicalEntityId: target.entityId,
         capabilities,
         channels: { ...(target.channels || {}) },
+        ...(entity.stateBindings?.simulationType === 'free_fall'
+          ? { positionProjection: mechanicsPositionProjection(entity, target) } : {}),
         initialPosition: (target.initialPosition || [0.5, 0.5]).slice(0, 2),
       });
     }
@@ -65,6 +67,21 @@
         },
       },
     };
+  }
+
+  function mechanicsPositionProjection(entity, target) {
+    const initial = target.initialPosition || [0.5, 0.5];
+    const bounds = entity.collider.bounds;
+    const center = [bounds[0] + bounds[2] / 2, bounds[1] + bounds[3] / 2];
+    const scale = center.map((value, axis) => {
+      const margin = Math.min(0.45, Number(bounds[axis + 2]) / 2 + 0.025);
+      return Math.max(0.001, Math.min(
+        (value - margin) / Math.max(0.001, initial[axis]),
+        (1 - margin - value) / Math.max(0.001, 1 - initial[axis])
+      ));
+    });
+    return { space: 'normalized-solver-to-canvas', scale,
+      offset: center.map((value, axis) => value - initial[axis] * scale[axis]) };
   }
 
   function interactionTargetForEntity(entity = {}, targets = []) {

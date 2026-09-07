@@ -107,4 +107,17 @@
   --sim-paint-hex-dce5ef: #dce5ef;
   --sim-paint-hex-18222e: #18222e;
   --sim-paint-white: white;
+  --sim-paint-rgba-0-245-160-0-25: rgba(0, 245, 160, 0.25);
+  --sim-paint-rgba-0-245-160-0-65: rgba(0, 245, 160, 0.65);
+  --sim-paint-rgba-0-245-160-0-35: rgba(0, 245, 160, 0.35);
+  --sim-paint-rgba-0-212-255-0-4: rgba(0, 212, 255, 0.4);
+  --sim-paint-rgba-0-245-160-0-4: rgba(0, 245, 160, 0.4);
+  --sim-paint-rgba-10-14-20-0-7: rgba(10, 14, 20, 0.7);
+  --sim-paint-rgba-0-0-0-0-7: rgba(0, 0, 0, 0.7);
+  --sim-paint-rgba-0-0-0-0-3: rgba(0, 0, 0, 0.3);
+  --sim-paint-hex-000000: #000000;
+  --sim-paint-hex-20ffb0: #20ffb0;
+  --sim-paint-hex-00d4ff: #00d4ff;
+  --sim-paint-hex-00f5a0: #00f5a0;
+  --sim-paint-hex-33deff: #33deff;
 }

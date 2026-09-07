@@ -30,6 +30,7 @@
             binding && binding.worldSpec && binding.worldSpec.contentHash === spec.contentHash
           );
           if (!reportMatchesSpec) return;
+          trainingRun.sceneProofReport = report;
           runView?.recordSceneProof(report);
           improvementReportDiagnostics = {
             schema: 'simulatte.worldImprovementReportDiagnostic.v1',

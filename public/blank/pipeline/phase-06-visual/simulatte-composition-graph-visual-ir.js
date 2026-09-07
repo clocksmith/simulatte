@@ -304,11 +304,15 @@
           ),
         };
         const obligations = sourceObligations.map((row) => {
-          const status = visualObligationStatus(row, facts);
+          if (['unsupported', 'lost', 'failed', 'refused', 'explicitly-refused', 'negated'].includes(row.status)) return row;
+          const mechanics = mechanicalVisualBinding(row, spec.renderIR, entities);
+          const status = mechanics ? 'preserved' : visualObligationStatus(row, facts);
           const targetSemanticCode = visualAbsenceTargetSemanticCode(row);
           return {
             ...row,
             ...(targetSemanticCode > 0 ? { targetSemanticCode } : {}),
+            ...(mechanics ? { ownedByPhase: 6, constraintKind: 'simulation', targetIdentity: mechanics.targetIdentity,
+              target: mechanics.targetIdentity, simulationBinding: mechanics } : {}),
             status,
             phase: 6,
             visualEvidence: visualObligationEvidence(row, facts),
@@ -322,7 +326,7 @@
             ...(sourceLedger || {}),
             schema: scope.SCENE_COMPOSITION_LEDGER_SCHEMA,
             sourcePhase: sourceLedger && sourceLedger.sourcePhase || 3,
-            currentPhase: 7,
+            currentPhase: 6,
             entries: sourceLedger && sourceLedger.entries || [],
             relations: sourceLedger && sourceLedger.relations || [],
             obligations,
@@ -356,6 +360,22 @@
             },
           };
         }
+
+    function mechanicalVisualBinding(row, renderIR = {}, entities = []) {
+      if (row.status !== 'lowered' || !['action', 'relation'].includes(row.kind)) return null;
+      const behavior = (renderIR.behaviorRelations || []).find((relation) =>
+        ['falling', 'swinging'].includes(relation.process) &&
+        (row.id === `action:${relation.process}` || (relation.evidence || []).includes(row.id)));
+      if (!behavior) return null;
+      const entity = entities.find((candidate) => candidate.physicalRef === behavior.agentEntityId &&
+        candidate.stateBindings?.simulationOperator);
+      if (!entity) return null;
+      return { entityId: entity.id, physicalRef: behavior.agentEntityId,
+        targetIdentity: entity.semanticClass || entity.label,
+        operatorId: entity.stateBindings.simulationOperator,
+        operatorType: entity.stateBindings.simulationType,
+        channels: [entity.stateBindings.position, entity.stateBindings.rotation].filter(Boolean) };
+    }
 
     function visualAbsenceTargetSemanticCode(obligation = {}) {
         const absence = obligation.constraintKind === 'absence' || (

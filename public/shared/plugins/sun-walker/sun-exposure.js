@@ -572,6 +572,57 @@
     return samples;
   }
 
+  function computeSidewalkPolyline(points, offsetM) {
+    if (!Array.isArray(points) || points.length < 2 || !Number.isFinite(offsetM) || Math.abs(offsetM) < 1e-4) {
+      return points ? points.map((p) => ({ ...p })) : [];
+    }
+    const result = [];
+    const count = points.length;
+    for (let i = 0; i < count; i += 1) {
+      const prev = points[Math.max(0, i - 1)];
+      const curr = points[i];
+      const next = points[Math.min(count - 1, i + 1)];
+      let nx = 0;
+      let ny = 0;
+      if (i === 0) {
+        const dx = next.x - curr.x;
+        const dy = next.y - curr.y;
+        const len = Math.hypot(dx, dy) || 1;
+        nx = -dy / len;
+        ny = dx / len;
+      } else if (i === count - 1) {
+        const dx = curr.x - prev.x;
+        const dy = curr.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        nx = -dy / len;
+        ny = dx / len;
+      } else {
+        const dx1 = curr.x - prev.x;
+        const dy1 = curr.y - prev.y;
+        const len1 = Math.hypot(dx1, dy1) || 1;
+        const dx2 = next.x - curr.x;
+        const dy2 = next.y - curr.y;
+        const len2 = Math.hypot(dx2, dy2) || 1;
+        const n1x = -dy1 / len1;
+        const n1y = dx1 / len1;
+        const n2x = -dy2 / len2;
+        const n2y = dx2 / len2;
+        const mx = (n1x + n2x) / 2;
+        const my = (n1y + n2y) / 2;
+        const mlen = Math.hypot(mx, my) || 1;
+        const dot = mx * n1x + my * n1y;
+        const scale = clamp(1 / Math.max(0.2, dot), 0.5, 1.8);
+        nx = (mx / mlen) * scale;
+        ny = (my / mlen) * scale;
+      }
+      result.push({
+        x: round(curr.x + nx * offsetM),
+        y: round(curr.y + ny * offsetM),
+      });
+    }
+    return result;
+  }
+
   function validateShadeBounds(bounds) {
     if (!Number.isInteger(bounds.maximumAlternatives) || bounds.maximumAlternatives < 1) throw exposureError('shade_alternatives_invalid', bounds.maximumAlternatives);
     ['directSunWeight', 'unknownWeight', 'maximumAddedTimeSeconds', 'maximumAddedRatio', 'sampleSpacingM'].forEach((key) => {
@@ -737,6 +788,7 @@
     buildEnvironmentField,
     buildTimeVaryingEnvironmentField,
     compiledBuildings,
+    computeSidewalkPolyline,
     createShadeCostModel,
     evaluateRoute,
     pointSunState,

@@ -176,9 +176,16 @@
     modelReceipt,
     environmentalScene,
   }) {
-    const samplePoints = samplePolylineAtMidpoints(segment.geometry, config.sampleSpacingM);
     const segmentLengthM = Number.isFinite(segment.lengthM) ? segment.lengthM : polylineLength(segment.geometry);
     const travelSeconds = segmentLengthM / config.walkingSpeedMps;
+    const { side: chosenSidewalk, samplePoints } = evaluateSegmentSidewalk({
+      segment,
+      enteredAtMs,
+      travelSeconds,
+      buildings,
+      world,
+      config,
+    });
     const sampleSeconds = travelSeconds / samplePoints.length;
     const samples = samplePoints.map((point, sampleIndex) => {
       const arrivalOffsetSeconds = (sampleIndex + 0.5) * sampleSeconds;
@@ -202,6 +209,11 @@
         ...(result.occluderId ? [`building:${result.occluderId}`] : []),
         ...environmental.evidenceRefs,
       ];
+      const heading = sampleIndex < samplePoints.length - 1
+        ? Math.atan2(samplePoints[sampleIndex + 1].y - point.y, samplePoints[sampleIndex + 1].x - point.x)
+        : sampleIndex > 0
+          ? Math.atan2(point.y - samplePoints[sampleIndex - 1].y, point.x - samplePoints[sampleIndex - 1].x)
+          : 0;
       return {
         schema: 'simulatte.sunWalkerExposureSample.v2',
         id: `sample-${segment.id}-${sampleIndex + 1}`,
@@ -210,6 +222,8 @@
         segmentIndex,
         sampleIndex,
         point,
+        heading: round(heading),
+        sidewalk: chosenSidewalk,
         representedSeconds: round(sampleSeconds),
         geometricState: result.state,
         geometricReason: result.reason,
@@ -233,6 +247,7 @@
       summary: {
         schema: 'simulatte.sunWalkerSegmentExposure.v2',
         segmentId: segment.id,
+        sidewalk: chosenSidewalk,
         enteredAt: new Date(enteredAtMs).toISOString(),
         exitedAt: new Date(enteredAtMs + travelSeconds * 1000).toISOString(),
         ...totals,
@@ -241,6 +256,50 @@
         truth: modeledTruth(),
       },
       samples,
+    };
+  }
+
+  function evaluateSegmentSidewalk({
+    segment,
+    enteredAtMs,
+    travelSeconds,
+    buildings,
+    world,
+    config,
+  }) {
+    const sidewalkOffsetM = Number.isFinite(config.sidewalkOffsetM) ? config.sidewalkOffsetM : 3.6;
+    if (sidewalkOffsetM <= 0 || !exposure.computeSidewalkPolyline) {
+      return {
+        side: 'center',
+        samplePoints: samplePolylineAtMidpoints(segment.geometry, config.sampleSpacingM),
+      };
+    }
+    const leftPoly = exposure.computeSidewalkPolyline(segment.geometry, sidewalkOffsetM);
+    const rightPoly = exposure.computeSidewalkPolyline(segment.geometry, -sidewalkOffsetM);
+    const leftPoints = samplePolylineAtMidpoints(leftPoly, config.sampleSpacingM);
+    const rightPoints = samplePolylineAtMidpoints(rightPoly, config.sampleSpacingM);
+
+    const origin = exposure.worldOrigin(world);
+    const midTimestamp = new Date(enteredAtMs + travelSeconds * 500).toISOString();
+    const sun = exposure.solarPosition(midTimestamp, origin.lat, origin.lon);
+    let leftShade = 0;
+    let rightShade = 0;
+    leftPoints.forEach((p) => {
+      const st = exposure.pointSunStateDetailed(p, buildings, sun, {
+        minimumSolarElevationDegrees: config.minimumSolarElevationDegrees,
+      });
+      if (st.state === 'shade') leftShade += 1;
+    });
+    rightPoints.forEach((p) => {
+      const st = exposure.pointSunStateDetailed(p, buildings, sun, {
+        minimumSolarElevationDegrees: config.minimumSolarElevationDegrees,
+      });
+      if (st.state === 'shade') rightShade += 1;
+    });
+    const side = leftShade > rightShade ? 'left' : 'right';
+    return {
+      side,
+      samplePoints: side === 'left' ? leftPoints : rightPoints,
     };
   }
 

@@ -104,15 +104,15 @@
       "path": "./presentation.js"
     },
     {
-      "integrity": "sha384-7c0954555144864b3c3c42d6928a925c010b0304beb73dd0fb7ca8c38fc4679dc2fa40353f3f6419b7f21f313264a36f",
+      "integrity": "sha384-413f051132cb58d94f91eab80ce26b3546da1386e7fe0748d27fbf41cf3ef81871200f7f4a3212c8e6b3a7c5d72afdf0",
       "path": "./sun-exposure.js"
     },
     {
-      "integrity": "sha384-9383ef31b39f10b2b4421cb39bf98e6ccece76423a60e9c26dda11482c983ba8e7137099c98297288fadee539e117e7e",
+      "integrity": "sha384-f75875c9b68fcf05de1b89fdb68c32fa48dd239d8cec3cf5ac57be9a6c045db41517e19cba8a10a546e6d951208341c5",
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-2bbc8701693c194fbef09c4e85e8eda6f2daafa39f322456de7c81742a7d2fcca54b1e2a73e830ea9667d709a7e502b8",
+      "integrity": "sha384-64a9ad996b45af3ca1d6ed7bffcd2ff2e3dde8c621d9a3a544007c3fb1db92e1b78a6227784d23046beda4514127906c",
       "path": "./v4-contribution.js"
     }
   ],

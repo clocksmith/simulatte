@@ -32,6 +32,8 @@ test('pipeline audit stages browser evidence before promoting the canonical dire
   assert.match(source, /liveStagingDir/);
   assert.match(source, /promoteDirectory\(liveStagingDir, outputDirs\.live\)/);
   assert.doesNotMatch(source, /'--out', outputDirs\.live/);
+  assert.doesNotMatch(source, /fs\.rmSync\(liveStagingDir/);
+  assert.match(source, /Failed browser evidence retained at/);
 });
 
 test('model audit selects the optional embedding lane instead of only granting consent', () => {

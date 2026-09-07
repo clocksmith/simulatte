@@ -90,7 +90,7 @@
       return (negativeEvidence || []).some((row) => {
         const entry = scope.normalizeForEvidence(row.entryId || '');
         const label = scope.normalizeForEvidence(row.label || row.text || '');
-        return (obligationId && entry === obligationId) ||
+        return (obligationId && entry === obligationId) || !row.negationScope?.properties?.length &&
           (target && (entry.endsWith(target) || label === target || label.endsWith(target)));
       });
     }
@@ -173,6 +173,7 @@
               kind: 'negated-entry',
               entryId: entry.id || '',
               label: entry.label || '',
+              negationScope: entry.negationScope || null,
               source: 'scene-language-graph',
             }));
           }

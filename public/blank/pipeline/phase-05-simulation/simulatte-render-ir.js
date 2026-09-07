@@ -200,6 +200,13 @@
     const entityId = entity.id;
     const has = (name) => solverGraph.channelMetadata && solverGraph.channelMetadata[`${name}:${entityId}`];
     const bind = {};
+    const mechanics = (solverGraph.steps || []).find((step) => ['free_fall', 'pendulum'].includes(step.operatorType) &&
+      step.outputs.some((id) => id.endsWith(`:${entityId}`)));
+    if (mechanics) {
+      bind.simulationOperator = mechanics.operatorId;
+      bind.simulationType = mechanics.operatorType;
+      bind.position = `position:${entityId}`;
+    }
     if (has('temperature')) {
       bind.hue = `temperature:${entityId}`;
       bind.glow = `temperature:${entityId}`;

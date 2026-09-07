@@ -166,20 +166,29 @@
 
     function lowerCompositionLedgerForPhysics(ledger = null, behaviorRelations = []) {
         if (!ledger || typeof ledger !== 'object') return null;
-        const loweredBehaviors = new Set((behaviorRelations || []).flatMap((relation) => [
-          `relation:${semanticAnimalType(relation.agentEntityId)}:swimming:${semanticWaterType(relation.mediumEntityId)}`,
-          'action:swimming',
-          `action:${relation.process}`,
-          `relation:${relation.agentEntityId}:${relation.process}:${relation.mediumEntityId}`,
-          ...(relation.evidence || []),
-        ]));
+        const loweredBehaviors = new Map();
+        for (const relation of behaviorRelations || []) {
+          if (relation.status !== 'lowered' || !relation.operators?.length) continue;
+          const ids = [
+            `action:${relation.process}`,
+            `relation:${relation.agentEntityId}:${relation.process}:${relation.mediumEntityId}`,
+            ...(relation.evidence || []),
+          ];
+          if (relation.process === 'swimming') ids.push(
+            `relation:${semanticAnimalType(relation.agentEntityId)}:swimming:${semanticWaterType(relation.mediumEntityId)}`
+          );
+          for (const id of ids) loweredBehaviors.set(id, unique([
+            ...(loweredBehaviors.get(id) || []), ...relation.operators,
+          ]));
+        }
         const obligations = (ledger.obligations || []).map((row) => {
+          if (['unsupported', 'lost', 'failed', 'refused', 'explicitly-refused', 'negated'].includes(row.status)) return row;
           if (loweredBehaviors.has(row.id)) {
             return {
               ...row,
               status: 'lowered',
-              phase: 6,
-              loweredTo: unique((behaviorRelations || []).flatMap((relation) => relation.operators || [])),
+              phase: 5,
+              loweredTo: loweredBehaviors.get(row.id),
             };
           }
           if (row.kind === 'visual') return { ...row, status: row.status || 'pending', phase: row.phase || 3 };
@@ -189,7 +198,7 @@
     	      ...ledger,
     	      schema: SCENE_COMPOSITION_LEDGER_SCHEMA,
     	      sourcePhase: ledger.sourcePhase || 3,
-    	      currentPhase: 6,
+          currentPhase: 5,
           obligations,
           summary: {
             ...(ledger.summary || {}),

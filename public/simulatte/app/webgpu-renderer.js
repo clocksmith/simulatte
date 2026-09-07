@@ -87,7 +87,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
   // Static roads, buildings, and grid lines must remain temporally stable.
   // Only high-emissive dynamic signals are allowed to pulse; animating every
   // map fragment makes thin geometry shimmer as the camera moves.
-  let pulse = select(1.0, 0.82 + 0.18 * sin(uniforms.timeViewport.x * 2.4 + input.worldPosition.x * 0.018 - input.worldPosition.z * 0.012), input.emissive > 0.8);
+  let pulse = select(1.0, 0.82 + 0.18 * sin(uniforms.timeViewport.x * 2.4 + input.worldPosition.x * 0.018 - input.worldPosition.z * 0.012), input.emissive > 1.4);
   let diffuseColor = input.color.rgb * (0.2 + diffuse * 0.74) * (1.0 - metallic * 0.38);
   let lit = diffuseColor + specular + input.color.rgb * rim + input.color.rgb * input.emissive * pulse;
   let toneMapped = lit / (lit + vec3<f32>(0.85));

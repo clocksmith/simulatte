@@ -1,0 +1,22 @@
+{
+  "base": "https://simulatte-world--preview-fe1nrag2.web.app",
+  "cases": [
+    {
+      "width": 1440,
+      "scroll": 1440,
+      "tiles": 6,
+      "create": "https://create.simulatte.world/",
+      "build": "b065a0053fe75d7ddf01668e57b4b2b022e3c69e-051aab10bc5e",
+      "errors": []
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "tiles": 6,
+      "create": "https://create.simulatte.world/",
+      "build": "b065a0053fe75d7ddf01668e57b4b2b022e3c69e-051aab10bc5e",
+      "errors": []
+    }
+  ],
+  "status": "pass"
+}
