@@ -232,7 +232,7 @@
           contract.doppler = {
             schema: dopplerIntent.schema,
             source: dopplerIntent.source,
-            model: dopplerIntent.model,
+            model: dopplerIntent.model || null,
             primitives: dopplerIntent.primitives.map((hint) => hint.primitiveId),
             regimes: dopplerIntent.regimes,
             operators: dopplerIntent.operators,

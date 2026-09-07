@@ -449,10 +449,23 @@
       const h = Math.abs(Math.sin(angle)) * size[0] + Math.abs(Math.cos(angle)) * size[1];
       return [part.center[0] - w / 2, part.center[1] - h / 2, part.center[0] + w / 2, part.center[1] + h / 2];
     };
-    const connected = parts.every((part) => parent.some((row) => {
-      const a = bounds(part), b = bounds(row);
+    const touches = (left, right) => {
+      const a = bounds(left), b = bounds(right);
       return a[0] <= b[2] + 0.01 && a[2] >= b[0] - 0.01 && a[1] <= b[3] + 0.01 && a[3] >= b[1] - 0.01;
-    }));
+    };
+    // A segmented limb attaches through its own chain, not every segment directly to the torso.
+    const attached = parent.slice();
+    const detached = new Set(parts);
+    // Each submitted part enters the queue once; contact checks are bounded by its squared count.
+    for (let index = 0; index < attached.length && detached.size; index += 1) {
+      for (const part of detached) {
+        if (touches(part, attached[index])) {
+          attached.push(part);
+          detached.delete(part);
+        }
+      }
+    }
+    const connected = detached.size === 0;
     return { entityId: binding.entityId, partId: binding.partId,
       expectedPartIds: [...ids], submittedPartIds: [...new Set(parts.map((part) => part.constructionPartId))],
       packetSatisfied: expected.length > 0,

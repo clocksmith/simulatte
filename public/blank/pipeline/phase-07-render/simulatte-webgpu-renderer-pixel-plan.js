@@ -368,6 +368,7 @@
 
     function phase7ObligationPixelSampleCount(obligation = {}, renderData = null) {
       if (phase7SemanticAbsenceObligation(obligation)) return 0;
+      if (obligation.constraintKind === 'environment' || obligation.targetIdentity === 'sunset') return 1;
       if (obligation.partBinding) return 2;
       if (obligation.simulationBinding?.targetEntityId) return (obligation.simulationBinding.entityIds?.length || 1) +
         (obligation.simulationBinding.targetEntityIds?.length || 1);
@@ -533,6 +534,10 @@
         row.identity && row.identity.type,
         ...representedIds,
       ].map(scope.normalizeForProof).filter(Boolean);
+      if (phase7ExpectedColor(obligation.expectedValue) && targetIdentity &&
+        rowId !== targetIdentity && !identityValues.includes(targetIdentity) &&
+        !(row.geometry?.program?.promptPropertyBindings || []).some(binding => binding.partId === obligation.targetNodeId) &&
+        !(targetEntityId && (rowId === targetEntityId || rowId.startsWith(`${targetEntityId} instance`) || representedIds.includes(targetEntityId)))) return 0;
       const rowText = scope.normalizeForProof(JSON.stringify({
         id: row.id,
         label: row.label,
