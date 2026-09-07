@@ -278,6 +278,8 @@
         return (promptParse && promptParse.spans || [])
           .filter((span) => span && span.text && ['entity', 'material', 'environment'].includes(span.kind))
           .filter((span) => !languageAnchorSpanIsNegated(promptParse, span))
+          .filter((span) => span.syntacticPromotion !== 'open-noun-phrase' ||
+            span.entityClass || span.visualArchetype || span.domains?.length)
           .filter((span) => !coveredPhrases.has(normalizeLanguageAnchorText(span.text)))
           .slice(0, 24)
           .map((span, index) => {

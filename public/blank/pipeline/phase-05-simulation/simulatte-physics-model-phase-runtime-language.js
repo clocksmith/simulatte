@@ -675,6 +675,9 @@
         visualArchetype: entry.visualArchetype || '',
         localGeometryGrammarId: entry.localGeometryGrammarId || '',
         shapeHints: entry.shapeHints || [],
+        ...(['actor', 'object'].includes(role) && !entry.visualArchetype &&
+          /^(?:|entity|object|term)$/.test(entry.semanticClass || '')
+          ? { modelEvidenceRequired: true, localEvidenceReason: '' } : {}),
         ...(role === 'action' ? {
           modelEvidenceRequired: !localActionEvidence,
           localEvidenceReason: entry.poseHint

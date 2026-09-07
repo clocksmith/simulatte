@@ -37,6 +37,56 @@ function markSemanticSubmissionConsumed(renderData) {
   return renderData;
 }
 
+test('directed action pixel evidence must include both exact participants', () => {
+  const proof = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+  const spec = lab.createSpecFromPrompt('a dog chasing a cat', { deterministicRuntime: true });
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });
+  const packet = input.sceneRenderPacket;
+  const renderData = rendererScope.compileSceneRenderData(packet);
+  renderData.requireLivePixelSamples = true;
+  const obligation = input.visualObligations.find((row) => row.sourceKind === 'action' && row.simulationBinding?.targetEntityId);
+  assert.ok(obligation);
+  const plan = rendererScope.phase7PixelReadbackPlan(renderData, packet, input, { width: 640, height: 360 });
+  const samples = plan.samples.filter((row) => row.obligationId === obligation.obligationId).map((sample) => ({
+    ...sample, rgba: [80, 160, 220, 255],
+  }));
+  renderData.pixelSamples = pixelSampleSet(renderData, samples);
+  assert.equal(proof.visualObligationPixelProof(obligation, renderData, packet).satisfied, true);
+  const subject = samples.find((row) => row.drawableId === obligation.simulationBinding.entityId);
+  renderData.pixelSamples = pixelSampleSet(renderData, [subject, { ...subject, id: `${subject.id}:duplicate` }]);
+  assert.equal(proof.visualObligationPixelProof(obligation, renderData, packet).satisfied, false);
+  renderData.pixelSamples = pixelSampleSet(renderData, samples.map((row) => row.drawableId === subject.drawableId ? row : { ...row, drawableId: 'unrelated-cat' }));
+  assert.equal(proof.visualObligationPixelProof(obligation, renderData, packet).satisfied, false);
+});
+
+test('part ownership proof rejects missing, detached, and wrongly owned submitted parts', () => {
+  const proof = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+  const spec = lab.createSpecFromPrompt('a chair with three legs', { deterministicRuntime: true });
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });
+  const packet = input.sceneRenderPacket;
+  const renderData = rendererScope.compileSceneRenderData(packet);
+  renderData.requireLivePixelSamples = true;
+  const obligation = input.visualObligations.find((row) => row.partBinding);
+  assert.ok(obligation);
+  const plan = rendererScope.phase7PixelReadbackPlan(renderData, packet, input, { width: 640, height: 360 });
+  renderData.pixelSamples = pixelSampleSet(renderData, plan.samples.map((sample) => ({ ...sample, rgba: [80, 160, 220, 255] })));
+  const evaluate = () => proof.renderObligationProof(packet, [obligation], null, true, renderData)[0];
+  assert.equal(evaluate().status, 'pass');
+  const original = structuredClone(renderData.objectParts);
+  const legIndex = original.findIndex((row) => row.constructionPartId === 'leg-instance-1');
+  assert.ok(legIndex >= 0);
+  for (const corrupt of [
+    (rows) => rows.splice(legIndex, 1),
+    (rows) => { rows[legIndex].center = [0.98, 0.98]; },
+    (rows) => { rows[legIndex].entityId = 'different-chair'; },
+  ]) {
+    renderData.objectParts = structuredClone(original);
+    corrupt(renderData.objectParts);
+    assert.equal(evaluate().geometrySatisfied, false);
+    assert.equal(evaluate().status, 'fail');
+  }
+});
+
 function glacierReadbackFixture() {
   const spec = lab.createSpecFromPrompt('glacier calving into fjord with sea ice waves', {
     allowPrototypeFallback: true,

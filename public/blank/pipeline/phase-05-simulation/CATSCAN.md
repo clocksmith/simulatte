@@ -28,6 +28,7 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 
 - Solver support does not masquerade as prompt-visible intent.
 - Render-addressable rows retain source evidence.
+- Directed motion binds the stated subject and target to declared state channels. Its bounded planar steering approximation does not imply cognition or collision physics.
 - A solver execution receipt names the operators actually invoked and fails on missing or non-finite state.
 - Create owns its explicit WorldSpec determinism, dependency, and safety defaults; shared validators do not invent them.
 - Imported WorldSpec programs rebuild typed phase evidence, retain authored authority, and fail closed when their execution bindings are incompatible.

@@ -116,7 +116,7 @@
       const targetId = entity && entity.collider && entity.collider.targetId || '';
       if (!targetId) return;
       const mapping = packet.interactionProgram && (packet.interactionProgram.mappings || [])
-        .find((row) => row.targetId === targetId);
+        .find((row) => row.packetEntityId === entity.id && row.targetId === targetId);
       const offset = index * scope.GPU_OBJECT_PART_FLOATS;
       const visualPosition = interactionPositionForTarget(
         interaction,

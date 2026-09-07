@@ -362,9 +362,18 @@
           slotRole: slot.slotRole || '',
         }));
         const slotEmbedStarted = scope.nowMs();
-        const batchedSlotQueries = slotRequests.length && typeof provider.embedMany === 'function'
-          ? await provider.embedMany(slotRequests)
-          : [];
+        const batchedSlotQueries = [];
+        const slotBatchSize = Math.max(1, Math.floor(Number(config.maxSlots) || 32));
+        if (typeof provider.embedMany === 'function') {
+          for (let offset = 0; offset < slotRequests.length; offset += slotBatchSize) {
+            const batch = slotRequests.slice(offset, offset + slotBatchSize);
+            const results = await provider.embedMany(batch);
+            if (!Array.isArray(results) || results.length !== batch.length) {
+              throw new Error('slot embedding batch must return one result per requested slot');
+            }
+            batchedSlotQueries.push(...results);
+          }
+        }
         const slotEmbeddingDurationMs = slotRequests.length ? scope.elapsedMsSince(slotEmbedStarted) : 0;
         const useBatchedSlotQueries = Array.isArray(batchedSlotQueries) && batchedSlotQueries.length === modelSlots.length;
         let modelSlotIndex = 0;
@@ -577,11 +586,10 @@
         };
       }
 
-    function usefulQueryPlanSlots(queryPlan, config = {}) {
-        const max = Number.isFinite(config.maxSlots) ? config.maxSlots : 32;
+    function usefulQueryPlanSlots(queryPlan) {
+        // The legacy maxSlots option bounds embedding batches, never semantic coverage.
         return (queryPlan && Array.isArray(queryPlan.slots) ? queryPlan.slots : [])
-          .filter((slot) => slot && (slot.slotId || slot.entryId))
-          .slice(0, max);
+          .filter((slot) => slot && (slot.slotId || slot.entryId));
       }
 
     function slotPrimitiveMatch(slot = {}, primitive = {}, rawScore = 0, config = {}) {

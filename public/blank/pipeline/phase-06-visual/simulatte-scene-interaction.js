@@ -13,11 +13,14 @@
       };
     }
     const mappings = [];
+    const directedProjections = new Map(entities.filter((entity) => entity.stateBindings?.simulationType === 'directed_motion')
+      .map((entity) => [entity.id, directedMotionProjection(entity, entities)]));
     for (const entity of entities) {
       const target = interactionTargetForEntity(entity, interactionIR.targets || []);
       if (!target || !entity.collider) continue;
       if (entity.stateBindings?.simulationType === 'directed_motion') {
-        const position = (target.initialPosition || []).map((value) => 0.2 + value * 0.6);
+        const projection = directedProjections.get(entity.id);
+        const position = (target.initialPosition || []).map((value, axis) => projection.offset[axis] + value * projection.scale[axis]);
         const prior = entity.transform.position;
         entity.collider.bounds = entity.collider.bounds.map((value, axis) => axis < 2 ? value + position[axis] - prior[axis] : value);
         entity.transform = { ...entity.transform, position: [...position, prior[2]] };
@@ -47,7 +50,7 @@
         ...(entity.stateBindings?.simulationType === 'free_fall'
           ? { positionProjection: mechanicsPositionProjection(entity, target) }
           : entity.stateBindings?.simulationType === 'directed_motion'
-            ? { positionProjection: { space: 'normalized-solver-to-canvas', scale: [0.6, 0.6], offset: [0.2, 0.2] } } : {}),
+            ? { positionProjection: directedProjections.get(entity.id) } : {}),
         initialPosition: (target.initialPosition || [0.5, 0.5]).slice(0, 2),
       });
     }
@@ -75,6 +78,15 @@
         },
       },
     };
+  }
+
+  function directedMotionProjection(entity, entities) {
+    const group = entities.filter((row) => row.physicalRef === entity.physicalRef);
+    const centers = group.map((row) => row.transform.position);
+    const center = [0, 1].map((axis) => centers.reduce((sum, row) => sum + row[axis], 0) / centers.length);
+    const delta = entity.transform.position.slice(0, 2).map((value, axis) => value - center[axis]);
+    return { space: 'normalized-solver-to-canvas', scale: [0.6, 0.6],
+      offset: delta.map((value) => 0.2 + value) };
   }
 
   function mechanicsPositionProjection(entity, target) {

@@ -23,6 +23,8 @@ Retrieve and rerank high-recall candidate knowledge with explicit provenance and
 
 - Raw retrieval and fused activation remain separate artifacts.
 - Typed filters cannot silently remove a valid candidate.
+- Every valid query-plan slot is retained. Embedding batch limits bound calls, not prompt coverage.
+- Model proposals retain their slot identity and vector provenance. Lexical differences do not erase a bound semantic proposal; Phase 4 owns acceptance.
 
 ## Acceptance
 
@@ -37,4 +39,3 @@ Retrieve and rerank high-recall candidate knowledge with explicit provenance and
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

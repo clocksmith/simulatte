@@ -41,6 +41,33 @@ test('part cardinality changes one owner geometry, without creating extra owners
   }
 });
 
+test('part ownership paraphrases change the same owner and preserve unrelated objects', () => {
+  for (const prompt of ['a three-legged chair', 'a chair with three legs', 'a chair has three legs']) {
+    const spec = compile(prompt);
+    assert.equal(packet(spec).entities.length, 1);
+    assert.equal(entity(spec, 'chair').geometry.program.parts.filter((part) => part.promptPartId).length, 3);
+    assert.ok(spec.phaseArtifacts.phase2.artifact.promptParse.clauses.some((row) => row.process === 'part_composition'));
+  }
+  const independent = compile('a chair beside three wheels');
+  assert.equal(packet(independent).entities.filter((row) => row.identity.type === 'wheel').length, 3);
+  assert.equal(entity(independent, 'chair').geometry.program.parts.some((part) => part.promptPartId), false);
+});
+
+test('directed motion preserves distinct counted instances and their formation offsets', () => {
+  const spec = compile('two dogs chasing three cats');
+  const scene = packet(spec);
+  for (const [type, count] of [['dog', 2], ['cat', 3]]) {
+    const rows = scene.entities.filter((row) => row.identity.type === type);
+    assert.equal(rows.length, count);
+    assert.equal(new Set(rows.map((row) => row.transform.position.slice(0, 2).join(','))).size, count);
+    for (const row of rows) {
+      const mapping = scene.interactionProgram.mappings.find((map) => map.packetEntityId === row.id);
+      assert.deepEqual(mapping.positionProjection.scale, [0.6, 0.6]);
+      assert.deepEqual(mapping.initialPosition.map((value, axis) => value * 0.6 + mapping.positionProjection.offset[axis]), row.transform.position.slice(0, 2));
+    }
+  }
+});
+
 test('novel nouns remain required and unknown actions request retrieval', () => {
   const spec = compile('a quuxophone deflecting a pluvimeter');
   const phase2 = spec.phaseArtifacts.phase2.artifact;
@@ -113,4 +140,10 @@ test('slot-bound semantic candidates survive vocabulary differences and reject w
   assert.deepEqual(phase.phase3ModelRowsForSlot(slot, { bySlot: [row] }).map((row) => row.id), ['lorentz-force']);
   assert.deepEqual(phase.phase3ModelRowsForSlot(slot, { bySlot: [{ ...row, entryId: 'entity:dog' }] }), []);
   assert.deepEqual(phase.phase3ModelRowsForSlot(slot, { bySlot: [{ ...row, vectorHash: '' }] }), []);
+});
+
+test('retrieval retains required slots beyond a single embedding batch', () => {
+  const embedder = phaseFamily('intentEmbedder');
+  const slots = Array.from({ length: 75 }, (_, index) => ({ slotId: `slot:${index}`, entryId: `entity:${index}`, required: true }));
+  assert.deepEqual(embedder.usefulQueryPlanSlots({ slots }, { maxSlots: 32 }), slots);
 });

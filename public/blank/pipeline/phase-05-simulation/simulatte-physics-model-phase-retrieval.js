@@ -673,6 +673,7 @@
               slotId: slot.slotId || '',
               slotRole: slot.slotRole || '',
               entryId: slot.entryId || '',
+              sourceSpanIds: (slot.sourceSpanIds || []).slice(),
               relationIds: slot.relationIds || [],
               required: slot.required !== false,
               status: scope.phase3SlotEvidenceStatus(slot, acceptedCandidates, supportOnlyCandidates),
@@ -768,7 +769,8 @@
         const sourceLabel = String(slot.sourceLabel || identityLabel).trim();
         if (!identityLabel || !sourceLabel) return null;
         const slug = identityLabel.replace(/\s+/g, '-');
-        const semanticType = {
+        const ungroundedObject = ['actor', 'object'].includes(role) && slot.modelEvidenceRequired === true;
+        const semanticType = ungroundedObject ? 'concept' : {
           actor: 'body',
           object: 'body',
           part: 'part',
@@ -794,8 +796,8 @@
           operatorTypes: slot.operatorTypes || [],
           source: role === 'action' && slot.localEvidenceReason || 'prompt-typed-slot',
           score: 1,
-          supportOnly: role === 'concept' || role === 'action' && slot.modelEvidenceRequired === true,
-          identityEvidence: /^(?:actor|object|part|environment|medium)$/.test(role),
+          supportOnly: ungroundedObject || role === 'concept' || role === 'action' && slot.modelEvidenceRequired === true,
+          identityEvidence: !ungroundedObject && /^(?:actor|object|part|environment|medium)$/.test(role),
           reason: role === 'concept'
             ? 'untyped Phase 2 term remains support-only until retrieval establishes a semantic role'
             : role === 'action' && slot.modelEvidenceRequired === true

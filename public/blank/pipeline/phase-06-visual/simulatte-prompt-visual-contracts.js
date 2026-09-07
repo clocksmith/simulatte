@@ -404,7 +404,17 @@
       const source = compositionLedger || {};
       const byId = new Map((source.obligations || []).map((row) => [row.id, row]));
       for (const row of additions) byId.set(row.id, row);
-      const obligations = Array.from(byId.values());
+      const obligations = Array.from(byId.values()).map((row) => {
+        const binding = row.simulationBinding;
+        if (!binding) return row;
+        const entityIds = (sceneRenderPacket.entities || []).filter((entity) =>
+          entity.physicalRef === binding.physicalRef && entity.stateBindings?.simulationOperator === binding.operatorId).map((entity) => entity.id);
+        const targetEntityIds = binding.targetChannel ? (sceneRenderPacket.entities || []).filter((entity) =>
+          entity.stateBindings?.position === binding.targetChannel).map((entity) => entity.id) : [];
+        return { ...row, simulationBinding: { ...binding, entityIds,
+          entityId: entityIds[0] || binding.entityId,
+          ...(binding.targetEntityId ? { targetEntityIds, targetEntityId: targetEntityIds[0] || binding.targetEntityId } : {}) } };
+      });
       const lost = additions.filter((row) => row.status === 'lost');
       return {
         ...source,

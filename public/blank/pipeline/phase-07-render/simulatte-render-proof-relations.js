@@ -54,12 +54,8 @@
       const id = obligation.obligationId || obligation.id || '';
       const ledgerRows = sceneRenderPacket.compositionLedger && sceneRenderPacket.compositionLedger.obligations || [];
       const preserved = ledgerRows.some((row) => row.id === id && row.status === 'preserved');
-      const source = (sceneRenderPacket.entities || []).some((row) => (
-        promptProofEntityMatches(row, parts.sourceIdentity)
-      ));
-      const target = parts.targetIdentity === 'world' || (sceneRenderPacket.entities || []).some((row) => (
-        promptProofEntityMatches(row, parts.targetIdentity)
-      ));
+      const source = relationEntityIds(sceneRenderPacket, parts.sourceIdentity).size > 0;
+      const target = parts.targetIdentity === 'world' || relationEntityIds(sceneRenderPacket, parts.targetIdentity).size > 0;
       if (!preserved || !source || !target) return false;
       if (dynamicVisualRelationObligation(obligation)) {
         return dynamicVisualRelationRows(obligation, sceneRenderPacket).length > 0;
@@ -190,7 +186,11 @@
     }
 
     function relationEntityIds(sceneRenderPacket = {}, identity = '') {
-      return new Set((sceneRenderPacket.entities || []).filter((row) => (
+      const entities = sceneRenderPacket.entities || [];
+      const exact = entities.filter((row) => (row.representedEntityIds || []).some((value) =>
+        /^(?:entity|environment|medium):/.test(value) && normalizeForProof(value.replace(/^[^:]+:/, '')) === normalizeForProof(identity)));
+      if (exact.length) return new Set(exact.map((row) => row.id));
+      return new Set(entities.filter((row) => (
         promptProofEntityMatches(row, identity)
       )).map((row) => row.id));
     }
@@ -257,6 +257,7 @@
 
     return Object.freeze({
       dynamicVisualRelationObligation,
+      relationEntityIds,
       relationVisualObligationGeometryReceipt,
       relationVisualObligationGeometrySatisfied,
       relationVisualObligationPacketSatisfied,

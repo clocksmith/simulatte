@@ -184,7 +184,7 @@
         const requests = obligation.partBinding ? [
           { id: binding.entityId, target: '', partIds: owner?.geometry?.program?.parts?.filter((part) => part.promptPartId !== binding.partId).map((part) => part.id) },
           { id: binding.entityId, target: '', partIds: owner?.geometry?.program?.parts?.filter((part) => part.promptPartId === binding.partId).map((part) => part.id) },
-        ] : [{ id: binding.entityId }, { id: binding.targetEntityId }];
+        ] : [...(binding.entityIds || [binding.entityId]), ...(binding.targetEntityIds || [binding.targetEntityId])].map((id) => ({ id }));
         for (const request of requests) {
           const drawable = drawables.find((row) => row.id === request.id);
           if (!drawable) continue;
@@ -364,7 +364,9 @@
 
     function phase7ObligationPixelSampleCount(obligation = {}, renderData = null) {
       if (phase7SemanticAbsenceObligation(obligation)) return 0;
-      if (obligation.partBinding || obligation.simulationBinding?.targetEntityId) return 2;
+      if (obligation.partBinding) return 2;
+      if (obligation.simulationBinding?.targetEntityId) return (obligation.simulationBinding.entityIds?.length || 1) +
+        (obligation.simulationBinding.targetEntityIds?.length || 1);
       if (phase7ExpectedColor(obligation.expectedValue)) {
         const candidateCount = phase7ProjectedObjectPartPoints(
           renderData || {}, obligation, Number(renderData && renderData.pixelReadbackTimeMs || 0) * 0.001
@@ -448,7 +450,8 @@
         return;
       }
       for (const identity of phase7VisualRelationIdentities(obligation)) {
-        const drawable = drawables.find((row) => pixelDrawableMatchesIdentity(row, identity));
+        const ids = scope.relationEntityIds({ entities: drawables }, identity);
+        const drawable = drawables.find((row) => ids.has(row.id));
         if (!drawable) continue;
         const sample = scope.pixelSampleForDrawable(
           drawable,
@@ -460,7 +463,7 @@
         );
         const projected = phase7ProjectedObjectPartPoint(
           renderData,
-          { ...obligation, targetEntityId: drawable.id || '', targetIdentity: identity },
+          { ...obligation, targetEntityId: drawable.id || '', targetIdentity: '', target: '' },
           Number(renderData.pixelReadbackTimeMs || 0) * 0.001
         );
         if (sample && projected) applyProjectedPixelSample(sample, projected, width, height, obligation);

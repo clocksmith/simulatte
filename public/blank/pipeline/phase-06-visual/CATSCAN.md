@@ -23,6 +23,8 @@ Compile simulation artifacts into a renderable scene program that preserves spec
 
 - Specific prompt objects do not collapse into generic helpers.
 - Support-only geometry stays distinct from visible obligations.
+- Layout constraints apply to final visible part bounds. Part cardinality changes the owner's geometry, and motion preserves distinct counted instances.
+- Motion bindings retain the executing operator and both participants; part bindings retain exact owner and part identities for Phase 7 verification.
 
 ## Acceptance
 
@@ -37,4 +39,3 @@ Compile simulation artifacts into a renderable scene program that preserves spec
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

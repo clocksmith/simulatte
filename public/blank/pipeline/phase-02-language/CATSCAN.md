@@ -24,12 +24,14 @@ Extract a source-bound language graph without deciding final world semantics.
 
 - Source spans remain attached to extracted obligations.
 - Counts and negation cannot be weakened into hints.
+- Open noun phrases retain their head identity and source-bound modifiers. Part counts bind to the named owner; spatial phrases preserve argument order.
 - Every semantic span is covered by a typed critical requirement or named as an extraction gap.
 
 ## Acceptance
 
 - Language fixtures preserve exact entities, counts, relations, and negation.
 - Evidence: [language grounding tests](../../../../tests/physical-compiler-language-grounding.test.cjs).
+- Evidence: [composition and paraphrase regressions](../../../../tests/open-language-composition.test.cjs).
 
 ## Non-goals
 
