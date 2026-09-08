@@ -244,11 +244,27 @@ function phase3ConstructionGate(result = {}) {
       identity.literal === true && identity.unsupportedIdentity !== true &&
       Number(identity.partCount || 0) >= 2 && /^object-grammar\.(?!object$)[a-z0-9.-]+$/.test(String(identity.grammarId || ''))
     ));
-    const localProven = /^object-grammar\.(?!object$)[a-z0-9.-]+$/.test(localGeometryGrammarId) || realizedLocal;
+    const entryId = slotEntryIds.get(slot.slotId);
+    const partProof = parseJsonArray(result.phase7VisualObligationProof).find((proof) => (
+      proof.obligationId === entryId && proof.required === true && proof.status === 'pass' &&
+      proof.geometrySatisfied === true && proof.packetSatisfied === true && proof.pixelSatisfied === true
+    ));
+    const realizedPart = slot.slotRole === 'part' && Boolean(partProof) && realizedIdentities.some((identity) => (
+      identity.literal === true && identity.unsupportedIdentity !== true &&
+      /^object-grammar\.(?!object$)[a-z0-9.-]+$/.test(String(identity.grammarId || '')) &&
+      array(identity.propertyBindings).some((binding) => (
+        binding.schema === 'simulatte.promptGeometryBinding.v1' && binding.status === 'bound' &&
+        binding.entityId === identity.id &&
+        constructionIdentityKey(String(binding.partId || '').replace(/^prompt-part-/, '')) === targetId &&
+        array(binding.matchedPartIds).length > 0 &&
+        binding.matchedPartIds.every((id) => array(identity.partIds).includes(id))
+      ))
+    ));
+    const localProven = /^object-grammar\.(?!object$)[a-z0-9.-]+$/.test(localGeometryGrammarId) || realizedLocal || realizedPart;
     const modelEvaluated = array(slot.candidates).some((candidate) => (
       candidate.modelEvaluated === true && candidate.constructionEvidence === true
     ));
-    return { slotId: slot.slotId || '', localGeometryGrammarId, realizedLocal, localProven, modelEvaluated };
+    return { slotId: slot.slotId || '', localGeometryGrammarId, realizedLocal, realizedPart, localProven, modelEvaluated };
   });
   return {
     requiredCount: rows.length,
@@ -734,4 +750,4 @@ function gradeForScore(score) {
 }
 
 
-export { analyze, visualRubricForResult, withAutoRating, webGpuValidationFailures };
+export { phase3ConstructionGate, analyze, visualRubricForResult, withAutoRating, webGpuValidationFailures };

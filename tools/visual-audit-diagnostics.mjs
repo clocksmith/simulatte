@@ -454,6 +454,7 @@ export function diagnosticsExpression(prompt) {
         unsupportedIdentity: row.geometry && row.geometry.program && row.geometry.program.unsupportedIdentity === true,
         partCount: row.geometry && row.geometry.program && Array.isArray(row.geometry.program.parts)
           ? row.geometry.program.parts.length : 0,
+        partIds: (row.geometry?.program?.parts || []).map((part) => part.id),
         propertyBindings: row.geometry && row.geometry.program && row.geometry.program.promptPropertyBindings || [],
       })),
       canvasWidth: width,
