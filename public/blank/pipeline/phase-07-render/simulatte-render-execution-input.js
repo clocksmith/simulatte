@@ -27,8 +27,12 @@
       throw new Error('Simulation snapshot interaction identity contradicts Phase 6');
     }
     for (const [name, receipt] of Object.entries(snapshot.proofReceipts || {})) {
-      if (receipt && name !== 'replayBaseline' && (receipt.worldSpecContentHash !== binding.worldSpec.contentHash ||
-          receipt.worldSpecRevision !== binding.worldSpec.revision)) throw new Error(`Snapshot ${name} belongs to another WorldSpec`);
+      if (receipt && name !== 'replayBaseline') {
+        const contentHash = receipt.worldSpecContentHash ?? receipt.authoredWorldSpecContentHash;
+        const revision = receipt.worldSpecRevision ?? receipt.authoredWorldSpecRevision;
+        if (contentHash !== binding.worldSpec.contentHash ||
+            revision !== binding.worldSpec.revision) throw new Error(`Snapshot ${name} belongs to another WorldSpec`);
+      }
     }
     return { state: snapshot.state, worldProofBinding: binding, proofReceipts: snapshot.proofReceipts || {} };
   }

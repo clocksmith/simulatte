@@ -7,6 +7,7 @@ export async function validateCreatePageExecutions(receipt) {
     compiled: receipt.before.contentHash,
     edited: receipt.after.contentHash,
     imported: receipt.exchange.importedContentHash,
+    ...(receipt.pipelineExecutions?.replayed ? { replayed: receipt.exchange.importedContentHash } : {}),
     reconciled: receipt.reconciliation.receipt.resultWorldSpecContentHash,
   };
   const records = receipt.pipelineExecutions;
@@ -51,7 +52,24 @@ export async function validateCreatePageExecutions(receipt) {
         previous = output;
       }
     }
+    if (name === 'replayed') {
+      const frame = record.attempts[0].outputs[6]?.artifact?.renderExecution?.frameInvocation;
+      const replayBaseline = frame?.simulationSnapshot?.proofReceipts?.replayBaseline;
+      if (replayBaseline?.schema !== 'simulatte.replayBaseline.v1' ||
+          replayBaseline?.identity?.worldSpecContentHash !== worldSpecHash) {
+        throw new Error('replayed: execution did not bind a valid replay baseline');
+      }
+      if (record.attempts[0].outputs[7]?.artifact?.sceneProof?.verdict !== 'pass') {
+        throw new Error('replayed: scene proof did not pass');
+      }
+    }
   }
-  if (!(records.compiled.revision < records.edited.revision && records.edited.revision < records.imported.revision &&
-      records.imported.revision < records.reconciled.revision)) throw new Error('Create executions reused or reversed application revisions');
+  const expectedRevisions = records.replayed
+    ? [records.compiled.revision, records.edited.revision, records.imported.revision, records.replayed.revision, records.reconciled.revision]
+    : [records.compiled.revision, records.edited.revision, records.imported.revision, records.reconciled.revision];
+  for (let i = 0; i < expectedRevisions.length - 1; i++) {
+    if (!(expectedRevisions[i] < expectedRevisions[i + 1])) {
+      throw new Error('Create executions reused or reversed application revisions');
+    }
+  }
 }

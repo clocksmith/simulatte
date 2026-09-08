@@ -125,6 +125,9 @@
             this.renderInputSerial += 1;
             this.canvas.dataset.renderInputSerial = String(this.renderInputSerial);
             this.resetPixelReadbackForPacket(this.sceneRenderPacketKey);
+            this.phase7Output = null;
+            this.phase7OutputPacketKey = '';
+            this.phase7SimulationReceiptKey = '';
             this.phase8Output = null;
           }
           this.renderExecutionInput = nextRenderExecutionInput;

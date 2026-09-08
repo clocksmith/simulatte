@@ -1,0 +1,94 @@
+{
+  "schema": "simulatte.workbenchBrowserAudit.v1",
+  "previousOutput": null,
+  "cases": [
+    {
+      "name": "1440x1000",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "canvas": {
+          "x": 636.328125,
+          "y": 332,
+          "width": 683.65625,
+          "height": 360,
+          "top": 332,
+          "right": 1319.984375,
+          "bottom": 692,
+          "left": 636.328125
+        },
+        "pointCount": "3",
+        "backend": "canvas2d",
+        "step": "0",
+        "smallButtons": [],
+        "build": "31029783d55a74ca0759046248137355ba25c333-52a55b518e2c"
+      },
+      "receipt": {
+        "schema": "simulatte.dataRunReceipt.v1",
+        "programHash": "fnv1a32:3477dcab",
+        "programSha256": "bde560923dbbec1fb3b4ecade0005f5d18130e76fa63648857091bd5ec21f864",
+        "outputSha256": "d3f34cea535696ce6d9057f9a0b4ffa6666dee7c54fa7bea75c2fc27ad326af0",
+        "sourceSha256": "0be1960583f10760ebb231a307ed968a3e1eb69c82fc04b9817e3515ef404d90",
+        "adapter": "data-points-v1",
+        "frameCount": 61,
+        "pointCount": 3,
+        "simulation": "constant-velocity-2d",
+        "scientificValidation": "not-performed",
+        "visualRecognition": "not-reviewed"
+      },
+      "exported": "point-motion-example.csv.world.json",
+      "edit": "pass",
+      "replay": "pass",
+      "reimport": "pass",
+      "malformedRecovery": "pass",
+      "cancellation": "pass"
+    },
+    {
+      "name": "390x844",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "canvas": {
+          "x": 24,
+          "y": 275.5,
+          "width": 342,
+          "height": 300,
+          "top": 275.5,
+          "right": 366,
+          "bottom": 575.5,
+          "left": 24
+        },
+        "pointCount": "3",
+        "backend": "canvas2d",
+        "step": "0",
+        "smallButtons": [],
+        "build": "31029783d55a74ca0759046248137355ba25c333-52a55b518e2c"
+      },
+      "receipt": {
+        "schema": "simulatte.dataRunReceipt.v1",
+        "programHash": "fnv1a32:3477dcab",
+        "programSha256": "bde560923dbbec1fb3b4ecade0005f5d18130e76fa63648857091bd5ec21f864",
+        "outputSha256": "d3f34cea535696ce6d9057f9a0b4ffa6666dee7c54fa7bea75c2fc27ad326af0",
+        "sourceSha256": "0be1960583f10760ebb231a307ed968a3e1eb69c82fc04b9817e3515ef404d90",
+        "adapter": "data-points-v1",
+        "frameCount": 61,
+        "pointCount": 3,
+        "simulation": "constant-velocity-2d",
+        "scientificValidation": "not-performed",
+        "visualRecognition": "not-reviewed"
+      },
+      "exported": "point-motion-example.csv.world.json",
+      "edit": "pass",
+      "replay": "pass",
+      "reimport": "pass",
+      "malformedRecovery": "pass",
+      "cancellation": "pass"
+    }
+  ],
+  "errors": [],
+  "pass": true,
+  "profileRuntime": {
+    "lazyLoaded": true,
+    "route": "/city/sun-walker-v1"
+  }
+}

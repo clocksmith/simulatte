@@ -380,6 +380,7 @@ function editorProbeExpression(boundary) {
         '; inputSerial=' + (canvas.dataset.renderInputSerial || '0'));
     }
     const provenCanvasDataset = { ...canvas.dataset };
+    pipelineExecutions.replayed = lab.getPipelineRun();
     let improvementRecord;
     try {
       improvementRecord = await waitFor('governed improvement record', () => {
@@ -795,6 +796,17 @@ export function assertReceipt(receipt, boundary) {
     [!receipt.worldProofCriticalFailures.some((row) => row.class === 'safety'), 'WorldProof retained a safety failure after an allowing gate decision'],
     [receipt.worldProofClassStatuses.replay === 'pass', 'WorldProof did not bind the independent replay comparison'],
     [!receipt.worldProofCriticalFailures.some((row) => row.class === 'replay'), 'WorldProof retained a replay failure after identical outcomes'],
+    ...(receipt.schema === 'simulatte.worldSpecEditorBrowserAudit.v3' ? [
+      [receipt.pipelineExecutions?.replayed?.status === 'completed', 'audit did not retain completed replay execution evidence'],
+      [receipt.pipelineExecutions?.replayed?.worldSpecContentHash === receipt.exchange.importedContentHash, 'replay execution did not execute the imported WorldSpec'],
+      [receipt.pipelineExecutions?.replayed?.revision > receipt.pipelineExecutions?.imported?.revision &&
+        receipt.pipelineExecutions?.replayed?.revision < receipt.pipelineExecutions?.reconciled?.revision,
+        'replay execution revision was not monotonic'],
+      [receipt.pipelineExecutions?.replayed?.attempts?.[0]?.outputs?.[6]?.artifact?.renderExecution?.frameInvocation?.simulationSnapshot?.proofReceipts?.replayBaseline?.schema === 'simulatte.replayBaseline.v1',
+        'replay execution did not bind a valid replay baseline in Phase 7'],
+      [receipt.pipelineExecutions?.replayed?.attempts?.[0]?.outputs?.[7]?.artifact?.sceneProof?.verdict === 'pass',
+        'replay execution did not settle with passing scene proof'],
+    ] : []),
     [receipt.improvementRecord?.schema === 'simulatte.worldImprovementRecord.v1' &&
       receipt.improvementRecord?.status === 'successful-replay',
       'Create did not produce a governed correction record'],

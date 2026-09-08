@@ -539,10 +539,11 @@
 
   .hex-hub-badge,
   .hex-satellite .hex-badge {
-    max-width: 15ch;
+    max-width: 19ch;
     margin-bottom: 4px;
+    padding: 2px 6px;
     overflow: hidden;
-    font-size: 0.52rem;
+    font-size: 0.56rem;
     line-height: 1.2;
     text-overflow: ellipsis;
     white-space: nowrap;

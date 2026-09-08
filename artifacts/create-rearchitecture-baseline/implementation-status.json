@@ -63,9 +63,16 @@
     "Versioned v2 render snapshots include declared proof receipts bound to the exact WorldSpec and Phase 6. Phase 7 preserves them without semantic authority; publication validates matching receipts before changing page state. v1 snapshot readers remain compatible.",
     "Canonical serialization reuses only recursively validated module-owned immutable snapshots and digest work, with per-copy alias sharing. Caller freezing, hidden fields, accessors, mutation and lossy JSON values cannot bypass validation.",
     "Browser editor audit v3 retains four full page execution records and independently verifies SHA-256 envelope chains, invocations, revisions and authored restart provenance. Import waits for completed request publication rather than an intermediate GPU frame.",
-    "Configuration waits now settle on cancellation, ingress records exist before awaiting configuration, and malformed options retain their failure. Updated active Ouroboros links and registry evidence path to the existing renamed Doppler Capsule Spine ADR; historical score records remain untouched."
+    "Configuration waits now settle on cancellation, ingress records exist before awaiting configuration, and malformed options retain their failure. Updated active Ouroboros links and registry evidence path to the existing renamed Doppler Capsule Spine ADR; historical score records remain untouched.",
+    "Exact replay executes the eight-phase runner with authored sourceMode, binds the Phase 7 replayBaseline, verifies passing Phase 8 scene proof, and retains the completed replayed execution record in pipelineExecutions. Browser editor audit verifies the replayed boundary and validates monotonic execution revisions."
   ],
   "evidence": [
+    {
+      "layer": "browser application compatibility",
+      "command": "node tools/audit-world-spec-editor.mjs --chrome \"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --out artifacts/create-rearchitecture-baseline/browser-editor-replay-verified",
+      "result": "passed; full eight-phase exact replay execution verified in pipelineExecutions; world proof pass with all 8 classes pass; duration 8240 ms; heap retained delta within budget",
+      "path": "browser-editor-replay-verified/1440x1000.json"
+    },
     {
       "layer": "component",
       "command": "node --test tests/phase7-pixel-readback.test.cjs tests/scene-proof.test.cjs tests/create-phase-runner.test.cjs",
@@ -643,10 +650,9 @@
       "limitations": "Browser fault injection proves retry execution, not naturally failing-cat repair or visual recognizability. Retry after accepted edits currently requires the existing explicit reconciliation decision."
     },
     "exactReplay": {
-      "owner": "public/blank/app/prompt/prompt-controller-lab-controller.js: replayWorldSpecButton handler",
-      "current": "Fresh simulation state and replayed interaction commands feed the compatibility continuous-render loop.",
-      "required": "Use an identified authored replay request with explicit interaction/state invocation and replay evidence without fresh interpretation.",
-      "observed": "Replay button reconstructs interaction commands with value: 0, resets simulation state and feeds compatibility continuous frames. Trace original action values and time semantics before changing this boundary."
+      "owner": "public/blank/app/prompt/prompt-controller-lab-controller.js, prompt-controller-phase-dispatch.js, simulatte-render-execution-input.js",
+      "status": "Exact replay executes the eight-phase runner in authored sourceMode with bound replayBaseline, verified through tools/audit-world-spec-editor.mjs and tools/create-page-execution-evidence.mjs.",
+      "observed": "Exact replay completes with passing scene proof and all eight WorldProof classes passing, retaining pipelineExecutions.replayed with monotonic revisions and matching WorldSpec contentHash."
     }
   },
   "owningRepositoryChanges": {
@@ -658,13 +664,18 @@
       "public/blank/app/prompt/prompt-controller-phase-dispatch.js",
       "public/blank/app/prompt/prompt-proof-session.js",
       "public/blank/index.html",
+      "public/blank/pipeline/phase-07-render/simulatte-render-execution-input.js",
+      "public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js",
       "public/data/generated-artifact-inventory.json",
       "tests/application-sessions.test.cjs",
+      "tests/create-page-execution-evidence.test.cjs",
       "tests/js-shape-suite.cjs",
       "tests/pipeline-worker-phases.test.cjs",
       "tests/prompt-controller-factory.test.cjs",
       "tests/samer-construction.test.cjs",
-      "tools/audit-construction-retry.mjs"
+      "tools/audit-construction-retry.mjs",
+      "tools/audit-world-spec-editor.mjs",
+      "tools/create-page-execution-evidence.mjs"
     ],
     "ouroboros": [
       "docs/integration/folder-contracts/projects/simulatte.json"

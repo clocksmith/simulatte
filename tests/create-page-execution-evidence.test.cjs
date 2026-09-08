@@ -28,3 +28,17 @@ test('historical page chains validate independently and reject altered artifacts
   receipt.runtimeSourceDigest = `sha256:${'0'.repeat(64)}`;
   await assert.rejects(validateCreatePageExecutions(receipt), /identity mismatch/);
 });
+
+test('page execution evidence validates replayed boundary presence and rejects malformed records', async () => {
+  const { validateCreatePageExecutions } = await import('../tools/create-page-execution-evidence.mjs');
+  const bytes = fs.readFileSync(path.join(__dirname,
+    '../artifacts/create-rearchitecture-baseline/page-dispatch-editor-import-boundary/1440x1000-failure.json'));
+  const receipt = JSON.parse(bytes).auditReceipt;
+
+  receipt.pipelineExecutions.replayed = { schema: 'invalid' };
+  await assert.rejects(validateCreatePageExecutions(receipt), /replayed: application execution identity mismatch/);
+
+  delete receipt.pipelineExecutions.replayed;
+  receipt.pipelineExecutions.extra = { schema: 'simulatte.createPageExecution.v1' };
+  await assert.rejects(validateCreatePageExecutions(receipt), /must retain every execution boundary/);
+});
