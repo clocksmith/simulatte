@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.autonomyBrowserSmoke.v13",
   "pass": true,
-  "targetUrl": "http://127.0.0.1:59375/city",
+  "targetUrl": "http://127.0.0.1:59722/city",
   "viewport": {
     "width": 1440,
     "height": 1000
@@ -42,11 +42,11 @@
         {
           "id": "camera-follow",
           "hidden": false,
-          "left": 1236.34375,
-          "top": 25,
-          "right": 1294.65625,
-          "bottom": 69,
-          "width": 58.3125,
+          "left": 1113,
+          "top": 31,
+          "right": 1209,
+          "bottom": 75,
+          "width": 96,
           "height": 44
         },
         {
@@ -62,21 +62,21 @@
         {
           "id": "camera-bird",
           "hidden": false,
-          "left": 1296.65625,
-          "top": 25,
-          "right": 1370.96875,
-          "bottom": 69,
-          "width": 74.3125,
+          "left": 1212,
+          "top": 31,
+          "right": 1308,
+          "bottom": 75,
+          "width": 96,
           "height": 44
         },
         {
           "id": "camera-top",
           "hidden": false,
-          "left": 1372.96875,
-          "top": 25,
-          "right": 1415,
-          "bottom": 69,
-          "width": 42.03125,
+          "left": 1311,
+          "top": 31,
+          "right": 1407,
+          "bottom": 75,
+          "width": 96,
           "height": 44
         },
         {
@@ -112,19 +112,19 @@
         {
           "id": "scenario-field",
           "hidden": false,
-          "left": 301,
+          "left": 371,
           "top": 873.8125,
-          "right": 828.40625,
+          "right": 758.40625,
           "bottom": 940.203125,
-          "width": 527.40625,
+          "width": 387.40625,
           "height": 66.390625
         },
         {
           "id": "shuffle-button",
           "hidden": false,
-          "left": 838.40625,
+          "left": 768.40625,
           "top": 873.8125,
-          "right": 981.8125,
+          "right": 911.8125,
           "bottom": 940.203125,
           "width": 143.40625,
           "height": 66.390625
@@ -132,9 +132,9 @@
         {
           "id": "start-button",
           "hidden": false,
-          "left": 987.8125,
+          "left": 917.8125,
           "top": 873.8125,
-          "right": 1133,
+          "right": 1063,
           "bottom": 940.203125,
           "width": 145.1875,
           "height": 66.390625
@@ -152,19 +152,19 @@
         {
           "id": "decisions-button",
           "hidden": false,
-          "left": 1091,
-          "top": 361.390625,
+          "left": 1101,
+          "top": 373.390625,
           "right": 1419,
-          "bottom": 405.390625,
-          "width": 328,
+          "bottom": 417.390625,
+          "width": 318,
           "height": 44
         },
         {
           "id": "experience-doc-link",
           "hidden": false,
-          "left": 305,
+          "left": 375,
           "top": 950.203125,
-          "right": 396.140625,
+          "right": 466.140625,
           "bottom": 967,
           "width": 91.140625,
           "height": 16.796875
@@ -282,8 +282,8 @@
       "startLabel": "Run shaded walk"
     },
     "urlState": {
-      "initialUrl": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=overview&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true",
-      "shuffledUrl": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=overview&scenario=mccarren-cooper-shade&seed=shade-mccarren-cooper-2048&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true",
+      "initialUrl": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=overview&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true",
+      "shuffledUrl": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=overview&scenario=mccarren-cooper-shade&seed=shade-mccarren-cooper-2048&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true",
       "initialScenario": "village-union-shade",
       "shuffledScenario": "mccarren-cooper-shade",
       "initialSeed": "shade-village-union-0719",
@@ -307,15 +307,15 @@
         "matchesActiveProfile": true,
         "withinViewport": true,
         "rect": {
-          "left": 305,
+          "left": 375,
           "top": 950.203125,
-          "right": 396.140625,
+          "right": 466.140625,
           "bottom": 967
         },
         "missionDockRect": {
-          "left": 290,
+          "left": 360,
           "top": 778.515625,
-          "right": 1150,
+          "right": 1080,
           "bottom": 980
         },
         "insideMissionDock": true,
@@ -3851,73 +3851,73 @@
           {
             "pluginId": "sun-walker",
             "integrity": "sha384-1f93bdc12a4e0c62fb2a476cda479e68478ad7ac0bf33bd827bb475ed180f49e0343737fa547a0708ae39f3cf21d0fc2",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/index.js"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/index.js"
           },
           {
             "pluginId": "sun-walker",
             "path": "./config.schema.json",
             "integrity": "sha384-e5bbb57d82e7710c099b3272ca2ca10b416aee3e082f4855991420046d16f02d40d281c1a6cf79065ed07d3f2e78f857",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/config.schema.json"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/config.schema.json"
           },
           {
             "pluginId": "sun-walker",
             "path": "./default-config.json",
             "integrity": "sha384-27c0dbd617a9c949f3e7d9829310cd82b062c24bc3b8f5f4b3fe5dd754fce725bb0c136d6090174d226bd643e7118c7d",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/default-config.json"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/default-config.json"
           },
           {
             "pluginId": "sun-walker",
             "path": "./shadow-geometry.js",
             "integrity": "sha384-c2fb065b1f777679fc1875a0e6b5acdd15afcbb8f451e7bd8f2a5466b0c4a11ad892a8ff444b18db02c58ca112f2a588",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/shadow-geometry.js"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/shadow-geometry.js"
           },
           {
             "pluginId": "sun-walker",
             "path": "./compatibility-adapter.js",
             "integrity": "sha384-cb50fe95c577e53d9a56cab12ebe97fc769992f9d5d405b4937167bb567b18f46646a80f472979f55f152a874084381e",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/compatibility-adapter.js"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/compatibility-adapter.js"
           },
           {
             "pluginId": "sun-walker",
             "path": "./truth.js",
             "integrity": "sha384-355ea2422776d67e84725171d74f8273bb9cc2967bc19867a80e29abf82ba984868c9596ed725da5fba3bd2303b7cd97",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/truth.js"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/truth.js"
           },
           {
             "pluginId": "sun-walker",
             "path": "./environment.js",
             "integrity": "sha384-f78ec7161b0e2491795394d8193affbb60286194291bfa3631059b511ebee4174bc9df21ad44d026030e913a0c6d52e7",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/environment.js"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/environment.js"
           },
           {
             "pluginId": "sun-walker",
             "path": "./exposure-summary.js",
             "integrity": "sha384-dc9968c93408f38ea75f0ed459c521d81a02c1372eb97dbafd46a683c224a766a5a9896c5b5a8f2382358aa8e24d5546",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/exposure-summary.js"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/exposure-summary.js"
           },
           {
             "pluginId": "sun-walker",
             "path": "./presentation.js",
             "integrity": "sha384-2c8720bb816e60c5166d60169b920b80fc8be99f5614358eeecfc321686be1d5b804b760bb595c3889251ef2d5f5fb91",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/presentation.js"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/presentation.js"
           },
           {
             "pluginId": "sun-walker",
             "path": "./sun-exposure.js",
             "integrity": "sha384-413f051132cb58d94f91eab80ce26b3546da1386e7fe0748d27fbf41cf3ef81871200f7f4a3212c8e6b3a7c5d72afdf0",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/sun-exposure.js"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/sun-exposure.js"
           },
           {
             "pluginId": "sun-walker",
             "path": "./sun-route-simulation.js",
             "integrity": "sha384-f75875c9b68fcf05de1b89fdb68c32fa48dd239d8cec3cf5ac57be9a6c045db41517e19cba8a10a546e6d951208341c5",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/sun-route-simulation.js"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/sun-route-simulation.js"
           },
           {
             "pluginId": "sun-walker",
             "path": "./v4-contribution.js",
             "integrity": "sha384-64a9ad996b45af3ca1d6ed7bffcd2ff2e3dde8c621d9a3a544007c3fb1db92e1b78a6227784d23046beda4514127906c",
-            "url": "http://127.0.0.1:59375/shared/plugins/sun-walker/v4-contribution.js"
+            "url": "http://127.0.0.1:59722/shared/plugins/sun-walker/v4-contribution.js"
           }
         ],
         "disabledOptionalCapabilities": [],
@@ -230285,7 +230285,7 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "adapterName": "metal-3",
-    "rendererFrames": 163,
+    "rendererFrames": 166,
     "rendererReceipt": {
       "schema": "simulatte.autonomyWebGpuRenderReceipt.v5",
       "backend": "webgpu",
@@ -230310,36 +230310,36 @@
         "azimuthDegrees": 147.501892,
         "elevationDegrees": 68.55021
       },
-      "frameCount": 163,
+      "frameCount": 166,
       "renderCpu": {
         "basis": "main-thread-command-encoding-and-submit",
-        "sampleCount": 163,
-        "totalMs": 134.60000011324883,
-        "maxMs": 2.5
+        "sampleCount": 166,
+        "totalMs": 186.5999999642372,
+        "maxMs": 4.800000011920929
       },
       "workCpuMs": {
         "pluginCompile": {
           "sampleCount": 5,
-          "totalMs": 7.300000011920929,
-          "maxMs": 2.5999999940395355
+          "totalMs": 9.399999976158142,
+          "maxMs": 3.699999988079071
         },
         "pluginStaticGeometry": {
           "sampleCount": 5,
-          "totalMs": 0.4999999701976776,
-          "maxMs": 0.29999998211860657
+          "totalMs": 0.9000000059604645,
+          "maxMs": 0.4000000059604645
         },
         "pluginDynamicGeometry": {
           "sampleCount": 128,
-          "totalMs": 52.999999940395355,
-          "maxMs": 0.6000000238418579
+          "totalMs": 66.49999997019768,
+          "maxMs": 1.2999999821186066
         },
         "coreDynamicGeometry": {
           "sampleCount": 1,
-          "totalMs": 13.5,
-          "maxMs": 13.5
+          "totalMs": 22.599999994039536,
+          "maxMs": 22.599999994039536
         }
       },
-      "firstFrameMs": 17.3,
+      "firstFrameMs": 29.2,
       "worldId": "nyc-core-autonomy-v1",
       "worldSurfaceOwner": "core",
       "buildingCount": 8500,
@@ -231262,124 +231262,124 @@
       "phases": {
         "platform": {
           "sampleCount": 5,
-          "totalMs": 44.39999997615814,
-          "maxMs": 17.900000005960464
+          "totalMs": 67.7000000178814,
+          "maxMs": 32.70000001788139
         },
         "pluginUi": {
           "sampleCount": 5,
-          "totalMs": 4.199999988079071,
-          "maxMs": 1.699999988079071
+          "totalMs": 5.800000011920929,
+          "maxMs": 2.7999999821186066
         },
         "renderer": {
           "sampleCount": 5,
-          "totalMs": 15.199999988079071,
-          "maxMs": 5
+          "totalMs": 19.299999982118607,
+          "maxMs": 7
         },
         "viewRuntime": {
           "sampleCount": 5,
-          "totalMs": 2.2000000178813934,
+          "totalMs": 2.5000000298023224,
           "maxMs": 0.9000000059604645
         },
         "total": {
           "sampleCount": 5,
-          "totalMs": 93,
-          "maxMs": 32.599999994039536
+          "totalMs": 130.60000002384186,
+          "maxMs": 50.900000005960464
         },
         "platform:collect": {
           "sampleCount": 5,
-          "totalMs": 41.599999994039536,
-          "maxMs": 12.5
+          "totalMs": 63,
+          "maxMs": 21.19999998807907
         },
         "platform:registry": {
           "sampleCount": 5,
-          "totalMs": 5.899999976158142,
-          "maxMs": 1.5
+          "totalMs": 10.300000011920929,
+          "maxMs": 3.5
         },
         "platform:contributionReceipts": {
           "sampleCount": 5,
-          "totalMs": 7.600000023841858,
-          "maxMs": 2.0999999940395355
+          "totalMs": 14.799999982118607,
+          "maxMs": 5.199999988079071
         },
         "platform:timeline": {
           "sampleCount": 5,
-          "totalMs": 4.199999988079071,
-          "maxMs": 0.9000000059604645
+          "totalMs": 8,
+          "maxMs": 2.5999999940395355
         },
         "platform:assembly": {
           "sampleCount": 5,
-          "totalMs": 2.599999964237213,
-          "maxMs": 0.699999988079071
+          "totalMs": 3.7000000178813934,
+          "maxMs": 1.100000023841858
         }
       }
     },
     "smoothness": {
       "rafFrameCount": 236,
       "frameIntervalMs": {
-        "min": 16.6,
+        "min": 16.5,
         "p50": 16.7,
-        "p95": 16.7,
-        "p99": 16.8,
-        "max": 33.3,
-        "mean": 16.7364
+        "p95": 16.8,
+        "p99": 33.2,
+        "max": 33.4,
+        "mean": 16.878
       },
-      "over20msCount": 1,
-      "over33msCount": 0,
-      "over33msRatio": 0,
+      "over20msCount": 3,
+      "over33msCount": 1,
+      "over33msRatio": 0.0042,
       "longTaskCount": 0,
       "longTaskTotalMs": 0,
       "longestTaskMs": 0,
       "phaseMarks": [
         {
           "phase": "sampling_started",
-          "at": 6561.9000000059605
+          "at": 7702.0999999940395
         },
         {
           "phase": "scenario_shuffle_started",
-          "at": 6563.0999999940395
+          "at": 7704.0999999940395
         },
         {
           "phase": "scenario_shuffle_dispatched",
-          "at": 6564.4000000059605
+          "at": 7705.700000017881
         },
         {
           "phase": "scenario_shuffle_complete",
-          "at": 6615.699999988079
+          "at": 7770.300000011921
         },
         {
           "phase": "camera_modes_complete",
-          "at": 9498.59999999404
+          "at": 10661.40000000596
         },
         {
           "phase": "camera_interactions_complete",
-          "at": 10283.40000000596
+          "at": 11446.300000011921
         },
         {
           "phase": "mission_edited",
-          "at": 10283.5
+          "at": 11446.40000000596
         },
         {
           "phase": "start_clicked",
-          "at": 10286
+          "at": 11449.5
         },
         {
           "phase": "configured_camera_ready",
-          "at": 10337.199999988079
+          "at": 11500.90000000596
         },
         {
           "phase": "plugin_playback_ready",
-          "at": 10337.199999988079
+          "at": 11501
         },
         {
           "phase": "plugin_playback_terminal_preview",
-          "at": 10448.59999999404
+          "at": 11615.200000017881
         },
         {
           "phase": "plugin_playback_resume_clicked",
-          "at": 10450.40000000596
+          "at": 11616.90000000596
         },
         {
           "phase": "journey_terminal",
-          "at": 10501.199999988079
+          "at": 11670.5
         }
       ],
       "longTasks": []
@@ -231420,7 +231420,7 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "minimapVisible": true,
-    "minimapFrameCount": 11
+    "minimapFrameCount": 15
   },
   "featureView": {
     "cooperation": {
@@ -231514,106 +231514,106 @@
     },
     "phaseHistory": [
       {
-        "atMs": 13074.699999988079,
+        "atMs": 14616.09999999404,
         "phase": "completed",
         "status": "Complete",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=mccarren-cooper-shade&seed=shade-mccarren-cooper-2048&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=mccarren-cooper-shade&seed=shade-mccarren-cooper-2048&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13422.90000000596,
+        "atMs": 14972.90000000596,
         "phase": "loading",
         "status": "Complete",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719"
       },
       {
-        "atMs": 13423.90000000596,
+        "atMs": 14974.200000017881,
         "phase": "ready",
         "status": "Ready",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719"
       },
       {
-        "atMs": 13424.799999982119,
+        "atMs": 14975.700000017881,
         "phase": "ready",
         "status": "Ready",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719"
       },
       {
-        "atMs": 13452,
+        "atMs": 15012.40000000596,
         "phase": "ready",
         "status": "Ready",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719"
       },
       {
-        "atMs": 13479.90000000596,
+        "atMs": 15038.09999999404,
         "phase": "running",
         "status": "Running 0 of 108",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13480.199999988079,
+        "atMs": 15038.5,
         "phase": "paused",
         "status": "Paused at 0 of 108",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13487.199999988079,
+        "atMs": 15044.90000000596,
         "phase": "ready",
         "status": "Ready",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13515.09999999404,
+        "atMs": 15078.90000000596,
         "phase": "running",
         "status": "Running 0 of 0",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13569.59999999404,
+        "atMs": 15117.800000011921,
         "phase": "paused",
         "status": "End preview · Resume or step to settle",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13609.40000000596,
+        "atMs": 15152.300000011921,
         "phase": "running",
         "status": "Running 108 of 108",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13623.5,
+        "atMs": 15165.09999999404,
         "phase": "completed",
         "status": "Complete",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13656.699999988079,
+        "atMs": 15218.300000011921,
         "phase": "ready",
         "status": "Ready",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13688,
+        "atMs": 15252.200000017881,
         "phase": "running",
         "status": "Running 0 of 0",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13719.799999982119,
+        "atMs": 15300.59999999404,
         "phase": "paused",
         "status": "End preview · Resume or step to settle",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13720.299999982119,
+        "atMs": 15301.40000000596,
         "phase": "running",
         "status": "Running 108 of 108",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       },
       {
-        "atMs": 13745.699999988079,
+        "atMs": 15331.200000017881,
         "phase": "completed",
         "status": "Complete",
-        "href": "http://127.0.0.1:59375/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
+        "href": "http://127.0.0.1:59722/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=follow&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true"
       }
     ]
   },
@@ -231659,24 +231659,24 @@
       "file": "/Users/xyz/deco/simulatte/public/world-tiers.css"
     },
     {
-      "pathname": "/shared/design/tokens.css",
-      "status": 200,
-      "file": "/Users/xyz/deco/simulatte/public/shared/design/tokens.css"
-    },
-    {
       "pathname": "/shared/design/workbench.css",
       "status": 200,
       "file": "/Users/xyz/deco/simulatte/public/shared/design/workbench.css"
     },
     {
-      "pathname": "/shared/design/primitives.css",
-      "status": 200,
-      "file": "/Users/xyz/deco/simulatte/public/shared/design/primitives.css"
-    },
-    {
       "pathname": "/shared/design/compositions/world-interface.css",
       "status": 200,
       "file": "/Users/xyz/deco/simulatte/public/shared/design/compositions/world-interface.css"
+    },
+    {
+      "pathname": "/shared/design/tokens.css",
+      "status": 200,
+      "file": "/Users/xyz/deco/simulatte/public/shared/design/tokens.css"
+    },
+    {
+      "pathname": "/shared/design/primitives.css",
+      "status": 200,
+      "file": "/Users/xyz/deco/simulatte/public/shared/design/primitives.css"
     },
     {
       "pathname": "/shared/design/components.css",
@@ -231769,11 +231769,6 @@
       "file": "/Users/xyz/deco/simulatte/public/simulatte/app/workbench-entry.js"
     },
     {
-      "pathname": "/neural-model-consent.js",
-      "status": 200,
-      "file": "/Users/xyz/deco/simulatte/public/neural-model-consent.js"
-    },
-    {
       "pathname": "/shared/design/fonts/IBMPlexSans-Regular.woff2",
       "status": 200,
       "file": "/Users/xyz/deco/simulatte/public/shared/design/fonts/IBMPlexSans-Regular.woff2"
@@ -231797,6 +231792,11 @@
       "pathname": "/shared/design/fonts/IBMPlexSansCondensed-SemiBold.woff2",
       "status": 200,
       "file": "/Users/xyz/deco/simulatte/public/shared/design/fonts/IBMPlexSansCondensed-SemiBold.woff2"
+    },
+    {
+      "pathname": "/neural-model-consent.js",
+      "status": 200,
+      "file": "/Users/xyz/deco/simulatte/public/neural-model-consent.js"
     },
     {
       "pathname": "/shared/render/render-targets.js",
@@ -232459,14 +232459,14 @@
       "file": "/Users/xyz/deco/simulatte/public/favicon.svg"
     },
     {
-      "pathname": "/data/simulatte/patterns/nyc-replay-patterns-v1.json",
-      "status": 200,
-      "file": "/Users/xyz/deco/simulatte/public/data/simulatte/patterns/nyc-replay-patterns-v1.json"
-    },
-    {
       "pathname": "/data/simulatte/policies/bet-selector-v1.json",
       "status": 200,
       "file": "/Users/xyz/deco/simulatte/public/data/simulatte/policies/bet-selector-v1.json"
+    },
+    {
+      "pathname": "/data/simulatte/patterns/nyc-replay-patterns-v1.json",
+      "status": 200,
+      "file": "/Users/xyz/deco/simulatte/public/data/simulatte/patterns/nyc-replay-patterns-v1.json"
     },
     {
       "pathname": "/data/simulatte/evidence/feature-reranker-public-diagnostic-v3.json",
@@ -232489,16 +232489,6 @@
       "file": "/Users/xyz/deco/simulatte/public/data/simulatte/evidence/place-resolution-public-diagnostic-v6.json"
     },
     {
-      "pathname": "/data/simulatte-embedder/model-runtime-lock.json",
-      "status": 200,
-      "file": "/Users/xyz/deco/simulatte/public/data/simulatte-embedder/model-runtime-lock.json"
-    },
-    {
-      "pathname": "/data/pipeline-model-selection.json",
-      "status": 200,
-      "file": "/Users/xyz/deco/simulatte/public/data/pipeline-model-selection.json"
-    },
-    {
       "pathname": "/data/application-profiles/sun-walker-v1.json",
       "status": 200,
       "file": "/Users/xyz/deco/simulatte/public/data/application-profiles/sun-walker-v1.json"
@@ -232509,9 +232499,19 @@
       "file": "/Users/xyz/deco/simulatte/public/data/simulatte/safety-history-index-v1.json"
     },
     {
+      "pathname": "/data/pipeline-model-selection.json",
+      "status": 200,
+      "file": "/Users/xyz/deco/simulatte/public/data/pipeline-model-selection.json"
+    },
+    {
       "pathname": "/data/simulatte/curricula/nyc-routing-foundations-v1.json",
       "status": 200,
       "file": "/Users/xyz/deco/simulatte/public/data/simulatte/curricula/nyc-routing-foundations-v1.json"
+    },
+    {
+      "pathname": "/data/simulatte-embedder/model-runtime-lock.json",
+      "status": 200,
+      "file": "/Users/xyz/deco/simulatte/public/data/simulatte-embedder/model-runtime-lock.json"
     },
     {
       "pathname": "/data/simulatte/evidence/policy-arena-public-diagnostic-v1/report.json",

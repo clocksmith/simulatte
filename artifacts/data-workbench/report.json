@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.workbenchBrowserAudit.v1",
-  "previousOutput": null,
+  "previousOutput": "/Users/xyz/deco/simulatte/artifacts/data-workbench.previous-5388f23e-8b8d-4765-9630-61fec327c6b7",
   "cases": [
     {
       "name": "1440x1000",
