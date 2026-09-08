@@ -11,6 +11,7 @@ const WORLD_ROOT = path.join(OUTPUT_ROOT, 'world');
 const CREATE_ROOT = path.join(OUTPUT_ROOT, 'create');
 const CREATE_ENTRIES = Object.freeze([
   'blank',
+  'data/create-phase-run-policy.json',
   'data/pipeline-model-selection.json',
   'data/pipeline-model-selection.schema.json',
   'data/simulatte-compact-classifiers.js',

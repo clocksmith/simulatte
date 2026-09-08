@@ -65,6 +65,11 @@ test('hosting targets separate World and Create while preserving governed shared
   assert.equal(fs.existsSync(path.join(createRoot, 'blank', 'app', 'main.js')), true);
   assert.equal(fs.existsSync(path.join(createRoot, 'shared', 'design', 'simulatte.css')), true);
   assert.equal(fs.existsSync(path.join(createRoot, 'data', 'simulatte-embedder', 'model-runtime-lock.json')), true);
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(createRoot, 'data', 'create-phase-run-policy.json'), 'utf8')),
+    readJson('public/data/create-phase-run-policy.json'),
+    'Create must ship the execution policy fetched before prompt compilation'
+  );
   assert.equal(fs.existsSync(path.join(createRoot, 'data', 'simulatte-universe', 'manifest.json')), true);
   assert.equal(fs.existsSync(path.join(createRoot, 'data', 'simulatte', 'autonomy-manifest.json')), false);
   assert.equal(fs.existsSync(path.join(createRoot, 'vendor', 'doppler', 'package.json')), true);
