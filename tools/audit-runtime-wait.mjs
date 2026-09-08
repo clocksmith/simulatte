@@ -94,3 +94,10 @@ export function auditPromptMatches(requested = '', compiled = '') {
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export function auditPhaseSchemaMatches(phase, schema) {
+  if (!Number.isInteger(phase) || phase < 1 || phase > 8) return false;
+  const legacyVersion = phase <= 2 ? 1 : 2;
+  return schema === `simulatte.phase${phase}.output.v${legacyVersion}` ||
+    schema === `simulatte.phase${phase}.output.v3`;
+}

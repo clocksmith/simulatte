@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { waitForCondition } from './audit-runtime-wait.mjs';
+import { waitForCondition, auditPhaseSchemaMatches } from './audit-runtime-wait.mjs';
 import { captureExactWorldProofReplay } from './exact-world-proof-replay-audit.mjs';
 import { evaluate, captureCleanCanvasScreenshot, inspectPhaseRail, delay, MODEL_RUNTIME_STALL_MS } from './visual-audit-page.mjs';
 import { sha256Hex, pngVisualStats, sampledFrameDifference } from './visual-audit-pixels.mjs';
@@ -140,7 +140,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       const spec = lab && typeof lab.getSpec === 'function' ? lab.getSpec() : null;
       const phase2 = spec && spec.phaseArtifacts && spec.phaseArtifacts.phase2 || null;
       const phase6 = spec && spec.phaseArtifacts && spec.phaseArtifacts.phase6 || null;
-      const phase6Ready = phase6 && phase6.schema === 'simulatte.phase6.output.v2';
+      const phase6Ready = phase6 && (${auditPhaseSchemaMatches.toString()})(6, phase6.schema);
       const sceneVisible = canvas && canvas.dataset && canvas.dataset.sceneVisible === 'true';
       const sceneId = canvas && canvas.dataset ? canvas.dataset.sceneId || '' : '';
       const renderInputSerial = Number(canvas && canvas.dataset && canvas.dataset.renderInputSerial || 0);

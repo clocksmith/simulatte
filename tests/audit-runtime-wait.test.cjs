@@ -143,3 +143,15 @@ test('visual audit CLI flushes output and terminates after owned-resource cleanu
   assert.match(source, /process\.stdout\.write\('', \(\) => process\.exit\(exitCode\)\)/);
   assert.match(source, /main\(\)\.then\(exitAfterOutputFlush\)/);
 });
+
+test('audit recognizes worker envelopes without accepting wrong phases or unknown versions', async () => {
+  const { auditPhaseSchemaMatches } = await import('../tools/audit-runtime-wait.mjs');
+  for (let phase = 1; phase <= 8; phase += 1) {
+    assert.equal(auditPhaseSchemaMatches(phase, `simulatte.phase${phase}.output.v3`), true);
+    assert.equal(auditPhaseSchemaMatches(phase, `simulatte.phase${phase}.output.v${phase <= 2 ? 1 : 2}`), true);
+    assert.equal(auditPhaseSchemaMatches(phase, `simulatte.phase${phase}.output.v4`), false);
+    assert.equal(auditPhaseSchemaMatches(phase, `simulatte.phase${phase + 1}.output.v3`), false);
+    assert.equal(auditPhaseSchemaMatches(phase, undefined), false);
+  }
+  assert.equal(auditPhaseSchemaMatches(0, 'simulatte.phase0.output.v3'), false);
+});

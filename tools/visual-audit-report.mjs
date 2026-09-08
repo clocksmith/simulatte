@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import { renderedSignalEvidence } from './visual-rubric-evidence.mjs';
 import { modelPreparationFailures } from './model-preparation-receipt.mjs';
-import { auditPromptMatches } from './audit-runtime-wait.mjs';
+import { auditPromptMatches, auditPhaseSchemaMatches } from './audit-runtime-wait.mjs';
 const require = createRequire(import.meta.url);
 
 const phaseContracts = require('../public/blank/pipeline/simulatte-phase-contracts.js');
@@ -433,11 +433,11 @@ function analyze(results, options = {}) {
         `${failureSummary ? `: ${failureSummary}` : ''}`);
     }
 	    for (const [key, expectedSchema] of Object.entries(EXPECTED_PHASE_OUTPUT_SCHEMAS)) {
-	      if (!result.phaseArtifactSchemas || result.phaseArtifactSchemas[key] !== expectedSchema) {
+	      if (!result.phaseArtifactSchemas || !auditPhaseSchemaMatches(Number(key.slice(5)), result.phaseArtifactSchemas[key])) {
 	        failures.push(`${result.index}: ${key} artifact schema is ${result.phaseArtifactSchemas && result.phaseArtifactSchemas[key] || 'missing'}, expected ${expectedSchema}`);
 	      }
 	    }
-    if (result.phaseArtifactSchemas && result.phaseArtifactSchemas.phase6 === 'simulatte.phase6.output.v2' &&
+    if (result.phaseArtifactSchemas && auditPhaseSchemaMatches(6, result.phaseArtifactSchemas.phase6) &&
       result.visualIRSceneRenderPacketSchema !== 'simulatte.sceneRenderPacket.v1') {
       failures.push(`${result.index}: Phase 6 visualCompile sceneRenderPacket missing`);
     }
