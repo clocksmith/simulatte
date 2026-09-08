@@ -21,16 +21,17 @@
     ? require('../../shared/render/render-targets.js') : root.SimulatteRenderTargets;
   const sessions = typeof module === 'object' && module.exports
     ? require('../../shared/render/renderer-session.js') : root.SimulatteRendererSession;
-  const api = factory(math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions);
+  const shadows = typeof module === 'object' && module.exports ? require('./webgpu-sun-shadow.js') : root.SimulatteSunShadow;
+  const api = factory(shadows, math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(shadows, math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions) {
   if (!targets) throw new Error('render_targets_dependency_missing');
   const SAMPLE_COUNT = 1;
   const MINIMAP_RADIUS_M = 420;
   const MINIMAP_FRAME_INTERVAL_MS = 1000 / 10;
   const PRIMARY_RENDER_INTERVAL_MS = 1000 / 45;
-  const SHADER = `
+  const SHADER = `${shadows.WGSL}
 struct Uniforms {
   viewProjection: mat4x4<f32>,
   cameraPosition: vec4<f32>,
@@ -76,7 +77,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
   let lightDirection = normalize(-uniforms.lightDirection.xyz);
   let viewDirection = normalize(uniforms.cameraPosition.xyz - input.worldPosition);
   let halfDirection = normalize(lightDirection + viewDirection);
-  let diffuse = max(dot(normal, lightDirection), 0.0);
+  let visibility = sunVisibility(input.worldPosition);
+  let diffuse = max(dot(normal, lightDirection), 0.0) * visibility;
   let roughness = clamp(input.material.y, 0.06, 1.0);
   let metallic = clamp(input.material.x, 0.0, 1.0);
   let specularPower = mix(180.0, 7.0, roughness);
@@ -89,7 +91,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
   // map fragment makes thin geometry shimmer as the camera moves.
   let pulse = select(1.0, 0.82 + 0.18 * sin(uniforms.timeViewport.x * 2.4 + input.worldPosition.x * 0.018 - input.worldPosition.z * 0.012), input.emissive > 1.4);
   let diffuseColor = input.color.rgb * (0.2 + diffuse * 0.74) * (1.0 - metallic * 0.38);
-  let lit = diffuseColor + specular + input.color.rgb * rim + input.color.rgb * input.emissive * pulse;
+  let lit = diffuseColor + specular * visibility + input.color.rgb * rim + input.color.rgb * input.emissive * pulse;
   let toneMapped = lit / (lit + vec3<f32>(0.85));
   let cameraDistance = distance(uniforms.cameraPosition.xyz, input.worldPosition);
   let fogAmount = clamp(1.0 - exp(-cameraDistance * uniforms.fogColorDensity.w), 0.0, 0.88);
@@ -148,13 +150,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     options.signal?.throwIfAborted();
     const shaderErrors = compilation.messages.filter((row) => row.type === 'error');
     if (shaderErrors.length) throw rendererError('webgpu_shader_invalid', shaderErrors.map((row) => `${row.lineNum}:${row.linePos} ${row.message}`).join('\n'));
+    const shadow = shadows.create(device, geometry.FLOATS_PER_VERTEX);
     const cameraBindGroupLayout = device.createBindGroupLayout({
       label: 'autonomy-camera-bind-group-layout',
       entries: [{
         binding: 0,
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: { type: 'uniform' },
-      }],
+      }, ...shadow.layoutEntries],
     });
     const cameraPipelineLayout = device.createPipelineLayout({
       label: 'autonomy-camera-pipeline-layout',
@@ -173,7 +176,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const bindGroup = device.createBindGroup({
       label: 'autonomy-map-bind-group',
       layout: cameraBindGroupLayout,
-      entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
+      entries: [{ binding: 0, resource: { buffer: uniformBuffer } }, ...shadow.entries],
     });
     const minimapUniformBuffer = minimapCanvas
       ? device.createBuffer({ label: 'autonomy-minimap-uniforms', size: 128, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
@@ -183,7 +186,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       ? device.createBindGroup({
         label: 'autonomy-minimap-bind-group',
         layout: cameraBindGroupLayout,
-        entries: [{ binding: 0, resource: { buffer: minimapUniformBuffer } }],
+        entries: [{ binding: 0, resource: { buffer: minimapUniformBuffer } }, ...shadow.entries],
       })
       : null;
     const staticData = source.staticGeometry();
@@ -371,7 +374,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         static: geometryRow(useOverviewStatic ? state.overviewStaticBuffer : state.staticBuffer, selectedStaticData),
         groundOverlay: geometryRow(groundOverlayBuffer, groundOverlayData),
         pluginOverlay: geometryRow(state.pluginOverlayBuffer, state.pluginOverlayData),
-        shadow: geometryRow(state.pluginShadowBuffer, state.pluginShadowData),
+        shadow: state.pluginScene.sun?.directionToSun?.[1] > 0 ? null : geometryRow(state.pluginShadowBuffer, state.pluginShadowData),
         dynamic: geometryRow(state.dynamicBuffer, state.dynamicData),
         pluginStatic: geometryRow(state.pluginStaticBuffer, state.pluginStaticData),
         pluginDynamic: geometryRow(state.pluginDynamicBuffer, state.pluginDynamicData),
@@ -407,6 +410,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       const encoder = device.createCommandEncoder({ label: 'autonomy-map-frame' });
       const currentTexture = context.getCurrentTexture();
       const useOverviewStatic = pose.mode !== 'pov';
+      const shadowReceipt = shadow.encode(encoder, { sun: state.pluginScene.sun, center: pose.target,
+        radius: Math.max(1200, Math.hypot(...math.subtract(pose.eye, pose.target))),
+        rows: [sceneGeometry(false).static, sceneGeometry(false).pluginStatic] });
+      canvas.dataset.sunShadow = shadowReceipt.enabled ? 'depth-map' : 'inactive';
+      canvas.dataset.sunShadowCasterVertices = String(shadowReceipt.casterVertices);
       passApi.encodeScene(encoder, {
         label: 'autonomy-map-pass',
         resolveTarget: currentTexture.createView(),
@@ -476,6 +484,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       const currentTexture = context.getCurrentTexture();
       const encoder = device.createCommandEncoder({ label: 'autonomy-evidence-frame' });
       const useOverviewStatic = pose.mode !== 'pov';
+      const shadowReceipt = shadow.encode(encoder, { sun: state.pluginScene.sun, center: pose.target,
+        radius: Math.max(1200, Math.hypot(...math.subtract(pose.eye, pose.target))),
+        rows: [sceneGeometry(false).static, sceneGeometry(false).pluginStatic] });
+      canvas.dataset.sunShadow = shadowReceipt.enabled ? 'depth-map' : 'inactive';
+      canvas.dataset.sunShadowCasterVertices = String(shadowReceipt.casterVertices);
       passApi.encodeScene(encoder, {
         label: 'autonomy-evidence-pass',
         resolveTarget: currentTexture.createView(),
@@ -630,6 +643,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           radiusM: MINIMAP_RADIUS_M,
           frameCount: state.minimapFrameCount,
         },
+        sunShadow: shadow.receipt(),
         pluginPresentation: structuredClone(state.pluginScene.counts),
         pluginCompositor: structuredClone(state.pluginScene.compositorReceipts || []),
         semanticLabels: state.semanticLabelReceipt ? structuredClone(state.semanticLabelReceipt) : null,
@@ -653,6 +667,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.pluginDynamicBuffer?.destroy();
       state.renderTargets?.destroy();
       state.minimapTargets?.destroy();
+      shadow.destroy();
       uniformBuffer.destroy();
       minimapUniformBuffer?.destroy();
       if (labelCanvas) labelCanvas.getContext('2d')?.clearRect(0, 0, labelCanvas.width, labelCanvas.height);

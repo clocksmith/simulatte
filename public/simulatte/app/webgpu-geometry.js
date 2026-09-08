@@ -278,17 +278,13 @@
         ? poseBetweenPoints(transitionFrom, row.points[0], Math.min(1, elapsedSeconds / PLUGIN_TRANSITION_SECONDS))
         : poseAlongPath(row.points, row.phaseOffsetM + elapsedSeconds * visualSpeedMps);
       let heading = pose.heading;
-      if (Math.abs(heading) < 1e-4 && LAST_ACTOR_HEADING.has(row.id)) {
-        heading = LAST_ACTOR_HEADING.get(row.id);
-      } else if (Math.abs(heading) >= 1e-4) {
-        LAST_ACTOR_HEADING.set(row.id, heading);
-      } else if (row.points.length === 1 && scene.paths?.length > 0) {
-        const tangent = approximateHeadingFromPaths(scene.paths, pose.point);
-        if (tangent !== null) {
-          heading = tangent;
-          LAST_ACTOR_HEADING.set(row.id, heading);
-        }
+      const transitionDistance = transitionFrom && row.points.length === 1
+        ? Math.hypot(row.points[0].x - transitionFrom.x, row.points[0].y - transitionFrom.y) : 0;
+      if (totalPathM <= 1e-6 && transitionDistance <= 1e-6) {
+        heading = LAST_ACTOR_HEADING.get(row.id)
+          ?? approximateHeadingFromPaths(scene.paths, pose.point) ?? 0;
       }
+      LAST_ACTOR_HEADING.set(row.id, heading);
       if (row.kind !== 'pedestrian') {
         addBeacon(writer, pose.point, semanticColor(row), row.isSelected ? 12 : 5, row.isSelected ? 3.2 : 1.8, row.isSelected ? 1.2 : 0.72);
       }

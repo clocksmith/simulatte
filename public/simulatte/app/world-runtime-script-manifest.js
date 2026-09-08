@@ -210,6 +210,7 @@
     'simulatte/app/camera-controller.js',
     'simulatte/app/semantic-label-overlay.js',
     'simulatte/app/webgpu-pass.js',
+    'simulatte/app/webgpu-sun-shadow.js',
     'simulatte/app/world-render-scene.js',
     'simulatte/app/webgpu-renderer.js',
     'simulatte/app/trace-view.js',

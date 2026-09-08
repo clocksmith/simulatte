@@ -583,6 +583,23 @@ test('world actors expose path heading and reject unregistered render kinds', ()
   );
 });
 
+test('pedestrians turn east after a northward path and retain that heading when stopped', () => {
+  const render = (id, points, transitionActors = null) => gpuGeometry.createPluginDynamicGeometry({
+    actors: [{ id, kind: 'pedestrian', points, phaseOffsetM: 0, speedMps: 1, isSelected: true }],
+    paths: [],
+  }, { state: { simulatedTimeSeconds: 0 } }, null, 0, transitionActors);
+  const north = [{ x: 0, y: 0 }, { x: 0, y: 10 }];
+  const east = [{ x: 0, y: 0 }, { x: 10, y: 0 }];
+  const northVertices = render('heading-turn', north);
+  const eastVertices = render('heading-turn', east);
+  assert.notDeepEqual(eastVertices, northVertices);
+  assert.deepEqual(eastVertices, render('heading-fresh-east', east));
+  assert.deepEqual(render('heading-turn', [{ x: 0, y: 0 }]), eastVertices);
+  render('heading-transition', north);
+  assert.deepEqual(render('heading-transition', [{ x: 10, y: 0 }],
+    new Map([['heading-transition', { x: 0, y: 0 }]])), eastVertices);
+});
+
 test('ambient traffic animates every actor kind through one deterministic observation contract', () => {
   const rows = governedAssets();
   const first = ambientActorApi.compileAmbientActors(rows.world);
@@ -1905,4 +1922,19 @@ test('browser audit validates explicit desktop and mobile viewport contracts', a
   });
   await assert.rejects(vm.runInNewContext(audit.consentFlowExpression(), failureContext()), /runtime\.failed at consent-ready: governed world hash mismatch/);
   await assert.rejects(vm.runInNewContext(audit.browserJourneyExpression(), failureContext()), /runtime\.failed at runtime-ready: governed world hash mismatch/);
+});
+
+test('sun depth projection binds elevated geometry and opposite solar directions', () => {
+  const shadow = require('../public/simulatte/app/webgpu-sun-shadow.js');
+  const math = require('../public/simulatte/app/webgpu-math.js');
+  const sun = { directionToSun: [1, 1, 0] };
+  const projection = shadow.projection(sun, [0, 0, 0], 200);
+  const roof = math.transformPoint(projection.matrix, [0, 10, 0]);
+  const ground = math.transformPoint(projection.matrix, [-10, 0, 0]);
+  assert.ok(Math.abs(roof[0] - ground[0]) < 1e-5);
+  assert.ok(Math.abs(roof[1] - ground[1]) < 1e-5);
+  assert.ok(roof[2] < ground[2], 'the elevated occluder is nearer to the sun than its ground shadow');
+  assert.notDeepEqual([...shadow.projection({ directionToSun: [-1, 1, 0] }).matrix], [...shadow.projection(sun).matrix]);
+  assert.equal(shadow.projection({ directionToSun: [1, -1, 0] }), null);
+  assert.ok([...shadow.projection({ directionToSun: [0, 1, 0] }).matrix].every(Number.isFinite));
 });
