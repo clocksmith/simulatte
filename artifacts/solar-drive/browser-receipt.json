@@ -1,0 +1,773 @@
+{
+  "schema": "simulatte.solarDriveBrowserAudit.v1",
+  "route": "/simulatte/solar-drive/",
+  "status": "pass",
+  "backendPolicy": "Headed Chrome on an isolated Xvfb display, with explicit SwiftShader WebGPU; screenshots must pass pixel checks. Not hardware performance evidence.",
+  "humanVisualReview": "pending",
+  "captures": [
+    {
+      "name": "desktop-exploded",
+      "path": "artifacts/solar-drive/desktop-exploded.png",
+      "sha256": "5415782c63538b957a39b275b0261f6350ba4f54c6dd5edddbffafe04b78d781",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.055501302083333336,
+        "brightFraction": 0.9195963541666666
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.0.0",
+        "worldSpecHash": "fnv1a32:2efc6772",
+        "revision": 0,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:b156b00e",
+        "energyResidualJ": 2.5732151698321104e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 6.9444444444366145,
+          "distanceM": 395.690204686382,
+          "elevationM": 10.177736102378322,
+          "batteryJ": 1109994.5903709878,
+          "flywheelJ": 60312.87347739448,
+          "motorC": 27.59737011047304,
+          "wheelAngle": 1163.7947196658351,
+          "rotorAngle": 435.97296995750025,
+          "ledger": {
+            "incidentJ": 67569.26861912162,
+            "panelLossJ": 53604.68308805389,
+            "mpptLossJ": 418.93756593197526,
+            "auxiliaryJ": 479.9999999999898,
+            "parasiticJ": 58.011938026523445,
+            "storageLossJ": 691.9422131621129,
+            "motorLossJ": 4603.458600276794,
+            "rollingJ": 2790.4286456059153,
+            "aeroJ": 6895.7952903106425,
+            "frictionBrakeJ": 0,
+            "curtailedJ": 0,
+            "regenJ": 0,
+            "tractionJ": 24604.77136529872
+          },
+          "flows": {
+            "pvW": 225.7607994188942,
+            "driveW": 185.23043396991866,
+            "batteryW": 7.677085593159241,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 8,
+            "curtailedW": 0,
+            "motorLossW": 40.207451042134785,
+            "reserveW": -8.851318315864773,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 2.5732151698321104e-7,
+          "initialJ": 1187200
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 12,
+            "completedFrames": 11,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "desktop-assembled",
+      "path": "artifacts/solar-drive/desktop-assembled.png",
+      "sha256": "07bebaa5d10cf71624e1cfcb01ba5a2b89a0e62907c22bc2eb7348b6d2160bc6",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.06103515625,
+        "brightFraction": 0.9251302083333334
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.0.0",
+        "worldSpecHash": "fnv1a32:a333b303",
+        "revision": 2,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:b156b00e",
+        "energyResidualJ": 2.5732151698321104e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 6.9444444444366145,
+          "distanceM": 395.690204686382,
+          "elevationM": 10.177736102378322,
+          "batteryJ": 1109994.5903709878,
+          "flywheelJ": 60312.87347739448,
+          "motorC": 27.59737011047304,
+          "wheelAngle": 1163.7947196658351,
+          "rotorAngle": 435.97296995750025,
+          "ledger": {
+            "incidentJ": 67569.26861912162,
+            "panelLossJ": 53604.68308805389,
+            "mpptLossJ": 418.93756593197526,
+            "auxiliaryJ": 479.9999999999898,
+            "parasiticJ": 58.011938026523445,
+            "storageLossJ": 691.9422131621129,
+            "motorLossJ": 4603.458600276794,
+            "rollingJ": 2790.4286456059153,
+            "aeroJ": 6895.7952903106425,
+            "frictionBrakeJ": 0,
+            "curtailedJ": 0,
+            "regenJ": 0,
+            "tractionJ": 24604.77136529872
+          },
+          "flows": {
+            "pvW": 225.7607994188942,
+            "driveW": 185.23043396991866,
+            "batteryW": 7.677085593159241,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 8,
+            "curtailedW": 0,
+            "motorLossW": 40.207451042134785,
+            "reserveW": -8.851318315864773,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 2.5732151698321104e-7,
+          "initialJ": 1187200
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 21,
+            "completedFrames": 20,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "flywheel-detail",
+      "path": "artifacts/solar-drive/flywheel-detail.png",
+      "sha256": "b435148b532aaa2ddbb50fffac92441433771cdf547f388ee48f1721cdc17000",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.15804036458333334,
+        "brightFraction": 0.80859375
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.0.0",
+        "worldSpecHash": "fnv1a32:a333b303",
+        "revision": 2,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:b156b00e",
+        "energyResidualJ": 2.5732151698321104e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 6.9444444444366145,
+          "distanceM": 395.690204686382,
+          "elevationM": 10.177736102378322,
+          "batteryJ": 1109994.5903709878,
+          "flywheelJ": 60312.87347739448,
+          "motorC": 27.59737011047304,
+          "wheelAngle": 1163.7947196658351,
+          "rotorAngle": 435.97296995750025,
+          "ledger": {
+            "incidentJ": 67569.26861912162,
+            "panelLossJ": 53604.68308805389,
+            "mpptLossJ": 418.93756593197526,
+            "auxiliaryJ": 479.9999999999898,
+            "parasiticJ": 58.011938026523445,
+            "storageLossJ": 691.9422131621129,
+            "motorLossJ": 4603.458600276794,
+            "rollingJ": 2790.4286456059153,
+            "aeroJ": 6895.7952903106425,
+            "frictionBrakeJ": 0,
+            "curtailedJ": 0,
+            "regenJ": 0,
+            "tractionJ": 24604.77136529872
+          },
+          "flows": {
+            "pvW": 225.7607994188942,
+            "driveW": 185.23043396991866,
+            "batteryW": 7.677085593159241,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 8,
+            "curtailedW": 0,
+            "motorLossW": 40.207451042134785,
+            "reserveW": -8.851318315864773,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 2.5732151698321104e-7,
+          "initialJ": 1187200
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 31,
+            "completedFrames": 30,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "scooter-exploded",
+      "path": "artifacts/solar-drive/scooter-exploded.png",
+      "sha256": "d5b8d8312c0e564b18b2ce4da6370d9f26662713a5a2a72bebceeb6070f3306c",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.056966145833333336,
+        "brightFraction": 0.9215494791666666
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.0.0",
+        "worldSpecHash": "fnv1a32:28e3db53",
+        "revision": 0,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:6f9d24c7",
+        "energyResidualJ": 4.293397068977356e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 9.722222222211467,
+          "distanceM": 543.4859949953474,
+          "elevationM": 7.285458578929315,
+          "batteryJ": 3244851.0730911787,
+          "flywheelJ": 52771.30260730284,
+          "motorC": 26.817089769512137,
+          "wheelAngle": 2860.452605238718,
+          "rotorAngle": 415.6283525745111,
+          "ledger": {
+            "incidentJ": 86874.7739388673,
+            "panelLossJ": 68920.30682749671,
+            "mpptLossJ": 538.6340133410998,
+            "auxiliaryJ": 900,
+            "parasiticJ": 50.42326113519621,
+            "storageLossJ": 1877.0675473071822,
+            "motorLossJ": 8297.16956117665,
+            "rollingJ": 9445.198081093853,
+            "aeroJ": 21450.351831389093,
+            "frictionBrakeJ": 0,
+            "curtailedJ": 0,
+            "regenJ": 0,
+            "tractionJ": 48668.79703007895
+          },
+          "flows": {
+            "pvW": 290.2638849671497,
+            "driveW": 59.11093732773765,
+            "batteryW": -203.64368723037424,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 15,
+            "curtailedW": 0,
+            "motorLossW": 12.509260409037797,
+            "reserveW": 196.76767356999335,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 4.293397068977356e-7,
+          "initialJ": 3340000
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 42,
+            "completedFrames": 41,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "car-exploded",
+      "path": "artifacts/solar-drive/car-exploded.png",
+      "sha256": "17ce6ee2e3fcf1431916c05b8b66cf320239efc664bfc875c77a4b94183da78c",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.119140625,
+        "brightFraction": 0.8623046875
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.0.0",
+        "worldSpecHash": "fnv1a32:d14ba0c6",
+        "revision": 0,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:b2f4a0e5",
+        "energyResidualJ": -0.000010800780728459358,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 16.666666666680975,
+          "distanceM": 883.8415772047553,
+          "elevationM": 1.0592764099263918,
+          "batteryJ": 69724693.27057754,
+          "flywheelJ": 173841.89105545412,
+          "motorC": 29.330331807839528,
+          "wheelAngle": 2851.10186195076,
+          "rotorAngle": 298.26563618892845,
+          "ledger": {
+            "incidentJ": 217186.93484717677,
+            "panelLossJ": 172300.76706874973,
+            "mpptLossJ": 1346.5850333527553,
+            "auxiliaryJ": 21719.999999999804,
+            "parasiticJ": 157.87474905317026,
+            "storageLossJ": 23859.98146889693,
+            "motorLossJ": 116444.62459960568,
+            "rollingJ": 124029.5019047285,
+            "aeroJ": 94435.97256190494,
+            "frictionBrakeJ": 5.542233338928781e-13,
+            "curtailedJ": 0,
+            "regenJ": 45222.21908491243,
+            "tractionJ": 494912.9951130043
+          },
+          "flows": {
+            "pvW": 725.6597124178742,
+            "driveW": 9917.77348400479,
+            "batteryW": 11646.009258302312,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 362,
+            "curtailedW": 0,
+            "motorLossW": 2091.8954867153943,
+            "reserveW": -12008.487203872064,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": -0.000010800780728459358,
+          "initialJ": 70456000
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 52,
+            "completedFrames": 51,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "mobile-exploded",
+      "path": "artifacts/solar-drive/mobile-exploded.png",
+      "sha256": "aa5ac36e2f0b66ec0094a006f19bb566816daa74a0069315fe72ccf592526e4b",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.05615234375,
+        "brightFraction": 0.9127604166666666
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.0.0",
+        "worldSpecHash": "fnv1a32:2efc6772",
+        "revision": 0,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:b156b00e",
+        "energyResidualJ": 2.5732151698321104e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 6.9444444444366145,
+          "distanceM": 395.690204686382,
+          "elevationM": 10.177736102378322,
+          "batteryJ": 1109994.5903709878,
+          "flywheelJ": 60312.87347739448,
+          "motorC": 27.59737011047304,
+          "wheelAngle": 1163.7947196658351,
+          "rotorAngle": 435.97296995750025,
+          "ledger": {
+            "incidentJ": 67569.26861912162,
+            "panelLossJ": 53604.68308805389,
+            "mpptLossJ": 418.93756593197526,
+            "auxiliaryJ": 479.9999999999898,
+            "parasiticJ": 58.011938026523445,
+            "storageLossJ": 691.9422131621129,
+            "motorLossJ": 4603.458600276794,
+            "rollingJ": 2790.4286456059153,
+            "aeroJ": 6895.7952903106425,
+            "frictionBrakeJ": 0,
+            "curtailedJ": 0,
+            "regenJ": 0,
+            "tractionJ": 24604.77136529872
+          },
+          "flows": {
+            "pvW": 225.7607994188942,
+            "driveW": 185.23043396991866,
+            "batteryW": 7.677085593159241,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 8,
+            "curtailedW": 0,
+            "motorLossW": 40.207451042134785,
+            "reserveW": -8.851318315864773,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 2.5732151698321104e-7,
+          "initialJ": 1187200
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 13,
+            "completedFrames": 12,
+            "width": 390,
+            "height": 470,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "mobile-assembled",
+      "path": "artifacts/solar-drive/mobile-assembled.png",
+      "sha256": "05f46831c127f655cf2090bc90455f491911e6d901089b49ffb5fcf057c9e7fa",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.0625,
+        "brightFraction": 0.91455078125
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.0.0",
+        "worldSpecHash": "fnv1a32:a333b303",
+        "revision": 2,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:b156b00e",
+        "energyResidualJ": 2.5732151698321104e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 6.9444444444366145,
+          "distanceM": 395.690204686382,
+          "elevationM": 10.177736102378322,
+          "batteryJ": 1109994.5903709878,
+          "flywheelJ": 60312.87347739448,
+          "motorC": 27.59737011047304,
+          "wheelAngle": 1163.7947196658351,
+          "rotorAngle": 435.97296995750025,
+          "ledger": {
+            "incidentJ": 67569.26861912162,
+            "panelLossJ": 53604.68308805389,
+            "mpptLossJ": 418.93756593197526,
+            "auxiliaryJ": 479.9999999999898,
+            "parasiticJ": 58.011938026523445,
+            "storageLossJ": 691.9422131621129,
+            "motorLossJ": 4603.458600276794,
+            "rollingJ": 2790.4286456059153,
+            "aeroJ": 6895.7952903106425,
+            "frictionBrakeJ": 0,
+            "curtailedJ": 0,
+            "regenJ": 0,
+            "tractionJ": 24604.77136529872
+          },
+          "flows": {
+            "pvW": 225.7607994188942,
+            "driveW": 185.23043396991866,
+            "batteryW": 7.677085593159241,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 8,
+            "curtailedW": 0,
+            "motorLossW": 40.207451042134785,
+            "reserveW": -8.851318315864773,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 2.5732151698321104e-7,
+          "initialJ": 1187200
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 24,
+            "completedFrames": 23,
+            "width": 390,
+            "height": 470,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "mobile-controls",
+      "path": "artifacts/solar-drive/mobile-controls.png",
+      "sha256": "f8efca0e46cea97749b9047aacfb657d1cde4a6632f8448d5e95925008a86982",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pixels": {
+        "visible": false
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.0.0",
+        "worldSpecHash": "fnv1a32:a333b303",
+        "revision": 2,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:b156b00e",
+        "energyResidualJ": 2.5732151698321104e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 6.9444444444366145,
+          "distanceM": 395.690204686382,
+          "elevationM": 10.177736102378322,
+          "batteryJ": 1109994.5903709878,
+          "flywheelJ": 60312.87347739448,
+          "motorC": 27.59737011047304,
+          "wheelAngle": 1163.7947196658351,
+          "rotorAngle": 435.97296995750025,
+          "ledger": {
+            "incidentJ": 67569.26861912162,
+            "panelLossJ": 53604.68308805389,
+            "mpptLossJ": 418.93756593197526,
+            "auxiliaryJ": 479.9999999999898,
+            "parasiticJ": 58.011938026523445,
+            "storageLossJ": 691.9422131621129,
+            "motorLossJ": 4603.458600276794,
+            "rollingJ": 2790.4286456059153,
+            "aeroJ": 6895.7952903106425,
+            "frictionBrakeJ": 0,
+            "curtailedJ": 0,
+            "regenJ": 0,
+            "tractionJ": 24604.77136529872
+          },
+          "flows": {
+            "pvW": 225.7607994188942,
+            "driveW": 185.23043396991866,
+            "batteryW": 7.677085593159241,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 8,
+            "curtailedW": 0,
+            "motorLossW": 40.207451042134785,
+            "reserveW": -8.851318315864773,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 2.5732151698321104e-7,
+          "initialJ": 1187200
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 28,
+            "completedFrames": 27,
+            "width": 390,
+            "height": 470,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    }
+  ],
+  "checks": [
+    {
+      "viewport": "desktop",
+      "gpu": "completed",
+      "energyBalance": "pass",
+      "replay": "pass",
+      "shadeEdit": "pass",
+      "exportReimport": "pass",
+      "overflow": "none"
+    },
+    {
+      "viewport": "mobile",
+      "gpu": "completed",
+      "energyBalance": "pass",
+      "replay": "pass",
+      "shadeEdit": "pass",
+      "exportReimport": "pass",
+      "overflow": "none"
+    }
+  ],
+  "sourceHashes": {
+    "public/shared/core/simulation/solar-drive.js": "3face9a2c5401c1a3e27b32bd1c1feaf1fcbd3f6924abe28980024c1c276efd0",
+    "public/simulatte/solar-drive/program.js": "edd729c9edc6edfa34555debfc60b47ee8db8d86552dd12dc18aeaeb4629c7fe",
+    "public/simulatte/solar-drive/geometry.js": "e2a7e51bedcebd6d3208709e4f926a8e8dafd6778bf63c6331b7cb24e155eeed",
+    "public/simulatte/solar-drive/shaders.js": "ef4b68bdf27ed1ab89afe4dc32b4d88be62c20144acc390522fd8d67d1bc37ea",
+    "public/simulatte/solar-drive/scene.js": "1601dbebf14f2caf89b4b67c68789897e964a5823e603e1923e1648ebdc3c942",
+    "public/simulatte/solar-drive/renderer.js": "86382daabf61c9a3f703ce1168b818ec818afa2d0d5d31d53bb155329fc78b7a",
+    "public/simulatte/solar-drive/app.js": "f1cc06ac05a08ad874db36e083a49517929368fd687f11c643a46c6f9589e146",
+    "public/simulatte/solar-drive/index.html": "bf5001c89bf582698b902978c68a88458d241cdf35f37c73b370354066aa1d19",
+    "public/simulatte/solar-drive/solar-drive.css": "fe7699cb6078e0e89f742ca942168843b1f7bf29a21ab251b1a54581c8f2d5b1"
+  },
+  "comparison": {
+    "schema": "simulatte.solarDriveComparison.v1",
+    "worldSpecHash": "fnv1a32:d14ba0c6",
+    "durationS": 300,
+    "hybrid": {
+      "storeUsedWh": 519.1911197147829,
+      "distanceM": 4883.841577207685,
+      "initialJ": 70456000
+    },
+    "batteryOnly": {
+      "storeUsedWh": 506.6966606714742,
+      "distanceM": 4883.841315406902,
+      "initialJ": 70200000
+    },
+    "interpretation": "Net store use counts each branch initial reserve; compare distance as well as energy. Negative consumption means charging."
+  }
+}

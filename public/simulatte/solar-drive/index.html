@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#eeede8">
+  <meta name="description" content="Inspect a solar magnetic drivetrain in WebGPU. Edit, simulate, compare, and replay its energy balance.">
+  <title>Solar drive | Simulatte</title>
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./solar-drive.css">
+</head>
+<body>
+  <header class="masthead">
+    <a class="brand" href="../../" aria-label="Simulatte home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 28 9v14L16 30 4 23V9Z M4 9l12 7 12-7M16 16v14M16 2v14M4 23l12-7 12 7"/></svg>simulatte<span class="slash">/</span><span class="brand-section">engineering</span></a>
+    <div class="masthead-right"><span id="gpu-status" class="gpu-status"><i></i>Connecting WebGPU</span><button id="open-program" class="text-button">WorldSpec <span aria-hidden="true">{ }</span></button></div>
+  </header>
+  <main>
+    <section class="workspace" aria-label="Solar drive engineering instance">
+      <div class="visual-column">
+        <div class="scene-heading"><div><p class="eyebrow">SOLAR MOBILITY / INSTANCE 001</p><h1>Solar drive<span>.</span></h1><p class="lede">Every component. Every joule.</p></div>
+          <div class="vehicle-switch" role="group" aria-label="Vehicle preset"><button data-vehicle="bicycle" aria-pressed="true">Bicycle</button><button data-vehicle="scooter" aria-pressed="false">Scooter</button><button data-vehicle="car" aria-pressed="false">Car</button></div>
+        </div>
+        <div class="viewport" id="viewport">
+          <canvas id="scene" aria-label="Interactive 3D solar vehicle assembly. Drag to orbit, scroll to zoom, or choose a component below." tabindex="0"></canvas>
+          <div id="component-labels" class="component-labels" aria-label="3D component labels"></div>
+          <div class="view-toolbar" role="group" aria-label="Assembly view"><button id="assembled" aria-pressed="false">Assembled</button><button id="exploded" aria-pressed="true">Exploded</button><button id="cutaway" aria-pressed="true">Cutaway</button></div>
+          <div class="view-options"><button id="fields" aria-pressed="false">Magnetic fields</button><button id="flows" aria-pressed="true">Energy flow</button><button id="labels" aria-pressed="true">Labels</button></div>
+          <button id="reset-camera" class="camera-reset" title="Reset camera" aria-label="Reset camera"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9V5h4M19 9V5h-4M5 15v4h4M19 15v4h-4M8 12h8M12 8v8"/></svg></button>
+          <div class="scene-scale"><span></span>1 m <small>Representative engineering assembly</small></div>
+          <div class="orbit-hint">DRAG TO ORBIT <b>/</b> SCROLL TO ZOOM</div>
+          <div id="gpu-message" class="gpu-message" role="status"><div class="loading-lattice"></div><strong>Preparing the assembly</strong><span>Geometry, materials, and WebGPU pipelines</span></div>
+        </div>
+        <div class="transport">
+          <button id="run" class="run-button" disabled><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z"/></svg><span>Run simulation</span></button>
+          <button id="reset" class="square-button" title="Restart from initial state" aria-label="Restart simulation">&#8634;</button>
+          <div class="simulation-clock"><strong id="clock">00:00</strong><span id="run-state">READY</span></div>
+          <div class="speed-control"><label for="playback">Playback</label><select id="playback"><option value="1">1x</option><option value="8" selected>8x</option><option value="32">32x</option></select></div>
+          <button id="replay" class="text-button">Replay</button><button id="export" class="text-button">Export run <span aria-hidden="true">&#8599;</span></button>
+        </div>
+        <div class="readouts" aria-label="Live readouts">
+          <div><span class="metric-label"><i class="solar-dot"></i>Solar to bus</span><strong id="metric-solar">0 <small>W</small></strong><span id="solar-detail">Incident sunlight converted to DC</span></div>
+          <div><span class="metric-label"><i class="drive-dot"></i>At the wheels</span><strong id="metric-drive">0 <small>W</small></strong><span id="speed-detail">0.0 km/h actual</span></div>
+          <div><span class="metric-label"><i class="rotor-dot"></i>Flywheel speed</span><strong id="metric-rpm">0 <small>rpm</small></strong><span id="flywheel-detail">Stored mechanical energy</span></div>
+          <div><span class="metric-label"><i class="battery-dot"></i>Battery reserve</span><strong id="metric-battery">0 <small>%</small></strong><span id="battery-detail">Initial reserve is accounted</span></div>
+        </div>
+      </div>
+      <aside class="inspector">
+        <div class="panel-heading"><span class="eyebrow">INSIDE THE MACHINE</span><span class="small-mono">06 SYSTEMS</span></div>
+        <div id="component-list" class="component-list"></div>
+        <div class="component-detail"><div class="detail-kicker"><span id="part-number">01 / SOURCE</span><span id="part-badge">SOLAR</span></div><h2 id="part-title">Solar canopy</h2><p id="part-description"></p><dl id="part-values"></dl></div>
+        <details class="controls-section" open><summary>Operating conditions <span>+</span></summary><div class="controls-inner">
+          <div class="control"><label for="irradiance">Direct sunlight <output id="irradiance-value"></output></label><input id="irradiance" data-param="irradiance" type="range" min="0" max="1200" step="10"></div>
+          <div class="control"><label for="shade">Panel shade <output id="shade-value"></output></label><input id="shade" data-param="shade" type="range" min="0" max="1" step="0.01"></div>
+          <div class="control"><label for="targetKph">Target speed <output id="targetKph-value"></output></label><input id="targetKph" data-param="targetKph" type="range" min="0" max="100" step="1"></div>
+          <div class="control"><label for="grade">Road grade offset <output id="grade-value"></output></label><input id="grade" data-param="grade" type="range" min="-12" max="12" step="0.5"></div>
+          <div class="control"><label for="wind">Headwind <output id="wind-value"></output></label><input id="wind" data-param="wind" type="range" min="0" max="15" step="0.5"></div>
+          <div class="select-row"><label for="route">Drive cycle</label><select id="route" data-param="route"><option value="flat">Constant grade</option><option value="rolling">Rolling hills</option><option value="commute">Stop & go / clouds</option></select></div>
+        </div></details>
+        <details class="controls-section"><summary>Design & storage <span>+</span></summary><div class="controls-inner">
+          <div class="control"><label for="panelArea">Collector area <output id="panelArea-value"></output></label><input id="panelArea" data-param="panelArea" type="range" min="0" max="8" step="0.1"></div>
+          <div class="control"><label for="flywheelTip">Maximum rim speed <output id="flywheelTip-value"></output></label><input id="flywheelTip" data-param="flywheelTip" type="range" min="50" max="260" step="5"></div>
+          <div class="control"><label for="batterySoc">Initial battery charge <output id="batterySoc-value"></output></label><input id="batterySoc" data-param="batterySoc" type="range" min="0" max="1" step="0.01"></div>
+          <label class="toggle-row" for="flywheel"><span>Flywheel system fitted</span><input id="flywheel" data-param="flywheel" type="checkbox"></label>
+          <p class="control-note">Design edits restart from declared initial reserves. All parameters are editable in WorldSpec.</p>
+        </div></details>
+      </aside>
+    </section>
+    <section class="analysis-row" aria-label="Simulation analysis">
+      <div class="power-panel"><div class="panel-heading"><h2>Power, in motion</h2><div class="chart-legend"><span><i class="solar-dot"></i>Solar</span><span><i class="drive-dot"></i>Wheels</span><span><i class="battery-dot"></i>Reserve change</span></div></div>
+        <div class="chart-wrap"><span id="chart-max" class="chart-max">1,000 W</span><svg id="power-chart" viewBox="0 0 700 150" preserveAspectRatio="none" aria-label="Power history"><path class="gridline" d="M0 25H700M0 75H700M0 125H700"/><path id="chart-solar"/><path id="chart-drive"/><path id="chart-reserve"/></svg><span id="chart-start">0 s</span><span id="chart-end">Waiting for Run</span></div>
+        <div class="balance-line"><span>Energy balance error <strong id="energy-error">0.000000 Wh</strong></span><span>Distance <strong id="distance">0.00 km</strong></span><span>Recovered <strong id="recovered">0.00 Wh</strong></span></div>
+      </div>
+      <div class="reserve-panel"><div class="panel-heading"><h2>Can it sustain itself?</h2><span class="small-mono">ENERGY ACCOUNTING</span></div><div class="reserve-number"><strong id="reserve-change">0</strong><span>W<br>reserve change</span><span id="reserve-state" class="reserve-state">READY</span></div><p id="reserve-copy">Run the model to see whether sunlight covers motion and system losses.</p><button id="compare" class="compare-button">Compare with battery only <span aria-hidden="true">&#8594;</span></button><p id="comparison-result" class="comparison-result" role="status"></p></div>
+    </section>
+    <details class="model-notes"><summary>Model, assumptions & evidence <span>+</span></summary><div class="notes-grid"><div><h3>What is simulated</h3><p>Fixed-step longitudinal motion, panel irradiance and temperature derating, motor efficiency by speed and load, storage power limits, regeneration, thermal derating, and energy conservation. Initial battery and rotor energy are counted.</p><p>Gravity exchanges potential energy. Magnets exert forces; they add no energy. Solar surplus can recharge reserves. Empty storage and inadequate sunlight can stop the vehicle.</p></div><div><h3>What the image means</h3><p>The component assembly is representative engineering geometry, not manufacturing CAD. Field lines show topology, not a solved electromagnetic field. Flywheel rotation is slowed 120x to remain inspectable.</p><p>Dimensions, material choices, efficiency curves, bearing consumption, and containment mass are assumptions. No rotor structural certification, measured weather, cell aging, or crash analysis is claimed.</p></div><div><h3>Sources & run identity</h3><ul id="sources"></ul><p id="program-identity" class="mono"></p><p id="evidence-status">Physical calibration: not performed. Human visual review: pending.</p></div></div></details>
+    <div id="status-message" class="status-message" role="status" aria-live="polite"></div>
+  </main>
+  <footer><a href="../../">SIMULATTE</a><span>Solar drive / energy systems</span><span>Sunlight is the source. Storage is the buffer.</span></footer>
+  <dialog id="program-dialog"><div class="dialog-heading"><div><p class="eyebrow">EDITABLE SIMULATION PROGRAM</p><h2>WorldSpec</h2></div><button id="close-program" aria-label="Close program editor">Close</button></div><p>Change the declared parameters, then apply to restart the simulation. Accepted edits retain their authorship.</p><textarea id="program-editor" spellcheck="false" aria-label="WorldSpec JSON editor"></textarea><div class="dialog-actions"><label class="import-button">Import WorldSpec<input id="import-program" type="file" accept=".json,application/json" hidden></label><button id="export-program">Export WorldSpec</button><button id="apply-program" class="run-button">Apply & restart</button></div><p id="editor-status" role="status"></p></dialog>
+  <script src="../../shared/contracts/world-spec-authorship.js"></script>
+  <script src="../../shared/contracts/world-spec.js"></script>
+  <script src="../../shared/core/simulation/solar-drive.js"></script>
+  <script src="./program.js"></script>
+  <script src="./geometry.js"></script>
+  <script src="./shaders.js"></script>
+  <script src="./scene.js"></script>
+  <script src="./renderer.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
