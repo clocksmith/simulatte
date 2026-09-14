@@ -1,0 +1,120 @@
+{
+  "state": {
+    "phase": "failed",
+    "error": "webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+    "profile": "sun-walker-v1"
+  },
+  "screen": {
+    "width": 1440,
+    "height": 861,
+    "scroll": 1440
+  },
+  "elements": [
+    {
+      "id": "autonomy-canvas",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 861,
+        "top": 0,
+        "right": 1440,
+        "bottom": 861,
+        "left": 0
+      },
+      "hidden": false,
+      "display": "block"
+    },
+    {
+      "id": "overlay-canvas",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "hidden": true,
+      "display": "none"
+    },
+    {
+      "id": "sim-rail-left",
+      "rect": {
+        "x": 20,
+        "y": 20,
+        "width": 320,
+        "height": 110,
+        "top": 20,
+        "right": 340,
+        "bottom": 130,
+        "left": 20
+      },
+      "hidden": false,
+      "display": "flex"
+    },
+    {
+      "id": "sim-rail-right",
+      "rect": {
+        "x": 1100,
+        "y": 20,
+        "width": 320,
+        "height": 398.390625,
+        "top": 20,
+        "right": 1420,
+        "bottom": 418.390625,
+        "left": 1100
+      },
+      "hidden": false,
+      "display": "flex"
+    },
+    {
+      "id": "sim-mission-dock",
+      "rect": {
+        "x": 543.6953125,
+        "y": 716.015625,
+        "width": 352.609375,
+        "height": 124.984375,
+        "top": 716.015625,
+        "right": 896.3046875,
+        "bottom": 841,
+        "left": 543.6953125
+      },
+      "hidden": false,
+      "display": "grid"
+    },
+    {
+      "id": "mission-input",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "hidden": false,
+      "value": "Walk from Washington Square Park to Union Square using the most building shade.",
+      "display": "block"
+    }
+  ],
+  "cameras": [
+    {
+      "id": "camera-follow",
+      "label": "Follow"
+    },
+    {
+      "id": "camera-bird",
+      "label": "Overview"
+    },
+    {
+      "id": "camera-top",
+      "label": "Top"
+    }
+  ],
+  "text": "◀\nWorkbench\nPrompt\nStopped\nCity\nSun Walker\n▶\nFollow\nOverview\nTop\nReady\nSun Walker\n\nVillage to Union Square\n\nNow\nWalk Initialized\nWhy\nFastest and shade-selected routes are sampled at their modeled arrival times.\nControls\n7\n\nBaseline and intervention share starting evidence\n\nControls (7)\n▼\nChange scenario\n↻\nReplay\nNew mission\nNo neural model consent\nExperience docs\nThe simulator stopped. Open status for technical details."
+}

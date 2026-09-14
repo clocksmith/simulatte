@@ -26,70 +26,9 @@
 </head>
 <body class="sim-app" data-journey-phase="loading">
   <main class="map-workspace" aria-label="Simulatte">
-    <section class="simulation-stage" aria-label="NYC mission map">
-      <div class="canvas-shell">
-        <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Interactive WebGPU view of pedestrian, bicycle, scooter, and car missions in the Villages and North Brooklyn"></canvas>
-        <canvas id="semantic-label-canvas" width="1440" height="900" aria-label="Collision-managed semantic labels" aria-hidden="true"></canvas>
-        <canvas id="overlay-canvas" width="1440" height="900" aria-label="Interactive visual overlay for world scales" hidden></canvas>
-        <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active agent" hidden></canvas>
-        <div id="loading-screen" class="loading-screen" role="status" aria-label="Loading Simulatte">
-          <div class="loading-progress" aria-hidden="true"><span id="loading-progress-bar"></span></div>
-          <span id="loading-status" class="loading-status" aria-live="polite">Starting</span>
-        </div>
-        <script>
-          // Reflect real boot progress in the loading screen so a slow world load reads as
-          // progressing, not frozen. Driven by the runtime-log CustomEvents on window.
-          (function () {
-            var target = 2;
-            var assetFetches = 0;
-            var ASSET_PHASE_MAX = 58;
-            var ASSET_ESTIMATE = 24;
-            var STAGES = {
-              'app.boot.started': [10, 'Starting'],
-              'data.load.started': [18, 'Loading world data'],
-              'data.manifest.received': [22, 'Loading world data'],
-              'data.manifest.validated': [24, 'Loading world data'],
-              'data.load.ready': [60, 'Composing world'],
-              'mission.compiled': [84, 'Preparing mission'],
-              'renderer.ready': [100, 'Rendering map'],
-              'data.variants.ready': [90, 'Preparing layers'],
-              'world.ready': [100, 'Ready']
-            };
-            function apply(p, text) {
-              target = Math.max(target, p);
-              var bar = document.getElementById('loading-progress-bar');
-              var status = document.getElementById('loading-status');
-              if (bar) bar.style.width = target.toFixed(1) + '%';
-              if (text && status) status.textContent = text;
-            }
-            window.addEventListener('simulatte-autonomy-runtime', function (event) {
-              var detail = event.detail || {};
-              var name = detail.event;
-              if (!name) return;
-              if (detail.level === 'error') {
-                apply(target, 'Load interrupted, recovering');
-                return;
-              }
-              if (STAGES[name]) {
-                apply(STAGES[name][0], STAGES[name][1]);
-              } else if (name === 'data.asset.fetch.completed') {
-                assetFetches += 1;
-                var ratio = Math.min(1, assetFetches / ASSET_ESTIMATE);
-                apply(Math.min(ASSET_PHASE_MAX, 24 + ratio * (ASSET_PHASE_MAX - 24)), 'Loading world data');
-              }
-            });
-          })();
-        </script>
-        <section id="plugin-map-ui" class="plugin-map-ui" aria-label="Experience view" data-semantic-label-exclusion></section>
-
-        <!-- Symmetrical Left Rail Deck -->
-        <aside class="sim-rail sim-rail-left" id="sim-rail-left" aria-label="Workbench and scale navigation">
-          <button class="rail-collapse-toggle" id="rail-left-toggle" type="button" aria-label="Collapse or expand left deck" title="Collapse / Expand Left Deck" aria-expanded="true">
-            <span class="toggle-glyph" aria-hidden="true">◀</span>
-          </button>
-          <div class="rail-inner">
-            <div class="runtime-anchor" data-semantic-label-exclusion>
-              <nav class="sim-product-nav" aria-label="Simulatte"><a href="https://simulatte.world/" data-local-href="./">Workbench</a><a href="https://create.simulatte.world/" data-local-href="./blank/">Prompt</a></nav>
+    <section class="simulation-stage" aria-label="Selected simulation">
+      <header class="simulation-toolbar"><div class="runtime-anchor" data-semantic-label-exclusion>
+              <nav class="sim-product-nav" aria-label="Simulatte"><a href="https://simulatte.world/" data-local-href="./">Simulations</a><a href="https://create.simulatte.world/" data-local-href="./blank/">Create</a></nav>
               <div class="runtime-toolbar">
                 <button id="runtime-toggle" class="status-pill sim-surface" type="button" aria-label="Runtime status and details" aria-controls="runtime-details" aria-expanded="false">
                   <span class="status-dot" aria-hidden="true"></span>
@@ -102,6 +41,7 @@
                   <div id="world-tier-options" class="select-options" role="listbox" aria-label="Simulatte world scales" hidden>
                     <div class="select-option" data-value="datacenter" role="option">Datacenter</div>
                     <div class="select-option" data-value="city" role="option">City</div>
+                    <div class="select-option" data-value="country" role="option">Country</div>
                     <div class="select-option" data-value="world" role="option">Planet</div>
                     <div class="select-option" data-value="solar-system" role="option">Solar System</div>
                     <div class="select-option" data-value="star-chart" role="option">Universe</div>
@@ -140,17 +80,19 @@
                 </details>
                 <button id="runtime-details-close" class="quiet-action" type="button">Close</button>
               </div>
-            </div>
-          </div>
-        </aside>
-
-        <!-- Symmetrical Right Rail Deck -->
-        <aside class="sim-rail sim-rail-right" id="sim-rail-right" aria-label="Camera and telemetry deck">
-          <button class="rail-collapse-toggle" id="rail-right-toggle" type="button" aria-label="Collapse or expand right deck" title="Collapse / Expand Right Deck" aria-expanded="true">
-            <span class="toggle-glyph" aria-hidden="true">▶</span>
-          </button>
-          <div class="rail-inner">
-            <div id="camera-controls" class="camera-controls" aria-label="Camera experiences" data-semantic-label-exclusion>
+            </div></header>
+      <div class="canvas-shell" aria-label="Simulation viewport">
+        <canvas tabindex="0" id="autonomy-canvas" width="1440" height="900" aria-label="Interactive WebGPU view of pedestrian, bicycle, scooter, and car missions in the Villages and North Brooklyn"></canvas>
+        <canvas id="semantic-label-canvas" width="1440" height="900" aria-label="Collision-managed semantic labels" aria-hidden="true"></canvas>
+        <canvas tabindex="0" id="overlay-canvas" width="1440" height="900" aria-label="Interactive visual overlay for world scales" hidden></canvas>
+        <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active agent" hidden></canvas>
+        <div id="loading-screen" class="loading-screen" role="status" aria-label="Loading Simulatte">
+          <div class="loading-progress" aria-hidden="true"><span id="loading-progress-bar"></span></div>
+          <span id="loading-status" class="loading-status" aria-live="polite">Starting</span>
+        </div>
+        
+        </div>
+      <div class="simulation-viewbar"><div id="camera-controls" class="camera-controls" aria-label="Camera experiences" data-semantic-label-exclusion>
               <div class="camera-modes sim-segmented" role="group" aria-label="Camera experiences">
                 <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
                 <button id="camera-pov" type="button" aria-pressed="false">POV</button>
@@ -159,9 +101,80 @@
                 <button id="camera-free" type="button" aria-pressed="false">Free</button>
                 <button id="camera-compare" type="button" aria-pressed="false">Compare</button>
               </div>
+              <button id="camera-reset" class="sim-action" type="button" title="Restore this simulation's intended framing without resetting its state">Reset view</button>
+            </div><button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false" data-semantic-label-exclusion>Controls (6)</button></div>
+      <section class="mission-dock sim-surface" id="sim-mission-dock" aria-label="Simulation controls" data-semantic-label-exclusion>
+          
+          
+          <div id="scenario-field" class="scenario-field" hidden>
+            <label class="scenario-picker" for="scenario-select"><span>Scenario</span><select id="scenario-select" class="sim-field" aria-describedby="scenario-description"></select></label>
+            <span hidden id="scenario-label" class="scenario-label"></span>
+            <span id="scenario-description" class="scenario-description"></span>
+            <span id="scenario-seed" class="scenario-seed" hidden></span>
+          </div>
+          <div class="mission-actions" aria-label="Simulation actions">
+<button id="reset-button" class="sim-action" type="button" hidden>Reset</button>
+<button id="step-button" class="sim-action" type="button" hidden>Step</button>
+            <button id="shuffle-button" class="sim-action" type="button"><span id="shuffle-label">Shuffle</span><span aria-hidden="true">↻</span></button>
+            <button id="start-button" class="sim-action sim-action-primary" type="button"><span class="play-mark" aria-hidden="true"></span><span id="start-label">Start</span></button>
+            <button id="pause-button" class="sim-action" type="button" hidden>Pause</button>
+            <button id="resume-button" class="sim-action sim-action-primary" type="button" hidden><span class="play-mark" aria-hidden="true"></span>Resume</button>
+            <button id="replay-button" class="sim-action sim-action-primary" type="button" hidden>Replay</button>
+            <button id="new-mission-button" class="sim-action" type="button" hidden>New mission</button>
+            <div class="dock-more-anchor">
+              <button id="dock-more-button" class="sim-action" type="button" aria-controls="dock-more-menu" aria-expanded="false" aria-label="More controls" hidden>⋯</button>
+              <div id="dock-more-menu" class="dock-more-menu sim-popover sim-menu" hidden>
+                <button id="what-if-button" type="button" hidden>What if</button>
+              </div>
             </div>
-
-            <section id="experience-summary" class="experience-summary sim-surface" aria-live="polite" data-semantic-label-exclusion hidden>
+            
+            <input id="place-resolution-lane" type="checkbox" hidden aria-describedby="place-lane-note">
+            <span id="place-lane-note" class="sr-only">Deterministic matching is active.</span>
+          </div>
+          <div id="playback-strip" class="playback-strip" aria-label="Playback" hidden>
+            <div class="playback-story">
+              <span id="playback-timeline-label" class="sim-label">Event</span>
+              <strong id="playback-event">Ready</strong>
+            </div>
+            <label id="playback-timeline-control" class="playback-control playback-timeline-control" hidden>
+              <span>Timeline <output id="playback-progress">0 / 0</output></span>
+              <input id="playback-timeline" type="range" min="0" max="0" step="1" value="0">
+            </label>
+            <div class="playback-actions">
+              
+              
+              <label id="playback-speed-control" class="playback-control playback-speed-control" hidden>
+                <span>Speed</span>
+                <select id="playback-speed" class="sim-field">
+                  <option value="0.5">0.5×</option>
+                  <option value="1" selected>1×</option>
+                  <option value="2">2×</option>
+                  <option value="4">4×</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          
+          <output id="mission-error" class="mission-error" aria-live="polite"></output>
+        </section>
+      <section id="journey-hud" class="journey-hud sim-surface" role="button" tabindex="0" aria-label="Journey progress. Open decision details." title="Open decision details" data-semantic-label-exclusion>
+          <div class="journey-progress" aria-hidden="true"><span id="journey-progress-fill"></span></div>
+          <div class="journey-hud-line">
+            <strong id="metric-state">active</strong>
+            <span id="metric-distance">0 m</span>
+            <span id="metric-time">0:00</span>
+          </div>
+          <div class="hud-contract-values sr-only" aria-hidden="true">
+            <span id="metric-speed">0 m/s</span>
+            <span id="metric-tick">0</span>
+            <span id="metric-route">unplanned</span>
+            <span id="metric-bet">none</span>
+            <span id="metric-settlement">none</span>
+            <span id="metric-calibration">0 / 0</span>
+          </div>
+        </section>
+      <details id="experience-summary" class="experience-summary sim-surface" aria-live="polite" data-semantic-label-exclusion hidden>
+              <summary>Results and explanation</summary>
               <header>
                 <span id="experience-summary-state" class="sim-label">Ready</span>
                 <strong id="experience-summary-title"></strong>
@@ -179,159 +192,11 @@
               </div>
               <dl id="experience-summary-stats"></dl>
               <p id="experience-summary-comparison" class="experience-summary-comparison"></p>
-            </section>
-
-            <div class="rail-controls-action">
-              <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false" data-semantic-label-exclusion>Controls (6)</button>
-            </div>
-          </div>
-        </aside>
-
-        <section id="journey-hud" class="journey-hud sim-surface" role="button" tabindex="0" aria-label="Journey progress. Open decision details." title="Open decision details" data-semantic-label-exclusion>
-          <div class="journey-progress" aria-hidden="true"><span id="journey-progress-fill"></span></div>
-          <div class="journey-hud-line">
-            <strong id="metric-state">active</strong>
-            <span id="metric-distance">0 m</span>
-            <span id="metric-time">0:00</span>
-          </div>
-          <div class="hud-contract-values sr-only" aria-hidden="true">
-            <span id="metric-speed">0 m/s</span>
-            <span id="metric-tick">0</span>
-            <span id="metric-route">unplanned</span>
-            <span id="metric-bet">none</span>
-            <span id="metric-settlement">none</span>
-            <span id="metric-calibration">0 / 0</span>
-          </div>
-        </section>
-
-        <section class="mission-dock sim-surface" id="sim-mission-dock" aria-label="Mission" data-semantic-label-exclusion>
-          <button class="dock-collapse-toggle" id="dock-bottom-toggle" type="button" aria-label="Collapse or expand mission dock" title="Collapse / Expand Mission Dock" aria-expanded="true">
-            <span class="toggle-glyph" aria-hidden="true">▼</span>
-          </button>
-          <label id="mission-field" class="mission-field" for="mission-input">
-            <span class="sr-only">Describe a mission</span>
-            <textarea id="mission-input" rows="2" spellcheck="false" aria-describedby="mission-error" placeholder="Where should the agent go?"></textarea>
-          </label>
-          <div id="scenario-field" class="scenario-field" hidden>
-            <span id="scenario-label" class="scenario-label"></span>
-            <span id="scenario-description" class="scenario-description"></span>
-            <span id="scenario-seed" class="scenario-seed"></span>
-          </div>
-          <div class="mission-actions" aria-label="Mission actions">
-            <button id="shuffle-button" class="sim-action" type="button"><span id="shuffle-label">Shuffle</span><span aria-hidden="true">↻</span></button>
-            <button id="start-button" class="sim-action sim-action-primary" type="button"><span class="play-mark" aria-hidden="true"></span><span id="start-label">Start</span></button>
-            <button id="pause-button" class="sim-action" type="button" hidden>Pause</button>
-            <button id="resume-button" class="sim-action sim-action-primary" type="button" hidden><span class="play-mark" aria-hidden="true"></span>Resume</button>
-            <button id="replay-button" class="sim-action sim-action-primary" type="button" hidden>Replay</button>
-            <button id="new-mission-button" class="sim-action" type="button" hidden>New mission</button>
-            <div class="dock-more-anchor">
-              <button id="dock-more-button" class="sim-action" type="button" aria-controls="dock-more-menu" aria-expanded="false" aria-label="More controls" hidden>⋯</button>
-              <div id="dock-more-menu" class="dock-more-menu sim-popover sim-menu" hidden>
-                <button id="what-if-button" type="button" hidden>What if</button>
-              </div>
-            </div>
-            <details id="model-selection-panel" class="model-selection-panel">
-              <summary>Models</summary>
-              <div id="model-selection-controls" class="model-selection-controls" aria-label="Pipeline model selection"></div>
             </details>
-            <input id="place-resolution-lane" type="checkbox" hidden aria-describedby="place-lane-note">
-            <span id="place-lane-note" class="sr-only">Deterministic matching is active.</span>
-          </div>
-          <div id="playback-strip" class="playback-strip" aria-label="Playback" hidden>
-            <div class="playback-story">
-              <span id="playback-timeline-label" class="sim-label">Event</span>
-              <strong id="playback-event">Ready</strong>
-            </div>
-            <label id="playback-timeline-control" class="playback-control playback-timeline-control" hidden>
-              <span>Timeline <output id="playback-progress">0 / 0</output></span>
-              <input id="playback-timeline" type="range" min="0" max="0" step="1" value="0">
-            </label>
-            <div class="playback-actions">
-              <button id="step-button" class="sim-action" type="button" hidden>Step</button>
-              <button id="reset-button" class="sim-action" type="button" hidden>Reset</button>
-              <label id="playback-speed-control" class="playback-control playback-speed-control" hidden>
-                <span>Speed</span>
-                <select id="playback-speed" class="sim-field">
-                  <option value="0.5">0.5×</option>
-                  <option value="1" selected>1×</option>
-                  <option value="2">2×</option>
-                  <option value="4">4×</option>
-                </select>
-              </label>
-            </div>
-          </div>
-          <a id="experience-doc-link" class="sim-text-link experience-doc-link" target="_blank" rel="noopener noreferrer" hidden>Experience docs</a>
-          <output id="mission-error" class="mission-error" aria-live="polite"></output>
-        </section>
-        <script>
-          (function wireLayoutDecks() {
-            function init() {
-              var leftRail = document.getElementById('sim-rail-left');
-              var rightRail = document.getElementById('sim-rail-right');
-              var missionDock = document.getElementById('sim-mission-dock');
-              var leftToggle = document.getElementById('rail-left-toggle');
-              var rightToggle = document.getElementById('rail-right-toggle');
-              var dockToggle = document.getElementById('dock-bottom-toggle');
-
-              function toggleLeft(collapse) {
-                if (!leftRail) return;
-                var isCollapsed = collapse !== undefined ? collapse : leftRail.getAttribute('data-collapsed') !== 'true';
-                leftRail.setAttribute('data-collapsed', String(isCollapsed));
-                if (leftToggle) {
-                  leftToggle.setAttribute('aria-expanded', String(!isCollapsed));
-                  var glyph = leftToggle.querySelector('.toggle-glyph');
-                  if (glyph) glyph.textContent = isCollapsed ? '▶' : '◀';
-                }
-                window.dispatchEvent(new Event('resize'));
-              }
-
-              function toggleRight(collapse) {
-                if (!rightRail) return;
-                var isCollapsed = collapse !== undefined ? collapse : rightRail.getAttribute('data-collapsed') !== 'true';
-                rightRail.setAttribute('data-collapsed', String(isCollapsed));
-                if (rightToggle) {
-                  rightToggle.setAttribute('aria-expanded', String(!isCollapsed));
-                  var glyph = rightToggle.querySelector('.toggle-glyph');
-                  if (glyph) glyph.textContent = isCollapsed ? '◀' : '▶';
-                }
-                window.dispatchEvent(new Event('resize'));
-              }
-
-              function toggleDock(collapse) {
-                if (!missionDock) return;
-                var isCollapsed = collapse !== undefined ? collapse : missionDock.getAttribute('data-collapsed') !== 'true';
-                missionDock.setAttribute('data-collapsed', String(isCollapsed));
-                if (dockToggle) {
-                  dockToggle.setAttribute('aria-expanded', String(!isCollapsed));
-                  var glyph = dockToggle.querySelector('.toggle-glyph');
-                  if (glyph) glyph.textContent = isCollapsed ? '▲' : '▼';
-                }
-                window.dispatchEvent(new Event('resize'));
-              }
-
-              leftToggle && leftToggle.addEventListener('click', function() { toggleLeft(); });
-              rightToggle && rightToggle.addEventListener('click', function() { toggleRight(); });
-              dockToggle && dockToggle.addEventListener('click', function() { toggleDock(); });
-
-              document.addEventListener('keydown', function(e) {
-                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
-                if (e.key === '[') toggleLeft();
-                else if (e.key === ']') toggleRight();
-                else if (e.key === '\\') toggleDock();
-              });
-            }
-            if (document.readyState === 'loading') {
-              document.addEventListener('DOMContentLoaded', init);
-            } else {
-              init();
-            }
-          })();
-        </script>
-      </div>
     </section>
 
     <div id="decisions-backdrop" class="drawer-backdrop" hidden></div>
-    <aside id="decisions-drawer" class="evidence-panel sim-surface" aria-label="Controls and evidence" aria-hidden="true">
+    <aside id="decisions-drawer" class="evidence-panel sim-surface" role="dialog" aria-modal="true" inert aria-label="Controls and evidence" aria-hidden="true">
       <header class="evidence-heading">
         <div>
           <strong id="decision-title">Experiment controls</strong>
@@ -340,7 +205,16 @@
         <button id="decisions-close" class="drawer-close" type="button" aria-label="Close decisions">×</button>
       </header>
 
-      <section id="plugin-inspector" aria-label="Experience extensions"></section>
+      <section id="plugin-inspector" aria-label="Simulation parameters and evidence"></section>
+      <details id="scene-actions" class="evidence-section"><summary>Scene actions</summary><section id="plugin-map-ui" class="plugin-map-ui" aria-label="Experience view" data-semantic-label-exclusion></section></details>
+      <details id="mission-authoring" class="evidence-section" hidden><summary>Author a mission</summary><label id="mission-field" class="mission-field" for="mission-input">
+            <span class="sr-only">Describe a mission</span>
+            <textarea id="mission-input" rows="2" spellcheck="false" aria-describedby="mission-error" placeholder="Where should the agent go?"></textarea>
+          </label><details id="model-selection-panel" class="model-selection-panel">
+              <summary>Models</summary>
+              <div id="model-selection-controls" class="model-selection-controls" aria-label="Pipeline model selection"></div>
+            </details></details>
+      <a id="experience-doc-link" class="sim-text-link experience-doc-link" target="_blank" rel="noopener noreferrer" hidden>Experience docs</a>
 
       <details id="profile-program-section" class="evidence-section profile-program-section">
         <summary>World program <span id="profile-world-spec-status" class="sim-status">Loading WorldSpec</span></summary>

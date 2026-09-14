@@ -1,0 +1,213 @@
+[
+  {
+    "route": "city/sun-walker-v1",
+    "before": {
+      "url": "http://127.0.0.1:33121/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=overview&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true",
+      "phase": "ready",
+      "active": "",
+      "tabIndex": 0,
+      "camera": {
+        "eye": "-698,892.26,-1305.58",
+        "target": "-1299.28,0,-778.21"
+      },
+      "rect": {
+        "x": 13,
+        "y": 173,
+        "width": 364,
+        "height": 403.109375,
+        "top": 173,
+        "right": 377,
+        "bottom": 576.109375,
+        "left": 13
+      },
+      "trace": []
+    },
+    "clicked": {
+      "url": "http://127.0.0.1:33121/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=overview&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true",
+      "phase": "ready",
+      "active": "",
+      "tabIndex": 0,
+      "camera": {
+        "eye": "-698,892.26,-1305.58",
+        "target": "-1299.28,0,-778.21"
+      },
+      "rect": {
+        "x": 13,
+        "y": 173,
+        "width": 364,
+        "height": 403.109375,
+        "top": 173,
+        "right": 377,
+        "bottom": 576.109375,
+        "left": 13
+      },
+      "trace": [
+        {
+          "type": "pointerdown",
+          "target": "autonomy-canvas",
+          "prevented": true,
+          "active": ""
+        },
+        {
+          "type": "keydown",
+          "target": "",
+          "key": "ArrowRight",
+          "prevented": false,
+          "active": ""
+        }
+      ]
+    },
+    "focused": {
+      "url": "http://127.0.0.1:33121/city/sun-walker-v1?world=nyc-core-autonomy-v1&profile=sun-walker-v1&camera=overview&scenario=village-union-shade&seed=shade-village-union-0719&param.sun-walker.departureAt=%222026-07-13T16%3A00%22&param.sun-walker.directSunWeight=100&param.sun-walker.maximumAddedRatio=0.25&param.sun-walker.maximumAddedTimeSeconds=600&param.sun-walker.treeCanopyParticipation=true&param.sun-walker.walkingSpeedMps=1.4&param.sun-walker.weatherParticipation=true",
+      "phase": "ready",
+      "active": "autonomy-canvas",
+      "tabIndex": 0,
+      "camera": {
+        "eye": "-755.29,892.26,-1370.89",
+        "target": "-1356.56,0,-843.53"
+      },
+      "rect": {
+        "x": 13,
+        "y": 173,
+        "width": 364,
+        "height": 403.109375,
+        "top": 173,
+        "right": 377,
+        "bottom": 576.109375,
+        "left": 13
+      },
+      "trace": [
+        {
+          "type": "pointerdown",
+          "target": "autonomy-canvas",
+          "prevented": true,
+          "active": ""
+        },
+        {
+          "type": "keydown",
+          "target": "",
+          "key": "ArrowRight",
+          "prevented": false,
+          "active": ""
+        },
+        {
+          "type": "focusin",
+          "target": "autonomy-canvas",
+          "prevented": false,
+          "active": "autonomy-canvas"
+        },
+        {
+          "type": "keydown",
+          "target": "autonomy-canvas",
+          "key": "ArrowRight",
+          "prevented": true,
+          "active": "autonomy-canvas"
+        }
+      ]
+    }
+  },
+  {
+    "route": "country/grid-resilience-us-v1",
+    "before": {
+      "url": "http://127.0.0.1:33121/country/grid-resilience-us-v1?world=us-national-regions-v1&profile=grid-resilience-us-v1&camera=overview&scenario=heat-demand-peak&seed=grid-heat-001&param.grid-resilience-us.demandResponseMaximumFraction=0.08&param.grid-resilience-us.dispatchPolicyId=%22resilience-weighted%22&param.grid-resilience-us.disturbanceScenarioId=%22heat-demand-peak%22&param.grid-resilience-us.emissionsPriceUsdPerTon=50&param.grid-resilience-us.ensembleSize=4&param.grid-resilience-us.reservePolicyId=%22adaptive-reserve%22&param.grid-resilience-us.restorationCrewCount=2&param.grid-resilience-us.restorationPolicyId=%22dependency-aware%22&param.grid-resilience-us.sheddingPriority1=%22east%22&param.grid-resilience-us.sheddingPriority2=%22texas%22&param.grid-resilience-us.sheddingPriority3=%22central%22&param.grid-resilience-us.sheddingPriority4=%22west%22&param.grid-resilience-us.storagePolicyId=%22reserve-preserving%22",
+      "phase": "ready",
+      "active": "",
+      "tabIndex": 0,
+      "camera": {
+        "view": "{\"zoom\":30.260429584725156,\"panX\":53.2105598070024,\"panY\":146.1564012300507,\"rotX\":0.2,\"rotY\":-0.4}"
+      },
+      "rect": {
+        "x": 13,
+        "y": 173,
+        "width": 364,
+        "height": 403.109375,
+        "top": 173,
+        "right": 377,
+        "bottom": 576.109375,
+        "left": 13
+      },
+      "trace": []
+    },
+    "clicked": {
+      "url": "http://127.0.0.1:33121/country/grid-resilience-us-v1?world=us-national-regions-v1&profile=grid-resilience-us-v1&camera=free&scenario=heat-demand-peak&seed=grid-heat-001&param.grid-resilience-us.demandResponseMaximumFraction=0.08&param.grid-resilience-us.dispatchPolicyId=%22resilience-weighted%22&param.grid-resilience-us.disturbanceScenarioId=%22heat-demand-peak%22&param.grid-resilience-us.emissionsPriceUsdPerTon=50&param.grid-resilience-us.ensembleSize=4&param.grid-resilience-us.reservePolicyId=%22adaptive-reserve%22&param.grid-resilience-us.restorationCrewCount=2&param.grid-resilience-us.restorationPolicyId=%22dependency-aware%22&param.grid-resilience-us.sheddingPriority1=%22east%22&param.grid-resilience-us.sheddingPriority2=%22texas%22&param.grid-resilience-us.sheddingPriority3=%22central%22&param.grid-resilience-us.sheddingPriority4=%22west%22&param.grid-resilience-us.storagePolicyId=%22reserve-preserving%22",
+      "phase": "ready",
+      "active": "",
+      "tabIndex": 0,
+      "camera": {
+        "view": "{\"zoom\":30.260429584725156,\"panX\":53.2105598070024,\"panY\":146.1564012300507,\"rotX\":0.2,\"rotY\":-0.4}"
+      },
+      "rect": {
+        "x": 13,
+        "y": 173,
+        "width": 364,
+        "height": 403.109375,
+        "top": 173,
+        "right": 377,
+        "bottom": 576.109375,
+        "left": 13
+      },
+      "trace": [
+        {
+          "type": "pointerdown",
+          "target": "overlay-canvas",
+          "prevented": true,
+          "active": ""
+        },
+        {
+          "type": "keydown",
+          "target": "",
+          "key": "ArrowRight",
+          "prevented": false,
+          "active": ""
+        }
+      ]
+    },
+    "focused": {
+      "url": "http://127.0.0.1:33121/country/grid-resilience-us-v1?world=us-national-regions-v1&profile=grid-resilience-us-v1&camera=free&scenario=heat-demand-peak&seed=grid-heat-001&param.grid-resilience-us.demandResponseMaximumFraction=0.08&param.grid-resilience-us.dispatchPolicyId=%22resilience-weighted%22&param.grid-resilience-us.disturbanceScenarioId=%22heat-demand-peak%22&param.grid-resilience-us.emissionsPriceUsdPerTon=50&param.grid-resilience-us.ensembleSize=4&param.grid-resilience-us.reservePolicyId=%22adaptive-reserve%22&param.grid-resilience-us.restorationCrewCount=2&param.grid-resilience-us.restorationPolicyId=%22dependency-aware%22&param.grid-resilience-us.sheddingPriority1=%22east%22&param.grid-resilience-us.sheddingPriority2=%22texas%22&param.grid-resilience-us.sheddingPriority3=%22central%22&param.grid-resilience-us.sheddingPriority4=%22west%22&param.grid-resilience-us.storagePolicyId=%22reserve-preserving%22",
+      "phase": "ready",
+      "active": "overlay-canvas",
+      "tabIndex": 0,
+      "camera": {
+        "view": "{\"zoom\":30.260429584725156,\"panX\":29.210559807002397,\"panY\":146.1564012300507,\"rotX\":0.2,\"rotY\":-0.4}"
+      },
+      "rect": {
+        "x": 13,
+        "y": 173,
+        "width": 364,
+        "height": 403.109375,
+        "top": 173,
+        "right": 377,
+        "bottom": 576.109375,
+        "left": 13
+      },
+      "trace": [
+        {
+          "type": "pointerdown",
+          "target": "overlay-canvas",
+          "prevented": true,
+          "active": ""
+        },
+        {
+          "type": "keydown",
+          "target": "",
+          "key": "ArrowRight",
+          "prevented": false,
+          "active": ""
+        },
+        {
+          "type": "focusin",
+          "target": "overlay-canvas",
+          "prevented": false,
+          "active": "overlay-canvas"
+        },
+        {
+          "type": "keydown",
+          "target": "overlay-canvas",
+          "key": "ArrowRight",
+          "prevented": true,
+          "active": "overlay-canvas"
+        }
+      ]
+    }
+  }
+]

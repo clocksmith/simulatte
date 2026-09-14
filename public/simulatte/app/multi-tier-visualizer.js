@@ -90,6 +90,8 @@
       this.setupEvents();
       this.resize();
       this.on(window, 'resize', () => this.resize());
+      this.resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(() => this.resize()) : null;
+      this.resizeObserver?.observe(canvas);
     }
 
     // United States city fallback used when the national city fixture is not yet fetched.
@@ -130,11 +132,28 @@
     setupEvents() {
       const c = this.canvas;
       c.style.touchAction = 'none';
+      this.on(c, 'keydown', (event) => {
+        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-'].includes(event.key)) return;
+        event.preventDefault();
+        this.notifyManualView('keyboard');
+        if (event.key === 'ArrowLeft') this.panX += 24;
+        else if (event.key === 'ArrowRight') this.panX -= 24;
+        else if (event.key === 'ArrowUp') this.panY += 24;
+        else if (event.key === 'ArrowDown') this.panY -= 24;
+        else {
+          const factor = event.key === '-' ? 0.85 : 1.15;
+          const next = Math.max(0.01, Math.min(this.currentTier === 'star-chart' ? 4000 : 250, this.zoom * factor));
+          this.panX = this.width / 2 - (this.width / 2 - this.panX) * next / this.zoom;
+          this.panY = this.height / 2 - (this.height / 2 - this.panY) * next / this.zoom;
+          this.zoom = next;
+        }
+      });
       this.on(c, 'pointerdown', (e) => {
         if (this.currentTier === 'city') return;
         if (e.isPrimary === false || this.activePointerId !== null) return;
         e.preventDefault();
         this.notifyManualView('pan-orbit');
+        c.focus({ preventScroll: true });
         this.isDragging = true;
         this.activePointerId = e.pointerId;
         c.setPointerCapture?.(e.pointerId);
@@ -204,6 +223,7 @@
 
     destroy() {
       this.stop();
+      this.resizeObserver?.disconnect();
       this.removeHud();
       delete this.canvas.__simulatteCaptureRenderPixels;
       delete this.canvas.__simulatteRenderReceipt;
@@ -713,7 +733,11 @@
       if (!allowed.includes(mode)) throw new Error(`simulatte_tier_view_mode_invalid: ${mode}`);
       this.viewMode = mode;
       this.canvas.dataset.viewMode = mode;
-      if (mode === 'overview') this.resetView();
+      if (mode === 'overview' && this.defaultView) {
+        this.rotX = this.defaultView.rotX;
+        this.rotY = this.defaultView.rotY;
+        this.rotZ = this.defaultView.rotZ;
+      }
       if (mode === 'top' && ['solar-system', 'star-chart'].includes(this.currentTier)) {
         this.rotX = 0;
         this.rotY = 0;
@@ -760,6 +784,7 @@
       if (this.frameCpuMs.length >= 512) this.frameCpuMs.shift();
       this.frameCpuMs.push(performance.now() - cpuStartedAt);
       this.canvas.dataset.frameCount = String(this.frameCount);
+      this.canvas.dataset.cameraView = JSON.stringify({ zoom: this.zoom, panX: this.panX, panY: this.panY, rotX: this.rotX, rotY: this.rotY });
     }
 
     // --- DRAW SOLAR SYSTEM ---
@@ -804,8 +829,8 @@
     const countryLatSpan = Math.max(1, countryBounds.maxLat - countryBounds.minLat);
     const evidenceLonSpan = Math.max(2, evidenceBounds.maxX - evidenceBounds.minX) * 1.18;
     const evidenceLatSpan = Math.max(2, evidenceBounds.maxY - evidenceBounds.minY) * 1.18;
-    const availableWidth = width * (width < 600 ? 0.84 : 0.58);
-    const availableHeight = width <= 820 ? Math.max(100, height - 660) : height * 0.58;
+    const availableWidth = width * 0.84;
+    const availableHeight = height * 0.80;
     const desiredScale = Math.min(availableWidth / evidenceLonSpan, availableHeight / evidenceLatSpan);
     const scalePerZoom = Math.min(width / countryLonSpan, height / countryLatSpan) * 0.06;
     const zoom = Math.max(0.01, Math.min(250, desiredScale / Math.max(scalePerZoom, 0.0001)));
@@ -817,7 +842,7 @@
     return Object.freeze({
       zoom,
       panX: width / 2 - (targetCenterX - countryCenterX) * scale,
-      panY: (width <= 820 ? 375 + availableHeight / 2 : height / 2) + (targetCenterY - countryCenterY) * scale,
+      panY: height / 2 + (targetCenterY - countryCenterY) * scale,
     });
   }
 
@@ -855,10 +880,8 @@
         : 0.76;
     const spanX = Math.max(0.000001, maximumX - minimumX);
     const spanY = Math.max(0.000001, maximumY - minimumY);
-    const datacenter = coordinateSystem === 'datacenter-cartesian-meters';
-    const narrow = width <= 820;
-    const availableWidth = datacenter ? width * (narrow ? 0.84 : 0.48) : width * (narrow ? 0.80 : 0.62) * coverage / 0.76;
-    const availableHeight = datacenter ? Math.max(100, narrow ? height - 690 : height * 0.48) : Math.max(100, narrow ? height - 660 : height * 0.55) * coverage / 0.76;
+    const availableWidth = width * coverage;
+    const availableHeight = height * coverage;
     const zoom = Math.max(0.01, Math.min(coordinateSystem === 'icrs-cartesian-pc' ? 4000 : 250, Math.min(
       availableWidth / spanX,
       availableHeight / spanY,
@@ -867,8 +890,8 @@
     const centerY = (minimumY + maximumY) / 2;
     return Object.freeze({
       zoom,
-      panX: width * (!narrow ? (datacenter ? 0.44 : 0.43) : 0.5) - centerX * zoom,
-      panY: (narrow ? 375 + availableHeight / 2 : height * (datacenter ? 0.46 : 0.5)) - centerY * zoom,
+      panX: width / 2 - centerX * zoom,
+      panY: height / 2 - centerY * zoom,
     });
   }
 

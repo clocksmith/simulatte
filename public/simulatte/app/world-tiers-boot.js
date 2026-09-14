@@ -97,6 +97,25 @@
     on(elements.worldTierTrigger,'click',(event)=>{event.stopPropagation();const open=!elements.worldTierControl.classList.contains('open');elements.worldTierControl.classList.toggle('open',open);elements.worldTierTrigger.setAttribute('aria-expanded',String(open));elements.worldTierOptions.hidden=!open;});
     on(window,'click',close);
     const options=[...elements.worldTierOptions.querySelectorAll('.select-option')];
+    options.forEach((option) => { option.tabIndex = -1; option.setAttribute('aria-selected', String(option.dataset.value === activeTier)); });
+    on(elements.worldTierTrigger, 'keydown', (event) => {
+      if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+      event.preventDefault();
+      elements.worldTierOptions.hidden = false;
+      elements.worldTierControl.classList.add('open');
+      elements.worldTierTrigger.setAttribute('aria-expanded', 'true');
+      (options.find((option) => option.dataset.value === activeTier) || options[0])?.focus();
+    });
+    on(elements.worldTierOptions, 'keydown', (event) => {
+      const index = options.indexOf(event.target);
+      if (index < 0) return;
+      if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+        event.preventDefault();
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+        options[next].focus();
+      } else if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); options[index].click(); elements.worldTierTrigger.focus(); }
+      else if (event.key === 'Escape') { close(); elements.worldTierTrigger.focus(); }
+    });
     options.forEach((option)=>on(option,'click',(event)=>{event.stopPropagation();const tier=option.dataset.value;close();if(tier!==activeTier){ctx.onSelectTier?.(tier);} }));
     options.forEach((option)=>option.classList.toggle('selected',option.dataset.value===activeTier));
     elements.worldTierLabel.textContent=TIER_LABELS[activeTier]||'Select scale';
@@ -193,6 +212,10 @@
       selectTierViewMode(data.applicationProfile.experience?.defaultView||'overview');
       [[elements.cameraBird,'overview'],[elements.cameraFollow,'follow'],[elements.cameraPov,'pov'],[elements.cameraTop,'top'],[elements.cameraFree,'free'],[elements.cameraCompare,'compare']]
         .forEach(([button,mode])=>on(button,'click',()=>applyTierCamera(mode,true)));
+      on(elements.cameraReset, 'click', () => {
+        tierVisualizer.resetView();
+        applyTierCamera(data.applicationProfile.experience.defaultView, true);
+      });
     }
 
     async function dispose(){
@@ -239,31 +262,36 @@
         rootElements:{inspector:elements.pluginInspector,map:elements.pluginMapUi},
         onAction:async({pluginId,actionId,command,values})=>{
           if(command?.kind==='camera.focus'){viewDirector?.setManualOverride({mode:'free',targetIds:[command.targetId]});tierVisualizer.focusPluginTarget?.(`plugin:${pluginId}:${command.targetId}`);return;}
-          await runtime.dispatchAction(pluginId,actionId,{values,scenario:activeScenario,routeObjective:data.applicationProfile.routeObjective});
-          renderPlugins();
-        },
-        onControlChange:async({pluginId,values})=>{
-          if (ctx.navigate) {
-            const simulation=simulationRouteState();
-            await ctx.navigate(governedTierRoute({
-              ...simulation,
-              parameters: { ...simulation.parameters, [pluginId]: values },
-            }), { replace: true });
+          if (actionId.endsWith('.configuration.apply')) {
+            await applyParameterValues(pluginId, values);
+            setConfigurationDraft(false);
             return;
           }
-          if(!runController||runController.snapshot().ownerPluginId!==pluginId)return;
-          root.SimulatteTierRunController.clearStoredReceipt(root.sessionStorage,data.applicationProfile.id);
-          root.__simulatteTierRunReceipt=null;
-          root.__simulatteComparisonExecutionReceipts=Object.freeze([]);
-          ctx.setJourneyPhase?.('loading');
-          ctx.setRuntimeStatus?.(elements,'Applying controls','loading');
-          await new Promise((resolve)=>requestAnimationFrame(resolve));
-          try{
-            await runController.applyControls(values);
-            ctx.setJourneyPhase?.('ready');
-            ctx.setRuntimeStatus?.(elements,'Ready','ready');
+          const result = await runtime.dispatchAction(pluginId,actionId,{values,scenario:activeScenario,routeObjective:data.applicationProfile.routeObjective});
+          if (result?.status === 'refused') throw new Error(`${actionId}: ${result.reason}`);
+          if (actionId.endsWith('.configuration.reset') && result?.values) {
+            pluginUi.setValues(pluginId, result.values);
+            setConfigurationDraft(false);
           }
-          catch(error){reportRunFailure(error);throw error;}
+          renderPlugins();
+        },
+        onControlChange:async({pluginId,controlId,values})=>{
+          const controls = lastPluginContributions.find(row => row.pluginId === pluginId)?.controls.controls || [];
+          const scenario = scenarioControlSelection(interaction.scenarios, controls, controlId, values[controlId]);
+          if (scenario && scenario.id !== activeScenario.id) {
+            const simulation = { scenarioId: scenario.id, seed: scenario.seed };
+            if (ctx.navigate) await ctx.navigate(governedTierRoute(simulation));
+            else await updateSimulationFromRoute(simulation);
+            setConfigurationDraft(false);
+            return;
+          }
+          const explicitApply = runtime.views({scenario:activeScenario}).some(row => row.pluginId === pluginId
+            && row.view.actions.some(action => action.id.endsWith('.configuration.apply')));
+          if (explicitApply) {
+            setConfigurationDraft(true);
+            return { status: 'draft' };
+          }
+          await applyParameterValues(pluginId, values);
         },
         onError:(error)=>reportRunFailure(error),
       });
@@ -273,6 +301,31 @@
         Object.entries(accepted).forEach(([pluginId,values])=>pluginUi.setValues(pluginId,values));
         if(Object.keys(accepted).length)renderPlugins();
       }
+    }
+    function setConfigurationDraft(pending) {
+      elements.startButton.disabled = pending;
+      elements.startButton.title = pending ? 'Apply configuration or Reset draft before running' : '';
+      ctx.setRuntimeStatus?.(elements, pending ? 'Unapplied controls' : 'Ready', 'ready');
+    }
+    async function applyParameterValues(pluginId, values) {
+      if (ctx.navigate) {
+        const simulation = simulationRouteState();
+        await ctx.navigate(governedTierRoute({ ...simulation,
+          parameters: { ...simulation.parameters, [pluginId]: values },
+        }), { replace: true });
+        return;
+      }
+      if (!runController || runController.snapshot().ownerPluginId !== pluginId) return;
+      root.SimulatteTierRunController.clearStoredReceipt(root.sessionStorage, data.applicationProfile.id);
+      root.__simulatteTierRunReceipt = null;
+      root.__simulatteComparisonExecutionReceipts = Object.freeze([]);
+      ctx.setJourneyPhase?.('loading');
+      ctx.setRuntimeStatus?.(elements, 'Applying controls', 'loading');
+      try {
+        await runController.applyControls(values);
+        ctx.setJourneyPhase?.('ready');
+        ctx.setRuntimeStatus?.(elements, 'Ready', 'ready');
+      } catch (error) { reportRunFailure(error); throw error; }
     }
     function renderPlugins(){
       if(!runtime)return;
@@ -286,6 +339,11 @@
       tierVisualizer.removeHud?.();
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
       tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.presentation})),{simulationTimeMs,provenanceReceipts:platform.provenanceReceipts});
+      for (const [button, mode] of [[elements.cameraFollow, 'follow'], [elements.cameraCompare, 'compare']]) {
+        const available = Boolean(preferredTierCameraTarget(tierVisualizer.pluginCameraTargets(), mode));
+        button.disabled = !available;
+        button.title = available ? `Inspect ${mode === 'compare' ? 'the comparison' : 'the tracked subject'}` : `No ${mode} target in the current simulation state`;
+      }
       if(!simulationClock)simulationClock=root.SimulatteSimulationClock.createClock({timeline:platform.timeline});
       simulationClock.useTimeline(platform.timeline,{atMs:simulationTimeMs});
       const previousViewState=viewDirector?.snapshot();
@@ -395,6 +453,9 @@
       root.__simulatteLastFailError={message:error.message,code:error.code||null};
       ctx.setJourneyPhase?.('failed');
       ctx.setRuntimeStatus?.(elements,'Stopped','error');
+      elements.missionError.textContent=error.message;
+      elements.resetButton.hidden=false;
+      elements.resetButton.disabled=false;
       (root.SimulatteAutonomyRuntimeLog||root.SimulatteRuntimeLog)?.error?.('tier.run.failed',{message:error.message,code:error.code||null});
     }
     function configureRunController(owner){
@@ -437,9 +498,14 @@
             clock:{playbackRate:state.playbackRate},
           });
           elements.startButton.disabled=false;
+          elements.resetButton.hidden=false;
+          elements.resetButton.disabled=state.state==='idle';
+          elements.resetButton.title=state.state==='idle'?'The simulation is already at its starting state':'Reset simulation state; keep the current camera';
+          elements.scenarioSelect.disabled=isRunning||interaction.scenarios.length<2;
+          elements.missionError.textContent='';
           renderTierSummary(state.state);
           if(isRunning||isPaused){ctx.setJourneyPhase?.(isPaused?'paused':'running');ctx.setRuntimeStatus?.(elements,statusLabel,isPaused?'paused':'active');}
-          else if(state.state==='idle'&&document.body.dataset.journeyPhase==='completed'){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Resetting scenario','loading');}
+          else if(state.state==='idle'){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');}
         },
         onReceipt:(receipt)=>{
           root.__simulatteTierRunReceipt=receipt;
@@ -509,8 +575,9 @@
       on(elements.replayButton,'click',()=>{void runController.replay().catch(reportRunFailure);});
       on(elements.playbackSpeed,'change',()=>{runController.setPlaybackRate(Number(elements.playbackSpeed.value));});
       on(elements.playbackTimeline,'change',()=>{void runController.seek(Number(elements.playbackTimeline.value)).catch(reportRunFailure);});
-      on(elements.shuffleButton,'click',async()=>{
-        const nextScenario=root.SimulatteApplicationProfileSelect.nextScenario(interaction,activeScenario.id);
+      const selectScenario=async(scenarioId=null)=>{
+        const nextScenario=scenarioId?interaction.scenarios.find((row)=>row.id===scenarioId):root.SimulatteApplicationProfileSelect.nextScenario(interaction,activeScenario.id);
+        if(!nextScenario)throw tierRouteError('scenario',scenarioId,'declared scenario');
         if (ctx.navigate) {
           await ctx.navigate(governedTierRoute({ scenarioId: nextScenario.id, seed: nextScenario.seed }));
           return;
@@ -538,7 +605,9 @@
           elements.shuffleButton.disabled=false;
           elements.startButton.disabled=false;
         }
-      });
+      };
+      on(elements.shuffleButton,'click',()=>{void selectScenario().catch(reportRunFailure);});
+      on(elements.scenarioSelect,'change',()=>{void selectScenario(elements.scenarioSelect.value).catch(reportRunFailure);});
       on(window,'pagehide',()=>{void dispose();},{once:true});
       const restored=await timedLoadStage('first.render', () => runController.restore(), {
         profileId: data.applicationProfile.id,
@@ -635,6 +704,17 @@
       || null;
   }
 
+  function scenarioControlSelection(scenarios, controls, controlId, value) {
+    const control = controls.find(row => row.id === controlId);
+    if (control?.kind !== 'select' || scenarios.length < 2 || control.options.length !== scenarios.length) return null;
+    // A duplicate selector is scenario navigation only when its complete declared
+    // option catalogue equals the profile's scenario identities.
+    const identities = new Set(scenarios.map(row => row.scenarioId || row.id));
+    if (new Set(control.options.map(row => row.value)).size !== identities.size
+      || !control.options.every(row => identities.has(row.value))) return null;
+    return scenarios.find(row => (row.scenarioId || row.id) === value) || null;
+  }
+
   return Object.freeze({
     TIER_LABELS,
     DISCOVERY_PROFILE_BY_TIER,
@@ -650,6 +730,7 @@
     appliedSimulationRouteState,
     createScenarioClock,
     preferredTierCameraTarget,
+    scenarioControlSelection,
     labelForProfile,
     populateProfileSelect,
   });

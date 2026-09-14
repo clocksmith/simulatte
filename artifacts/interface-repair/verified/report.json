@@ -1,0 +1,4119 @@
+{
+  "schema": "simulatte.simulationInterfaceAudit.v1",
+  "startedAt": "2026-09-14T21:09:58.422Z",
+  "evidence": "Local browser UI, DOM geometry, renderer receipts, and screenshots; not scientific or deployed validation",
+  "softwareRequested": true,
+  "profiles": [
+    {
+      "profileId": "gpu-supercluster-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls",
+        "keyboard camera",
+        "reset view without simulation reset",
+        "pause stops simulation progress",
+        "run",
+        "reset simulation",
+        "parameter applies to running contract",
+        "inspector keyboard and focus return",
+        "rapid scenario selection"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/gpu-supercluster-v1-1440-ready.png",
+        "artifacts/interface-repair/verified/gpu-supercluster-v1-1440-result.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "gpu-supercluster-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 1,
+        "camera": "{\"zoom\":1,\"panX\":720,\"panY\":500,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "gpu-supercluster"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Datacenter"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "GPU Supercluster"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (6)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run distributed step"
+          }
+        ]
+      },
+      "run": {
+        "phase": "paused",
+        "loading": null,
+        "profile": "gpu-supercluster-v1",
+        "status": "Paused at 0 of 4",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 13,
+          "width": 1390,
+          "height": 578,
+          "top": 13,
+          "right": 1415,
+          "bottom": 591,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 37,
+        "camera": "{\"zoom\":41.83619047619048,\"panX\":695,\"panY\":289,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 4,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 660,
+          "width": 1392,
+          "height": 229.890625,
+          "top": 660,
+          "right": 1416,
+          "bottom": 889.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": true,
+        "ownerIds": [
+          "gpu-supercluster"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Paused at 0 of 4",
+            "text": "Paused at 0 of 4"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Datacenter"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "GPU Supercluster"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (6)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": false,
+            "title": "Reset simulation state; keep the current camera",
+            "text": "Reset"
+          },
+          {
+            "id": "step-button",
+            "disabled": false,
+            "title": "",
+            "text": "Step"
+          },
+          {
+            "id": "resume-button",
+            "disabled": false,
+            "title": "",
+            "text": "Resume"
+          }
+        ]
+      },
+      "parameter": {
+        "id": "collectiveAlgorithm",
+        "owner": "gpu-supercluster",
+        "before": "ring-allreduce",
+        "after": "tree-allreduce"
+      },
+      "final": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "gpu-supercluster-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 50,
+        "camera": "{\"zoom\":41.83619047619048,\"panX\":695,\"panY\":289,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 4,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 227.890625,
+          "top": 724,
+          "right": 1416,
+          "bottom": 951.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "gpu-supercluster"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Datacenter"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "GPU Supercluster"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (6)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": true,
+            "title": "The simulation is already at its starting state",
+            "text": "Reset"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run distributed step"
+          }
+        ]
+      },
+      "pass": true,
+      "console": []
+    },
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/verified/cable-trader-pickup-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+      "console": [
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.stage.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        }
+      ]
+    },
+    {
+      "profileId": "neighborhood-bulk-pool-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/verified/neighborhood-bulk-pool-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+      "console": [
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.stage.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        }
+      ]
+    },
+    {
+      "profileId": "nyc-development-atlas-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/verified/nyc-development-atlas-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+      "console": [
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.stage.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        }
+      ]
+    },
+    {
+      "profileId": "sun-walker-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/verified/sun-walker-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "initial frame: Cannot setScene: renderer is failed",
+      "console": [
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.stage.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        }
+      ]
+    },
+    {
+      "profileId": "food-recall-us-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls",
+        "keyboard camera",
+        "reset view without simulation reset",
+        "pause stops simulation progress",
+        "run",
+        "reset simulation",
+        "parameter applies to running contract",
+        "inspector keyboard and focus return",
+        "rapid scenario selection"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/food-recall-us-v1-1440-ready.png",
+        "artifacts/interface-repair/verified/food-recall-us-v1-1440-result.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "food-recall-us-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 1,
+        "camera": "{\"zoom\":8,\"panX\":720,\"panY\":500,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "food-recall-us"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Country"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Food Recall (US)"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (2)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run recall experiment"
+          }
+        ]
+      },
+      "run": {
+        "phase": "paused",
+        "loading": null,
+        "profile": "food-recall-us-v1",
+        "status": "Paused at 0 of 7",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 13,
+          "width": 1390,
+          "height": 578,
+          "top": 13,
+          "right": 1415,
+          "bottom": 591,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 21,
+        "camera": "{\"zoom\":8,\"panX\":695,\"panY\":289,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 7,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 660,
+          "width": 1392,
+          "height": 229.890625,
+          "top": 660,
+          "right": 1416,
+          "bottom": 889.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": true,
+        "ownerIds": [
+          "food-recall-us"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Paused at 0 of 7",
+            "text": "Paused at 0 of 7"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Country"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Food Recall (US)"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (2)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": false,
+            "title": "Reset simulation state; keep the current camera",
+            "text": "Reset"
+          },
+          {
+            "id": "step-button",
+            "disabled": false,
+            "title": "",
+            "text": "Step"
+          },
+          {
+            "id": "resume-button",
+            "disabled": false,
+            "title": "",
+            "text": "Resume"
+          }
+        ]
+      },
+      "parameter": {
+        "id": "recallDelayDays",
+        "owner": "food-recall-us",
+        "before": "16",
+        "after": "17"
+      },
+      "final": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "food-recall-us-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 31,
+        "camera": "{\"zoom\":8,\"panX\":695,\"panY\":289,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "food-recall-us"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Country"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Food Recall (US)"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (2)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": true,
+            "title": "The simulation is already at its starting state",
+            "text": "Reset"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run recall experiment"
+          }
+        ]
+      },
+      "pass": true,
+      "console": []
+    },
+    {
+      "profileId": "grid-resilience-us-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls",
+        "keyboard camera",
+        "reset view without simulation reset",
+        "pause stops simulation progress",
+        "run",
+        "reset simulation",
+        "parameter applies to running contract",
+        "inspector keyboard and focus return",
+        "rapid scenario selection"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/grid-resilience-us-v1-1440-ready.png",
+        "artifacts/interface-repair/verified/grid-resilience-us-v1-1440-result.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "grid-resilience-us-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 1,
+        "camera": "{\"zoom\":8,\"panX\":720,\"panY\":500,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "grid-resilience-us"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Country"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Grid Resilience"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (13)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run resilience experiment"
+          }
+        ]
+      },
+      "run": {
+        "phase": "paused",
+        "loading": null,
+        "profile": "grid-resilience-us-v1",
+        "status": "Paused at 0 of 24",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 13,
+          "width": 1390,
+          "height": 578,
+          "top": 13,
+          "right": 1415,
+          "bottom": 591,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 16,
+        "camera": "{\"zoom\":36.405490485749,\"panX\":203.19417069157515,\"panY\":77.45159913398487,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 24,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 660,
+          "width": 1392,
+          "height": 229.890625,
+          "top": 660,
+          "right": 1416,
+          "bottom": 889.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": true,
+        "ownerIds": [
+          "grid-resilience-us"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Paused at 0 of 24",
+            "text": "Paused at 0 of 24"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Country"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Grid Resilience"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (13)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": false,
+            "title": "Reset simulation state; keep the current camera",
+            "text": "Reset"
+          },
+          {
+            "id": "step-button",
+            "disabled": false,
+            "title": "",
+            "text": "Step"
+          },
+          {
+            "id": "resume-button",
+            "disabled": false,
+            "title": "",
+            "text": "Resume"
+          }
+        ]
+      },
+      "parameter": {
+        "id": "dispatchPolicyId",
+        "owner": "grid-resilience-us",
+        "before": "resilience-weighted",
+        "after": "economic-order"
+      },
+      "final": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "grid-resilience-us-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 26,
+        "camera": "{\"zoom\":36.405490485749,\"panX\":203.19417069157515,\"panY\":77.45159913398487,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 24,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 227.890625,
+          "top": 724,
+          "right": 1416,
+          "bottom": 951.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "grid-resilience-us"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Country"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Grid Resilience"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (13)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": true,
+            "title": "The simulation is already at its starting state",
+            "text": "Reset"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run resilience experiment"
+          }
+        ]
+      },
+      "pass": true,
+      "console": []
+    },
+    {
+      "profileId": "maritime-trade-global-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls",
+        "keyboard camera",
+        "reset view without simulation reset",
+        "pause stops simulation progress",
+        "run",
+        "reset simulation",
+        "parameter applies to running contract",
+        "inspector keyboard and focus return",
+        "rapid scenario selection"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/maritime-trade-global-v1-1440-ready.png",
+        "artifacts/interface-repair/verified/maritime-trade-global-v1-1440-result.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "maritime-trade-global-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 1,
+        "camera": "{\"zoom\":1.4,\"panX\":720,\"panY\":500,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "maritime-trade-global"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Planet"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Maritime Trade (Global)"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (4)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run voyage"
+          }
+        ]
+      },
+      "run": {
+        "phase": "paused",
+        "loading": null,
+        "profile": "maritime-trade-global-v1",
+        "status": "Paused at 0 of 19",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 13,
+          "width": 1390,
+          "height": 578,
+          "top": 13,
+          "right": 1415,
+          "bottom": 591,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 33,
+        "camera": "{\"zoom\":250,\"panX\":-66113.50000000001,\"panY\":17465.5,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 19,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 660,
+          "width": 1392,
+          "height": 229.890625,
+          "top": 660,
+          "right": 1416,
+          "bottom": 889.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": true,
+        "ownerIds": [
+          "maritime-trade-global"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Paused at 0 of 19",
+            "text": "Paused at 0 of 19"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Planet"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Maritime Trade (Global)"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (4)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": false,
+            "title": "Reset simulation state; keep the current camera",
+            "text": "Reset"
+          },
+          {
+            "id": "step-button",
+            "disabled": false,
+            "title": "",
+            "text": "Step"
+          },
+          {
+            "id": "resume-button",
+            "disabled": false,
+            "title": "",
+            "text": "Resume"
+          }
+        ]
+      },
+      "parameter": {
+        "id": "vesselClassId",
+        "owner": "maritime-trade-global",
+        "before": "ulcv-24k",
+        "after": "neopanamax-14k"
+      },
+      "final": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "maritime-trade-global-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 47,
+        "camera": "{\"zoom\":250,\"panX\":-66113.50000000001,\"panY\":17465.5,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "maritime-trade-global"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Planet"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Maritime Trade (Global)"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (4)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": true,
+            "title": "The simulation is already at its starting state",
+            "text": "Reset"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run voyage"
+          }
+        ]
+      },
+      "pass": true,
+      "console": []
+    },
+    {
+      "profileId": "subsea-network-global-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls",
+        "keyboard camera",
+        "reset view without simulation reset",
+        "pause stops simulation progress",
+        "run",
+        "reset simulation"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/subsea-network-global-v1-1440-ready.png",
+        "artifacts/interface-repair/verified/subsea-network-global-v1-1440-result.png",
+        "artifacts/interface-repair/verified/subsea-network-global-v1-1440-failure.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "subsea-network-global-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 2,
+        "camera": "{\"zoom\":7.514419115627574,\"panX\":1346.552265861027,\"panY\":1269.5516616314198,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "subsea-network-global"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Planet"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Subsea Network"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (9)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run network experiment"
+          }
+        ]
+      },
+      "run": {
+        "phase": "paused",
+        "loading": null,
+        "profile": "subsea-network-global-v1",
+        "status": "Paused at 0 of 11",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 13,
+          "width": 1390,
+          "height": 578,
+          "top": 13,
+          "right": 1415,
+          "bottom": 591,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 20,
+        "camera": "{\"zoom\":7.25350178522384,\"panX\":1299.7969788519638,\"panY\":1031.8311178247736,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 11,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 660,
+          "width": 1392,
+          "height": 229.890625,
+          "top": 660,
+          "right": 1416,
+          "bottom": 889.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": true,
+        "ownerIds": [
+          "subsea-network-global"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Paused at 0 of 11",
+            "text": "Paused at 0 of 11"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Planet"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Subsea Network"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (9)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": false,
+            "title": "Reset simulation state; keep the current camera",
+            "text": "Reset"
+          },
+          {
+            "id": "step-button",
+            "disabled": false,
+            "title": "",
+            "text": "Step"
+          },
+          {
+            "id": "resume-button",
+            "disabled": false,
+            "title": "",
+            "text": "Resume"
+          }
+        ]
+      },
+      "pass": false,
+      "error": "apply parameter: subsea_scenario_authority_conflict: Drawer demandScenarioId landing-station-loss conflicts with outer scenario atlantic-single-cut",
+      "console": [
+        {
+          "type": "error",
+          "message": "[Simulatte] tier.run.failed Object"
+        }
+      ]
+    },
+    {
+      "profileId": "orbital-transfer-planner-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls",
+        "keyboard camera",
+        "reset view without simulation reset",
+        "pause stops simulation progress",
+        "run",
+        "reset simulation",
+        "parameter applies to running contract",
+        "inspector keyboard and focus return",
+        "rapid scenario selection"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/orbital-transfer-planner-v1-1440-ready.png",
+        "artifacts/interface-repair/verified/orbital-transfer-planner-v1-1440-result.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "orbital-transfer-planner-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 2,
+        "camera": "{\"zoom\":250,\"panX\":700.3436320374025,\"panY\":664.3804178765552,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "orbital-transfer-planner"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Solar System"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Orbital Transfer Planner"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (5)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Solve transfer"
+          }
+        ]
+      },
+      "run": {
+        "phase": "paused",
+        "loading": null,
+        "profile": "orbital-transfer-planner-v1",
+        "status": "Paused at 0 of 8",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 13,
+          "width": 1390,
+          "height": 578,
+          "top": 13,
+          "right": 1415,
+          "bottom": 591,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 25,
+        "camera": "{\"zoom\":250,\"panX\":675.3436320374025,\"panY\":453.38041787655516,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 8,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 660,
+          "width": 1392,
+          "height": 229.890625,
+          "top": 660,
+          "right": 1416,
+          "bottom": 889.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": true,
+        "ownerIds": [
+          "orbital-transfer-planner"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Paused at 0 of 8",
+            "text": "Paused at 0 of 8"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Solar System"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Orbital Transfer Planner"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (5)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": false,
+            "title": "Reset simulation state; keep the current camera",
+            "text": "Reset"
+          },
+          {
+            "id": "step-button",
+            "disabled": false,
+            "title": "",
+            "text": "Step"
+          },
+          {
+            "id": "resume-button",
+            "disabled": false,
+            "title": "",
+            "text": "Resume"
+          }
+        ]
+      },
+      "parameter": {
+        "id": "deltaVWeight",
+        "owner": "orbital-transfer-planner",
+        "before": "1",
+        "after": "1.1"
+      },
+      "final": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "orbital-transfer-planner-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 39,
+        "camera": "{\"zoom\":250,\"panX\":675.3436320374025,\"panY\":453.38041787655516,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 8,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 227.890625,
+          "top": 724,
+          "right": 1416,
+          "bottom": 951.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "orbital-transfer-planner"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Solar System"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Orbital Transfer Planner"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (5)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": true,
+            "title": "The simulation is already at its starting state",
+            "text": "Reset"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Solve transfer"
+          }
+        ]
+      },
+      "pass": true,
+      "console": []
+    },
+    {
+      "profileId": "asteroid-defense-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls",
+        "keyboard camera",
+        "reset view without simulation reset",
+        "pause stops simulation progress",
+        "run",
+        "reset simulation"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/asteroid-defense-v1-1440-ready.png",
+        "artifacts/interface-repair/verified/asteroid-defense-v1-1440-result.png",
+        "artifacts/interface-repair/verified/asteroid-defense-v1-1440-failure.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "asteroid-defense-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 2,
+        "camera": "{\"zoom\":119.46321107790226,\"panX\":678.676372977135,\"panY\":479.4646463179858,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "asteroid-defense"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Solar System"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Asteroid Defense"
+          },
+          {
+            "id": "camera-follow",
+            "disabled": true,
+            "title": "No follow target in the current simulation state",
+            "text": "Follow"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (7)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run defense experiment"
+          }
+        ]
+      },
+      "run": {
+        "phase": "paused",
+        "loading": null,
+        "profile": "asteroid-defense-v1",
+        "status": "Paused at 0 of 13",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 13,
+          "width": 1390,
+          "height": 578,
+          "top": 13,
+          "right": 1415,
+          "bottom": 591,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 51,
+        "camera": "{\"zoom\":69.04973600302752,\"panX\":671.114943580784,\"panY\":277.1305655717958,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 13,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 660,
+          "width": 1392,
+          "height": 229.890625,
+          "top": 660,
+          "right": 1416,
+          "bottom": 889.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": true,
+        "ownerIds": [
+          "asteroid-defense"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Paused at 0 of 13",
+            "text": "Paused at 0 of 13"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Solar System"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Asteroid Defense"
+          },
+          {
+            "id": "camera-follow",
+            "disabled": true,
+            "title": "No follow target in the current simulation state",
+            "text": "Follow"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (7)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": false,
+            "title": "Reset simulation state; keep the current camera",
+            "text": "Reset"
+          },
+          {
+            "id": "step-button",
+            "disabled": false,
+            "title": "",
+            "text": "Step"
+          },
+          {
+            "id": "resume-button",
+            "disabled": false,
+            "title": "",
+            "text": "Resume"
+          }
+        ]
+      },
+      "pass": false,
+      "error": "apply parameter: tier_controls_refused: asteroid-defense refused the updated controls",
+      "console": [
+        {
+          "type": "error",
+          "message": "[Simulatte] tier.run.failed Object"
+        }
+      ]
+    },
+    {
+      "profileId": "interstellar-relay-network-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls",
+        "keyboard camera",
+        "reset view without simulation reset",
+        "pause stops simulation progress",
+        "run",
+        "reset simulation",
+        "parameter applies to running contract",
+        "inspector keyboard and focus return",
+        "rapid scenario selection"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/interstellar-relay-network-v1-1440-ready.png",
+        "artifacts/interface-repair/verified/interstellar-relay-network-v1-1440-result.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "interstellar-relay-network-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 2,
+        "camera": "{\"zoom\":1901.4030048811023,\"panX\":1075.585803160311,\"panY\":207.55021670311635,\"rotX\":0.3,\"rotY\":-0.5}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "interstellar-relay-network"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Universe"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Interstellar Relay Network"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (16)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run relay experiment"
+          }
+        ]
+      },
+      "run": {
+        "phase": "paused",
+        "loading": null,
+        "profile": "interstellar-relay-network-v1",
+        "status": "Paused at 0 of 22",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 13,
+          "width": 1390,
+          "height": 578,
+          "top": 13,
+          "right": 1415,
+          "bottom": 591,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 41,
+        "camera": "{\"zoom\":1099.0109368212773,\"panX\":900.5285942266597,\"panY\":119.96402525440124,\"rotX\":0.3,\"rotY\":-0.5}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 22,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 660,
+          "width": 1392,
+          "height": 229.890625,
+          "top": 660,
+          "right": 1416,
+          "bottom": 889.890625,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": true,
+        "ownerIds": [
+          "interstellar-relay-network"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Paused at 0 of 22",
+            "text": "Paused at 0 of 22"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Universe"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Interstellar Relay Network"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (16)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": false,
+            "title": "Reset simulation state; keep the current camera",
+            "text": "Reset"
+          },
+          {
+            "id": "step-button",
+            "disabled": false,
+            "title": "",
+            "text": "Step"
+          },
+          {
+            "id": "resume-button",
+            "disabled": false,
+            "title": "",
+            "text": "Resume"
+          }
+        ]
+      },
+      "parameter": {
+        "id": "sourceId",
+        "owner": "interstellar-relay-network",
+        "before": "gaia-sol",
+        "after": "gaia-proxima"
+      },
+      "final": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "interstellar-relay-network-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 56,
+        "camera": "{\"zoom\":1099.0109368212773,\"panX\":900.5444905313368,\"panY\":119.96402525440124,\"rotX\":0.3,\"rotY\":-0.5}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "interstellar-relay-network"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Universe"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Interstellar Relay Network"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (16)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": true,
+            "title": "The simulation is already at its starting state",
+            "text": "Reset"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run relay experiment"
+          }
+        ]
+      },
+      "pass": true,
+      "console": []
+    },
+    {
+      "profileId": "gpu-supercluster-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls",
+        "keyboard camera",
+        "reset view without simulation reset",
+        "touch camera",
+        "pause stops simulation progress",
+        "run",
+        "reset simulation",
+        "parameter applies to running contract",
+        "inspector keyboard and focus return",
+        "rapid scenario selection"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/gpu-supercluster-v1-390-ready.png",
+        "artifacts/interface-repair/verified/gpu-supercluster-v1-390-result.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "gpu-supercluster-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 173,
+          "width": 364,
+          "height": 403.109375,
+          "top": 173,
+          "right": 377,
+          "bottom": 576.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 1,
+        "camera": "{\"zoom\":1,\"panX\":182,\"panY\":201.5546875,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 701.109375,
+          "width": 366,
+          "height": 211.28125,
+          "top": 701.109375,
+          "right": 378,
+          "bottom": 912.390625,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "gpu-supercluster"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Datacenter"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "GPU Supercluster"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (6)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run distributed step"
+          }
+        ]
+      },
+      "run": {
+        "phase": "paused",
+        "loading": null,
+        "profile": "gpu-supercluster-v1",
+        "status": "Paused at 0 of 4",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": -92,
+          "width": 364,
+          "height": 403.109375,
+          "top": -92,
+          "right": 377,
+          "bottom": 311.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 74,
+        "camera": "{\"zoom\":21.955555555555556,\"panX\":182,\"panY\":201.5546875,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 4,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 436.109375,
+          "width": 366,
+          "height": 351.390625,
+          "top": 436.109375,
+          "right": 378,
+          "bottom": 787.5,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": true,
+        "ownerIds": [
+          "gpu-supercluster"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Paused at 0 of 4",
+            "text": "Paused at 0 of 4"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Datacenter"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "GPU Supercluster"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (6)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": false,
+            "title": "Reset simulation state; keep the current camera",
+            "text": "Reset"
+          },
+          {
+            "id": "step-button",
+            "disabled": false,
+            "title": "",
+            "text": "Step"
+          },
+          {
+            "id": "resume-button",
+            "disabled": false,
+            "title": "",
+            "text": "Resume"
+          }
+        ]
+      },
+      "parameter": {
+        "id": "collectiveAlgorithm",
+        "owner": "gpu-supercluster",
+        "before": "ring-allreduce",
+        "after": "tree-allreduce"
+      },
+      "final": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "gpu-supercluster-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 69,
+          "width": 364,
+          "height": 403.109375,
+          "top": 69,
+          "right": 377,
+          "bottom": 472.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 97,
+        "camera": "{\"zoom\":21.955555555555556,\"panX\":182,\"panY\":201.5546875,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 4,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 597.109375,
+          "width": 366,
+          "height": 319.171875,
+          "top": 597.109375,
+          "right": 378,
+          "bottom": 916.28125,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "gpu-supercluster"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Datacenter"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "GPU Supercluster"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (6)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": true,
+            "title": "The simulation is already at its starting state",
+            "text": "Reset"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run distributed step"
+          }
+        ]
+      },
+      "pass": true,
+      "console": []
+    },
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/verified/cable-trader-pickup-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+      "console": [
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.stage.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        }
+      ]
+    },
+    {
+      "profileId": "neighborhood-bulk-pool-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/verified/neighborhood-bulk-pool-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "initial frame: Cannot setScene: renderer is failed",
+      "console": [
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.stage.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        }
+      ]
+    },
+    {
+      "profileId": "nyc-development-atlas-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/verified/nyc-development-atlas-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+      "console": [
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.stage.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        }
+      ]
+    },
+    {
+      "profileId": "sun-walker-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/verified/sun-walker-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+      "console": [
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.stage.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] experience.load.failed Object"
+        },
+        {
+          "type": "error",
+          "message": "[Simulatte] runtime.failed Object"
+        }
+      ]
+    },
+    {
+      "profileId": "food-recall-us-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/food-recall-us-v1-390-ready.png",
+        "artifacts/interface-repair/verified/food-recall-us-v1-390-failure.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "food-recall-us-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 173,
+          "width": 364,
+          "height": 403.109375,
+          "top": 173,
+          "right": 377,
+          "bottom": 576.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 3,
+        "camera": "{\"zoom\":8,\"panX\":182,\"panY\":201.5546875,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 701.109375,
+          "width": 366,
+          "height": 211.28125,
+          "top": 701.109375,
+          "right": 378,
+          "bottom": 912.390625,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "food-recall-us"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Country"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Food Recall (US)"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (2)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run recall experiment"
+          }
+        ]
+      },
+      "pass": false,
+      "error": "Keyboard exploration did not move the camera",
+      "console": []
+    },
+    {
+      "profileId": "grid-resilience-us-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/grid-resilience-us-v1-390-ready.png",
+        "artifacts/interface-repair/verified/grid-resilience-us-v1-390-failure.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "grid-resilience-us-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 173,
+          "width": 364,
+          "height": 403.109375,
+          "top": 173,
+          "right": 377,
+          "bottom": 576.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 3,
+        "camera": "{\"zoom\":30.260429584725156,\"panX\":53.2105598070024,\"panY\":146.1564012300507,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 701.109375,
+          "width": 366,
+          "height": 211.28125,
+          "top": 701.109375,
+          "right": 378,
+          "bottom": 912.390625,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "grid-resilience-us"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Country"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Grid Resilience"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (13)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run resilience experiment"
+          }
+        ]
+      },
+      "pass": false,
+      "error": "Keyboard exploration did not move the camera",
+      "console": []
+    },
+    {
+      "profileId": "maritime-trade-global-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/maritime-trade-global-v1-390-ready.png",
+        "artifacts/interface-repair/verified/maritime-trade-global-v1-390-failure.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "maritime-trade-global-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 173,
+          "width": 364,
+          "height": 403.109375,
+          "top": 173,
+          "right": 377,
+          "bottom": 576.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 3,
+        "camera": "{\"zoom\":250,\"panX\":-66626.50000000001,\"panY\":17378.0546875,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 701.109375,
+          "width": 366,
+          "height": 199.5,
+          "top": 701.109375,
+          "right": 378,
+          "bottom": 900.609375,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "maritime-trade-global"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Planet"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Maritime Trade (Global)"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (4)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run voyage"
+          }
+        ]
+      },
+      "pass": false,
+      "error": "Keyboard exploration did not move the camera",
+      "console": []
+    },
+    {
+      "profileId": "subsea-network-global-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/subsea-network-global-v1-390-ready.png",
+        "artifacts/interface-repair/verified/subsea-network-global-v1-390-failure.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "subsea-network-global-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 173,
+          "width": 364,
+          "height": 403.109375,
+          "top": 173,
+          "right": 377,
+          "bottom": 576.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 3,
+        "camera": "{\"zoom\":1.8994781653391923,\"panX\":340.3784894259819,\"panY\":396.0802464123867,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 701.109375,
+          "width": 366,
+          "height": 211.28125,
+          "top": 701.109375,
+          "right": 378,
+          "bottom": 912.390625,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "subsea-network-global"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Planet"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Subsea Network"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (9)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run network experiment"
+          }
+        ]
+      },
+      "pass": false,
+      "error": "Keyboard exploration did not move the camera",
+      "console": []
+    },
+    {
+      "profileId": "orbital-transfer-planner-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/orbital-transfer-planner-v1-390-ready.png",
+        "artifacts/interface-repair/verified/orbital-transfer-planner-v1-390-failure.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "orbital-transfer-planner-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 173,
+          "width": 364,
+          "height": 403.109375,
+          "top": 173,
+          "right": 377,
+          "bottom": 576.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 3,
+        "camera": "{\"zoom\":169.5528490268487,\"panX\":168.66882724168607,\"panY\":313.0393602007754,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 701.109375,
+          "width": 366,
+          "height": 199.5,
+          "top": 701.109375,
+          "right": 378,
+          "bottom": 900.609375,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "orbital-transfer-planner"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Solar System"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Orbital Transfer Planner"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (5)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Solve transfer"
+          }
+        ]
+      },
+      "pass": false,
+      "error": "Keyboard exploration did not move the camera",
+      "console": []
+    },
+    {
+      "profileId": "asteroid-defense-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/asteroid-defense-v1-390-ready.png",
+        "artifacts/interface-repair/verified/asteroid-defense-v1-390-failure.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "asteroid-defense-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 173,
+          "width": 364,
+          "height": 403.109375,
+          "top": 173,
+          "right": 377,
+          "bottom": 576.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 3,
+        "camera": "{\"zoom\":48.156740353106265,\"panX\":165.34205853807975,\"panY\":193.27669391183932,\"rotX\":0.2,\"rotY\":-0.4}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 701.109375,
+          "width": 366,
+          "height": 211.28125,
+          "top": 701.109375,
+          "right": 378,
+          "bottom": 912.390625,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "asteroid-defense"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Solar System"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Asteroid Defense"
+          },
+          {
+            "id": "camera-follow",
+            "disabled": true,
+            "title": "No follow target in the current simulation state",
+            "text": "Follow"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (7)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run defense experiment"
+          }
+        ]
+      },
+      "pass": false,
+      "error": "Keyboard exploration did not move the camera",
+      "console": []
+    },
+    {
+      "profileId": "interstellar-relay-network-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls",
+        "keyboard camera",
+        "reset view without simulation reset",
+        "touch camera",
+        "pause stops simulation progress",
+        "run",
+        "reset simulation",
+        "parameter applies to running contract",
+        "inspector keyboard and focus return",
+        "rapid scenario selection"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/verified/interstellar-relay-network-v1-390-ready.png",
+        "artifacts/interface-repair/verified/interstellar-relay-network-v1-390-result.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "interstellar-relay-network-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 173,
+          "width": 364,
+          "height": 403.109375,
+          "top": 173,
+          "right": 377,
+          "bottom": 576.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 3,
+        "camera": "{\"zoom\":280,\"panX\":182,\"panY\":201.5546875,\"rotX\":0.3,\"rotY\":-0.5}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 701.109375,
+          "width": 366,
+          "height": 211.28125,
+          "top": 701.109375,
+          "right": 378,
+          "bottom": 912.390625,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "interstellar-relay-network"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Universe"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Interstellar Relay Network"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (16)"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run relay experiment"
+          }
+        ]
+      },
+      "run": {
+        "phase": "paused",
+        "loading": null,
+        "profile": "interstellar-relay-network-v1",
+        "status": "Paused at 0 of 22",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": -92,
+          "width": 364,
+          "height": 403.109375,
+          "top": -92,
+          "right": 377,
+          "bottom": 311.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 89,
+        "camera": "{\"zoom\":696.8929770170862,\"panX\":312.3275782741788,\"panY\":94.36741600280821,\"rotX\":0.3,\"rotY\":-0.5}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 22,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 436.109375,
+          "width": 366,
+          "height": 351.390625,
+          "top": 436.109375,
+          "right": 378,
+          "bottom": 787.5,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": true,
+        "ownerIds": [
+          "interstellar-relay-network"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Paused at 0 of 22",
+            "text": "Paused at 0 of 22"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Universe"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Interstellar Relay Network"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (16)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": false,
+            "title": "Reset simulation state; keep the current camera",
+            "text": "Reset"
+          },
+          {
+            "id": "step-button",
+            "disabled": false,
+            "title": "",
+            "text": "Step"
+          },
+          {
+            "id": "resume-button",
+            "disabled": false,
+            "title": "",
+            "text": "Resume"
+          }
+        ]
+      },
+      "parameter": {
+        "id": "sourceId",
+        "owner": "interstellar-relay-network",
+        "before": "gaia-sol",
+        "after": "gaia-proxima"
+      },
+      "final": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "interstellar-relay-network-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 69,
+          "width": 364,
+          "height": 403.109375,
+          "top": 69,
+          "right": 377,
+          "bottom": 472.109375,
+          "left": 13
+        },
+        "backend": "canvas2d",
+        "adapter": null,
+        "frames": 120,
+        "camera": "{\"zoom\":696.9437664085636,\"panX\":312.34715724465553,\"panY\":94.3596042204069,\"rotX\":0.3,\"rotY\":-0.5}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 597.109375,
+          "width": 366,
+          "height": 199.78125,
+          "top": 597.109375,
+          "right": 378,
+          "bottom": 796.890625,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "interstellar-relay-network"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Universe"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "Interstellar Relay Network"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": true,
+            "title": "No compare target in the current simulation state",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (16)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": true,
+            "title": "The simulation is already at its starting state",
+            "text": "Reset"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Run relay experiment"
+          }
+        ]
+      },
+      "pass": true,
+      "console": []
+    }
+  ],
+  "recovery": {
+    "failureObserved": true,
+    "recovered": true
+  },
+  "failures": [
+    "cable-trader-pickup-v1 1440: initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+    "neighborhood-bulk-pool-v1 1440: initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+    "nyc-development-atlas-v1 1440: initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+    "sun-walker-v1 1440: initial frame: Cannot setScene: renderer is failed",
+    "subsea-network-global-v1 1440: apply parameter: subsea_scenario_authority_conflict: Drawer demandScenarioId landing-station-loss conflicts with outer scenario atlantic-single-cut",
+    "asteroid-defense-v1 1440: apply parameter: tier_controls_refused: asteroid-defense refused the updated controls",
+    "cable-trader-pickup-v1 390: initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+    "neighborhood-bulk-pool-v1 390: initial frame: Cannot setScene: renderer is failed",
+    "nyc-development-atlas-v1 390: initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+    "sun-walker-v1 390: initial frame: webgpu_device_lost: unknown: A valid external Instance reference no longer exists.",
+    "food-recall-us-v1 390: Keyboard exploration did not move the camera",
+    "grid-resilience-us-v1 390: Keyboard exploration did not move the camera",
+    "maritime-trade-global-v1 390: Keyboard exploration did not move the camera",
+    "subsea-network-global-v1 390: Keyboard exploration did not move the camera",
+    "orbital-transfer-planner-v1 390: Keyboard exploration did not move the camera",
+    "asteroid-defense-v1 390: Keyboard exploration did not move the camera"
+  ],
+  "pass": false,
+  "browser": {
+    "executable": "/usr/bin/google-chrome",
+    "arguments": [
+      "--remote-debugging-port=0",
+      "--user-data-dir=/tmp/simulatte-browser-xPSgnU",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--enable-unsafe-webgpu",
+      "--window-size=1440,1000",
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "--use-angle=swiftshader",
+      "--use-webgpu-adapter=swiftshader",
+      "--enable-unsafe-swiftshader",
+      "about:blank"
+    ],
+    "process": {
+      "schema": "simulatte.auditChildProcessLog.v1",
+      "stdout": {
+        "characterCount": 0,
+        "chunkCount": 0,
+        "truncated": false,
+        "tail": ""
+      },
+      "stderr": {
+        "characterCount": 12467,
+        "chunkCount": 60,
+        "truncated": false,
+        "tail": "\nDevTools listening on ws://127.0.0.1:46165/devtools/browser/9e3f600f-1fb3-4616-8a97-82f1af8e11e5\nCreated TensorFlow Lite XNNPACK delegate for CPU.\nAttempting to use a delegate that only supports static-sized tensors with a graph that has dynamic-sized tensors (tensor#-1 is a dynamic-sized tensor).\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\n[205331:205331:0914/171042.750540:ERROR:gpu/command_buffer/service/shared_image/shared_image_factory.cc:904] Could not find SharedImageBackingFactory with params: usage: RasterRead|DisplayRead|WebgpuRead|WebgpuSwapChainTexture|RasterWrite|WebgpuWrite, format: BGRA_8888, share_between_threads: 0, gmb_type: empty, debug_label: SharedImagePool_Pid:205381\n[205331:205331:0914/171042.750649:ERROR:gpu/ipc/service/shared_image_stub.cc:288] SharedImageStub: Unable to create shared image\n[205331:205331:0914/171042.758120:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171042.759184:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171042.760106:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171042.761005:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171042.766352:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171042.769405:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171042.833301:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171042.834199:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171042.834875:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171042.835517:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171042.837651:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\n[205331:205331:0914/171044.598561:ERROR:gpu/command_buffer/service/shared_image/shared_image_factory.cc:904] Could not find SharedImageBackingFactory with params: usage: RasterRead|DisplayRead|WebgpuRead|WebgpuSwapChainTexture|RasterWrite|WebgpuWrite, format: BGRA_8888, share_between_threads: 0, gmb_type: empty, debug_label: SharedImagePool_Pid:0\n[205331:205331:0914/171044.598636:ERROR:gpu/ipc/service/shared_image_stub.cc:288] SharedImageStub: Unable to create shared image\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\n[205331:205331:0914/171046.677388:ERROR:gpu/command_buffer/service/shared_image/shared_image_factory.cc:904] Could not find SharedImageBackingFactory with params: usage: RasterRead|DisplayRead|WebgpuRead|WebgpuSwapChainTexture|RasterWrite|WebgpuWrite, format: BGRA_8888, share_between_threads: 0, gmb_type: empty, debug_label: SharedImagePool_Pid:0\n[205331:205331:0914/171046.677465:ERROR:gpu/ipc/service/shared_image_stub.cc:288] SharedImageStub: Unable to create shared image\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\n[205331:205331:0914/171103.398423:ERROR:gpu/command_buffer/service/shared_image/shared_image_factory.cc:904] Could not find SharedImageBackingFactory with params: usage: RasterRead|DisplayRead|WebgpuRead|WebgpuSwapChainTexture|RasterWrite|WebgpuWrite, format: BGRA_8888, share_between_threads: 0, gmb_type: empty, debug_label: SharedImagePool_Pid:0\n[205331:205331:0914/171103.398963:ERROR:gpu/ipc/service/shared_image_stub.cc:288] SharedImageStub: Unable to create shared image\n[205331:205331:0914/171103.457869:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171103.458874:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171103.459982:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171103.460992:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171103.463737:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171103.466776:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\n[205331:205331:0914/171229.909466:ERROR:gpu/command_buffer/service/shared_image/shared_image_factory.cc:904] Could not find SharedImageBackingFactory with params: usage: RasterRead|DisplayRead|WebgpuRead|WebgpuSwapChainTexture|RasterWrite|WebgpuWrite, format: BGRA_8888, share_between_threads: 0, gmb_type: empty, debug_label: SharedImagePool_Pid:0\n[205331:205331:0914/171229.909585:ERROR:gpu/ipc/service/shared_image_stub.cc:288] SharedImageStub: Unable to create shared image\n[205331:205331:0914/171229.950794:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171229.951225:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171229.951423:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171229.951563:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171229.951880:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171229.952071:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171229.952212:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171229.952325:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171229.952444:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\n[205331:205331:0914/171231.280380:ERROR:gpu/command_buffer/service/shared_image/shared_image_factory.cc:904] Could not find SharedImageBackingFactory with params: usage: RasterRead|DisplayRead|WebgpuRead|WebgpuSwapChainTexture|RasterWrite|WebgpuWrite, format: BGRA_8888, share_between_threads: 0, gmb_type: empty, debug_label: SharedImagePool_Pid:0\n[205331:205331:0914/171231.280481:ERROR:gpu/ipc/service/shared_image_stub.cc:288] SharedImageStub: Unable to create shared image\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\n[205331:205331:0914/171232.814543:ERROR:gpu/command_buffer/service/shared_image/shared_image_factory.cc:904] Could not find SharedImageBackingFactory with params: usage: RasterRead|DisplayRead|WebgpuRead|WebgpuSwapChainTexture|RasterWrite|WebgpuWrite, format: BGRA_8888, share_between_threads: 0, gmb_type: empty, debug_label: SharedImagePool_Pid:0\n[205331:205331:0914/171232.814631:ERROR:gpu/ipc/service/shared_image_stub.cc:288] SharedImageStub: Unable to create shared image\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\n[205331:205331:0914/171246.468470:ERROR:gpu/command_buffer/service/shared_image/shared_image_factory.cc:904] Could not find SharedImageBackingFactory with params: usage: RasterRead|DisplayRead|WebgpuRead|WebgpuSwapChainTexture|RasterWrite|WebgpuWrite, format: BGRA_8888, share_between_threads: 0, gmb_type: empty, debug_label: SharedImagePool_Pid:0\n[205331:205331:0914/171246.468582:ERROR:gpu/ipc/service/shared_image_stub.cc:288] SharedImageStub: Unable to create shared image\n[205331:205331:0914/171246.507264:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171246.507651:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171246.507820:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171246.507958:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171246.508299:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171246.508470:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171246.508615:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171246.508742:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\n[205331:205331:0914/171246.508873:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceSkia: Trying to Produce a Skia representation from a non-existent mailbox.\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1789420378.675007  206747 voice_transcription.cc:58] Registering VoiceTranscriptionCapability\n"
+      }
+    }
+  },
+  "finishedAt": "2026-09-14T21:13:20.272Z"
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "backend": "headed-vulkan",
+    "result": {
+      "lost": null,
+      "format": "bgra8unorm",
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "description": ""
+      },
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+    },
+    "process": {
+      "schema": "simulatte.auditChildProcessLog.v1",
+      "stdout": {
+        "characterCount": 0,
+        "chunkCount": 0,
+        "truncated": false,
+        "tail": ""
+      },
+      "stderr": {
+        "characterCount": 395,
+        "chunkCount": 4,
+        "truncated": false,
+        "tail": "\nDevTools listening on ws://127.0.0.1:40537/devtools/browser/23219ed5-32bb-4a65-9066-9bae8ff89a5c\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\nCreated TensorFlow Lite XNNPACK delegate for CPU.\nAttempting to use a delegate that only supports static-sized tensors with a graph that has dynamic-sized tensors (tensor#-1 is a dynamic-sized tensor).\n"
+      }
+    }
+  },
+  {
+    "backend": "headed-default",
+    "result": {},
+    "error": {
+      "exceptionId": 1,
+      "text": "Uncaught (in promise)",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "exception": {
+        "type": "object",
+        "subtype": "error",
+        "className": "DOMException",
+        "description": "OperationError: Instance dropped in onSubmittedWorkDone",
+        "objectId": "-7254612572268556790.2.1",
+        "preview": {
+          "type": "object",
+          "subtype": "error",
+          "description": "OperationError: Instance dropped in onSubmittedWorkDone",
+          "overflow": false,
+          "properties": [
+            {
+              "name": "stack",
+              "type": "string",
+              "value": "OperationError: Instance dropped in onSubmittedWorkDone"
+            },
+            {
+              "name": "code",
+              "type": "number",
+              "value": "0"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "value": "OperationError"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": "Instance dropped in onSubmittedWorkDone"
+            }
+          ]
+        }
+      }
+    },
+    "process": {
+      "schema": "simulatte.auditChildProcessLog.v1",
+      "stdout": {
+        "characterCount": 0,
+        "chunkCount": 0,
+        "truncated": false,
+        "tail": ""
+      },
+      "stderr": {
+        "characterCount": 817,
+        "chunkCount": 4,
+        "truncated": false,
+        "tail": "\nDevTools listening on ws://127.0.0.1:42527/devtools/browser/8f036dd4-fd9b-4b1c-8379-2de0c1576417\n[206361:206361:0914/171200.153168:ERROR:components/viz/service/main/viz_main_impl.cc:183] Exiting GPU process due to errors during initialization\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\n[206459:206459:0914/171225.314143:ERROR:gpu/command_buffer/service/shared_image/shared_image_factory.cc:904] Could not find SharedImageBackingFactory with params: usage: RasterRead|DisplayRead|WebgpuRead|WebgpuSwapChainTexture|RasterWrite|WebgpuWrite, format: BGRA_8888, share_between_threads: 0, gmb_type: empty, debug_label: SharedImagePool_Pid:0\n[206459:206459:0914/171225.314286:ERROR:gpu/ipc/service/shared_image_stub.cc:288] SharedImageStub: Unable to create shared image\n"
+      }
+    }
+  }
+]

@@ -1,0 +1,131 @@
+{
+  "state": {
+    "phase": "ready",
+    "profile": "Loading experience"
+  },
+  "screen": {
+    "width": 1440,
+    "height": 861,
+    "scroll": 1440
+  },
+  "elements": [
+    {
+      "id": "autonomy-canvas",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 861,
+        "top": 0,
+        "right": 1440,
+        "bottom": 861,
+        "left": 0
+      },
+      "hidden": false,
+      "display": "block"
+    },
+    {
+      "id": "overlay-canvas",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "hidden": true,
+      "display": "none"
+    },
+    {
+      "id": "sim-rail-left",
+      "rect": {
+        "x": 20,
+        "y": 20,
+        "width": 320,
+        "height": 110,
+        "top": 20,
+        "right": 340,
+        "bottom": 130,
+        "left": 20
+      },
+      "hidden": false,
+      "display": "flex"
+    },
+    {
+      "id": "sim-rail-right",
+      "rect": {
+        "x": 1100,
+        "y": 20,
+        "width": 320,
+        "height": 124,
+        "top": 20,
+        "right": 1420,
+        "bottom": 144,
+        "left": 1100
+      },
+      "hidden": false,
+      "display": "flex"
+    },
+    {
+      "id": "sim-mission-dock",
+      "rect": {
+        "x": 360,
+        "y": 757.8125,
+        "width": 720,
+        "height": 83.1875,
+        "top": 757.8125,
+        "right": 1080,
+        "bottom": 841,
+        "left": 360
+      },
+      "hidden": false,
+      "display": "grid"
+    },
+    {
+      "id": "mission-input",
+      "rect": {
+        "x": 371,
+        "y": 768.8125,
+        "width": 440.171875,
+        "height": 61.1875,
+        "top": 768.8125,
+        "right": 811.171875,
+        "bottom": 830,
+        "left": 371
+      },
+      "hidden": false,
+      "value": "",
+      "display": "block"
+    }
+  ],
+  "cameras": [
+    {
+      "id": "camera-follow",
+      "label": "Follow"
+    },
+    {
+      "id": "camera-pov",
+      "label": "POV"
+    },
+    {
+      "id": "camera-bird",
+      "label": "Overview"
+    },
+    {
+      "id": "camera-top",
+      "label": "Top"
+    },
+    {
+      "id": "camera-free",
+      "label": "Free"
+    },
+    {
+      "id": "camera-compare",
+      "label": "Compare"
+    }
+  ],
+  "text": "STARTING\n◀\nWorkbench\nPrompt\nLoading\nSelect scale\nLoading experience\n▶\nFollow\nPOV\nOverview\nTop\nFree\nCompare\nControls (6)\nActive\n0 m\n0:00\n0 m/s 0 unplanned none none 0 / 0\n▼\nDescribe a mission\nShuffle\n↻\nStart\nModels\nDeterministic matching is active.\nSimulatte\n\nChoose a simulation.\n\nUse your data\n\nCREATE A WORLD\nC\nSimulatte Create\n\nDescribe a world. Make it move.\n\nOpen Create\nDATACENTER\nD\n256-GPU Cluster\n\nRacks, cooling, and GPU networks.\n\nUNIVERSE\nU\nInterstellar Relay\n\nSignals between stars.\n\nSOLAR SYSTEM\nS\nOrbital Transfer\n\nPlan a path between orbits.\n\nCOUNTRY\nP\nGrid Resilience\n\nPower, outages, and restoration.\n\nPLANET / TELECOM\nN\nSubsea Network\n\nCables, outages, and rerouting.\n\nCITY\nC\nSun Walker\n\nFind a shaded route through the city."
+}

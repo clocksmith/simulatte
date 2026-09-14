@@ -570,6 +570,12 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       return mode;
     }
 
+    function resetCamera({ targetId, mode }) {
+      cameraApi.resetCamera(state, targetId, mode, performance.now());
+      if (state.latestSnapshot) drawFrame();
+      return mode;
+    }
+
     function focusCameraTarget(targetId) {
       const mode = cameraApi.focusCameraTarget(state, targetId, performance.now());
       canvas.dataset.cameraMode = mode;
@@ -686,6 +692,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       resize: () => resizeCanvas(canvas, device, format, state),
       reset,
       setCameraMode,
+      resetCamera,
       focusCameraTarget,
       cameraTargets,
       cameraState,
@@ -808,7 +815,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const on = (type, listener, options) => canvas.addEventListener(type, listener, { ...options, signal });
     let pointer = null;
     on('pointerdown', (event) => {
+      canvas.focus({ preventScroll: true });
+      if (pointer || event.isPrimary === false) return;
+      event.preventDefault();
       const action = state.mode === 'top' || event.shiftKey || event.button !== 0 ? 'pan' : 'orbit';
+      if (state.mode === 'top') state.pitch = Math.PI / 2 - 0.025;
       camera.setCameraMode(state, 'free', performance.now());
       pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, action };
       canvas.dataset.cameraInteraction = action;
@@ -825,11 +836,24 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       pointer.y = event.clientY;
     });
     const release = (event) => {
-      if (pointer?.id === event.pointerId) pointer = null;
+      if (pointer?.id !== event.pointerId) return;
+      if (canvas.hasPointerCapture?.(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      pointer = null;
     };
     on('pointerup', release);
     on('pointercancel', release);
     on('contextmenu', (event) => event.preventDefault());
+    on('keydown', (event) => {
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-'].includes(event.key)) return;
+      event.preventDefault();
+      if (['+', '=', '-'].includes(event.key)) camera.zoomCamera(state, event.key === '-' ? 120 : -120);
+      else {
+        camera.setCameraMode(state, 'free', performance.now());
+        camera.panCamera(state, event.key === 'ArrowLeft' ? 24 : event.key === 'ArrowRight' ? -24 : 0,
+          event.key === 'ArrowUp' ? 24 : event.key === 'ArrowDown' ? -24 : 0, canvas.clientHeight);
+      }
+      onInteraction?.({ control: 'keyboard', mode: state.mode, targetIds: [] });
+    });
     on('wheel', (event) => {
       event.preventDefault();
       const trackedMode = ['follow', 'pov'].includes(state.mode);

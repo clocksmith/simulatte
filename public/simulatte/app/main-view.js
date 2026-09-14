@@ -5,6 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSimulatteMainView(root) {
   function collectElements() {
     const ids = [
+      'camera-reset', 'scenario-select',
       'mission-field', 'scenario-field', 'scenario-label', 'scenario-description', 'scenario-seed', 'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'model-selection-controls', 'shuffle-button', 'shuffle-label', 'start-button', 'start-label', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button', 'playback-strip', 'playback-event', 'playback-timeline-label', 'playback-speed-control', 'playback-speed', 'playback-timeline-control', 'playback-timeline', 'playback-progress',
       'dock-more-button', 'dock-more-menu',
       'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'runtime-context-label', 'runtime-context-legend', 'runtime-context-hint', 'runtime-data-copy', 'application-profile', 'application-profile-control', 'application-profile-trigger', 'application-profile-label', 'application-profile-options', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
@@ -46,6 +47,8 @@
     if (elements.runtimeStatus.textContent !== text) elements.runtimeStatus.textContent = text;
     if (elements.runtimeStatus.dataset.kind !== kind) elements.runtimeStatus.dataset.kind = kind;
     if (elements.runtimeToggle.title !== text) elements.runtimeToggle.title = text;
+    const failed = ['error', 'failed'].includes(kind);
+    elements.experienceSummaryState.textContent = failed ? 'Failed' : text;
   }
 
   function runtimeLabel(state) {
@@ -136,14 +139,18 @@
     elements.cameraPov.hidden = !supportedViews.has('pov');
     elements.cameraBird.hidden = !supportedViews.has('overview');
     elements.cameraTop.hidden = !supportedViews.has('top');
-    elements.cameraFree.hidden = !supportedViews.has('free');
+    // Free exploration is a gesture, not a second overview preset.
+    elements.cameraFree.hidden = true;
     elements.cameraCompare.hidden = !supportedViews.has('compare');
     elements.cameraFollow.textContent = 'Follow';
     elements.cameraBird.textContent = 'Overview';
-    elements.cameraTop.textContent = 'Top';
+    elements.cameraTop.textContent = 'Top view';
     elements.cameraFree.textContent = 'Free';
     elements.cameraCompare.textContent = 'Compare';
     elements.semanticLabelCanvas.hidden = tier !== 'city';
+    const sceneLabel = `${applicationProfileLabel(profileId)} simulation viewport`;
+    elements.autonomyCanvas.setAttribute('aria-label', sceneLabel);
+    elements.overlayCanvas.setAttribute('aria-label', sceneLabel);
     elements.playbackTimelineLabel.textContent = profile?.experience?.timelineLabel || 'Event';
     elements.decisionTitle.textContent = isExperiment ? 'Experiment' : 'Decision details';
     elements.decisionMeta.textContent = experienceKind === 'analysis'
@@ -151,7 +158,7 @@
       : experienceKind === 'solver'
         ? 'Adjust solver parameters, solve the transfer, then inspect verification evidence.'
         : isExperiment
-          ? 'Set parameters, run the experiment, then inspect its evidence.'
+          ? 'Parameter changes reset the run. Playback speed changes only the viewing rate.'
       : 'Inspect the active journey and its evidence.';
     const playMark = elements.startButton.querySelector?.('.play-mark');
     if (playMark) playMark.hidden = experienceKind === 'analysis' || experienceKind === 'solver';

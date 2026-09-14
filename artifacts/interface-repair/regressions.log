@@ -1,0 +1,358 @@
+TAP version 13
+# Subtest: plugin playback advances on the shared clock and settles terminal obligations
+ok 1 - plugin playback advances on the shared clock and settles terminal obligations
+  ---
+  duration_ms: 13.674299
+  type: 'test'
+  ...
+# Subtest: plugin playback fails closed when terminal obligations remain unmet
+ok 2 - plugin playback fails closed when terminal obligations remain unmet
+  ---
+  duration_ms: 1.193705
+  type: 'test'
+  ...
+# Subtest: settlement retains immutable runtime history and snapshots mutable adapter receipts
+ok 3 - settlement retains immutable runtime history and snapshots mutable adapter receipts
+  ---
+  duration_ms: 4.647282
+  type: 'test'
+  ...
+# Subtest: plugin playback restores a settled run deterministically from its receipt
+ok 4 - plugin playback restores a settled run deterministically from its receipt
+  ---
+  duration_ms: 7.359097
+  type: 'test'
+  ...
+# Subtest: plugin playback restores an immediately settled run without dispatching a step
+ok 5 - plugin playback restores an immediately settled run without dispatching a step
+  ---
+  duration_ms: 5.323111
+  type: 'test'
+  ...
+# Subtest: plugin playback refuses a reload whose deterministic reconstruction diverges
+ok 6 - plugin playback refuses a reload whose deterministic reconstruction diverges
+  ---
+  duration_ms: 6.12117
+  type: 'test'
+  ...
+# Subtest: plugin playback receipt storage is profile-scoped and recoverable
+ok 7 - plugin playback receipt storage is profile-scoped and recoverable
+  ---
+  duration_ms: 0.529245
+  type: 'test'
+  ...
+# Subtest: plugin playback stores only evidence required for deterministic reconstruction
+ok 8 - plugin playback stores only evidence required for deterministic reconstruction
+  ---
+  duration_ms: 0.436692
+  type: 'test'
+  ...
+# Subtest: plugin playback storage exhaustion does not fail a completed run
+ok 9 - plugin playback storage exhaustion does not fail a completed run
+  ---
+  duration_ms: 0.403973
+  type: 'test'
+  ...
+# Subtest: plugin playback sends typed experiment parameters on every phase and receipts them
+ok 10 - plugin playback sends typed experiment parameters on every phase and receipts them
+  ---
+  duration_ms: 3.427677
+  type: 'test'
+  ...
+# Subtest: plugin playback snapshots scenario and terminal evidence before publishing a receipt
+ok 11 - plugin playback snapshots scenario and terminal evidence before publishing a receipt
+  ---
+  duration_ms: 2.972903
+  type: 'test'
+  ...
+# Subtest: plugin playback captures controls when Step starts a ready run
+ok 12 - plugin playback captures controls when Step starts a ready run
+  ---
+  duration_ms: 3.01178
+  type: 'test'
+  ...
+# Subtest: plugin playback applies changed controls immediately and returns to a configured ready state
+ok 13 - plugin playback applies changed controls immediately and returns to a configured ready state
+  ---
+  duration_ms: 0.884982
+  type: 'test'
+  ...
+# Subtest: plugin playback starts a configured preview without dispatching start twice
+ok 14 - plugin playback starts a configured preview without dispatching start twice
+  ---
+  duration_ms: 0.562988
+  type: 'test'
+  ...
+# Subtest: plugin playback Start does not reset a paused simulation
+ok 15 - plugin playback Start does not reset a paused simulation
+  ---
+  duration_ms: 0.426386
+  type: 'test'
+  ...
+# Subtest: plugin playback drops an in-flight start after disposal
+ok 16 - plugin playback drops an in-flight start after disposal
+  ---
+  duration_ms: 0.405277
+  type: 'test'
+  ...
+# Subtest: plugin playback closes its public API after disposal
+ok 17 - plugin playback closes its public API after disposal
+  ---
+  duration_ms: 0.52261
+  type: 'test'
+  ...
+# Subtest: plugin playback drops queued reconstruction after disposal
+ok 18 - plugin playback drops queued reconstruction after disposal
+  ---
+  duration_ms: 0.913674
+  type: 'test'
+  ...
+# Subtest: plugin playback discards an intervention superseded by a control rebuild
+ok 19 - plugin playback discards an intervention superseded by a control rebuild
+  ---
+  duration_ms: 0.984019
+  type: 'test'
+  ...
+# Subtest: plugin playback skips a redundant ready-state render when start preserves the presentation
+ok 20 - plugin playback skips a redundant ready-state render when start preserves the presentation
+  ---
+  duration_ms: 8.707952
+  type: 'test'
+  ...
+# Subtest: plugin playback preserves the completed run parameters across replay
+ok 21 - plugin playback preserves the completed run parameters across replay
+  ---
+  duration_ms: 2.493022
+  type: 'test'
+  ...
+# Subtest: plugin playback receipts and deterministically restores a mid-run intervention
+ok 22 - plugin playback receipts and deterministically restores a mid-run intervention
+  ---
+  duration_ms: 6.670991
+  type: 'test'
+  ...
+# Subtest: plugin playback executes and receipts every declared comparison
+ok 23 - plugin playback executes and receipts every declared comparison
+  ---
+  duration_ms: 9.41616
+  type: 'test'
+  ...
+# Subtest: plugin playback seek clamps stale targets and requires an explicit terminal commit
+ok 24 - plugin playback seek clamps stale targets and requires an explicit terminal commit
+  ---
+  duration_ms: 6.272583
+  type: 'test'
+  ...
+# Subtest: plugin playback yields each reconstructed step for a bounded history
+ok 25 - plugin playback yields each reconstructed step for a bounded history
+  ---
+  duration_ms: 1.450872
+  type: 'test'
+  ...
+# Subtest: plugin playback time-slices large cheap histories without forcing a frame per step
+ok 26 - plugin playback time-slices large cheap histories without forcing a frame per step
+  ---
+  duration_ms: 11.880373
+  type: 'test'
+  ...
+# Subtest: plugin playback commits a terminal preview only once under concurrent steps
+ok 27 - plugin playback commits a terminal preview only once under concurrent steps
+  ---
+  duration_ms: 5.533709
+  type: 'test'
+  ...
+# Subtest: plugin playback serializes overlapping intervention actions
+ok 28 - plugin playback serializes overlapping intervention actions
+  ---
+  duration_ms: 0.692086
+  type: 'test'
+  ...
+# Subtest: plugin playback seek aligns the clock by simulation time rather than event index
+ok 29 - plugin playback seek aligns the clock by simulation time rather than event index
+  ---
+  duration_ms: 3.65971
+  type: 'test'
+  ...
+# Subtest: plugin playback seek drains an in-flight clock step before reconstructing
+ok 30 - plugin playback seek drains an in-flight clock step before reconstructing
+  ---
+  duration_ms: 3.716057
+  type: 'test'
+  ...
+# Subtest: plugin playback restore drains old queued actions before resetting its scenario
+ok 31 - plugin playback restore drains old queued actions before resetting its scenario
+  ---
+  duration_ms: 5.394548
+  type: 'test'
+  ...
+# Subtest: plugin playback restore rejects a newly introduced comparison proof
+ok 32 - plugin playback restore rejects a newly introduced comparison proof
+  ---
+  duration_ms: 8.185258
+  type: 'test'
+  ...
+# Subtest: country agents interpolate toward their resolved outbound node
+ok 33 - country agents interpolate toward their resolved outbound node
+  ---
+  duration_ms: 1.411276
+  type: 'test'
+  ...
+# Subtest: native astronomy scenes do not draw incompatible legacy sky positions underneath
+ok 34 - native astronomy scenes do not draw incompatible legacy sky positions underneath
+  ---
+  duration_ms: 0.370348
+  type: 'test'
+  ...
+# Subtest: tier controller honors a profile-owned day cadence
+ok 35 - tier controller honors a profile-owned day cadence
+  ---
+  duration_ms: 3.644013
+  type: 'test'
+  ...
+# Subtest: tier controller settles a profile that explicitly has no comparison mode
+ok 36 - tier controller settles a profile that explicitly has no comparison mode
+  ---
+  duration_ms: 1.19416
+  type: 'test'
+  ...
+# Subtest: tier controller pauses, steps, executes both comparison branches, settles, and persists
+ok 37 - tier controller pauses, steps, executes both comparison branches, settles, and persists
+  ---
+  duration_ms: 18.094481
+  type: 'test'
+  ...
+# Subtest: tier controller reconstructs a matching terminal receipt after reload
+ok 38 - tier controller reconstructs a matching terminal receipt after reload
+  ---
+  duration_ms: 5.089433
+  type: 'test'
+  ...
+# Subtest: tier controller rejects a reload whose terminal comparison identity diverges
+ok 39 - tier controller rejects a reload whose terminal comparison identity diverges
+  ---
+  duration_ms: 5.430329
+  type: 'test'
+  ...
+# Subtest: tier controller drops malformed persisted restore envelopes
+ok 40 - tier controller drops malformed persisted restore envelopes
+  ---
+  duration_ms: 0.265979
+  type: 'test'
+  ...
+# Subtest: tier controller compares, settles, and restores a terminal simulation failure
+ok 41 - tier controller compares, settles, and restores a terminal simulation failure
+  ---
+  duration_ms: 3.443795
+  type: 'test'
+  ...
+# Subtest: tier controller applies experiment parameters to start and step phases and persists them
+ok 42 - tier controller applies experiment parameters to start and step phases and persists them
+  ---
+  duration_ms: 2.617002
+  type: 'test'
+  ...
+# Subtest: tier controller preserves the settled run parameters across runtime-reset replay
+ok 43 - tier controller preserves the settled run parameters across runtime-reset replay
+  ---
+  duration_ms: 6.405138
+  type: 'test'
+  ...
+# Subtest: tier controller drops a stale terminal restart while newer controls rebuild the runtime
+ok 44 - tier controller drops a stale terminal restart while newer controls rebuild the runtime
+  ---
+  duration_ms: 2.996622
+  type: 'test'
+  ...
+# Subtest: tier controller drops a stale replay while newer controls rebuild the runtime
+ok 45 - tier controller drops a stale replay while newer controls rebuild the runtime
+  ---
+  duration_ms: 2.560762
+  type: 'test'
+  ...
+# Subtest: tier controller discards a stale terminal settlement after controls rebuild the runtime
+ok 46 - tier controller discards a stale terminal settlement after controls rebuild the runtime
+  ---
+  duration_ms: 1.930926
+  type: 'test'
+  ...
+# Subtest: tier controller does not let a stale reset reflect over newer configured controls
+ok 47 - tier controller does not let a stale reset reflect over newer configured controls
+  ---
+  duration_ms: 0.498437
+  type: 'test'
+  ...
+# Subtest: tier controller applies changed controls immediately and leaves the configured run ready
+ok 48 - tier controller applies changed controls immediately and leaves the configured run ready
+  ---
+  duration_ms: 0.316799
+  type: 'test'
+  ...
+# Subtest: tier controller starts a configured preview without dispatching start twice
+ok 49 - tier controller starts a configured preview without dispatching start twice
+  ---
+  duration_ms: 0.356139
+  type: 'test'
+  ...
+# Subtest: tier controller executes every declared comparison independently
+ok 50 - tier controller executes every declared comparison independently
+  ---
+  duration_ms: 5.845194
+  type: 'test'
+  ...
+# Subtest: tier controller persists a bounded reload envelope instead of terminal evidence
+ok 51 - tier controller persists a bounded reload envelope instead of terminal evidence
+  ---
+  duration_ms: 0.391953
+  type: 'test'
+  ...
+# Subtest: tier controller seek clamps stale targets and commits terminal preview explicitly
+ok 52 - tier controller seek clamps stale targets and commits terminal preview explicitly
+  ---
+  duration_ms: 1.705793
+  type: 'test'
+  ...
+# Subtest: tier controller yields between bounded reconstruction batches
+ok 53 - tier controller yields between bounded reconstruction batches
+  ---
+  duration_ms: 0.379251
+  type: 'test'
+  ...
+# Subtest: tier controller commits a terminal preview only once under concurrent steps
+ok 54 - tier controller commits a terminal preview only once under concurrent steps
+  ---
+  duration_ms: 3.130948
+  type: 'test'
+  ...
+# Subtest: tier controller closes its public API after disposal
+ok 55 - tier controller closes its public API after disposal
+  ---
+  duration_ms: 0.620415
+  type: 'test'
+  ...
+# Subtest: World runtime selections load only the chosen profile plugin bundle
+ok 56 - World runtime selections load only the chosen profile plugin bundle
+  ---
+  duration_ms: 2.648886
+  type: 'test'
+  ...
+# Subtest: World optional model scripts remain outside every pre-consent selection
+ok 57 - World optional model scripts remain outside every pre-consent selection
+  ---
+  duration_ms: 2.609669
+  type: 'test'
+  ...
+# Subtest: World dynamic runtime loader loads selected runtime scripts
+ok 58 - World dynamic runtime loader loads selected runtime scripts
+  ---
+  duration_ms: 1.93016
+  type: 'test'
+  ...
+1..58
+# tests 58
+# suites 0
+# pass 58
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 199.641948

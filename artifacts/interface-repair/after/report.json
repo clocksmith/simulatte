@@ -1,0 +1,405 @@
+{
+  "schema": "simulatte.simulationInterfaceAudit.v1",
+  "startedAt": "2026-09-14T21:01:23.359Z",
+  "evidence": "Local browser UI, DOM geometry, renderer receipts, and screenshots; not scientific or deployed validation",
+  "softwareRequested": false,
+  "profiles": [
+    {
+      "profileId": "gpu-supercluster-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/gpu-supercluster-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/cable-trader-pickup-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "neighborhood-bulk-pool-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/neighborhood-bulk-pool-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "nyc-development-atlas-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/nyc-development-atlas-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "sun-walker-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/sun-walker-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "food-recall-us-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/food-recall-us-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "grid-resilience-us-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/grid-resilience-us-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "maritime-trade-global-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/maritime-trade-global-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "subsea-network-global-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/subsea-network-global-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "orbital-transfer-planner-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/orbital-transfer-planner-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "asteroid-defense-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/asteroid-defense-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "interstellar-relay-network-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/interstellar-relay-network-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "gpu-supercluster-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/gpu-supercluster-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/cable-trader-pickup-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "neighborhood-bulk-pool-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/neighborhood-bulk-pool-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "nyc-development-atlas-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/nyc-development-atlas-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "sun-walker-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/sun-walker-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "food-recall-us-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/food-recall-us-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "grid-resilience-us-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/grid-resilience-us-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "maritime-trade-global-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/maritime-trade-global-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "subsea-network-global-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/subsea-network-global-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "orbital-transfer-planner-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/orbital-transfer-planner-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "asteroid-defense-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/asteroid-defense-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "interstellar-relay-network-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/after/interstellar-relay-network-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    }
+  ],
+  "recovery": null,
+  "failures": [
+    "gpu-supercluster-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "cable-trader-pickup-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "neighborhood-bulk-pool-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "nyc-development-atlas-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "sun-walker-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "food-recall-us-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "grid-resilience-us-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "maritime-trade-global-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "subsea-network-global-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "orbital-transfer-planner-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "asteroid-defense-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "interstellar-relay-network-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "gpu-supercluster-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "cable-trader-pickup-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "neighborhood-bulk-pool-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "nyc-development-atlas-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "sun-walker-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "food-recall-us-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "grid-resilience-us-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "maritime-trade-global-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "subsea-network-global-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "orbital-transfer-planner-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "asteroid-defense-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "interstellar-relay-network-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5"
+  ],
+  "pass": false,
+  "browser": {
+    "executable": "/usr/bin/google-chrome",
+    "arguments": [
+      "--headless=new",
+      "--remote-debugging-port=0",
+      "--user-data-dir=/tmp/simulatte-browser-QTPc2n",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--enable-unsafe-webgpu",
+      "--window-size=1440,1000",
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "about:blank"
+    ],
+    "process": {
+      "schema": "simulatte.auditChildProcessLog.v1",
+      "stdout": {
+        "characterCount": 0,
+        "chunkCount": 0,
+        "truncated": false,
+        "tail": ""
+      },
+      "stderr": {
+        "characterCount": 470,
+        "chunkCount": 4,
+        "truncated": false,
+        "tail": "\nDevTools listening on ws://127.0.0.1:38009/devtools/browser/91c2a027-af88-4bc4-ad29-f682355bb8a3\n[203113:203124:0914/170123.606225:ERROR:gpu/ipc/client/command_buffer_proxy_impl.cc:127] ContextResult::kTransientFailure: Failed to send GpuControl.CreateCommandBuffer.\nCreated TensorFlow Lite XNNPACK delegate for CPU.\nAttempting to use a delegate that only supports static-sized tensors with a graph that has dynamic-sized tensors (tensor#-1 is a dynamic-sized tensor).\n"
+      }
+    }
+  },
+  "finishedAt": "2026-09-14T21:01:55.817Z"
+}

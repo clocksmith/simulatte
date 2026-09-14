@@ -12,8 +12,8 @@
     };
     const start = safely(async () => {
       if (interactionMode === 'playback') {
-        selectRunCamera();
         const playback = getPlayback();
+        if (playback.snapshot().phase !== 'paused') selectRunCamera();
         if (playback.snapshot().phase === 'paused') await playback.resume();
         else await playback.start();
       } else {

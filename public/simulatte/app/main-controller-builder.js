@@ -49,7 +49,8 @@
       const revision = nextRevision();
       const isCurrent = () => revision === currentRevision();
       clearMissionError(elements);
-      const requestedSourceText = elements.missionInput.value;
+      if (interaction.mode === 'playback') return buildPlayback({ isCurrent, keepMissionLocked });
+      const requestedSourceText = elements.missionInput.value || options.getScenario?.()?.missionText || '';
       const preflightContributions = await extensions.contributeRequest({
         sourceText: requestedSourceText,
       });
@@ -59,13 +60,6 @@
         throw new Error(`Plugin request conflict: ${sourceOverrides.map((row) => row.pluginId).join(', ')} proposed executable source`);
       }
       const executableSourceText = sourceOverrides[0]?.executableSourceText || requestedSourceText;
-      if (interaction.mode === 'playback') {
-        return buildPlayback({
-          isCurrent,
-          keepMissionLocked,
-        });
-      }
-
       const placeSelection = modelSelection.selectedRuntimeRef('place-resolution');
       const useNeuralPlaces = placeSelection.kind === 'embedding';
       if (useNeuralPlaces && await modelSelection.ensureConsent() !== true) {

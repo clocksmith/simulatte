@@ -60,11 +60,11 @@
       const nextParameterValues = normalizeValues(
         values === null && hasPreparedStart ? parameterValues : values === null ? getControlValues(ownerPluginId) : values
       );
+      if (phase === 'completed' || phase === 'failed') await reset(activeScenario);
       const preparedResult = hasPreparedStart
         && phase === 'ready'
         && isRunnableResult(actionResult)
         && sameValues(parameterValues, nextParameterValues);
-      if (phase === 'completed' || phase === 'failed') await reset(activeScenario);
       const generation = runGeneration;
       parameterValues = nextParameterValues;
       hasPreparedStart = false;
@@ -386,7 +386,17 @@
       if (generation !== runGeneration) return snapshot();
       actionResult = null;
       hasPreparedStart = false;
-      if (renderReadyState) render();
+      if (renderReadyState) {
+        // Some plugins construct their controls and initial presentation only
+        // when scenario.run prepares step zero. Never publish an empty Ready UI.
+        actionResult = await dispatch('start');
+        if (generation !== runGeneration) return snapshot();
+        if (!isRunnableResult(actionResult)) {
+          throw playbackError('plugin_playback_reset_refused', `Plugin ${ownerPluginId} refused reset preparation`, { actionResult });
+        }
+        hasPreparedStart = true;
+        render();
+      }
       clock.seek(0);
       setPhase('ready');
       return snapshot();

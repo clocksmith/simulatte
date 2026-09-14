@@ -469,7 +469,20 @@
     }
 
     async function dispatchScenario(values) {
-      return requiredRuntime(getRuntime()).dispatchAction(
+      const runtime = requiredRuntime(getRuntime());
+      if (values.phase === 'start') {
+        const action = (runtime.views?.({ scenario }) || [])
+          .filter(row => row.pluginId === ownerPluginId)
+          .flatMap(row => row.view.actions || [])
+          .find(row => row.id.endsWith('.configuration.apply'));
+        if (action) {
+          const applied = await runtime.dispatchAction(ownerPluginId, action.id, { scenario, values: parameterValues });
+          if (applied?.status !== 'applied') {
+            throw controllerError('tier_configuration_refused', `${ownerPluginId} refused configuration`, { result: applied });
+          }
+        }
+      }
+      return runtime.dispatchAction(
         ownerPluginId,
         'scenario.run',
         { scenario, values: { ...parameterValues, ...values } }

@@ -72,6 +72,7 @@
       lastDrawerTrigger = document.activeElement;
       elements.decisionsDrawer.classList.add('is-open');
       elements.decisionsDrawer.setAttribute('aria-hidden', 'false');
+      elements.decisionsDrawer.inert = false;
       elements.decisionsButton.setAttribute('aria-expanded', 'true');
       elements.decisionsBackdrop.hidden = false;
       if (sectionId) {
@@ -87,6 +88,7 @@
     function closeDecisions({ restoreFocus = true } = {}) {
       elements.decisionsDrawer.classList.remove('is-open');
       elements.decisionsDrawer.setAttribute('aria-hidden', 'true');
+      elements.decisionsDrawer.inert = true;
       elements.decisionsButton.setAttribute('aria-expanded', 'false');
       elements.decisionsBackdrop.hidden = true;
       if (restoreFocus && lastDrawerTrigger instanceof HTMLElement) lastDrawerTrigger.focus();
@@ -119,6 +121,13 @@
     on(elements.decisionsClose, 'click', () => closeDecisions());
     on(elements.decisionsBackdrop, 'click', () => closeDecisions());
     on(document, 'keydown', (event) => {
+      if (event.key === 'Tab' && elements.decisionsDrawer.classList.contains('is-open')) {
+        const focusable = [...elements.decisionsDrawer.querySelectorAll('button, a[href], input, select, textarea, summary, [tabindex="0"]')]
+          .filter((node) => !node.disabled && node.getClientRects().length > 0);
+        const first = focusable[0], last = focusable.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
       if (event.key !== 'Escape') return;
       if (elements.decisionsDrawer.classList.contains('is-open')) closeDecisions();
       else closeTransientPopovers();
@@ -128,6 +137,8 @@
         if (!panel.hidden && !panel.contains(event.target) && !button.contains(event.target)) setPopover(button, panel, false);
       });
     });
+    closeDecisions({ restoreFocus: false });
+    signal?.addEventListener('abort', () => closeDecisions({ restoreFocus: false }), { once: true });
     return { closeDecisions, openDecisions };
   }
 
@@ -185,16 +196,18 @@
     elements.startButton.disabled = running;
     elements.pauseButton.disabled = false;
     elements.stepButton.disabled = false;
-    elements.resetButton.disabled = false;
+    elements.resetButton.disabled = phase === 'ready';
+    elements.resetButton.title = phase === 'ready' ? 'The simulation is already at its starting state' : 'Reset simulation state; keep the current camera';
+    if (elements.scenarioSelect) elements.scenarioSelect.disabled = running || elements.scenarioSelect.options.length < 2;
     elements.exportButton.disabled = !hasController;
     elements.shuffleButton.hidden = !['ready', 'completed', 'failed'].includes(phase);
     elements.startButton.hidden = phase !== 'ready';
     elements.pauseButton.hidden = !running;
     elements.resumeButton.hidden = phase !== 'paused';
     elements.stepButton.hidden = !['running', 'paused'].includes(phase);
-    elements.resetButton.hidden = !['running', 'paused'].includes(phase);
+    elements.resetButton.hidden = false;
     elements.replayButton.hidden = !['completed', 'failed'].includes(phase);
-    elements.newMissionButton.hidden = !['completed', 'failed'].includes(phase);
+    elements.newMissionButton.hidden = true;
     elements.whatIfButton.hidden = isExperiment || phase !== 'completed';
     elements.dockMoreButton.hidden = isExperiment || !['running', 'paused', 'completed'].includes(phase);
     elements.dockMoreMenu.hidden = true;

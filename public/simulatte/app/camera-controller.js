@@ -95,6 +95,7 @@
       ...targets.map((row) => ({ ...row, target: [...row.target] })),
     ];
     if (!previousFocusId.startsWith('plugin:')) return state.targets;
+    if (state.isManualFrame && !['follow', 'pov'].includes(state.mode)) return state.targets;
     const target = state.targets.find((row) => row.id === previousFocusId)
       || state.targets.find((row) => row.id === 'route');
     state.focusId = target.id;
@@ -126,6 +127,7 @@
     const target = state.targets.find((row) => row.id === targetId);
     if (!target) throw cameraError('camera_focus_invalid', `Expected a declared camera target; received ${targetId}`);
     state.focusId = target.id;
+    state.isManualFrame = false;
     state.focusHeading = null;
     state.orbitTarget = [...target.target];
     state.distance = target.distance;
@@ -134,9 +136,22 @@
     return state.mode;
   }
 
+  function resetCamera(state, targetId, mode, timestamp) {
+    state.yaw = DEFAULT_YAW;
+    state.pitch = DEFAULT_PITCH;
+    state.followDistance = DEFAULT_FOLLOW_DISTANCE;
+    state.isManualFrame = false;
+    focusCameraTarget(state, targetId, timestamp);
+    setCameraMode(state, mode, timestamp);
+    state.pose = null;
+    cancelTransition(state);
+    return state.mode;
+  }
+
   function orbitCamera(state, deltaX, deltaY) {
     if (!['bird', 'overview', 'free', 'compare'].includes(state.mode)) return false;
     state.yaw -= deltaX * 0.006;
+    state.isManualFrame = true;
     state.pitch = clamp(state.pitch + deltaY * 0.004, 0.35, 1.25);
     cancelTransition(state);
     return true;
@@ -155,6 +170,7 @@
       - right[index] * deltaX * scale
       + forward[index] * deltaY * scale);
     state.focusId = 'custom';
+    state.isManualFrame = true;
     cancelTransition(state);
     return true;
   }
@@ -165,7 +181,9 @@
       cancelTransition(state);
       return true;
     }
-    state.distance = clamp(state.distance * Math.exp(deltaY * 0.001), MIN_DISTANCE, MAX_DISTANCE);
+    const targetDistance = state.targets.find((row) => row.id === state.focusId)?.distance || 0;
+    state.distance = clamp(state.distance * Math.exp(deltaY * 0.001), MIN_DISTANCE, Math.max(MAX_DISTANCE, targetDistance * 4));
+    state.isManualFrame = true;
     cancelTransition(state);
     return true;
   }
@@ -173,6 +191,12 @@
   function advanceCamera(state, snapshot, worldModel, aspect, timestamp) {
     const safeTimestamp = Number.isFinite(timestamp) ? timestamp : 0;
     const desired = cameraPoseFor(state, snapshot, worldModel);
+    // Preserve vertical framing on wide screens and horizontal framing on narrow ones.
+    const aspectScale = 1 / Math.min(1, Math.max(0.1, aspect));
+    if (!['follow', 'pov'].includes(state.mode) && aspectScale > 1) {
+      desired.eye = desired.eye.map((value, index) => desired.target[index] + (value - desired.target[index]) * aspectScale);
+      desired.far = Math.max(desired.far, state.distance * aspectScale * 2.5);
+    }
     const deltaSeconds = state.lastFrameAt === null
       ? 0
       : clamp((safeTimestamp - state.lastFrameAt) / 1000, 0, 0.1);
@@ -258,7 +282,7 @@
     const horizontal = distance * Math.cos(pitch);
     const eye = [
       state.orbitTarget[0] + Math.cos(state.yaw) * horizontal,
-      Math.max(80, distance * Math.sin(pitch)),
+      state.orbitTarget[1] + Math.max(80, distance * Math.sin(pitch)),
       state.orbitTarget[2] + Math.sin(state.yaw) * horizontal,
     ];
     return {
@@ -402,6 +426,7 @@
     overviewNearPlane,
     panCamera,
     replacePluginCameraTargets,
+    resetCamera,
     setCameraMode,
     updateRouteTarget,
     zoomCamera,

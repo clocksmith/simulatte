@@ -213,17 +213,32 @@
   function renderInteraction(interaction, scenario, elements) {
     document.body.dataset.interactionMode = interaction.mode;
     elements.missionField.hidden = interaction.mode !== 'prompt';
-    elements.scenarioField.hidden = interaction.mode === 'prompt';
+    const authoring = elements.missionInput.closest?.('#mission-authoring');
+    if (authoring) { authoring.hidden = interaction.mode !== 'prompt'; authoring.open = false; }
+    elements.scenarioField.hidden = false;
     elements.scenarioLabel.textContent = scenario.label;
     elements.scenarioDescription.textContent = scenario.description;
     elements.scenarioSeed.textContent = `Seed ${scenario.seed}`;
-    elements.missionInput.value = scenario.missionText || '';
+    // Scenario data is not user-authored text. Only an explicit authoring edit fills this field.
+    elements.missionInput.value = '';
+    if (elements.scenarioSelect) {
+      const documentRef = elements.scenarioSelect.ownerDocument;
+      elements.scenarioSelect.replaceChildren(...interaction.scenarios.map((row) => {
+        const option = documentRef.createElement('option');
+        option.value = row.id;
+        option.textContent = row.label;
+        option.selected = row.id === scenario.id;
+        return option;
+      }));
+      elements.scenarioSelect.disabled = interaction.scenarios.length < 2;
+      elements.scenarioSelect.title = interaction.scenarios.length < 2 ? 'This simulation has one declared scenario' : 'Select a scenario; starts a new run';
+    }
     elements.shuffleLabel.textContent = interaction.shuffleLabel;
     elements.startLabel.textContent = interaction.startLabel;
   }
 
   function focusPrimary(interaction, elements) {
-    (interaction.mode === 'prompt' ? elements.missionInput : elements.shuffleButton).focus();
+    (elements.scenarioSelect || elements.startButton).focus();
   }
 
   return { createApplicationProfileSelect, focusPrimary, nextScenario, renderInteraction, resolveInteraction };

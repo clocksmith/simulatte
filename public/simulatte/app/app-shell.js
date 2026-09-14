@@ -9,6 +9,7 @@
     let current = null; // { tier, experience, dispose }
     let pending = null;
     let generation = 0;
+    let routeUpdate = Promise.resolve();
 
     function cancelPending() {
       pending?.abort();
@@ -16,6 +17,7 @@
     }
 
     async function teardown() {
+      await routeUpdate.catch(() => {});
       if (!current) return;
       const mounted = current;
       current = null;
@@ -25,6 +27,8 @@
     function beginRouteLoad(route) {
       try {
         document.body.dataset.routeLoading = 'true';
+        document.getElementById('sim-mission-dock')?.setAttribute('inert', '');
+        document.getElementById('camera-controls')?.setAttribute('inert', '');
         document.body.dataset.journeyPhase = 'loading';
         const status = document.getElementById('loading-status');
         if (status) status.textContent = route?.experience ? 'Loading experience' : 'Loading world';
@@ -35,6 +39,8 @@
     function finishRouteLoad() {
       try {
         delete document.body.dataset.routeLoading;
+        document.getElementById('sim-mission-dock')?.removeAttribute('inert');
+        document.getElementById('camera-controls')?.removeAttribute('inert');
         if (document.body.dataset.journeyPhase === 'loading') {
           document.body.dataset.journeyPhase = 'ready';
         }
@@ -99,12 +105,17 @@
           cancelPending();
           const requiresLoad = !isLifecycleNeutralRouteUpdate(route);
           if (requiresLoad) beginRouteLoad(route);
-          const updated = await current.updateRoute(route);
-          if (generationAtStart !== generation) return;
-          Object.assign(current, updated || {});
-          router.canonicalize(currentRouteState(current));
-          if (requiresLoad) finishRouteLoad();
-          return;
+          const mounted = current;
+          const update = routeUpdate.catch(() => {}).then(async () => {
+            if (generationAtStart !== generation || current !== mounted) return;
+            const updated = await mounted.updateRoute(route);
+            if (generationAtStart !== generation || current !== mounted) return;
+            Object.assign(mounted, updated || {});
+            router.canonicalize(currentRouteState(mounted));
+            finishRouteLoad();
+          });
+          routeUpdate = update;
+          return update;
         }
         if (route.experience === current.experience && typeof current.updateSimulation === 'function') {
           cancelPending();

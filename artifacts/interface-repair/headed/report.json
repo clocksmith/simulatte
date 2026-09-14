@@ -1,0 +1,77 @@
+{
+  "schema": "simulatte.simulationInterfaceAudit.v1",
+  "startedAt": "2026-09-14T21:02:31.117Z",
+  "evidence": "Local browser UI, DOM geometry, renderer receipts, and screenshots; not scientific or deployed validation",
+  "softwareRequested": true,
+  "profiles": [
+    {
+      "profileId": "sun-walker-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/headed/sun-walker-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    },
+    {
+      "profileId": "sun-walker-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interface-repair/headed/sun-walker-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+      "console": []
+    }
+  ],
+  "recovery": null,
+  "failures": [
+    "sun-walker-v1 1440: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "sun-walker-v1 390: TypeError: Cannot read properties of null (reading 'dataset')\n    at <anonymous>:6:35\n    at <anonymous>:25:5",
+    "CDP connection closed"
+  ],
+  "pass": false,
+  "browser": {
+    "executable": "/usr/bin/google-chrome",
+    "arguments": [
+      "--remote-debugging-port=0",
+      "--user-data-dir=/tmp/simulatte-browser-ySgm6U",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--enable-unsafe-webgpu",
+      "--window-size=1440,1000",
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "--use-angle=swiftshader",
+      "--use-webgpu-adapter=swiftshader",
+      "--enable-unsafe-swiftshader",
+      "about:blank"
+    ],
+    "process": {
+      "schema": "simulatte.auditChildProcessLog.v1",
+      "stdout": {
+        "characterCount": 0,
+        "chunkCount": 0,
+        "truncated": false,
+        "tail": ""
+      },
+      "stderr": {
+        "characterCount": 396,
+        "chunkCount": 4,
+        "truncated": false,
+        "tail": "\nDevTools listening on ws://127.0.0.1:46787/devtools/browser/64a92607-ab06-4bb2-8d2c-a4324d14e01e\nCreated TensorFlow Lite XNNPACK delegate for CPU.\nAttempting to use a delegate that only supports static-sized tensors with a graph that has dynamic-sized tensors (tensor#-1 is a dynamic-sized tensor).\n[203596:203596:0914/170300.475123:ERROR:ui/gfx/x/connection.cc:68] X connection error received.\n"
+      }
+    }
+  },
+  "finishedAt": "2026-09-14T21:03:01.457Z"
+}

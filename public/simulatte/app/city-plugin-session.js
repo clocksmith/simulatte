@@ -113,6 +113,8 @@
           renderer,
           onModeSelected: selectViewMode,
         });
+        // The selected profile/URL owns the initial view, not the next plugin intent.
+        pluginViewRuntime.setManualOverride({ mode: getCameraMode() || profile.experience.defaultView, targetIds: [] });
         onViewRuntime(pluginViewRuntime);
       }
       const viewStartedAt = performance.now();

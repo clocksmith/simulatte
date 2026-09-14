@@ -1,0 +1,502 @@
+TAP version 13
+# Subtest: public stylesheet resolves the owned design layers without duplicate loading
+ok 1 - public stylesheet resolves the owned design layers without duplicate loading
+  ---
+  duration_ms: 2.014699
+  type: 'test'
+  ...
+# Subtest: literal paint values belong to tokens, not component and page rules
+ok 2 - literal paint values belong to tokens, not component and page rules
+  ---
+  duration_ms: 2.83199
+  type: 'test'
+  ...
+# Subtest: page entries use stylesheets instead of inline stylesheet forks
+ok 3 - page entries use stylesheets instead of inline stylesheet forks
+  ---
+  duration_ms: 0.644089
+  type: 'test'
+  ...
+# Subtest: paint extraction preserves property names including white-space
+ok 4 - paint extraction preserves property names including white-space
+  ---
+  duration_ms: 4.266812
+  type: 'test'
+  ...
+# Subtest: page compositions consume the shared theme without reviving retired theme forks
+ok 5 - page compositions consume the shared theme without reviving retired theme forks
+  ---
+  duration_ms: 3.83017
+  type: 'test'
+  ...
+# Subtest: empty plugin map slots cannot hide governed scene labels
+ok 6 - empty plugin map slots cannot hide governed scene labels
+  ---
+  duration_ms: 0.314665
+  type: 'test'
+  ...
+# Subtest: Create shares the World typography and monochrome theme rather than forking its palette
+ok 7 - Create shares the World typography and monochrome theme rather than forking its palette
+  ---
+  duration_ms: 0.348678
+  type: 'test'
+  ...
+# Subtest: minimap follows the governed plugin actor and retains the core journey fallback
+ok 8 - minimap follows the governed plugin actor and retains the core journey fallback
+  ---
+  duration_ms: 3.19713
+  type: 'test'
+  ...
+# Subtest: plugin follow mode centers the camera on the moving plugin actor
+ok 9 - plugin follow mode centers the camera on the moving plugin actor
+  ---
+  duration_ms: 0.951393
+  type: 'test'
+  ...
+# Subtest: POV mode uses the plugin actor rather than the hidden City journey state
+ok 10 - POV mode uses the plugin actor rather than the hidden City journey state
+  ---
+  duration_ms: 0.256299
+  type: 'test'
+  ...
+# Subtest: overview, free, and compare retain distinct camera modes and framing
+ok 11 - overview, free, and compare retain distinct camera modes and framing
+  ---
+  duration_ms: 0.256495
+  type: 'test'
+  ...
+# Subtest: wide plugin overviews expand the far plane to keep their evidence visible
+ok 12 - wide plugin overviews expand the far plane to keep their evidence visible
+  ---
+  duration_ms: 0.168662
+  type: 'test'
+  ...
+# Subtest: wide overview altitude reduces fog without changing the near-view ceiling
+ok 13 - wide overview altitude reduces fog without changing the near-view ceiling
+  ---
+  duration_ms: 0.154007
+  type: 'test'
+  ...
+# Subtest: City camera buttons send the exact advertised modes and select semantic targets
+ok 14 - City camera buttons send the exact advertised modes and select semantic targets
+  ---
+  duration_ms: 0.766125
+  type: 'test'
+  ...
+# Subtest: City plugin playback drives rendering from simulation time without mutating world state
+ok 15 - City plugin playback drives rendering from simulation time without mutating world state
+  ---
+  duration_ms: 0.293012
+  type: 'test'
+  ...
+# Subtest: plugin follow zoom changes the rendered camera distance as well as its control value
+ok 16 - plugin follow zoom changes the rendered camera distance as well as its control value
+  ---
+  duration_ms: 0.53956
+  type: 'test'
+  ...
+# Subtest: plugin runtime activates a least-authority fixture, sequences state, contributes UI, and disposes
+ok 17 - plugin runtime activates a least-authority fixture, sequences state, contributes UI, and disposes
+  ---
+  duration_ms: 89.727791
+  type: 'test'
+  ...
+# Subtest: data catalog lazily loads only declared hash-pinned shards and reuses the verified result
+ok 18 - data catalog lazily loads only declared hash-pinned shards and reuses the verified result
+  ---
+  duration_ms: 1.253651
+  type: 'test'
+  ...
+# Subtest: application interactions expose governed seeds without presenting mission prose as input
+ok 19 - application interactions expose governed seeds without presenting mission prose as input
+  ---
+  duration_ms: 1.160295
+  type: 'test'
+  ...
+# Subtest: plugin runtime forwards scenario changes through the generic lifecycle
+ok 20 - plugin runtime forwards scenario changes through the generic lifecycle
+  ---
+  duration_ms: 16.309466
+  type: 'test'
+  ...
+# Subtest: plugin runtime clones action and capability results before exposing them
+ok 21 - plugin runtime clones action and capability results before exposing them
+  ---
+  duration_ms: 8.61607
+  type: 'test'
+  ...
+# Subtest: plugin runtime disposes activated plugins when a later activation fails
+ok 22 - plugin runtime disposes activated plugins when a later activation fails
+  ---
+  duration_ms: 10.677072
+  type: 'test'
+  ...
+# Subtest: plugin runtime disposes every plugin and reports disposal failures
+ok 23 - plugin runtime disposes every plugin and reports disposal failures
+  ---
+  duration_ms: 10.858051
+  type: 'test'
+  ...
+# Subtest: plugin runtime owns an immutable scenario snapshot
+ok 24 - plugin runtime owns an immutable scenario snapshot
+  ---
+  duration_ms: 13.35043
+  type: 'test'
+  ...
+# Subtest: plugin runtime rolls back applied scenario changes after a plugin rejects one
+ok 25 - plugin runtime rolls back applied scenario changes after a plugin rejects one
+  ---
+  duration_ms: 15.014728
+  type: 'test'
+  ...
+# Subtest: plugin runtime serializes overlapping scenario changes
+ok 26 - plugin runtime serializes overlapping scenario changes
+  ---
+  duration_ms: 12.172273
+  type: 'test'
+  ...
+# Subtest: plugin runtime rejects public work after disposal instead of reading cleared instances
+ok 27 - plugin runtime rejects public work after disposal instead of reading cleared instances
+  ---
+  duration_ms: 11.407333
+  type: 'test'
+  ...
+# Subtest: plugin runtime disposal is idempotent for overlapping callers
+ok 28 - plugin runtime disposal is idempotent for overlapping callers
+  ---
+  duration_ms: 5.934293
+  type: 'test'
+  ...
+# Subtest: plugin runtime completes queued scenario work before disposal closes plugins
+ok 29 - plugin runtime completes queued scenario work before disposal closes plugins
+  ---
+  duration_ms: 6.131811
+  type: 'test'
+  ...
+# Subtest: plugin contracts reject undeclared authority and capability cycles fail before activation
+ok 30 - plugin contracts reject undeclared authority and capability cycles fail before activation
+  ---
+  duration_ms: 4.95488
+  type: 'test'
+  ...
+# Subtest: executable plugin activation fails closed without current trust or after revocation
+ok 31 - executable plugin activation fails closed without current trust or after revocation
+  ---
+  duration_ms: 0.620987
+  type: 'test'
+  ...
+# Subtest: every repository plugin carries current same-realm trust without marketplace claims
+ok 32 - every repository plugin carries current same-realm trust without marketplace claims
+  ---
+  duration_ms: 1.755002
+  type: 'test'
+  ...
+# Subtest: request contributions reject fields outside the versioned host contract
+ok 33 - request contributions reject fields outside the versioned host contract
+  ---
+  duration_ms: 0.249728
+  type: 'test'
+  ...
+# Subtest: plugin UI contract reserves map overlays for interaction and rejects duplicate HUD surfaces
+ok 34 - plugin UI contract reserves map overlays for interaction and rejects duplicate HUD surfaces
+  ---
+  duration_ms: 0.091565
+  type: 'test'
+  ...
+# Subtest: legacy numeric UI fields retain finite bounds for v4 normalization
+ok 35 - legacy numeric UI fields retain finite bounds for v4 normalization
+  ---
+  duration_ms: 0.234599
+  type: 'test'
+  ...
+# Subtest: plugin presentation is validated and compiled into namespaced renderer data
+ok 36 - plugin presentation is validated and compiled into namespaced renderer data
+  ---
+  duration_ms: 1.343488
+  type: 'test'
+  ...
+# Subtest: experience camera configuration targets only an active plugin
+ok 37 - experience camera configuration targets only an active plugin
+  ---
+  duration_ms: 0.279475
+  type: 'test'
+  ...
+# Subtest: application profiles declare when plugin evidence owns the visible world detail
+ok 38 - application profiles declare when plugin evidence owns the visible world detail
+  ---
+  duration_ms: 0.559361
+  type: 'test'
+  ...
+# Subtest: every connected application profile declares an explicit performance budget
+ok 39 - every connected application profile declares an explicit performance budget
+  ---
+  duration_ms: 1.614343
+  type: 'test'
+  ...
+# Subtest: platform bootstrap has no named plugin import
+ok 40 - platform bootstrap has no named plugin import
+  ---
+  duration_ms: 0.256292
+  type: 'test'
+  ...
+# Subtest: Main exposes governed profile selection and disposes plugins on teardown
+ok 41 - Main exposes governed profile selection and disposes plugins on teardown
+  ---
+  duration_ms: 1.916065
+  type: 'test'
+  ...
+# Subtest: duplicate scenario control resolves the declared profile seed
+ok 42 - duplicate scenario control resolves the declared profile seed
+  ---
+  duration_ms: 1.076394
+  type: 'test'
+  ...
+# Subtest: partial or unrelated option catalogues are not scenario navigation
+ok 43 - partial or unrelated option catalogues are not scenario navigation
+  ---
+  duration_ms: 0.181641
+  type: 'test'
+  ...
+# Subtest: duplicate option values cannot impersonate a scenario catalogue
+ok 44 - duplicate option values cannot impersonate a scenario catalogue
+  ---
+  duration_ms: 0.129483
+  type: 'test'
+  ...
+# Subtest: configuration is applied before preparing playback, including replay
+ok 45 - configuration is applied before preparing playback, including replay
+  ---
+  duration_ms: 2.219595
+  type: 'test'
+  ...
+# Subtest: refused configuration never starts playback
+ok 46 - refused configuration never starts playback
+  ---
+  duration_ms: 0.748505
+  type: 'test'
+  ...
+# Subtest: scenario selection never impersonates authored textbox input
+ok 47 - scenario selection never impersonates authored textbox input
+  ---
+  duration_ms: 1.445405
+  type: 'test'
+  ...
+# Subtest: profile defaults choose declared overview targets even without an explicit target ID
+ok 48 - profile defaults choose declared overview targets even without an explicit target ID
+  ---
+  duration_ms: 1.112599
+  type: 'test'
+  ...
+# Subtest: reset view restores pose, zoom, and the non-origin target without changing simulation
+ok 49 - reset view restores pose, zoom, and the non-origin target without changing simulation
+  ---
+  duration_ms: 0.494434
+  type: 'test'
+  ...
+# Subtest: updated plugin targets do not undo manually explored framing
+ok 50 - updated plugin targets do not undo manually explored framing
+  ---
+  duration_ms: 0.452803
+  type: 'test'
+  ...
+# Subtest: narrow camera framing expands distance and clipping around the actual target
+ok 51 - narrow camera framing expands distance and clipping around the actual target
+  ---
+  duration_ms: 2.129334
+  type: 'test'
+  ...
+# Subtest: wgs84 framing is centered and bounded at 390 pixels
+ok 52 - wgs84 framing is centered and bounded at 390 pixels
+  ---
+  duration_ms: 0.556437
+  type: 'test'
+  ...
+# Subtest: wgs84 framing is centered and bounded at 1440 pixels
+ok 53 - wgs84 framing is centered and bounded at 1440 pixels
+  ---
+  duration_ms: 0.231254
+  type: 'test'
+  ...
+# Subtest: heliocentric-ecliptic-au framing is centered and bounded at 390 pixels
+ok 54 - heliocentric-ecliptic-au framing is centered and bounded at 390 pixels
+  ---
+  duration_ms: 0.228309
+  type: 'test'
+  ...
+# Subtest: heliocentric-ecliptic-au framing is centered and bounded at 1440 pixels
+ok 55 - heliocentric-ecliptic-au framing is centered and bounded at 1440 pixels
+  ---
+  duration_ms: 0.41609
+  type: 'test'
+  ...
+# Subtest: icrs-cartesian-pc framing is centered and bounded at 390 pixels
+ok 56 - icrs-cartesian-pc framing is centered and bounded at 390 pixels
+  ---
+  duration_ms: 0.423854
+  type: 'test'
+  ...
+# Subtest: icrs-cartesian-pc framing is centered and bounded at 1440 pixels
+ok 57 - icrs-cartesian-pc framing is centered and bounded at 1440 pixels
+  ---
+  duration_ms: 0.167693
+  type: 'test'
+  ...
+# Subtest: datacenter-cartesian-meters framing is centered and bounded at 390 pixels
+ok 58 - datacenter-cartesian-meters framing is centered and bounded at 390 pixels
+  ---
+  duration_ms: 0.106219
+  type: 'test'
+  ...
+# Subtest: datacenter-cartesian-meters framing is centered and bounded at 1440 pixels
+ok 59 - datacenter-cartesian-meters framing is centered and bounded at 1440 pixels
+  ---
+  duration_ms: 0.076452
+  type: 'test'
+  ...
+# Subtest: national framing uses viewport space, not obsolete mobile panel offsets
+ok 60 - national framing uses viewport space, not obsolete mobile panel offsets
+  ---
+  duration_ms: 0.24249
+  type: 'test'
+  ...
+# Subtest: same-profile route edits serialize and only the newest result becomes canonical
+ok 61 - same-profile route edits serialize and only the newest result becomes canonical
+  ---
+  duration_ms: 11.01762
+  type: 'test'
+  ...
+# Subtest: tier controller honors a profile-owned day cadence
+ok 62 - tier controller honors a profile-owned day cadence
+  ---
+  duration_ms: 3.621508
+  type: 'test'
+  ...
+# Subtest: tier controller settles a profile that explicitly has no comparison mode
+ok 63 - tier controller settles a profile that explicitly has no comparison mode
+  ---
+  duration_ms: 1.139132
+  type: 'test'
+  ...
+# Subtest: tier controller pauses, steps, executes both comparison branches, settles, and persists
+ok 64 - tier controller pauses, steps, executes both comparison branches, settles, and persists
+  ---
+  duration_ms: 17.125389
+  type: 'test'
+  ...
+# Subtest: tier controller reconstructs a matching terminal receipt after reload
+ok 65 - tier controller reconstructs a matching terminal receipt after reload
+  ---
+  duration_ms: 5.623879
+  type: 'test'
+  ...
+# Subtest: tier controller rejects a reload whose terminal comparison identity diverges
+ok 66 - tier controller rejects a reload whose terminal comparison identity diverges
+  ---
+  duration_ms: 6.406116
+  type: 'test'
+  ...
+# Subtest: tier controller drops malformed persisted restore envelopes
+ok 67 - tier controller drops malformed persisted restore envelopes
+  ---
+  duration_ms: 0.255041
+  type: 'test'
+  ...
+# Subtest: tier controller compares, settles, and restores a terminal simulation failure
+ok 68 - tier controller compares, settles, and restores a terminal simulation failure
+  ---
+  duration_ms: 3.547659
+  type: 'test'
+  ...
+# Subtest: tier controller applies experiment parameters to start and step phases and persists them
+ok 69 - tier controller applies experiment parameters to start and step phases and persists them
+  ---
+  duration_ms: 2.012428
+  type: 'test'
+  ...
+# Subtest: tier controller preserves the settled run parameters across runtime-reset replay
+ok 70 - tier controller preserves the settled run parameters across runtime-reset replay
+  ---
+  duration_ms: 3.232543
+  type: 'test'
+  ...
+# Subtest: tier controller drops a stale terminal restart while newer controls rebuild the runtime
+ok 71 - tier controller drops a stale terminal restart while newer controls rebuild the runtime
+  ---
+  duration_ms: 1.693398
+  type: 'test'
+  ...
+# Subtest: tier controller drops a stale replay while newer controls rebuild the runtime
+ok 72 - tier controller drops a stale replay while newer controls rebuild the runtime
+  ---
+  duration_ms: 2.55412
+  type: 'test'
+  ...
+# Subtest: tier controller discards a stale terminal settlement after controls rebuild the runtime
+ok 73 - tier controller discards a stale terminal settlement after controls rebuild the runtime
+  ---
+  duration_ms: 0.502408
+  type: 'test'
+  ...
+# Subtest: tier controller does not let a stale reset reflect over newer configured controls
+ok 74 - tier controller does not let a stale reset reflect over newer configured controls
+  ---
+  duration_ms: 0.281146
+  type: 'test'
+  ...
+# Subtest: tier controller applies changed controls immediately and leaves the configured run ready
+ok 75 - tier controller applies changed controls immediately and leaves the configured run ready
+  ---
+  duration_ms: 0.192668
+  type: 'test'
+  ...
+# Subtest: tier controller starts a configured preview without dispatching start twice
+ok 76 - tier controller starts a configured preview without dispatching start twice
+  ---
+  duration_ms: 0.270779
+  type: 'test'
+  ...
+# Subtest: tier controller executes every declared comparison independently
+ok 77 - tier controller executes every declared comparison independently
+  ---
+  duration_ms: 4.018185
+  type: 'test'
+  ...
+# Subtest: tier controller persists a bounded reload envelope instead of terminal evidence
+ok 78 - tier controller persists a bounded reload envelope instead of terminal evidence
+  ---
+  duration_ms: 0.322556
+  type: 'test'
+  ...
+# Subtest: tier controller seek clamps stale targets and commits terminal preview explicitly
+ok 79 - tier controller seek clamps stale targets and commits terminal preview explicitly
+  ---
+  duration_ms: 1.68783
+  type: 'test'
+  ...
+# Subtest: tier controller yields between bounded reconstruction batches
+ok 80 - tier controller yields between bounded reconstruction batches
+  ---
+  duration_ms: 1.18142
+  type: 'test'
+  ...
+# Subtest: tier controller commits a terminal preview only once under concurrent steps
+ok 81 - tier controller commits a terminal preview only once under concurrent steps
+  ---
+  duration_ms: 2.780229
+  type: 'test'
+  ...
+# Subtest: tier controller closes its public API after disposal
+ok 82 - tier controller closes its public API after disposal
+  ---
+  duration_ms: 0.537732
+  type: 'test'
+  ...
+1..82
+# tests 82
+# suites 0
+# pass 82
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 306.906651

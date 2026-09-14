@@ -94,6 +94,7 @@
     const elements = collectElements();
     let routeSimulation = hooks.simulation || null;
     let activeCameraMode = hooks.routeState?.camera || null;
+    let hasManualCamera = Boolean(hooks.routeState?.camera);
     const lifecycle = mountLifecycleApi.create(hooks.signal);
     const on = lifecycle.on;
     const loadTrace = runtimeLog?.createLoadTrace?.(log, { details: { tier: initialTier, requestedProfileId, route: typeof window !== 'undefined' ? window.location.pathname + window.location.search : null, scenarioId: hooks.simulation?.scenarioId || null } }) || null;
@@ -348,6 +349,7 @@
     });
     const controllerBuilder = mainControllerBuilderApi.create({
       elements, data, interaction, worldApi,
+      getScenario: () => activeScenario,
       ensureRenderer,
       nextRevision: () => ++buildRevision,
       currentRevision: () => buildRevision,
@@ -490,6 +492,7 @@
       const target = renderer && cityInterfaceApi.preferredCameraTarget(renderer.cameraTargets(), canonical);
       if (target) renderer.focusCameraTarget(target.id);
       renderer?.setCameraMode(canonical);
+      pluginViewRuntime?.setManualOverride({ mode: canonical, targetIds: target ? [target.id] : [] });
       selectCameraMode(elements, canonical);
       if (navigate) void hooks.navigate?.(governedRoute(), { replace: true });
       return canonical;
@@ -524,6 +527,7 @@
           stopLoop,
           fail: (error) => failRuntime(elements, error),
           onCameraInteraction(cameraInteraction) {
+            hasManualCamera = true;
             pluginViewRuntime?.setManualOverride({
               mode: cameraInteraction.mode,
               targetIds: cameraInteraction.targetIds,
@@ -532,6 +536,7 @@
             selectCameraMode(elements, activeCameraMode);
           },
           onManualNavigation(cameraInteraction) {
+            hasManualCamera = true;
             pluginViewRuntime?.setManualOverride({
               mode: cameraInteraction.mode,
               targetIds: cameraInteraction.targetIds,
@@ -613,7 +618,7 @@
       interactionMode: interaction.mode, getPlayback: () => pluginPlayback,
       getController: () => controller, getScenario: () => activeScenario,
       buildController, runLoop, stopLoop, selectNextScenario,
-      selectRunCamera: () => selectGovernedCamera(experienceCameraApi.runCameraMode(data.applicationProfile.camera), true),
+      selectRunCamera: () => { if (!hasManualCamera) selectGovernedCamera(experienceCameraApi.runCameraMode(data.applicationProfile.camera), true); },
       focusPrimary: () => applicationProfileSelectApi.focusPrimary(interaction, elements),
       setPaused: () => setRuntimeStatus(elements, 'Paused', 'paused'),
       onError: (error) => failRuntime(elements, error),
@@ -626,9 +631,23 @@
         }
       },
     });
-    async function selectNextScenario() {
+    on(elements.scenarioSelect, 'change', () => { void selectNextScenario(elements.scenarioSelect.value).catch((error) => failRuntime(elements, error)); });
+    on(elements.cameraReset, 'click', () => {
+      if (!renderer) return;
+      hasManualCamera = true;
+      experienceCameraApi.applyInitialCamera({ configuration: data.applicationProfile.camera, renderer,
+        onModeSelected: (mode) => {
+          activeCameraMode = mode;
+          pluginViewRuntime?.setManualOverride({ mode, targetIds: [] });
+          selectCameraMode(elements, mode);
+        } });
+      void hooks.navigate?.(governedRoute(), { replace: true });
+    });
+    async function selectNextScenario(scenarioId = null) {
       if (isRunning) return;
-      const nextScenario = applicationProfileSelectApi.nextScenario(interaction, activeScenario.id);
+      const nextScenario = scenarioId ? interaction.scenarios.find((row) => row.id === scenarioId)
+        : applicationProfileSelectApi.nextScenario(interaction, activeScenario.id);
+      if (!nextScenario) throw routeIdentityError('scenario', scenarioId, 'declared scenario');
       if (hooks.navigate) {
         await hooks.navigate(governedRoute({ scenarioId: nextScenario.id, seed: nextScenario.seed }));
         return;

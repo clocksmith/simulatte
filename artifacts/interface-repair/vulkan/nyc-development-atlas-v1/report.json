@@ -1,0 +1,324 @@
+{
+  "schema": "simulatte.simulationInterfaceAudit.v1",
+  "startedAt": "2026-09-14T21:14:07.324Z",
+  "evidence": "Local browser UI, DOM geometry, renderer receipts, and screenshots; not scientific or deployed validation",
+  "softwareRequested": false,
+  "profiles": [
+    {
+      "profileId": "nyc-development-atlas-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/vulkan/nyc-development-atlas-v1/nyc-development-atlas-v1-1440-ready.png",
+        "artifacts/interface-repair/vulkan/nyc-development-atlas-v1/nyc-development-atlas-v1-1440-failure.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "nyc-development-atlas-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 25,
+          "y": 77,
+          "width": 1390,
+          "height": 578,
+          "top": 77,
+          "right": 1415,
+          "bottom": 655,
+          "left": 25
+        },
+        "backend": "webgpu",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": null,
+          "description": null,
+          "isFallbackAdapter": false
+        },
+        "frames": 4,
+        "camera": "{\"eye\":\"46492.69,68949.42,-38507\",\"target\":\"28.84,0,2244.95\"}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440,
+        "dock": {
+          "x": 24,
+          "y": 724,
+          "width": 1392,
+          "height": 128,
+          "top": 724,
+          "right": 1416,
+          "bottom": 852,
+          "left": 24
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "nyc-real-estate"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "City"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "NYC Development Atlas"
+          },
+          {
+            "id": "camera-follow",
+            "disabled": false,
+            "title": "",
+            "text": "Follow"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-top",
+            "disabled": false,
+            "title": "",
+            "text": "Top view"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": false,
+            "title": "",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (10)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": true,
+            "title": "The simulation is already at its starting state",
+            "text": "Reset"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Replay and forecast NYC"
+          }
+        ]
+      },
+      "pass": false,
+      "error": "Keyboard exploration did not move the camera",
+      "console": []
+    },
+    {
+      "profileId": "nyc-development-atlas-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "initial frame",
+        "centered viewport",
+        "no prompt autofill",
+        "non-overlapping controls"
+      ],
+      "screenshots": [
+        "artifacts/interface-repair/vulkan/nyc-development-atlas-v1/nyc-development-atlas-v1-390-ready.png",
+        "artifacts/interface-repair/vulkan/nyc-development-atlas-v1/nyc-development-atlas-v1-390-failure.png"
+      ],
+      "initial": {
+        "phase": "ready",
+        "loading": null,
+        "profile": "nyc-development-atlas-v1",
+        "status": "Ready",
+        "error": null,
+        "input": "",
+        "inputVisible": false,
+        "scene": {
+          "x": 13,
+          "y": 173,
+          "width": 364,
+          "height": 403.109375,
+          "top": 173,
+          "right": 377,
+          "bottom": 576.109375,
+          "left": 13
+        },
+        "backend": "webgpu",
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": null,
+          "description": null,
+          "isFallbackAdapter": false
+        },
+        "frames": 5,
+        "camera": "{\"eye\":\"51470.96,76336.85,-42873.28\",\"target\":\"28.84,0,2244.95\"}",
+        "mode": "overview",
+        "progress": 0,
+        "total": 0,
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "dock": {
+          "x": 12,
+          "y": 749.109375,
+          "width": 366,
+          "height": 238.78125,
+          "top": 749.109375,
+          "right": 378,
+          "bottom": 987.890625,
+          "left": 12
+        },
+        "canPause": false,
+        "canReset": false,
+        "ownerIds": [
+          "nyc-real-estate"
+        ],
+        "buttons": [
+          {
+            "id": "runtime-toggle",
+            "disabled": false,
+            "title": "Ready",
+            "text": "Ready"
+          },
+          {
+            "id": "world-tier-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "City"
+          },
+          {
+            "id": "application-profile-trigger",
+            "disabled": false,
+            "title": "",
+            "text": "NYC Development Atlas"
+          },
+          {
+            "id": "camera-follow",
+            "disabled": false,
+            "title": "",
+            "text": "Follow"
+          },
+          {
+            "id": "camera-bird",
+            "disabled": false,
+            "title": "",
+            "text": "Overview"
+          },
+          {
+            "id": "camera-top",
+            "disabled": false,
+            "title": "",
+            "text": "Top view"
+          },
+          {
+            "id": "camera-compare",
+            "disabled": false,
+            "title": "",
+            "text": "Compare"
+          },
+          {
+            "id": "camera-reset",
+            "disabled": false,
+            "title": "Restore this simulation's intended framing without resetting its state",
+            "text": "Reset view"
+          },
+          {
+            "id": "decisions-button",
+            "disabled": false,
+            "title": "",
+            "text": "Controls (10)"
+          },
+          {
+            "id": "reset-button",
+            "disabled": true,
+            "title": "The simulation is already at its starting state",
+            "text": "Reset"
+          },
+          {
+            "id": "start-button",
+            "disabled": false,
+            "title": "",
+            "text": "Replay and forecast NYC"
+          }
+        ]
+      },
+      "pass": false,
+      "error": "Keyboard exploration did not move the camera",
+      "console": []
+    }
+  ],
+  "recovery": {
+    "failureObserved": true,
+    "recovered": true
+  },
+  "failures": [
+    "nyc-development-atlas-v1 1440: Keyboard exploration did not move the camera",
+    "nyc-development-atlas-v1 390: Keyboard exploration did not move the camera"
+  ],
+  "pass": false,
+  "browser": {
+    "executable": "/home/clocksmith/deco/simulatte/artifacts/interface-repair/vulkan/chrome-vulkan.sh",
+    "arguments": [
+      "--remote-debugging-port=0",
+      "--user-data-dir=/tmp/simulatte-browser-ImfGuG",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--enable-unsafe-webgpu",
+      "--window-size=1440,1000",
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "about:blank"
+    ],
+    "process": {
+      "schema": "simulatte.auditChildProcessLog.v1",
+      "stdout": {
+        "characterCount": 0,
+        "chunkCount": 0,
+        "truncated": false,
+        "tail": ""
+      },
+      "stderr": {
+        "characterCount": 490,
+        "chunkCount": 4,
+        "truncated": false,
+        "tail": "\nDevTools listening on ws://127.0.0.1:43563/devtools/browser/e5d6b80a-5f52-4595-888d-d2bf141a364a\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\nCreated TensorFlow Lite XNNPACK delegate for CPU.\nAttempting to use a delegate that only supports static-sized tensors with a graph that has dynamic-sized tensors (tensor#-1 is a dynamic-sized tensor).\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\n"
+      }
+    }
+  },
+  "finishedAt": "2026-09-14T21:14:40.496Z"
+}

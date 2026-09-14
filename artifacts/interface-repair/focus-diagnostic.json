@@ -1,0 +1,5 @@
+[
+  {
+    "error": "{\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":103,\"scriptId\":\"23\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"23\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":109},{\"functionName\":\"\",\"scriptId\":\"23\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":161}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Sun Walker chooser missing\\n    at <anonymous>:1:110\\n    at <anonymous>:1:162\",\"objectId\":\"-2441050594890288152.2.2\"}}"
+  }
+]

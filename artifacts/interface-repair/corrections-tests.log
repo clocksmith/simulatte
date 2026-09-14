@@ -1,0 +1,196 @@
+TAP version 13
+# Subtest: public stylesheet resolves the owned design layers without duplicate loading
+ok 1 - public stylesheet resolves the owned design layers without duplicate loading
+  ---
+  duration_ms: 1.510231
+  type: 'test'
+  ...
+# Subtest: literal paint values belong to tokens, not component and page rules
+ok 2 - literal paint values belong to tokens, not component and page rules
+  ---
+  duration_ms: 2.07586
+  type: 'test'
+  ...
+# Subtest: page entries use stylesheets instead of inline stylesheet forks
+ok 3 - page entries use stylesheets instead of inline stylesheet forks
+  ---
+  duration_ms: 0.575272
+  type: 'test'
+  ...
+# Subtest: paint extraction preserves property names including white-space
+ok 4 - paint extraction preserves property names including white-space
+  ---
+  duration_ms: 3.761363
+  type: 'test'
+  ...
+# Subtest: page compositions consume the shared theme without reviving retired theme forks
+ok 5 - page compositions consume the shared theme without reviving retired theme forks
+  ---
+  duration_ms: 3.099674
+  type: 'test'
+  ...
+# Subtest: empty plugin map slots cannot hide governed scene labels
+ok 6 - empty plugin map slots cannot hide governed scene labels
+  ---
+  duration_ms: 0.254135
+  type: 'test'
+  ...
+# Subtest: Create shares the World typography and monochrome theme rather than forking its palette
+ok 7 - Create shares the World typography and monochrome theme rather than forking its palette
+  ---
+  duration_ms: 0.241537
+  type: 'test'
+  ...
+# Subtest: minimap follows the governed plugin actor and retains the core journey fallback
+ok 8 - minimap follows the governed plugin actor and retains the core journey fallback
+  ---
+  duration_ms: 3.291645
+  type: 'test'
+  ...
+# Subtest: plugin follow mode centers the camera on the moving plugin actor
+ok 9 - plugin follow mode centers the camera on the moving plugin actor
+  ---
+  duration_ms: 0.959018
+  type: 'test'
+  ...
+# Subtest: POV mode uses the plugin actor rather than the hidden City journey state
+ok 10 - POV mode uses the plugin actor rather than the hidden City journey state
+  ---
+  duration_ms: 0.279947
+  type: 'test'
+  ...
+# Subtest: overview, free, and compare retain distinct camera modes and framing
+ok 11 - overview, free, and compare retain distinct camera modes and framing
+  ---
+  duration_ms: 0.382597
+  type: 'test'
+  ...
+# Subtest: wide plugin overviews expand the far plane to keep their evidence visible
+ok 12 - wide plugin overviews expand the far plane to keep their evidence visible
+  ---
+  duration_ms: 0.177773
+  type: 'test'
+  ...
+# Subtest: wide overview altitude reduces fog without changing the near-view ceiling
+ok 13 - wide overview altitude reduces fog without changing the near-view ceiling
+  ---
+  duration_ms: 0.154108
+  type: 'test'
+  ...
+# Subtest: City camera buttons send the exact advertised modes and select semantic targets
+ok 14 - City camera buttons send the exact advertised modes and select semantic targets
+  ---
+  duration_ms: 0.643099
+  type: 'test'
+  ...
+# Subtest: City plugin playback drives rendering from simulation time without mutating world state
+ok 15 - City plugin playback drives rendering from simulation time without mutating world state
+  ---
+  duration_ms: 0.20223
+  type: 'test'
+  ...
+# Subtest: plugin follow zoom changes the rendered camera distance as well as its control value
+ok 16 - plugin follow zoom changes the rendered camera distance as well as its control value
+  ---
+  duration_ms: 0.58048
+  type: 'test'
+  ...
+# Subtest: scenario selection never impersonates authored textbox input
+ok 17 - scenario selection never impersonates authored textbox input
+  ---
+  duration_ms: 1.031253
+  type: 'test'
+  ...
+# Subtest: profile defaults choose declared overview targets even without an explicit target ID
+ok 18 - profile defaults choose declared overview targets even without an explicit target ID
+  ---
+  duration_ms: 0.690177
+  type: 'test'
+  ...
+# Subtest: reset view restores pose, zoom, and the non-origin target without changing simulation
+ok 19 - reset view restores pose, zoom, and the non-origin target without changing simulation
+  ---
+  duration_ms: 0.300731
+  type: 'test'
+  ...
+# Subtest: updated plugin targets do not undo manually explored framing
+ok 20 - updated plugin targets do not undo manually explored framing
+  ---
+  duration_ms: 0.262571
+  type: 'test'
+  ...
+# Subtest: narrow camera framing expands distance and clipping around the actual target
+ok 21 - narrow camera framing expands distance and clipping around the actual target
+  ---
+  duration_ms: 0.488213
+  type: 'test'
+  ...
+# Subtest: wgs84 framing is centered and bounded at 390 pixels
+ok 22 - wgs84 framing is centered and bounded at 390 pixels
+  ---
+  duration_ms: 1.023817
+  type: 'test'
+  ...
+# Subtest: wgs84 framing is centered and bounded at 1440 pixels
+ok 23 - wgs84 framing is centered and bounded at 1440 pixels
+  ---
+  duration_ms: 0.170412
+  type: 'test'
+  ...
+# Subtest: heliocentric-ecliptic-au framing is centered and bounded at 390 pixels
+ok 24 - heliocentric-ecliptic-au framing is centered and bounded at 390 pixels
+  ---
+  duration_ms: 0.157747
+  type: 'test'
+  ...
+# Subtest: heliocentric-ecliptic-au framing is centered and bounded at 1440 pixels
+ok 25 - heliocentric-ecliptic-au framing is centered and bounded at 1440 pixels
+  ---
+  duration_ms: 0.378576
+  type: 'test'
+  ...
+# Subtest: icrs-cartesian-pc framing is centered and bounded at 390 pixels
+ok 26 - icrs-cartesian-pc framing is centered and bounded at 390 pixels
+  ---
+  duration_ms: 0.429124
+  type: 'test'
+  ...
+# Subtest: icrs-cartesian-pc framing is centered and bounded at 1440 pixels
+ok 27 - icrs-cartesian-pc framing is centered and bounded at 1440 pixels
+  ---
+  duration_ms: 0.132902
+  type: 'test'
+  ...
+# Subtest: datacenter-cartesian-meters framing is centered and bounded at 390 pixels
+ok 28 - datacenter-cartesian-meters framing is centered and bounded at 390 pixels
+  ---
+  duration_ms: 0.071554
+  type: 'test'
+  ...
+# Subtest: datacenter-cartesian-meters framing is centered and bounded at 1440 pixels
+ok 29 - datacenter-cartesian-meters framing is centered and bounded at 1440 pixels
+  ---
+  duration_ms: 0.04826
+  type: 'test'
+  ...
+# Subtest: national framing uses viewport space, not obsolete mobile panel offsets
+ok 30 - national framing uses viewport space, not obsolete mobile panel offsets
+  ---
+  duration_ms: 0.174626
+  type: 'test'
+  ...
+# Subtest: same-profile route edits serialize and only the newest result becomes canonical
+ok 31 - same-profile route edits serialize and only the newest result becomes canonical
+  ---
+  duration_ms: 7.465531
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 83.901575

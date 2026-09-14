@@ -1,0 +1,119 @@
+{
+  "state": {
+    "phase": "ready",
+    "profile": "subsea-network-global-v1"
+  },
+  "screen": {
+    "width": 1440,
+    "height": 861,
+    "scroll": 1440
+  },
+  "elements": [
+    {
+      "id": "autonomy-canvas",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 861,
+        "top": 0,
+        "right": 1440,
+        "bottom": 861,
+        "left": 0
+      },
+      "hidden": false,
+      "display": "block"
+    },
+    {
+      "id": "overlay-canvas",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 861,
+        "top": 0,
+        "right": 1440,
+        "bottom": 861,
+        "left": 0
+      },
+      "hidden": false,
+      "display": "block"
+    },
+    {
+      "id": "sim-rail-left",
+      "rect": {
+        "x": 20,
+        "y": 20,
+        "width": 320,
+        "height": 110,
+        "top": 20,
+        "right": 340,
+        "bottom": 130,
+        "left": 20
+      },
+      "hidden": false,
+      "display": "flex"
+    },
+    {
+      "id": "sim-rail-right",
+      "rect": {
+        "x": 1100,
+        "y": 20,
+        "width": 320,
+        "height": 398.390625,
+        "top": 20,
+        "right": 1420,
+        "bottom": 418.390625,
+        "left": 1100
+      },
+      "hidden": false,
+      "display": "flex"
+    },
+    {
+      "id": "sim-mission-dock",
+      "rect": {
+        "x": 360,
+        "y": 723.8125,
+        "width": 720,
+        "height": 117.1875,
+        "top": 723.8125,
+        "right": 1080,
+        "bottom": 841,
+        "left": 360
+      },
+      "hidden": false,
+      "display": "grid"
+    },
+    {
+      "id": "mission-input",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "hidden": false,
+      "value": "",
+      "display": "block"
+    }
+  ],
+  "cameras": [
+    {
+      "id": "camera-bird",
+      "label": "Overview"
+    },
+    {
+      "id": "camera-free",
+      "label": "Free"
+    },
+    {
+      "id": "camera-compare",
+      "label": "Compare"
+    }
+  ],
+  "text": "LOADING WORLD DATA\n◀\nWorkbench\nPrompt\nReady\nPlanet\nSubsea Network\n▶\nOverview\nFree\nCompare\nReady\nSubsea Network\n\nAtlantic single cut\n\nNow\nWindow Opened\nWhy\nModeled demand is conserved across governed landing and cable identities.\nControls\n9\n\nBaseline and intervention share starting evidence\n\nControls (9)\n▼\nAtlantic single cut\nOne modeled MAREA corridor failure with weighted-throughput and proportional-fair comparison.\nSEED SUBSEA-ATLANTIC-001\nChange scenario\n↻\nRun network experiment\nDeterministic matching is active.\nExperience docs"
+}

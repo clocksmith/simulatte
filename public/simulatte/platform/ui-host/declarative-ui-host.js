@@ -35,21 +35,26 @@
 
     function render(contributions, v4Contributions = []) {
       const documentRef = roots.inspector.ownerDocument;
+      const focused = documentRef.activeElement;
+      const focusedId = focused?.id && Object.values(roots).some((element) => element.contains?.(focused)) ? focused.id : null;
       const fragments = Object.fromEntries(Object.keys(roots).map((slot) => [slot, documentRef.createDocumentFragment()]));
+      const parameterSections = new Map();
       const v4ControlIds = new Map(v4Contributions.map((contribution) => [
         contribution.pluginId,
         new Set(contribution.controls.controls.map((control) => control.id)),
       ]));
       v4Contributions.forEach((contribution) => {
         if (contribution.controls.controls.length) {
-          fragments.inspector.append(renderControls(
+          const section = renderControls(
             documentRef,
             contribution.pluginId,
             contribution.controls.controls,
             controlValues,
             onControlChange,
             values, controlGroups, onError,
-          ));
+          );
+          parameterSections.set(contribution.pluginId, section);
+          fragments.inspector.append(section);
         }
       });
       [...contributions].sort((left, right) => left.view.slot.localeCompare(right.view.slot) || left.pluginId.localeCompare(right.pluginId)).forEach(({ pluginId, view }) => {
@@ -110,11 +115,15 @@
         if (view.actions.length) {
           const actions = documentRef.createElement('div');
           actions.className = 'plugin-actions';
+          const configurationActions = documentRef.createElement('div');
+          configurationActions.className = 'plugin-actions';
+          const parameterSection = parameterSections.get(pluginId);
           view.actions.forEach((action) => {
             const button = documentRef.createElement('button');
             button.type = 'button';
             button.className = 'sim-action';
             button.textContent = action.label;
+            button.dataset.pluginAction = action.id;
             button.addEventListener('click', async () => {
               button.disabled = true;
               button.dataset.actionStatus = 'applying';
@@ -136,9 +145,11 @@
                 button.disabled = false;
               }
             });
-            actions.append(button);
+            if (parameterSection && /\.configuration\.(apply|reset)$/.test(action.id)) configurationActions.append(button);
+            else actions.append(button);
           });
-          section.append(actions);
+          if (configurationActions.children.length) parameterSection.append(configurationActions);
+          if (actions.children.length) section.append(actions);
         }
         fragments[view.slot].append(section);
       });
@@ -146,6 +157,7 @@
         ...renderInspectionCollection(documentRef, contribution.pluginId, contribution.inspections)
       ));
       Object.entries(roots).forEach(([slot, element]) => element.replaceChildren(fragments[slot]));
+      if (focusedId) documentRef.getElementById(focusedId)?.focus({ preventScroll: true });
     }
 
     function values(pluginId) {
@@ -288,12 +300,17 @@
         const requestedValues = readValues(pluginId);
         input.dataset.applyStatus = 'applying';
         try {
-          await onControlChange({
+          const outcome = await onControlChange({
             pluginId,
             controlId: control.id,
             values: requestedValues,
           });
           if (revision !== editing.revisions.get(revisionKey)) return;
+          if (outcome?.status === 'draft') {
+            input.dataset.applyStatus = 'draft';
+            input.title = 'Unapplied draft. Use Apply configuration to restart with these values, or Reset draft.';
+            return;
+          }
           peers.forEach(row => editing.applied.set(row.id, cloneControlValue(requestedValues[row.id])));
           appliedValue = cloneControlValue(nextValue);
           input.dataset.applyStatus = 'applied';
