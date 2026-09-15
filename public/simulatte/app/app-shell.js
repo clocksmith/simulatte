@@ -5,7 +5,10 @@
   root.SimulatteAppShell = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAppShellModule(lifecycleApi) {
   if (!lifecycleApi) throw new Error('app_shell_lifecycle_missing');
-  function createAppShell({ router, boot, landing, documentationLink = null, updateExperienceDocLink, labelForProfile, tierLabels: TIER_LABELS }) {
+  function createAppShell({
+    router, boot, landing, documentationLink = null, updateExperienceDocLink,
+    labelForProfile, tierLabels: TIER_LABELS, beforeSelect = null, onShowLanding = null,
+  }) {
     let current = null; // { tier, experience, dispose }
     let pending = null;
     let generation = 0;
@@ -64,6 +67,7 @@
 
     function showLanding() {
       landing?.classList.remove('hidden');
+      onShowLanding?.();
       updateExperienceDocLink(documentationLink, null);
       try {
         finishRouteLoad();
@@ -253,10 +257,29 @@
 
     function wireLanding() {
       if (!landing) return;
-      const grid = landing.querySelector('.hex-constellation-container') || landing.querySelector('.tier-cards-grid');
-      const setParallax = (x, y) => { landing.style.setProperty('--parallax-x', x.toFixed(3)); landing.style.setProperty('--parallax-y', y.toFixed(3)); };
-      grid?.addEventListener('mousemove', (event) => { const rect = grid.getBoundingClientRect(); landing.classList.add('is-parallax'); setParallax(((event.clientX - rect.left) / rect.width - .5) * 2, ((event.clientY - rect.top) / rect.height - .5) * 2); });
-      landing.addEventListener('click', (event) => { const card = event.target && event.target.closest && (event.target.closest('.hex-satellite') || event.target.closest('.tier-card')); if (card && card.dataset.tier) void router.navigate({ tier: card.dataset.tier, experience: card.dataset.defaultProfile || null }); });
+      landing.addEventListener('click', (event) => {
+        if (event.defaultPrevented) return;
+        const card = event.target?.closest?.('.tier-card[data-tier]');
+        if (!card) return;
+        event.preventDefault();
+        void selectFromLanding(card);
+      });
+    }
+
+    async function selectFromLanding(card) {
+      const generationAtStart = generation;
+      try {
+        if (beforeSelect && await beforeSelect(card) === false) return;
+        if (generationAtStart !== generation) return;
+        await router.navigate({ tier: card.dataset.tier, experience: card.dataset.defaultProfile || null });
+      } catch (error) {
+        showLanding();
+        const status = landing.querySelector('#simulation-status');
+        if (status) {
+          status.textContent = `Could not load simulation: ${error.message}. Select it to retry.`;
+          status.dataset.state = 'error';
+        }
+      }
     }
 
     function start() { wireLanding(); return router.start((route) => renderRoute(route)); }

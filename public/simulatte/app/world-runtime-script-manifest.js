@@ -239,6 +239,8 @@
     'simulatte/app/city-plugin-session.js',
     'simulatte/app/main.js',
     'simulatte/app/data-workbench.js',
+    'simulatte/app/homepage-webgpu.js',
+    'simulatte/app/homepage-effects.js',
     'simulatte/app/workbench-entry.js',
   ]);
   const PROFILE_PLUGINS = Object.freeze({
@@ -280,7 +282,9 @@
     'shared/contracts/input-source.js', 'shared/contracts/data-world-spec.js',
     'shared/core/pipeline-runner.js', 'shared/core/simulation/point-motion.js',
     'shared/core/simulation/data-run.js', 'shared/render/point-scene-view.js',
-    'simulatte/app/data-workbench.js', 'simulatte/app/workbench-entry.js',
+    'simulatte/app/data-workbench.js',
+    'simulatte/app/homepage-webgpu.js', 'simulatte/app/homepage-effects.js',
+    'simulatte/app/workbench-entry.js',
   ]);
   const eager = Object.freeze(browser.filter((path) => workbenchPaths.has(path)));
   const profileRuntime = Object.freeze(browser.filter((path) => !workbenchPaths.has(path) && !pluginPath(path) && !optionalModelPath(path)));

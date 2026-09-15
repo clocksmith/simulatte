@@ -82,6 +82,8 @@
     return appShellApi.create({
       ...options,
       boot: (tier, profileId, hooks) => options.boot(tier, profileId || DISCOVERY_PROFILE_BY_TIER[tier] || null, hooks),
+      beforeSelect: (card) => root.SimulatteHomepageEffects?.forLanding(options.landing)?.launch(card),
+      onShowLanding: () => root.SimulatteHomepageEffects?.forLanding(options.landing)?.reset(),
       updateExperienceDocLink, labelForProfile, tierLabels: TIER_LABELS,
     });
   }
