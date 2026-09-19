@@ -2569,9 +2569,14 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.doesNotMatch(modelLockCheck, /'public',\n\s+'pipeline'/);
   assert.match(deployCheck, /MODEL_RUNTIME_LOCK\.doppler/);
   assert.match(deployCheck, /npm', \[\n\s+'pack',/);
+  assert.match(deployCheck, /sourcePackage\.files/);
+  assert.match(deployCheck, /\.\.\.archiveEntries/);
   assert.match(deployCheck, /vendor file contents differ from the pinned Doppler source package/);
   assert.match(developmentSync, /sibling-git-archive/);
   assert.match(developmentSync, /git', \['archive'/);
+  assert.match(developmentSync, /sourcePackage\.files/);
+  assert.match(developmentSync, /filter\(\(entry\) => entry && !entry\.startsWith\('!'\)\)/);
+  assert.match(developmentSync, /\.\.\.archiveEntries/);
   assert.match(developmentSync, /public', 'vendor', 'doppler'/);
   assert.match(developmentSync, /const targetSourceSha = WRITE/);
   assert.match(developmentSync, /git', \['cat-file', '-e'/);

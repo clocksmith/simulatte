@@ -23,6 +23,31 @@ fn lineDistance(point: vec2<f32>, start: vec2<f32>, end: vec2<f32>) -> f32 {
   return length(point - start - delta * along);
 }
 
+fn graphHash(value: vec2<f32>) -> f32 {
+  return fract(sin(dot(value, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+fn graphOuterNode(particle: i32, cycle: i32) -> i32 {
+  return 1 + i32(floor(graphHash(vec2(f32(particle) + 0.37, f32(cycle) + 0.61)) * 6.0));
+}
+
+fn graphNeighborNode(particle: i32, cycle: i32, outer: i32) -> i32 {
+  let direction = select(-1, 1, graphHash(vec2(f32(particle) + 9.17, f32(cycle) + 4.73)) >= 0.5);
+  var neighbor = outer + direction;
+  if (neighbor < 1) { neighbor = 6; }
+  if (neighbor > 6) { neighbor = 1; }
+  return neighbor;
+}
+
+fn graphWalkNode(particle: i32, step: i32) -> i32 {
+  let cycle = step / 3;
+  let phase = step % 3;
+  if (phase == 0) { return 0; }
+  let outer = graphOuterNode(particle, cycle);
+  if (phase == 1) { return outer; }
+  return graphNeighborNode(particle, cycle, outer);
+}
+
 @fragment fn fragmentMain(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
   let pixel = position.xy / frame.viewport.w;
   let time = frame.viewport.z;
@@ -48,6 +73,35 @@ fn lineDistance(point: vec2<f32>, start: vec2<f32>, end: vec2<f32>) -> f32 {
     alpha += edge * (0.08 + trace * 0.5 + active * 0.24 + proximity * 0.18);
     alpha += outer * ticks * (0.05 + active * 0.34);
     alpha += exp(-abs(distance) * 0.19) * (0.012 + active * 0.055);
+  }
+  let seamVisibility = mix(0.09, 1.0, smoothstep(-3.0, 8.0, nearest));
+  for (var outerIndex = 1; outerIndex < 7; outerIndex += 1) {
+    let nextOuterIndex = select(outerIndex + 1, 1, outerIndex == 6);
+    let spoke = lineDistance(pixel, frame.cells[0].xy, frame.cells[outerIndex].xy);
+    let rim = lineDistance(pixel, frame.cells[outerIndex].xy, frame.cells[nextOuterIndex].xy);
+    let spokePulse = 0.5 + 0.5 * sin(time * 0.42 + f32(outerIndex) * 1.71);
+    alpha += (1.0 - smoothstep(0.35, 1.15, spoke)) * (0.018 + spokePulse * 0.014) * seamVisibility;
+    alpha += (1.0 - smoothstep(0.35, 1.1, rim)) * 0.025 * seamVisibility;
+  }
+  for (var particleIndex = 0; particleIndex < 24; particleIndex += 1) {
+    let seed = graphHash(vec2(f32(particleIndex) + 17.0, 3.91));
+    let speed = 0.2 + seed * 0.19;
+    let travel = time * speed + seed * 29.0;
+    let step = i32(floor(travel));
+    let progressAlongEdge = smoothstep(0.0, 1.0, fract(travel));
+    let startNode = graphWalkNode(particleIndex, step);
+    let endNode = graphWalkNode(particleIndex, step + 1);
+    let start = frame.cells[startNode].xy;
+    let end = frame.cells[endNode].xy;
+    let head = mix(start, end, progressAlongEdge);
+    let tail = mix(start, end, max(0.0, progressAlongEdge - 0.12 - seed * 0.08));
+    let headDistance = length(pixel - head);
+    let tailDistance = lineDistance(pixel, tail, head);
+    let core = 1.0 - smoothstep(0.45, 1.8, headDistance);
+    let glow = 1.0 - smoothstep(1.4, 6.8, headDistance);
+    let trail = 1.0 - smoothstep(0.3, 1.25, tailDistance);
+    let shimmer = 0.78 + 0.22 * sin(time * (1.1 + seed) + f32(particleIndex) * 2.37);
+    alpha += (core * 0.5 + glow * 0.12 + trail * 0.16) * shimmer * seamVisibility;
   }
   if (hoverIndex > 0 && launchIndex < 0) {
     let start = frame.cells[0].xy;

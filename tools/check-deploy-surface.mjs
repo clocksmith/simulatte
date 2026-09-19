@@ -168,12 +168,33 @@ function main() {
       fail(`sibling Doppler repository not found at ${siblingRoot}`);
     }
     run('git', ['cat-file', '-e', `${DOPPLER_DEVELOPMENT.gitSha}^{commit}`], { cwd: siblingRoot });
+    const sourcePackage = JSON.parse(run(
+      'git',
+      ['show', `${DOPPLER_DEVELOPMENT.gitSha}:package.json`],
+      { cwd: siblingRoot }
+    ));
+    if (!Array.isArray(sourcePackage.files) || !sourcePackage.files.length) {
+      fail('pinned Doppler package must declare a non-empty files allowlist');
+    }
+    const archiveEntries = Array.from(new Set([
+      'package.json',
+      ...sourcePackage.files
+        .map((entry) => String(entry || '').trim())
+        .filter((entry) => entry && !entry.startsWith('!')),
+    ]));
+    for (const entry of archiveEntries) {
+      if (path.isAbsolute(entry) || entry.split('/').includes('..')) {
+        fail(`invalid Doppler package archive entry: ${entry}`);
+      }
+    }
     const archivePath = path.join(tempDir, 'doppler.tar');
     run('git', [
       'archive',
       '--format=tar',
       `--output=${archivePath}`,
       DOPPLER_DEVELOPMENT.gitSha,
+      '--',
+      ...archiveEntries,
     ], { cwd: siblingRoot });
     const sourceRoot = path.join(tempDir, 'source');
     fs.mkdirSync(sourceRoot);

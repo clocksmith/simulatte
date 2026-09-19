@@ -157,6 +157,11 @@ html[data-theme-preference="dark"] [data-theme-icon="dark"] {
   transform: translate(0, -50%);
 }
 
+.sim-theme-control button,
+.sim-theme-icon-stack {
+  border: 0;
+}
+
 .sim-theme-control ~ .map-workspace .simulation-toolbar,
 .sim-theme-control ~ .data-workbench-page .workbench-header { padding-right: 56px; }
 

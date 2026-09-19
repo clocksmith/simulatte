@@ -166,8 +166,34 @@ function main() {
       ? run('git', ['rev-parse', 'HEAD'], { cwd: siblingRoot }).trim()
       : sourceSha;
     run('git', ['cat-file', '-e', `${targetSourceSha}^{commit}`], { cwd: siblingRoot });
+    const sourcePackage = JSON.parse(run(
+      'git',
+      ['show', `${targetSourceSha}:package.json`],
+      { cwd: siblingRoot }
+    ));
+    if (!Array.isArray(sourcePackage.files) || !sourcePackage.files.length) {
+      fail('pinned Doppler package must declare a non-empty files allowlist');
+    }
+    const archiveEntries = Array.from(new Set([
+      'package.json',
+      ...sourcePackage.files
+        .map((entry) => String(entry || '').trim())
+        .filter((entry) => entry && !entry.startsWith('!')),
+    ]));
+    for (const entry of archiveEntries) {
+      if (path.isAbsolute(entry) || entry.split('/').includes('..')) {
+        fail(`invalid Doppler package archive entry: ${entry}`);
+      }
+    }
     const archivePath = path.join(tempDir, 'doppler.tar');
-    run('git', ['archive', '--format=tar', `--output=${archivePath}`, targetSourceSha], { cwd: siblingRoot });
+    run('git', [
+      'archive',
+      '--format=tar',
+      `--output=${archivePath}`,
+      targetSourceSha,
+      '--',
+      ...archiveEntries,
+    ], { cwd: siblingRoot });
     run('tar', ['-xf', archivePath, '-C', tempDir]);
     const output = run('npm', [
       'pack',

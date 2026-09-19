@@ -6,8 +6,8 @@
   root.SimulatteHomepageEffects = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createHomepageEffects(root, rendererApi) {
   const instances = new WeakMap();
-  const IDLE_FPS = 18;
-  const ACTIVE_FPS = 40;
+  const IDLE_FPS = 24;
+  const ACTIVE_FPS = 48;
 
   function create({ landing, home, field, canvas, shaderUrl }) {
     if (instances.has(landing)) return instances.get(landing);
