@@ -17,6 +17,7 @@ Let people choose, create, and edit executable browser simulations. Preserve the
 ## Contracts
 
 - Input: [product goals](GOALS.md)
+- Input: [product intent](INTENT.md)
 - Input: [engineering invariants](STYLE_GUIDE.md)
 - Output: [product navigation](README.md)
 - Output: [browser component charter](public/CATSCAN.md)
@@ -29,6 +30,7 @@ Let people choose, create, and edit executable browser simulations. Preserve the
 ## Acceptance
 
 - Every governed component resolves an ordered charter chain.
+- Acceptance evidence verifies that [INTENT.md](INTENT.md) and [GOALS.md](GOALS.md) remain supported.
 - Evidence: [CATSCAN contract tests](tests/catscan.test.cjs).
 
 ## Non-goals

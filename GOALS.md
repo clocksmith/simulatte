@@ -2,7 +2,7 @@
 
 ## Authority and status
 
-This file owns Simulatte's durable product direction. These goals are not claims
+This file owns Simulatte's strategic product direction. These goals are not claims
 that every contract or workflow is implemented today.
 
 - [README.md](README.md) describes the current product and repository surfaces.
@@ -294,7 +294,7 @@ explicit, replaceable lane with its own evidence.
 
 ## Compounding asset
 
-The durable asset is the governed improvement corpus:
+The compounding asset is the governed improvement corpus:
 
 ```text
 source data or brief
