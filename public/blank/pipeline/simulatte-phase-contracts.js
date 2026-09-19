@@ -1,7 +1,11 @@
-(function attachSimulattePhaseContracts(root, factory) {
-  const api = factory();
-  if (typeof module === 'object' && module.exports) module.exports = api;
-  root.SimulattePhaseContracts = api;
+// Generated from Blank core factories. Edit the library, not this compatibility build.
+(function attach(root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = require("../../shared/blank-core/compat/phase-contracts.js");
+    root.SimulattePhaseContracts = module.exports;
+    return;
+  }
+  root.SimulattePhaseContracts = factory();
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPhaseContractsApi() {
   const PHASE_ZERO_INPUT_SCHEMA = 'simulatte.phase0.input.v1';
   const BOUND_OUTPUT_SCHEMAS = Object.freeze(Object.fromEntries(

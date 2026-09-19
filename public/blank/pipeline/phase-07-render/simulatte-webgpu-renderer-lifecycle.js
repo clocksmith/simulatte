@@ -116,7 +116,7 @@
         this.ready = true;
         this.status = 'WebGPU renderer ready';
         this.canvas.dataset.renderer = 'webgpu';
-        this.canvas.dataset.visualTier = 'webgpu-depth-lit-2-5d';
+        this.canvas.dataset.visualTier = 'webgpu-recursive-symmetry-2-5d';
         this.canvas.dataset.rendererStatus = this.status;
         this.canvas.dataset.webgpuFeatureFlags = scope.webgpuFeatureSummary(this.webgpuFeatureReceipt);
         this.canvas.dataset.webgpuOptimizationPath = this.gpuScenePath;
@@ -183,6 +183,7 @@
         'depth-buffer-occlusion',
         'camera-perspective-transform',
         'normal-material-lighting',
+        'semantic-recursive-symmetry-field',
       ];
     }
 

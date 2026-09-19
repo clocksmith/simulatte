@@ -1,8 +1,11 @@
-(function attachInputSource(root, factory) {
-  const spec = typeof module === 'object' && module.exports ? require('./world-spec.js') : root.SimulatteWorldSpec;
-  const api = factory(spec);
-  if (typeof module === 'object' && module.exports) module.exports = api;
-  root.SimulatteInputSource = api;
+// Generated from Blank core factories. Edit the library, not this compatibility build.
+(function attach(root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = require("../blank-core/compat/input-source.js");
+    root.SimulatteInputSource = module.exports;
+    return;
+  }
+  root.SimulatteInputSource = factory(root.SimulatteWorldSpec);
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createInputSource(spec) {
   if (!spec) throw new Error('input_source_world_spec_missing');
   const MAX_BYTES = 8 * 1024 * 1024;

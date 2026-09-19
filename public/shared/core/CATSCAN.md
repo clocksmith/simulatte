@@ -3,11 +3,12 @@
 Parent: [Shared browser runtime](../CATSCAN.md)
 ## Target
 
-Provide deterministic simulation primitives and explicit pipeline lifecycle reused by workbench adapters and governed experiences.
+Provide deterministic simulation primitives and pipeline lifecycle.
 
 ## Authority
 
 - Owns small cross-profile simulation algorithms with explicit inputs and outputs.
+- Point-motion and data-run paths are generated from the Blank library.
 - Does not own profile policy, rendering, or plugin scheduling.
 
 ## Scope
@@ -19,14 +20,14 @@ Provide deterministic simulation primitives and explicit pipeline lifecycle reus
 - Input: [shared contract charter](../contracts/CATSCAN.md)
 - Output: [civil time primitive](simulation/civil-time.js)
 - Output: [N-body primitive](simulation/n-body-propagation.js)
-- Output: [ordered pipeline runner](pipeline-runner.js), [point motion](simulation/point-motion.js), and [data execution](simulation/data-run.js)
+- Output: [pipeline adapter](pipeline-runner.js), [point motion](simulation/point-motion.js), and [data execution](simulation/data-run.js)
 
 ## Invariants
 
 - Randomness and time derive from declared inputs.
 - A reusable primitive does not authorize a domain claim.
-- Pipeline stages consume the previous stage's exact output; cancellation and supersession cannot publish stale results.
-- Point motion is explicitly constant velocity in two dimensions, not a general physical solver. Data run receipts do not imply WorldProof or scientific validation.
+- Stages consume exact predecessor output; cancelled or superseded work cannot publish.
+- Point motion is constant velocity in 2D, not general physics; receipts do not imply scientific validation.
 
 ## Acceptance
 
@@ -35,15 +36,15 @@ Provide deterministic simulation primitives and explicit pipeline lifecycle reus
 
 ## Non-goals
 
-- Owning product policy, rendering complete experiences, or hiding domain assumptions behind shared utilities.
+- Product policy, complete experiences, or hidden domain assumptions.
 
 ## Deterministic co-simulation authority
 
-- `simulation/multirate-coordinator.js` owns serial logical time, stable module ordering, latched typed-port exchange, checkpoint restoration, branching, cancellation, and exchange-ledger replay.
-- `simulation/simulation-residency-manager.js` owns simulation-scope residency transitions, causal suspension guards, exact scope checkpoint records, and qualified fidelity branches at settled coordinator boundaries.
-- `simulation/worker-task-pool.js` owns serializable task dispatch, stale-reply rejection, cancellation, crash boundaries, and worker lifecycle without granting workers logical-time or commit authority.
-- Modules retain their numerical methods and private state. The coordinator receives only declared lifecycle operations and phase-two simulation-port and coupling-plan contracts.
-- Render loops, workers, WebGPU dispatch, camera state, and Promise completion order cannot advance logical time or alter canonical commit order.
+- `simulation/multirate-coordinator.js` owns logical time, stable ordering, typed-port exchange, checkpoints, branches, cancellation, and replay.
+- `simulation/simulation-residency-manager.js` owns scope residency, causal suspension guards, checkpoints, and qualified fidelity branches.
+- `simulation/worker-task-pool.js` owns task dispatch, stale-reply rejection, cancellation, crashes, and worker lifecycle, not commit authority.
+- Modules retain numerical methods and private state behind declared lifecycle and port contracts.
+- Rendering, workers, GPU dispatch, cameras, and Promise order cannot alter logical commit order.
 
 ## Freedom
 

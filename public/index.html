@@ -8,12 +8,14 @@
   <title>Simulatte</title>
   <meta name="description" content="Explore simulations. Create a world or use your own data.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <script src="./shared/design/theme-controller.js"></script>
   <link rel="stylesheet" href="./shared/design/simulatte.css">
   <link rel="stylesheet" href="./model-selection.css">
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./world-tiers.css">
   <link rel="stylesheet" href="./shared/design/workbench.css">
   <link rel="stylesheet" href="./shared/design/compositions/world-interface.css">
+  <link rel="stylesheet" href="./shared/design/theme-control.css">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LS3SFGCZSL"></script>
   <script>
@@ -25,6 +27,16 @@
   </script>
 </head>
 <body class="sim-app" data-journey-phase="loading">
+  <div class="sim-theme-control" data-theme-control data-semantic-label-exclusion>
+    <button type="button" aria-label="Theme follows system. Switch to Light theme.">
+      <span class="sim-theme-icon-stack" aria-hidden="true">
+        <span data-theme-icon="system">◐</span>
+        <span data-theme-icon="light">☼</span>
+        <span data-theme-icon="dark">☾</span>
+      </span>
+      <span class="sim-theme-control-label" data-theme-label aria-hidden="true">System</span>
+    </button>
+  </div>
   <main class="map-workspace" aria-label="Simulatte">
     <section class="simulation-stage" aria-label="Selected simulation">
       <header class="simulation-toolbar"><div class="runtime-anchor" data-semantic-label-exclusion>

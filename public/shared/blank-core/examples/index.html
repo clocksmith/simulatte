@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blank core | Independent simulation</title>
+<style>
+  body { max-width: 64rem; margin: 2rem auto; padding: 0 1.5rem; background: #f3f2ee; color: #252722; font: 1rem/1.5 Georgia, serif; }
+  h1 { font-weight: normal; }
+  form, section { display: grid; gap: 1rem; margin-block: 1.5rem; }
+  label { display: grid; gap: .4rem; }
+  textarea, input, button { box-sizing: border-box; padding: .7rem; font: inherit; }
+  textarea { width: 100%; font: .9rem/1.5 monospace; }
+  .row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; }
+  .row input { width: 8rem; }
+  button { cursor: pointer; }
+  pre { padding: 1rem; background: #fff; white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+<h1>One library. No application boot.</h1>
+<p>CSV to an editable program, constant-velocity point motion, and exact replay comparison. No scientific validation is claimed.</p>
+<form id="form">
+  <label>Source CSV<textarea id="input" rows="5" required>id,x,y,vx,vy
+alpha,0,0,1,0.5
+beta,8,2,-0.5,0.2</textarea></label>
+  <div class="row">
+    <label>Duration (s)<input id="duration" type="number" value="10" min="0" max="3600" step="any" required></label>
+    <label>Steps<input id="steps" type="number" value="100" min="1" max="600" required></label>
+    <label>Units<input id="units" value="m" maxlength="80" required></label>
+    <button>Prepare and run</button>
+    <button id="cancel" type="button">Cancel</button>
+  </div>
+</form>
+<section aria-label="Editable WorldSpec">
+  <label>Program<textarea id="program" rows="12" spellcheck="false" disabled></textarea></label>
+  <div class="row"><button id="apply" disabled>Apply edit and run</button><button id="replay" disabled>Replay</button></div>
+</section>
+<p id="status" role="status">Ready</p>
+<pre id="output" aria-label="Result and execution evidence"></pre>
+<script type="module">
+  import { decodeInput, compileDataWorld, createDataSimulation, compareDataRuns } from '../data.js';
+  import { serializeWorldSpec, editWorldSpec } from '../world.js';
+  const get = id => document.getElementById(id);
+  let program = null, previous = null, generation = 0, acquisition = null;
+  const simulation = createDataSimulation({
+    onProgress: event => { get('status').textContent = event.stageId + ': ' + event.status; },
+  });
+  function begin() {
+    acquisition?.abort();
+    acquisition = new AbortController();
+    simulation.cancel();
+    return ++generation;
+  }
+  async function execute(spec, revision, replay = false) {
+    const result = await simulation.run(spec);
+    if (revision !== generation) return;
+    const comparison = previous ? compareDataRuns(previous, result) : null;
+    previous = result;
+    program = spec;
+    get('program').value = serializeWorldSpec(spec);
+    get('program').disabled = false;
+    get('apply').disabled = false;
+    get('replay').disabled = false;
+    get('output').textContent = JSON.stringify({ receipt: result.receipt, lastFrame: result.frames.at(-1), comparison }, null, 2);
+    get('status').textContent = replay
+      ? comparison?.sameProgram && comparison?.sameOutput ? 'Replay matches the exact program and trajectory.' : 'Replay differs.'
+      : 'Run complete. Edit a point or velocity, then apply the program.';
+  }
+  function report(error, revision) {
+    if (revision === generation) get('status').textContent = (error.code || error.name) + ': ' + error.message;
+  }
+  get('form').addEventListener('submit', async event => {
+    event.preventDefault();
+    const revision = begin();
+    try {
+      const input = await decodeInput(get('input').value, { name: 'positions.csv', signal: acquisition.signal });
+      if (revision !== generation) return;
+      if (input.kind !== 'table') throw new Error('This example expects tabular input');
+      const spec = compileDataWorld(input, {
+        mapping: { id: 'id', label: null, x: 'x', y: 'y', vx: 'vx', vy: 'vy' },
+        duration: Number(get('duration').value), steps: Number(get('steps').value), units: get('units').value,
+      });
+      await execute(spec, revision);
+    } catch (error) { report(error, revision); }
+  });
+  get('apply').addEventListener('click', async () => {
+    const revision = begin();
+    try { await execute(editWorldSpec(program, get('program').value, { rationale: 'Independent consumer edit' }), revision); }
+    catch (error) { report(error, revision); }
+  });
+  get('replay').addEventListener('click', async () => {
+    const revision = begin();
+    try { await execute(program, revision, true); }
+    catch (error) { report(error, revision); }
+  });
+  get('cancel').addEventListener('click', () => {
+    begin(); acquisition.abort(); get('status').textContent = 'Cancelled';
+  });
+  addEventListener('pagehide', event => {
+    if (!event.persisted) { begin(); acquisition.abort(); void simulation.close(); }
+  });
+</script>
+</html>

@@ -1,7 +1,11 @@
-(function attachSimulatteWorldSpecAuthorship(root, factory) {
-  const api = factory();
-  if (typeof module === 'object' && module.exports) module.exports = api;
-  root.SimulatteWorldSpecAuthorship = api;
+// Generated from Blank core factories. Edit the library, not this compatibility build.
+(function attach(root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = require("../blank-core/compat/world-spec-authorship.js");
+    root.SimulatteWorldSpecAuthorship = module.exports;
+    return;
+  }
+  root.SimulatteWorldSpecAuthorship = factory();
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldSpecAuthorshipApi() {
   const PROHIBITED_POINTER_TOKENS = new Set(['__proto__', 'prototype', 'constructor']);
 

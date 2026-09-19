@@ -1,11 +1,11 @@
-(function attachSimulatteWorldSpec(root, factory) {
-  const authorship = typeof module === 'object' && module.exports
-    ? require('./world-spec-authorship.js')
-    : root.SimulatteWorldSpecAuthorship;
-  if (!authorship) throw new Error('SimulatteWorldSpec requires WorldSpec authorship validation');
-  const api = factory(authorship);
-  if (typeof module === 'object' && module.exports) module.exports = api;
-  root.SimulatteWorldSpec = api;
+// Generated from Blank core factories. Edit the library, not this compatibility build.
+(function attach(root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = require("../blank-core/compat/world-spec.js");
+    root.SimulatteWorldSpec = module.exports;
+    return;
+  }
+  root.SimulatteWorldSpec = factory(root.SimulatteWorldSpecAuthorship);
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldSpecApi(authorshipContract) {
 
   const WORLD_SPEC_SCHEMA = 'simulatte.worldSpec.v1';

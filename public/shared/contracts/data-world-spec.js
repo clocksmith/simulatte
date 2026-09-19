@@ -1,8 +1,11 @@
-(function attachDataWorldSpec(root, factory) {
-  const world = typeof module === 'object' && module.exports ? require('./world-spec.js') : root.SimulatteWorldSpec;
-  const api = factory(world);
-  if (typeof module === 'object' && module.exports) module.exports = api;
-  root.SimulatteDataWorldSpec = api;
+// Generated from Blank core factories. Edit the library, not this compatibility build.
+(function attach(root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = require("../blank-core/compat/data-world-spec.js");
+    root.SimulatteDataWorldSpec = module.exports;
+    return;
+  }
+  root.SimulatteDataWorldSpec = factory(root.SimulatteWorldSpec);
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createDataWorldSpec(world) {
   if (!world) throw new Error('data_world_spec_dependency_missing');
   const KIND = 'data-points-v1';

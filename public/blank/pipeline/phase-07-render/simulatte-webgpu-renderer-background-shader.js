@@ -68,6 +68,68 @@ fn backgroundHash(point: vec2f) -> f32 {
   return fract(sin(dot(point, vec2f(12.9898, 78.233))) * 43758.5453);
 }
 
+fn backgroundRotate(point: vec2f, angle: f32) -> vec2f {
+  let cosine = cos(angle);
+  let sine = sin(angle);
+  return vec2f(
+    cosine * point.x - sine * point.y,
+    sine * point.x + cosine * point.y
+  );
+}
+
+fn backgroundSpectrum(phase: f32) -> vec3f {
+  return 0.5 + 0.5 * cos(vec3f(phase, phase + 2.094, phase + 4.188));
+}
+
+fn backgroundRecursiveSymmetry(
+  uv: vec2f,
+  time: f32,
+  symmetry: f32,
+  drift: f32
+) -> vec4f {
+  let aspect = max(u.viewport.x, 1.0) / max(u.viewport.y, 1.0);
+  var point = (uv - vec2f(0.5)) * vec2f(aspect, 1.0);
+  point = backgroundRotate(point, time * drift);
+  let radius = length(point);
+  let angle = atan2(point.y, point.x);
+  var fineField = 0.0;
+  var glowField = 0.0;
+  var spatialScale = 1.0;
+  var temporalPhase = time * (0.18 + drift * 1.7);
+
+  for (var level = 0; level < 5; level += 1) {
+    let levelValue = f32(level);
+    let recursiveWave = sin(
+      angle * symmetry +
+      radius * spatialScale * (8.0 + levelValue * 1.7) -
+      temporalPhase
+    );
+    let ringRadius = 0.19 + levelValue * 0.064 + recursiveWave * 0.026;
+    let ringDistance = abs(radius - ringRadius);
+    let levelWeight = 1.0 / (1.0 + levelValue * 0.72);
+    let filament = 1.0 - smoothstep(0.0035, 0.011, ringDistance);
+    let glow = 1.0 - smoothstep(0.012, 0.085, ringDistance);
+    let branch = pow(max(0.0, cos(
+      angle * symmetry - radius * spatialScale * 5.8 + temporalPhase * 0.74
+    )), 22.0);
+    let branchEnvelope = smoothstep(0.06, 0.2, radius) *
+      (1.0 - smoothstep(0.38, 0.68, radius));
+    fineField += (filament + branch * branchEnvelope * 0.72) * levelWeight;
+    glowField += (glow + branch * branchEnvelope * 0.24) * levelWeight;
+    spatialScale *= 1.43;
+    temporalPhase *= -1.11;
+  }
+
+  let aperture = smoothstep(0.045, 0.15, radius) *
+    (1.0 - smoothstep(0.42, 0.72, radius));
+  let pulse = 0.78 + 0.22 * sin(time * 0.34 + radius * 9.0);
+  let intensity = clamp((fineField * 0.64 + glowField * 0.17) * aperture * pulse, 0.0, 1.0);
+  let spectrum = backgroundSpectrum(
+    angle * symmetry * 0.19 + radius * 7.0 - time * drift * 2.8
+  );
+  return vec4f(spectrum, intensity);
+}
+
 @fragment
 fn backgroundFs(input: BackgroundVsOut) -> @location(0) vec4f {
   let uv = input.uv;
@@ -157,6 +219,32 @@ fn backgroundFs(input: BackgroundVsOut) -> @location(0) vec4f {
   color += vec3f(0.25, 0.74, 0.86) * instrumentScan * instrument * 0.09;
   let phaseFacet = pow(abs(sin((uv.x + uv.y * 0.72) * 13.0)), 20.0);
   color += u.palette3.rgb * phaseFacet * phase * 0.08;
+
+  let recursiveDriver = clamp(
+    optical * 0.9 +
+    orbital * 0.78 +
+    network * 0.58 +
+    energy * 0.68 +
+    phase * 0.82 +
+    instrument * 0.22,
+    0.0,
+    1.0
+  );
+  let recursiveSymmetry = 5.0 + floor(clamp(
+    network * 3.0 + orbital * 4.0 + biological * 2.0 + mechanical,
+    0.0,
+    7.0
+  ));
+  let recursiveDrift = 0.026 + energy * 0.075 + optical * 0.034 + orbital * 0.018;
+  let recursiveField = backgroundRecursiveSymmetry(
+    uv,
+    t,
+    recursiveSymmetry,
+    recursiveDrift
+  );
+  let recursivePalette = mix(u.palette3.rgb, recursiveField.rgb, 0.68);
+  let recursivePresence = 0.12 + recursiveDriver * 0.7;
+  color += recursivePalette * recursiveField.a * recursivePresence * 0.42;
 
   let architecture = smoothstep(0.68, 0.96, uv.y) *
     (0.5 + 0.5 * step(0.66, fract(uv.x * 9.0)));

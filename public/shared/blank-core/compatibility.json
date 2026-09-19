@@ -1,0 +1,121 @@
+{
+  "schema": "simulatte.blankCoreCompatibility.v1",
+  "entries": [
+    {
+      "id": "world-spec-authorship",
+      "factoryName": "createWorldSpecAuthorshipApi",
+      "global": "SimulatteWorldSpecAuthorship",
+      "legacy": "public/shared/contracts/world-spec-authorship.js",
+      "dependencies": [],
+      "source": "public/shared/contracts/world-spec-authorship.js",
+      "loader": false
+    },
+    {
+      "id": "world-spec",
+      "factoryName": "createWorldSpecApi",
+      "global": "SimulatteWorldSpec",
+      "legacy": "public/shared/contracts/world-spec.js",
+      "dependencies": [
+        "world-spec-authorship"
+      ],
+      "source": "public/shared/contracts/world-spec.js",
+      "loader": false
+    },
+    {
+      "id": "input-source",
+      "factoryName": "createInputSource",
+      "global": "SimulatteInputSource",
+      "legacy": "public/shared/contracts/input-source.js",
+      "dependencies": [
+        "world-spec"
+      ],
+      "source": "public/shared/contracts/input-source.js",
+      "loader": false
+    },
+    {
+      "id": "data-world-spec",
+      "factoryName": "createDataWorldSpec",
+      "global": "SimulatteDataWorldSpec",
+      "legacy": "public/shared/contracts/data-world-spec.js",
+      "dependencies": [
+        "world-spec"
+      ],
+      "source": "public/shared/contracts/data-world-spec.js",
+      "loader": false
+    },
+    {
+      "id": "pipeline-adapter",
+      "factoryName": "createPipelineRunner",
+      "global": "SimulattePipelineRunner",
+      "legacy": "public/shared/core/pipeline-runner.js",
+      "dependencies": [],
+      "source": "public/shared/core/pipeline-runner.js",
+      "loader": true
+    },
+    {
+      "id": "point-motion",
+      "factoryName": "createPointMotion",
+      "global": "SimulattePointMotion",
+      "legacy": "public/shared/core/simulation/point-motion.js",
+      "dependencies": [
+        "data-world-spec"
+      ],
+      "source": "public/shared/core/simulation/point-motion.js",
+      "loader": false
+    },
+    {
+      "id": "data-run",
+      "factoryName": "createDataRun",
+      "global": "SimulatteDataRun",
+      "legacy": "public/shared/core/simulation/data-run.js",
+      "dependencies": [
+        "world-spec",
+        "data-world-spec",
+        "input-source",
+        "point-motion",
+        "pipeline-adapter"
+      ],
+      "source": "public/shared/core/simulation/data-run.js",
+      "loader": false
+    },
+    {
+      "id": "phase-contracts",
+      "factoryName": "createPhaseContractsApi",
+      "global": "SimulattePhaseContracts",
+      "legacy": "public/blank/pipeline/simulatte-phase-contracts.js",
+      "dependencies": [],
+      "source": "public/blank/pipeline/simulatte-phase-contracts.js",
+      "loader": false
+    },
+    {
+      "id": "compiler",
+      "factoryName": "createPhaseRunnerApi",
+      "global": "SimulatteCompilerCore",
+      "legacy": null,
+      "dependencies": [
+        "phase-contracts",
+        "pipeline-adapter"
+      ],
+      "source": "public/blank/app/runtime/phase-runner.js",
+      "loader": false
+    },
+    {
+      "id": "renderer-session",
+      "factoryName": "createRendererSessionApi",
+      "global": "SimulatteRendererSession",
+      "legacy": "public/shared/render/renderer-session.js",
+      "dependencies": [],
+      "source": "public/shared/render/renderer-session.js",
+      "loader": false
+    },
+    {
+      "id": "render-targets",
+      "factoryName": "createRenderTargetsApi",
+      "global": "SimulatteRenderTargets",
+      "legacy": "public/shared/render/render-targets.js",
+      "dependencies": [],
+      "source": "public/shared/render/render-targets.js",
+      "loader": false
+    }
+  ]
+}

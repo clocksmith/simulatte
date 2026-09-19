@@ -32,10 +32,12 @@ subtle raised and inset shadows, and a quiet tessellating lattice. Simulation
 colors retain their domain meaning. Typography and controls remain readable and
 operable on narrow screens.
 
-The simulation is the product, not a data-entry form. Prompt compilation is an optional input
-adapter with its existing eight-phase contract. Governed World profiles supply
-domain data and behavior, not separate product architectures. Plugins extend
-explicit capabilities. A table visualization is not automatically a scientific
+The simulation is the product, not a data-entry form. Blank/Create and the other
+simulation products retain distinct purposes, interfaces, and domain workflows.
+They share narrow engine capabilities rather than one mandatory workbench.
+Prompt compilation is an optional input adapter with its existing eight-phase
+contract. Governed profiles supply explicit domain data and behavior. Plugins
+extend declared capabilities. A table visualization is not automatically a scientific
 simulation, and a deterministic replay is not independent validation of a model.
 
 The compiler must justify its ownership. Generating Three.js code, scene JSON,
@@ -148,8 +150,14 @@ artifacts when they inspect it.
   rejection. Each pipeline retains its own typed stages and validation.
 - Simulation owns state evolution. Drawing consumes scene data and cannot
   reinterpret source text or choose simulation behavior.
-- World profiles are conformance packs, examples, and execution proofs. They do
-  not define separate product architectures.
+- Simulation products own their workflows and domain semantics. Their profiles
+  can serve as conformance packs and execution evidence without making the
+  products interchangeable.
+- Blank core supplies shared plugin execution, world contracts, governed compiler
+  execution, and renderer lifecycle through small capability entrypoints.
+  Products depend on the library; it does not depend on their pages or policies.
+  Domain phase implementations, GPU backends, and model providers are explicit
+  outer adapters. Existing pages use generated builds of the same canonical code.
 - Governed packs contribute domain data and behavior through declared
   `WorldSpec` and runtime contracts.
 - Plugins extend the compiler or runtime through explicit capabilities,

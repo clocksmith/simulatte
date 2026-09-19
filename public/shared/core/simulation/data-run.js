@@ -1,14 +1,11 @@
-(function attachDataRun(root, factory) {
-  const common = typeof module === 'object' && module.exports;
-  const api = factory(
-    common ? require('../../contracts/world-spec.js') : root.SimulatteWorldSpec,
-    common ? require('../../contracts/data-world-spec.js') : root.SimulatteDataWorldSpec,
-    common ? require('../../contracts/input-source.js') : root.SimulatteInputSource,
-    common ? require('./point-motion.js') : root.SimulattePointMotion,
-    common ? require('../pipeline-runner.js') : root.SimulattePipelineRunner
-  );
-  if (common) module.exports = api;
-  root.SimulatteDataRun = api;
+// Generated from Blank core factories. Edit the library, not this compatibility build.
+(function attach(root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = require("../../blank-core/compat/data-run.js");
+    root.SimulatteDataRun = module.exports;
+    return;
+  }
+  root.SimulatteDataRun = factory(root.SimulatteWorldSpec, root.SimulatteDataWorldSpec, root.SimulatteInputSource, root.SimulattePointMotion, root.SimulattePipelineRunner);
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createDataRun(world, contract, input, motion, pipelines) {
   if (!world || !contract || !input || !motion || !pipelines) throw new Error('data_run_dependency_missing');
   const hash = (value) => input.sha256(new TextEncoder().encode(world.canonicalJson(value)));

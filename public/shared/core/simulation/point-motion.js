@@ -1,8 +1,11 @@
-(function attachPointMotion(root, factory) {
-  const contract = typeof module === 'object' && module.exports ? require('../../contracts/data-world-spec.js') : root.SimulatteDataWorldSpec;
-  const api = factory(contract);
-  if (typeof module === 'object' && module.exports) module.exports = api;
-  root.SimulattePointMotion = api;
+// Generated from Blank core factories. Edit the library, not this compatibility build.
+(function attach(root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = require("../../blank-core/compat/point-motion.js");
+    root.SimulattePointMotion = module.exports;
+    return;
+  }
+  root.SimulattePointMotion = factory(root.SimulatteDataWorldSpec);
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPointMotion(contract) {
   if (!contract) throw new Error('point_motion_contract_missing');
   function frame(spec, step) {

@@ -1,7 +1,11 @@
-(function attachRendererSession(root, factory) {
-  const api = factory();
-  if (typeof module === 'object' && module.exports) module.exports = api;
-  root.SimulatteRendererSession = api;
+// Generated from Blank core factories. Edit the library, not this compatibility build.
+(function attach(root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = require("../blank-core/compat/renderer-session.js");
+    root.SimulatteRendererSession = module.exports;
+    return;
+  }
+  root.SimulatteRendererSession = factory();
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createRendererSessionApi() {
   const OPERATIONS = Object.freeze(['setScene', 'render', 'resize', 'setCamera', 'pick', 'capture', 'receipt']);
 

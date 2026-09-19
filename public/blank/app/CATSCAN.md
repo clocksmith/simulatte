@@ -17,27 +17,27 @@ Expose controls and evidence around the compiler.
 ## Contracts
 
 - Input: [runtime script manifest](runtime-script-manifest.js)
+- Input: [shared execution lifecycle](../../shared/blank-core/CATSCAN.md)
 - Input: [compiler charter](../pipeline/CATSCAN.md)
 - Output: [Create page](../index.html)
-- Output: [WorldSpec editor](prompt/world-spec-editor.js), [reconciliation](prompt/world-spec-reconciliation-controller.js), and [correction session](prompt/world-improvement-session.js)
+- Output: [WorldSpec editor](prompt/world-spec-editor.js) and [correction session](prompt/world-improvement-session.js)
 - Output: [compiler determinism coordinator](prompt/prompt-controller-compiler-proof.js)
-- Output: [WorldProof inspector and replay](prompt/prompt-controller-lab-controller.js)
-- Output: [run view model](runtime/run-view-model.js)
+- Output: [WorldProof replay](prompt/prompt-controller-lab-controller.js)
 - Output: [runner](runtime/phase-runner.js)
 
 ## Invariants
 
-- Page dispatch runs eight phases; edits, retries, and reconciliation enter identified forward requests.
-- The runner bounds phases, resources, and revisions; cancelled work cannot publish or release in-flight leases.
+- Dispatch runs eight phases; edits and retries enter identified forward requests.
+- The runner bounds resources and revisions; cancellation cannot publish or release in-flight leases.
 - Workers reject undeclared resources; cancellation and failure cannot publish or poison replacements.
-- Authored replay admits phase sources; file exchange preserves them, excluding stale proof.
-- Edits record user authority; fresh compilation requires preserve or supersede decisions. Cancelled edits, imports, and decisions cannot publish.
+- Authored replay admits phase sources; exchange preserves them without stale proof.
+- Edits record user authority; recompilation requires preserve or supersede decisions.
 - Compiler determinism compares independent compilation with the pre-edit baseline.
-- Exact replay performs a second execution and compares bound outcomes under one execution identity.
-- Deterministic runs bind independent fixed-step simulation and safety comparisons before replay can pass.
-- Execution and replay bind typed Phase 2 intent, Phase 4 settlement, and semantic provenance without reinterpretation.
-- Correction records require a bound failed critical obligation, later user-authored revision, and passing exact replay.
-- Machine-only correction records remain diagnostic until a final-phase human action creates a hash-bound adjudication.
+- Exact replay compares a second bound execution under one identity.
+- Runs bind fixed-step simulation and safety comparisons before replay passes.
+- Execution binds typed intent, settlement, and provenance without reinterpretation.
+- Correction requires a failed critical obligation, user revision, and passing replay.
+- Machine-only correction stays diagnostic until hash-bound human adjudication.
 
 ## Acceptance
 

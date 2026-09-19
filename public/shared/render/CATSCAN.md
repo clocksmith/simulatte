@@ -8,7 +8,7 @@ Share drawing resources and explicit scene presentation across workbench consume
 ## Authority
 
 - Owns bounded attachment allocation, compatible reuse, and disposal.
-- Owns the shared renderer session lifecycle, explicit capability checks, and stale asynchronous output rejection.
+- Consumes library-owned renderer session lifecycle, capability checks, and stale-output rejection through generated compatibility entrypoints.
 - Owns bounded immutable triangle meshes and material declarations consumed by renderer adapters.
 - Owns the data-point scene view, aspect-preserving projection, picking, and resize lifecycle.
 - Does not own provider selection, scene compilation, cameras, or proof settlement.

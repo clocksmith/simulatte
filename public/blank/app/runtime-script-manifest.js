@@ -7,6 +7,7 @@
   const join = (...groups) => Object.freeze(groups.flat());
 
   const runtimeFoundation = group(
+    '../shared/core/pipeline-runner.js',
     '../shared/deterministic-values.js',
     '../shared/contracts/world-spec-authorship.js',
     '../shared/contracts/world-spec.js',
@@ -24,6 +25,7 @@
   );
   const phaseContracts = group(
     'pipeline/simulatte-phase-contracts.js',
+    '../shared/blank-core/compat/compiler.js',
     'app/runtime/phase-runner.js'
   );
   const catalog = group(
@@ -329,6 +331,43 @@
 
   return Object.freeze({
     schema: 'simulatte.runtimeScriptManifest.v1',
+    libraryModules: group(
+      '../shared/blank-core/index.js',
+      '../shared/blank-core/runtime.js',
+      '../shared/blank-core/contracts.js',
+      '../shared/blank-core/world.js',
+      '../shared/blank-core/compiler.js',
+      '../shared/blank-core/data.js',
+      '../shared/blank-core/render.js',
+      '../shared/blank-core/factories/world-spec-authorship.js',
+      '../shared/blank-core/factories/world-spec.js',
+      '../shared/blank-core/factories/input-source.js',
+      '../shared/blank-core/factories/data-world-spec.js',
+      '../shared/blank-core/factories/pipeline-adapter.js',
+      '../shared/blank-core/factories/point-motion.js',
+      '../shared/blank-core/factories/data-run.js',
+      '../shared/blank-core/factories/phase-contracts.js',
+      '../shared/blank-core/factories/compiler.js',
+      '../shared/blank-core/factories/renderer-session.js',
+      '../shared/blank-core/factories/render-targets.js',
+      '../shared/blank-core/compat/world-spec-authorship.js',
+      '../shared/blank-core/compat/world-spec.js',
+      '../shared/blank-core/compat/input-source.js',
+      '../shared/blank-core/compat/data-world-spec.js',
+      '../shared/blank-core/compat/pipeline-adapter.js',
+      '../shared/blank-core/compat/point-motion.js',
+      '../shared/blank-core/compat/data-run.js',
+      '../shared/blank-core/compat/phase-contracts.js',
+      '../shared/blank-core/compat/compiler.js',
+      '../shared/blank-core/compat/renderer-session.js',
+      '../shared/blank-core/compat/render-targets.js'
+    ),
+    libraryAssets: group(
+      '../shared/blank-core/package.json',
+      '../shared/blank-core/compat/package.json',
+      '../shared/blank-core/schemas/world-spec.schema.json',
+      '../shared/blank-core/compatibility.json'
+    ),
     browser,
     pipelineWorker,
     intentWorker,

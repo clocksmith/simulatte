@@ -1,3 +1,4 @@
+import { syncBlankCoreCompatibility } from './sync-blank-core-compat.mjs';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import path from 'node:path';
@@ -30,7 +31,7 @@ function runtimeScriptBlock(html, browserScripts) {
     const src = relativePath.startsWith('../') ? relativePath : `./${relativePath}`;
     return `  <script defer src="${src}?v=${buildStamp}"></script>`;
   });
-  const sourceFiles = [...new Set([...paths, ...manifest.pipelineWorker,
+  const sourceFiles = [...new Set([...paths, ...manifest.pipelineWorker, ...manifest.libraryModules, ...manifest.libraryAssets,
     'app/workers/simulatte-pipeline-worker.js', 'app/workers/simulatte-worker-bootstrap.js',
     '../data/create-phase-run-policy.json'])].sort();
   const sourceIdentity = sourceFiles.map(file => ({ file,
@@ -49,6 +50,7 @@ function replaceGeneratedBlock(html, block) {
 }
 
 const write = process.argv.includes('--write');
+syncBlankCoreCompatibility({ write });
 const require = createRequire(import.meta.url);
 delete require.cache[require.resolve(manifestPath)];
 const manifest = require(manifestPath);

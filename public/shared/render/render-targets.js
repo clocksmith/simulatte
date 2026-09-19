@@ -1,7 +1,11 @@
-(function attachRenderTargets(root, factory) {
-  const api = factory();
-  if (typeof module === 'object' && module.exports) module.exports = api;
-  root.SimulatteRenderTargets = api;
+// Generated from Blank core factories. Edit the library, not this compatibility build.
+(function attach(root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = require("../blank-core/compat/render-targets.js");
+    root.SimulatteRenderTargets = module.exports;
+    return;
+  }
+  root.SimulatteRenderTargets = factory();
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createRenderTargetsApi() {
   function resize(previous, device, descriptor) {
     const { width, height, sampleCount, colorFormat, depthFormat, usage, label } = descriptor;

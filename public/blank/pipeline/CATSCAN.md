@@ -7,7 +7,8 @@ Preserve prompt obligations through eight typed, ordered phase boundaries.
 
 ## Authority
 
-- Owns phase order, artifact handoffs, and loss attribution boundaries.
+- Owns phase semantics and loss attribution boundaries.
+- Consumes library-owned phase envelopes, ordered execution, resource bounds, and artifact binding.
 - Does not own page coordination or World plugin execution.
 
 ## Scope

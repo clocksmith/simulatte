@@ -8,7 +8,9 @@ Provide narrow contracts and reusable deterministic behavior without becoming a 
 ## Authority
 
 - Owns cross-product schemas, core simulation helpers, design assets, language support, and plugin sources.
-- Does not own Create phase orchestration or World application state.
+- Owns the independently consumable Blank library and its generated compatibility builds, not the Blank authoring product.
+- Owns reusable compiler execution governance.
+- Does not own Create page orchestration, World application state, or product policy.
 
 ## Scope
 
@@ -38,4 +40,3 @@ Provide narrow contracts and reusable deterministic behavior without becoming a 
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

@@ -1,20 +1,28 @@
 # Simulatte
 
-Simulatte runs simulations in your browser. Pick one from the hexagon homepage,
-create a world, or use your own data.
+This repository hosts separate browser simulation products that share a small,
+browser-native core:
+
+- Simulatte World runs governed domain simulations and the local data workbench.
+- Blank/Create compiles natural-language scenes through its fixed eight phases.
+- `@simulatte/blank-core` supplies explicit world, execution, data, compiler,
+  and renderer contracts without owning either product's UI or policy.
 
 - [Live site](https://simulatte.world)
 - [Prompt compiler](https://create.simulatte.world/)
 - [Workbench workflow and component contracts](docs/workbench.md)
 - [Renderer API, scene adapters, and extension examples](docs/simulatte/rendering-api.md)
-- Repository status: private npm package; source is MIT licensed.
+- Repository status: private application workspace with an independently
+  packable, currently unpublished core library; source is MIT licensed.
 
 ## Mission, goal, and value
 
 The goal in [GOALS.md](GOALS.md) is to help technical creators turn data and
 instructions into interactive simulations they can inspect, change, and
-reproduce. Free local use counts. A prompt, model download, account, or domain
-profile is not required for supported data execution.
+reproduce. The products remain independently useful and share implementation
+only where the contracts are genuinely common. Free local use counts. A prompt,
+model download, account, or domain profile is not required for supported data
+execution.
 
 ## How to use Simulatte
 
@@ -52,6 +60,7 @@ Use these command entry points; existing specialist commands and aliases remain 
 | --- | --- |
 | Local workbench and profiles | `npm run serve` |
 | Focused correctness and architecture | `npm run check:fast` |
+| Packed shared-core independence | `npm run check:blank-core` |
 | Complete regression suite | `npm test` |
 | Data workflow, desktop and mobile | `npm run audit:workbench` |
 | Prompt and profile release qualification | `npm run check:release` |
@@ -101,6 +110,13 @@ Intent, Simulation, Visual, Render, and Scene Proof. The runtime checks
 manifests, schemas, datasets, dependencies, route constraints, plugin
 permissions, and receipt obligations before accepting a result.
 
+Both products consume inward-facing capabilities from
+[`@simulatte/blank-core`](public/shared/blank-core/README.md). Canonical core
+implementations are ESM factories. Existing classic-script paths are generated
+compatibility projections, so preserved browser routes do not create a second
+implementation. Product-specific models, physics, controls, and page boot stay
+outside the library.
+
 Core guarantees:
 
 - Unsupported or ambiguous missions produce diagnostics instead of an
@@ -135,8 +151,9 @@ deterministic downstream compilers and simulators. Model selection does not
 bypass contract validation or safety gates.
 
 The plugin boundary is a contract and permission boundary, not a separate
-JavaScript security isolate. The package remains private, while the source is
-licensed under MIT.
+JavaScript security isolate. The root application workspace remains private.
+The nested core library can be packed and installed independently but is not a
+qualified or published release. The source is licensed under MIT.
 All currently executable plugins are repository-bundled, same-realm, and
 explicitly not marketplace-eligible. Activation emits a trust receipt and
 fails closed for legacy or revoked executable manifests; no third-party
@@ -146,7 +163,8 @@ execution lane is claimed.
 
 - [`public/simulatte/`](public/simulatte/) — Simulatte World application, runtime, routing, and receipts
 - [`public/blank/`](public/blank/) — prompt-to-pixels compiler and scene proof
-- [`public/shared/`](public/shared/): contracts, input readers, reusable simulation, drawing, UI, and plugin implementations
+- [`public/shared/blank-core/`](public/shared/blank-core/) — minimal ESM core, declarations, schema, example, and generated compatibility builds
+- [`public/shared/`](public/shared/): other shared contracts, drawing, UI, and governed plugin implementations
 - [`public/simulatte/platform/`](public/simulatte/platform/): plugin host and SDK, governed artifact storage, transport, and platform composition
 - [`public/data/`](public/data/) — governed manifests, profiles, models, and world data
 - [`tools/`](tools/) — build, audit, evaluation, and deployment tools
@@ -171,6 +189,6 @@ npm run deploy:hosting
 
 ## License
 
-[MIT License](LICENSE). The package remains marked private in
-[`package.json`](package.json), which controls publication rather than the
-source license.
+[MIT License](LICENSE). The application workspace remains marked private in
+[`package.json`](package.json). The nested core has its own package manifest;
+neither setting changes the source license or constitutes publication.

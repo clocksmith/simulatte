@@ -42,7 +42,7 @@
 041. JavaScript files are the browser runtime surface.
 042. Keep JavaScript plain and deployable without build steps.
 043. Follow the surrounding module format before introducing new module style.
-044. Current public modules use browser globals plus CommonJS-compatible exports.
+044. Existing product scripts use browser globals plus CommonJS-compatible exports. Standalone libraries use side-effect-free ESM with explicit package exports; classic adapters alone own global compatibility.
 045. Do not add TypeScript, transpilation, bundlers, or runtime compilation steps.
 046. Prefer `const` and pure helper functions for transforms.
 047. Prefer frozen lookup tables for enum-like maps.
@@ -156,12 +156,12 @@
 155. Keep modules focused around phase ownership or browser subsystem ownership.
 156. Avoid adding new high-fan-in utility hubs.
 157. If a file becomes a broad hub, split by cohesive functionality.
-158. Preserve compatibility facades only when callers are being migrated.
+158. Preserve compatibility facades only when callers are being migrated. Classic builds of native libraries are generated from canonical factories with tools/sync-blank-core-compat.mjs; never maintain a second algorithm in those projections.
 159. Do not grow root-level entry files with feature logic.
 160. New feature logic belongs in the owning phase module or a narrow helper module.
 161. Shared types or schemas live with the subsystem that owns their semantics.
 162. Avoid import cycles and implicit upward dependencies.
-163. Keep dependency direction: contract, helper, implementation, coordinator.
+163. Keep dependency direction inward: UI and platform adapters depend on orchestration, which depends on domain contracts. Libraries never import product boot, browser globals, or host policy.
 164. The UI coordinator should orchestrate, not own pipeline semantics.
 165. The catalog owns static primitive and layer data.
 166. The intent modules own language, retrieval, activation, and grounding receipts.
@@ -185,6 +185,7 @@
 184. Prefer stable dimensions for canvases, toolbars, counters, boards, and fixed controls.
 185. Do not scale font size with viewport width.
 186. Keep color palettes tied to the simulation domain, not a one-note theme.
+186a. Shared chrome follows the system color scheme by default; explicit Light or Dark choices persist through `simulatte.theme.v1`, while canvas and simulation paint remain renderer-owned.
 187. Deployment changes must run directly from `public/`.
 188. Hosted behavior must match local browser behavior except for documented asset URLs.
 189. Build stamps and version receipts are deploy artifacts.

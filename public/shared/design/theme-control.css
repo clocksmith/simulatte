@@ -1,0 +1,174 @@
+html[data-theme="light"] { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+
+html[data-theme="light"] body,
+html[data-theme="light"] body.sim-app {
+  --sim-paper: var(--sim-paint-hex-f0f1ed);
+  --sim-ink: var(--sim-paint-hex-202924);
+  --sim-ink-soft: var(--sim-paint-hex-4e5b53);
+  --sim-ink-faint: var(--sim-paint-hex-59655d);
+  --sim-line: var(--sim-paint-hex-ccd2ca);
+  --sim-line-strong: var(--sim-paint-hex-939f95);
+  --sim-accent: var(--sim-paint-hex-2d5d46);
+  --sim-glass: var(--sim-paint-hex-fafbf8);
+  --sim-glass-soft: var(--sim-paint-hex-f3f5f0);
+  --sim-glass-faint: var(--sim-paint-hex-e8ede5);
+  --sim-highlight: var(--sim-paint-hex-ffffff);
+  --sim-lattice: var(--sim-paint-hex-dfe4dc);
+  --sim-shadow: 0 2px 5px var(--sim-paint-hex-1d35200a);
+  --sim-shadow-small: 0 1px 2px var(--sim-paint-hex-1d35200a);
+  --sim-shadow-inset: inset 0 1px 2px var(--sim-paint-hex-1d352008);
+  --sim-blur: none;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] body.sim-app {
+  --sim-paper: var(--sim-paint-hex-0c0d0c);
+  --sim-ink: var(--sim-paint-hex-f0f1ed);
+  --sim-ink-soft: var(--sim-paint-hex-afbecd);
+  --sim-ink-faint: var(--sim-paint-hex-7d947f);
+  --sim-line: var(--sim-paint-rgba-255-255-255-0-12);
+  --sim-line-strong: var(--sim-paint-rgba-255-255-255-0-30);
+  --sim-accent: var(--sim-paint-hex-d8c18f);
+  --sim-glass: var(--sim-paint-hex-171817);
+  --sim-glass-soft: var(--sim-paint-hex-121212);
+  --sim-glass-faint: var(--sim-paint-hex-1a1a1a);
+  --sim-highlight: var(--sim-paint-rgba-255-255-255-0-1);
+  --sim-lattice: var(--sim-paint-rgba-255-255-255-0-06);
+  --sim-shadow: 0 18px 54px var(--sim-paint-rgba-0-0-0-0-6);
+  --sim-shadow-small: 0 6px 20px var(--sim-paint-rgba-0-0-0-0-34);
+  --sim-shadow-inset: inset 0 1px 1px var(--sim-paint-rgba-255-255-255-0-12);
+  --sim-blur: blur(18px) saturate(140%);
+}
+
+html[data-theme-ready="true"] body,
+html[data-theme-ready="true"] .sim-surface,
+html[data-theme-ready="true"] .sim-action,
+html[data-theme-ready="true"] .sim-field,
+html[data-theme-ready="true"] .hex-hub-inner,
+html[data-theme-ready="true"] .hex-satellite-inner {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 360ms;
+  transition-timing-function: var(--sim-ease);
+}
+
+.sim-theme-control {
+  position: fixed;
+  z-index: 2600;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  display: block;
+  font-family: var(--sim-mono);
+}
+
+.sim-theme-control button {
+  position: relative;
+  display: grid;
+  width: var(--sim-touch-target);
+  height: var(--sim-touch-target);
+  padding: 0;
+  place-items: center;
+  overflow: visible;
+  color: var(--sim-ink);
+  background: color-mix(in srgb, var(--sim-glass) 88%, transparent);
+  border: 1px solid var(--sim-line-strong);
+  border-radius: var(--sim-radius-small);
+  box-shadow: var(--sim-shadow-small);
+  backdrop-filter: var(--sim-blur);
+  cursor: pointer;
+  isolation: isolate;
+  transition: color 240ms, background-color 360ms, border-color 360ms,
+    box-shadow 240ms, transform 160ms var(--sim-ease);
+}
+
+.sim-theme-control button::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: linear-gradient(120deg, transparent 24%, var(--sim-highlight) 50%, transparent 76%);
+  opacity: 0;
+  transform: translateX(-80%);
+  transition: opacity 180ms, transform 460ms var(--sim-ease);
+}
+
+.sim-theme-control button:is(:hover, :focus-visible)::before {
+  opacity: 1;
+  transform: translateX(80%);
+}
+
+.sim-theme-control button:hover {
+  border-color: var(--sim-ink-soft);
+  box-shadow: var(--sim-shadow);
+}
+
+.sim-theme-control button:active { transform: scale(0.92); }
+.sim-theme-control button:focus-visible { outline: 2px solid var(--sim-accent); outline-offset: 3px; }
+
+.sim-theme-icon-stack {
+  position: relative;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  font: 400 20px/1 var(--sim-font);
+}
+
+.sim-theme-icon-stack > span {
+  position: absolute;
+  display: block;
+  opacity: 0;
+  transform: translateY(-145%) rotate(-180deg) scale(0.3);
+  transition: transform 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 260ms ease;
+}
+
+.sim-theme-icon-stack [data-theme-icon="dark"] { transform: translateY(145%) rotate(180deg) scale(0.3); }
+.sim-theme-icon-stack [data-theme-icon="system"] { transform: rotate(-180deg) scale(0.3); }
+
+html[data-theme-preference="system"] [data-theme-icon="system"],
+html[data-theme-preference="light"] [data-theme-icon="light"],
+html[data-theme-preference="dark"] [data-theme-icon="dark"] {
+  opacity: 1;
+  transform: translateY(0) rotate(0) scale(1);
+}
+
+.sim-theme-control-label {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 9px);
+  padding: 5px 8px;
+  color: var(--sim-ink);
+  background: var(--sim-glass);
+  border: 1px solid var(--sim-line);
+  border-radius: var(--sim-radius-small);
+  box-shadow: var(--sim-shadow-small);
+  font: 500 10px/1 var(--sim-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(8px, -50%);
+  transition: opacity 160ms ease, transform 240ms var(--sim-ease);
+}
+
+.sim-theme-control button:is(:hover, :focus-visible) .sim-theme-control-label {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.sim-theme-control ~ .map-workspace .simulation-toolbar,
+.sim-theme-control ~ .data-workbench-page .workbench-header { padding-right: 56px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme-ready="true"] body,
+  html[data-theme-ready="true"] .sim-surface,
+  html[data-theme-ready="true"] .sim-action,
+  html[data-theme-ready="true"] .sim-field,
+  html[data-theme-ready="true"] .hex-hub-inner,
+  html[data-theme-ready="true"] .hex-satellite-inner,
+  .sim-theme-control button,
+  .sim-theme-control button::before,
+  .sim-theme-icon-stack > span,
+  .sim-theme-control-label { transition: none; }
+}

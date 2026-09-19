@@ -7,6 +7,7 @@
   <base href="/blank/">
   <meta name="simulatte-build" content="ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <script src="../shared/design/theme-controller.js"></script>
   <link rel="stylesheet" href="../shared/design/simulatte.css">
   <link rel="stylesheet" href="../model-selection.css">
   <!-- Google tag (gtag.js) -->
@@ -25,8 +26,19 @@
     ).toString().replace(/\/+$/, '');
   </script>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="../shared/design/theme-control.css">
 </head>
 <body>
+  <div class="sim-theme-control" data-theme-control>
+    <button type="button" aria-label="Theme follows system. Switch to Light theme.">
+      <span class="sim-theme-icon-stack" aria-hidden="true">
+        <span data-theme-icon="system">◐</span>
+        <span data-theme-icon="light">☼</span>
+        <span data-theme-icon="dark">☾</span>
+      </span>
+      <span class="sim-theme-control-label" data-theme-label aria-hidden="true">System</span>
+    </button>
+  </div>
   <main class="physics-stage" aria-label="Simulatte physics lab">
     <section class="physics-panel prompt-dock sim-surface" aria-label="Simulation prompt runner">
       <div class="prompt-dock-head">
@@ -191,7 +203,7 @@
     })(typeof globalThis !== 'undefined' ? globalThis : window);
   </script>
   <!-- SIMULATTE_RUNTIME_SCRIPTS_START -->
-  <meta name="simulatte-runtime-source" content="sha256:d4adc85a160ed342e0e63b49f13e45aac93afc7f80fe63cf196c509d658b3c74">
+  <meta name="simulatte-runtime-source" content="sha256:9d47849cb065b6d56d73600abe8f9054fc032debbe3fcdab6f74fc32280e59e9">
   <script defer src="./app/runtime-script-manifest.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="../neural-model-consent.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="../shared/design/program-editor.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
@@ -199,6 +211,7 @@
   <script defer src="../shared/render/render-targets.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="../shared/render/renderer-session.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="../model-selection.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
+  <script defer src="../shared/core/pipeline-runner.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="../shared/deterministic-values.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="../shared/contracts/world-spec-authorship.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="../shared/contracts/world-spec.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
@@ -214,6 +227,7 @@
   <script defer src="./app/runtime/phase-module-registry.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="./app/runtime/require-runtime-dependency.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="./pipeline/simulatte-phase-contracts.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
+  <script defer src="../shared/blank-core/compat/compiler.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="./app/runtime/phase-runner.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-dependencies.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>
   <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-constants.js?v=ae817949d0bce5bf22dc6c53dd0137a52681e34b-ce9729f30fba"></script>

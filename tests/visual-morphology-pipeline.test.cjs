@@ -378,6 +378,9 @@ test('background shader consumes compiled scene-mix slots as distinct atmosphere
   const shader = renderer.WEBGPU_BACKGROUND_SHADER;
 
   assert.match(shader, /fn backgroundHash/);
+  assert.match(shader, /fn backgroundRecursiveSymmetry/);
+  assert.match(shader, /let recursiveDriver = clamp/);
+  assert.match(shader, /let recursiveField = backgroundRecursiveSymmetry/);
   assert.match(shader, /let caustic =/);
   assert.match(shader, /let nebula =/);
   assert.match(shader, /let networkPulse =/);

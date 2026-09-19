@@ -1,0 +1,51 @@
+{
+  "name": "@simulatte/blank-core",
+  "version": "0.1.0",
+  "description": "Shared simulation contracts and plugin execution, independent of product UI.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    },
+    "./compiler": {
+      "types": "./compiler.d.ts",
+      "import": "./compiler.js"
+    },
+    "./world": {
+      "types": "./world.d.ts",
+      "import": "./world.js"
+    },
+    "./data": {
+      "types": "./data.d.ts",
+      "import": "./data.js"
+    },
+    "./render": {
+      "types": "./render.d.ts",
+      "import": "./render.js"
+    },
+    "./schemas/world-spec.schema.json": "./schemas/world-spec.schema.json"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "runtime.js",
+    "contracts.js",
+    "compiler.js",
+    "compiler.d.ts",
+    "world.js",
+    "world.d.ts",
+    "data.js",
+    "data.d.ts",
+    "render.js",
+    "render.d.ts",
+    "factories/",
+    "compat/",
+    "schemas/",
+    "examples/",
+    "README.md",
+    "LICENSE"
+  ]
+}

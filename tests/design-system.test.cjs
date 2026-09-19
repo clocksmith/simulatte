@@ -8,7 +8,7 @@ const TOKEN_FILE = "public/shared/design/tokens.css";
 const read = file => fs.readFileSync(path.join(ROOT, file), 'utf8');
 const clean = text => text.replace(/\/\*[\s\S]*?\*\//g, '');
 const imports = text => [...clean(text).matchAll(/@import\s+['"]([^'"]+)['"]\s*;/g)].map(match => match[1]);
-const PAGE_STYLES = ['public/styles.css', 'public/blank/styles.css', 'public/model-selection.css', 'public/world-tiers.css', 'public/shared/design/workbench.css', 'public/shared/design/compositions/world-interface.css'];
+const PAGE_STYLES = ['public/styles.css', 'public/blank/styles.css', 'public/model-selection.css', 'public/world-tiers.css', 'public/shared/design/workbench.css', 'public/shared/design/compositions/world-interface.css', 'public/shared/design/theme-control.css'];
 
 function assertLiteralPropertyNames(text, file) {
   assert.doesNotMatch(clean(text), /(?:^|[;{])\s*var\([^;{}\n]+\)[^:;{}\n]*:/m,
@@ -74,6 +74,11 @@ test('page compositions consume the shared theme without reviving retired theme 
   }
   assert.match(read('public/blank/index.html'), /href="\.\.\/shared\/design\/simulatte\.css"/);
   assert.match(read('public/index.html'), /href="\.\/shared\/design\/workbench\.css"/);
+  for (const file of ['public/index.html', 'public/blank/index.html']) {
+    assert.match(read(file), /shared\/design\/theme-controller\.js/);
+    assert.match(read(file), /shared\/design\/theme-control\.css/);
+    assert.match(read(file), /data-theme-control/);
+  }
 });
 
 test('empty plugin map slots cannot hide governed scene labels', () => {

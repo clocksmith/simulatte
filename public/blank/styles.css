@@ -61,9 +61,9 @@ body {
   z-index: 12;
   grid-row: 2;
   margin: 12px 0 max(12px, env(safe-area-inset-bottom));
-  width: min(680px, calc(100vw - 24px));
+  width: min(720px, calc(100vw - 24px));
   max-height: 65dvh;
-  padding: 12px;
+  padding: 14px;
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -71,10 +71,20 @@ body {
   touch-action: manipulation;
 }
 .prompt-dock-head {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
+  min-height: 44px;
+}
+.prompt-dock-head .sim-product-nav {
+  justify-content: center;
+}
+.prompt-dock-head > button:last-child {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 .prompt-dock-core,
 .builder-row {
@@ -90,7 +100,7 @@ body {
 }
 .prompt-actions {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 44px auto minmax(180px, 1fr);
   align-items: stretch;
   gap: 8px;
   min-width: 0;
@@ -100,6 +110,23 @@ body {
 }
 .prompt-actions .model-selection-panel {
   justify-content: center;
+}
+#shuffle-prompt {
+  width: 44px;
+  padding-inline: 0;
+}
+#shuffle-prompt .prompt-action-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+#build-lab {
+  border-color: var(--sim-accent);
+  background: color-mix(in srgb, var(--sim-accent) 14%, var(--sim-glass-soft));
+  font-weight: 700;
 }
 .prompt-action-icon {
   font: 20px/1 var(--sim-font);
@@ -116,7 +143,7 @@ body {
 }
 .intent-runtime {
   min-width: 0;
-  padding: 4px 0;
+  padding: 6px 0 2px;
 }
 .intent-runtime-head {
   display: flex;
@@ -169,8 +196,8 @@ body {
   display: none;
 }
 .create-inspectors {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   min-width: 0;
 }
@@ -178,10 +205,16 @@ body {
   min-width: 0;
 }
 .create-inspectors > details[open] {
-  flex-basis: 100%;
+  grid-column: 1 / -1;
 }
 .create-inspectors > details > summary {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 40px;
+  padding-inline: 8px;
   list-style: none;
+  text-align: center;
 }
 .create-inspectors > details > summary::-webkit-details-marker {
   display: none;
@@ -454,5 +487,8 @@ body {
     top: 8px;
     right: 8px;
     max-height: 65dvh;
+  }
+  .create-inspectors {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
