@@ -829,8 +829,8 @@
     const countryLatSpan = Math.max(1, countryBounds.maxLat - countryBounds.minLat);
     const evidenceLonSpan = Math.max(2, evidenceBounds.maxX - evidenceBounds.minX) * 1.18;
     const evidenceLatSpan = Math.max(2, evidenceBounds.maxY - evidenceBounds.minY) * 1.18;
-    const availableWidth = width * 0.84;
-    const availableHeight = height * 0.80;
+    const availableWidth = width * (width < 600 ? 0.84 : 0.58);
+    const availableHeight = width <= 820 ? Math.max(100, height - 660) : height * 0.58;
     const desiredScale = Math.min(availableWidth / evidenceLonSpan, availableHeight / evidenceLatSpan);
     const scalePerZoom = Math.min(width / countryLonSpan, height / countryLatSpan) * 0.06;
     const zoom = Math.max(0.01, Math.min(250, desiredScale / Math.max(scalePerZoom, 0.0001)));
@@ -842,7 +842,7 @@
     return Object.freeze({
       zoom,
       panX: width / 2 - (targetCenterX - countryCenterX) * scale,
-      panY: height / 2 + (targetCenterY - countryCenterY) * scale,
+      panY: (width <= 820 ? 375 + availableHeight / 2 : height / 2) + (targetCenterY - countryCenterY) * scale,
     });
   }
 
@@ -880,8 +880,10 @@
         : 0.76;
     const spanX = Math.max(0.000001, maximumX - minimumX);
     const spanY = Math.max(0.000001, maximumY - minimumY);
-    const availableWidth = width * coverage;
-    const availableHeight = height * coverage;
+    const datacenter = coordinateSystem === 'datacenter-cartesian-meters';
+    const narrow = width <= 820;
+    const availableWidth = datacenter ? width * (narrow ? 0.84 : 0.48) : width * (narrow ? 0.80 : 0.62) * coverage / 0.76;
+    const availableHeight = datacenter ? Math.max(100, narrow ? height - 690 : height * 0.48) : Math.max(100, narrow ? height - 660 : height * 0.55) * coverage / 0.76;
     const zoom = Math.max(0.01, Math.min(coordinateSystem === 'icrs-cartesian-pc' ? 4000 : 250, Math.min(
       availableWidth / spanX,
       availableHeight / spanY,
@@ -890,8 +892,8 @@
     const centerY = (minimumY + maximumY) / 2;
     return Object.freeze({
       zoom,
-      panX: width / 2 - centerX * zoom,
-      panY: height / 2 - centerY * zoom,
+      panX: width * (!narrow ? (datacenter ? 0.44 : 0.43) : 0.5) - centerX * zoom,
+      panY: (narrow ? 375 + availableHeight / 2 : height * (datacenter ? 0.46 : 0.5)) - centerY * zoom,
     });
   }
 

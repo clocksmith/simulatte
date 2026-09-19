@@ -8,6 +8,7 @@ const DEFAULT_ROOT = path.resolve(path.dirname(MODULE_PATH), '..');
 const DEFAULT_INDEX_PATH = 'docs/component-index.md';
 const MAX_WORDS = 300;
 const IGNORED_DIRECTORIES = new Set([
+  '.deployment-checkouts',
   '.firebase-hosting',
   '.git',
   'artifacts',
