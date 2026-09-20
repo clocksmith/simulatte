@@ -26,6 +26,11 @@ For now, homepage and selector discovery focus on GPU Supercluster, Interstellar
 Relay Network, Orbital Transfer Planner, Subsea Network, Sun Walker, and Grid
 Resilience. Other implemented demos retain their source and direct routes but
 are hidden from discovery. Country opens Grid Resilience; Planet opens Subsea.
+Motorcycle Noise is also a first-class simulation on the main chooser. Its
+dedicated view compares calculated urban acoustic exposure and receiver-local
+control, with synthetic sensing experiments and replayable WorldSpec inputs.
+It excludes vehicle-disabling mechanisms and makes no urban deployment or
+enforcement claim without independent measurement evidence.
 People bring data or
 instructions, prepare an editable `WorldSpec`, run it, inspect the result,
 change it, and reproduce or export it. Free local use is a complete product

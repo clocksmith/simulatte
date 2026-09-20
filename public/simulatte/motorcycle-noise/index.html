@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Motorcycle Noise · Simulatte</title>
+  <meta name="description" content="Explore motorcycle noise, local cancellation, and passive mitigation in a replayable acoustic simulation.">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <script src="../../shared/design/theme-controller.js"></script>
+  <link rel="stylesheet" href="../../shared/design/simulatte.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="page-header"><a class="wordmark" href="../../">Simulatte <span>/</span></a><h1>Motorcycle noise</h1><span class="model-label">Analytical model</span></header>
+  <main>
+    <div class="workspace">
+      <section class="scene" aria-label="Street simulation">
+        <div class="scene-toolbar"><div class="segmented" aria-label="Map measurement">
+          <button data-map="result" aria-pressed="true">Exposure</button><button data-map="difference" aria-pressed="false">Change</button><button data-map="local" aria-pressed="false" id="local-map" hidden>Local control</button>
+        </div><span id="map-caption">Full-pass L<sub>Aeq</sub> · receiver height 1.5 m</span></div>
+        <div class="canvas-wrap"><canvas id="street" width="1100" height="650" tabindex="0" aria-label="Street sound map. Click to move the receiver, or use arrow keys when focused."></canvas>
+          <div class="map-key"><span id="legend-low">50</span><span class="gradient" id="legend-gradient"></span><span id="legend-high">100 dBA</span></div>
+          <span class="map-hint">Click to move the receiver</span>
+        </div>
+        <div class="timeline"><button id="play" aria-label="Play the trajectory" disabled>Play</button><input id="timeline" type="range" min="0" max="3" step="0.01" value="1.5" aria-label="Physical simulation time"><output id="time">1.50 s</output></div>
+        <div class="measurements" aria-live="polite"><div><span>Baseline</span><strong id="before">—</strong><small>L<sub>Aeq,T</sub> · dBA</small></div><div><span>With mitigation</span><strong id="after">—</strong><small>L<sub>Aeq,T</sub> · dBA</small></div><div><span id="receiver-context">At this receiver</span><strong id="difference">—</strong><small id="difference-label">Calculated change</small></div></div>
+        <div class="result-line"><span id="off-target">Run a comparison to see effects across the street.</span><button id="listen" disabled>Listen</button><select id="listen-mode" aria-label="Audio comparison"><option value="residual">With mitigation</option><option value="baseline">Baseline</option></select></div>
+        <small class="audio-note">Starts muted. Playback uses one fixed gain; your speaker volume is not simulated dBA.</small>
+      </section>
+      <aside class="controls" aria-label="Scenario controls">
+        <form id="controls" novalidate>
+          <h2>The pass</h2>
+          <label>Motorcycles <output for="count" id="count-value">3</output><input id="count" name="count" type="range" min="1" max="6" step="1" value="3"></label>
+          <label>Engine<select name="engine"><option value="twin-270">270° twin</option><option value="twin-360">Even-firing twin</option><option value="inline-four">Inline four</option></select></label>
+          <label>Engine speed <output id="rpm-value">4,200 RPM</output><input name="rpm" id="rpm" type="range" min="1200" max="9000" step="100" value="4200"></label>
+          <label>Road speed <output id="speed-value">10 m/s</output><input name="speed" id="speed" type="range" min="0" max="25" step="1" value="10"></label>
+          <h2>Compare mitigation</h2>
+          <label class="sr-only" for="mitigation">Mitigation</label><select name="mitigation" id="mitigation"><option value="none">None</option><option value="barrier" selected>Roadside barrier</option><option value="facade">Absorbing façades</option><option value="active">Local active control</option></select>
+          <div id="controller-fields" hidden><label>Controller<select name="controller"><option value="causal">Causal · microphone observations</option><option value="ideal">Ideal · offline scene knowledge</option></select></label><label>Latency <span>ms</span><input name="latencyMs" type="number" min="0" max="20" step="1" value="2"></label></div>
+          <p id="mode-note" class="mode-note">A 2.5 m barrier changes the direct acoustic path.</p>
+          <button class="primary" id="run" type="submit">Run comparison</button><button id="cancel" type="button" hidden>Cancel</button>
+          <progress id="progress" max="1" value="0" hidden></progress><p id="status" role="status">Preparing the scene</p>
+          <details><summary>Model settings</summary>
+            <label>Reference emission <span>dB Z at 1 m</span><input name="referenceDbZ" type="number" min="60" max="118" value="94"></label>
+            <label>Interval <span>s</span><input name="duration" type="number" min="1" max="6" step="0.5" value="3"></label>
+            <label>Sample rate<select name="sampleRate"><option value="8000">8 kHz</option><option value="16000">16 kHz</option></select></label>
+            <label>Wall reflection order<input name="reflectionOrder" type="number" min="0" max="3" value="1"></label>
+            <label>Barrier height <span>m</span><input name="barrierHeight" type="number" min="0" max="4" step="0.25" value="2.5"></label>
+            <label>Façade absorption<input name="facadeAbsorption" type="number" min="0" max="0.95" step="0.05" value="0.75"></label>
+            <label>Sensor noise <span>Pa</span><input name="sensorNoisePa" type="number" min="0" max="0.1" step="0.001" value="0.003"></label>
+            <label>Sensor clipping <span>Pa</span><input name="sensorClipPa" type="number" min="0.01" max="20" step="0.01" value="8"></label>
+            <label>Speaker limit <span>Pa at 1 m</span><input name="speakerLimitPa" type="number" min="0.01" max="10" step="0.01" value="2"></label>
+            <label>Seed<input name="seed" type="number" min="1" max="2147483647" value="731"></label>
+          </details>
+          <details><summary>Sensing experiment</summary>
+            <label>Microphone clock offsets <span>± ms</span><input name="clockSkewMs" type="number" min="0" max="1" step="0.1" value="0"></label>
+            <label>Camera synchronization error <span>ms</span><input name="cameraOffsetMs" type="number" min="-300" max="300" step="10" value="0"></label>
+            <label>Plate image width <span>px</span><input name="platePixels" type="number" min="12" max="120" step="4" value="96"></label>
+            <label>Motion blur <span>px</span><input name="plateBlur" type="number" min="0" max="4" value="0"></label>
+            <p id="localization">Eight simulated microphones; no real identification.</p>
+            <div class="plates"><figure><canvas id="plate-original" width="192" height="56"></canvas><figcaption>Synthetic original</figcaption></figure><figure><canvas id="plate-observed" width="192" height="56"></canvas><figcaption>Camera observation</figcaption></figure></div><p id="plate-result">Unreadable inputs may remain unreadable.</p>
+          </details>
+        </form>
+      </aside>
+    </div>
+    <section class="inspection"><details><summary>Spectrum &amp; peak level</summary><p id="peak-levels"></p><canvas id="spectrum" width="1000" height="240" aria-label="Baseline and mitigation octave-band spectra"></canvas><p class="caption">Unweighted pressure spectrum; the headline readings apply A-weighting.</p></details>
+      <details><summary>Assumptions &amp; records</summary><ul id="assumptions"></ul><p>Checked against analytical cases. Independent recordings are still required for urban accuracy claims.</p>
+        <div class="record-actions"><button id="export" disabled>Export signed simulation</button><label class="file-button">Open simulation<input type="file" id="import" accept="application/json,.json"></label><a href="https://github.com/clocksmith/simulatte/blob/main/docs/simulatte/motorcycle-noise.md" id="docs-link">Model notes</a></div><p id="record-status" role="status"></p>
+        <p class="caption">Signatures protect record integrity. They do not establish a vehicle identity, physical calibration, or a violation.</p>
+      </details></section>
+  </main>
+  <script src="../../shared/contracts/world-spec-authorship.js"></script><script src="../../shared/contracts/world-spec.js"></script>
+  <script src="./scene.js"></script><script src="./records.js"></script><script src="./view.js"></script><script src="./app.js"></script>
+</body>
+</html>

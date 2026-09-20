@@ -1,0 +1,87 @@
+{
+  "schema": "simulatte.motorcycleNoiseBrowserAudit.v1",
+  "sources": {
+    "CATSCAN.md": "65b67b3cdaebfb20ca18fd5ade8a3f67a9dc0d3d04a0d0fb014cf8246da81fc2",
+    "app.js": "4d16d2d18c84931d9c95c90bb9f7a48099766be178d59aee41ea968ff8b46453",
+    "control.js": "e5a1f6f85a65049b0072a0d6277e57d8796dab0dcf45559c51609cf1c688c71a",
+    "index.html": "ee4bbcc2c29dad7af40044c9788108042c5b1b44a69a27b4691e3172c5a85f2f",
+    "propagation.js": "f5a76fd5bb9e4d4f1b415a68d5851f2d1d57b6686b3174b7b8652107d18ed925",
+    "records.js": "a7b6225bb84510a36f6edce2c40fa8f3b6bcc1c397a114ffae78ac2b5b7d3889",
+    "scenario.json": "83575ae0ceababb12c481fa5229f4d8cbfea26c242098672e4cc5d2781e356c0",
+    "scene.js": "3c6a11654fa5e9daf7d38ef03c33c77ffb011aa08b06da15244ccbf636189597",
+    "sensing.js": "49c0faf8a6f7cc9d7a300e176935963152877ee82c66a4495a0b3c2a92cd4d81",
+    "signal.js": "f35445ed2aae619babf44e8d8e90fe5b7a7031f6e93a5ce27b9381c4d648e9f3",
+    "simulation.js": "7252e011fccda8b0771847ab34689521f137378142ebfe4588f7a422e515dca5",
+    "style.css": "855e1ca3b414d7c5c1291a61f9cd2b42c91f6955c67382da9041f3f84f80b2bd",
+    "view.js": "7bc708c6f8a24881b89e7d2e13421ad5990d84d2951ab13cca312b91de7ca165",
+    "worker.js": "569966cfba8e15436bb40d75dbacd2adafb3b8fd5b48c47b0958ccc514546067"
+  },
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1050
+      },
+      "errors": [],
+      "checks": [
+        {
+          "initial": {
+            "hash": "fnv1a32:142c847a",
+            "attenuation": 4.513166620718252,
+            "overflow": false,
+            "model": "motorcycle-image-paths-v1"
+          }
+        },
+        {
+          "audio": "explicit fixed-gain playback",
+          "replayHash": "fnv1a32:142c847a"
+        },
+        {
+          "active": {
+            "hash": "fnv1a32:142c847a",
+            "attenuation": 4.513166620718252,
+            "overflow": false,
+            "model": "motorcycle-image-paths-v1"
+          }
+        }
+      ],
+      "pass": false,
+      "screenshot": "1440-barrier.png",
+      "error": "Error: TypeError: Cannot read properties of null (reading 'futureSamples')\n    at <anonymous>:3:27\n    at <anonymous>:6:9\n    at evaluate (file:///home/clocksmith/deco/simulatte/tools/simulatte/audit-motorcycle-noise.mjs:27:44)\n    at async file:///home/clocksmith/deco/simulatte/tools/simulatte/audit-motorcycle-noise.mjs:68:23"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "errors": [],
+      "checks": [
+        {
+          "initial": {
+            "hash": "fnv1a32:142c847a",
+            "attenuation": 4.513166620718252,
+            "overflow": false,
+            "model": "motorcycle-image-paths-v1"
+          }
+        },
+        {
+          "audio": "explicit fixed-gain playback",
+          "replayHash": "fnv1a32:142c847a"
+        },
+        {
+          "active": {
+            "hash": "fnv1a32:142c847a",
+            "attenuation": 4.513166620718252,
+            "overflow": false,
+            "model": "motorcycle-image-paths-v1"
+          }
+        }
+      ],
+      "pass": false,
+      "screenshot": "390-barrier.png",
+      "error": "Error: TypeError: Cannot read properties of null (reading 'futureSamples')\n    at <anonymous>:3:27\n    at <anonymous>:6:9\n    at evaluate (file:///home/clocksmith/deco/simulatte/tools/simulatte/audit-motorcycle-noise.mjs:27:44)\n    at async file:///home/clocksmith/deco/simulatte/tools/simulatte/audit-motorcycle-noise.mjs:68:23"
+    }
+  ],
+  "scope": "Local desktop/mobile browser behavior, signed replay and screenshots; no physical acoustic validation.",
+  "pass": false
+}

@@ -1,0 +1,149 @@
+{
+  "schema": "simulatte.motorcycleNoiseBrowserAudit.v1",
+  "sources": {
+    "CATSCAN.md": "154b4fc7d91a2d90c145d2a12f40c09c5f0189a7c939d318d71b227592b3bd4d",
+    "app.js": "84ba024ea1f70677b9c5c13862e4e5540eb08bc2aaff164a576bf3e58bcefd4b",
+    "control.js": "e5a1f6f85a65049b0072a0d6277e57d8796dab0dcf45559c51609cf1c688c71a",
+    "index.html": "9548b3dd56a158c1dd2e62780d729cc91b0d9f635184a42e706060931685531d",
+    "propagation.js": "f5a76fd5bb9e4d4f1b415a68d5851f2d1d57b6686b3174b7b8652107d18ed925",
+    "records.js": "a7b6225bb84510a36f6edce2c40fa8f3b6bcc1c397a114ffae78ac2b5b7d3889",
+    "scenario.json": "83575ae0ceababb12c481fa5229f4d8cbfea26c242098672e4cc5d2781e356c0",
+    "scene.js": "9542cc643863cfc7e2a7d47de880177244bd74336879405f7d9d69cbc7197927",
+    "sensing.js": "49c0faf8a6f7cc9d7a300e176935963152877ee82c66a4495a0b3c2a92cd4d81",
+    "signal.js": "f35445ed2aae619babf44e8d8e90fe5b7a7031f6e93a5ce27b9381c4d648e9f3",
+    "simulation.js": "7252e011fccda8b0771847ab34689521f137378142ebfe4588f7a422e515dca5",
+    "style.css": "2ce92c6c69a77f4e340cab4adbee7a102f6bb68f7c24249b923d685f7d15ea64",
+    "view.js": "dd4578dfb303b159caed2945a41bfe0c53436c3e876a05a73b19f476006bb939",
+    "worker.js": "569966cfba8e15436bb40d75dbacd2adafb3b8fd5b48c47b0958ccc514546067"
+  },
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1050
+      },
+      "errors": [],
+      "checks": [
+        {
+          "mainEntry": "Motorcycle Noise ↗Compare barriers, façades, and local sound control.",
+          "visible": true
+        },
+        {
+          "initial": {
+            "hash": "fnv1a32:142c847a",
+            "attenuation": 4.513166620718252,
+            "overflow": false,
+            "model": "motorcycle-image-paths-v1"
+          }
+        },
+        {
+          "audio": "explicit fixed-gain playback",
+          "replayHash": "fnv1a32:142c847a"
+        },
+        {
+          "active": {
+            "hash": "fnv1a32:7def3d33",
+            "attenuation": 105.3908922713797,
+            "overflow": false,
+            "model": "motorcycle-image-paths-v1"
+          }
+        },
+        {
+          "offTarget": {
+            "improved": 22,
+            "unchanged": 102,
+            "worsened": 45,
+            "largestIncreaseDb": 8.403633049072226
+          },
+          "localSamples": 79,
+          "idealLabel": "Offline scene knowledge. An ideal comparison, not a causal controller."
+        },
+        {
+          "causal": {
+            "hash": "fnv1a32:8abcb1bb",
+            "attenuation": -1.5188213827327246,
+            "overflow": false,
+            "model": "motorcycle-image-paths-v1"
+          }
+        },
+        {
+          "receiverEdited": true,
+          "previousReceiver": [
+            0,
+            8,
+            1.5
+          ],
+          "cancelledWithoutPublication": true
+        }
+      ],
+      "pass": true,
+      "screenshot": "1440-barrier.png",
+      "localScreenshot": "1440-local-control.png"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "errors": [],
+      "checks": [
+        {
+          "mainEntry": "Motorcycle Noise ↗Compare barriers, façades, and local sound control.",
+          "visible": true
+        },
+        {
+          "initial": {
+            "hash": "fnv1a32:142c847a",
+            "attenuation": 4.513166620718252,
+            "overflow": false,
+            "model": "motorcycle-image-paths-v1"
+          }
+        },
+        {
+          "audio": "explicit fixed-gain playback",
+          "replayHash": "fnv1a32:142c847a"
+        },
+        {
+          "active": {
+            "hash": "fnv1a32:7def3d33",
+            "attenuation": 105.3908922713797,
+            "overflow": false,
+            "model": "motorcycle-image-paths-v1"
+          }
+        },
+        {
+          "offTarget": {
+            "improved": 22,
+            "unchanged": 102,
+            "worsened": 45,
+            "largestIncreaseDb": 8.403633049072226
+          },
+          "localSamples": 79,
+          "idealLabel": "Offline scene knowledge. An ideal comparison, not a causal controller."
+        },
+        {
+          "causal": {
+            "hash": "fnv1a32:8abcb1bb",
+            "attenuation": -1.5188213827327246,
+            "overflow": false,
+            "model": "motorcycle-image-paths-v1"
+          }
+        },
+        {
+          "receiverEdited": true,
+          "previousReceiver": [
+            0,
+            8,
+            1.5
+          ],
+          "cancelledWithoutPublication": true
+        }
+      ],
+      "pass": true,
+      "screenshot": "390-barrier.png",
+      "localScreenshot": "390-local-control.png"
+    }
+  ],
+  "scope": "Local desktop/mobile browser behavior, signed replay and screenshots; no physical acoustic validation.",
+  "pass": true
+}

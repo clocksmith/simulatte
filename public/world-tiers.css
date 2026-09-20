@@ -390,6 +390,9 @@ body.sim-app #world-tiers-landing-page {
 #simulation-home .hex-hub :is(.hex-hub-title, .hex-hub-desc, .hex-hub-badge, .hex-hub-action, .hex-hub-icon) { color: inherit; }
 #simulation-home .hex-hub:is(:hover, :focus-visible) .hex-hub-inner { background: var(--sim-ink-soft); }
 #simulation-home .hex-hub-inner::before, #simulation-home .hex-hub-inner::after { display: none; }
+#simulation-home .home-noise-action { display: block; padding: 16px 0; margin: 12px 0 18px; border-top: 1px solid var(--sim-line); border-bottom: 1px solid var(--sim-line); color: var(--sim-ink); text-decoration: none; }
+#simulation-home .home-noise-action strong { display: block; font-size: 18px; font-weight: 500; }
+#simulation-home .home-noise-action > span { display: block; margin-top: 6px; color: var(--sim-ink-soft); font-size: 13px; line-height: 1.5; }
 #simulation-home .landing-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; color: var(--sim-ink-faint); font-size: 12px; }
 #simulation-home .landing-footer a { display: inline-flex; align-items: center; min-height: 44px; color: var(--sim-ink-soft); text-underline-offset: 4px; }
 #simulation-status { width: 100%; }

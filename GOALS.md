@@ -15,6 +15,7 @@ Creators need to understand the world they requested and make targeted changes w
 3. Keep user-authored edits authoritative through the append-only authoring graph.
 4. Make simulation outputs and visible behavior inspectable against explicit obligations.
 5. Reuse only the runtime and plugin pieces a product actually needs, without making shared code own its interface or lifecycle.
+6. Make Motorcycle Noise directly discoverable from the main chooser, with calculated acoustic mitigation, uncertain synthetic sensing, and replayable WorldSpec inputs; exclude vehicle disabling and unsupported physical or enforcement claims.
 
 ## Operating Loops
 

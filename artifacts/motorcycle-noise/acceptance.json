@@ -1,0 +1,74 @@
+{
+  "schema": "simulatte.motorcycleNoiseAcceptance.v1",
+  "baselineCommit": "3ef52e8b",
+  "componentTests": {
+    "command": "node --test tests/motorcycle-noise.test.cjs",
+    "passed": 13
+  },
+  "browser": {
+    "command": "node tools/simulatte/audit-motorcycle-noise.mjs",
+    "report": "artifacts/motorcycle-noise/2026-09-20T18-07-55-716Z/report.json",
+    "pass": true,
+    "sourceHashesVerified": true
+  },
+  "focusedContracts": {
+    "passed": 25,
+    "command": "node --test tests/motorcycle-noise.test.cjs tests/catscan.test.cjs tests/design-system.test.cjs"
+  },
+  "hosting": {
+    "command": "npm run package:hosting && npm run check:hosting",
+    "pass": true
+  },
+  "fullSuite": {
+    "command": "npm test",
+    "summary": "TEST-RUN files=150/150 tests=1362 passed=144 failed=6",
+    "preExistingFailureCases": [
+      "workbench eagerly loads its declared shell and profile runtime retains dependency order without compiler phases",
+      "autonomy UI keeps the map primary and moves technical controls behind progressive disclosure",
+      "rack glyph drawing uses model values unchanged across render calls",
+      "all compact screening modes execute the governed material prototypes",
+      "the shared shell exposes POV and first-class playback controls",
+      "app shell aborts and disposes a superseded boot before mounting the latest route",
+      "wgs84 framing is centered and bounded at 390 pixels",
+      "wgs84 framing is centered and bounded at 1440 pixels",
+      "heliocentric-ecliptic-au framing is centered and bounded at 390 pixels",
+      "heliocentric-ecliptic-au framing is centered and bounded at 1440 pixels",
+      "icrs-cartesian-pc framing is centered and bounded at 390 pixels",
+      "icrs-cartesian-pc framing is centered and bounded at 1440 pixels",
+      "datacenter-cartesian-meters framing is centered and bounded at 390 pixels",
+      "datacenter-cartesian-meters framing is centered and bounded at 1440 pixels",
+      "national framing uses viewport space, not obsolete mobile panel offsets"
+    ],
+    "inventoryFailureCases": [
+      "folder contract covers every tracked or non-ignored source directory",
+      "judge receipt binds deterministic validation, prompt, policy, commit, contract, and inspected hashes"
+    ],
+    "scope": "Full suite ran before final fractional-input HTML fix and charter clarification; component, browser, and hosting checks reran afterward."
+  },
+  "inventoryRepair": {
+    "status": "passed",
+    "commands": [
+      "node scripts/sync-simulatte-folder-contract.mjs --write (Ouroboros catalog)",
+      "npm run folder-contracts:update",
+      "npm run folder-contracts:ci",
+      "node --test tests/folder-contracts.test.cjs"
+    ],
+    "testsPassed": 8
+  },
+  "limitations": [
+    "No independent acoustic measurements or motorcycle recordings used for field validation.",
+    "No deployment or physical sound-pressure calibration.",
+    "Remaining full-suite failures reproduce at the untouched baseline; its isolated checkout also lacked the ignored Doppler vendor source."
+  ],
+  "postPull": {
+    "upstreamCommit": "e429ba7f",
+    "resolution": "Preserved condensed upstream goals and retained the Motorcycle Noise requirements in GOALS.md and GOVERNANCE_DETAILS.md.",
+    "focusedTestsPassed": 25,
+    "runtimeLoaderTestsCancelled": 3,
+    "runtimeLoaderReason": "Promise resolution is still pending but the event loop has already resolved",
+    "browserPass": true,
+    "hostingPass": true,
+    "previousBrowserReport": "artifacts/motorcycle-noise/2026-09-20T17-55-19-376Z/report.json",
+    "fullSuiteRerun": false
+  }
+}
