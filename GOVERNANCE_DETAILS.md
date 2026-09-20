@@ -1,0 +1,382 @@
+# simulatte governance details
+
+These supporting requirements were retained when the root triad was condensed. They remain applicable constraints, not a second mission document. Dated implementation statements below retain their original scope and are not fresh verification. The root [GOALS.md](GOALS.md), [INTENT.md](INTENT.md), and [CATSCAN.md](CATSCAN.md) summarize direction and authority.
+
+## Retained GOALS.md requirements
+
+# Simulatte Goals
+
+## Authority and status
+
+This file owns Simulatte's strategic product direction. These goals are not claims
+that every contract or workflow is implemented today.
+
+- [README.md](README.md) describes the current product and repository surfaces.
+- [STYLE_GUIDE.md](STYLE_GUIDE.md) owns the eight-phase pipeline and engineering
+  contracts.
+- [docs/simulatte/experiences/README.md](docs/simulatte/experiences/README.md)
+  records current profile implementation and evidence status.
+
+## Product thesis
+
+Simulatte is a browser simulation platform. The homepage is the hexagon
+simulation chooser, with Create at its center and the simulations visible.
+Data tools are available through Use your data; they do not replace the homepage.
+For now, homepage and selector discovery focus on GPU Supercluster, Interstellar
+Relay Network, Orbital Transfer Planner, Subsea Network, Sun Walker, and Grid
+Resilience. Other implemented demos retain their source and direct routes but
+are hidden from discovery. Country opens Grid Resilience; Planet opens Subsea.
+People bring data or
+instructions, prepare an editable `WorldSpec`, run it, inspect the result,
+change it, and reproduce or export it. Free local use is a complete product
+outcome. No model download, account, or prompt is required for supported data
+workflows.
+
+World and Create share a monochrome, light neutral surface system inspired by
+Reploid: IBM Plex Sans body text, Plex Sans Condensed headings, square controls,
+subtle raised and inset shadows, and a quiet tessellating lattice. Simulation
+colors retain their domain meaning. Typography and controls remain readable and
+operable on narrow screens.
+
+The simulation is the product, not a data-entry form. Blank/Create and the other
+simulation products retain distinct purposes, interfaces, and domain workflows.
+They share narrow engine capabilities rather than one mandatory workbench.
+Prompt compilation is an optional input adapter with its existing eight-phase
+contract. Governed profiles supply explicit domain data and behavior. Plugins
+extend declared capabilities. A table visualization is not automatically a scientific
+simulation, and a deterministic replay is not independent validation of a model.
+
+The compiler must justify its ownership. Generating Three.js code, scene JSON,
+or instructions for an established engine is an eligible control. Simulatte
+owns compilation only where typed intent preservation, controlled editing,
+governed execution, or bound proof provides a material advantage over that
+control.
+
+## Open-language composition
+
+Create's target is natural-language composition across unfamiliar vocabulary and
+novel combinations. A successful result must represent the prompt's entities,
+attributes, relationships, actions, and environment through the eight phases.
+Selecting a familiar scene or adding a new whole-prompt special case does not
+establish that capability. Retrieval supplies reusable knowledge and candidate
+components; the compiler composes them according to the prompt.
+
+Determinism means reproducibility for the same declared inputs. It does not
+restrict different prompts to a fixed set of outputs. Meaningful changes in
+counts, roles, relationships, or actions must change the corresponding program
+and visible behavior. Equivalent paraphrases may share a representation.
+Changing a seed, color, or packet hash alone does not prove semantic specificity.
+
+Test unfamiliar compositions and close semantic contrasts through the complete
+pipeline. Keep unsupported requirements visible, but count their refusal as an
+unfulfilled request when evaluating this product goal. Bounded execution and
+honest proof remain requirements; they do not redefine broad language support
+as success on a catalog of examples.
+
+## Product object: WorldSpec
+
+`WorldSpec` is the canonical public simulation program. It has:
+
+- a schema and semantic version;
+- canonical serialization and a content hash;
+- source data identity, declared mapping, optional prompt, and compiler configuration;
+- entities, properties, quantities, relations, and negation;
+- initial state and environment;
+- dynamics, constraints, solvers, and terminal conditions;
+- controls, events, and actions;
+- safety rules;
+- cameras, visuals, and presentation;
+- governed-pack and plugin dependencies;
+- seeds and required determinism classes;
+- unsupported requirements and unresolved ambiguity;
+- field-level provenance;
+- validation, migrations, import, export, and compatibility checks.
+
+Stable execution semantics are part of the artifact contract. A valid document
+that changes meaning without a versioned migration is not a valid `WorldSpec`
+implementation.
+
+## Authorship and editing authority
+
+After a user edits the compiled program, the prompt is no longer the sole source
+of authority. Simulatte retains an append-only authoring graph containing:
+
+- prompt-authored requirements;
+- compiler inferences;
+- user overrides;
+- governed-pack contributions;
+- plugin contributions;
+- runtime-generated state.
+
+Each authored field identifies its authority. User edits create patches that
+record the author, target path, previous value, new value, rationale, and
+affected obligations. Recompilation does not erase accepted overrides without
+an explicit reconciliation decision.
+
+The authored `WorldSpec` controls execution. Runtime state transitions do not
+silently rewrite its declared intent.
+
+## Primary user journey
+
+The first complete product journey is:
+
+```text
+bring input (file, pasted data, authorized URL, program, brief, or profile)
+  -> prepare and validate a WorldSpec
+  -> run
+  -> inspect data, drawing, and execution evidence
+  -> change and rerun
+  -> replay or export
+```
+
+The decisive milestone is one coherent round trip:
+
+```text
+user-owned dataset
+  -> editable WorldSpec
+  -> execution
+  -> inspect an output or a surfaced failure
+  -> targeted user edit
+  -> changed output and reproducible replay
+  -> export and verified reimport
+```
+
+Users see a result before they need to understand the internal phases. They can
+still trace any object, relation, action, or failure through the exact phase
+artifacts when they inspect it.
+
+## Product structure
+
+- The workbench owns input selection, preparation, inspection, and the common
+  run, edit, replay, and export journey. Existing routes remain compatible.
+- Create owns the optional prompt adapter and exact eight-phase compiler.
+- Reusable input readers own bounded acquisition and decoding. Dataset adapters
+  own explicit field mapping and source provenance. They do not infer physics.
+- Pipeline runners own ordered artifacts, cancellation, and stale-result
+  rejection. Each pipeline retains its own typed stages and validation.
+- Simulation owns state evolution. Drawing consumes scene data and cannot
+  reinterpret source text or choose simulation behavior.
+- Simulation products own their workflows and domain semantics. Their profiles
+  can serve as conformance packs and execution evidence without making the
+  products interchangeable.
+- Blank core supplies shared plugin execution, world contracts, governed compiler
+  execution, and renderer lifecycle through small capability entrypoints.
+  Products depend on the library; it does not depend on their pages or policies.
+  Domain phase implementations, GPU backends, and model providers are explicit
+  outer adapters. Existing pages use generated builds of the same canonical code.
+- Governed packs contribute domain data and behavior through declared
+  `WorldSpec` and runtime contracts.
+- Plugins extend the compiler or runtime through explicit capabilities,
+  provenance, budgets, and revocation.
+- The runtime compiles, simulates, renders, and proves the authored artifact.
+
+City, country, shipping, orbital, and star profiles support platform claims
+only when they consume the same public `WorldSpec`, use the same edit, replay,
+and proof workflow, and carry current-build evidence.
+
+## WorldProof
+
+Scene proof is one component of `WorldProof`. The complete proof separates:
+
+1. Intent proof: critical prompt requirements are extracted or explicitly
+   refused.
+2. Semantic proof: accepted entities, relations, quantities, and negation retain
+   provenance.
+3. Compilation proof: `WorldSpec` lowers into valid simulation and visual
+   programs.
+4. Simulation proof: dynamics, constraints, invariants, and terminal conditions
+   behave within declared tolerances.
+5. Interaction proof: controls and events produce their declared state
+   transitions.
+6. Safety proof: safety gates run and their decisions are reproducible.
+7. Visual proof: required visible obligations are recognizable in rendered
+   evidence.
+8. Replay proof: the declared build, assets, plugins, seed, and device class
+   reproduce the required semantic and behavioral verdicts.
+
+A screenshot does not prove dynamics. A state trace does not prove
+recognizability. A receipt records evidence but does not turn one proof class
+into another.
+
+## Determinism classes
+
+Determinism is a scoped contract, not a universal boolean.
+
+| Class | Required meaning |
+| --- | --- |
+| Compiler deterministic | Identical declared inputs produce the same canonical `WorldSpec` hash. |
+| Decision deterministic | Routing, selection, and safety verdicts match exactly. |
+| Simulation reproducible | Fixed-step states match exactly or within declared tolerances. |
+| Semantic render reproducible | Entity and obligation receipts match. |
+| Pixel bounded | Pixel or perceptual differences stay within a declared policy. |
+| Replay identified | Build, assets, plugins, runtime, seed, and device class are recorded. |
+
+A profile declares and proves the classes it requires. Passing one class does
+not imply the others.
+
+## Improvement and causal diagnosis
+
+The improvement loop remains phase-local. It identifies the earliest observable
+divergence across Runtime, Language, Retrieval, Grounded Intent, Simulation,
+Visual, Render, and Scene Proof. The earliest divergence is diagnostic evidence,
+not automatic ownership of the defect.
+
+Causal attribution uses artifact substitution:
+
+1. Retain every artifact from the failing pipeline.
+2. Replace the suspect phase output with a known-good artifact.
+3. Replay all downstream phases.
+4. Feed the suspect artifact into a known-good downstream implementation.
+5. Compare both interventions with a frozen control.
+6. Assign ownership only when the intervention changes the verdict.
+
+Candidates run against separated train, selection, and held-out populations.
+Frozen suites include exact counts, negation, relations, close semantic
+distractors, unsupported concepts, behavior, and diverse layouts. Machine
+checks cover requirement preservation, retrieval recall, graph validity,
+dynamic and interaction settlement, replay, latency, and memory. Bound human
+reviews cover recognizability, composition, and perceptual quality.
+
+No aggregate score may hide a critical failure. A faster candidate that drops a
+required entity fails. An attractive result that invents unsupported content
+fails. Training data comes from adjudicated failure boundaries, user edits, and
+human critiques.
+
+## Initial market and value
+
+The initial users are technical creators and developers bringing datasets and
+building small interactive explanatory simulations. They need faster iteration than
+hand-written browser simulation code and more inspectability than generated
+images or video.
+
+The first product wins by:
+
+- turning supported data or a bounded brief into an editable program;
+- keeping input preparation, execution, inspection, and replay in one workflow;
+- exposing unsupported or ambiguous requirements;
+- making targeted correction direct;
+- producing a replayable browser result;
+- retaining evidence for what changed and why.
+
+Simulatte does not initially claim to replace general 3D creation tools,
+scientific solvers, or enterprise digital-twin platforms. Vertical packs for
+mobility, logistics, training, scientific visualization, and game prototyping
+earn promotion after the compiler workflow is reliable.
+
+## Governing metric
+
+The north-star metric is:
+
+> The percentage of a fixed, stratified input-and-edit population that completes
+> ingestion, validation, execution, inspection, a meaningful edit, replay, export,
+> and verified reimport with correct outputs and within declared resource bounds.
+
+Report data, imported programs, prompts, and governed profiles separately. The
+prompt population still requires every critical obligation to pass with bounded
+unsupported invention. Additional input adapters cannot dilute that gate.
+
+The evaluation also reports these dimensions separately:
+
+- requirement-extraction recall;
+- refusal correctness;
+- unsupported-content precision;
+- semantic settlement;
+- dynamic settlement;
+- interaction settlement;
+- safety settlement;
+- visual settlement;
+- replay success;
+- latency and memory;
+- edit-to-success cycles;
+- retained human satisfaction.
+
+Profile count and average obligation settlement are not success metrics by
+themselves. Difficult prompts, critical failures, and unsupported concepts must
+remain visible in the population and the report.
+
+## Plugin and dependency boundaries
+
+Pure declarative packs may run through schema and capability validation.
+Executable third-party plugins require isolation, capability enforcement,
+resource budgets, signatures, provenance, trust levels, and revocation before
+they support marketplace claims. Manifest permissions alone are not a security
+boundary.
+
+Doppler may provide pinned local retrieval models. Doe may provide GPU
+execution. Neither dependency defines Simulatte's product, and each remains an
+explicit, replaceable lane with its own evidence.
+
+## Compounding asset
+
+The compounding asset is the governed improvement corpus:
+
+```text
+source data or brief
+  -> extracted obligations
+  -> compiler decisions
+  -> WorldSpec
+  -> user edits
+  -> execution
+  -> proof failures
+  -> adjudication
+  -> successful replay
+```
+
+This corpus binds intent, decisions, edits, execution, and verified outcomes.
+It teaches which boundary failed, which intervention repaired it, and whether
+the repair generalized. Prompts, screenshots, schemas, primitive libraries,
+and receipt archives are useful inputs, but they do not compound without this
+governed relationship.
+
+
+## Retained INTENT.md requirements
+
+# INTENT: Simulatte
+
+Parent: none
+
+## Need
+
+Creators and engineers need focused browser simulation products that can share
+reliable execution machinery without merging their interfaces, domain policy,
+or evidence claims.
+
+## Target
+
+Deliver separate, inspectable browser products for governed simulation,
+data-driven worlds, and prompt-to-pixels compilation. They share a small
+browser-native core for explicit contracts, bounded execution, cancellation,
+and replayable results.
+
+## Invariants
+
+- The hexagon chooser homepage remains the product entrypoint; data tools extend it without displacing it.
+- Blank/Create and World remain separate products; shared code owns no page lifecycle or domain policy.
+- Product dependencies point inward through documented core entrypoints and injected adapters.
+- Prompt compilation follows the strict eight-phase pipeline; each phase consumes only its declared predecessor artifact.
+- Authoring retains user edits over recompilation inferences through an append-only authoring graph.
+- Free local execution is a complete product outcome requiring no account, network dependency, or model download for supported workflows.
+- Unsupported requirements fail closed with explicit receipts; scene rendering never fabricates dynamic truth.
+
+## Evidence
+
+- Passing CATSCAN charter verification via `npm run catscan:check`.
+- Passing folder-contract closure via `npm run folder-contracts:check`.
+- Deterministic simulation and unit test suites via `npm run check:fast`.
+- Installed shared-core consumption via `npm run check:blank-core`.
+
+## Non-goals
+
+- General-purpose 3D asset creation software or cinematic video rendering.
+- Unconstrained cloud generative chatbots or unverified scientific solvers.
+- A single application shell that makes every simulation product inherit Blank's workflow.
+
+## Truth
+
+Execution receipts, deterministic replay, and pixel-obligation settlement govern claims. Documentation and passing syntax checks do not substitute for browser runtime evidence.
+
+---
+
+Links:
+- Root strategy: [GOALS.md](GOALS.md)
+- Technical charter: [CATSCAN.md](CATSCAN.md)
