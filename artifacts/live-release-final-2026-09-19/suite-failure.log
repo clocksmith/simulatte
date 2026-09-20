@@ -1,0 +1,70 @@
+
+> test
+> node tools/run-test-files.mjs --fail-fast
+
+START activation-fusion.test.cjs
+START application-sessions.test.cjs
+FAILED application-sessions.test.cjs tests=6
+CANCELLED activation-fusion.test.cjs tests=0
+
+--- activation-fusion.test.cjs (cancelled) ---
+TAP version 13
+
+--- application-sessions.test.cjs (failed) ---
+TAP version 13
+# Subtest: late compiler proof completion and failure cannot publish into a newer program
+ok 1 - late compiler proof completion and failure cannot publish into a newer program
+  ---
+  duration_ms: 6.317686
+  type: 'test'
+  ...
+# Subtest: run controls do not step a controller after the application unmounts
+ok 2 - run controls do not step a controller after the application unmounts
+  ---
+  duration_ms: 0.716737
+  type: 'test'
+  ...
+# Subtest: journey recording is single-flight and rejects superseded settlement before persistence
+ok 3 - journey recording is single-flight and rejects superseded settlement before persistence
+  ---
+  duration_ms: 2.409866
+  type: 'test'
+  ...
+# Subtest: failed ledger writes can retry without discarding the completed receipt
+ok 4 - failed ledger writes can retry without discarding the completed receipt
+  ---
+  duration_ms: 0.893861
+  type: 'test'
+  ...
+# Subtest: plugin session initializes the camera before view arbitration and cancels deferred drawing on disposal
+not ok 5 - plugin session initializes the camera before view arbitration and cancels deferred drawing on disposal
+  ---
+  duration_ms: 1.854014
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/application-sessions.test.cjs:81:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'defaultView')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    Object.renderPluginExperience [as render] (/home/clocksmith/deco/simulatte/public/simulatte/app/city-plugin-session.js:117:91)
+    async TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/application-sessions.test.cjs:106:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: invalidating a construction retry aborts execution and suppresses late publication and failure
+ok 6 - invalidating a construction retry aborts execution and suppresses late publication and failure
+  ---
+  duration_ms: 3.245913
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 73.24036
+TEST-RUN files=2/148 tests=6 passed=0 failed=2

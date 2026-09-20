@@ -58,6 +58,11 @@ unverified cache as ready.
 
 ## Preflight and packaging
 
+Activate a Python environment containing the exact dependencies in
+`tools/samer/requirements-compact-classifiers.txt` before running preflight.
+The compact-classifier check reproduces its generated data; the Python selected
+by `PATH` must have those versions installed.
+
 ```bash
 npm run check:deploy
 npm run package:hosting
@@ -73,9 +78,14 @@ each collection. Create receives only its compiler data: the classifier,
 construction substrate, language lexicon, model indexes, and universe indexes.
 World-only autonomy datasets are excluded.
 
-The predeploy hook runs `prepare:hosting`, which restores the pinned Doppler
-package, runs the deploy checks, stamps the build, and packages the stamped
-files.
+The predeploy hook runs `prepare:hosting`, which checks the pinned Doppler
+package, stamps the build, runs the deploy checks, and packages the stamped
+files. Restore the pinned dependency with `npm run restore:doppler:development`
+when required; do not replace its integrity pin to bypass a failed check.
+The original Doppler archive is retained under `artifacts/pinned-packages/` so a
+fresh checkout does not depend on one operator's npm cache. Restoration still
+requires both pinned archive hashes and identical uncompressed tar bytes from
+the pinned source revision. A different gzip implementation cannot loosen the pin.
 
 ## Select an account
 
@@ -136,6 +146,37 @@ A successful local check or package is not deployment proof. The Firebase
 command must complete for each target.
 
 ## Verify the hosted surfaces
+
+The production `deploy:hosting` commands run `verify:live` after Firebase returns.
+They fail if the intended release cannot be verified. A post-deploy failure means
+the upload may already be live; it does not mean rollback occurred. Preview commands
+remain separate and do not probe production as if the preview were deployed there.
+
+```bash
+npm run verify:live
+npm run verify:live -- --surface=create
+npm run verify:live -- --surface=create --base-url=https://PREVIEW_HOST/
+```
+
+The verifier checks both Firebase sites by default against the exact build in
+`public/version.json` and the local packaged snapshots. It verifies the target
+inventory, HTML bytes, build metadata, and every same-origin entry script and
+stylesheet, including content types and byte hashes. An HTML fallback with status
+200 cannot satisfy a missing script. Use `--expected-build=SOURCE-CONTENT` to pin
+another prepared release. Matching a source SHA alone is insufficient.
+
+Chrome then checks startup, visible controls, basic interaction, uncaught errors,
+failed same-origin requests, and horizontal fit at desktop and mobile sizes.
+Create must compile the fixed prompt `a red ball`, complete its pipeline, and
+render a new frame. Clicking Run without reaching completion does not pass.
+Screenshots and a report are retained under `artifacts/live-release/`. Set
+`CHROME_PATH` or pass `--chrome=PATH` when Chrome is not discoverable. Screenshots
+support inspection; this check does not certify simulation correctness, physical
+GPU behavior, model quality, or human visual acceptance.
+
+`--http-only` is a diagnostic lane explicitly labeled as excluding browser checks.
+Production commands do not use it. The existing broader simulation and compiler
+audits remain necessary for their respective capability claims.
 
 ```bash
 curl -I https://simulatte.world/

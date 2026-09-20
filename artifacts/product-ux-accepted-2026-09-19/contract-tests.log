@@ -1,0 +1,310 @@
+TAP version 13
+# Subtest: a visible earlier scene does not conceal a failed or unverified replacement
+ok 1 - a visible earlier scene does not conceal a failed or unverified replacement
+  ---
+  duration_ms: 1.336417
+  type: 'test'
+  ...
+# Subtest: rendering and completed validation are different claims
+ok 2 - rendering and completed validation are different claims
+  ---
+  duration_ms: 0.37365
+  type: 'test'
+  ...
+# Subtest: the empty and edited states explain the next available action
+ok 3 - the empty and edited states explain the next available action
+  ---
+  duration_ms: 0.157256
+  type: 'test'
+  ...
+# Subtest: public stylesheet resolves the owned design layers without duplicate loading
+ok 4 - public stylesheet resolves the owned design layers without duplicate loading
+  ---
+  duration_ms: 2.067534
+  type: 'test'
+  ...
+# Subtest: literal paint values belong to tokens, not component and page rules
+ok 5 - literal paint values belong to tokens, not component and page rules
+  ---
+  duration_ms: 2.544709
+  type: 'test'
+  ...
+# Subtest: page entries use stylesheets instead of inline stylesheet forks
+ok 6 - page entries use stylesheets instead of inline stylesheet forks
+  ---
+  duration_ms: 0.681211
+  type: 'test'
+  ...
+# Subtest: paint extraction preserves property names including white-space
+ok 7 - paint extraction preserves property names including white-space
+  ---
+  duration_ms: 6.293917
+  type: 'test'
+  ...
+# Subtest: page compositions consume the shared theme without reviving retired theme forks
+ok 8 - page compositions consume the shared theme without reviving retired theme forks
+  ---
+  duration_ms: 4.785033
+  type: 'test'
+  ...
+# Subtest: empty plugin map slots cannot hide governed scene labels
+ok 9 - empty plugin map slots cannot hide governed scene labels
+  ---
+  duration_ms: 0.302208
+  type: 'test'
+  ...
+# Subtest: Create shares the World typography and monochrome theme rather than forking its palette
+ok 10 - Create shares the World typography and monochrome theme rather than forking its palette
+  ---
+  duration_ms: 0.363778
+  type: 'test'
+  ...
+# Subtest: binds world entrypoint, base URL, assets and package to the exact build
+ok 11 - binds world entrypoint, base URL, assets and package to the exact build
+  ---
+  duration_ms: 58.982653
+  type: 'test'
+  ...
+# Subtest: binds create entrypoint, base URL, assets and package to the exact build
+ok 12 - binds create entrypoint, base URL, assets and package to the exact build
+  ---
+  duration_ms: 10.605257
+  type: 'test'
+  ...
+# Subtest: rejects the wrong content build even when its source SHA matches
+ok 13 - rejects the wrong content build even when its source SHA matches
+  ---
+  duration_ms: 4.37606
+  type: 'test'
+  ...
+# Subtest: rejects successful HTML fallback responses for missing scripts
+ok 14 - rejects successful HTML fallback responses for missing scripts
+  ---
+  duration_ms: 6.999234
+  type: 'test'
+  ...
+# Subtest: rejects stale bytes behind a correctly stamped script URL
+ok 15 - rejects stale bytes behind a correctly stamped script URL
+  ---
+  duration_ms: 6.195112
+  type: 'test'
+  ...
+# Subtest: rejects a deferred script missing its build stamp
+ok 16 - rejects a deferred script missing its build stamp
+  ---
+  duration_ms: 10.779993
+  type: 'test'
+  ...
+# Subtest: rejects the wrong surface and an old package inventory
+ok 17 - rejects the wrong surface and an old package inventory
+  ---
+  duration_ms: 7.362068
+  type: 'test'
+  ...
+# Subtest: does not accept missing styles or a packaged build different from the release
+ok 18 - does not accept missing styles or a packaged build different from the release
+  ---
+  duration_ms: 8.191594
+  type: 'test'
+  ...
+# Subtest: production deployment commands require live verification and previews do not probe production
+ok 19 - production deployment commands require live verification and previews do not probe production
+  ---
+  duration_ms: 1.499518
+  type: 'test'
+  ...
+# Subtest: neural consent summary binds only enabled Qwen models and Doppler
+ok 20 - neural consent summary binds only enabled Qwen models and Doppler
+  ---
+  duration_ms: 1.145201
+  type: 'test'
+  ...
+# Subtest: consent is exact-lock-bound and revocable
+ok 21 - consent is exact-lock-bound and revocable
+  ---
+  duration_ms: 0.689128
+  type: 'test'
+  ...
+# Subtest: invalid runtime locks fail closed
+ok 22 - invalid runtime locks fail closed
+  ---
+  duration_ms: 0.649726
+  type: 'test'
+  ...
+# Subtest: disposed consent gates release persistent control listeners
+ok 23 - disposed consent gates release persistent control listeners
+  ---
+  duration_ms: 0.858946
+  type: 'test'
+  ...
+# Subtest: theme defaults to the live system preference without creating an override
+ok 24 - theme defaults to the live system preference without creating an override
+  ---
+  duration_ms: 2.252339
+  type: 'test'
+  ...
+# Subtest: control cycles system, light, dark and back to system with bounded persistence
+ok 25 - control cycles system, light, dark and back to system with bounded persistence
+  ---
+  duration_ms: 0.711004
+  type: 'test'
+  ...
+# Subtest: stored and cross-tab preferences are normalized and applied
+ok 26 - stored and cross-tab preferences are normalized and applied
+  ---
+  duration_ms: 0.613348
+  type: 'test'
+  ...
+# Subtest: World runtime selections load only the chosen profile plugin bundle
+ok 27 - World runtime selections load only the chosen profile plugin bundle
+  ---
+  duration_ms: 3.436919
+  type: 'test'
+  ...
+# Subtest: World optional model scripts remain outside every pre-consent selection
+ok 28 - World optional model scripts remain outside every pre-consent selection
+  ---
+  duration_ms: 3.79407
+  type: 'test'
+  ...
+# Subtest: World dynamic runtime loader loads selected runtime scripts
+ok 29 - World dynamic runtime loader loads selected runtime scripts
+  ---
+  duration_ms: 2.272933
+  type: 'test'
+  ...
+# Subtest: the controller blocks replacement until an explicit preserve decision
+ok 30 - the controller blocks replacement until an explicit preserve decision
+  ---
+  duration_ms: 2028.068969
+  type: 'test'
+  ...
+# Subtest: cancel retains the current artifact and fresh compilation requires its own decision
+ok 31 - cancel retains the current artifact and fresh compilation requires its own decision
+  ---
+  duration_ms: 1148.194626
+  type: 'test'
+  ...
+# Subtest: failed compilation of preserved edits cannot publish a reconciliation result
+ok 32 - failed compilation of preserved edits cannot publish a reconciliation result
+  ---
+  duration_ms: 2009.213152
+  type: 'test'
+  ...
+# Subtest: canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys
+ok 33 - canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys
+  ---
+  duration_ms: 9.072568
+  type: 'test'
+  ...
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+ok 34 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 1326.219227
+  type: 'test'
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+ok 35 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 700.89618
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+ok 36 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 812.194724
+  type: 'test'
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+ok 37 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 1095.917014
+  type: 'test'
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+ok 38 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 1457.853397
+  type: 'test'
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+ok 39 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 1097.409788
+  type: 'test'
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+ok 40 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 1323.702147
+  type: 'test'
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+ok 41 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 914.694639
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+ok 42 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 925.492461
+  type: 'test'
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 43 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 0.626547
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+ok 44 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 892.749174
+  type: 'test'
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+ok 45 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 854.338008
+  type: 'test'
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+ok 46 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 1938.816651
+  type: 'test'
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+ok 47 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 985.175121
+  type: 'test'
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+ok 48 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 812.025785
+  type: 'test'
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 49 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 0.630961
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+ok 50 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 775.107192
+  type: 'test'
+  ...
+1..50
+# tests 50
+# suites 0
+# pass 50
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16358.871723

@@ -1,0 +1,94 @@
+{
+  "schema": "simulatte.releaseToolingValidation.v1",
+  "recordedAt": "2026-09-20T00:43:52.895Z",
+  "repositoryHead": "93dc04659979bfb94fd11e5c61ffea1bd2ea54ca",
+  "uncommitted": true,
+  "productionUpdated": false,
+  "live": {
+    "report": "report.json",
+    "pass": true,
+    "expectedBuild": "28cc3dcf9b982c93df049c32c4669744d2f49bc6-f5eb9b768c7a",
+    "entryAssets": 252,
+    "browserChecks": 4
+  },
+  "checks": [
+    {
+      "command": "node --test tests/hosting-release.test.cjs tests/pinned-package-compression.test.cjs tests/hosting-surfaces.test.cjs tests/browser-harness.test.cjs",
+      "pass": true,
+      "tests": 24,
+      "log": "focused-tests.log"
+    },
+    {
+      "command": "node --test tests/folder-contracts.test.cjs",
+      "pass": true,
+      "tests": 8,
+      "log": "folder-tests.log"
+    },
+    {
+      "command": "npm run check:deploy",
+      "pass": true,
+      "environment": {
+        "pythonRequirements": "tools/samer/requirements-compact-classifiers.txt",
+        "numpy": "2.2.3",
+        "scipy": "1.15.2",
+        "scikitLearn": "1.9.0"
+      },
+      "log": "preflight.log"
+    },
+    {
+      "command": "npm run folder-contracts:ci",
+      "pass": true,
+      "log": "folder-contracts.log"
+    },
+    {
+      "command": "npm run catscan:check",
+      "pass": true,
+      "log": "charters.log"
+    },
+    {
+      "command": "npm run check:source-size",
+      "pass": true,
+      "warnings": 54,
+      "log": "source-size.log"
+    },
+    {
+      "command": "npm test -- --fail-fast",
+      "pass": false,
+      "completeSuite": false,
+      "log": "suite-failure.log",
+      "failure": "Unchanged application-sessions test supplies profile: {}; city-plugin-session reads profile.experience.defaultView and fails."
+    }
+  ],
+  "sources": [
+    {
+      "file": "tools/hosting-release-checks.mjs",
+      "sha256": "69d715a60ef34ec69d06a7597ad6c981b7257834e3f59585b5864bb04179b468"
+    },
+    {
+      "file": "tools/hosting-browser-check.mjs",
+      "sha256": "36f713997761001706f8d158e6ba938d58d2a387f47d194ac984616cc21d0cd5"
+    },
+    {
+      "file": "tools/verify-hosting-release.mjs",
+      "sha256": "87ea0ec40c7342d75d417f76930129d9ff5a8142a46cf5c0488a2cc989d7b0e3"
+    },
+    {
+      "file": "tools/pinned-package-compression.mjs",
+      "sha256": "c21a94988f035963bc9ec66fac050a35a83eb92e6f67903e1edf644bb7e58073"
+    },
+    {
+      "file": "tools/sync-doppler-development.mjs",
+      "sha256": "ac428cb9395a8bc9739c935b157711cde38ccb04988bfbeeaf702560ac356307"
+    },
+    {
+      "file": "tools/check-deploy-surface.mjs",
+      "sha256": "4c42df6b363ed09b07fc56d965e0cf280b333dfc75bdbe86f8cea7abf63ab4e6"
+    }
+  ],
+  "limits": [
+    "Simulation correctness",
+    "Model qualification",
+    "Physical GPU qualification",
+    "Human visual adjudication"
+  ]
+}

@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: shared CDP client preserves command, event, connection, and diagnostics interfaces
+ok 1 - shared CDP client preserves command, event, connection, and diagnostics interfaces
+  ---
+  duration_ms: 40.052668
+  type: 'test'
+  ...
+# Subtest: CDP commands and event waiters time out or reject on disconnect instead of hanging
+ok 2 - CDP commands and event waiters time out or reject on disconnect instead of hanging
+  ---
+  duration_ms: 42.268297
+  type: 'test'
+  ...
+# Subtest: browser arguments retain explicit GPU, memory, and headed lanes without profile overrides
+ok 3 - browser arguments retain explicit GPU, memory, and headed lanes without profile overrides
+  ---
+  duration_ms: 4.958442
+  type: 'test'
+  ...
+# Subtest: browser shutdown escalates and waits, including synchronous exit events
+ok 4 - browser shutdown escalates and waits, including synchronous exit events
+  ---
+  duration_ms: 6.093993
+  type: 'test'
+  ...
+# Subtest: browser readiness binds the generated port, rejects early exit and cleans only owned profiles
+ok 5 - browser readiness binds the generated port, rejects early exit and cleans only owned profiles
+  ---
+  duration_ms: 4.371619
+  type: 'test'
+  ...
+# Subtest: audit host closes its listener when browser startup fails
+ok 6 - audit host closes its listener when browser startup fails
+  ---
+  duration_ms: 32.289144
+  type: 'test'
+  ...
+# Subtest: audit output retains previous evidence and refuses to overwrite unrecognized work
+ok 7 - audit output retains previous evidence and refuses to overwrite unrecognized work
+  ---
+  duration_ms: 7.123537
+  type: 'test'
+  ...
+# Subtest: binds world entrypoint, base URL, assets and package to the exact build
+ok 8 - binds world entrypoint, base URL, assets and package to the exact build
+  ---
+  duration_ms: 48.517384
+  type: 'test'
+  ...
+# Subtest: binds create entrypoint, base URL, assets and package to the exact build
+ok 9 - binds create entrypoint, base URL, assets and package to the exact build
+  ---
+  duration_ms: 7.114342
+  type: 'test'
+  ...
+# Subtest: rejects the wrong content build even when its source SHA matches
+ok 10 - rejects the wrong content build even when its source SHA matches
+  ---
+  duration_ms: 3.104614
+  type: 'test'
+  ...
+# Subtest: rejects successful HTML fallback responses for missing scripts
+ok 11 - rejects successful HTML fallback responses for missing scripts
+  ---
+  duration_ms: 5.495546
+  type: 'test'
+  ...
+# Subtest: rejects stale bytes behind a correctly stamped script URL
+ok 12 - rejects stale bytes behind a correctly stamped script URL
+  ---
+  duration_ms: 6.117436
+  type: 'test'
+  ...
+# Subtest: rejects a deferred script missing its build stamp
+ok 13 - rejects a deferred script missing its build stamp
+  ---
+  duration_ms: 10.536483
+  type: 'test'
+  ...
+# Subtest: rejects the wrong surface and an old package inventory
+ok 14 - rejects the wrong surface and an old package inventory
+  ---
+  duration_ms: 6.296772
+  type: 'test'
+  ...
+# Subtest: does not accept missing styles or a packaged build different from the release
+ok 15 - does not accept missing styles or a packaged build different from the release
+  ---
+  duration_ms: 7.267698
+  type: 'test'
+  ...
+# Subtest: production deployment commands require live verification and previews do not probe production
+ok 16 - production deployment commands require live verification and previews do not probe production
+  ---
+  duration_ms: 1.260065
+  type: 'test'
+  ...
+# Subtest: hosting targets separate World and Create while preserving governed shared assets
+ok 17 - hosting targets separate World and Create while preserving governed shared assets
+  ---
+  duration_ms: 1239.63463
+  type: 'test'
+  ...
+# Subtest: release and hosting validation run against the stamped build identity
+ok 18 - release and hosting validation run against the stamped build identity
+  ---
+  duration_ms: 0.332812
+  type: 'test'
+  ...
+# Subtest: different gzip compression reuses only the authenticated pin with identical tar bytes
+ok 19 - different gzip compression reuses only the authenticated pin with identical tar bytes
+  ---
+  duration_ms: 4.379873
+  type: 'test'
+  ...
+# Subtest: matching archive needs no cache
+ok 20 - matching archive needs no cache
+  ---
+  duration_ms: 3.072541
+  type: 'test'
+  ...
+# Subtest: fresh checkouts recover the exact compressed pin from a retained release artifact
+ok 21 - fresh checkouts recover the exact compressed pin from a retained release artifact
+  ---
+  duration_ms: 2.568589
+  type: 'test'
+  ...
+# Subtest: changed source bytes cannot be normalized into the pin
+ok 22 - changed source bytes cannot be normalized into the pin
+  ---
+  duration_ms: 1.416878
+  type: 'test'
+  ...
+# Subtest: corrupt and missing cached artifacts fail closed
+ok 23 - corrupt and missing cached artifacts fail closed
+  ---
+  duration_ms: 1.653389
+  type: 'test'
+  ...
+# Subtest: pack metadata must identify the actual candidate bytes
+ok 24 - pack metadata must identify the actual candidate bytes
+  ---
+  duration_ms: 0.846751
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1301.137244

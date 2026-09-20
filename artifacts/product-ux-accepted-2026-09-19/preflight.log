@@ -1,0 +1,122 @@
+
+> check:deploy
+> npm run simulatte:tiers:check && npm run plugins:check && npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && npm run check:runtime-entrypoint && npm run check:world-entrypoint && npm run check:artifacts && npm run check:hosting && node tools/check-deploy-surface.mjs && npm run check:simulatte
+
+
+> simulatte:tiers:check
+> node tools/simulatte/sync-tier-application-manifest.mjs && node tools/simulatte/sync-tier-dataset-references.mjs
+
+TIER-APPLICATION-MANIFEST status=verified changed=false
+TIER-DATASET-REFERENCES status=verified changed=0
+
+> plugins:check
+> npm run simulatte:tiers:data:check && node tools/plugins/sync-plugin-integrity.mjs && node tools/plugins/sync-plugin-registry.mjs && node tools/plugins/check-plugin-boundaries.mjs
+
+
+> simulatte:tiers:data:check
+> node tools/simulatte/sync-tier-dataset-references.mjs
+
+TIER-DATASET-REFERENCES status=verified changed=0
+PLUGIN-INTEGRITY verified
+PLUGIN-REGISTRY status=verified plugins=12 ids=asteroid-defense,cable-trader,food-recall-us,gpu-supercluster,grid-resilience-us,interstellar-relay-network,maritime-trade-global,neighborhood-bulk-pool,nyc-real-estate,orbital-transfer-planner,subsea-network-global,sun-walker
+PLUGIN-BOUNDARY status=verified files=112
+
+> check:model-lock
+> npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development
+
+
+> check:model-lock-references
+> node tools/sync-model-runtime-lock-references.mjs --check
+
+Model runtime lock references clean: 5 mirrors checked.
+Model runtime lock clean: simulatte-doppler-qwen-runtime-lock#16 pins doppler-gpu@0.5.1, qwen-3-embedding-0-6b-q4k-ehf16-af32, and qwen-3-reranker-0-6b-q4k-ehf16-af32.
+
+> check:doppler:development
+> node tools/sync-doppler-development.mjs --check
+
+Doppler development source clean: lock #16 uses doppler-gpu@0.5.1 from source dd49cc11e4742cf40f7788bde2631d8179c161b3.
+
+> check:model-candidates
+> node tools/samer/check-model-candidate-registry.mjs && npm run check:compact-classifiers && npm run pipeline:matrix:check
+
+{
+  "schema": "simulatte.modelCandidateRegistryCheck.v1",
+  "registryId": "simulatte-compact-model-candidates-v1",
+  "registrySha256": "06aac97bf84f8181975991cf76995ceecfc3cdbcc1391f9677ee08ec141bb720",
+  "runtimeSha256": "8dab2c2cc517d841b26c8b93bb576dfa34b472fc770f3d5a85211324db9a42f4",
+  "candidateCount": 19,
+  "retrievalCascadeCount": 2,
+  "taskCandidateCounts": {
+    "classification": 10,
+    "embedding-retrieval": 3,
+    "reranking": 4
+  },
+  "modelLockNumber": 16
+}
+
+> check:compact-classifiers
+> python3 tools/samer/build-browser-linear-classifiers.py --check
+
+Browser compact classifier artifact is synchronized.
+
+> pipeline:matrix:check
+> node tools/render-pipeline-job-matrix.mjs --check
+
+Pipeline job registry and generated matrix are synchronized.
+
+> check:model-populations
+> node tools/samer/commit-model-selection-populations.mjs
+
+MODEL-POPULATIONS commitments=verified count=3 openings=3
+
+> check:runtime-entrypoint
+> node tools/sync-runtime-script-entrypoint.mjs
+
+runtime script entrypoint is synchronized
+
+> check:world-entrypoint
+> node tools/check-world-runtime-entrypoint.mjs
+
+World runtime entrypoint is synchronized (15 eager scripts, 238 inventoried, 5 exclusive stages).
+
+> check:artifacts
+> node tools/sync-generated-artifact-inventory.mjs
+
+Generated artifact inventory is synchronized (9 artifacts).
+
+> check:hosting
+> node tools/package-hosting-surfaces.mjs --check && node tools/run-test-files.mjs --fail-fast tests/hosting-surfaces.test.cjs
+
+Hosting surface contracts are valid.
+START hosting-surfaces.test.cjs
+PASSED hosting-surfaces.test.cjs tests=2
+TEST-RUN files=1/1 tests=2 passed=1 failed=0
+Deploy surface clean: lock #16 pins public/vendor/doppler to source dd49cc11e4742cf40f7788bde2631d8179c161b3.
+
+> check:simulatte
+> npm run check:simulatte:derived && npm run check:shade-data && node tools/simulatte/check-autonomy-data.mjs && npm run samer:simulatte:check && npm run check:place-performance
+
+
+> check:simulatte:derived
+> node tools/simulatte/compile-accessibility-index.mjs --check && node tools/simulatte/compile-route-amenity-index.mjs --check && node tools/simulatte/compile-safety-history-index.mjs --check && node tools/simulatte/compile-place-embeddings.mjs --check
+
+AUTONOMY-ACCESSIBILITY status=verified nodes=3807 sourceRamps=11603
+AUTONOMY-AMENITIES status=verified racks=9359 segments=28638
+AUTONOMY-SAFETY-HISTORY status=verified crashes=5131 joined=5115 segments=3973
+PLACE-EMBEDDINGS check=pass index=nyc-core-place-embedding-index-v1 documents=20 dimensions=1024
+
+> check:shade-data
+> node tools/simulatte/audit-shade-geometry.mjs --check
+
+SHADE-GEOMETRY verdict=pass_with_declared_coverage_limits buildings=8500 knownHeights=8490 rings=79 segments=28638 northErrorDeg=0.087827
+AUTONOMY-DATA manifest=simulatte-autonomy-nyc-v1 world=nyc-core-autonomy-v1 regions=3 seams=98 embodiments=delivery-bike-v1,pedestrian-v1,scooter-v1,car-v1 policy=bet-selector-v1 status=verified
+
+> samer:simulatte:check
+> node tools/samer/simulatte/run-policy-trial.mjs --check
+
+AUTONOMY-SAME-R anchor=pass:0.95625 targeted=pass:0.956388889 seeded_control=reject:0 selection=diagnostic_leader_only:targeted promotion=blocked
+
+> check:place-performance
+> node tools/simulatte/measure-resolution-performance.mjs --lane default_lexical --check
+
+PLACE-PERF accepted=true checks=3/3 lanes=default_lexical skipped=0 mode=check output=(not written)

@@ -1,227 +1,77 @@
 @import '../shared/design/themes/create.css';
-/* Create layout. Controls, fields, editor and theme are shared with World. */
-html,
-body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
+/* Create owns page layout; the compiler owns results and validation. */
+html, body { margin: 0; width: 100%; height: 100%; }
+body.create-app { overflow: hidden; }
+.create-header {
+  position: sticky; top: 0; z-index: 30;
+  height: 72px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 84px 0 28px; gap: 16px; border-bottom: 1px solid var(--sim-line);
+  background: var(--sim-glass);
 }
-.physics-stage {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  justify-items: center;
-}
-.physics-canvas-wrap {
-  grid-row: 1;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  container-type: size;
-}
-#physics-canvas,
-#loading-canvas {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  display: block;
-  width: min(100cqw, 100cqh);
-  height: min(100cqw, 100cqh);
-}
-#physics-canvas {
-  transition: opacity 160ms;
-}
-#physics-canvas[data-scene-visible="false"] {
-  opacity: 0;
-  visibility: hidden;
-}
-#physics-canvas[data-interaction-selected-target]:not(
-    [data-interaction-selected-target=""]
-  ) {
-  cursor: grab;
-}
-#physics-canvas[data-interaction-grabbed-target]:not(
-    [data-interaction-grabbed-target=""]
-  ) {
-  cursor: grabbing;
-}
-#loading-canvas {
-  z-index: 8;
-  pointer-events: none;
-  opacity: 0;
-}
-#loading-canvas.is-active {
-  opacity: 1;
-}
-.physics-panel {
-  position: relative;
-  z-index: 12;
-  grid-row: 2;
-  margin: 12px 0 max(12px, env(safe-area-inset-bottom));
-  width: min(720px, calc(100vw - 24px));
-  max-height: 65dvh;
-  padding: 14px;
-  overflow: auto;
-  overscroll-behavior: contain;
-}
-.prompt-dock {
-  touch-action: manipulation;
-}
-.prompt-dock-head {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  min-height: 44px;
-}
-.prompt-dock-head .sim-product-nav {
-  justify-content: center;
-}
-.prompt-dock-head > button:last-child {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-.prompt-dock-core,
-.builder-row {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-#build-prompt {
-  min-height: 64px;
-  max-height: 140px;
-  resize: vertical;
-  font-size: 15px;
-}
-.prompt-actions {
-  display: grid;
-  grid-template-columns: 44px auto minmax(180px, 1fr);
-  align-items: stretch;
-  gap: 8px;
-  min-width: 0;
-}
-.prompt-actions > * {
-  min-width: 0;
-}
-.prompt-actions .model-selection-panel {
-  justify-content: center;
-}
-#shuffle-prompt {
-  width: 44px;
-  padding-inline: 0;
-}
-#shuffle-prompt .prompt-action-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-#build-lab {
-  border-color: var(--sim-accent);
-  background: color-mix(in srgb, var(--sim-accent) 14%, var(--sim-glass-soft));
-  font-weight: 700;
-}
-.prompt-action-icon {
-  font: 20px/1 var(--sim-font);
-}
-.prompt-dock .model-selection-controls {
-  position: fixed;
-  z-index: 20;
-  left: 12px;
-  right: 12px;
-  bottom: 110px;
-  min-width: 0;
-  max-height: 60dvh;
-  overflow: auto;
-}
-.intent-runtime {
-  min-width: 0;
-  padding: 6px 0 2px;
-}
-.intent-runtime-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-.intent-runtime-head strong {
-  font-size: 12px;
-  font-weight: 650;
-}
-.intent-runtime-percent {
-  color: var(--sim-ink-faint);
-  font: 11px var(--sim-mono);
-}
-.intent-runtime-track {
-  height: 3px;
-  margin-top: 6px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: var(--sim-line);
-}
-.intent-runtime-fill {
-  display: block;
-  width: 0;
-  height: 100%;
-  background: var(--sim-accent);
-  transition: width 160ms;
-}
-.intent-runtime-meta {
-  color: var(--sim-ink-faint);
-  font-size: 11px;
-  overflow-wrap: anywhere;
-}
-.intent-runtime-detail {
-  display: none;
-}
-.intent-runtime:is([data-state="failed"], [data-state="error"]) strong {
-  color: var(--sim-red);
-}
-.intent-runtime[data-state="not-proven"] strong {
-  color: var(--sim-warning);
-}
-.intent-runtime:is(
-    [data-state="failed"],
-    [data-state="not-proven"],
-    [data-state="error"]
-  )
-  :is(.intent-runtime-percent, .intent-runtime-track) {
-  display: none;
-}
-.create-inspectors {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-  min-width: 0;
-}
-.create-inspectors > details {
-  min-width: 0;
-}
-.create-inspectors > details[open] {
-  grid-column: 1 / -1;
-}
-.create-inspectors > details > summary {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  min-height: 40px;
-  padding-inline: 8px;
-  list-style: none;
-  text-align: center;
-}
-.create-inspectors > details > summary::-webkit-details-marker {
-  display: none;
-}
-.create-inspectors > details[open] > summary {
-  color: var(--sim-accent);
-}
+.create-header .sim-product-nav { flex: 1; gap: 16px; }
+.create-header .create-brand { font: 600 25px var(--sim-heading); color: var(--sim-ink); padding: 0; letter-spacing: -1px; }
+.create-product { padding-left: 16px; border-left: 1px solid var(--sim-line); font-size: 14px; }
+.create-header .create-back { margin-left: auto; font-weight: 400; }
+.create-app > .sim-theme-control { top: 14px; right: 20px; }
+.physics-stage { display: grid; grid-template-columns: 360px minmax(0, 1fr); height: calc(100dvh - 72px); }
+.physics-stage[data-editor-hidden="true"] { grid-template-columns: minmax(0, 1fr); }
+.physics-panel { min-width: 0; overflow: auto; padding: 32px 26px 24px; border-right: 1px solid var(--sim-line); background: var(--sim-glass); }
+.prompt-dock-head { margin-bottom: 32px; }
+.create-eyebrow { font: 10px var(--sim-mono); letter-spacing: .11em; color: var(--sim-ink-faint); }
+.prompt-dock-head h1 { margin: 14px 0 12px; font: 600 34px/1.05 var(--sim-heading); letter-spacing: -.8px; }
+.prompt-dock-head > p:last-child { margin: 0; color: var(--sim-ink-soft); font-size: 14px; line-height: 1.6; max-width: 30ch; }
+.prompt-dock-core, .builder-row { display: grid; gap: 12px; min-width: 0; }
+.create-prompt-label { font-weight: 600; font-size: 13px; }
+#build-prompt { min-height: 132px; max-height: 260px; resize: vertical; font-size: 16px; line-height: 1.55; padding: 14px; background: var(--sim-paper); }
+.create-help { margin: -4px 0 0; color: var(--sim-ink-faint); font-size: 12px; line-height: 1.5; }
+.create-examples { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.create-examples > span { flex-basis: 100%; font-size: 11px; color: var(--sim-ink-faint); margin-bottom: 2px; }
+.create-examples button { min-height: 44px; padding: 6px 9px; font-size: 12px; border: 1px solid var(--sim-line); background: transparent; color: var(--sim-ink); border-radius: var(--sim-radius-small); cursor: pointer; }
+.create-examples button:hover { border-color: var(--sim-ink); background: var(--sim-paper); }
+.prompt-actions { display: flex; flex-direction: column; gap: 8px; }
+#build-lab { min-height: 48px; background: var(--sim-ink); border-color: var(--sim-ink); color: var(--sim-paper); font-size: 14px; }
+#build-lab:hover:not(:disabled) { background: var(--sim-ink-soft); }
+#build-lab:disabled { opacity: .4; }
+#shuffle-prompt { border-color: transparent; background: transparent; font-weight: 400; font-size: 12px; }
+.prompt-action-icon { font-size: 18px; }
+.create-run-status { display: flex; align-items: baseline; gap: 10px; padding: 16px 0 4px; border-top: 1px solid var(--sim-line); }
+.create-status-dot { flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--sim-ink-faint); }
+.create-run-status strong { font-size: 13px; font-weight: 600; }
+.create-run-status p { margin: 5px 0 0; color: var(--sim-ink-soft); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+[data-create-state="error"] .create-run-status { color: var(--sim-red); }
+[data-create-state="warning"] .create-run-status { color: var(--sim-warning); }
+[data-create-state="running"] .create-status-dot { background: var(--sim-accent); animation: create-pulse 1.5s ease-in-out infinite; }
+.create-local-note { margin: 0 0 8px 16px; font-size: 11px; color: var(--sim-ink-faint); }
+.create-tools { border-top: 1px solid var(--sim-line); margin-top: 8px; }
+.create-tools > summary { min-height: 48px; padding: 16px 0; font-size: 12px; cursor: pointer; color: var(--sim-ink-soft); }
+.create-inspectors { display: grid; gap: 8px; }
+.create-inspectors > details > summary { min-height: 44px; width: 100%; justify-content: flex-start; text-align: left; box-shadow: none; font-weight: 500; }
+.create-tools .model-selection-panel { display: block; margin-bottom: 8px; padding: 0; border-radius: var(--sim-radius); }
+.create-tools .model-selection-panel > summary { padding: 12px; min-height: 44px; font-weight: 500; }
+.create-tools .model-selection-controls { position: static; min-width: 0; width: 100%; border: 0; box-shadow: none; }
+.create-tools .model-selection-row { grid-template-columns: 1fr; gap: 4px; }
+.create-preview { display: grid; grid-template-rows: 60px minmax(0, 1fr) 36px; min-width: 0; min-height: 0; padding: 0 24px 12px; }
+.create-preview-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--sim-ink-soft); }
+.create-preview-actions { display: flex; gap: 6px; }
+.create-preview-actions .sim-action { background: transparent; font-size: 12px; }
+.physics-canvas-wrap { position: relative; width: 100%; height: 100%; min-height: 0; container-type: size; border: 1px solid var(--sim-line); background-image: linear-gradient(var(--sim-lattice) 1px, transparent 1px), linear-gradient(90deg, var(--sim-lattice) 1px, transparent 1px); background-size: 40px 40px; }
+#physics-canvas, #loading-canvas { position: absolute; inset: 0; margin: auto; display: block; width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); }
+#physics-canvas[data-scene-visible="false"] { opacity: 0; visibility: hidden; }
+#physics-canvas[data-interaction-selected-target]:not([data-interaction-selected-target=""]) { cursor: grab; }
+#physics-canvas[data-interaction-grabbed-target]:not([data-interaction-grabbed-target=""]) { cursor: grabbing; }
+#loading-canvas { z-index: 8; pointer-events: none; opacity: 0; }
+#loading-canvas.is-active { opacity: 1; }
+.create-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 24px; }
+.create-empty-mark { color: var(--sim-line-strong); font: 300 48px var(--sim-mono); margin-bottom: 12px; }
+.create-empty h2 { margin: 0; font: 600 28px/1.2 var(--sim-heading); letter-spacing: -.5px; }
+.create-empty p { color: var(--sim-ink-soft); font-size: 13px; max-width: 32ch; line-height: 1.6; }
+.create-interaction-hint { margin: 10px 0 0; font-size: 11px; color: var(--sim-ink-faint); text-align: center; }
+.intent-runtime { margin-top: 12px; font-size: 12px; }
+.intent-runtime-head { display: flex; justify-content: space-between; gap: 10px; }
+.intent-runtime-track { height: 3px; background: var(--sim-line); margin: 6px 0; }
+.intent-runtime-fill { display: block; height: 100%; width: 0; background: var(--sim-ink); }
+.intent-runtime-meta, .intent-runtime-detail { color: var(--sim-ink-soft); font-size: 11px; overflow-wrap: anywhere; }
+@keyframes create-pulse { 50% { opacity: .3; } }
 .world-spec-editor-controls,
 .prompt-more-content {
   display: grid;
@@ -331,38 +181,6 @@ body {
 .world-spec-reconciliation-conflicts[data-state="conflict"] {
   color: var(--sim-warning);
 }
-.physics-stage:has(.prompt-dock[data-dock-edge="top"][data-collapsed="false"]) {
-  grid-template-rows: auto minmax(0, 1fr);
-}
-.prompt-dock[data-dock-edge="top"][data-collapsed="false"] {
-  grid-row: 1;
-}
-.physics-stage:has(.prompt-dock[data-dock-edge="top"][data-collapsed="false"])
-  .physics-canvas-wrap {
-  grid-row: 2;
-}
-.prompt-dock[data-collapsed="true"] {
-  position: fixed;
-  width: 60px;
-  height: 60px;
-  margin: 0;
-  padding: 7px;
-}
-.prompt-dock[data-collapsed="true"] :is(.prompt-dock-core, .sim-product-nav) {
-  display: none;
-}
-.prompt-dock[data-collapsed="true"][data-corner="top-left"] {
-  inset: 12px auto auto 12px;
-}
-.prompt-dock[data-collapsed="true"][data-corner="top-right"] {
-  inset: 12px 12px auto auto;
-}
-.prompt-dock[data-collapsed="true"][data-corner="bottom-left"] {
-  inset: auto auto 12px 12px;
-}
-.prompt-dock[data-collapsed="true"][data-corner="bottom-right"] {
-  inset: auto 12px 12px auto;
-}
 .simulatte-review-bridge {
   position: fixed;
   z-index: 55;
@@ -468,27 +286,36 @@ body {
   background: var(--sim-paper);
   color: var(--sim-ink);
 }
-@media (max-width: 620px) {
-  .physics-panel {
-    width: calc(100vw - 16px);
-    margin: 8px 0 max(8px, env(safe-area-inset-bottom));
-    padding: 10px;
-  }
-  #build-prompt {
-    font-size: 16px;
-  }
-  .prompt-actions {
-    gap: 6px;
-  }
-  .prompt-actions .sim-action {
-    padding: 8px;
-  }
-  .simulatte-review-bridge {
-    top: 8px;
-    right: 8px;
-    max-height: 65dvh;
-  }
-  .create-inspectors {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+@media (max-width: 1050px) and (min-width: 761px) {
+  .physics-stage { grid-template-columns: 320px minmax(0, 1fr); }
+  .physics-panel { padding: 24px 20px; }
+  .create-header .create-back { display: none; }
 }
+@media (max-width: 760px) {
+  body.create-app { overflow: auto; }
+  .create-header { height: 64px; padding: 0 68px 0 16px; gap: 8px; }
+  .create-header .sim-product-nav { gap: 10px; }
+  .create-header .create-brand { font-size: 23px; }
+  .create-product { padding-left: 10px; font-size: 12px; }
+  .create-header .create-back { display: none; }
+  .create-header > button { font-size: 11px; padding: 6px 9px; }
+  .create-app > .sim-theme-control { top: 10px; right: 12px; }
+  .physics-stage { display: flex; flex-direction: column; height: auto; min-height: calc(100dvh - 64px); }
+  .physics-panel { padding: 24px 20px; border-right: 0; border-bottom: 1px solid var(--sim-line); overflow: visible; }
+  .prompt-dock-head { margin-bottom: 24px; }
+  .prompt-dock-head h1 { font-size: 32px; margin: 8px 0; }
+  .prompt-dock-head > p:last-child { max-width: 36ch; font-size: 13px; }
+  .create-eyebrow { margin: 0; }
+  #build-prompt { min-height: 110px; }
+  .prompt-actions { flex-direction: row; }
+  #build-lab { flex: 1; }
+  .create-local-note { margin-bottom: 0; }
+  .create-preview { height: calc(100dvh - 64px); min-height: 360px; padding: 0 12px 12px; scroll-margin-top: 64px; }
+  .create-preview-actions { gap: 4px; }
+  .create-preview-actions .sim-action { padding: 6px 10px; }
+  .create-empty h2 { font-size: 24px; }
+  .physics-stage[data-create-state="empty"] .create-preview { height: 360px; }
+  .physics-stage[data-editor-hidden="true"] .create-preview { height: calc(100dvh - 64px); }
+  .simulatte-review-bridge { top: 8px; right: 8px; max-height: 65dvh; }
+}
+@media (prefers-reduced-motion: reduce) { .create-app * { animation: none !important; scroll-behavior: auto !important; } }

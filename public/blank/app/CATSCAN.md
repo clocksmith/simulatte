@@ -3,7 +3,7 @@
 Parent: [Create](../CATSCAN.md)
 ## Target
 
-Expose controls and evidence around the compiler.
+Present editable ideas, Run, a separate preview, and optional inspection tools.
 
 ## Authority
 
@@ -27,6 +27,8 @@ Expose controls and evidence around the compiler.
 
 ## Invariants
 
+- Examples and Run precede Tools & settings.
+- Prior results never conceal failed or unverified replacements.
 - Dispatch runs eight phases; edits and retries enter identified forward requests.
 - The runner bounds resources and revisions; cancellation cannot publish or release in-flight leases.
 - Workers reject undeclared resources; cancellation and failure cannot publish or poison replacements.
@@ -40,6 +42,8 @@ Expose controls and evidence around the compiler.
 - Machine-only correction stays diagnostic until hash-bound human adjudication.
 
 ## Acceptance
+
+- Evidence: [product UX browser audit](../../../tools/audit-product-ux.mjs) covers responsive authoring, execution, controls, and inspection.
 
 - Evidence: [worker tests](../../../tests/pipeline-worker-phases.test.cjs).
 - Evidence: [WorldSpec editor tests](../../../tests/world-spec.test.cjs).

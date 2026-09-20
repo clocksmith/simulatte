@@ -72,8 +72,8 @@ test('page compositions consume the shared theme without reviving retired theme 
     assert.doesNotMatch(values, /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?)\(\s*[-.\d]/i, file + ' must consume paint tokens');
     for (const [, name] of read(file).matchAll(/var\(\s*(--sim-paint-[\w-]+)/g)) assert.ok(tokens.includes(name + ':'), file + ': ' + name);
   }
-  assert.match(read('public/blank/index.html'), /href="\.\.\/shared\/design\/simulatte\.css"/);
-  assert.match(read('public/index.html'), /href="\.\/shared\/design\/workbench\.css"/);
+  assert.match(read('public/blank/index.html'), /href="\.\.\/shared\/design\/simulatte\.css(?:\?[^"\s]*)?"/);
+  assert.match(read('public/index.html'), /href="\.\/shared\/design\/workbench\.css(?:\?[^"\s]*)?"/);
   for (const file of ['public/index.html', 'public/blank/index.html']) {
     assert.match(read(file), /shared\/design\/theme-controller\.js/);
     assert.match(read(file), /shared\/design\/theme-control\.css/);

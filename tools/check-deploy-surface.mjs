@@ -210,7 +210,9 @@ function main() {
     ]);
     const packument = JSON.parse(packOutput);
     if (Array.isArray(packument) && packument.length === 1) {
-      packument[0] = restorePinnedCompression(packument[0], path.join(tempDir, packument[0].filename), DOPPLER_PACKAGE, run('npm', ['config', 'get', 'cache']).trim());
+      const retainedArchive = path.join(ROOT, 'artifacts/pinned-packages', `${encodeURIComponent(DOPPLER_PACKAGE.name)}-${encodeURIComponent(DOPPLER_PACKAGE.version)}.tgz`);
+      packument[0] = restorePinnedCompression(packument[0], path.join(tempDir, packument[0].filename), DOPPLER_PACKAGE,
+        run('npm', ['config', 'get', 'cache']).trim(), retainedArchive);
     }
     const entry = verifyPackageMetadata(packument);
     const tarballPath = path.join(tempDir, entry.filename);

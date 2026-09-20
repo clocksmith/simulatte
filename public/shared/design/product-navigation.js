@@ -5,7 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createProductNavigation() {
   function connect(documentRoot, hostname) {
     if (!['localhost', '127.0.0.1', '[::1]', '::1'].includes(hostname)) return;
-    for (const link of documentRoot.querySelectorAll('.sim-product-nav [data-local-href]')) {
+    for (const link of documentRoot.querySelectorAll('[data-local-href]')) {
       link.setAttribute('href', link.dataset.localHref);
     }
   }

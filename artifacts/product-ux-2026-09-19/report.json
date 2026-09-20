@@ -1,0 +1,239 @@
+{
+  "schema": "simulatte.productUx.v1",
+  "recordedAt": "2026-09-20T01:03:49.470Z",
+  "scope": "Local browser UI, navigation and one Create compilation per viewport; not simulation or model qualification",
+  "sources": [
+    {
+      "file": "public/index.html",
+      "sha256": "c1ddf6e2f50a76f4a146d06367a2160548154e33a63b58cd10eb7f4779193e16"
+    },
+    {
+      "file": "public/world-tiers.css",
+      "sha256": "04773db0f33c834c1621fb0c2aab92e22122cd14fd57fcfacbeb52205aba8b1b"
+    },
+    {
+      "file": "public/blank/index.html",
+      "sha256": "8b74e9f88d4b7a5adc26afb0415478498f26bc5a0916ac830848114fc93cf798"
+    },
+    {
+      "file": "public/blank/styles.css",
+      "sha256": "885678d81f34c26230719296f8514a0537d3dba49c756a32553d673503f5ba2b"
+    },
+    {
+      "file": "public/blank/app/create-experience.js",
+      "sha256": "a34ca9e3d220bc82c9591ec5ad2bc421bc47083a6edfecf72899fd4aa6ec40fc"
+    },
+    {
+      "file": "public/blank/app/prompt/prompt-controller-lab-controller.js",
+      "sha256": "3c407ed1c0109f79f482979387eaa1d5d51abd55b4e93c46ec07ab0df41ec791"
+    },
+    {
+      "file": "public/shared/design/product-navigation.js",
+      "sha256": "adc08a5cf0db39d99a51254aacabb5f60ccb3b77de51304cf0363307339fa9a9"
+    },
+    {
+      "file": "public/shared/design/tokens.css",
+      "sha256": "00ef8efd8a1df00bd6d085f3fe96a386d3b929f7bb9a036a493eae985a161351"
+    },
+    {
+      "file": "public/shared/design/themes/world.css",
+      "sha256": "d433b9478d932e9ea2a38e8ff3cf8128ba40c7d3296abf9eb29086869f19639f"
+    },
+    {
+      "file": "public/shared/design/workbench.css",
+      "sha256": "b9dadf5f27311aedc7dd013d63e71430590cc4e9d5c44bfffcaa97382a8368a5"
+    }
+  ],
+  "cases": [
+    {
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "pass": false,
+      "errors": [
+        "Error: Simulation editor did not show the program\n    at checkResultControls (<anonymous>:23:101)"
+      ],
+      "resources": [],
+      "screenshots": [
+        {
+          "file": "1440-light-world.png",
+          "sha256": "30a32dd0b2ae8280ea0325da745f4b37b8d1bddd04e2579cdb9ba700c2f16a67"
+        },
+        {
+          "file": "1440-light-create-empty.png",
+          "sha256": "ef7ab8e3ad46a0de65f951d677dd52f1cbaaa4b9485ca915c2a709eaa6905ee5"
+        },
+        {
+          "file": "1440-light-create-result.png",
+          "sha256": "8f932c1e9be583dbd0738ab2616fcb1c45f88ee4cff7743645c3d7bde92b806b"
+        }
+      ],
+      "browser": "Chrome/136.0.7103.59",
+      "world": {
+        "simulations": 6,
+        "createHref": "http://127.0.0.1:44519/blank/",
+        "overflow": false,
+        "theme": "light"
+      },
+      "data": {
+        "prepared": true,
+        "overflow": false
+      },
+      "initial": {
+        "runDisabled": true,
+        "toolsOpen": false,
+        "overflow": false
+      },
+      "run": {
+        "prompt": "a red ball",
+        "status": "completed",
+        "worldSpecContentHash": "fnv1a32:c62b9b41",
+        "visible": "true",
+        "viewportScroll": 0
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "pass": false,
+      "errors": [
+        "Error: Simulation editor did not show the program\n    at checkResultControls (<anonymous>:23:101)"
+      ],
+      "resources": [],
+      "screenshots": [
+        {
+          "file": "390-light-world.png",
+          "sha256": "fd26c918f24f192bcf7c3807ea7cf8d994b6e2aea0a0772df5fa83c7db85f8bf"
+        },
+        {
+          "file": "390-light-create-empty.png",
+          "sha256": "95f8f5973e2a7e233c71a560d96d9bb6f017b0d057b336331635beb888927ca5"
+        },
+        {
+          "file": "390-light-create-result.png",
+          "sha256": "d9c45a78b1cfc09357fe86bc68a6efa715a471e73aa1155345fb87c85ef9df5e"
+        }
+      ],
+      "browser": "Chrome/136.0.7103.59",
+      "world": {
+        "simulations": 6,
+        "createHref": "http://127.0.0.1:44519/blank/",
+        "overflow": false,
+        "theme": "light"
+      },
+      "data": {
+        "prepared": true,
+        "overflow": false
+      },
+      "initial": {
+        "runDisabled": true,
+        "toolsOpen": false,
+        "overflow": false
+      },
+      "run": {
+        "prompt": "a red ball",
+        "status": "completed",
+        "worldSpecContentHash": "fnv1a32:c62b9b41",
+        "visible": "true",
+        "viewportScroll": 442
+      }
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "pass": false,
+      "errors": [
+        "Error: Simulation editor did not show the program\n    at checkResultControls (<anonymous>:23:101)"
+      ],
+      "resources": [],
+      "screenshots": [
+        {
+          "file": "320-light-world.png",
+          "sha256": "ad4d5a3f04f0addb07b1f20e436987951981f9a177dec4e8fe7c3eb42d942634"
+        },
+        {
+          "file": "320-light-create-empty.png",
+          "sha256": "655762aac9a0ed600701185f42ae92969f6873f47f5dcb5d2c8b74b9156f67b7"
+        },
+        {
+          "file": "320-light-create-result.png",
+          "sha256": "8773c8e1d74fc9e98d9dac0be734530e1862c4372419cabbf2b3b68538315d66"
+        }
+      ],
+      "browser": "Chrome/136.0.7103.59",
+      "world": {
+        "simulations": 6,
+        "createHref": "http://127.0.0.1:44519/blank/",
+        "overflow": false,
+        "theme": "light"
+      },
+      "data": {
+        "prepared": true,
+        "overflow": false
+      },
+      "initial": {
+        "runDisabled": true,
+        "toolsOpen": false,
+        "overflow": false
+      },
+      "run": {
+        "prompt": "a red ball",
+        "status": "completed",
+        "worldSpecContentHash": "fnv1a32:c62b9b41",
+        "visible": "true",
+        "viewportScroll": 530
+      }
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "pass": false,
+      "errors": [
+        "Error: Simulation editor did not show the program\n    at checkResultControls (<anonymous>:23:101)"
+      ],
+      "resources": [],
+      "screenshots": [
+        {
+          "file": "1440-dark-world.png",
+          "sha256": "ab2ee2e0c76a70768ac0aa16bb23ffc91bcfced27ca8fb6786dd9c41b492e1a5"
+        },
+        {
+          "file": "1440-dark-create-empty.png",
+          "sha256": "b3c902af827dd63b1c72b226e4e7d5a7654f9098d33a06484aec3eddcb8bed09"
+        },
+        {
+          "file": "1440-dark-create-result.png",
+          "sha256": "1c0e4e85c96322846c396cb3c7a8d8253d7a4ad5cd7b63bc75d605000fd5ffbf"
+        }
+      ],
+      "browser": "Chrome/136.0.7103.59",
+      "world": {
+        "simulations": 6,
+        "createHref": "http://127.0.0.1:44519/blank/",
+        "overflow": false,
+        "theme": "dark"
+      },
+      "data": {
+        "prepared": true,
+        "overflow": false
+      },
+      "initial": {
+        "runDisabled": true,
+        "toolsOpen": false,
+        "overflow": false
+      },
+      "run": {
+        "prompt": "a red ball",
+        "status": "completed",
+        "worldSpecContentHash": "fnv1a32:c62b9b41",
+        "visible": "true",
+        "viewportScroll": 0
+      }
+    }
+  ],
+  "pass": false,
+  "sourcesUnchanged": true
+}

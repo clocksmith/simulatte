@@ -297,7 +297,8 @@
     physicsModel,
     prompt,
     simulation,
-    review
+    review,
+    group('app/create-experience.js')
   );
   const pipelineWorker = join(
     runtimeFoundation,

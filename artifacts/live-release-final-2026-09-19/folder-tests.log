@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: folder contract covers every tracked or non-ignored source directory
+ok 1 - folder contract covers every tracked or non-ignored source directory
+  ---
+  duration_ms: 360.185036
+  type: 'test'
+  ...
+# Subtest: isolated validation skips only unavailable external repositories
+ok 2 - isolated validation skips only unavailable external repositories
+  ---
+  duration_ms: 2.585098
+  type: 'test'
+  ...
+# Subtest: every connected profile has exactly one complete experience contract
+ok 3 - every connected profile has exactly one complete experience contract
+  ---
+  duration_ms: 0.883664
+  type: 'test'
+  ...
+# Subtest: narrowest mapping assigns profile, data, tool, docs, source, and test paths to their experience
+ok 4 - narrowest mapping assigns profile, data, tool, docs, source, and test paths to their experience
+  ---
+  duration_ms: 8.040546
+  type: 'test'
+  ...
+# Subtest: shared-core changes select dependent experiences and representative journeys
+ok 5 - shared-core changes select dependent experiences and representative journeys
+  ---
+  duration_ms: 2.286868
+  type: 'test'
+  ...
+# Subtest: declared import boundaries accept inherited edges and reject undeclared edges
+ok 6 - declared import boundaries accept inherited edges and reject undeclared edges
+  ---
+  duration_ms: 2979.773726
+  type: 'test'
+  ...
+# Subtest: renderer ownership names every pass and camera composition boundary
+ok 7 - renderer ownership names every pass and camera composition boundary
+  ---
+  duration_ms: 0.336584
+  type: 'test'
+  ...
+# Subtest: judge receipt binds deterministic validation, prompt, policy, commit, contract, and inspected hashes
+ok 8 - judge receipt binds deterministic validation, prompt, policy, commit, contract, and inspected hashes
+  ---
+  duration_ms: 1967.785887
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5380.66595

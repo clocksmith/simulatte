@@ -1,0 +1,311 @@
+{
+  "schema": "simulatte.productUx.v1",
+  "recordedAt": "2026-09-20T01:06:31.435Z",
+  "scope": "Local browser UI, navigation and one Create compilation per viewport; not simulation or model qualification",
+  "sources": [
+    {
+      "file": "public/index.html",
+      "sha256": "c1ddf6e2f50a76f4a146d06367a2160548154e33a63b58cd10eb7f4779193e16"
+    },
+    {
+      "file": "public/world-tiers.css",
+      "sha256": "04773db0f33c834c1621fb0c2aab92e22122cd14fd57fcfacbeb52205aba8b1b"
+    },
+    {
+      "file": "public/blank/index.html",
+      "sha256": "2f5c1b3b35674402e86aa6b79d8549768547f22bb536b5a45fe8a79cc9dc42a0"
+    },
+    {
+      "file": "public/blank/styles.css",
+      "sha256": "17a214fd90e017f8f2052aebbf2851442c239348e317f7448ec9b78ab5b64451"
+    },
+    {
+      "file": "public/blank/app/create-experience.js",
+      "sha256": "a34ca9e3d220bc82c9591ec5ad2bc421bc47083a6edfecf72899fd4aa6ec40fc"
+    },
+    {
+      "file": "public/blank/app/prompt/prompt-controller-lab-controller.js",
+      "sha256": "3c407ed1c0109f79f482979387eaa1d5d51abd55b4e93c46ec07ab0df41ec791"
+    },
+    {
+      "file": "public/shared/design/product-navigation.js",
+      "sha256": "adc08a5cf0db39d99a51254aacabb5f60ccb3b77de51304cf0363307339fa9a9"
+    },
+    {
+      "file": "public/shared/design/tokens.css",
+      "sha256": "00ef8efd8a1df00bd6d085f3fe96a386d3b929f7bb9a036a493eae985a161351"
+    },
+    {
+      "file": "public/shared/design/themes/world.css",
+      "sha256": "601706e750362cf253dd32295740b0ac1fb79aa07efb4f3ed04311147e23cac1"
+    },
+    {
+      "file": "public/shared/design/workbench.css",
+      "sha256": "b9dadf5f27311aedc7dd013d63e71430590cc4e9d5c44bfffcaa97382a8368a5"
+    }
+  ],
+  "cases": [
+    {
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "pass": true,
+      "errors": [],
+      "resources": [],
+      "screenshots": [
+        {
+          "file": "1440-light-world.png",
+          "sha256": "30a32dd0b2ae8280ea0325da745f4b37b8d1bddd04e2579cdb9ba700c2f16a67"
+        },
+        {
+          "file": "1440-light-data.png",
+          "sha256": "520ce7b4e9a6b3e1a55d2d85d1a6bfe73b4ebe72758e14629e544ff84c8734db"
+        },
+        {
+          "file": "1440-light-create-empty.png",
+          "sha256": "ef7ab8e3ad46a0de65f951d677dd52f1cbaaa4b9485ca915c2a709eaa6905ee5"
+        },
+        {
+          "file": "1440-light-create-result.png",
+          "sha256": "692c36ade3cf9fb010f6d5633c7cbc01f4deaf1eaeb2f009527a07c2b394bd12"
+        },
+        {
+          "file": "1440-light-create-tools.png",
+          "sha256": "e02ad7cf648fc12781e0cfaf1814c1807c00a81626fb03d879ce69ec33695535"
+        },
+        {
+          "file": "1440-light-create-focus.png",
+          "sha256": "3a9d08b09891c3d2740068b125efe047aa43967be18799f8a28c8bf81a816239"
+        }
+      ],
+      "browser": "Chrome/136.0.7103.59",
+      "world": {
+        "simulations": 6,
+        "createHref": "http://127.0.0.1:44099/blank/",
+        "overflow": false,
+        "theme": "light"
+      },
+      "data": {
+        "prepared": true,
+        "overflow": false
+      },
+      "initial": {
+        "runDisabled": true,
+        "toolsOpen": false,
+        "overflow": false
+      },
+      "run": {
+        "prompt": "a red ball",
+        "status": "completed",
+        "worldSpecContentHash": "fnv1a32:c62b9b41",
+        "visible": "true",
+        "viewportScroll": 0
+      },
+      "controls": {
+        "pause": true,
+        "resume": true,
+        "restart": true,
+        "exportSchema": "simulatte.worldSpec.v1",
+        "editor": true,
+        "validation": true
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "pass": true,
+      "errors": [],
+      "resources": [],
+      "screenshots": [
+        {
+          "file": "390-light-world.png",
+          "sha256": "fd26c918f24f192bcf7c3807ea7cf8d994b6e2aea0a0772df5fa83c7db85f8bf"
+        },
+        {
+          "file": "390-light-data.png",
+          "sha256": "9ed8d26549118f8d14d524d12900a1a41f73e3a7fe55bdfa01198e4176e685d8"
+        },
+        {
+          "file": "390-light-create-empty.png",
+          "sha256": "95f8f5973e2a7e233c71a560d96d9bb6f017b0d057b336331635beb888927ca5"
+        },
+        {
+          "file": "390-light-create-result.png",
+          "sha256": "57cba09879ec6b77a097240689bf31ce8325eb4f80ebb5868c0cca2347ced82a"
+        },
+        {
+          "file": "390-light-create-tools.png",
+          "sha256": "0fa2666365a5abdd02d1cecc4ddbb4a00db19bf502a778a7f24cc574e414326c"
+        },
+        {
+          "file": "390-light-create-focus.png",
+          "sha256": "0b120e574f16cca4123c053ac1ea1af0b96922c68b98bb7eef53dc4a4934761f"
+        }
+      ],
+      "browser": "Chrome/136.0.7103.59",
+      "world": {
+        "simulations": 6,
+        "createHref": "http://127.0.0.1:44099/blank/",
+        "overflow": false,
+        "theme": "light"
+      },
+      "data": {
+        "prepared": true,
+        "overflow": false
+      },
+      "initial": {
+        "runDisabled": true,
+        "toolsOpen": false,
+        "overflow": false
+      },
+      "run": {
+        "prompt": "a red ball",
+        "status": "completed",
+        "worldSpecContentHash": "fnv1a32:c62b9b41",
+        "visible": "true",
+        "viewportScroll": 674
+      },
+      "controls": {
+        "pause": true,
+        "resume": true,
+        "restart": true,
+        "exportSchema": "simulatte.worldSpec.v1",
+        "editor": true,
+        "validation": true
+      }
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "pass": true,
+      "errors": [],
+      "resources": [],
+      "screenshots": [
+        {
+          "file": "320-light-world.png",
+          "sha256": "ad4d5a3f04f0addb07b1f20e436987951981f9a177dec4e8fe7c3eb42d942634"
+        },
+        {
+          "file": "320-light-data.png",
+          "sha256": "f8c358f6578d8bced368a1145fb8f0e2a09ffc630e893e120ecb46f3e9b3aa0d"
+        },
+        {
+          "file": "320-light-create-empty.png",
+          "sha256": "655762aac9a0ed600701185f42ae92969f6873f47f5dcb5d2c8b74b9156f67b7"
+        },
+        {
+          "file": "320-light-create-result.png",
+          "sha256": "26928a5784238cfae19f213ba794494dcb29a4056e79337ef379aa513c2887be"
+        },
+        {
+          "file": "320-light-create-tools.png",
+          "sha256": "203e492a11e6dd0fcc58f2c3cff5ca291344bb92ca91502795d9b06d57f81fb7"
+        },
+        {
+          "file": "320-light-create-focus.png",
+          "sha256": "6d8429fe0d62dd007979ab0fddd7d543a6c85625aa05f087e72443d50dd8dec8"
+        }
+      ],
+      "browser": "Chrome/136.0.7103.59",
+      "world": {
+        "simulations": 6,
+        "createHref": "http://127.0.0.1:44099/blank/",
+        "overflow": false,
+        "theme": "light"
+      },
+      "data": {
+        "prepared": true,
+        "overflow": false
+      },
+      "initial": {
+        "runDisabled": true,
+        "toolsOpen": false,
+        "overflow": false
+      },
+      "run": {
+        "prompt": "a red ball",
+        "status": "completed",
+        "worldSpecContentHash": "fnv1a32:c62b9b41",
+        "visible": "true",
+        "viewportScroll": 743
+      },
+      "controls": {
+        "pause": true,
+        "resume": true,
+        "restart": true,
+        "exportSchema": "simulatte.worldSpec.v1",
+        "editor": true,
+        "validation": true
+      }
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "pass": true,
+      "errors": [],
+      "resources": [],
+      "screenshots": [
+        {
+          "file": "1440-dark-world.png",
+          "sha256": "ab2ee2e0c76a70768ac0aa16bb23ffc91bcfced27ca8fb6786dd9c41b492e1a5"
+        },
+        {
+          "file": "1440-dark-data.png",
+          "sha256": "031b6beedc2fe328d5bde59ff62422f5880e091f7c077e546cb6a1c0deedeae5"
+        },
+        {
+          "file": "1440-dark-create-empty.png",
+          "sha256": "b3c902af827dd63b1c72b226e4e7d5a7654f9098d33a06484aec3eddcb8bed09"
+        },
+        {
+          "file": "1440-dark-create-result.png",
+          "sha256": "382a5963381ef4c5a4ee4cda1f201638a113a37f7437b07682261f4124ef28ad"
+        },
+        {
+          "file": "1440-dark-create-tools.png",
+          "sha256": "c4489c4994fe3f14fb26b5714e6417dd21cc060a7e110f146e5ab0852ed4246a"
+        },
+        {
+          "file": "1440-dark-create-focus.png",
+          "sha256": "2d2c9776573dd09ad2ce253865a0aeeb7c6acdb1be61b9b3fab144d0690fa5ab"
+        }
+      ],
+      "browser": "Chrome/136.0.7103.59",
+      "world": {
+        "simulations": 6,
+        "createHref": "http://127.0.0.1:44099/blank/",
+        "overflow": false,
+        "theme": "dark"
+      },
+      "data": {
+        "prepared": true,
+        "overflow": false
+      },
+      "initial": {
+        "runDisabled": true,
+        "toolsOpen": false,
+        "overflow": false
+      },
+      "run": {
+        "prompt": "a red ball",
+        "status": "completed",
+        "worldSpecContentHash": "fnv1a32:c62b9b41",
+        "visible": "true",
+        "viewportScroll": 0
+      },
+      "controls": {
+        "pause": true,
+        "resume": true,
+        "restart": true,
+        "exportSchema": "simulatte.worldSpec.v1",
+        "editor": true,
+        "validation": true
+      }
+    }
+  ],
+  "pass": true,
+  "sourcesUnchanged": true
+}

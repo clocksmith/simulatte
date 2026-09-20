@@ -37,6 +37,14 @@ test('matching archive needs no cache', t => {
   fs.unlinkSync(f.cacheFile);
   assert.equal(restorePinnedCompression(f.pin, f.archive, f.pin, f.root), f.pin);
 });
+test('fresh checkouts recover the exact compressed pin from a retained release artifact', t => {
+  const f = fixture(t), retained = path.join(f.root, 'retained.tgz');
+  fs.writeFileSync(retained, f.original); fs.unlinkSync(f.cacheFile);
+  const result = restorePinnedCompression(f.entry, f.archive, f.pin, f.root, retained);
+  assert.equal(result.integrity, f.pin.integrity); assert.deepEqual(fs.readFileSync(f.archive), f.original);
+  fs.writeFileSync(f.archive, f.packed); fs.writeFileSync(retained, f.packed);
+  assert.throws(() => restorePinnedCompression(f.entry, f.archive, f.pin, f.root, retained), /pinned integrity/);
+});
 test('changed source bytes cannot be normalized into the pin', t => {
   const f = fixture(t);
   const changed = gzipSync(Buffer.concat([f.tar, Buffer.from('tampered')]));

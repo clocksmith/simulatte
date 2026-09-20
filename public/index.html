@@ -348,9 +348,19 @@
   <div id="world-tiers-landing-page">
   <section id="simulation-home">
     <header class="landing-header">
-      <h1 class="landing-title">Simulatte</h1>
+      <a class="landing-brand" href="/">Simulatte</a>
+      <a class="landing-data-link" href="#data">Use your data</a>
     </header>
-
+    <div class="home-layout">
+      <div class="home-intro">
+        <p class="home-eyebrow">A PLAYGROUND FOR WHAT IF</p>
+        <h1 class="landing-title">Explore a world.<br>Change what happens.</h1>
+        <p class="home-description">Try a simulation, change its controls, and see the result. From a city street to a network of stars.</p>
+        <a class="home-create-action" href="https://create.simulatte.world/" data-local-href="./blank/">Create your own <span aria-hidden="true">↗</span></a>
+        <p class="home-create-note">Start with a description. Build an interactive scene.</p>
+      </div>
+      <div class="home-choices">
+        <p class="home-choices-label">CHOOSE A SIMULATION</p>
     <!-- Hexagonal Constellation Layout -->
     <div class="hex-constellation-container" aria-label="Simulatte Multi-Scale Constellation">
       <canvas id="homepage-effects-canvas" class="homepage-effects-canvas" aria-hidden="true" hidden></canvas>
@@ -373,11 +383,11 @@
       </svg>
 
       <!-- Center Hexagon Hub: Simulatte Create -->
-      <a href="https://create.simulatte.world/" class="hex-hub" id="hex-center-create" aria-label="Open Simulatte Create">
+      <a href="https://create.simulatte.world/" data-local-href="./blank/" class="hex-hub" id="hex-center-create" aria-label="Open Simulatte Create">
         <div class="hex-hub-inner">
-          <div class="hex-hub-badge">Create a world</div>
+          <div class="hex-hub-badge">Your idea</div>
           <div class="hex-hub-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 3 27 9.5v13L16 29 5 22.5v-13Z M16 10v12 M10 16h12"/></svg></div>
-          <h2 class="hex-hub-title">Simulatte Create</h2>
+          <h2 class="hex-hub-title">Create</h2>
           <p class="hex-hub-desc">Describe a world. Make it move.</p>
           <span class="hex-hub-action">Open Create</span>
         </div>
@@ -389,7 +399,7 @@
           <div class="hex-badge">Datacenter</div>
           <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 7h9v18H4z M19 7h9v18h-9z M7 11h3 M7 16h3 M7 21h3 M22 11h3 M22 16h3 M22 21h3 M13 16h6"/></svg></div>
           <h3 class="hex-title">256-GPU Cluster</h3>
-          <p class="hex-desc">Racks, cooling, and GPU networks.</p>
+          <p class="hex-desc">Balance compute, power, and cooling.</p>
         </div>
       </div>
 
@@ -398,7 +408,7 @@
           <div class="hex-badge">Universe</div>
           <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="6" cy="23" r="2.5"/><circle cx="16" cy="7" r="2.5"/><circle cx="26" cy="21" r="2.5"/><path d="m7.5 21 7-12 M18 9l6.5 10 M9 23l14-2 M5 7h4 M7 5v4"/></svg></div>
           <h3 class="hex-title">Interstellar Relay</h3>
-          <p class="hex-desc">Signals between stars.</p>
+          <p class="hex-desc">Connect stars. Route a signal.</p>
         </div>
       </div>
 
@@ -416,7 +426,7 @@
           <div class="hex-badge">Country</div>
           <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m16 3-7 24 M16 3l7 24 M11 11h10 M9 19h14 M12 11l9 8 M20 11l-9 8 M5 28h22 M3 11h8 M21 11h8"/></svg></div>
           <h3 class="hex-title">Grid Resilience</h3>
-          <p class="hex-desc">Power, outages, and restoration.</p>
+          <p class="hex-desc">Restore power after an outage.</p>
         </div>
       </div>
 
@@ -425,7 +435,7 @@
           <div class="hex-badge">Planet / Telecom</div>
           <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M3 9c4-5 8 5 13 0s9 5 13 0 M3 15c4-5 8 5 13 0s9 5 13 0 M6 25h20 M6 22v6 M26 22v6 M12 23v4 M20 23v4"/></svg></div>
           <h3 class="hex-title">Subsea Network</h3>
-          <p class="hex-desc">Cables, outages, and rerouting.</p>
+          <p class="hex-desc">Keep the world connected.</p>
         </div>
       </div>
 
@@ -438,7 +448,11 @@
         </div>
       </div>
     </div>
+      </div>
+    </div>
     <footer class="landing-footer">
+      <span>Explore in your browser. No account needed.</span>
+      <a href="#data">Bring a CSV or JSON file <span aria-hidden="true">↗</span></a>
       <p id="simulation-status" role="status" aria-live="polite"></p>
     </footer>
   </section>

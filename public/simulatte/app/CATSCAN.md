@@ -32,6 +32,7 @@ Mount the hexagon chooser, optional data workbench, or selected simulation; expo
 - Profile replay compares deterministic execution identity and retains unproven proof classes.
 - Data imports remain local unless the user explicitly requests a URL. Prepared data does not execute until Run is selected.
 - Data execution uses a declared adapter and backend, never inferred physics or a hidden prompt/model lane.
+- The root explains the available simulations and keeps Create and Use your data directly discoverable on desktop and mobile.
 - The root shows the hexagon chooser. Data tools open at #data; profile runtime and plugins load on explicit simulation selection.
 
 ## Acceptance

@@ -473,10 +473,16 @@
           });
         }
         root.getElementById('build-lab')?.addEventListener('click', () => buildFromPrompt());
-        root.getElementById('reset-lab')?.addEventListener('click', () => setSpec(spec));
+        root.getElementById('reset-lab')?.addEventListener('click', () => {
+          paused = false;
+          const pauseButton = root.getElementById('pause-lab');
+          if (pauseButton) { pauseButton.textContent = 'Pause'; pauseButton.setAttribute('aria-pressed', 'false'); }
+          setSpec(spec);
+        });
         root.getElementById('pause-lab')?.addEventListener('click', () => {
           paused = !paused;
           root.getElementById('pause-lab').textContent = paused ? 'Resume' : 'Pause';
+          root.getElementById('pause-lab').setAttribute('aria-pressed', String(paused));
         });
         root.getElementById('remix-lab')?.addEventListener('click', () => setSpec(remixSpec(readSpecFromUi(spec, controlStack, nameInput))));
         async function resolveWithEmbedding(prompt, params, serial, showCanvasLoader = false, modelSelection) {

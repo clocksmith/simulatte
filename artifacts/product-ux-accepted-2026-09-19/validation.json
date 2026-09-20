@@ -1,0 +1,45 @@
+{
+  "schema": "simulatte.productUxValidation.v1",
+  "scope": "Local World and Create UX; not deployed; not model or physical GPU qualification",
+  "browser": {
+    "passed": true,
+    "sourcesUnchanged": true,
+    "cases": 4,
+    "screenshots": 24,
+    "report": "report.json"
+  },
+  "focusedTests": {
+    "passed": 50,
+    "log": "contract-tests.log"
+  },
+  "folderTests": {
+    "passed": 8,
+    "log": "folder-tests.log"
+  },
+  "deploymentPreflight": {
+    "passed": true,
+    "command": "npm run check:deploy",
+    "log": "preflight.log"
+  },
+  "charters": {
+    "passed": true,
+    "log": "charters.log"
+  },
+  "entrypoints": {
+    "passed": true,
+    "log": "entrypoints.log"
+  },
+  "sourceSize": {
+    "passed": true,
+    "log": "source-size.log"
+  },
+  "folderContracts": {
+    "passed": true,
+    "log": "folder-contracts.log"
+  },
+  "fullSuite": {
+    "passed": false,
+    "command": "npm test -- --fail-fast",
+    "failure": "Unchanged application-sessions fixture passes profile: {}; city-plugin-session.js reads profile.experience.defaultView. TypeError: Cannot read properties of undefined (reading defaultView)."
+  }
+}

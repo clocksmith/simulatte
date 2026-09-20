@@ -6,7 +6,7 @@ body.sim-app #world-tiers-landing-page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: max(32px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  padding: 0 40px max(24px, env(safe-area-inset-bottom));
   overflow-y: auto;
   background-color: var(--sim-paper);
   background-image:
@@ -37,16 +37,22 @@ body.sim-app #world-tiers-landing-page {
   width: 100%;
 }
 #simulation-home .landing-header {
-  width: min(760px, 100%);
-  margin: 0 0 12px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 88px;
+  padding-right: 56px;
+  margin: 0;
+  border-bottom: 1px solid var(--sim-line);
+  text-align: left;
   z-index: 5;
   animation: home-arrive 600ms var(--home-ease) both;
 }
 #simulation-home .landing-title {
   margin: 0 0 10px;
   color: var(--sim-ink);
-  font: 500 52px/1.1 var(--sim-heading);
+  font: 600 52px/1.05 var(--sim-heading);
   letter-spacing: -0.045em;
 }
 #simulation-home .hex-constellation-container {
@@ -54,7 +60,7 @@ body.sim-app #world-tiers-landing-page {
   flex: 0 0 auto;
   display: block;
   isolation: isolate;
-  width: min(600px, 100%);
+  width: min(560px, 100%);
   height: auto;
   min-height: 0;
   aspect-ratio: 2.5 / 2.598076211;
@@ -93,8 +99,8 @@ body.sim-app #world-tiers-landing-page {
     var(--sim-highlight) 83.2% 83.7%,
     transparent 84% 100%
   );
-  -webkit-mask: radial-gradient(circle, transparent 0 68%, #000 68.4% 69%, transparent 69.4%);
-  mask: radial-gradient(circle, transparent 0 68%, #000 68.4% 69%, transparent 69.4%);
+  -webkit-mask: radial-gradient(circle, transparent 0 68%, var(--sim-paint-hex-000) 68.4% 69%, transparent 69.4%);
+  mask: radial-gradient(circle, transparent 0 68%, var(--sim-paint-hex-000) 68.4% 69%, transparent 69.4%);
   opacity: 0.58;
   animation: home-orbit-drift 32s linear infinite;
   pointer-events: none;
@@ -301,8 +307,10 @@ body.sim-app #world-tiers-landing-page {
 #simulation-home .landing-footer {
   display: grid;
   justify-items: center;
-  width: min(400px, 100%);
-  margin: 18px auto 0;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--sim-line);
   z-index: 5;
 }
 #simulation-status {
@@ -365,6 +373,50 @@ body.sim-app #world-tiers-landing-page {
   #simulation-home .homepage-effects-canvas { display: none; }
 }
 
+
+/* The introduction and chooser share a single responsive page. */
+#simulation-home { max-width: 1240px; min-height: calc(100dvh - 24px); }
+#simulation-home .landing-brand { color: var(--sim-ink); text-decoration: none; font: 600 28px var(--sim-heading); letter-spacing: -1px; }
+#simulation-home .landing-data-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--sim-ink-soft); font-size: 13px; text-underline-offset: 4px; }
+.home-layout { display: grid; grid-template-columns: minmax(290px, .8fr) minmax(0, 1.2fr); align-items: center; width: 100%; gap: 48px; flex: 1; padding: 36px 0; }
+.home-intro { padding: 0 0 20px; }
+.home-eyebrow, .home-choices-label { color: var(--sim-ink-faint); font: 10px/1.4 var(--sim-mono); letter-spacing: .12em; margin: 0 0 20px; }
+.home-choices-label { text-align: center; margin-bottom: 12px; }
+.home-description { color: var(--sim-ink-soft); font-size: 16px; line-height: 1.65; max-width: 33ch; margin: 24px 0 28px; }
+.home-create-action { display: inline-flex; align-items: center; gap: 28px; min-height: 48px; padding: 12px 20px; background: var(--sim-ink); color: var(--sim-paper); border: 1px solid var(--sim-ink); border-radius: var(--sim-radius-small); font-size: 14px; font-weight: 600; text-decoration: none; }
+.home-create-action:hover { background: var(--sim-ink-soft); }
+.home-create-note { color: var(--sim-ink-faint); font-size: 12px; margin-top: 12px; max-width: 32ch; }
+#simulation-home .hex-hub-inner { background: var(--sim-ink); color: var(--sim-paper); }
+#simulation-home .hex-hub :is(.hex-hub-title, .hex-hub-desc, .hex-hub-badge, .hex-hub-action, .hex-hub-icon) { color: inherit; }
+#simulation-home .hex-hub:is(:hover, :focus-visible) .hex-hub-inner { background: var(--sim-ink-soft); }
+#simulation-home .hex-hub-inner::before, #simulation-home .hex-hub-inner::after { display: none; }
+#simulation-home .landing-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; color: var(--sim-ink-faint); font-size: 12px; }
+#simulation-home .landing-footer a { display: inline-flex; align-items: center; min-height: 44px; color: var(--sim-ink-soft); text-underline-offset: 4px; }
+#simulation-status { width: 100%; }
+#simulation-status:empty { display: none; }
+@media (max-width: 1000px) and (min-width: 621px) {
+  body.sim-app #world-tiers-landing-page { padding-inline: 24px; }
+  .home-layout { gap: 16px; grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr); }
+  #simulation-home .landing-title { font-size: 40px; }
+  #simulation-home .hex-desc { display: none; }
+  #simulation-home .hex-title { font-size: 15px; }
+}
+@media (max-width: 620px) {
+  body.sim-app #world-tiers-landing-page { padding: 0 16px 20px; }
+  #simulation-home .landing-header { min-height: 72px; margin: 0; padding-right: 52px; }
+  #simulation-home .landing-brand { font-size: 25px; }
+  #simulation-home .landing-data-link { font-size: 12px; }
+  .home-layout { display: flex; flex-direction: column; gap: 24px; padding: 28px 0 24px; }
+  .home-intro { width: 100%; padding: 0 4px; }
+  .home-eyebrow { margin-bottom: 12px; }
+  #simulation-home .landing-title { font-size: 36px; letter-spacing: -1px; }
+  .home-description { margin: 14px 0 18px; font-size: 14px; max-width: 37ch; }
+  .home-create-action { min-height: 44px; font-size: 13px; padding: 10px 16px; }
+  .home-create-note { display: none; }
+  .home-choices { width: 100%; }
+  .home-choices-label { text-align: left; margin-bottom: 10px; padding-left: 4px; }
+  #simulation-home .landing-footer { margin: 0; padding-top: 12px; width: 100%; gap: 0; }
+}
 
 /* Overlay canvas styles */
 #overlay-canvas {

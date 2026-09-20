@@ -8,7 +8,7 @@ const digest = (bytes, algorithm, encoding) => crypto.createHash(algorithm).upda
 // zlib releases can encode the same npm tar archive differently. Keep the
 // original compressed pin authoritative: only reuse its authenticated bytes
 // after proving that the newly packed, pinned source has the identical tar.
-export function restorePinnedCompression(entry, archivePath, pin, cacheRoot) {
+export function restorePinnedCompression(entry, archivePath, pin, cacheRoot, retainedArchive = null) {
   const packed = fs.readFileSync(archivePath);
   const integrity = `sha512-${digest(packed, 'sha512', 'base64')}`;
   const shasum = digest(packed, 'sha1', 'hex');
@@ -21,13 +21,14 @@ export function restorePinnedCompression(entry, archivePath, pin, cacheRoot) {
   }
   const hex = Buffer.from(pin.integrity.slice(7), 'base64').toString('hex');
   const cachedPath = path.join(cacheRoot, '_cacache', 'content-v2', 'sha512', hex.slice(0, 2), hex.slice(2, 4), hex.slice(4));
-  if (!fs.existsSync(cachedPath)) {
-    throw new Error(`Package compression differs and the authenticated pinned archive is absent from the npm cache: ${pin.name}@${pin.version} (${pin.integrity})`);
+  const originalPath = fs.existsSync(cachedPath) ? cachedPath : retainedArchive;
+  if (!originalPath || !fs.existsSync(originalPath)) {
+    throw new Error(`Package compression differs and the authenticated pinned archive is absent from the npm cache and retained release artifacts: ${pin.name}@${pin.version} (${pin.integrity})`);
   }
-  const original = fs.readFileSync(cachedPath);
+  const original = fs.readFileSync(originalPath);
   if (`sha512-${digest(original, 'sha512', 'base64')}` !== pin.integrity
       || digest(original, 'sha1', 'hex') !== pin.shasum) {
-    throw new Error('Cached npm archive does not match the pinned integrity and shasum');
+    throw new Error('Cached npm archive or retained release archive does not match the pinned integrity and shasum');
   }
   if (!gunzipSync(original).equals(gunzipSync(packed))) {
     throw new Error('Packed source tar bytes differ from the authenticated pinned npm archive');

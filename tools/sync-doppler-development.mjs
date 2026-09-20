@@ -206,7 +206,9 @@ function main() {
     ]);
     const packument = JSON.parse(output);
     if (!WRITE && Array.isArray(packument) && packument.length === 1) {
-      packument[0] = restorePinnedCompression(packument[0], path.join(packDir, packument[0].filename), packagePin, run('npm', ['config', 'get', 'cache']).trim());
+      const retainedArchive = path.join(ROOT, 'artifacts/pinned-packages', `${encodeURIComponent(packagePin.name)}-${encodeURIComponent(packagePin.version)}.tgz`);
+      packument[0] = restorePinnedCompression(packument[0], path.join(packDir, packument[0].filename), packagePin,
+        run('npm', ['config', 'get', 'cache']).trim(), retainedArchive);
     }
     const entry = verifyPackument(packument, packagePin, WRITE);
     run('tar', ['-xzf', path.join(packDir, entry.filename), '-C', packDir]);

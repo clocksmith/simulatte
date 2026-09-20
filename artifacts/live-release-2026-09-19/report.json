@@ -1,0 +1,291 @@
+{
+  "schema": "simulatte.liveRelease.v2",
+  "recordedAt": "2026-09-20T00:21:24.717Z",
+  "expectedBuild": "28cc3dcf9b982c93df049c32c4669744d2f49bc6-f5eb9b768c7a",
+  "scope": "HTTP identity, entry assets, browser startup and controls",
+  "exclusions": [
+    "Simulation correctness",
+    "Model qualification",
+    "Physical GPU qualification",
+    "Human visual adjudication"
+  ],
+  "surfaces": [
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "28cc3dcf9b982c93df049c32c4669744d2f49bc6-f5eb9b768c7a",
+      "checks": {
+        "exactBuild": true
+      },
+      "assets": [],
+      "errors": [
+        "Live package inventory differs from the expected package"
+      ],
+      "pass": false,
+      "observedBuild": "28cc3dcf9b982c93df049c32c4669744d2f49bc6-f5eb9b768c7a"
+    },
+    {
+      "surface": "create",
+      "baseUrl": "https://simulatte-create.web.app/",
+      "expectedBuild": "28cc3dcf9b982c93df049c32c4669744d2f49bc6-f5eb9b768c7a",
+      "checks": {
+        "exactBuild": true
+      },
+      "assets": [],
+      "errors": [
+        "Live package inventory differs from the expected package"
+      ],
+      "pass": false,
+      "observedBuild": "28cc3dcf9b982c93df049c32c4669744d2f49bc6-f5eb9b768c7a"
+    }
+  ],
+  "browsers": [
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "28cc3dcf9b982c93df049c32c4669744d2f49bc6-f5eb9b768c7a",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/136.0.7103.59",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "simulationsVisible": true,
+          "createLink": true
+        },
+        "controls": [
+          {
+            "name": "Open Simulatte Create",
+            "reachable": true,
+            "width": 222,
+            "height": 192.2554931640625
+          },
+          {
+            "name": "Launch 256-GPU Supercluster Simulator",
+            "reachable": true,
+            "width": 222,
+            "height": 192.2554931640625
+          },
+          {
+            "name": "Launch Interstellar Relay Network Simulator",
+            "reachable": true,
+            "width": 222,
+            "height": 192.2554931640625
+          },
+          {
+            "name": "Launch Orbital Transfer Planner Simulator",
+            "reachable": true,
+            "width": 222,
+            "height": 192.2554931640625
+          },
+          {
+            "name": "Launch Grid Resilience Simulator",
+            "reachable": true,
+            "width": 222,
+            "height": 192.2554931640625
+          },
+          {
+            "name": "Launch Subsea Network Simulator",
+            "reachable": true,
+            "width": 222,
+            "height": 192.2554931640625
+          },
+          {
+            "name": "Launch Sun Walker City Simulator",
+            "reachable": true,
+            "width": 222,
+            "height": 192.2554931640625
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "https://simulatte-world.web.app/"
+      },
+      "screenshot": {
+        "path": "world-1440x1000.png",
+        "sha256": "f3d4a682b3276304e5a97a92095cab5887ae68d5c1179f8c4ac349be726e9596"
+      }
+    },
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "28cc3dcf9b982c93df049c32c4669744d2f49bc6-f5eb9b768c7a",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/136.0.7103.59",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "simulationsVisible": true,
+          "createLink": true
+        },
+        "controls": [
+          {
+            "name": "Open Simulatte Create",
+            "reachable": true,
+            "width": 136.9000244140625,
+            "height": 118.54454040527344
+          },
+          {
+            "name": "Launch 256-GPU Supercluster Simulator",
+            "reachable": true,
+            "width": 136.9000244140625,
+            "height": 118.54454040527344
+          },
+          {
+            "name": "Launch Interstellar Relay Network Simulator",
+            "reachable": true,
+            "width": 136.9000244140625,
+            "height": 118.54452514648438
+          },
+          {
+            "name": "Launch Orbital Transfer Planner Simulator",
+            "reachable": true,
+            "width": 136.9000244140625,
+            "height": 118.54454040527344
+          },
+          {
+            "name": "Launch Grid Resilience Simulator",
+            "reachable": true,
+            "width": 136.9000244140625,
+            "height": 118.5445556640625
+          },
+          {
+            "name": "Launch Subsea Network Simulator",
+            "reachable": true,
+            "width": 136.9000244140625,
+            "height": 118.54452514648438
+          },
+          {
+            "name": "Launch Sun Walker City Simulator",
+            "reachable": true,
+            "width": 136.9000244140625,
+            "height": 118.5445556640625
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "https://simulatte-world.web.app/"
+      },
+      "screenshot": {
+        "path": "world-390x844.png",
+        "sha256": "5f65d7cc55e681552fcc6fb5a075090eec0904174e6a1259501337787f47c11a"
+      }
+    },
+    {
+      "surface": "create",
+      "baseUrl": "https://simulatte-create.web.app/",
+      "expectedBuild": "28cc3dcf9b982c93df049c32c4669744d2f49bc6-f5eb9b768c7a",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/136.0.7103.59",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "exampleAction": true,
+          "inspectorOpens": true,
+          "inspectorCloses": true
+        },
+        "controls": [
+          {
+            "name": "Simulation request",
+            "reachable": true,
+            "width": 690,
+            "height": 67
+          },
+          {
+            "name": "Shuffle 256 examples",
+            "reachable": true,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "name": "Run simulation",
+            "reachable": true,
+            "width": 544.875,
+            "height": 44
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "https://simulatte-create.web.app/"
+      },
+      "screenshot": {
+        "path": "create-1440x1000.png",
+        "sha256": "956733789fa437df6f68e8e0a7b9294c2de95687165b28043dcfdf4804b7b596"
+      }
+    },
+    {
+      "surface": "create",
+      "baseUrl": "https://simulatte-create.web.app/",
+      "expectedBuild": "28cc3dcf9b982c93df049c32c4669744d2f49bc6-f5eb9b768c7a",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/136.0.7103.59",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "exampleAction": true,
+          "inspectorOpens": true,
+          "inspectorCloses": true
+        },
+        "controls": [
+          {
+            "name": "Simulation request",
+            "reachable": true,
+            "width": 352,
+            "height": 70
+          },
+          {
+            "name": "Shuffle 256 examples",
+            "reachable": true,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "name": "Run simulation",
+            "reachable": true,
+            "width": 210.875,
+            "height": 44
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "https://simulatte-create.web.app/"
+      },
+      "screenshot": {
+        "path": "create-390x844.png",
+        "sha256": "371e26c6dfaa32715a1dfd725414ca9ab6c942474b0c6aed80af4369008e3636"
+      }
+    }
+  ],
+  "pass": false
+}
