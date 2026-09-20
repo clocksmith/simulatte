@@ -73,6 +73,18 @@
           provenance: modeled,
         });
       });
+    const tensorProgress = boundedStep / STAGES.length;
+    const tensorLayers = topology.gpus.length ? [builder.layer({
+      id: 'active-allreduce-tensor-pulse',
+      kind: 'actor',
+      label: `Gradient synchronization · ${Math.round(tensorProgress * 100)}%`,
+      geometry: builder.geometry('polyline', 'datacenter-cartesian-meters', topology.gpus.map((gpu) => [gpu.xM, gpu.yM, gpu.zM])),
+      quantity: builder.quantity('actor.tensor-gradient.route-progress', tensorProgress, 'ratio', [0, 1]),
+      role: 'event',
+      importance: 1,
+      aggregationKey: null,
+      provenance: modeled,
+    })] : [];
     const eventIds = STAGES.map((stage) => `${PLUGIN_ID}:${stage}`);
     const events = STAGES.slice(0, boundedStep).map((stage, sequence) => builder.event({
       id: eventIds[sequence],
@@ -88,7 +100,7 @@
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'datacenter-cartesian-meters',
-      layers: [...rackLayers, ...networkLayers],
+      layers: [...rackLayers, ...networkLayers, ...tensorLayers],
       viewIntents: [builder.viewIntent({
         id: `${PLUGIN_ID}:overview`,
         mode: 'overview',

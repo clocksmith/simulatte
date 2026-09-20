@@ -776,12 +776,15 @@
     draw() {
       if (this.renderSession.status().state !== 'ready') return;
       const cpuStartedAt = performance.now();
+      const view = { width: this.width, height: this.height, zoom: this.zoom, panX: this.panX, panY: this.panY,
+        rotX: this.rotX, rotY: this.rotY, rotZ: this.rotZ, projectionMode: this.projectionMode,
+        timeSeconds: performance.now() / 1000,
+        nativeCoordinateSystems: this.nativeCoordinateSystems,
+        projectCountryPoint: (x, y, bounds) => this.projectCountryPoint(x, y, bounds) };
+      view.projectCoordinatePoint = (position, system) => tierPresentation.projectPoint(position, system, view);
       this.renderSession.setScene({
         tier: this.currentTier, data: this.data,
-        view: { width: this.width, height: this.height, zoom: this.zoom, panX: this.panX, panY: this.panY,
-          rotX: this.rotX, rotY: this.rotY, rotZ: this.rotZ, projectionMode: this.projectionMode,
-          nativeCoordinateSystems: this.nativeCoordinateSystems,
-          projectCountryPoint: (x, y, bounds) => this.projectCountryPoint(x, y, bounds) },
+        view,
         drawOverlay: ctx => this.pluginLayer?.render(ctx),
       });
       this.renderSession.render();

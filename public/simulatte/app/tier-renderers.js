@@ -468,39 +468,152 @@
   }
 
   function drawDatacenter(view) {
-    // Rack geometry and heat arrive through the governed plugin presentation.
-    const { ctx, width, height } = view;
-    ctx.strokeStyle = 'rgba(180, 195, 205, 0.05)';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < width; x += 48) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+    const { ctx, data, timeSeconds = 0 } = view;
+    const project = (position) => view.projectCoordinatePoint
+      ? view.projectCoordinatePoint(position, 'datacenter-cartesian-meters')
+      : { x: view.panX + position[0] * view.zoom, y: view.panY - position[1] * view.zoom };
+    const racks = Array.isArray(data?.racks) ? data.racks : [];
+    if (!racks.length) return;
+    const bounds = data.bounds || { minimumMeters: [-18, -11, 0], maximumMeters: [18, 11, 4.5] };
+    const [minimumX, minimumY] = bounds.minimumMeters;
+    const [maximumX, maximumY] = bounds.maximumMeters;
+    const floor = [
+      [minimumX, minimumY, 0], [maximumX, minimumY, 0],
+      [maximumX, maximumY, 0], [minimumX, maximumY, 0],
+    ].map(project);
+    const floorGradient = ctx.createLinearGradient(floor[0].x, floor[0].y, floor[2].x, floor[2].y);
+    floorGradient.addColorStop(0, '#070c13');
+    floorGradient.addColorStop(0.55, '#0d1621');
+    floorGradient.addColorStop(1, '#05080d');
+    polygon(ctx, floor, floorGradient, 'rgba(120, 185, 225, 0.18)', 1.2);
+
+    ctx.save();
+    ctx.lineWidth = 0.7;
+    for (let x = minimumX; x <= maximumX; x += 2) {
+      line(ctx, [project([x, minimumY, 0.01]), project([x, maximumY, 0.01])], 'rgba(105, 165, 205, 0.075)');
     }
-    for (let y = 0; y < height; y += 48) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+    for (let y = minimumY; y <= maximumY; y += 2) {
+      line(ctx, [project([minimumX, y, 0.01]), project([maximumX, y, 0.01])], 'rgba(105, 165, 205, 0.075)');
     }
+    ctx.restore();
+
+    const rows = [...new Set(racks.map((rack) => rack.row))].sort((a, b) => a - b);
+    rows.forEach((row, index) => {
+      const rowRacks = racks.filter((rack) => rack.row === row);
+      const centerY = rowRacks.reduce((sum, rack) => sum + rack.yM, 0) / rowRacks.length;
+      const cold = index % 2 === 0;
+      const band = [
+        [minimumX + 1, centerY - 1.25, 0.02], [maximumX - 1, centerY - 1.25, 0.02],
+        [maximumX - 1, centerY + 1.25, 0.02], [minimumX + 1, centerY + 1.25, 0.02],
+      ].map(project);
+      polygon(ctx, band, cold ? 'rgba(35, 196, 255, 0.045)' : 'rgba(255, 107, 82, 0.04)',
+        cold ? 'rgba(70, 215, 255, 0.16)' : 'rgba(255, 125, 90, 0.13)', 0.8);
+      const label = project([minimumX + 1.4, centerY, 0.05]);
+      ctx.fillStyle = cold ? 'rgba(95, 220, 255, 0.55)' : 'rgba(255, 145, 112, 0.48)';
+      ctx.font = '500 9px "IBM Plex Mono", monospace';
+      ctx.fillText(cold ? 'COLD AISLE' : 'HOT AISLE', label.x, label.y);
+
+      const first = rowRacks[0], last = rowRacks.at(-1);
+      const trunk = [project([first.xM, centerY, 3.75]), project([last.xM, centerY, 3.75])];
+      ctx.save();
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(77, 232, 255, 0.28)';
+      line(ctx, trunk, 'rgba(77, 232, 255, 0.34)', 1.6);
+      const pulse = (timeSeconds * 0.18 + index * 0.21) % 1;
+      const pulsePoint = {
+        x: trunk[0].x + (trunk[1].x - trunk[0].x) * pulse,
+        y: trunk[0].y + (trunk[1].y - trunk[0].y) * pulse,
+      };
+      ctx.beginPath(); ctx.arc(pulsePoint.x, pulsePoint.y, 3.2, 0, Math.PI * 2);
+      ctx.fillStyle = '#5ff4ff'; ctx.fill();
+      ctx.restore();
+
+      drawDatacenterPrism(ctx, project,
+        [maximumX - 2.2, centerY - 0.7, 0], [maximumX - 0.8, centerY + 0.7, 2.4],
+        { front: '#093845', side: '#062630', top: '#0d5667', stroke: 'rgba(93, 231, 244, 0.55)' });
+      const cdu = project([maximumX - 1.5, centerY, 1.1]);
+      ctx.save(); ctx.translate(cdu.x, cdu.y); ctx.rotate(timeSeconds * 2.4 + index);
+      ctx.strokeStyle = '#83f2f5'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(4, 0); ctx.moveTo(0, -4); ctx.lineTo(0, 4); ctx.stroke(); ctx.restore();
+    });
+
+    const spine = [project([0, minimumY + 1, 4.2]), project([0, maximumY - 1, 4.2])];
+    ctx.save(); ctx.setLineDash([5, 5]);
+    line(ctx, spine, 'rgba(195, 132, 255, 0.48)', 2.2);
+    ctx.restore();
   }
 
   function drawDatacenterMarker(ctx, point, marker, zoom) {
     if (marker.quantityKind !== 'modeled-rack-temperature') return false;
-    const width = Math.max(12, Math.min(44, zoom * 1.05));
-    const height = width * 1.35;
+    const width = Math.max(12, Math.min(42, zoom * 1.02));
+    const height = width * 1.58;
+    const depth = width * 0.28;
     const temperature = Number(marker.quantityValue);
     const heat = temperature >= 80 ? '#ff5c66' : temperature >= 65 ? '#ffb347' : '#4de8ff';
     ctx.save();
-    ctx.fillStyle = '#18232c'; ctx.strokeStyle = heat; ctx.lineWidth = 1.5;
+    ctx.shadowBlur = temperature >= 65 ? 18 : 9;
+    ctx.shadowColor = heat;
+    polygon(ctx, [
+      { x: point.x - width / 2, y: point.y - height / 2 },
+      { x: point.x - width / 2 + depth, y: point.y - height / 2 - depth },
+      { x: point.x + width / 2 + depth, y: point.y - height / 2 - depth },
+      { x: point.x + width / 2, y: point.y - height / 2 },
+    ], '#263746', heat, 1);
+    polygon(ctx, [
+      { x: point.x + width / 2, y: point.y - height / 2 },
+      { x: point.x + width / 2 + depth, y: point.y - height / 2 - depth },
+      { x: point.x + width / 2 + depth, y: point.y + height / 2 - depth },
+      { x: point.x + width / 2, y: point.y + height / 2 },
+    ], '#0b141d', heat, 1);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#121e29'; ctx.strokeStyle = heat; ctx.lineWidth = 1.4;
     ctx.fillRect(point.x - width / 2, point.y - height / 2, width, height);
     ctx.strokeRect(point.x - width / 2, point.y - height / 2, width, height);
     ctx.fillStyle = heat;
     for (let slot = 0; slot < 8; slot += 1) {
-      ctx.fillRect(point.x - width / 2 + 3, point.y - height / 2 + 3 + slot * (height - 6) / 8, width - 6, Math.max(1, (height - 6) / 12));
+      const slotHeight = (height - 7) / 8;
+      const slotY = point.y - height / 2 + 3 + slot * slotHeight;
+      ctx.fillStyle = '#071019';
+      ctx.fillRect(point.x - width / 2 + 3, slotY, width - 6, Math.max(2, slotHeight - 1.5));
+      ctx.fillStyle = heat;
+      ctx.fillRect(point.x - width / 2 + 4, slotY + 1, Math.max(1.5, width * 0.09), Math.max(1, slotHeight - 3.5));
+      ctx.fillStyle = slot % 3 === 0 ? '#8fffb5' : 'rgba(143, 255, 181, 0.28)';
+      ctx.fillRect(point.x + width / 2 - 5, slotY + slotHeight / 2, 1.5, 1.5);
     }
-    ctx.font = '500 10px "IBM Plex Sans", sans-serif';
-    ctx.textAlign = 'center'; ctx.fillStyle = '#edf5f3';
+    ctx.font = '600 8px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'center'; ctx.fillStyle = heat;
     const [id, temperatureLabel] = marker.label.split(' · ');
-    ctx.fillText(id, point.x, point.y + height / 2 + 12);
-    if (temperatureLabel) ctx.fillText(width < 20 ? `${Math.round(temperature)}°C` : temperatureLabel, point.x, point.y + height / 2 + 24);
+    if (width >= 18) ctx.fillText(id, point.x, point.y + height / 2 - 4);
+    if (temperatureLabel && (temperature >= 65 || width >= 28)) {
+      ctx.fillStyle = '#edf5f3';
+      ctx.fillText(width < 24 ? `${Math.round(temperature)}°` : temperatureLabel, point.x, point.y + height / 2 + 12);
+    }
     ctx.restore();
     return true;
+  }
+
+  function drawDatacenterPrism(ctx, project, minimum, maximum, colors) {
+    const [x0, y0, z0] = minimum, [x1, y1, z1] = maximum;
+    const p = [[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]].map(project);
+    polygon(ctx, [p[4], p[5], p[6], p[7]], colors.top, colors.stroke, 1);
+    polygon(ctx, [p[1], p[2], p[6], p[5]], colors.side, colors.stroke, 1);
+    polygon(ctx, [p[0], p[1], p[5], p[4]], colors.front, colors.stroke, 1);
+  }
+
+  function polygon(ctx, points, fillStyle, strokeStyle, lineWidth = 1) {
+    if (!points.length) return;
+    ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
+    points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
+    ctx.closePath();
+    if (fillStyle) { ctx.fillStyle = fillStyle; ctx.fill(); }
+    if (strokeStyle) { ctx.strokeStyle = strokeStyle; ctx.lineWidth = lineWidth; ctx.stroke(); }
+  }
+
+  function line(ctx, points, strokeStyle, lineWidth = 1) {
+    if (points.length < 2) return;
+    ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
+    points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
+    ctx.strokeStyle = strokeStyle; ctx.lineWidth = lineWidth; ctx.stroke();
   }
 
   return Object.freeze({ drawSolarSystem, drawStarChart, drawWorld, drawCountry, drawDatacenter, drawDatacenterMarker });

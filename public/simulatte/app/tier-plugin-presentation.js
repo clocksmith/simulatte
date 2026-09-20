@@ -213,6 +213,15 @@
         scale: perspective * topology.distanceScale,
       };
     }
+    if (system === 'datacenter-cartesian-meters') {
+      const depth = y + x * 0.08 + z * 0.15;
+      return {
+        x: view.panX + (x - y * 0.42) * view.zoom,
+        y: view.panY + ((x + y) * 0.18 - z * 0.9) * view.zoom,
+        depth,
+        scale: clamp(1 + depth * 0.008, 0.82, 1.16),
+      };
+    }
     return { x: view.panX + x * view.zoom, y: view.panY - y * view.zoom, depth: z, scale: 1 };
   }
 
@@ -603,6 +612,7 @@
     else if (/actor\.asteroid/.test(kind)) drawAsteroidGlyph(ctx, radius, timeSeconds);
     else if (/actor\.repair-crew/.test(kind)) drawRepairGlyph(ctx, radius);
     else if (/actor\.packet/.test(kind)) drawPacketGlyph(ctx, radius);
+    else if (/actor\.tensor-gradient/.test(kind)) drawTensorGlyph(ctx, radius, timeSeconds);
     else {
       ctx.beginPath();
       ctx.arc(0, 0, radius, 0, Math.PI * 2);
@@ -682,6 +692,19 @@
     ctx.beginPath();
     ctx.arc(0, 0, radius * 1.25, 0, Math.PI * 2);
     ctx.stroke();
+  }
+
+  function drawTensorGlyph(ctx, radius, timeSeconds) {
+    const pulse = 0.82 + Math.sin(timeSeconds * 7) * 0.18;
+    ctx.rotate(Math.PI / 4 + timeSeconds * 0.35);
+    ctx.fillRect(-radius * pulse, -radius * pulse, radius * 2 * pulse, radius * 2 * pulse);
+    ctx.strokeRect(-radius * 1.35, -radius * 1.35, radius * 2.7, radius * 2.7);
+    ctx.rotate(-Math.PI / 4 - timeSeconds * 0.35);
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 2.1, 0, Math.PI * 2);
+    ctx.globalAlpha = 0.22;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
   }
   function drawFlowParticles(ctx, points, path, timeSeconds) {
     if (points.length < 2) return;

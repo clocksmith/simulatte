@@ -244,6 +244,10 @@ test('rack visuals retain exact model temperatures and PUE remains a ratio', () 
     assert.equal(rack.quantity.value, result.thermals.racks[index].avgTempC);
     assert.equal(rack.aggregationKey, null);
   }
+  const tensor = contribution.presentation.layers.find((layer) => layer.id === 'active-allreduce-tensor-pulse');
+  assert.equal(tensor.kind, 'actor');
+  assert.equal(tensor.geometry.coordinates.length, result.topology.totalGpus);
+  assert.equal(tensor.quantity.value, 0);
   const format = require('../public/simulatte/app/experience-presentation.js').formatMeasure;
   assert.equal(format(contribution.state.measures.find(row => row.kind === 'cooling-pue')), `${result.thermals.pue}×`);
   assert.equal(format({ value: 0.25, unit: 'probability' }), '25%');
@@ -261,14 +265,26 @@ test('GPU model provenance binds the source bytes used by the simulation', () =>
 test('rack glyph drawing uses model values unchanged across render calls', () => {
   const renderer = require('../public/simulatte/app/tier-renderers.js');
   const calls = [];
-  const ctx = { save() {}, restore() {}, fillRect: (...args) => calls.push(['fill', ...args]), strokeRect() {}, fillText: (...args) => calls.push(['text', ...args]) };
+  const ctx = { save() {}, restore() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, stroke() {},
+    fillRect: (...args) => calls.push(['fill', ...args]), strokeRect() {}, fillText: (...args) => calls.push(['text', ...args]) };
   const marker = { quantityKind: 'modeled-rack-temperature', quantityValue: 0, label: 'R1-1 · 0°C' };
   assert.equal(renderer.drawDatacenterMarker(ctx, { x: 100, y: 100 }, marker, 20), true);
   const first = structuredClone(calls); calls.length = 0;
   renderer.drawDatacenterMarker(ctx, { x: 100, y: 100 }, marker, 20);
   assert.deepEqual(calls, first);
   assert.ok(calls.some(row => row[0] === 'text' && row[1] === '0°C'));
-  assert.equal(calls.filter(row => row[0] === 'fill').length, 9);
+  assert.equal(calls.filter(row => row[0] === 'fill').length, 25);
+});
+
+test('datacenter projection provides one isometric meter mapping for facility and plugin layers', () => {
+  const projection = require('../public/simulatte/app/tier-plugin-presentation.js');
+  const view = { panX: 400, panY: 300, zoom: 20 };
+  const floor = projection.projectPoint([2, 3, 0], 'datacenter-cartesian-meters', view);
+  const top = projection.projectPoint([2, 3, 4], 'datacenter-cartesian-meters', view);
+  const neighbor = projection.projectPoint([6, 3, 0], 'datacenter-cartesian-meters', view);
+  assert.ok(top.y < floor.y);
+  assert.ok(neighbor.x > floor.x);
+  assert.ok([floor.x, floor.y, floor.depth, floor.scale].every(Number.isFinite));
 });
 
 test('datacenter overview fits the model coordinates inside the exposed canvas at both widths', () => {
