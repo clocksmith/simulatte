@@ -380,8 +380,8 @@ body.sim-app #world-tiers-landing-page {
 #simulation-home .landing-data-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--sim-ink-soft); font-size: 13px; text-underline-offset: 4px; }
 .home-layout { display: grid; grid-template-columns: minmax(290px, .8fr) minmax(0, 1.2fr); align-items: center; width: 100%; gap: 48px; flex: 1; padding: 36px 0; }
 .home-intro { padding: 0 0 20px; }
-.home-eyebrow, .home-choices-label { color: var(--sim-ink-faint); font: 10px/1.4 var(--sim-mono); letter-spacing: .12em; margin: 0 0 20px; }
-.home-choices-label { text-align: center; margin-bottom: 12px; }
+.home-eyebrow { color: var(--sim-ink-faint); font: 10px/1.4 var(--sim-mono); letter-spacing: .12em; margin: 0 0 20px; }
+
 .home-description { color: var(--sim-ink-soft); font-size: 16px; line-height: 1.65; max-width: 33ch; margin: 24px 0 28px; }
 .home-create-action { display: inline-flex; align-items: center; gap: 28px; min-height: 48px; padding: 12px 20px; background: var(--sim-ink); color: var(--sim-paper); border: 1px solid var(--sim-ink); border-radius: var(--sim-radius-small); font-size: 14px; font-weight: 600; text-decoration: none; }
 .home-create-action:hover { background: var(--sim-ink-soft); }
@@ -417,7 +417,7 @@ body.sim-app #world-tiers-landing-page {
   .home-create-action { min-height: 44px; font-size: 13px; padding: 10px 16px; }
   .home-create-note { display: none; }
   .home-choices { width: 100%; }
-  .home-choices-label { text-align: left; margin-bottom: 10px; padding-left: 4px; }
+
   #simulation-home .landing-footer { margin: 0; padding-top: 12px; width: 100%; gap: 0; }
 }
 
@@ -572,7 +572,7 @@ body.sim-app #simulation-home {
 }
 body.sim-app #simulation-home[hidden] { display: none; }
 body.sim-app #simulation-home .hex-constellation-container {
-  width: min(720px, 100%, 86svh);
+  width: min(720px, 100%, calc((100svh - 144px) * 0.96225045));
   height: auto;
   min-height: 0;
   aspect-ratio: 2.5 / 2.598076211;
@@ -585,14 +585,32 @@ body.sim-app #simulation-home :is(.hex-hub-title, .hex-title) { margin: 0; font-
 body.sim-app #simulation-home :is(.hex-hub-icon, .hex-icon) { margin: 0; }
 body.sim-app #simulation-status {
   position: absolute;
-  bottom: max(12px, env(safe-area-inset-bottom));
+  bottom: calc(72px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: min(90%, 560px);
   min-height: 0;
 }
 body.sim-app #simulation-status:empty { display: none; }
-body.sim-app:has(#world-tiers-landing-page:not(.hidden) #simulation-home:not([hidden])) > .sim-theme-control { display: none; }
+body.sim-app > .sim-theme-control {
+  display: block;
+  position: fixed;
+  top: auto;
+  right: auto;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+}
+body.sim-app > .sim-theme-control .sim-theme-control-label {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translate(-50%, 4px);
+}
+body.sim-app > .sim-theme-control button:is(:hover, :focus-visible) .sim-theme-control-label {
+  transform: translate(-50%, 0);
+}
 @media (max-width: 420px), (max-height: 480px) {
   body.sim-app #simulation-home :is(.hex-hub-inner, .hex-satellite-inner) { gap: 5px; padding: 8px 12px; }
   body.sim-app #simulation-home :is(.hex-hub-icon, .hex-icon) { width: 22px; height: 22px; }

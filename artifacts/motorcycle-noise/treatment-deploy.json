@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-09-20T22:41:58.763Z",
+  "results": [
+    {
+      "url": "https://simulatte.world/motorcycle",
+      "status": 200,
+      "current": true
+    },
+    {
+      "url": "https://simulatte.world/simulatte/motorcycle-noise/treatments.js?v=treatments-v1",
+      "status": 200,
+      "current": true
+    },
+    {
+      "url": "https://simulatte.world/simulatte/motorcycle-noise/live-noise-worker.js?v=treatments-v1",
+      "status": 200,
+      "current": true
+    }
+  ]
+}

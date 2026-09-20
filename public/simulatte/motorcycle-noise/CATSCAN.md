@@ -3,7 +3,7 @@
 Parent: [World](../CATSCAN.md)
 
 ## Target
-Compare urban noise distribution, redirection, and cancellation on NYC geometry.
+Observe autonomous city traffic and viewpoint-linked noise; compare distribution, redirection, and cancellation on NYC geometry.
 
 ## Authority
 - Owns scenario traffic, acoustic calculations, measurements, graphics, and replay.
@@ -15,7 +15,9 @@ Motorcycle Noise only. Babylon renders; Simulatte owns simulation time and mathe
 ## Contracts
 - Input: sourced [NYC geometry](nyc-map.json) and [scenario parameters](reflection-model.js).
 - Output: [traffic trajectories](traffic-motion.js), [building paths](city-paths.js), [acoustic fields](acoustic-field.js), and [comparisons](reflection-worker.js).
-- Output: [city graphics](babylon-city.js), [interaction](reflection-view.js), and [replay](reflection-app.js).
+- Output: [live energy estimates](live-noise-worker.js), [inspection controls](explore-ui.js), and [city graphics](babylon-city.js), [source markers](sound-view.js), [interaction](reflection-view.js), and [replay](reflection-app.js).
+
+- Output: [background traffic preparation](population-worker.js) and [viewpoint sound estimates](city-sound.js).
 
 ## Invariants
 - Keep direct, reflected, and powered contributions distinguishable.
@@ -25,7 +27,8 @@ Motorcycle Noise only. Babylon renders; Simulatte owns simulation time and mathe
 - Do not equate a panel ledger with complete canyon energy conservation.
 - Never prescribe cancellation success or infer identity from a spectral peak.
 - Distinguish sourced geometry, synthetic demand, approximate propagation, and measured evidence.
-- Graphics cannot change acoustic results or simulation time.
+- Cameras cannot change traffic state. Comparisons retain traffic, time, and observer position.
+- Population counts represent individual simulated agents, not decorative counters.
 
 ## Acceptance
 - Evidence: [Earlier analytical cases](../../../tests/motorcycle-noise.test.cjs) cover the older solver only.

@@ -1,5 +1,5 @@
 'use strict';
-importScripts('./signal.js', './control.js', './city-paths.js', './traffic-motion.js', './reflection-model.js', './acoustic-field.js');
+importScripts('./signal.js', './control.js', './city-paths.js?v=mobile-audio-v1', './traffic-motion.js?v=mobile-audio-v1', './reflection-model.js?v=mobile-audio-v1', './acoustic-field.js');
 self.onmessage = ({ data }) => {
   const { id, scene, time, mapHash } = data;
   const M = self.MotorcycleReflection, S = self.MotorcycleSignal;
@@ -56,7 +56,7 @@ self.onmessage = ({ data }) => {
     const observation = { dominantHz: strongest ? (strongest.hz ?? strongest.frequency) : null, status: strongest ? 'Spectral peak observed' : 'Unresolved mixture', claim: 'Microphone mixture only. A spectral peak does not identify a rider, vehicle, or muffler.' };
     const counts = Object.fromEntries(['motorcycle', 'car', 'pedestrian'].map(kind => [kind, scene.sources.filter(source => source.kind === kind).length]));
     const record = {
-      schema: 'simulatte.nycNoiseComparison.v2', mapHash,
+      schema: 'simulatte.nycNoiseComparison.v4', mapHash,
       scene: { config: scene.config, panel: scene.panel, receiver: scene.receiver, reference: scene.reference, speaker: scene.speaker, center: scene.center, observers: scene.observers, requestedCounts: scene.requestedCounts },
       time, interval: [start, start + duration], sampleRate: rate, readings, points, local, observers, ledger,
       poweredEmitter: { enabled: !!controller, energyJ: activeJoules, clippedSamples: controller ? controller.clipped : 0 },

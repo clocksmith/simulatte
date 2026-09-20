@@ -1,7 +1,7 @@
 (function (root) {
   const C = { rho: 1.204, p0: 20e-6, duration: 1.25, rate: 8000 };
-  const defaults = { seed: 731, motorcycles: 8, cars: 12, pedestrians: 24, speed: 9, rpm: 3600,
-    temperature: 20, background: 45, sourceDb: 86, surface: 'retro', reflectivity: 0.7, transmission: 0.1,
+  const defaults = { seed: 731, motorcycles: 300, cars: 80, pedestrians: 120, speed: 9, rpm: 3600,
+    temperature: 20, background: 45, sourceDb: 86, surface: 'none', reflectivity: 0.7, transmission: 0.1,
     cancellation: false, latencyMs: 2, panelWidth: 16, panelHeight: 3, coneDegrees: 60 };
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, (a.z || 0) - (b.z || 0));
   const dot = (a, b) => a.x * b.x + a.y * b.y + a.z * b.z;
@@ -11,7 +11,7 @@
   function random(seed) { let n = seed >>> 0; return () => { n = (Math.imul(n, 1664525) + 1013904223) >>> 0; return n / 4294967296; }; }
   const soundSpeed = p => Math.sqrt(1.4 * 287.05 * (p.temperature + 273.15));
   function validate(p) {
-    for (const [key, low, high] of [['seed',1,2147483647],['motorcycles',0,24],['cars',0,32],['pedestrians',0,60],['speed',2,14],['rpm',1200,8000],['temperature',-10,40],['background',30,65],['sourceDb',60,100],['reflectivity',0,1],['transmission',0,1],['latencyMs',0,20],['panelWidth',4,24],['panelHeight',1,5],['coneDegrees',45,90]]) {
+    for (const [key, low, high] of [['seed',1,2147483647],['motorcycles',0,600],['cars',0,240],['pedestrians',0,400],['speed',2,14],['rpm',1200,8000],['temperature',-10,40],['background',30,65],['sourceDb',60,100],['reflectivity',0,1],['transmission',0,1],['latencyMs',0,20],['panelWidth',4,24],['panelHeight',1,5],['coneDegrees',45,90]]) {
       if (!Number.isFinite(p[key]) || p[key] < low || p[key] > high) throw new Error(`Invalid ${key}`);
     }
     for (const key of ['seed','motorcycles','cars','pedestrians']) if (!Number.isInteger(p[key])) throw new Error(`Invalid integer ${key}`);
@@ -29,33 +29,78 @@
         for (const [from, to] of [[a,b],[b,a]]) { const edge = { from, to, length, width: street.widthM || 8, name: street.name || '', ux: (to.x-from.x)/length, uy: (to.y-from.y)/length }; edges.push(edge); from.exits.push(edge); }
       }
     }
-    return edges;
+    // Keep one connected street component, rather than distributing actors
+    // among disconnected fragments of the packaged street snapshot.
+    const visited = new Set(); let largest = new Set();
+    for (const start of nodes.values()) {
+      if (visited.has(start)) continue;
+      const component = new Set(), queue = [start]; visited.add(start);
+      for (let i = 0; i < queue.length; i++) {
+        const current = queue[i]; component.add(current);
+        for (const edge of current.exits) if (!visited.has(edge.to)) { visited.add(edge.to); queue.push(edge.to); }
+      }
+      if (component.size > largest.size) largest = component;
+    }
+    return edges.filter(edge => largest.has(edge.from));
+  }
+  function startLocation(map) {
+    const parks=(map.parks||[]).filter(row=>/mccarren/i.test(row.label||''));
+    const area=ring=>Math.abs(ring.reduce((sum,p,i)=>{const q=ring[(i+1)%ring.length];return sum+p.x*q.y-q.x*p.y;},0));
+    const ring=parks.slice().sort((a,b)=>area(b.outerRing)-area(a.outerRing))[0]?.outerRing;
+    if(!ring?.length)return {x:2100,y:-850,z:0};
+    const minX=Math.min(...ring.map(p=>p.x)),minY=Math.min(...ring.map(p=>p.y));
+    const width=Math.max(1,Math.max(...ring.map(p=>p.x))-minX),height=Math.max(1,Math.max(...ring.map(p=>p.y))-minY);
+    const southwest=ring.reduce((best,p)=>(p.x-minX)/width+(p.y-minY)/height<(best.x-minX)/width+(best.y-minY)/height?p:best,ring[0]);
+    return {x:southwest.x,y:southwest.y-180,z:0};
   }
   function create(map, p) {
     validate(p); const rng = random(p.seed), edges = graph(map);
     if (!edges.length) throw new Error('The NYC snapshot contains no usable street segments');
     const anchor = edges.filter(row => /Manhattan Avenue/i.test(row.name) && row.length > 30).sort((a,b) => Math.abs(a.from.y-460)-Math.abs(b.from.y-460))[0] || edges[0];
     const center = { x: (anchor.from.x+anchor.to.x)/2, y: (anchor.from.y+anchor.to.y)/2, z: 0.8 };
-    const local = edges.filter(edge => dist(edge.from, center) < 250 && edge.length > 12);
+    const local = edges.filter(edge => edge.length > 25);
     const sources = [];
+    const startPoint=startLocation(map);
+    const startEdge=local.filter(edge=>edge.length>65&&edge.uy>0).sort((a,b)=>Math.hypot((a.from.x+a.to.x)/2-startPoint.x,(a.from.y+a.to.y)/2-startPoint.y)-Math.hypot((b.from.x+b.to.x)/2-startPoint.x,(b.from.y+b.to.y)/2-startPoint.y))[0]||anchor;
+    const park = (map.places || []).find(place => /mccarren/i.test(place.name || place.label || ''));
+    const parkPoint = park?.position || (park && Number.isFinite(park.x) ? park : {x:2200,y:-480});
+    const parkEdges = local.filter(edge => Math.hypot(edge.from.x-parkPoint.x,edge.from.y-parkPoint.y)<650 && edge.length>65);
+    const packs = new Map();
+    function packFor(index) {
+      const id = Math.floor(index/16);
+      if (!packs.has(id)) {
+        const pool = id%4!==3 && parkEdges.length ? parkEdges : local;
+        const edge = id===0 ? startEdge : pool[Math.floor(rng()*pool.length)] || anchor;
+        packs.set(id,{id,edge,route:route(edge,'lane'),speed:p.speed*(.9+.12*rng())});
+      }
+      return packs.get(id);
+    }
+    function packRoute(pack,index) {
+      const shift = index%2 ? .65 : -.65;
+      return {length:pack.route.length,segments:pack.route.segments.map(segment=>({...segment,
+        x:segment.x+segment.uy*shift,y:segment.y-segment.ux*shift,
+        tx:segment.tx+segment.uy*shift,ty:segment.ty-segment.ux*shift}))};
+    }
     function route(first, offset) {
       const segments = []; let edge = first, total = 0;
       for (let i=0; i<120 && total<2500; i++) {
         const lane = offset === 'sidewalk' ? edge.width/2+1.6 : Math.min(2.5, edge.width/4);
         segments.push({ x: edge.from.x+edge.uy*lane, y: edge.from.y-edge.ux*lane, tx: edge.to.x+edge.uy*lane, ty: edge.to.y-edge.ux*lane, start: total, length: edge.length, ux: edge.ux, uy: edge.uy, node: { x: edge.to.x, y: edge.to.y }, signal: edge.to.exits.length > 2 }); total += edge.length;
         const choices = edge.to.exits.filter(next => next.to !== edge.from);
+        if (!choices.length) choices.push(...edge.to.exits);
         if (!choices.length) break;
         choices.sort((a,b) => (b.ux*edge.ux+b.uy*edge.uy)-(a.ux*edge.ux+a.uy*edge.uy));
-        edge = rng()<0.8 ? choices[0] : choices[Math.floor(rng()*choices.length)];
+        edge = rng()<0.65 ? choices[0] : choices[Math.floor(rng()*choices.length)];
       }
       return { segments, length: total };
     }
-    for (const [kind, count] of [['motorcycle',p.motorcycles],['car',p.cars],['pedestrian',p.pedestrians]]) for (let i=0;i<count;i++) {
-      const edge = kind === 'motorcycle' && i<5 ? anchor : local[Math.floor(rng()*local.length)] || anchor;
-      const speed = kind==='pedestrian' ? 1+0.5*rng() : p.speed*(0.8+0.3*rng());
+    for (const [kind, count] of [['motorcycle',p.motorcycles],['car',p.cars],['pedestrian',p.pedestrians]]) for (let i=0;i<count*4;i++) {
+      const pack = kind==='motorcycle' ? packFor(i) : null;
+      const edge = pack ? pack.edge : local[Math.floor(rng()*local.length)] || anchor;
+      const speed = pack ? pack.speed : kind==='pedestrian' ? 1+0.5*rng() : p.speed*(0.8+0.3*rng());
       const cylinders = kind==='motorcycle' ? [2,4,1][i%3] : kind==='car' ? 4 : 0;
-      sources.push({ id: `${kind}-${i+1}`, kind, cylinders, route: route(edge,kind==='pedestrian'?'sidewalk':'lane'),
-        offset: kind==='motorcycle' && i<5 ? Math.min(edge.length*0.8, i*8) : rng()*edge.length*0.8,
+      sources.push({ id: `${kind}-${i+1}`, kind, cylinders, packId:pack ? pack.id : null, route:pack ? packRoute(pack,i) : route(edge,kind==='pedestrian'?'sidewalk':'lane'),
+        offset:pack ? 4+Math.floor(i%16/2)*8+(i%2)*3 : rng()*edge.length*.7,
         speed, rpm: kind==='motorcycle'?p.rpm*(0.94+rng()*0.12):kind==='car'?1400+speed*80:0,
         phase: rng()*2*Math.PI, db: kind==='motorcycle'?p.sourceDb:kind==='car'?p.sourceDb-12:48 });
     }
@@ -64,8 +109,12 @@
       angle:Math.atan2(-n.y,-n.x), width:p.panelWidth, height:p.panelHeight };
     const receiver = { x:center.x-n.x*(anchor.width/2+3), y:center.y-n.y*(anchor.width/2+3), z:1.5 };
     const geometry = root.MotorcycleCityPaths.create(map.buildings);
-    const moving = root.MotorcycleTrafficMotion.prepare(sources, geometry);
-    const state = { schema:'simulatte.nycAcousticScene.v2', config:{...p}, sources:moving, panel, receiver, buildings:map.buildings, requestedCounts:{motorcycles:p.motorcycles,cars:p.cars,pedestrians:p.pedestrians},
+    const moving = root.MotorcycleTrafficMotion.prepare(sources, geometry, {motorcycle:p.motorcycles,car:p.cars,pedestrian:p.pedestrians});
+    for (const [kind, expected] of [['motorcycle',p.motorcycles],['car',p.cars],['pedestrian',p.pedestrians]]) {
+      const actual = moving.filter(source => source.kind === kind).length;
+      if (actual !== expected) throw new Error('Street placement produced '+actual+'/'+expected+' '+kind+' agents; choose a smaller population or another seed.');
+    }
+    const state = { schema:'simulatte.nycAcousticScene.v4', config:{...p}, startLocation:{x:(startEdge.from.x+startEdge.to.x)/2,y:(startEdge.from.y+startEdge.to.y)/2,z:0,street:startEdge.name}, sources:moving, panel, receiver, buildings:map.buildings, requestedCounts:{motorcycles:p.motorcycles,cars:p.cars,pedestrians:p.pedestrians},
       reference:{x:receiver.x-anchor.ux*5,y:receiver.y-anchor.uy*5,z:1.5},
       speaker:{x:receiver.x+anchor.ux*1.5,y:receiver.y+anchor.uy*1.5,z:1.5}, center,
       observers:[{name:'Listener',...receiver},{name:'Opposite curb',x:panel.x+n.x*3,y:panel.y+n.y*3,z:1.5},{name:'Along street',x:receiver.x+anchor.ux*25,y:receiver.y+anchor.uy*25,z:1.5}] };
@@ -208,5 +257,5 @@
     rows.balanceError=rows.emitted-rows.bypassing-rows.inbound-rows.reflected-rows.absorbed-rows.transmitted;
     return rows;
   }
-  root.MotorcycleReflection={C,defaults,validate,create,position,pressure,sourceLevel,fieldPaths,contributions,secondary,ledger,soundSpeed,dist,redirectedAxis,solidAngle,facing};
+  root.MotorcycleReflection={C,defaults,validate,startLocation,create,position,pressure,sourceLevel,fieldPaths,contributions,secondary,ledger,soundSpeed,dist,redirectedAxis,solidAngle,facing};
 })(globalThis);

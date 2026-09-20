@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <base href="/">
-  <meta name="simulatte-build" content="nogit-f7417ed4cc72">
+  <meta name="simulatte-build" content="public-routes-20260920-v1">
   <title>Simulatte</title>
   <meta name="description" content="Seven interactive simulations.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./shared/design/simulatte.css?v=nogit-f7417ed4cc72">
   <link rel="stylesheet" href="./model-selection.css?v=nogit-f7417ed4cc72">
   <link rel="stylesheet" href="./styles.css?v=nogit-f7417ed4cc72">
-  <link rel="stylesheet" href="./world-tiers.css?v=seven-simulations-20260920">
+  <link rel="stylesheet" href="./world-tiers.css?v=bottom-theme-20260920">
   <link rel="stylesheet" href="./shared/design/workbench.css?v=nogit-f7417ed4cc72">
   <link rel="stylesheet" href="./shared/design/compositions/world-interface.css?v=nogit-f7417ed4cc72">
   <link rel="stylesheet" href="./shared/design/theme-control.css?v=nogit-f7417ed4cc72">
@@ -322,7 +322,8 @@
   </dialog>
 
 <!-- SIMULATTE_WORLD_RUNTIME_SCRIPTS_START -->
-  <script defer src="./simulatte/app/world-runtime-script-manifest.js?v=nogit-f7417ed4cc72"></script>
+  <script defer src="/simulation-routes.js?v=public-routes-v1"></script>
+<script defer src="./simulatte/app/world-runtime-script-manifest.js?v=nogit-f7417ed4cc72"></script>
   <script defer src="./simulatte/app/world-runtime-loader.js?v=nogit-f7417ed4cc72"></script>
   <script defer src="./shared/design/program-editor.js?v=nogit-f7417ed4cc72"></script>
   <script defer src="./shared/design/data-table.js?v=nogit-f7417ed4cc72"></script>
@@ -338,7 +339,7 @@
   <script defer src="./simulatte/app/data-workbench.js?v=nogit-f7417ed4cc72"></script>
   <script defer src="./simulatte/app/homepage-webgpu.js?v=nogit-f7417ed4cc72"></script>
   <script defer src="./simulatte/app/homepage-effects.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./simulatte/app/workbench-entry.js?v=nogit-f7417ed4cc72"></script>
+  <script defer src="./simulatte/app/workbench-entry.js?v=public-routes-20260920-v1"></script>
   <!-- generated-plugin-scripts:start -->
   <!-- Selected plugin scripts are loaded by world-runtime-loader.js after route selection. -->
   <!-- generated-plugin-scripts:end -->
@@ -346,7 +347,7 @@
 
   <!-- World Tiers Landing Page Selector -->
   <div id="world-tiers-landing-page">
-  <section id="simulation-home" aria-label="Choose a simulation">
+  <section id="simulation-home" aria-label="Simulatte simulations">
     <div class="hex-constellation-container" aria-label="Seven simulations">
       <canvas id="homepage-effects-canvas" class="homepage-effects-canvas" aria-hidden="true" hidden></canvas>
       <button class="hex-hub tier-card" type="button" role="button" data-tier="city" data-default-profile="sun-walker-v1" id="hex-center-sunwalker" aria-label="Open Sunwalker">
@@ -385,7 +386,7 @@
           <h2 class="hex-title">Subsea Network</h2>
         </div>
       </button>
-      <a class="hex-satellite pos-bottom-left" href="./simulatte/motorcycle-noise/" aria-label="Open Motorcycle Noise">
+      <a class="hex-satellite pos-bottom-left" href="/motorcycle" aria-label="Open Motorcycle Noise">
         <div class="hex-satellite-inner">
           <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="7" cy="23" r="5"/><circle cx="25" cy="23" r="5"/><path d="m7 23 6-11 6 11H7 M13 12h9l3 11 M19 7h4l2 5 M9 12h6 M3 6c3-3 6-3 9 0 M5 9c2-2 4-2 6 0"/></svg></div>
           <h2 class="hex-title">Motorcycle Noise</h2>

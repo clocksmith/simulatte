@@ -1,0 +1,10 @@
+{
+  "buildingInterior": true,
+  "wallCrossings": 2,
+  "directionalForwardPower": 13149.727354690322,
+  "backwardPower": 0,
+  "beforeArrival": 0,
+  "mistAcousticDelta": 0,
+  "cancellationFinite": true,
+  "cancellationOutputLimited": true
+}

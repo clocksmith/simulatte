@@ -1,0 +1,18 @@
+'use strict';
+importScripts('./signal.js','./city-paths.js?v=mobile-audio-v1','./traffic-motion.js?v=mobile-audio-v1','./reflection-model.js?v=mobile-audio-v1','./treatments.js?v=mobile-audio-v1','./city-sound.js?v=mobile-audio-v1');
+let scene=null;
+self.onmessage=({data})=>{
+  if(data.type==='init'){scene=data.scene;return;}
+  if(data.type!=='sample'||!scene)return;
+  try{
+    scene.config=data.config;scene.panel=data.panel;scene.treatments=data.treatments||[];scene.treatmentsEnabled=data.treatmentsEnabled;scene.receiver=data.receiver;scene.speaker=data.speaker;scene.reference=data.reference;
+    const sampler=self.MotorcycleCitySound.create(scene,data.time);
+    const markers=data.markers.map(marker=>({id:marker.id,...sampler.measure(marker)}));
+    const points=[],spacing=data.focus.span/6;
+    for(let y=0;y<7;y++)for(let x=0;x<7;x++){
+      const point={x:data.focus.x+(x-3)*spacing,y:data.focus.y+(y-3)*spacing,z:1.5};
+      if(!sampler.geometry.occupied(point))points.push({point,...sampler.measure(point)});
+    }
+    self.postMessage({type:'sample',id:data.id,time:data.time,points,markers,gridSpacing:spacing,model:'all-source-incoherent-energy-near-reflections',activeCancellationIncluded:!!scene.treatmentsEnabled});
+  }catch(error){self.postMessage({type:'error',id:data.id,message:error.message});}
+};

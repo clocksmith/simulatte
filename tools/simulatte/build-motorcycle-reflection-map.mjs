@@ -10,9 +10,10 @@ const streets = geometry.streets.filter(row => overlaps(row.geometry));
 const buildings = geometry.buildings.filter(row => overlaps(row.footprint));
 const map = { schema: 'simulatte.nycReflectionMap.v1', origin, bounds: { a, b }, streets, buildings,
   land: geometry.land.filter(row => overlaps(row.outerRing)),
+  parks: (geometry.parks || []).filter(row => overlaps(row.outerRing)),
   places: world.nodes.filter(row => row.landmark && row.position && row.position.x >= a.x && row.position.x <= b.x && row.position.y >= a.y && row.position.y <= b.y).map(row => ({ label: row.label, position: row.position })),
   provenance: { sourcePath, sourceSha256: crypto.createHash('sha256').update(bytes).digest('hex'), snapshot: '2026-07-13', sources: world.provenance,
     limitations: 'Rectangular study extent; incomplete source building coverage. Lane directions, traffic, acoustic materials and reflector behavior are assumptions.' } };
 const target = 'public/simulatte/motorcycle-noise/nyc-map.json';
 fs.writeFileSync(target, JSON.stringify(map));
-console.log(`Packaged ${streets.length} streets and ${buildings.length} buildings into ${target}`);
+console.log(`Packaged ${streets.length} streets, ${buildings.length} buildings, and ${map.parks.length} park polygons into ${target}`);

@@ -11,12 +11,220 @@
       ],
       "redirects": [
         {
+          "source": "/motorcycle/",
+          "destination": "/motorcycle",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/motorcycle-noise",
+          "destination": "/motorcycle",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/motorcycle-noise/",
+          "destination": "/motorcycle",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/motorcycle-noise/index.html",
+          "destination": "/motorcycle",
+          "type": 301
+        },
+        {
+          "source": "/motorcycle-noise",
+          "destination": "/motorcycle",
+          "type": 301
+        },
+        {
+          "source": "/motorcycle-noise/",
+          "destination": "/motorcycle",
+          "type": 301
+        },
+        {
+          "source": "/sunwalker/",
+          "destination": "/sunwalker",
+          "type": 301
+        },
+        {
+          "source": "/city/sun-walker-v1",
+          "destination": "/sunwalker",
+          "type": 301
+        },
+        {
+          "source": "/city/sun-walker-v1/",
+          "destination": "/sunwalker",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/city/sun-walker-v1",
+          "destination": "/sunwalker",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/city/sun-walker-v1/",
+          "destination": "/sunwalker",
+          "type": 301
+        },
+        {
+          "source": "/datacenter/",
+          "destination": "/datacenter",
+          "type": 301
+        },
+        {
+          "source": "/datacenter/gpu-supercluster-v1",
+          "destination": "/datacenter",
+          "type": 301
+        },
+        {
+          "source": "/datacenter/gpu-supercluster-v1/",
+          "destination": "/datacenter",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/datacenter/gpu-supercluster-v1",
+          "destination": "/datacenter",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/datacenter/gpu-supercluster-v1/",
+          "destination": "/datacenter",
+          "type": 301
+        },
+        {
+          "source": "/interstellar/",
+          "destination": "/interstellar",
+          "type": 301
+        },
+        {
+          "source": "/star-chart/interstellar-relay-network-v1",
+          "destination": "/interstellar",
+          "type": 301
+        },
+        {
+          "source": "/star-chart/interstellar-relay-network-v1/",
+          "destination": "/interstellar",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/star-chart/interstellar-relay-network-v1",
+          "destination": "/interstellar",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/star-chart/interstellar-relay-network-v1/",
+          "destination": "/interstellar",
+          "type": 301
+        },
+        {
+          "source": "/orbital/",
+          "destination": "/orbital",
+          "type": 301
+        },
+        {
+          "source": "/solar-system/orbital-transfer-planner-v1",
+          "destination": "/orbital",
+          "type": 301
+        },
+        {
+          "source": "/solar-system/orbital-transfer-planner-v1/",
+          "destination": "/orbital",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/solar-system/orbital-transfer-planner-v1",
+          "destination": "/orbital",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/solar-system/orbital-transfer-planner-v1/",
+          "destination": "/orbital",
+          "type": 301
+        },
+        {
+          "source": "/grid/",
+          "destination": "/grid",
+          "type": 301
+        },
+        {
+          "source": "/country/grid-resilience-us-v1",
+          "destination": "/grid",
+          "type": 301
+        },
+        {
+          "source": "/country/grid-resilience-us-v1/",
+          "destination": "/grid",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/country/grid-resilience-us-v1",
+          "destination": "/grid",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/country/grid-resilience-us-v1/",
+          "destination": "/grid",
+          "type": 301
+        },
+        {
+          "source": "/subsea/",
+          "destination": "/subsea",
+          "type": 301
+        },
+        {
+          "source": "/world/subsea-network-global-v1",
+          "destination": "/subsea",
+          "type": 301
+        },
+        {
+          "source": "/world/subsea-network-global-v1/",
+          "destination": "/subsea",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/world/subsea-network-global-v1",
+          "destination": "/subsea",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/world/subsea-network-global-v1/",
+          "destination": "/subsea",
+          "type": 301
+        },
+        {
           "source": "/blank{,/**}",
           "destination": "https://create.simulatte.world",
           "type": 301
         }
       ],
       "rewrites": [
+        {
+          "source": "/motorcycle",
+          "destination": "/simulatte/motorcycle-noise/index.html"
+        },
+        {
+          "source": "/sunwalker",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/datacenter",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/interstellar",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/orbital",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/grid",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/subsea",
+          "destination": "/index.html"
+        },
         {
           "source": "**",
           "destination": "/index.html"
@@ -106,6 +314,69 @@
         },
         {
           "source": "/shared/blank-core/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/motorcycle",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/sunwalker",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/datacenter",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/interstellar",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/orbital",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/grid",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/subsea",
           "headers": [
             {
               "key": "Cache-Control",

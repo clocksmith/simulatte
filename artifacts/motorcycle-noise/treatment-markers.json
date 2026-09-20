@@ -1,0 +1,79 @@
+{
+  "markers": {
+    "treatments": [
+      {
+        "id": "treatment-1",
+        "kind": "mist",
+        "enabled": true
+      },
+      {
+        "id": "treatment-2",
+        "kind": "directional",
+        "enabled": true
+      },
+      {
+        "id": "treatment-3",
+        "kind": "cancellation",
+        "enabled": true
+      }
+    ],
+    "labels": [
+      {
+        "name": "label-Observer 1",
+        "metadata": {
+          "receiverId": "receiver-1"
+        }
+      },
+      {
+        "name": "label-Water mist 1",
+        "metadata": {
+          "treatmentId": "treatment-1"
+        }
+      },
+      {
+        "name": "label-Directional sound 2",
+        "metadata": {
+          "treatmentId": "treatment-2"
+        }
+      },
+      {
+        "name": "label-Tonal cancellation 3",
+        "metadata": {
+          "treatmentId": "treatment-3"
+        }
+      }
+    ],
+    "meshes": [
+      {
+        "vertices": 132,
+        "indices": 198
+      }
+    ]
+  },
+  "inspection": {
+    "visible": true,
+    "title": "Directional sound",
+    "actions": true
+  },
+  "frequency": 2000,
+  "fixture": {
+    "targeted": [
+      {
+        "kind": "directional",
+        "target": "motorcycle-1",
+        "frequency": 2000
+      },
+      {
+        "kind": "cancellation",
+        "target": "motorcycle-1",
+        "frequency": 22.567584228515624
+      }
+    ],
+    "states": [
+      true,
+      true,
+      true
+    ]
+  },
+  "errors": []
+}

@@ -15,6 +15,26 @@
       data.positions=positions;data.indices=indices;data.normals=normals;if(uvs)data.uvs=uvs;if(colors)data.colors=colors;data.applyToMesh(out);out.material=mat;out.receiveShadows=true;return out;
     }
     for(const item of map.land){const ring=item.outerRing;if(!ring?.length)continue;const flat=ring.flatMap(p=>[p.x-origin.x,-(p.y-origin.y)]),positions=[];for(let i=0;i<flat.length;i+=2)positions.push(flat[i],0,flat[i+1]);const surface=mesh(item.id,positions,root.earcut(flat),null,land);surface.metadata={ground:true};}
+    // Carry through the same sourced park exteriors as Sunwalker. The rim is
+    // a property-boundary treatment, not an invented path or surveyed sidewalk.
+    const parkMaterial=material('park-lawns','#507d50'),parkRim=material('park-property-rim','#a1b88b');
+    parkMaterial.emissiveColor=new B.Color3(.025,.045,.025);
+    for(const park of map.parks||[]){
+      const rings=[park.outerRing,...(park.interiorRings||[])].filter(ring=>ring?.length>=3);if(!rings.length)continue;
+      const positions=[],flat=[],holes=[],uv=[];
+      for(let r=0;r<rings.length;r++){
+        if(r)holes.push(flat.length/2);
+        for(const p of rings[r]){flat.push(p.x-origin.x,-(p.y-origin.y));positions.push(p.x-origin.x,.025,-(p.y-origin.y));uv.push(p.x/30,p.y/30);}
+      }
+      const surface=mesh(park.id,positions,root.earcut(flat,holes),uv,parkMaterial);surface.metadata={ground:true,parkId:park.id,parkLabel:park.label};
+      const ring=park.outerRing,edges=[[],[]];
+      for(let i=0;i<ring.length;i++){
+        const a=ring[(i+ring.length-1)%ring.length],b=ring[(i+1)%ring.length],p=ring[i],length=Math.hypot(b.x-a.x,b.y-a.y)||1;
+        for(let side=0;side<2;side++){const amount=side?1.6:-1.6;edges[side].push(vector({x:p.x+(b.y-a.y)/length*amount,y:p.y-(b.x-a.x)/length*amount,z:.04}));}
+      }
+      if(ring[0].x!==ring[ring.length-1].x||ring[0].y!==ring[ring.length-1].y){edges[0].push(edges[0][0]);edges[1].push(edges[1][0]);}
+      const rim=B.MeshBuilder.CreateRibbon('park-boundary-'+park.id,{pathArray:edges,sideOrientation:B.Mesh.DOUBLESIDE},scene);rim.material=parkRim;rim.receiveShadows=true;rim.isPickable=false;
+    }
     const wallP=[],wallI=[],wallUv=[],wallColors=[],roofP=[],roofI=[],roofColors=[];
     for(const building of map.buildings){
       const height=Math.max(3,building.heightM||9),rings=[building.footprint,...(building.interiorRings||[])].filter(ring=>ring?.length>=3);if(!rings.length)continue;
@@ -29,7 +49,7 @@
       }
     }
     for(const buildingMesh of [mesh('nyc-walls',wallP,wallI,wallUv,wallMaterial,wallColors),mesh('nyc-roofs',roofP,roofI,null,roofMaterial,roofColors)]){buildingMesh.material.backFaceCulling=false;shadow.addShadowCaster(buildingMesh);buildingMesh.isPickable=true;}
-    const asphalt=[],walkways=[],laneLines=[];
+    const asphalt=[],walkways=[],laneLines=[],curbLines=[];
     for(const street of map.streets){
       const points=street.geometry;if(points.length<2)continue;const width=Math.max(3,street.widthM||7),edges=[[],[],[],[]];
       for(let i=0;i<points.length;i++){
@@ -37,19 +57,30 @@
         for(let side=0;side<4;side++){const amount=(side<2?width/2:width/2+1.7)*(side%2?-1:1);edges[side].push(vector({x:points[i].x+(b.y-a.y)/d*amount,y:points[i].y-(b.x-a.x)/d*amount,z:side<2?.08:.05}));}
         if(i&&width>=7){const p=points[i-1],q=points[i],len=Math.hypot(q.x-p.x,q.y-p.y);for(let at=1;at+2<len;at+=7)laneLines.push([vector({x:p.x+(q.x-p.x)*at/len,y:p.y+(q.y-p.y)*at/len,z:.1}),vector({x:p.x+(q.x-p.x)*(at+2)/len,y:p.y+(q.y-p.y)*(at+2)/len,z:.1})]);}
       }
+      if(Math.hypot(points[0].x-origin.x,points[0].y-origin.y)<600)for(const side of [0,1])curbLines.push(edges[side].map(p=>new B.Vector3(p.x,.13,p.z)));
       const road=B.MeshBuilder.CreateRibbon('road',{pathArray:edges.slice(0,2),sideOrientation:B.Mesh.DOUBLESIDE},scene);road.material=pavement;asphalt.push(road);
       const walk=B.MeshBuilder.CreateRibbon('sidewalk',{pathArray:edges.slice(2,4),sideOrientation:B.Mesh.DOUBLESIDE},scene);walk.material=sidewalk;walkways.push(walk);
     }
     for(const list of [asphalt,walkways])if(list.length){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);if(merged){merged.receiveShadows=true;merged.metadata={ground:true};}}
     if(laneLines.length){const lines=B.MeshBuilder.CreateLineSystem('lane-markings',{lines:laneLines},scene);lines.color=B.Color3.FromHexString('#c4c4a8');lines.alpha=.5;lines.isPickable=false;}
+    if(curbLines.length){const curbs=B.MeshBuilder.CreateLineSystem('curb-edges',{lines:curbLines},scene);curbs.color=B.Color3.FromHexString('#c1c6b8');curbs.alpha=.7;curbs.isPickable=false;}
     const mats={motorcycle:material('bike-enamel','#de8f58'),car:material('car-enamel','#b7c9c7'),person:material('jackets','#c6b486'),rubber:material('rubber','#202726'),metal:material('metal','#7e9799'),glass:material('glass','#334e59'),skin:material('skin','#b8997d'),lamp:material('lamps','#e4efcb')};
     mats.metal.specularColor=new B.Color3(.4,.4,.4);mats.lamp.emissiveColor=new B.Color3(.3,.35,.25);
-    const vehicles=new Map();
+    const bikePaints=new Map();
+    function bikePaint(id){const color=root.MotorcycleSoundView.colorFor(id);if(!bikePaints.has(color))bikePaints.set(color,material(`paint-${color}`,color));return bikePaints.get(color);}
+    const vehicles=new Map(),templates=new Map();
     function setSources(sources){
       for(const node of vehicles.values()){for(const child of node.getChildMeshes())shadow.removeShadowCaster(child);node.dispose();}vehicles.clear();
       for(const source of sources){
         const node=new B.TransformNode(source.id,scene),wheels=[],legs=[];
-        const part=(kind,options,pos,mat)=>{const obj=kind==='box'?B.MeshBuilder.CreateBox('body',options,scene):kind==='sphere'?B.MeshBuilder.CreateSphere('body',options,scene):kind==='capsule'?B.MeshBuilder.CreateCapsule('body',options,scene):B.MeshBuilder.CreateCylinder('body',options,scene);obj.parent=node;obj.position.set(...pos);obj.material=mat;obj.metadata={sourceId:source.id};shadow.addShadowCaster(obj);return obj;};
+        const part=(kind,options,pos,mat)=>{
+          const key=kind+JSON.stringify(options)+mat.name;
+          if(!templates.has(key)){
+            const template=kind==='box'?B.MeshBuilder.CreateBox('prototype',options,scene):kind==='sphere'?B.MeshBuilder.CreateSphere('prototype',options,scene):kind==='capsule'?B.MeshBuilder.CreateCapsule('prototype',options,scene):B.MeshBuilder.CreateCylinder('prototype',options,scene);
+            template.material=mat;template.isVisible=false;template.isPickable=false;templates.set(key,template);
+          }
+          const obj=templates.get(key).createInstance(source.id+'-part');obj.isVisible=true;obj.isPickable=true;obj.parent=node;obj.position.set(...pos);obj.metadata={sourceId:source.id};shadow.addShadowCaster(obj);return obj;
+        };
         const wheel=(x,z,radius)=>{const tire=part('cylinder',{diameter:radius*2,height:.17,tessellation:12},[x,radius,z],mats.rubber);tire.rotation.z=Math.PI/2;wheels.push(tire);const hub=part('cylinder',{diameter:radius*1.12,height:.18,tessellation:8},[x,radius,z],mats.metal);hub.rotation.z=Math.PI/2;wheels.push(hub);};
         if(source.kind==='car'){
           part('box',{width:1.75,height:.65,depth:4.25},[0,.67,0],mats.car);part('box',{width:1.5,height:.62,depth:2.25},[0,1.2,-.25],mats.glass);
@@ -57,10 +88,10 @@
           for(const x of [-.55,.55])part('box',{width:.38,height:.12,depth:.05},[x,.82,2.14],mats.lamp);
         }else if(source.kind==='motorcycle'){
           wheel(0,-.72,.31);wheel(0,.72,.31);part('box',{width:.23,height:.2,depth:1.2},[0,.57,0],mats.metal);
-          const tank=part('sphere',{diameter:.7,segments:12},[0,.85,.1],mats.motorcycle);tank.scaling.set(.65,.7,1);
+          const tank=part('sphere',{diameter:.7,segments:12},[0,.85,.1],bikePaint(source.id));tank.scaling.set(.65,.7,1);
           part('box',{width:.32,height:.12,depth:.55},[0,.89,-.37],mats.rubber);part('box',{width:.66,height:.06,depth:.08},[0,1.04,.61],mats.metal);
-          const rider=part('capsule',{height:.65,radius:.16,tessellation:8},[0,1.23,-.12],mats.rubber);rider.rotation.x=.2;
-          part('sphere',{diameter:.35,segments:12},[0,1.66,.04],mats.lamp);
+          part('box',{width:.28,height:.18,depth:.3},[0,1.04,-.12],mats.metal);
+          part('sphere',{diameter:.12,segments:8},[0,1.19,.04],mats.lamp);
         }else{
           part('capsule',{height:.72,radius:.19,tessellation:8},[0,1.03,0],mats.person);part('sphere',{diameter:.29,segments:10},[0,1.58,0],mats.skin);
           for(const x of [-.12,.12])legs.push(part('capsule',{height:.7,radius:.075,tessellation:6},[x,.38,0],mats.rubber));

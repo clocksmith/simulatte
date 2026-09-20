@@ -2,17 +2,20 @@
   const tierRegistry = typeof module === 'object' && module.exports
     ? require('./tier-registry.js')
     : root.SimulatteTierRegistry;
-  const api = factory(tierRegistry);
+  const publicRoutes = typeof module === 'object' && module.exports
+    ? require('../../simulation-routes.js')
+    : root.SimulattePublicRoutes;
+  const api = factory(tierRegistry, publicRoutes);
   root.SimulatteRouter = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSimulatteRouterModule(tierRegistry) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSimulatteRouterModule(tierRegistry, publicRoutes) {
   // The URL is the single source of truth for world scale, experience, and the
   // reproducible simulation selection. Simulation state is kept in readable
   // query fields so a copied URL can reconstruct the same run without relying
   // on sessionStorage or an in-memory controller.
   //   /                                 -> landing (no tier chosen)
-  //   /world                            -> planet scale, default experience (canonicalized in place)
-  //   /world/maritime-trade-global-v1   -> planet scale + that experience
+  //   /subsea                           -> Subsea Network, with its governed profile identity
+  //   /world/maritime-trade-global-v1   -> other profiles retain their existing tier route
   // Tier ids are already URL-safe, so they double as the first path segment; the experience
   // segment is the full application-profile id. Query fields are:
   //   ?world=<world id>&profile=<profile id>&camera=<mode>&scenario=<seed id>
@@ -133,7 +136,10 @@
   }
 
   function parsePath(pathname, search = '') {
+    const page = publicRoutes?.forPath(pathname);
+    if (page?.tier) return { tier: page.tier, experience: page.profile, ...parseRouteQuery(search, page.profile) };
     const parts = String(pathname || '/').split('/').filter(Boolean).map(decodeSegment);
+    if (parts[0] === 'simulatte') parts.shift();
     if (!parts.length || !TIER_SET.has(parts[0])) return { tier: null, experience: null, world: null, profile: null, camera: null, simulation: null };
     const experience = parts[1] || null;
     if (experience && !ID_PATTERN.test(experience)) throw routeError('route_experience_invalid', `Invalid experience identity ${experience}`);
@@ -142,6 +148,12 @@
 
   function hrefFor(route) {
     if (!route || !route.tier || !TIER_SET.has(route.tier)) return '/';
+    const page = publicRoutes?.forSelection(route.tier, route.experience || route.profile);
+    if (page) {
+      const query = new URLSearchParams(queryForRoute(route).replace(/^\?/, ''));
+      if (query.get('profile') === page.profile) query.delete('profile');
+      return page.path + (query.size ? '?' + query.toString() : '');
+    }
     const tier = encodeURIComponent(route.tier);
     const path = route.experience ? `/${tier}/${encodeURIComponent(route.experience)}` : `/${tier}`;
     return `${path}${queryForRoute(route)}`;

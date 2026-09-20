@@ -1,4 +1,5 @@
 import http from 'node:http';
+import publicRoutes from '../../public/simulation-routes.js';
 import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
@@ -62,6 +63,8 @@ function byteRange(header, size) {
 }
 
 function requestLocation(publicRoot, mounts, pathname) {
+  const page = publicRoutes.forPath(pathname);
+  if (page?.entry) return { root: publicRoot, relativePath: page.entry.replace(/^\/+/, ''), allowsSpaFallback: false };
   const mount = mounts.find((entry) => pathname.startsWith(entry.prefix));
   if (mount) return { root: mount.root, relativePath: pathname.slice(mount.prefix.length), allowsSpaFallback: false };
   return {
@@ -101,6 +104,13 @@ export function createStaticSiteHandler({
     }
 
     try {
+      const redirect = publicRoutes.redirectFor(pathname);
+      if (redirect) {
+        const search = new URL(request.url || '/', 'http://127.0.0.1').search;
+        onRequest?.({ pathname, status: 301, file: null });
+        send(response, 301, '', { Location: redirect + search, 'Cache-Control': cacheControl });
+        return;
+      }
       const location = requestLocation(path.resolve(publicRoot), normalizedMounts, pathname);
       let resolved = await resolveFile(location.root, location.relativePath);
       if (resolved.status === 404 && location.allowsSpaFallback && !path.extname(pathname)) {

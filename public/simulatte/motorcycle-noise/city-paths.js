@@ -1,8 +1,10 @@
 (function(root){
   const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,(a.z||0)-(b.z||0));
   function create(buildings){
-    const walls=[],cells=new Map(),size=32;
+    const walls=[],cells=new Map(),buildingCells=new Map(),size=32;
     for(const building of buildings){
+      const ring=building.footprint;if(!ring?.length)continue;
+      for(let x=Math.floor(Math.min(...ring.map(p=>p.x))/size);x<=Math.floor(Math.max(...ring.map(p=>p.x))/size);x++)for(let y=Math.floor(Math.min(...ring.map(p=>p.y))/size);y<=Math.floor(Math.max(...ring.map(p=>p.y))/size);y++){const key=x+','+y;if(!buildingCells.has(key))buildingCells.set(key,[]);buildingCells.get(key).push(building);}
       const rings=[building.footprint,...(building.interiorRings||[])];
       for(const ring of rings){if(!ring?.length)continue;for(let i=0;i<ring.length;i++){
         const a=ring[i],b=ring[(i+1)%ring.length],length=Math.hypot(b.x-a.x,b.y-a.y);if(length<.1)continue;
@@ -13,9 +15,14 @@
       }}
     }
     function hits(a,b,ignore=-1){
-      const candidates=new Set(),steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/16));
-      for(let i=0;i<=steps;i++){const x=Math.floor((a.x+(b.x-a.x)*i/steps)/size),y=Math.floor((a.y+(b.y-a.y)*i/steps)/size);
-        for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const wall of cells.get(`${x+dx},${y+dy}`)||[])if(wall.id!==ignore)candidates.add(wall);
+      const candidates=new Set(),vx=b.x-a.x,vy=b.y-a.y,sx=Math.sign(vx),sy=Math.sign(vy);
+      let x=Math.floor(a.x/size),y=Math.floor(a.y/size);const endX=Math.floor(b.x/size),endY=Math.floor(b.y/size);
+      const deltaX=sx?size/Math.abs(vx):Infinity,deltaY=sy?size/Math.abs(vy):Infinity;
+      let tx=sx?((x+(sx>0?1:0))*size-a.x)/vx:Infinity,ty=sy?((y+(sy>0?1:0))*size-a.y)/vy:Infinity;
+      const visit=(gx,gy)=>{for(const wall of cells.get(gx+','+gy)||[])if(wall.id!==ignore)candidates.add(wall);};
+      visit(x,y);
+      for(let step=0,limit=Math.abs(endX-x)+Math.abs(endY-y)+2;step<limit&&(x!==endX||y!==endY);step++){
+        if(tx<ty){x+=sx;tx+=deltaX;}else if(ty<tx){y+=sy;ty+=deltaY;}else{visit(x+sx,y);visit(x,y+sy);x+=sx;y+=sy;tx+=deltaX;ty+=deltaY;}visit(x,y);
       }
       const out=[],rx=b.x-a.x,ry=b.y-a.y;
       for(const wall of candidates){const sx=wall.b.x-wall.a.x,sy=wall.b.y-wall.a.y,den=rx*sy-ry*sx;if(Math.abs(den)<1e-9)continue;
@@ -55,11 +62,11 @@
       return {id:`wall-${wall.id}`,length,gain:.55/length,cutoff:1800,kind:'facade-reflection',bounce};
     }
     function occupied(point){
-      const x=Math.floor(point.x/size),y=Math.floor(point.y/size),ids=new Set((cells.get(`${x},${y}`)||[]).map(wall=>wall.building));
+      const x=Math.floor(point.x/size),y=Math.floor(point.y/size),candidates=buildingCells.get(`${x},${y}`)||[];
       const inside=ring=>{let yes=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){
         const a=ring[i],b=ring[j];if((a.y>point.y)!==(b.y>point.y)&&point.x<(b.x-a.x)*(point.y-a.y)/(b.y-a.y)+a.x)yes=!yes;
       }return yes;};
-      for(const building of buildings)if(ids.has(building.id)&&inside(building.footprint)&&!(building.interiorRings||[]).some(inside))return true;
+      for(const building of candidates)if(inside(building.footprint)&&!(building.interiorRings||[]).some(inside))return true;
       return false;
     }
     return {hits,direct,nearby,reflected,occupied,walls};
