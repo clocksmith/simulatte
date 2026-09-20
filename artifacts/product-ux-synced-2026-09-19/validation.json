@@ -1,0 +1,71 @@
+{
+  "schema": "simulatte.productUxValidation.v1",
+  "scope": "Local browser UX; not deployed or physical GPU qualification",
+  "browser": {
+    "pass": true,
+    "sourcesUnchanged": true,
+    "cases": 4,
+    "report": "report.json"
+  },
+  "dataJourney": {
+    "pass": true,
+    "report": "../product-ux-data-followup-2026-09-19/report.json",
+    "viewports": [
+      1440,
+      390
+    ],
+    "checks": [
+      "import",
+      "edit",
+      "run",
+      "replay",
+      "export",
+      "reimport",
+      "recovery",
+      "cancellation"
+    ]
+  },
+  "followupTests": {
+    "passed": 65,
+    "logs": [
+      "focused-tests.log",
+      "shape-tests.log"
+    ]
+  },
+  "fullSuiteBeforeFollowup": {
+    "pass": false,
+    "files": 149,
+    "filesPassed": 140,
+    "filesFailed": 9,
+    "testsReported": 1349,
+    "log": "full-suite-before-followup.log"
+  },
+  "resolvedFollowupFailures": [
+    "data-workbench.test.cjs",
+    "js-shape-architecture.test.cjs",
+    "js-shape-browser-render.test.cjs",
+    "js-shape-model-data.test.cjs"
+  ],
+  "remainingFullSuiteFailures": [
+    "autonomy.test.cjs",
+    "gpu-supercluster.test.cjs",
+    "model-candidate-runtime.test.cjs",
+    "navigation-lifecycle.test.cjs",
+    "simulation-interface.test.cjs"
+  ],
+  "deploymentPreflight": {
+    "pass": true,
+    "command": "npm run check:deploy",
+    "log": "preflight.log"
+  },
+  "staticChecks": {
+    "charters": true,
+    "sourceSize": true,
+    "folderContracts": true,
+    "logs": [
+      "charters.log",
+      "source-size.log",
+      "folder-contracts.log"
+    ]
+  }
+}

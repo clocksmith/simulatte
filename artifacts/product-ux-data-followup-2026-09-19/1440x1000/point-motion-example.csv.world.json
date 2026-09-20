@@ -1,0 +1,129 @@
+{
+  "authorship": {
+    "fieldProvenance": [
+      {
+        "authority": "userOverride",
+        "path": "/",
+        "sourceId": "source:data:0be1960583f10760ebb231a307ed968a3e1eb69c82fc04b9817e3515ef404d90"
+      },
+      {
+        "authority": "userOverride",
+        "path": "/objects/0/vx",
+        "sourceId": "patch:1:38d70f16"
+      }
+    ],
+    "patches": [
+      {
+        "affectedObligationIds": [],
+        "author": "local-user",
+        "authority": "userOverride",
+        "compilerBaselineContentHash": "fnv1a32:02d73711",
+        "id": "patch:1:38d70f16",
+        "newValue": 2,
+        "previousValue": 1,
+        "rationale": "User edited the data workbench program",
+        "revision": 1,
+        "schema": "simulatte.worldSpecPatch.v2",
+        "targetPath": "/objects/0/vx"
+      }
+    ],
+    "reconciliations": [],
+    "revision": 1,
+    "schema": "simulatte.worldSpecAuthoring.v2",
+    "sources": [
+      {
+        "authority": "userOverride",
+        "id": "source:data:0be1960583f10760ebb231a307ed968a3e1eb69c82fc04b9817e3515ef404d90",
+        "label": "Point motion example.csv"
+      }
+    ]
+  },
+  "contentHash": "fnv1a32:3477dcab",
+  "controls": [],
+  "dependencies": {
+    "assets": [],
+    "governedPacks": [],
+    "plugins": [],
+    "schema": "simulatte.worldSpecDependencies.v1"
+  },
+  "description": "Declared 2D point positions with constant velocity; no forces, collisions, or scientific validity inferred.",
+  "determinism": {
+    "pixelPolicy": null,
+    "requiredClasses": [
+      "simulation-reproducible",
+      "replay-identified"
+    ],
+    "schema": "simulatte.worldSpecDeterminism.v1",
+    "seed": null,
+    "simulationTolerance": 0
+  },
+  "id": "data:0be1960583f10760",
+  "kind": "data-points-v1",
+  "modules": [],
+  "name": "Point motion example.csv",
+  "objects": [
+    {
+      "id": "a",
+      "label": "Alpha",
+      "vx": 2,
+      "vy": 0.4,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "b",
+      "label": "Beta",
+      "vx": -0.5,
+      "vy": 0.2,
+      "x": 8,
+      "y": 2
+    },
+    {
+      "id": "c",
+      "label": "Gamma",
+      "vx": 0,
+      "vy": -0.6,
+      "x": 3,
+      "y": 8
+    }
+  ],
+  "params": {
+    "duration": 10,
+    "steps": 60,
+    "units": "units"
+  },
+  "safety": {
+    "rules": [],
+    "schema": "simulatte.worldSpecSafety.v1",
+    "status": "not-declared"
+  },
+  "schema": "simulatte.worldSpec.v1",
+  "schemaVersion": "1.2.0",
+  "source": {
+    "compilerConfig": {
+      "adapter": "data-points-v1",
+      "input": {
+        "byteLength": 75,
+        "format": "csv",
+        "name": "Point motion example.csv",
+        "origin": "local",
+        "schema": "simulatte.inputSource.v1",
+        "sha256": "0be1960583f10760ebb231a307ed968a3e1eb69c82fc04b9817e3515ef404d90"
+      },
+      "mapping": {
+        "id": "id",
+        "label": "label",
+        "vx": "vx",
+        "vy": "vy",
+        "x": "x",
+        "y": "y"
+      },
+      "schema": "simulatte.dataCompiler.v1"
+    },
+    "prompt": "",
+    "schema": "simulatte.worldSpecSource.v1"
+  },
+  "templateId": "data-points-v1",
+  "unresolvedAmbiguities": [],
+  "unsupportedRequirements": []
+}

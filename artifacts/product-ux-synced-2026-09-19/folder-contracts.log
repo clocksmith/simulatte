@@ -1,0 +1,64 @@
+
+> folder-contracts:ci
+> node tools/check-folder-contracts.mjs --contract docs/simulatte/folder-contract.json --schema docs/simulatte/folder-contract.schema.json --repository-root . --allow-unavailable-external-sources
+
+Folder contract valid: simulatte; 930 directories, 72 nodes, 56 affected nodes.
+{
+  "changedFiles": 45,
+  "commands": [
+    "git diff --check",
+    "node --test tests/asteroid-defense.test.cjs",
+    "node --test tests/autonomy.test.cjs",
+    "node --test tests/cable-trader.test.cjs",
+    "node --test tests/folder-contracts.test.cjs",
+    "node --test tests/gpu-supercluster.test.cjs",
+    "node --test tests/multirate-coordinator.test.cjs tests/simulation-residency-manager.test.cjs tests/plugin-compositor-runtime.test.cjs tests/tier-run-controller.test.cjs",
+    "node --test tests/navigation-lifecycle.test.cjs tests/plugin-compositor-runtime.test.cjs",
+    "node --test tests/neighborhood-bulk-pool.test.cjs",
+    "node --test tests/nyc-real-estate.test.cjs",
+    "node --test tests/plugin-platform.test.cjs",
+    "node --test tests/plugin-platform.test.cjs tests/tier-application-loader.test.cjs",
+    "node --test tests/sun-walker-visual-storytelling.test.cjs",
+    "node --test tests/world-tile-manager.test.cjs tests/recursive-spatial-residency.test.cjs tests/recursive-world-webgpu-renderer.test.cjs tests/recursive-world-proof.test.cjs",
+    "npm run audit:simulatte:browser -- --check",
+    "npm run audit:simulatte:evidence",
+    "npm run audit:simulatte:reviews",
+    "npm run check:artifacts",
+    "npm run check:blank",
+    "npm run check:deploy",
+    "npm run check:fast",
+    "npm run check:hosting",
+    "npm run check:model-candidates",
+    "npm run check:model-lock",
+    "npm run check:model-populations",
+    "npm run check:runtime-entrypoint",
+    "npm run check:simulatte",
+    "npm run check:simulatte:evidence",
+    "npm run check:simulatte:reviews",
+    "npm run check:world",
+    "npm run check:world-entrypoint",
+    "npm run folder-contracts:check",
+    "npm run plugins:check",
+    "npm run qualify:recursive-reference",
+    "npm run samer:simulatte:check",
+    "npm run simulatte:tiers:check",
+    "npm run validate:universe",
+    "npm run validate:visual-cards",
+    "npm test"
+  ],
+  "browserJourneys": [
+    "/city/cable-trader-pickup-v1",
+    "/city/neighborhood-bulk-pool-v1",
+    "/city/nyc-development-atlas-v1",
+    "/city/sun-walker-v1",
+    "/country/food-recall-us-v1",
+    "/country/grid-resilience-us-v1",
+    "/datacenter/gpu-supercluster-v1",
+    "/recursive-reference.html",
+    "/solar-system/asteroid-defense-v1",
+    "/solar-system/orbital-transfer-planner-v1",
+    "/star-chart/interstellar-relay-network-v1",
+    "/world/maritime-trade-global-v1",
+    "/world/subsea-network-global-v1"
+  ]
+}

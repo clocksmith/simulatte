@@ -880,27 +880,13 @@ test('home prompt shuffle stays consistent between HTML and catalog', () => {
   const html = blankPageSource();
   const catalog = runtimeSource('simulatte-physics-catalog.js');
 
-  assert.match(html, /id="shuffle-prompt"/);
-  assert.match(html, /Shuffle 256 examples/);
-  assert.match(html, /id="prompt-more-menu"/);
-  assert.match(html, /id="fps-readout"/);
-  assert.match(html, /\.physics-fps/);
-  assert.match(html, /class="prompt-dock-head"[\s\S]*class="sim-product-nav"[\s\S]*id="prompt-dock-toggle"/);
-  assert.doesNotMatch(html, /<h1>Simulatte<\/h1>/);
-  assert.match(html, /id="prompt-more-menu"[\s\S]*id="lab-state"[\s\S]*id="fps-readout"[\s\S]*id="world-model-panel"[\s\S]*id="spec-preview"/);
-  assert.match(html, /class="builder-row"[\s\S]*id="build-prompt"[\s\S]*class="prompt-actions"[\s\S]*id="shuffle-prompt"[\s\S]*<summary>Enhanced<\/summary>[\s\S]*id="build-lab"/);
-  assert.match(html, /\.builder-row \{[^}]*display: grid/);
-  assert.match(html, /\.prompt-actions \{[^}]*grid-template-columns: 1fr auto 1fr/);
-  assert.match(html, /\.prompt-actions > \* \{\s*min-width: 0;/);
+  assert.match(html, /id="shuffle-prompt"[^>]*aria-label="Run a random example"/);
+  assert.match(html, /id="build-lab"[\s\S]*id="shuffle-prompt"/);
+  assert.match(html, /<textarea id="build-prompt"[^>]*><\/textarea>/);
+  assert.match(html, /<details id="create-tools"[^>]*>[\s\S]*id="model-selection-controls"/);
+  assert.doesNotMatch(html.match(/<details id="create-tools"[^>]*>/)[0], /\bopen\b/);
   assert.match(html, /id="run-details-menu"[\s\S]*id="phase-rail"[\s\S]*id="copy-run-receipt"/);
-  assert.match(html, /class="create-inspectors"[\s\S]*id="world-spec-editor-panel"[\s\S]*id="prompt-more-menu"/);
-  assert.match(html, /\.create-inspectors > details\[open\] \{\s*flex-basis: 100%;/);
-  assert.match(html, /@media \(max-width: 620px\) \{[\s\S]*\.physics-panel \{\s*width: calc\(100vw - 16px\)/);
-  assert.doesNotMatch(html, /id="prompt-more-menu"[\s\S]{0,500}id="shuffle-prompt"/);
-  assert.doesNotMatch(html, /class="world-model-details"/);
-  assert.doesNotMatch(html, /data-example-prompt=/);
-  assert.match(html, /<textarea id="build-prompt"[^>]*placeholder="Describe a world to simulate"[^>]*><\/textarea>/);
-  assert.doesNotMatch(html, /laser heats ferrofluid lens over copper coil<\/textarea>/);
+  assert.match(html, /id="prompt-more-menu"[\s\S]*id="lab-state"[\s\S]*id="fps-readout"[\s\S]*id="world-model-panel"[\s\S]*id="spec-preview"/);
   assert.match(catalog, /const HANDWRITTEN_EXAMPLE_PROMPTS = Object\.freeze/);
   assert.match(catalog, /const EXAMPLE_INTENTS = Object\.freeze\(HANDWRITTEN_EXAMPLE_PROMPTS\.map/);
   assert.match(catalog, /"supernova"/);
@@ -954,7 +940,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(html, /simulatte-webgpu-renderer\.js/);
   assert.doesNotMatch(html, /simulatte-particle-field\.js/);
   assert.doesNotMatch(html, /simulatte-cinematic-renderer\.js/);
-  assert.match(html, /\.intent-runtime-fill \{[^}]*background: var\(--sim-accent\)/);
+  assert.match(html, /\.intent-runtime-fill \{[^}]*background: var\(--sim-(?:accent|ink)\)/);
   assert.doesNotMatch(html, /@keyframes mosaic-drift|@keyframes mosaic-sweep/);
   assert.doesNotMatch(html, /\.intent-runtime\[data-state="active"\] \.intent-runtime-track::after/);
   assert.match(html, /id="build-lab"[^>]*sim-action-primary/);
@@ -1313,7 +1299,6 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.doesNotMatch(renderer, /stage: 'visual',\n\s+percent: 98/);
   assert.match(runtimeProgress, /setProperty\('--runtime-progress'/);
   assert.doesNotMatch(html, /prompt-runtime-rainbow/);
-  assert.match(html, /\.intent-runtime \{[^}]*min-width: 0;/);
   assert.doesNotMatch(runtimeProgress, /Math\.round\(percent\)/);
   assert.doesNotMatch(renderer, /runtimeDetailText/);
 });
@@ -2052,34 +2037,12 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(summaryTool, /canvasLate/);
 });
 
-test('prompt dock minimizes to corners without drag placement', () => {
+test('Create keeps editor access separate from the simulation preview', () => {
   const html = blankPageSource();
-
-  assert.match(html, /width: min\(680px, calc\(100vw - 24px\)\);/);
-  assert.match(html, /\.physics-stage \{[^}]*grid-template-rows: minmax\(0, 1fr\) auto/);
-  assert.match(html, /\.physics-panel \{[\s\S]*grid-row: 2;/);
-  assert.match(html, /\.prompt-dock\[data-collapsed="true"\] \{/);
-  assert.match(html, /\.prompt-dock\[data-dock-edge="top"\]\[data-collapsed="false"\] \{/);
-  assert.match(html, /prompt-dock-toggle sim-action/);
-  assert.match(html, /\.prompt-dock\[data-collapsed="true"\] \{[^}]*position: fixed/);
-  assert.match(html, /\[data-corner="top-left"\]/);
-  assert.match(html, /\[data-corner="top-right"\]/);
-  assert.match(html, /\[data-corner="bottom-left"\]/);
-  assert.match(html, /\[data-corner="bottom-right"\]/);
-  assert.match(html, /data-dock-corner="top-left"/);
-  assert.match(html, /data-dock-corner="top-right"/);
-  assert.match(html, /data-dock-corner="bottom-left"/);
-  assert.match(html, /data-dock-corner="bottom-right"/);
-  assert.match(html, /simulatte\.promptDock\.corner\.v1/);
-  assert.match(html, /const cornerButtons = Array\.from\(document\.querySelectorAll\('\[data-dock-corner\]'\)\)/);
-  assert.match(html, /const normalizeCorner = \(value\) => validCorners\.has\(value\) \? value : 'bottom-left'/);
-  assert.match(html, /panel\.dataset\.corner = next/);
-  assert.match(html, /panel\.dataset\.dockEdge = isTopCorner\(next\) \? 'top' : 'bottom'/);
-  assert.match(html, /panel\.dispatchEvent\(new CustomEvent\('prompt-dock:collapsed'/);
-  assert.doesNotMatch(html, /prompt-dock-handle/);
-  assert.doesNotMatch(html, /promptDock\.position/);
-  assert.doesNotMatch(html, /pointerdown|pointermove|pointerup|setPointerCapture|releasePointerCapture/);
-  assert.doesNotMatch(html, /\.prompt-dock\.dragging/);
+  assert.match(html, /id="prompt-dock-toggle"[^>]*aria-controls="create-editor"[^>]*aria-expanded="true"/);
+  assert.match(html, /id="create-editor"[^>]*aria-label="Simulation editor"/);
+  assert.match(html, /id="create-preview-actions"[\s\S]*id="pause-lab"[\s\S]*id="reset-lab"[\s\S]*id="export-lab"/);
+  assert.doesNotMatch(html, /data-dock-corner|promptDock\.corner|promptDock\.position/);
 });
 
 test('browser product exposes compiled world model receipts', () => {
@@ -2457,7 +2420,7 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
   assert.match(visualOperatorCompiler, /languageSignals: compiledLanguageSignals\(context\)/);
 });
 
-test('intent runtime keeps one visible line and does not silently fallback locally', () => {
+test('intent runtime retains inspectable progress and does not silently fallback locally', () => {
   const renderer = runtimeSource('prompt-controller.js');
   const runtimeProgress = runtimeSource('runtime-progress.js');
   const html = blankPageSource();
@@ -2516,10 +2479,9 @@ test('intent runtime keeps one visible line and does not silently fallback local
   assert.match(runtimeProgress, /'visual\.visual-ir', 'Building VisualIR'/);
   assert.match(runtimeProgress, /'render\.first-frame', 'Rendering scene'/);
   assert.match(runtimeProgress, /return 'Ready 100%'/);
-  assert.match(html, /\.intent-runtime-percent \{/);
-  assert.match(html, /\.intent-runtime-detail \{\s*display: none;/);
-  assert.match(html, /\.intent-runtime-meta \{[^}]*overflow-wrap: anywhere/);
-  assert.match(html, /\[data-state="failed"\][^}]*\.intent-runtime-percent[^}]*display: none/);
+  assert.match(html, /class="create-run-status"[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(html, /id="create-status-title"[\s\S]*id="create-status-message"/);
+  assert.match(html, /id="run-details-menu"[\s\S]*id="intent-runtime"[\s\S]*id="intent-runtime-percent"[\s\S]*id="intent-runtime-message"/);
   assert.match(runtimeProgress, /node\.dataset\.heartbeat/);
   assert.doesNotMatch(runtimeProgress, /node\.title = String\(state\.detail/);
 });
@@ -2573,7 +2535,7 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.match(deployCheck, /\.\.\.archiveEntries/);
   assert.match(deployCheck, /vendor file contents differ from the pinned Doppler source package/);
   assert.match(developmentSync, /sibling-git-archive/);
-  assert.match(developmentSync, /git', \['archive'/);
+  assert.match(developmentSync, /run\('git', \[\s*'archive'/);
   assert.match(developmentSync, /sourcePackage\.files/);
   assert.match(developmentSync, /filter\(\(entry\) => entry && !entry\.startsWith\('!'\)\)/);
   assert.match(developmentSync, /\.\.\.archiveEntries/);

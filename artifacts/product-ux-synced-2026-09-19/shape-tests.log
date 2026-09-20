@@ -1,0 +1,238 @@
+TAP version 13
+# Subtest: public javascript keeps lines below the repository ceiling
+ok 1 - public javascript keeps lines below the repository ceiling
+  ---
+  duration_ms: 17.451085
+  type: 'test'
+  ...
+# Subtest: phase modules reject every implicit refactor scope
+ok 2 - phase modules reject every implicit refactor scope
+  ---
+  duration_ms: 10.466453
+  type: 'test'
+  ...
+# Subtest: phase shard exports use collision-safe owned registry definitions
+ok 3 - phase shard exports use collision-safe owned registry definitions
+  ---
+  duration_ms: 3.918838
+  type: 'test'
+  ...
+# Subtest: autonomy and shared surfaces stay free of refactor scope shards
+ok 4 - autonomy and shared surfaces stay free of refactor scope shards
+  ---
+  duration_ms: 14.333715
+  type: 'test'
+  ...
+# Subtest: app product boundaries use loading prompt simulation and pipeline directories
+ok 5 - app product boundaries use loading prompt simulation and pipeline directories
+  ---
+  duration_ms: 4.665806
+  type: 'test'
+  ...
+# Subtest: phase contracts declare the strict eight-phase handoff
+ok 6 - phase contracts declare the strict eight-phase handoff
+  ---
+  duration_ms: 0.452518
+  type: 'test'
+  ...
+# Subtest: Create keeps editor access separate from the simulation preview
+ok 7 - Create keeps editor access separate from the simulation preview
+  ---
+  duration_ms: 0.826225
+  type: 'test'
+  ...
+# Subtest: intent runtime retains inspectable progress and does not silently fallback locally
+ok 8 - intent runtime retains inspectable progress and does not silently fallback locally
+  ---
+  duration_ms: 3.222558
+  type: 'test'
+  ...
+# Subtest: product path removed the parallel world planner and legacy pipeline export
+ok 9 - product path removed the parallel world planner and legacy pipeline export
+  ---
+  duration_ms: 162.160293
+  type: 'test'
+  ...
+# Subtest: physics renderer is a browser coordinator, not a legacy Canvas2D painter library
+ok 10 - physics renderer is a browser coordinator, not a legacy Canvas2D painter library
+  ---
+  duration_ms: 4.723301
+  type: 'test'
+  ...
+# Subtest: physics loading uses a phase-reactive canvas Snake game instead of a card mosaic
+ok 11 - physics loading uses a phase-reactive canvas Snake game instead of a card mosaic
+  ---
+  duration_ms: 17.042309
+  type: 'test'
+  ...
+# Subtest: visual audit auto-judges prompt fidelity and motion with a rubric
+ok 12 - visual audit auto-judges prompt fidelity and motion with a rubric
+  ---
+  duration_ms: 4.289722
+  type: 'test'
+  ...
+# Subtest: browser product exposes compiled world model receipts
+ok 13 - browser product exposes compiled world model receipts
+  ---
+  duration_ms: 1.365717
+  type: 'test'
+  ...
+# Subtest: composition renderer diversity lives in compiled graph and WebGPU operators
+ok 14 - composition renderer diversity lives in compiled graph and WebGPU operators
+  ---
+  duration_ms: 9.226244
+  type: 'test'
+  ...
+# Subtest: phase 8 renders compiled scene packets without semantic inference
+ok 15 - phase 8 renders compiled scene packets without semantic inference
+  ---
+  duration_ms: 5.660198
+  type: 'test'
+  ...
+# Subtest: WebGPU scene ids and object-part contracts cover emitted visual artifacts
+ok 16 - WebGPU scene ids and object-part contracts cover emitted visual artifacts
+  ---
+  duration_ms: 2.080256
+  type: 'test'
+  ...
+# Subtest: physics graph debug data is explicit and does not log every compiled world
+ok 17 - physics graph debug data is explicit and does not log every compiled world
+  ---
+  duration_ms: 1.34765
+  type: 'test'
+  ...
+# Subtest: pipeline phases consume only neighboring compiled artifacts after intent grounding
+ok 18 - pipeline phases consume only neighboring compiled artifacts after intent grounding
+  ---
+  duration_ms: 17.228205
+  type: 'test'
+  ...
+# Subtest: composition shape inference does not classify catalog provenance as cats
+ok 19 - composition shape inference does not classify catalog provenance as cats
+  ---
+  duration_ms: 2.065425
+  type: 'test'
+  ...
+# Subtest: Phase 6 composition accepts semantic authority only from its Phase 5 render boundary
+ok 20 - Phase 6 composition accepts semantic authority only from its Phase 5 render boundary
+  ---
+  duration_ms: 2.072657
+  type: 'test'
+  ...
+# Subtest: pipeline phases load Phase 3 retrieval boundary checks before retrieval work
+ok 21 - pipeline phases load Phase 3 retrieval boundary checks before retrieval work
+  ---
+  duration_ms: 0.224666
+  type: 'test'
+  ...
+# Subtest: runtime source is owned by app, pipeline, data, and worker directories
+ok 22 - runtime source is owned by app, pipeline, data, and worker directories
+  ---
+  duration_ms: 1.729267
+  type: 'test'
+  ...
+# Subtest: intent forensics modules load before the physics model in the browser lab
+ok 23 - intent forensics modules load before the physics model in the browser lab
+  ---
+  duration_ms: 1.265747
+  type: 'test'
+  ...
+# Subtest: selected-token reranker runtime loads before the model-backed embedder class captures it
+ok 24 - selected-token reranker runtime loads before the model-backed embedder class captures it
+  ---
+  duration_ms: 0.675843
+  type: 'test'
+  ...
+# Subtest: training mode streams prompt-output critiques over localhost
+ok 25 - training mode streams prompt-output critiques over localhost
+  ---
+  duration_ms: 3.448946
+  type: 'test'
+  ...
+# Subtest: training launcher is shared by agent skill surfaces
+ok 26 - training launcher is shared by agent skill surfaces
+  ---
+  duration_ms: 0.673715
+  type: 'test'
+  ...
+# Subtest: pipeline audit records phase scores, baselines, and regressions
+ok 27 - pipeline audit records phase scores, baselines, and regressions
+  ---
+  duration_ms: 0.936222
+  type: 'test'
+  ...
+# Subtest: causal affordances compile into first-class VisualIR rows
+ok 28 - causal affordances compile into first-class VisualIR rows
+  ---
+  duration_ms: 5.382036
+  type: 'test'
+  ...
+# Subtest: visual operator atlas exposes reusable graphics atoms for Layer 7
+ok 29 - visual operator atlas exposes reusable graphics atoms for Layer 7
+  ---
+  duration_ms: 36.922128
+  type: 'test'
+  ...
+# Subtest: procedural visual base exposes a broad prompt-addressed catalog
+ok 30 - procedural visual base exposes a broad prompt-addressed catalog
+  ---
+  duration_ms: 1.088901
+  type: 'test'
+  ...
+# Subtest: prompt compilation has a worker boundary with main-thread fallback
+ok 31 - prompt compilation has a worker boundary with main-thread fallback
+  ---
+  duration_ms: 2.82982
+  type: 'test'
+  ...
+# Subtest: home prompt shuffle stays consistent between HTML and catalog
+ok 32 - home prompt shuffle stays consistent between HTML and catalog
+  ---
+  duration_ms: 1.859968
+  type: 'test'
+  ...
+# Subtest: Doppler residual intent cannot select a model outside the numbered runtime lock
+ok 33 - Doppler residual intent cannot select a model outside the numbered runtime lock
+  ---
+  duration_ms: 0.555156
+  type: 'test'
+  ...
+# Subtest: vendored Doppler shader cache resolves kernels beside the loaded module
+ok 34 - vendored Doppler shader cache resolves kernels beside the loaded module
+  ---
+  duration_ms: 0.165579
+  type: 'test'
+  ...
+# Subtest: Firebase hosting revalidates app lab and app JavaScript
+ok 35 - Firebase hosting revalidates app lab and app JavaScript
+  ---
+  duration_ms: 1.601848
+  type: 'test'
+  ...
+# Subtest: model-backed intent retrieval uses a 1024d Qwen index and keeps the unqualified reranker disabled
+ok 36 - model-backed intent retrieval uses a 1024d Qwen index and keeps the unqualified reranker disabled
+  ---
+  duration_ms: 60.582265
+  type: 'test'
+  ...
+# Subtest: model slot reranking stays in its own loaded Phase 3 retrieval shard
+ok 37 - model slot reranking stays in its own loaded Phase 3 retrieval shard
+  ---
+  duration_ms: 0.317312
+  type: 'test'
+  ...
+# Subtest: negation vocabulary is canonical in the universe parser with synced mirrors
+ok 38 - negation vocabulary is canonical in the universe parser with synced mirrors
+  ---
+  duration_ms: 149.27318
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 385.178013

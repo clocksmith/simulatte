@@ -95,21 +95,27 @@ test('plugin session initializes the camera before view arbitration and cancels 
     hostRoot: {}, extensions: { activePluginIds: [], views: () => [],
       platformV4: () => ({ contributions: [], timeline, provenanceReceipts: [] }) },
     pluginUi: { render() {} }, elements: { decisionsButton: {}, applicationProfileLabel: {} },
-    profile: {}, interaction: {},
+    profile: { experience: { defaultView: 'map' } }, interaction: {},
     experienceCameraApi: { applyInitialCamera: () => { events.push('initial-camera'); return true; } },
     simulationClockApi: { createClock: () => clock },
-    pluginViewRuntimeApi: { createCoordinator: () => ({ sync: () => { events.push('view'); return {}; } }) },
+    pluginViewRuntimeApi: { createCoordinator: () => ({
+      setManualOverride: (selection) => {
+        assert.deepEqual(selection, { mode: 'map', targetIds: [] });
+        events.push('profile-view');
+      },
+      sync: () => { events.push('view'); return {}; },
+    }) },
     recordRenderWork() {}, renderWorkReceipt: () => ({}), renderExperienceSummary() {}, summarize: () => ({}),
     yieldToFrame: () => frame, getScenario: () => ({}), getCameraMode: () => '', getRenderer: () => renderer,
     applyRouteParameters: () => false, onViewRuntime() {},
   });
   await session.render({});
-  assert.deepEqual(events, ['draw', 'initial-camera', 'view']);
+  assert.deepEqual(events, ['draw', 'initial-camera', 'profile-view', 'view']);
   let release;
   frame = new Promise(resolve => { release = resolve; });
   const pending = session.render({});
   session.dispose(); release(); await pending;
-  assert.deepEqual(events, ['draw', 'initial-camera', 'view']);
+  assert.deepEqual(events, ['draw', 'initial-camera', 'profile-view', 'view']);
 });
 
 

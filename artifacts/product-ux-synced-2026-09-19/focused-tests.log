@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: late compiler proof completion and failure cannot publish into a newer program
+ok 1 - late compiler proof completion and failure cannot publish into a newer program
+  ---
+  duration_ms: 8.274427
+  type: 'test'
+  ...
+# Subtest: run controls do not step a controller after the application unmounts
+ok 2 - run controls do not step a controller after the application unmounts
+  ---
+  duration_ms: 1.016858
+  type: 'test'
+  ...
+# Subtest: journey recording is single-flight and rejects superseded settlement before persistence
+ok 3 - journey recording is single-flight and rejects superseded settlement before persistence
+  ---
+  duration_ms: 6.157567
+  type: 'test'
+  ...
+# Subtest: failed ledger writes can retry without discarding the completed receipt
+ok 4 - failed ledger writes can retry without discarding the completed receipt
+  ---
+  duration_ms: 1.10853
+  type: 'test'
+  ...
+# Subtest: plugin session initializes the camera before view arbitration and cancels deferred drawing on disposal
+ok 5 - plugin session initializes the camera before view arbitration and cancels deferred drawing on disposal
+  ---
+  duration_ms: 3.226742
+  type: 'test'
+  ...
+# Subtest: invalidating a construction retry aborts execution and suppresses late publication and failure
+ok 6 - invalidating a construction retry aborts execution and suppresses late publication and failure
+  ---
+  duration_ms: 4.458225
+  type: 'test'
+  ...
+# Subtest: a visible earlier scene does not conceal a failed or unverified replacement
+ok 7 - a visible earlier scene does not conceal a failed or unverified replacement
+  ---
+  duration_ms: 0.90291
+  type: 'test'
+  ...
+# Subtest: rendering and completed validation are different claims
+ok 8 - rendering and completed validation are different claims
+  ---
+  duration_ms: 0.243125
+  type: 'test'
+  ...
+# Subtest: the empty and edited states explain the next available action
+ok 9 - the empty and edited states explain the next available action
+  ---
+  duration_ms: 0.106494
+  type: 'test'
+  ...
+# Subtest: the hexagon homepage keeps simulations visible and data tools optional
+ok 10 - the hexagon homepage keeps simulations visible and data tools optional
+  ---
+  duration_ms: 6.724379
+  type: 'test'
+  ...
+# Subtest: landing keyboard activation retains route identity and exposes failed loading for retry
+ok 11 - landing keyboard activation retains route identity and exposes failed loading for retry
+  ---
+  duration_ms: 9.856218
+  type: 'test'
+  ...
+# Subtest: CSV and JSON share typed ingestion, quoted fields, source hashing, and local provenance
+ok 12 - CSV and JSON share typed ingestion, quoted fields, source hashing, and local provenance
+  ---
+  duration_ms: 15.919214
+  type: 'test'
+  ...
+# Subtest: URL acquisition is explicit, bounded, and omits credentials
+ok 13 - URL acquisition is explicit, bounded, and omits credentials
+  ---
+  duration_ms: 27.831974
+  type: 'test'
+  ...
+# Subtest: file and URL ingestion identify exact bytes, retain BOM, and reject malformed UTF-8
+ok 14 - file and URL ingestion identify exact bytes, retain BOM, and reject malformed UTF-8
+  ---
+  duration_ms: 1.756821
+  type: 'test'
+  ...
+# Subtest: explicit empty CSV records are preserved and refused, not silently dropped
+ok 15 - explicit empty CSV records are preserved and refused, not silently dropped
+  ---
+  duration_ms: 1.029588
+  type: 'test'
+  ...
+# Subtest: data round trip: ingest, prepare, execute, edit, compare, replay, export and verified reimport
+ok 16 - data round trip: ingest, prepare, execute, edit, compare, replay, export and verified reimport
+  ---
+  duration_ms: 33.263413
+  type: 'test'
+  ...
+# Subtest: mapping rejects missing cells, duplicate identities, unsupported behavior and resource overflow
+ok 17 - mapping rejects missing cells, duplicate identities, unsupported behavior and resource overflow
+  ---
+  duration_ms: 11.301431
+  type: 'test'
+  ...
+# Subtest: ordered pipeline validates boundaries, retains failures, and rejects late superseded results
+ok 18 - ordered pipeline validates boundaries, retains failures, and rejects late superseded results
+  ---
+  duration_ms: 1.203026
+  type: 'test'
+  ...
+# Subtest: data startup excludes profile and model runtime, while declared profile dependencies remain available
+ok 19 - data startup excludes profile and model runtime, while declared profile dependencies remain available
+  ---
+  duration_ms: 1.489253
+  type: 'test'
+  ...
+# Subtest: drawing preserves equal coordinate scale on wide and narrow views with stable trajectory bounds
+ok 20 - drawing preserves equal coordinate scale on wide and narrow views with stable trajectory bounds
+  ---
+  duration_ms: 0.294443
+  type: 'test'
+  ...
+# Subtest: public stylesheet resolves the owned design layers without duplicate loading
+ok 21 - public stylesheet resolves the owned design layers without duplicate loading
+  ---
+  duration_ms: 2.225097
+  type: 'test'
+  ...
+# Subtest: literal paint values belong to tokens, not component and page rules
+ok 22 - literal paint values belong to tokens, not component and page rules
+  ---
+  duration_ms: 1.979707
+  type: 'test'
+  ...
+# Subtest: page entries use stylesheets instead of inline stylesheet forks
+ok 23 - page entries use stylesheets instead of inline stylesheet forks
+  ---
+  duration_ms: 0.537356
+  type: 'test'
+  ...
+# Subtest: paint extraction preserves property names including white-space
+ok 24 - paint extraction preserves property names including white-space
+  ---
+  duration_ms: 2.886317
+  type: 'test'
+  ...
+# Subtest: page compositions consume the shared theme without reviving retired theme forks
+ok 25 - page compositions consume the shared theme without reviving retired theme forks
+  ---
+  duration_ms: 4.478511
+  type: 'test'
+  ...
+# Subtest: empty plugin map slots cannot hide governed scene labels
+ok 26 - empty plugin map slots cannot hide governed scene labels
+  ---
+  duration_ms: 0.227343
+  type: 'test'
+  ...
+# Subtest: Create shares the World typography and monochrome theme rather than forking its palette
+ok 27 - Create shares the World typography and monochrome theme rather than forking its palette
+  ---
+  duration_ms: 0.253902
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 178.512002
