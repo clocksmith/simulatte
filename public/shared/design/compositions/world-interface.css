@@ -180,13 +180,26 @@ body.sim-app #experience-summary { position: static; width: 100%; max-width: non
 .sim-app .evidence-heading p { color: var(--sim-ink-soft); font-size: 14px; }
 .sim-app .plugin-controls label { font-size: 14px; }
 .sim-app :is(.sim-field, .sim-program-editor, .plugin-controls input, .plugin-controls select, .mission-field textarea, .data-workbench-page .sim-input) {
-  background: var(--sim-paint-hex-fff);
+  background: var(--sim-paper);
   color: var(--sim-ink);
   border: 1px solid var(--sim-line-strong);
   border-radius: 2px;
   font: 400 14px/1.5 var(--sim-font);
   min-height: 44px;
   box-shadow: var(--sim-shadow-inset);
+}
+.sim-app select.sim-field,
+.sim-app .plugin-controls select {
+  color-scheme: light;
+}
+.sim-app select.sim-field option,
+.sim-app .plugin-controls select option {
+  color: var(--sim-ink);
+  background: var(--sim-paper);
+}
+html[data-theme="dark"] .sim-app select.sim-field,
+html[data-theme="dark"] .sim-app .plugin-controls select {
+  color-scheme: dark;
 }
 .sim-app :is(code, pre, .sim-program-editor) { font-family: var(--sim-mono); }
 .sim-app .mission-error { grid-column: 1 / -1; font-size: 14px; color: var(--sim-red); }

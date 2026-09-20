@@ -196,7 +196,10 @@
       return { x: view.panX + x * 2.2 * view.zoom, y: view.panY - y * 2.2 * view.zoom, depth: 0, scale: 1 };
     }
     if (system === 'heliocentric-ecliptic-au' || system === 'icrs-cartesian-pc') {
-      const rotated = rotatePoint([x, y, z], Number(view.rotX || 0), Number(view.rotY || 0));
+      const topology = system === 'icrs-cartesian-pc'
+        ? projectIcrsTopology([x, y, z], view.projectionMode || 'sphere')
+        : { position: [x, y, z], distanceScale: 1 };
+      const rotated = rotatePoint(topology.position, Number(view.rotX || 0), Number(view.rotY || 0));
       const baseScale = system === 'icrs-cartesian-pc' ? view.zoom / 5 : view.zoom;
       const perspective = clamp(
         1 + rotated[2] * (system === 'icrs-cartesian-pc' ? 0.018 : 0.06),
@@ -207,10 +210,36 @@
         x: view.panX + rotated[0] * baseScale * perspective,
         y: view.panY - rotated[1] * baseScale * perspective,
         depth: rotated[2],
-        scale: perspective,
+        scale: perspective * topology.distanceScale,
       };
     }
     return { x: view.panX + x * view.zoom, y: view.panY - y * view.zoom, depth: z, scale: 1 };
+  }
+
+  function projectIcrsTopology(position, mode) {
+    const radius = Math.hypot(...position);
+    if (radius < 1e-9) return { position: [0, 0, 0], distanceScale: 0.72 };
+    const direction = position.map((value) => value / radius);
+    const reach = 1 - Math.exp(-radius / 1.4);
+    const distanceScale = 0.72 + reach * 0.28;
+    if (mode === 'torus') {
+      const longitude = Math.atan2(direction[1], direction[0]);
+      const latitude = Math.asin(clamp(direction[2], -1, 1));
+      const minorAngle = latitude * 2;
+      const majorRadius = 3.25;
+      const minorRadius = 1.15;
+      const ringRadius = majorRadius + minorRadius * Math.cos(minorAngle);
+      return {
+        position: [
+          ringRadius * Math.cos(longitude) * reach,
+          minorRadius * Math.sin(minorAngle) * reach,
+          ringRadius * Math.sin(longitude) * reach,
+        ],
+        distanceScale,
+      };
+    }
+    const shellRadius = 4.35 * reach;
+    return { position: direction.map((value) => value * shellRadius), distanceScale };
   }
 
   function semanticProgress(quantity) {
@@ -340,8 +369,13 @@
     if (!ctx || typeof project !== 'function') return;
     const timeSeconds = Number(options.timeSeconds || 0);
     const animationElapsedSeconds = Number(options.animationElapsedSeconds || 0);
+    let icrsGuideDrawn = false;
     contributions.forEach((presentation) => {
       const projection = (position) => project(position, presentation.coordinateSystem);
+      if (presentation.coordinateSystem === 'icrs-cartesian-pc' && !icrsGuideDrawn) {
+        drawIcrsProjectionGuide(ctx, projection, options.view?.projectionMode || 'sphere');
+        icrsGuideDrawn = true;
+      }
       if (presentation.coordinateSystem === 'wgs84' && canUseAffinePlanarPath(ctx, options.view)) {
         drawAffinePlanar(ctx, presentation, options.view, timeSeconds, animationElapsedSeconds);
         return;
@@ -353,7 +387,7 @@
       if (presentation.coordinateSystem === 'wgs84') {
         presentation.areas.forEach((row) => drawPolygon(ctx, row.coordinates, projection, row));
         presentation.choropleths.forEach((row) => drawPolygon(ctx, row.coordinates, projection, row));
-        presentation.paths.forEach((row) => drawPath(ctx, row.coordinates, projection, row, timeSeconds, presentation.coordinateSystem));
+        presentation.paths.forEach((row) => drawPath(ctx, row.coordinates, projection, row, timeSeconds, presentation.coordinateSystem, options.view?.projectionMode));
         presentation.markers.forEach((row) => drawMarker(ctx, projection(row.position), row, timeSeconds, options));
         presentation.actors.forEach((row) => drawActor(ctx, projection(actorPosition(row, animationElapsedSeconds, presentation.coordinateSystem)), row, timeSeconds));
       } else {
@@ -369,7 +403,7 @@
         })).sort((left, right) => left.depth - right.depth || left.order - right.order);
         entries.forEach(({ kind, row }) => {
           if (kind === 'polygon') drawPolygon(ctx, row.coordinates, projection, row);
-          else if (kind === 'path') drawPath(ctx, row.coordinates, projection, row, timeSeconds, presentation.coordinateSystem);
+          else if (kind === 'path') drawPath(ctx, row.coordinates, projection, row, timeSeconds, presentation.coordinateSystem, options.view?.projectionMode);
           else if (kind === 'marker') drawMarker(ctx, projection(row.position), row, timeSeconds, options);
           else drawActor(ctx, projection(actorPosition(row, animationElapsedSeconds, presentation.coordinateSystem)), row, timeSeconds);
         });
@@ -452,12 +486,15 @@
     return path;
   }
 
-  function drawPath(ctx, coordinates, project, path, timeSeconds, coordinateSystem) {
+  function drawPath(ctx, coordinates, project, path, timeSeconds, coordinateSystem, projectionMode = null) {
     if (!coordinates || coordinates.length < 2) return;
-    const projected = coordinates.map(project);
+    const renderCoordinates = coordinateSystem === 'icrs-cartesian-pc' && ['sphere', 'torus'].includes(projectionMode)
+      ? subdivideCoordinates(coordinates, 18)
+      : coordinates;
+    const projected = renderCoordinates.map(project);
     ctx.beginPath();
     projected.forEach((point, index) => {
-      const crossesDateLine = coordinateSystem === 'wgs84' && index > 0 && Math.abs(coordinates[index][0] - coordinates[index - 1][0]) > 180;
+      const crossesDateLine = coordinateSystem === 'wgs84' && index > 0 && Math.abs(renderCoordinates[index][0] - renderCoordinates[index - 1][0]) > 180;
       if (index === 0 || crossesDateLine) ctx.moveTo(point.x, point.y);
       else ctx.lineTo(point.x, point.y);
     });
@@ -467,10 +504,58 @@
     ctx.stroke();
     ctx.setLineDash([]);
     if (animatedFlow(path.quantityKind)) {
-      splitProjectedPath(coordinates, projected, coordinateSystem).forEach((segment) => {
+      splitProjectedPath(renderCoordinates, projected, coordinateSystem).forEach((segment) => {
         drawFlowParticles(ctx, segment, path, timeSeconds);
       });
     }
+  }
+
+  function subdivideCoordinates(coordinates, stepsPerSegment) {
+    const output = [coordinates[0]];
+    for (let index = 1; index < coordinates.length; index += 1) {
+      const from = coordinates[index - 1];
+      const to = coordinates[index];
+      for (let step = 1; step <= stepsPerSegment; step += 1) {
+        const t = step / stepsPerSegment;
+        output.push(from.map((value, axis) => Number(value) + (Number(to[axis] || 0) - Number(value)) * t));
+      }
+    }
+    return output;
+  }
+
+  function drawIcrsProjectionGuide(ctx, project, mode) {
+    const curves = [];
+    const sample = (longitude, latitude) => {
+      const cosLatitude = Math.cos(latitude);
+      return [
+        Math.cos(longitude) * cosLatitude * 18,
+        Math.sin(longitude) * cosLatitude * 18,
+        Math.sin(latitude) * 18,
+      ];
+    };
+    for (let latitude = -Math.PI / 2; latitude <= Math.PI / 2 + 1e-6; latitude += Math.PI / 6) {
+      curves.push(Array.from({ length: 73 }, (_, index) => sample(index / 72 * Math.PI * 2, latitude)));
+    }
+    for (let longitude = 0; longitude < Math.PI * 2 - 1e-6; longitude += Math.PI / 6) {
+      curves.push(Array.from({ length: 37 }, (_, index) => sample(longitude, -Math.PI / 2 + index / 36 * Math.PI)));
+    }
+    ctx.save();
+    ctx.lineWidth = mode === 'torus' ? 0.8 : 0.7;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(77, 232, 255, 0.12)';
+    curves.forEach((curve) => {
+      const points = curve.map(project);
+      for (let index = 1; index < points.length; index += 1) {
+        const depth = (points[index - 1].depth + points[index].depth) / 2;
+        const alpha = 0.035 + clamp((depth + 5) / 10, 0, 1) * 0.095;
+        ctx.beginPath();
+        ctx.moveTo(points[index - 1].x, points[index - 1].y);
+        ctx.lineTo(points[index].x, points[index].y);
+        ctx.strokeStyle = `rgba(109, 168, 255, ${alpha.toFixed(3)})`;
+        ctx.stroke();
+      }
+    });
+    ctx.restore();
   }
   function drawPolygon(ctx, coordinates, project, area) {
     if (!coordinates || coordinates.length < 3) return;

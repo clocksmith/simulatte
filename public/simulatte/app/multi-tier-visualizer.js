@@ -46,6 +46,7 @@
       this.currentStarCutoff = null;
       this.defaultView = null;
       this.viewMode = 'overview';
+      this.projectionMode = 'sphere';
 
       // Mouse control variables (zoom & pan/orbit)
       this.panX = 0;
@@ -81,6 +82,7 @@
           zoom: this.zoom,
           rotX: this.rotX,
           rotY: this.rotY,
+          projectionMode: this.projectionMode,
           currentTier: this.currentTier,
           bounds: this.data?.bounds,
           projectCountry: (x, y, bounds) => this.projectCountryPoint(x, y, bounds),
@@ -732,7 +734,10 @@
       const allowed = ['overview', 'follow', 'pov', 'top', 'free', 'compare'];
       if (!allowed.includes(mode)) throw new Error(`simulatte_tier_view_mode_invalid: ${mode}`);
       this.viewMode = mode;
+      if (this.currentTier === 'star-chart' && mode === 'overview') this.projectionMode = 'sphere';
+      if (this.currentTier === 'star-chart' && mode === 'compare') this.projectionMode = 'torus';
       this.canvas.dataset.viewMode = mode;
+      this.canvas.dataset.projectionMode = this.projectionMode;
       if (mode === 'overview' && this.defaultView) {
         this.rotX = this.defaultView.rotX;
         this.rotY = this.defaultView.rotY;
@@ -741,6 +746,9 @@
       if (mode === 'top' && ['solar-system', 'star-chart'].includes(this.currentTier)) {
         this.rotX = 0;
         this.rotY = 0;
+      }
+      if (this.fittedTarget && ['overview', 'compare'].includes(mode)) {
+        this.fitPluginPresentationTarget(...this.fittedTarget);
       }
       return mode;
     }
@@ -771,7 +779,8 @@
       this.renderSession.setScene({
         tier: this.currentTier, data: this.data,
         view: { width: this.width, height: this.height, zoom: this.zoom, panX: this.panX, panY: this.panY,
-          rotX: this.rotX, rotY: this.rotY, rotZ: this.rotZ, nativeCoordinateSystems: this.nativeCoordinateSystems,
+          rotX: this.rotX, rotY: this.rotY, rotZ: this.rotZ, projectionMode: this.projectionMode,
+          nativeCoordinateSystems: this.nativeCoordinateSystems,
           projectCountryPoint: (x, y, bounds) => this.projectCountryPoint(x, y, bounds) },
         drawOverlay: ctx => this.pluginLayer?.render(ctx),
       });
@@ -866,7 +875,8 @@
     const projected = coordinates.map((position) => tierPresentation.projectPoint(
       position,
       coordinateSystem,
-      { panX: 0, panY: 0, zoom: 1, rotX, rotY, currentTier: null },
+      { panX: 0, panY: 0, zoom: 1, rotX, rotY, currentTier: null,
+        projectionMode: coordinateSystem === 'icrs-cartesian-pc' && viewMode === 'compare' ? 'torus' : 'sphere' },
     ));
     if (!projected.every((point) => Number.isFinite(point.x) && Number.isFinite(point.y))) return null;
     const minimumX = Math.min(...projected.map((point) => point.x));
@@ -894,6 +904,9 @@
       zoom,
       panX: width * (!narrow ? (datacenter ? 0.44 : 0.43) : 0.5) - centerX * zoom,
       panY: (narrow ? 375 + availableHeight / 2 : height * (datacenter ? 0.46 : 0.5)) - centerY * zoom,
+      ...(coordinateSystem === 'icrs-cartesian-pc' ? {
+        projectionMode: viewMode === 'compare' ? 'torus' : 'sphere',
+      } : {}),
     });
   }
 

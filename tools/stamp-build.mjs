@@ -41,6 +41,10 @@ function normalizedDeployContent(relativePath, content) {
     .replace(
       /(<script\s+defer\s+src="(?:\.\/|\.\.\/)[^"?]+\.js)(?:\?v=[^"]*)?(")/g,
       '$1?v=BUILD-STAMP$2'
+    )
+    .replace(
+      /(<link\b[^>]*\bhref=")((?:\.\/|\.\.\/)[^"?]+\.css)(?:\?v=[^"]*)?(")/g,
+      '$1$2?v=BUILD-STAMP$3'
     );
 }
 
@@ -74,14 +78,21 @@ function stampEntrypoint(relativePath, buildHash, buildParam) {
         `<meta name="simulatte-build" content="${buildHash}">`
       );
       const scriptRegex = /(<script\s+defer\s+src=")((?:\.\/|\.\.\/)[^"?]+\.js)(?:\?v=[^"]*)?(")/g;
+      const stylesheetRegex = /(<link\b[^>]*\bhref=")((?:\.\/|\.\.\/)[^"?]+\.css)(?:\?v=[^"]*)?(")/g;
       let scriptCount = 0;
+      let stylesheetCount = 0;
       indexHtml = indexHtml.replace(scriptRegex, (_match, open, src, close) => {
         scriptCount += 1;
         return `${open}${src}?v=${buildParam}${close}`;
       });
+      indexHtml = indexHtml.replace(stylesheetRegex, (_match, open, href, close) => {
+        stylesheetCount += 1;
+        return `${open}${href}?v=${buildParam}${close}`;
+      });
       fs.writeFileSync(indexPath, indexHtml, 'utf8');
       console.log(`Updated public/${relativePath} to build content="${buildHash}"`);
       console.log(`Updated ${scriptCount} deferred script URLs in public/${relativePath}`);
+      console.log(`Updated ${stylesheetCount} stylesheet URLs in public/${relativePath}`);
     } else {
       throw new Error(`Could not find <meta name="simulatte-build"> in public/${relativePath}`);
     }

@@ -882,6 +882,30 @@ test('mobile coordinate framing keeps the active path between the summary and pl
   }
 });
 
+test('interstellar sphere and torus views deterministically project the same ICRS evidence', () => {
+  const source = Object.freeze([2.4, -1.1, 0.8]);
+  const base = { panX: 400, panY: 300, zoom: 100, rotX: 0.25, rotY: -0.4 };
+  const sphere = tierPresentation.projectPoint(source, 'icrs-cartesian-pc', {
+    ...base,
+    projectionMode: 'sphere',
+  });
+  const torus = tierPresentation.projectPoint(source, 'icrs-cartesian-pc', {
+    ...base,
+    projectionMode: 'torus',
+  });
+  assert.deepEqual(source, [2.4, -1.1, 0.8]);
+  assert.ok([sphere.x, sphere.y, sphere.depth, sphere.scale, torus.x, torus.y, torus.depth, torus.scale].every(Number.isFinite));
+  assert.notDeepEqual([sphere.x, sphere.y, sphere.depth], [torus.x, torus.y, torus.depth]);
+  const sphereFit = multiTierVisualizer.coordinateEvidenceView({
+    coordinates: [[0, 0, 0], source], coordinateSystem: 'icrs-cartesian-pc', width: 800, height: 600, viewMode: 'overview',
+  });
+  const torusFit = multiTierVisualizer.coordinateEvidenceView({
+    coordinates: [[0, 0, 0], source], coordinateSystem: 'icrs-cartesian-pc', width: 800, height: 600, viewMode: 'compare',
+  });
+  assert.equal(sphereFit.projectionMode, 'sphere');
+  assert.equal(torusFit.projectionMode, 'torus');
+});
+
 test('a point actor never borrows a nearby route or drifts away from its model position', () => {
   const base = semanticPresentation();
   const actor = { ...base.layers[0], id: 'sun-walker-actor', kind: 'actor', label: 'Walker',

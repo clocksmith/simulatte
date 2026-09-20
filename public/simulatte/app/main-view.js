@@ -143,10 +143,10 @@
     elements.cameraFree.hidden = true;
     elements.cameraCompare.hidden = !supportedViews.has('compare');
     elements.cameraFollow.textContent = 'Follow';
-    elements.cameraBird.textContent = 'Overview';
+    elements.cameraBird.textContent = tier === 'star-chart' ? 'Sphere' : 'Overview';
     elements.cameraTop.textContent = 'Top view';
     elements.cameraFree.textContent = 'Free';
-    elements.cameraCompare.textContent = 'Compare';
+    elements.cameraCompare.textContent = tier === 'star-chart' ? 'Torus' : 'Compare';
     elements.semanticLabelCanvas.hidden = tier !== 'city';
     const sceneLabel = `${applicationProfileLabel(profileId)} simulation viewport`;
     elements.autonomyCanvas.setAttribute('aria-label', sceneLabel);
@@ -214,7 +214,7 @@
 
   function viewHint(tier) {
     if (tier === 'city') return 'Drag to orbit. Shift-drag or use Top to pan. Scroll to zoom.';
-    if (tier === 'star-chart') return 'Drag to orbit the star field. Scroll to zoom. Choose a camera experience above.';
+    if (tier === 'star-chart') return 'Sphere preserves celestial direction; Torus exposes the same ICRS network through a periodic topology. Drag to orbit and scroll to zoom.';
     return 'Drag to pan. Scroll to zoom. Choose a camera experience above.';
   }
 
