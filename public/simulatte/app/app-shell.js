@@ -271,8 +271,14 @@
       try {
         if (beforeSelect && await beforeSelect(card) === false) return;
         if (generationAtStart !== generation) return;
-        await router.navigate({ tier: card.dataset.tier, experience: card.dataset.defaultProfile || null });
+        const route = { tier: card.dataset.tier, experience: card.dataset.defaultProfile || null };
+        if (router.hrefFor(route) === router.hrefFor(router.currentRoute())) {
+          await renderRoute(route);
+        } else {
+          await router.navigate(route);
+        }
       } catch (error) {
+        if (generationAtStart !== generation) return;
         showLanding();
         const status = landing.querySelector('#simulation-status');
         if (status) {

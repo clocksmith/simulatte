@@ -264,47 +264,7 @@
       });
     }
 
-    function launchBrowserApp(start, collectElements) {
-      if (typeof document === 'undefined') return;
-      const launch = () => {
-        const router = hostRoot.SimulatteRouter.createRouter(window);
-        const navigate = (route, options) => router.navigate(route, options);
-        const governedContext = {
-          collectElements,
-          setJourneyPhase,
-          setRuntimeStatus,
-          createTierVisualizer: hostRoot.SimulatteMultiTierVisualizer.createTierVisualizer,
-          navigate,
-          onSelectTier: (tier) => navigate({ tier, experience: null }),
-        };
-        const boot = (tier, experience, bootOptions) => tier === 'city'
-          ? start('city', experience, { navigate, signal: bootOptions?.signal, simulation: bootOptions?.simulation || null, routeState: bootOptions?.routeState || null })
-          : hostRoot.SimulatteWorldTiersBoot.bootGovernedTierExplorer(
-            governedContext,
-            tier,
-            experience,
-            bootOptions,
-          );
-        const shell = hostRoot.SimulatteWorldTiersBoot.createAppShell({
-          router,
-          boot,
-          landing: document.getElementById('world-tiers-landing-page'),
-          documentationLink: document.getElementById('experience-doc-link'),
-        });
-        void Promise.resolve(shell.start()).catch((error) => {
-          try {
-            failRuntime(collectElements(), error);
-          } catch (boundaryError) {
-            log.error('runtime.bootstrap_failed', log.serializeError(boundaryError));
-          }
-        });
-      };
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', launch, { once: true });
-      } else {
-        launch();
-      }
-    }
+
 
     return Object.freeze({
       applyPluginMissionContributions,
@@ -312,7 +272,6 @@
       downloadJson,
       environmentInstant,
       failRuntime,
-      launchBrowserApp,
       renderLedger,
       renderPolicyArena,
       validateImportedJourneyReceipt,

@@ -6,7 +6,10 @@
   if (!manifest || !loader) throw new Error('workbench_entry_dependency_missing');
   let pending = null, ready = false;
   let effects = null;
+  let generation = 0;
+  let preparation = null;
   const landing = document.getElementById('world-tiers-landing-page');
+
   function showLanding() {
     effects?.reset();
     const data = location.hash === '#data';
@@ -26,6 +29,7 @@
     canvas: document.getElementById('homepage-effects-canvas'),
     shaderUrl: shaderUrl.href,
   }) : null;
+
   function reportLoadFailure(error) {
     landing.classList.remove('hidden');
     showLanding();
@@ -33,21 +37,43 @@
     status.textContent = `Could not load simulation: ${error.message}. Select it to retry.`;
     status.dataset.state = 'error';
   }
-  async function loadProfiles() {
+
+  async function prepareSelection(card) {
+    preparation?.abort();
+    const controller = new AbortController();
+    preparation = controller;
+    const status = document.getElementById('simulation-status');
+    status.textContent = 'Loading simulation';
+    delete status.dataset.state;
+    try {
+      const animation = effects ? effects.launch(card) : Promise.resolve(true);
+      const runtime = loader.loadRouteRuntime({
+        tierId: card.dataset.tier,
+        profileId: card.dataset.defaultProfile || null,
+        signal: controller.signal,
+      });
+      const [, proceed] = await Promise.all([runtime, animation]);
+      if (controller.signal.aborted) return false;
+      status.textContent = '';
+      return proceed;
+    } finally {
+      if (preparation === controller) preparation = null;
+    }
+  }
+
+  async function startRouter() {
     if (ready) return;
     if (pending) return pending;
     pending = (async () => {
-      const status = document.getElementById('simulation-status');
-      status.textContent = 'Loading simulation';
-      delete status.dataset.state;
-      try {
-        for (const path of manifest.profileRuntime) await loader.loadScript(path);
-        ready = true;
-        status.textContent = '';
-      } finally { pending = null; }
-  })();
-    return pending;
+      await loader.loadNavigation();
+      const app = root.SimulatteRouteRuntime.create({ landing, beforeSelect: prepareSelection });
+      ready = true;
+      await app.start();
+    })();
+    try { return await pending; }
+    finally { pending = null; }
   }
+
   landing.addEventListener('keydown', (event) => {
     const card = event.target.closest('.tier-card[role="button"]') || event.target.closest('.tier-card[data-tier]') || event.target.closest('[data-default-profile]');
     if (card && (event.key === 'Enter' || event.key === ' ')) {
@@ -67,19 +93,34 @@
       return;
     }
     const card = event.target.closest?.('.tier-card[data-tier]') || event.target.closest?.('[data-default-profile]');
-    if (!card || !card.dataset?.tier || ready) return;
+    if (!card || !card.dataset?.tier) return;
+    if (preparation) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+    if (ready) return;
     event.preventDefault();
     event.stopImmediatePropagation();
+    const attempt = ++generation;
     history.pushState(null, '', `/${encodeURIComponent(card.dataset.tier)}/${encodeURIComponent(card.dataset.defaultProfile)}`);
-    void (effects ? effects.launch(card) : Promise.resolve(true)).then((proceed) => {
-      if (!proceed) return;
-      return loadProfiles();
-    }).catch(reportLoadFailure);
+    void prepareSelection(card).then((proceed) => {
+      if (attempt !== generation || !proceed) return;
+      return startRouter();
+    }).catch((error) => {
+      if (attempt === generation) reportLoadFailure(error);
+    });
   }, true);
   root.addEventListener('popstate', () => {
+    generation += 1;
+    preparation?.abort();
     showLanding();
-    if (!ready && location.pathname !== '/' && location.pathname !== '/index.html') void loadProfiles().catch(reportLoadFailure);
+    if (!ready) void startRouter().catch(reportLoadFailure);
   });
-  if (location.pathname !== '/' && location.pathname !== '/index.html') void loadProfiles().catch(reportLoadFailure);
+  root.addEventListener('pagehide', () => {
+    generation += 1;
+    preparation?.abort();
+  });
+  if (location.pathname !== '/' && location.pathname !== '/index.html') void startRouter().catch(reportLoadFailure);
   else document.body.dataset.journeyPhase = 'ready';
 })(typeof globalThis !== 'undefined' ? globalThis : window);

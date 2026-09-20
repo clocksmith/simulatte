@@ -78,7 +78,6 @@
     createRenderer,
     environmentInstant,
     failRuntime,
-    launchBrowserApp,
     renderLedger,
     renderPolicyArena,
     validateImportedJourneyReceipt,
@@ -838,6 +837,5 @@
       throw error;
     }
     }
-  launchBrowserApp(start, collectElements);
   return { applicationProfileLabel, collectElements, friendlyMissionError, populateApplicationProfiles, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
 });

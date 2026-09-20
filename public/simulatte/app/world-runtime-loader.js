@@ -4,11 +4,20 @@
   root.SimulatteWorldRuntimeLoader = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldRuntimeLoader(root) {
   const loaded = new Map();
+  const preloads = new Map();
+  const build = root.document?.querySelector('meta[name="simulatte-build"]')?.content || null;
   for (const script of Array.from(root.document?.scripts || [])) {
     if (!script.src) continue;
     const url = new URL(script.src, root.document.baseURI);
     const base = new URL(root.document.baseURI);
-    if (url.origin === base.origin) loaded.set(url.pathname.replace(/^\//, ''), Promise.resolve(url.pathname));
+    if (url.origin === base.origin) {
+      loaded.set(url.href, {
+        promise: Promise.resolve(url.href),
+        integrity: script.integrity || null,
+        state: 'ready',
+        reuseCount: 0,
+      });
+    }
   }
 
   function manifest() {
@@ -21,6 +30,12 @@
     const value = root.SimulatteGeneratedPluginRegistry;
     if (!value) throw new Error('world_plugin_registry_missing');
     return value;
+  }
+
+  function scriptUrl(path) {
+    const url = new URL(path, root.document?.baseURI || 'http://localhost/');
+    if (build) url.searchParams.set('v', build);
+    return url.href;
   }
 
   function hexIntegrityToSri(value) {
@@ -51,60 +66,148 @@
     ]);
   }
 
+  function assertIntegrity(entry, integrity, url) {
+    if (entry.integrity !== integrity) {
+      throw new Error(`world_runtime_script_identity_conflict: ${url}`);
+    }
+  }
+
+  function preloadScript(path, integrity = null) {
+    const url = scriptUrl(path);
+    const existing = loaded.get(url) || preloads.get(url);
+    if (existing) {
+      assertIntegrity(existing, integrity, url);
+      return;
+    }
+    const link = root.document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'script';
+    link.href = url;
+    if (integrity) {
+      link.integrity = integrity;
+      link.crossOrigin = 'anonymous';
+    }
+    preloads.set(url, { link, integrity });
+    root.document.head.appendChild(link);
+  }
+
+  function releasePreload(url) {
+    preloads.get(url)?.link.remove();
+    preloads.delete(url);
+  }
+
   function loadScript(path, integrity = null) {
-    if (loaded.has(path)) return loaded.get(path);
-    const pending = new Promise((resolve, reject) => {
-      const script = root.document.createElement('script');
-      const build = root.document.querySelector('meta[name="simulatte-build"]')?.content;
-      script.src = new URL(`./${path}${build ? `?v=${encodeURIComponent(build)}` : ''}`, root.document.baseURI).toString();
-      script.async = false;
-      if (integrity) {
-        script.integrity = integrity;
-        script.crossOrigin = 'anonymous';
-      }
-      script.addEventListener('load', () => resolve(path), { once: true });
-      script.addEventListener('error', () => reject(new Error(`world_runtime_script_load_failed: ${path}`)), { once: true });
-      root.document.head.appendChild(script);
+    const url = scriptUrl(path);
+    const existing = loaded.get(url);
+    if (existing) {
+      assertIntegrity(existing, integrity, url);
+      existing.reuseCount += 1;
+      return existing.promise;
+    }
+    if (preloads.has(url)) assertIntegrity(preloads.get(url), integrity, url);
+    const script = root.document.createElement('script');
+    script.src = url;
+    script.async = false;
+    if (integrity) {
+      script.integrity = integrity;
+      script.crossOrigin = 'anonymous';
+    }
+    const entry = { integrity, state: 'loading', reuseCount: 0, promise: null };
+    entry.promise = new Promise((resolve, reject) => {
+      script.addEventListener('load', () => {
+        entry.state = 'ready';
+        releasePreload(url);
+        resolve(url);
+      }, { once: true });
+      script.addEventListener('error', () => {
+        loaded.delete(url);
+        releasePreload(url);
+        script.remove();
+        reject(new Error(`world_runtime_script_load_failed: ${path}`));
+      }, { once: true });
     });
-    loaded.set(path, pending);
-    pending.catch(() => loaded.delete(path));
-    return pending;
+    loaded.set(url, entry);
+    root.document.head.appendChild(script);
+    return entry.promise;
+  }
+
+  function throwIfAborted(signal) {
+    if (!signal?.aborted) return;
+    throw signal.reason || Object.assign(new Error('World runtime load cancelled'), { name: 'AbortError' });
+  }
+
+  async function loadScripts(scripts, options = {}) {
+    throwIfAborted(options.signal);
+    const descriptors = scripts.map((script) => typeof script === 'string' ? { path: script, integrity: null } : script);
+    const reused = descriptors.filter(({ path }) => loaded.has(scriptUrl(path))).length;
+    // Fetch only this destination's dependencies together; evaluate in declared order.
+    descriptors.forEach(({ path, integrity }) => preloadScript(path, integrity || null));
+    for (let index = 0; index < descriptors.length; index += 1) {
+      throwIfAborted(options.signal);
+      const script = descriptors[index];
+      await loadScript(script.path, script.integrity || null);
+      throwIfAborted(options.signal);
+      options.onProgress?.({ completed: index + 1, total: descriptors.length, path: script.path });
+    }
+    return Object.freeze({ scripts: Object.freeze(descriptors.map((script) => script.path)), reused });
   }
 
   async function loadSelectedProduct(options = {}) {
     const pluginIds = manifest().pluginIdsForSelection(options);
-    for (const pluginId of pluginIds) {
-      for (const script of pluginScripts(pluginId)) await loadScript(script.path, script.integrity);
-    }
-    return Object.freeze({ pluginIds, scripts: Object.freeze(pluginIds.flatMap(pluginScripts).map((row) => row.path)) });
+    const scripts = pluginIds.flatMap(pluginScripts);
+    const result = await loadScripts(scripts, options);
+    return Object.freeze({ pluginIds, ...result });
   }
 
-  async function loadOptionalModel() {
-    for (const path of manifest().stages.optionalModel) await loadScript(path);
-    return Object.freeze({ scripts: manifest().stages.optionalModel });
+  async function loadNavigation(options = {}) {
+    return loadScripts(manifest().navigation, options);
+  }
+
+  async function loadRouteRuntime(options = {}) {
+    const startedAt = root.performance?.now() || 0;
+    const runtime = await loadScripts(manifest().runtimeForSelection(options), options);
+    const product = await loadSelectedProduct(options);
+    const receipt = Object.freeze({
+      schema: 'simulatte.routeRuntimeLoad.v1',
+      build,
+      tierId: options.tierId,
+      profileId: options.profileId || manifest().tierDefaultProfile[options.tierId],
+      scripts: Object.freeze([...runtime.scripts, ...product.scripts]),
+      reusedScripts: runtime.reused + product.reused,
+      durationMs: Math.max(0, (root.performance?.now() || 0) - startedAt),
+    });
+    const log = root.SimulatteAutonomyRuntimeLog || root.SimulatteRuntimeLog;
+    log?.info?.('runtime.route.loaded', receipt);
+    return receipt;
+  }
+
+  async function loadOptionalModel(options = {}) {
+    return loadScripts(manifest().stages.optionalModel, options);
   }
 
   async function loadModule(path) {
-    const build = root.document?.querySelector('meta[name="simulatte-build"]')?.content;
-    const url = new URL(`./${path}${build ? `?v=${encodeURIComponent(build)}` : ''}`, root.document?.baseURI || 'http://localhost/').toString();
-    return import(url);
+    return import(scriptUrl(path));
   }
 
   async function loadTierModules(tierId) {
     const scripts = manifest().tierModules ? manifest().tierModules(tierId) : [];
-    for (const path of scripts) {
-      await loadScript(path);
-    }
-    return Object.freeze({ tierId, scripts: Object.freeze([...scripts]) });
+    const result = await loadScripts(scripts);
+    return Object.freeze({ tierId, ...result });
   }
 
-  async function loadSelectedRuntime(options = {}) {
-    const scripts = manifest().stages.selectedRuntime || [];
-    for (const path of scripts) {
-      await loadScript(path);
-    }
-    return Object.freeze({ scripts });
+  function cacheSnapshot() {
+    return Object.freeze({
+      schema: 'simulatte.runtimeScriptCache.v1',
+      build,
+      entries: Object.freeze([...loaded].map(([url, entry]) => Object.freeze({
+        url, integrity: entry.integrity, state: entry.state, reuseCount: entry.reuseCount,
+      }))),
+    });
   }
 
-  return Object.freeze({ loadSelectedProduct, loadOptionalModel, loadScript, loadModule, loadTierModules, loadSelectedRuntime, pluginScripts });
+  return Object.freeze({
+    loadSelectedProduct, loadOptionalModel, loadScript, loadModule, loadTierModules,
+    loadNavigation, loadRouteRuntime, loadSelectedRuntime: loadRouteRuntime,
+    pluginScripts, cacheSnapshot,
+  });
 });
