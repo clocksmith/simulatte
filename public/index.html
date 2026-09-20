@@ -6,13 +6,13 @@
   <base href="/">
   <meta name="simulatte-build" content="nogit-f7417ed4cc72">
   <title>Simulatte</title>
-  <meta name="description" content="Explore simulations. Create a world or use your own data.">
+  <meta name="description" content="Seven interactive simulations.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script src="./shared/design/theme-controller.js"></script>
   <link rel="stylesheet" href="./shared/design/simulatte.css?v=nogit-f7417ed4cc72">
   <link rel="stylesheet" href="./model-selection.css?v=nogit-f7417ed4cc72">
   <link rel="stylesheet" href="./styles.css?v=nogit-f7417ed4cc72">
-  <link rel="stylesheet" href="./world-tiers.css?v=nogit-f7417ed4cc72">
+  <link rel="stylesheet" href="./world-tiers.css?v=seven-simulations-20260920">
   <link rel="stylesheet" href="./shared/design/workbench.css?v=nogit-f7417ed4cc72">
   <link rel="stylesheet" href="./shared/design/compositions/world-interface.css?v=nogit-f7417ed4cc72">
   <link rel="stylesheet" href="./shared/design/theme-control.css?v=nogit-f7417ed4cc72">
@@ -346,116 +346,53 @@
 
   <!-- World Tiers Landing Page Selector -->
   <div id="world-tiers-landing-page">
-  <section id="simulation-home">
-    <header class="landing-header">
-      <a class="landing-brand" href="/">Simulatte</a>
-      <a class="landing-data-link" id="open-data" href="#data">Use your data</a>
-    </header>
-    <div class="home-layout">
-      <div class="home-intro">
-        <p class="home-eyebrow">A PLAYGROUND FOR WHAT IF</p>
-        <h1 class="landing-title">Explore a world.<br>Change what happens.</h1>
-        <p class="home-description">Try a simulation, change its controls, and see the result. From a city street to a network of stars.</p>
-        <a class="home-noise-action" href="./simulatte/motorcycle-noise/"><strong>Motorcycle Noise <span aria-hidden="true">↗</span></strong><span>Compare barriers, façades, and local sound control.</span></a>
-        <a class="home-create-action" href="https://create.simulatte.world/" data-local-href="./blank/">Create your own <span aria-hidden="true">↗</span></a>
-        <p class="home-create-note">Start with a description. Build an interactive scene.</p>
-      </div>
-      <div class="home-choices">
-        <p class="home-choices-label">CHOOSE A SIMULATION</p>
-    <!-- Hexagonal Constellation Layout -->
-    <div class="hex-constellation-container" aria-label="Simulatte Multi-Scale Constellation">
+  <section id="simulation-home" aria-label="Choose a simulation">
+    <div class="hex-constellation-container" aria-label="Seven simulations">
       <canvas id="homepage-effects-canvas" class="homepage-effects-canvas" aria-hidden="true" hidden></canvas>
-      <!-- Quiet hex field inspired by the Fawn start surface. -->
-      <svg class="hex-constellation-web" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <defs>
-          <pattern id="ambient-hex-grid" width="84" height="96" patternUnits="userSpaceOnUse">
-            <path d="M42 1 L83 24 L83 72 L42 95 L1 72 L1 24 Z" class="ambient-hex-cell" />
-          </pattern>
-          <radialGradient id="ambient-hex-fade" cx="50%" cy="50%" r="52%">
-            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.62" />
-            <stop offset="70%" stop-color="#ffffff" stop-opacity="0.16" />
-            <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
-          </radialGradient>
-          <mask id="ambient-hex-mask">
-            <rect width="1000" height="720" fill="url(#ambient-hex-fade)" />
-          </mask>
-        </defs>
-        <rect width="1000" height="720" fill="url(#ambient-hex-grid)" mask="url(#ambient-hex-mask)" class="ambient-hex-field" />
-      </svg>
-
-      <!-- Center Hexagon Hub: Simulatte Create -->
-      <a href="https://create.simulatte.world/" data-local-href="./blank/" class="hex-hub" id="hex-center-create" aria-label="Open Simulatte Create">
+      <button class="hex-hub tier-card" type="button" role="button" data-tier="city" data-default-profile="sun-walker-v1" id="hex-center-sunwalker" aria-label="Open Sunwalker">
         <div class="hex-hub-inner">
-          <div class="hex-hub-badge">Your idea</div>
-          <div class="hex-hub-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 3 27 9.5v13L16 29 5 22.5v-13Z M16 10v12 M10 16h12"/></svg></div>
-          <h2 class="hex-hub-title">Create</h2>
-          <p class="hex-hub-desc">Describe a world. Make it move.</p>
-          <span class="hex-hub-action">Open Create</span>
+          <div class="hex-hub-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M3 27h26 M6 27V15h8v12 M18 27V10h8v17 M9 19h2 M9 23h2 M21 15h2 M21 20h2 M8 3v3 M2 8h3 M6 11a5 5 0 0 1 8-5"/></svg></div>
+          <h2 class="hex-hub-title">Sunwalker</h2>
+        </div>
+      </button>
+      <button class="hex-satellite tier-card pos-top-left" type="button" role="button" data-tier="datacenter" data-default-profile="gpu-supercluster-v1" aria-label="Open 256-GPU Cluster">
+        <div class="hex-satellite-inner">
+          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 7h9v18H4z M19 7h9v18h-9z M7 11h3 M7 16h3 M7 21h3 M22 11h3 M22 16h3 M22 21h3 M13 16h6"/></svg></div>
+          <h2 class="hex-title">256-GPU Cluster</h2>
+        </div>
+      </button>
+      <button class="hex-satellite tier-card pos-top" type="button" role="button" data-tier="star-chart" data-default-profile="interstellar-relay-network-v1" aria-label="Open Interstellar Relay">
+        <div class="hex-satellite-inner">
+          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="6" cy="23" r="2.5"/><circle cx="16" cy="7" r="2.5"/><circle cx="26" cy="21" r="2.5"/><path d="m7.5 21 7-12 M18 9l6.5 10 M9 23l14-2"/></svg></div>
+          <h2 class="hex-title">Interstellar Relay</h2>
+        </div>
+      </button>
+      <button class="hex-satellite tier-card pos-top-right" type="button" role="button" data-tier="solar-system" data-default-profile="orbital-transfer-planner-v1" aria-label="Open Orbital Transfer">
+        <div class="hex-satellite-inner">
+          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="4"/><ellipse cx="16" cy="16" rx="14" ry="7" transform="rotate(-35 16 16)"/><circle cx="26" cy="9" r="2"/></svg></div>
+          <h2 class="hex-title">Orbital Transfer</h2>
+        </div>
+      </button>
+      <button class="hex-satellite tier-card pos-bottom-right" type="button" role="button" data-tier="country" data-default-profile="grid-resilience-us-v1" aria-label="Open Grid Resilience">
+        <div class="hex-satellite-inner">
+          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m16 3-7 24 M16 3l7 24 M11 11h10 M9 19h14 M12 11l9 8 M20 11l-9 8 M5 28h22 M3 11h8 M21 11h8"/></svg></div>
+          <h2 class="hex-title">Grid Resilience</h2>
+        </div>
+      </button>
+      <button class="hex-satellite tier-card pos-bottom" type="button" role="button" data-tier="world" data-default-profile="subsea-network-global-v1" aria-label="Open Subsea Network">
+        <div class="hex-satellite-inner">
+          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M3 9c4-5 8 5 13 0s9 5 13 0 M3 15c4-5 8 5 13 0s9 5 13 0 M6 25h20 M6 22v6 M26 22v6 M12 23v4 M20 23v4"/></svg></div>
+          <h2 class="hex-title">Subsea Network</h2>
+        </div>
+      </button>
+      <a class="hex-satellite pos-bottom-left" href="./simulatte/motorcycle-noise/" aria-label="Open Motorcycle Noise">
+        <div class="hex-satellite-inner">
+          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="7" cy="23" r="5"/><circle cx="25" cy="23" r="5"/><path d="m7 23 6-11 6 11H7 M13 12h9l3 11 M19 7h4l2 5 M9 12h6 M3 6c3-3 6-3 9 0 M5 9c2-2 4-2 6 0"/></svg></div>
+          <h2 class="hex-title">Motorcycle Noise</h2>
         </div>
       </a>
-
-      <!-- 6 Symmetric Satellites -->
-      <div class="hex-satellite tier-card pos-top-left" data-tier="datacenter" data-default-profile="gpu-supercluster-v1" role="button" tabindex="0" aria-label="Launch 256-GPU Supercluster Simulator">
-        <div class="hex-satellite-inner">
-          <div class="hex-badge">Datacenter</div>
-          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 7h9v18H4z M19 7h9v18h-9z M7 11h3 M7 16h3 M7 21h3 M22 11h3 M22 16h3 M22 21h3 M13 16h6"/></svg></div>
-          <h3 class="hex-title">256-GPU Cluster</h3>
-          <p class="hex-desc">Balance compute, power, and cooling.</p>
-        </div>
-      </div>
-
-      <div class="hex-satellite tier-card pos-top" data-tier="star-chart" data-default-profile="interstellar-relay-network-v1" role="button" tabindex="0" aria-label="Launch Interstellar Relay Network Simulator">
-        <div class="hex-satellite-inner">
-          <div class="hex-badge">Universe</div>
-          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="6" cy="23" r="2.5"/><circle cx="16" cy="7" r="2.5"/><circle cx="26" cy="21" r="2.5"/><path d="m7.5 21 7-12 M18 9l6.5 10 M9 23l14-2 M5 7h4 M7 5v4"/></svg></div>
-          <h3 class="hex-title">Interstellar Relay</h3>
-          <p class="hex-desc">Connect stars. Route a signal.</p>
-        </div>
-      </div>
-
-      <div class="hex-satellite tier-card pos-top-right" data-tier="solar-system" data-default-profile="orbital-transfer-planner-v1" role="button" tabindex="0" aria-label="Launch Orbital Transfer Planner Simulator">
-        <div class="hex-satellite-inner">
-          <div class="hex-badge">Solar System</div>
-          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="4"/><ellipse cx="16" cy="16" rx="14" ry="7" transform="rotate(-35 16 16)"/><circle cx="26" cy="9" r="2"/></svg></div>
-          <h3 class="hex-title">Orbital Transfer</h3>
-          <p class="hex-desc">Plan a path between orbits.</p>
-        </div>
-      </div>
-
-      <div class="hex-satellite tier-card pos-bottom-right" data-tier="country" data-default-profile="grid-resilience-us-v1" role="button" tabindex="0" aria-label="Launch Grid Resilience Simulator">
-        <div class="hex-satellite-inner">
-          <div class="hex-badge">Country</div>
-          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m16 3-7 24 M16 3l7 24 M11 11h10 M9 19h14 M12 11l9 8 M20 11l-9 8 M5 28h22 M3 11h8 M21 11h8"/></svg></div>
-          <h3 class="hex-title">Grid Resilience</h3>
-          <p class="hex-desc">Restore power after an outage.</p>
-        </div>
-      </div>
-
-      <div class="hex-satellite tier-card pos-bottom" data-tier="world" data-default-profile="subsea-network-global-v1" role="button" tabindex="0" aria-label="Launch Subsea Network Simulator">
-        <div class="hex-satellite-inner">
-          <div class="hex-badge">Planet / Telecom</div>
-          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M3 9c4-5 8 5 13 0s9 5 13 0 M3 15c4-5 8 5 13 0s9 5 13 0 M6 25h20 M6 22v6 M26 22v6 M12 23v4 M20 23v4"/></svg></div>
-          <h3 class="hex-title">Subsea Network</h3>
-          <p class="hex-desc">Keep the world connected.</p>
-        </div>
-      </div>
-
-      <div class="hex-satellite tier-card pos-bottom-left" data-tier="city" data-default-profile="sun-walker-v1" role="button" tabindex="0" aria-label="Launch Sun Walker City Simulator">
-        <div class="hex-satellite-inner">
-          <div class="hex-badge">City</div>
-          <div class="hex-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M3 27h26 M6 27V15h8v12 M18 27V10h8v17 M9 19h2 M9 23h2 M21 15h2 M21 20h2 M8 3v3 M2 8h3"/><path d="M6 11a5 5 0 0 1 8-5"/></svg></div>
-          <h3 class="hex-title">Sun Walker</h3>
-          <p class="hex-desc">Find a shaded route through the city.</p>
-        </div>
-      </div>
     </div>
-      </div>
-    </div>
-    <footer class="landing-footer">
-      <span>Explore in your browser. No account needed.</span>
-      <a href="#data">Bring a CSV or JSON file <span aria-hidden="true">↗</span></a>
-      <p id="simulation-status" role="status" aria-live="polite"></p>
-    </footer>
+    <p id="simulation-status" role="status" aria-live="polite"></p>
   </section>
   <section id="data-page" class="data-workbench-page" hidden>
     <header class="workbench-header">

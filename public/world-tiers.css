@@ -549,3 +549,52 @@ body.sim-app #world-tiers-landing-page {
     transform: translateX(0);
   }
 }
+
+/* The homepage is only the centered seven-simulation honeycomb. */
+body.sim-app #world-tiers-landing-page {
+  position: fixed;
+  inset: 0;
+  padding: 0;
+}
+body.sim-app #simulation-home {
+  box-sizing: border-box;
+  position: relative;
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: none;
+  min-height: 100svh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body.sim-app #simulation-home[hidden] { display: none; }
+body.sim-app #simulation-home .hex-constellation-container {
+  width: min(720px, 100%, 86svh);
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 2.5 / 2.598076211;
+  margin: 0;
+}
+body.sim-app #simulation-home .hex-constellation-container::before,
+body.sim-app #simulation-home .hex-constellation-container::after { display: none; }
+body.sim-app #simulation-home :is(.hex-hub-inner, .hex-satellite-inner) { gap: 8px; padding: 12px 22px; }
+body.sim-app #simulation-home :is(.hex-hub-title, .hex-title) { margin: 0; font-size: clamp(12px, 2.5vw, 20px); }
+body.sim-app #simulation-home :is(.hex-hub-icon, .hex-icon) { margin: 0; }
+body.sim-app #simulation-status {
+  position: absolute;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 560px);
+  min-height: 0;
+}
+body.sim-app #simulation-status:empty { display: none; }
+body.sim-app:has(#world-tiers-landing-page:not(.hidden) #simulation-home:not([hidden])) > .sim-theme-control { display: none; }
+@media (max-width: 420px), (max-height: 480px) {
+  body.sim-app #simulation-home :is(.hex-hub-inner, .hex-satellite-inner) { gap: 5px; padding: 8px 12px; }
+  body.sim-app #simulation-home :is(.hex-hub-icon, .hex-icon) { width: 22px; height: 22px; }
+  body.sim-app #simulation-home :is(.hex-hub-title, .hex-title) { font-size: 12px; }
+}
