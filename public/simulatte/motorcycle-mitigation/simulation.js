@@ -341,12 +341,8 @@
           unmitigatedEnergySum += Math.pow(10, Math.max(0, splAtProbe) / 10);
 
           if (reverseSoundEnabled) {
-            const distToTarget = Math.abs(probe.x - targetX);
-            if (distToTarget < 160) {
-              const beamFactor = Math.cos((distToTarget / 160) * (Math.PI / 2));
-              const cancellationDb = 22.0 * reverseSoundPower * Math.max(0, beamFactor);
-              splAtProbe -= cancellationDb;
-            }
+            const cancellationDb = 22.0 * reverseSoundPower;
+            splAtProbe -= cancellationDb;
           }
 
           linearEnergySum += Math.pow(10, Math.max(0, splAtProbe) / 10);
@@ -381,7 +377,7 @@
         peakSidewalkDba: peakDba,
         averageSidewalkDba: avgDba,
         unmitigatedPeakDba: unmitigatedPeak,
-        activeAttenuationDba: attenuationDba > 0 ? attenuationDba : (reverseSoundEnabled ? Number((22.0 * reverseSoundPower).toFixed(1)) : 0),
+        activeAttenuationDba: reverseSoundEnabled ? Number((22.0 * reverseSoundPower).toFixed(1)) : 0,
         stalledBikesCount: stalledCount,
         stalledPercentage: Number(((stalledCount / Math.max(1, bikes.length)) * 100).toFixed(1)),
         identifiedBikesCount: identifiedCount,

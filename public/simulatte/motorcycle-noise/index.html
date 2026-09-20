@@ -1,74 +1,65 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Motorcycle Noise · Simulatte</title>
-  <meta name="description" content="Explore motorcycle noise, local cancellation, and passive mitigation in a replayable acoustic simulation.">
-  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
-  <script src="../../shared/design/theme-controller.js"></script>
-  <link rel="stylesheet" href="../../shared/design/simulatte.css">
-  <link rel="stylesheet" href="./style.css">
-</head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NYC Motorcycle Noise | Simulatte</title><meta name="description" content="Compare sound redistribution, idealized redirection and active cancellation on NYC geography."><link rel="icon" href="../../favicon.svg"><link rel="stylesheet" href="./reflection.css"></head>
 <body>
-  <header class="page-header"><a class="wordmark" href="../../">Simulatte <span>/</span></a><h1>Motorcycle noise</h1><span class="model-label">Analytical model</span></header>
-  <main>
-    <div class="workspace">
-      <section class="scene" aria-label="Street simulation">
-        <div class="scene-toolbar"><div class="segmented" aria-label="Map measurement">
-          <button data-map="result" aria-pressed="true">Exposure</button><button data-map="difference" aria-pressed="false">Change</button><button data-map="local" aria-pressed="false" id="local-map" hidden>Local control</button>
-        </div><span id="map-caption">Full-pass L<sub>Aeq</sub> · receiver height 1.5 m</span></div>
-        <div class="canvas-wrap"><canvas id="street" width="1100" height="650" tabindex="0" aria-label="Street sound map. Click to move the receiver, or use arrow keys when focused."></canvas>
-          <div class="map-key"><span id="legend-low">50</span><span class="gradient" id="legend-gradient"></span><span id="legend-high">100 dBA</span></div>
-          <span class="map-hint">Click to move the receiver</span>
-        </div>
-        <div class="timeline"><button id="play" aria-label="Play the trajectory" disabled>Play</button><input id="timeline" type="range" min="0" max="3" step="0.01" value="1.5" aria-label="Physical simulation time"><output id="time">1.50 s</output></div>
-        <div class="measurements" aria-live="polite"><div><span>Baseline</span><strong id="before">—</strong><small>L<sub>Aeq,T</sub> · dBA</small></div><div><span>With mitigation</span><strong id="after">—</strong><small>L<sub>Aeq,T</sub> · dBA</small></div><div><span id="receiver-context">At this receiver</span><strong id="difference">—</strong><small id="difference-label">Calculated change</small></div></div>
-        <div class="result-line"><span id="off-target">Run a comparison to see effects across the street.</span><button id="listen" disabled>Listen</button><select id="listen-mode" aria-label="Audio comparison"><option value="residual">With mitigation</option><option value="baseline">Baseline</option></select></div>
-        <small class="audio-note">Starts muted. Playback uses one fixed gain; your speaker volume is not simulated dBA.</small>
-      </section>
-      <aside class="controls" aria-label="Scenario controls">
-        <form id="controls" novalidate>
-          <h2>The pass</h2>
-          <label>Motorcycles <output for="count" id="count-value">3</output><input id="count" name="count" type="range" min="1" max="6" step="1" value="3"></label>
-          <label>Engine<select name="engine"><option value="twin-270">270° twin</option><option value="twin-360">Even-firing twin</option><option value="inline-four">Inline four</option></select></label>
-          <label>Engine speed <output id="rpm-value">4,200 RPM</output><input name="rpm" id="rpm" type="range" min="1200" max="9000" step="100" value="4200"></label>
-          <label>Road speed <output id="speed-value">10 m/s</output><input name="speed" id="speed" type="range" min="0" max="25" step="1" value="10"></label>
-          <h2>Compare mitigation</h2>
-          <label class="sr-only" for="mitigation">Mitigation</label><select name="mitigation" id="mitigation"><option value="none">None</option><option value="barrier" selected>Roadside barrier</option><option value="facade">Absorbing façades</option><option value="active">Local active control</option></select>
-          <div id="controller-fields" hidden><label>Controller<select name="controller"><option value="causal">Causal · microphone observations</option><option value="ideal">Ideal · offline scene knowledge</option></select></label><label>Latency <span>ms</span><input name="latencyMs" type="number" min="0" max="20" step="1" value="2"></label></div>
-          <p id="mode-note" class="mode-note">A 2.5 m barrier changes the direct acoustic path.</p>
-          <button class="primary" id="run" type="submit">Run comparison</button><button id="cancel" type="button" hidden>Cancel</button>
-          <progress id="progress" max="1" value="0" hidden></progress><p id="status" role="status">Preparing the scene</p>
-          <details><summary>Model settings</summary>
-            <label>Reference emission <span>dB Z at 1 m</span><input name="referenceDbZ" type="number" min="60" max="118" value="94"></label>
-            <label>Interval <span>s</span><input name="duration" type="number" min="1" max="6" step="0.5" value="3"></label>
-            <label>Sample rate<select name="sampleRate"><option value="8000">8 kHz</option><option value="16000">16 kHz</option></select></label>
-            <label>Wall reflection order<input name="reflectionOrder" type="number" min="0" max="3" value="1"></label>
-            <label>Barrier height <span>m</span><input name="barrierHeight" type="number" min="0" max="4" step="0.25" value="2.5"></label>
-            <label>Façade absorption<input name="facadeAbsorption" type="number" min="0" max="0.95" step="0.05" value="0.75"></label>
-            <label>Sensor noise <span>Pa</span><input name="sensorNoisePa" type="number" min="0" max="0.1" step="0.001" value="0.003"></label>
-            <label>Sensor clipping <span>Pa</span><input name="sensorClipPa" type="number" min="0.01" max="20" step="0.01" value="8"></label>
-            <label>Speaker limit <span>Pa at 1 m</span><input name="speakerLimitPa" type="number" min="0.01" max="10" step="0.01" value="2"></label>
-            <label>Seed<input name="seed" type="number" min="1" max="2147483647" value="731"></label>
-          </details>
-          <details><summary>Sensing experiment</summary>
-            <label>Microphone clock offsets <span>± ms</span><input name="clockSkewMs" type="number" min="0" max="1" step="0.1" value="0"></label>
-            <label>Camera synchronization error <span>ms</span><input name="cameraOffsetMs" type="number" min="-300" max="300" step="10" value="0"></label>
-            <label>Plate image width <span>px</span><input name="platePixels" type="number" min="12" max="120" step="4" value="96"></label>
-            <label>Motion blur <span>px</span><input name="plateBlur" type="number" min="0" max="4" value="0"></label>
-            <p id="localization">Eight simulated microphones; no real identification.</p>
-            <div class="plates"><figure><canvas id="plate-original" width="192" height="56"></canvas><figcaption>Synthetic original</figcaption></figure><figure><canvas id="plate-observed" width="192" height="56"></canvas><figcaption>Camera observation</figcaption></figure></div><p id="plate-result">Unreadable inputs may remain unreadable.</p>
-          </details>
-        </form>
-      </aside>
-    </div>
-    <section class="inspection"><details><summary>Spectrum &amp; peak level</summary><p id="peak-levels"></p><canvas id="spectrum" width="1000" height="240" aria-label="Baseline and mitigation octave-band spectra"></canvas><p class="caption">Unweighted pressure spectrum; the headline readings apply A-weighting.</p></details>
-      <details><summary>Assumptions &amp; records</summary><ul id="assumptions"></ul><p>Checked against analytical cases. Independent recordings are still required for urban accuracy claims.</p>
-        <div class="record-actions"><button id="export" disabled>Export signed simulation</button><label class="file-button">Open simulation<input type="file" id="import" accept="application/json,.json"></label><a href="https://github.com/clocksmith/simulatte/blob/main/docs/simulatte/motorcycle-noise.md" id="docs-link">Model notes</a></div><p id="record-status" role="status"></p>
-        <p class="caption">Signatures protect record integrity. They do not establish a vehicle identity, physical calibration, or a violation.</p>
-      </details></section>
-  </main>
-  <script src="../../shared/contracts/world-spec-authorship.js"></script><script src="../../shared/contracts/world-spec.js"></script>
-  <script src="./scene.js"></script><script src="./records.js"></script><script src="./view.js"></script><script src="./app.js"></script>
-</body>
-</html>
+<header><a href="../../">Simulatte /</a><h1>Motorcycle noise</h1><small>NYC geometry / idealized acoustics / <span id="backend">Starting renderer</span></small></header>
+<main>
+<div class="workspace">
+<section class="map" aria-label="NYC simulation">
+  <div class="toolbar"><button data-focus="Greenpoint" data-ready disabled>Greenpoint</button><button data-focus="North Williamsburg" data-ready disabled>Williamsburg</button><span class="grow"></span><button id="pause" data-ready disabled>Pause</button><button id="reset" data-ready disabled>Reset pass</button></div>
+  <div class="canvas"><canvas id="city" tabindex="0" aria-label="Three-dimensional NYC map. Drag to orbit; pinch or wheel to zoom. Select a source, or choose a placement control and tap the map."></canvas><div class="key"><span><i style="background:#efa969"></i>Original</span><span><i style="background:#79dfd8"></i>Returned</span><span><i style="background:#c5afe6"></i>Active emitter</span></div></div>
+  <div class="timeline"><input id="timeline" type="range" min="0" max="60" step="0.01" value="0" aria-label="Simulation time"><output id="clock">0.00 s</output><select id="playback" aria-label="Playback speed"><option value="0.15" selected>0.15x</option><option value="0.5">0.5x</option><option value="1">1x</option></select></div>
+  <div class="toolbar"><button data-place="panel" aria-pressed="false" data-ready disabled>Place surface</button><button data-place="listener" aria-pressed="false" data-ready disabled>Place listener</button><label class="check"><input id="paths" type="checkbox" checked>Propagation markers</label></div>
+  <p class="map-note"><span id="sound-speed">--</span> physical sound speed. Orange and cyan arcs mark packet travel, not individual audio cycles.</p><p class="note" id="selected">Select a motorcycle to follow its outgoing and returning paths.</p><p class="note" id="return-status"></p>
+</section>
+<aside><form id="scenario">
+  <h2>Independent treatments</h2>
+  <label class="control">Redirecting surface<select name="surface"><option value="none">No surface</option><option value="flat">Ordinary reflection direction</option><option value="retro" selected>Idealized retroreflection</option></select></label>
+  <label class="check"><input name="cancellation" type="checkbox">Active cancellation at listener</label>
+  <label class="control">Reflected energy fraction<output id="reflectivity-value">0.7</output><input name="reflectivity" type="range" min="0" max="0.9" step="0.05" value="0.7"></label>
+  <label class="control">Panel direction / degrees<input id="panel-angle" type="range" min="-180" max="180" step="1" value="0"></label>
+  <details class="full"><summary>Traffic &amp; signal settings</summary>
+    <label class="control">Motorcycles<output id="motorcycles-value">8</output><input name="motorcycles" type="range" min="0" max="24" step="1" value="8"></label>
+    <label class="control">Cars<output id="cars-value">12</output><input name="cars" type="range" min="0" max="32" step="1" value="12"></label>
+    <label class="control">Pedestrians<output id="pedestrians-value">24</output><input name="pedestrians" type="range" min="0" max="60" step="1" value="24"></label>
+    <label class="control">Road speed / m/s<output id="speed-value">9</output><input name="speed" type="range" min="2" max="14" step="1" value="9"></label>
+    <label class="control">Motorcycle RPM<output id="rpm-value">3600</output><input name="rpm" type="range" min="1200" max="8000" step="100" value="3600"></label>
+    <label class="control">Assumed source level / dB Z at 1 m<output id="sourceDb-value">86</output><input name="sourceDb" type="range" min="60" max="100" step="1" value="86"></label>
+    <label class="control">Background / dBA<output id="background-value">45</output><input name="background" type="range" min="30" max="65" step="1" value="45"></label>
+    <label class="control">Air temperature / C<output id="temperature-value">20</output><input name="temperature" type="range" min="-10" max="40" step="1" value="20"></label>
+    <label class="control">Controller latency / ms<output id="latencyMs-value">2</output><input name="latencyMs" type="range" min="0" max="20" step="1" value="2"></label>
+    <label class="control">Seed<input name="seed" type="number" min="1" max="2147483647" value="731" required></label>
+    <p class="note">Street-following traffic with headway, turns, and modeled signals. Counts and junction timing are synthetic, not measured NYC demand.</p>
+  </details>
+  <button type="submit" data-ready disabled>Restart with traffic settings</button>
+</form></aside>
+</div>
+<div class="toolbar"><button class="primary" id="run" data-ready disabled>Capture &amp; compare</button><button id="cancel" hidden>Cancel</button><progress id="progress" value="0" max="1" hidden aria-label="Measurement progress"></progress><span class="grow"></span><select id="layer" aria-label="Measurement layer"><option value="total">Total exposure</option><option value="returned">Returned contribution</option><option value="baseline">Untreated exposure</option><option value="change">Change from untreated</option></select></div>
+<p id="status" role="status">Loading the city</p>
+<section id="results" class="results" hidden>
+  <div class="metrics"><div><span>Untreated / dBA</span><strong id="before">--</strong></div><div><span>With surface / dBA</span><strong id="surface-level">--</strong></div><div><span>Combined / dBA</span><strong id="after">--</strong></div><div><span>Change at listener</span><strong id="change">--</strong></div></div>
+  <p class="note" id="interval"></p><p class="note" id="off-target"></p>
+  <div class="results-grid">
+    <article><h2>Where the sound goes</h2><div class="table-wrap"><table><thead><tr><th>Observation</th><th>Untreated</th><th>Total</th><th>Returned only</th></tr></thead><tbody id="observer-rows"></tbody></table></div><p class="note">A-weighted levels. Components are not added as decibels. The motorcycle row excludes its own outgoing near field.</p><p id="inference" class="note"></p></article>
+    <article><h2>Spectrum &amp; listening</h2><canvas id="spectrum" class="chart" width="540" height="220" role="img" aria-label="Unweighted octave-band spectra for untreated, surface and combined sound"></canvas><p class="note">Gray: untreated. Cyan: surface. Violet: combined. Bands in Hz; heights in dB Z.</p><div class="toolbar"><button id="listen" disabled>Listen</button><select id="audio-mode" aria-label="Audio signal"><option value="baseline">Original field</option><option value="redirected">Returned contribution</option><option value="total">Combined field</option></select></div><p class="note">Synthetic playback, one fixed gain. Device volume is not simulated SPL.</p></article>
+    <article><h2>Traffic-source energy budget</h2><div id="energy-rows" class="energy"></div><p class="note">Cumulative packet accounting from the start of the pass. Bypassing energy and energy traveling toward the panel remain explicit.</p></article>
+    <article><h2>Powered contribution</h2><p class="note" id="active-energy"></p><p class="note">Active cancellation adds energy; it is not passive redirection. Its pressure can reduce sound locally and increase it elsewhere. Ambient noise is outside the traffic-source packet budget.</p></article>
+  </div>
+</section>
+<div class="toolbar"><button id="export" disabled>Export comparison</button><label class="file">Replay comparison<input id="import" type="file" accept="application/json,.json" data-ready disabled></label></div>
+<section class="method"><details class="method"><summary>Model and limits</summary>
+ <p>NYC street and building geometry; synthetic traffic and sound. These results are not field measurements.</p>
+ <ul>
+ <li>Vehicles use smoothed street paths, acceleration, headway, and modeled junction signals. Pedestrians wait at modeled crossings. Lane direction, counts, and signal timing are assumptions.</li>
+ <li>Acoustics includes finite travel time, up to twelve nearby first-order facade candidates, and approximate roof diffraction. Facade pressure reflection is assumed to be 0.55.</li>
+ <li>Source waveforms include firing harmonics and synthetic broadband noise. The 8 kHz solver omits frequencies above 4 kHz; it is not full-band traffic acoustics.</li>
+ <li>Surface reflection, transmission, and absorption are separate from powered cancellation. The returning field follows emission geometry and may miss a moving motorcycle.</li>
+ <li>The energy ledger covers source emissions and direct panel interception, not a complete canyon energy balance. Active output is accounted for separately.</li>
+ <li>Street samples are 12 m apart. Heatmap colors interpolate acoustic energy between outdoor samples; they do not resolve every interference fringe. Local listener samples are 0.25 m apart.</li>
+ <li>No guaranteed decibel reduction, rider identification, calibrated traffic, or manufactured reflector performance is claimed.</li>
+ </ul></details></section>
+</main>
+<script src="../../shared/contracts/world-spec-authorship.js" defer></script><script src="../../shared/contracts/world-spec.js" defer></script>
+<script src="./vendor/earcut.js" defer></script><script src="./vendor/babylon.js" defer></script>
+<script src="./city-paths.js" defer></script><script src="./traffic-motion.js" defer></script><script src="./reflection-model.js" defer></script><script src="./babylon-city.js" defer></script><script src="./reflection-view.js?v=20260920-frame-lifecycle" defer></script><script src="./reflection-app.js?v=20260920-frame-lifecycle" defer></script>
+</body></html>

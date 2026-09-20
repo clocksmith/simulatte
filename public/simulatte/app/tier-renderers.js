@@ -584,9 +584,9 @@
     ctx.textAlign = 'center'; ctx.fillStyle = heat;
     const [id, temperatureLabel] = marker.label.split(' · ');
     if (width >= 18) ctx.fillText(id, point.x, point.y + height / 2 - 4);
-    if (temperatureLabel && (temperature >= 65 || width >= 28)) {
+    if (temperatureLabel) {
       ctx.fillStyle = '#edf5f3';
-      ctx.fillText(width < 24 ? `${Math.round(temperature)}°` : temperatureLabel, point.x, point.y + height / 2 + 12);
+      ctx.fillText(width < 24 ? `${Math.round(temperature)}°C` : temperatureLabel, point.x, point.y + height / 2 + 12);
     }
     ctx.restore();
     return true;

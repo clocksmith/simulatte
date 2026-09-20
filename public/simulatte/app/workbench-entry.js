@@ -40,20 +40,27 @@
 
   async function prepareSelection(card) {
     preparation?.abort();
-    const controller = new AbortController();
+    const ControllerClass = typeof AbortController === 'function'
+      ? AbortController
+      : (typeof globalThis !== 'undefined' && typeof globalThis.AbortController === 'function' ? globalThis.AbortController : null);
+    const controller = ControllerClass ? new ControllerClass() : { signal: { aborted: false }, abort() {} };
     preparation = controller;
     const status = document.getElementById('simulation-status');
     status.textContent = 'Loading simulation';
     delete status.dataset.state;
     try {
       const animation = effects ? effects.launch(card) : Promise.resolve(true);
-      const runtime = loader.loadRouteRuntime({
-        tierId: card.dataset.tier,
-        profileId: card.dataset.defaultProfile || null,
-        signal: controller.signal,
-      });
+      const runtime = typeof loader.loadRouteRuntime === 'function'
+        ? loader.loadRouteRuntime({
+            tierId: card.dataset.tier,
+            profileId: card.dataset.defaultProfile || null,
+            signal: controller.signal,
+          })
+        : (async () => {
+            for (const scriptPath of (manifest.profileRuntime || [])) await loader.loadScript(scriptPath);
+          })();
       const [, proceed] = await Promise.all([runtime, animation]);
-      if (controller.signal.aborted) return false;
+      if (controller.signal?.aborted) return false;
       status.textContent = '';
       return proceed;
     } finally {
@@ -65,10 +72,14 @@
     if (ready) return;
     if (pending) return pending;
     pending = (async () => {
-      await loader.loadNavigation();
-      const app = root.SimulatteRouteRuntime.create({ landing, beforeSelect: prepareSelection });
-      ready = true;
-      await app.start();
+      if (typeof loader.loadNavigation === 'function') await loader.loadNavigation();
+      if (root.SimulatteRouteRuntime && typeof root.SimulatteRouteRuntime.create === 'function') {
+        const app = root.SimulatteRouteRuntime.create({ landing, beforeSelect: prepareSelection });
+        ready = true;
+        await app.start();
+      } else {
+        ready = true;
+      }
     })();
     try { return await pending; }
     finally { pending = null; }

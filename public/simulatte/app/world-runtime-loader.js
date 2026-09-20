@@ -73,13 +73,15 @@
   }
 
   function preloadScript(path, integrity = null) {
+    if (!root.document?.createElement || !root.document?.head?.appendChild) return;
+    const link = root.document.createElement('link');
+    if (!link || typeof link.remove !== 'function') return;
     const url = scriptUrl(path);
     const existing = loaded.get(url) || preloads.get(url);
     if (existing) {
       assertIntegrity(existing, integrity, url);
       return;
     }
-    const link = root.document.createElement('link');
     link.rel = 'preload';
     link.as = 'script';
     link.href = url;
@@ -92,7 +94,7 @@
   }
 
   function releasePreload(url) {
-    preloads.get(url)?.link.remove();
+    preloads.get(url)?.link.remove?.();
     preloads.delete(url);
   }
 
@@ -205,9 +207,16 @@
     });
   }
 
+  async function loadSelectedRuntime(options = {}) {
+    if (options && options.tierId) return loadRouteRuntime(options);
+    const scripts = manifest().stages.selectedRuntime || [];
+    const result = await loadScripts(scripts, options);
+    return Object.freeze({ scripts: result.scripts });
+  }
+
   return Object.freeze({
     loadSelectedProduct, loadOptionalModel, loadScript, loadModule, loadTierModules,
-    loadNavigation, loadRouteRuntime, loadSelectedRuntime: loadRouteRuntime,
+    loadNavigation, loadRouteRuntime, loadSelectedRuntime,
     pluginScripts, cacheSnapshot,
   });
 });

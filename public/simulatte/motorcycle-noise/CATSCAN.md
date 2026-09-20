@@ -3,42 +3,36 @@
 Parent: [World](../CATSCAN.md)
 
 ## Target
-Compare motorcycle-group sound and non-disabling mitigation through inspectable
-pressure propagation, receiver measurements and uncertain synthetic sensing.
+Compare urban noise distribution, redirection, and cancellation on NYC geometry.
 
 ## Authority
-- Owns the domain WorldSpec adapter, acoustic solver, sensor experiment and page.
-- Uses shared WorldSpec hashing/authorship.
-- Does not own generic contracts, Create compilation or deployment authority.
-- Owns prescribed trajectories, not a validated traffic model.
+- Owns scenario traffic, acoustic calculations, measurements, graphics, and replay.
+- Does not own WorldSpec identity, hardware, or enforcement.
 
 ## Scope
-This directory and its static entrypoint.
+Motorcycle Noise only. Babylon renders; Simulatte owns simulation time and mathematics.
 
 ## Contracts
-- Input: [declared scenario](scenario.json).
-- Output: [simulation](simulation.js), [measurements](signal.js), [page](index.html).
-- Output: signed simulated event records with parameters, units and model identity.
+- Input: sourced [NYC geometry](nyc-map.json) and [scenario parameters](reflection-model.js).
+- Output: [traffic trajectories](traffic-motion.js), [building paths](city-paths.js), [acoustic fields](acoustic-field.js), and [comparisons](reflection-worker.js).
+- Output: [city graphics](babylon-city.js), [interaction](reflection-view.js), and [replay](reflection-app.js).
 
 ## Invariants
-- Propagation uses three-dimensional distance and finite travel time.
-- Active control sums signed pressures through secondary acoustic paths.
-- Causal control sees microphone observations only; ideal control is labeled separately.
-- Metrics bind location, interval, weighting and solver assumptions.
-- Source truth belongs to evaluation, never localization or recognition.
-- Playback starts muted and shares one bounded gain across comparisons.
-- Engine disabling and claims of violation proof are excluded.
-- Frame rate cannot change physical time; imports are bounded and validated.
+- Keep direct, reflected, and powered contributions distinguishable.
+- Calculate finite travel time against moving source trajectories.
+- Do not steer passive returns toward a source's future position.
+- Separate source accounting, panel interception, and powered input.
+- Do not equate a panel ledger with complete canyon energy conservation.
+- Never prescribe cancellation success or infer identity from a spectral peak.
+- Distinguish sourced geometry, synthetic demand, approximate propagation, and measured evidence.
+- Graphics cannot change acoustic results or simulation time.
 
 ## Acceptance
-- Analytical propagation, energy, interference and causality checks pass.
-- Ambiguous sensing abstains; replay and signed-record tampering are tested.
-- Evidence: [domain tests](../../../tests/motorcycle-noise.test.cjs) and desktop/mobile browser captures.
+- Evidence: [Earlier analytical cases](../../../tests/motorcycle-noise.test.cjs) cover the older solver only.
+The NYC traffic, facade paths, combined modes, rendering, and replay changes remain unqualified pending dedicated checks.
 
 ## Non-goals
-Calibrated real-world prediction, city-scale wave solving, identity enforcement,
-or signatures as proof of physical truth.
+Hardware actuation, incapacitation, vehicle interference, personal identification, or field-validation claims.
 
 ## Freedom
-Any implementation is permitted if it preserves declared numerical assumptions,
-authority boundaries and acceptance evidence.
+Any implementation is permitted while preserving these boundaries.
