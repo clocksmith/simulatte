@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulatte | Motorcycle Swarm Acoustic Mitigation & Hydro-Suppression Lab</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <!-- Masthead -->
+  <header class="masthead">
+    <div class="brand">
+      <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="14" cy="14" r="11" />
+        <path d="M7 14h14M14 7v14M9 9l10 10M19 9L9 19" stroke-opacity="0.5" />
+        <circle cx="14" cy="14" r="4" fill="currentColor" fill-opacity="0.15" />
+      </svg>
+      <span>Simulatte</span>
+      <span class="slash">/</span>
+      <span class="brand-section">Urban Sound &amp; Countermeasure Engine</span>
+      <span class="badge-tag">ACOUSTIC-LAB-v1</span>
+    </div>
+    <div class="masthead-right">
+      <button id="audio-toggle-btn" class="text-button" title="Toggle Real-Time Web Audio Engine">
+        <span id="audio-status-icon">&#128263;</span> Audio: <span id="audio-status-text">Muted</span>
+      </button>
+      <button id="export-violations-btn" title="Export Cryptographic Violation Receipts (JSON)">Export Receipts</button>
+      <button id="open-worldspec-btn" title="Inspect or Edit Scenario Parameters">WorldSpec JSON</button>
+    </div>
+  </header>
+
+  <!-- Scene Heading -->
+  <div class="scene-heading">
+    <div>
+      <div class="eyebrow">Acoustic Physics &bull; Non-Lethal Interception &bull; Forensic Provenance</div>
+      <h1>Acoustic Swarm Mitigation <span>&amp; Hydro-Suppression</span></h1>
+      <p class="lede">
+        Multi-layer non-lethal countermeasure framework for illegal loud motorcycle swarms in urban corridors.
+        Combines directional anti-phase acoustic wave cancellation, atomized micro-mist engine combustion quenching,
+        and Super-Resolution plate deblurring with SHA-256 evidentiary violation receipts.
+      </p>
+    </div>
+    <div class="scenario-select-wrap">
+      <label for="scenario-select" class="small-mono">URBAN ENVIRONMENT SCENARIO</label>
+      <select id="scenario-select">
+        <option value="avenue-straight-pipe-run" selected>Avenue Straight-Pipe Run (16 Bikes, 4 Lanes)</option>
+        <option value="bridge-reverberation-canyon">Bridge Reverberation Corridor (12 Bikes, Max Reverb)</option>
+        <option value="residential-night-sideshow">Residential Night Sideshow (10 Bikes, Dense Blocks)</option>
+        <option value="multi-corridor-intercept">Multi-Corridor Intercept (20 Bikes, Evasive Swarm)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Main Workspace -->
+  <div class="workspace">
+    <!-- Visual Column -->
+    <div class="visual-column">
+      <!-- Viewport -->
+      <div class="viewport-container" id="viewport-container">
+        <canvas id="simulation-canvas"></canvas>
+
+        <!-- Viewport Overlays -->
+        <div class="viewport-overlay">
+          <div class="pill">
+            <span class="pill-dot active-acoustic" id="pill-acoustic-dot"></span>
+            <span>PHASE INVERSION BEAM: <b id="pill-acoustic-state">ACTIVE</b></span>
+          </div>
+          <div class="pill">
+            <span class="pill-dot active-hydro" id="pill-hydro-dot"></span>
+            <span>MICRO-MIST CURTAIN: <b id="pill-hydro-state">STANDBY</b></span>
+          </div>
+          <div class="pill">
+            <span class="pill-dot active-plate" id="pill-plate-dot"></span>
+            <span>FORENSIC TRACKER: <b id="pill-plate-state">ONLINE</b></span>
+          </div>
+        </div>
+
+        <div class="viewport-tools">
+          <button id="view-mode-btn" title="Toggle Sound Pressure Field Heatmap">Mode: Heatmap + Swarm</button>
+          <button id="recenter-btn" title="Reset Camera View">Center</button>
+        </div>
+
+        <div class="viewport-legend">
+          <div class="legend-item">
+            <span class="legend-swatch" style="background:#22c55e;"></span>
+            <span>Normal</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background:#eab308;"></span>
+            <span>Misfiring</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background:#ef4444;"></span>
+            <span>Stalled (Quenched)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background:#3b82f6;"></span>
+            <span>Anti-Phase Beam</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background:#06b6d4;"></span>
+            <span>Mist Gantry</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background:#8b5cf6;"></span>
+            <span>Optical Tracking Gantry</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transport Controls -->
+      <div class="transport">
+        <button id="play-pause-btn" class="run-btn">
+          <span id="play-icon">&#9654;</span> <span id="play-text">Start Simulation</span>
+        </button>
+        <button id="step-btn" title="Advance simulation by 0.1s">&#9197; Step (0.1s)</button>
+        <button id="reset-btn" title="Reset scenario to initial state">&#8634; Reset</button>
+
+        <div class="simulation-clock">
+          <strong id="sim-time-display">00:00.00</strong>
+          <span id="sim-tick-display">TICK 0 &bull; DT 0.05s</span>
+        </div>
+
+        <div class="speed-wrap">
+          <label for="speed-select" class="small-mono">PLAYBACK SPEED</label>
+          <select id="speed-select">
+            <option value="0.25">0.25x</option>
+            <option value="0.5">0.5x</option>
+            <option value="1.0" selected>1.0x</option>
+            <option value="2.0">2.0x</option>
+            <option value="4.0">4.0x</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- KPI Readouts -->
+      <div class="readouts">
+        <div class="readout-card">
+          <div class="eyebrow">Peak Sidewalk SPL</div>
+          <strong id="readout-peak-spl">--<small>dBA</small></strong>
+          <span class="readout-sub" id="readout-baseline-spl">Unmitigated baseline: -- dBA</span>
+        </div>
+        <div class="readout-card">
+          <div class="eyebrow">Active Phased Attenuation</div>
+          <strong id="readout-attenuation" style="color:var(--acoustic);">--<small>dB</small></strong>
+          <span class="readout-sub">Destructive wave superposition</span>
+        </div>
+        <div class="readout-card">
+          <div class="eyebrow">Engine Quench / Stall Rate</div>
+          <strong id="readout-stall-rate" style="color:var(--hydro);">--<small>%</small></strong>
+          <span class="readout-sub" id="readout-stall-counts">0 / 16 bikes quenched</span>
+        </div>
+        <div class="readout-card">
+          <div class="eyebrow">Identified Violations</div>
+          <strong id="readout-identified" style="color:var(--plate);">--<small>Plates</small></strong>
+          <span class="readout-sub" id="readout-receipts-count">0 cryptographically sealed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inspector Sidebar -->
+    <div class="inspector">
+      <div class="panel-header">
+        <h2>Countermeasure Console</h2>
+        <span class="small-mono">DEFENSE MATRIX</span>
+      </div>
+
+      <!-- Selected Bike Inspector -->
+      <div class="control-section" style="border-bottom: 1px solid var(--rule); padding: 12px 18px;">
+        <div class="eyebrow" style="margin-bottom:6px;">Target Vehicle Inspector</div>
+        <div id="selected-bike-container" class="selected-bike-card">
+          <div style="font-weight:600; display:flex; justify-content:space-between;">
+            <span id="insp-bike-id">Select a motorcycle on canvas</span>
+            <span id="insp-bike-state" class="badge-tag">IDLE</span>
+          </div>
+          <dl class="bike-attr-grid" id="insp-bike-details" style="display:none;">
+            <dt>Engine Arch</dt><dd id="insp-bike-engine">--</dd>
+            <dt>Intake Style</dt><dd id="insp-bike-intake">--</dd>
+            <dt>Current RPM</dt><dd id="insp-bike-rpm">--</dd>
+            <dt>Calculated SPL</dt><dd id="insp-bike-spl">--</dd>
+            <dt>Water Ingestion</dt><dd id="insp-bike-water">--</dd>
+            <dt>Plate &amp; Confidence</dt><dd id="insp-bike-plate">--</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Countermeasure 1: Reverse Sound Engineering -->
+      <details class="control-section" open>
+        <summary>
+          <span>1. Acoustic Phased Array Inversion</span>
+          <span class="small-mono" style="color:var(--acoustic);">BEAMFORMING</span>
+        </summary>
+        <div class="control-body">
+          <div class="toggle-row">
+            <span>Enable Anti-Phase Array</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ctrl-reverse-sound" checked>
+              <span class="slider-round acoustic-toggle"></span>
+            </label>
+          </div>
+
+          <div class="control-row">
+            <div class="control-label-row">
+              <label for="ctrl-sound-power">Phased Array Output Power</label>
+              <output id="val-sound-power">85%</output>
+            </div>
+            <input type="range" id="ctrl-sound-power" min="0" max="1" step="0.05" value="0.85">
+          </div>
+
+          <div class="control-row">
+            <div class="control-label-row">
+              <label>Target Wave Phase Angle</label>
+              <output>180&deg; (Inverted)</output>
+            </div>
+            <div class="math-formula">P_anti(t) = -P_inc(t - &Delta;t)</div>
+          </div>
+
+          <p class="control-note">
+            Emits synthesized inverse acoustic wavefronts matched to the primary cylinder firing harmonic orders.
+            Provides 15&ndash;25 dBA localized destructive attenuation.
+          </p>
+        </div>
+      </details>
+
+      <!-- Countermeasure 2: Targeted Hydro-Suppression -->
+      <details class="control-section" open>
+        <summary>
+          <span>2. Targeted Hydro-Suppression</span>
+          <span class="small-mono" style="color:var(--hydro);">MIST CURTAIN</span>
+        </summary>
+        <div class="control-body">
+          <div class="toggle-row">
+            <span>Deploy Atomized Mist Curtain</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ctrl-hydro-suppression">
+              <span class="slider-round hydro-toggle"></span>
+            </label>
+          </div>
+
+          <div class="control-row">
+            <div class="control-label-row">
+              <label for="ctrl-mist-rate">Micro-Mist Injection Density</label>
+              <output id="val-mist-rate">95 g/s/m</output>
+            </div>
+            <input type="range" id="ctrl-mist-rate" min="10" max="250" step="5" value="95">
+          </div>
+
+          <div class="control-row">
+            <div class="control-label-row">
+              <label>Droplet Aerodynamic Diameter</label>
+              <output>20 &mu;m (SMD)</output>
+            </div>
+            <div class="math-formula">m_water / m_air &gt; 0.08 &rArr; Quench Flame</div>
+          </div>
+
+          <p class="control-note">
+            Overhead nozzles atomize a non-wetting micro-mist curtain. Ingested through open velocity stacks or pod filters,
+            latent heat of vaporization cools the charge below <i>T</i><sub>autoignition</sub>, quenching combustion safely.
+          </p>
+        </div>
+      </details>
+
+      <!-- Countermeasure 3: Acoustic Fingerprinting & Plate Tracking -->
+      <details class="control-section" open>
+        <summary>
+          <span>3. Forensics &amp; Plate Deblurring</span>
+          <span class="small-mono" style="color:var(--plate);">EVIDENTIARY</span>
+        </summary>
+        <div class="control-body">
+          <div class="toggle-row">
+            <span>Acoustic Tracking &amp; OCR</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ctrl-acoustic-tracking" checked>
+              <span class="slider-round plate-toggle"></span>
+            </label>
+          </div>
+
+          <div class="control-row">
+            <div class="control-label-row">
+              <label for="ctrl-tracking-threshold">Trigger Noise Threshold</label>
+              <output id="val-tracking-threshold">95 dBA</output>
+            </div>
+            <input type="range" id="ctrl-tracking-threshold" min="70" max="120" step="1" value="95">
+          </div>
+
+          <div class="control-row">
+            <div class="control-label-row">
+              <label>Plate Deblur Model</label>
+              <output>Project #31 (Super-Res)</output>
+            </div>
+            <div class="math-formula">H(f) = Triangulate &amp; Sign(SHA-256)</div>
+          </div>
+
+          <p class="control-note">
+            GCC-PHAT microphone array steers narrow-angle high-speed optical capture. Applies motion deblurring
+            to resolve obscured plates and generates immutable violation receipts with cryptographic seals.
+          </p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Analysis Row: Corridor Acoustic Profile & Violations Log -->
+  <div class="analysis-row">
+    <!-- Chart Panel -->
+    <div class="analysis-panel">
+      <div class="chart-header">
+        <h3>Acoustic Sound Pressure Profile along Corridor</h3>
+        <div class="chart-legend">
+          <span style="color:#ef4444; display:flex; align-items:center; gap:4px;">
+            <span style="width:10px; height:2px; background:#ef4444; display:inline-block;"></span> Unmitigated
+          </span>
+          <span style="color:var(--acoustic); display:flex; align-items:center; gap:4px;">
+            <span style="width:10px; height:2px; background:var(--acoustic); display:inline-block;"></span> Mitigated
+          </span>
+          <span style="color:#16a34a; display:flex; align-items:center; gap:4px;">
+            <span style="width:10px; height:1px; border-top:1px dashed #16a34a; display:inline-block;"></span> EPA Limit (75 dBA)
+          </span>
+        </div>
+      </div>
+      <div class="chart-svg-wrap">
+        <svg id="acoustic-profile-svg" viewBox="0 0 500 150" preserveAspectRatio="none">
+          <!-- Grid lines -->
+          <line x1="0" y1="30" x2="500" y2="30" stroke="#d7d9d0" stroke-width="1" stroke-dasharray="2,2" />
+          <line x1="0" y1="75" x2="500" y2="75" stroke="#d7d9d0" stroke-width="1" stroke-dasharray="2,2" />
+          <line x1="0" y1="120" x2="500" y2="120" stroke="#d7d9d0" stroke-width="1" stroke-dasharray="2,2" />
+          <!-- EPA Limit Line at 75 dBA -->
+          <line x1="0" y1="105" x2="500" y2="105" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4,4" />
+          <!-- Paths dynamically drawn by JS -->
+          <path id="unmitigated-spl-path" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.8" />
+          <path id="mitigated-spl-path" fill="none" stroke="#1d4ed8" stroke-width="2.5" />
+        </svg>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--muted); font-family:PlexMono,monospace;">
+        <span>X = 0 m (Corridor Entrance)</span>
+        <span>X = 400 m (Gantry Zone)</span>
+        <span>X = 800 m (Corridor Exit)</span>
+      </div>
+    </div>
+
+    <!-- Receipts Panel -->
+    <div class="analysis-panel">
+      <div class="chart-header">
+        <h3>Cryptographic Violation Receipts Log</h3>
+        <span class="small-mono" id="receipt-counter">0 RECORDED</span>
+      </div>
+      <div class="violations-table-wrap">
+        <table class="violations-table">
+          <thead>
+            <tr>
+              <th>TIME</th>
+              <th>BIKE ID</th>
+              <th>ENGINE</th>
+              <th>SPL</th>
+              <th>LICENSE PLATE</th>
+              <th>CONF</th>
+              <th>SEAL (SHA-256)</th>
+            </tr>
+          </thead>
+          <tbody id="violations-tbody">
+            <tr>
+              <td colspan="7" style="text-align:center; color:var(--muted); padding:16px;">
+                No acoustic violations logged yet. Enable tracking or run simulation.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theoretical & Physical Principles Accordion -->
+  <div class="principles-section">
+    <details>
+      <summary>Theoretical Foundations &amp; Physical Engineering Principles (Click to Expand)</summary>
+      <div class="principles-grid">
+        <div class="principle-card">
+          <h4>1. Destructive Acoustic Wave Superposition</h4>
+          <p>
+            An unbaffled straight-pipe exhaust emits acoustic pressure peaks exceeding 115&ndash;125 dBA at 1 meter.
+            The phased array synthesizes an exact inverted pressure wave:
+          </p>
+          <div class="math-formula">P_res(&theta;, t) = P_incident(&theta;, t) + P_array(&theta;, t - &Delta;t)</div>
+          <p>
+            When phase coherence is locked to 180&deg; (&pi; rads), acoustic energy transfers into localized air particle motion
+            rather than propagated sound pressure, producing 15 to 25 dBA of localized attenuation in urban street canyons.
+          </p>
+        </div>
+
+        <div class="principle-card">
+          <h4>2. Micro-Mist Combustion Quenching</h4>
+          <p>
+            Water possesses an exceptionally high latent heat of vaporization (&Delta;H_vap = 2260 kJ/kg).
+            When bikes with open velocity stacks or exposed pod filters enter the 20 &mu;m atomized micro-mist curtain:
+          </p>
+          <div class="math-formula">Q_absorbed = m_water &bull; (c_p &Delta;T + &Delta;H_vap)</div>
+          <p>
+            When the ingested water-to-air mass ratio exceeds 0.04, combustion misfires occur. Exceeding 0.08 quenches the flame kernel
+            and collapses spark plug dielectric insulation resistance below 1 M&Omega;, stalling the engine smoothly without pavement slickness.
+          </p>
+        </div>
+
+        <div class="principle-card">
+          <h4>3. GCC-PHAT &amp; Immutable Forensics</h4>
+          <p>
+            A generalized cross-correlation with phase transform (GCC-PHAT) microphone array calculates time difference of arrival (TDOA)
+            to triangulate individual exhaust emitters within &plusmn;0.15 meters:
+          </p>
+          <div class="math-formula">R_xy(&tau;) = &int; [ X(f) Y*(f) / |X(f) Y*(f)| ] e^(j 2&pi; f &tau;) df</div>
+          <p>
+            Triggered optical arrays capture high-speed frames, apply point spread function (PSF) deconvolution,
+            and bind telemetry, acoustic spectrum, and plate text into an immutable cryptographic hash.
+          </p>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div>
+      <strong>Simulatte Urban Physics Matrix</strong> &bull; Non-lethal swarm countermeasure and forensic validation testbed.
+    </div>
+    <div>
+      <span class="mono">ZERO DURABILITY DEVIATIONS &bull; REPRODUCIBLE RECEPTIVITY</span>
+    </div>
+  </footer>
+
+  <!-- WorldSpec Modal Dialog -->
+  <dialog id="worldspec-dialog">
+    <div class="dialog-heading">
+      <h3>WorldSpec Scenario &amp; Mitigation Parameters</h3>
+      <button id="close-worldspec-btn">&times;</button>
+    </div>
+    <p class="small-mono">Inspect or modify the underlying simulation definition JSON. Click Apply to reload state.</p>
+    <textarea id="worldspec-textarea" class="json-editor"></textarea>
+    <div class="dialog-actions">
+      <button id="reset-worldspec-btn">Reset Defaults</button>
+      <button id="apply-worldspec-btn" style="background:var(--ink); color:var(--paper);">Apply Changes</button>
+    </div>
+  </dialog>
+
+  <!-- Application Scripts -->
+  <script src="./simulation.js"></script>
+  <script src="./audio-engine.js"></script>
+  <script>
+    (function runSimulatteApp() {
+      'use strict';
+
+      // Ensure globals are available
+      const SimApi = window.SimulatteMotorcycleSimulation;
+      const AudioApi = window.SimulatteMotorcycleAudio;
+
+      if (!SimApi) {
+        console.error('SimulatteMotorcycleSimulation module not loaded.');
+        return;
+      }
+
+      // DOM Elements
+      const canvas = document.getElementById('simulation-canvas');
+      const ctx = canvas.getContext('2d');
+      const scenarioSelect = document.getElementById('scenario-select');
+      const playPauseBtn = document.getElementById('play-pause-btn');
+      const playIcon = document.getElementById('play-icon');
+      const playText = document.getElementById('play-text');
+      const stepBtn = document.getElementById('step-btn');
+      const resetBtn = document.getElementById('reset-btn');
+      const speedSelect = document.getElementById('speed-select');
+      const audioToggleBtn = document.getElementById('audio-toggle-btn');
+      const audioStatusIcon = document.getElementById('audio-status-icon');
+      const audioStatusText = document.getElementById('audio-status-text');
+      const simTimeDisplay = document.getElementById('sim-time-display');
+      const simTickDisplay = document.getElementById('sim-tick-display');
+
+      // KPIs
+      const readoutPeakSpl = document.getElementById('readout-peak-spl');
+      const readoutBaselineSpl = document.getElementById('readout-baseline-spl');
+      const readoutAttenuation = document.getElementById('readout-attenuation');
+      const readoutStallRate = document.getElementById('readout-stall-rate');
+      const readoutStallCounts = document.getElementById('readout-stall-counts');
+      const readoutIdentified = document.getElementById('readout-identified');
+      const readoutReceiptsCount = document.getElementById('readout-receipts-count');
+
+      // Controls
+      const ctrlReverseSound = document.getElementById('ctrl-reverse-sound');
+      const ctrlSoundPower = document.getElementById('ctrl-sound-power');
+      const valSoundPower = document.getElementById('val-sound-power');
+      const ctrlHydro = document.getElementById('ctrl-hydro-suppression');
+      const ctrlMistRate = document.getElementById('ctrl-mist-rate');
+      const valMistRate = document.getElementById('val-mist-rate');
+      const ctrlAcousticTracking = document.getElementById('ctrl-acoustic-tracking');
+      const ctrlTrackingThreshold = document.getElementById('ctrl-tracking-threshold');
+      const valTrackingThreshold = document.getElementById('val-tracking-threshold');
+
+      // Overlays
+      const pillAcousticDot = document.getElementById('pill-acoustic-dot');
+      const pillAcousticState = document.getElementById('pill-acoustic-state');
+      const pillHydroDot = document.getElementById('pill-hydro-dot');
+      const pillHydroState = document.getElementById('pill-hydro-state');
+      const pillPlateDot = document.getElementById('pill-plate-dot');
+      const pillPlateState = document.getElementById('pill-plate-state');
+
+      // Inspector
+      const inspBikeContainer = document.getElementById('selected-bike-container');
+      const inspBikeId = document.getElementById('insp-bike-id');
+      const inspBikeState = document.getElementById('insp-bike-state');
+      const inspBikeDetails = document.getElementById('insp-bike-details');
+      const inspBikeEngine = document.getElementById('insp-bike-engine');
+      const inspBikeIntake = document.getElementById('insp-bike-intake');
+      const inspBikeRpm = document.getElementById('insp-bike-rpm');
+      const inspBikeSpl = document.getElementById('insp-bike-spl');
+      const inspBikeWater = document.getElementById('insp-bike-water');
+      const inspBikePlate = document.getElementById('insp-bike-plate');
+
+      // Chart & Table
+      const unmitigatedSplPath = document.getElementById('unmitigated-spl-path');
+      const mitigatedSplPath = document.getElementById('mitigated-spl-path');
+      const violationsTbody = document.getElementById('violations-tbody');
+      const receiptCounter = document.getElementById('receipt-counter');
+      const exportViolationsBtn = document.getElementById('export-violations-btn');
+
+      // Dialog
+      const worldspecDialog = document.getElementById('worldspec-dialog');
+      const openWorldspecBtn = document.getElementById('open-worldspec-btn');
+      const closeWorldspecBtn = document.getElementById('close-worldspec-btn');
+      const resetWorldspecBtn = document.getElementById('reset-worldspec-btn');
+      const applyWorldspecBtn = document.getElementById('apply-worldspec-btn');
+      const worldspecTextarea = document.getElementById('worldspec-textarea');
+
+      // Audio & Simulation Instances
+      let sim = SimApi.createSimulation({ scenarioId: scenarioSelect.value });
+      let audio = AudioApi ? AudioApi.createAudioEngine() : null;
+
+      let isRunning = false;
+      let playbackSpeed = 1.0;
+      let selectedBikeId = null;
+      let lastFrameTime = performance.now();
+      let viewMode = 'heatmap'; // 'heatmap' or 'clean'
+
+      function resizeCanvas() {
+        const container = canvas.parentElement;
+        const dpr = window.devicePixelRatio || 1;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      // Controls Binding
+      function syncControlsToSim() {
+        sim.setControl('reverseSoundEnabled', ctrlReverseSound.checked);
+        sim.setControl('reverseSoundPower', parseFloat(ctrlSoundPower.value));
+        sim.setControl('hydroSuppressionEnabled', ctrlHydro.checked);
+        sim.setControl('hydroMistRate', parseFloat(ctrlMistRate.value));
+        sim.setControl('acousticTrackingEnabled', ctrlAcousticTracking.checked);
+        sim.setControl('trackingThresholdDba', parseFloat(ctrlTrackingThreshold.value));
+
+        // Update pills
+        pillAcousticDot.className = 'pill-dot ' + (ctrlReverseSound.checked ? 'active-acoustic' : '');
+        pillAcousticState.textContent = ctrlReverseSound.checked ? 'ACTIVE (' + Math.round(ctrlSoundPower.value * 100) + '%)' : 'STANDBY';
+
+        pillHydroDot.className = 'pill-dot ' + (ctrlHydro.checked ? 'active-hydro' : '');
+        pillHydroState.textContent = ctrlHydro.checked ? 'MISTING (' + ctrlMistRate.value + 'g/s)' : 'STANDBY';
+
+        pillPlateDot.className = 'pill-dot ' + (ctrlAcousticTracking.checked ? 'active-plate' : '');
+        pillPlateState.textContent = ctrlAcousticTracking.checked ? 'ONLINE' : 'OFFLINE';
+      }
+
+      ctrlReverseSound.addEventListener('change', () => { syncControlsToSim(); });
+      ctrlSoundPower.addEventListener('input', () => {
+        valSoundPower.textContent = Math.round(ctrlSoundPower.value * 100) + '%';
+        syncControlsToSim();
+      });
+      ctrlHydro.addEventListener('change', () => {
+        syncControlsToSim();
+        if (ctrlHydro.checked && audio) audio.triggerMistSound();
+      });
+      ctrlMistRate.addEventListener('input', () => {
+        valMistRate.textContent = ctrlMistRate.value + ' g/s/m';
+        syncControlsToSim();
+      });
+      ctrlAcousticTracking.addEventListener('change', () => { syncControlsToSim(); });
+      ctrlTrackingThreshold.addEventListener('input', () => {
+        valTrackingThreshold.textContent = ctrlTrackingThreshold.value + ' dBA';
+        syncControlsToSim();
+      });
+
+      // Transport Buttons
+      playPauseBtn.addEventListener('click', () => {
+        isRunning = !isRunning;
+        if (isRunning) {
+          playIcon.innerHTML = '&#10074;&#10074;';
+          playText.textContent = 'Pause Simulation';
+          if (audio) audio.initAudio();
+        } else {
+          playIcon.innerHTML = '&#9654;';
+          playText.textContent = 'Resume Simulation';
+        }
+      });
+
+      stepBtn.addEventListener('click', () => {
+        sim.step(0.1);
+        updateDisplay();
+        renderCanvas();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        sim.reset();
+        selectedBikeId = null;
+        updateDisplay();
+        renderCanvas();
+      });
+
+      speedSelect.addEventListener('change', () => {
+        playbackSpeed = parseFloat(speedSelect.value);
+      });
+
+      scenarioSelect.addEventListener('change', () => {
+        sim = SimApi.createSimulation({ scenarioId: scenarioSelect.value });
+        selectedBikeId = null;
+        syncControlsToSim();
+        updateDisplay();
+        renderCanvas();
+      });
+
+      audioToggleBtn.addEventListener('click', () => {
+        if (!audio) return;
+        const muted = audio.toggleMute();
+        if (muted) {
+          audioStatusIcon.innerHTML = '&#128263;';
+          audioStatusText.textContent = 'Muted';
+        } else {
+          audioStatusIcon.innerHTML = '&#128266;';
+          audioStatusText.textContent = 'Live Audio';
+        }
+      });
+
+      document.getElementById('view-mode-btn').addEventListener('click', () => {
+        viewMode = viewMode === 'heatmap' ? 'clean' : 'heatmap';
+        document.getElementById('view-mode-btn').textContent = viewMode === 'heatmap' ? 'Mode: Heatmap + Swarm' : 'Mode: Clean Corridor';
+        renderCanvas();
+      });
+
+      document.getElementById('recenter-btn').addEventListener('click', () => {
+        renderCanvas();
+      });
+
+      // Simulation Loop
+      function loop(now) {
+        requestAnimationFrame(loop);
+        const delta = Math.min(0.1, (now - lastFrameTime) / 1000);
+        lastFrameTime = now;
+
+        if (isRunning) {
+          const simDt = delta * playbackSpeed;
+          sim.step(simDt);
+          if (audio) audio.updateFromSimulation(sim.getState());
+        }
+
+        updateDisplay();
+        renderCanvas();
+      }
+
+      // Update KPIs, Telemetry, Charts, and Tables
+      function updateDisplay() {
+        const state = sim.getState();
+        const metrics = state.metrics;
+
+        // Clock
+        const totalSecs = state.currentTime;
+        const mins = Math.floor(totalSecs / 60);
+        const secs = (totalSecs % 60).toFixed(2).padStart(5, '0');
+        simTimeDisplay.textContent = `${String(mins).padStart(2, '0')}:${secs}`;
+        simTickDisplay.textContent = `TICK ${state.tickCount} \u2022 SPEED ${playbackSpeed}x`;
+
+        // KPIs
+        readoutPeakSpl.innerHTML = `${metrics.peakSidewalkDba.toFixed(1)}<small>dBA</small>`;
+        readoutBaselineSpl.textContent = `Unmitigated baseline: ${metrics.unmitigatedPeakDba.toFixed(1)} dBA`;
+        readoutAttenuation.innerHTML = `-${metrics.activeAttenuationDba.toFixed(1)}<small>dB</small>`;
+        readoutStallRate.innerHTML = `${metrics.stalledPercentage.toFixed(1)}<small>%</small>`;
+        readoutStallCounts.textContent = `${metrics.stalledBikesCount} / ${state.bikes.length} bikes quenched`;
+        readoutIdentified.innerHTML = `${metrics.identifiedBikesCount}<small>Plates</small>`;
+        readoutReceiptsCount.textContent = `${metrics.violationsIssuedCount} cryptographically sealed`;
+
+        // Update Selected Bike Card
+        if (selectedBikeId) {
+          const bike = state.bikes.find(b => b.id === selectedBikeId);
+          if (bike) {
+            inspBikeId.textContent = `Vehicle #${bike.id}`;
+            inspBikeState.textContent = bike.engineState.toUpperCase();
+            inspBikeState.style.background = bike.engineState === 'normal' ? '#bbf7d0' : (bike.engineState === 'misfire' ? '#fed7aa' : '#fecaca');
+            inspBikeState.style.color = bike.engineState === 'normal' ? '#166534' : (bike.engineState === 'misfire' ? '#9a3412' : '#991b1b');
+            inspBikeDetails.style.display = 'grid';
+            inspBikeEngine.textContent = `${bike.engineType} (${bike.engineProfile.cylinders} cyl, ${bike.engineProfile.displacementCc}cc)`;
+            inspBikeIntake.textContent = bike.intakeType.replace(/_/g, ' ');
+            inspBikeRpm.textContent = `${Math.round(bike.rpm)} RPM (${(bike.vx * 2.237).toFixed(1)} mph)`;
+            inspBikeSpl.textContent = `${bike.spl.toFixed(1)} dBA @ 1m`;
+            inspBikeWater.textContent = `${bike.waterIngestionG.toFixed(2)} g (${(bike.intakeSaturationRatio * 100).toFixed(1)}% sat)`;
+            inspBikePlate.textContent = `${bike.plate.number} (${Math.round(bike.plate.deblurConfidence * 100)}% conf)`;
+          }
+        }
+
+        // Update Corridor SPL Profile Chart
+        updateSplChart(state.soundProbes);
+
+        // Update Violations Table
+        updateViolationsTable(state.violationReceipts);
+      }
+
+      function updateSplChart(probes) {
+        if (!probes || probes.length === 0) return;
+        const width = 500;
+        const height = 150;
+        const minSpl = 60;
+        const maxSpl = 130;
+
+        function toY(spl) {
+          const clamped = Math.max(minSpl, Math.min(maxSpl, spl));
+          return height - ((clamped - minSpl) / (maxSpl - minSpl)) * height;
+        }
+
+        const maxM = probes[probes.length - 1].x;
+        let dUnmit = '';
+        let dMit = '';
+
+        for (let i = 0; i < probes.length; i++) {
+          const p = probes[i];
+          const px = (p.x / maxM) * width;
+          const pyUnmit = toY(p.unmitigatedDba);
+          const pyMit = toY(p.dba);
+
+          if (i === 0) {
+            dUnmit += `M ${px.toFixed(1)},${pyUnmit.toFixed(1)}`;
+            dMit += `M ${px.toFixed(1)},${pyMit.toFixed(1)}`;
+          } else {
+            dUnmit += ` L ${px.toFixed(1)},${pyUnmit.toFixed(1)}`;
+            dMit += ` L ${px.toFixed(1)},${pyMit.toFixed(1)}`;
+          }
+        }
+
+        unmitigatedSplPath.setAttribute('d', dUnmit);
+        mitigatedSplPath.setAttribute('d', dMit);
+      }
+
+      let lastReceiptCount = 0;
+      function updateViolationsTable(receipts) {
+        if (receipts.length === lastReceiptCount) return;
+        lastReceiptCount = receipts.length;
+        receiptCounter.textContent = `${receipts.length} RECORDED`;
+
+        if (receipts.length === 0) {
+          violationsTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:16px;">No acoustic violations logged yet.</td></tr>`;
+          return;
+        }
+
+        const rowsHtml = receipts.slice(-8).reverse().map(r => {
+          const timeStr = r.timestampSec.toFixed(2) + 's';
+          return `<tr>
+            <td>${timeStr}</td>
+            <td>#${r.bikeId}</td>
+            <td>${r.engineType}</td>
+            <td style="color:#b91c1c; font-weight:600;">${r.measuredSplDba.toFixed(1)} dBA</td>
+            <td><span class="plate-tag">${r.plateNumber}</span></td>
+            <td>${Math.round(r.deblurConfidence * 100)}%</td>
+            <td class="hash-cell" title="${r.hashSeal}">${r.hashSeal.substring(0, 16)}&hellip;</td>
+          </tr>`;
+        }).join('');
+
+        violationsTbody.innerHTML = rowsHtml;
+      }
+
+      // Render Canvas
+      function renderCanvas() {
+        const state = sim.getState();
+        const scenario = state.scenario;
+        const bikes = state.bikes;
+        const w = canvas.parentElement.clientWidth;
+        const h = canvas.parentElement.clientHeight;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Background Asphalt
+        ctx.fillStyle = '#1c201e';
+        ctx.fillRect(0, 0, w, h);
+
+        // Corridor Geometry Scales
+        const marginY = 60;
+        const roadHeight = h - marginY * 2;
+        const laneCount = scenario.laneCount || 4;
+        const laneHeight = roadHeight / laneCount;
+        const roadLengthM = scenario.corridorLengthM || 800;
+        const scaleX = w / roadLengthM;
+
+        // Sidewalks & Building Canyon Walls
+        ctx.fillStyle = '#2d332e';
+        ctx.fillRect(0, 0, w, marginY);
+        ctx.fillRect(0, h - marginY, w, marginY);
+
+        // Curbs
+        ctx.strokeStyle = '#6b7280';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, marginY);
+        ctx.lineTo(w, marginY);
+        ctx.moveTo(0, h - marginY);
+        ctx.lineTo(w, h - marginY);
+        ctx.stroke();
+
+        // Lane Markings
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.setLineDash([12, 16]);
+        ctx.lineWidth = 1.5;
+        for (let l = 1; l < laneCount; l++) {
+          const y = marginY + l * laneHeight;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Heatmap rendering mode
+        if (viewMode === 'heatmap') {
+          renderSplHeatmap(state.soundProbes, w, marginY, roadHeight);
+        }
+
+        // Draw Mitigation Gantries
+        drawGantries(w, h, marginY, roadHeight, scaleX, state.controls);
+
+        // Draw Bikes
+        bikes.forEach((bike) => {
+          drawBike(bike, scaleX, marginY, roadHeight, laneCount);
+        });
+      }
+
+      function renderSplHeatmap(probes, w, marginY, roadHeight) {
+        if (!probes || probes.length === 0) return;
+        const probeSpacingPx = w / probes.length;
+
+        for (let i = 0; i < probes.length; i++) {
+          const p = probes[i];
+          const x = (p.x / sim.scenario.corridorLengthM) * w;
+          const dba = p.dba;
+          if (dba > 75) {
+            const intensity = Math.min(1.0, (dba - 75) / 45);
+            const red = Math.floor(intensity * 255);
+            const blue = Math.floor((1 - intensity) * 200);
+            ctx.fillStyle = `rgba(${red}, 40, ${blue}, ${0.12 + intensity * 0.25})`;
+            ctx.fillRect(x - probeSpacingPx / 2, marginY, probeSpacingPx, roadHeight);
+          }
+        }
+      }
+
+      function drawGantries(w, h, marginY, roadHeight, scaleX, controls) {
+        // Gantry 1: Reverse Sound Array (x = 350m)
+        const acousticX = 350 * scaleX;
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.15)';
+        ctx.fillRect(acousticX - 45, marginY - 15, 90, roadHeight + 30);
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(acousticX - 45, marginY - 15, 90, roadHeight + 30);
+
+        // Acoustic Beam Wavefronts
+        if (controls.reverseSoundEnabled) {
+          const waveRadius = (sim.getState().currentTime * 60) % 70;
+          ctx.strokeStyle = 'rgba(96, 165, 250, 0.6)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(acousticX, marginY + roadHeight / 2, waveRadius + 20, -Math.PI / 3, Math.PI / 3);
+          ctx.arc(acousticX, marginY + roadHeight / 2, waveRadius + 45, -Math.PI / 3, Math.PI / 3);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = '#60a5fa';
+        ctx.font = '9px PlexMono, monospace';
+        ctx.fillText('ARRAY: ANTI-PHASE BEAM', acousticX - 55, marginY - 20);
+
+        // Gantry 2: Hydro-Suppression Mist (x = 420m)
+        const hydroX = 420 * scaleX;
+        ctx.fillStyle = controls.hydroSuppressionEnabled ? 'rgba(8, 145, 178, 0.28)' : 'rgba(8, 145, 178, 0.08)';
+        ctx.fillRect(hydroX - 35, marginY, 70, roadHeight);
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(hydroX - 35, marginY, 70, roadHeight);
+
+        // Falling Mist Particles
+        if (controls.hydroSuppressionEnabled) {
+          ctx.fillStyle = 'rgba(165, 243, 252, 0.7)';
+          for (let p = 0; p < 25; p++) {
+            const px = hydroX - 30 + Math.random() * 60;
+            const py = marginY + Math.random() * roadHeight;
+            ctx.fillRect(px, py, 1.5, 3.5);
+          }
+        }
+
+        ctx.fillStyle = '#22d3ee';
+        ctx.fillText('GANTRY: 20\u03BCm MIST CURTAIN', hydroX - 60, h - marginY + 20);
+
+        // Gantry 3: Optical Plate Tracker (x = 490m)
+        const trackX = 490 * scaleX;
+        ctx.strokeStyle = '#8b5cf6';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(trackX, marginY - 10);
+        ctx.lineTo(trackX, h - marginY + 10);
+        ctx.stroke();
+
+        ctx.fillStyle = '#a78bfa';
+        ctx.fillText('TRACKER: GCC-PHAT + OCR', trackX - 55, marginY - 20);
+      }
+
+      function drawBike(bike, scaleX, marginY, roadHeight, laneCount) {
+        const x = (bike.x % sim.scenario.corridorLengthM) * scaleX;
+        const laneIdx = Math.max(0, Math.min(laneCount - 1, bike.lane));
+        const laneH = roadHeight / laneCount;
+        const y = marginY + laneIdx * laneH + laneH / 2 + (bike.vy || 0) * 10;
+
+        // Is Selected?
+        const isSelected = (bike.id === selectedBikeId);
+
+        // Selection Aura
+        if (isSelected) {
+          ctx.strokeStyle = '#fef08a';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x - 18, y - 12, 36, 24);
+        }
+
+        // Sound Wave Halo based on SPL
+        if (bike.engineState !== 'stalled') {
+          const haloSize = Math.max(8, ((bike.spl || 80) - 75) * 1.5);
+          const haloAlpha = Math.min(0.35, ((bike.spl || 80) - 75) / 80);
+          ctx.fillStyle = `rgba(239, 68, 68, ${haloAlpha})`;
+          ctx.beginPath();
+          ctx.arc(x, y, haloSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Motorcycle Body
+        let bodyColor = '#22c55e'; // normal
+        if (bike.engineState === 'misfire') bodyColor = '#f59e0b';
+        if (bike.engineState === 'stalled') bodyColor = '#ef4444';
+
+        ctx.fillStyle = bodyColor;
+        ctx.fillRect(x - 10, y - 4, 20, 8);
+
+        // Wheels
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(x - 9, y - 6, 4, 2);
+        ctx.fillRect(x + 5, y - 6, 4, 2);
+        ctx.fillRect(x - 9, y + 4, 4, 2);
+        ctx.fillRect(x + 5, y + 4, 4, 2);
+
+        // Exhaust Flare
+        if (bike.engineState === 'normal') {
+          ctx.fillStyle = 'rgba(251, 146, 60, 0.8)';
+          ctx.beginPath();
+          ctx.moveTo(x - 10, y);
+          ctx.lineTo(x - 16, y - 2);
+          ctx.lineTo(x - 16, y + 2);
+          ctx.fill();
+        }
+
+        // Plate Tag overlay
+        if (bike.identified) {
+          ctx.fillStyle = '#7c3aed';
+          ctx.font = '8px PlexMono, monospace';
+          ctx.fillText(`[${bike.plate.number}]`, x - 18, y - 10);
+        }
+      }
+
+      // Canvas Bike Selection by Click
+      canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        const state = sim.getState();
+        const w = rect.width;
+        const h = rect.height;
+        const marginY = 60;
+        const roadHeight = h - marginY * 2;
+        const laneCount = sim.scenario.laneCount || 4;
+        const laneH = roadHeight / laneCount;
+        const scaleX = w / sim.scenario.corridorLengthM;
+
+        let closestBike = null;
+        let closestDist = 25;
+
+        state.bikes.forEach(bike => {
+          const bx = (bike.x % sim.scenario.corridorLengthM) * scaleX;
+          const laneIdx = Math.max(0, Math.min(laneCount - 1, bike.lane));
+          const by = marginY + laneIdx * laneH + laneH / 2 + (bike.vy || 0) * 10;
+
+          const dist = Math.hypot(clickX - bx, clickY - by);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closestBike = bike;
+          }
+        });
+
+        if (closestBike) {
+          selectedBikeId = closestBike.id;
+        } else {
+          selectedBikeId = null;
+          inspBikeDetails.style.display = 'none';
+          inspBikeId.textContent = 'Select a motorcycle on canvas';
+          inspBikeState.textContent = 'IDLE';
+        }
+        updateDisplay();
+        renderCanvas();
+      });
+
+      // WorldSpec Dialog Actions
+      openWorldspecBtn.addEventListener('click', () => {
+        const spec = {
+          scenario: sim.scenario,
+          controls: sim.getState().controls,
+          engineProfiles: SimApi.ENGINE_PROFILES,
+          intakeProfiles: SimApi.INTAKE_PROFILES,
+          physicsConstants: {
+            speedOfSoundMps: 343.0,
+            airAbsorptionDbPerM: 0.005,
+            canyonReverbBoostDb: 4.5,
+            waterQuenchMisfireRatio: SimApi.WATER_QUENCH_MISFIRE_RATIO,
+            waterQuenchStallRatio: SimApi.WATER_QUENCH_STALL_RATIO,
+          },
+        };
+        worldspecTextarea.value = JSON.stringify(spec, null, 2);
+        worldspecDialog.showModal();
+      });
+
+      closeWorldspecBtn.addEventListener('click', () => {
+        worldspecDialog.close();
+      });
+
+      resetWorldspecBtn.addEventListener('click', () => {
+        sim = SimApi.createSimulation({ scenarioId: scenarioSelect.value });
+        worldspecDialog.close();
+        updateDisplay();
+        renderCanvas();
+      });
+
+      applyWorldspecBtn.addEventListener('click', () => {
+        try {
+          const parsed = JSON.parse(worldspecTextarea.value);
+          if (parsed.controls) {
+            for (const [k, v] of Object.entries(parsed.controls)) {
+              sim.setControl(k, v);
+            }
+          }
+          worldspecDialog.close();
+          syncControlsToSim();
+          updateDisplay();
+          renderCanvas();
+        } catch (err) {
+          alert('Invalid JSON: ' + err.message);
+        }
+      });
+
+      // Export Violations
+      exportViolationsBtn.addEventListener('click', () => {
+        const receipts = sim.getState().violationReceipts;
+        if (receipts.length === 0) {
+          alert('No violations recorded to export.');
+          return;
+        }
+        const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(receipts, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute('href', dataStr);
+        dlAnchor.setAttribute('download', `motorcycle-violations-${Date.now()}.json`);
+        dlAnchor.click();
+      });
+
+      // Initial sync and start loop
+      syncControlsToSim();
+      updateDisplay();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

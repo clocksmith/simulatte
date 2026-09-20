@@ -1,0 +1,8 @@
+{
+  "reverseSoundEnabled": true,
+  "reverseSoundPower": 0.85,
+  "hydroSuppressionEnabled": false,
+  "hydroMistRate": 95,
+  "acousticTrackingEnabled": true,
+  "trackingThresholdDba": 95
+}

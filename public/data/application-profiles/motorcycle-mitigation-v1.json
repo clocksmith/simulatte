@@ -1,0 +1,96 @@
+{
+  "schema": "simulatte.applicationProfile.v3",
+  "id": "motorcycle-mitigation-v1",
+  "tier": "urban-corridor",
+  "worldModelId": "urban-acoustic-corridor-v1",
+  "interaction": {
+    "mode": "simulation",
+    "simulationOwnerPluginId": "motorcycle-mitigation",
+    "missionRequired": false,
+    "startLabel": "Run mitigation experiment",
+    "shuffleLabel": "Change scenario"
+  },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Corridor progression",
+    "primaryMeasureKinds": [
+      "peak-sidewalk-dba",
+      "active-attenuation-db",
+      "swarm-quench-percentage",
+      "plates-identified-count",
+      "violations-sealed-count"
+    ],
+    "supportedViews": ["overview", "canyon-heatmap", "forensic-log"],
+    "defaultView": "overview",
+    "comparisonMode": "synchronized",
+    "performanceBudget": {
+      "firstMeaningfulFrameMs": 1200,
+      "p95FrameMs": 2500,
+      "peakHeapMiB": 128
+    },
+    "stages": [
+      {
+        "id": "corridor-entry",
+        "label": "Corridor Entry & Triangulation",
+        "narrative": "Swarm enters urban street canyon; baseline SPL measured by distributed acoustic sensors.",
+        "fromProgress": 0
+      },
+      {
+        "id": "anti-phase-superposition",
+        "label": "Anti-Phase Wave Cancellation",
+        "narrative": "Acoustic phased array directs 180-degree inverted waveforms at cylinder firing frequencies.",
+        "fromProgress": 0.3
+      },
+      {
+        "id": "hydro-suppression-quench",
+        "label": "Micro-Mist Hydro-Suppression",
+        "narrative": "20-micrometer atomized mist curtain quenches combustion in open velocity stacks.",
+        "fromProgress": 0.6
+      },
+      {
+        "id": "forensic-evidence-sealing",
+        "label": "Optical Deblur & Cryptographic Receipt",
+        "narrative": "Super-resolution license plate recovery and immutable SHA-256 evidence logging.",
+        "fromProgress": 0.85
+      }
+    ]
+  },
+  "defaultSeedId": "avenue-straight-pipe-run",
+  "seeds": [
+    {
+      "id": "avenue-straight-pipe-run",
+      "label": "Avenue Straight-Pipe Run",
+      "description": "High-speed swarm of unbaffled sport bikes racing down a wide 4-lane avenue.",
+      "seed": "motorcycle-avenue-001",
+      "scenarioId": "avenue-straight-pipe-run"
+    },
+    {
+      "id": "bridge-reverberation-canyon",
+      "label": "Bridge Reverberation Corridor",
+      "description": "Enclosed bridge approach amplifying acoustic reflections with maximum canyon reverberation.",
+      "seed": "motorcycle-bridge-002",
+      "scenarioId": "bridge-reverberation-canyon"
+    },
+    {
+      "id": "residential-night-sideshow",
+      "label": "Residential Night Sideshow",
+      "description": "Stunt swarm circling and revving at an intersection in a dense residential neighborhood.",
+      "seed": "motorcycle-residential-003",
+      "scenarioId": "residential-night-sideshow"
+    },
+    {
+      "id": "multi-corridor-intercept",
+      "label": "Multi-Corridor Intercept",
+      "description": "Coordinated motorcycle swarm navigating gantry checkpoints and trying evasive rerouting.",
+      "seed": "motorcycle-intercept-004",
+      "scenarioId": "multi-corridor-intercept"
+    }
+  ],
+  "plugins": [
+    {
+      "id": "motorcycle-mitigation",
+      "configId": "motorcycle-mitigation-config-v1"
+    }
+  ],
+  "routeObjective": {}
+}

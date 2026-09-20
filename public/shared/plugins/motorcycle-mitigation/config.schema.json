@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Simulatte Motorcycle Mitigation Plugin Config",
+  "type": "object",
+  "properties": {
+    "reverseSoundEnabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable directional acoustic phased array anti-phase cancellation."
+    },
+    "reverseSoundPower": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.85,
+      "description": "Phased array acoustic power factor."
+    },
+    "hydroSuppressionEnabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Deploy overhead atomized micro-mist curtain for engine combustion quenching."
+    },
+    "hydroMistRate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 300,
+      "default": 95,
+      "description": "Micro-mist injection density in g/s/m across corridor."
+    },
+    "acousticTrackingEnabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable GCC-PHAT microphone array triangulation and optical OCR tracking."
+    },
+    "trackingThresholdDba": {
+      "type": "number",
+      "minimum": 60,
+      "maximum": 130,
+      "default": 95,
+      "description": "Sidewalk noise trigger threshold (dBA) for forensic receipt generation."
+    }
+  },
+  "additionalProperties": false
+}

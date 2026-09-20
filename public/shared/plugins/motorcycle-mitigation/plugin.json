@@ -1,0 +1,59 @@
+{
+  "schema": "simulatte.pluginManifest.v3",
+  "id": "motorcycle-mitigation",
+  "version": "1.0.0",
+  "sdkVersion": 1,
+  "entry": {
+    "path": "./index.js",
+    "integrity": "sha384-2c9ea1aeb0ecaac87a531a5a20a571915e8b96439440e47e3e3203448207b0a0bc7b88d4c7fbee166c07855b47394191",
+    "globalFactory": "SimulattePluginMotorcycleMitigation"
+  },
+  "configSchema": "./config.schema.json",
+  "defaultConfig": "./default-config.json",
+  "resources": [
+    {
+      "path": "./config.schema.json",
+      "integrity": "sha384-c0aa71f683c95190141f8217788c91811b72d76c6906deb075b4aca4f213dfbea260b4a0a5a7121edcee9246d827d883"
+    },
+    {
+      "path": "./default-config.json",
+      "integrity": "sha384-028340579a163acb3cfefe4138f399605832d47bc9f37f5fcc634751ccaf4d4f758154325eb73dd5c3a495e15cf3e1fb"
+    },
+    {
+      "path": "./v4-contribution.js",
+      "integrity": "sha384-d0de5070edb5b40ce52d75a1dd59d26f3937ff758ccac18bd3a314f036659182225faf1bc66a266f358c8d4d5ece4af5"
+    }
+  ],
+  "permissions": [
+    "receipts.append.v1",
+    "state.reduce.v1",
+    "events.propose.v1",
+    "ui.inspector.v1"
+  ],
+  "datasets": [],
+  "provides": [
+    "field.acoustic-mitigation.v1",
+    "field.hydro-suppression.v1",
+    "field.plate-forensics.v1"
+  ],
+  "consumes": [],
+  "extensionPoints": [
+    "route",
+    "ui",
+    "presentation",
+    "settlement"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.motorcycleViolationAudit.v1"
+  ],
+  "governance": {
+    "trustLevel": "repository-bundled",
+    "executionIsolation": "same-realm-contract",
+    "publisher": "simulatte",
+    "provenance": "repository-source",
+    "signatureStatus": "not-applicable-repository-bundled",
+    "marketplaceEligible": false,
+    "status": "active",
+    "revocationId": "plugin:motorcycle-mitigation@1.0.0"
+  }
+}
