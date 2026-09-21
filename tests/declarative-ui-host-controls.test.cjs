@@ -154,7 +154,7 @@ test('declarative UI bounds and searches large option catalogs while retaining s
   );
 });
 
-test('declarative UI renders controls first without deleting dynamic evidence or provenance inspections', () => {
+test('declarative UI layers context view and inspections before collapsed Advanced parameters', () => {
   const documentRef = fakeDocument();
   const roots = {
     inspector: new FakeNode('inspector', documentRef),
@@ -195,9 +195,11 @@ test('declarative UI renders controls first without deleting dynamic evidence or
   }]);
 
   const inspectorFragment = roots.inspector.children[0];
-  assert.equal(inspectorFragment.children[0].dataset.controlCount, '1');
-  assert.equal(inspectorFragment.children[0].children[0].textContent, 'Controls (1)');
   assert.equal(inspectorFragment.children.length, 3);
+  assert.equal(inspectorFragment.children[0].children[0].textContent, 'Legacy evidence');
+  assert.equal(inspectorFragment.children[2].dataset.controlCount, '1');
+  assert.equal(inspectorFragment.children[2].children[0].textContent, 'Advanced Parameters (1)');
+  assert.equal(inspectorFragment.children[2].open, false);
   const allocation = find(roots.inspector, (node) => node.tagName === 'dd' && node.textContent === '300 / 300 (100%)');
   const inspection = find(roots.inspector, (node) => node.tagName === 'dd' && node.textContent === '300 items');
   assert.ok(allocation);
@@ -539,4 +541,38 @@ test('ranked controls apply complete permutations across repeated edits and roll
   assert.equal(input(0).value, 'c');
   assert.equal(input(2).value, 'b');
   assert.equal(applied.length, 2);
+});
+
+test('explicit control.group attribute groups controls and advanced parameter section preserves toggle state', () => {
+  const doc = fakeDocument();
+  const inspector = new FakeNode('root', doc);
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {} });
+  const contribution = {
+    pluginId: 'fixture',
+    controls: {
+      controls: [
+        { ...control('cooling', 'number', 120), group: 'Thermal', label: 'Flow Rate' },
+        { ...control('fans', 'number', 80), group: 'Thermal', label: 'Fan RPM' },
+        { ...control('threshold', 'number', 75), label: 'Alert Threshold' },
+      ],
+    },
+    inspections: [],
+  };
+  host.render([], [contribution]);
+
+  let paramSection = find(inspector, node => node.className && node.className.includes('plugin-parameter-section'));
+  assert.ok(paramSection);
+  assert.equal(paramSection.open, false);
+  assert.equal(paramSection.children[0].textContent, 'Advanced Parameters (3)');
+
+  let thermalGroup = find(inspector, node => node.className === 'plugin-control-group' && node.children[0].textContent === 'Thermal (2)');
+  assert.ok(thermalGroup);
+
+  paramSection.open = true;
+  paramSection.dispatch('toggle');
+
+  host.render([], [contribution]);
+  paramSection = find(inspector, node => node.className && node.className.includes('plugin-parameter-section'));
+  assert.ok(paramSection);
+  assert.equal(paramSection.open, true);
 });

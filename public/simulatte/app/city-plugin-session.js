@@ -40,7 +40,7 @@
       if (applyRouteParameters()) pluginUi.render(extensions.views(pluginContext), platform.contributions);
       recordRenderWork(renderWork.phases.pluginUi, performance.now() - uiStartedAt);
       const controlCount = platform.contributions.reduce((total, contribution) => total + contribution.controls.controls.length, 0);
-      elements.decisionsButton.textContent = controlCount ? `Controls (${controlCount})` : 'Evidence';
+      elements.decisionsButton.textContent = controlCount ? `Advanced (${controlCount})` : 'Evidence';
       renderPluginSummary(pluginPlayback?.snapshot().phase || 'ready');
       const renderer = getRenderer();
       if (!renderer) return;

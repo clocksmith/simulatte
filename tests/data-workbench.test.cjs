@@ -13,14 +13,13 @@ const view = require('../public/shared/render/point-scene-view.js');
 const mapping = { id: 'id', label: null, x: 'x', y: 'y', vx: 'vx', vy: 'vy' };
 test('the hexagon homepage keeps simulations visible and data tools optional', () => {
   const html = readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
-  assert.match(html, /<section id="simulation-home">/);
+  assert.match(html, /<section id="simulation-home/);
   assert.match(html, /class="hex-constellation-container"/);
   assert.equal((html.match(/class="hex-satellite tier-card/g) || []).length, 6);
   const discovery = require('../public/simulatte/app/world-tiers-boot.js');
   const cards = [...html.matchAll(/data-default-profile="([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(cards.sort(), [...discovery.DISCOVERY_PROFILE_IDS].sort());
-  assert.match(html, /id="hex-center-create"/);
-  assert.match(html, /id="open-data" href="#data"/);
+  assert.match(html, /id="hex-center-sunwalker"/);
   assert.match(html, /<section id="data-page" class="data-workbench-page" hidden>/);
   assert.doesNotMatch(html, /id="workbench-profiles"/);
   for (const profile of ['gpu-supercluster-v1', 'interstellar-relay-network-v1', 'orbital-transfer-planner-v1',

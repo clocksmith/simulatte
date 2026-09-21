@@ -336,7 +336,7 @@
       lastPluginContributions=platform.contributions;
       pluginUi.render(runtime.views(context),platform.contributions);
       const controlCount=platform.contributions.reduce((total,contribution)=>total+contribution.controls.controls.length,0);
-      elements.decisionsButton.textContent=controlCount?`Controls (${controlCount})`:'Evidence';
+      elements.decisionsButton.textContent=controlCount?`Advanced (${controlCount})`:'Evidence';
       renderTierSummary(root.__simulatteTierRunState?.state||'idle');
       tierVisualizer.removeHud?.();
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
@@ -596,8 +596,13 @@
         try{
           await activateScenario(activeScenario);
           configureRunController(owner);
-          ctx.setJourneyPhase?.('ready');
-          ctx.setRuntimeStatus?.(elements,'Ready','ready');
+          const shouldAutoStart = options?.autoStart !== false;
+          if (shouldAutoStart) {
+            await runController.start();
+          } else {
+            ctx.setJourneyPhase?.('ready');
+            ctx.setRuntimeStatus?.(elements,'Ready','ready');
+          }
         }catch(error){
           ctx.setJourneyPhase?.('failed');
           ctx.setRuntimeStatus?.(elements,'Stopped','error');
@@ -620,7 +625,16 @@
         const parameters=acceptedRouteParameters(requestedSimulation)[owner];
         if(parameters)await runController.applyControls(parameters);
         lifecycle.throwIfAborted();
-        ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');
+        const shouldAutoStart = requestedSimulation?.autoStart !== false && options?.autoStart !== false;
+        if (shouldAutoStart) {
+          try {
+            await runController.start();
+          } catch (error) {
+            reportRunFailure(error);
+          }
+        } else {
+          ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');
+        }
       }
       profileProgram=root.SimulatteProfileProgram.connect({
         documentRoot:document,

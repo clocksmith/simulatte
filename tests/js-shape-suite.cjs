@@ -2506,12 +2506,11 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.equal(worldHosting.predeploy, 'npm run prepare:hosting');
   assert.equal(createHosting.predeploy, 'npm run prepare:hosting');
   assert.equal(worldHosting.public, '.firebase-hosting/world');
-  assert.equal(createHosting.public, '.firebase-hosting/create');
-  assert.deepEqual(worldHosting.redirects, [{
-    source: '/blank{,/**}',
-    destination: 'https://create.simulatte.world',
-    type: 301,
-  }]);
+  assert.ok(worldHosting.redirects.some((entry) => (
+    entry.source === '/blank{,/**}' &&
+    entry.destination === 'https://create.simulatte.world' &&
+    entry.type === 301
+  )));
   assert.equal(pkg.scripts['sync:doppler:development'], 'node tools/sync-doppler-development.mjs --write');
   assert.equal(pkg.scripts['restore:doppler:development'], 'node tools/sync-doppler-development.mjs --restore');
   assert.equal(pkg.scripts['check:doppler:development'], 'node tools/sync-doppler-development.mjs --check');

@@ -114,7 +114,7 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     const attempt = ++generation;
-    const page = root.SimulattePublicRoutes.forSelection(card.dataset.tier, card.dataset.defaultProfile);
+    const page = root.SimulattePublicRoutes?.forSelection?.(card.dataset.tier, card.dataset.defaultProfile);
     history.pushState(null, '', page?.path || `/${encodeURIComponent(card.dataset.tier)}/${encodeURIComponent(card.dataset.defaultProfile)}`);
     void prepareSelection(card).then((proceed) => {
       if (attempt !== generation || !proceed) return;

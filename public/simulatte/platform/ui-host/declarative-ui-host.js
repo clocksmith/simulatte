@@ -52,9 +52,9 @@
             controlValues,
             onControlChange,
             values, controlGroups, onError,
+            contribution.controls.title || null,
           );
           parameterSections.set(contribution.pluginId, section);
-          fragments.inspector.append(section);
         }
       });
       [...contributions].sort((left, right) => left.view.slot.localeCompare(right.view.slot) || left.pluginId.localeCompare(right.pluginId)).forEach(({ pluginId, view }) => {
@@ -156,6 +156,10 @@
       v4Contributions.forEach((contribution) => fragments.inspector.append(
         ...renderInspectionCollection(documentRef, contribution.pluginId, contribution.inspections)
       ));
+      v4Contributions.forEach((contribution) => {
+        const section = parameterSections.get(contribution.pluginId);
+        if (section) fragments.inspector.append(section);
+      });
       Object.entries(roots).forEach(([slot, element]) => element.replaceChildren(fragments[slot]));
       if (focusedId) documentRef.getElementById(focusedId)?.focus({ preventScroll: true });
     }
@@ -201,14 +205,17 @@
     controlValues,
     onControlChange,
     readValues, controlGroups, onError,
+    customTitle = null,
   ) {
     const section = documentRef.createElement('details');
     section.className = 'evidence-section plugin-evidence plugin-parameter-section';
     section.dataset.pluginId = pluginId;
     section.dataset.controlCount = String(controls.length);
-    section.open = true;
+    const key = `params:${pluginId}`;
+    section.open = controlGroups.get(key) ?? false;
+    section.addEventListener('toggle', () => controlGroups.set(key, section.open));
     const heading = documentRef.createElement('summary');
-    heading.textContent = `Controls (${controls.length})`;
+    heading.textContent = customTitle || `Advanced Parameters (${controls.length})`;
     const values = controlValues.get(pluginId) || new Map();
     controlValues.set(pluginId, values);
     const activeControlIds = new Set(controls.map((control) => control.id));
@@ -222,19 +229,28 @@
     const editing = { controls, inputs: new Map(), applied: new Map(values), revisions: new Map() };
     const groups = new Map();
     controls.forEach(control => {
-      const match = control.label.match(/^([^:·]+)\s*[:·]\s*(.+)$/);
-      const name = match ? match[1].trim() : '';
+      let name = '';
+      let label = control.label;
+      if (control.group) {
+        name = String(control.group).trim();
+      } else {
+        const match = control.label.match(/^([^:·]+)\s*[:·]\s*(.+)$/);
+        if (match) {
+          name = match[1].trim();
+          label = match[2];
+        }
+      }
       if (!groups.has(name)) groups.set(name, []);
-      groups.get(name).push(match ? { ...control, label: match[2] } : control);
+      groups.get(name).push({ ...control, label });
     });
     [...groups].forEach(([name, rows], index) => {
       const fields = renderControlFields(documentRef, pluginId, rows, values, onControlChange, readValues, onError, editing);
       if (!name) { section.append(fields); return; }
       const group = documentRef.createElement('details');
       group.className = 'plugin-control-group';
-      const key = `${pluginId}:${name}`;
-      group.open = controlGroups.get(key) ?? index === 0;
-      group.addEventListener('toggle', () => controlGroups.set(key, group.open));
+      const groupKey = `${pluginId}:${name}`;
+      group.open = controlGroups.get(groupKey) ?? index === 0;
+      group.addEventListener('toggle', () => controlGroups.set(groupKey, group.open));
       const title = documentRef.createElement('summary');
       title.textContent = `${name} (${rows.length})`;
       group.append(title, fields);

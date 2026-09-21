@@ -550,3 +550,17 @@ test('tier controller closes its public API after disposal', async () => {
   assert.throws(() => controller.pause(), (error) => error.code === 'tier_run_disposed');
   assert.deepEqual(dispatchedValues, []);
 });
+
+test('tier controller auto-starts directly on boot without prior manual configuration', async () => {
+  const states = [];
+  const receipts = [];
+  const controller = create(fakeRuntime({ totalSteps: 5 }), memoryStorage(), states, receipts);
+  assert.equal(controller.snapshot().state, 'idle');
+  const started = await controller.start();
+  assert.equal(started.state, 'running');
+  assert.equal(started.currentStep, 0);
+  assert.equal(started.totalSteps, 5);
+  controller.pause();
+  assert.equal(controller.snapshot().state, 'paused');
+  controller.dispose();
+});
