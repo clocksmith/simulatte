@@ -4,12 +4,12 @@
     const on=(node,event,fn)=>node.addEventListener(event,fn,{signal:events.signal});
     const control=document.createElement('label');control.className='compact';control.textContent='Place ';
     const add=document.createElement('select');add.id='place-marker';add.setAttribute('aria-label','Place observation or treatment marker');
-    for(const[value,text]of [['','Choose marker'],['observer','Observation point'],['mist','Water mist'],['directional','Directional sound'],['cancellation','Tonal cancellation']]){const option=document.createElement('option');option.value=value;option.textContent=text;add.append(option);}control.append(add);document.querySelector('.city-toolbar').append(control);
+    for(const[value,text]of [['','Choose marker'],['observer','Observation point'],['mist','Water mist'],['directional','Directional sound'],['cancellation','Tonal cancellation']]){const option=document.createElement('option');option.value=value;option.textContent=text;add.append(option);}control.append(add);document.getElementById('placement-controls').append(control);
     const actions=document.createElement('div');actions.id='treatment-actions';actions.hidden=true;
     const enabled=document.createElement('button');enabled.textContent='Disable';const remove=document.createElement('button');remove.textContent='Remove';
     const frequencies=document.createElement('label');frequencies.textContent='Frequency ';const frequency=document.createElement('select');frequency.setAttribute('aria-label','Directional sound frequency');
-    for(const hz of [125,500,2000]){const option=document.createElement('option');option.value=hz;option.textContent=hz+' Hz';frequency.append(option);}frequencies.append(frequency);actions.append(frequencies,enabled,remove);$('inspection').append(actions);
-    function clear(){selected=null;actions.hidden=true;}
+    for(const hz of [125,500,2000]){const option=document.createElement('option');option.value=hz;option.textContent=hz+' Hz';frequency.append(option);}frequencies.append(frequency);frequencies.hidden=true;document.getElementById('placement-controls').append(frequencies);actions.append(enabled,remove);$('treatment-controls-slot').append(actions);
+    function clear(){selected=null;actions.hidden=true;frequencies.hidden=true;}
     function inspect(id){selected=id;$('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=true;actions.hidden=false;lastPaint=0;paint();}
     function paint(){
       const scene=getScene(),node=scene?.treatments?.find(row=>row.id===selected);if(!node)return;
@@ -21,13 +21,13 @@
       frequencies.hidden=node.kind!=='directional';frequency.value=String(node.frequency||500);enabled.textContent=node.enabled===false?'Enable':'Disable';
     }
     function reset(scene){
-      selected=null;actions.hidden=true;latest=[];
+      selected=null;actions.hidden=true;frequencies.hidden=true;latest=[];
       if(!scene.treatments){const point=view.getObserver();scene.treatments=['mist','directional','cancellation'].map((kind,i)=>({id:'treatment-'+nextId++,kind,...view.snapSidewalk({x:point.x+(i-1)*12,y:point.y+5,z:1.7}),frequency:500,enabled:true}));}
-      scene.treatmentsEnabled=$('technique').value==='live';
+      scene.treatmentMode=$('technique').value;scene.treatmentsEnabled=['live','cancellation'].includes(scene.treatmentMode);
     }
     function pick(value){
       if(value.treatmentId){placing=null;add.value='';inspect(value.treatmentId);return true;}
-      if(placing&&value.point){const scene=getScene();if(scene.acousticContext.occupied(value.point))return true;if(scene.treatments.length>=8){$('live-summary').textContent='Remove a treatment before adding another.';return true;}
+      if(placing&&value.point){const scene=getScene();if(scene.acousticContext.occupied(value.point)&&value.surface!=='rooftop')return true;if(scene.treatments.length>=8){$('live-summary').textContent='Remove a treatment before adding another.';return true;}
         const node={id:'treatment-'+nextId++,kind:placing,...value.point,frequency:500,enabled:true};scene.treatments.push(node);placing=null;add.value='';inspect(node.id);return true;}
       clear();return false;
     }
@@ -36,7 +36,7 @@
     on(remove,'click',()=>{const scene=getScene();scene.treatments=scene.treatments.filter(row=>row.id!==selected);clear();$('inspection').hidden=true;});
     on(frequency,'change',()=>{const node=getScene().treatments.find(row=>row.id===selected);if(node)node.frequency=Number(frequency.value);paint();});
     on($('inspection-close'),'click',clear);
-    return {reset,pick,observe(data){latest=data.observer?.treatments||[];},update(now){if(now-lastPaint>250){lastPaint=now;paint();}view.setTreatmentSelection(selected);},dispose(){events.abort();control.remove();actions.remove();}};
+    return {reset,pick,observe(data){latest=data.observer?.treatments||[];},update(now){if(now-lastPaint>250){lastPaint=now;paint();}view.setTreatmentSelection(selected);},dispose(){events.abort();control.remove();frequencies.remove();actions.remove();}};
   }
   root.MotorcycleTreatmentControls={create};
 })(globalThis);

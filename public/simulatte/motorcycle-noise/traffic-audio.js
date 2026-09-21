@@ -2,27 +2,33 @@
   'use strict';
   const M=()=>root.MotorcycleReflection;
   let state,reading,context,master,limiter,bed,bedGain,enabled=false,button,volume,statusNode,world;
+  let wanted=false,starting=false;
   let sequence=0,previousTime=null,voices=new Map(),waves=new Map(),noiseBuffer,appliedReading=null,fadePending=false;
   const MAX_VOICES=32;
-  // Playback-only motorcycle emphasis and gentler distance falloff. Measurements remain unchanged.
-  const MOTORCYCLE_PLAYBACK_GAIN=10**(18/20);
+  // Map the synthetic source pressure into playback headroom, not speaker dBA.
+  // Extra perceptual distance loss applies only to playback, never measurements.
+  const MOTORCYCLE_PLAYBACK_GAIN=8/(2e-5*10**(136/20));
+  const BACKGROUND_PLAYBACK_GAIN=10**(-55/20);
+  const exhaustCurve=Float32Array.from({length:2049},(_,i)=>Math.tanh(1.8*(i/1024-1)));
+  const outputCurve=Float32Array.from({length:2049},(_,i)=>.85*Math.tanh(1.25*(i/1024-1)));
   function playbackGain(id){
-    const source=world?.sources.find(source=>source.id===id);if(source?.kind!=='motorcycle')return 1;
+    const source=world?.sources.find(source=>source.id===id);if(source?.kind!=='motorcycle')return source?.kind==='car'||source?.kind==='pedestrian' ? .04 : 1;
     const point=M().position(source,state?.time||0),focus=state?.focus||point;
     const distance=Math.hypot(point.x-focus.x,point.y-focus.y,(point.z||0)-(focus.z||0));
-    return MOTORCYCLE_PLAYBACK_GAIN*Math.min(6,Math.max(1,(distance/25)**.6));
+    return MOTORCYCLE_PLAYBACK_GAIN/(1+(distance/25)**2);
   }
   function status(text){if(statusNode)statusNode.textContent=text;}
   function gain(node,value,time){node.gain.cancelScheduledValues(time);node.gain.setTargetAtTime(Math.max(0,value),time,.055);}
   function wave(cylinders){
     if(waves.has(cylinders))return waves.get(cylinders);
-    const real=new Float32Array(21),imaginary=new Float32Array(21),angles=cylinders===4?[0,180,360,540]:cylinders===2?[0,270]:[0];let square=0;
-    for(let n=1;n<=20;n++){
-      imaginary[n]=angles.reduce((sum,angle)=>sum+Math.cos(n*angle*Math.PI/360),0)/n**1.15;
-      real[n]=-angles.reduce((sum,angle)=>sum+Math.sin(n*angle*Math.PI/360),0)/n**1.15;
+    const real=new Float32Array(33),imaginary=new Float32Array(33),angles=cylinders===4?[0,180,360,540]:cylinders===2?[0,315]:[0];let square=0;
+    for(let n=1;n<=32;n++){
+      const envelope=Math.exp(-n/26)/n**.85;
+      imaginary[n]=angles.reduce((sum,angle)=>sum+Math.cos(n*angle*Math.PI/360),0)*envelope;
+      real[n]=-angles.reduce((sum,angle)=>sum+Math.sin(n*angle*Math.PI/360),0)*envelope;
       square+=real[n]**2+imaginary[n]**2;
     }
-    const rms=Math.sqrt(square/2)||1;for(let n=1;n<=20;n++){real[n]/=rms;imaginary[n]/=rms;}
+    const rms=Math.sqrt(square/2)||1;for(let n=1;n<=32;n++){real[n]/=rms;imaginary[n]/=rms;}
     const result=context.createPeriodicWave(real,imaginary,{disableNormalization:true});waves.set(cylinders,result);return result;
   }
   function makeNoise(){
@@ -34,44 +40,66 @@
     const oscillator=context.createOscillator(),tone=context.createGain(),noise=context.createBufferSource(),filter=context.createBiquadFilter(),rough=context.createGain(),panner=context.createStereoPanner(),level=context.createGain();
     if(source.kind!=='tone')oscillator.setPeriodicWave(wave(source.cylinders));oscillator.frequency.value=source.frequency||10;
     noise.buffer=noiseBuffer;noise.loop=true;filter.type='lowpass';filter.frequency.value=1100;filter.Q.value=.4;
-    tone.gain.value=source.kind==='tone'?Math.SQRT2:source.kind==='pedestrian'?0:source.kind==='car'?.55:.85;rough.gain.value=source.kind==='tone'?0:source.kind==='pedestrian'?1:source.kind==='car'?.45:.15;level.gain.value=0;
-    oscillator.connect(tone).connect(panner);noise.connect(filter).connect(rough).connect(panner);panner.connect(level).connect(master);
+    tone.gain.value=source.kind==='tone'?Math.SQRT2:source.kind==='pedestrian'?0:source.kind==='car'?.55:1.1;rough.gain.value=source.kind==='tone'?0:source.kind==='pedestrian'?1:source.kind==='car'?.18:.025;level.gain.value=0;
+    const extra=[],engine=source.kind==='motorcycle';let body=null,exhaust=null;
+    if(engine){
+      const drive=context.createWaveShaper();drive.curve=exhaustCurve;drive.oversample='2x';
+      body=context.createBiquadFilter();body.type='peaking';body.frequency.value=145;body.Q.value=.7;body.gain.value=7;
+      exhaust=context.createBiquadFilter();exhaust.type='lowpass';exhaust.frequency.value=1350;exhaust.Q.value=.55;
+      oscillator.connect(drive).connect(body).connect(exhaust).connect(tone);extra.push(drive,body,exhaust);
+    }else oscillator.connect(tone);
+    tone.connect(panner);noise.connect(filter).connect(rough).connect(panner);panner.connect(level).connect(master);
     oscillator.start();noise.start(0,((Number(source.id.match(/(\d+)$/)?.[1])||1)*.137)%2);
-    return {source,oscillator,tone,noise,filter,rough,panner,level};
+    return {source,oscillator,tone,noise,filter,rough,panner,level,body,exhaust,extra};
   }
-  function disposeVoice(value){for(const node of [value.oscillator,value.noise]){try{node.stop();}catch(_error){}}for(const node of [value.oscillator,value.tone,value.noise,value.filter,value.rough,value.panner,value.level])node.disconnect();}
+  function disposeVoice(value){for(const node of [value.oscillator,value.noise]){try{node.stop();}catch(_error){}}for(const node of [value.oscillator,value.tone,value.noise,value.filter,value.rough,value.panner,value.level,...value.extra])node.disconnect();}
   function quiet(){if(!context)return;for(const item of voices.values())gain(item.level,0,context.currentTime);if(bedGain)gain(bedGain,0,context.currentTime);}
   function mute(){
-    sequence++;enabled=false;quiet();if(context)void context.suspend();
+    sequence++;wanted=false;starting=false;enabled=false;quiet();if(context)void context.suspend();
     if(button)button.checked=false;
-    if(volume)volume.hidden=true;status('');
+    if(volume)volume.hidden=false;status('');
   }
   function fail(error){mute();if(button){button.checked=false;button.title=error.message||String(error);}status(error.message||String(error));}
   function install(){
-    if(button)return;const toolbar=document.querySelector('.city-toolbar');if(!toolbar)return;
+    if(button)return;const toolbar=document.getElementById('sound-controls');if(!toolbar)return;
     const soundControl=document.createElement('label');soundControl.className='sound-switch';
     const soundLabel=document.createElement('span');soundLabel.textContent='Sound';
-    button=document.createElement('input');button.id='traffic-sound';button.type='checkbox';button.setAttribute('role','switch');button.setAttribute('aria-label','Traffic sound');
+    button=document.createElement('input');button.id='traffic-sound';button.type='checkbox';button.checked=false;button.setAttribute('role','switch');button.setAttribute('aria-label','Traffic sound');
     const track=document.createElement('span');track.className='sound-switch-track';track.setAttribute('aria-hidden','true');soundControl.append(soundLabel,button,track);
     button.title='Continuous synthesized traffic at your viewpoint. Playback volume is independent of modeled dBA. The strongest 32 sources have individual voices; remaining traffic contributes to the ambient mix. No live phase-cancellation claim.';
-    volume=document.createElement('input');volume.type='range';volume.min='0';volume.max='1';volume.step='.01';volume.value='.55';volume.hidden=true;volume.setAttribute('aria-label','Traffic playback volume');volume.className='traffic-volume';
+    volume=document.createElement('input');volume.type='range';volume.min='0';volume.max='1';volume.step='.01';volume.value='.55';volume.hidden=false;volume.setAttribute('aria-label','Traffic playback volume');volume.className='traffic-volume';
     statusNode=document.createElement('span');statusNode.id='traffic-audio-status';statusNode.className='muted';statusNode.setAttribute('role','status');statusNode.style.fontSize='.75rem';
-    toolbar.append(soundControl,volume,statusNode);
-    button.addEventListener('change',async()=>{
-      if(!button.checked){mute();return;}
-      const attempt=++sequence;
+    toolbar.prepend(soundControl);document.getElementById('volume-controls').append(volume,statusNode);
+    const prompt=document.getElementById('sound-prompt'),startButton=document.getElementById('sound-start'),dismissButton=document.getElementById('sound-dismiss');
+    startButton.disabled=false;dismissButton.disabled=false;
+    function dismissPrompt(){if(prompt.contains(document.activeElement))button.focus({preventScroll:true});prompt.hidden=true;}
+    async function enableSound(){
+      if(!wanted)return;
+      if(starting){if(context)void context.resume().catch(error=>status(error.message||'Tap to enable sound'));return;}
+      if(enabled&&context?.state==='running')return;
+      const attempt=++sequence;starting=true;
+      status('Starting sound');
       try{
         const AudioContext=root.AudioContext||root.webkitAudioContext;if(!AudioContext)throw new Error('This browser does not support Web Audio.');
         if(!context){
           context=new AudioContext({latencyHint:'interactive'});master=context.createGain();master.gain.value=Number(volume.value)*1.8;
-          limiter=context.createDynamicsCompressor();limiter.threshold.value=-14;limiter.knee.value=12;limiter.ratio.value=16;limiter.attack.value=.003;limiter.release.value=.15;master.connect(limiter).connect(context.destination);
+          limiter=context.createDynamicsCompressor();limiter.threshold.value=-8;limiter.knee.value=8;limiter.ratio.value=10;limiter.attack.value=.003;limiter.release.value=.18;
+          const ceiling=context.createWaveShaper();ceiling.curve=outputCurve;ceiling.oversample='2x';master.connect(limiter).connect(ceiling).connect(context.destination);
           noiseBuffer=makeNoise();bed=context.createBufferSource();bed.buffer=noiseBuffer;bed.loop=true;bedGain=context.createGain();bedGain.gain.value=0;bed.connect(bedGain).connect(master);bed.start();
         }
         await context.resume();if(attempt!==sequence)return;
+        if(context.state!=='running')throw new Error('Sound is unavailable. Try the Sound switch again.');
         enabled=true;button.checked=true;volume.hidden=false;appliedReading=null;fadePending=false;
+        dismissPrompt();
         status(state?.paused?'Paused with simulation':'Listening at your viewpoint');
-      }catch(error){fail(error);}
-    });
+      }catch(error){
+        if(attempt!==sequence)return;
+        fail(error);
+      }finally{if(attempt===sequence)starting=false;}
+    }
+    button.addEventListener('change',()=>{wanted=button.checked;if(!wanted)mute();else void enableSound();});
+    startButton.addEventListener('click',()=>{wanted=true;void enableSound();});
+    dismissButton.addEventListener('click',dismissPrompt);
     volume.addEventListener('input',()=>{if(master)gain(master,Number(volume.value)*1.8,context.currentTime);});
     document.addEventListener('click',event=>{if(event.target.closest('#listen, #listen-source'))mute();},true);
     document.addEventListener('visibilitychange',()=>{if(document.hidden)mute();});
@@ -99,7 +127,11 @@
         let item=voices.get(source.id);if(!item){item=voice(source);voices.set(source.id,item);}
         item.source=source;item.contribution=contribution;gain(item.level,contribution.rms*playbackGain(source.id),now);
       }
-      const remaining=ranked.slice(MAX_VOICES).reduce((sum,row)=>sum+(row.rms*playbackGain(row.id))**2,0),background=.18*2e-5*10**((reading.background??world.config.background)/20);
+      const remaining=ranked.slice(MAX_VOICES).reduce((sum,row)=>{
+        const source=world.sources.find(item=>item.id===row.id);
+        const scale=source?.kind==='motorcycle'?10**((86-source.db)/20):1;
+        return sum+(row.rms*scale)**2;
+      },0)*BACKGROUND_PLAYBACK_GAIN**2,background=BACKGROUND_PLAYBACK_GAIN*.18*2e-5*10**((reading.background??world.config.background)/20);
       gain(bedGain,Math.sqrt(remaining+background*background),now);
     }
     const model=M(),c=model.soundSpeed(world.config),right=state.focus.right||{x:1,y:0};
@@ -108,6 +140,14 @@
       const toward=(p.speed||0)*(Math.cos(p.heading)*(-dx/length)+Math.sin(p.heading)*(-dy/length));
       const frequency=item.source.kind==='tone'?item.source.frequency:Math.max(7,(p.rpm||800)/120*c/Math.max(c*.5,c-toward));
       item.oscillator.frequency.setTargetAtTime(frequency,now,.035);
+      if(item.exhaust){
+        const load=Math.max(0,Math.min(1,(p.speed||0)/Math.max(1,item.source.speed))),throttle=Math.max(0,Math.min(1,(p.acceleration||0)/2));
+        const pulse=1+.07*Math.sin(state.time*11.7+(item.source.phase||0));
+        gain(item.tone,(1+.25*load+.35*throttle)*pulse,now);
+        gain(item.rough,.012+.025*throttle,now);
+        item.body.frequency.setTargetAtTime(95+Math.min(110,(p.rpm||900)/35),now,.1);
+        item.exhaust.frequency.setTargetAtTime(Math.max(180,Math.min(item.contribution.cutoff||2200,850+1000*load+600*throttle)),now,.06);
+      }
       item.filter.frequency.setTargetAtTime(Math.max(160,Math.min(3500,item.contribution.cutoff||1800)),now,.06);
       item.panner.pan.setTargetAtTime(Math.max(-1,Math.min(1,(dx*right.x+dy*right.y)/length)),now,.04);
     }

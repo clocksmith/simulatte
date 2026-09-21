@@ -9,7 +9,7 @@
       let target=null,score=-Infinity;
       if(node.kind!=='mist')for(const source of scene.sources){if(source.kind!=='motorcycle')continue;const point=M.position(source,Math.max(0,time-.02)),distance=M.dist(node,point);if(distance>100)continue;
         const level=M.sourceLevel(source,time)-20*Math.log10(Math.max(1,distance));if(level>score){score=level;target={source,point,distance};}}
-      const enabled=node.enabled!==false&&scene.treatmentsEnabled!==false;
+      const enabled=node.enabled!==false&&scene.treatmentsEnabled!==false&&(scene.treatmentMode!=='cancellation'||node.kind==='cancellation');
       let frequency=node.frequency||500,harmonic=null;
       if(node.kind==='cancellation'&&target){M.pressure(target.source,time);harmonic=target.source.harmonics.reduce((a,b)=>a.re*a.re+a.im*a.im>b.re*b.re+b.im*b.im?a:b);frequency=harmonic.n*target.point.rpm/120;}
       return {...node,enabled,target,frequency,harmonic,active:enabled&&(node.kind==='mist'||!!target)};

@@ -1,7 +1,7 @@
 (function (root) {
   const C = { rho: 1.204, p0: 20e-6, duration: 1.25, rate: 8000 };
-  const defaults = { seed: 731, motorcycles: 300, cars: 80, pedestrians: 120, speed: 9, rpm: 3600,
-    temperature: 20, background: 45, sourceDb: 86, surface: 'none', reflectivity: 0.7, transmission: 0.1,
+  const defaults = { seed: 731, motorcycles: 300, cars: 80, pedestrians: 120, speed: 9, rpm: 2400,
+    temperature: 20, background: 20, sourceDb: 136, surface: 'none', reflectivity: 0.7, transmission: 0.1,
     cancellation: false, latencyMs: 2, panelWidth: 16, panelHeight: 3, coneDegrees: 60 };
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, (a.z || 0) - (b.z || 0));
   const dot = (a, b) => a.x * b.x + a.y * b.y + a.z * b.z;
@@ -11,7 +11,7 @@
   function random(seed) { let n = seed >>> 0; return () => { n = (Math.imul(n, 1664525) + 1013904223) >>> 0; return n / 4294967296; }; }
   const soundSpeed = p => Math.sqrt(1.4 * 287.05 * (p.temperature + 273.15));
   function validate(p) {
-    for (const [key, low, high] of [['seed',1,2147483647],['motorcycles',0,600],['cars',0,240],['pedestrians',0,400],['speed',2,14],['rpm',1200,8000],['temperature',-10,40],['background',30,65],['sourceDb',60,100],['reflectivity',0,1],['transmission',0,1],['latencyMs',0,20],['panelWidth',4,24],['panelHeight',1,5],['coneDegrees',45,90]]) {
+    for (const [key, low, high] of [['seed',1,2147483647],['motorcycles',0,600],['cars',0,240],['pedestrians',0,400],['speed',2,14],['rpm',1200,8000],['temperature',-10,40],['background',15,65],['sourceDb',60,145],['reflectivity',0,1],['transmission',0,1],['latencyMs',0,20],['panelWidth',4,24],['panelHeight',1,5],['coneDegrees',45,90]]) {
       if (!Number.isFinite(p[key]) || p[key] < low || p[key] > high) throw new Error(`Invalid ${key}`);
     }
     for (const key of ['seed','motorcycles','cars','pedestrians']) if (!Number.isInteger(p[key])) throw new Error(`Invalid integer ${key}`);
@@ -64,7 +64,19 @@
     const startEdge=local.filter(edge=>edge.length>65&&edge.uy>0).sort((a,b)=>Math.hypot((a.from.x+a.to.x)/2-startPoint.x,(a.from.y+a.to.y)/2-startPoint.y)-Math.hypot((b.from.x+b.to.x)/2-startPoint.x,(b.from.y+b.to.y)/2-startPoint.y))[0]||anchor;
     const park = (map.places || []).find(place => /mccarren/i.test(place.name || place.label || ''));
     const parkPoint = park?.position || (park && Number.isFinite(park.x) ? park : {x:2200,y:-480});
-    const parkEdges = local.filter(edge => Math.hypot(edge.from.x-parkPoint.x,edge.from.y-parkPoint.y)<650 && edge.length>65);
+    const boundaries=(map.parks||[]).filter(row=>/mccarren/i.test(row.label||'')).map(row=>row.outerRing);
+    function nearPark(edge){
+      if(edge.length<=65)return false;
+      const point={x:(edge.from.x+edge.to.x)/2,y:(edge.from.y+edge.to.y)/2};
+      if(!boundaries.length)return Math.hypot(point.x-parkPoint.x,point.y-parkPoint.y)<450;
+      for(const ring of boundaries)for(let i=0;i<ring.length;i++){
+        const a=ring[i],b=ring[(i+1)%ring.length],dx=b.x-a.x,dy=b.y-a.y;
+        const t=Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.y-a.y)*dy)/Math.max(1,dx*dx+dy*dy)));
+        if(Math.hypot(point.x-a.x-dx*t,point.y-a.y-dy*t)<85)return true;
+      }
+      return false;
+    }
+    const parkEdges=local.filter(nearPark);
     const packs = new Map();
     function packFor(index) {
       const id = Math.floor(index/16);
@@ -98,11 +110,11 @@
       const pack = kind==='motorcycle' ? packFor(i) : null;
       const edge = pack ? pack.edge : local[Math.floor(rng()*local.length)] || anchor;
       const speed = pack ? pack.speed : kind==='pedestrian' ? 1+0.5*rng() : p.speed*(0.8+0.3*rng());
-      const cylinders = kind==='motorcycle' ? [2,4,1][i%3] : kind==='car' ? 4 : 0;
+      const cylinders = kind==='motorcycle' ? 2 : kind==='car' ? 4 : 0;
       sources.push({ id: `${kind}-${i+1}`, kind, cylinders, packId:pack ? pack.id : null, route:pack ? packRoute(pack,i) : route(edge,kind==='pedestrian'?'sidewalk':'lane'),
         offset:pack ? 4+Math.floor(i%16/2)*8+(i%2)*3 : rng()*edge.length*.7,
         speed, rpm: kind==='motorcycle'?p.rpm*(0.94+rng()*0.12):kind==='car'?1400+speed*80:0,
-        phase: rng()*2*Math.PI, db: kind==='motorcycle'?p.sourceDb:kind==='car'?p.sourceDb-12:48 });
+        phase: rng()*2*Math.PI, db: kind==='motorcycle'?p.sourceDb:kind==='car'?74:48 });
     }
     const n = { x: -anchor.uy, y: anchor.ux };
     const panel = { x:center.x+n.x*(anchor.width/2+2), y:center.y+n.y*(anchor.width/2+2), z:p.panelHeight/2,
@@ -137,7 +149,7 @@
     if(time<0)return 0;
     const state=root.MotorcycleTrafficMotion.sample(source,time),cycle=state?state.phase:2*Math.PI*source.rpm/120*time+source.phase;
     if(!source.harmonics){
-      const angles=source.cylinders===4?[0,180,360,540]:source.cylinders===2?[0,270]:[0];
+      const angles=source.cylinders===4?[0,180,360,540]:source.cylinders===2?[0,315]:[0];
       source.harmonics=[];
       for(let n=1;n<=20;n++){
         const re=angles.reduce((sum,angle)=>sum+Math.cos(n*angle*Math.PI/360),0)/n**1.15;

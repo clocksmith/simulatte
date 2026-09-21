@@ -1,0 +1,160 @@
+{
+  "initial": {
+    "ready": true,
+    "count": 300,
+    "advanced": false,
+    "placementInAdvanced": true,
+    "timelineInAdvanced": true,
+    "volumeClosed": true,
+    "camera": "city-camera",
+    "live": true,
+    "equipment": "{\"reference\":{\"x\":2021.1823857657362,\"y\":386.8494156385358,\"z\":1.5},\"speaker\":{\"x\":2023.2187806771663,\"y\":380.6766451288942,\"z\":1.5},\"panel\":{\"x\":2034.714521608603,\"y\":386.04860384404543,\"z\":1.5,\"angle\":-2.822935579156236,\"width\":16,\"height\":3},\"receiver\":{\"x\":2022.7488433899132,\"y\":382.1011306311192,\"z\":1.5}}",
+    "clock": 12.97
+  },
+  "comparisons": [
+    {
+      "value": "redirection",
+      "clock": 13.35,
+      "playing": true,
+      "analysisRequests": 0
+    },
+    {
+      "value": "cancellation",
+      "clock": 13.68,
+      "playing": true,
+      "analysisRequests": 0
+    },
+    {
+      "value": "untreated",
+      "clock": 14.02,
+      "playing": true,
+      "analysisRequests": 0
+    },
+    {
+      "value": "live",
+      "clock": 14.35,
+      "playing": true,
+      "analysisRequests": 0
+    }
+  ],
+  "sidewalk": {
+    "camera": "observer-camera",
+    "observer": {
+      "x": 2004.7984547408446,
+      "y": -626.2016535039063,
+      "z": 1.7000000476837158,
+      "right": {
+        "x": -1,
+        "y": 1.1842379546963194e-16
+      },
+      "sourceId": null,
+      "mode": "sidewalk"
+    },
+    "level": 47.95596962722353
+  },
+  "onboard": {
+    "title": "Autonomous motorcycle 1",
+    "observer": {
+      "x": 1967.789103010498,
+      "y": -811.1135797734376,
+      "z": 1.7000000476837158,
+      "right": {
+        "x": -0.7741551995277405,
+        "y": 0.6329958438873291
+      },
+      "sourceId": "motorcycle-1",
+      "mode": "rider"
+    },
+    "level": 70.42898691730745,
+    "audio": [
+      "running"
+    ]
+  },
+  "treatment": {
+    "title": "Directional sound",
+    "detail": "Tracks motorcycle-13 / 3.1 m",
+    "frequencyInAdvanced": true
+  },
+  "snapshot": {
+    "analysis": {
+      "receiver": {
+        "x": 1968.6406922133788,
+        "y": -810.0720758671876,
+        "z": 1.7000000476837158,
+        "right": {
+          "x": -0.7741551995277405,
+          "y": 0.6329958438873291
+        },
+        "sourceId": "motorcycle-1",
+        "mode": "rider"
+      },
+      "reference": {
+        "x": 2021.1823857657362,
+        "y": 386.8494156385358,
+        "z": 1.5
+      },
+      "speaker": {
+        "x": 2023.2187806771663,
+        "y": 380.6766451288942,
+        "z": 1.5
+      },
+      "panel": {
+        "x": 2034.714521608603,
+        "y": 386.04860384404543,
+        "z": 1.5,
+        "angle": -2.822935579156236,
+        "width": 16,
+        "height": 3
+      }
+    },
+    "world": "{\"reference\":{\"x\":2021.1823857657362,\"y\":386.8494156385358,\"z\":1.5},\"speaker\":{\"x\":2023.2187806771663,\"y\":380.6766451288942,\"z\":1.5},\"panel\":{\"x\":2034.714521608603,\"y\":386.04860384404543,\"z\":1.5,\"angle\":-2.822935579156236,\"width\":16,\"height\":3},\"receiver\":{\"x\":2022.7488433899132,\"y\":382.1011306311192,\"z\":1.5}}",
+    "paused": true
+  },
+  "replay": {
+    "time": 0.53,
+    "playing": true,
+    "notice": "Replaying traffic",
+    "treatments": 3
+  },
+  "mobile": {
+    "width": 390,
+    "scrollWidth": 390,
+    "toolbarHeight": 114,
+    "placementVisible": false,
+    "timelineVisible": false,
+    "advanced": false,
+    "controls": [
+      {
+        "id": "camera-mode",
+        "x": 10,
+        "right": 192,
+        "height": 44
+      },
+      {
+        "id": "technique",
+        "x": 198,
+        "right": 380,
+        "height": 44
+      },
+      {
+        "id": "traffic-sound",
+        "x": 11,
+        "right": 142,
+        "height": 42
+      },
+      {
+        "id": "pause",
+        "x": 260.390625,
+        "right": 316.859375,
+        "height": 44
+      },
+      {
+        "id": "advanced-entry",
+        "x": 320.859375,
+        "right": 380,
+        "height": 44
+      }
+    ]
+  },
+  "errors": []
+}

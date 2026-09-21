@@ -74,7 +74,7 @@
     for (const row of world.renderGeometry.land) addFlatPolygon(writer, row.outerRing, SURFACE_LAYERS.land, COLORS.land, 0.05);
     for (const park of world.renderGeometry.parks) {
       addFlatPolygon(writer, park.outerRing, SURFACE_LAYERS.park, COLORS.park, 0.18);
-      addRibbon(writer, park.outerRing, 3.2, 0.24, COLORS.parkPerimeter, 0.9);
+      addRibbon(writer, park.outerRing, 4.0, 0.26, COLORS.parkPerimeter, 1.0);
     }
     for (const street of world.renderGeometry.streets) {
       addRibbon(writer, street.geometry, street.widthM + 3.6, SURFACE_LAYERS.street - 0.015, [0.19, 0.23, 0.27, 1], 0.02);

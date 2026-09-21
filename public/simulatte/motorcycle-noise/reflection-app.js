@@ -8,7 +8,7 @@
     populationWorker?.terminate();const request=++populationRequest;
     status('Preparing '+config.motorcycles+' autonomous motorcycles on the connected street network');
     return new Promise((resolve,reject)=>{
-      populationWorker=new Worker('./population-worker.js?v=mobile-audio-v1');
+      populationWorker=new Worker('./population-worker.js?v=park-vtwin-v3');
       populationWorker.onerror=event=>reject(new Error(event.message||'Traffic preparation failed'));
       populationWorker.onmessage=({data})=>{
         if(request!==populationRequest)return;
@@ -51,14 +51,14 @@
   });
   $('panel-angle').addEventListener('input',()=>{if(!scene)return;scene.panel.angle=Number($('panel-angle').value)*Math.PI/180;invalidate();});
   for(const button of document.querySelectorAll('[data-place]'))button.addEventListener('click',()=>{placement=button.dataset.place;for(const item of document.querySelectorAll('[data-place]'))item.setAttribute('aria-pressed',String(item===button));status(`Tap the map to place the ${placement}.`);});
-  $('pause').addEventListener('click',()=>{if(paused&&time>=180){invalidate();time=0;}setPaused(!paused);});
-  $('reset').addEventListener('click',()=>{invalidate();time=0;setPaused(false);});
-  $('timeline').addEventListener('input',()=>{invalidate();time=Number($('timeline').value);setPaused(true);});
+  $('pause').addEventListener('click',()=>{if(paused&&time>=180){replayTraffic();}setPaused(!paused);});
+  $('reset').addEventListener('click',()=>{replayTraffic();setPaused(false);});
+  $('timeline').addEventListener('input',()=>{invalidate();time=Number($('timeline').value);explorer?.resetClock();setPaused(true);});
   for(const button of document.querySelectorAll('[data-focus]'))button.addEventListener('click',()=>view.focus(button.dataset.focus));
   function plot(canvas,series){
     const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.font='12px monospace';
     const colors=['#9aa8a1','#68c7c7','#bc9bdc'];
-    series.forEach((row,j)=>row.spectrum.forEach((band,i)=>{const x=30+i*(w-50)/row.spectrum.length+j*10,bar=Math.max(0,band.dbZ)*(h-35)/110;
+    series.forEach((row,j)=>row.spectrum.forEach((band,i)=>{const x=30+i*(w-50)/row.spectrum.length+j*10,bar=Math.max(0,band.dbZ)*(h-35)/150;
       ctx.fillStyle=colors[j];ctx.fillRect(x,h-25-bar,8,bar);if(j===0){ctx.fillStyle='#a7b7ad';ctx.fillText(String(band.hz),x-4,h-7);}}));
   }
   function display(data){
@@ -77,28 +77,35 @@
     $('active-energy').textContent=`Additional active-emitter energy: ${result.poweredEmitter.energyJ.toExponential(3)} J over the measurement interval. ${result.poweredEmitter.clippedSamples} clipped command samples.`;
     plot($('spectrum'),[r.baseline,r.withSurface,r.total]);view.showMeasurements(result,$('layer').value);status('Comparison ready. Results are tied to this paused snapshot.');
   }
+  $('advanced-entry').addEventListener('click',event=>{event.preventDefault();$('advanced-settings').open=true;$('advanced-settings').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});});
+  let replayNoticeTimer=null;
+  function replayTraffic(){
+    invalidate();time=0;lastReadout=-Infinity;explorer?.resetClock();
+    $('playback-state').textContent='Replaying traffic';clearTimeout(replayNoticeTimer);
+    replayNoticeTimer=setTimeout(()=>{$('playback-state').textContent='';},4000);
+  }
   function run(){
     if(!scene)return;invalidate();setPaused(true);if(time<M.C.duration)time=M.C.duration;
-    const observer=view.getObserver(),dx=observer.x-scene.receiver.x,dy=observer.y-scene.receiver.y,dz=observer.z-scene.receiver.z;
-    for(const target of [scene.receiver,scene.reference,scene.speaker]){target.x+=dx;target.y+=dy;target.z+=dz;}
-    scene.observers[0]={name:'Active viewpoint',...observer};
-    const id=generation;worker=new Worker('./reflection-worker.js?v=mobile-audio-v1');$('run').disabled=true;$('cancel').hidden=false;$('progress').hidden=false;$('progress').value=0;
+    const observer=view.getObserver();
+    const analysisScene={...scene,receiver:{...observer},reference:{...scene.reference},speaker:{...scene.speaker},panel:{...scene.panel},
+      observers:[{name:'Active viewpoint',...observer},...scene.observers.slice(1)]};
+    const id=generation;worker=new Worker('./reflection-worker.js?v=park-vtwin-v3');$('run').disabled=true;$('cancel').hidden=false;$('progress').hidden=false;$('progress').value=0;
     const fail=message=>{worker?.terminate();worker=null;$('run').disabled=false;$('cancel').hidden=true;$('progress').hidden=true;status(message,true);};
     worker.onerror=event=>fail(event.message||'Acoustic worker failed');worker.onmessage=({data})=>{if(data.id!==id)return;
       if(data.type==='progress'){$('progress').value=data.fraction;status(data.phase);}
       if(data.type==='error')fail(data.message);
       if(data.type==='result'){worker.terminate();worker=null;$('run').disabled=false;$('cancel').hidden=true;$('progress').hidden=true;display(data);}
     };
-    worker.postMessage({id,scene,time,mapHash});
+    worker.postMessage({id,scene:analysisScene,time,mapHash});
   }
   $('technique').addEventListener('change',()=>{
     if(!scene)return;
     invalidate();
-    const technique=$('technique').value;scene.treatmentsEnabled=technique==='live';setPaused(technique!=='live'&&technique!=='untreated');
+    const technique=$('technique').value;scene.treatmentMode=technique;scene.treatmentsEnabled=['live','cancellation'].includes(technique);
     scene.config.surface=technique==='redirection'?'retro':'none';
     scene.config.cancellation=technique==='cancellation';showConfig(scene.config);
-    $('technique-note').textContent=technique==='live'?'Marked mist and low-level acoustic demonstrations. Click a treatment to inspect its target and model.':technique==='untreated'?'Untreated traffic. The same seeded vehicles and simulation time are preserved.':technique==='redirection'?'Idealized surface redirects intercepted sound. Compare this frozen traffic snapshot; no vehicle is stopped or removed.':'Local phase-sensitive cancellation is calculated for this observer in the snapshot comparison, not in the live energy map.';
-    if(technique==='redirection'||technique==='cancellation')run();
+    const explanations={live:'Live treatments. Select a marker to inspect its contribution.',untreated:'Untreated traffic. Equipment and vehicle trajectories are unchanged.',redirection:'Live idealized reflection. The surface redirects intercepted sound; traffic keeps moving.',cancellation:'Live output-limited tonal cancellation at marked nodes. Broadband waveform analysis is in Advanced.'};
+    $('technique-note').textContent=explanations[technique];
   });
   $('run').addEventListener('click',run);$('cancel').addEventListener('click',()=>{invalidate();status('Calculation cancelled.');});
   $('layer').addEventListener('change',()=>{if(result)view.showMeasurements(result,$('layer').value);});
@@ -128,7 +135,7 @@
   }catch(error){status(error.message,true);}event.target.value='';});
   function tick(now){
     if(!view)return;const dt=last?Math.max(0,(now-last)/1000):0;last=now;
-    if(!paused&&!document.hidden){time=Math.min(180,time+dt*Number($('playback').value));if(time>=180)setPaused(true);if(result)invalidate();}
+    if(!paused&&!document.hidden){time=Math.min(180,time+dt*Number($('playback').value));if(time>=180){if($('repeat-traffic').checked)replayTraffic();else setPaused(true);}if(result)invalidate();}
     $('timeline').value=time;$('clock').textContent=`${time.toFixed(2)} s`;
     $('sound-speed').textContent=`${M.soundSpeed(scene.config).toFixed(1)} m/s`;
     view.draw({scene,time,selected,paths:$('paths').checked});

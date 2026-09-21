@@ -1,11 +1,11 @@
 'use strict';
-importScripts('./signal.js','./city-paths.js?v=mobile-audio-v1','./traffic-motion.js?v=mobile-audio-v1','./reflection-model.js?v=mobile-audio-v1','./treatments.js?v=mobile-audio-v1','./city-sound.js?v=mobile-audio-v1');
+importScripts('./signal.js','./city-paths.js?v=park-vtwin-v3','./traffic-motion.js?v=park-vtwin-v3','./reflection-model.js?v=park-vtwin-v3','./treatments.js?v=park-vtwin-v3','./city-sound.js?v=park-vtwin-v3');
 let scene=null;
 self.onmessage=({data})=>{
   if(data.type==='init'){scene=data.scene;return;}
   if(data.type!=='sample'||!scene)return;
   try{
-    scene.config=data.config;scene.panel=data.panel;scene.treatments=data.treatments||[];scene.treatmentsEnabled=data.treatmentsEnabled;scene.receiver=data.receiver;scene.speaker=data.speaker;scene.reference=data.reference;
+    scene.config=data.config;scene.panel=data.panel;scene.treatments=data.treatments||[];scene.treatmentsEnabled=data.treatmentsEnabled;scene.treatmentMode=data.treatmentMode;scene.receiver=data.receiver;scene.speaker=data.speaker;scene.reference=data.reference;
     const sampler=self.MotorcycleCitySound.create(scene,data.time);
     const markers=data.markers.map(marker=>({id:marker.id,...sampler.measure(marker)}));
     const points=[],spacing=data.focus.span/6;

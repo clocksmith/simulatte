@@ -1,5 +1,5 @@
 'use strict';
-importScripts('./city-paths.js?v=mobile-audio-v1','./traffic-motion.js?v=mobile-audio-v1','./reflection-model.js?v=mobile-audio-v1');
+importScripts('./city-paths.js?v=park-vtwin-v3','./traffic-motion.js?v=park-vtwin-v3','./reflection-model.js?v=park-vtwin-v3');
 self.onmessage=({data})=>{
   try {
     const scene=self.MotorcycleReflection.create(data.map,data.config);
