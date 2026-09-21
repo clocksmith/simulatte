@@ -1,5 +1,5 @@
 'use strict';
-importScripts('./signal.js', './control.js', './city-paths.js?v=park-vtwin-v3', './traffic-motion.js?v=park-vtwin-v3', './reflection-model.js?v=park-vtwin-v3', './acoustic-field.js');
+importScripts('./signal.js', './control.js', './city-paths.js?v=city-controls-v7', './traffic-motion.js?v=city-controls-v7', './reflection-model.js?v=city-controls-v7', './acoustic-field.js');
 self.onmessage = ({ data }) => {
   const { id, scene, time, mapHash } = data;
   const M = self.MotorcycleReflection, S = self.MotorcycleSignal;

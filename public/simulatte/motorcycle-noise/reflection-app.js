@@ -8,7 +8,7 @@
     populationWorker?.terminate();const request=++populationRequest;
     status('Preparing '+config.motorcycles+' autonomous motorcycles on the connected street network');
     return new Promise((resolve,reject)=>{
-      populationWorker=new Worker('./population-worker.js?v=park-vtwin-v3');
+      populationWorker=new Worker('./population-worker.js?v=city-controls-v7');
       populationWorker.onerror=event=>reject(new Error(event.message||'Traffic preparation failed'));
       populationWorker.onmessage=({data})=>{
         if(request!==populationRequest)return;
@@ -89,7 +89,7 @@
     const observer=view.getObserver();
     const analysisScene={...scene,receiver:{...observer},reference:{...scene.reference},speaker:{...scene.speaker},panel:{...scene.panel},
       observers:[{name:'Active viewpoint',...observer},...scene.observers.slice(1)]};
-    const id=generation;worker=new Worker('./reflection-worker.js?v=park-vtwin-v3');$('run').disabled=true;$('cancel').hidden=false;$('progress').hidden=false;$('progress').value=0;
+    const id=generation;worker=new Worker('./reflection-worker.js?v=city-controls-v7');$('run').disabled=true;$('cancel').hidden=false;$('progress').hidden=false;$('progress').value=0;
     const fail=message=>{worker?.terminate();worker=null;$('run').disabled=false;$('cancel').hidden=true;$('progress').hidden=true;status(message,true);};
     worker.onerror=event=>fail(event.message||'Acoustic worker failed');worker.onmessage=({data})=>{if(data.id!==id)return;
       if(data.type==='progress'){$('progress').value=data.fraction;status(data.phase);}

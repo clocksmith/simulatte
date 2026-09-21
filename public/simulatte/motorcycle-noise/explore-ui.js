@@ -53,7 +53,7 @@
     function init(scene){
       worker?.terminate();observerWorker?.terminate();observerPending=false;observerNextAt=0;observerKey='';lastObserver=null;world=scene;pending=false;lastRequestKey='';nextAt=0;lastReading=null;history=[];epoch++;const generation=epoch;
       treatments.reset(scene);markers=[{id:'receiver-1',name:'Observer 1',...view.getObserver()}];nextId=2;selectedMarker=null;inspectedSource=null;$('inspection').hidden=true;renderMarkers();
-      observerWorker=new Worker('./observer-noise-worker.js?v=park-vtwin-v3');
+      observerWorker=new Worker('./observer-noise-worker.js?v=city-controls-v7');
       observerWorker.postMessage({type:'init',scene});
       observerWorker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==observerRequest)return;
@@ -62,7 +62,7 @@
         if(data.type==='observer')showObserver(data);
       };
       observerWorker.onerror=event=>{if(generation!==epoch)return;observerPending=false;setText('observer-level','Microphone unavailable');setText('observer-time',event.message||'Audio measurement worker failed');};
-      worker=new Worker('./live-noise-worker.js?v=park-vtwin-v3');worker.postMessage({type:'init',scene});
+      worker=new Worker('./live-noise-worker.js?v=city-controls-v7');worker.postMessage({type:'init',scene});
       worker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==requestId)return;
         pending=false;
@@ -107,8 +107,8 @@
     }
     on($('area-focus'),'change',event=>{if(event.target.value==='McCarren Park'){view.homePark();$('camera-mode').value='map';}else{if(event.target.value)view.focus(event.target.value);$('camera-mode').value='map';}nextAt=0;observerNextAt=0;});
     on($('camera-mode'),'change',event=>{
-      if(event.target.value==='home'){view.homePark();event.target.value='map';nextAt=0;observerNextAt=0;return;}
-      if(event.target.value.startsWith('area:')){view.focus(event.target.value.slice(5));event.target.value='map';nextAt=0;observerNextAt=0;return;}
+      if(event.target.value==='map'){view.homePark();nextAt=0;observerNextAt=0;return;}
+      if(event.target.value.startsWith('area:')){view.focus(event.target.value.slice(5));nextAt=0;observerNextAt=0;return;}
       if(event.target.value==='rider'&&!inspectedSource){const id=view.nearestMotorcycle();if(id)selectSource(id);}
       view.setCameraMode(event.target.value);nextAt=0;observerNextAt=0;
     });

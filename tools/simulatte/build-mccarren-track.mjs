@@ -21,8 +21,16 @@ const city=JSON.parse(fs.readFileSync('public/simulatte/motorcycle-noise/nyc-map
 const origin=city.origin;
 const project=p=>({x:(p.longitude-origin.longitude)*Math.cos(origin.latitude*Math.PI/180)*111320,y:(p.latitude-origin.latitude)*110540});
 const rings=sourceRings.map(ring=>ring.map(project)),lanes=Number(tags.lanes);
+const trees=[];
+for(const match of xml.matchAll(/<node\b([^>]*?)(?:\/>|>([\s\S]*?)<\/node>)/g)){
+  if(!match[2])continue;
+  const a=attributes(match[1]),tags=Object.fromEntries([...match[2].matchAll(/<tag k="([^"]+)" v="([^"]*)"\s*\/>/g)].map(row=>[row[1],row[2]]));
+  if(tags.natural!=='tree')continue;
+  const longitude=Number(a.lon),latitude=Number(a.lat),height=Number.parseFloat(tags.height);
+  trees.push({id:'osm-node-'+a.id,...project({longitude,latitude}),heightM:Number.isFinite(height)?height:null,sourceWgs84:{longitude,latitude}});
+}
 if(!Number.isInteger(lanes)||lanes<1||lanes>12)throw new Error('Track lane count is absent or invalid');
-const data={schema:'simulatte.mccarrenTrack.v1',origin,tracks:[{id:'osm-relation-4102021',label:'McCarren Park running track',outerRing:rings[0],interiorRings:rings.slice(1),lanes}],
+const data={schema:'simulatte.mccarrenTrack.v1',origin,trees,tracks:[{id:'osm-relation-4102021',label:'McCarren Park running track',outerRing:rings[0],interiorRings:rings.slice(1),lanes}],
   provenance:{source:'https://www.openstreetmap.org/relation/4102021',retrievalUrl:'https://api.openstreetmap.org/api/0.6/map?bbox=-73.955,40.718,-73.948,40.725',sourceSha256:crypto.createHash('sha256').update(bytes).digest('hex'),attribution:'OpenStreetMap contributors',license:'ODbL 1.0',sourceWgs84Rings:sourceRings,sourceRelationAttributes:attributes(relation.split('>')[0]),sourceTags:tags,limitations:'Outer and inner boundaries are mapped geometry. Intermediate lane stripes are interpolated presentation, not surveyed lane centerlines.'}};
 fs.writeFileSync('public/simulatte/motorcycle-noise/mccarren-track.json',JSON.stringify(data));
-console.log('Generated McCarren track geometry with '+lanes+' lanes');
+console.log('Generated McCarren track geometry with '+lanes+' lanes and '+trees.length+' mapped trees');

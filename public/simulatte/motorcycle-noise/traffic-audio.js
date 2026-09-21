@@ -1,23 +1,28 @@
 (function(root){
   'use strict';
   const M=()=>root.MotorcycleReflection;
-  let state,reading,context,master,limiter,bed,bedGain,enabled=false,button,volume,statusNode,world;
+  let state,reading,context,master,limiter,bed,bedGain,enabled=false,button,soundLabel,statusNode,world;
   let wanted=false,starting=false;
   let sequence=0,previousTime=null,voices=new Map(),waves=new Map(),noiseBuffer,appliedReading=null,fadePending=false;
   const MAX_VOICES=32;
-  // Map the synthetic source pressure into playback headroom, not speaker dBA.
-  // Extra perceptual distance loss applies only to playback, never measurements.
-  const MOTORCYCLE_PLAYBACK_GAIN=8/(2e-5*10**(136/20));
+  // Compress the scene's acoustic range into a usable listening range.
+  // Distance and obstruction already belong to the measured contributions.
+  const PLAYBACK_REFERENCE_DBA=100,PLAYBACK_REFERENCE_DBFS=-18,PLAYBACK_DYNAMIC_RANGE=.5;
   const BACKGROUND_PLAYBACK_GAIN=10**(-55/20);
   const exhaustCurve=Float32Array.from({length:2049},(_,i)=>Math.tanh(1.8*(i/1024-1)));
   const outputCurve=Float32Array.from({length:2049},(_,i)=>.85*Math.tanh(1.25*(i/1024-1)));
-  function playbackGain(id){
-    const source=world?.sources.find(source=>source.id===id);if(source?.kind!=='motorcycle')return source?.kind==='car'||source?.kind==='pedestrian' ? .04 : 1;
-    const point=M().position(source,state?.time||0),focus=state?.focus||point;
-    const distance=Math.hypot(point.x-focus.x,point.y-focus.y,(point.z||0)-(focus.z||0));
-    return MOTORCYCLE_PLAYBACK_GAIN/(1+(distance/25)**2);
+  let meter=null,meterAt=-Infinity,meterDbfs=null;
+  let output=null,streamDestination=null;
+  const meterSamples=new Float32Array(2048);
+  function status(text){
+    if(!statusNode)return;
+    if(enabled&&context?.state==='running'&&meter&&context.currentTime-meterAt>=.25){
+      meterAt=context.currentTime;meter.getFloatTimeDomainData(meterSamples);
+      const square=meterSamples.reduce((sum,value)=>sum+value*value,0)/meterSamples.length;
+      meterDbfs=square>1e-12?10*Math.log10(square):null;
+    }
+    statusNode.textContent=text+(enabled&&meterDbfs!==null?' / Playback '+meterDbfs.toFixed(0)+' dBFS':'');
   }
-  function status(text){if(statusNode)statusNode.textContent=text;}
   function gain(node,value,time){node.gain.cancelScheduledValues(time);node.gain.setTargetAtTime(Math.max(0,value),time,.055);}
   function wave(cylinders){
     if(waves.has(cylinders))return waves.get(cylinders);
@@ -54,22 +59,41 @@
   }
   function disposeVoice(value){for(const node of [value.oscillator,value.noise]){try{node.stop();}catch(_error){}}for(const node of [value.oscillator,value.tone,value.noise,value.filter,value.rough,value.panner,value.level,...value.extra])node.disconnect();}
   function quiet(){if(!context)return;for(const item of voices.values())gain(item.level,0,context.currentTime);if(bedGain)gain(bedGain,0,context.currentTime);}
-  function mute(){
-    sequence++;wanted=false;starting=false;enabled=false;quiet();if(context)void context.suspend();
-    if(button)button.checked=false;
-    if(volume)volume.hidden=false;status('');
+  function audioSession(type){
+    if(!root.navigator?.audioSession)return;
+    try{root.navigator.audioSession.type=type;}catch(error){
+      if(!['NotSupportedError','InvalidStateError'].includes(error.name))throw error;
+    }
   }
-  function fail(error){mute();if(button){button.checked=false;button.title=error.message||String(error);}status(error.message||String(error));}
+  function releaseContext(){
+    const old=context;if(old)old.onstatechange=null;
+    if(output){output.onpause=null;output.onerror=null;output.pause();output.srcObject=null;output.remove();output=null;}
+    if(streamDestination){for(const track of streamDestination.stream.getTracks())track.stop();streamDestination.disconnect();streamDestination=null;}
+    for(const item of voices.values())disposeVoice(item);
+    voices.clear();waves.clear();
+    if(bed){try{bed.stop();}catch(error){if(error.name!=='InvalidStateError')throw error;}bed.disconnect();}
+    context=null;master=null;limiter=null;bed=null;bedGain=null;noiseBuffer=null;meter=null;
+    meterAt=-Infinity;meterDbfs=null;appliedReading=null;fadePending=false;
+    if(old&&old.state!=='closed')void old.close().catch(error=>status(error.message));
+  }
+  function mute(){
+    sequence++;wanted=false;starting=false;enabled=false;meterDbfs=null;quiet();
+    if(output)output.pause();
+    if(context&&context.state!=='closed')void context.suspend().catch(error=>status(error.message));
+    if(button)button.checked=false;
+    if(soundLabel)soundLabel.textContent='Sound';
+    status('');
+  }
+  function fail(error){mute();releaseContext();if(button){button.checked=false;button.title=error.message||String(error);button.setAttribute('aria-label','Retry sound: '+(error.message||String(error)));}if(soundLabel)soundLabel.textContent='Retry sound';status(error.message||String(error));}
   function install(){
     if(button)return;const toolbar=document.getElementById('sound-controls');if(!toolbar)return;
     const soundControl=document.createElement('label');soundControl.className='sound-switch';
-    const soundLabel=document.createElement('span');soundLabel.textContent='Sound';
+    soundLabel=document.createElement('span');soundLabel.textContent='Sound';
     button=document.createElement('input');button.id='traffic-sound';button.type='checkbox';button.checked=false;button.setAttribute('role','switch');button.setAttribute('aria-label','Traffic sound');
     const track=document.createElement('span');track.className='sound-switch-track';track.setAttribute('aria-hidden','true');soundControl.append(soundLabel,button,track);
     button.title='Continuous synthesized traffic at your viewpoint. Playback volume is independent of modeled dBA. The strongest 32 sources have individual voices; remaining traffic contributes to the ambient mix. No live phase-cancellation claim.';
-    volume=document.createElement('input');volume.type='range';volume.min='0';volume.max='1';volume.step='.01';volume.value='.55';volume.hidden=false;volume.setAttribute('aria-label','Traffic playback volume');volume.className='traffic-volume';
     statusNode=document.createElement('span');statusNode.id='traffic-audio-status';statusNode.className='muted';statusNode.setAttribute('role','status');statusNode.style.fontSize='.75rem';
-    toolbar.prepend(soundControl);document.getElementById('volume-controls').append(volume,statusNode);
+    toolbar.prepend(soundControl);document.getElementById('audio-status-slot').append(statusNode);
     const prompt=document.getElementById('sound-prompt'),startButton=document.getElementById('sound-start'),dismissButton=document.getElementById('sound-dismiss');
     startButton.disabled=false;dismissButton.disabled=false;
     function dismissPrompt(){if(prompt.contains(document.activeElement))button.focus({preventScroll:true});prompt.hidden=true;}
@@ -78,32 +102,67 @@
       if(starting){if(context)void context.resume().catch(error=>status(error.message||'Tap to enable sound'));return;}
       if(enabled&&context?.state==='running')return;
       const attempt=++sequence;starting=true;
+      soundLabel.textContent='Starting';
       status('Starting sound');
+      let resumeTimeout;
       try{
         const AudioContext=root.AudioContext||root.webkitAudioContext;if(!AudioContext)throw new Error('This browser does not support Web Audio.');
+        audioSession('playback');
+        if(context&&context.state!=='running')releaseContext();
+        let resumed,playing=Promise.resolve();
         if(!context){
-          context=new AudioContext({latencyHint:'interactive'});master=context.createGain();master.gain.value=Number(volume.value)*1.8;
+          context=new AudioContext({latencyHint:'interactive'});
+          resumed=context.resume();
+          context.onstatechange=()=>{
+            if(!enabled||context?.state==='running')return;
+            sequence++;wanted=false;starting=false;enabled=false;quiet();
+            button.checked=false;soundLabel.textContent='Resume sound';
+            status('Audio interrupted. Tap Sound to resume.');
+          };
+          master=context.createGain();master.gain.value=3;
           limiter=context.createDynamicsCompressor();limiter.threshold.value=-8;limiter.knee.value=8;limiter.ratio.value=10;limiter.attack.value=.003;limiter.release.value=.18;
-          const ceiling=context.createWaveShaper();ceiling.curve=outputCurve;ceiling.oversample='2x';master.connect(limiter).connect(ceiling).connect(context.destination);
+          const ceiling=context.createWaveShaper();ceiling.curve=outputCurve;ceiling.oversample='2x';
+          meter=context.createAnalyser();meter.fftSize=meterSamples.length;
+          master.connect(limiter).connect(ceiling).connect(meter);
+          if(root.matchMedia('(pointer: coarse)').matches){
+            streamDestination=context.createMediaStreamDestination();
+            meter.connect(streamDestination);
+            output=document.createElement('audio');output.id='traffic-audio-output';
+            output.setAttribute('playsinline','');output.preload='auto';output.hidden=true;
+            output.muted=false;output.volume=1;output.srcObject=streamDestination.stream;
+            document.body.append(output);
+            output.onpause=()=>{
+              if(!enabled)return;
+              mute();soundLabel.textContent='Resume sound';
+              status('Playback paused. Tap Sound to resume.');
+            };
+            output.onerror=()=>fail(new Error('Mobile audio playback failed. Tap Sound to retry.'));
+            // Both playback permissions are requested in the original Sound gesture.
+            playing=output.play();
+          }else meter.connect(context.destination);
           noiseBuffer=makeNoise();bed=context.createBufferSource();bed.buffer=noiseBuffer;bed.loop=true;bedGain=context.createGain();bedGain.gain.value=0;bed.connect(bedGain).connect(master);bed.start();
         }
-        await context.resume();if(attempt!==sequence)return;
+        await Promise.race([Promise.all([resumed||context.resume(),playing]),new Promise((_,reject)=>{
+          resumeTimeout=setTimeout(()=>reject(new Error('Audio did not start. Tap Sound to retry.')),4000);
+        })]);if(attempt!==sequence)return;
         if(context.state!=='running')throw new Error('Sound is unavailable. Try the Sound switch again.');
-        enabled=true;button.checked=true;volume.hidden=false;appliedReading=null;fadePending=false;
+        if(output&&output.paused)throw new Error('Mobile playback is paused. Tap Sound to retry.');
+        enabled=true;button.checked=true;appliedReading=null;fadePending=false;
+        button.setAttribute('aria-label','Traffic sound');
+        soundLabel.textContent='Sound';
         dismissPrompt();
         status(state?.paused?'Paused with simulation':'Listening at your viewpoint');
       }catch(error){
         if(attempt!==sequence)return;
         fail(error);
-      }finally{if(attempt===sequence)starting=false;}
+      }finally{clearTimeout(resumeTimeout);if(attempt===sequence)starting=false;}
     }
     button.addEventListener('change',()=>{wanted=button.checked;if(!wanted)mute();else void enableSound();});
     startButton.addEventListener('click',()=>{wanted=true;void enableSound();});
     dismissButton.addEventListener('click',dismissPrompt);
-    volume.addEventListener('input',()=>{if(master)gain(master,Number(volume.value)*1.8,context.currentTime);});
     document.addEventListener('click',event=>{if(event.target.closest('#listen, #listen-source'))mute();},true);
     document.addEventListener('visibilitychange',()=>{if(document.hidden)mute();});
-    root.addEventListener('pagehide',()=>{mute();for(const item of voices.values())disposeVoice(item);voices.clear();try{bed?.stop();}catch(_error){}if(context)void context.close();},{once:true});
+    root.addEventListener('pagehide',()=>{mute();releaseContext();});
   }
   function observe(data){reading=data;}
   function update(next){
@@ -120,12 +179,17 @@
     const now=context.currentTime;
     if(appliedReading!==reading||fadePending){
       appliedReading=reading;fadePending=false;
-      const ranked=observer.contributors.filter(row=>row.rms>0),selected=ranked.slice(0,MAX_VOICES),ids=new Set(selected.map(row=>row.id));
+      const ranked=observer.contributors.filter(row=>row.rms>0&&Number.isFinite(row.level)),selected=ranked.slice(0,MAX_VOICES),ids=new Set(selected.map(row=>row.id));
+      const selectedPower=selected.reduce((sum,row)=>sum+10**(row.level/10),0);
+      const sceneLevel=Number.isFinite(observer.traffic)?observer.traffic:10*Math.log10(Math.max(1e-12,selectedPower));
+      const targetDbfs=Math.min(-3,PLAYBACK_REFERENCE_DBFS+(sceneLevel-PLAYBACK_REFERENCE_DBA)*PLAYBACK_DYNAMIC_RANGE);
+      const targetRms=selectedPower>0?10**(targetDbfs/20):0;
       for(const[id,item]of voices)if(!ids.has(id)){gain(item.level,0,now);voices.delete(id);setTimeout(()=>disposeVoice(item),220);}
       for(const contribution of selected){
         const source=world.sources.find(item=>item.id===contribution.id)||contribution.source;if(!source)continue;
         let item=voices.get(source.id);if(!item){item=voice(source);voices.set(source.id,item);}
-        item.source=source;item.contribution=contribution;gain(item.level,contribution.rms*playbackGain(source.id),now);
+        item.source=source;item.contribution=contribution;
+        gain(item.level,targetRms*Math.sqrt(10**(contribution.level/10)/Math.max(1e-12,selectedPower)),now);
       }
       const remaining=ranked.slice(MAX_VOICES).reduce((sum,row)=>{
         const source=world.sources.find(item=>item.id===row.id);

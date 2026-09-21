@@ -1,0 +1,66 @@
+{
+  "schema": "simulatte.motorcycleLevelTrace.v1",
+  "scope": "Local browser and live observer worker, fixed simulation time; not field validation",
+  "simulationTime": 12,
+  "backgroundDba": 20,
+  "defaultView": {
+    "name": "Williamsburg",
+    "initialDba": 76.30978710714534,
+    "soundOn": false,
+    "cameraOptgroups": 0
+  },
+  "rooftop": {
+    "dba": 87.44057462170787,
+    "heightM": 22.289241790771484
+  },
+  "near": [
+    {
+      "nearestBikeM": 1.0197958217583534,
+      "bikesWithin30m": 29,
+      "dba": 103.80705029824111
+    },
+    {
+      "nearestBikeM": 4.7616897976847135,
+      "bikesWithin30m": 19,
+      "dba": 105.38675810554486
+    },
+    {
+      "nearestBikeM": 4.315815687270084,
+      "bikesWithin30m": 18,
+      "dba": 109.99705464785819
+    },
+    {
+      "nearestBikeM": 3.079787987710201,
+      "bikesWithin30m": 17,
+      "dba": 109.61798144938729
+    }
+  ],
+  "far": [
+    {
+      "street": "South 10th Street",
+      "nearestBikeM": 1592.4108730979233,
+      "dba": 32.201978328027664
+    },
+    {
+      "street": "Penn Street",
+      "nearestBikeM": 1953.6738516917746,
+      "dba": 53.017910534808166
+    },
+    {
+      "street": "Berry Street",
+      "nearestBikeM": 1554.1761308836008,
+      "dba": 47.766087398677385
+    },
+    {
+      "street": "Hooper Street",
+      "nearestBikeM": 1429.352515550452,
+      "dba": 58.38024504899229
+    }
+  ],
+  "limitations": [
+    "Selected excerpts from the fixed-time trace, not exhaustive city coverage.",
+    "Distance, building shielding, motion, and other traffic affect readings.",
+    "The park-facing rooftop remains loud; no view-specific dBA clamp is applied.",
+    "Physical speaker SPL remains uncalibrated."
+  ]
+}

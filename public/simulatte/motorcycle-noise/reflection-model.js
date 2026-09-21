@@ -143,6 +143,12 @@
   }
   function sourceLevel(source,time) {
     const state=root.MotorcycleTrafficMotion.sample(source,time);
+    if(source.kind==='motorcycle'){
+      // source.db is the full-load reference, not a continuously revving engine.
+      const speed=Math.max(0,Math.min(1,(state?.speed||0)/Math.max(.1,source.speed)));
+      const throttle=Math.max(0,Math.min(1,(state?.acceleration||0)/2));
+      return source.db-50+28*Math.sqrt(speed)+22*throttle;
+    }
     return source.db+(source.kind==='pedestrian'||!state?0:6*(Math.min(1.25,state.speed/Math.max(.1,source.speed))-1)+Math.min(2,Math.max(0,state.acceleration))*1.5);
   }
   function pressure(source,time) {

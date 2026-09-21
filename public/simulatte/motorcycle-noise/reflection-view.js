@@ -1,6 +1,6 @@
 (function(root){
   async function create(canvas,map,initial,onPick){
-    const trackResponse=await fetch('./mccarren-track.json?v=park-vtwin-v3');
+    const trackResponse=await fetch('./mccarren-track.json?v=city-controls-v7');
     if(!trackResponse.ok)throw new Error('McCarren track geometry HTTP '+trackResponse.status);
     const trackData=await trackResponse.json();
     if(trackData.schema!=='simulatte.mccarrenTrack.v1'||trackData.origin.latitude!==map.origin.latitude||trackData.origin.longitude!==map.origin.longitude)throw new Error('McCarren track coordinate system differs from city map');
@@ -38,7 +38,7 @@
     const sunlight=new B.DirectionalLight('sun',new B.Vector3(-.4,-1,.3),scene);sunlight.intensity=1.2;sunlight.position=new B.Vector3(90,180,-60);
     const material=(name,color,alpha=1)=>{const m=new B.StandardMaterial(name,scene);m.diffuseColor=B.Color3.FromHexString(color);m.specularColor=new B.Color3(.08,.08,.08);m.alpha=alpha;return m;};
     const ground=B.MeshBuilder.CreateGround('water-ground',{width:9000,height:9000},scene);ground.position.y=-.2;ground.material=material('water','#233b43');ground.metadata={ground:true};
-    const city=root.MotorcycleBabylonCity.create(B,scene,{...map,tracks:trackData.tracks},origin,sunlight);city.setSources(initial.sources);
+    const city=root.MotorcycleBabylonCity.create(B,scene,{...map,tracks:trackData.tracks,trees:trackData.trees||[]},origin,sunlight);city.setSources(initial.sources);
     const panel=B.MeshBuilder.CreateBox('redirecting-surface',{size:1},scene);panel.material=material('surface','#75c4be',.8);
     const emitter=B.MeshBuilder.CreateBox('secondary-emitter',{width:.6,height:1,depth:.5},scene);emitter.material=material('emitter','#c5afe6');
     const soundView=root.MotorcycleSoundView.create(B,scene,origin,initial,onPick),heatMeshes=[];
@@ -73,11 +73,11 @@
     function targetPoint(){return {x:camera.target.x+origin.x,y:-camera.target.z+origin.y,z:1.7};}
     function sidewalkAt(point){
       let best=null,bestDistance=Infinity;
-      for(const street of map.streets)for(let i=1;i<street.geometry.length;i++){
+      for(const street of map.streets.filter(row=>['primary','secondary','tertiary','residential','unclassified','living_street','service','trunk'].includes(row.highway)))for(let i=1;i<street.geometry.length;i++){
         const a=street.geometry[i-1],b=street.geometry[i],dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy;if(l2<1)continue;
         const f=Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.y-a.y)*dy)/l2)),length=Math.sqrt(l2),offset=(street.widthM||8)/2+1.6;
         for(const side of [-1,1]){
-          const candidate={x:a.x+f*dx+dy/length*offset*side,y:a.y+f*dy-dx/length*offset*side,z:1.7};
+          const candidate={x:a.x+f*dx+dy/length*offset*side,y:a.y+f*dy-dx/length*offset*side,z:1.7,streetTarget:{x:a.x+f*dx,y:a.y+f*dy,z:.8}};
           const distance=Math.hypot(candidate.x-point.x,candidate.y-point.y);
           if(distance<bestDistance&&!current.acousticContext.occupied(candidate)){best=candidate;bestDistance=distance;}
         }
@@ -123,14 +123,47 @@
       return {position,target:visibleTraffic(position)};
     }
     function activateObserver(point,mode,target=visibleTraffic(point)){
-      scene.activeCamera.detachControl();cameraMode=mode;observerCamera.position.copyFrom(vector(point));observerCamera.setTarget(vector(target?{...target,z:1}:{x:point.x,y:point.y+30,z:point.z}));observerCamera.speed=mode==='free'?2.5:0;scene.activeCamera=observerCamera;observerCamera.attachControl(canvas,true);
+      scene.activeCamera.detachControl();cameraMode=mode;
+      observerCamera.cameraRotation.set(0,0);observerCamera.cameraDirection.set(0,0,0);observerCamera.rotationQuaternion=null;observerCamera.rotation.set(0,0,0);
+      observerCamera.position.copyFrom(vector(point));observerCamera.setTarget(vector(target?{...target,z:1}:point.streetTarget||sidewalkAt(point).streetTarget||{x:point.x,y:point.y+30,z:point.z}));observerCamera.speed=mode==='free'?2.5:0;scene.activeCamera=observerCamera;observerCamera.attachControl(canvas,true);
+    }
+    function parkRooftop(){
+      const candidates=[];
+      for(const building of map.buildings){
+        const ring=building.footprint;if(!ring?.length)continue;
+        const middle=ring.reduce((sum,p)=>({x:sum.x+p.x/ring.length,y:sum.y+p.y/ring.length}),{x:0,y:0});
+        const distance=Math.hypot(middle.x-parkCenter.x,middle.y-parkCenter.y);
+        if(distance<500)candidates.push({building,distance});
+      }
+      candidates.sort((a,b)=>a.distance-b.distance);
+      let best=null,bestScore=Infinity;
+      for(const {building} of candidates.slice(0,40)){
+        const flat=[],holes=[],rings=[building.footprint,...(building.interiorRings||[])];
+        for(let r=0;r<rings.length;r++){if(r)holes.push(flat.length/2);for(const p of rings[r])flat.push(p.x,p.y);}
+        const triangles=root.earcut(flat,holes),height=Math.max(3,building.heightM||9);
+        for(let i=0;i<triangles.length;i+=3){
+          const point={x:0,y:0,z:height+1.7};
+          for(let j=0;j<3;j++){point.x+=flat[triangles[i+j]*2]/3;point.y+=flat[triangles[i+j]*2+1]/3;}
+          const blocked=current.acousticContext.hits(point,{...parkCenter,z:1}).length;
+          const score=blocked*10000+Math.hypot(point.x-parkCenter.x,point.y-parkCenter.y)-height*100;
+          if(score<bestScore){bestScore=score;best=point;}
+        }
+      }
+      return best||rooftopAt(parkCenter);
     }
     function setCameraMode(mode){
       followed=null;
       if(!['map','sidewalk','rooftop','rider','free'].includes(mode))return;
       if(cameraMode==='map')savedRadius=camera.radius;
       const point=cameraMode==='map'?targetPoint():getObserver();
-      if(['sidewalk','rooftop','free'].includes(mode)){const destination=trafficView(point,mode);activateObserver(destination.position,mode,destination.target);return;}
+      if(mode==='rooftop'){
+        const roof=parkRooftop();
+        const ray=new B.Ray(vector({...roof,z:roof.z+1000}),new B.Vector3(0,-1,0),2000);
+        const hit=scene.pickWithRay(ray,mesh=>mesh.isEnabled()&&mesh.isVisible&&/building|roof/i.test(mesh.name));
+        const position=hit?.hit?{...roof,z:hit.pickedPoint.y+1.7}:roof;
+        activateObserver(position,mode,{...parkCenter,z:1});return;
+      }
+      if(['sidewalk','free'].includes(mode)){const destination=trafficView(point,mode);activateObserver(destination.position,mode,destination.target);return;}
       scene.activeCamera.detachControl();cameraMode=mode;
       if(mode==='rider'){onboard.rotation.set(0,0,0);scene.activeCamera=onboard;onboard.attachControl(canvas,true);}
       else{scene.activeCamera=camera;const target=trafficCandidates(point)[0];if(target){camera.setTarget(vector(target));camera.radius=145;camera.beta=.78;camera.alpha=Math.PI/2;}else camera.radius=savedRadius;camera.attachControl(canvas,true);}
@@ -147,9 +180,14 @@
     function homePark(){
       followed=null;
       scene.activeCamera.detachControl();cameraMode='map';scene.activeCamera=camera;
-      const traffic=trafficCandidates(startCenter,true)[0];
-      const target=traffic?{x:traffic.x,y:traffic.y,z:0}:openingTarget;
-      camera.alpha=Math.PI/2;camera.beta=traffic?.85:openingBeta;camera.radius=traffic?155:openingRadius;savedRadius=camera.radius;camera.setTarget(vector(target));
+      const anchor=sidewalkAt({x:parkSouth.x-20,y:parkSouth.y-25});
+      const turn=Math.PI/3+Math.PI/2;
+      const target={x:anchor.x+15*Math.cos(turn)-105*Math.sin(turn),y:anchor.y+15*Math.sin(turn)+105*Math.cos(turn),z:0};
+      const dx=anchor.x-target.x,dy=anchor.y-target.y,distance=Math.max(1,Math.hypot(dx,dy));
+      const pan={x:100*dx/distance,y:100*dy/distance};
+      camera.setTarget(vector({...target,x:target.x+pan.x,y:target.y+pan.y}));
+      camera.setPosition(vector({x:anchor.x+pan.x,y:anchor.y+pan.y,z:92}));
+      camera.radius*=1.35;savedRadius=camera.radius;
       camera.inertialAlphaOffset=0;camera.inertialBetaOffset=0;camera.inertialRadiusOffset=0;camera.inertialPanningX=0;camera.inertialPanningY=0;
       camera.attachControl(canvas,true);
     }
@@ -169,7 +207,7 @@
     const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);
     function draw(state){
       const M=root.MotorcycleReflection,s=state.scene,t=state.time;current=s;lastTime=t;
-      if(openingPending){openingPending=false;homePark();}
+      if(openingPending){openingPending=false;focus('Greenpoint');}
       if(followed&&cameraMode==='map'){const source=s.sources.find(row=>row.id===followed);if(source)camera.setTarget(vector(M.position(source,t)));}
       for(const source of s.sources){const mesh=city.vehicles.get(source.id),p=M.position(source,t);if(!mesh)continue;mesh.position=vector({...p,z:0});mesh.rotation.y=p.heading+Math.PI/2;city.animate(mesh,p,source.kind);}
       panel.position=vector(s.panel);panel.scaling.set(s.panel.width,s.panel.height,.35);panel.rotation.y=s.panel.angle+Math.PI/2;panel.isVisible=s.config.surface!=='none';
@@ -180,9 +218,30 @@
       treatmentView.draw(root.MotorcycleTreatments.states(s,t),t,treatmentSelection);
       soundView.draw(state);engine.beginFrame();try{scene.render();}finally{engine.endFrame();}
     }
-    function focus(name){const place=map.places.find(row=>row.label===name);if(place){setCameraMode('map');const traffic=trafficCandidates(place.position)[0];camera.setTarget(vector(traffic||place.position));camera.radius=190;camera.beta=.78;camera.alpha=Math.PI/2;}}
-    homePark();
-    return {snapSidewalk:sidewalkAt,setTreatmentSelection(id){treatmentSelection=id;},draw,setSources,showMeasurements,setReceiverMarkers,setCameraMode,getFocus,getObserver,placeObserver,focusSource,focus,homePark,nearestMotorcycle,backend:engine instanceof B.WebGPUEngine?'WebGPU':'WebGL',dispose(){gestures.dispose();resizeObserver.disconnect();root.removeEventListener('resize',resize);treatmentView.dispose();soundView.dispose();city.dispose();scene.dispose();engine.dispose();}};
+    function focusBase(name){
+      if(name==='North Williamsburg'||name==='Greenpoint'){
+        // Lilia: OSM node 2842523508, 567 Union Avenue. Geographic anchors
+        // remain fixed even when a different street has a denser swarm.
+        const williamsburgStart={x:(-73.954655-map.origin.longitude)*Math.cos(map.origin.latitude*Math.PI/180)*111320,y:(40.718694-map.origin.latitude)*110540};
+        const north={x:williamsburgStart.x+(-73.9516433+73.954655)*111320*Math.cos(map.origin.latitude*Math.PI/180),y:williamsburgStart.y+(40.7234878-40.718694)*111320};
+        const anchor=sidewalkAt(name==='Greenpoint'?north:williamsburgStart),dx=name==='Greenpoint'?parkCenter.x-anchor.x:-115,dy=name==='Greenpoint'?parkCenter.y-anchor.y:65,length=Math.max(1,Math.hypot(dx,dy));
+        followed=null;scene.activeCamera.detachControl();cameraMode='map';scene.activeCamera=camera;
+        camera.setTarget(vector({x:anchor.x+dx/length*115,y:anchor.y+dy/length*115,z:0}));camera.setPosition(vector({...anchor,z:58}));savedRadius=camera.radius;
+        camera.inertialAlphaOffset=0;camera.inertialBetaOffset=0;camera.inertialRadiusOffset=0;camera.inertialPanningX=0;camera.inertialPanningY=0;camera.attachControl(canvas,true);return;
+      }
+      const place=map.places.find(row=>row.label===name);if(place){setCameraMode('map');const traffic=trafficCandidates(place.position)[0];camera.setTarget(vector(traffic||place.position));camera.radius=190;camera.beta=.78;camera.alpha=Math.PI/2;}
+    }
+    focus('Greenpoint');
+    function focus(name){
+      focusBase(name);
+      if(name!=='Greenpoint')return;
+      const eye=getObserver(),target=targetPoint();
+      const dx=eye.x-target.x,dy=eye.y-target.y,length=Math.max(1,Math.hypot(dx,dy));
+      camera.setPosition(vector({x:eye.x+75*dx/length,y:eye.y+75*dy/length,z:Math.max(12,eye.z-24)}));
+      savedRadius=camera.radius;
+    }
+    const parkLife=await root.MotorcycleParkLife.create(B,scene,vector,map,()=>lastTime);
+    return {snapSidewalk:sidewalkAt,setTreatmentSelection(id){treatmentSelection=id;},draw,setSources,showMeasurements,setReceiverMarkers,setCameraMode,getFocus,getObserver,placeObserver,focusSource,focus,homePark,nearestMotorcycle,backend:engine instanceof B.WebGPUEngine?'WebGPU':'WebGL',dispose(){parkLife.dispose();gestures.dispose();resizeObserver.disconnect();root.removeEventListener('resize',resize);treatmentView.dispose();soundView.dispose();city.dispose();scene.dispose();engine.dispose();}};
   }
   root.MotorcycleReflectionView={create};
 })(globalThis);

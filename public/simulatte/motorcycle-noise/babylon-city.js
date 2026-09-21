@@ -82,6 +82,15 @@
       for(let lane=0;lane<=track.lanes;lane++){const f=lane/track.lanes,points=outer.map((p,i)=>{const q=inner[(i+shift)%inner.length];return vector({x:p.x+(q.x-p.x)*f,y:p.y+(q.y-p.y)*f,z:.25});});points.push(points[0]);lines.push(points);}
       const markings=B.MeshBuilder.CreateLineSystem('mccarren-track-lanes',{lines},scene);markings.color=B.Color3.FromHexString('#f3e5ce');markings.alpha=.9;markings.isPickable=false;
     }
+    const bark=material('tree-bark','#655347'),leaves=material('tree-canopy','#426b38');
+    const trunk=B.MeshBuilder.CreateCylinder('tree-trunk-template',{height:1,diameter:1,tessellation:6},scene),crown=B.MeshBuilder.CreateIcoSphere('tree-crown-template',{radius:1,subdivisions:2},scene);
+    trunk.material=bark;crown.material=leaves;trunk.isVisible=false;crown.isVisible=false;trunk.isPickable=false;crown.isPickable=false;
+    for(const tree of map.trees||[]){
+      const seed=Array.from(tree.id).reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,17),height=Math.max(3,Math.min(28,tree.heightM||8+seed%5)),radius=height*.29;
+      const stem=trunk.createInstance(tree.id+'-trunk');stem.isVisible=true;stem.isPickable=false;stem.position=vector({...tree,z:height*.26});stem.scaling.set(.35,height*.52,.35);
+      const canopy=crown.createInstance(tree.id+'-canopy');canopy.isVisible=true;canopy.isPickable=false;canopy.position=vector({...tree,z:height*.71});canopy.scaling.set(radius,height*.32,radius*.9);canopy.rotation.y=seed%628/100;
+      shadow.addShadowCaster(canopy);canopy.receiveShadows=true;
+    }
     const wallP=[],wallI=[],wallUv=[],wallColors=[],roofP=[],roofI=[],roofColors=[];
     for(const building of map.buildings){
       const height=Math.max(3,building.heightM||9),rings=[building.footprint,...(building.interiorRings||[])].filter(ring=>ring?.length>=3);if(!rings.length)continue;

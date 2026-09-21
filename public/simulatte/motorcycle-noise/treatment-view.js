@@ -18,14 +18,14 @@
           const body=B.MeshBuilder.CreateCylinder('treatment-'+row.id,{height:1.8,diameter:.9,tessellation:12},scene);body.material=material;body.metadata={treatmentId:row.id};
           const badge=label(B,scene,definition.name+' '+row.id.split('-').pop(),definition.color,{treatmentId:row.id});
           const path=B.MeshBuilder.CreateLines('treatment-path',{points:[B.Vector3.Zero(),B.Vector3.One()],updatable:true},scene);path.color=B.Color3.FromHexString(definition.color);path.isPickable=false;
-          const mist=[];if(row.kind==='mist')for(let i=0;i<24;i++){const p=B.MeshBuilder.CreateSphere('mist-droplet',{diameter:.11,segments:4},scene);p.material=material;p.isPickable=false;mist.push(p);}
+          const mist=[];if(row.kind==='mist')for(let i=0;i<72;i++){const p=B.MeshBuilder.CreateSphere('mist-droplet',{diameter:.18,segments:6},scene);p.material=material;p.isPickable=false;mist.push(p);}
           entry={body,badge,path,mist,material,meshes:[body,badge,path,...mist]};nodes.set(row.id,entry);
         }
         entry.body.position=vector(row);entry.badge.position=vector({...row,z:row.z+3.5});
         const d=B.Vector3.Distance(scene.activeCamera.globalPosition,entry.body.position);entry.badge.scaling.setAll(Math.max(.65,Math.min(45,d*.012)));entry.body.scaling.setAll(Math.max(1,d*.003));entry.material.alpha=row.active?.85:.3;
         entry.path.setEnabled(row.active&&!!row.target&&(selected===row.id||d<100));
         if(row.target)B.MeshBuilder.CreateLines('treatment-path',{points:[vector(row),vector(row.target.point)],instance:entry.path},scene);
-        entry.mist.forEach((mesh,i)=>{mesh.setEnabled(row.active);const age=(time+i*.13)%3,phase=i*2.399;mesh.position=vector({x:row.x+age*.7+Math.sin(phase)*age*.2,y:row.y+Math.cos(phase)*age*.25,z:Math.max(.05,row.z+age*.35-age*age*.12)});mesh.scaling.setAll(Math.max(.1,1-age/3));});
+        entry.mist.forEach((mesh,i)=>{mesh.setEnabled(row.active);const age=(time+i*.137)%4.5,phase=i*2.399,spread=.18+age*.24;mesh.position=vector({x:row.x+age*.7+Math.sin(phase+age*.6)*spread,y:row.y+Math.cos(phase+age*.35)*spread,z:Math.max(.05,row.z+age*.45-age*age*.09+Math.sin(phase)*spread*.3)});mesh.scaling.setAll(Math.max(.1,(.8+(i%5)*.18)*(1-age/4.5)));});
       }
     }
     return {draw,dispose(){for(const entry of nodes.values())dispose(entry);nodes.clear();}};
