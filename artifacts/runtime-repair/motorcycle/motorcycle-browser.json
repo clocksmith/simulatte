@@ -1,0 +1,4595 @@
+{
+  "head": "8a6ad6ce66041116e060ab12f706e2b756b948b0",
+  "startedAt": "2026-09-23T15:54:12.320Z",
+  "cases": [
+    {
+      "width": 1440,
+      "steps": [
+        {
+          "name": "initial",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "running",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": false,
+              "failures": [],
+              "time": 12.5832,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic running",
+            "backend": "WebGL",
+            "time": "12.58",
+            "pause": "Pause",
+            "observer": "-- dBA",
+            "observerPosition": "Virtual microphone",
+            "observerTime": "Awaiting sample",
+            "traffic": "300 autonomous motorcycles / 279 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -74.88268482812487,
+              0,
+              1211.8130388789064
+            ],
+            "meshCount": 6470,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  -75.33843994140625,
+                  0.3100000023841858,
+                  1212.370361328125
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  -72.43304443359375,
+                  0.3100000023841858,
+                  1210.870849609375
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  -68.0168228149414,
+                  0.3100000023841858,
+                  1203.4161376953125
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  -65.1114273071289,
+                  0.3100000023841858,
+                  1201.91650390625
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  -60.261016845703125,
+                  0.3100000023841858,
+                  1193.9307861328125
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  -57.355621337890625,
+                  0.3100000023841858,
+                  1192.4312744140625
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  -52.02653121948242,
+                  0.3100000023841858,
+                  1183.8599853515625
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  -49.12113571166992,
+                  0.3100000023841858,
+                  1182.3603515625
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  -43.352603912353516,
+                  0.3100000023841858,
+                  1173.251708984375
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  -40.447208404541016,
+                  0.3100000023841858,
+                  1171.752197265625
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  -34.30836868286133,
+                  0.3100000023841858,
+                  1162.190673828125
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  -31.402973175048828,
+                  0.3100000023841858,
+                  1160.6910400390625
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  -24.957080841064453,
+                  0.3100000023841858,
+                  1150.7540283203125
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  -22.051685333251953,
+                  0.3100000023841858,
+                  1149.2545166015625
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  -15.403316497802734,
+                  0.3100000023841858,
+                  1139.0697021484375
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  -12.497920989990234,
+                  0.3100000023841858,
+                  1137.5701904296875
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  179.6509246826172,
+                  0.3100000023841858,
+                  677.8713989257812
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  176.73583984375,
+                  0.3100000023841858,
+                  679.3480834960938
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  175.9290313720703,
+                  0.3100000023841858,
+                  682.3555908203125
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  173.01248168945312,
+                  0.3100000023841858,
+                  683.8338623046875
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "autonomous",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "running",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": false,
+              "failures": [],
+              "time": 18.899700000000003,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic running",
+            "backend": "WebGL",
+            "time": "18.9",
+            "pause": "Pause",
+            "observer": "84.0 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 84.0 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 258 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -45.3821143935545,
+              0,
+              1175.7339347529296
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  -45.83787155151367,
+                  0.3100000023841858,
+                  1176.291259765625
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  -42.93247604370117,
+                  0.3100000023841858,
+                  1174.791748046875
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  -36.87383270263672,
+                  0.3100000023841858,
+                  1165.328125
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  -33.96843719482422,
+                  0.3100000023841858,
+                  1163.82861328125
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  -27.646717071533203,
+                  0.3100000023841858,
+                  1154.04345703125
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  -24.741443634033203,
+                  0.3100000023841858,
+                  1152.5439453125
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  -18.23314666748047,
+                  0.3100000023841858,
+                  1142.530517578125
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  -15.327752113342285,
+                  0.3100000023841858,
+                  1141.031005859375
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  -8.68201732635498,
+                  0.3100000023841858,
+                  1130.8494873046875
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  -5.776621341705322,
+                  0.3100000023841858,
+                  1129.349853515625
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  0.9460265636444092,
+                  0.3100000023841858,
+                  1119.0743408203125
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  3.85142183303833,
+                  0.3100000023841858,
+                  1117.5748291015625
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  10.609109878540039,
+                  0.3100000023841858,
+                  1107.2564697265625
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  13.514505386352539,
+                  0.3100000023841858,
+                  1105.7568359375
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  20.286964416503906,
+                  0.3100000023841858,
+                  1095.4202880859375
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  23.192481994628906,
+                  0.3100000023841858,
+                  1093.9207763671875
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  168.25509643554688,
+                  0.3100000023841858,
+                  691.6010131835938
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  165.33761596679688,
+                  0.3100000023841858,
+                  693.0802001953125
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  162.79917907714844,
+                  0.3100000023841858,
+                  698.1739501953125
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  159.88169860839844,
+                  0.3100000023841858,
+                  699.6533813476562
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "advanced-running",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "running",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": false,
+              "failures": [],
+              "time": 22.049500000000002,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic running",
+            "backend": "WebGL",
+            "time": "22.05",
+            "pause": "Pause",
+            "observer": "89.5 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 89.5 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 241 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -28.655724867187473,
+              0,
+              1155.277423949707
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  -29.111482620239258,
+                  0.3100000023841858,
+                  1155.8348388671875
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  -26.206087112426758,
+                  0.3100000023841858,
+                  1154.335205078125
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  -19.731626510620117,
+                  0.3100000023841858,
+                  1144.36328125
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  -16.826231002807617,
+                  0.3100000023841858,
+                  1142.8636474609375
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  -10.211090087890625,
+                  0.3100000023841858,
+                  1132.7196044921875
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  -7.305694580078125,
+                  0.3100000023841858,
+                  1131.219970703125
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  -0.6051440238952637,
+                  0.3100000023841858,
+                  1120.9715576171875
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  2.3002514839172363,
+                  0.3100000023841858,
+                  1119.471923828125
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  9.046460151672363,
+                  0.3100000023841858,
+                  1109.1676025390625
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  11.951855659484863,
+                  0.3100000023841858,
+                  1107.6680908203125
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  18.718454360961914,
+                  0.3100000023841858,
+                  1097.3387451171875
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  21.62384796142578,
+                  0.3100000023841858,
+                  1095.839111328125
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  28.39960479736328,
+                  0.3100000023841858,
+                  1085.4986572265625
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  31.30487823486328,
+                  0.3100000023841858,
+                  1083.9991455078125
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  38.08454132080078,
+                  0.3100000023841858,
+                  1073.654052734375
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  40.98993682861328,
+                  0.3100000023841858,
+                  1072.1544189453125
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  158.79237365722656,
+                  0.3100000023841858,
+                  703.0013427734375
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  155.89060974121094,
+                  0.3100000023841858,
+                  704.4619140625
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  152.26583862304688,
+                  0.3100000023841858,
+                  710.8643188476562
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  149.36529541015625,
+                  0.3100000023841858,
+                  712.3233032226562
+                ]
+              }
+            ],
+            "advanced": true,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              },
+              {
+                "id": "advanced-close",
+                "name": "",
+                "text": "Close",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "System",
+                "disabled": false
+              },
+              {
+                "id": "live-overlay",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "place-marker",
+                "name": "",
+                "text": "Choose markerObservation pointWater mistDirectional soundTonal cancellation",
+                "disabled": false
+              },
+              {
+                "id": "reset",
+                "name": "",
+                "text": "Reset",
+                "disabled": false
+              },
+              {
+                "id": "timeline",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "repeat-traffic",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "add-receiver",
+                "name": "",
+                "text": "Add observation marker",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "motorcycles",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cars",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "pedestrians",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "speed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "rpm",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "seed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Restart traffic",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "sourceDb",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "background",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "temperature",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "surface",
+                "text": "NoneFlat reflectionIdealized retroreflection",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "reflectivity",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "panel-angle",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cancellation",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "latencyMs",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place surface",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place comparison listener",
+                "disabled": false
+              },
+              {
+                "id": "playback",
+                "name": "",
+                "text": "0.15x0.5x1x",
+                "disabled": false
+              },
+              {
+                "id": "paths",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "run",
+                "name": "",
+                "text": "Compare snapshot",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "paused",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "paused",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": true,
+              "failures": [],
+              "time": 29.615899999999996,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic paused",
+            "backend": "WebGL",
+            "time": "29.62",
+            "pause": "Play",
+            "observer": "78.0 dBA",
+            "observerPosition": "map / 34.0 m high / sampled 29.6 s",
+            "observerTime": "Traffic 78.0 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 222 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              13.50789586035171,
+              0,
+              1103.7112260126953
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  13.052138328552246,
+                  0.3100000023841858,
+                  1104.2685546875
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  15.957534790039062,
+                  0.3100000023841858,
+                  1102.76904296875
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  22.724393844604492,
+                  0.3100000023841858,
+                  1092.4393310546875
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  25.629873275756836,
+                  0.3100000023841858,
+                  1090.9398193359375
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  32.40509796142578,
+                  0.3100000023841858,
+                  1080.599853515625
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  35.31057357788086,
+                  0.3100000023841858,
+                  1079.100341796875
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  42.08942413330078,
+                  0.3100000023841858,
+                  1068.755859375
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  44.99494171142578,
+                  0.3100000023841858,
+                  1067.25634765625
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  51.77570343017578,
+                  0.3100000023841858,
+                  1056.9097900390625
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  54.68097686767578,
+                  0.3100000023841858,
+                  1055.41015625
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  61.46250915527344,
+                  0.3100000023841858,
+                  1045.0626220703125
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  64.36798858642578,
+                  0.3100000023841858,
+                  1043.56298828125
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  71.14976501464844,
+                  0.3100000023841858,
+                  1033.215087890625
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  74.05524444580078,
+                  0.3100000023841858,
+                  1031.7154541015625
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  80.83722686767578,
+                  0.3100000023841858,
+                  1021.3673095703125
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  83.74253845214844,
+                  0.3100000023841858,
+                  1019.8677368164062
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  126.9956283569336,
+                  0.3100000023841858,
+                  741.3091430664062
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  124.0509262084961,
+                  0.3100000023841858,
+                  742.821533203125
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  118.39403533935547,
+                  0.3100000023841858,
+                  751.6722412109375
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  115.48094940185547,
+                  0.3100000023841858,
+                  753.1464233398438
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "onboard-paused",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "paused",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": true,
+              "failures": [],
+              "time": 29.615899999999996,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic paused",
+            "backend": "WebGL",
+            "time": "29.62",
+            "pause": "Play",
+            "observer": "85.8 dBA",
+            "observerPosition": "rider / 1.7 m high",
+            "observerTime": "Traffic 85.8 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 222 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              268.33453369140625,
+              1.7000000476837158,
+              836.3778076171875
+            ],
+            "rig": [
+              268.1362136093753,
+              0,
+              835.9188182368164
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  13.052138328552246,
+                  0.3100000023841858,
+                  1104.2685546875
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  15.957534790039062,
+                  0.3100000023841858,
+                  1102.76904296875
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  22.724393844604492,
+                  0.3100000023841858,
+                  1092.4393310546875
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  25.629873275756836,
+                  0.3100000023841858,
+                  1090.9398193359375
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  32.40509796142578,
+                  0.3100000023841858,
+                  1080.599853515625
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  35.31057357788086,
+                  0.3100000023841858,
+                  1079.100341796875
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  42.08942413330078,
+                  0.3100000023841858,
+                  1068.755859375
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  44.99494171142578,
+                  0.3100000023841858,
+                  1067.25634765625
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  51.77570343017578,
+                  0.3100000023841858,
+                  1056.9097900390625
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  54.68097686767578,
+                  0.3100000023841858,
+                  1055.41015625
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  61.46250915527344,
+                  0.3100000023841858,
+                  1045.0626220703125
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  64.36798858642578,
+                  0.3100000023841858,
+                  1043.56298828125
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  71.14976501464844,
+                  0.3100000023841858,
+                  1033.215087890625
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  74.05524444580078,
+                  0.3100000023841858,
+                  1031.7154541015625
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  80.83722686767578,
+                  0.3100000023841858,
+                  1021.3673095703125
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  83.74253845214844,
+                  0.3100000023841858,
+                  1019.8677368164062
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  126.9956283569336,
+                  0.3100000023841858,
+                  741.3091430664062
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  124.0509262084961,
+                  0.3100000023841858,
+                  742.821533203125
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  118.39403533935547,
+                  0.3100000023841858,
+                  751.6722412109375
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  115.48094940185547,
+                  0.3100000023841858,
+                  753.1464233398438
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "onboard-running",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "running",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": false,
+              "failures": [],
+              "time": 30.8492,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic running",
+            "backend": "WebGL",
+            "time": "30.85",
+            "pause": "Pause",
+            "observer": "100.7 dBA",
+            "observerPosition": "rider / 1.7 m high",
+            "observerTime": "Traffic 100.7 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 211 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              268.8896179199219,
+              1.7000000476837158,
+              837.6622314453125
+            ],
+            "rig": [
+              268.6912770859376,
+              0,
+              837.2032393183594
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  20.00936508178711,
+                  0.3100000023841858,
+                  1095.760009765625
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  22.914758682250977,
+                  0.3100000023841858,
+                  1094.2603759765625
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  29.687828063964844,
+                  0.3100000023841858,
+                  1083.9229736328125
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  32.593345642089844,
+                  0.3100000023841858,
+                  1082.4234619140625
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  39.371421813964844,
+                  0.3100000023841858,
+                  1072.080078125
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  42.276817321777344,
+                  0.3100000023841858,
+                  1070.58056640625
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  49.057090759277344,
+                  0.3100000023841858,
+                  1060.2344970703125
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  51.96248245239258,
+                  0.3100000023841858,
+                  1058.7349853515625
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  58.743858337402344,
+                  0.3100000023841858,
+                  1048.3876953125
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  61.649131774902344,
+                  0.3100000023841858,
+                  1046.8880615234375
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  68.43099212646484,
+                  0.3100000023841858,
+                  1036.5401611328125
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  71.33638763427734,
+                  0.3100000023841858,
+                  1035.0406494140625
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  78.11837005615234,
+                  0.3100000023841858,
+                  1024.6925048828125
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  81.02376556396484,
+                  0.3100000023841858,
+                  1023.1929931640625
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  87.80587005615234,
+                  0.3100000023841858,
+                  1012.8447875976562
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  90.70806121826172,
+                  0.30999869108200073,
+                  1011.350830078125
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  120.87041473388672,
+                  0.3100000023841858,
+                  748.6885986328125
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  117.94319152832031,
+                  0.3100000023841858,
+                  750.179931640625
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  112.09516143798828,
+                  0.3100000023841858,
+                  759.2609252929688
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  109.1802978515625,
+                  0.3100000023841858,
+                  760.737060546875
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "untreated-paused",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "paused",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": true,
+              "failures": [],
+              "time": 32.332499999999996,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic paused",
+            "backend": "WebGL",
+            "time": "32.33",
+            "pause": "Play",
+            "observer": "82.2 dBA",
+            "observerPosition": "rider / 1.7 m high",
+            "observerTime": "Traffic 82.2 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 203 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              269.37603759765625,
+              1.7000000476837158,
+              838.7879028320312
+            ],
+            "rig": [
+              269.1777175156253,
+              0,
+              838.328925109375
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  28.350048065185547,
+                  0.3100000023841858,
+                  1085.559326171875
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  31.227977752685547,
+                  0.3100000023841858,
+                  1084.0931396484375
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  38.026268005371094,
+                  0.3100000023841858,
+                  1073.7252197265625
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  40.907745361328125,
+                  0.3100000023841858,
+                  1072.2548828125
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  47.704002380371094,
+                  0.3100000023841858,
+                  1061.88916015625
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  50.5789794921875,
+                  0.3100000023841858,
+                  1060.4268798828125
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  57.38451385498047,
+                  0.3100000023841858,
+                  1050.050048828125
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  60.2310676574707,
+                  0.3100000023841858,
+                  1048.622314453125
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  67.05744934082031,
+                  0.3100000023841858,
+                  1038.2200927734375
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  69.86388397216797,
+                  0.3100000023841858,
+                  1036.8414306640625
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  76.71174621582031,
+                  0.3100000023841858,
+                  1026.4127197265625
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  79.43206787109375,
+                  0.3100000023841858,
+                  1025.1395263671875
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  86.33541870117188,
+                  0.3100000023841858,
+                  1014.6429443359375
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  88.89299774169922,
+                  0.3100000023841858,
+                  1013.56884765625
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  96.69402313232422,
+                  0.3100000023841858,
+                  1003.6492309570312
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  99.84148406982422,
+                  0.3100000023841858,
+                  1002.8209228515625
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  113.32272338867188,
+                  0.3100000023841858,
+                  757.7819213867188
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  110.39752960205078,
+                  0.3100000023841858,
+                  759.270751953125
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  104.3551254272461,
+                  0.3100000023841858,
+                  768.5859375
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  101.42456817626953,
+                  0.3100000023841858,
+                  770.0809936523438
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "steps": [
+        {
+          "name": "initial",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "running",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": false,
+              "failures": [],
+              "time": 13.6,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic running",
+            "backend": "WebGL",
+            "time": "13.6",
+            "pause": "Pause",
+            "observer": "-- dBA",
+            "observerPosition": "Virtual microphone",
+            "observerTime": "Awaiting sample",
+            "traffic": "300 autonomous motorcycles / 277 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -70.66842506249986,
+              0,
+              1206.6591253046874
+            ],
+            "meshCount": 6470,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  -71.12418365478516,
+                  0.3100000023841858,
+                  1207.216552734375
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  -68.21878814697266,
+                  0.3100000023841858,
+                  1205.7169189453125
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  -63.484535217285156,
+                  0.3100000023841858,
+                  1197.8731689453125
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  -60.579139709472656,
+                  0.3100000023841858,
+                  1196.3736572265625
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  -55.394447326660156,
+                  0.3100000023841858,
+                  1187.9788818359375
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  -52.489051818847656,
+                  0.3100000023841858,
+                  1186.4793701171875
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  -46.837684631347656,
+                  0.3100000023841858,
+                  1177.5140380859375
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  -43.932289123535156,
+                  0.3100000023841858,
+                  1176.014404296875
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  -37.942298889160156,
+                  0.3100000023841858,
+                  1166.635009765625
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  -35.036903381347656,
+                  0.3100000023841858,
+                  1165.1353759765625
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  -28.725011825561523,
+                  0.3100000023841858,
+                  1155.3621826171875
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  -25.819616317749023,
+                  0.3100000023841858,
+                  1153.862548828125
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  -19.257848739624023,
+                  0.3100000023841858,
+                  1143.7838134765625
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  -16.352453231811523,
+                  0.3100000023841858,
+                  1142.2843017578125
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  -9.658117294311523,
+                  0.3100000023841858,
+                  1132.0433349609375
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  -6.752722263336182,
+                  0.3100000023841858,
+                  1130.543701171875
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  178.4418182373047,
+                  0.3100000023841858,
+                  679.328125
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  175.5240936279297,
+                  0.3100000023841858,
+                  680.8079223632812
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  174.5301971435547,
+                  0.3100000023841858,
+                  684.0408325195312
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  171.6141815185547,
+                  0.3100000023841858,
+                  685.5184326171875
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "autonomous",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "running",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": false,
+              "failures": [],
+              "time": 18.3331,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic running",
+            "backend": "WebGL",
+            "time": "18.33",
+            "pause": "Pause",
+            "observer": "89.3 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 89.3 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 259 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -48.29372218164053,
+              0,
+              1179.2947387690429
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  -48.749481201171875,
+                  0.3100000023841858,
+                  1179.85205078125
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  -45.844085693359375,
+                  0.3100000023841858,
+                  1178.3525390625
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  -39.87917709350586,
+                  0.3100000023841858,
+                  1169.0037841796875
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  -36.97382354736328,
+                  0.3100000023841858,
+                  1167.504150390625
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  -30.738861083984375,
+                  0.3100000023841858,
+                  1157.8251953125
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  -27.833465576171875,
+                  0.3100000023841858,
+                  1156.3255615234375
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  -21.376338958740234,
+                  0.3100000023841858,
+                  1146.374755859375
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  -18.470943450927734,
+                  0.3100000023841858,
+                  1144.8751220703125
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  -11.857870101928711,
+                  0.3100000023841858,
+                  1134.733642578125
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  -8.952474594116211,
+                  0.3100000023841858,
+                  1133.234130859375
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  -2.2462239265441895,
+                  0.3100000023841858,
+                  1122.978515625
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  0.6591717004776001,
+                  0.3100000023841858,
+                  1121.47900390625
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  7.410226345062256,
+                  0.3100000023841858,
+                  1111.168701171875
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  10.315622329711914,
+                  0.3100000023841858,
+                  1109.6690673828125
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  17.08555793762207,
+                  0.3100000023841858,
+                  1099.335693359375
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  19.99103546142578,
+                  0.3100000023841858,
+                  1097.836181640625
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  169.6739959716797,
+                  0.3100000023841858,
+                  689.891357421875
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  166.7543182373047,
+                  0.3100000023841858,
+                  691.3734130859375
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  164.41769409179688,
+                  0.3100000023841858,
+                  696.2240600585938
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  161.4993133544922,
+                  0.3100000023841858,
+                  697.7044677734375
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "advanced-running",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "running",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": false,
+              "failures": [],
+              "time": 20.5164,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic running",
+            "backend": "WebGL",
+            "time": "20.52",
+            "pause": "Pause",
+            "observer": "87.7 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 87.7 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 253 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -36.90684742578105,
+              0,
+              1165.368578185547
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  -37.362606048583984,
+                  0.3100000023841858,
+                  1165.9259033203125
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  -34.457210540771484,
+                  0.3100000023841858,
+                  1164.4263916015625
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  -28.154809951782227,
+                  0.3100000023841858,
+                  1154.6646728515625
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  -25.249414443969727,
+                  0.3100000023841858,
+                  1153.1651611328125
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  -18.744657516479492,
+                  0.3100000023841858,
+                  1143.15625
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  -15.839262008666992,
+                  0.3100000023841858,
+                  1141.6566162109375
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  -9.211653709411621,
+                  0.3100000023841858,
+                  1131.4971923828125
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  -6.306258201599121,
+                  0.3100000023841858,
+                  1129.9976806640625
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  0.4064004421234131,
+                  0.3100000023841858,
+                  1119.734375
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  3.311795711517334,
+                  0.3100000023841858,
+                  1118.23486328125
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  10.064071655273438,
+                  0.3100000023841858,
+                  1107.9229736328125
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  12.969467163085938,
+                  0.3100000023841858,
+                  1106.4234619140625
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  19.739423751831055,
+                  0.3100000023841858,
+                  1096.0902099609375
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  22.644737243652344,
+                  0.3100000023841858,
+                  1094.590576171875
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  29.421876907348633,
+                  0.3100000023841858,
+                  1084.248291015625
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  32.327354431152344,
+                  0.3100000023841858,
+                  1082.748779296875
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  163.69198608398438,
+                  0.3100000023841858,
+                  697.098388671875
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  160.80548095703125,
+                  0.3100000023841858,
+                  698.54052734375
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  157.677978515625,
+                  0.3100000023841858,
+                  704.3438110351562
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  154.80604553222656,
+                  0.3100000023841858,
+                  705.7684936523438
+                ]
+              }
+            ],
+            "advanced": true,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              },
+              {
+                "id": "advanced-close",
+                "name": "",
+                "text": "Close",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "System",
+                "disabled": false
+              },
+              {
+                "id": "live-overlay",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "place-marker",
+                "name": "",
+                "text": "Choose markerObservation pointWater mistDirectional soundTonal cancellation",
+                "disabled": false
+              },
+              {
+                "id": "reset",
+                "name": "",
+                "text": "Reset",
+                "disabled": false
+              },
+              {
+                "id": "timeline",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "repeat-traffic",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "add-receiver",
+                "name": "",
+                "text": "Add observation marker",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "motorcycles",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cars",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "pedestrians",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "speed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "rpm",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "seed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Restart traffic",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "sourceDb",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "background",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "temperature",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "surface",
+                "text": "NoneFlat reflectionIdealized retroreflection",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "reflectivity",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "panel-angle",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cancellation",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "latencyMs",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place surface",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place comparison listener",
+                "disabled": false
+              },
+              {
+                "id": "playback",
+                "name": "",
+                "text": "0.15x0.5x1x",
+                "disabled": false
+              },
+              {
+                "id": "paths",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "run",
+                "name": "",
+                "text": "Compare snapshot",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "paused",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "paused",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": true,
+              "failures": [],
+              "time": 25.0829,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic paused",
+            "backend": "WebGL",
+            "time": "25.08",
+            "pause": "Play",
+            "observer": "83.7 dBA",
+            "observerPosition": "map / 34.0 m high / sampled 25.1 s",
+            "observerTime": "Traffic 83.7 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 237 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -11.938431166015562,
+              0,
+              1134.8321994013672
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  -12.394187927246094,
+                  0.3100000023841858,
+                  1135.3895263671875
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  -9.488792419433594,
+                  0.3100000023841858,
+                  1133.8900146484375
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  -2.813178539276123,
+                  0.3100000023841858,
+                  1123.6719970703125
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  0.09221708029508591,
+                  0.3100000023841858,
+                  1122.17236328125
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  6.825382709503174,
+                  0.3100000023841858,
+                  1111.884033203125
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  9.730777740478516,
+                  0.3100000023841858,
+                  1110.3843994140625
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  16.49062156677246,
+                  0.3100000023841858,
+                  1100.0633544921875
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  19.39599609375,
+                  0.3100000023841858,
+                  1098.563720703125
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  26.168415069580078,
+                  0.3100000023841858,
+                  1088.2274169921875
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  29.073688507080078,
+                  0.3100000023841858,
+                  1086.7279052734375
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  35.851722717285156,
+                  0.3100000023841858,
+                  1076.384765625
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  38.756996154785156,
+                  0.3100000023841858,
+                  1074.8851318359375
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  45.537471771240234,
+                  0.3100000023841858,
+                  1064.5390625
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  48.442787170410156,
+                  0.3100000023841858,
+                  1063.0394287109375
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  55.224281311035156,
+                  0.3100000023841858,
+                  1052.692138671875
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  58.129554748535156,
+                  0.3100000023841858,
+                  1051.1925048828125
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  147.42933654785156,
+                  0.3100000023841858,
+                  716.6911010742188
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  144.54563903808594,
+                  0.3100000023841858,
+                  718.1298828125
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  139.9459991455078,
+                  0.3100000023841858,
+                  725.7069091796875
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  137.0563507080078,
+                  0.3100000023841858,
+                  727.15283203125
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "onboard-paused",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "paused",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": true,
+              "failures": [],
+              "time": 25.0829,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic paused",
+            "backend": "WebGL",
+            "time": "25.08",
+            "pause": "Play",
+            "observer": "84.5 dBA",
+            "observerPosition": "rider / 1.7 m high / sampled 25.1 s",
+            "observerTime": "Traffic 84.5 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 237 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              472.2684020996094,
+              1.7000000476837158,
+              956.46826171875
+            ],
+            "rig": [
+              471.9369352890626,
+              0,
+              956.0939367060546
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  -12.394187927246094,
+                  0.3100000023841858,
+                  1135.3895263671875
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  -9.488792419433594,
+                  0.3100000023841858,
+                  1133.8900146484375
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  -2.813178539276123,
+                  0.3100000023841858,
+                  1123.6719970703125
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  0.09221708029508591,
+                  0.3100000023841858,
+                  1122.17236328125
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  6.825382709503174,
+                  0.3100000023841858,
+                  1111.884033203125
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  9.730777740478516,
+                  0.3100000023841858,
+                  1110.3843994140625
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  16.49062156677246,
+                  0.3100000023841858,
+                  1100.0633544921875
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  19.39599609375,
+                  0.3100000023841858,
+                  1098.563720703125
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  26.168415069580078,
+                  0.3100000023841858,
+                  1088.2274169921875
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  29.073688507080078,
+                  0.3100000023841858,
+                  1086.7279052734375
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  35.851722717285156,
+                  0.3100000023841858,
+                  1076.384765625
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  38.756996154785156,
+                  0.3100000023841858,
+                  1074.8851318359375
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  45.537471771240234,
+                  0.3100000023841858,
+                  1064.5390625
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  48.442787170410156,
+                  0.3100000023841858,
+                  1063.0394287109375
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  55.224281311035156,
+                  0.3100000023841858,
+                  1052.692138671875
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  58.129554748535156,
+                  0.3100000023841858,
+                  1051.1925048828125
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  147.42933654785156,
+                  0.3100000023841858,
+                  716.6911010742188
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  144.54563903808594,
+                  0.3100000023841858,
+                  718.1298828125
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  139.9459991455078,
+                  0.3100000023841858,
+                  725.7069091796875
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  137.0563507080078,
+                  0.3100000023841858,
+                  727.15283203125
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "onboard-running",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "running",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": false,
+              "failures": [],
+              "time": 26.249499999999998,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic running",
+            "backend": "WebGL",
+            "time": "26.25",
+            "pause": "Pause",
+            "observer": "81.6 dBA",
+            "observerPosition": "rider / 1.7 m high",
+            "observerTime": "Traffic 81.6 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 237 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              473.8704528808594,
+              1.7000000476837158,
+              958.2772216796875
+            ],
+            "rig": [
+              473.53895775,
+              0,
+              957.9028957514649
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  -5.878631114959717,
+                  0.3100000023841858,
+                  1127.4210205078125
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  -2.973235607147217,
+                  0.3100000023841858,
+                  1125.92138671875
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  3.7437920570373535,
+                  0.3100000023841858,
+                  1115.6527099609375
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  6.6491875648498535,
+                  0.3100000023841858,
+                  1114.1531982421875
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  13.401806831359863,
+                  0.3100000023841858,
+                  1103.841064453125
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  16.307201385498047,
+                  0.3100000023841858,
+                  1102.3414306640625
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  23.07575225830078,
+                  0.3100000023841858,
+                  1092.0096435546875
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  25.98126983642578,
+                  0.3100000023841858,
+                  1090.5101318359375
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  32.75751495361328,
+                  0.3100000023841858,
+                  1080.1690673828125
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  35.66278839111328,
+                  0.3100000023841858,
+                  1078.66943359375
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  42.44232940673828,
+                  0.3100000023841858,
+                  1068.3243408203125
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  45.34784698486328,
+                  0.3100000023841858,
+                  1066.82470703125
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  52.12885284423828,
+                  0.3100000023841858,
+                  1056.477783203125
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  55.03424835205078,
+                  0.3100000023841858,
+                  1054.9781494140625
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  61.81586456298828,
+                  0.3100000023841858,
+                  1044.63037109375
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  64.72138214111328,
+                  0.3100000023841858,
+                  1043.130859375
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  142.53277587890625,
+                  0.3100000023841858,
+                  722.5903930664062
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  139.64801025390625,
+                  0.3100000023841858,
+                  724.030517578125
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  134.70693969726562,
+                  0.3100000023841858,
+                  732.018798828125
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  131.81777954101562,
+                  0.3100000023841858,
+                  733.4641723632812
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "untreated-paused",
+          "state": {
+            "url": "http://127.0.0.1:41671/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "lifecycle": {
+              "state": "paused",
+              "generation": 1,
+              "recoveries": 0,
+              "paused": true,
+              "failures": [],
+              "time": 26.9162,
+              "scenarioSeed": 731,
+              "backend": "WebGL",
+              "backendFailures": []
+            },
+            "status": "Traffic paused",
+            "backend": "WebGL",
+            "time": "26.92",
+            "pause": "Play",
+            "observer": "81.5 dBA",
+            "observerPosition": "rider / 1.7 m high / sampled 26.9 s",
+            "observerTime": "Traffic 81.5 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 232 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              474.7214050292969,
+              1.7000000476837158,
+              959.2381591796875
+            ],
+            "rig": [
+              474.38989866796874,
+              0,
+              958.8638517451172
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  -2.1410231590270996,
+                  0.3100000023841858,
+                  1122.849853515625
+                ]
+              },
+              {
+                "name": "motorcycle-2-part",
+                "id": "motorcycle-2",
+                "pos": [
+                  0.7643723487854004,
+                  0.3100000023841858,
+                  1121.350341796875
+                ]
+              },
+              {
+                "name": "motorcycle-3-part",
+                "id": "motorcycle-3",
+                "pos": [
+                  7.497598648071289,
+                  0.3100000023841858,
+                  1111.061767578125
+                ]
+              },
+              {
+                "name": "motorcycle-4-part",
+                "id": "motorcycle-4",
+                "pos": [
+                  10.402994155883789,
+                  0.3100000023841858,
+                  1109.562255859375
+                ]
+              },
+              {
+                "name": "motorcycle-5-part",
+                "id": "motorcycle-5",
+                "pos": [
+                  17.163040161132812,
+                  0.3100000023841858,
+                  1099.2410888671875
+                ]
+              },
+              {
+                "name": "motorcycle-6-part",
+                "id": "motorcycle-6",
+                "pos": [
+                  20.06833267211914,
+                  0.3100000023841858,
+                  1097.741455078125
+                ]
+              },
+              {
+                "name": "motorcycle-7-part",
+                "id": "motorcycle-7",
+                "pos": [
+                  26.84034538269043,
+                  0.3100000023841858,
+                  1087.405517578125
+                ]
+              },
+              {
+                "name": "motorcycle-8-part",
+                "id": "motorcycle-8",
+                "pos": [
+                  29.74586296081543,
+                  0.3100000023841858,
+                  1085.906005859375
+                ]
+              },
+              {
+                "name": "motorcycle-9-part",
+                "id": "motorcycle-9",
+                "pos": [
+                  36.52349090576172,
+                  0.3100000023841858,
+                  1075.5631103515625
+                ]
+              },
+              {
+                "name": "motorcycle-10-part",
+                "id": "motorcycle-10",
+                "pos": [
+                  39.42897033691406,
+                  0.3100000023841858,
+                  1074.0634765625
+                ]
+              },
+              {
+                "name": "motorcycle-11-part",
+                "id": "motorcycle-11",
+                "pos": [
+                  46.20903778076172,
+                  0.3100000023841858,
+                  1063.7176513671875
+                ]
+              },
+              {
+                "name": "motorcycle-12-part",
+                "id": "motorcycle-12",
+                "pos": [
+                  49.11455535888672,
+                  0.3100000023841858,
+                  1062.218017578125
+                ]
+              },
+              {
+                "name": "motorcycle-13-part",
+                "id": "motorcycle-13",
+                "pos": [
+                  55.89580535888672,
+                  0.3100000023841858,
+                  1051.8707275390625
+                ]
+              },
+              {
+                "name": "motorcycle-14-part",
+                "id": "motorcycle-14",
+                "pos": [
+                  58.801116943359375,
+                  0.3100000023841858,
+                  1050.37109375
+                ]
+              },
+              {
+                "name": "motorcycle-15-part",
+                "id": "motorcycle-15",
+                "pos": [
+                  65.58306121826172,
+                  0.3100000023841858,
+                  1040.023193359375
+                ]
+              },
+              {
+                "name": "motorcycle-16-part",
+                "id": "motorcycle-16",
+                "pos": [
+                  68.48837280273438,
+                  0.3100000023841858,
+                  1038.523681640625
+                ]
+              },
+              {
+                "name": "motorcycle-17-part",
+                "id": "motorcycle-17",
+                "pos": [
+                  139.6165008544922,
+                  0.3100000023841858,
+                  726.103759765625
+                ]
+              },
+              {
+                "name": "motorcycle-18-part",
+                "id": "motorcycle-18",
+                "pos": [
+                  136.71334838867188,
+                  0.3100000023841858,
+                  727.5659790039062
+                ]
+              },
+              {
+                "name": "motorcycle-19-part",
+                "id": "motorcycle-19",
+                "pos": [
+                  131.61019897460938,
+                  0.3100000023841858,
+                  735.7496948242188
+                ]
+              },
+              {
+                "name": "motorcycle-20-part",
+                "id": "motorcycle-20",
+                "pos": [
+                  128.6986846923828,
+                  0.3100000023841858,
+                  737.221923828125
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/136.0.7103.59",
+    "revision": "@d4b493843f5f23217df99a83aa28747602841382",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.0.0 Safari/537.36",
+    "jsVersion": "13.6.233.8"
+  },
+  "requests": [
+    {
+      "pathname": "/motorcycle",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/index.html"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection.css"
+    },
+    {
+      "pathname": "/shared/design/tokens.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/tokens.css"
+    },
+    {
+      "pathname": "/shared/design/primitives.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/primitives.css"
+    },
+    {
+      "pathname": "/shared/design/components.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/components.css"
+    },
+    {
+      "pathname": "/shared/design/theme-control.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/theme-control.css"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-experience.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-experience.css"
+    },
+    {
+      "pathname": "/shared/design/theme-controller.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/theme-controller.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-audio.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-audio.js"
+    },
+    {
+      "pathname": "/shared/contracts/world-spec-authorship.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec-authorship.js"
+    },
+    {
+      "pathname": "/shared/contracts/world-spec.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/vendor/earcut.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/vendor/earcut.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/vendor/babylon.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/vendor/babylon.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/sound-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/sound-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/babylon-city.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/babylon-city.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatment-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatment-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatment-controls.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatment-controls.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/map-gestures.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/map-gestures.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/park-life.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/park-life.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/explore-ui.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/explore-ui.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/lifecycle.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/lifecycle.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-app.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-app.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/header-controls.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/header-controls.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/nyc-map.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/nyc-map.json"
+    },
+    {
+      "pathname": "/favicon.svg",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/favicon.svg"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/population-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/population-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/mccarren-track.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/mccarren-track.json"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/mccarren-amenities.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/mccarren-amenities.json"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/observer-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/observer-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/live-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/live-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/motorcycle",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/index.html"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection.css"
+    },
+    {
+      "pathname": "/shared/design/primitives.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/primitives.css"
+    },
+    {
+      "pathname": "/shared/design/components.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/components.css"
+    },
+    {
+      "pathname": "/shared/design/tokens.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/tokens.css"
+    },
+    {
+      "pathname": "/shared/design/theme-control.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/theme-control.css"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-experience.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-experience.css"
+    },
+    {
+      "pathname": "/shared/design/theme-controller.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/theme-controller.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-audio.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-audio.js"
+    },
+    {
+      "pathname": "/shared/contracts/world-spec-authorship.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec-authorship.js"
+    },
+    {
+      "pathname": "/shared/contracts/world-spec.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/vendor/earcut.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/vendor/earcut.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/vendor/babylon.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/vendor/babylon.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/sound-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/sound-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/babylon-city.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/babylon-city.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatment-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatment-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatment-controls.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatment-controls.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/map-gestures.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/map-gestures.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/park-life.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/park-life.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/explore-ui.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/explore-ui.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/lifecycle.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/lifecycle.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-app.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-app.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/header-controls.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/header-controls.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/nyc-map.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/nyc-map.json"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/population-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/population-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/mccarren-track.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/mccarren-track.json"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/mccarren-amenities.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/mccarren-amenities.json"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/observer-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/observer-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/live-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/live-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    }
+  ]
+}

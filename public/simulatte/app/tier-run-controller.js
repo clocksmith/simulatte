@@ -61,6 +61,7 @@
     let restoreExpectation = null;
     let disposed = false;
     let completion = null;
+    let simulationActions = [], advancing = null;
 
     function snapshot() {
       return Object.freeze({
@@ -78,7 +79,7 @@
       });
     }
 
-    async function start({ restored = false, values = null } = {}) {
+    async function start({ restored = false, values = null, actions = [] } = {}) {
       assertActive();
       if (['running', 'paused'].includes(state)) return snapshot();
       cancelTimer();
@@ -94,6 +95,7 @@
         await resetRuntime();
         if (generation !== runGeneration) return snapshot();
       }
+      simulationActions = structuredClone(actions);
       state = 'running';
       stepCount = preparedResult && Number.isInteger(scenarioResult?.currentStep)
         ? scenarioResult.currentStep
@@ -194,6 +196,7 @@
     async function replay() {
       assertActive();
       const replayValues = normalizeValues(parameterValues);
+      const replayActions = structuredClone(simulationActions);
       cancelTimer();
       const generation = ++runGeneration;
       state = 'idle';
@@ -201,7 +204,7 @@
       reflect();
       await resetRuntime();
       if (generation !== runGeneration) return snapshot();
-      return start({ values: replayValues });
+      return start({ values: replayValues, actions: replayActions });
     }
 
     async function reset() {
@@ -214,6 +217,7 @@
       scenarioResult = null;
       finalReceipt = null;
       parameterValues = {};
+      simulationActions = [];
       hasPreparedStart = false;
       clearStoredReceipt(storage, profileId);
       await resetRuntime();
@@ -264,6 +268,7 @@
       scenarioResult = null;
       finalReceipt = null;
       parameterValues = normalizeValues(values);
+      simulationActions = [];
       hasPreparedStart = false;
       clearStoredReceipt(storage, profileId);
       reflect();
@@ -340,7 +345,7 @@
       }
       restoreExpectation = stored.terminal;
       try {
-        await start({ restored: true, values: stored.parameterValues || {} });
+        await start({ restored: true, values: stored.parameterValues || {}, actions: stored.simulationActions || [] });
         const generation = runGeneration;
         cancelTimer();
         while (['running', 'paused'].includes(state)) {
@@ -361,7 +366,13 @@
       cancelTimer();
     }
 
-    async function advance(generation) {
+    function advance(generation) {
+      const pending = performAdvance(generation);
+      advancing = pending;
+      return pending.finally(() => { if (advancing === pending) advancing = null; });
+    }
+
+    async function performAdvance(generation) {
       if (generation !== runGeneration || !['running', 'paused'].includes(state)) return;
       stepCount += 1;
       if (stepCount > 10000) {
@@ -449,6 +460,7 @@
         comparisonExecutionReceipt,
         comparisonExecutionReceipts,
         parameterValues,
+        simulationActions: structuredClone(simulationActions),
         restored: isRestoring,
       }));
       if (restoreExpectation) {
@@ -482,11 +494,39 @@
           }
         }
       }
-      return runtime.dispatchAction(
+      let result = await runtime.dispatchAction(
         ownerPluginId,
         'scenario.run',
         { scenario, values: { ...parameterValues, ...values } }
       );
+      for (const action of simulationActions.filter(row => row.atStep === stepCount)) {
+        result = await runtime.dispatchAction(ownerPluginId, action.actionId, { scenario, values: action.values });
+      }
+      return result;
+    }
+
+    function intervene(actionId, values) {
+      const pending = seekQueue.then(async () => {
+        assertActive();
+        if (!['running','paused'].includes(state)) throw controllerError('tier_intervention_inactive','Start the simulation before interacting');
+        const resumeAfter = state === 'running', generation = runGeneration;
+        cancelTimer(); state = 'paused';
+        await advancing;
+        if (generation !== runGeneration || disposed || !['running','paused'].includes(state)) return snapshot();
+        try {
+          const result = await requiredRuntime(getRuntime()).dispatchAction(ownerPluginId, actionId, { scenario, values });
+          if (generation !== runGeneration || disposed) return snapshot();
+          if (result?.status !== 'running') throw controllerError('tier_intervention_refused','Simulation refused the intervention');
+          simulationActions = simulationActions.filter(row => row.atStep <= stepCount);
+          simulationActions.push({atStep:stepCount, actionId, values:structuredClone(values)});
+          scenarioResult=result; finalReceipt=null; render();
+          state=resumeAfter?'running':'paused'; reflect();
+          if(resumeAfter)schedule(generation);
+          return snapshot();
+        } catch(error) { if(generation===runGeneration)fail(error);throw error; }
+      });
+      seekQueue=pending.catch(()=>{});
+      return pending;
     }
 
     function isTerminalResult(result) {
@@ -530,6 +570,7 @@
 
     return Object.freeze({
       applyControls,
+      intervene,
       dispose,
       pause,
       receipt: () => finalReceipt,
@@ -614,6 +655,7 @@
         seed: receipt.scenario.seed,
       }),
       parameterValues: Object.freeze(normalizeValues(receipt.parameterValues)),
+      simulationActions: structuredClone(receipt.simulationActions || []),
       terminal: Object.freeze({
         receiptSchema: receipt.schema || null,
         status: receipt.actionResult?.status || null,

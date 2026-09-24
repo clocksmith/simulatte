@@ -442,7 +442,7 @@ test('every repository plugin carries current same-realm trust without marketpla
     assert.equal(contracts.validateManifest(value), value);
     return [contracts.authorizeExecutableManifest(value)];
   });
-  assert.equal(receipts.length, 13);
+  assert.equal(receipts.length, 14);
   assert.ok(receipts.every((receipt) => (
     receipt.trustLevel === 'repository-bundled' &&
     receipt.executionIsolation === 'same-realm-contract' &&
@@ -645,7 +645,7 @@ test('Main exposes governed profile selection and disposes plugins on teardown',
   assert.doesNotMatch(html, /plugin-hud-ui/);
   assert.doesNotMatch(styles, /plugin-hud/);
   assert.doesNotMatch(main, /pluginHudUi/);
-  assert.match(html, /id="decisions-button"[^>]*>Controls(?: \(\d+\))?<\/button>/);
+  assert.match(html, /id="decisions-button"[^>]*>Advanced(?: \(\d+\))?<\/button>/);
   assert.ok(
     html.indexOf('id="plugin-inspector"') < html.indexOf('id="journey-section"'),
     'experiment controls must precede generic journey evidence'

@@ -8,13 +8,21 @@
     "simulationOwnerPluginId": "gpu-supercluster",
     "missionRequired": false,
     "startLabel": "Run distributed step",
-    "shuffleLabel": "Change cluster workload"
+    "shuffleLabel": "Change cluster workload",
+    "stepDelayMs": 80
   },
   "experience": {
     "kind": "simulation",
     "timelineLabel": "Training step",
-    "primaryMeasureKinds": ["cluster-tflops", "model-flops-utilization", "allreduce-latency-ms", "peak-gpu-temp-c", "cooling-pue"],
-    "supportedViews": ["overview", "free", "compare"],
+    "primaryMeasureKinds": [
+      "training-iterations",
+      "synchronization-wait-ms"
+    ],
+    "supportedViews": [
+      "overview",
+      "free",
+      "compare"
+    ],
     "defaultView": "overview",
     "comparisonMode": "synchronized",
     "performanceBudget": {
@@ -23,10 +31,18 @@
       "peakHeapMiB": 64
     },
     "stages": [
-      { "id": "forward-pass", "label": "Forward computation", "narrative": "GPUs divide the training workload and exchange data within each rack.", "fromProgress": 0 },
-      { "id": "backward-gradients", "label": "Backward pass", "narrative": "GPUs calculate learning updates. Waiting between pipeline stages adds time.", "fromProgress": 0.25 },
-      { "id": "allreduce-sync", "label": "Collective synchronization", "narrative": "The selected collective exchanges updates between racks; the slowest worker holds up the group.", "fromProgress": 0.55 },
-      { "id": "thermal-settlement", "label": "Thermal & MFU settlement", "narrative": "Cooling carries away heat. Insufficient flow caps the modeled clock speed and slows computation.", "fromProgress": 0.85 }
+      {
+        "id": "training",
+        "label": "Synchronous training",
+        "narrative": "Select a rack to see its task. Introduce a straggler to hold up gradient synchronization.",
+        "fromProgress": 0
+      },
+      {
+        "id": "complete",
+        "label": "Training session complete",
+        "narrative": "Replay preserves the timing of rack interventions. Thermal values in Advanced are steady-state estimates.",
+        "fromProgress": 1
+      }
     ]
   },
   "defaultSeedId": "gpt4-3d-parallelism",

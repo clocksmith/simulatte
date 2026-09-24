@@ -49,9 +49,8 @@ self.onmessage = ({ data }) => {
     const ledger = M.ledger(scene, time);
     const activeJoules = controller ? 4 * Math.PI * S.energy(controller.command) * duration / (M.C.rho * M.soundSpeed(scene.config)) : 0;
     const readings = { baseline: S.measure(listener.free, rate), withSurface: S.measure(listener.primary, rate), returned: S.measure(listener.returned, rate), total: S.measure(total, rate) };
-    const spectrum = S.spectrum(reference.primary.slice(-4096), rate);
-    const bins = Array.isArray(spectrum) ? spectrum : (spectrum.bins || []);
-    const candidates = bins.filter(bin => (bin.hz ?? bin.frequency) >= 40 && (bin.hz ?? bin.frequency) <= 1500).sort((a, b) => (b.power ?? b.amplitude ?? 0) - (a.power ?? a.amplitude ?? 0));
+    const spectrum = S.frequencyBins(reference.primary.slice(-4096), rate);
+    const candidates = spectrum.bins.filter(bin => bin.hz >= 40 && bin.hz <= 1500 && bin.power > 0).sort((a, b) => b.power - a.power);
     const strongest = candidates[0];
     const observation = { dominantHz: strongest ? (strongest.hz ?? strongest.frequency) : null, status: strongest ? 'Spectral peak observed' : 'Unresolved mixture', claim: 'Microphone mixture only. A spectral peak does not identify a rider, vehicle, or muffler.' };
     const counts = Object.fromEntries(['motorcycle', 'car', 'pedestrian'].map(kind => [kind, scene.sources.filter(source => source.kind === kind).length]));

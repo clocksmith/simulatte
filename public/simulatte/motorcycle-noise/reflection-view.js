@@ -1,14 +1,26 @@
 (function(root){
-  async function create(canvas,map,initial,onPick){
+  async function create(canvas,map,initial,onPick,options={}){
     const trackResponse=await fetch('./mccarren-track.json?v=city-controls-v7');
     if(!trackResponse.ok)throw new Error('McCarren track geometry HTTP '+trackResponse.status);
     const trackData=await trackResponse.json();
     if(trackData.schema!=='simulatte.mccarrenTrack.v1'||trackData.origin.latitude!==map.origin.latitude||trackData.origin.longitude!==map.origin.longitude)throw new Error('McCarren track coordinate system differs from city map');
-    const B=root.BABYLON;let engine;
-    if(navigator.gpu){try{engine=new B.WebGPUEngine(canvas,{antialias:true});await engine.initAsync();}catch(error){engine?.dispose();const replacement=canvas.cloneNode(false);canvas.replaceWith(replacement);canvas=replacement;engine=null;}}
+    const B=root.BABYLON;let engine;const backendFailures=[],cleanup=[];
+    function dispose(){const errors=[];for(const close of cleanup.splice(0).reverse())try{close();}catch(error){errors.push(error);}if(errors.length)throw new AggregateError(errors,'Renderer cleanup failed');}
+    if(options.backend!=='webgl'&&navigator.gpu){
+      try{
+        const adapter=await navigator.gpu.requestAdapter();
+        if(adapter){engine=new B.WebGPUEngine(canvas,{antialias:true});await engine.initAsync();}
+      }catch(error){
+        backendFailures.push(error.message);
+        try{engine?.dispose();}catch(cleanupError){backendFailures.push(cleanupError.message);}
+        const replacement=canvas.cloneNode(false);canvas.replaceWith(replacement);canvas=replacement;engine=null;
+      }
+    }
     if(!engine)engine=new B.Engine(canvas,true,{preserveDrawingBuffer:false,stencil:true});
+    cleanup.push(()=>engine.dispose());
     engine.setHardwareScalingLevel(Math.max(1,(root.devicePixelRatio||1)/1.5));
-    const scene=new B.Scene(engine);scene.clearColor=new B.Color4(.055,.08,.075,1);
+    try {
+    const scene=new B.Scene(engine);cleanup.push(()=>scene.dispose());scene.clearColor=new B.Color4(.055,.08,.075,1);
     scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.00018;scene.fogColor=new B.Color3(.13,.19,.19);
     const origin=initial.center,vector=p=>new B.Vector3(p.x-origin.x,p.z||0,-(p.y-origin.y));
     const parkRows=(map.parks||[]).filter(row=>/mccarren/i.test(row.label||''));
@@ -38,11 +50,11 @@
     const sunlight=new B.DirectionalLight('sun',new B.Vector3(-.4,-1,.3),scene);sunlight.intensity=1.2;sunlight.position=new B.Vector3(90,180,-60);
     const material=(name,color,alpha=1)=>{const m=new B.StandardMaterial(name,scene);m.diffuseColor=B.Color3.FromHexString(color);m.specularColor=new B.Color3(.08,.08,.08);m.alpha=alpha;return m;};
     const ground=B.MeshBuilder.CreateGround('water-ground',{width:9000,height:9000},scene);ground.position.y=-.2;ground.material=material('water','#233b43');ground.metadata={ground:true};
-    const city=root.MotorcycleBabylonCity.create(B,scene,{...map,tracks:trackData.tracks,trees:trackData.trees||[]},origin,sunlight);city.setSources(initial.sources);
+    const city=root.MotorcycleBabylonCity.create(B,scene,{...map,tracks:trackData.tracks,trees:trackData.trees||[]},origin,sunlight);cleanup.push(()=>city.dispose());city.setSources(initial.sources);
     const panel=B.MeshBuilder.CreateBox('redirecting-surface',{size:1},scene);panel.material=material('surface','#75c4be',.8);
     const emitter=B.MeshBuilder.CreateBox('secondary-emitter',{width:.6,height:1,depth:.5},scene);emitter.material=material('emitter','#c5afe6');
-    const soundView=root.MotorcycleSoundView.create(B,scene,origin,initial,onPick),heatMeshes=[];
-    const treatmentView=root.MotorcycleTreatmentView.create(B,scene,vector);let treatmentSelection=null;
+    const soundView=root.MotorcycleSoundView.create(B,scene,origin,initial,onPick),heatMeshes=[];cleanup.push(()=>soundView.dispose());
+    const treatmentView=root.MotorcycleTreatmentView.create(B,scene,vector);cleanup.push(()=>treatmentView.dispose());let treatmentSelection=null;
     function setSources(sources){city.setSources(sources);soundView.setSources(sources);}
     function showMeasurements(record,mode='total'){
       for(const mesh of heatMeshes)mesh.dispose();heatMeshes.length=0;
@@ -203,8 +215,9 @@
     }
     scene.onPointerObservable.add(info=>{if(info.type===B.PointerEventTypes.POINTERDOWN||info.type===B.PointerEventTypes.POINTERWHEEL)followed=null;if(info.type===B.PointerEventTypes.POINTERTAP)pickScene(info.pickInfo);});
     const gestures=root.MotorcycleMapGestures.create({B,scene,canvas,getCamera:()=>scene.activeCamera,onTap:pickScene,onHome:homePark,onInteract:()=>{followed=null;}});
-    const resize=()=>engine.resize();root.addEventListener('resize',resize);
-    const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);
+    cleanup.push(()=>gestures.dispose());
+    const resize=()=>engine.resize();root.addEventListener('resize',resize);cleanup.push(()=>root.removeEventListener('resize',resize));
+    const resizeObserver=new ResizeObserver(resize);cleanup.push(()=>resizeObserver.disconnect());resizeObserver.observe(canvas);
     function draw(state){
       const M=root.MotorcycleReflection,s=state.scene,t=state.time;current=s;lastTime=t;
       if(openingPending){openingPending=false;focus('Greenpoint');}
@@ -240,8 +253,12 @@
       camera.setPosition(vector({x:eye.x+75*dx/length,y:eye.y+75*dy/length,z:Math.max(12,eye.z-24)}));
       savedRadius=camera.radius;
     }
-    const parkLife=await root.MotorcycleParkLife.create(B,scene,vector,map,()=>lastTime);
-    return {snapSidewalk:sidewalkAt,setTreatmentSelection(id){treatmentSelection=id;},draw,setSources,showMeasurements,setReceiverMarkers,setCameraMode,getFocus,getObserver,placeObserver,focusSource,focus,homePark,nearestMotorcycle,backend:engine instanceof B.WebGPUEngine?'WebGPU':'WebGL',dispose(){parkLife.dispose();gestures.dispose();resizeObserver.disconnect();root.removeEventListener('resize',resize);treatmentView.dispose();soundView.dispose();city.dispose();scene.dispose();engine.dispose();}};
+    const parkLife=await root.MotorcycleParkLife.create(B,scene,vector,map,()=>lastTime);cleanup.push(()=>parkLife.dispose());
+    return {backendFailures,
+      captureCamera(){return {mode:cameraMode,observer:getObserver(),target:camera.target.asArray(),alpha:camera.alpha,beta:camera.beta,radius:camera.radius};},
+      restoreCamera(saved){openingPending=false;if(saved.mode==='map'){setCameraMode('map');camera.setTarget(B.Vector3.FromArray(saved.target));camera.alpha=saved.alpha;camera.beta=saved.beta;camera.radius=saved.radius;}else if(saved.mode==='rider')setCameraMode('rider');else placeObserver(saved.observer,saved.mode);},
+      snapSidewalk:sidewalkAt,setTreatmentSelection(id){treatmentSelection=id;},draw,setSources,showMeasurements,setReceiverMarkers,setCameraMode,getFocus,getObserver,placeObserver,focusSource,focus,homePark,nearestMotorcycle,backend:engine instanceof B.WebGPUEngine?'WebGPU':'WebGL',dispose};
+    } catch(error) { try{dispose();}catch(cleanupError){error.cleanupError=cleanupError.message;}throw error;}
   }
   root.MotorcycleReflectionView={create};
 })(globalThis);

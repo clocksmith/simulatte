@@ -17,6 +17,8 @@ Creators need to understand the world they requested and make targeted changes w
 5. Reuse only the runtime and plugin pieces a product actually needs, without making shared code own its interface or lifecycle.
 6. Make Motorcycle Noise directly discoverable from the main chooser, with calculated acoustic mitigation, uncertain synthetic sensing, and replayable WorldSpec inputs; exclude vehicle disabling and unsupported physical or enforcement claims.
 
+7. Open simulations as immediately interactive running worlds. GPU Supercluster models rack computation, communication, and synchronization dependencies, including live straggler interventions; steady-state thermal estimates do not imply thermal evolution. Keep configuration in Advanced and observation independent of execution.
+
 ## Operating Loops
 
 For data execution, acquire only the chosen input, validate its mapping and declared semantics, run the selected model, and compare identified results. For prompts, follow the eight phases with each consuming its declared predecessor artifact. Record rejected or unsupported obligations rather than inventing a successful scene. Edit and recompile while preserving accepted overrides, then export and verify reimport against the declared reproduction contract.

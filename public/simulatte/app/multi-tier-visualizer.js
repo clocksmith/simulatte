@@ -68,12 +68,13 @@
       this.frameCount = 0;
       this.frameCpuMs = [];
       this.canvas.__simulatteCaptureRenderPixels = () => captureCanvasPixels(this.canvas, this.ctx, this.frameCount);
-      this.canvas.__simulatteRenderReceipt = () => canvas2dRenderReceipt(this.frameCount, this.frameCpuMs);
+      this.canvas.__simulatteRenderReceipt = () => ({...canvas2dRenderReceipt(this.frameCount, this.frameCpuMs),
+        view:{panX:this.panX,panY:this.panY,zoom:this.zoom,rotX:this.rotX,rotY:this.rotY,width:this.width,height:this.height,insets:{...this.sceneInsets}}});
 
       this.hudElement = null;
       this.pluginLayer = tierPresentation?.createLayer({
         drawMarker: (ctx, point, marker) => this.currentTier === 'datacenter'
-          && tierRenderers.drawDatacenterMarker(ctx, point, marker, this.zoom),
+          && tierRenderers.drawDatacenterMarker(ctx, point, {...marker,selected:marker.id.includes(`rack:${this.selectedRack}`)}, this.zoom),
         width: () => this.width, height: () => this.height, pan: (dx, dy) => { this.panX += dx; this.panY += dy; },
         fit: (target, system) => this.fitPluginPresentationTarget(target, system),
         view: () => ({
@@ -154,7 +155,7 @@
         if (this.currentTier === 'city') return;
         if (e.isPrimary === false || this.activePointerId !== null) return;
         e.preventDefault();
-        this.notifyManualView('pan-orbit');
+        this.pointerMoved = false;
         c.focus({ preventScroll: true });
         this.isDragging = true;
         this.activePointerId = e.pointerId;
@@ -168,6 +169,11 @@
         e.preventDefault();
         const dx = e.clientX - this.dragStartX;
         const dy = e.clientY - this.dragStartY;
+        if (!this.pointerMoved) {
+          if (Math.hypot(dx, dy) < 4) return;
+          this.pointerMoved = true;
+          this.notifyManualView('pan-orbit');
+        }
         this.dragStartX = e.clientX;
         this.dragStartY = e.clientY;
 
@@ -683,13 +689,16 @@
           height: this.height,
         })
         : coordinateEvidenceView({
-          coordinates: target?.coordinates || [],
+          coordinates: coordinateSystem==='datacenter-cartesian-meters' && this.data?.bounds?.minimumMeters
+            ? [0,1].flatMap(x=>[0,1].flatMap(y=>[0,1].map(z=>[x?this.data.bounds.maximumMeters[0]:this.data.bounds.minimumMeters[0],y?this.data.bounds.maximumMeters[1]:this.data.bounds.minimumMeters[1],z?this.data.bounds.maximumMeters[2]:this.data.bounds.minimumMeters[2]])))
+            : target?.coordinates || [],
           coordinateSystem,
           width: this.width,
           height: this.height,
           rotX: this.rotX,
           rotY: this.rotY,
           viewMode: this.viewMode,
+          insets: this.sceneInsets || {},
         });
       if (!fitted) return false;
       this.fittedTarget = [target, coordinateSystem];
@@ -778,7 +787,7 @@
       const cpuStartedAt = performance.now();
       const view = { width: this.width, height: this.height, zoom: this.zoom, panX: this.panX, panY: this.panY,
         rotX: this.rotX, rotY: this.rotY, rotZ: this.rotZ, projectionMode: this.projectionMode,
-        timeSeconds: performance.now() / 1000,
+        timeSeconds: this.currentTier==='datacenter'?(this.pluginInputs?.[1]?.simulationTimeMs||0)/1000:performance.now()/1000,
         nativeCoordinateSystems: this.nativeCoordinateSystems,
         projectCountryPoint: (x, y, bounds) => this.projectCountryPoint(x, y, bounds) };
       view.projectCoordinatePoint = (position, system) => tierPresentation.projectPoint(position, system, view);
@@ -858,59 +867,9 @@
     });
   }
 
-  function coordinateEvidenceView({
-    coordinates,
-    coordinateSystem,
-    width,
-    height,
-    rotX = 0,
-    rotY = 0,
-    viewMode = 'overview',
-  }) {
-    if (
-      !Array.isArray(coordinates)
-      || !coordinates.length
-      || !Number.isFinite(width)
-      || !Number.isFinite(height)
-      || width <= 0
-      || height <= 0
-    ) return null;
-    const projected = coordinates.map((position) => tierPresentation.projectPoint(
-      position,
-      coordinateSystem,
-      { panX: 0, panY: 0, zoom: 1, rotX, rotY, currentTier: null,
-        projectionMode: coordinateSystem === 'icrs-cartesian-pc' && viewMode === 'compare' ? 'torus' : 'sphere' },
-    ));
-    if (!projected.every((point) => Number.isFinite(point.x) && Number.isFinite(point.y))) return null;
-    const minimumX = Math.min(...projected.map((point) => point.x));
-    const maximumX = Math.max(...projected.map((point) => point.x));
-    const minimumY = Math.min(...projected.map((point) => point.y));
-    const maximumY = Math.max(...projected.map((point) => point.y));
-    const coverage = viewMode === 'follow' || viewMode === 'pov'
-      ? 0.38
-      : viewMode === 'compare'
-        ? 0.62
-        : 0.76;
-    const spanX = Math.max(0.000001, maximumX - minimumX);
-    const spanY = Math.max(0.000001, maximumY - minimumY);
-    const datacenter = coordinateSystem === 'datacenter-cartesian-meters';
-    const narrow = width <= 820;
-    const availableWidth = datacenter ? width * (narrow ? 0.84 : 0.48) : width * (narrow ? 0.80 : 0.62) * coverage / 0.76;
-    const availableHeight = datacenter ? Math.max(100, narrow ? height - 690 : height * 0.48) : Math.max(100, narrow ? height - 660 : height * 0.55) * coverage / 0.76;
-    const zoom = Math.max(0.01, Math.min(coordinateSystem === 'icrs-cartesian-pc' ? 4000 : 250, Math.min(
-      availableWidth / spanX,
-      availableHeight / spanY,
-    )));
-    const centerX = (minimumX + maximumX) / 2;
-    const centerY = (minimumY + maximumY) / 2;
-    return Object.freeze({
-      zoom,
-      panX: width * (!narrow ? (datacenter ? 0.44 : 0.43) : 0.5) - centerX * zoom,
-      panY: (narrow ? 375 + availableHeight / 2 : height * (datacenter ? 0.46 : 0.5)) - centerY * zoom,
-      ...(coordinateSystem === 'icrs-cartesian-pc' ? {
-        projectionMode: viewMode === 'compare' ? 'torus' : 'sphere',
-      } : {}),
-    });
+  function coordinateEvidenceView(options) {
+    const fit=typeof module==='object'&&module.exports?require('./camera-fit.js'):globalThis.SimulatteCameraFit;
+    return fit.fit(options);
   }
 
   // --- API DECLARATION ---

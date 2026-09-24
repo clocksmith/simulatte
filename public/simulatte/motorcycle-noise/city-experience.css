@@ -154,3 +154,7 @@
   .map-touch-hint.is-visible { opacity:1; }
 }
 @media(prefers-reduced-motion:reduce) { .map-touch-hint { transition:none; } }
+
+.experience-status { position:absolute; z-index:6; top:210px; left:16px; right:16px; width:fit-content; max-width:calc(100% - 32px); padding:12px; border-radius:8px; }
+body[data-state="running"] .experience-status, body[data-state="paused"] .experience-status { display:none; }
+.experience-status button { margin-left:12px; }

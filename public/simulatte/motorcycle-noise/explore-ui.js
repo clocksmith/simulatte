@@ -1,5 +1,5 @@
 (function(root){
-  function create({view,getScene,getTime,getSelected,getComparison,selectSource}){
+  function create({view,getScene,getTime,getSelected,getComparison,selectSource,initialObservation=null}){
     const $=id=>document.getElementById(id),M=root.MotorcycleReflection;
     let world=null,worker=null,pending=false,nextAt=0,epoch=0,placing=false,selectedMarker=null,inspectedSource=null,lastReading=null,lastPaint=0,markers=[],nextId=1,requestId=0,lastRequestKey='',history=[];
     let inspectedLocation=null;
@@ -52,7 +52,10 @@
     }
     function init(scene){
       worker?.terminate();observerWorker?.terminate();observerPending=false;observerNextAt=0;observerKey='';lastObserver=null;world=scene;pending=false;lastRequestKey='';nextAt=0;lastReading=null;history=[];epoch++;const generation=epoch;
-      treatments.reset(scene);markers=[{id:'receiver-1',name:'Observer 1',...view.getObserver()}];nextId=2;selectedMarker=null;inspectedSource=null;$('inspection').hidden=true;renderMarkers();
+      treatments.reset(scene);
+      if(initialObservation){({markers,nextId,selectedMarker,inspectedSource,inspectedLocation}=initialObservation);initialObservation=null;}
+      else{markers=[{id:'receiver-1',name:'Observer 1',...view.getObserver()}];nextId=2;selectedMarker=null;inspectedSource=null;inspectedLocation=null;}
+      $('inspection').hidden=!(selectedMarker||inspectedSource||inspectedLocation);renderMarkers();
       observerWorker=new Worker('./observer-noise-worker.js?v=city-controls-v7');
       observerWorker.postMessage({type:'init',scene});
       observerWorker.onmessage=({data})=>{
@@ -118,7 +121,7 @@
     on($('ride-selected'),'click',()=>{$('camera-mode').value='rider';view.setCameraMode('rider');nextAt=0;});
     on($('follow-selected'),'click',()=>{$('camera-mode').value='map';view.focusSource(inspectedSource||getSelected());nextAt=0;});
     on($('live-overlay'),'change',()=>view.showMeasurements($('live-overlay').checked?lastReading:null,'total'));
-    return {update,pick,resetClock(){pending=false;observerPending=false;requestId++;observerRequest++;nextAt=0;observerNextAt=0;lastRequestKey='';observerKey='';lastReading=null;lastObserver=null;history=[];view.showMeasurements(null);},dispose(){treatments.dispose();epoch++;events.abort();worker?.terminate();observerWorker?.terminate();view.setReceiverMarkers([],null);}};
+    return {captureObservation(){if(!world)return null;return structuredClone({markers,nextId,selectedMarker,inspectedSource,inspectedLocation});},update,pick,resetClock(){pending=false;observerPending=false;requestId++;observerRequest++;nextAt=0;observerNextAt=0;lastRequestKey='';observerKey='';lastReading=null;lastObserver=null;history=[];view.showMeasurements(null);},dispose(){treatments.dispose();epoch++;events.abort();worker?.terminate();observerWorker?.terminate();view.setReceiverMarkers([],null);}};
   }
   root.MotorcycleExplorer={create};
 })(globalThis);

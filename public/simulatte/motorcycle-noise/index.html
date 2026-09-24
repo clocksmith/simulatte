@@ -17,6 +17,7 @@
 <main>
 
 <section class="map" aria-label="NYC sound map">
+  <div id="experience-status" class="experience-status sim-surface" role="status"><span id="experience-message">Loading city</span><button id="experience-retry" class="sim-action" hidden>Retry</button></div>
   <div class="toolbar city-toolbar sim-surface" aria-label="City exploration">
     <label class="compact camera-control">Camera<select class="sim-field" id="camera-mode" aria-label="Camera viewpoint"><option value="area:Greenpoint" selected>Greenpoint</option><option value="area:North Williamsburg">Williamsburg</option><option value="map">McCarren Park</option><option value="sidewalk">Sidewalk</option><option value="rooftop">Rooftop</option><option value="rider">Onboard motorcycle</option><option value="free">Free camera</option></select></label>
     <label class="compact comparison-control">Compare<select class="sim-field" id="technique"><option value="cancellation" selected>Tonal cancellation</option><option value="live">Live treatments</option><option value="untreated">Untreated</option><option value="redirection">Redirection</option></select></label>
@@ -81,6 +82,7 @@
 <script src="../../shared/contracts/world-spec-authorship.js" defer></script><script src="../../shared/contracts/world-spec.js" defer></script>
 <script src="./vendor/earcut.js" defer></script><script src="./vendor/babylon.js" defer></script>
 <script src="./city-paths.js?v=city-shell-v9" defer></script><script src="./traffic-motion.js?v=city-shell-v9" defer></script><script src="./reflection-model.js?v=city-shell-v9" defer></script><script src="./sound-view.js?v=city-shell-v9" defer></script><script src="./babylon-city.js?v=city-shell-v9" defer></script><script src="./treatments.js?v=city-shell-v9" defer></script><script src="./treatment-view.js?v=city-shell-v9" defer></script><script src="./treatment-controls.js?v=city-shell-v9" defer></script><script src="./map-gestures.js?v=city-shell-v9" defer></script><script src="./park-life.js?v=park-startup-v17" defer></script><script src="./reflection-view.js?v=park-life-v15" defer></script><script src="./explore-ui.js?v=city-shell-v9" defer></script><script src="traffic-audio.js?v=mobile-output-v16"></script>
+<script src="./lifecycle.js" defer></script>
 <script src="./reflection-app.js?v=city-shell-v9" defer></script>
 <script src="header-controls.js?v=map-controls-v13" defer></script>
 </body></html>

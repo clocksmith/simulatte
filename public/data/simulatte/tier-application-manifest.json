@@ -34,7 +34,7 @@
         {
           "id": "gpu-supercluster-v1",
           "path": "../application-profiles/gpu-supercluster-v1.json",
-          "sha256": "58636d6c5c69fa67aa93890b330d7e8756fec189c3510ead6f884aaca2d5224b",
+          "sha256": "3572cb1a75297c53e2c53054a9025789ad928a672b7005ef3c1070de989af62d",
           "world": {
             "id": "datacenter-supercluster-v1",
             "path": "./worlds/datacenter-supercluster-v1.json",

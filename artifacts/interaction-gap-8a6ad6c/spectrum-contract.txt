@@ -1,0 +1,6 @@
+HEAD: 8a6ad6ce66041116e060ab12f706e2b756b948b0
+Reproduction: S.spectrum(new Float64Array(4096), 8000)
+FFT requires equal power-of-two arrays
+Default FFT result fields: [ 'real', 'imaginary' ]
+FFT length: 4096
+Worker expects bins; actual result contains real and imaginary arrays.

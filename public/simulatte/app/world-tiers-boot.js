@@ -141,7 +141,7 @@
     const on=lifecycle.on;
     root.SimulatteCityInterface.wireInterfaceControls(elements,lifecycle.signal);
     let data=null;
-    let tierVisualizer=null;
+    let tierVisualizer=null,clusterInteraction=null;
     let profileSelectUi=null;
     let interaction=null;
     let activeScenario=null;
@@ -224,6 +224,7 @@
       if(disposed)return;
       disposed=true;
       simulationClock?.pause();
+      clusterInteraction?.dispose();clusterInteraction=null;
       runController?.dispose();
       lifecycle.abort();
       removeManualView?.();
@@ -334,6 +335,11 @@
       const context={scenario:activeScenario,compositionSize:runtime.activePluginIds.length};
       const platform=runtime.platformV4(context);
       lastPluginContributions=platform.contributions;
+      const cluster=platform.contributions.find(row=>row.pluginId==='gpu-supercluster');
+      if(cluster){
+        if(!clusterInteraction)clusterInteraction=root.SimulatteClusterInteraction.create({canvas:elements.overlayCanvas,visualizer:tierVisualizer,onIntervene:values=>runController.intervene('scenario.intervene',values),onError:reportRunFailure});
+        clusterInteraction.update(cluster);
+      }
       pluginUi.render(runtime.views(context),platform.contributions);
       const controlCount=platform.contributions.reduce((total,contribution)=>total+contribution.controls.controls.length,0);
       elements.decisionsButton.textContent=controlCount?`Advanced (${controlCount})`:'Evidence';
@@ -478,7 +484,7 @@
         storage:root.sessionStorage,
         render:renderPlugins,
         resetRuntime:()=>activateScenario(activeScenario),
-        buildReceipt:({actionResult,settlement,parameterValues})=>Object.freeze({schema:'simulatte.tierRunReceipt.v1',tier,profileId:data.applicationProfile.id,scenario:activeScenario,parameterValues,actionResult,settlement,pluginRuntime:runtime.runtimeReceipt(),loadReceipt:data.receipt}),
+        buildReceipt:({actionResult,settlement,parameterValues,simulationActions})=>Object.freeze({schema:'simulatte.tierRunReceipt.v1',tier,profileId:data.applicationProfile.id,scenario:activeScenario,parameterValues,simulationActions,actionResult,settlement,pluginRuntime:runtime.runtimeReceipt(),loadReceipt:data.receipt}),
         onState:(state)=>{
           root.__simulatteTierRunState=state;
           const isRunning=state.state==='running';

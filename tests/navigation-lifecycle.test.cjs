@@ -134,7 +134,7 @@ test('the shared shell exposes POV and first-class playback controls', () => {
   assert.match(html, /id="semantic-label-canvas"/);
   assert.match(html, /id="playback-strip"/);
   assert.match(html, /id="playback-event"/);
-  const strip = html.slice(html.indexOf('id="playback-strip"'), html.indexOf('id="mission-error"'));
+  const strip = html.slice(html.indexOf('class="mission-actions"'), html.indexOf('id="mission-error"'));
   assert.match(strip, /id="step-button"/);
   assert.match(strip, /id="reset-button"/);
   assert.match(strip, /id="playback-timeline"/);
@@ -218,7 +218,7 @@ test('router paths preserve the governed tier and full experience id', () => {
     camera: null,
     simulation: null,
   });
-  assert.equal(routerApi.hrefFor({ tier: 'solar-system', experience: 'orbital-transfer-planner-v1' }), '/solar-system/orbital-transfer-planner-v1?profile=orbital-transfer-planner-v1');
+  assert.equal(routerApi.hrefFor({ tier: 'solar-system', experience: 'orbital-transfer-planner-v1' }), '/orbital');
   assert.deepEqual(routerApi.parsePath('/unknown/profile-v1'), { tier: null, experience: null, world: null, profile: null, camera: null, simulation: null });
 });
 
@@ -392,14 +392,15 @@ test('app shell aborts and disposes a superseded boot before mounting the latest
   const shell = bootApi.createAppShell({ router, boot, landing, documentationLink });
 
   const firstRender = shell.renderRoute({ tier: 'city', experience: 'sun-walker-v1' });
-  await Promise.resolve();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(pendingBoots.length,1);
   const secondRender = shell.renderRoute({ tier: 'world', experience: 'maritime-trade-global-v1' });
   await Promise.resolve();
   assert.equal(pendingBoots[0].signal.aborted, true);
 
   pendingBoots[0].gate.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(pendingBoots.length,2);
   pendingBoots[1].gate.resolve();
   await Promise.all([firstRender, secondRender]);
 

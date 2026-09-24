@@ -9,19 +9,13 @@
   const PLUGIN_ID = 'gpu-supercluster';
   const MODEL_DATASET_ID = 'repository-models:gpu-supercluster-v1';
   const MODEL_HASHES = Object.freeze({
+    workload: '8d4fc0ca2f6191a167a0970a8f9408a5bde5c03bbe746b5561d89dd5d31e48fd',
     topology: '5f78aa4c2521d92c926e5a6c038949424cd8d665121bc9dad72a918caf1034f7',
     collectives: '2ae62813d8249f7972ba7c7d0aa3decd47d9c901c22f74572a1a787ba0cecef5',
     thermals: 'afabd35b2bba5a587d061c2e5303920de6077419abc5a4c491e3ebe590826548',
   });
-  const STAGES = Object.freeze([
-    'forward-pass',
-    'backward-gradients',
-    'allreduce-sync',
-    'thermal-settlement',
-  ]);
-
-  function createContribution({ result, step = 0 }) {
-    const boundedStep = Math.max(0, Math.min(STAGES.length, Number(step) || 0));
+  function createContribution({ result, step = 0, workload = null }) {
+    const boundedStep = workload ? workload.timeMs : 0;
     const { topology, collectives, thermals } = result;
     const records = modelRecords(result.receipt.seed);
     const modeled = builder.provenance({
@@ -41,12 +35,13 @@
     const thermalByRack = new Map(thermals.racks.map((rack) => [rack.rackIndex, rack]));
     const rackLayers = topology.racks.map((rack) => {
       const thermal = thermalByRack.get(rack.rackIndex);
+      const task = workload?.racks.find(row => row.id === rack.id);
       return builder.layer({
         id: `rack:${rack.id}`,
         kind: 'point',
-        label: `${rack.id} · ${thermal?.avgTempC ?? 0}°C`,
+        label: task ? `${rack.id} · ${task.task} ${Math.round((task.task==='allreduce'?workload.communication:task.work)*100)}%` : `${rack.id} · ${thermal?.avgTempC ?? 0}°C`,
         geometry: builder.geometry('point', 'datacenter-cartesian-meters', [[rack.xM, rack.yM, rack.zM]]),
-        quantity: builder.quantity('modeled-rack-temperature', thermal?.avgTempC || 0, 'C', [0, 150]),
+        quantity: task ? builder.quantity(`workload-rack-${task.task}`,100*(task.task==='allreduce'?workload.communication:task.work),'percent',[0,100]) : builder.quantity('modeled-rack-temperature', thermal?.avgTempC || 0, 'C', [0, 150]),
         role: thermal?.isThrottled ? 'event' : 'primary',
         importance: thermal?.isThrottled ? 1 : 0.72,
         aggregationKey: null,
@@ -73,7 +68,7 @@
           provenance: modeled,
         });
       });
-    const tensorProgress = boundedStep / STAGES.length;
+    const tensorProgress = workload ? workload.communication : 0;
     const tensorLayers = topology.gpus.length ? [builder.layer({
       id: 'active-allreduce-tensor-pulse',
       kind: 'actor',
@@ -85,18 +80,11 @@
       aggregationKey: null,
       provenance: modeled,
     })] : [];
-    const eventIds = STAGES.map((stage) => `${PLUGIN_ID}:${stage}`);
-    const events = STAGES.slice(0, boundedStep).map((stage, sequence) => builder.event({
-      id: eventIds[sequence],
-      pluginId: PLUGIN_ID,
-      sequence,
-      simulationTimeMs: (sequence + 1) * 1000,
-      kind: `${PLUGIN_ID}.${stage}`,
-      causationIds: sequence ? [eventIds[sequence - 1]] : [],
-      correlationId: `${PLUGIN_ID}:${result.receipt.seed}`,
-      payload: stagePayload(stage, collectives, thermals),
-      provenance: modeled,
-    }));
+    const events = workload ? [builder.event({
+      id:`${PLUGIN_ID}:tick:${workload.timeMs}`,pluginId:PLUGIN_ID,sequence:workload.timeMs,simulationTimeMs:workload.timeMs,
+      kind:`${PLUGIN_ID}.${workload.communicating?'allreduce-sync':workload.racks.some(r=>r.task==='waiting')?'synchronization-wait':'forward-pass'}`,
+      causationIds:[],correlationId:`${PLUGIN_ID}:${result.receipt.seed}`,payload:{iteration:workload.iteration,waitingRacks:workload.racks.filter(r=>r.task==='waiting').length},provenance:modeled,
+    })] : [];
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'datacenter-cartesian-meters',
@@ -130,11 +118,12 @@
     const state = builder.state({
       id: `${PLUGIN_ID}:state:${result.receipt.seed}:${boundedStep}`,
       pluginId: PLUGIN_ID,
-      simulationTimeMs: boundedStep * 1000,
-      status: boundedStep === 0 ? 'ready' : boundedStep === STAGES.length ? 'settled' : 'running',
+      simulationTimeMs: workload ? workload.timeMs : boundedStep * 1000,
+      status: workload ? (workload.timeMs>=workload.durationMs?'settled':'running') : 'ready',
       previousStateId: boundedStep ? `${PLUGIN_ID}:state:${result.receipt.seed}:${boundedStep - 1}` : null,
       eventIds: events.map((event) => event.id),
       measures: [
+        ...(workload ? [builder.quantity('training-iterations',workload.iteration,'iterations'),builder.quantity('synchronization-wait-ms',workload.totalWaitMs,'rack-ms')] : []),
         builder.quantity('cluster-tflops', collectives.effectiveClusterTflops, 'TFLOP/s'),
         builder.quantity('model-flops-utilization', collectives.modelFlopsUtilization, 'percent', [0, 100]),
         builder.quantity('allreduce-latency-ms', collectives.commTimeMs, 'ms'),
@@ -151,7 +140,7 @@
       state,
       inspections: [{
         id: `${PLUGIN_ID}:inspection:cluster`,
-        label: 'Modeled cluster result',
+        label: 'Configured steady-state estimates',
         targetIds: rackLayers.map((layer) => layer.id),
         fields: [
           field('scenario-seed', 'Executed scenario seed', result.receipt.seed, 'seed', modeled),
@@ -159,11 +148,16 @@
           field('packet-drop', 'Applied packet drop rate', result.config.linkPacketDropRate * 100, 'percent', modeled),
           field('coolant-flow', 'Applied coolant flow', result.config.coolantFlowLpm, 'L/min', modeled),
           field('step-time', 'Modeled step time', collectives.stepTimeMs, 'ms', modeled),
-          field('peak-temperature', 'Modeled peak junction temperature', thermals.peakJunctionTempC, 'C', modeled),
+          field('peak-temperature', 'Steady-state peak junction temperature', thermals.peakJunctionTempC, 'C', modeled),
           field('throttled-gpus', 'Modeled throttled GPUs', thermals.throttledGpuCount, 'GPUs', modeled),
           field('thermal-clock', 'Modeled thermal clock cap', thermals.thermalClockFraction * 100, 'percent', modeled),
         ],
-      }],
+      }, ...(workload ? workload.racks.map(rack => ({
+        id:`${PLUGIN_ID}:inspection:${rack.id}`, label:rack.id,targetIds:[`rack:${rack.id}`],
+        fields:[field('task','Task',rack.task,'task',modeled),field('work','Compute progress',Math.round(rack.work*100),'percent',modeled),
+          field('waiting-for','Waiting for',rack.waitingFor.join(', ') || (rack.task==='allreduce'?'Collective transfer':'Nothing'),'dependency',modeled),
+          field('slowdown','Slowdown',rack.slowdown,'percent',modeled),field('wait-ms','Synchronization wait',rack.waitMs,'ms',modeled)]
+      })) : [])],
       provenanceRecords: records,
     });
   }
@@ -189,12 +183,6 @@
         license: { required: false, identifier: null },
       },
     }));
-  }
-
-  function stagePayload(stage, collectives, thermals) {
-    if (stage === 'allreduce-sync') return { commTimeMs: collectives.commTimeMs, algorithm: collectives.algorithm };
-    if (stage === 'thermal-settlement') return { peakJunctionTempC: thermals.peakJunctionTempC, throttledGpuCount: thermals.throttledGpuCount };
-    return { computeTimeMs: collectives.computeTimeMs, stage };
   }
 
   function option(value, label) { return { value, label }; }

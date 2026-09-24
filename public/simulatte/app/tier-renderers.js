@@ -544,12 +544,13 @@
   }
 
   function drawDatacenterMarker(ctx, point, marker, zoom) {
-    if (marker.quantityKind !== 'modeled-rack-temperature') return false;
+    const task = marker.quantityKind.startsWith('workload-rack-') ? marker.quantityKind.slice(14) : null;
+    if (!task && marker.quantityKind !== 'modeled-rack-temperature') return false;
     const width = Math.max(12, Math.min(42, zoom * 1.02));
     const height = width * 1.58;
     const depth = width * 0.28;
     const temperature = Number(marker.quantityValue);
-    const heat = temperature >= 80 ? '#ff5c66' : temperature >= 65 ? '#ffb347' : '#4de8ff';
+    const heat = task ? ({forward:'#4de8ff',backward:'#8fffb5',waiting:'#ffb347',allreduce:'#c384ff'}[task] || '#4de8ff') : temperature >= 80 ? '#ff5c66' : temperature >= 65 ? '#ffb347' : '#4de8ff';
     ctx.save();
     ctx.shadowBlur = temperature >= 65 ? 18 : 9;
     ctx.shadowColor = heat;
@@ -584,10 +585,13 @@
     ctx.textAlign = 'center'; ctx.fillStyle = heat;
     const [id, temperatureLabel] = marker.label.split(' · ');
     if (width >= 18) ctx.fillText(id, point.x, point.y + height / 2 - 4);
-    if (temperatureLabel) {
+    if (task) {
+      ctx.fillStyle=heat;ctx.fillRect(point.x-width/2,point.y+height/2+2,width*Math.max(0,Math.min(1,temperature/100)),2);
+    } else if (temperatureLabel) {
       ctx.fillStyle = '#edf5f3';
       ctx.fillText(width < 24 ? `${Math.round(temperature)}°C` : temperatureLabel, point.x, point.y + height / 2 + 12);
     }
+    if(marker.selected){ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.strokeRect(point.x-width/2-3,point.y-height/2-depth-3,width+depth+6,height+depth+8);}
     ctx.restore();
     return true;
   }

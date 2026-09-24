@@ -2,8 +2,9 @@
   const $=id=>document.getElementById(id),M=root.MotorcycleReflection,form=$('scenario');
   const status=(text,error=false)=>{$('status').textContent=text;$('status').dataset.error=String(error);};
   let map,mapHash,scene,view,time=0,paused=false,last=0,worker=null,generation=0,result=null,audio=null,audioSource=null;
-  let selected=null,placement=null,frameId=null,activeAudio=null,lastReadout=-Infinity,audioRequest=0,explorer=null;
-  let populationWorker=null,populationRequest=0;
+  let selected=null,placement=null,activeAudio=null,lastReadout=-Infinity,audioRequest=0,explorer=null;
+  let populationWorker=null,populationRequest=0,cameraSnapshot=null,observationSnapshot=null,expectedReplay=null;
+  let lifecycle;
   function createTraffic(config){
     populationWorker?.terminate();const request=++populationRequest;
     status('Preparing '+config.motorcycles+' autonomous motorcycles on the connected street network');
@@ -33,7 +34,7 @@
     $('results').hidden=true;$('progress').hidden=true;$('cancel').hidden=true;$('run').disabled=!scene;$('export').disabled=true;$('listen').disabled=true;}
   function read(){const p={...M.defaults};for(const key of Object.keys(p)){const element=form.elements.namedItem(key);if(element)p[key]=typeof p[key]==='boolean'?element.checked:typeof p[key]==='number'?Number(element.value):element.value;}return M.validate(p);}
   function showConfig(config){for(const[key,value]of Object.entries(config)){const element=form.elements.namedItem(key);if(!element)continue;if(typeof value==='boolean')element.checked=value;else element.value=value;}labels();}
-  function setPaused(value){paused=value;last=0;$('pause').textContent=paused?(time>=180?'Replay':'Play'):'Pause';}
+  function setPaused(value){paused=value;last=0;lifecycle?.setPaused(value);$('pause').textContent=paused?(time>=180?'Replay':'Play'):'Pause';}
   function setEquipment(point){
     if(scene.acousticContext.occupied(point)) { status('Place equipment outdoors, clear of mapped buildings.', true); return; }
 
@@ -62,6 +63,12 @@
       ctx.fillStyle=colors[j];ctx.fillRect(x,h-25-bar,8,bar);if(j===0){ctx.fillStyle='#a7b7ad';ctx.fillText(String(band.hz),x-4,h-7);}}));
   }
   function display(data){
+    if(expectedReplay){
+      const expected=expectedReplay;expectedReplay=null;
+      if(JSON.stringify(expected.readings)!==JSON.stringify(data.record.readings)||JSON.stringify(expected.scene.receiver)!==JSON.stringify(data.record.scene.receiver)){
+        status('Replay differs from the saved observation.',true);return;
+      }
+    }
     result=data.record;activeAudio=data.audio;$('results').hidden=false;$('export').disabled=false;$('listen').disabled=false;
     const r=result.readings;$('before').textContent=r.baseline.laeq.toFixed(1);$('surface-level').textContent=r.withSurface.laeq.toFixed(1);$('after').textContent=r.total.laeq.toFixed(1);
     const change=r.total.laeq-r.baseline.laeq;$('change').textContent=`${change>0?'+':''}${change.toFixed(1)} dB`;$('change').dataset.direction=change>.5?'louder':change<-.5?'quieter':'same';
@@ -84,14 +91,14 @@
     $('playback-state').textContent='Replaying traffic';clearTimeout(replayNoticeTimer);
     replayNoticeTimer=setTimeout(()=>{$('playback-state').textContent='';},4000);
   }
-  function run(){
-    if(!scene)return;invalidate();setPaused(true);if(time<M.C.duration)time=M.C.duration;
-    const observer=view.getObserver();
+  function run(observerOverride=null){
+    if(!scene||!view)return;invalidate();setPaused(true);if(time<M.C.duration)time=M.C.duration;
+    const observer=observerOverride&&typeof observerOverride.x==='number'?observerOverride:view.getObserver();
     const analysisScene={...scene,receiver:{...observer},reference:{...scene.reference},speaker:{...scene.speaker},panel:{...scene.panel},
       observers:[{name:'Active viewpoint',...observer},...scene.observers.slice(1)]};
     const id=generation;worker=new Worker('./reflection-worker.js?v=city-controls-v7');$('run').disabled=true;$('cancel').hidden=false;$('progress').hidden=false;$('progress').value=0;
     const fail=message=>{worker?.terminate();worker=null;$('run').disabled=false;$('cancel').hidden=true;$('progress').hidden=true;status(message,true);};
-    worker.onerror=event=>fail(event.message||'Acoustic worker failed');worker.onmessage=({data})=>{if(data.id!==id)return;
+    worker.onerror=event=>{if(id===generation)fail(event.message||'Acoustic worker failed');};worker.onmessage=({data})=>{if(data.id!==id||id!==generation)return;
       if(data.type==='progress'){$('progress').value=data.fraction;status(data.phase);}
       if(data.type==='error')fail(data.message);
       if(data.type==='result'){worker.terminate();worker=null;$('run').disabled=false;$('cancel').hidden=true;$('progress').hidden=true;display(data);}
@@ -107,7 +114,7 @@
     const explanations={live:'Live treatments. Select a marker to inspect its contribution.',untreated:'Untreated traffic. Equipment and vehicle trajectories are unchanged.',redirection:'Live idealized reflection. The surface redirects intercepted sound; traffic keeps moving.',cancellation:'Live output-limited tonal cancellation at marked nodes. Broadband waveform analysis is in Advanced.'};
     $('technique-note').textContent=explanations[technique];
   });
-  $('run').addEventListener('click',run);$('cancel').addEventListener('click',()=>{invalidate();status('Calculation cancelled.');});
+  $('run').addEventListener('click',()=>{expectedReplay=null;run();});$('cancel').addEventListener('click',()=>{invalidate();status('Calculation cancelled.');});
   $('layer').addEventListener('change',()=>{if(result)view.showMeasurements(result,$('layer').value);});
   $('listen').addEventListener('click',async()=>{if(audioSource){stopAudio();return;}try{if(activeAudio)await playSamples(activeAudio[$('audio-mode').value],result.sampleRate,$('listen'));}catch(error){status(error.message,true);}});
   $('listen-source').addEventListener('click',async()=>{if(audioSource){stopAudio();return;}try{
@@ -131,7 +138,7 @@
     if(!Number.isFinite(p.time)||p.time<0||p.time>180)throw new Error('Replay time is outside this pass');
     for(const name of ['panel','receiver','reference','speaker'])if(!p[name]||!['x','y','z'].every(key=>Number.isFinite(p[name][key])&&Math.abs(p[name][key])<10000))throw new Error('Invalid replay geometry');
     if(!Number.isFinite(p.panel.angle)||Math.abs(p.panel.angle)>20||p.panel.width!==p.config.panelWidth||p.panel.height!==p.config.panelHeight)throw new Error('Invalid reflector geometry');
-    invalidate();scene=await createTraffic(p.config);for(const name of ['panel','receiver','reference','speaker'])scene[name]={...p[name]};scene.observers[0]={name:'Listener',...scene.receiver};time=p.time;showConfig(p.config);view.setSources(scene.sources);run();
+    invalidate();scene=await createTraffic(p.config);for(const name of ['panel','receiver','reference','speaker'])scene[name]={...p[name]};scene.observers[0]={name:'Listener',...scene.receiver};time=p.time;showConfig(p.config);view.setSources(scene.sources);expectedReplay=bundle.record;if(!expectedReplay?.readings)throw new Error('Replay measurements missing');run(p.receiver);
   }catch(error){status(error.message,true);}event.target.value='';});
   function tick(now){
     if(!view)return;const dt=last?Math.max(0,(now-last)/1000):0;last=now;
@@ -152,19 +159,58 @@
     explorer?.update(now);
     root.MotorcycleTrafficAudio?.update({ scene, time, paused, selected, focus: view.getObserver(),
       cameraMode: $('camera-mode').value, speed: Number($('playback').value) || 1 });
-    frameId=requestAnimationFrame(tick);
   }
   document.addEventListener('visibilitychange',()=>{last=0;if(document.hidden)stopAudio();});
-  root.addEventListener('pagehide',()=>{cancelAnimationFrame(frameId);worker?.terminate();populationWorker?.terminate();stopAudio();audio?.close();explorer?.dispose();view?.dispose();view=null;});
-  try{
-    status('Loading NYC geometry');const response=await fetch('./nyc-map.json');if(!response.ok)throw new Error(`Map HTTP ${response.status}`);
-    const bytes=await response.arrayBuffer();mapHash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');map=JSON.parse(new TextDecoder().decode(bytes));
-    if(map.schema!=='simulatte.nycReflectionMap.v1')throw new Error('Unsupported NYC map schema');
-    scene=await createTraffic({...M.defaults});time=12;showConfig(scene.config);selected=scene.sources.find(row=>row.kind==='motorcycle')?.id;
-    status('Starting Babylon renderer');view=await root.MotorcycleReflectionView.create($('city'),map,scene,pick=>{if(explorer?.pick(pick))return;if(placement&&pick.point)setEquipment(pick.point);else if(pick.sourceId){selected=pick.sourceId;$('selected').textContent=`Selected scenario source: ${selected}`;}});
-    explorer=root.MotorcycleExplorer.create({view,getScene:()=>scene,getTime:()=>time,getSelected:()=>selected,getComparison:()=>result,selectSource:id=>{selected=id;lastReadout=-Infinity;}});
-    $('backend').textContent=view.backend;$('panel-angle').value=scene.panel.angle*180/Math.PI;
-    for(const element of document.querySelectorAll('[data-ready]'))element.disabled=false;
-    status('Ready. Select a motorcycle or place a receiver to inspect the scene.');frameId=requestAnimationFrame(tick);
-  }catch(error){status(`Unable to start: ${error.message}`,true);}
+  async function releaseRenderer(){
+    const oldExplorer=explorer,oldView=view;explorer=null;view=null;
+    const errors=[];
+    for(const resource of [oldExplorer,oldView])try{resource?.dispose();}catch(error){errors.push(error);}
+    if(errors.length)throw new AggregateError(errors,'Renderer cleanup failed');
+  }
+  function suspend(){
+    last=0;stopAudio();root.MotorcycleTrafficAudio?.mute();
+    cameraSnapshot=view?.captureCamera()||cameraSnapshot;
+    observationSnapshot=explorer?.captureObservation()||observationSnapshot;
+    $('observer-level').textContent='Measurement paused';
+    $('observer-time').textContent='Rendering unavailable';
+    $('observer-history').getContext('2d').clearRect(0,0,240,48);
+    worker?.terminate();worker=null;generation++;
+  }
+  lifecycle=root.MotorcycleLifecycle.create({
+    frame:tick,suspend,release:releaseRenderer,
+    onState(state){
+      const previousState=document.body.dataset.state;
+      document.body.dataset.state=state.state;
+      if(previousState!==state.state){
+        if(['running','paused'].includes(state.state))status(state.state==='running'?'Traffic running':'Traffic paused');
+        else if(state.failures.length)status(`Scene ${state.state}: ${state.failures.at(-1).message}`,true);
+      }
+      $('experience-message').textContent={loading:'Loading city',recovering:'Restoring the scene. Simulation paused.',failed:'The scene could not restart. Your simulation is preserved.'}[state.state]||state.state;
+      $('experience-retry').hidden=state.state!=='failed';
+      const usable=['running','paused'].includes(state.state);
+      for(const element of document.querySelectorAll('[data-ready]'))element.disabled=!usable;
+      if(worker)$('run').disabled=true;
+      root.motorcycleRuntimeReceipt={...state,time,scenarioSeed:scene?.config.seed,backend:view?.backend,backendFailures:view?.backendFailures||[]};
+    },
+    async prepare({backend,isCurrent}){
+      last=0;
+      if(!map){
+        const response=await fetch('./nyc-map.json');if(!response.ok)throw new Error(`Map HTTP ${response.status}`);
+        const bytes=await response.arrayBuffer();mapHash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');map=JSON.parse(new TextDecoder().decode(bytes));
+        if(map.schema!=='simulatte.nycReflectionMap.v1')throw new Error('Unsupported NYC map schema');
+      }
+      if(!scene){scene=await createTraffic({...M.defaults});time=12;showConfig(scene.config);selected=scene.sources.find(row=>row.kind==='motorcycle')?.id;}
+      if(!isCurrent())return;
+      const previous=$('city'),canvas=previous.cloneNode(false);previous.replaceWith(canvas);
+      view=await root.MotorcycleReflectionView.create(canvas,map,scene,pick=>{if(explorer?.pick(pick))return;if(placement&&pick.point)setEquipment(pick.point);else if(pick.sourceId){selected=pick.sourceId;}},{backend});
+      if(!isCurrent())return;
+      if(cameraSnapshot)view.restoreCamera(cameraSnapshot);
+      explorer=root.MotorcycleExplorer.create({view,initialObservation:observationSnapshot,getScene:()=>scene,getTime:()=>time,getSelected:()=>selected,getComparison:()=>result,selectSource:id=>{selected=id;lastReadout=-Infinity;}});
+      $('backend').textContent=view.backend;$('panel-angle').value=scene.panel.angle*180/Math.PI;
+      status('Drawing the first frame');
+    }
+  });
+  $('experience-retry').addEventListener('click',()=>{void lifecycle.retry();});
+  root.addEventListener('pagehide',()=>{populationWorker?.terminate();void lifecycle.dispose();audio?.close();});
+  await lifecycle.start();
 })(globalThis);

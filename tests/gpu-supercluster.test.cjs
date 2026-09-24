@@ -140,8 +140,8 @@ test('gpu-supercluster activates as a native v4 plugin with deterministic playba
     values: { phase: 'start', linkPacketDropRate: 0.01, coolantFlowLpm: 900 },
   });
   assert.equal(started.status, 'running');
-  assert.equal(started.mode, 'deterministic-result-replay');
-  assert.equal(started.resultAuthority, 'recomputed-on-playback-start');
+  assert.equal(started.mode, 'deterministic-workload');
+  assert.equal(started.resultAuthority, 'rack-task-dependencies-and-collective-barrier');
   assert.equal(started.receipt.seed, 'supercluster-straggler-002');
   const applied = instance.contributeV4();
   const controls = new Map(applied.controls.controls.map((control) => [control.id, control]));
@@ -152,13 +152,13 @@ test('gpu-supercluster activates as a native v4 plugin with deterministic playba
   assert.equal(fields.get('packet-drop').value, 1);
   assert.equal(fields.get('coolant-flow').value, 900);
   let terminal;
-  for (let step = 0; step < 4; step += 1) {
+  for (let step = 0; step < started.totalSteps; step += 1) {
     terminal = instance.handleAction('scenario.run', { values: { phase: 'step' } });
   }
   assert.equal(terminal.status, 'settled');
   const settled = instance.contributeV4();
   v4Contracts.validateContribution(settled, 'GPU Supercluster settled contribution');
-  assert.equal(settled.events.length, 4);
+  assert.equal(settled.events.length, 1);
   assert.equal(settled.state.status, 'settled');
 
   const comparison = instance.handleAction('counterfactual.compare');
@@ -256,7 +256,7 @@ test('rack visuals retain exact model temperatures and PUE remains a ratio', () 
 test('GPU model provenance binds the source bytes used by the simulation', () => {
   const crypto = require('node:crypto');
   const records = pluginApi.simulate().createContribution().provenanceRecords;
-  for (const [name, file] of [['topology', 'cluster-topology.js'], ['collectives', 'collective-solver.js'], ['thermals', 'thermal-model.js']]) {
+  for (const [name, file] of [['workload', 'workload.js'], ['topology', 'cluster-topology.js'], ['collectives', 'collective-solver.js'], ['thermals', 'thermal-model.js']]) {
     const record = records.find((row) => row.id === `gpu-supercluster:model:${name}-v1`);
     assert.equal(record.contentHash, crypto.createHash('sha256').update(fs.readFileSync(path.join(pluginDir, file))).digest('hex'));
   }
@@ -291,21 +291,20 @@ test('datacenter overview fits the model coordinates inside the exposed canvas a
   const camera = require('../public/simulatte/app/multi-tier-visualizer.js');
   const projection = require('../public/simulatte/app/tier-plugin-presentation.js');
   const coordinates = topologyApi.buildClusterTopology().racks.map(rack => [rack.xM, rack.yM, rack.zM]);
-  for (const [width, height] of [[1440, 1000], [390, 844]]) {
-    const view = camera.coordinateEvidenceView({ coordinates, coordinateSystem: 'datacenter-cartesian-meters', width, height });
+  for (const [width, height] of [[1440, 800], [390, 403], [844, 300]]) {
+    const view = camera.coordinateEvidenceView({ coordinates, coordinateSystem: 'datacenter-cartesian-meters', width, height, insets: {bottom:110}, rotX:0, rotY:0 });
     const points = coordinates.map(point => projection.projectPoint(point, 'datacenter-cartesian-meters', view));
     assert.ok(points.every(point => point.x > 20 && point.x < width - 20));
-    if (width === 390) assert.ok(points.every(point => point.y >= 350 && point.y <= 570));
-    else assert.ok(points.every(point => point.x > 250 && point.y > 200 && point.y < 800));
+    assert.ok(points.every(point => point.y >= 31 && point.y <= height - 110 - 31));
   }
 });
 
-test('playback explanation follows the emitted stage rather than advancing one chapter ahead', () => {
+test('training explanation stays on operating dependencies during playback', () => {
   const presentation = require('../public/simulatte/app/experience-presentation.js');
   const profile = require('../public/data/application-profiles/gpu-supercluster-v1.json');
   const result = pluginApi.simulate();
   const summary = presentation.summarize({ profile, contributions: [result.createContribution(1)], runState: 'paused', playback: { currentStep: 1, totalSteps: 4 } });
-  assert.equal(summary.stageLabel, 'Forward computation');
+  assert.equal(summary.stageLabel, 'Synchronous training');
   assert.equal(summary.narrative, profile.experience.stages[0].narrative);
 });
 

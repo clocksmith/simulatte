@@ -1,0 +1,590 @@
+TAP version 13
+# Subtest: gpu-supercluster topology generates 256 GPUs across 32 liquid-cooled racks
+ok 1 - gpu-supercluster topology generates 256 GPUs across 32 liquid-cooled racks
+  ---
+  duration_ms: 28.046945
+  type: 'test'
+  ...
+# Subtest: collective solver calculates step times, MFU, and bandwidth bottlenecks for Ring and Tree AllReduce
+ok 2 - collective solver calculates step times, MFU, and bandwidth bottlenecks for Ring and Tree AllReduce
+  ---
+  duration_ms: 0.671257
+  type: 'test'
+  ...
+# Subtest: straggler node fault injection degrades MFU and increases barrier step time
+ok 3 - straggler node fault injection degrades MFU and increases barrier step time
+  ---
+  duration_ms: 0.365141
+  type: 'test'
+  ...
+# Subtest: packet loss affects collective state and coolant controls use the declared 1000 L/min bound
+ok 4 - packet loss affects collective state and coolant controls use the declared 1000 L/min bound
+  ---
+  duration_ms: 0.447773
+  type: 'test'
+  ...
+# Subtest: thermal model solves coolant delta-T, PUE, and triggers thermal throttling under reduced flow
+ok 5 - thermal model solves coolant delta-T, PUE, and triggers thermal throttling under reduced flow
+  ---
+  duration_ms: 9.168839
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster plugin produces deterministic simulation and valid receipts
+ok 6 - gpu-supercluster plugin produces deterministic simulation and valid receipts
+  ---
+  duration_ms: 47.152077
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster activates as a native v4 plugin with deterministic playback and comparison
+ok 7 - gpu-supercluster activates as a native v4 plugin with deterministic playback and comparison
+  ---
+  duration_ms: 212.449715
+  type: 'test'
+  ...
+# Subtest: GPU controls preserve zero faults, clamp physical bounds, and refuse malformed input
+ok 8 - GPU controls preserve zero faults, clamp physical bounds, and refuse malformed input
+  ---
+  duration_ms: 11.471902
+  type: 'test'
+  ...
+# Subtest: pipeline time includes the full bubble share and throughput reconciles to work over time
+ok 9 - pipeline time includes the full bubble share and throughput reconciles to work over time
+  ---
+  duration_ms: 0.64826
+  type: 'test'
+  ...
+# Subtest: default NVLink uses directional bits per second without changing explicit configured units
+ok 10 - default NVLink uses directional bits per second without changing explicit configured units
+  ---
+  duration_ms: 9.638107
+  type: 'test'
+  ...
+# Subtest: coolant flow changes die temperature and thermal caps slow computation and conserve modeled heat
+ok 11 - coolant flow changes die temperature and thermal caps slow computation and conserve modeled heat
+  ---
+  duration_ms: 14.06028
+  type: 'test'
+  ...
+# Subtest: rack populations cannot silently drop GPUs or contradict the declared nodes
+ok 12 - rack populations cannot silently drop GPUs or contradict the declared nodes
+  ---
+  duration_ms: 0.381216
+  type: 'test'
+  ...
+# Subtest: rack visuals retain exact model temperatures and PUE remains a ratio
+ok 13 - rack visuals retain exact model temperatures and PUE remains a ratio
+  ---
+  duration_ms: 112.983419
+  type: 'test'
+  ...
+# Subtest: GPU model provenance binds the source bytes used by the simulation
+ok 14 - GPU model provenance binds the source bytes used by the simulation
+  ---
+  duration_ms: 31.241592
+  type: 'test'
+  ...
+# Subtest: rack glyph drawing uses model values unchanged across render calls
+ok 15 - rack glyph drawing uses model values unchanged across render calls
+  ---
+  duration_ms: 5.401592
+  type: 'test'
+  ...
+# Subtest: datacenter projection provides one isometric meter mapping for facility and plugin layers
+ok 16 - datacenter projection provides one isometric meter mapping for facility and plugin layers
+  ---
+  duration_ms: 9.659533
+  type: 'test'
+  ...
+# Subtest: datacenter overview fits the model coordinates inside the exposed canvas at both widths
+ok 17 - datacenter overview fits the model coordinates inside the exposed canvas at both widths
+  ---
+  duration_ms: 23.598426
+  type: 'test'
+  ...
+# Subtest: playback explanation follows the emitted stage rather than advancing one chapter ahead
+ok 18 - playback explanation follows the emitted stage rather than advancing one chapter ahead
+  ---
+  duration_ms: 31.144556
+  type: 'test'
+  ...
+# Subtest: host refreshes cached GPU contributions after private control and playback mutations
+ok 19 - host refreshes cached GPU contributions after private control and playback mutations
+  ---
+  duration_ms: 275.453037
+  type: 'test'
+  ...
+# Subtest: firing-event rate and crank timing distinguish four-stroke engine rhythms
+ok 20 - firing-event rate and crank timing distinguish four-stroke engine rhythms
+  ---
+  duration_ms: 55.975666
+  type: 'test'
+  ...
+# Subtest: free-field pressure halves with distance; independent energies add 3.0103 dB
+ok 21 - free-field pressure halves with distance; independent energies add 3.0103 dB
+  ---
+  duration_ms: 7.777192
+  type: 'test'
+  ...
+# Subtest: an impulse cannot arrive before acoustic travel time
+ok 22 - an impulse cannot arrive before acoustic travel time
+  ---
+  duration_ms: 1.609664
+  type: 'test'
+  ...
+# Subtest: ground and parallel-wall image geometry match analytical path distances
+ok 23 - ground and parallel-wall image geometry match analytical path distances
+  ---
+  duration_ms: 0.445831
+  type: 'test'
+  ...
+# Subtest: signed pressure interference follows phase error, with off-target amplification
+ok 24 - signed pressure interference follows phase error, with off-target amplification
+  ---
+  duration_ms: 15.364077
+  type: 'test'
+  ...
+# Subtest: causal control cannot observe future reference or error microphone samples
+ok 25 - causal control cannot observe future reference or error microphone samples
+  ---
+  duration_ms: 145.846502
+  type: 'test'
+  ...
+# Subtest: A-weighting and Fast time weighting measure a known 1 kHz pressure
+ok 26 - A-weighting and Fast time weighting measure a known 1 kHz pressure
+  ---
+  duration_ms: 21.891756
+  type: 'test'
+  ...
+# Subtest: path refinement converges for moving sources and frame rate is absent from execution
+ok 27 - path refinement converges for moving sources and frame rate is absent from execution
+  ---
+  duration_ms: 158.754308
+  type: 'test'
+  ...
+# Subtest: silent or indistinguishable sensor observations abstain
+ok 28 - silent or indistinguishable sensor observations abstain
+  ---
+  duration_ms: 26.152219
+  type: 'test'
+  ...
+# Subtest: plate recognition reads pixels and abstains when information is lost
+ok 29 - plate recognition reads pixels and abstains when information is lost
+  ---
+  duration_ms: 32.20449
+  type: 'test'
+  ...
+# Subtest: WorldSpec round trip replays exact results and rejects hidden or oversized controls
+ok 30 - WorldSpec round trip replays exact results and rejects hidden or oversized controls
+  ---
+  duration_ms: 704.70473
+  type: 'test'
+  ...
+# Subtest: GCC-PHAT locates a resolvable source from delayed observations alone
+ok 31 - GCC-PHAT locates a resolvable source from delayed observations alone
+  ---
+  duration_ms: 53.053876
+  type: 'test'
+  ...
+# Subtest: scenario edits retain provenance and imported programs replay without resetting authorship
+ok 32 - scenario edits retain provenance and imported programs replay without resetting authorship
+  ---
+  duration_ms: 18.898734
+  type: 'test'
+  ...
+# Subtest: experience HUD summary binds the active profile, scenario, and V4 state measures
+ok 33 - experience HUD summary binds the active profile, scenario, and V4 state measures
+  ---
+  duration_ms: 77.77733
+  type: 'test'
+  ...
+# Subtest: world-tier clock snapshots governed scenario time and fails closed when absent
+ok 34 - world-tier clock snapshots governed scenario time and fails closed when absent
+  ---
+  duration_ms: 4.423934
+  type: 'test'
+  ...
+# Subtest: all shipped experiences declare validated story, metric, comparison, and view behavior
+ok 35 - all shipped experiences declare validated story, metric, comparison, and view behavior
+  ---
+  duration_ms: 16.607256
+  type: 'test'
+  ...
+# Subtest: default scenarios foreground the governing disruption or relay mechanism
+ok 36 - default scenarios foreground the governing disruption or relay mechanism
+  ---
+  duration_ms: 3.80193
+  type: 'test'
+  ...
+# Subtest: the shared shell exposes POV and first-class playback controls
+not ok 37 - the shared shell exposes POV and first-class playback controls
+  ---
+  duration_ms: 7.5206
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/navigation-lifecycle.test.cjs:129:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /id="step-button"/. Input:
+    
+    'id="playback-strip" class="playback-strip" aria-label="Playback" hidden>\n' +
+      '            <div class="playback-story">\n' +
+      '              <span id="playback-timeline-label" class="sim-label">Event</span>\n' +
+      '              <strong id="playback-event">Ready</strong>\n' +
+      '            </div>\n' +
+      '            <label id="playback-timeline-control" class="playback-control playback-timeline-control" hidden>\n' +
+      '              <span>Timeline <output id="playback-progress">0 / 0</output></span>\n' +
+      '              <input id="playback-timeline" type="range" min="0" max="0" step="1" value="0">\n' +
+      '            </label>\n' +
+      '            <div class="playback-actions">\n' +
+      '              \n' +
+      '              \n' +
+      '              <label id="playback-speed-control" class="playback-control playback-speed-control" hidden>\n' +
+      '                <span>Speed</span>\n' +
+      '                <select id="playback-speed" class="sim-field">\n' +
+      '                  <option value="0.5">0.5×</option>\n' +
+      '                  <option value="1" selected>1×</option>\n' +
+      '                  <option value="2">2×</option>\n' +
+      '                  <option value="4">4×</option>\n' +
+      '                </select>\n' +
+      '              </label>\n' +
+      '            </div>\n' +
+      '          </div>\n' +
+      '          \n' +
+      '          <output '
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    id="playback-strip" class="playback-strip" aria-label="Playback" hidden>
+                <div class="playback-story">
+                  <span id="playback-timeline-label" class="sim-label">Event</span>
+                  <strong id="playback-event">Ready</strong>
+                </div>
+                <label id="playback-timeline-control" class="playback-control playback-timeline-control" hidden>
+                  <span>Timeline <output id="playback-progress">0 / 0</output></span>
+                  <input id="playback-timeline" type="range" min="0" max="0" step="1" value="0">
+                </label>
+                <div class="playback-actions">
+                  
+                  
+                  <label id="playback-speed-control" class="playback-control playback-speed-control" hidden>
+                    <span>Speed</span>
+                    <select id="playback-speed" class="sim-field">
+                      <option value="0.5">0.5×</option>
+                      <option value="1" selected>1×</option>
+                      <option value="2">2×</option>
+                      <option value="4">4×</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              
+              <output 
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/navigation-lifecycle.test.cjs:138:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: side metrics replace the previous experience rows instead of retaining stale values
+ok 38 - side metrics replace the previous experience rows instead of retaining stale values
+  ---
+  duration_ms: 0.816383
+  type: 'test'
+  ...
+# Subtest: tier camera controls resolve real overview, follow, POV, and compare targets by priority
+ok 39 - tier camera controls resolve real overview, follow, POV, and compare targets by priority
+  ---
+  duration_ms: 1.096078
+  type: 'test'
+  ...
+# Subtest: router paths preserve the governed tier and full experience id
+not ok 40 - router paths preserve the governed tier and full experience id
+  ---
+  duration_ms: 9.423933
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/navigation-lifecycle.test.cjs:212:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '/orbital'
+    - '/solar-system/orbital-transfer-planner-v1?profile=orbital-transfer-planner-v1'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '/solar-system/orbital-transfer-planner-v1?profile=orbital-transfer-planner-v1'
+  actual: '/orbital'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/navigation-lifecycle.test.cjs:221:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: router round-trips scenario and typed simulation parameters through a canonical URL
+ok 41 - router round-trips scenario and typed simulation parameters through a canonical URL
+  ---
+  duration_ms: 6.440792
+  type: 'test'
+  ...
+# Subtest: router refuses invalid identities, mismatched profiles, and unknown camera modes
+ok 42 - router refuses invalid identities, mismatched profiles, and unknown camera modes
+  ---
+  duration_ms: 6.354522
+  type: 'test'
+  ...
+# Subtest: every registered experience resolves to its canonical GitHub Markdown preview
+ok 43 - every registered experience resolves to its canonical GitHub Markdown preview
+  ---
+  duration_ms: 0.710672
+  type: 'test'
+  ...
+# Subtest: experience documentation link updates and fails closed for unknown profiles
+ok 44 - experience documentation link updates and fails closed for unknown profiles
+  ---
+  duration_ms: 3.531774
+  type: 'test'
+  ...
+# Subtest: experience actions use one honest verb taxonomy
+ok 45 - experience actions use one honest verb taxonomy
+  ---
+  duration_ms: 4.939669
+  type: 'test'
+  ...
+# Subtest: mount lifecycle links parent cancellation to listeners and fetches
+ok 46 - mount lifecycle links parent cancellation to listeners and fetches
+  ---
+  duration_ms: 0.86252
+  type: 'test'
+  ...
+# Subtest: mount lifecycle settles every disposer without masking failures
+ok 47 - mount lifecycle settles every disposer without masking failures
+  ---
+  duration_ms: 0.503376
+  type: 'test'
+  ...
+# Subtest: app shell aborts and disposes a superseded boot before mounting the latest route
+not ok 48 - app shell aborts and disposes a superseded boot before mounting the latest route
+  ---
+  duration_ms: 4.161282
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/navigation-lifecycle.test.cjs:369:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'signal')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/navigation-lifecycle.test.cjs:398:32)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: app shell clears stale side metrics before a different experience boots
+ok 49 - app shell clears stale side metrics before a different experience boots
+  ---
+  duration_ms: 5.401005
+  type: 'test'
+  ...
+# Subtest: app shell reloads the tier default when browser history removes an experience segment
+ok 50 - app shell reloads the tier default when browser history removes an experience segment
+  ---
+  duration_ms: 0.727946
+  type: 'test'
+  ...
+# Subtest: app shell hides the mounted world synchronously and keeps only the loader until replacement boot completes
+ok 51 - app shell hides the mounted world synchronously and keeps only the loader until replacement boot completes
+  ---
+  duration_ms: 0.571876
+  type: 'test'
+  ...
+# Subtest: app shell keeps presentation-only and equivalent partial routes lifecycle-neutral while scenario updates load
+ok 52 - app shell keeps presentation-only and equivalent partial routes lifecycle-neutral while scenario updates load
+  ---
+  duration_ms: 3.658507
+  type: 'test'
+  ...
+# Subtest: route loading layer covers every mounted world panel without a transition delay
+ok 53 - route loading layer covers every mounted world panel without a transition delay
+  ---
+  duration_ms: 0.462857
+  type: 'test'
+  ...
+# Subtest: app shell aborts and releases a terminally failed boot attempt
+ok 54 - app shell aborts and releases a terminally failed boot attempt
+  ---
+  duration_ms: 0.921594
+  type: 'test'
+  ...
+# Subtest: app shell disposes a booted application whose resolved identity violates the route
+ok 55 - app shell disposes a booted application whose resolved identity violates the route
+  ---
+  duration_ms: 4.99146
+  type: 'test'
+  ...
+# Subtest: app shell recovers an unknown governed-tier experience with that tier default
+ok 56 - app shell recovers an unknown governed-tier experience with that tier default
+  ---
+  duration_ms: 8.784589
+  type: 'test'
+  ...
+# Subtest: route updates compare controls against applied plugin state, not a pending form edit
+ok 57 - route updates compare controls against applied plugin state, not a pending form edit
+  ---
+  duration_ms: 0.476425
+  type: 'test'
+  ...
+# Subtest: City presentation yields before collecting work and drops superseded or disposed renders
+ok 58 - City presentation yields before collecting work and drops superseded or disposed renders
+  ---
+  duration_ms: 5.435799
+  type: 'test'
+  ...
+# Subtest: tier controller honors a profile-owned day cadence
+ok 59 - tier controller honors a profile-owned day cadence
+  ---
+  duration_ms: 7.638049
+  type: 'test'
+  ...
+# Subtest: tier controller settles a profile that explicitly has no comparison mode
+ok 60 - tier controller settles a profile that explicitly has no comparison mode
+  ---
+  duration_ms: 1.367321
+  type: 'test'
+  ...
+# Subtest: tier controller pauses, steps, executes both comparison branches, settles, and persists
+ok 61 - tier controller pauses, steps, executes both comparison branches, settles, and persists
+  ---
+  duration_ms: 28.694519
+  type: 'test'
+  ...
+# Subtest: tier controller reconstructs a matching terminal receipt after reload
+ok 62 - tier controller reconstructs a matching terminal receipt after reload
+  ---
+  duration_ms: 15.355418
+  type: 'test'
+  ...
+# Subtest: tier controller rejects a reload whose terminal comparison identity diverges
+ok 63 - tier controller rejects a reload whose terminal comparison identity diverges
+  ---
+  duration_ms: 20.476053
+  type: 'test'
+  ...
+# Subtest: tier controller drops malformed persisted restore envelopes
+ok 64 - tier controller drops malformed persisted restore envelopes
+  ---
+  duration_ms: 0.354904
+  type: 'test'
+  ...
+# Subtest: tier controller compares, settles, and restores a terminal simulation failure
+ok 65 - tier controller compares, settles, and restores a terminal simulation failure
+  ---
+  duration_ms: 14.117599
+  type: 'test'
+  ...
+# Subtest: tier controller applies experiment parameters to start and step phases and persists them
+ok 66 - tier controller applies experiment parameters to start and step phases and persists them
+  ---
+  duration_ms: 10.693133
+  type: 'test'
+  ...
+# Subtest: tier controller preserves the settled run parameters across runtime-reset replay
+ok 67 - tier controller preserves the settled run parameters across runtime-reset replay
+  ---
+  duration_ms: 13.43261
+  type: 'test'
+  ...
+# Subtest: tier controller drops a stale terminal restart while newer controls rebuild the runtime
+ok 68 - tier controller drops a stale terminal restart while newer controls rebuild the runtime
+  ---
+  duration_ms: 11.034906
+  type: 'test'
+  ...
+# Subtest: tier controller drops a stale replay while newer controls rebuild the runtime
+ok 69 - tier controller drops a stale replay while newer controls rebuild the runtime
+  ---
+  duration_ms: 10.290983
+  type: 'test'
+  ...
+# Subtest: tier controller discards a stale terminal settlement after controls rebuild the runtime
+ok 70 - tier controller discards a stale terminal settlement after controls rebuild the runtime
+  ---
+  duration_ms: 1.848713
+  type: 'test'
+  ...
+# Subtest: tier controller does not let a stale reset reflect over newer configured controls
+ok 71 - tier controller does not let a stale reset reflect over newer configured controls
+  ---
+  duration_ms: 0.554589
+  type: 'test'
+  ...
+# Subtest: tier controller applies changed controls immediately and leaves the configured run ready
+ok 72 - tier controller applies changed controls immediately and leaves the configured run ready
+  ---
+  duration_ms: 0.420939
+  type: 'test'
+  ...
+# Subtest: tier controller starts a configured preview without dispatching start twice
+ok 73 - tier controller starts a configured preview without dispatching start twice
+  ---
+  duration_ms: 0.549907
+  type: 'test'
+  ...
+# Subtest: tier controller executes every declared comparison independently
+ok 74 - tier controller executes every declared comparison independently
+  ---
+  duration_ms: 16.968255
+  type: 'test'
+  ...
+# Subtest: tier controller persists a bounded reload envelope instead of terminal evidence
+ok 75 - tier controller persists a bounded reload envelope instead of terminal evidence
+  ---
+  duration_ms: 0.546034
+  type: 'test'
+  ...
+# Subtest: tier controller seek clamps stale targets and commits terminal preview explicitly
+ok 76 - tier controller seek clamps stale targets and commits terminal preview explicitly
+  ---
+  duration_ms: 4.207858
+  type: 'test'
+  ...
+# Subtest: tier controller yields between bounded reconstruction batches
+ok 77 - tier controller yields between bounded reconstruction batches
+  ---
+  duration_ms: 0.608887
+  type: 'test'
+  ...
+# Subtest: tier controller commits a terminal preview only once under concurrent steps
+ok 78 - tier controller commits a terminal preview only once under concurrent steps
+  ---
+  duration_ms: 14.154345
+  type: 'test'
+  ...
+# Subtest: tier controller closes its public API after disposal
+ok 79 - tier controller closes its public API after disposal
+  ---
+  duration_ms: 0.695235
+  type: 'test'
+  ...
+# Subtest: tier controller auto-starts directly on boot without prior manual configuration
+ok 80 - tier controller auto-starts directly on boot without prior manual configuration
+  ---
+  duration_ms: 0.257342
+  type: 'test'
+  ...
+1..80
+# tests 80
+# suites 0
+# pass 77
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1417.795875

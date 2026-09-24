@@ -94,7 +94,12 @@
         thermals,
         progressiveState,
       }),
-      createContribution: (step = 0) => v4Api.createContribution({ result: outcome, step }),
+      createContribution: (step = 0) => {
+        const api=dependency('SimulatteClusterWorkload','./workload.js');
+        const state=step>0?api.create(outcome):null;
+        for(let i=0;i<Math.min(step,api.DURATION_MS);i++)api.step(state);
+        return v4Api.createContribution({result:outcome,workload:state?api.snapshot(state):null});
+      },
     };
     return Object.freeze(outcome);
   }
@@ -131,7 +136,8 @@
     };
 
     let activeScenario = scenario || null;
-    let currentStep = 0;
+    const workloadApi = dependency('SimulatteClusterWorkload', './workload.js');
+    let currentStep = 0, workload = null;
     let current = simulate(configForScenario(activeConfig, activeScenario));
 
     function reduce(state = {}, action = {}) {
@@ -164,22 +170,27 @@
 
     function setScenario(nextScenario) {
       activeScenario = nextScenario || null;
-      currentStep = 0;
+      currentStep = 0; workload = null;
       recompute(configForScenario(activeConfig, activeScenario));
       return Object.freeze({ status: 'ready', seed: current.receipt.seed });
     }
 
     function contributeV4() {
-      return current.createContribution(currentStep);
+      return dependency('SimulatteGpuSuperclusterV4', './v4-contribution.js').createContribution({result:current,step:currentStep,workload:workload?workloadApi.snapshot(workload):null});
     }
 
     function handleAction(actionId, context = {}) {
       if (actionId === 'scenario.run') return runPlayback(context);
+      if (actionId === 'scenario.intervene') {
+        if(!workload||currentStep>=workloadApi.DURATION_MS)return Object.freeze({status:'refused',reason:'workload_not_running'});
+        workloadApi.intervene(workload,context.values.rackId,context.values.slowdown);
+        return playbackResult();
+      }
       if (actionId === 'counterfactual.compare') return compareScenario();
       if (actionId === 'update-controls') {
-        currentStep = 0;
+        currentStep = 0; workload = null;
         recompute({ ...current.config, ...(context.values || context.controls || {}) });
-        return Object.freeze({ status: 'ready', currentStep, totalSteps: 4 });
+        return Object.freeze({ status: 'ready', currentStep, totalSteps: workloadApi.DURATION_MS });
       }
       return Object.freeze({ status: 'refused', reason: 'unknown_action', actionId });
     }
@@ -187,13 +198,15 @@
     function runPlayback(context) {
       const values = context.values || {};
       if (values.phase === 'start') {
-        currentStep = 0;
+        currentStep = 0; workload = null;
         recompute({ ...configForScenario(activeConfig, context.scenario || activeScenario), ...controlValues(values) });
+        workload = workloadApi.create(current);
         return playbackResult();
       }
       if (values.phase === 'step') {
-        if (currentStep >= 4) return playbackResult();
-        currentStep += 1;
+        if (!workload) return Object.freeze({status:'refused',reason:'workload_not_running'});
+        if (currentStep >= workloadApi.DURATION_MS) return playbackResult();
+        workloadApi.step(workload);currentStep = workload.timeMs;
         return playbackResult();
       }
       return Object.freeze({ status: 'refused', reason: 'scenario_phase_invalid', phase: values.phase || null });
@@ -201,12 +214,13 @@
 
     function playbackResult() {
       return Object.freeze({
-        status: currentStep >= 4 ? 'settled' : 'running',
-        mode: 'deterministic-result-replay',
-        resultAuthority: 'recomputed-on-playback-start',
+        status: currentStep >= workloadApi.DURATION_MS ? 'settled' : 'running',
+        mode: 'deterministic-workload',
+        resultAuthority: 'rack-task-dependencies-and-collective-barrier',
+        workload: workload ? workloadApi.snapshot(workload) : null,
         currentStep,
-        totalSteps: 4,
-        simulationTimeMs: currentStep * 1000,
+        totalSteps: workloadApi.DURATION_MS,
+        simulationTimeMs: currentStep,
         receipt: current.receipt,
       });
     }
@@ -225,9 +239,9 @@
 
     function settle() {
       return Object.freeze({
-        status: currentStep >= 4 ? 'settled' : 'not_settled',
+        status: currentStep >= workloadApi.DURATION_MS ? 'settled' : 'not_settled',
         obligationResults: Object.freeze([]),
-        stateIdentity: `${current.receipt.seed}:${currentStep}`,
+        stateIdentity: `${current.receipt.seed}:${currentStep}:${JSON.stringify(workload ? workloadApi.snapshot(workload) : null)}`,
         losses: Object.freeze([]),
       });
     }
@@ -241,7 +255,7 @@
           Object.freeze({ label: 'Executed scenario seed', value: current.receipt.seed }),
           Object.freeze({ label: 'Applied packet drop', value: `${(current.config.linkPacketDropRate * 100).toFixed(2)} percent` }),
           Object.freeze({ label: 'Applied coolant flow', value: `${current.config.coolantFlowLpm.toFixed(1)} L/min` }),
-          Object.freeze({ label: 'Playback authority', value: 'Stages reveal one deterministic result recomputed when playback starts.' }),
+          Object.freeze({ label: 'Playback authority', value: 'Rack computation and collective waits advance on a deterministic clock. Thermal values are steady-state estimates.' }),
           Object.freeze({ label: 'Collective', value: current.collectives.algorithm }),
           Object.freeze({ label: 'Step time', value: `${current.collectives.stepTimeMs.toFixed(3)} ms` }),
           Object.freeze({ label: 'Peak temperature', value: `${current.thermals.peakJunctionTempC.toFixed(2)} C` }),

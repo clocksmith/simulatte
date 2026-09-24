@@ -1,0 +1,3795 @@
+{
+  "head": "8a6ad6ce66041116e060ab12f706e2b756b948b0",
+  "startedAt": "2026-09-23T15:00:59.811Z",
+  "cases": [
+    {
+      "width": 1440,
+      "steps": [
+        {
+          "name": "initial",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "12.7",
+            "pause": "Pause",
+            "observer": "88.3 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 88.3 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 280 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -74.40386685937483,
+              0,
+              1211.2275478632812
+            ],
+            "meshCount": 6470,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "autonomous",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "19.43",
+            "pause": "Pause",
+            "observer": "82.2 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 82.2 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 258 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -42.61343325341795,
+              0,
+              1172.3477985895997
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "advanced-running",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "21.07",
+            "pause": "Pause",
+            "observer": "85.2 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 85.2 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 250 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -33.963327845702906,
+              0,
+              1161.7687069453125
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": true,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              },
+              {
+                "id": "advanced-close",
+                "name": "",
+                "text": "Close",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "System",
+                "disabled": false
+              },
+              {
+                "id": "live-overlay",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "place-marker",
+                "name": "",
+                "text": "Choose markerObservation pointWater mistDirectional soundTonal cancellation",
+                "disabled": false
+              },
+              {
+                "id": "reset",
+                "name": "",
+                "text": "Reset",
+                "disabled": false
+              },
+              {
+                "id": "timeline",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "repeat-traffic",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "add-receiver",
+                "name": "",
+                "text": "Add observation marker",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "motorcycles",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cars",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "pedestrians",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "speed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "rpm",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "seed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Restart traffic",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "sourceDb",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "background",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "temperature",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "surface",
+                "text": "NoneFlat reflectionIdealized retroreflection",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "reflectivity",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "panel-angle",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cancellation",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "latencyMs",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place surface",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place comparison listener",
+                "disabled": false
+              },
+              {
+                "id": "playback",
+                "name": "",
+                "text": "0.15x0.5x1x",
+                "disabled": false
+              },
+              {
+                "id": "paths",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "run",
+                "name": "",
+                "text": "Compare snapshot",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "paused",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "30.42",
+            "pause": "Play",
+            "observer": "79.8 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 79.8 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 218 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              18.020330381836175,
+              0,
+              1098.1925794978026
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "onboard-paused",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "30.42",
+            "pause": "Play",
+            "observer": "79.8 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 79.8 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 218 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              0,
+              0,
+              0
+            ],
+            "rig": [
+              18.020330381836175,
+              0,
+              1098.1925794978026
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "onboard-running",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "30.42",
+            "pause": "Pause",
+            "observer": "84.6 dBA",
+            "observerPosition": "rider / 1.7 m high / sampled 30.4 s",
+            "observerTime": "Traffic 84.6 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 218 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              266.06195068359375,
+              1.7000000476837158,
+              831.11865234375
+            ],
+            "rig": [
+              265.86362051855485,
+              0,
+              830.6596406763916
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "untreated-paused",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "30.42",
+            "pause": "Play",
+            "observer": "84.6 dBA",
+            "observerPosition": "rider / 1.7 m high",
+            "observerTime": "Traffic 84.6 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 218 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              266.06195068359375,
+              1.7000000476837158,
+              831.11865234375
+            ],
+            "rig": [
+              265.86362051855485,
+              0,
+              830.6596406763916
+            ],
+            "meshCount": 6470,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "reduced-traffic",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "New seeded traffic pass.",
+            "backend": "WebGL",
+            "time": "0",
+            "pause": "Play",
+            "observer": "84.6 dBA",
+            "observerPosition": "rider / 1.7 m high",
+            "observerTime": "Traffic 84.6 / background 20.0 dBA",
+            "traffic": "2 autonomous motorcycles / 0 moving / 0 cars / 0 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              -106.34253692626953,
+              1.7000000476837158,
+              1250.28857421875
+            ],
+            "rig": [
+              -106.65902564843736,
+              0,
+              1250.675604796875
+            ],
+            "meshCount": 1673,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": true,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              },
+              {
+                "id": "advanced-close",
+                "name": "",
+                "text": "Close",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "System",
+                "disabled": false
+              },
+              {
+                "id": "live-overlay",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "place-marker",
+                "name": "",
+                "text": "Choose markerObservation pointWater mistDirectional soundTonal cancellation",
+                "disabled": false
+              },
+              {
+                "id": "reset",
+                "name": "",
+                "text": "Reset",
+                "disabled": false
+              },
+              {
+                "id": "timeline",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "repeat-traffic",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "add-receiver",
+                "name": "",
+                "text": "Add observation marker",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "motorcycles",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cars",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "pedestrians",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "speed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "rpm",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "seed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Restart traffic",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "sourceDb",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "background",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "temperature",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "surface",
+                "text": "NoneFlat reflectionIdealized retroreflection",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "reflectivity",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "panel-angle",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cancellation",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "latencyMs",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place surface",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place comparison listener",
+                "disabled": false
+              },
+              {
+                "id": "playback",
+                "name": "",
+                "text": "0.15x0.5x1x",
+                "disabled": false
+              },
+              {
+                "id": "paths",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "run",
+                "name": "",
+                "text": "Compare snapshot",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "comparison",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "FFT requires equal power-of-two arrays",
+            "backend": "WebGL",
+            "time": "1.25",
+            "pause": "Play",
+            "observer": "102.4 dBA",
+            "observerPosition": "rider / 1.7 m high / sampled 1.3 s",
+            "observerTime": "Traffic 102.4 / background 20.0 dBA",
+            "traffic": "2 autonomous motorcycles / 2 moving / 0 cars / 0 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              -105.50049591064453,
+              1.7000000476837158,
+              1249.2586669921875
+            ],
+            "rig": [
+              -105.81698463281236,
+              0,
+              1249.6457586054687
+            ],
+            "meshCount": 1673,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": true,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              },
+              {
+                "id": "advanced-close",
+                "name": "",
+                "text": "Close",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "System",
+                "disabled": false
+              },
+              {
+                "id": "live-overlay",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "place-marker",
+                "name": "",
+                "text": "Choose markerObservation pointWater mistDirectional soundTonal cancellation",
+                "disabled": false
+              },
+              {
+                "id": "reset",
+                "name": "",
+                "text": "Reset",
+                "disabled": false
+              },
+              {
+                "id": "timeline",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "repeat-traffic",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "add-receiver",
+                "name": "",
+                "text": "Add observation marker",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "motorcycles",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cars",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "pedestrians",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "speed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "rpm",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "seed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Restart traffic",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "sourceDb",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "background",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "temperature",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "surface",
+                "text": "NoneFlat reflectionIdealized retroreflection",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "reflectivity",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "panel-angle",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cancellation",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "latencyMs",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place surface",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place comparison listener",
+                "disabled": false
+              },
+              {
+                "id": "playback",
+                "name": "",
+                "text": "0.15x0.5x1x",
+                "disabled": false
+              },
+              {
+                "id": "paths",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "run",
+                "name": "",
+                "text": "Compare snapshot",
+                "disabled": false
+              }
+            ]
+          },
+          "result": {
+            "before": "--",
+            "after": "--",
+            "visible": false
+          }
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "steps": [
+        {
+          "name": "initial",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "12.85",
+            "pause": "Pause",
+            "observer": "88.3 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 88.3 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 280 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -73.79977271874986,
+              0,
+              1210.4887151484374
+            ],
+            "meshCount": 6470,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "autonomous",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "16.83",
+            "pause": "Pause",
+            "observer": "87.0 dBA",
+            "observerPosition": "map / 34.0 m high / sampled 15.0 s (1.8 s behind)",
+            "observerTime": "Traffic 87.0 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 267 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -55.82259156640612,
+              0,
+              1188.502562560547
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "advanced-running",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "18.45",
+            "pause": "Pause",
+            "observer": "86.3 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 86.3 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 257 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -47.70098780664057,
+              0,
+              1178.569872741211
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": true,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              },
+              {
+                "id": "advanced-close",
+                "name": "",
+                "text": "Close",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "System",
+                "disabled": false
+              },
+              {
+                "id": "live-overlay",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "place-marker",
+                "name": "",
+                "text": "Choose markerObservation pointWater mistDirectional soundTonal cancellation",
+                "disabled": false
+              },
+              {
+                "id": "reset",
+                "name": "",
+                "text": "Reset",
+                "disabled": false
+              },
+              {
+                "id": "timeline",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "repeat-traffic",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "add-receiver",
+                "name": "",
+                "text": "Add observation marker",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "motorcycles",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cars",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "pedestrians",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "speed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "rpm",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "seed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Restart traffic",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "sourceDb",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "background",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "temperature",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "surface",
+                "text": "NoneFlat reflectionIdealized retroreflection",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "reflectivity",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "panel-angle",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cancellation",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "latencyMs",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place surface",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place comparison listener",
+                "disabled": false
+              },
+              {
+                "id": "playback",
+                "name": "",
+                "text": "0.15x0.5x1x",
+                "disabled": false
+              },
+              {
+                "id": "paths",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "run",
+                "name": "",
+                "text": "Compare snapshot",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "paused",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "24.2",
+            "pause": "Play",
+            "observer": "86.5 dBA",
+            "observerPosition": "map / 34.0 m high",
+            "observerTime": "Traffic 86.5 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 236 moving / 80 cars / 120 pedestrians",
+            "camera": "area:Greenpoint",
+            "actualCamera": "city-camera",
+            "cameraPosition": [
+              208.48092651367188,
+              34.00000762939453,
+              584.1842041015625
+            ],
+            "rig": [
+              -16.847466200195186,
+              0,
+              1140.8359768061523
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "onboard-paused",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "24.2",
+            "pause": "Play",
+            "observer": "90.3 dBA",
+            "observerPosition": "rider / 1.7 m high",
+            "observerTime": "Traffic 90.3 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 236 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              470.9971923828125,
+              1.7000000476837158,
+              955.0325317382812
+            ],
+            "rig": [
+              470.6657448593751,
+              0,
+              954.6582930903321
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "onboard-running",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "24.72",
+            "pause": "Pause",
+            "observer": "81.7 dBA",
+            "observerPosition": "rider / 1.7 m high",
+            "observerTime": "Traffic 81.7 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 238 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              471.74737548828125,
+              1.7000000476837158,
+              955.8797607421875
+            ],
+            "rig": [
+              471.41589842382837,
+              0,
+              955.5054341425782
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Pause",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "untreated-paused",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "Ready. Select a motorcycle or place a receiver to inspect the scene.",
+            "backend": "WebGL",
+            "time": "24.72",
+            "pause": "Play",
+            "observer": "81.7 dBA",
+            "observerPosition": "rider / 1.7 m high / sampled 24.7 s",
+            "observerTime": "Traffic 81.7 / background 20.0 dBA",
+            "traffic": "300 autonomous motorcycles / 238 moving / 80 cars / 120 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              471.74737548828125,
+              1.7000000476837158,
+              955.8797607421875
+            ],
+            "rig": [
+              471.41589842382837,
+              0,
+              955.5054341425782
+            ],
+            "meshCount": 6471,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": false,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "reduced-traffic",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "New seeded traffic pass.",
+            "backend": "WebGL",
+            "time": "3.03",
+            "pause": "Play",
+            "observer": "110.5 dBA",
+            "observerPosition": "rider / 1.7 m high",
+            "observerTime": "Traffic 110.5 / background 20.0 dBA",
+            "traffic": "2 autonomous motorcycles / 2 moving / 0 cars / 0 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              -101.39068603515625,
+              1.7000000476837158,
+              1244.2325439453125
+            ],
+            "rig": [
+              -101.70723072656233,
+              0,
+              1244.6196269526367
+            ],
+            "meshCount": 1673,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": true,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              },
+              {
+                "id": "advanced-close",
+                "name": "",
+                "text": "Close",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "System",
+                "disabled": false
+              },
+              {
+                "id": "live-overlay",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "place-marker",
+                "name": "",
+                "text": "Choose markerObservation pointWater mistDirectional soundTonal cancellation",
+                "disabled": false
+              },
+              {
+                "id": "reset",
+                "name": "",
+                "text": "Reset",
+                "disabled": false
+              },
+              {
+                "id": "timeline",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "repeat-traffic",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "add-receiver",
+                "name": "",
+                "text": "Add observation marker",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "motorcycles",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cars",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "pedestrians",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "speed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "rpm",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "seed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Restart traffic",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "sourceDb",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "background",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "temperature",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "surface",
+                "text": "NoneFlat reflectionIdealized retroreflection",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "reflectivity",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "panel-angle",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cancellation",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "latencyMs",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place surface",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place comparison listener",
+                "disabled": false
+              },
+              {
+                "id": "playback",
+                "name": "",
+                "text": "0.15x0.5x1x",
+                "disabled": false
+              },
+              {
+                "id": "paths",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "run",
+                "name": "",
+                "text": "Compare snapshot",
+                "disabled": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "comparison",
+          "state": {
+            "url": "http://127.0.0.1:34249/motorcycle",
+            "title": "Motorcycle noise | Simulatte",
+            "status": "FFT requires equal power-of-two arrays",
+            "backend": "WebGL",
+            "time": "3.03",
+            "pause": "Play",
+            "observer": "110.5 dBA",
+            "observerPosition": "rider / 1.7 m high / sampled 3.0 s",
+            "observerTime": "Traffic 110.5 / background 20.0 dBA",
+            "traffic": "2 autonomous motorcycles / 2 moving / 0 cars / 0 pedestrians",
+            "camera": "rider",
+            "actualCamera": "rider-camera",
+            "cameraPosition": [
+              -101.39068603515625,
+              1.7000000476837158,
+              1244.2325439453125
+            ],
+            "rig": [
+              -101.70723072656233,
+              0,
+              1244.6196269526367
+            ],
+            "meshCount": 1673,
+            "sources": [
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  -0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              },
+              {
+                "name": "motorcycle-1-part",
+                "id": "motorcycle-1",
+                "pos": [
+                  0,
+                  0.31,
+                  0.72
+                ]
+              }
+            ],
+            "advanced": true,
+            "overflow": false,
+            "visibleControls": [
+              {
+                "id": "camera-mode",
+                "name": "",
+                "text": "GreenpointWilliamsburgMcCarren ParkSidewalkRooftopOnboard motorcycleFree camera",
+                "disabled": false
+              },
+              {
+                "id": "technique",
+                "name": "",
+                "text": "Tonal cancellationLive treatmentsUntreatedRedirection",
+                "disabled": false
+              },
+              {
+                "id": "traffic-sound",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "header-advanced",
+                "name": "",
+                "text": "Advanced",
+                "disabled": false
+              },
+              {
+                "id": "pause",
+                "name": "",
+                "text": "Play",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-out",
+                "name": "",
+                "text": "-",
+                "disabled": false
+              },
+              {
+                "id": "map-zoom-in",
+                "name": "",
+                "text": "+",
+                "disabled": false
+              },
+              {
+                "id": "advanced-close",
+                "name": "",
+                "text": "Close",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "System",
+                "disabled": false
+              },
+              {
+                "id": "live-overlay",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "place-marker",
+                "name": "",
+                "text": "Choose markerObservation pointWater mistDirectional soundTonal cancellation",
+                "disabled": false
+              },
+              {
+                "id": "reset",
+                "name": "",
+                "text": "Reset",
+                "disabled": false
+              },
+              {
+                "id": "timeline",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "repeat-traffic",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "add-receiver",
+                "name": "",
+                "text": "Add observation marker",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "motorcycles",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cars",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "pedestrians",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "speed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "rpm",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "seed",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Restart traffic",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "sourceDb",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "background",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "temperature",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "surface",
+                "text": "NoneFlat reflectionIdealized retroreflection",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "reflectivity",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "panel-angle",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "cancellation",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "latencyMs",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place surface",
+                "disabled": false
+              },
+              {
+                "id": "",
+                "name": "",
+                "text": "Place comparison listener",
+                "disabled": false
+              },
+              {
+                "id": "playback",
+                "name": "",
+                "text": "0.15x0.5x1x",
+                "disabled": false
+              },
+              {
+                "id": "paths",
+                "name": "",
+                "text": "",
+                "disabled": false
+              },
+              {
+                "id": "run",
+                "name": "",
+                "text": "Compare snapshot",
+                "disabled": false
+              }
+            ]
+          },
+          "result": {
+            "before": "--",
+            "after": "--",
+            "visible": false
+          }
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/136.0.7103.59",
+    "revision": "@d4b493843f5f23217df99a83aa28747602841382",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.0.0 Safari/537.36",
+    "jsVersion": "13.6.233.8"
+  },
+  "requests": [
+    {
+      "pathname": "/motorcycle",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/index.html"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection.css"
+    },
+    {
+      "pathname": "/shared/design/tokens.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/tokens.css"
+    },
+    {
+      "pathname": "/shared/design/primitives.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/primitives.css"
+    },
+    {
+      "pathname": "/shared/design/components.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/components.css"
+    },
+    {
+      "pathname": "/shared/design/theme-control.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/theme-control.css"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-experience.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-experience.css"
+    },
+    {
+      "pathname": "/shared/design/theme-controller.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/theme-controller.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-audio.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-audio.js"
+    },
+    {
+      "pathname": "/shared/contracts/world-spec-authorship.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec-authorship.js"
+    },
+    {
+      "pathname": "/shared/contracts/world-spec.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/vendor/earcut.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/vendor/earcut.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/vendor/babylon.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/vendor/babylon.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/sound-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/sound-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/babylon-city.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/babylon-city.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatment-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatment-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatment-controls.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatment-controls.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/map-gestures.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/map-gestures.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/park-life.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/park-life.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/explore-ui.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/explore-ui.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-app.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-app.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/header-controls.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/header-controls.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/nyc-map.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/nyc-map.json"
+    },
+    {
+      "pathname": "/favicon.svg",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/favicon.svg"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/population-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/population-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/mccarren-track.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/mccarren-track.json"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/mccarren-amenities.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/mccarren-amenities.json"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/observer-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/observer-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/live-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/live-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/population-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/population-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/observer-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/observer-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/live-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/live-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/control.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/control.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/acoustic-field.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/acoustic-field.js"
+    },
+    {
+      "pathname": "/motorcycle",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/index.html"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection.css"
+    },
+    {
+      "pathname": "/shared/design/tokens.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/tokens.css"
+    },
+    {
+      "pathname": "/shared/design/primitives.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/primitives.css"
+    },
+    {
+      "pathname": "/shared/design/components.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/components.css"
+    },
+    {
+      "pathname": "/shared/design/theme-control.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/theme-control.css"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-experience.css",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-experience.css"
+    },
+    {
+      "pathname": "/shared/design/theme-controller.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/design/theme-controller.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-audio.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-audio.js"
+    },
+    {
+      "pathname": "/shared/contracts/world-spec-authorship.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec-authorship.js"
+    },
+    {
+      "pathname": "/shared/contracts/world-spec.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/shared/contracts/world-spec.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/vendor/earcut.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/vendor/earcut.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/vendor/babylon.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/vendor/babylon.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/sound-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/sound-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/babylon-city.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/babylon-city.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatment-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatment-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatment-controls.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatment-controls.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/map-gestures.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/map-gestures.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/park-life.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/park-life.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-view.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-view.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/explore-ui.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/explore-ui.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-app.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-app.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/header-controls.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/header-controls.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/nyc-map.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/nyc-map.json"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/population-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/population-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/mccarren-track.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/mccarren-track.json"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/mccarren-amenities.json",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/mccarren-amenities.json"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/observer-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/observer-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/live-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/live-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/population-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/population-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/observer-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/observer-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/live-noise-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/live-noise-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/treatments.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/treatments.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-sound.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-sound.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-worker.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-worker.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/signal.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/signal.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/control.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/control.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/city-paths.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/city-paths.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/traffic-motion.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/traffic-motion.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/reflection-model.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/reflection-model.js"
+    },
+    {
+      "pathname": "/simulatte/motorcycle-noise/acoustic-field.js",
+      "status": 200,
+      "file": "/home/clocksmith/deco/simulatte/public/simulatte/motorcycle-noise/acoustic-field.js"
+    }
+  ]
+}

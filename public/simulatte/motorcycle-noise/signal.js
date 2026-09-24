@@ -33,6 +33,18 @@
     const real = new Float64Array(length), imaginary = new Float64Array(length);
     real.set(samples); return fft(real, imaginary);
   }
+  // One-sided mean-square pressure per bin. Zero padding changes resolution,
+  // not signal energy: Parseval's denominator is FFT length * window length.
+  function frequencyBins(samples, sampleRate) {
+    if (!samples.length || !Number.isFinite(sampleRate) || sampleRate <= 0) throw new Error('Spectrum requires samples and a positive sample rate');
+    const transformLength = size(samples.length);
+    const { real, imaginary } = spectrum(samples, transformLength);
+    const bins = Array.from({ length: transformLength / 2 + 1 }, (_, i) => ({
+      hz: i * sampleRate / transformLength,
+      power: (real[i] ** 2 + imaginary[i] ** 2) * (i === 0 || i === transformLength / 2 ? 1 : 2) / (transformLength * samples.length),
+    }));
+    return { sampleRate, transformLength, windowLength: samples.length, normalization: 'one-sided-mean-square-pressure', bins };
+  }
   const energy = samples => samples.reduce((sum, p) => sum + p * p, 0) / samples.length;
   const level = meanSquare => meanSquare > 0 ? 10 * Math.log10(meanSquare / (P0 * P0)) : -120;
   const combineLevels = values => 10 * Math.log10(values.reduce((sum, db) => sum + 10 ** (db / 10), 0));
@@ -76,5 +88,5 @@
     let value = seed >>> 0 || 1;
     return () => { value ^= value << 13; value ^= value >>> 17; value ^= value << 5; return (value >>> 0) / 4294967296; };
   }
-  return { P0, fft, size, spectrum, energy, level, combineLevels, aWeight, measure, sample, convolve, random };
+  return { P0, fft, size, spectrum, frequencyBins, energy, level, combineLevels, aWeight, measure, sample, convolve, random };
 });

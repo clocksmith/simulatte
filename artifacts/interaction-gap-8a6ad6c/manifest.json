@@ -1,0 +1,416 @@
+{
+  "schema": "simulatte.interactionGapAudit.v1",
+  "head": "8a6ad6ce66041116e060ab12f706e2b756b948b0",
+  "capturedAt": "2026-09-23T15:08:12.852323+00:00",
+  "startingWorktree": "clean",
+  "scope": "Local browser diagnosis and source review; no implementation or deployment changes",
+  "browser": "Chrome/136.0.7103.59 Linux headless",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "mobileEmulation": true
+    }
+  ],
+  "routeResponses": {
+    "/motorcycle": "public/simulatte/motorcycle-noise/index.html",
+    "/datacenter": "public/index.html"
+  },
+  "sourceSha256": {
+    ".firebaserc": "396aba8ffcb253f7be1df17517d7e0e085b9688dc7eb66866c0f3251d8fb233b",
+    "CATSCAN.md": "ab2bb389148317e7713e341762ac6cdc2b2256aadbb8da78b013214766fab11f",
+    "GOALS.md": "9ebeb31b995efaaa930fd6826a145329296f79c28dd97948ff3b86562278afe8",
+    "STYLE_GUIDE.md": "f915a04d864641928e7047f0a689f1645ae5f3f0a78503b6c03ca62ff67077a3",
+    "docs/CATSCAN.md": "c14172010814116145f80603ccebaf3c00a404bc8e09755b84107ac2dc6dcce9",
+    "firebase.json": "733bb70b5d87838c109bce0e072227e9f70520145d750f35fa07a27f3da2e4cc",
+    "public/CATSCAN.md": "b50cca8e8f2ae9f05ff99de575f2b836d9f291469117038e49ec645975d3cc4a",
+    "public/data/application-profiles/gpu-supercluster-v1.json": "58636d6c5c69fa67aa93890b330d7e8756fec189c3510ead6f884aaca2d5224b",
+    "public/data/simulatte/tier-application-manifest.json": "81feb861b9e2fe95b5c72cc262b49148962cf8e06887f13ddc78880b0c1f29ad",
+    "public/data/simulatte/worlds/datacenter-supercluster-v1.json": "3956c663e8ac6ff300e41d925232bccd53308f9b97b9b69dedb9017f89cb070d",
+    "public/favicon.svg": "cb47885d2c33c89aafb477a30909832d3f11ff145631f8140a6e9c8b6688c05c",
+    "public/index.html": "70bcd82d6ada31b4fb34ec8d1923de7d3a671c61feddb3b5f6163b3ae9522082",
+    "public/model-selection.css": "015181aa6eb5a6578a18ee0992cea0f0dc9d68411678cfbefc5f7e0d148ba197",
+    "public/shared/contracts/data-world-spec.js": "fe7cf06e16527f8020740ccec84e27adb3a5c0150d66d655c591ea709adcfbd2",
+    "public/shared/contracts/input-source.js": "83884b4cba3983d491885a9b301058085ae503e2486afab036b4bbcf9957d2bb",
+    "public/shared/contracts/profile-world-proof.js": "fa616e9303f789d93c1058e1aadbfb248b7910bf035b76afe1b0db985252a7d9",
+    "public/shared/contracts/profile-world-spec.js": "1221cc7bcc9273eb3fd911d7a3f1f5a95c700833eeba72543c94b1aae3c66c47",
+    "public/shared/contracts/world-proof-compiler.js": "ab08de824bb319e8ee237a13f4ee1d9a1593f02367b43521831fe4ebdecb73cb",
+    "public/shared/contracts/world-proof-intent.js": "c4fca0dfa503b31530d111b5824e4ad6d6be17837d540f00d6dc8cad608be126",
+    "public/shared/contracts/world-proof-interaction.js": "84927da6110ced9009fed087948baebb8fcbf2df06896bf6e408a5f96a9a53f1",
+    "public/shared/contracts/world-proof-safety.js": "2d5f09e1ed61c4ad8b0bd38bba969f39cb2c61969b9de276165c053fc4b50626",
+    "public/shared/contracts/world-proof-semantic.js": "8c2db3b8e7cc65011ad1f7d9ee53269a67a828ccdc002f91d6a3a2579f3b137f",
+    "public/shared/contracts/world-proof-simulation.js": "c170f77996405f41a96b63c18d55cd3f359e2efc72a697ec840faff4828854cd",
+    "public/shared/contracts/world-proof.js": "4bf7100367269246a36f33f5eb1c6d91fca1fd3af8ef1ded6b63e55f3f47af38",
+    "public/shared/contracts/world-spec-authorship.js": "59a0b4a5f26d83fa56e3e98f84b9ebe8452466020f94a6aa8d9ba2b1f69afe8f",
+    "public/shared/contracts/world-spec.js": "fb546305aa4cd1f82daee44b21e0bd36f4c0d0c8cfd7c01b2f196d71131fc620",
+    "public/shared/core/pipeline-runner.js": "1d194861ea62cef6f47188311b95075e98d2a22427109cceff14b9495c2018fb",
+    "public/shared/core/simulation/data-run.js": "02386ca1853e1736abafd41692ca0a639941edbf917699e92a7d9e13e0f809da",
+    "public/shared/core/simulation/plugin-v4-builder.js": "1197ac51d1f7f1a5e04c311e476e85720ae86dc7ec60bac7b7ec0fb2ae40b02b",
+    "public/shared/core/simulation/point-motion.js": "0e28b16075b222d06c8d0f887a1e33d6487a955edc940b803b619b35be3eddfa",
+    "public/shared/design/components.css": "f4d1bcf7324de398f36ceb1fc48973765ce832b1f70ee97be7963fafecdcf3c6",
+    "public/shared/design/compositions/consent.css": "69553f73e874d98a7464a34a2051193eab0ff552107a5f1b9a4dd91ab5ca95aa",
+    "public/shared/design/compositions/world-interface.css": "3b653c7b1f9e3036b8d05ca3004794b8340370aac3bb0e07726247085b73cf9a",
+    "public/shared/design/data-table.js": "24146cbc220da413621e827e614e76a50ab4feb5a03b43928f8454f448a2c342",
+    "public/shared/design/fonts/IBMPlexMono-Regular.woff2": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350",
+    "public/shared/design/fonts/IBMPlexSans-Medium.woff2": "5660f8a658f8bb50dbc005232f885eadffd2bc1c235c4f6fbb63469d1f9cde6d",
+    "public/shared/design/fonts/IBMPlexSans-Regular.woff2": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
+    "public/shared/design/fonts/IBMPlexSans-SemiBold.woff2": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
+    "public/shared/design/fonts/IBMPlexSansCondensed-SemiBold.woff2": "385a082a1eac88343eab01fb6746be04b7175dacaf4550b17dee76ea0f78126d",
+    "public/shared/design/primitives.css": "25a86706c78a813bc1c26a74c763ccb0f3144c5fdaeaf03272d76ba4bdcb5972",
+    "public/shared/design/product-navigation.js": "adc08a5cf0db39d99a51254aacabb5f60ccb3b77de51304cf0363307339fa9a9",
+    "public/shared/design/program-editor.js": "56cb9a483a7ee6e1df86df0ee77808be14027b21de1b9bd1e0d876e70f5b860c",
+    "public/shared/design/simulatte.css": "d97d7307e10099e2bf0953f575e6449fac3a214f10ee26ef6c15864b9cfce0f2",
+    "public/shared/design/theme-control.css": "d4d0b0c2e0daec357b3ee8b24272eab7a51465be1c4c032f1008ef008d54b6ae",
+    "public/shared/design/theme-controller.js": "85fcc93f7087362d0e94a5ef50f4b1ddfa1fc51a9320e2ead7b258fd5ef52552",
+    "public/shared/design/themes/world.css": "601706e750362cf253dd32295740b0ac1fb79aa07efb4f3ed04311147e23cac1",
+    "public/shared/design/tokens.css": "00ef8efd8a1df00bd6d085f3fe96a386d3b929f7bb9a036a493eae985a161351",
+    "public/shared/design/workbench.css": "438fe62d3af570daf8c80f6f61de70298e1296f094609776088cf43b817f650a",
+    "public/shared/deterministic-values.js": "2712382a3ce3f00ec5c14509174640a0cea397514a178a5c60de4dd4a478edd0",
+    "public/shared/plugins/gpu-supercluster/cluster-controls.js": "7f60a00e3c25e64bc0dadb66947a2d3f52fae2b9fbfd56e58204c272e1f109c8",
+    "public/shared/plugins/gpu-supercluster/cluster-topology.js": "5f78aa4c2521d92c926e5a6c038949424cd8d665121bc9dad72a918caf1034f7",
+    "public/shared/plugins/gpu-supercluster/collective-solver.js": "2ae62813d8249f7972ba7c7d0aa3decd47d9c901c22f74572a1a787ba0cecef5",
+    "public/shared/plugins/gpu-supercluster/config.schema.json": "a1620800e04d1d3e5a372d5b4f0a9a62f4c26456fe88c9fadb4ef78842c76ba5",
+    "public/shared/plugins/gpu-supercluster/dataset-validators.js": "24316c0afa0eb1a860a8b3adec97a176c7510e0860a599c08620528f46d24d5c",
+    "public/shared/plugins/gpu-supercluster/default-config.json": "4debb76e0361297139384152497b126975f88883c3b0be9078bf8267ca92ae9a",
+    "public/shared/plugins/gpu-supercluster/index.js": "25aaed0f29de180e5218f0bdf7a18ec80d3b5d6fb3c19d726cbde7d7eac3a4ff",
+    "public/shared/plugins/gpu-supercluster/multiscale-modules.js": "938fb188f2a0af40e084d0466903c4f62e34fb3550f9989b3063c87b7e4c306d",
+    "public/shared/plugins/gpu-supercluster/plugin.json": "9abfbe319d05ac53a178106c322129489d1b9a6236560bdc910eadb17fdbcf61",
+    "public/shared/plugins/gpu-supercluster/presentation.js": "8b5169f5301852f01d230bcb418751662a4ba90e00cdf086409e711333a82e56",
+    "public/shared/plugins/gpu-supercluster/receipt-factory.js": "fc2dff6366c41ebb1a7d07ab33e0b148811a16f7e38bf21b81e82b6c42795c53",
+    "public/shared/plugins/gpu-supercluster/thermal-model.js": "afabd35b2bba5a587d061c2e5303920de6077419abc5a4c491e3ebe590826548",
+    "public/shared/plugins/gpu-supercluster/v4-contribution.js": "7f1be32117119e386c730d63023015e9d4fc313078106f0dff1b0f930eed40ef",
+    "public/shared/render/point-scene-view.js": "df9ee7cc3181117f158e3f51f39bbca8cb304f2bbcb75bbc748babdd0954b1f8",
+    "public/shared/render/render-targets.js": "302b0d1e3c87e83a40568f13cd0037cbcbb88de5e8f0054a2253723efa9662e6",
+    "public/shared/render/renderer-session.js": "c85f0d59a9325f184378b27fc91a8009067c34bde23ee520425d164888492270",
+    "public/simulation-routes.js": "04f7c897c16f589ec8dba6536621e8a926072e0e70e54d9038e9fdf06cfdff87",
+    "public/simulatte/CATSCAN.md": "33d56d91f3be1ae80a583380e21a5b46327d709d1e785e2f4b2883d3eb79c872",
+    "public/simulatte/app/CATSCAN.md": "95dd3ce061561e699fbc20d5366a3a351a44d23fcbb3d7f3d836fe505ce5ab47",
+    "public/simulatte/app/app-render-work.js": "459d6220d7e15fcffa148b4e8c966e1176faea31c87064f61491bcff11e013c9",
+    "public/simulatte/app/app-shell.js": "d3d663aa1c32a87f5f5e49fd3c6adbde0b0f404506cd81e6ad883089884d5282",
+    "public/simulatte/app/application-profile-select.js": "21e916b2c8b329939db996503cd2d2855d2285cedd2225c9824d59a057a75412",
+    "public/simulatte/app/camera-controller.js": "caa576131d4f8417b6024a4a492a1eca49aecff22ee392ea93dd31c0dd304b91",
+    "public/simulatte/app/city-interface.js": "5b8d3913e738fb4f8d1de839f6dc4fd85e918bba2ddc74dc86a10e24c1d43268",
+    "public/simulatte/app/city-plugin-session.js": "6573733263aa8bec5c25549cf2fe1c5fdf0defdd594957d413e2fd812e6a726a",
+    "public/simulatte/app/city-run-controls.js": "d08cfed07aef5063eb7108e540a886976774cba0c252941e6d8b37b0559bae15",
+    "public/simulatte/app/data-workbench.js": "62e54a842db9004dd69f24d1cc8231b9c896ce8e917ee56648cd850c55e490a7",
+    "public/simulatte/app/experience-camera.js": "97f3f8b6643e5ecfddbcc5dec53c5739b76b1749e33555aa5ebe2b9da1ec5122",
+    "public/simulatte/app/experience-presentation.js": "767bf9427f98e6c1f806780a30bafcec2e01c3dc1ff3e86c6c141367a7b0af6e",
+    "public/simulatte/app/homepage-effects.js": "fa3c706d2964590183b5bc34a40f09df38fbeb85953fade077eeaab96d29f1ec",
+    "public/simulatte/app/homepage-webgpu.js": "fee291dc68d3e7a754838b07410e3bf99d7560893f4c24db8c069e91200d8913",
+    "public/simulatte/app/journey-recorder.js": "63d22e5eb47ae99af6eea6790de50ba2ffccc8f4d201704dd271b21c54db0581",
+    "public/simulatte/app/main-controller-builder.js": "92ecfc8a23bc15418445e8a1e690feae70afebfcb43e223d458073f0b1ccf00e",
+    "public/simulatte/app/main-support.js": "9fb2a6256bd857d0a4110aed2760ec2c8089efd47098360af3bb362c89ca5097",
+    "public/simulatte/app/main-view.js": "776c9e30957702ab4fca747f786a52d19a3dc7751e3dcdf89970d6e299641cf1",
+    "public/simulatte/app/main.js": "9d40548570fcf272dd25d0254845668b2bc48cfc4c1fbb3e1ec9d1bd28e3ce54",
+    "public/simulatte/app/mount-lifecycle.js": "3727374f100a81ba30407228c6521222b6815dba8d4d2affe629c3095de17dfe",
+    "public/simulatte/app/multi-tier-visualizer.js": "eb6a86f006b7155ecd3c23d3e79143dd38745cbdc2606ce2be4f3eb2a2625ddb",
+    "public/simulatte/app/plugin-playback.js": "2d9eed15e26d5bed4ea2892a24e77827bcde8a57125d784c649bd41e288a615d",
+    "public/simulatte/app/plugin-presentation.js": "2f676abeee5f5b082a9afacb94598e4a46a5f3938bbf21853adb83deb210fc81",
+    "public/simulatte/app/plugin-view-runtime.js": "e253bf88afcf187c8a2858ad57eca8c401f35644c102ccaf0d2b21128d4ff863",
+    "public/simulatte/app/profile-program.js": "22147994eaa16db6a5b48b1d5cd51f42e7ce902346507d308142c279afe6fb6d",
+    "public/simulatte/app/route-runtime.js": "0de0051713b6c9b51c76cafe393d878add5441ddb61eb29bb0e4e845d82c6945",
+    "public/simulatte/app/router.js": "5645014d194a461dd93761635cbc90e54731f4ff5177521a8973445d80122655",
+    "public/simulatte/app/run-control-values.js": "c9839befec546e5292e43b7f538bb5f616366544ffa1a631e2c067175176f9ab",
+    "public/simulatte/app/semantic-label-overlay.js": "cfdfbb80b3185e7acc931b1b0220046d5b5cab1be0ac06f98eb6e77dd2fc7deb",
+    "public/simulatte/app/tier-data-loader.js": "b64770b7062dfb1ad344b8c215168b2a216179c5bf338a7c6228243cbf6abe0d",
+    "public/simulatte/app/tier-facts.js": "f9e23095c0cbacfc9ef890159f313a8ab53ff4201daed5a553aa86bebdb44326",
+    "public/simulatte/app/tier-plugin-presentation.js": "a335c8e41ac9ab32e7e5c1eb3ce404a4ced42d9fcc5c883fc642735405718461",
+    "public/simulatte/app/tier-registry.js": "305a443957ba1dc9437a62f8a57d41754db664824546f11169e66d6935699b90",
+    "public/simulatte/app/tier-renderers.js": "e5d1926e1151e35455a04d278297e696131bf2d917aaebef026d2f94b1380e13",
+    "public/simulatte/app/tier-run-controller.js": "7fcb0e6405e414e5dd93c0e3018f131c3eb7f1772b1738af93303bd894e4f329",
+    "public/simulatte/app/tier-scene-renderer.js": "a07314d30c41de4dbb7aa60087295ff0b5e3f4d4d1b5982bccd9f4a73240362f",
+    "public/simulatte/app/trace-view.js": "2c9f6dadb798e768d612cb9a5304ba72557655e955a151c6d362e668bf2a019f",
+    "public/simulatte/app/webgpu-actor-geometry.js": "d15a6b0a3c989367a324f8214150f61fb39c93225fca6f833d25b8e7e73da41e",
+    "public/simulatte/app/webgpu-geometry.js": "7f43ced5efac4e1603afbd2e83c3b9751ad9b896c78e65ffa1b55d2ca4532d39",
+    "public/simulatte/app/webgpu-math.js": "3892b11742d47aaf39b30e860d783480167107e661cf1074387f61f33ed44ae0",
+    "public/simulatte/app/webgpu-pass.js": "c4373c37301cd5aacedfe41b587396f09aa4e4c1785772144bc0d5453e24628c",
+    "public/simulatte/app/webgpu-renderer.js": "7290e61b95303c2c5ee1bb3e714090d0da8c58189993d61dec46b41b60e39a3d",
+    "public/simulatte/app/webgpu-sun-shadow.js": "f8144cf59d007ca5a17cb4b80a15d786afc318c6395304ae19bb8c42caad771d",
+    "public/simulatte/app/workbench-entry.js": "1e782d4a45d95ebb6fe06eca8ec1bb686b5260af881abad4374ee03798317863",
+    "public/simulatte/app/world-render-scene.js": "344e0fccfdc5c7b0432c550520ae8305973e0f3ed768c370a1a34e9c88478a74",
+    "public/simulatte/app/world-runtime-loader.js": "1b99c0b2674863b7fb0c120f81fdbe5430b105d3b921acde2a3a3becbcbc102a",
+    "public/simulatte/app/world-runtime-script-manifest.js": "2dfcea5f1af3b631ef99a2b389b77a5edc273e213492835d0ac6ced712a586e5",
+    "public/simulatte/app/world-tiers-boot.js": "a89286be77e6ab78f751b0a6436fa11fb8e8eadbe65592645d8273be2856e3e1",
+    "public/simulatte/motorcycle-noise/CATSCAN.md": "f14476b6860ed025d99de8aead86afdd13e8af383404e8609a99a584768d6ff5",
+    "public/simulatte/motorcycle-noise/acoustic-field.js": "e0142ea4758f0bf80ed0b2ef56a17d53958bba36e0f479396ce3aba7f152851a",
+    "public/simulatte/motorcycle-noise/app.js": "84ba024ea1f70677b9c5c13862e4e5540eb08bc2aaff164a576bf3e58bcefd4b",
+    "public/simulatte/motorcycle-noise/babylon-city.js": "1e5e4000322b3b69490e520c5ef84bb1a8e1a4e1f82135da55881f16241f476f",
+    "public/simulatte/motorcycle-noise/city-experience.css": "d187daabdb2ed0c391810520af5e3eb91e54d099d243bdaeddc6949fcafcd507",
+    "public/simulatte/motorcycle-noise/city-paths.js": "f203093fb958b4222b14d4668441cdd6b49fd1da126565303cd963bf28e3ffa7",
+    "public/simulatte/motorcycle-noise/city-sound.js": "67b1ab202ab868099504c67b219fa7875f022f1b30b7f7772e0f0839a3b69697",
+    "public/simulatte/motorcycle-noise/control.js": "e5a1f6f85a65049b0072a0d6277e57d8796dab0dcf45559c51609cf1c688c71a",
+    "public/simulatte/motorcycle-noise/explore-ui.js": "3bfff7f77ee507c55dcfbfd78db66fceab4bd101681e44fd5c1991972047e53e",
+    "public/simulatte/motorcycle-noise/header-controls.js": "d5bf082d593f6611206f192c36dc27b7f3ea6eb28c35cbfb393bed6478029ace",
+    "public/simulatte/motorcycle-noise/index.html": "1428a1c320caf82ca605518558b1a401fb6581c8296e4d1e4ae8ac776c0caf78",
+    "public/simulatte/motorcycle-noise/live-noise-worker.js": "8537e8bb25316eeb8e232ee0453712364ef4d6048066b46cf54dcf2470c09865",
+    "public/simulatte/motorcycle-noise/map-gestures.js": "380f4335cf87d5c2fd010b0609dfe97786b08396294df52215f1d47861c3e6fe",
+    "public/simulatte/motorcycle-noise/mccarren-amenities.json": "055b00701cae313d64921daeced35d8e32d45a0c8426731e9b3c06065e9333cf",
+    "public/simulatte/motorcycle-noise/mccarren-track.json": "93d6d23f0c9e0b114a3950f69acc1dda517039d7e8747236b7465a86a1537304",
+    "public/simulatte/motorcycle-noise/nyc-map.json": "eb53d3d677db67564a5cccccb18f2adc1bf12732860bcbf56d50e6c3517f2edf",
+    "public/simulatte/motorcycle-noise/observer-noise-worker.js": "bb8181fb257e112e6da3ec32be4853b7d16450995ea9b7f264b22c459750193b",
+    "public/simulatte/motorcycle-noise/park-life.js": "874c58aec4d42f626be97a59dfe55a0e4a3dd8e8f140e05df936dc963b5a461d",
+    "public/simulatte/motorcycle-noise/population-worker.js": "d0c16c033beee96178ec2b3bc3eb71866b203e16ac6ed5a64ff6717033e5b98b",
+    "public/simulatte/motorcycle-noise/propagation.js": "f5a76fd5bb9e4d4f1b415a68d5851f2d1d57b6686b3174b7b8652107d18ed925",
+    "public/simulatte/motorcycle-noise/records.js": "a7b6225bb84510a36f6edce2c40fa8f3b6bcc1c397a114ffae78ac2b5b7d3889",
+    "public/simulatte/motorcycle-noise/reflection-app.js": "329fb42145cc48bc762b91a5515254cd8b2dda010b163f2d4e406306d43013fa",
+    "public/simulatte/motorcycle-noise/reflection-model.js": "7e5025417ea220b8862fb687f23b5e502cdc2c6251525b3e50258842f8acc953",
+    "public/simulatte/motorcycle-noise/reflection-view.js": "8f2987fa6ff5ecc78c59aab29213d3c97f03d73f1e85a8064a367c80a11f1315",
+    "public/simulatte/motorcycle-noise/reflection-worker.js": "512be6bc989319626c325433038e560aff97af7ce6b999fc43d426d93c52225d",
+    "public/simulatte/motorcycle-noise/reflection.css": "25beff4ef7c6103b0c00858bce3b2adc1a5e28704e8c2d21b1fdc9ac0ee03c6d",
+    "public/simulatte/motorcycle-noise/scenario.json": "83575ae0ceababb12c481fa5229f4d8cbfea26c242098672e4cc5d2781e356c0",
+    "public/simulatte/motorcycle-noise/scene.js": "9542cc643863cfc7e2a7d47de880177244bd74336879405f7d9d69cbc7197927",
+    "public/simulatte/motorcycle-noise/sensing.js": "49c0faf8a6f7cc9d7a300e176935963152877ee82c66a4495a0b3c2a92cd4d81",
+    "public/simulatte/motorcycle-noise/signal.js": "f35445ed2aae619babf44e8d8e90fe5b7a7031f6e93a5ce27b9381c4d648e9f3",
+    "public/simulatte/motorcycle-noise/simulation.js": "7252e011fccda8b0771847ab34689521f137378142ebfe4588f7a422e515dca5",
+    "public/simulatte/motorcycle-noise/sound-view.js": "80f3f52c1a875dd9780a86707a952093ff460bf4883a817b076bd4dde7faac13",
+    "public/simulatte/motorcycle-noise/style.css": "2ce92c6c69a77f4e340cab4adbee7a102f6bb68f7c24249b923d685f7d15ea64",
+    "public/simulatte/motorcycle-noise/traffic-audio.js": "df86cdbf1079826410c042222a5866b2d4e1a9415d3b0566a3f6af31639f5037",
+    "public/simulatte/motorcycle-noise/traffic-motion.js": "a2f1e641a1eea2f22bccbb7fe951c99eb545802116cda3733a486368a4c11323",
+    "public/simulatte/motorcycle-noise/treatment-controls.js": "b9fa7842539e75134783a329e52003cbc17768d082df8a63a0663d132dedc8c7",
+    "public/simulatte/motorcycle-noise/treatment-view.js": "9a7afa3f2bfd0f1169bc2481ba396eb7ab8bdcb120aa5d35470831599c2b9c4c",
+    "public/simulatte/motorcycle-noise/treatments.js": "844d7aeaa0ff6a09809f456275eee96f1b70b79c9544d0ba8153b4a01248eef7",
+    "public/simulatte/motorcycle-noise/vendor/BABYLON-LICENSE.md": "9362ea9ea17cb221a20cbbd63f404710834cc273d2a9a7b60314fd68ab702cd6",
+    "public/simulatte/motorcycle-noise/vendor/babylon.js": "43c3c68af157ef26b505dc21e1041f6a2fae934259c25d8d4f936330594ef825",
+    "public/simulatte/motorcycle-noise/vendor/earcut.js": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3",
+    "public/simulatte/motorcycle-noise/vendor/versions.json": "a5a0e72e06d1ce28f8850568f8be8430f86090fae54b3d2a4889e82a800beb06",
+    "public/simulatte/motorcycle-noise/view.js": "dd4578dfb303b159caed2945a41bfe0c53436c3e876a05a73b19f476006bb939",
+    "public/simulatte/motorcycle-noise/worker.js": "569966cfba8e15436bb40d75dbacd2adafb3b8fd5b48c47b0958ccc514546067",
+    "public/simulatte/platform/artifacts/governed-artifact-store.js": "d1d872e47501d0fcc8ba90d847195b1f47812b37d767d1da08f85e1993669d84",
+    "public/simulatte/platform/bootstrap/application-load-context.js": "1060e082ca0e6a82af6f2baf277e5bf91931aece30d71cec47c529dc7f68f1ef",
+    "public/simulatte/platform/bootstrap/tier-application-loader.js": "45f021b89f5df52fdb2cfd506d1bd2b287ff1532f4544aee5f2f3c1f8863e7cd",
+    "public/simulatte/platform/contracts/plugin-contracts.js": "687c1805cbddfb7d83f9bfca147d26fce086170fa1705bfa801a04c134cdfc2b",
+    "public/simulatte/platform/contracts/plugin-v4-adapters.js": "d7a6a180b21b7702d84b345d346f7cdae8895293a7b679117070f7b080b4086e",
+    "public/simulatte/platform/contracts/plugin-v4-contracts.js": "d6832b696b7d8afebd20994e77c8db00926158f974267c147bc5a785630d142f",
+    "public/simulatte/platform/contracts/schema-registry.js": "a0d04e8fa4ce92983d4223ebb53d17e5241d674b7c344be4f0c554f1be10ef87",
+    "public/simulatte/platform/core/simulation/comparison-contracts.js": "26c45df6cf0768345eebd4d8fcbb2a8a9dea71c8b9f6fa9f1a13af491756a47e",
+    "public/simulatte/platform/core/simulation/comparison-execution.js": "b9e9fd3dbb799859866d00a6e85b7b682108d0399b8465ab534d50a23ae94046",
+    "public/simulatte/platform/core/simulation/comparison-result-adapter.js": "dcb1d3238e470ee61c7d4f91865c318b5936241576efdaa3f6847e51be166f68",
+    "public/simulatte/platform/data-catalog/immutable-data-catalog.js": "e5c3fdd0411ef469049bb3f889622bbb98201258b4b640cfa64c2886198ef080",
+    "public/simulatte/platform/plugin-host/capability-graph.js": "6daff620adbd728f959e42b2acd60fb098cca38cfef3a88e875660652721733a",
+    "public/simulatte/platform/plugin-host/generated-plugin-registry.js": "0eccfc37ae7916abded39c637d69138ca104cec76bd557a0c65d20594f09166d",
+    "public/simulatte/platform/plugin-host/plugin-asset-paths.js": "2e3d99edd9525cd03e1aeb37aa394deccb87e762d1594bfc5aaa2c0ea5311001",
+    "public/simulatte/platform/plugin-host/plugin-compute.js": "24d3988c14cb0d8befcef11c5db5c25ece6f20c9eacdea2796f14ae49ac18769",
+    "public/simulatte/platform/plugin-host/plugin-environment.js": "edd6498a8c3f1a584c2ce3acb56557e3e73ad2c9b1dc8add73b9eda4e3f13747",
+    "public/simulatte/platform/plugin-host/plugin-geography.js": "d618d44d07faccca07996ac76aa208fa554a6720def15e002f79b1633ab11510",
+    "public/simulatte/platform/plugin-host/plugin-random.js": "7920e3da80fafe180236e1e4e859e82a30806f8e06f9ec7704f184dea4922bdd",
+    "public/simulatte/platform/plugin-host/plugin-runtime.js": "901a8b1bfa6034c338f8975d50e49e2b9d4e18919f6510ba3707cb20ac66273b",
+    "public/simulatte/platform/plugin-host/plugin-scheduler.js": "8ddc6bd4e24d480ffb033fe3646a9493c4bb26b80181686ccbfc75f6da2ef0ac",
+    "public/simulatte/platform/plugin-host/plugin-sdk.js": "a5625eb63d3abef1bd8ebe8868ebec84fd4686e8b911fad3422bbf422c0a4ac1",
+    "public/simulatte/platform/plugin-host/plugin-state-host.js": "42e7fc9550e0ac54b673961c68b42fc96990aca97b0e69b47ae02a2a388b6240",
+    "public/simulatte/platform/render/semantic-compositor.js": "acb03ec23a88b8cf4ae01623fd0d565884edd25d88c032081044f36b7ecf3b0f",
+    "public/simulatte/platform/runtime/provenance-registry.js": "9f3116d04617c262e57aeeb50e4e49f810f013800e2d7b31a4e592a50668cb40",
+    "public/simulatte/platform/runtime/simulation-clock.js": "e458235a78b0d47d47710f5af45f77d9f0f53d20b1e6372cfc12fe239ec724aa",
+    "public/simulatte/platform/runtime/simulation-timeline.js": "ea9253cd3c79f5cdcf7cd86054e0e81cd8efed683b2446a97e867f607f462ed4",
+    "public/simulatte/platform/transport/browser-transport.js": "2c1db52f2c5af7585d5924b28064dfaa7aef0639af0385bb7a3f83712fa0d1d9",
+    "public/simulatte/platform/ui-host/declarative-ui-host.js": "7f0f11dbc99b9cb0e90e52755eb77710fd1310fd7c185cbfee8cde5569909a83",
+    "public/simulatte/platform/view/view-director.js": "51c21a4451f794aa96abdfce78c2044da7020d906b00725877d608a891a40729",
+    "public/simulatte/runtime/canonical-receipts.js": "7e408e98f499e3e26217ec118ec39ab4c836abb8f85c09b45d12c3556443b456",
+    "public/simulatte/runtime/runtime-log.js": "cee81c7809c2ae6bd934d52ced585b7c8088fa316418405f6e679b9d39a0f8b0",
+    "public/styles.css": "7a9251b38d382f4475bceca77f32035279a5bd4e6769a49ecd91b1a506a25d3f",
+    "public/world-tiers.css": "98cf02c9940c46b2b925cd6a82d1a5ea77108e5df1912de8cf3a5dd35ce74f22",
+    "tests/gpu-supercluster.test.cjs": "4d01c160e3f5997ca3c80f19213909ad024563aa4d6a9e75ecd4ff75fb09b001",
+    "tests/motorcycle-noise.test.cjs": "c8872bfed26c2073a9d814b1994e68c9b486866da1d610f4bd53f82adf1f3f26",
+    "tests/navigation-lifecycle.test.cjs": "cb4d0396da2134205baabfdf6c883cdee87bd689d419be7d36872e6c340231e3",
+    "tests/tier-run-controller.test.cjs": "8ca4a69b840433c1f6d0f0adb926d6aa0ab0c0f049288078a1b5758ef53628aa",
+    "tools/simulatte/audit-experience-ui.mjs": "2765d38ae1e5301831ba493b733b77666c9aec14fc4c1ee83eb4964857f74f7b",
+    "tools/simulatte/audit-motorcycle-noise.mjs": "96950c0a19d7be6193efec960f6883b05f92123245ff0e68343662d91fa50c42",
+    "tools/simulatte/audit-simulation-interface.mjs": "72dda04c69b26d8c927355188e35d6ef8c6ab3161bba1aae528b8365e8302901",
+    "tools/simulatte/browser-session.mjs": "eb6f50a15a1c27387ca3b803a7371ffd374c60aa6faaf455d056a8279cc39a44",
+    "tools/simulatte/static-site-server.mjs": "ad5266c3d37a9ea2f64f2c81aa3591b2fde3aca8c5f0a1b79cffa05ff08c1e6e"
+  },
+  "artifacts": {
+    "catscan-check.log": {
+      "sha256": "1bb6bc27a3d1ce1e3bce509527a5430fa3ce58a94a39bdd91abc4c22b7a11b2b",
+      "bytes": 120
+    },
+    "focused-tests.log": {
+      "sha256": "c33a8f646f518258a01bf207677bb606092541cd6aed39fa81cdef5ca56c4c46",
+      "bytes": 23297
+    },
+    "forced-webgl/motorcycle-1440-advanced.png": {
+      "sha256": "4a32a6997abb6e7a1725429c40d23f25e6d8c4be72fb68614cd5d84e686ff190",
+      "bytes": 363030
+    },
+    "forced-webgl/motorcycle-1440-comparison.png": {
+      "sha256": "3d7667fa5cc7788cfde9290beee172a70e56a0ee8553605b7041ae7059a2eaff",
+      "bytes": 161552
+    },
+    "forced-webgl/motorcycle-1440-initial.png": {
+      "sha256": "56d7932b977c444f5e277cb9ea50f4472cea417de79fa9016737e3423df23057",
+      "bytes": 431571
+    },
+    "forced-webgl/motorcycle-1440-onboard.png": {
+      "sha256": "9b43e7d9015ccbad441f8c9b80e9ef0553d220981a691208b62c8a659bbba5f3",
+      "bytes": 241775
+    },
+    "forced-webgl/motorcycle-390-advanced.png": {
+      "sha256": "217ffeb14c91bfd51b10f37df04d41f6cb5fccd85000b6f91418f7f046c94676",
+      "bytes": 47855
+    },
+    "forced-webgl/motorcycle-390-comparison.png": {
+      "sha256": "b112dae8f51bffafe94574590d48280943789b17a418298f8cca70218ceb59af",
+      "bytes": 47677
+    },
+    "forced-webgl/motorcycle-390-initial.png": {
+      "sha256": "62ef34b1fe575e2d498256f256e0574c6d51d73338f39ac0a8f9a9b3dad64f23",
+      "bytes": 118569
+    },
+    "forced-webgl/motorcycle-390-onboard.png": {
+      "sha256": "8a6707c8b564a76c6b506a8d85f3cd1064e08209cd357a2435c5e08829b4dfba",
+      "bytes": 60536
+    },
+    "forced-webgl/motorcycle-browser.json": {
+      "sha256": "21095aea050bffdf586882e5e26770d1521e50aa2c727deddc37d3f493d46fb2",
+      "bytes": 117039
+    },
+    "gpu-1440-advanced.png": {
+      "sha256": "71e415567da5486bbc592ddeada384306c6852a985146ad16ea032792ccae24d",
+      "bytes": 225379
+    },
+    "gpu-1440-initial.png": {
+      "sha256": "bc0341a82343df0cf2f080eb422e223dbfdbaced79e8825e9a6733449db3ed45",
+      "bytes": 364155
+    },
+    "gpu-1440-intervention.png": {
+      "sha256": "1e633f804df53f91ccd0f8c98d57aeec9f164ad030ab6397f16714343c92d6ea",
+      "bytes": 225663
+    },
+    "gpu-390-advanced.png": {
+      "sha256": "0e0b40ee37d62722cfdd81f8aa4f6f3d5aad5f655b8e79f9872aa6191b5859f2",
+      "bytes": 40064
+    },
+    "gpu-390-initial.png": {
+      "sha256": "e844ce1cf18f3b67b7e0df6747b3888a95f563c1d1808d8045ef723186534ecd",
+      "bytes": 52975
+    },
+    "gpu-browser.json": {
+      "sha256": "7714d4d66437dc5f650d944c5800d1d9ed27948374e5d254f21daebc3885ed52",
+      "bytes": 5245517
+    },
+    "gpu-exact-replay.json": {
+      "sha256": "c8f705720f56dc3c5e41a028d466a31bb7c6a876157d433dd4cec71dde925fe0",
+      "bytes": 483732
+    },
+    "gpu-exact-replay.png": {
+      "sha256": "ea566405200b7095616b2b4ecb9f0b3776405318ef082f5618d768b0ba56699e",
+      "bytes": 247014
+    },
+    "gpu-ui/gpu-1440-advanced.png": {
+      "sha256": "f3f8ae90dbf8da9d9171c269c2a43e45b5904f4654e8840b2255454b012912c1",
+      "bytes": 248958
+    },
+    "gpu-ui/gpu-1440-initial.png": {
+      "sha256": "5133f12c326d99fe70ab3739e53bdf3449b8e507a90c7c268da1082d35a019d0",
+      "bytes": 364748
+    },
+    "gpu-ui/gpu-1440-intervention.png": {
+      "sha256": "80371a3983184c4915581d663a8e0dde106e61ba5c4a1b3859e98c9f67f6bb9e",
+      "bytes": 366687
+    },
+    "gpu-ui/gpu-390-advanced.png": {
+      "sha256": "011b0b39f8f99989255bcc141a6ff10bd714f94058ab9dbe75ad1784edced364",
+      "bytes": 50249
+    },
+    "gpu-ui/gpu-390-initial.png": {
+      "sha256": "24cce20cce8009fff6848733eb344db1e2989414c9ea0147108a1699f50878c0",
+      "bytes": 57721
+    },
+    "gpu-ui/gpu-390-intervention.png": {
+      "sha256": "f5f094f48124e0944a1b5c43b98c3cfc988e3ab4fee7b81a9fce3dde66bc8d85",
+      "bytes": 57897
+    },
+    "gpu-ui/gpu-browser.json": {
+      "sha256": "b8f8a00dffc49a8fca6d7316ec77c02797a4f3c26c3c2d62cac7b272d4506e39",
+      "bytes": 7438430
+    },
+    "motorcycle-1440-advanced.png": {
+      "sha256": "e950700d4ce937a5af1f1b6a02b315b21b174c45117c2a0ce360b6c45bec9c30",
+      "bytes": 6746
+    },
+    "motorcycle-1440-comparison.png": {
+      "sha256": "e950700d4ce937a5af1f1b6a02b315b21b174c45117c2a0ce360b6c45bec9c30",
+      "bytes": 6746
+    },
+    "motorcycle-1440-initial.png": {
+      "sha256": "d7f591ab4c7fb0ee1ccabf9bab1abf0bc37123b59f6ab2e04f6569c8b6ade5a4",
+      "bytes": 19527
+    },
+    "motorcycle-1440-onboard.png": {
+      "sha256": "81447ee486a13fa26ae5dfd7151b325d62bd8b191228f7cd9333295a7704bc03",
+      "bytes": 28691
+    },
+    "motorcycle-browser.json": {
+      "sha256": "215c9513b53b4412928fa51295b4220cf8601ebc534e49fd3618a55bbb036cba",
+      "bytes": 1180792
+    },
+    "probes/gpu-exact-replay.mjs": {
+      "sha256": "929fffa52bdef8ac8ec78534f8c7990e56c971f1bfb527ab492640474b7e4317",
+      "bytes": 3383
+    },
+    "probes/gpu-initial-probe.mjs": {
+      "sha256": "6c0a86f09610bde24f9190bdbf754b55b2fbe49b52e8f77f52c0a25621e915a6",
+      "bytes": 4681
+    },
+    "probes/gpu-ui.mjs": {
+      "sha256": "1833a36c7b773973e26c88d3da9cb68d827751d6b2c814ba5964937cb2da034d",
+      "bytes": 5093
+    },
+    "probes/motorcycle-default-backend.mjs": {
+      "sha256": "a16f78a82bd9cd945e3b6eefc1bd145fc5ac2e2f167982e8b551ed3d7408db1e",
+      "bytes": 5713
+    },
+    "probes/motorcycle-forced-webgl.mjs": {
+      "sha256": "72f715c187c8d775e1241590768bba73663b4850c83dc5de2175b074838675c3",
+      "bytes": 5876
+    },
+    "probes/motorcycle-software-webgpu.mjs": {
+      "sha256": "bda184f9a9d1e3a2da64248ac21413d213e228a3e4552d7bf04ab002d80cc719",
+      "bytes": 5328
+    },
+    "shared-gpu/gpu-supercluster-v1-1440-failure.png": {
+      "sha256": "1d79d392dc7bf7e737f6931d75f84ab23f080430521b6693441d9f58d39fe064",
+      "bytes": 356002
+    },
+    "shared-gpu/gpu-supercluster-v1-390-failure.png": {
+      "sha256": "e554c70061235d937adbcab8eddf429591791e7a28ab520a4e356fe297b5e543",
+      "bytes": 67015
+    },
+    "shared-gpu/report.json": {
+      "sha256": "07fd3b3b4c77d48ad4bafe0961c5fa75169f7b4a2f75ba5dd349ae34f2e4d007",
+      "bytes": 12844
+    },
+    "spectrum-contract.txt": {
+      "sha256": "7142a0524b3f12d1b8b12ecbf0dc76c9d90b55ca65dde0132b2335c21827a399",
+      "bytes": 280
+    },
+    "webgl/motorcycle-1440-advanced.png": {
+      "sha256": "12e3edcd8f5ead5f5b3f72747079fa081f2da2ca403e7e9acc8af087e4497b8e",
+      "bytes": 68487
+    },
+    "webgl/motorcycle-1440-initial.png": {
+      "sha256": "19ec5c3a42e623985bb1b4cad00eb229a21cf3fbaff9c2ca6f018a9e1360eceb",
+      "bytes": 28778
+    },
+    "webgl/motorcycle-1440-onboard.png": {
+      "sha256": "78700408621246b552732d65ecf6ecb90456d2e2f3252aa943a549a9a6b9d326",
+      "bytes": 29220
+    },
+    "webgl/motorcycle-browser.json": {
+      "sha256": "faaed9d9c03d444486e09a09e59d84bed1e92b6e219a4da9ba15f8995bc74ce5",
+      "bytes": 19003
+    }
+  },
+  "interpretation": {
+    "gpu-ui/gpu-browser.json": "Corrected desktop/mobile DOM interaction flow; mobile retains prior desktop control value before intervention",
+    "gpu-exact-replay.json": "Fresh desktop baseline independent exact replay",
+    "forced-webgl/motorcycle-browser.json": "navigator.gpu overridden unavailable before load; WebGL works, detailed comparison errors in both viewports",
+    "motorcycle-browser.json": "Software WebGPU texture-copy failure; mobile attempt times out",
+    "webgl/motorcycle-browser.json": "Default capability startup fails before WebGL fallback; run terminated after failure",
+    "gpu-browser.json": "Initial diagnostic probe; mobile timeout is harness misuse of unchanged parameter and hidden Start",
+    "shared-gpu/report.json": "Existing audit assumes Ready state, but profile auto-starts and completes"
+  }
+}

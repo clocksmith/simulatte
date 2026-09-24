@@ -1,0 +1,148 @@
+{
+  "schema": "simulatte.runtimeRepairEvidence.v1",
+  "sources": {
+    "head": "8a6ad6ce66041116e060ab12f706e2b756b948b0",
+    "capturedAt": "2026-09-23T15:59:05.256Z",
+    "modifiedSources": {
+      "public/data/application-profiles/gpu-supercluster-v1.json": {
+        "sha256": "3572cb1a75297c53e2c53054a9025789ad928a672b7005ef3c1070de989af62d",
+        "modifiedAt": "2026-09-23T15:38:31.487Z"
+      },
+      "public/data/simulatte/tier-application-manifest.json": {
+        "sha256": "2eacf51d60cca52d58a01d4b477ca6a428a4665616e1e01180009ae946fdfae7",
+        "modifiedAt": "2026-09-23T15:40:14.327Z"
+      },
+      "public/shared/plugins/gpu-supercluster/index.js": {
+        "sha256": "a7d032681ffb24dcf263a30ea82caf0f7fba32837adc641e7c4496bf75fa0690",
+        "modifiedAt": "2026-09-23T15:52:56.034Z"
+      },
+      "public/shared/plugins/gpu-supercluster/plugin.json": {
+        "sha256": "1523eb2918ed3e93eda8413e5e05b0996a6396668536756f859b071512c3822f",
+        "modifiedAt": "2026-09-23T15:52:56.194Z"
+      },
+      "public/shared/plugins/gpu-supercluster/v4-contribution.js": {
+        "sha256": "32e5a125b516924811c7a5918df0fc7e3122e6fc54fc8af0122102ca00a2bc58",
+        "modifiedAt": "2026-09-23T15:45:26.889Z"
+      },
+      "public/shared/plugins/gpu-supercluster/workload.js": {
+        "sha256": "8d4fc0ca2f6191a167a0970a8f9408a5bde5c03bbe746b5561d89dd5d31e48fd",
+        "modifiedAt": "2026-09-23T15:29:27.586Z"
+      },
+      "public/simulatte/app/camera-fit.js": {
+        "sha256": "436705b15d1f3d1ad9259011e5c7c9ba0fa0320e7c66cf61f73b13f92c29d03a",
+        "modifiedAt": "2026-09-23T15:48:58.975Z"
+      },
+      "public/simulatte/app/cluster-interaction.js": {
+        "sha256": "4fff15cc0e18db403337cd85a080185a289c3dd8ef18ae4847df2ff386f37821",
+        "modifiedAt": "2026-09-23T15:50:03.494Z"
+      },
+      "public/simulatte/app/multi-tier-visualizer.js": {
+        "sha256": "14f27eb793a0a57bc7c2f8383ff00e10164846643e2144cf9aceb215c467599d",
+        "modifiedAt": "2026-09-23T15:56:40.638Z"
+      },
+      "public/simulatte/app/tier-renderers.js": {
+        "sha256": "0cdb03f9fac1bb9293e1ece887e5b09f29c7b08c452afdaa4a4a5852c30c18a7",
+        "modifiedAt": "2026-09-23T15:44:06.663Z"
+      },
+      "public/simulatte/app/tier-run-controller.js": {
+        "sha256": "fcd9959b8b53fea785708f660e0dbedbbf8af9155f8674c6ffd8cadcd8afc71d",
+        "modifiedAt": "2026-09-23T15:52:56.034Z"
+      },
+      "public/simulatte/app/world-runtime-script-manifest.js": {
+        "sha256": "627e4bbaaba992be008e395b5b2f31873c5f1df6641c8ba8dd251ca19b5a83d6",
+        "modifiedAt": "2026-09-23T15:31:13.043Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "5b328e6cade26b9b2ce5afcfae999029a55a6d468254f35f15288ee9e6f7624e",
+        "modifiedAt": "2026-09-23T15:37:20.938Z"
+      },
+      "public/simulatte/motorcycle-noise/city-experience.css": {
+        "sha256": "783ad9c0d3ce4a6a795debc9da443a7c029802e6fb5eaefcef75726ce2cc2688",
+        "modifiedAt": "2026-09-23T15:26:06.727Z"
+      },
+      "public/simulatte/motorcycle-noise/explore-ui.js": {
+        "sha256": "6d7c81898b4c45f34e95bf0e5dd98913b44c80caa9be2e88da2dfcc5d36e6408",
+        "modifiedAt": "2026-09-23T15:45:26.888Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "67acc2c266a8edba940d332d391ae88c243d6d5334ad628a4cb40fc36c0ec083",
+        "modifiedAt": "2026-09-23T15:26:06.727Z"
+      },
+      "public/simulatte/motorcycle-noise/lifecycle.js": {
+        "sha256": "712588a9ac7391341fb4b5201a12be4a0b2589efdcb13f0bbc75fd638f582536",
+        "modifiedAt": "2026-09-23T15:48:58.975Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-app.js": {
+        "sha256": "db17535d6e575185c95ea5aa27c983ccee45ad2424f20cf1c0d613c72dcede5f",
+        "modifiedAt": "2026-09-23T15:48:58.975Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-view.js": {
+        "sha256": "6fa3b5edb05f1697698bdb78383c3ee09a15335ce52571398632cad6b2c4ac22",
+        "modifiedAt": "2026-09-23T15:35:24.340Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-worker.js": {
+        "sha256": "cc3899a2d91cf96c1f5534ef300aa2e6362633f0928cfe271e909d5d7c93a82b",
+        "modifiedAt": "2026-09-23T15:24:40.608Z"
+      },
+      "public/simulatte/motorcycle-noise/signal.js": {
+        "sha256": "899f6f2eccdbe3d104ddb5adcd7b08f7ae4cdec61304fa071b6c5355c336a618",
+        "modifiedAt": "2026-09-23T15:24:40.608Z"
+      },
+      "public/simulatte/platform/plugin-host/generated-plugin-registry.js": {
+        "sha256": "e3814b4095d52edb25b26b4441efd5df3e891c473049a762756d9edd3dd74174",
+        "modifiedAt": "2026-09-23T15:52:56.289Z"
+      },
+      "public/world-tiers.css": {
+        "sha256": "08ee92b30ff3dcf05452e0e71afbbc7a2eba7c6065423d456c19a8c398eede46",
+        "modifiedAt": "2026-09-23T15:37:20.941Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "browsers": [
+    {
+      "name": "normal startup",
+      "command": "node tools/simulatte/audit-runtime-motorcycle-start.mjs",
+      "report": "motorcycle/motorcycle-browser.json",
+      "pass": true
+    },
+    {
+      "name": "renderer recovery",
+      "command": "node tools/simulatte/audit-runtime-motorcycle-failures.mjs",
+      "report": "motorcycle-failures/browser.json",
+      "pass": true
+    },
+    {
+      "name": "snapshot analysis",
+      "command": "node tools/simulatte/audit-runtime-motorcycle-analysis.mjs",
+      "report": "motorcycle-analysis/browser.json",
+      "pass": true
+    },
+    {
+      "name": "GPU workload and framing",
+      "command": "node tools/simulatte/audit-runtime-gpu.mjs",
+      "report": "gpu/browser.json",
+      "pass": true
+    }
+  ],
+  "tests": {
+    "command": "node --test tests/motorcycle-runtime.test.cjs tests/motorcycle-noise.test.cjs tests/gpu-supercluster.test.cjs tests/gpu-workload.test.cjs tests/tier-run-controller.test.cjs tests/navigation-lifecycle.test.cjs tests/tier-renderers.test.cjs tests/plugin-camera-follow.test.cjs tests/world-runtime-loader.test.cjs tests/plugin-platform.test.cjs tests/plugin-v4-platform.test.cjs",
+    "total": 144,
+    "passed": 144,
+    "failed": 0,
+    "artifact": "tests.tap"
+  },
+  "checks": [
+    "npm run catscan:check",
+    "npm run plugins:check",
+    "npm run check:world-entrypoint",
+    "npm run check:source-size",
+    "git diff --check"
+  ],
+  "reportedFailuresResolved": [
+    "Step and Reset assertions now inspect the mission actions containing them.",
+    "Orbital navigation asserts its canonical /orbital route.",
+    "Superseded boot test waits for the actual asynchronous boot before cancelling and verifies teardown."
+  ],
+  "scope": "Local Chrome 136: Motorcycle automatic renderer selection selected software WebGL; GPU uses Canvas2D. Physical acoustic and GPU performance validation did not run."
+}

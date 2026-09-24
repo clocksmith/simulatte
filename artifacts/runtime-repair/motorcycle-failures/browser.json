@@ -1,0 +1,198 @@
+{
+  "cases": [
+    {
+      "mode": "first",
+      "recovering": {
+        "receipt": {
+          "state": "recovering",
+          "generation": 3,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "loading"
+            }
+          ],
+          "time": 12,
+          "scenarioSeed": 731,
+          "backendFailures": []
+        },
+        "banner": "Restoring the scene. Simulation paused.",
+        "level": "Measurement paused"
+      },
+      "after": {
+        "receipt": {
+          "state": "running",
+          "generation": 3,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "loading"
+            }
+          ],
+          "time": 12.550099999999999,
+          "scenarioSeed": 731,
+          "backend": "WebGL",
+          "backendFailures": []
+        },
+        "inject": {
+          "mode": "first",
+          "draws": 3,
+          "creates": 2,
+          "disposes": 1,
+          "workers": 2,
+          "scenes": [
+            true,
+            true
+          ],
+          "enabled": true,
+          "sameScene": true
+        },
+        "visible": false
+      }
+    },
+    {
+      "mode": "late",
+      "recovering": {
+        "receipt": {
+          "state": "recovering",
+          "generation": 3,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "running"
+            }
+          ],
+          "time": 13.466700000000001,
+          "scenarioSeed": 731,
+          "backendFailures": []
+        },
+        "banner": "Restoring the scene. Simulation paused.",
+        "level": "Measurement paused"
+      },
+      "after": {
+        "receipt": {
+          "state": "running",
+          "generation": 3,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "running"
+            }
+          ],
+          "time": 14.650000000000004,
+          "scenarioSeed": 731,
+          "backend": "WebGL",
+          "backendFailures": []
+        },
+        "inject": {
+          "mode": "late",
+          "draws": 5,
+          "creates": 2,
+          "disposes": 1,
+          "workers": 2,
+          "scenes": [
+            true,
+            true
+          ],
+          "enabled": true,
+          "sameScene": true
+        },
+        "visible": false
+      }
+    },
+    {
+      "mode": "persistent",
+      "recovering": {
+        "receipt": {
+          "state": "recovering",
+          "generation": 3,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "loading"
+            }
+          ],
+          "time": 12,
+          "scenarioSeed": 731,
+          "backendFailures": []
+        },
+        "banner": "Restoring the scene. Simulation paused.",
+        "level": "Measurement paused"
+      },
+      "after": {
+        "receipt": {
+          "state": "failed",
+          "generation": 4,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "loading"
+            },
+            {
+              "message": "Injected renderer failure",
+              "state": "recovering"
+            }
+          ],
+          "time": 12,
+          "scenarioSeed": 731,
+          "backendFailures": []
+        },
+        "inject": {
+          "mode": "persistent",
+          "draws": 2,
+          "creates": 2,
+          "disposes": 2,
+          "workers": 0,
+          "scenes": [
+            true,
+            true
+          ],
+          "enabled": true,
+          "sameScene": true
+        },
+        "visible": true
+      },
+      "frozenTimePreserved": true,
+      "retry": {
+        "receipt": {
+          "state": "running",
+          "generation": 5,
+          "recoveries": 0,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "loading"
+            },
+            {
+              "message": "Injected renderer failure",
+              "state": "recovering"
+            }
+          ],
+          "time": 12.516699999999997,
+          "scenarioSeed": 731,
+          "backend": "WebGL",
+          "backendFailures": []
+        },
+        "draws": 4,
+        "creates": 3,
+        "disposes": 2,
+        "workers": 2,
+        "scenarioPreserved": true
+      }
+    }
+  ],
+  "errors": []
+}

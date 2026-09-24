@@ -1,0 +1,79 @@
+{
+  "schema": "simulatte.simulationInterfaceAudit.v1",
+  "startedAt": "2026-09-23T14:54:56.257Z",
+  "evidence": "Local browser UI, DOM geometry, renderer receipts, and screenshots; not scientific or deployed validation",
+  "softwareRequested": true,
+  "vulkanRequested": false,
+  "profiles": [
+    {
+      "profileId": "gpu-supercluster-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interaction-gap-8a6ad6c/shared-gpu/gpu-supercluster-v1-1440-failure.png"
+      ],
+      "pass": false,
+      "error": "initial frame timed out: {\"phase\":\"completed\",\"loading\":null,\"profile\":\"gpu-supercluster-v1\",\"status\":\"Complete\",\"statusVisible\":true,\"parameters\":{\"gpu-supercluster\":{\"collectiveAlgorithm\":\"ring-allreduce\",\"tensorSizeGb\":14.2,\"stragglerThrottlePercent\":0,\"coolantFlowLpm\":120,\"linkPacketDropRate\":0,\"cduFlowDegradationPercent\":0}},\"error\":null,\"input\":\"\",\"inputVisible\":false,\"scene\":{\"x\":25,\"y\":77,\"width\":1390,\"height\":578,\"top\":77,\"right\":1415,\"bottom\":655,\"left\":25},\"backend\":\"canvas2d\",\"adapter\":null,\"frames\":91,\"camera\":\"{\\\"zoom\\\":39.22398589065256,\\\"panX\\\":611.6,\\\"panY\\\":265.88,\\\"rotX\\\":0.2,\\\"rotY\\\":-0.4}\",\"mode\":\"overview\",\"progress\":4,\"total\":4,\"width\":1440,\"height\":1000,\"scrollWidth\":1440,\"dock\":{\"x\":24,\"y\":724,\"width\":1392,\"height\":227.890625,\"top\":724,\"right\":1416,\"bottom\":951.890625,\"left\":24},\"canPause\":false,\"canReset\":true,\"ownerIds\":[\"gpu-supercluster\"],\"buttons\":[{\"id\":\"runtime-toggle\",\"disabled\":false,\"title\":\"Complete\",\"text\":\"Complete\"},{\"id\":\"world-tier-trigger\",\"disabled\":false,\"title\":\"\",\"text\":\"Datacenter\"},{\"id\":\"application-profile-trigger\",\"disabled\":false,\"title\":\"\",\"text\":\"GPU Supercluster\"},{\"id\":\"camera-bird\",\"disabled\":false,\"title\":\"\",\"text\":\"Overview\"},{\"id\":\"camera-compare\",\"disabled\":true,\"title\":\"No compare target in the current simulation state\",\"text\":\"Compare\"},{\"id\":\"camera-reset\",\"disabled\":false,\"title\":\"Restore this simulation's intended framing without resetting its state\",\"text\":\"Reset view\"},{\"id\":\"decisions-button\",\"disabled\":false,\"title\":\"\",\"text\":\"Advanced (6)\"},{\"id\":\"reset-button\",\"disabled\":false,\"title\":\"Reset simulation state; keep the current camera\",\"text\":\"Reset\"},{\"id\":\"replay-button\",\"disabled\":false,\"title\":\"\",\"text\":\"Replay\"}]}",
+      "console": []
+    },
+    {
+      "profileId": "gpu-supercluster-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [],
+      "screenshots": [
+        "artifacts/interaction-gap-8a6ad6c/shared-gpu/gpu-supercluster-v1-390-failure.png"
+      ],
+      "pass": false,
+      "error": "initial frame timed out: {\"phase\":\"completed\",\"loading\":null,\"profile\":\"gpu-supercluster-v1\",\"status\":\"Complete\",\"statusVisible\":true,\"parameters\":{\"gpu-supercluster\":{\"collectiveAlgorithm\":\"ring-allreduce\",\"tensorSizeGb\":14.2,\"stragglerThrottlePercent\":0,\"coolantFlowLpm\":120,\"linkPacketDropRate\":0,\"cduFlowDegradationPercent\":0}},\"error\":null,\"input\":\"\",\"inputVisible\":false,\"scene\":{\"x\":13,\"y\":173,\"width\":364,\"height\":403.109375,\"top\":173,\"right\":377,\"bottom\":576.109375,\"left\":13},\"backend\":\"canvas2d\",\"adapter\":null,\"frames\":263,\"camera\":\"{\\\"zoom\\\":17.97530864197531,\\\"panX\\\":182,\\\"panY\\\":425,\\\"rotX\\\":0.2,\\\"rotY\\\":-0.4}\",\"mode\":\"overview\",\"progress\":4,\"total\":4,\"width\":390,\"height\":844,\"scrollWidth\":390,\"dock\":{\"x\":12,\"y\":701.109375,\"width\":366,\"height\":307.390625,\"top\":701.109375,\"right\":378,\"bottom\":1008.5,\"left\":12},\"canPause\":false,\"canReset\":true,\"ownerIds\":[\"gpu-supercluster\"],\"buttons\":[{\"id\":\"runtime-toggle\",\"disabled\":false,\"title\":\"Complete\",\"text\":\"Complete\"},{\"id\":\"world-tier-trigger\",\"disabled\":false,\"title\":\"\",\"text\":\"Datacenter\"},{\"id\":\"application-profile-trigger\",\"disabled\":false,\"title\":\"\",\"text\":\"GPU Supercluster\"},{\"id\":\"camera-bird\",\"disabled\":false,\"title\":\"\",\"text\":\"Overview\"},{\"id\":\"camera-compare\",\"disabled\":true,\"title\":\"No compare target in the current simulation state\",\"text\":\"Compare\"},{\"id\":\"camera-reset\",\"disabled\":false,\"title\":\"Restore this simulation's intended framing without resetting its state\",\"text\":\"Reset view\"},{\"id\":\"decisions-button\",\"disabled\":false,\"title\":\"\",\"text\":\"Advanced (6)\"},{\"id\":\"reset-button\",\"disabled\":false,\"title\":\"Reset simulation state; keep the current camera\",\"text\":\"Reset\"},{\"id\":\"replay-button\",\"disabled\":false,\"title\":\"\",\"text\":\"Replay\"}]}",
+      "console": []
+    }
+  ],
+  "recovery": null,
+  "failures": [
+    "gpu-supercluster-v1 1440: initial frame timed out: {\"phase\":\"completed\",\"loading\":null,\"profile\":\"gpu-supercluster-v1\",\"status\":\"Complete\",\"statusVisible\":true,\"parameters\":{\"gpu-supercluster\":{\"collectiveAlgorithm\":\"ring-allreduce\",\"tensorSizeGb\":14.2,\"stragglerThrottlePercent\":0,\"coolantFlowLpm\":120,\"linkPacketDropRate\":0,\"cduFlowDegradationPercent\":0}},\"error\":null,\"input\":\"\",\"inputVisible\":false,\"scene\":{\"x\":25,\"y\":77,\"width\":1390,\"height\":578,\"top\":77,\"right\":1415,\"bottom\":655,\"left\":25},\"backend\":\"canvas2d\",\"adapter\":null,\"frames\":91,\"camera\":\"{\\\"zoom\\\":39.22398589065256,\\\"panX\\\":611.6,\\\"panY\\\":265.88,\\\"rotX\\\":0.2,\\\"rotY\\\":-0.4}\",\"mode\":\"overview\",\"progress\":4,\"total\":4,\"width\":1440,\"height\":1000,\"scrollWidth\":1440,\"dock\":{\"x\":24,\"y\":724,\"width\":1392,\"height\":227.890625,\"top\":724,\"right\":1416,\"bottom\":951.890625,\"left\":24},\"canPause\":false,\"canReset\":true,\"ownerIds\":[\"gpu-supercluster\"],\"buttons\":[{\"id\":\"runtime-toggle\",\"disabled\":false,\"title\":\"Complete\",\"text\":\"Complete\"},{\"id\":\"world-tier-trigger\",\"disabled\":false,\"title\":\"\",\"text\":\"Datacenter\"},{\"id\":\"application-profile-trigger\",\"disabled\":false,\"title\":\"\",\"text\":\"GPU Supercluster\"},{\"id\":\"camera-bird\",\"disabled\":false,\"title\":\"\",\"text\":\"Overview\"},{\"id\":\"camera-compare\",\"disabled\":true,\"title\":\"No compare target in the current simulation state\",\"text\":\"Compare\"},{\"id\":\"camera-reset\",\"disabled\":false,\"title\":\"Restore this simulation's intended framing without resetting its state\",\"text\":\"Reset view\"},{\"id\":\"decisions-button\",\"disabled\":false,\"title\":\"\",\"text\":\"Advanced (6)\"},{\"id\":\"reset-button\",\"disabled\":false,\"title\":\"Reset simulation state; keep the current camera\",\"text\":\"Reset\"},{\"id\":\"replay-button\",\"disabled\":false,\"title\":\"\",\"text\":\"Replay\"}]}",
+    "gpu-supercluster-v1 390: initial frame timed out: {\"phase\":\"completed\",\"loading\":null,\"profile\":\"gpu-supercluster-v1\",\"status\":\"Complete\",\"statusVisible\":true,\"parameters\":{\"gpu-supercluster\":{\"collectiveAlgorithm\":\"ring-allreduce\",\"tensorSizeGb\":14.2,\"stragglerThrottlePercent\":0,\"coolantFlowLpm\":120,\"linkPacketDropRate\":0,\"cduFlowDegradationPercent\":0}},\"error\":null,\"input\":\"\",\"inputVisible\":false,\"scene\":{\"x\":13,\"y\":173,\"width\":364,\"height\":403.109375,\"top\":173,\"right\":377,\"bottom\":576.109375,\"left\":13},\"backend\":\"canvas2d\",\"adapter\":null,\"frames\":263,\"camera\":\"{\\\"zoom\\\":17.97530864197531,\\\"panX\\\":182,\\\"panY\\\":425,\\\"rotX\\\":0.2,\\\"rotY\\\":-0.4}\",\"mode\":\"overview\",\"progress\":4,\"total\":4,\"width\":390,\"height\":844,\"scrollWidth\":390,\"dock\":{\"x\":12,\"y\":701.109375,\"width\":366,\"height\":307.390625,\"top\":701.109375,\"right\":378,\"bottom\":1008.5,\"left\":12},\"canPause\":false,\"canReset\":true,\"ownerIds\":[\"gpu-supercluster\"],\"buttons\":[{\"id\":\"runtime-toggle\",\"disabled\":false,\"title\":\"Complete\",\"text\":\"Complete\"},{\"id\":\"world-tier-trigger\",\"disabled\":false,\"title\":\"\",\"text\":\"Datacenter\"},{\"id\":\"application-profile-trigger\",\"disabled\":false,\"title\":\"\",\"text\":\"GPU Supercluster\"},{\"id\":\"camera-bird\",\"disabled\":false,\"title\":\"\",\"text\":\"Overview\"},{\"id\":\"camera-compare\",\"disabled\":true,\"title\":\"No compare target in the current simulation state\",\"text\":\"Compare\"},{\"id\":\"camera-reset\",\"disabled\":false,\"title\":\"Restore this simulation's intended framing without resetting its state\",\"text\":\"Reset view\"},{\"id\":\"decisions-button\",\"disabled\":false,\"title\":\"\",\"text\":\"Advanced (6)\"},{\"id\":\"reset-button\",\"disabled\":false,\"title\":\"Reset simulation state; keep the current camera\",\"text\":\"Reset\"},{\"id\":\"replay-button\",\"disabled\":false,\"title\":\"\",\"text\":\"Replay\"}]}",
+    "failed load recovery timed out: {\"phase\":\"completed\",\"loading\":null,\"profile\":\"gpu-supercluster-v1\",\"status\":\"Complete\",\"statusVisible\":true,\"parameters\":{\"gpu-supercluster\":{\"collectiveAlgorithm\":\"ring-allreduce\",\"tensorSizeGb\":14.2,\"stragglerThrottlePercent\":0,\"coolantFlowLpm\":120,\"linkPacketDropRate\":0,\"cduFlowDegradationPercent\":0}},\"error\":null,\"input\":\"\",\"inputVisible\":false,\"scene\":{\"x\":13,\"y\":173,\"width\":364,\"height\":403.109375,\"top\":173,\"right\":377,\"bottom\":576.109375,\"left\":13},\"backend\":\"canvas2d\",\"adapter\":null,\"frames\":391,\"camera\":\"{\\\"zoom\\\":17.97530864197531,\\\"panX\\\":182,\\\"panY\\\":425,\\\"rotX\\\":0.2,\\\"rotY\\\":-0.4}\",\"mode\":\"overview\",\"progress\":4,\"total\":4,\"width\":390,\"height\":844,\"scrollWidth\":390,\"dock\":{\"x\":12,\"y\":701.109375,\"width\":366,\"height\":307.390625,\"top\":701.109375,\"right\":378,\"bottom\":1008.5,\"left\":12},\"canPause\":false,\"canReset\":true,\"ownerIds\":[\"gpu-supercluster\"],\"buttons\":[{\"id\":\"runtime-toggle\",\"disabled\":false,\"title\":\"Complete\",\"text\":\"Complete\"},{\"id\":\"world-tier-trigger\",\"disabled\":false,\"title\":\"\",\"text\":\"Datacenter\"},{\"id\":\"application-profile-trigger\",\"disabled\":false,\"title\":\"\",\"text\":\"GPU Supercluster\"},{\"id\":\"camera-bird\",\"disabled\":false,\"title\":\"\",\"text\":\"Overview\"},{\"id\":\"camera-compare\",\"disabled\":true,\"title\":\"No compare target in the current simulation state\",\"text\":\"Compare\"},{\"id\":\"camera-reset\",\"disabled\":false,\"title\":\"Restore this simulation's intended framing without resetting its state\",\"text\":\"Reset view\"},{\"id\":\"decisions-button\",\"disabled\":false,\"title\":\"\",\"text\":\"Advanced (6)\"},{\"id\":\"reset-button\",\"disabled\":false,\"title\":\"Reset simulation state; keep the current camera\",\"text\":\"Reset\"},{\"id\":\"replay-button\",\"disabled\":false,\"title\":\"\",\"text\":\"Replay\"}]}"
+  ],
+  "pass": false,
+  "browser": {
+    "executable": "/usr/bin/google-chrome",
+    "arguments": [
+      "--headless=new",
+      "--remote-debugging-port=0",
+      "--user-data-dir=/tmp/simulatte-browser-jFm5uz",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--enable-unsafe-webgpu",
+      "--window-size=1440,1000",
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "--use-angle=swiftshader",
+      "--use-webgpu-adapter=swiftshader",
+      "--enable-unsafe-swiftshader",
+      "about:blank"
+    ],
+    "process": {
+      "schema": "simulatte.auditChildProcessLog.v1",
+      "stdout": {
+        "characterCount": 0,
+        "chunkCount": 0,
+        "truncated": false,
+        "tail": ""
+      },
+      "stderr": {
+        "characterCount": 873,
+        "chunkCount": 8,
+        "truncated": false,
+        "tail": "\nDevTools listening on ws://127.0.0.1:39391/devtools/browser/f7c2612a-b2c2-411a-8840-e37d6135e070\nCreated TensorFlow Lite XNNPACK delegate for CPU.\nAttempting to use a delegate that only supports static-sized tensors with a graph that has dynamic-sized tensors (tensor#-1 is a dynamic-sized tensor).\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\nWarning: DawnExperimentalSubgroupLimits is deprecated, use AdapterPropertiesSubgroups instead.\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1790175476.401383  623928 voice_transcription.cc:58] Registering VoiceTranscriptionCapability\n"
+      }
+    }
+  },
+  "finishedAt": "2026-09-23T14:58:51.771Z"
+}
