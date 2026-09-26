@@ -1,0 +1,5 @@
+
+> check:source-size
+> node tools/check-source-size.mjs
+
+SOURCE-SIZE pass warnings=55 maximum=999

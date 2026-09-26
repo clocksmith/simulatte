@@ -11,8 +11,8 @@
       : result.topology.racks[0]?.id;
     if(!targetRack)throw Error('Unknown straggler node');
     const state = { durationMs, timeMs: 0, iteration: 0, communication: 0, communicating: false,
-      totalWaitMs: 0, transferMs: result.collectives.tensorTransferMs + result.collectives.communicationPlan.durationMs,
-      tensorTransferMs: result.collectives.tensorTransferMs, plan: result.collectives.communicationPlan,
+      totalWaitMs: 0, transferMs: result.collectives.tensorCommunicationPlan.durationMs + result.collectives.communicationPlan.durationMs,
+      tensorPlan: result.collectives.tensorCommunicationPlan, plan: result.collectives.communicationPlan,
       computeMs: result.collectives.computeTimeMs, actions: actions.map(a => ({ ...a })), appliedActions: 0,
       racks: result.topology.racks.map((rack, index) => ({
         id: rack.id, work: 0, waitMs: 0, task: 'forward', waitingFor: [],
@@ -86,12 +86,16 @@
     return snapshot(state);
   }
   function snapshot(state) {
-    const transferTime = state.communication * state.transferMs - state.tensorTransferMs;
-    const round = state.communicating && transferTime >= 0 ? state.plan.rounds.find(r => transferTime < r.startMs + r.durationMs) : null;
+    const elapsedMs = state.communication * state.transferMs;
+    const isTensor = elapsedMs < state.tensorPlan.durationMs;
+    const plan = isTensor ? state.tensorPlan : state.plan;
+    const transferTime = isTensor ? elapsedMs : elapsedMs - state.tensorPlan.durationMs;
+    const round = state.communicating ? plan.rounds.find(r => transferTime < r.startMs + r.durationMs) : null;
     const stage = round?.stages.find(h => transferTime - round.startMs < h.startMs + h.durationMs);
-    return { schema: 'simulatte.clusterWorkload.v2', timeMs: state.timeMs, durationMs: state.durationMs,
+    return { schema: 'simulatte.clusterWorkload.v3', timeMs: state.timeMs, durationMs: state.durationMs,
       iteration: state.iteration, communication: state.communication, communicating: state.communicating,
-      collectiveOperation: state.plan.operation, collectiveRound: round?.index ?? null,
+      communicationPhase: state.communicating ? (isTensor ? 'tensor' : 'data') : null,
+      collectiveOperation: plan.operation, collectiveRound: round?.index ?? null,
       activeLinkIds: stage ? [...new Set(stage.links.map(l => l.id))] : [],
       transfers: stage ? stage.links.map(l => ({...l,progress:(transferTime-round.startMs-stage.startMs)/stage.durationMs})) : [],
       totalWaitMs: state.totalWaitMs, actions: state.actions.map(a => ({ ...a })),

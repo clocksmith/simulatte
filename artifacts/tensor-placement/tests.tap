@@ -1,0 +1,790 @@
+TAP version 13
+# Subtest: four-rank ring transfers six 250-byte chunks per rank at one GB/s
+ok 1 - four-rank ring transfers six 250-byte chunks per rank at one GB/s
+  ---
+  duration_ms: 2.702489
+  type: 'test'
+  ...
+# Subtest: capacity belongs to routed links; halving every capacity doubles serialization time
+ok 2 - capacity belongs to routed links; halving every capacity doubles serialization time
+  ---
+  duration_ms: 1.882781
+  type: 'test'
+  ...
+# Subtest: double binary trees deliver both reduced partitions to every rank
+ok 3 - double binary trees deliver both reduced partitions to every rank
+  ---
+  duration_ms: 0.997434
+  type: 'test'
+  ...
+# Subtest: two-by-two torus routes opposite-corner buckets through both dimensions
+ok 4 - two-by-two torus routes opposite-corner buckets through both dimensions
+  ---
+  duration_ms: 0.970197
+  type: 'test'
+  ...
+# Subtest: invalid identities, unsupported algorithms and nonfinite budgets fail closed
+ok 5 - invalid identities, unsupported algorithms and nonfinite budgets fail closed
+  ---
+  duration_ms: 0.422241
+  type: 'test'
+  ...
+# Subtest: multiple nodes within a rack remain connected by physical gateway links
+ok 6 - multiple nodes within a rack remain connected by physical gateway links
+  ---
+  duration_ms: 6.429414
+  type: 'test'
+  ...
+# Subtest: tensor parallel groups pay the capacity and latency of their physical links
+ok 7 - tensor parallel groups pay the capacity and latency of their physical links
+  ---
+  duration_ms: 1.939904
+  type: 'test'
+  ...
+# Subtest: disconnected tensor parallel ranks cannot pass through singleton data groups
+ok 8 - disconnected tensor parallel ranks cannot pass through singleton data groups
+  ---
+  duration_ms: 0.307362
+  type: 'test'
+  ...
+# Subtest: tensor placement changes routed duration without changing payload or scalar bandwidth
+ok 9 - tensor placement changes routed duration without changing payload or scalar bandwidth
+  ---
+  duration_ms: 0.819383
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster topology generates 256 GPUs across 32 liquid-cooled racks
+ok 10 - gpu-supercluster topology generates 256 GPUs across 32 liquid-cooled racks
+  ---
+  duration_ms: 10.338103
+  type: 'test'
+  ...
+# Subtest: collective solver calculates step times, MFU, and bandwidth bottlenecks for Ring and Tree AllReduce
+ok 11 - collective solver calculates step times, MFU, and bandwidth bottlenecks for Ring and Tree AllReduce
+  ---
+  duration_ms: 325.696775
+  type: 'test'
+  ...
+# Subtest: straggler node fault injection degrades MFU and increases barrier step time
+ok 12 - straggler node fault injection degrades MFU and increases barrier step time
+  ---
+  duration_ms: 212.067639
+  type: 'test'
+  ...
+# Subtest: packet loss affects collective state and coolant controls use the declared 1000 L/min bound
+ok 13 - packet loss affects collective state and coolant controls use the declared 1000 L/min bound
+  ---
+  duration_ms: 221.933968
+  type: 'test'
+  ...
+# Subtest: thermal model solves coolant delta-T, PUE, and triggers thermal throttling under reduced flow
+ok 14 - thermal model solves coolant delta-T, PUE, and triggers thermal throttling under reduced flow
+  ---
+  duration_ms: 5.24884
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster plugin produces deterministic simulation and valid receipts
+ok 15 - gpu-supercluster plugin produces deterministic simulation and valid receipts
+  ---
+  duration_ms: 141.957499
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster activates as a native v4 plugin with deterministic playback and comparison
+ok 16 - gpu-supercluster activates as a native v4 plugin with deterministic playback and comparison
+  ---
+  duration_ms: 473.282601
+  type: 'test'
+  ...
+# Subtest: GPU controls preserve zero faults, clamp physical bounds, and refuse malformed input
+ok 17 - GPU controls preserve zero faults, clamp physical bounds, and refuse malformed input
+  ---
+  duration_ms: 0.988639
+  type: 'test'
+  ...
+# Subtest: pipeline time includes the full bubble share and throughput reconciles to work over time
+ok 18 - pipeline time includes the full bubble share and throughput reconciles to work over time
+  ---
+  duration_ms: 28.500888
+  type: 'test'
+  ...
+# Subtest: default NVLink uses directional bits per second without changing explicit configured units
+ok 19 - default NVLink uses directional bits per second without changing explicit configured units
+  ---
+  duration_ms: 48.87561
+  type: 'test'
+  ...
+# Subtest: coolant flow changes die temperature and thermal caps slow computation and conserve modeled heat
+ok 20 - coolant flow changes die temperature and thermal caps slow computation and conserve modeled heat
+  ---
+  duration_ms: 107.576291
+  type: 'test'
+  ...
+# Subtest: rack populations cannot silently drop GPUs or contradict the declared nodes
+ok 21 - rack populations cannot silently drop GPUs or contradict the declared nodes
+  ---
+  duration_ms: 0.365267
+  type: 'test'
+  ...
+# Subtest: rack visuals retain exact model temperatures and PUE remains a ratio
+ok 22 - rack visuals retain exact model temperatures and PUE remains a ratio
+  ---
+  duration_ms: 72.123461
+  type: 'test'
+  ...
+# Subtest: GPU model provenance binds the source bytes used by the simulation
+ok 23 - GPU model provenance binds the source bytes used by the simulation
+  ---
+  duration_ms: 29.064827
+  type: 'test'
+  ...
+# Subtest: rack glyph drawing uses model values unchanged across render calls
+ok 24 - rack glyph drawing uses model values unchanged across render calls
+  ---
+  duration_ms: 1.740233
+  type: 'test'
+  ...
+# Subtest: datacenter projection provides one isometric meter mapping for facility and plugin layers
+ok 25 - datacenter projection provides one isometric meter mapping for facility and plugin layers
+  ---
+  duration_ms: 3.922969
+  type: 'test'
+  ...
+# Subtest: datacenter overview fits the model coordinates inside the exposed canvas at both widths
+ok 26 - datacenter overview fits the model coordinates inside the exposed canvas at both widths
+  ---
+  duration_ms: 5.224581
+  type: 'test'
+  ...
+# Subtest: training explanation stays on operating dependencies during playback
+ok 27 - training explanation stays on operating dependencies during playback
+  ---
+  duration_ms: 39.839246
+  type: 'test'
+  ...
+# Subtest: host refreshes cached GPU contributions after private control and playback mutations
+ok 28 - host refreshes cached GPU contributions after private control and playback mutations
+  ---
+  duration_ms: 292.71399
+  type: 'test'
+  ...
+# Subtest: event integration converges without discarded substep work or shifted interventions
+ok 29 - event integration converges without discarded substep work or shifted interventions
+  ---
+  duration_ms: 3.683393
+  type: 'test'
+  ...
+# Subtest: a live straggler blocks the collective, accumulates waits, and removal releases dependent racks
+ok 30 - a live straggler blocks the collective, accumulates waits, and removal releases dependent racks
+  ---
+  duration_ms: 89.747291
+  type: 'test'
+  ...
+# Subtest: live actions survive controller seek, replay, settlement, and persisted reload
+ok 31 - live actions survive controller seek, replay, settlement, and persisted reload
+  ---
+  duration_ms: 1267.968498
+  type: 'test'
+  ...
+# Subtest: configured straggler node resolves to the same canonical rack shown by the scenario
+ok 32 - configured straggler node resolves to the same canonical rack shown by the scenario
+  ---
+  duration_ms: 33.051931
+  type: 'test'
+  ...
+# Subtest: playback exposes physical transfers during both tensor and data communication
+ok 33 - playback exposes physical transfers during both tensor and data communication
+  ---
+  duration_ms: 1.800421
+  type: 'test'
+  ...
+# Subtest: tensor transfers across nodes become native contribution actors on the executed links
+ok 34 - tensor transfers across nodes become native contribution actors on the executed links
+  ---
+  duration_ms: 3.324329
+  type: 'test'
+  ...
+# Subtest: reference report separates unfitted evaluation, published comparisons, and numerical convergence
+ok 35 - reference report separates unfitted evaluation, published comparisons, and numerical convergence
+  ---
+  duration_ms: 1306.173518
+  type: 'test'
+  ...
+# Subtest: plugin runtime activates a least-authority fixture, sequences state, contributes UI, and disposes
+ok 36 - plugin runtime activates a least-authority fixture, sequences state, contributes UI, and disposes
+  ---
+  duration_ms: 102.224504
+  type: 'test'
+  ...
+# Subtest: data catalog lazily loads only declared hash-pinned shards and reuses the verified result
+ok 37 - data catalog lazily loads only declared hash-pinned shards and reuses the verified result
+  ---
+  duration_ms: 2.582059
+  type: 'test'
+  ...
+# Subtest: application interactions expose governed seeds without presenting mission prose as input
+ok 38 - application interactions expose governed seeds without presenting mission prose as input
+  ---
+  duration_ms: 1.344533
+  type: 'test'
+  ...
+# Subtest: plugin runtime forwards scenario changes through the generic lifecycle
+ok 39 - plugin runtime forwards scenario changes through the generic lifecycle
+  ---
+  duration_ms: 17.202816
+  type: 'test'
+  ...
+# Subtest: plugin runtime clones action and capability results before exposing them
+ok 40 - plugin runtime clones action and capability results before exposing them
+  ---
+  duration_ms: 16.882248
+  type: 'test'
+  ...
+# Subtest: plugin runtime disposes activated plugins when a later activation fails
+ok 41 - plugin runtime disposes activated plugins when a later activation fails
+  ---
+  duration_ms: 14.053114
+  type: 'test'
+  ...
+# Subtest: plugin runtime disposes every plugin and reports disposal failures
+ok 42 - plugin runtime disposes every plugin and reports disposal failures
+  ---
+  duration_ms: 8.766419
+  type: 'test'
+  ...
+# Subtest: plugin runtime owns an immutable scenario snapshot
+ok 43 - plugin runtime owns an immutable scenario snapshot
+  ---
+  duration_ms: 12.682269
+  type: 'test'
+  ...
+# Subtest: plugin runtime rolls back applied scenario changes after a plugin rejects one
+ok 44 - plugin runtime rolls back applied scenario changes after a plugin rejects one
+  ---
+  duration_ms: 10.148176
+  type: 'test'
+  ...
+# Subtest: plugin runtime serializes overlapping scenario changes
+ok 45 - plugin runtime serializes overlapping scenario changes
+  ---
+  duration_ms: 17.316776
+  type: 'test'
+  ...
+# Subtest: plugin runtime rejects public work after disposal instead of reading cleared instances
+ok 46 - plugin runtime rejects public work after disposal instead of reading cleared instances
+  ---
+  duration_ms: 16.564807
+  type: 'test'
+  ...
+# Subtest: plugin runtime disposal is idempotent for overlapping callers
+ok 47 - plugin runtime disposal is idempotent for overlapping callers
+  ---
+  duration_ms: 7.915068
+  type: 'test'
+  ...
+# Subtest: plugin runtime completes queued scenario work before disposal closes plugins
+ok 48 - plugin runtime completes queued scenario work before disposal closes plugins
+  ---
+  duration_ms: 10.676201
+  type: 'test'
+  ...
+# Subtest: plugin contracts reject undeclared authority and capability cycles fail before activation
+ok 49 - plugin contracts reject undeclared authority and capability cycles fail before activation
+  ---
+  duration_ms: 6.478338
+  type: 'test'
+  ...
+# Subtest: executable plugin activation fails closed without current trust or after revocation
+ok 50 - executable plugin activation fails closed without current trust or after revocation
+  ---
+  duration_ms: 0.450193
+  type: 'test'
+  ...
+# Subtest: every repository plugin carries current same-realm trust without marketplace claims
+ok 51 - every repository plugin carries current same-realm trust without marketplace claims
+  ---
+  duration_ms: 2.205169
+  type: 'test'
+  ...
+# Subtest: request contributions reject fields outside the versioned host contract
+ok 52 - request contributions reject fields outside the versioned host contract
+  ---
+  duration_ms: 0.269848
+  type: 'test'
+  ...
+# Subtest: plugin UI contract reserves map overlays for interaction and rejects duplicate HUD surfaces
+ok 53 - plugin UI contract reserves map overlays for interaction and rejects duplicate HUD surfaces
+  ---
+  duration_ms: 0.133218
+  type: 'test'
+  ...
+# Subtest: legacy numeric UI fields retain finite bounds for v4 normalization
+ok 54 - legacy numeric UI fields retain finite bounds for v4 normalization
+  ---
+  duration_ms: 0.364714
+  type: 'test'
+  ...
+# Subtest: plugin presentation is validated and compiled into namespaced renderer data
+ok 55 - plugin presentation is validated and compiled into namespaced renderer data
+  ---
+  duration_ms: 1.41079
+  type: 'test'
+  ...
+# Subtest: experience camera configuration targets only an active plugin
+ok 56 - experience camera configuration targets only an active plugin
+  ---
+  duration_ms: 0.38446
+  type: 'test'
+  ...
+# Subtest: application profiles declare when plugin evidence owns the visible world detail
+ok 57 - application profiles declare when plugin evidence owns the visible world detail
+  ---
+  duration_ms: 0.714436
+  type: 'test'
+  ...
+# Subtest: every connected application profile declares an explicit performance budget
+ok 58 - every connected application profile declares an explicit performance budget
+  ---
+  duration_ms: 3.913009
+  type: 'test'
+  ...
+# Subtest: platform bootstrap has no named plugin import
+ok 59 - platform bootstrap has no named plugin import
+  ---
+  duration_ms: 0.415562
+  type: 'test'
+  ...
+# Subtest: Main exposes governed profile selection and disposes plugins on teardown
+ok 60 - Main exposes governed profile selection and disposes plugins on teardown
+  ---
+  duration_ms: 3.039203
+  type: 'test'
+  ...
+# Subtest: plugin playback advances on the shared clock and settles terminal obligations
+ok 61 - plugin playback advances on the shared clock and settles terminal obligations
+  ---
+  duration_ms: 13.013188
+  type: 'test'
+  ...
+# Subtest: plugin playback fails closed when terminal obligations remain unmet
+ok 62 - plugin playback fails closed when terminal obligations remain unmet
+  ---
+  duration_ms: 0.952069
+  type: 'test'
+  ...
+# Subtest: settlement retains immutable runtime history and snapshots mutable adapter receipts
+ok 63 - settlement retains immutable runtime history and snapshots mutable adapter receipts
+  ---
+  duration_ms: 4.172138
+  type: 'test'
+  ...
+# Subtest: plugin playback restores a settled run deterministically from its receipt
+ok 64 - plugin playback restores a settled run deterministically from its receipt
+  ---
+  duration_ms: 8.784236
+  type: 'test'
+  ...
+# Subtest: plugin playback restores an immediately settled run without dispatching a step
+ok 65 - plugin playback restores an immediately settled run without dispatching a step
+  ---
+  duration_ms: 4.227969
+  type: 'test'
+  ...
+# Subtest: plugin playback refuses a reload whose deterministic reconstruction diverges
+ok 66 - plugin playback refuses a reload whose deterministic reconstruction diverges
+  ---
+  duration_ms: 6.95727
+  type: 'test'
+  ...
+# Subtest: plugin playback receipt storage is profile-scoped and recoverable
+ok 67 - plugin playback receipt storage is profile-scoped and recoverable
+  ---
+  duration_ms: 0.561909
+  type: 'test'
+  ...
+# Subtest: plugin playback stores only evidence required for deterministic reconstruction
+ok 68 - plugin playback stores only evidence required for deterministic reconstruction
+  ---
+  duration_ms: 0.470642
+  type: 'test'
+  ...
+# Subtest: plugin playback storage exhaustion does not fail a completed run
+ok 69 - plugin playback storage exhaustion does not fail a completed run
+  ---
+  duration_ms: 0.276497
+  type: 'test'
+  ...
+# Subtest: plugin playback sends typed experiment parameters on every phase and receipts them
+ok 70 - plugin playback sends typed experiment parameters on every phase and receipts them
+  ---
+  duration_ms: 4.434638
+  type: 'test'
+  ...
+# Subtest: plugin playback snapshots scenario and terminal evidence before publishing a receipt
+ok 71 - plugin playback snapshots scenario and terminal evidence before publishing a receipt
+  ---
+  duration_ms: 6.296712
+  type: 'test'
+  ...
+# Subtest: plugin playback captures controls when Step starts a ready run
+ok 72 - plugin playback captures controls when Step starts a ready run
+  ---
+  duration_ms: 0.612505
+  type: 'test'
+  ...
+# Subtest: plugin playback applies changed controls immediately and returns to a configured ready state
+ok 73 - plugin playback applies changed controls immediately and returns to a configured ready state
+  ---
+  duration_ms: 0.892389
+  type: 'test'
+  ...
+# Subtest: plugin playback starts a configured preview without dispatching start twice
+ok 74 - plugin playback starts a configured preview without dispatching start twice
+  ---
+  duration_ms: 0.63676
+  type: 'test'
+  ...
+# Subtest: plugin playback Start does not reset a paused simulation
+ok 75 - plugin playback Start does not reset a paused simulation
+  ---
+  duration_ms: 0.428731
+  type: 'test'
+  ...
+# Subtest: plugin playback drops an in-flight start after disposal
+ok 76 - plugin playback drops an in-flight start after disposal
+  ---
+  duration_ms: 1.139918
+  type: 'test'
+  ...
+# Subtest: plugin playback closes its public API after disposal
+ok 77 - plugin playback closes its public API after disposal
+  ---
+  duration_ms: 0.706884
+  type: 'test'
+  ...
+# Subtest: plugin playback drops queued reconstruction after disposal
+ok 78 - plugin playback drops queued reconstruction after disposal
+  ---
+  duration_ms: 0.64239
+  type: 'test'
+  ...
+# Subtest: plugin playback discards an intervention superseded by a control rebuild
+ok 79 - plugin playback discards an intervention superseded by a control rebuild
+  ---
+  duration_ms: 0.866383
+  type: 'test'
+  ...
+# Subtest: plugin playback skips a redundant ready-state render when start preserves the presentation
+ok 80 - plugin playback skips a redundant ready-state render when start preserves the presentation
+  ---
+  duration_ms: 9.152731
+  type: 'test'
+  ...
+# Subtest: plugin playback preserves the completed run parameters across replay
+ok 81 - plugin playback preserves the completed run parameters across replay
+  ---
+  duration_ms: 5.557947
+  type: 'test'
+  ...
+# Subtest: plugin playback receipts and deterministically restores a mid-run intervention
+ok 82 - plugin playback receipts and deterministically restores a mid-run intervention
+  ---
+  duration_ms: 8.480223
+  type: 'test'
+  ...
+# Subtest: plugin playback executes and receipts every declared comparison
+ok 83 - plugin playback executes and receipts every declared comparison
+  ---
+  duration_ms: 14.474768
+  type: 'test'
+  ...
+# Subtest: plugin playback seek clamps stale targets and requires an explicit terminal commit
+ok 84 - plugin playback seek clamps stale targets and requires an explicit terminal commit
+  ---
+  duration_ms: 7.011841
+  type: 'test'
+  ...
+# Subtest: plugin playback yields each reconstructed step for a bounded history
+ok 85 - plugin playback yields each reconstructed step for a bounded history
+  ---
+  duration_ms: 1.922707
+  type: 'test'
+  ...
+# Subtest: plugin playback time-slices large cheap histories without forcing a frame per step
+ok 86 - plugin playback time-slices large cheap histories without forcing a frame per step
+  ---
+  duration_ms: 32.079047
+  type: 'test'
+  ...
+# Subtest: plugin playback commits a terminal preview only once under concurrent steps
+ok 87 - plugin playback commits a terminal preview only once under concurrent steps
+  ---
+  duration_ms: 7.75035
+  type: 'test'
+  ...
+# Subtest: plugin playback serializes overlapping intervention actions
+ok 88 - plugin playback serializes overlapping intervention actions
+  ---
+  duration_ms: 0.996788
+  type: 'test'
+  ...
+# Subtest: plugin playback seek aligns the clock by simulation time rather than event index
+ok 89 - plugin playback seek aligns the clock by simulation time rather than event index
+  ---
+  duration_ms: 3.880251
+  type: 'test'
+  ...
+# Subtest: plugin playback seek drains an in-flight clock step before reconstructing
+ok 90 - plugin playback seek drains an in-flight clock step before reconstructing
+  ---
+  duration_ms: 4.035484
+  type: 'test'
+  ...
+# Subtest: plugin playback restore drains old queued actions before resetting its scenario
+ok 91 - plugin playback restore drains old queued actions before resetting its scenario
+  ---
+  duration_ms: 4.892658
+  type: 'test'
+  ...
+# Subtest: plugin playback restore rejects a newly introduced comparison proof
+ok 92 - plugin playback restore rejects a newly introduced comparison proof
+  ---
+  duration_ms: 13.281891
+  type: 'test'
+  ...
+# Subtest: v4 truth axes preserve origin, time, and uncertainty independently
+ok 93 - v4 truth axes preserve origin, time, and uncertainty independently
+  ---
+  duration_ms: 1.846645
+  type: 'test'
+  ...
+# Subtest: provenance registry exposes source records through render-object bindings
+ok 94 - provenance registry exposes source records through render-object bindings
+  ---
+  duration_ms: 2.091969
+  type: 'test'
+  ...
+# Subtest: v1-v3 adapter removes final visual styling authority from plugins
+ok 95 - v1-v3 adapter removes final visual styling authority from plugins
+  ---
+  duration_ms: 0.90023
+  type: 'test'
+  ...
+# Subtest: v4 contribution closes every rendered and simulated claim over provenance records
+ok 96 - v4 contribution closes every rendered and simulated claim over provenance records
+  ---
+  duration_ms: 1.51709
+  type: 'test'
+  ...
+# Subtest: timeline orders causal events, branches from replay state, and rejects missing causes
+ok 97 - timeline orders causal events, branches from replay state, and rejects missing causes
+  ---
+  duration_ms: 1.252576
+  type: 'test'
+  ...
+# Subtest: shared clock owns rate, playback, seeking, replay, and event delivery
+ok 98 - shared clock owns rate, playback, seeking, replay, and event delivery
+  ---
+  duration_ms: 0.718764
+  type: 'test'
+  ...
+# Subtest: semantic compositor bounds widths and clusters dense points without losing provenance
+ok 99 - semantic compositor bounds widths and clusters dense points without losing provenance
+  ---
+  duration_ms: 8.813583
+  type: 'test'
+  ...
+# Subtest: semantic compositor gives consequential quantities distinct domain colors
+ok 100 - semantic compositor gives consequential quantities distinct domain colors
+  ---
+  duration_ms: 0.220591
+  type: 'test'
+  ...
+# Subtest: semantic compositor maps governed neighborhood prices onto a shared heat scale
+ok 101 - semantic compositor maps governed neighborhood prices onto a shared heat scale
+  ---
+  duration_ms: 0.983923
+  type: 'test'
+  ...
+# Subtest: View Director arbitrates intents while manual navigation remains authoritative
+ok 102 - View Director arbitrates intents while manual navigation remains authoritative
+  ---
+  duration_ms: 1.161131
+  type: 'test'
+  ...
+# Subtest: Safety v4 exposes observed rows separately from the derived route estimate
+ok 103 - Safety v4 exposes observed rows separately from the derived route estimate
+  ---
+  duration_ms: 26.630083
+  type: 'test'
+  ...
+# Subtest: Food v4 carries simulated lineage, source rows, controls, and uncertainty together
+ok 104 - Food v4 carries simulated lineage, source rows, controls, and uncertainty together
+  ---
+  duration_ms: 9.876881
+  type: 'test'
+  ...
+# Subtest: Orbital v4 separates pinned state vectors from forecast transfer modeling
+ok 105 - Orbital v4 separates pinned state vectors from forecast transfer modeling
+  ---
+  duration_ms: 47.953167
+  type: 'test'
+  ...
+# Subtest: the twelve connected experiences each load one native v4 contribution and City is only the substrate
+ok 106 - the twelve connected experiences each load one native v4 contribution and City is only the substrate
+  ---
+  duration_ms: 5.81848
+  type: 'test'
+  ...
+# Subtest: City WGS84 plugin geometry uses the world local origin instead of the country fallback
+ok 107 - City WGS84 plugin geometry uses the world local origin instead of the country fallback
+  ---
+  duration_ms: 371.62949
+  type: 'test'
+  ...
+# Subtest: ranked select groups require a complete unique shared option set
+ok 108 - ranked select groups require a complete unique shared option set
+  ---
+  duration_ms: 0.67466
+  type: 'test'
+  ...
+# Subtest: tier controller honors a profile-owned day cadence
+ok 109 - tier controller honors a profile-owned day cadence
+  ---
+  duration_ms: 3.701703
+  type: 'test'
+  ...
+# Subtest: tier controller settles a profile that explicitly has no comparison mode
+ok 110 - tier controller settles a profile that explicitly has no comparison mode
+  ---
+  duration_ms: 1.182895
+  type: 'test'
+  ...
+# Subtest: tier controller pauses, steps, executes both comparison branches, settles, and persists
+ok 111 - tier controller pauses, steps, executes both comparison branches, settles, and persists
+  ---
+  duration_ms: 20.34518
+  type: 'test'
+  ...
+# Subtest: tier controller reconstructs a matching terminal receipt after reload
+ok 112 - tier controller reconstructs a matching terminal receipt after reload
+  ---
+  duration_ms: 6.704691
+  type: 'test'
+  ...
+# Subtest: tier controller rejects a reload whose terminal comparison identity diverges
+ok 113 - tier controller rejects a reload whose terminal comparison identity diverges
+  ---
+  duration_ms: 6.815692
+  type: 'test'
+  ...
+# Subtest: tier controller drops malformed persisted restore envelopes
+ok 114 - tier controller drops malformed persisted restore envelopes
+  ---
+  duration_ms: 0.313493
+  type: 'test'
+  ...
+# Subtest: tier controller compares, settles, and restores a terminal simulation failure
+ok 115 - tier controller compares, settles, and restores a terminal simulation failure
+  ---
+  duration_ms: 5.306238
+  type: 'test'
+  ...
+# Subtest: tier controller applies experiment parameters to start and step phases and persists them
+ok 116 - tier controller applies experiment parameters to start and step phases and persists them
+  ---
+  duration_ms: 4.151019
+  type: 'test'
+  ...
+# Subtest: tier controller preserves the settled run parameters across runtime-reset replay
+ok 117 - tier controller preserves the settled run parameters across runtime-reset replay
+  ---
+  duration_ms: 5.588597
+  type: 'test'
+  ...
+# Subtest: tier controller drops a stale terminal restart while newer controls rebuild the runtime
+ok 118 - tier controller drops a stale terminal restart while newer controls rebuild the runtime
+  ---
+  duration_ms: 6.681619
+  type: 'test'
+  ...
+# Subtest: tier controller drops a stale replay while newer controls rebuild the runtime
+ok 119 - tier controller drops a stale replay while newer controls rebuild the runtime
+  ---
+  duration_ms: 3.108038
+  type: 'test'
+  ...
+# Subtest: tier controller discards a stale terminal settlement after controls rebuild the runtime
+ok 120 - tier controller discards a stale terminal settlement after controls rebuild the runtime
+  ---
+  duration_ms: 0.628498
+  type: 'test'
+  ...
+# Subtest: tier controller does not let a stale reset reflect over newer configured controls
+ok 121 - tier controller does not let a stale reset reflect over newer configured controls
+  ---
+  duration_ms: 0.898113
+  type: 'test'
+  ...
+# Subtest: tier controller applies changed controls immediately and leaves the configured run ready
+ok 122 - tier controller applies changed controls immediately and leaves the configured run ready
+  ---
+  duration_ms: 0.295422
+  type: 'test'
+  ...
+# Subtest: tier controller starts a configured preview without dispatching start twice
+ok 123 - tier controller starts a configured preview without dispatching start twice
+  ---
+  duration_ms: 0.321976
+  type: 'test'
+  ...
+# Subtest: tier controller executes every declared comparison independently
+ok 124 - tier controller executes every declared comparison independently
+  ---
+  duration_ms: 14.836955
+  type: 'test'
+  ...
+# Subtest: tier controller persists a bounded reload envelope instead of terminal evidence
+ok 125 - tier controller persists a bounded reload envelope instead of terminal evidence
+  ---
+  duration_ms: 0.411288
+  type: 'test'
+  ...
+# Subtest: tier controller seek clamps stale targets and commits terminal preview explicitly
+ok 126 - tier controller seek clamps stale targets and commits terminal preview explicitly
+  ---
+  duration_ms: 3.187899
+  type: 'test'
+  ...
+# Subtest: tier controller yields between bounded reconstruction batches
+ok 127 - tier controller yields between bounded reconstruction batches
+  ---
+  duration_ms: 5.677992
+  type: 'test'
+  ...
+# Subtest: tier controller commits a terminal preview only once under concurrent steps
+ok 128 - tier controller commits a terminal preview only once under concurrent steps
+  ---
+  duration_ms: 6.663914
+  type: 'test'
+  ...
+# Subtest: tier controller closes its public API after disposal
+ok 129 - tier controller closes its public API after disposal
+  ---
+  duration_ms: 3.371039
+  type: 'test'
+  ...
+# Subtest: tier controller auto-starts directly on boot without prior manual configuration
+ok 130 - tier controller auto-starts directly on boot without prior manual configuration
+  ---
+  duration_ms: 0.242471
+  type: 'test'
+  ...
+1..130
+# tests 130
+# suites 0
+# pass 130
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2464.295261

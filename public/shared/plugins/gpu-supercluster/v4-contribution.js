@@ -9,9 +9,9 @@
   const PLUGIN_ID = 'gpu-supercluster';
   const MODEL_DATASET_ID = 'repository-models:gpu-supercluster-v1';
   const MODEL_HASHES = Object.freeze({
-    workload: 'f9d94b55ab20ff61d13f862704867bfa12069b421869ec077933aed734ff4c8a',
+    workload: 'e708ad5e8002740dc82988814d95da8ce2b2ccccddf0d336db823f71c320ed95',
     topology: 'cd13b2f7dd6116a1cfa129f07994671ee574964f37500bd8b5d47cd401207112',
-    collectives: 'cc602903b6e78eab294c723bba933b730d82739dcc6feea6ea7bf3b4e1247f0f',
+    collectives: 'fb3aa8a8c8d6c3ad295da8153fe9f00d5d704211fea20bd5aa6464f70a0c5b5f',
     thermals: 'afabd35b2bba5a587d061c2e5303920de6077419abc5a4c491e3ebe590826548',
   });
   function createContribution({ result, step = 0, workload = null }) {

@@ -66,3 +66,48 @@ test('multiple nodes within a rack remain connected by physical gateway links',(
  const plan=api.planCollective({topology,groups:[topology.gpus.map(g=>g.id)],bytes:1000,algorithm:'ring-allreduce'});
  assert.ok(plan.durationMs>0);
 });
+
+
+test('tensor parallel groups pay the capacity and latency of their physical links', () => {
+  const solve = bandwidth => api.solveCollectives({
+    totalGpus: 4, tensorSizeGb: 1e-6,
+    parallelism: { tensorParallel: 4, pipelineParallel: 1, dataParallel: 1 },
+    topology: ring(4, bandwidth),
+  });
+  // Six 250-byte rounds on a one-GB/s physical ring, even though the
+  // scalar NVLink setting still defaults to 450 GB/s.
+  near(solve(8).tensorTransferMs, 0.0015);
+  near(solve(4).tensorTransferMs, 0.003);
+  near(solve(8).commTimeMs, 0.0015);
+  const delayed = ring(4);
+  delayed.links = delayed.links.map(link => ({ ...link, latencySeconds: 1e-6 }));
+  const result = api.solveCollectives({ totalGpus: 4, tensorSizeGb: 1e-6,
+    parallelism: { tensorParallel: 4, pipelineParallel: 1, dataParallel: 1 }, topology: delayed });
+  near(result.tensorTransferMs, 0.0075);
+  assert.equal(result.tensorCommunicationPlan.logicalBytes, 6000);
+  assert.deepEqual(result.tensorCommunicationPlan.groups, [['g0', 'g1', 'g2', 'g3']]);
+});
+
+test('disconnected tensor parallel ranks cannot pass through singleton data groups', () => {
+  const topology = ring(4); topology.links = topology.links.slice(0, 1);
+  assert.throws(() => api.solveCollectives({ totalGpus: 4, tensorSizeGb: 1e-6,
+    parallelism: { tensorParallel: 4, pipelineParallel: 1, dataParallel: 1 }, topology }), /disconnected/);
+});
+
+
+test('tensor placement changes routed duration without changing payload or scalar bandwidth', () => {
+  const run = ids => {
+    const topology = ring(4);
+    topology.gpus = ids.map(id => ({ id }));
+    return api.solveCollectives({ totalGpus: 4, tensorSizeGb: 1e-6,
+      parallelism: { tensorParallel: 2, pipelineParallel: 1, dataParallel: 2 }, topology });
+  };
+  const adjacent = run(['g0', 'g1', 'g2', 'g3']);
+  const separated = run(['g0', 'g2', 'g1', 'g3']);
+  // Two rounds of 250 bytes; separated partners require two physical hops.
+  near(adjacent.tensorTransferMs, 0.0005);
+  near(separated.tensorTransferMs, 0.001);
+  assert.equal(adjacent.tensorCommunicationPlan.logicalBytes, separated.tensorCommunicationPlan.logicalBytes);
+  assert.deepEqual(separated.tensorCommunicationPlan.groups, [['g0', 'g2'], ['g1', 'g3']]);
+  assert.ok(Object.isFrozen(separated.tensorCommunicationPlan.groups[0]));
+});

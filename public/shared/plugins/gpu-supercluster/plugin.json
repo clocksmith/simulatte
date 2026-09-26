@@ -62,7 +62,7 @@
       "path": "./cluster-topology.js"
     },
     {
-      "integrity": "sha384-fd134e2b0d126d920de15ca17d19c2df94a28332c72dc9d2b544b7d401c25b697cc8f9090c048468b3b3bf3daa6dac0d",
+      "integrity": "sha384-5895574cc6529ab801f99eed610942d9385490e5857c0a81d93494ba2980c6cf5d29091774f13fd413bc73598b42ef3c",
       "path": "./collective-solver.js"
     },
     {
@@ -82,12 +82,12 @@
       "path": "./receipt-factory.js"
     },
     {
-      "integrity": "sha384-9910be46e6652bb32fa0ae7d06ab7b3ff639c633baa5b2ce8c7cbee00c900946c1159ad5ed91ee7f2e4f5ac396b61e89",
+      "integrity": "sha384-adc46c1d58a33583c0f0bb8bf9bfbf42558a87f07b676e96ccfa3067f0718f93356b8c54101ee8e69d327082d5310125",
       "path": "./v4-contribution.js"
     },
     {
       "path": "./workload.js",
-      "integrity": "sha384-077848005ca11a808e931ce48f918b86f428630f21b44f9438b490cf1480e523e3cdfae684a016ef29ed5413fb0e1bb3"
+      "integrity": "sha384-e0b5cfcc050fe08d13f280fd33afdb98f72b638e815ceffd0168d1690bee893b8ce858369b7b2833b289aa95794d7659"
     }
   ],
   "schema": "simulatte.pluginManifest.v3",

@@ -1,0 +1,52 @@
+{
+  "schema": "simulatte.tensorPlacementValidation.v1",
+  "capturedAt": "2026-09-26T15:19:48.262870+00:00",
+  "head": "c3ab0202061df99a901ab1c5624902a96db026f2",
+  "sources": {
+    "public/shared/plugins/gpu-supercluster/collective-solver.js": {
+      "sha256": "fb3aa8a8c8d6c3ad295da8153fe9f00d5d704211fea20bd5aa6464f70a0c5b5f",
+      "modifiedAt": "2026-09-26T15:16:32.756Z"
+    },
+    "public/shared/plugins/gpu-supercluster/plugin.json": {
+      "sha256": "1591411a45b6b96ebcaf8113945383a27a98cfff6ee104351efeb9ff365deb79",
+      "modifiedAt": "2026-09-26T15:17:36.447Z"
+    },
+    "public/shared/plugins/gpu-supercluster/v4-contribution.js": {
+      "sha256": "f98b9424ab779d136bab0132e63f7b6241fb3db2f40c1b754803006eb72ff558",
+      "modifiedAt": "2026-09-26T15:17:36.416Z"
+    },
+    "public/shared/plugins/gpu-supercluster/workload.js": {
+      "sha256": "e708ad5e8002740dc82988814d95da8ce2b2ccccddf0d336db823f71c320ed95",
+      "modifiedAt": "2026-09-26T15:17:36.292Z"
+    },
+    "public/simulatte/platform/plugin-host/generated-plugin-registry.js": {
+      "sha256": "6ae0f50ed86ac8f994d31e6b579706e7a407541dea15c3e88622712bae634c4c",
+      "modifiedAt": "2026-09-26T15:17:36.517Z"
+    }
+  },
+  "evidence": {
+    "tests/collective-reference.test.cjs": "e16d1545d201db150e16df3e0da90f07d73cb80b3b1a76e93569cf10de587f9b",
+    "tests/gpu-workload.test.cjs": "baca64beaa1020b274c4d3049b377322da0f7b864e3d1b857d4eaaef60cf5fea",
+    "artifacts/tensor-placement/tests.tap": "a50ff8a6d2d304f933dee4da6c4afec220b076b884dfded56e1c863ead5a98b6",
+    "artifacts/tensor-placement/before.tap": "599fcdc6080b2356890c71b979178d268cb666f2953325cd0356fa5c9199233e",
+    "artifacts/tensor-placement/gpu/browser.json": "d545389f9036c096af035a9438f041aa3b08350828b3968d1c133cb1b072f716"
+  },
+  "tests": {
+    "command": "node --test tests/collective-reference.test.cjs tests/gpu-workload.test.cjs tests/gpu-supercluster.test.cjs tests/plugin-platform.test.cjs tests/plugin-v4-platform.test.cjs tests/tier-run-controller.test.cjs tests/plugin-playback.test.cjs tests/model-reference-report.test.cjs",
+    "passed": 130,
+    "failed": 0
+  },
+  "browser": {
+    "command": "SIMULATTE_EVIDENCE_DIR=artifacts/tensor-placement node tools/simulatte/audit-runtime-gpu.mjs",
+    "cases": 12,
+    "errors": 0,
+    "failure": null,
+    "backend": "headless Chrome with --use-angle=swiftshader-webgl"
+  },
+  "checks": [
+    "npm run catscan:check",
+    "npm run plugins:check",
+    "npm run check:source-size",
+    "git diff --check"
+  ]
+}

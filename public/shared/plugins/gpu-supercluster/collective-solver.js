@@ -92,7 +92,7 @@
         transfers: Object.freeze(transfers.map(({ path, ...t }) => Object.freeze({ ...t, linkIds: Object.freeze(path.map(e => e.id)) }))),
         links: Object.freeze([...links.values()].map(Object.freeze)) });
     });
-    return Object.freeze({ schema: 'simulatte.collectivePlan.v1', algorithm, operation: algorithm === '2d-torus-all-to-all' ? 'all-to-all' : 'allreduce',
+    return Object.freeze({ schema: 'simulatte.collectivePlan.v2', groups: Object.freeze(groups.map(group => Object.freeze([...group]))), algorithm, operation: algorithm === '2d-torus-all-to-all' ? 'all-to-all' : 'allreduce',
       routing: 'deterministic-shortest-hop', transport: 'synchronous-store-and-forward-full-duplex',
       lossModel: 'independent-retry-expected-bytes', durationMs, logicalBytes, rounds: Object.freeze(rounds) });
   }
@@ -118,12 +118,17 @@
     const effectiveClusterGpus = tp * pp * dp;
     if (effectiveClusterGpus !== totalGpus) throw new Error('gpu_parallelism_must_match_cluster');
 
-    // H100's 900 GB/s bidirectional aggregate is modeled as 450 GB/s per direction.
-    const tpBandwidthBps = (nvlinkBandwidthGbps * 1e9) / 8;
-    const tpTransferTimeSec = (2 * (tp - 1) / tp) * (tensorSizeBytes / (pp * dp)) / tpBandwidthBps;
-
     const network = topology || topologyApi.buildClusterTopology({ totalGpus, racks: Math.max(1, totalGpus / tp), gpusPerNode: tp, nvlinkBandwidthGbps, infinibandBandwidthGbps });
     if(network.gpus.length!==totalGpus)throw Error('gpu_collective_population_mismatch');
+    // Rank order is [data][pipeline][tensor]. Both group families use the
+    // same physical graph, including when a tensor group spans node boundaries.
+    const tensorGroups = [];
+    for (let d = 0; d < dp; d++) for (let p = 0; p < pp; p++) {
+      tensorGroups.push(Array.from({ length: tp }, (_, t) => network.gpus[(d * pp + p) * tp + t].id));
+    }
+    const tensorCommunicationPlan = planCollective({ topology: network, groups: tensorGroups,
+      bytes: tensorSizeBytes / (pp * dp), algorithm: 'ring-allreduce', loss: linkPacketDropRate });
+    const tpTransferTimeSec = tensorCommunicationPlan.durationMs / 1000;
     const groups = [];
     for (let p = 0; p < pp; p++) for (let t = 0; t < tp; t++) {
       groups.push(Array.from({ length: dp }, (_, d) => network.gpus[(d * pp + p) * tp + t].id));
@@ -186,9 +191,10 @@
       modelFlopsUtilization: (modelFlopsUtilization * 100),
       effectiveClusterTflops: effectiveClusterTflops,
       totalPeakClusterTflops,
-      bandwidthBottleneck: dpTransferTimeSec > tpTransferTimeSec ? 'InfiniBand Inter-Rack' : 'NVLink Intra-Node',
+      bandwidthBottleneck: dpTransferTimeSec > tpTransferTimeSec ? 'data-parallel' : 'tensor-parallel',
       thermalClockFraction,
       communicationPlan,
+      tensorCommunicationPlan,
       tensorTransferMs: tpTransferTimeSec * 1000,
     });
   }

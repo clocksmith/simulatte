@@ -1,0 +1,141 @@
+TAP version 13
+# Subtest: four-rank ring transfers six 250-byte chunks per rank at one GB/s
+ok 1 - four-rank ring transfers six 250-byte chunks per rank at one GB/s
+  ---
+  duration_ms: 1.729193
+  type: 'test'
+  ...
+# Subtest: capacity belongs to routed links; halving every capacity doubles serialization time
+ok 2 - capacity belongs to routed links; halving every capacity doubles serialization time
+  ---
+  duration_ms: 1.355167
+  type: 'test'
+  ...
+# Subtest: double binary trees deliver both reduced partitions to every rank
+ok 3 - double binary trees deliver both reduced partitions to every rank
+  ---
+  duration_ms: 0.662111
+  type: 'test'
+  ...
+# Subtest: two-by-two torus routes opposite-corner buckets through both dimensions
+ok 4 - two-by-two torus routes opposite-corner buckets through both dimensions
+  ---
+  duration_ms: 0.659795
+  type: 'test'
+  ...
+# Subtest: invalid identities, unsupported algorithms and nonfinite budgets fail closed
+ok 5 - invalid identities, unsupported algorithms and nonfinite budgets fail closed
+  ---
+  duration_ms: 0.267724
+  type: 'test'
+  ...
+# Subtest: multiple nodes within a rack remain connected by physical gateway links
+ok 6 - multiple nodes within a rack remain connected by physical gateway links
+  ---
+  duration_ms: 2.082894
+  type: 'test'
+  ...
+# Subtest: tensor parallel groups pay the capacity and latency of their physical links
+not ok 7 - tensor parallel groups pay the capacity and latency of their physical links
+  ---
+  duration_ms: 0.762908
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/collective-reference.test.cjs:71:1'
+  failureType: 'testCodeFailure'
+  error: '0.0000033333333333333333 != 0.0015'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    near (/home/clocksmith/deco/simulatte/tests/collective-reference.test.cjs:4:31)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/collective-reference.test.cjs:79:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: disconnected tensor parallel ranks cannot pass through singleton data groups
+not ok 8 - disconnected tensor parallel ranks cannot pass through singleton data groups
+  ---
+  duration_ms: 0.206221
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/collective-reference.test.cjs:91:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/collective-reference.test.cjs:93:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: event integration converges without discarded substep work or shifted interventions
+ok 9 - event integration converges without discarded substep work or shifted interventions
+  ---
+  duration_ms: 2.080289
+  type: 'test'
+  ...
+# Subtest: a live straggler blocks the collective, accumulates waits, and removal releases dependent racks
+ok 10 - a live straggler blocks the collective, accumulates waits, and removal releases dependent racks
+  ---
+  duration_ms: 26.817038
+  type: 'test'
+  ...
+# Subtest: live actions survive controller seek, replay, settlement, and persisted reload
+ok 11 - live actions survive controller seek, replay, settlement, and persisted reload
+  ---
+  duration_ms: 593.740888
+  type: 'test'
+  ...
+# Subtest: configured straggler node resolves to the same canonical rack shown by the scenario
+ok 12 - configured straggler node resolves to the same canonical rack shown by the scenario
+  ---
+  duration_ms: 11.563597
+  type: 'test'
+  ...
+# Subtest: playback exposes physical transfers during both tensor and data communication
+not ok 13 - playback exposes physical transfers during both tensor and data communication
+  ---
+  duration_ms: 0.841679
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/gpu-workload.test.cjs:57:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'tensor'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'tensor'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/gpu-workload.test.cjs:63:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 10
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 750.750258
