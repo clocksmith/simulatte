@@ -9,25 +9,21 @@
   const PLUGIN_ID = 'gpu-supercluster';
   const MODEL_DATASET_ID = 'repository-models:gpu-supercluster-v1';
   const MODEL_HASHES = Object.freeze({
-    workload: '8d4fc0ca2f6191a167a0970a8f9408a5bde5c03bbe746b5561d89dd5d31e48fd',
-    topology: '5f78aa4c2521d92c926e5a6c038949424cd8d665121bc9dad72a918caf1034f7',
-    collectives: '2ae62813d8249f7972ba7c7d0aa3decd47d9c901c22f74572a1a787ba0cecef5',
+    workload: 'f9d94b55ab20ff61d13f862704867bfa12069b421869ec077933aed734ff4c8a',
+    topology: 'cd13b2f7dd6116a1cfa129f07994671ee574964f37500bd8b5d47cd401207112',
+    collectives: 'cc602903b6e78eab294c723bba933b730d82739dcc6feea6ea7bf3b4e1247f0f',
     thermals: 'afabd35b2bba5a587d061c2e5303920de6077419abc5a4c491e3ebe590826548',
   });
   function createContribution({ result, step = 0, workload = null }) {
-    const boundedStep = workload ? workload.timeMs : 0;
+    const boundedStep = workload ? step : 0;
     const { topology, collectives, thermals } = result;
     const records = modelRecords(result.receipt.seed);
     const modeled = builder.provenance({
       origin: 'simulated',
       temporalStatus: 'forecast',
       uncertainty: {
-        kind: 'interval',
-        value: {
-          interpretation: 'Deterministic scenario-model interval; not observed facility telemetry.',
-          stepTimeMs: [collectives.stepTimeMs * 0.95, collectives.stepTimeMs * 1.05],
-          peakJunctionTempC: [thermals.peakJunctionTempC - 2, thermals.peakJunctionTempC + 2],
-        },
+        kind: 'missing',
+        value: { reason: 'Analytical scenario only; no independent hardware calibration or prediction interval is available.' },
       },
       records,
     });
@@ -68,20 +64,18 @@
           provenance: modeled,
         });
       });
-    const tensorProgress = workload ? workload.communication : 0;
-    const tensorLayers = topology.gpus.length ? [builder.layer({
-      id: 'active-allreduce-tensor-pulse',
-      kind: 'actor',
-      label: `Gradient synchronization · ${Math.round(tensorProgress * 100)}%`,
-      geometry: builder.geometry('polyline', 'datacenter-cartesian-meters', topology.gpus.map((gpu) => [gpu.xM, gpu.yM, gpu.zM])),
-      quantity: builder.quantity('actor.tensor-gradient.route-progress', tensorProgress, 'ratio', [0, 1]),
-      role: 'event',
-      importance: 1,
-      aggregationKey: null,
-      provenance: modeled,
-    })] : [];
+    const tensorLayers = (workload?.transfers || []).filter(t => topology.links.some(l => l.id === t.id && l.type === 'infiniband-rail')).map(t => {
+      const from = gpuById.get(t.from), to = gpuById.get(t.to);
+      return builder.layer({
+        id: `transfer:${t.id}:${t.from}`, kind: 'actor',
+        label: `Collective round ${workload.collectiveRound + 1} · ${Math.round(t.progress * 100)}%`,
+        geometry: builder.geometry('polyline', 'datacenter-cartesian-meters', [[from.xM,from.yM,from.zM],[to.xM,to.yM,to.zM]]),
+        quantity: builder.quantity('actor.tensor-gradient.route-progress',t.progress,'ratio',[0,1]),
+        role:'event',importance:1,aggregationKey:null,provenance:modeled,
+      });
+    });
     const events = workload ? [builder.event({
-      id:`${PLUGIN_ID}:tick:${workload.timeMs}`,pluginId:PLUGIN_ID,sequence:workload.timeMs,simulationTimeMs:workload.timeMs,
+      id:`${PLUGIN_ID}:tick:${workload.timeMs}`,pluginId:PLUGIN_ID,sequence:boundedStep,simulationTimeMs:workload.timeMs,
       kind:`${PLUGIN_ID}.${workload.communicating?'allreduce-sync':workload.racks.some(r=>r.task==='waiting')?'synchronization-wait':'forward-pass'}`,
       causationIds:[],correlationId:`${PLUGIN_ID}:${result.receipt.seed}`,payload:{iteration:workload.iteration,waitingRacks:workload.racks.filter(r=>r.task==='waiting').length},provenance:modeled,
     })] : [];

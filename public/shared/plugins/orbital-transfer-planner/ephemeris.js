@@ -24,14 +24,15 @@
     const lowerDay = numericDay(lower, lowerIndex);
     const upperDay = numericDay(upper, lowerIndex + 1);
     const ratio = upperDay === lowerDay ? 0 : (boundedDay - lowerDay) / (upperDay - lowerDay);
+    const state=ratio===0?lower:hermiteState(lower,upper,ratio,upperDay-lowerDay);
     return Object.freeze({
       schema: 'simulatte.orbitalBodyState.v1',
       bodyId,
       day: boundedDay,
       epochIso: epochForDay(ephemerisDataset, boundedDay),
-      positionAu: Object.freeze(interpolateVector(lower.positionAu, upper.positionAu, ratio)),
-      velocityAuD: Object.freeze(interpolateVector(lower.velocityAuD, upper.velocityAuD, ratio)),
-      interpolation: ratio === 0 ? 'exact_sample' : 'linear_state_vector_v1',
+      positionAu: Object.freeze(state.positionAu.slice()),
+      velocityAuD: Object.freeze(state.velocityAuD.slice()),
+      interpolation: ratio === 0 ? 'exact_sample' : 'cubic_hermite_state_vector_v1',
       sourceSampleDays: Object.freeze([lowerDay, upperDay]),
     });
   }
@@ -51,11 +52,15 @@
     return Number.isFinite(row?.day) ? Number(row.day) : fallback;
   }
 
-  function interpolateVector(left, right, ratio) {
-    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== 3 || right.length !== 3) {
-      throw ephemerisError('ephemeris_vector_invalid', 'Ephemeris vectors must contain three numeric components');
-    }
-    return left.map((value, index) => value + (right[index] - value) * ratio);
+  // Position and its derivative share one polynomial. Endpoint velocities
+  // constrain the curve in AU/day; the sample interval is measured in days.
+  function hermiteState(a,b,t,h) {
+    const t2=t*t,t3=t2*t;
+    const positionAu=a.positionAu.map((p,i)=>(2*t3-3*t2+1)*p+(t3-2*t2+t)*h*a.velocityAuD[i]
+      +(-2*t3+3*t2)*b.positionAu[i]+(t3-t2)*h*b.velocityAuD[i]);
+    const velocityAuD=a.positionAu.map((p,i)=>(6*t2-6*t)/h*p+(3*t2-4*t+1)*a.velocityAuD[i]
+      +(-6*t2+6*t)/h*b.positionAu[i]+(3*t2-2*t)*b.velocityAuD[i]);
+    return {positionAu,velocityAuD};
   }
 
   function validateState(row, bodyId) {

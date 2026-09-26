@@ -497,62 +497,18 @@
     }
     ctx.restore();
 
-    const rows = [...new Set(racks.map((rack) => rack.row))].sort((a, b) => a - b);
-    rows.forEach((row, index) => {
-      const rowRacks = racks.filter((rack) => rack.row === row);
-      const centerY = rowRacks.reduce((sum, rack) => sum + rack.yM, 0) / rowRacks.length;
-      const cold = index % 2 === 0;
-      const band = [
-        [minimumX + 1, centerY - 1.25, 0.02], [maximumX - 1, centerY - 1.25, 0.02],
-        [maximumX - 1, centerY + 1.25, 0.02], [minimumX + 1, centerY + 1.25, 0.02],
-      ].map(project);
-      polygon(ctx, band, cold ? 'rgba(35, 196, 255, 0.045)' : 'rgba(255, 107, 82, 0.04)',
-        cold ? 'rgba(70, 215, 255, 0.16)' : 'rgba(255, 125, 90, 0.13)', 0.8);
-      const label = project([minimumX + 1.4, centerY, 0.05]);
-      ctx.fillStyle = cold ? 'rgba(95, 220, 255, 0.55)' : 'rgba(255, 145, 112, 0.48)';
-      ctx.font = '500 9px "IBM Plex Mono", monospace';
-      ctx.fillText(cold ? 'COLD AISLE' : 'HOT AISLE', label.x, label.y);
-
-      const first = rowRacks[0], last = rowRacks.at(-1);
-      const trunk = [project([first.xM, centerY, 3.75]), project([last.xM, centerY, 3.75])];
-      ctx.save();
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = 'rgba(77, 232, 255, 0.28)';
-      line(ctx, trunk, 'rgba(77, 232, 255, 0.34)', 1.6);
-      const pulse = (timeSeconds * 0.18 + index * 0.21) % 1;
-      const pulsePoint = {
-        x: trunk[0].x + (trunk[1].x - trunk[0].x) * pulse,
-        y: trunk[0].y + (trunk[1].y - trunk[0].y) * pulse,
-      };
-      ctx.beginPath(); ctx.arc(pulsePoint.x, pulsePoint.y, 3.2, 0, Math.PI * 2);
-      ctx.fillStyle = '#5ff4ff'; ctx.fill();
-      ctx.restore();
-
-      drawDatacenterPrism(ctx, project,
-        [maximumX - 2.2, centerY - 0.7, 0], [maximumX - 0.8, centerY + 0.7, 2.4],
-        { front: '#093845', side: '#062630', top: '#0d5667', stroke: 'rgba(93, 231, 244, 0.55)' });
-      const cdu = project([maximumX - 1.5, centerY, 1.1]);
-      ctx.save(); ctx.translate(cdu.x, cdu.y); ctx.rotate(timeSeconds * 2.4 + index);
-      ctx.strokeStyle = '#83f2f5'; ctx.lineWidth = 1.4;
-      ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(4, 0); ctx.moveTo(0, -4); ctx.lineTo(0, 4); ctx.stroke(); ctx.restore();
-    });
-
-    const spine = [project([0, minimumY + 1, 4.2]), project([0, maximumY - 1, 4.2])];
-    ctx.save(); ctx.setLineDash([5, 5]);
-    line(ctx, spine, 'rgba(195, 132, 255, 0.48)', 2.2);
-    ctx.restore();
   }
 
   function drawDatacenterMarker(ctx, point, marker, zoom) {
     const task = marker.quantityKind.startsWith('workload-rack-') ? marker.quantityKind.slice(14) : null;
     if (!task && marker.quantityKind !== 'modeled-rack-temperature') return false;
-    const width = Math.max(12, Math.min(42, zoom * 1.02));
+    const width = Math.max(4, Math.min(42, zoom * 0.8));
     const height = width * 1.58;
     const depth = width * 0.28;
     const temperature = Number(marker.quantityValue);
     const heat = task ? ({forward:'#4de8ff',backward:'#8fffb5',waiting:'#ffb347',allreduce:'#c384ff'}[task] || '#4de8ff') : temperature >= 80 ? '#ff5c66' : temperature >= 65 ? '#ffb347' : '#4de8ff';
     ctx.save();
-    ctx.shadowBlur = temperature >= 65 ? 18 : 9;
+    ctx.shadowBlur = marker.selected ? 6 : 0;
     ctx.shadowColor = heat;
     polygon(ctx, [
       { x: point.x - width / 2, y: point.y - height / 2 },
@@ -594,14 +550,6 @@
     if(marker.selected){ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.strokeRect(point.x-width/2-3,point.y-height/2-depth-3,width+depth+6,height+depth+8);}
     ctx.restore();
     return true;
-  }
-
-  function drawDatacenterPrism(ctx, project, minimum, maximum, colors) {
-    const [x0, y0, z0] = minimum, [x1, y1, z1] = maximum;
-    const p = [[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]].map(project);
-    polygon(ctx, [p[4], p[5], p[6], p[7]], colors.top, colors.stroke, 1);
-    polygon(ctx, [p[1], p[2], p[6], p[5]], colors.side, colors.stroke, 1);
-    polygon(ctx, [p[0], p[1], p[5], p[4]], colors.front, colors.stroke, 1);
   }
 
   function polygon(ctx, points, fillStyle, strokeStyle, lineWidth = 1) {

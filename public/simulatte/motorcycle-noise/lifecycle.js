@@ -4,10 +4,12 @@
   else root.MotorcycleLifecycle = api;
 })(globalThis, function() {
   function create({ prepare, frame, suspend, release, onState,
-    requestFrame = requestAnimationFrame, cancelFrame = cancelAnimationFrame }) {
+    requestFrame = requestAnimationFrame, cancelFrame = cancelAnimationFrame, clock = () => performance.now() }) {
     let state = 'loading', generation = 0, frameId = null, disposed = false;
     let paused = false, recoveries = 0, failures = [], pending = null;
-    const snapshot = () => ({ state, generation, recoveries, paused, failures: failures.map(row => ({ ...row })) });
+    const frameCpuMs=[];let frameCount=0;
+    const snapshot = () => ({ state, generation, recoveries, paused, failures: failures.map(row => ({ ...row })),
+      observation:{frameCount,frameCpuMs:[...frameCpuMs],scope:'Main-thread frame call; excludes GPU completion and worker measurement latency'} });
     function publish(next) { state = next; onState(snapshot()); }
     function cancel() { if (frameId !== null) cancelFrame(frameId); frameId = null; }
     function schedule(id) {
@@ -16,7 +18,7 @@
         frameId = null;
         if (disposed || id !== generation) return;
         try {
-          frame(now);
+          const started=clock();frame(now);frameCount++;frameCpuMs.push(clock()-started);if(frameCpuMs.length>120)frameCpuMs.shift();
           publish(paused ? 'paused' : 'running');
           schedule(id);
         } catch (error) { void fail(error); }

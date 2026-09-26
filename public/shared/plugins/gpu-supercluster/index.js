@@ -17,7 +17,6 @@
     const collectiveApi = dependency('SimulatteCollectiveSolver', './collective-solver.js');
     const thermalApi = dependency('SimulatteThermalModel', './thermal-model.js');
     const receiptApi = dependency('SimulatteClusterReceiptFactory', './receipt-factory.js');
-    const presentationApi = dependency('SimulatteClusterPresentation', './presentation.js');
     const v4Api = dependency('SimulatteGpuSuperclusterV4', './v4-contribution.js');
 
     const normalizedControls = controlsApi.normalizeControls(rawConfig);
@@ -48,6 +47,7 @@
     };
     const topology = topologyApi.buildClusterTopology(config);
     const collectiveInputs = {
+      topology,
       totalGpus: config.totalGpus || 256,
       tensorSizeGb: config.tensorSizeGb || 14.2,
       algorithm: config.collectiveAlgorithm || 'ring-allreduce',
@@ -87,18 +87,11 @@
       collectives,
       thermals,
       receipt,
-      createSemanticPresentation: (progressiveState = {}) => presentationApi.createSemanticPresentation({
-        config,
-        topology,
-        collectives,
-        thermals,
-        progressiveState,
-      }),
       createContribution: (step = 0) => {
         const api=dependency('SimulatteClusterWorkload','./workload.js');
-        const state=step>0?api.create(outcome):null;
-        for(let i=0;i<Math.min(step,api.DURATION_MS);i++)api.step(state);
-        return v4Api.createContribution({result:outcome,workload:state?api.snapshot(state):null});
+        const state=step>0?api.create(outcome,[],{durationMs:Math.max(400,Math.ceil(collectives.stepTimeMs*8))}):null;
+        for(let i=0;i<Math.min(step,api.TOTAL_STEPS);i++)api.step(state,state.durationMs/api.TOTAL_STEPS);
+        return v4Api.createContribution({result:outcome,step,workload:state?api.snapshot(state):null});
       },
     };
     return Object.freeze(outcome);
@@ -182,7 +175,7 @@
     function handleAction(actionId, context = {}) {
       if (actionId === 'scenario.run') return runPlayback(context);
       if (actionId === 'scenario.intervene') {
-        if(!workload||currentStep>=workloadApi.DURATION_MS)return Object.freeze({status:'refused',reason:'workload_not_running'});
+        if(!workload||currentStep>=workloadApi.TOTAL_STEPS)return Object.freeze({status:'refused',reason:'workload_not_running'});
         workloadApi.intervene(workload,context.values.rackId,context.values.slowdown);
         return playbackResult();
       }
@@ -190,7 +183,7 @@
       if (actionId === 'update-controls') {
         currentStep = 0; workload = null;
         recompute({ ...current.config, ...(context.values || context.controls || {}) });
-        return Object.freeze({ status: 'ready', currentStep, totalSteps: workloadApi.DURATION_MS });
+        return Object.freeze({ status: 'ready', currentStep, totalSteps: workloadApi.TOTAL_STEPS });
       }
       return Object.freeze({ status: 'refused', reason: 'unknown_action', actionId });
     }
@@ -200,13 +193,13 @@
       if (values.phase === 'start') {
         currentStep = 0; workload = null;
         recompute({ ...configForScenario(activeConfig, context.scenario || activeScenario), ...controlValues(values) });
-        workload = workloadApi.create(current);
+        workload = workloadApi.create(current, [], {durationMs:Math.max(400,Math.ceil(current.collectives.stepTimeMs*8))});
         return playbackResult();
       }
       if (values.phase === 'step') {
         if (!workload) return Object.freeze({status:'refused',reason:'workload_not_running'});
-        if (currentStep >= workloadApi.DURATION_MS) return playbackResult();
-        workloadApi.step(workload);currentStep = workload.timeMs;
+        if (currentStep >= workloadApi.TOTAL_STEPS) return playbackResult();
+        workloadApi.step(workload,workload.durationMs/workloadApi.TOTAL_STEPS);currentStep++;
         return playbackResult();
       }
       return Object.freeze({ status: 'refused', reason: 'scenario_phase_invalid', phase: values.phase || null });
@@ -214,13 +207,13 @@
 
     function playbackResult() {
       return Object.freeze({
-        status: currentStep >= workloadApi.DURATION_MS ? 'settled' : 'running',
+        status: currentStep >= workloadApi.TOTAL_STEPS ? 'settled' : 'running',
         mode: 'deterministic-workload',
         resultAuthority: 'rack-task-dependencies-and-collective-barrier',
         workload: workload ? workloadApi.snapshot(workload) : null,
         currentStep,
-        totalSteps: workloadApi.DURATION_MS,
-        simulationTimeMs: currentStep,
+        totalSteps: workloadApi.TOTAL_STEPS,
+        simulationTimeMs: workload?.timeMs || 0,
         receipt: current.receipt,
       });
     }
@@ -239,7 +232,7 @@
 
     function settle() {
       return Object.freeze({
-        status: currentStep >= workloadApi.DURATION_MS ? 'settled' : 'not_settled',
+        status: currentStep >= workloadApi.TOTAL_STEPS ? 'settled' : 'not_settled',
         obligationResults: Object.freeze([]),
         stateIdentity: `${current.receipt.seed}:${currentStep}:${JSON.stringify(workload ? workloadApi.snapshot(workload) : null)}`,
         losses: Object.freeze([]),
@@ -287,7 +280,7 @@
   function configForScenario(config, scenario) {
     const scenarioId = scenario?.id || scenario?.scenarioId || '';
     const candidate = scenario?.seed ? { ...config, seed: scenario.seed } : { ...config };
-    if (scenarioId === 'straggler-fault-injection') return { ...candidate, stragglerThrottlePercent: 50 };
+    if (scenarioId === 'straggler-fault-injection') return { ...candidate, stragglerThrottlePercent: 50, stragglerNodeId: 'R2-4-N1' };
     if (scenarioId === 'cdu-cooling-failure') return { ...candidate, cduFlowDegradationPercent: 50 };
     if (scenarioId === 'tree-allreduce-low-latency') return { ...candidate, collectiveAlgorithm: 'tree-allreduce' };
     return candidate;

@@ -1,0 +1,209 @@
+{
+  "errors": [],
+  "cases": [
+    {
+      "name": "portrait",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "paused",
+        "stepCount": 4,
+        "currentStep": 4,
+        "totalSteps": 400,
+        "playbackRate": 1,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": false
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Exchanging gradientsAll racks ready · collective transfer in progress0 iterations · 84.7 ms modeledIntroduce straggler"
+    },
+    {
+      "name": "intervention",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "paused",
+        "stepCount": 4,
+        "currentStep": 4,
+        "totalSteps": 400,
+        "playbackRate": 1,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": false
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Exchanging gradientsAll racks ready · collective transfer in progress0 iterations · 84.7 ms modeledRemove straggler"
+    },
+    {
+      "name": "barrier-waits",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "paused",
+        "stepCount": 52,
+        "currentStep": 52,
+        "totalSteps": 400,
+        "playbackRate": 1,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": false
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Computing gradients31 racks waiting for R4-8 · compute 53%1 iterations · 31 racks waitingRemove straggler"
+    },
+    {
+      "name": "removed",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "paused",
+        "stepCount": 52,
+        "currentStep": 52,
+        "totalSteps": 400,
+        "playbackRate": 1,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": false
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Computing gradients31 racks waiting for R4-8 · compute 53%1 iterations · 31 racks waitingIntroduce straggler"
+    },
+    {
+      "name": "orientation-before-reset-844",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "paused",
+        "stepCount": 55,
+        "currentStep": 55,
+        "totalSteps": 400,
+        "playbackRate": 1,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": false
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Exchanging gradientsAll racks ready · collective transfer in progress1 iterations · 1164.3 ms modeledIntroduce straggler"
+    },
+    {
+      "name": "resize-844",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "paused",
+        "stepCount": 55,
+        "currentStep": 55,
+        "totalSteps": 400,
+        "playbackRate": 1,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": false
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Exchanging gradientsAll racks ready · collective transfer in progress1 iterations · 1164.3 ms modeledIntroduce straggler"
+    },
+    {
+      "name": "orientation-before-reset-390",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "paused",
+        "stepCount": 55,
+        "currentStep": 55,
+        "totalSteps": 400,
+        "playbackRate": 1,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": false
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Exchanging gradientsAll racks ready · collective transfer in progress1 iterations · 1164.3 ms modeledIntroduce straggler"
+    },
+    {
+      "name": "resize-390",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "paused",
+        "stepCount": 55,
+        "currentStep": 55,
+        "totalSteps": 400,
+        "playbackRate": 1,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": false
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Exchanging gradientsAll racks ready · collective transfer in progress1 iterations · 1164.3 ms modeledIntroduce straggler"
+    },
+    {
+      "name": "orientation-before-reset-1440",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "paused",
+        "stepCount": 55,
+        "currentStep": 55,
+        "totalSteps": 400,
+        "playbackRate": 1,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": false
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Exchanging gradientsAll racks ready · collective transfer in progress1 iterations · 1164.3 ms modeledIntroduce straggler"
+    },
+    {
+      "name": "resize-1440",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "paused",
+        "stepCount": 55,
+        "currentStep": 55,
+        "totalSteps": 400,
+        "playbackRate": 1,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": false
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Exchanging gradientsAll racks ready · collective transfer in progress1 iterations · 1164.3 ms modeledIntroduce straggler"
+    },
+    {
+      "name": "completed",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "settled",
+        "stepCount": 400,
+        "currentStep": 400,
+        "totalSteps": 400,
+        "playbackRate": 4,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": true
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Session completeLast task: allreduce · 0 ms synchronization wait7 iterations · 8468.0 ms modeledIntroduce straggler"
+    },
+    {
+      "name": "replayed",
+      "run": {
+        "schema": "simulatte.tierRunControllerState.v1",
+        "ownerPluginId": "gpu-supercluster",
+        "state": "settled",
+        "stepCount": 400,
+        "currentStep": 400,
+        "totalSteps": 400,
+        "playbackRate": 4,
+        "terminalPreview": false,
+        "scenarioId": "gpt4-3d-parallelism",
+        "seed": "supercluster-gpt-001",
+        "hasReceipt": true
+      },
+      "panel": "Rack R1-1R1-2R1-3R1-4R1-5R1-6R1-7R1-8R2-1R2-2R2-3R2-4R2-5R2-6R2-7R2-8R3-1R3-2R3-3R3-4R3-5R3-6R3-7R3-8R4-1R4-2R4-3R4-4R4-5R4-6R4-7R4-8Session completeLast task: allreduce · 0 ms synchronization wait7 iterations · 8468.0 ms modeledIntroduce straggler"
+    }
+  ]
+}

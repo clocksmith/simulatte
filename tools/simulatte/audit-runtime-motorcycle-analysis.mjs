@@ -2,7 +2,7 @@ import {sourceReceipt} from './runtime-audit-sources.mjs';
 import {fileURLToPath} from 'node:url';
 import fs from 'node:fs/promises';import assert from 'node:assert/strict';
 import {openBrowserAudit} from './browser-session.mjs';
-const root=fileURLToPath(new URL('../../',import.meta.url)).replace(/\/$/,''),out=root+'/artifacts/runtime-repair/motorcycle-analysis';await fs.mkdir(out,{recursive:true});
+const root=fileURLToPath(new URL('../../',import.meta.url)).replace(/\/$/,''),out=root+'/'+(process.env.SIMULATTE_EVIDENCE_DIR||'artifacts/runtime-repair')+'/motorcycle-analysis';await fs.mkdir(out,{recursive:true});
 const b=await openBrowserAudit({publicRoot:root+'/public',viewport:{width:1440,height:1000},args:['--no-sandbox','--disable-dev-shm-usage']}),c=b.client;
 await c.send('Page.enable');await c.send('Runtime.enable');const report={sources:await sourceReceipt(root),errors:[]};c.on('Runtime.exceptionThrown',e=>report.errors.push(e.exceptionDetails));
 const ev=async s=>{const r=await c.send('Runtime.evaluate',{expression:s,returnByValue:true,awaitPromise:true,userGesture:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};

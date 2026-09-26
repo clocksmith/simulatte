@@ -4,6 +4,16 @@ const workload=require('../public/shared/plugins/gpu-supercluster/workload.js');
 const controllerApi=require('../public/simulatte/app/tier-run-controller.js');
 const result=model.simulate();
 const advance=(state,time)=>{while(state.timeMs<time)workload.step(state);return workload.snapshot(state);};
+test('event integration converges without discarded substep work or shifted interventions',()=>{
+ const fixture={topology:{racks:[{id:'a'},{id:'b'}]},config:{stragglerThrottlePercent:0},
+  collectives:{computeTimeMs:2,tensorTransferMs:0,communicationPlan:{durationMs:1,operation:'allreduce',rounds:[]}}};
+ const values=[1,.25,.1].map(dt=>{const state=workload.create(fixture);while(state.timeMs<12-1e-8)workload.step(state,dt);return workload.snapshot(state);});
+ for(const s of values){assert.equal(s.iteration,4);assert.ok(Math.abs(s.totalWaitMs-.48)<1e-8);}
+ const coarse=workload.create(fixture,[{atMs:1.5,rackId:'a',slowdown:95},{atMs:5,rackId:'a',slowdown:0}]);
+ const fine=workload.create(fixture,coarse.actions);workload.step(coarse,12);for(let i=0;i<48;i++)workload.step(fine,.25);
+ assert.equal(coarse.iteration,fine.iteration);assert.ok(Math.abs(coarse.totalWaitMs-fine.totalWaitMs)<1e-8);
+ assert.throws(()=>workload.step(fine,NaN),/timestep/);
+});
 test('a live straggler blocks the collective, accumulates waits, and removal releases dependent racks',()=>{
  const base=workload.create(result),slow=workload.create(result);
  workload.intervene(slow,'R1-1',95);
@@ -12,7 +22,7 @@ test('a live straggler blocks the collective, accumulates waits, and removal rel
  assert.ok(slow.racks.slice(1).every(r=>r.task==='waiting'&&r.waitingFor.includes('R1-1')));
  const waits=slow.totalWaitMs;assert.ok(waits>0);
  advance(slow,60);workload.intervene(slow,'R1-1',0);advance(slow,64);assert.equal(slow.communicating,true);
- advance(base,400);advance(slow,400);assert.ok(slow.iteration<base.iteration);assert.ok(slow.totalWaitMs>base.totalWaitMs);
+ advance(base,400);advance(slow,400);assert.equal(base.iteration,0);assert.equal(slow.iteration,0);assert.ok(slow.communication<base.communication);assert.ok(slow.totalWaitMs>base.totalWaitMs);
  const replay=workload.create(result,slow.actions);assert.deepEqual(advance(replay,400),workload.snapshot(slow));
  assert.throws(()=>workload.intervene(slow,'R1-1',95),/finished/);
 });
@@ -36,4 +46,9 @@ test('live actions survive controller seek, replay, settlement, and persisted re
  assert.deepEqual(controller.receipt().actionResult.scenario.workload,receipt.actionResult.scenario.workload);
  controller.dispose();await resetRuntime();const restored=controllerApi.createController(options);assert.equal(await restored.restore(),true);
  assert.deepEqual(restored.receipt().actionResult.scenario.workload,receipt.actionResult.scenario.workload);restored.dispose();
+});
+
+test('configured straggler node resolves to the same canonical rack shown by the scenario',()=>{
+ const state=workload.create(model.simulate({stragglerNodeId:'R2-4-N1',stragglerThrottlePercent:50}));
+ assert.deepEqual(state.racks.filter(r=>r.slowdown>0).map(r=>r.id),['R2-4']);
 });

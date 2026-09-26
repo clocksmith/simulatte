@@ -1,0 +1,134 @@
+{
+  "schema": "simulatte.modelAccuracyValidation.v1",
+  "head": "26319c21b25cf32a3e5bd23523f2656df7271eb0",
+  "generatedAt": "2026-09-25T14:27:06.957Z",
+  "tests": {
+    "passed": 240,
+    "failed": 0,
+    "command": "node --test tests/motorcycle-runtime.test.cjs tests/motorcycle-noise.test.cjs tests/gpu-supercluster.test.cjs tests/gpu-workload.test.cjs tests/tier-run-controller.test.cjs tests/navigation-lifecycle.test.cjs tests/tier-renderers.test.cjs tests/plugin-camera-follow.test.cjs tests/world-runtime-loader.test.cjs tests/plugin-platform.test.cjs tests/plugin-v4-platform.test.cjs tests/collective-reference.test.cjs tests/city-acoustic-reference.test.cjs tests/measurement-contract.test.cjs tests/model-reference-report.test.cjs tests/plugin-playback.test.cjs tests/multi-tier-plugin-completion.test.cjs tests/orbital-transfer-verification.test.cjs tests/design-system.test.cjs tests/hosting-surfaces.test.cjs tests/browser-harness.test.cjs tests/catscan.test.cjs",
+    "sha256": "879821d10aed92f06d88f2ef15ebbab57afaaab044ff322307928a94f041dc7d"
+  },
+  "references": {
+    "cases": 31,
+    "sha256": "139c22ff458dbadfe208accbda593582307ea2d4c54e965d6ff14adbafd607c8",
+    "sourceHashesMatch": true
+  },
+  "browsers": [
+    {
+      "file": "gpu/browser.json",
+      "sha256": "ebe1198c3db6630567716c45cad2c3851c1fe485b2dc50bcce36f8bebf83a641",
+      "capturedAt": "2026-09-25T14:15:54.200Z",
+      "cases": 12,
+      "sourceFilesChecked": [
+        "public/shared/plugins/gpu-supercluster/cluster-topology.js",
+        "public/shared/plugins/gpu-supercluster/collective-solver.js",
+        "public/shared/plugins/gpu-supercluster/index.js",
+        "public/shared/plugins/gpu-supercluster/plugin.json",
+        "public/shared/plugins/gpu-supercluster/presentation.js",
+        "public/shared/plugins/gpu-supercluster/receipt-factory.js",
+        "public/shared/plugins/gpu-supercluster/v4-contribution.js",
+        "public/shared/plugins/gpu-supercluster/workload.js",
+        "public/simulatte/app/cluster-interaction.js",
+        "public/simulatte/app/multi-tier-visualizer.js",
+        "public/simulatte/app/tier-plugin-presentation.js",
+        "public/simulatte/app/tier-renderers.js",
+        "public/world-tiers.css"
+      ],
+      "pass": true
+    },
+    {
+      "file": "motorcycle/motorcycle-browser.json",
+      "sha256": "dbe709cd1fd2944b84c2354336ff71154efc4fa664e65ddbc7bfbf0f4be93eb4",
+      "capturedAt": "2026-09-25T14:17:14.238Z",
+      "cases": 2,
+      "sourceFilesChecked": [
+        "public/simulatte/motorcycle-noise/acoustic-field.js",
+        "public/simulatte/motorcycle-noise/babylon-city.js",
+        "public/simulatte/motorcycle-noise/city-paths.js",
+        "public/simulatte/motorcycle-noise/city-sound.js",
+        "public/simulatte/motorcycle-noise/explore-ui.js",
+        "public/simulatte/motorcycle-noise/index.html",
+        "public/simulatte/motorcycle-noise/lifecycle.js",
+        "public/simulatte/motorcycle-noise/live-noise-worker.js",
+        "public/simulatte/motorcycle-noise/measurement-contract.js",
+        "public/simulatte/motorcycle-noise/observer-noise-worker.js",
+        "public/simulatte/motorcycle-noise/reflection-model.js",
+        "public/simulatte/motorcycle-noise/reflection-view.js"
+      ],
+      "pass": true
+    },
+    {
+      "file": "motorcycle-failures/browser.json",
+      "sha256": "5ac5dae0e7447cff86d9491ac14a146821e0fe47e228edb92dd6e1bdb8b9b84e",
+      "capturedAt": "2026-09-25T14:19:22.045Z",
+      "cases": 3,
+      "sourceFilesChecked": [
+        "public/simulatte/motorcycle-noise/acoustic-field.js",
+        "public/simulatte/motorcycle-noise/babylon-city.js",
+        "public/simulatte/motorcycle-noise/city-paths.js",
+        "public/simulatte/motorcycle-noise/city-sound.js",
+        "public/simulatte/motorcycle-noise/explore-ui.js",
+        "public/simulatte/motorcycle-noise/index.html",
+        "public/simulatte/motorcycle-noise/lifecycle.js",
+        "public/simulatte/motorcycle-noise/live-noise-worker.js",
+        "public/simulatte/motorcycle-noise/measurement-contract.js",
+        "public/simulatte/motorcycle-noise/observer-noise-worker.js",
+        "public/simulatte/motorcycle-noise/reflection-model.js",
+        "public/simulatte/motorcycle-noise/reflection-view.js"
+      ],
+      "pass": true
+    },
+    {
+      "file": "motorcycle-analysis/browser.json",
+      "sha256": "00799b4ea1f4b6c6f9f07fe7bba0c31b39f5ebe617f6a272390ba72832fb38dd",
+      "capturedAt": "2026-09-25T14:21:25.254Z",
+      "cases": 1,
+      "sourceFilesChecked": [
+        "public/simulatte/motorcycle-noise/acoustic-field.js",
+        "public/simulatte/motorcycle-noise/babylon-city.js",
+        "public/simulatte/motorcycle-noise/city-paths.js",
+        "public/simulatte/motorcycle-noise/city-sound.js",
+        "public/simulatte/motorcycle-noise/explore-ui.js",
+        "public/simulatte/motorcycle-noise/index.html",
+        "public/simulatte/motorcycle-noise/lifecycle.js",
+        "public/simulatte/motorcycle-noise/live-noise-worker.js",
+        "public/simulatte/motorcycle-noise/measurement-contract.js",
+        "public/simulatte/motorcycle-noise/observer-noise-worker.js",
+        "public/simulatte/motorcycle-noise/reflection-model.js",
+        "public/simulatte/motorcycle-noise/reflection-view.js"
+      ],
+      "pass": true
+    },
+    {
+      "file": "catalog/browser.json",
+      "sha256": "f11fd6aa33eb12f47053fa0d37273889c761acf52fcf8c13da0b7b76056845e2",
+      "capturedAt": "2026-09-25T14:15:53.475Z",
+      "cases": 24,
+      "sourceFilesChecked": [
+        "public/index.html",
+        "public/simulatte/app/cluster-interaction.js",
+        "public/simulatte/app/main.js",
+        "public/simulatte/app/multi-tier-visualizer.js",
+        "public/simulatte/app/tier-plugin-presentation.js",
+        "public/simulatte/app/tier-renderers.js",
+        "public/simulatte/app/world-runtime-script-manifest.js",
+        "public/world-tiers.css"
+      ],
+      "pass": true
+    },
+    {
+      "file": "catalog-orbital-transfer-planner-v1/browser.json",
+      "sha256": "f79deb57d60a1a244c97c890284418a19ff399c19d86bd72f67c66009464fd71",
+      "capturedAt": "2026-09-25T14:24:28.692Z",
+      "cases": 2,
+      "sourceFilesChecked": [
+        "public/shared/plugins/orbital-transfer-planner/ephemeris.js",
+        "public/shared/plugins/orbital-transfer-planner/plugin.json",
+        "public/shared/plugins/orbital-transfer-planner/presentation.js",
+        "public/shared/plugins/orbital-transfer-planner/v4-contribution.js"
+      ],
+      "pass": true
+    }
+  ],
+  "boundary": "Local scoped source matching and browser behavior; no deployment, physical-device, calibrated uncertainty, or newcomer-comprehension qualification."
+}

@@ -106,7 +106,7 @@
       "path": "./depot-ledger.js"
     },
     {
-      "integrity": "sha384-15d5e62a7f019827c0c90c64bd237d9be36f2984c947a07792829d000f40068550967dd6a76d333272dfaeebb3b7d2bb",
+      "integrity": "sha384-0570ea3d88510e4fdb7c0e36750d818f1c957e36fd130f553a678ae71ad11badb77169d179e75caac36411452201682e",
       "path": "./ephemeris.js"
     },
     {
@@ -134,7 +134,7 @@
       "path": "./n-body-verifier.js"
     },
     {
-      "integrity": "sha384-dc6aec0945c9e77155dce8482689a2342c1973c6a37a00fa2c7dae9a7f9803f9005374ee9a78af29ffc66d0c5dd59c85",
+      "integrity": "sha384-2aca43f268ee036677c2e7d19ea666805cf312e5c2ffa273e94aa46c64e52fd12d55edf1580307049fb19fafb8932407",
       "path": "./presentation.js"
     },
     {
@@ -142,7 +142,7 @@
       "path": "./radiation.js"
     },
     {
-      "integrity": "sha384-fbca29395506f4cd9e88058db311c058116afb18b4b67233220f7331c3ef9084b5615c49405eb7fe4b351a2dfc31f3aa",
+      "integrity": "sha384-e653de2abfd7867e91a09f2d85694a580a606d226856cb15459869d8ec0d0bc413b8c27a65ed22a06fb575e92af0fac7",
       "path": "./v4-contribution.js"
     }
   ],

@@ -83,7 +83,6 @@
     'shared/plugins/gpu-supercluster/cluster-topology.js',
     'shared/plugins/gpu-supercluster/collective-solver.js',
     'shared/plugins/gpu-supercluster/dataset-validators.js',
-    'shared/plugins/gpu-supercluster/presentation.js',
     'shared/plugins/gpu-supercluster/receipt-factory.js',
     'shared/plugins/gpu-supercluster/thermal-model.js',
     'shared/plugins/gpu-supercluster/v4-contribution.js',

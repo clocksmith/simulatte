@@ -5,7 +5,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginGpuSupercluster",
-    "integrity": "sha384-1c1cfde06403447908714f02e9c3c751413f1c98c235b14b4e69e934c211057eab19f69c54f9896abb7e1ef138237f8a",
+    "integrity": "sha384-39ceb21555cfdee60162f24b80001f88feadf3dc53da2c90487d154e5e712a2f88652f14e9fff487c62456718f387ac5",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -58,11 +58,11 @@
       "path": "./cluster-controls.js"
     },
     {
-      "integrity": "sha384-7dd374e357d4df9ed86b681e34337b333ebe71836da53e3f255c0e090ba04332d5c0a16866599858b7275ff0336639ec",
+      "integrity": "sha384-c8689a4cb229a360d5f4181d9c86b6bdb629e03ab622092b1c001f1fa79336095079dbe5ec808ca4d369b62e41f08155",
       "path": "./cluster-topology.js"
     },
     {
-      "integrity": "sha384-32429c378e681e088abb46f98b9190c3ef2667a95b3fd5b6e5cd63c67d07d8ad7aa0f4c3b82d99b29746414719171ae9",
+      "integrity": "sha384-fd134e2b0d126d920de15ca17d19c2df94a28332c72dc9d2b544b7d401c25b697cc8f9090c048468b3b3bf3daa6dac0d",
       "path": "./collective-solver.js"
     },
     {
@@ -78,20 +78,16 @@
       "path": "./multiscale-modules.js"
     },
     {
-      "integrity": "sha384-b18b4e5a55e16ca196b05b0e20fc3a550cb80ef958300d2a2d09d950b79202320f2e57f1f9b96fa9223b575332245295",
-      "path": "./presentation.js"
-    },
-    {
-      "integrity": "sha384-f354379398d27fbd5c8606179ce484fe5ad79b5fb646c459dc75e64f555d7016f259f9f27cf46501b31b5da4113fae29",
+      "integrity": "sha384-02527b9dda26a9f4cc0432cdfd646e68aec9dd7b4d4ed3df2df03aeb6ccbc35c835749f03fc394a52fd94b22bc57d4a7",
       "path": "./receipt-factory.js"
     },
     {
-      "integrity": "sha384-a2480eefdbc02346a2a24a320a7478a1392c14d63f0aa5f3ef2cae517db7e528ad4cd43d8f4816b7f0b33db759595ff8",
+      "integrity": "sha384-9910be46e6652bb32fa0ae7d06ab7b3ff639c633baa5b2ce8c7cbee00c900946c1159ad5ed91ee7f2e4f5ac396b61e89",
       "path": "./v4-contribution.js"
     },
     {
       "path": "./workload.js",
-      "integrity": "sha384-e3a2184570fbfac559f439294f5d77ad660943cbfa1f554ca7d378d190c72c1cb3afa31cad022ef2954c19f2be4560e1"
+      "integrity": "sha384-077848005ca11a808e931ce48f918b86f428630f21b44f9438b490cf1480e523e3cdfae684a016ef29ed5413fb0e1bb3"
     }
   ],
   "schema": "simulatte.pluginManifest.v3",

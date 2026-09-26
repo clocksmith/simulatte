@@ -341,20 +341,10 @@
       this.panY = this.height / 2;
 
       if (tierName === 'datacenter') {
-        this.updateHudContent('Datacenter', 'Loading 256-GPU cluster topology and thermal model...', {}, '');
-        try {
-          this.data = await this.loadTierCache('../worlds/datacenter-supercluster-v1.json', {
-            context: 'datacenter world model'
-          });
-          this.updateHudContent(
-            'Datacenter',
-            '3D physical facility view: 32 liquid-cooled 42U racks, 256 GPUs, NVLink mesh, and InfiniBand spine-leaf.',
-            tierFacts.extractDatacenterStats ? tierFacts.extractDatacenterStats(this.data) : {}
-          );
-        } catch (err) {
-          console.error('[MultiTierVisualizer] error loading datacenter tier data', err);
-          this.data = { racks: Array.from({ length: 32 }, (_, i) => ({ id: `rack-${i}`, avgTempC: 54 })) };
-        }
+        // The contribution owns rack identities and physical coordinates. A
+        // separate facility fixture must not fabricate a second physical world.
+        this.data = {racks:[]};
+        this.updateHudContent('Datacenter', 'Preparing the modeled rack network.', {});
       } else if (tierName === 'solar-system') {
         this.updateHudContent('Solar System', 'Loading NASA JPL Horizons orbital data...', {}, '');
         try {
@@ -689,9 +679,7 @@
           height: this.height,
         })
         : coordinateEvidenceView({
-          coordinates: coordinateSystem==='datacenter-cartesian-meters' && this.data?.bounds?.minimumMeters
-            ? [0,1].flatMap(x=>[0,1].flatMap(y=>[0,1].map(z=>[x?this.data.bounds.maximumMeters[0]:this.data.bounds.minimumMeters[0],y?this.data.bounds.maximumMeters[1]:this.data.bounds.minimumMeters[1],z?this.data.bounds.maximumMeters[2]:this.data.bounds.minimumMeters[2]])))
-            : target?.coordinates || [],
+          coordinates: target?.coordinates || [],
           coordinateSystem,
           width: this.width,
           height: this.height,
@@ -723,6 +711,17 @@
 
     setPluginPresentations(contributions, options = {}) {
       this.pluginInputs = [contributions, options];
+      if(this.currentTier==='datacenter'){
+        const layers=contributions.find(row=>row.pluginId==='gpu-supercluster')?.presentation.layers||[];
+        const racks=layers.filter(row=>row.id.startsWith('rack:')).map(row=>{
+          const [xM,yM,zM]=row.geometry.coordinates[0];
+          return {id:row.id.slice(5),xM,yM,zM};
+        });
+        this.data={racks,bounds:racks.length?{
+          minimumMeters:[Math.min(...racks.map(r=>r.xM))-2,Math.min(...racks.map(r=>r.yM))-2,0],
+          maximumMeters:[Math.max(...racks.map(r=>r.xM))+2,Math.max(...racks.map(r=>r.yM))+2,3],
+        }:null};
+      }
       this.nativeCoordinateSystems = contributions.map(row => row.presentation?.coordinateSystem).filter(Boolean);
       return this.pluginLayer ? this.pluginLayer.set(contributions, options) : Object.freeze([]);
     }

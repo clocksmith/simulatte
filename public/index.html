@@ -118,12 +118,6 @@
       <section class="mission-dock sim-surface" id="sim-mission-dock" aria-label="Simulation controls" data-semantic-label-exclusion>
           
           
-          <div id="scenario-field" class="scenario-field" hidden>
-            <label class="scenario-picker" for="scenario-select"><span>Scenario</span><select id="scenario-select" class="sim-field" aria-describedby="scenario-description"></select></label>
-            <span hidden id="scenario-label" class="scenario-label"></span>
-            <span id="scenario-description" class="scenario-description"></span>
-            <span id="scenario-seed" class="scenario-seed" hidden></span>
-          </div>
           <div class="mission-actions" aria-label="Simulation actions">
 <button id="reset-button" class="sim-action" type="button" hidden>Reset</button>
 <button id="step-button" class="sim-action" type="button" hidden>Step</button>
@@ -217,6 +211,12 @@
         <button id="decisions-close" class="drawer-close" type="button" aria-label="Close decisions">×</button>
       </header>
 
+          <div id="scenario-field" class="scenario-field" hidden>
+            <label class="scenario-picker" for="scenario-select"><span>Scenario</span><select id="scenario-select" class="sim-field" aria-describedby="scenario-description"></select></label>
+            <span hidden id="scenario-label" class="scenario-label"></span>
+            <span id="scenario-description" class="scenario-description"></span>
+            <span id="scenario-seed" class="scenario-seed" hidden></span>
+          </div>
       <section id="plugin-inspector" aria-label="Simulation parameters and evidence"></section>
       <details id="scene-actions" class="evidence-section"><summary>Scene actions</summary><section id="plugin-map-ui" class="plugin-map-ui" aria-label="Experience view" data-semantic-label-exclusion></section></details>
       <details id="mission-authoring" class="evidence-section" hidden><summary>Author a mission</summary><label id="mission-field" class="mission-field" for="mission-input">

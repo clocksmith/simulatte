@@ -797,6 +797,10 @@
           lifecycle.throwIfAborted();
         }
       }
+      if(pluginPlayback&&!storedPlaybackReceipt&&routeSimulation?.autoStart!==false&&hooks.autoStart!==false){
+        await pluginPlayback.start();
+        lifecycle.throwIfAborted();
+      }
       profileProgram = profileProgramApi.connect({
         documentRoot: document, profile: data.applicationProfile, registry: pluginRegistry,
         getRuntime: () => extensions, getScenario: () => activeScenario, getCanvas: () => elements.autonomyCanvas,

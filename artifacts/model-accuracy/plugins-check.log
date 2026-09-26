@@ -1,0 +1,14 @@
+
+> plugins:check
+> node tools/simulatte/sync-model-source-hashes.mjs && npm run simulatte:tiers:data:check && node tools/plugins/sync-plugin-integrity.mjs && node tools/plugins/sync-plugin-registry.mjs && node tools/plugins/check-plugin-boundaries.mjs
+
+gpu-supercluster model hashes match
+orbital-transfer-planner model hashes match
+
+> simulatte:tiers:data:check
+> node tools/simulatte/sync-tier-dataset-references.mjs
+
+TIER-DATASET-REFERENCES status=verified changed=0
+PLUGIN-INTEGRITY verified
+PLUGIN-REGISTRY status=verified plugins=12 ids=asteroid-defense,cable-trader,food-recall-us,gpu-supercluster,grid-resilience-us,interstellar-relay-network,maritime-trade-global,neighborhood-bulk-pool,nyc-real-estate,orbital-transfer-planner,subsea-network-global,sun-walker
+PLUGIN-BOUNDARY status=verified files=114

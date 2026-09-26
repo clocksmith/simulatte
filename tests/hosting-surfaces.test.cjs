@@ -52,11 +52,14 @@ test('hosting targets separate World and Create while preserving governed shared
 
   assert.equal(worldConfig.public, '.firebase-hosting/world');
   assert.equal(createConfig.public, '.firebase-hosting/create');
-  assert.deepEqual(worldConfig.redirects, [{
+  assert.deepEqual(worldConfig.redirects.filter(row=>row.source.startsWith('/blank')), [{
     source: '/blank{,/**}',
     destination: 'https://create.simulatte.world',
     type: 301,
   }]);
+  for(const source of ['/motorcycle/','/simulatte/motorcycle-noise','/simulatte/motorcycle-noise/']){
+    assert.ok(worldConfig.redirects.some(row=>row.source===source&&row.destination==='/motorcycle'&&row.type===301));
+  }
   assert.equal(fs.existsSync(path.join(worldRoot, 'blank')), false);
   assert.match(worldHtml, /href="https:\/\/create\.simulatte\.world\/"/);
   assert.equal(fs.existsSync(path.join(worldRoot, 'simulatte', 'app', 'main.js')), true);

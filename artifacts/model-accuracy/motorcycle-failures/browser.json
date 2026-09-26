@@ -1,0 +1,381 @@
+{
+  "sources": {
+    "head": "26319c21b25cf32a3e5bd23523f2656df7271eb0",
+    "capturedAt": "2026-09-25T14:19:22.045Z",
+    "modifiedSources": {
+      "public/index.html": {
+        "sha256": "5af275bb4ce63a96fa758309e344c553e5d87e0feb1a526fdbb648956fba581d",
+        "modifiedAt": "2026-09-25T13:59:54.444Z"
+      },
+      "public/shared/plugins/gpu-supercluster/cluster-topology.js": {
+        "sha256": "cd13b2f7dd6116a1cfa129f07994671ee574964f37500bd8b5d47cd401207112",
+        "modifiedAt": "2026-09-25T14:09:41.995Z"
+      },
+      "public/shared/plugins/gpu-supercluster/collective-solver.js": {
+        "sha256": "cc602903b6e78eab294c723bba933b730d82739dcc6feea6ea7bf3b4e1247f0f",
+        "modifiedAt": "2026-09-25T14:00:42.509Z"
+      },
+      "public/shared/plugins/gpu-supercluster/index.js": {
+        "sha256": "a90c07ed9377c13f0031944a0a97546a100b31a1b7e50c57a88f98776b3b8ccc",
+        "modifiedAt": "2026-09-25T14:09:41.996Z"
+      },
+      "public/shared/plugins/gpu-supercluster/plugin.json": {
+        "sha256": "14c8718a69a0cdab1a28d1ecf6c74aa2a7a64cfc5242279856efb1e451b26e3f",
+        "modifiedAt": "2026-09-25T14:09:42.373Z"
+      },
+      "public/shared/plugins/gpu-supercluster/presentation.js": {
+        "deleted": true
+      },
+      "public/shared/plugins/gpu-supercluster/receipt-factory.js": {
+        "sha256": "6241e1dfd4cc56eb540420c6659f7b1c98d6b6cdeae1b9a3406c4de67b75278b",
+        "modifiedAt": "2026-09-25T13:38:42.617Z"
+      },
+      "public/shared/plugins/gpu-supercluster/v4-contribution.js": {
+        "sha256": "e35e4cef70fde84b2cc7cd73a929a8757bcc14f1cd6f54624d5744c3d01d89d1",
+        "modifiedAt": "2026-09-25T14:18:11.470Z"
+      },
+      "public/shared/plugins/gpu-supercluster/workload.js": {
+        "sha256": "f9d94b55ab20ff61d13f862704867bfa12069b421869ec077933aed734ff4c8a",
+        "modifiedAt": "2026-09-25T14:09:41.996Z"
+      },
+      "public/shared/plugins/orbital-transfer-planner/ephemeris.js": {
+        "sha256": "06e1c168b4971355cebaeed87cf477ad7228a1626ebbc5b30f33cc91ff38117e",
+        "modifiedAt": "2026-09-25T14:18:11.003Z"
+      },
+      "public/shared/plugins/orbital-transfer-planner/plugin.json": {
+        "sha256": "f0b97ffafeb51d6e6bea03bf9c658f958467b25ed694300bb6d46f7f06a06642",
+        "modifiedAt": "2026-09-25T14:18:11.549Z"
+      },
+      "public/simulatte/app/cluster-interaction.js": {
+        "sha256": "3b6ff8be7543cf0816ec4073140bfa3906ebb705cf24efe467910e36a3fb842c",
+        "modifiedAt": "2026-09-25T14:04:03.706Z"
+      },
+      "public/simulatte/app/main.js": {
+        "sha256": "2948c319c6788555596da549762e240d01118b52aca182290b52414cf3dfa46a",
+        "modifiedAt": "2026-09-25T14:14:11.097Z"
+      },
+      "public/simulatte/app/multi-tier-visualizer.js": {
+        "sha256": "15ee9b28c4416eace937e3ea92079732f12b684bfff1190dae15f1e11d0b5b91",
+        "modifiedAt": "2026-09-25T14:04:57.158Z"
+      },
+      "public/simulatte/app/tier-plugin-presentation.js": {
+        "sha256": "eca56ac2041803051f187ee65bef31b3d62289cfc4688b64d17ea25020896900",
+        "modifiedAt": "2026-09-25T14:11:56.500Z"
+      },
+      "public/simulatte/app/tier-renderers.js": {
+        "sha256": "8471ee83ccf72aea1e8a9817daba2175b68c67eafe6c28bca18d5164aae2611b",
+        "modifiedAt": "2026-09-25T14:04:57.158Z"
+      },
+      "public/simulatte/app/world-runtime-script-manifest.js": {
+        "sha256": "b04b0a016a68596910f15a52e0e0636656d47dac80e4d1b6c06f096993caab2d",
+        "modifiedAt": "2026-09-25T14:02:34.514Z"
+      },
+      "public/simulatte/motorcycle-noise/CATSCAN.md": {
+        "sha256": "9a67023868fdf2ec322fef4d5698b2f395192bc9388c52ea85a17d5a6121cfa3",
+        "modifiedAt": "2026-09-25T14:11:03.667Z"
+      },
+      "public/simulatte/motorcycle-noise/acoustic-field.js": {
+        "sha256": "6105e72d1bcef8b11f75fa38c528910d9c2a6ddef3f4193bdaa70d4587bceaa7",
+        "modifiedAt": "2026-09-25T13:48:07.328Z"
+      },
+      "public/simulatte/motorcycle-noise/babylon-city.js": {
+        "sha256": "1df078fc1bbbfc407a711b330a8f677a33045334dc6bd198c1fb055ceb57e96f",
+        "modifiedAt": "2026-09-25T14:07:07.435Z"
+      },
+      "public/simulatte/motorcycle-noise/city-paths.js": {
+        "sha256": "06130eb8ed0e77c72a45179ce5e8f096ef5e0c9878359c86155ff3309e495bd9",
+        "modifiedAt": "2026-09-25T13:43:13.830Z"
+      },
+      "public/simulatte/motorcycle-noise/city-sound.js": {
+        "sha256": "23e72cd8ca43e2254fa0b0d2de84e0e8c05bc694a83510238b30ef05a520ed32",
+        "modifiedAt": "2026-09-25T13:48:07.328Z"
+      },
+      "public/simulatte/motorcycle-noise/explore-ui.js": {
+        "sha256": "176e31ba37b7d7ef542c3a937478eceaaa37ae5f41687e03591403fc7626da26",
+        "modifiedAt": "2026-09-25T14:15:10.389Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "9d24ec03c3045ccc2a42732d75fe35a3f227a4410ecdfee36565d042ae47cda9",
+        "modifiedAt": "2026-09-25T13:43:54.933Z"
+      },
+      "public/simulatte/motorcycle-noise/lifecycle.js": {
+        "sha256": "7843dcc697be8b011570ec2e763549f68f9a021e93d7b5b9f805c1757ff546e2",
+        "modifiedAt": "2026-09-25T13:50:53.984Z"
+      },
+      "public/simulatte/motorcycle-noise/live-noise-worker.js": {
+        "sha256": "cf5222c6aeea717e99e7689ebd8838b9cf2c999000298e490a404cd8528307b2",
+        "modifiedAt": "2026-09-25T13:50:54.026Z"
+      },
+      "public/simulatte/motorcycle-noise/measurement-contract.js": {
+        "sha256": "f2db1937a8f37785d97c80bbdec084880a5a2355f62340f2712d6a74a266c233",
+        "modifiedAt": "2026-09-25T14:15:10.389Z"
+      },
+      "public/simulatte/motorcycle-noise/observer-noise-worker.js": {
+        "sha256": "8d2f1f9100a520e6552fe1841b584f73ae8e922594921c016af884b308afc37b",
+        "modifiedAt": "2026-09-25T13:50:54.026Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-model.js": {
+        "sha256": "e11cc66822bf4880aeb144a36143d20fc616c3709ecda9781c34e607884a54ba",
+        "modifiedAt": "2026-09-25T13:43:54.933Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-view.js": {
+        "sha256": "3745f37b30e7a9030ffd97839f651a093b1bd1e93425fc59e996f9b97beb6d2c",
+        "modifiedAt": "2026-09-25T14:07:07.435Z"
+      },
+      "public/simulatte/platform/plugin-host/generated-plugin-registry.js": {
+        "sha256": "789f24e509d7f7970666f45e358ef03f18477e5e16406a4c3942ff2b5241142d",
+        "modifiedAt": "2026-09-25T14:18:11.663Z"
+      },
+      "public/world-tiers.css": {
+        "sha256": "d41a5c4fdedab00ba209885c442545b5a5d87cdb92772d9b5ca96ff7324a5454",
+        "modifiedAt": "2026-09-25T14:15:10.388Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "cases": [
+    {
+      "mode": "first",
+      "recovering": {
+        "receipt": {
+          "state": "recovering",
+          "generation": 3,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "loading"
+            }
+          ],
+          "observation": {
+            "frameCount": 0,
+            "frameCpuMs": [],
+            "scope": "Main-thread frame call; excludes GPU completion and worker measurement latency"
+          },
+          "time": 12,
+          "scenarioSeed": 731,
+          "backendFailures": []
+        },
+        "banner": "Restoring the scene. Simulation paused.",
+        "level": "Measurement paused"
+      },
+      "after": {
+        "receipt": {
+          "state": "running",
+          "generation": 3,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "loading"
+            }
+          ],
+          "observation": {
+            "frameCount": 2,
+            "frameCpuMs": [
+              419.80000019073486,
+              176.80000019073486
+            ],
+            "scope": "Main-thread frame call; excludes GPU completion and worker measurement latency"
+          },
+          "time": 12.883236000000004,
+          "scenarioSeed": 731,
+          "backend": "WebGL",
+          "backendFailures": []
+        },
+        "inject": {
+          "mode": "first",
+          "draws": 3,
+          "creates": 2,
+          "disposes": 1,
+          "workers": 2,
+          "scenes": [
+            true,
+            true
+          ],
+          "enabled": true,
+          "sameScene": true
+        },
+        "visible": false
+      }
+    },
+    {
+      "mode": "late",
+      "recovering": {
+        "receipt": {
+          "state": "recovering",
+          "generation": 3,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "running"
+            }
+          ],
+          "observation": {
+            "frameCount": 2,
+            "frameCpuMs": [
+              314.80000019073486,
+              150.19999980926514
+            ],
+            "scope": "Main-thread frame call; excludes GPU completion and worker measurement latency"
+          },
+          "time": 13.466600000000003,
+          "scenarioSeed": 731,
+          "backendFailures": []
+        },
+        "banner": "Restoring the scene. Simulation paused.",
+        "level": "Measurement paused"
+      },
+      "after": {
+        "receipt": {
+          "state": "running",
+          "generation": 3,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "running"
+            }
+          ],
+          "observation": {
+            "frameCount": 4,
+            "frameCpuMs": [
+              314.80000019073486,
+              150.19999980926514,
+              450.6000003814697,
+              71.69999980926514
+            ],
+            "scope": "Main-thread frame call; excludes GPU completion and worker measurement latency"
+          },
+          "time": 14.583200000000001,
+          "scenarioSeed": 731,
+          "backend": "WebGL",
+          "backendFailures": []
+        },
+        "inject": {
+          "mode": "late",
+          "draws": 5,
+          "creates": 2,
+          "disposes": 1,
+          "workers": 2,
+          "scenes": [
+            true,
+            true
+          ],
+          "enabled": true,
+          "sameScene": true
+        },
+        "visible": false
+      }
+    },
+    {
+      "mode": "persistent",
+      "recovering": {
+        "receipt": {
+          "state": "recovering",
+          "generation": 3,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "loading"
+            }
+          ],
+          "observation": {
+            "frameCount": 0,
+            "frameCpuMs": [],
+            "scope": "Main-thread frame call; excludes GPU completion and worker measurement latency"
+          },
+          "time": 12,
+          "scenarioSeed": 731,
+          "backendFailures": []
+        },
+        "banner": "Restoring the scene. Simulation paused.",
+        "level": "Measurement paused"
+      },
+      "after": {
+        "receipt": {
+          "state": "failed",
+          "generation": 4,
+          "recoveries": 1,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "loading"
+            },
+            {
+              "message": "Injected renderer failure",
+              "state": "recovering"
+            }
+          ],
+          "observation": {
+            "frameCount": 0,
+            "frameCpuMs": [],
+            "scope": "Main-thread frame call; excludes GPU completion and worker measurement latency"
+          },
+          "time": 12,
+          "scenarioSeed": 731,
+          "backendFailures": []
+        },
+        "inject": {
+          "mode": "persistent",
+          "draws": 2,
+          "creates": 2,
+          "disposes": 2,
+          "workers": 0,
+          "scenes": [
+            true,
+            true
+          ],
+          "enabled": true,
+          "sameScene": true
+        },
+        "visible": true
+      },
+      "frozenTimePreserved": true,
+      "retry": {
+        "receipt": {
+          "state": "running",
+          "generation": 5,
+          "recoveries": 0,
+          "paused": false,
+          "failures": [
+            {
+              "message": "Injected renderer failure",
+              "state": "loading"
+            },
+            {
+              "message": "Injected renderer failure",
+              "state": "recovering"
+            }
+          ],
+          "observation": {
+            "frameCount": 2,
+            "frameCpuMs": [
+              293.9000005722046,
+              140.39999961853027
+            ],
+            "scope": "Main-thread frame call; excludes GPU completion and worker measurement latency"
+          },
+          "time": 12.533299999999995,
+          "scenarioSeed": 731,
+          "backend": "WebGL",
+          "backendFailures": []
+        },
+        "draws": 4,
+        "creates": 3,
+        "disposes": 2,
+        "workers": 2,
+        "scenarioPreserved": true
+      }
+    }
+  ],
+  "errors": []
+}

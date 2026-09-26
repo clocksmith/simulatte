@@ -4,6 +4,10 @@
     let world=null,worker=null,pending=false,nextAt=0,epoch=0,placing=false,selectedMarker=null,inspectedSource=null,lastReading=null,lastPaint=0,markers=[],nextId=1,requestId=0,lastRequestKey='',history=[];
     let inspectedLocation=null;
     let observerWorker=null,observerPending=false,observerNextAt=0,observerRequest=0,observerKey='',lastObserver=null;
+    const measurements=root.MotorcycleMeasurementContract;
+    let observerIdentity=null,mapIdentity=null,observerStarted=0,mapStarted=0;
+    const configuration=scene=>[scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode];
+    const mapObservation=()=>[measurements.focusKey(view.getFocus(),view.getObserver()),markers];
     const events=new AbortController(),on=(element,type,handler)=>element.addEventListener(type,handler,{signal:events.signal});
     const setText=(id,text)=>$(id).textContent=text;
     const treatments=root.MotorcycleTreatmentControls.create({view,getScene,getTime});
@@ -27,7 +31,7 @@
         setText('inspection-time',reading?`Estimated at ${lastReading.time.toFixed(2)} s / ${marker.z.toFixed(1)} m high`:`Observer ${marker.z.toFixed(1)} m high`);
       }else if(inspectedLocation){
         const reading=lastObserver?.observer;
-        setText('inspection-title','Observation point');setText('inspection-main',reading?reading.total.toFixed(1)+' dBA':'Measuring');
+        setText('inspection-title',inspectedLocation.buildingId?'Building '+inspectedLocation.buildingId.replace('building-',''):'Observation point');setText('inspection-main',reading?reading.total.toFixed(1)+' dBA':'Measuring');
         setText('inspection-detail',reading?reading.contributors.slice(0,3).map(row=>row.id.replace('motorcycle-','Motorcycle ')+' '+row.level.toFixed(0)+' dBA').join(' / '):'Waiting for sound at this viewpoint');
         setText('inspection-time','Viewpoint microphone / '+inspectedLocation.z.toFixed(1)+' m high');
       }else if(inspectedSource){
@@ -39,6 +43,7 @@
     }
     function showObserver(data){
       const reading=data.observer;if(!reading)return;treatments.observe(data);
+      root.motorcycleMeasurementReceipt={identity:data.identity,latencyMs:data.latencyMs,workerMs:data.workerMs,coverage:reading.coverage,model:reading.model};
       if(history.length&&data.time<history[history.length-1].time)history=[];
       history.push({time:data.time,level:reading.total,point:reading.point});if(history.length>80)history.shift();
       setText('observer-level',`${reading.total.toFixed(1)} dBA`);
@@ -51,7 +56,7 @@
       ctx.strokeStyle='#c6e5aa';ctx.lineWidth=2;ctx.beginPath();history.forEach((row,i)=>{const x=i/79*canvas.width,y=canvas.height-Math.max(0,Math.min(1,(row.level-20)/120))*canvas.height;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
     }
     function init(scene){
-      worker?.terminate();observerWorker?.terminate();observerPending=false;observerNextAt=0;observerKey='';lastObserver=null;world=scene;pending=false;lastRequestKey='';nextAt=0;lastReading=null;history=[];epoch++;const generation=epoch;
+      worker?.terminate();observerWorker?.terminate();observerPending=false;observerNextAt=0;observerKey='';lastObserver=null;root.motorcycleMeasurementReceipt=null;root.motorcycleMapMeasurementReceipt=null;world=scene;pending=false;lastRequestKey='';nextAt=0;lastReading=null;history=[];epoch++;const generation=epoch;
       treatments.reset(scene);
       if(initialObservation){({markers,nextId,selectedMarker,inspectedSource,inspectedLocation}=initialObservation);initialObservation=null;}
       else{markers=[{id:'receiver-1',name:'Observer 1',...view.getObserver()}];nextId=2;selectedMarker=null;inspectedSource=null;inspectedLocation=null;}
@@ -62,7 +67,7 @@
         if(generation!==epoch||data.id!==observerRequest)return;
         observerPending=false;
         if(data.type==='error'){setText('observer-level','Microphone unavailable');setText('observer-time',data.message);return;}
-        if(data.type==='observer')showObserver(data);
+        if(data.type==='observer'&&measurements.accepts(data.identity,observerIdentity,measurements.observerKey(view.getObserver()),configuration(world))){data.latencyMs=performance.now()-observerStarted;showObserver(data);}
       };
       observerWorker.onerror=event=>{if(generation!==epoch)return;observerPending=false;setText('observer-level','Microphone unavailable');setText('observer-time',event.message||'Audio measurement worker failed');};
       worker=new Worker('./live-noise-worker.js?v=city-controls-v7');worker.postMessage({type:'init',scene});
@@ -70,7 +75,8 @@
         if(generation!==epoch||data.id!==requestId)return;
         pending=false;
         if(data.type==='error'){setText('live-summary',`Sound map unavailable: ${data.message}`);nextAt=Infinity;return;}
-        if(data.type!=='sample')return;lastReading=data;
+        if(data.type!=='sample'||!measurements.accepts(data.identity,mapIdentity,mapObservation(),configuration(world)))return;lastReading=data;
+        root.motorcycleMapMeasurementReceipt={identity:data.identity,latencyMs:performance.now()-mapStarted,workerMs:data.workerMs};
         if($('live-overlay').checked&&!getComparison())view.showMeasurements(data,'total');
         const levels=data.points.map(point=>point.total).filter(Number.isFinite);
         setText('live-summary',levels.length?`${Math.min(...levels).toFixed(0)}-${Math.max(...levels).toFixed(0)} dBA / modeled street levels`:'No outdoor samples in view');
@@ -87,14 +93,16 @@
       if(!observerPending&&now>=observerNextAt&&!document.hidden){
         const observer=view.getObserver(),sampleTime=getTime(),key=JSON.stringify([sampleTime,observer,scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode]);
         if(key!==observerKey){
-          observerKey=key;observerPending=true;observerNextAt=now+200;
-          observerWorker.postMessage({type:'sample',id:++observerRequest,time:sampleTime,observer,config:scene.config,panel:scene.panel,treatments:scene.treatments,treatmentsEnabled:scene.treatmentsEnabled,treatmentMode:scene.treatmentMode});
+          observerKey=key;observerPending=true;observerNextAt=now+200;observerStarted=performance.now();
+          observerIdentity=measurements.capture(epoch,observerRequest+1,sampleTime,measurements.observerKey(observer),configuration(scene));
+          observerWorker.postMessage({type:'sample',identity:observerIdentity,id:++observerRequest,time:sampleTime,observer,config:scene.config,panel:scene.panel,treatments:scene.treatments,treatmentsEnabled:scene.treatmentsEnabled,treatmentMode:scene.treatmentMode});
         }
       }
       if(pending||now<nextAt||document.hidden)return;
       const focus=view.getFocus(),observer=view.getObserver(),time=getTime(),key=JSON.stringify([time,focus,observer,markers,scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode]);
       if(key===lastRequestKey)return;lastRequestKey=key;pending=true;nextAt=now+700;
-      worker.postMessage({type:'sample',id:++requestId,time,focus,observer,markers,config:scene.config,panel:scene.panel,receiver:scene.receiver,speaker:scene.speaker,reference:scene.reference,treatments:scene.treatments,treatmentsEnabled:scene.treatmentsEnabled,treatmentMode:scene.treatmentMode});
+      mapStarted=performance.now();mapIdentity=measurements.capture(epoch,requestId+1,time,mapObservation(),configuration(scene));
+      worker.postMessage({type:'sample',identity:mapIdentity,id:++requestId,time,focus,observer,markers,config:scene.config,panel:scene.panel,receiver:scene.receiver,speaker:scene.speaker,reference:scene.reference,treatments:scene.treatments,treatmentsEnabled:scene.treatmentsEnabled,treatmentMode:scene.treatmentMode});
     }
     function pick(value){
       if(treatments.pick(value)){inspectedLocation=null;selectedMarker=null;inspectedSource=null;renderMarkers();return true;}
@@ -105,7 +113,7 @@
         if(markers.length>=8){setText('live-summary','Eight markers placed; remove one to add another');return true;}
         const id=nextId++,marker={id:`receiver-${id}`,name:`Observer ${id}`,...value.point};markers.push(marker);inspectMarker(marker.id);return true;
       }
-      if(value.point){inspectedLocation=value.point;selectedMarker=null;inspectedSource=null;view.placeObserver(value.point,value.surface||'sidewalk');$('camera-mode').value=value.surface||'sidewalk';$('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=true;renderMarkers();paint();nextAt=0;observerNextAt=0;return true;}
+      if(value.point){inspectedLocation={...value.point,buildingId:value.buildingId||null};selectedMarker=null;inspectedSource=null;view.placeObserver(value.point,value.surface||'sidewalk');$('camera-mode').value=value.surface||'sidewalk';$('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=true;renderMarkers();paint();nextAt=0;observerNextAt=0;return true;}
       return false;
     }
     on($('area-focus'),'change',event=>{if(event.target.value==='McCarren Park'){view.homePark();$('camera-mode').value='map';}else{if(event.target.value)view.focus(event.target.value);$('camera-mode').value='map';}nextAt=0;observerNextAt=0;});
@@ -121,7 +129,7 @@
     on($('ride-selected'),'click',()=>{$('camera-mode').value='rider';view.setCameraMode('rider');nextAt=0;});
     on($('follow-selected'),'click',()=>{$('camera-mode').value='map';view.focusSource(inspectedSource||getSelected());nextAt=0;});
     on($('live-overlay'),'change',()=>view.showMeasurements($('live-overlay').checked?lastReading:null,'total'));
-    return {captureObservation(){if(!world)return null;return structuredClone({markers,nextId,selectedMarker,inspectedSource,inspectedLocation});},update,pick,resetClock(){pending=false;observerPending=false;requestId++;observerRequest++;nextAt=0;observerNextAt=0;lastRequestKey='';observerKey='';lastReading=null;lastObserver=null;history=[];view.showMeasurements(null);},dispose(){treatments.dispose();epoch++;events.abort();worker?.terminate();observerWorker?.terminate();view.setReceiverMarkers([],null);}};
+    return {captureObservation(){if(!world)return null;return structuredClone({markers,nextId,selectedMarker,inspectedSource,inspectedLocation});},update,pick,resetClock(){pending=false;observerPending=false;requestId++;observerRequest++;nextAt=0;observerNextAt=0;lastRequestKey='';observerKey='';lastReading=null;lastObserver=null;root.motorcycleMeasurementReceipt=null;root.motorcycleMapMeasurementReceipt=null;history=[];view.showMeasurements(null);},dispose(){treatments.dispose();epoch++;events.abort();worker?.terminate();observerWorker?.terminate();view.setReceiverMarkers([],null);}};
   }
   root.MotorcycleExplorer={create};
 })(globalThis);

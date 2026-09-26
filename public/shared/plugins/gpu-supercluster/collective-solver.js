@@ -1,8 +1,102 @@
 (function attachCollectiveSolver(root, factory) {
-  const api = factory();
+  const topology = typeof module === 'object' && module.exports ? require('./cluster-topology.js') : root.SimulatteClusterTopology;
+  const api = factory(topology);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCollectiveSolver = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCollectiveSolver() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCollectiveSolver(topologyApi) {
+  // Synchronous store-and-forward rounds share each directed physical link.
+  // This conservative network model is not a calibrated NCCL performance model.
+  function planCollective({ topology, groups, bytes, algorithm, loss = 0 }) {
+    if (!Number.isFinite(bytes) || bytes < 0 || !Number.isFinite(loss) || loss < 0 || loss >= 1 ||
+      !['ring-allreduce', 'tree-allreduce', '2d-torus-all-to-all'].includes(algorithm)) throw Error('gpu_collective_invalid');
+    const nodes = new Map(topology.gpus.map(g => [g.id, []]));
+    if (nodes.size !== topology.gpus.length || nodes.size > 4096) throw Error('gpu_collective_nodes_invalid');
+    const linkIds = new Set();
+    for (const link of topology.links) {
+      if (linkIds.has(link.id) || !nodes.has(link.sourceGpuId) || !nodes.has(link.targetGpuId) ||
+        !(link.bandwidthGbps > 0) || !Number.isFinite(link.bandwidthGbps) ||
+        !(link.latencySeconds >= 0) || !Number.isFinite(link.latencySeconds)) throw Error('gpu_collective_link_invalid');
+      linkIds.add(link.id);
+      for (const [from, to] of [[link.sourceGpuId, link.targetGpuId], [link.targetGpuId, link.sourceGpuId]]) {
+        nodes.get(from).push({ from, to, id: link.id, key: `${link.id}:${from}`, bandwidth: link.bandwidthGbps * 1e9 / 8, latency: link.latencySeconds });
+      }
+    }
+    const routes = new Map();
+    function route(from, to) {
+      const key = `${from}:${to}`;
+      if (routes.has(key)) return routes.get(key);
+      const queue = [from], previous = new Map([[from, null]]);
+      for (let i = 0; i < queue.length && !previous.has(to); i++) {
+        for (const edge of nodes.get(queue[i])) if (!previous.has(edge.to)) { previous.set(edge.to, edge); queue.push(edge.to); }
+      }
+      if (!previous.has(to)) throw Error(`gpu_collective_disconnected: ${from} -> ${to}`);
+      const path = []; let cursor = to;
+      while (cursor !== from) { const edge = previous.get(cursor); path.unshift(edge); cursor = edge.from; }
+      routes.set(key, path); return path;
+    }
+    const schedules = groups.map(group => {
+      if (!group.length || new Set(group).size !== group.length || group.some(id => !nodes.has(id))) throw Error('gpu_collective_group_invalid');
+      const n = group.length, rounds = [];
+      const transfer = (from, to, size) => ({ from: group[from], to: group[to], bytes: size });
+      if (algorithm === 'tree-allreduce') {
+        // Two complementary binary trees carry half the tensor each. Rotating
+        // the second tree puts its internal ranks in the first tree's leaves.
+        const trees = [0, Math.floor(n / 2)].map(shift => {
+          const levels = [];
+          for (let child = 1; child < n; child++) {
+            const depth = Math.floor(Math.log2(child + 1)) - 1;
+            (levels[depth] ||= []).push({...transfer((child + shift) % n,
+              (Math.floor((child - 1) / 2) + shift) % n, bytes / 2), partition: shift === 0 ? 0 : 1});
+          }
+          const reduce = levels.reverse();
+          return [...reduce, ...reduce.slice().reverse().map(round => round.map(t => ({...t, from:t.to, to:t.from})))];
+        });
+        for (let i = 0; i < trees[0].length; i++) rounds.push([...trees[0][i], ...trees[1][i]]);
+      } else if (algorithm === 'ring-allreduce') {
+        for (let step = 0; step < 2 * (n - 1); step++) rounds.push(group.map((_, i) => transfer(i, (i + 1) % n, bytes / n)));
+      } else {
+        // A logical rectangular torus uses row then column forwarding. Each
+        // hop delivers one bucket and forwards the remaining destination buckets.
+        // Physical paths still use the supplied graph and its shared capacities.
+        let rows = Math.floor(Math.sqrt(n));
+        while (n % rows) rows--;
+        const cols = n / rows;
+        for (let hop = 1; hop < cols; hop++) rounds.push(group.map((_, i) =>
+          transfer(i, Math.floor(i / cols) * cols + (i + 1) % cols, bytes * (cols - hop) / cols)));
+        for (let hop = 1; hop < rows; hop++) rounds.push(group.map((_, i) =>
+          transfer(i, (i + cols) % n, bytes * (rows - hop) / rows)));
+      }
+      return rounds;
+    });
+    let durationMs = 0, logicalBytes = 0;
+    const rounds = Array.from({ length: Math.max(0, ...schedules.map(s => s.length)) }, (_, index) => {
+      const transfers = schedules.flatMap(s => s[index] || []).map(t => ({ ...t, path: route(t.from, t.to) }));
+      const hops = Math.max(0, ...transfers.map(t => t.path.length)), links = new Map(), stages = []; let seconds = 0;
+      for (let hop = 0; hop < hops; hop++) {
+        const loads = new Map();
+        for (const t of transfers) {
+          const edge = t.path[hop]; if (!edge) continue;
+          const amount = t.bytes / (1 - loss);
+          const load = loads.get(edge.key) || { edge, bytes: 0 }; load.bytes += amount; loads.set(edge.key, load);
+          const aggregate = links.get(edge.key) || { id: edge.id, from: edge.from, to: edge.to, bytes: 0, bandwidthBps: edge.bandwidth };
+          aggregate.bytes += amount; links.set(edge.key, aggregate);
+        }
+        const hopSeconds = Math.max(0, ...[...loads.values()].map(load => load.bytes / load.edge.bandwidth + load.edge.latency));
+        stages.push(Object.freeze({ startMs: seconds * 1000, durationMs: hopSeconds * 1000,
+          links: Object.freeze([...loads.values()].map(({edge,bytes}) => Object.freeze({id:edge.id,from:edge.from,to:edge.to,bytes}))) }));
+        seconds += hopSeconds;
+      }
+      const startMs = durationMs; durationMs += seconds * 1000;
+      logicalBytes += transfers.reduce((sum, t) => sum + t.bytes, 0);
+      return Object.freeze({ index, startMs, durationMs: seconds * 1000, stages: Object.freeze(stages),
+        transfers: Object.freeze(transfers.map(({ path, ...t }) => Object.freeze({ ...t, linkIds: Object.freeze(path.map(e => e.id)) }))),
+        links: Object.freeze([...links.values()].map(Object.freeze)) });
+    });
+    return Object.freeze({ schema: 'simulatte.collectivePlan.v1', algorithm, operation: algorithm === '2d-torus-all-to-all' ? 'all-to-all' : 'allreduce',
+      routing: 'deterministic-shortest-hop', transport: 'synchronous-store-and-forward-full-duplex',
+      lossModel: 'independent-retry-expected-bytes', durationMs, logicalBytes, rounds: Object.freeze(rounds) });
+  }
+
   function solveCollectives({
     totalGpus = 256,
     tensorSizeGb = 14.2,
@@ -14,11 +108,13 @@
     linkPacketDropRate = 0,
     gpuTdpW = 700,
     thermalClockFraction = 1,
+    topology = null,
   } = {}) {
     const tensorSizeBytes = tensorSizeGb * 1e9;
-    const tp = Math.max(1, parallelism.tensorParallel || 8);
-    const pp = Math.max(1, parallelism.pipelineParallel || 4);
-    const dp = Math.max(1, parallelism.dataParallel || 8);
+    const tp = parallelism.tensorParallel, pp = parallelism.pipelineParallel, dp = parallelism.dataParallel;
+    if (![totalGpus,tp,pp,dp].every(n=>Number.isInteger(n)&&n>0&&n<=4096) ||
+      ![tensorSizeGb,nvlinkBandwidthGbps,infinibandBandwidthGbps].every(n=>Number.isFinite(n)&&n>0) ||
+      !Number.isFinite(stragglerThrottlePercent)||stragglerThrottlePercent<0||stragglerThrottlePercent>95) throw Error('gpu_collective_inputs_invalid');
     const effectiveClusterGpus = tp * pp * dp;
     if (effectiveClusterGpus !== totalGpus) throw new Error('gpu_parallelism_must_match_cluster');
 
@@ -26,31 +122,14 @@
     const tpBandwidthBps = (nvlinkBandwidthGbps * 1e9) / 8;
     const tpTransferTimeSec = (2 * (tp - 1) / tp) * (tensorSizeBytes / (pp * dp)) / tpBandwidthBps;
 
-    // 2. Inter-Node Data Parallel AllReduce Transfer Time (InfiniBand Spine-Leaf)
-    const ibBandwidthBps = (infinibandBandwidthGbps * 1e9) / 8;
-    let dpTransferTimeSec = 0;
-
-    if (algorithm === 'tree-allreduce') {
-      // Double-Binary Tree AllReduce: 2 * log2(dp) * alpha + 2 * (dp - 1)/dp * S / (2 * B)
-      const treeLatencyAlpha = 2e-6; // 2 microseconds per hop
-      const logSteps = Math.ceil(Math.log2(dp));
-      dpTransferTimeSec = (2 * logSteps * treeLatencyAlpha) + ((2 * (dp - 1) / dp) * (tensorSizeBytes / tp) / ibBandwidthBps);
-    } else if (algorithm === '2d-torus-all-to-all') {
-      // 2D Torus: Split communication across row/col dimensions
-      const dim = Math.sqrt(dp);
-      dpTransferTimeSec = (4 * (dim - 1) / dim) * (tensorSizeBytes / tp) / ibBandwidthBps;
-    } else {
-      // Default: Ring-AllReduce: 2 * (dp - 1) / dp * S / B
-      const ringHops = 2 * (dp - 1);
-      const ringHopLatencyAlpha = 1.2e-6;
-      dpTransferTimeSec = (ringHops * ringHopLatencyAlpha) + (2 * (dp - 1) / dp) * (tensorSizeBytes / tp) / ibBandwidthBps;
+    const network = topology || topologyApi.buildClusterTopology({ totalGpus, racks: Math.max(1, totalGpus / tp), gpusPerNode: tp, nvlinkBandwidthGbps, infinibandBandwidthGbps });
+    if(network.gpus.length!==totalGpus)throw Error('gpu_collective_population_mismatch');
+    const groups = [];
+    for (let p = 0; p < pp; p++) for (let t = 0; t < tp; t++) {
+      groups.push(Array.from({ length: dp }, (_, d) => network.gpus[(d * pp + p) * tp + t].id));
     }
-
-    // Packet drop retransmission penalty
-    if (linkPacketDropRate > 0) {
-      const dropPenaltyMultiplier = 1 + (linkPacketDropRate * 4.5);
-      dpTransferTimeSec *= dropPenaltyMultiplier;
-    }
+    const communicationPlan = planCollective({ topology: network, groups, bytes: tensorSizeBytes / tp, algorithm, loss: linkPacketDropRate });
+    const dpTransferTimeSec = communicationPlan.durationMs / 1000;
 
     // 3. Pipeline Bubble Delay Calculation
     // Bubble fraction F_bubble = (PP - 1) / (PP + numMicrobatches - 1)
@@ -98,19 +177,21 @@
       totalGpus,
       parallelism: Object.freeze({ ...parallelism }),
       tensorSizeGb,
-      stepTimeMs: Number(totalStepTimeMs.toFixed(2)),
-      computeTimeMs: Number(computeTimeMs.toFixed(2)),
-      commTimeMs: Number(commTimeMs.toFixed(2)),
-      bubbleFraction: Number(bubbleFraction.toFixed(4)),
-      stragglerDelayMs: Number((stragglerDelaySec * 1000).toFixed(2)),
-      commOverheadPercent: Number(commOverheadPercent.toFixed(1)),
-      modelFlopsUtilization: Number((modelFlopsUtilization * 100).toFixed(1)),
-      effectiveClusterTflops: Number(effectiveClusterTflops.toFixed(1)),
+      stepTimeMs: totalStepTimeMs,
+      computeTimeMs: computeTimeMs,
+      commTimeMs: commTimeMs,
+      bubbleFraction: bubbleFraction,
+      stragglerDelayMs: (stragglerDelaySec * 1000),
+      commOverheadPercent: commOverheadPercent,
+      modelFlopsUtilization: (modelFlopsUtilization * 100),
+      effectiveClusterTflops: effectiveClusterTflops,
       totalPeakClusterTflops,
       bandwidthBottleneck: dpTransferTimeSec > tpTransferTimeSec ? 'InfiniBand Inter-Rack' : 'NVLink Intra-Node',
       thermalClockFraction,
+      communicationPlan,
+      tensorTransferMs: tpTransferTimeSec * 1000,
     });
   }
 
-  return Object.freeze({ solveCollectives });
+  return Object.freeze({ solveCollectives, planCollective });
 });

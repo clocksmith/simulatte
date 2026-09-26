@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import fs from 'node:fs/promises';
 import {openBrowserAudit} from './browser-session.mjs';
-const root=fileURLToPath(new URL('../../',import.meta.url)).replace(/\/$/,''),out=root+'/artifacts/runtime-repair/motorcycle-failures';await fs.mkdir(out,{recursive:true});
+const root=fileURLToPath(new URL('../../',import.meta.url)).replace(/\/$/,''),out=root+'/'+(process.env.SIMULATTE_EVIDENCE_DIR||'artifacts/runtime-repair')+'/motorcycle-failures';await fs.mkdir(out,{recursive:true});
 const report={sources:await sourceReceipt(root),cases:[],errors:[]};
 for(const mode of ['first','late','persistent']){
  const b=await openBrowserAudit({publicRoot:root+'/public',viewport:{width:390,height:844},args:['--no-sandbox','--disable-dev-shm-usage']});const c=b.client;

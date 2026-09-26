@@ -15,9 +15,9 @@ Motorcycle Noise only. Babylon renders; Simulatte owns simulation time and mathe
 ## Contracts
 - Input: sourced [NYC geometry](nyc-map.json) and [scenario parameters](reflection-model.js).
 - Output: [traffic trajectories](traffic-motion.js), [building paths](city-paths.js), [acoustic fields](acoustic-field.js), and [comparisons](reflection-worker.js).
-- Output: [live energy estimates](live-noise-worker.js), [inspection controls](explore-ui.js), and [city graphics](babylon-city.js), [source markers](sound-view.js), [interaction](reflection-view.js), and [replay](reflection-app.js).
+- Output: [measurements](live-noise-worker.js), [inspection](explore-ui.js), [graphics](babylon-city.js), and [replay](reflection-app.js).
 
-- Output: [background traffic preparation](population-worker.js) and [viewpoint sound estimates](city-sound.js).
+- Output: [traffic preparation](population-worker.js) and [sound estimates](city-sound.js).
 
 ## Invariants
 - Keep direct, reflected, and powered contributions distinguishable.
@@ -28,11 +28,16 @@ Motorcycle Noise only. Babylon renders; Simulatte owns simulation time and mathe
 - Never prescribe cancellation success or infer identity from a spectral peak.
 - Distinguish sourced geometry, synthetic demand, approximate propagation, and measured evidence.
 - Cameras cannot change traffic state. Comparisons retain traffic, time, and observer position.
-- Population counts represent individual simulated agents, not decorative counters.
+- Population counts represent simulated individuals.
+- Missing building heights remain explicit; illustrative vegetation cannot become an acoustic barrier.
+- Picking and physics share entity identity. Measurements bind scenario, time, observer, and configuration.
 
 ## Acceptance
 - Evidence: [Earlier analytical cases](../../../tests/motorcycle-noise.test.cjs) cover the older solver only.
-The NYC traffic, facade paths, combined modes, rendering, and replay changes remain unqualified pending dedicated checks.
+- Evidence: [City reference cases](../../../tests/city-acoustic-reference.test.cjs) check paths, convergence, waveform agreement, and learned control.
+- Evidence: [Measurement identity tests](../../../tests/measurement-contract.test.cjs) reject stale scenario, observer, and configuration responses.
+- Evidence: [Local browser probes](../../../tools/simulatte/audit-runtime-motorcycle-start.mjs), [recovery injection](../../../tools/simulatte/audit-runtime-motorcycle-failures.mjs), and [snapshot replay](../../../tools/simulatte/audit-runtime-motorcycle-analysis.mjs) qualify browser behavior.
+- Empirical calibration, uncertainty, and physical devices require separate qualification.
 
 ## Non-goals
 Hardware actuation, incapacitation, vehicle interference, personal identification, or field-validation claims.

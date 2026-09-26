@@ -20,15 +20,17 @@ const tierPresentation = require('../public/simulatte/app/tier-plugin-presentati
 const fs = require('node:fs');
 const path = require('node:path');
 
-test('ephemeris linearly interpolates a pinned state without mutating samples', () => {
-  const dataset = { epochStart: '2030-01-01T00:00:00Z', bodies: { earth: { vectors: [
-    { day: 0, positionAu: [1, 0, 0], velocityAuD: [0, 1, 0] },
-    { day: 2, positionAu: [3, 2, 0], velocityAuD: [2, 3, 0] },
-  ] } } };
-  const state = ephemeris.getBodyState(dataset, 'earth', 1);
-  assert.deepEqual(state.positionAu, [2, 1, 0]);
-  assert.deepEqual(state.velocityAuD, [1, 2, 0]);
-  assert.equal(state.interpolation, 'linear_state_vector_v1');
+test('ephemeris reproduces a known cubic trajectory and its velocity without mutating samples', () => {
+  const position=t=>[1+t+t*t+t*t*t,2*t*t,3-t];
+  const velocity=t=>[1+2*t+3*t*t,4*t,-1];
+  const dataset={epochStart:'2030-01-01T00:00:00Z',bodies:{earth:{vectors:[0,2].map(day=>({day,positionAu:position(day),velocityAuD:velocity(day)}))}}};
+  const before=structuredClone(dataset);
+  for(const day of [0,.25,.5,1,1.75,2]){
+    const state=ephemeris.getBodyState(dataset,'earth',day);
+    assert.deepEqual(state.positionAu,position(day));assert.deepEqual(state.velocityAuD,velocity(day));
+    assert.equal(state.interpolation,[0,2].includes(day)?'exact_sample':'cubic_hermite_state_vector_v1');
+  }
+  assert.deepEqual(dataset,before);
 });
 
 test('universal-variable Lambert solver converges and patched-conic metrics remain finite', () => {

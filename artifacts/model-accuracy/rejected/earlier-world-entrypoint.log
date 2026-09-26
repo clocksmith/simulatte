@@ -1,0 +1,5 @@
+
+> check:world-entrypoint
+> node tools/check-world-runtime-entrypoint.mjs
+
+World runtime entrypoint is synchronized (15 eager scripts, 241 inventoried, 5 exclusive stages).

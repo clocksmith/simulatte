@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import fs from 'node:fs/promises';
 import {openBrowserAudit} from './browser-session.mjs';
-const root=fileURLToPath(new URL('../../',import.meta.url)).replace(/\/$/,''),out=root+'/artifacts/runtime-repair/gpu';await fs.mkdir(out,{recursive:true});
+const root=fileURLToPath(new URL('../../',import.meta.url)).replace(/\/$/,''),out=root+'/'+(process.env.SIMULATTE_EVIDENCE_DIR||'artifacts/runtime-repair')+'/gpu';await fs.mkdir(out,{recursive:true});
 const b=await openBrowserAudit({publicRoot:root+'/public',viewport:{width:390,height:844},args:['--no-sandbox','--disable-dev-shm-usage']});const c=b.client;
 await c.send('Page.enable');await c.send('Runtime.enable');await c.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});const report={sources:await sourceReceipt(root),cases:[],errors:[]};c.on('Runtime.exceptionThrown',e=>report.errors.push(e.exceptionDetails));
 const ev=async s=>{const r=await c.send('Runtime.evaluate',{expression:s,returnByValue:true,awaitPromise:true,userGesture:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
@@ -28,9 +28,10 @@ await ev(`document.querySelector('.cluster-interaction button').click()`);await 
 await ev(`document.getElementById('resume-button').click()`);await until(`document.querySelector('.cluster-interaction').dataset.task==='backward' && globalThis.__simulattePluginPlatformV4?.contributions[0].inspections.some(i=>i.fields.some(f=>f.id==='task'&&f.value==='waiting'))`);await ev(`document.getElementById('pause-button').click()`);report.cases.push({name:'barrier-waits',state:await snap()});await shot('straggler');
 await ev(`document.querySelector('.cluster-interaction button').click()`);await wait(200);report.cases.push({name:'removed',state:await snap()});
  await ev(`document.getElementById('overlay-canvas').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}))`);
- const manual=(await snap()).render.view;
+ const cameraState=view=>Object.fromEntries(['panX','panY','zoom','rotX','rotY'].map(key=>[key,view[key]]));
+ const manual=cameraState((await snap()).render.view);
  for(let i=0;i<3;i++){await ev(`document.getElementById('step-button').click()`);await wait(100);}
- assert.deepEqual((await snap()).render.view,manual);report.manualCameraPreserved=true;
+ assert.deepEqual(cameraState((await snap()).render.view),manual);report.manualCameraPreserved=true;
 
 for(const [width,height] of [[844,390],[390,844],[1440,1000]]){await c.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1000});await wait(400);report.cases.push({name:'orientation-before-reset-'+width,state:await snap()});await ev(`document.getElementById('camera-reset').click()`);await wait(300);report.cases.push({name:'resize-'+width,state:await snap()});await shot('resize-'+width);(report.framing||=[]).push(await checkFraming());}
 await ev(`(()=>{const e=document.getElementById('playback-speed');e.value='4';e.dispatchEvent(new Event('change',{bubbles:true}));document.getElementById('resume-button').click();})()`);await until(`globalThis.__simulatteTierRunState?.state==='settled'`);report.cases.push({name:'completed',state:await snap()});

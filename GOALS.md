@@ -19,6 +19,8 @@ Creators need to understand the world they requested and make targeted changes w
 
 7. Open simulations as immediately interactive running worlds. GPU Supercluster models rack computation, communication, and synchronization dependencies, including live straggler interventions; steady-state thermal estimates do not imply thermal evolution. Keep configuration in Advanced and observation independent of execution.
 
+8. Establish model accuracy with independent reference cases, timestep or spatial convergence, and separate calibration and evaluation records. Share physical entity identity and units across models and rendering; expose missing coverage and unquantified uncertainty. Improve opening activity and object interactions before adding configuration.
+
 ## Operating Loops
 
 For data execution, acquire only the chosen input, validate its mapping and declared semantics, run the selected model, and compare identified results. For prompts, follow the eight phases with each consuming its declared predecessor artifact. Record rejected or unsupported obligations rather than inventing a successful scene. Edit and recompile while preserving accepted overrides, then export and verify reimport against the declared reproduction contract.

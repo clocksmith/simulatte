@@ -116,9 +116,10 @@ test('gpu-supercluster plugin produces deterministic simulation and valid receip
   assert.equal(result.receipt.modelReceipts.length, 2);
   assert.deepEqual(pluginApi.simulate({ totalGpus: 256, racks: 32 }).receipt, result.receipt);
 
-  const presentation = result.createSemanticPresentation({ progress: 0.5 });
-  assert.equal(presentation.schema, 'simulatte.semanticPresentation.v4-draft');
-  assert.equal(presentation.layers.length, 3);
+  const contribution = result.createContribution(100);
+  v4Contracts.validateContribution(contribution, 'GPU model-owned presentation');
+  assert.equal(contribution.presentation.layers.filter(row=>row.id.startsWith('rack:')).length,32);
+
 });
 
 test('gpu-supercluster activates as a native v4 plugin with deterministic playback and comparison', async () => {
@@ -206,7 +207,7 @@ test('default NVLink uses directional bits per second without changing explicit 
   const nominal = collectiveApi.solveCollectives();
   const slower = collectiveApi.solveCollectives({ nvlinkBandwidthGbps: 900 });
   const expectedTransferDifferenceMs = (2 * 7 / 8) * (14.2e9 / 32) * (1 / 112.5e9 - 1 / 450e9) * 1000;
-  assert.ok(Math.abs((slower.commTimeMs - nominal.commTimeMs) - expectedTransferDifferenceMs) < 0.01);
+  assert.ok(Math.abs((slower.tensorTransferMs - nominal.tensorTransferMs) - expectedTransferDifferenceMs) < 0.01);
 });
 
 test('coolant flow changes die temperature and thermal caps slow computation and conserve modeled heat', () => {
@@ -244,10 +245,7 @@ test('rack visuals retain exact model temperatures and PUE remains a ratio', () 
     assert.equal(rack.quantity.value, result.thermals.racks[index].avgTempC);
     assert.equal(rack.aggregationKey, null);
   }
-  const tensor = contribution.presentation.layers.find((layer) => layer.id === 'active-allreduce-tensor-pulse');
-  assert.equal(tensor.kind, 'actor');
-  assert.equal(tensor.geometry.coordinates.length, result.topology.totalGpus);
-  assert.equal(tensor.quantity.value, 0);
+  assert.equal(contribution.presentation.layers.filter(layer => layer.kind === 'actor').length, 0, 'no network motion before the workload communicates');
   const format = require('../public/simulatte/app/experience-presentation.js').formatMeasure;
   assert.equal(format(contribution.state.measures.find(row => row.kind === 'cooling-pue')), `${result.thermals.pue}×`);
   assert.equal(format({ value: 0.25, unit: 'probability' }), '25%');

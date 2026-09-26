@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: reference report separates unfitted evaluation, published comparisons, and numerical convergence
+ok 1 - reference report separates unfitted evaluation, published comparisons, and numerical convergence
+  ---
+  duration_ms: 934.752881
+  type: 'test'
+  ...
+# Subtest: ephemeris reproduces a known cubic trajectory and its velocity without mutating samples
+ok 2 - ephemeris reproduces a known cubic trajectory and its velocity without mutating samples
+  ---
+  duration_ms: 6.098605
+  type: 'test'
+  ...
+# Subtest: universal-variable Lambert solver converges and patched-conic metrics remain finite
+ok 3 - universal-variable Lambert solver converges and patched-conic metrics remain finite
+  ---
+  duration_ms: 2.727842
+  type: 'test'
+  ...
+# Subtest: named random streams make maritime queues reproducible and independent
+ok 4 - named random streams make maritime queues reproducible and independent
+  ---
+  duration_ms: 9.308455
+  type: 'test'
+  ...
+# Subtest: container ledger conserves count and records ordered lineage
+ok 5 - container ledger conserves count and records ordered lineage
+  ---
+  duration_ms: 2.25319
+  type: 'test'
+  ...
+# Subtest: stellar propagation does not multiply radial velocity by seconds twice
+ok 6 - stellar propagation does not multiply radial velocity by seconds twice
+  ---
+  duration_ms: 0.69141
+  type: 'test'
+  ...
+# Subtest: contact scheduler orders every relay event and reproduces finite light time
+ok 7 - contact scheduler orders every relay event and reproduces finite light time
+  ---
+  duration_ms: 14.777811
+  type: 'test'
+  ...
+# Subtest: plugin scheduler snapshots and deeply freezes payloads when scheduled
+ok 8 - plugin scheduler snapshots and deeply freezes payloads when scheduled
+  ---
+  duration_ms: 0.964169
+  type: 'test'
+  ...
+# Subtest: plugin scheduler fails terminally without consuming work beyond its budget
+ok 9 - plugin scheduler fails terminally without consuming work beyond its budget
+  ---
+  duration_ms: 0.676289
+  type: 'test'
+  ...
+# Subtest: interstellar packet integrity uses host SHA-256 and detects payload changes
+ok 10 - interstellar packet integrity uses host SHA-256 and detects payload changes
+  ---
+  duration_ms: 22.663044
+  type: 'test'
+  ...
+# Subtest: v3 profiles and coordinate-native presentations validate
+ok 11 - v3 profiles and coordinate-native presentations validate
+  ---
+  duration_ms: 2.084582
+  type: 'test'
+  ...
+# Subtest: settlement, capability, and reducer boundaries fail closed
+ok 12 - settlement, capability, and reducer boundaries fail closed
+  ---
+  duration_ms: 2.144456
+  type: 'test'
+  ...
+# Subtest: plugin state reducers retain unchanged immutable simulation subtrees
+ok 13 - plugin state reducers retain unchanged immutable simulation subtrees
+  ---
+  duration_ms: 2.737783
+  type: 'test'
+  ...
+# Subtest: tier presentation compiler namespaces coordinate-native output
+ok 14 - tier presentation compiler namespaces coordinate-native output
+  ---
+  duration_ms: 0.668738
+  type: 'test'
+  ...
+# Subtest: new plugin manifests declare every emitted completion receipt family
+ok 15 - new plugin manifests declare every emitted completion receipt family
+  ---
+  duration_ms: 0.641038
+  type: 'test'
+  ...
+# Subtest: Food Recall exposes the generic scenario.run action for governed country boot
+ok 16 - Food Recall exposes the generic scenario.run action for governed country boot
+  ---
+  duration_ms: 1.464362
+  type: 'test'
+  ...
+# Subtest: Lambert solutions record branch, revolutions, iterations, tolerance, residual, and bracket
+ok 17 - Lambert solutions record branch, revolutions, iterations, tolerance, residual, and bracket
+  ---
+  duration_ms: 6.167211
+  type: 'test'
+  ...
+# Subtest: independent RK4 propagation reproduces a deterministic circular two-body benchmark
+ok 18 - independent RK4 propagation reproduces a deterministic circular two-body benchmark
+  ---
+  duration_ms: 54.528111
+  type: 'test'
+  ...
+# Subtest: bounded searches retain rejected candidates and exact grid identities
+ok 19 - bounded searches retain rejected candidates and exact grid identities
+  ---
+  duration_ms: 1.606373
+  type: 'test'
+  ...
+# Subtest: Hohmann fallback is explicitly a circular coplanar screening baseline with a reason
+ok 20 - Hohmann fallback is explicitly a circular coplanar screening baseline with a reason
+  ---
+  duration_ms: 0.561617
+  type: 'test'
+  ...
+# Subtest: every public scenario emits deterministic solver hashes, verification errors, receipts, and claim gates
+ok 21 - every public scenario emits deterministic solver hashes, verification errors, receipts, and claim gates
+  ---
+  duration_ms: 1961.138516
+  type: 'test'
+  ...
+# Subtest: objective controls rerun the launch-window search and become receipt-backed state
+ok 22 - objective controls rerun the launch-window search and become receipt-backed state
+  ---
+  duration_ms: 347.781514
+  type: 'test'
+  ...
+# Subtest: spacecraft, solver branch, and verifier controls causally alter accepted results
+ok 23 - spacecraft, solver branch, and verifier controls causally alter accepted results
+  ---
+  duration_ms: 521.585461
+  type: 'test'
+  ...
+# Subtest: launch-window playback exposes a bounded family of inspectable candidate paths
+ok 24 - launch-window playback exposes a bounded family of inspectable candidate paths
+  ---
+  duration_ms: 363.383598
+  type: 'test'
+  ...
+# Subtest: flight playback advances the ephemeris epoch and follows the moving spacecraft
+ok 25 - flight playback advances the ephemeris epoch and follows the moving spacecraft
+  ---
+  duration_ms: 330.235644
+  type: 'test'
+  ...
+# Subtest: applied mission state remains inspectable while step-time drafts cannot mutate the running proof
+ok 26 - applied mission state remains inspectable while step-time drafts cannot mutate the running proof
+  ---
+  duration_ms: 331.417796
+  type: 'test'
+  ...
+# Subtest: launch search rejects nonadvancing, nonfinite, and excessive grids before iterating
+ok 27 - launch search rejects nonadvancing, nonfinite, and excessive grids before iterating
+  ---
+  duration_ms: 0.557115
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4086.802805

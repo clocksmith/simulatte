@@ -46,8 +46,8 @@
     let followed=null,openingPending=true;
     let cameraMode='map',current=initial,lastTime=0,lastSource=null,selectedId=null,savedRadius=openingRadius;
     const receiverMarkers=new Map();
-    new B.HemisphericLight('sky',new B.Vector3(0,1,0),scene).intensity=.8;
-    const sunlight=new B.DirectionalLight('sun',new B.Vector3(-.4,-1,.3),scene);sunlight.intensity=1.2;sunlight.position=new B.Vector3(90,180,-60);
+    new B.HemisphericLight('sky',new B.Vector3(0,1,0),scene).intensity=.65;
+    const sunlight=new B.DirectionalLight('sun',new B.Vector3(-.4,-1,.3),scene);sunlight.intensity=.85;sunlight.position=new B.Vector3(90,180,-60);
     const material=(name,color,alpha=1)=>{const m=new B.StandardMaterial(name,scene);m.diffuseColor=B.Color3.FromHexString(color);m.specularColor=new B.Color3(.08,.08,.08);m.alpha=alpha;return m;};
     const ground=B.MeshBuilder.CreateGround('water-ground',{width:9000,height:9000},scene);ground.position.y=-.2;ground.material=material('water','#233b43');ground.metadata={ground:true};
     const city=root.MotorcycleBabylonCity.create(B,scene,{...map,tracks:trackData.tracks,trees:trackData.trees||[]},origin,sunlight);cleanup.push(()=>city.dispose());city.setSources(initial.sources);
@@ -98,13 +98,13 @@
     }
     function rooftopAt(point){
       let nearest=null,best=Infinity;
-      for(const building of map.buildings){const ring=building.footprint;if(!ring?.length)continue;const middle=ring.reduce((p,q)=>({x:p.x+q.x/ring.length,y:p.y+q.y/ring.length}),{x:0,y:0}),distance=Math.hypot(middle.x-point.x,middle.y-point.y);if(distance<best){best=distance;nearest=building;}}
-      if(!nearest)return {...point,z:20};
+      for(const building of map.buildings){const ring=building.footprint;if(!ring?.length||root.MotorcycleCityPaths.height(building)===null)continue;const middle=ring.reduce((p,q)=>({x:p.x+q.x/ring.length,y:p.y+q.y/ring.length}),{x:0,y:0}),distance=Math.hypot(middle.x-point.x,middle.y-point.y);if(distance<best){best=distance;nearest=building;}}
+      if(!nearest)throw Error('No sourced rooftop height is available at this viewpoint');
       const flat=[],holes=[],rings=[nearest.footprint,...(nearest.interiorRings||[])];
       for(let i=0;i<rings.length;i++){if(i)holes.push(flat.length/2);for(const p of rings[i])flat.push(p.x,p.y);}
       const triangle=root.earcut(flat,holes).slice(0,3);
-      if(triangle.length<3)return {...point,z:(nearest.heightM||9)+1.7};
-      return {x:triangle.reduce((sum,i)=>sum+flat[i*2]/3,0),y:triangle.reduce((sum,i)=>sum+flat[i*2+1]/3,0),z:(nearest.heightM||9)+1.7};
+      if(triangle.length<3)throw Error('The sourced rooftop footprint cannot be triangulated');
+      return {x:triangle.reduce((sum,i)=>sum+flat[i*2]/3,0),y:triangle.reduce((sum,i)=>sum+flat[i*2+1]/3,0),z:nearest.heightM+1.7};
     }
     function trafficCandidates(point,northOnly=false){
       const M=root.MotorcycleReflection,rows=current.sources.filter(source=>source.kind==='motorcycle').map(source=>({id:source.id,...M.position(source,lastTime)}));
@@ -152,7 +152,8 @@
       for(const {building} of candidates.slice(0,40)){
         const flat=[],holes=[],rings=[building.footprint,...(building.interiorRings||[])];
         for(let r=0;r<rings.length;r++){if(r)holes.push(flat.length/2);for(const p of rings[r])flat.push(p.x,p.y);}
-        const triangles=root.earcut(flat,holes),height=Math.max(3,building.heightM||9);
+        const height=root.MotorcycleCityPaths.height(building);if(height===null)continue;
+        const triangles=root.earcut(flat,holes);
         for(let i=0;i<triangles.length;i+=3){
           const point={x:0,y:0,z:height+1.7};
           for(let j=0;j<3;j++){point.x+=flat[triangles[i+j]*2]/3;point.y+=flat[triangles[i+j]*2+1]/3;}
@@ -183,7 +184,7 @@
     function placeObserver(point,mode){activateObserver(point,mode||'sidewalk');}
     function getObserver(){
       const active=scene.activeCamera,p=active.globalPosition||active.position,right=active.getDirection(B.Axis.X);
-      return {x:p.x+origin.x,y:-p.z+origin.y,z:p.y,right:{x:right.x,y:-right.z},sourceId:cameraMode==='rider'?selectedId:null,mode:cameraMode};
+      return {x:p.x+origin.x,y:-p.z+origin.y,z:p.y,right:{x:right.x,y:-right.z},sourceId:cameraMode==='rider'?selectedId:null,trackId:cameraMode==='rider'?selectedId:followed,mode:cameraMode};
     }
     function getFocus(){
       const point=cameraMode==='map'?targetPoint():getObserver();
@@ -211,7 +212,7 @@
       if(pick.pickedMesh.metadata?.treatmentId)onPick({treatmentId:pick.pickedMesh.metadata.treatmentId});
       else if(pick.pickedMesh.metadata?.receiverId)onPick({receiverId:pick.pickedMesh.metadata.receiverId});
       else if(pick.pickedMesh.metadata?.sourceId)onPick({sourceId:pick.pickedMesh.metadata.sourceId});
-      else if(pick.pickedPoint&&pick.pickedMesh.name!=='nyc-walls'&&pick.pickedMesh.name!=='water-ground')onPick({point:{x:pick.pickedPoint.x+origin.x,y:-pick.pickedPoint.z+origin.y,z:pick.pickedPoint.y+1.7},surface:pick.pickedMesh.name==='nyc-roofs'?'rooftop':'sidewalk'});
+      else if(pick.pickedPoint&&pick.pickedMesh.name!=='nyc-walls'&&pick.pickedMesh.name!=='water-ground')onPick({buildingId:pick.pickedMesh.metadata?.buildingId||pick.pickedMesh.metadata?.buildingIds?.[pick.faceId],point:{x:pick.pickedPoint.x+origin.x,y:-pick.pickedPoint.z+origin.y,z:pick.pickedPoint.y+1.7},surface:pick.pickedMesh.name==='nyc-roofs'?'rooftop':'sidewalk'});
     }
     scene.onPointerObservable.add(info=>{if(info.type===B.PointerEventTypes.POINTERDOWN||info.type===B.PointerEventTypes.POINTERWHEEL)followed=null;if(info.type===B.PointerEventTypes.POINTERTAP)pickScene(info.pickInfo);});
     const gestures=root.MotorcycleMapGestures.create({B,scene,canvas,getCamera:()=>scene.activeCamera,onTap:pickScene,onHome:homePark,onInteract:()=>{followed=null;}});
@@ -220,7 +221,7 @@
     const resizeObserver=new ResizeObserver(resize);cleanup.push(()=>resizeObserver.disconnect());resizeObserver.observe(canvas);
     function draw(state){
       const M=root.MotorcycleReflection,s=state.scene,t=state.time;current=s;lastTime=t;
-      if(openingPending){openingPending=false;focus('Greenpoint');}
+      if(openingPending){openingPending=false;focus('Greenpoint');const openingTraffic=trafficCandidates(getObserver())[0];if(openingTraffic)focusSource(openingTraffic.id);}
       if(followed&&cameraMode==='map'){const source=s.sources.find(row=>row.id===followed);if(source)camera.setTarget(vector(M.position(source,t)));}
       for(const source of s.sources){const mesh=city.vehicles.get(source.id),p=M.position(source,t);if(!mesh)continue;mesh.position=vector({...p,z:0});mesh.rotation.y=p.heading+Math.PI/2;city.animate(mesh,p,source.kind);}
       panel.position=vector(s.panel);panel.scaling.set(s.panel.width,s.panel.height,.35);panel.rotation.y=s.panel.angle+Math.PI/2;panel.isVisible=s.config.surface!=='none';

@@ -26,7 +26,7 @@
       for (let i = 1; i < street.geometry.length; i++) {
         const a = node(street.geometry[i - 1]), b = node(street.geometry[i]), length = dist(a, b);
         if (length < 3) continue;
-        for (const [from, to] of [[a,b],[b,a]]) { const edge = { from, to, length, width: street.widthM || 8, name: street.name || '', ux: (to.x-from.x)/length, uy: (to.y-from.y)/length }; edges.push(edge); from.exits.push(edge); }
+        for (const [from, to] of [[a,b],[b,a]]) { const edge = { id: `${street.id}:segment-${i}:${from===a?'forward':'reverse'}`, streetId:street.id, from, to, length, width: street.widthM || 8, name: street.name || '', ux: (to.x-from.x)/length, uy: (to.y-from.y)/length }; edges.push(edge); from.exits.push(edge); }
       }
     }
     // Keep one connected street component, rather than distributing actors
@@ -41,7 +41,9 @@
       }
       if (component.size > largest.size) largest = component;
     }
-    return edges.filter(edge => largest.has(edge.from));
+    const connected=edges.filter(edge => largest.has(edge.from));
+    connected.coverage={inputDirectedEdges:edges.length,connectedDirectedEdges:connected.length,excludedDirectedEdges:edges.length-connected.length};
+    return connected;
   }
   function startLocation(map) {
     const parks=(map.parks||[]).filter(row=>/mccarren/i.test(row.label||''));
@@ -97,7 +99,7 @@
       const segments = []; let edge = first, total = 0;
       for (let i=0; i<120 && total<2500; i++) {
         const lane = offset === 'sidewalk' ? edge.width/2+1.6 : Math.min(2.5, edge.width/4);
-        segments.push({ x: edge.from.x+edge.uy*lane, y: edge.from.y-edge.ux*lane, tx: edge.to.x+edge.uy*lane, ty: edge.to.y-edge.ux*lane, start: total, length: edge.length, ux: edge.ux, uy: edge.uy, node: { x: edge.to.x, y: edge.to.y }, signal: edge.to.exits.length > 2 }); total += edge.length;
+        segments.push({ edgeId:edge.id,streetId:edge.streetId,x: edge.from.x+edge.uy*lane, y: edge.from.y-edge.ux*lane, tx: edge.to.x+edge.uy*lane, ty: edge.to.y-edge.ux*lane, start: total, length: edge.length, ux: edge.ux, uy: edge.uy, node: { x: edge.to.x, y: edge.to.y }, signal: edge.to.exits.length > 2 }); total += edge.length;
         const choices = edge.to.exits.filter(next => next.to !== edge.from);
         if (!choices.length) choices.push(...edge.to.exits);
         if (!choices.length) break;
@@ -126,7 +128,7 @@
       const actual = moving.filter(source => source.kind === kind).length;
       if (actual !== expected) throw new Error('Street placement produced '+actual+'/'+expected+' '+kind+' agents; choose a smaller population or another seed.');
     }
-    const state = { schema:'simulatte.nycAcousticScene.v4', config:{...p}, startLocation:{x:(startEdge.from.x+startEdge.to.x)/2,y:(startEdge.from.y+startEdge.to.y)/2,z:0,street:startEdge.name}, sources:moving, panel, receiver, buildings:map.buildings, requestedCounts:{motorcycles:p.motorcycles,cars:p.cars,pedestrians:p.pedestrians},
+    const state = { schema:'simulatte.nycAcousticScene.v4', config:{...p}, streetCoverage:edges.coverage, startLocation:{x:(startEdge.from.x+startEdge.to.x)/2,y:(startEdge.from.y+startEdge.to.y)/2,z:0,street:startEdge.name}, sources:moving, panel, receiver, buildings:map.buildings, requestedCounts:{motorcycles:p.motorcycles,cars:p.cars,pedestrians:p.pedestrians},
       reference:{x:receiver.x-anchor.ux*5,y:receiver.y-anchor.uy*5,z:1.5},
       speaker:{x:receiver.x+anchor.ux*1.5,y:receiver.y+anchor.uy*1.5,z:1.5}, center,
       observers:[{name:'Listener',...receiver},{name:'Opposite curb',x:panel.x+n.x*3,y:panel.y+n.y*3,z:1.5},{name:'Along street',x:receiver.x+anchor.ux*25,y:receiver.y+anchor.uy*25,z:1.5}] };
@@ -275,5 +277,5 @@
     rows.balanceError=rows.emitted-rows.bypassing-rows.inbound-rows.reflected-rows.absorbed-rows.transmitted;
     return rows;
   }
-  root.MotorcycleReflection={C,defaults,validate,startLocation,create,position,pressure,sourceLevel,fieldPaths,contributions,secondary,ledger,soundSpeed,dist,redirectedAxis,solidAngle,facing};
+  root.MotorcycleReflection={C,defaults,validate,startLocation,graph,create,position,pressure,sourceLevel,fieldPaths,contributions,secondary,ledger,soundSpeed,dist,redirectedAxis,solidAngle,facing};
 })(globalThis);

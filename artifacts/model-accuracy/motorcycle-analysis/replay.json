@@ -1,0 +1,731 @@
+{
+  "schema": "simulatte.nycNoiseReplay.v4",
+  "spec": {
+    "id": "motorcycle-noise",
+    "kind": "nyc-noise-treatment-v4",
+    "templateId": "nyc-noise-treatment-v4",
+    "name": "NYC noise treatments",
+    "description": "Idealized redistribution, redirection and active cancellation.",
+    "params": {
+      "mapHash": "eb53d3d677db67564a5cccccb18f2adc1bf12732860bcbf56d50e6c3517f2edf",
+      "config": {
+        "seed": 731,
+        "motorcycles": 2,
+        "cars": 0,
+        "pedestrians": 0,
+        "speed": 9,
+        "rpm": 2400,
+        "temperature": 20,
+        "background": 20,
+        "sourceDb": 136,
+        "surface": "none",
+        "reflectivity": 0.7,
+        "transmission": 0.1,
+        "cancellation": false,
+        "latencyMs": 2,
+        "panelWidth": 16,
+        "panelHeight": 3,
+        "coneDegrees": 60
+      },
+      "panel": {
+        "x": 2034.714521608603,
+        "y": 386.04860384404543,
+        "z": 1.5,
+        "angle": -2.822935579156236,
+        "width": 16,
+        "height": 3
+      },
+      "receiver": {
+        "x": 2498.933317640625,
+        "y": -636.376153015625,
+        "z": 71.79135131835938,
+        "right": {
+          "x": -0.9802244901657104,
+          "y": -0.19788877665996552
+        },
+        "sourceId": null,
+        "trackId": "motorcycle-35",
+        "mode": "map"
+      },
+      "reference": {
+        "x": 2021.1823857657362,
+        "y": 386.8494156385358,
+        "z": 1.5
+      },
+      "speaker": {
+        "x": 2023.2187806771663,
+        "y": 380.6766451288942,
+        "z": 1.5
+      },
+      "time": 1.566699999999997
+    },
+    "objects": [],
+    "modules": [],
+    "controls": [],
+    "source": {
+      "schema": "simulatte.worldSpecSource.v1",
+      "prompt": "",
+      "compilerConfig": {
+        "adapter": "nyc-noise-treatment-v4"
+      }
+    },
+    "authorship": {
+      "schema": "simulatte.worldSpecAuthoring.v2",
+      "revision": 0,
+      "sources": [
+        {
+          "authority": "userOverride",
+          "id": "source:nyc-noise-scenario",
+          "label": "Scenario controls"
+        }
+      ],
+      "fieldProvenance": [
+        {
+          "authority": "userOverride",
+          "path": "/",
+          "sourceId": "source:nyc-noise-scenario"
+        }
+      ],
+      "patches": [],
+      "reconciliations": []
+    },
+    "determinism": {
+      "pixelPolicy": null,
+      "requiredClasses": [
+        "simulation-reproducible",
+        "replay-identified"
+      ],
+      "schema": "simulatte.worldSpecDeterminism.v1",
+      "seed": 731,
+      "simulationTolerance": 1e-8
+    },
+    "dependencies": {
+      "assets": [],
+      "governedPacks": [],
+      "plugins": [],
+      "schema": "simulatte.worldSpecDependencies.v1"
+    },
+    "safety": {
+      "rules": [],
+      "schema": "simulatte.worldSpecSafety.v1",
+      "status": "not-declared"
+    },
+    "unsupportedRequirements": [
+      {
+        "value": "Field calibration"
+      },
+      {
+        "value": "Physical reflector design"
+      },
+      {
+        "value": "Hardware control"
+      }
+    ],
+    "unresolvedAmbiguities": [],
+    "schema": "simulatte.worldSpec.v1",
+    "schemaVersion": "1.2.0",
+    "contentHash": "fnv1a32:ea9f0278"
+  },
+  "record": {
+    "schema": "simulatte.nycNoiseComparison.v4",
+    "mapHash": "eb53d3d677db67564a5cccccb18f2adc1bf12732860bcbf56d50e6c3517f2edf",
+    "scene": {
+      "config": {
+        "seed": 731,
+        "motorcycles": 2,
+        "cars": 0,
+        "pedestrians": 0,
+        "speed": 9,
+        "rpm": 2400,
+        "temperature": 20,
+        "background": 20,
+        "sourceDb": 136,
+        "surface": "none",
+        "reflectivity": 0.7,
+        "transmission": 0.1,
+        "cancellation": false,
+        "latencyMs": 2,
+        "panelWidth": 16,
+        "panelHeight": 3,
+        "coneDegrees": 60
+      },
+      "panel": {
+        "x": 2034.714521608603,
+        "y": 386.04860384404543,
+        "z": 1.5,
+        "angle": -2.822935579156236,
+        "width": 16,
+        "height": 3
+      },
+      "receiver": {
+        "x": 2498.933317640625,
+        "y": -636.376153015625,
+        "z": 71.79135131835938,
+        "right": {
+          "x": -0.9802244901657104,
+          "y": -0.19788877665996552
+        },
+        "sourceId": null,
+        "trackId": "motorcycle-35",
+        "mode": "map"
+      },
+      "reference": {
+        "x": 2021.1823857657362,
+        "y": 386.8494156385358,
+        "z": 1.5
+      },
+      "speaker": {
+        "x": 2023.2187806771663,
+        "y": 380.6766451288942,
+        "z": 1.5
+      },
+      "center": {
+        "x": 2029.2065109999999,
+        "y": 384.231513,
+        "z": 0.8
+      },
+      "observers": [
+        {
+          "name": "Active viewpoint",
+          "x": 2498.933317640625,
+          "y": -636.376153015625,
+          "z": 71.79135131835938,
+          "right": {
+            "x": -0.9802244901657104,
+            "y": -0.19788877665996552
+          },
+          "sourceId": null,
+          "trackId": "motorcycle-35",
+          "mode": "map"
+        },
+        {
+          "name": "Opposite curb",
+          "x": 2037.563492613053,
+          "y": 386.98847841855167,
+          "z": 1.5
+        },
+        {
+          "name": "Along street",
+          "x": 2030.5811315107985,
+          "y": 358.3597055940361,
+          "z": 1.5
+        }
+      ],
+      "requestedCounts": {
+        "motorcycles": 2,
+        "cars": 0,
+        "pedestrians": 0
+      }
+    },
+    "time": 1.566699999999997,
+    "interval": [
+      0.3166999999999971,
+      1.566699999999997
+    ],
+    "sampleRate": 8000,
+    "readings": {
+      "baseline": {
+        "laeq": 20.000000000000032,
+        "lafmax": 20.20589518604946,
+        "lzEq": 19.672896779708253,
+        "duration": 1.25,
+        "spectrum": [
+          {
+            "hz": 63,
+            "dbZ": 0.30141328740067047
+          },
+          {
+            "hz": 125,
+            "dbZ": 3.8282136628501777
+          },
+          {
+            "hz": 250,
+            "dbZ": 6.194801367648087
+          },
+          {
+            "hz": 500,
+            "dbZ": 8.949254260569784
+          },
+          {
+            "hz": 1000,
+            "dbZ": 11.962580286069954
+          },
+          {
+            "hz": 2000,
+            "dbZ": 15.108423867958605
+          },
+          {
+            "hz": 3150,
+            "dbZ": 16.22877366846754
+          }
+        ]
+      },
+      "withSurface": {
+        "laeq": 20.000000000000032,
+        "lafmax": 20.20589518604946,
+        "lzEq": 19.672896779708253,
+        "duration": 1.25,
+        "spectrum": [
+          {
+            "hz": 63,
+            "dbZ": 0.30141328740067047
+          },
+          {
+            "hz": 125,
+            "dbZ": 3.8282136628501777
+          },
+          {
+            "hz": 250,
+            "dbZ": 6.194801367648087
+          },
+          {
+            "hz": 500,
+            "dbZ": 8.949254260569784
+          },
+          {
+            "hz": 1000,
+            "dbZ": 11.962580286069954
+          },
+          {
+            "hz": 2000,
+            "dbZ": 15.108423867958605
+          },
+          {
+            "hz": 3150,
+            "dbZ": 16.22877366846754
+          }
+        ]
+      },
+      "returned": {
+        "laeq": -120,
+        "lafmax": -120,
+        "lzEq": -120,
+        "duration": 1.25,
+        "spectrum": [
+          {
+            "hz": 63,
+            "dbZ": -120
+          },
+          {
+            "hz": 125,
+            "dbZ": -120
+          },
+          {
+            "hz": 250,
+            "dbZ": -120
+          },
+          {
+            "hz": 500,
+            "dbZ": -120
+          },
+          {
+            "hz": 1000,
+            "dbZ": -120
+          },
+          {
+            "hz": 2000,
+            "dbZ": -120
+          },
+          {
+            "hz": 3150,
+            "dbZ": -120
+          }
+        ]
+      },
+      "total": {
+        "laeq": 20.000000000000032,
+        "lafmax": 20.20589518604946,
+        "lzEq": 19.672896779708253,
+        "duration": 1.25,
+        "spectrum": [
+          {
+            "hz": 63,
+            "dbZ": 0.30141328740067047
+          },
+          {
+            "hz": 125,
+            "dbZ": 3.8282136628501777
+          },
+          {
+            "hz": 250,
+            "dbZ": 6.194801367648087
+          },
+          {
+            "hz": 500,
+            "dbZ": 8.949254260569784
+          },
+          {
+            "hz": 1000,
+            "dbZ": 11.962580286069954
+          },
+          {
+            "hz": 2000,
+            "dbZ": 15.108423867958605
+          },
+          {
+            "hz": 3150,
+            "dbZ": 16.22877366846754
+          }
+        ]
+      }
+    },
+    "points": [
+      {
+        "point": {
+          "x": 2474.933317640625,
+          "y": -660.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample -2, -2",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2510.933317640625,
+          "y": -660.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 1, -2",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2522.933317640625,
+          "y": -660.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 2, -2",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2474.933317640625,
+          "y": -648.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample -2, -1",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2510.933317640625,
+          "y": -648.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 1, -1",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2522.933317640625,
+          "y": -648.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 2, -1",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2474.933317640625,
+          "y": -636.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample -2, 0",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2510.933317640625,
+          "y": -636.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 1, 0",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2522.933317640625,
+          "y": -636.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 2, 0",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2474.933317640625,
+          "y": -624.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample -2, 1",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2486.933317640625,
+          "y": -624.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample -1, 1",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2498.933317640625,
+          "y": -624.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 0, 1",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2510.933317640625,
+          "y": -624.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 1, 1",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2522.933317640625,
+          "y": -624.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 2, 1",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2474.933317640625,
+          "y": -612.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample -2, 2",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2486.933317640625,
+          "y": -612.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample -1, 2",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2498.933317640625,
+          "y": -612.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 0, 2",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2510.933317640625,
+          "y": -612.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 1, 2",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "x": 2522.933317640625,
+          "y": -612.376153015625,
+          "z": 71.79135131835938
+        },
+        "name": "Street sample 2, 2",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      }
+    ],
+    "local": [],
+    "observers": [
+      {
+        "point": {
+          "name": "Active viewpoint",
+          "x": 2498.933317640625,
+          "y": -636.376153015625,
+          "z": 71.79135131835938,
+          "right": {
+            "x": -0.9802244901657104,
+            "y": -0.19788877665996552
+          },
+          "sourceId": null,
+          "trackId": "motorcycle-35",
+          "mode": "map"
+        },
+        "name": "Active viewpoint",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "name": "Opposite curb",
+          "x": 2037.563492613053,
+          "y": 386.98847841855167,
+          "z": 1.5
+        },
+        "name": "Opposite curb",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "point": {
+          "name": "Along street",
+          "x": 2030.5811315107985,
+          "y": 358.3597055940361,
+          "z": 1.5
+        },
+        "name": "Along street",
+        "baseline": 20.000000000000004,
+        "withSurface": 20.000000000000004,
+        "total": 20.000000000000004,
+        "returned": -120,
+        "change": 0
+      },
+      {
+        "name": "First motorcycle: own returned sound",
+        "point": {
+          "x": 1923.869399658203,
+          "y": -864.8274466552734,
+          "heading": 0.8853793740272522,
+          "speed": 2.6633900032043405,
+          "phase": 110.16345215606667,
+          "distance": 6.088254547119132,
+          "acceleration": 1.7000000476837158,
+          "lean": 0,
+          "rpm": 1449.6783382568353,
+          "z": 0.7
+        },
+        "baseline": null,
+        "withSurface": null,
+        "total": null,
+        "returned": -120,
+        "change": null
+      }
+    ],
+    "ledger": {
+      "emitted": 15.617147794869979,
+      "bypassing": 15.617147794869979,
+      "inbound": 0,
+      "reflected": 0,
+      "absorbed": 0,
+      "transmitted": 0,
+      "balanceError": 0
+    },
+    "poweredEmitter": {
+      "enabled": false,
+      "energyJ": 0,
+      "clippedSamples": 0
+    },
+    "observation": {
+      "dominantHz": 742.1875,
+      "status": "Spectral peak observed",
+      "claim": "Microphone mixture only. A spectral peak does not identify a rider, vehicle, or muffler."
+    },
+    "counts": {
+      "motorcycle": 2,
+      "car": 0,
+      "pedestrian": 0
+    },
+    "excludedIndoorPoints": 6,
+    "geometryStepSeconds": 0.02,
+    "assumptions": [
+      "Street and building geometry comes from the packaged NYC snapshot; traffic demand, lane direction, junction phases, and source levels are synthetic.",
+      "Vehicles follow smoothed street paths with headway, acceleration, junction reservations, and modeled signals. This is not calibrated NYC traffic.",
+      "Acoustic paths include finite travel time, up to twelve nearby first-order facade candidates, and approximate roof diffraction. Facade pressure reflection is assumed to be 0.55.",
+      "Propagation paths update every 20 milliseconds and interpolate between updates. Audio is synthesized at 8 kHz, not a full-band recording.",
+      "The surface uses an idealized finite-aperture directional model. Returned sound follows emission geometry, not the moving source position.",
+      "The ledger accounts for modeled source energy and direct panel interception, not a complete canyon flux integral. Powered output is separate.",
+      "The causal controller is evaluated at multiple points; no cancellation amount or scene-wide benefit is guaranteed.",
+      "Street-map samples are 12 meters apart; local listener samples are 0.25 meters apart. Neither resolves the complete interference field."
+    ],
+    "qualification": "Unvalidated NYC integration"
+  }
+}

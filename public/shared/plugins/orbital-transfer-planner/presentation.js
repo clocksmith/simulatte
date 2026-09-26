@@ -1,15 +1,16 @@
 (function attachOrbitalPresentation(root, factory) {
-  const api = factory();
+  const ephemerisApi=typeof module==='object'&&module.exports?require('./ephemeris.js'):root.OrbitalTransferEphemeris;
+  const api = factory(ephemerisApi);
   root.OrbitalTransferPresentation = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createOrbitalPresentationModule() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createOrbitalPresentationModule(ephemerisApi) {
   function createPresentation(ephemerisData, transferPlan = {}) {
     const selected = new Set(transferPlan.selectedBodyIds || []);
     const markers = [];
     const paths = [];
     const ephemerisDay = Number(transferPlan.ephemerisDay || 0);
     Object.entries(ephemerisData?.bodies || {}).forEach(([id, body]) => {
-      const currentPos = stateAtDay(body.vectors || [], ephemerisDay);
+      const currentPos = ephemerisApi.getBodyState(ephemerisData,id,ephemerisDay,{clamp:true}).positionAu;
       markers.push({
         id, position: currentPos, label: body.name || id,
         tone: id === 'sun' ? 'amber' : selected.has(id) ? 'cyan' : 'muted',
@@ -38,19 +39,6 @@
       ],
     });
   }
-  function stateAtDay(vectors, day) {
-    if (!vectors.length) return [0, 0, 0];
-    const bounded = Math.max(Number(vectors[0].day || 0), Math.min(Number(vectors.at(-1).day), day));
-    let lowerIndex = 0;
-    for (let index = 1; index < vectors.length && Number(vectors[index].day) <= bounded; index += 1) lowerIndex = index;
-    const lower = vectors[lowerIndex];
-    const upper = vectors[Math.min(vectors.length - 1, lowerIndex + 1)];
-    const lowerDay = Number(lower.day ?? lowerIndex);
-    const upperDay = Number(upper.day ?? lowerIndex + 1);
-    const ratio = upperDay === lowerDay ? 0 : (bounded - lowerDay) / (upperDay - lowerDay);
-    return lower.positionAu.map((value, index) => value + (upper.positionAu[index] - value) * ratio);
-  }
-
   function epochForDay(dataset, day) {
     const start = Date.parse(dataset?.epochStart || dataset?.epoch?.start || '');
     return Number.isFinite(start)

@@ -1,0 +1,337 @@
+{
+  "schema": "simulatte.independentReferences.v1",
+  "sources": {
+    "public/shared/plugins/gpu-supercluster/cluster-topology.js": "cd13b2f7dd6116a1cfa129f07994671ee574964f37500bd8b5d47cd401207112",
+    "public/shared/plugins/gpu-supercluster/collective-solver.js": "cc602903b6e78eab294c723bba933b730d82739dcc6feea6ea7bf3b4e1247f0f",
+    "public/shared/plugins/gpu-supercluster/thermal-model.js": "afabd35b2bba5a587d061c2e5303920de6077419abc5a4c491e3ebe590826548",
+    "public/shared/plugins/gpu-supercluster/workload.js": "f9d94b55ab20ff61d13f862704867bfa12069b421869ec077933aed734ff4c8a",
+    "public/shared/plugins/cable-trader/circulation-simulation.js": "575e3883c92b6e2384838b913241633412c3b7a7f4c0ed97b0ec99fb4a3c911f",
+    "public/shared/plugins/orbital-transfer-planner/ephemeris.js": "06e1c168b4971355cebaeed87cf477ad7228a1626ebbc5b30f33cc91ff38117e",
+    "public/shared/plugins/orbital-transfer-planner/n-body-verifier.js": "df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03",
+    "public/simulatte/motorcycle-noise/city-sound.js": "23e72cd8ca43e2254fa0b0d2de84e0e8c05bc694a83510238b30ef05a520ed32",
+    "public/simulatte/motorcycle-noise/acoustic-field.js": "6105e72d1bcef8b11f75fa38c528910d9c2a6ddef3f4193bdaa70d4587bceaa7",
+    "public/simulatte/motorcycle-noise/reflection-model.js": "e11cc66822bf4880aeb144a36143d20fc616c3709ecda9781c34e607884a54ba",
+    "public/simulatte/motorcycle-noise/city-paths.js": "06130eb8ed0e77c72a45179ce5e8f096ef5e0c9878359c86155ff3309e495bd9",
+    "public/simulatte/motorcycle-noise/signal.js": "899f6f2eccdbe3d104ddb5adcd7b08f7ae4cdec61304fa071b6c5355c336a618",
+    "public/simulatte/motorcycle-noise/traffic-motion.js": "a2f1e641a1eea2f22bccbb7fe951c99eb545802116cda3733a486368a4c11323",
+    "public/shared/plugins/cable-trader/default-config.json": "e69dc61b0054e26c332b8a116fbfb448462be2dcf15225d412e76c9543a234f5",
+    "public/data/orbital-transfer-planner/gm-constants-de440-v1.json": "54e129096f6aa63fec28ddd0fbcd4e70f1ba54fddd8435f0f3faf7041197bbd0",
+    "public/data/orbital-transfer-planner/jpl-horizons-heliocentric-vectors-v1.json": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020"
+  },
+  "calibration": {
+    "datasetId": "none",
+    "caseIds": [],
+    "fittedParameters": [],
+    "status": "No empirical calibration performed"
+  },
+  "evaluation": {
+    "datasetId": "analytical-and-pinned-jpl-evaluation-v1",
+    "role": "evaluation-only",
+    "cases": [
+      {
+        "id": "network-ring-8",
+        "reference": "six rounds of 250 bytes per directional link",
+        "actualMs": 0.0015,
+        "expectedMs": 0.0015,
+        "errorMs": 0
+      },
+      {
+        "id": "network-ring-4",
+        "reference": "six rounds of 250 bytes per directional link",
+        "actualMs": 0.003,
+        "expectedMs": 0.003,
+        "errorMs": 0
+      },
+      {
+        "id": "network-ring-2",
+        "reference": "six rounds of 250 bytes per directional link",
+        "actualMs": 0.006,
+        "expectedMs": 0.006,
+        "errorMs": 0
+      },
+      {
+        "id": "thermal-flow-60",
+        "reference": "Qdot = mass flow * specific heat * temperature rise",
+        "powerW": 800,
+        "specificHeatJPerKgK": 4184,
+        "flowKgPerSecond": 1,
+        "actualDeltaK": 0.19,
+        "expectedDeltaK": 0.19120458891013384,
+        "errorK": -0.0012045889101338358,
+        "limit": "Steady water-loop balance; thermal resistance, clock policy and facility efficiency are not calibrated."
+      },
+      {
+        "id": "thermal-flow-120",
+        "reference": "Qdot = mass flow * specific heat * temperature rise",
+        "powerW": 800,
+        "specificHeatJPerKgK": 4184,
+        "flowKgPerSecond": 2,
+        "actualDeltaK": 0.1,
+        "expectedDeltaK": 0.09560229445506692,
+        "errorK": 0.0043977055449330865,
+        "limit": "Steady water-loop balance; thermal resistance, clock policy and facility efficiency are not calibrated."
+      },
+      {
+        "id": "thermal-flow-240",
+        "reference": "Qdot = mass flow * specific heat * temperature rise",
+        "powerW": 800,
+        "specificHeatJPerKgK": 4184,
+        "flowKgPerSecond": 4,
+        "actualDeltaK": 0.05,
+        "expectedDeltaK": 0.04780114722753346,
+        "errorK": 0.0021988527724665433,
+        "limit": "Steady water-loop balance; thermal resistance, clock policy and facility efficiency are not calibrated."
+      },
+      {
+        "id": "inventory-365-day-ledger",
+        "reference": "Independent inventory reconstructed from individual dropoff/pickup records, not model balance.pass",
+        "days": 365,
+        "journeys": 4207,
+        "errorItems": 0
+      },
+      {
+        "id": "orbital-circle-16",
+        "reference": "Closed-form circular Kepler orbit after one period",
+        "stepDays": 22.828556145395506,
+        "errorAu": 0.011103098564708366,
+        "relativeEnergyError": 0.0016984351355684533
+      },
+      {
+        "id": "orbital-circle-32",
+        "reference": "Closed-form circular Kepler orbit after one period",
+        "stepDays": 11.414278072697753,
+        "errorAu": 0.0004524822516627791,
+        "relativeEnergyError": 0.00005135579491676438
+      },
+      {
+        "id": "orbital-circle-64",
+        "reference": "Closed-form circular Kepler orbit after one period",
+        "stepDays": 5.7071390363488765,
+        "errorAu": 0.000020852499838259568,
+        "relativeEnergyError": 0.0000015949016334360185
+      },
+      {
+        "id": "jpl-earth-30-day-no-moon-1",
+        "referenceDataset": "jpl.horizons.heliocentric-vectors.v1",
+        "referenceSha256": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020",
+        "role": "published-ephemeris-holdout-not-field-observation",
+        "includeMoon": false,
+        "stepDays": 1,
+        "errorKm": 27139.883449257668,
+        "acceptance": "Report discrepancy; no field-accuracy threshold or fitted parameter is inferred."
+      },
+      {
+        "id": "jpl-earth-30-day-no-moon-0.5",
+        "referenceDataset": "jpl.horizons.heliocentric-vectors.v1",
+        "referenceSha256": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020",
+        "role": "published-ephemeris-holdout-not-field-observation",
+        "includeMoon": false,
+        "stepDays": 0.5,
+        "errorKm": 27139.841556342122,
+        "acceptance": "Report discrepancy; no field-accuracy threshold or fitted parameter is inferred."
+      },
+      {
+        "id": "jpl-earth-30-day-no-moon-0.25",
+        "referenceDataset": "jpl.horizons.heliocentric-vectors.v1",
+        "referenceSha256": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020",
+        "role": "published-ephemeris-holdout-not-field-observation",
+        "includeMoon": false,
+        "stepDays": 0.25,
+        "errorKm": 27139.838935002914,
+        "acceptance": "Report discrepancy; no field-accuracy threshold or fitted parameter is inferred."
+      },
+      {
+        "id": "jpl-earth-30-day-moon-1",
+        "referenceDataset": "jpl.horizons.heliocentric-vectors.v1",
+        "referenceSha256": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020",
+        "role": "published-ephemeris-holdout-not-field-observation",
+        "includeMoon": true,
+        "stepDays": 1,
+        "errorKm": 56.82778353832423,
+        "acceptance": "Report discrepancy; no field-accuracy threshold or fitted parameter is inferred."
+      },
+      {
+        "id": "jpl-earth-30-day-moon-0.5",
+        "referenceDataset": "jpl.horizons.heliocentric-vectors.v1",
+        "referenceSha256": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020",
+        "role": "published-ephemeris-holdout-not-field-observation",
+        "includeMoon": true,
+        "stepDays": 0.5,
+        "errorKm": 62.15049766101618,
+        "acceptance": "Report discrepancy; no field-accuracy threshold or fitted parameter is inferred."
+      },
+      {
+        "id": "jpl-earth-30-day-moon-0.25",
+        "referenceDataset": "jpl.horizons.heliocentric-vectors.v1",
+        "referenceSha256": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020",
+        "role": "published-ephemeris-holdout-not-field-observation",
+        "includeMoon": true,
+        "stepDays": 0.25,
+        "errorKm": 62.480572090987714,
+        "acceptance": "Report discrepancy; no field-accuracy threshold or fitted parameter is inferred."
+      },
+      {
+        "id": "jpl-earth-finite-mass-30-day-1",
+        "referenceDataset": "jpl.horizons.heliocentric-vectors.v1",
+        "role": "published-ephemeris-evaluation",
+        "centralParameter": "GM_sun + GM_earth",
+        "interpolation": "cubic_hermite_state_vector_v1",
+        "stepDays": 1,
+        "errorKm": 6.628763577231569,
+        "acceptance": "Reported Newtonian model discrepancy, not flight-path certification or an empirical uncertainty interval."
+      },
+      {
+        "id": "jpl-earth-finite-mass-30-day-0.5",
+        "referenceDataset": "jpl.horizons.heliocentric-vectors.v1",
+        "role": "published-ephemeris-evaluation",
+        "centralParameter": "GM_sun + GM_earth",
+        "interpolation": "cubic_hermite_state_vector_v1",
+        "stepDays": 0.5,
+        "errorKm": 1.1821718718109362,
+        "acceptance": "Reported Newtonian model discrepancy, not flight-path certification or an empirical uncertainty interval."
+      },
+      {
+        "id": "jpl-earth-finite-mass-30-day-0.25",
+        "referenceDataset": "jpl.horizons.heliocentric-vectors.v1",
+        "role": "published-ephemeris-evaluation",
+        "centralParameter": "GM_sun + GM_earth",
+        "interpolation": "cubic_hermite_state_vector_v1",
+        "stepDays": 0.25,
+        "errorKm": 0.8511229361786975,
+        "acceptance": "Reported Newtonian model discrepancy, not flight-path certification or an empirical uncertainty interval."
+      },
+      {
+        "id": "acoustic-4-direct",
+        "role": "cross-model-agreement-not-physical-validation",
+        "liveDbA": 74.52696128868016,
+        "detailedDbA": 74.51951969241476,
+        "errorDb": 0.007441596265394423
+      },
+      {
+        "id": "acoustic-4-wall",
+        "role": "cross-model-agreement-not-physical-validation",
+        "liveDbA": 74.34475116685032,
+        "detailedDbA": 74.33627268184507,
+        "errorDb": 0.00847848500524151
+      },
+      {
+        "id": "acoustic-10-direct",
+        "role": "cross-model-agreement-not-physical-validation",
+        "liveDbA": 67.11493691883734,
+        "detailedDbA": 67.11312636649252,
+        "errorDb": 0.0018105523448213034
+      },
+      {
+        "id": "acoustic-10-wall",
+        "role": "cross-model-agreement-not-physical-validation",
+        "liveDbA": 66.74319452412979,
+        "detailedDbA": 66.74049568205578,
+        "errorDb": 0.002698842074011054
+      },
+      {
+        "id": "acoustic-23-direct",
+        "role": "cross-model-agreement-not-physical-validation",
+        "liveDbA": 59.87189261668277,
+        "detailedDbA": 59.87562622283062,
+        "errorDb": -0.003733606147847013
+      },
+      {
+        "id": "acoustic-23-wall",
+        "role": "cross-model-agreement-not-physical-validation",
+        "liveDbA": 60.10885113638309,
+        "detailedDbA": 60.11178503895912,
+        "errorDb": -0.00293390257603221
+      },
+      {
+        "id": "acoustic-moving-3-direct",
+        "speedMps": 3,
+        "windowSeconds": [
+          2,
+          3
+        ],
+        "role": "cross-model-discrepancy-not-physical-validation",
+        "liveDbA": 52.1333289042833,
+        "detailedDbA": 52.16032209137806,
+        "errorDb": -0.026993187094760174,
+        "limitation": "Live spectra are locally stationary; the detailed solver includes retarded moving emission and filter history. No moving-source accuracy threshold is asserted."
+      },
+      {
+        "id": "acoustic-moving-3-wall",
+        "speedMps": 3,
+        "windowSeconds": [
+          2,
+          3
+        ],
+        "role": "cross-model-discrepancy-not-physical-validation",
+        "liveDbA": 53.104116789734704,
+        "detailedDbA": 53.13083514999807,
+        "errorDb": -0.026718360263366492,
+        "limitation": "Live spectra are locally stationary; the detailed solver includes retarded moving emission and filter history. No moving-source accuracy threshold is asserted."
+      },
+      {
+        "id": "acoustic-moving-9-direct",
+        "speedMps": 9,
+        "windowSeconds": [
+          2,
+          3
+        ],
+        "role": "cross-model-discrepancy-not-physical-validation",
+        "liveDbA": 54.9430137221347,
+        "detailedDbA": 55.017366859704026,
+        "errorDb": -0.07435313756932516,
+        "limitation": "Live spectra are locally stationary; the detailed solver includes retarded moving emission and filter history. No moving-source accuracy threshold is asserted."
+      },
+      {
+        "id": "acoustic-moving-9-wall",
+        "speedMps": 9,
+        "windowSeconds": [
+          2,
+          3
+        ],
+        "role": "cross-model-discrepancy-not-physical-validation",
+        "liveDbA": 55.8369238843807,
+        "detailedDbA": 55.89896589046391,
+        "errorDb": -0.06204200608321031,
+        "limitation": "Live spectra are locally stationary; the detailed solver includes retarded moving emission and filter history. No moving-source accuracy threshold is asserted."
+      },
+      {
+        "id": "acoustic-moving-18-direct",
+        "speedMps": 18,
+        "windowSeconds": [
+          2,
+          3
+        ],
+        "role": "cross-model-discrepancy-not-physical-validation",
+        "liveDbA": 64.10682463077526,
+        "detailedDbA": 64.27456091738075,
+        "errorDb": -0.16773628660548923,
+        "limitation": "Live spectra are locally stationary; the detailed solver includes retarded moving emission and filter history. No moving-source accuracy threshold is asserted."
+      },
+      {
+        "id": "acoustic-moving-18-wall",
+        "speedMps": 18,
+        "windowSeconds": [
+          2,
+          3
+        ],
+        "role": "cross-model-discrepancy-not-physical-validation",
+        "liveDbA": 64.80950275811158,
+        "detailedDbA": 64.96683155158064,
+        "errorDb": -0.1573287934690626,
+        "limitation": "Live spectra are locally stationary; the detailed solver includes retarded moving emission and filter history. No moving-source accuracy threshold is asserted."
+      }
+    ]
+  },
+  "uncertainty": {
+    "kind": "unquantified-model-discrepancy",
+    "note": "Numerical convergence is measured separately from empirical prediction uncertainty."
+  },
+  "references": [
+    "https://www.nist.gov/publications/summary-industrial-verification-validation-and-uncertainty-quantification-procedures",
+    "https://github.com/NVIDIA/nccl-tests/blob/master/doc/PERFORMANCE.md",
+    "https://www.mpi-forum.org/docs/mpi-2.1/mpi21-report-bw/node85.htm",
+    "https://openstax.org/books/physics/pages/11-2-heat-specific-heat-and-heat-transfer",
+    "https://ssd.jpl.nasa.gov/horizons/manual.html"
+  ],
+  "pass": true
+}

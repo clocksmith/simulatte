@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: shared CDP client preserves command, event, connection, and diagnostics interfaces
+ok 1 - shared CDP client preserves command, event, connection, and diagnostics interfaces
+  ---
+  duration_ms: 35.367661
+  type: 'test'
+  ...
+# Subtest: CDP commands and event waiters time out or reject on disconnect instead of hanging
+ok 2 - CDP commands and event waiters time out or reject on disconnect instead of hanging
+  ---
+  duration_ms: 42.083213
+  type: 'test'
+  ...
+# Subtest: browser arguments retain explicit GPU, memory, and headed lanes without profile overrides
+ok 3 - browser arguments retain explicit GPU, memory, and headed lanes without profile overrides
+  ---
+  duration_ms: 7.733993
+  type: 'test'
+  ...
+# Subtest: browser shutdown escalates and waits, including synchronous exit events
+ok 4 - browser shutdown escalates and waits, including synchronous exit events
+  ---
+  duration_ms: 5.885151
+  type: 'test'
+  ...
+# Subtest: browser readiness binds the generated port, rejects early exit and cleans only owned profiles
+ok 5 - browser readiness binds the generated port, rejects early exit and cleans only owned profiles
+  ---
+  duration_ms: 3.50017
+  type: 'test'
+  ...
+# Subtest: audit host closes its listener when browser startup fails
+ok 6 - audit host closes its listener when browser startup fails
+  ---
+  duration_ms: 31.920856
+  type: 'test'
+  ...
+# Subtest: audit output retains previous evidence and refuses to overwrite unrecognized work
+ok 7 - audit output retains previous evidence and refuses to overwrite unrecognized work
+  ---
+  duration_ms: 6.298985
+  type: 'test'
+  ...
+# Subtest: recursive CATSCAN validation accepts unique components and nearest parents
+ok 8 - recursive CATSCAN validation accepts unique components and nearest parents
+  ---
+  duration_ms: 7.538473
+  type: 'test'
+  ...
+# Subtest: recursive CATSCAN validation rejects a skipped nearest parent
+ok 9 - recursive CATSCAN validation rejects a skipped nearest parent
+  ---
+  duration_ms: 2.369551
+  type: 'test'
+  ...
+# Subtest: recursive CATSCAN validation rejects missing evidence links
+ok 10 - recursive CATSCAN validation rejects missing evidence links
+  ---
+  duration_ms: 1.599453
+  type: 'test'
+  ...
+# Subtest: recursive CATSCAN validation rejects duplicate component names
+ok 11 - recursive CATSCAN validation rejects duplicate component names
+  ---
+  duration_ms: 1.670714
+  type: 'test'
+  ...
+# Subtest: generated component index is deterministic and rejects drift
+ok 12 - generated component index is deterministic and rejects drift
+  ---
+  duration_ms: 1.293617
+  type: 'test'
+  ...
+# Subtest: public stylesheet resolves the owned design layers without duplicate loading
+ok 13 - public stylesheet resolves the owned design layers without duplicate loading
+  ---
+  duration_ms: 2.291025
+  type: 'test'
+  ...
+# Subtest: literal paint values belong to tokens, not component and page rules
+ok 14 - literal paint values belong to tokens, not component and page rules
+  ---
+  duration_ms: 2.124622
+  type: 'test'
+  ...
+# Subtest: page entries use stylesheets instead of inline stylesheet forks
+ok 15 - page entries use stylesheets instead of inline stylesheet forks
+  ---
+  duration_ms: 0.620609
+  type: 'test'
+  ...
+# Subtest: paint extraction preserves property names including white-space
+ok 16 - paint extraction preserves property names including white-space
+  ---
+  duration_ms: 3.561737
+  type: 'test'
+  ...
+# Subtest: page compositions consume the shared theme without reviving retired theme forks
+ok 17 - page compositions consume the shared theme without reviving retired theme forks
+  ---
+  duration_ms: 6.033651
+  type: 'test'
+  ...
+# Subtest: empty plugin map slots cannot hide governed scene labels
+ok 18 - empty plugin map slots cannot hide governed scene labels
+  ---
+  duration_ms: 0.335672
+  type: 'test'
+  ...
+# Subtest: Create shares the World typography and monochrome theme rather than forking its palette
+ok 19 - Create shares the World typography and monochrome theme rather than forking its palette
+  ---
+  duration_ms: 0.381688
+  type: 'test'
+  ...
+# Subtest: hosting targets separate World and Create while preserving governed shared assets
+ok 20 - hosting targets separate World and Create while preserving governed shared assets
+  ---
+  duration_ms: 1240.420444
+  type: 'test'
+  ...
+# Subtest: release and hosting validation run against the stamped build identity
+ok 21 - release and hosting validation run against the stamped build identity
+  ---
+  duration_ms: 0.333381
+  type: 'test'
+  ...
+# Subtest: measurement publication requires scenario, observer, configuration and sample time identity
+ok 22 - measurement publication requires scenario, observer, configuration and sample time identity
+  ---
+  duration_ms: 1.177523
+  type: 'test'
+  ...
+# Subtest: a moving tracked microphone retains identity until its subject or mode changes
+ok 23 - a moving tracked microphone retains identity until its subject or mode changes
+  ---
+  duration_ms: 0.206431
+  type: 'test'
+  ...
+# Subtest: tracked sound maps retain sampled geometry while rejecting zoom and subject changes
+ok 24 - tracked sound maps retain sampled geometry while rejecting zoom and subject changes
+  ---
+  duration_ms: 0.565132
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1349.73419

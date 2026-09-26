@@ -217,7 +217,7 @@
       const depth = y + x * 0.08 + z * 0.15;
       return {
         x: view.panX + (x - y * 0.42) * view.zoom,
-        y: view.panY + ((x + y) * 0.18 - z * 0.9) * view.zoom,
+        y: view.panY + (x * 0.22 + y * 0.62 - z * 0.9) * view.zoom,
         depth,
         scale: clamp(1 + depth * 0.008, 0.82, 1.16),
       };
@@ -694,17 +694,12 @@
     ctx.stroke();
   }
 
-  function drawTensorGlyph(ctx, radius, timeSeconds) {
-    const pulse = 0.82 + Math.sin(timeSeconds * 7) * 0.18;
-    ctx.rotate(Math.PI / 4 + timeSeconds * 0.35);
-    ctx.fillRect(-radius * pulse, -radius * pulse, radius * 2 * pulse, radius * 2 * pulse);
-    ctx.strokeRect(-radius * 1.35, -radius * 1.35, radius * 2.7, radius * 2.7);
-    ctx.rotate(-Math.PI / 4 - timeSeconds * 0.35);
-    ctx.beginPath();
-    ctx.arc(0, 0, radius * 2.1, 0, Math.PI * 2);
-    ctx.globalAlpha = 0.22;
-    ctx.stroke();
-    ctx.globalAlpha = 1;
+  function drawTensorGlyph(ctx, radius) {
+    // A transfer marker indicates modeled link progress. Its display size is
+    // deliberately smaller than a rack and has no independent animation clock.
+    const size=Math.min(3,radius*.4);
+    ctx.shadowBlur=0;
+    ctx.fillRect(-size,-size/2,size*2,size);
   }
   function drawFlowParticles(ctx, points, path, timeSeconds) {
     if (points.length < 2) return;

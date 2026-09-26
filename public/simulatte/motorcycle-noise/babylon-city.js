@@ -3,6 +3,7 @@
     const vector=p=>new B.Vector3(p.x-origin.x,p.z||0,-(p.y-origin.y));
     const material=(name,color)=>{const m=new B.StandardMaterial(name,scene);m.diffuseColor=B.Color3.FromHexString(color);m.specularColor=new B.Color3(.07,.07,.07);return m;};
     const pavement=material('asphalt','#353e3e'),sidewalk=material('sidewalk','#7c8378'),roofMaterial=material('roofs','#87928a'),wallMaterial=material('facades','#c0c1aa'),land=material('land','#435c4b');
+    pavement.backFaceCulling=false;sidewalk.backFaceCulling=false;
     const facadeTexture=new B.DynamicTexture('facade-pattern',{width:64,height:128},scene,false),paint=facadeTexture.getContext();
     paint.fillStyle='#b7b8a6';paint.fillRect(0,0,64,128);paint.fillStyle='#5e706d';
     for(let y=12;y<128;y+=32)for(let x=10;x<64;x+=27){paint.fillRect(x,y,16,20);paint.fillStyle='#899c93';paint.fillRect(x+2,y+2,11,2);paint.fillStyle='#5e706d';}
@@ -17,10 +18,10 @@
     for(const item of map.land){const ring=item.outerRing;if(!ring?.length)continue;const flat=ring.flatMap(p=>[p.x-origin.x,-(p.y-origin.y)]),positions=[];for(let i=0;i<flat.length;i+=2)positions.push(flat[i],0,flat[i+1]);const surface=mesh(item.id,positions,root.earcut(flat),null,land);surface.metadata={ground:true};}
     // Carry through the same sourced park exteriors as Sunwalker with matching luminous perimeter ribbon.
     const parkMaterial=material('park-lawns','#507d50');
-    parkMaterial.emissiveColor=new B.Color3(.025,.045,.025);
+    parkMaterial.emissiveColor=new B.Color3(.005,.01,.005);
     const parkRim=new B.StandardMaterial('park-property-rim',scene);
-    parkRim.diffuseColor=B.Color3.FromHexString('#40ff94');
-    parkRim.emissiveColor=B.Color3.FromHexString('#40ff94');
+    parkRim.diffuseColor=B.Color3.FromHexString('#57906b');
+    parkRim.emissiveColor=B.Color3.FromHexString('#57906b');
     parkRim.specularColor=new B.Color3(.1,.1,.1);
     parkRim.disableLighting=true;
     parkRim.backFaceCulling=false;
@@ -56,7 +57,7 @@
     }
     if(parkOutlines.length){
       const parkLines=B.MeshBuilder.CreateLineSystem('park-perimeter-lines',{lines:parkOutlines},scene);
-      parkLines.color=B.Color3.FromHexString('#7affbe');
+      parkLines.color=B.Color3.FromHexString('#91b5a0');
       parkLines.alpha=.95;parkLines.isPickable=false;
     }
     const trackMaterial=material('running-track-rubber','#b7624b'),fieldMaterial=material('track-infield','#3b713e');
@@ -91,20 +92,25 @@
       const canopy=crown.createInstance(tree.id+'-canopy');canopy.isVisible=true;canopy.isPickable=false;canopy.position=vector({...tree,z:height*.71});canopy.scaling.set(radius,height*.32,radius*.9);canopy.rotation.y=seed%628/100;
       shadow.addShadowCaster(canopy);canopy.receiveShadows=true;
     }
-    const wallP=[],wallI=[],wallUv=[],wallColors=[],roofP=[],roofI=[],roofColors=[];
+    const wallP=[],wallI=[],wallUv=[],wallColors=[],roofP=[],roofI=[],roofColors=[],wallIds=[],roofIds=[];
     for(const building of map.buildings){
-      const height=Math.max(3,building.heightM||9),rings=[building.footprint,...(building.interiorRings||[])].filter(ring=>ring?.length>=3);if(!rings.length)continue;
+      const height=root.MotorcycleCityPaths.height(building),rings=[building.footprint,...(building.interiorRings||[])].filter(ring=>ring?.length>=3);if(!rings.length)continue;
+      if(height===null){
+        const outline=B.MeshBuilder.CreateLines('unknown-height-'+building.id,{points:[...rings[0],rings[0][0]].map(p=>vector({...p,z:.05}))},scene);
+        outline.color=B.Color3.FromHexString('#e2ac6b');outline.metadata={buildingId:building.id,heightState:'missing'};continue;
+      }
       const flat=[],holes=[],base=roofP.length/3,shade=.82+(height%13)/65;
       for(let ri=0;ri<rings.length;ri++){if(ri)holes.push(flat.length/2);for(const p of rings[ri]){flat.push(p.x-origin.x,-(p.y-origin.y));roofP.push(p.x-origin.x,height,-(p.y-origin.y));roofColors.push(shade,shade,shade,1);}}
-      for(const i of root.earcut(flat,holes))roofI.push(base+i);
+      const roofTriangles=root.earcut(flat,holes);for(const i of roofTriangles)roofI.push(base+i);
+      for(let i=0;i<roofTriangles.length;i+=3)roofIds.push(building.id);
       for(const ring of rings)for(let i=0;i<ring.length;i++){
         const a=ring[i],b=ring[(i+1)%ring.length],offset=wallP.length/3,length=Math.hypot(a.x-b.x,a.y-b.y);
         wallP.push(a.x-origin.x,0,-(a.y-origin.y),b.x-origin.x,0,-(b.y-origin.y),b.x-origin.x,height,-(b.y-origin.y),a.x-origin.x,height,-(a.y-origin.y));
-        wallI.push(offset,offset+1,offset+2,offset,offset+2,offset+3);wallUv.push(0,0,length/5,0,length/5,height/12,0,height/12);
+        wallIds.push(building.id,building.id);wallI.push(offset,offset+1,offset+2,offset,offset+2,offset+3);wallUv.push(0,0,length/5,0,length/5,height/12,0,height/12);
         for(let j=0;j<4;j++)wallColors.push(shade,shade*.99,shade*.94,1);
       }
     }
-    for(const buildingMesh of [mesh('nyc-walls',wallP,wallI,wallUv,wallMaterial,wallColors),mesh('nyc-roofs',roofP,roofI,null,roofMaterial,roofColors)]){buildingMesh.material.backFaceCulling=false;shadow.addShadowCaster(buildingMesh);buildingMesh.isPickable=true;}
+    for(const buildingMesh of [mesh('nyc-walls',wallP,wallI,wallUv,wallMaterial,wallColors),mesh('nyc-roofs',roofP,roofI,null,roofMaterial,roofColors)]){buildingMesh.metadata={buildingIds:buildingMesh.name==='nyc-walls'?wallIds:roofIds};buildingMesh.material.backFaceCulling=false;shadow.addShadowCaster(buildingMesh);buildingMesh.isPickable=true;}
     const asphalt=[],walkways=[],laneLines=[],curbLines=[];
     for(const street of map.streets){
       const points=street.geometry;if(points.length<2)continue;const width=Math.max(3,street.widthM||7),edges=[[],[],[],[]];
@@ -114,8 +120,12 @@
         if(i&&width>=7){const p=points[i-1],q=points[i],len=Math.hypot(q.x-p.x,q.y-p.y);for(let at=1;at+2<len;at+=7)laneLines.push([vector({x:p.x+(q.x-p.x)*at/len,y:p.y+(q.y-p.y)*at/len,z:.1}),vector({x:p.x+(q.x-p.x)*(at+2)/len,y:p.y+(q.y-p.y)*(at+2)/len,z:.1})]);}
       }
       if(Math.hypot(points[0].x-origin.x,points[0].y-origin.y)<600)for(const side of [0,1])curbLines.push(edges[side].map(p=>new B.Vector3(p.x,.13,p.z)));
-      const road=B.MeshBuilder.CreateRibbon('road',{pathArray:edges.slice(0,2),sideOrientation:B.Mesh.DOUBLESIDE},scene);road.material=pavement;asphalt.push(road);
-      const walk=B.MeshBuilder.CreateRibbon('sidewalk',{pathArray:edges.slice(2,4),sideOrientation:B.Mesh.DOUBLESIDE},scene);walk.material=sidewalk;walkways.push(walk);
+      const road=B.MeshBuilder.CreateRibbon('road',{pathArray:edges.slice(0,2)},scene);road.material=pavement;asphalt.push(road);
+      const walk=B.MeshBuilder.CreateRibbon('sidewalk',{pathArray:edges.slice(2,4)},scene);walk.material=sidewalk;walkways.push(walk);
+      // Flat street surfaces share upward normals. Coplanar duplicate backfaces
+      // otherwise alternate between lit and unlit triangles at intersections.
+      for(const surface of [road,walk])surface.setVerticesData(B.VertexBuffer.NormalKind,
+        Array.from({length:surface.getTotalVertices()*3},(_,i)=>i%3===1?1:0));
     }
     for(const list of [asphalt,walkways])if(list.length){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);if(merged){merged.receiveShadows=true;merged.metadata={ground:true};}}
     if(laneLines.length){const lines=B.MeshBuilder.CreateLineSystem('lane-markings',{lines:laneLines},scene);lines.color=B.Color3.FromHexString('#c4c4a8');lines.alpha=.5;lines.isPickable=false;}

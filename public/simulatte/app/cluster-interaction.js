@@ -17,7 +17,7 @@
       const blocked=waiting.filter(row=>row.fields.some(field=>field.id==='waiting-for'&&field.value.split(', ').includes(selected))).length;
       if(blocked)wait.textContent=`${blocked} racks waiting for ${selected} · compute ${values.work}%`;
       const iterations=contribution?.state.measures.find(row=>row.kind==='training-iterations')?.value||0;
-      progress.textContent=`${iterations} iterations · ${waiting.length?`${waiting.length} racks waiting`:`${contribution?.state.simulationTimeMs||0} ms modeled`}`;
+      progress.textContent=`${iterations} iterations · ${waiting.length?`${waiting.length} racks waiting`:`${Number(contribution?.state.simulationTimeMs||0).toFixed(1)} ms modeled`}`;
       if(contribution?.state.status==='settled'){task.textContent='Session complete';wait.textContent=`Last task: ${values.task} · ${values['wait-ms']||0} ms synchronization wait`;}
       button.textContent=values.slowdown?'Remove straggler':'Introduce straggler';
       button.disabled=busy||contribution?.state.status!=='running';

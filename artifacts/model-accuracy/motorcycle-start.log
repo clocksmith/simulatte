@@ -1,0 +1,116 @@
+{"width":1440,"initial":"Traffic running","backend":"WebGL","time":"13.27"}
+{"width":390,"initial":"Traffic running","backend":"WebGL","time":"13.85"}
+{
+  "out": "/home/clocksmith/deco/simulatte/artifacts/model-accuracy/motorcycle",
+  "cases": [
+    {
+      "width": 1440,
+      "steps": [
+        {
+          "name": "initial",
+          "time": "13.27",
+          "status": "Traffic running",
+          "level": "-- dBA",
+          "camera": "city-camera"
+        },
+        {
+          "name": "autonomous",
+          "time": "23.32",
+          "status": "Traffic running",
+          "level": "79.8 dBA",
+          "camera": "city-camera"
+        },
+        {
+          "name": "advanced-running",
+          "time": "28.33",
+          "status": "Traffic running",
+          "level": "75.7 dBA",
+          "camera": "city-camera"
+        },
+        {
+          "name": "paused",
+          "time": "39.15",
+          "status": "Traffic paused",
+          "level": "79.6 dBA",
+          "camera": "city-camera"
+        },
+        {
+          "name": "onboard-paused",
+          "time": "39.15",
+          "status": "Traffic paused",
+          "level": "93.5 dBA",
+          "camera": "rider-camera"
+        },
+        {
+          "name": "onboard-running",
+          "time": "43.38",
+          "status": "Traffic running",
+          "level": "90.4 dBA",
+          "camera": "rider-camera"
+        },
+        {
+          "name": "untreated-paused",
+          "time": "45.45",
+          "status": "Traffic paused",
+          "level": "89.2 dBA",
+          "camera": "rider-camera"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "steps": [
+        {
+          "name": "initial",
+          "time": "13.85",
+          "status": "Traffic running",
+          "level": "-- dBA",
+          "camera": "city-camera"
+        },
+        {
+          "name": "autonomous",
+          "time": "18.9",
+          "status": "Traffic running",
+          "level": "80.9 dBA",
+          "camera": "city-camera"
+        },
+        {
+          "name": "advanced-running",
+          "time": "21.8",
+          "status": "Traffic running",
+          "level": "79.0 dBA",
+          "camera": "city-camera"
+        },
+        {
+          "name": "paused",
+          "time": "27.3",
+          "status": "Traffic paused",
+          "level": "74.5 dBA",
+          "camera": "city-camera"
+        },
+        {
+          "name": "onboard-paused",
+          "time": "27.3",
+          "status": "Traffic paused",
+          "level": "93.8 dBA",
+          "camera": "rider-camera"
+        },
+        {
+          "name": "onboard-running",
+          "time": "28.93",
+          "status": "Traffic running",
+          "level": "85.6 dBA",
+          "camera": "rider-camera"
+        },
+        {
+          "name": "untreated-paused",
+          "time": "29.95",
+          "status": "Traffic paused",
+          "level": "84.2 dBA",
+          "camera": "rider-camera"
+        }
+      ]
+    }
+  ],
+  "errors": 0
+}

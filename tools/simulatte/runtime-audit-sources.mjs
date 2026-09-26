@@ -11,8 +11,13 @@ export async function sourceReceipt(root) {
   ].filter(Boolean))].sort();
   const modifiedSources={};
   for(const file of files){
-    const bytes=await fs.readFile(path.join(root,file)),stat=await fs.stat(path.join(root,file));
-    modifiedSources[file]={sha256:createHash('sha256').update(bytes).digest('hex'),modifiedAt:stat.mtime.toISOString()};
+    try {
+      const bytes=await fs.readFile(path.join(root,file)),stat=await fs.stat(path.join(root,file));
+      modifiedSources[file]={sha256:createHash('sha256').update(bytes).digest('hex'),modifiedAt:stat.mtime.toISOString()};
+    } catch(error) {
+      if(error.code!=='ENOENT')throw error;
+      modifiedSources[file]={deleted:true};
+    }
   }
   return {head:git('rev-parse','HEAD'),capturedAt:new Date().toISOString(),modifiedSources,
     boundary:'Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation.'};

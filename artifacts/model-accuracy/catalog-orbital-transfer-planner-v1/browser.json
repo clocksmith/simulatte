@@ -1,0 +1,616 @@
+{
+  "sources": {
+    "head": "26319c21b25cf32a3e5bd23523f2656df7271eb0",
+    "capturedAt": "2026-09-25T14:24:28.692Z",
+    "modifiedSources": {
+      "public/index.html": {
+        "sha256": "5af275bb4ce63a96fa758309e344c553e5d87e0feb1a526fdbb648956fba581d",
+        "modifiedAt": "2026-09-25T13:59:54.444Z"
+      },
+      "public/shared/plugins/gpu-supercluster/cluster-topology.js": {
+        "sha256": "cd13b2f7dd6116a1cfa129f07994671ee574964f37500bd8b5d47cd401207112",
+        "modifiedAt": "2026-09-25T14:09:41.995Z"
+      },
+      "public/shared/plugins/gpu-supercluster/collective-solver.js": {
+        "sha256": "cc602903b6e78eab294c723bba933b730d82739dcc6feea6ea7bf3b4e1247f0f",
+        "modifiedAt": "2026-09-25T14:00:42.509Z"
+      },
+      "public/shared/plugins/gpu-supercluster/index.js": {
+        "sha256": "a90c07ed9377c13f0031944a0a97546a100b31a1b7e50c57a88f98776b3b8ccc",
+        "modifiedAt": "2026-09-25T14:09:41.996Z"
+      },
+      "public/shared/plugins/gpu-supercluster/plugin.json": {
+        "sha256": "14c8718a69a0cdab1a28d1ecf6c74aa2a7a64cfc5242279856efb1e451b26e3f",
+        "modifiedAt": "2026-09-25T14:09:42.373Z"
+      },
+      "public/shared/plugins/gpu-supercluster/presentation.js": {
+        "deleted": true
+      },
+      "public/shared/plugins/gpu-supercluster/receipt-factory.js": {
+        "sha256": "6241e1dfd4cc56eb540420c6659f7b1c98d6b6cdeae1b9a3406c4de67b75278b",
+        "modifiedAt": "2026-09-25T13:38:42.617Z"
+      },
+      "public/shared/plugins/gpu-supercluster/v4-contribution.js": {
+        "sha256": "e35e4cef70fde84b2cc7cd73a929a8757bcc14f1cd6f54624d5744c3d01d89d1",
+        "modifiedAt": "2026-09-25T14:18:11.470Z"
+      },
+      "public/shared/plugins/gpu-supercluster/workload.js": {
+        "sha256": "f9d94b55ab20ff61d13f862704867bfa12069b421869ec077933aed734ff4c8a",
+        "modifiedAt": "2026-09-25T14:09:41.996Z"
+      },
+      "public/shared/plugins/orbital-transfer-planner/ephemeris.js": {
+        "sha256": "06e1c168b4971355cebaeed87cf477ad7228a1626ebbc5b30f33cc91ff38117e",
+        "modifiedAt": "2026-09-25T14:18:11.003Z"
+      },
+      "public/shared/plugins/orbital-transfer-planner/plugin.json": {
+        "sha256": "99db14247637bf9e9a210ef7d9265fd3c4c35c5796c0026371329a31097c8a13",
+        "modifiedAt": "2026-09-25T14:21:09.586Z"
+      },
+      "public/shared/plugins/orbital-transfer-planner/presentation.js": {
+        "sha256": "40a32226ee1db7f52234632864d8cd8f9f87359300c43f35711ac1df517b593b",
+        "modifiedAt": "2026-09-25T14:21:09.428Z"
+      },
+      "public/shared/plugins/orbital-transfer-planner/v4-contribution.js": {
+        "sha256": "f28a626d00b44d19186cc285ceb109030187fad0954356aebd88308db748fde0",
+        "modifiedAt": "2026-09-25T14:21:09.428Z"
+      },
+      "public/simulatte/app/cluster-interaction.js": {
+        "sha256": "3b6ff8be7543cf0816ec4073140bfa3906ebb705cf24efe467910e36a3fb842c",
+        "modifiedAt": "2026-09-25T14:04:03.706Z"
+      },
+      "public/simulatte/app/main.js": {
+        "sha256": "2948c319c6788555596da549762e240d01118b52aca182290b52414cf3dfa46a",
+        "modifiedAt": "2026-09-25T14:14:11.097Z"
+      },
+      "public/simulatte/app/multi-tier-visualizer.js": {
+        "sha256": "15ee9b28c4416eace937e3ea92079732f12b684bfff1190dae15f1e11d0b5b91",
+        "modifiedAt": "2026-09-25T14:04:57.158Z"
+      },
+      "public/simulatte/app/tier-plugin-presentation.js": {
+        "sha256": "eca56ac2041803051f187ee65bef31b3d62289cfc4688b64d17ea25020896900",
+        "modifiedAt": "2026-09-25T14:11:56.500Z"
+      },
+      "public/simulatte/app/tier-renderers.js": {
+        "sha256": "8471ee83ccf72aea1e8a9817daba2175b68c67eafe6c28bca18d5164aae2611b",
+        "modifiedAt": "2026-09-25T14:04:57.158Z"
+      },
+      "public/simulatte/app/world-runtime-script-manifest.js": {
+        "sha256": "b04b0a016a68596910f15a52e0e0636656d47dac80e4d1b6c06f096993caab2d",
+        "modifiedAt": "2026-09-25T14:02:34.514Z"
+      },
+      "public/simulatte/motorcycle-noise/CATSCAN.md": {
+        "sha256": "9a67023868fdf2ec322fef4d5698b2f395192bc9388c52ea85a17d5a6121cfa3",
+        "modifiedAt": "2026-09-25T14:11:03.667Z"
+      },
+      "public/simulatte/motorcycle-noise/acoustic-field.js": {
+        "sha256": "6105e72d1bcef8b11f75fa38c528910d9c2a6ddef3f4193bdaa70d4587bceaa7",
+        "modifiedAt": "2026-09-25T13:48:07.328Z"
+      },
+      "public/simulatte/motorcycle-noise/babylon-city.js": {
+        "sha256": "1df078fc1bbbfc407a711b330a8f677a33045334dc6bd198c1fb055ceb57e96f",
+        "modifiedAt": "2026-09-25T14:07:07.435Z"
+      },
+      "public/simulatte/motorcycle-noise/city-paths.js": {
+        "sha256": "06130eb8ed0e77c72a45179ce5e8f096ef5e0c9878359c86155ff3309e495bd9",
+        "modifiedAt": "2026-09-25T13:43:13.830Z"
+      },
+      "public/simulatte/motorcycle-noise/city-sound.js": {
+        "sha256": "23e72cd8ca43e2254fa0b0d2de84e0e8c05bc694a83510238b30ef05a520ed32",
+        "modifiedAt": "2026-09-25T13:48:07.328Z"
+      },
+      "public/simulatte/motorcycle-noise/explore-ui.js": {
+        "sha256": "176e31ba37b7d7ef542c3a937478eceaaa37ae5f41687e03591403fc7626da26",
+        "modifiedAt": "2026-09-25T14:15:10.389Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "9d24ec03c3045ccc2a42732d75fe35a3f227a4410ecdfee36565d042ae47cda9",
+        "modifiedAt": "2026-09-25T13:43:54.933Z"
+      },
+      "public/simulatte/motorcycle-noise/lifecycle.js": {
+        "sha256": "7843dcc697be8b011570ec2e763549f68f9a021e93d7b5b9f805c1757ff546e2",
+        "modifiedAt": "2026-09-25T13:50:53.984Z"
+      },
+      "public/simulatte/motorcycle-noise/live-noise-worker.js": {
+        "sha256": "cf5222c6aeea717e99e7689ebd8838b9cf2c999000298e490a404cd8528307b2",
+        "modifiedAt": "2026-09-25T13:50:54.026Z"
+      },
+      "public/simulatte/motorcycle-noise/measurement-contract.js": {
+        "sha256": "f2db1937a8f37785d97c80bbdec084880a5a2355f62340f2712d6a74a266c233",
+        "modifiedAt": "2026-09-25T14:15:10.389Z"
+      },
+      "public/simulatte/motorcycle-noise/observer-noise-worker.js": {
+        "sha256": "8d2f1f9100a520e6552fe1841b584f73ae8e922594921c016af884b308afc37b",
+        "modifiedAt": "2026-09-25T13:50:54.026Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-model.js": {
+        "sha256": "e11cc66822bf4880aeb144a36143d20fc616c3709ecda9781c34e607884a54ba",
+        "modifiedAt": "2026-09-25T13:43:54.933Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-view.js": {
+        "sha256": "3745f37b30e7a9030ffd97839f651a093b1bd1e93425fc59e996f9b97beb6d2c",
+        "modifiedAt": "2026-09-25T14:07:07.435Z"
+      },
+      "public/simulatte/platform/plugin-host/generated-plugin-registry.js": {
+        "sha256": "9ccb58c21cea48066d8d5eb1099599a7a38bb3c7ed69a00f806dca58552a206e",
+        "modifiedAt": "2026-09-25T14:21:09.637Z"
+      },
+      "public/world-tiers.css": {
+        "sha256": "d41a5c4fdedab00ba209885c442545b5a5d87cdb92772d9b5ca96ff7324a5454",
+        "modifiedAt": "2026-09-25T14:15:10.388Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "cases": [
+    {
+      "profile": "orbital-transfer-planner-v1",
+      "width": 1440,
+      "height": 1000,
+      "opening": {
+        "phase": "running",
+        "profile": "orbital-transfer-planner-v1",
+        "run": {
+          "schema": "simulatte.tierRunControllerState.v1",
+          "ownerPluginId": "orbital-transfer-planner",
+          "state": "running",
+          "stepCount": 0,
+          "currentStep": 0,
+          "totalSteps": 8,
+          "playbackRate": 1,
+          "terminalPreview": false,
+          "scenarioId": "earth-mars-window",
+          "seed": "orbital-earth-mars-001",
+          "hasReceipt": false
+        },
+        "progress": 0,
+        "advanced": "false",
+        "scenarioVisible": false,
+        "scenarioInAdvanced": true,
+        "pauseVisible": true,
+        "overflow": false,
+        "measures": [
+          {
+            "pluginId": "orbital-transfer-planner",
+            "state": {
+              "schema": "simulatte.progressiveState.v4",
+              "id": "orbital-transfer-planner:state:earth-mars-window:0",
+              "pluginId": "orbital-transfer-planner",
+              "simulationTimeMs": 0,
+              "status": "running",
+              "previousStateId": null,
+              "eventIds": [],
+              "measures": [],
+              "provenance": {
+                "schema": "simulatte.provenance.v4",
+                "axes": {
+                  "origin": "modeled",
+                  "temporalStatus": "forecast",
+                  "uncertainty": {
+                    "kind": "missing",
+                    "value": {
+                      "navigationCovariance": true,
+                      "maneuverExecutionError": true,
+                      "endpointBodySphereOfInfluenceTransitions": true,
+                      "verificationStatus": "verified_screening_approximation"
+                    }
+                  }
+                },
+                "evidenceRefs": [
+                  {
+                    "id": "orbital-transfer-planner:model:launch-window-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "e292978e49f7d6b290715e8f484ba121cc7264ffd4bfb0b3e0b9dc5f2032aa98",
+                    "modelReceiptId": "orbital-transfer-planner:model:launch-window-v1"
+                  },
+                  {
+                    "id": "orbital-transfer-planner:model:n-body-verifier-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03",
+                    "modelReceiptId": "orbital-transfer-planner:model:n-body-verifier-v1"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "focused": "",
+        "heapBytes": 29448998
+      },
+      "paused": {
+        "phase": "paused",
+        "profile": "orbital-transfer-planner-v1",
+        "run": {
+          "schema": "simulatte.tierRunControllerState.v1",
+          "ownerPluginId": "orbital-transfer-planner",
+          "state": "paused",
+          "stepCount": 0,
+          "currentStep": 0,
+          "totalSteps": 8,
+          "playbackRate": 1,
+          "terminalPreview": false,
+          "scenarioId": "earth-mars-window",
+          "seed": "orbital-earth-mars-001",
+          "hasReceipt": false
+        },
+        "progress": 0,
+        "advanced": "false",
+        "scenarioVisible": false,
+        "scenarioInAdvanced": true,
+        "pauseVisible": false,
+        "overflow": false,
+        "measures": [
+          {
+            "pluginId": "orbital-transfer-planner",
+            "state": {
+              "schema": "simulatte.progressiveState.v4",
+              "id": "orbital-transfer-planner:state:earth-mars-window:0",
+              "pluginId": "orbital-transfer-planner",
+              "simulationTimeMs": 0,
+              "status": "running",
+              "previousStateId": null,
+              "eventIds": [],
+              "measures": [],
+              "provenance": {
+                "schema": "simulatte.provenance.v4",
+                "axes": {
+                  "origin": "modeled",
+                  "temporalStatus": "forecast",
+                  "uncertainty": {
+                    "kind": "missing",
+                    "value": {
+                      "navigationCovariance": true,
+                      "maneuverExecutionError": true,
+                      "endpointBodySphereOfInfluenceTransitions": true,
+                      "verificationStatus": "verified_screening_approximation"
+                    }
+                  }
+                },
+                "evidenceRefs": [
+                  {
+                    "id": "orbital-transfer-planner:model:launch-window-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "e292978e49f7d6b290715e8f484ba121cc7264ffd4bfb0b3e0b9dc5f2032aa98",
+                    "modelReceiptId": "orbital-transfer-planner:model:launch-window-v1"
+                  },
+                  {
+                    "id": "orbital-transfer-planner:model:n-body-verifier-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03",
+                    "modelReceiptId": "orbital-transfer-planner:model:n-body-verifier-v1"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "focused": "",
+        "heapBytes": 29448998
+      },
+      "advanced": {
+        "phase": "running",
+        "profile": "orbital-transfer-planner-v1",
+        "run": {
+          "schema": "simulatte.tierRunControllerState.v1",
+          "ownerPluginId": "orbital-transfer-planner",
+          "state": "running",
+          "stepCount": 1,
+          "currentStep": 1,
+          "totalSteps": 8,
+          "playbackRate": 1,
+          "terminalPreview": false,
+          "scenarioId": "earth-mars-window",
+          "seed": "orbital-earth-mars-001",
+          "hasReceipt": false
+        },
+        "progress": 1,
+        "advanced": "false",
+        "scenarioVisible": false,
+        "scenarioInAdvanced": true,
+        "pauseVisible": true,
+        "overflow": false,
+        "measures": [
+          {
+            "pluginId": "orbital-transfer-planner",
+            "state": {
+              "schema": "simulatte.progressiveState.v4",
+              "id": "orbital-transfer-planner:state:earth-mars-window:1",
+              "pluginId": "orbital-transfer-planner",
+              "simulationTimeMs": 0,
+              "status": "running",
+              "previousStateId": null,
+              "eventIds": [
+                "orbital-transfer-planner:event:earth-mars-window"
+              ],
+              "measures": [
+                {
+                  "kind": "solution-count",
+                  "value": 3477,
+                  "unit": "solutions",
+                  "domain": null
+                },
+                {
+                  "kind": "attempted-count",
+                  "value": 3477,
+                  "unit": "candidates",
+                  "domain": null
+                }
+              ],
+              "provenance": {
+                "schema": "simulatte.provenance.v4",
+                "axes": {
+                  "origin": "modeled",
+                  "temporalStatus": "forecast",
+                  "uncertainty": {
+                    "kind": "missing",
+                    "value": {
+                      "navigationCovariance": true,
+                      "maneuverExecutionError": true,
+                      "endpointBodySphereOfInfluenceTransitions": true,
+                      "verificationStatus": "verified_screening_approximation"
+                    }
+                  }
+                },
+                "evidenceRefs": [
+                  {
+                    "id": "orbital-transfer-planner:model:launch-window-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "e292978e49f7d6b290715e8f484ba121cc7264ffd4bfb0b3e0b9dc5f2032aa98",
+                    "modelReceiptId": "orbital-transfer-planner:model:launch-window-v1"
+                  },
+                  {
+                    "id": "orbital-transfer-planner:model:n-body-verifier-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03",
+                    "modelReceiptId": "orbital-transfer-planner:model:n-body-verifier-v1"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "focused": "",
+        "heapBytes": 22276868
+      },
+      "pass": true
+    },
+    {
+      "profile": "orbital-transfer-planner-v1",
+      "width": 390,
+      "height": 844,
+      "opening": {
+        "phase": "running",
+        "profile": "orbital-transfer-planner-v1",
+        "run": {
+          "schema": "simulatte.tierRunControllerState.v1",
+          "ownerPluginId": "orbital-transfer-planner",
+          "state": "running",
+          "stepCount": 0,
+          "currentStep": 0,
+          "totalSteps": 8,
+          "playbackRate": 1,
+          "terminalPreview": false,
+          "scenarioId": "earth-mars-window",
+          "seed": "orbital-earth-mars-001",
+          "hasReceipt": false
+        },
+        "progress": 0,
+        "advanced": "false",
+        "scenarioVisible": false,
+        "scenarioInAdvanced": true,
+        "pauseVisible": true,
+        "overflow": false,
+        "measures": [
+          {
+            "pluginId": "orbital-transfer-planner",
+            "state": {
+              "schema": "simulatte.progressiveState.v4",
+              "id": "orbital-transfer-planner:state:earth-mars-window:0",
+              "pluginId": "orbital-transfer-planner",
+              "simulationTimeMs": 0,
+              "status": "running",
+              "previousStateId": null,
+              "eventIds": [],
+              "measures": [],
+              "provenance": {
+                "schema": "simulatte.provenance.v4",
+                "axes": {
+                  "origin": "modeled",
+                  "temporalStatus": "forecast",
+                  "uncertainty": {
+                    "kind": "missing",
+                    "value": {
+                      "navigationCovariance": true,
+                      "maneuverExecutionError": true,
+                      "endpointBodySphereOfInfluenceTransitions": true,
+                      "verificationStatus": "verified_screening_approximation"
+                    }
+                  }
+                },
+                "evidenceRefs": [
+                  {
+                    "id": "orbital-transfer-planner:model:launch-window-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "e292978e49f7d6b290715e8f484ba121cc7264ffd4bfb0b3e0b9dc5f2032aa98",
+                    "modelReceiptId": "orbital-transfer-planner:model:launch-window-v1"
+                  },
+                  {
+                    "id": "orbital-transfer-planner:model:n-body-verifier-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03",
+                    "modelReceiptId": "orbital-transfer-planner:model:n-body-verifier-v1"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "focused": "",
+        "heapBytes": 57936863
+      },
+      "paused": {
+        "phase": "paused",
+        "profile": "orbital-transfer-planner-v1",
+        "run": {
+          "schema": "simulatte.tierRunControllerState.v1",
+          "ownerPluginId": "orbital-transfer-planner",
+          "state": "paused",
+          "stepCount": 0,
+          "currentStep": 0,
+          "totalSteps": 8,
+          "playbackRate": 1,
+          "terminalPreview": false,
+          "scenarioId": "earth-mars-window",
+          "seed": "orbital-earth-mars-001",
+          "hasReceipt": false
+        },
+        "progress": 0,
+        "advanced": "false",
+        "scenarioVisible": false,
+        "scenarioInAdvanced": true,
+        "pauseVisible": false,
+        "overflow": false,
+        "measures": [
+          {
+            "pluginId": "orbital-transfer-planner",
+            "state": {
+              "schema": "simulatte.progressiveState.v4",
+              "id": "orbital-transfer-planner:state:earth-mars-window:0",
+              "pluginId": "orbital-transfer-planner",
+              "simulationTimeMs": 0,
+              "status": "running",
+              "previousStateId": null,
+              "eventIds": [],
+              "measures": [],
+              "provenance": {
+                "schema": "simulatte.provenance.v4",
+                "axes": {
+                  "origin": "modeled",
+                  "temporalStatus": "forecast",
+                  "uncertainty": {
+                    "kind": "missing",
+                    "value": {
+                      "navigationCovariance": true,
+                      "maneuverExecutionError": true,
+                      "endpointBodySphereOfInfluenceTransitions": true,
+                      "verificationStatus": "verified_screening_approximation"
+                    }
+                  }
+                },
+                "evidenceRefs": [
+                  {
+                    "id": "orbital-transfer-planner:model:launch-window-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "e292978e49f7d6b290715e8f484ba121cc7264ffd4bfb0b3e0b9dc5f2032aa98",
+                    "modelReceiptId": "orbital-transfer-planner:model:launch-window-v1"
+                  },
+                  {
+                    "id": "orbital-transfer-planner:model:n-body-verifier-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03",
+                    "modelReceiptId": "orbital-transfer-planner:model:n-body-verifier-v1"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "focused": "",
+        "heapBytes": 57936863
+      },
+      "advanced": {
+        "phase": "running",
+        "profile": "orbital-transfer-planner-v1",
+        "run": {
+          "schema": "simulatte.tierRunControllerState.v1",
+          "ownerPluginId": "orbital-transfer-planner",
+          "state": "running",
+          "stepCount": 1,
+          "currentStep": 1,
+          "totalSteps": 8,
+          "playbackRate": 1,
+          "terminalPreview": false,
+          "scenarioId": "earth-mars-window",
+          "seed": "orbital-earth-mars-001",
+          "hasReceipt": false
+        },
+        "progress": 1,
+        "advanced": "false",
+        "scenarioVisible": false,
+        "scenarioInAdvanced": true,
+        "pauseVisible": true,
+        "overflow": false,
+        "measures": [
+          {
+            "pluginId": "orbital-transfer-planner",
+            "state": {
+              "schema": "simulatte.progressiveState.v4",
+              "id": "orbital-transfer-planner:state:earth-mars-window:1",
+              "pluginId": "orbital-transfer-planner",
+              "simulationTimeMs": 0,
+              "status": "running",
+              "previousStateId": null,
+              "eventIds": [
+                "orbital-transfer-planner:event:earth-mars-window"
+              ],
+              "measures": [
+                {
+                  "kind": "solution-count",
+                  "value": 3477,
+                  "unit": "solutions",
+                  "domain": null
+                },
+                {
+                  "kind": "attempted-count",
+                  "value": 3477,
+                  "unit": "candidates",
+                  "domain": null
+                }
+              ],
+              "provenance": {
+                "schema": "simulatte.provenance.v4",
+                "axes": {
+                  "origin": "modeled",
+                  "temporalStatus": "forecast",
+                  "uncertainty": {
+                    "kind": "missing",
+                    "value": {
+                      "navigationCovariance": true,
+                      "maneuverExecutionError": true,
+                      "endpointBodySphereOfInfluenceTransitions": true,
+                      "verificationStatus": "verified_screening_approximation"
+                    }
+                  }
+                },
+                "evidenceRefs": [
+                  {
+                    "id": "orbital-transfer-planner:model:launch-window-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "e292978e49f7d6b290715e8f484ba121cc7264ffd4bfb0b3e0b9dc5f2032aa98",
+                    "modelReceiptId": "orbital-transfer-planner:model:launch-window-v1"
+                  },
+                  {
+                    "id": "orbital-transfer-planner:model:n-body-verifier-v1",
+                    "datasetId": "jpl.horizons.heliocentric-vectors.v1",
+                    "contentHash": "df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03",
+                    "modelReceiptId": "orbital-transfer-planner:model:n-body-verifier-v1"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "focused": "",
+        "heapBytes": 30087430
+      },
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/136.0.7103.59",
+    "revision": "@d4b493843f5f23217df99a83aa28747602841382",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.0.0 Safari/537.36",
+    "jsVersion": "13.6.233.8"
+  }
+}

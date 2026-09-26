@@ -619,11 +619,11 @@ body.sim-app > .sim-theme-control button:is(:hover, :focus-visible) .sim-theme-c
 
 .cluster-interaction {
   position: absolute; z-index: 4; bottom: 8px; left: 8px; right: 8px;
-  padding: 10px 12px; border: 1px solid var(--border, #40505c); border-radius: 12px;
-  background: var(--surface, #14212b); color: var(--text, #e5f1f5); font-size: 12px;
+  padding: 10px 12px; border: 1px solid var(--sim-line); border-radius: 12px;
+  background: var(--sim-glass); color: var(--sim-ink); font-size: 12px;
 }
 .cluster-interaction > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.cluster-interaction select { background: transparent; color: inherit; border: 1px solid #64717a; border-radius: 4px; }
+.cluster-interaction select { background: transparent; color: inherit; border: 1px solid var(--sim-line); border-radius: 4px; }
 .cluster-interaction p { margin: 6px 0; min-height: 16px; }
 .cluster-interaction .cluster-task { font-size: 12px; text-align: right; }
 .cluster-interaction button { min-height: 32px; font-size: 12px; }

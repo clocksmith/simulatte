@@ -4,9 +4,9 @@
   root.SimulatteClusterTopology = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createClusterTopology() {
   function buildClusterTopology(config = {}) {
-    const totalGpus = Number(config.totalGpus || 256);
-    const racksCount = Number(config.racks || 32);
-    if (!Number.isInteger(totalGpus) || !Number.isInteger(racksCount) || racksCount < 1 || totalGpus < racksCount || totalGpus % racksCount !== 0) {
+    const totalGpus = Number(config.totalGpus ?? 256);
+    const racksCount = Number(config.racks ?? 32);
+    if (!Number.isInteger(totalGpus) || totalGpus>4096 || !Number.isInteger(racksCount) || racksCount < 1 || totalGpus < racksCount || totalGpus % racksCount !== 0) {
       throw new Error('gpu_topology_requires_even_rack_population');
     }
     const rowsCount = Math.min(4, racksCount);
@@ -14,7 +14,7 @@
     const gpusPerRack = Math.floor(totalGpus / racksCount);
     const gpusPerNode = Number(config.gpusPerNode || Math.min(8, gpusPerRack));
     const nodesPerRack = Number(config.nodesPerRack || Math.max(1, Math.floor(gpusPerRack / gpusPerNode)));
-    if (nodesPerRack * gpusPerNode !== gpusPerRack) throw new Error('gpu_node_population_mismatch');
+    if (!Number.isInteger(nodesPerRack)||!Number.isInteger(gpusPerNode)||nodesPerRack<1||gpusPerNode<1||nodesPerRack * gpusPerNode !== gpusPerRack) throw new Error('gpu_node_population_mismatch');
 
     const racks = [];
     const gpus = [];
@@ -88,18 +88,20 @@
             sourceGpuId: g1.id,
             targetGpuId: g2.id,
             lengthMeters: 0.35,
+            latencySeconds: 0.2e-6,
           }));
         }
       }
     }
 
-    // Inter-Rack InfiniBand Spine-Leaf Uplinks (AllReduce Ring Connections)
+    // Ring gateways connect every node, including nodes within the same rack.
     for (let i = 0; i < totalGpus; i++) {
       const nextGpu = (i + 1) % totalGpus;
-      if (gpus[i].rackId !== gpus[nextGpu].rackId) {
+      if (gpus[i].nodeId !== gpus[nextGpu].nodeId) {
         links.push(Object.freeze({
           id: `infiniband-ring:${gpus[i].id}-${gpus[nextGpu].id}`,
           type: 'infiniband-rail',
+          latencySeconds: 1.2e-6,
           bandwidthGbps: Number(config.infinibandBandwidthGbps || 800),
           sourceGpuId: gpus[i].id,
           targetGpuId: gpus[nextGpu].id,
@@ -110,6 +112,7 @@
 
     return Object.freeze({
       totalGpus: gpus.length,
+      physicalNetwork: 'node-ring-with-nvlink-meshes',
       racksCount: racks.length,
       rowsCount,
       racksPerRow,

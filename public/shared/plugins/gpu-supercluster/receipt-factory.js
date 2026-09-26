@@ -41,24 +41,20 @@
             origin: 'modeled',
             temporalStatus: 'forecast',
             uncertainty: Object.freeze({
-              kind: 'interval',
-              value: Object.freeze({
-                stepTimeMs: Object.freeze([collectives.stepTimeMs * 0.95, collectives.stepTimeMs * 1.05]),
-              }),
+              kind: 'missing',
+              value: Object.freeze({ reason: 'No independent empirical calibration or prediction interval.' }),
             }),
           }),
         }),
         Object.freeze({
-          modelId: 'direct-to-chip-liquid-cooling-ode-v1',
+          modelId: 'direct-to-chip-liquid-cooling-steady-state-v1',
           parameterSourceIds: Object.freeze(['facility.cooling.cdu-distribution.v1']),
           truth: Object.freeze({
             origin: 'modeled',
             temporalStatus: 'forecast',
             uncertainty: Object.freeze({
-              kind: 'interval',
-              value: Object.freeze({
-                peakTempC: Object.freeze([thermals.peakJunctionTempC - 2.0, thermals.peakJunctionTempC + 2.0]),
-              }),
+              kind: 'missing',
+              value: Object.freeze({ reason: 'No independent empirical calibration or prediction interval.' }),
             }),
           }),
         }),

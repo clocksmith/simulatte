@@ -2,12 +2,14 @@
   const builder = typeof module === 'object' && module.exports
     ? require('../../core/simulation/plugin-v4-builder.js')
     : root.SimulattePluginV4Builder;
-  const api = factory(builder);
+  const ephemerisApi=typeof module==='object'&&module.exports?require('./ephemeris.js'):root.OrbitalTransferEphemeris;
+  const api = factory(builder,ephemerisApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.OrbitalTransferV4 = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createOrbitalTransferV4(builder) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createOrbitalTransferV4(builder,ephemerisApi) {
   const PLUGIN_ID = 'orbital-transfer-planner';
   const MODEL_HASH = 'e292978e49f7d6b290715e8f484ba121cc7264ffd4bfb0b3e0b9dc5f2032aa98';
+  const EPHEMERIS_HASH = '06e1c168b4971355cebaeed87cf477ad7228a1626ebbc5b30f33cc91ff38117e';
   const VERIFIER_HASH = 'df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03';
 
   function createContribution({
@@ -35,11 +37,16 @@
       vectorCount: body.vectors?.length || 0,
     }));
     const bodyRecordById = new Map(bodyRecords.map((row) => [row.rowId, row]));
+    const interpolation = builder.modelRecord({
+      id:`${PLUGIN_ID}:model:ephemeris-interpolation-v2`,datasetId:ephemeris.datasetId,
+      contentHash:EPHEMERIS_HASH,parentIds:[ephemeris.id],
+      metadata:{method:'cubic_hermite_state_vector_v1',units:'AU and AU/day',claimBoundary:'Endpoint-constrained interpolation, not new observations.'},
+    });
     const model = builder.modelRecord({
       id: `${PLUGIN_ID}:model:launch-window-v1`,
       datasetId: ephemeris.datasetId,
       contentHash: MODEL_HASH,
-      parentIds: datasets.slice(0, 2).map((row) => row.id),
+      parentIds: [...datasets.slice(0, 2).map((row) => row.id),interpolation.id],
       metadata: {
         algorithms: [
           'universal-variable single-revolution Lambert',
@@ -54,7 +61,7 @@
       id: `${PLUGIN_ID}:model:n-body-verifier-v1`,
       datasetId: ephemeris.datasetId,
       contentHash: VERIFIER_HASH,
-      parentIds: datasets.slice(0, 2).map((row) => row.id),
+      parentIds: [...datasets.slice(0, 2).map((row) => row.id),interpolation.id],
       metadata: {
         method: result.verification?.methodId || 'heliocentric-rk4-third-body-verifier-v1',
         forceModel: result.verification?.forceModel || null,
@@ -69,7 +76,7 @@
         kind: 'missing',
         value: { covariance: 'not included in pinned vectors' },
       },
-      records: [bodyRecordById.get(bodyId)],
+      records: [bodyRecordById.get(bodyId),interpolation],
     });
     const transferClaim = builder.provenance({
       origin: 'modeled',
@@ -88,7 +95,7 @@
     const layers = [];
     Object.entries(ephemerisData.bodies || {}).forEach(([id, body]) => {
       const vectors = body.vectors || [];
-      const current = stateAtDay(vectors, ephemerisDay);
+      const current = vectors.length?ephemerisApi.getBodyState(ephemerisData,id,ephemerisDay,{clamp:true}).positionAu:null;
       if (current) {
         layers.push(builder.layer({
           id: `body:${id}`,
@@ -353,7 +360,7 @@
       controls,
       state: progressiveState,
       inspections,
-      provenanceRecords: [...datasets, ...bodyRecords, model, verifier],
+      provenanceRecords: [...datasets, ...bodyRecords, interpolation, model, verifier],
     });
   }
 
@@ -443,23 +450,6 @@
     return departureDay + timeOfFlightDays * flightFraction;
   }
 
-  function stateAtDay(vectors, day) {
-    if (!vectors.length) return null;
-    const bounded = Math.max(Number(vectors[0].day || 0), Math.min(Number(vectors.at(-1).day), day));
-    let lowerIndex = 0;
-    for (let index = 1; index < vectors.length && Number(vectors[index].day) <= bounded; index += 1) {
-      lowerIndex = index;
-    }
-    const lower = vectors[lowerIndex];
-    const upper = vectors[Math.min(vectors.length - 1, lowerIndex + 1)];
-    const lowerDay = Number(lower.day ?? lowerIndex);
-    const upperDay = Number(upper.day ?? lowerIndex + 1);
-    const ratio = upperDay === lowerDay ? 0 : (bounded - lowerDay) / (upperDay - lowerDay);
-    return lower.positionAu.map((value, index) => (
-      value + (upper.positionAu[index] - value) * ratio
-    ));
-  }
-
   function epochForDay(dataset, day) {
     const start = Date.parse(dataset.epochStart || dataset.epoch?.start || '');
     return Number.isFinite(start) && Number.isFinite(day)
@@ -482,6 +472,5 @@
     createContribution,
     displayEphemerisDay,
     pointAlong,
-    stateAtDay,
   });
 });

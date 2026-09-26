@@ -1,14 +1,19 @@
 (function(root){
   const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,(a.z||0)-(b.z||0));
+  const height=building=>Number.isFinite(building.heightM)&&building.heightM>0?building.heightM:null;
   function create(buildings){
-    const walls=[],cells=new Map(),buildingCells=new Map(),size=32;
+    const walls=[],cells=new Map(),buildingCells=new Map(),size=32,ids=new Set(),missingHeightIds=[];
     for(const building of buildings){
+      if(typeof building.id!=='string'||!building.id||ids.has(building.id))throw Error('Invalid or duplicate building identity');
+      ids.add(building.id);
       const ring=building.footprint;if(!ring?.length)continue;
+      if([ring,...(building.interiorRings||[])].some(r=>r.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y))))throw Error('Invalid building coordinates');
       for(let x=Math.floor(Math.min(...ring.map(p=>p.x))/size);x<=Math.floor(Math.max(...ring.map(p=>p.x))/size);x++)for(let y=Math.floor(Math.min(...ring.map(p=>p.y))/size);y<=Math.floor(Math.max(...ring.map(p=>p.y))/size);y++){const key=x+','+y;if(!buildingCells.has(key))buildingCells.set(key,[]);buildingCells.get(key).push(building);}
       const rings=[building.footprint,...(building.interiorRings||[])];
-      for(const ring of rings){if(!ring?.length)continue;for(let i=0;i<ring.length;i++){
+      if(height(building)===null){missingHeightIds.push(building.id);continue;}
+      for(const [ringIndex,ring] of rings.entries()){if(!ring?.length)continue;for(let i=0;i<ring.length;i++){
         const a=ring[i],b=ring[(i+1)%ring.length],length=Math.hypot(b.x-a.x,b.y-a.y);if(length<.1)continue;
-        const wall={id:walls.length,a,b,height:Math.max(3,building.heightM||9),length,building:building.id};walls.push(wall);
+        const wall={id:`${building.id}:ring-${ringIndex}:edge-${i}`,a,b,height:height(building),length,building:building.id};walls.push(wall);
         for(let x=Math.floor(Math.min(a.x,b.x)/size);x<=Math.floor(Math.max(a.x,b.x)/size);x++)for(let y=Math.floor(Math.min(a.y,b.y)/size);y<=Math.floor(Math.max(a.y,b.y)/size);y++){
           const key=`${x},${y}`;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(wall);
         }
@@ -69,7 +74,7 @@
       for(const building of candidates)if(inside(building.footprint)&&!(building.interiorRings||[]).some(inside))return true;
       return false;
     }
-    return {hits,direct,nearby,reflected,occupied,walls};
+    return {hits,direct,nearby,reflected,occupied,walls,coverage:{buildingCount:buildings.length,missingHeightIds}};
   }
-  root.MotorcycleCityPaths={create};
+  root.MotorcycleCityPaths={create,height};
 })(globalThis);
