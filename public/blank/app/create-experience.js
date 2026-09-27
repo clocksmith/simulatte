@@ -29,7 +29,7 @@
     const toggle = documentRoot.getElementById('prompt-dock-toggle');
     const pause = documentRoot.getElementById('pause-lab');
     const restart = documentRoot.getElementById('reset-lab');
-    const statusView = view.SimulatteSimulationSessionStatus.create({host:documentRoot.querySelector('.create-preview-bar')});
+    const statusView = view.SimulatteSimulationSessionStatus.create({host:documentRoot.getElementById('create-preview-status')});
     const session = view.SimulatteSimulationSession.create({
       id: 'create',
       onChange: snapshot => statusView.render(snapshot),

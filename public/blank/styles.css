@@ -52,7 +52,8 @@ body.create-app { overflow: hidden; }
 .create-tools .model-selection-row { grid-template-columns: 1fr; gap: 4px; }
 .create-preview { display: grid; grid-template-rows: 60px minmax(0, 1fr) 36px; min-width: 0; min-height: 0; padding: 0 24px 12px; }
 .create-preview-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--sim-ink-soft); }
-.create-preview-actions { display: flex; gap: 6px; }
+.create-preview-context { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.create-preview-actions { display: flex; flex-shrink: 0; gap: 6px; }
 .create-preview-actions .sim-action { background: transparent; font-size: 12px; }
 .physics-canvas-wrap { position: relative; width: 100%; height: 100%; min-height: 0; container-type: size; border: 1px solid var(--sim-line); background-image: linear-gradient(var(--sim-lattice) 1px, transparent 1px), linear-gradient(90deg, var(--sim-lattice) 1px, transparent 1px); background-size: 40px 40px; }
 #physics-canvas, #loading-canvas { position: absolute; inset: 0; margin: auto; display: block; width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); }
@@ -317,5 +318,10 @@ body.create-app { overflow: hidden; }
   .physics-stage[data-create-state="empty"] .create-preview { height: 360px; }
   .physics-stage[data-editor-hidden="true"] .create-preview { height: calc(100dvh - 64px); }
   .simulatte-review-bridge { top: 8px; right: 8px; max-height: 65dvh; }
+}
+@media (max-width: 360px) {
+  .create-preview-bar { gap: 4px; }
+  .create-preview-context { gap: 0; }
+  #create-preview-title { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .create-app * { animation: none !important; scroll-behavior: auto !important; } }
