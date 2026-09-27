@@ -4,6 +4,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const publicRoutes = require('../public/simulation-routes.js');
 
 const root = path.resolve(__dirname, '..');
 const outputRoot = path.join(root, '.firebase-hosting');
@@ -52,14 +53,21 @@ test('hosting targets separate World and Create while preserving governed shared
 
   assert.equal(worldConfig.public, '.firebase-hosting/world');
   assert.equal(createConfig.public, '.firebase-hosting/create');
-  assert.deepEqual(worldConfig.redirects.filter(row=>row.source.startsWith('/blank')), [{
+  assert.deepEqual(worldConfig.redirects.filter((row) => row.source.startsWith('/blank')), [{
     source: '/blank{,/**}',
     destination: 'https://create.simulatte.world',
     type: 301,
   }]);
-  for(const source of ['/motorcycle/','/simulatte/motorcycle-noise','/simulatte/motorcycle-noise/']){
-    assert.ok(worldConfig.redirects.some(row=>row.source===source&&row.destination==='/motorcycle'&&row.type===301));
+  for (const page of publicRoutes.pages) {
+    for (const source of [`${page.path}/`, ...page.legacy]) {
+      assert.deepEqual(worldConfig.redirects.find((row) => row.source === source), {
+        source,
+        destination: page.path,
+        type: 301,
+      });
+    }
   }
+  assert.equal(new Set(worldConfig.redirects.map((row) => row.source)).size, worldConfig.redirects.length);
   assert.equal(fs.existsSync(path.join(worldRoot, 'blank')), false);
   assert.match(worldHtml, /href="https:\/\/create\.simulatte\.world\/"/);
   assert.equal(fs.existsSync(path.join(worldRoot, 'simulatte', 'app', 'main.js')), true);

@@ -88,7 +88,10 @@ function validateHtmlScripts() {
   const scripts = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g)).map((match) => match[1]);
   if (!scripts.length) throw new Error('Autonomy HTML expected deferred runtime scripts');
   scripts.forEach((source) => {
-    const file = path.resolve(path.dirname(htmlPath), source.replace(/\?v=.*$/, ''));
+    const url = new URL(source, 'https://simulatte.world/');
+    if (url.origin !== 'https://simulatte.world') throw new Error(`Autonomy HTML script leaves public/: ${source}`);
+    const file = path.resolve(PUBLIC, `.${url.pathname}`);
+    if (!file.startsWith(`${PUBLIC}${path.sep}`)) throw new Error(`Autonomy HTML script leaves public/: ${source}`);
     if (!fs.existsSync(file)) throw new Error(`Autonomy HTML script does not exist: ${source}`);
   });
   if (!html.includes('id="autonomy-canvas"')) throw new Error('Autonomy HTML expected autonomy-canvas');

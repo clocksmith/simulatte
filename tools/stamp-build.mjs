@@ -39,7 +39,7 @@ function normalizedDeployContent(relativePath, content) {
       '<meta name="simulatte-build" content="BUILD-STAMP">'
     )
     .replace(
-      /(<script\s+defer\s+src="(?:\.\/|\.\.\/)[^"?]+\.js)(?:\?v=[^"]*)?(")/g,
+      /(<script\s+defer\s+src="(?:\.\/|\.\.\/|\/)[^"?]+\.js)(?:\?v=[^"]*)?(")/g,
       '$1?v=BUILD-STAMP$2'
     )
     .replace(
@@ -77,7 +77,7 @@ function stampEntrypoint(relativePath, buildHash, buildParam) {
         metaRegex,
         `<meta name="simulatte-build" content="${buildHash}">`
       );
-      const scriptRegex = /(<script\s+defer\s+src=")((?:\.\/|\.\.\/)[^"?]+\.js)(?:\?v=[^"]*)?(")/g;
+      const scriptRegex = /(<script\s+defer\s+src=")((?:\.\/|\.\.\/|\/)[^"?]+\.js)(?:\?v=[^"]*)?(")/g;
       const stylesheetRegex = /(<link\b[^>]*\bhref=")((?:\.\/|\.\.\/)[^"?]+\.css)(?:\?v=[^"]*)?(")/g;
       let scriptCount = 0;
       let stylesheetCount = 0;

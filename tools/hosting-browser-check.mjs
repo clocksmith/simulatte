@@ -60,7 +60,7 @@ async function probePage(surface, expectedBuild) {
   };
   const visible = node => !!node && node.getBoundingClientRect().width > 0 && node.getBoundingClientRect().height > 0
     && getComputedStyle(node).visibility !== 'hidden';
-  const selectors = surface === 'world' ? ['#hex-center-create', '.hex-satellite'] : ['#build-prompt', '#build-lab', '#shuffle-prompt'];
+  const selectors = surface === 'world' ? ['#hex-center-sunwalker', '.hex-satellite'] : ['#build-prompt', '#build-lab', '#shuffle-prompt'];
   const deadline = performance.now() + 15000;
   while (!selectors.every(selector => visible(document.querySelector(selector)))) {
     if (performance.now() > deadline) throw new Error('Required product controls did not become visible');
@@ -69,7 +69,7 @@ async function probePage(surface, expectedBuild) {
   const checks = { build: document.querySelector('meta[name="simulatte-build"]')?.content === expectedBuild,
     horizontalFit: document.documentElement.scrollWidth <= innerWidth + 1 };
   const controls = [];
-  for (const node of document.querySelectorAll(surface === 'world' ? '#hex-center-create, .hex-satellite' : '#build-prompt, #build-lab, #shuffle-prompt')) {
+  for (const node of document.querySelectorAll(surface === 'world' ? '#hex-center-sunwalker, .hex-satellite' : '#build-prompt, #build-lab, #shuffle-prompt')) {
     node.scrollIntoView({ block: 'center' });
     const rect = node.getBoundingClientRect();
     const target = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
@@ -80,7 +80,7 @@ async function probePage(surface, expectedBuild) {
   let execution;
   if (surface === 'world') {
     checks.simulationsVisible = document.querySelectorAll('.hex-satellite').length === 6;
-    checks.createLink = document.querySelector('#hex-center-create')?.href === 'https://create.simulatte.world/';
+    checks.createLink = document.querySelector('.sim-product-nav a[href="https://create.simulatte.world/"]')?.href === 'https://create.simulatte.world/';
   } else {
     await waitFor('Create runtime', () => window.SimulattePhysicsLab?._browserLab
       && document.querySelector('#intent-runtime')?.dataset.state === 'ready');
