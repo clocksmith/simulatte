@@ -36,6 +36,12 @@ body.sim-app #world-tiers-landing-page {
   align-items: center;
   width: 100%;
 }
+#simulation-home .landing-nav {
+  justify-content: flex-end;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+}
 #simulation-home .landing-header {
   display: flex;
   align-items: center;

@@ -6,7 +6,7 @@ test('a visible earlier scene does not conceal a failed or unverified replacemen
   for (const state of ['failed', 'error', 'unsupported']) {
     const result = statusFor({ state, visible: true, prompt: 'new scene', message: 'Required model unavailable' });
     assert.equal(result.state, 'error');
-    assert.equal(result.message, 'Required model unavailable');
+    assert.equal(result.message, 'Previous simulation remains visible. Required model unavailable');
   }
   assert.equal(statusFor({ state: 'not-proven', visible: true, prompt: '', message: 'Missing required object' }).state, 'warning');
 });

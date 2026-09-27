@@ -37,6 +37,23 @@
       const documentRef = roots.inspector.ownerDocument;
       const focused = documentRef.activeElement;
       const focusedId = focused?.id && Object.values(roots).some((element) => element.contains?.(focused)) ? focused.id : null;
+      const uiState = Object.fromEntries(Object.entries(roots).map(([slot, element]) => [slot, {
+        scrollTop: element.scrollTop,
+        open: [...(element.querySelectorAll?.('details') || [])].map((row) => row.open),
+      }]));
+      const drafts = [...(roots.inspector.querySelectorAll?.('[data-plugin-control]') || [])].flatMap((input) => {
+        const pluginId = input.closest('[data-plugin-id]')?.dataset.pluginId;
+        const controlId = input.dataset.pluginControl;
+        const applied = controlValues.get(pluginId)?.get(controlId);
+        const current = input.multiple ? [...input.selectedOptions].map((row) => row.value)
+          : input.type === 'checkbox' ? input.checked : input.value;
+        const same = Array.isArray(current) ? Array.isArray(applied)
+          && JSON.stringify(current.map(String).sort()) === JSON.stringify(applied.map(String).sort())
+          : String(current) === String(applied);
+        if (applied === undefined || (same
+          && input.dataset.applyStatus !== 'draft')) return [];
+        return [{ id: input.id, value: current, applyStatus: input.dataset.applyStatus || '' }];
+      });
       const fragments = Object.fromEntries(Object.keys(roots).map((slot) => [slot, documentRef.createDocumentFragment()]));
       const parameterSections = new Map();
       const v4ControlIds = new Map(v4Contributions.map((contribution) => [
@@ -93,6 +110,7 @@
             const input = field.type === 'select' ? documentRef.createElement('select') : documentRef.createElement('input');
             input.className = 'sim-field';
             input.dataset.pluginField = field.id;
+            input.id = `plugin-field-${domId(pluginId)}-${domId(field.id)}`;
             if (field.type === 'select') field.options.forEach((option) => {
               const node = documentRef.createElement('option');
               node.value = String(option.value);
@@ -161,6 +179,20 @@
         if (section) fragments.inspector.append(section);
       });
       Object.entries(roots).forEach(([slot, element]) => element.replaceChildren(fragments[slot]));
+      Object.entries(roots).forEach(([slot, element]) => {
+        [...(element.querySelectorAll?.('details') || [])].forEach((row, index) => {
+          if (uiState[slot].open[index] !== undefined) row.open = uiState[slot].open[index];
+        });
+        element.scrollTop = uiState[slot].scrollTop;
+      });
+      for (const draft of drafts) {
+        const input = documentRef.getElementById(draft.id);
+        if (!input) continue;
+        if (input.multiple) [...input.options].forEach((row) => { row.selected = draft.value.includes(row.value); });
+        else if (input.type === 'checkbox') input.checked = draft.value;
+        else input.value = draft.value;
+        input.dataset.applyStatus = draft.applyStatus;
+      }
       if (focusedId) documentRef.getElementById(focusedId)?.focus({ preventScroll: true });
     }
 
@@ -277,6 +309,8 @@
       input.id = `plugin-control-${domId(pluginId)}-${domId(control.id)}`;
       input.className = 'sim-field';
       input.dataset.pluginControl = control.id;
+      input.dataset.sessionCategory = 'scenario';
+      input.dataset.requiresRestart = 'true';
       editing.inputs.set(control.id, input);
       const peers = control.selectionGroup ? editing.controls.filter(row => row.selectionGroup === control.selectionGroup) : [control];
       const revisionKey = control.selectionGroup ? `group:${control.selectionGroup}` : `control:${control.id}`;

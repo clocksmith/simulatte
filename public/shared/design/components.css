@@ -44,6 +44,20 @@
   gap: 4px;
   min-width: 0;
 }
+.sim-session-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid var(--sim-line);
+  border-radius: 999px;
+  color: var(--sim-ink-soft);
+  background: var(--sim-glass-soft);
+  font: 650 11px/1 var(--sim-font);
+  white-space: nowrap;
+}
+.sim-session-status[data-session-status="running"] { color: var(--sim-accent); }
+.sim-session-status[data-session-status="needs-attention"] { color: var(--sim-red); }
 .sim-product-nav a {
   display: inline-flex;
   align-items: center;

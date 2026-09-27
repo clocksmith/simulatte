@@ -49,6 +49,10 @@ const STATE_PROBE = `(() => {
     status: runtimeStatus ? runtimeStatus.textContent.trim() : '',
     statusKind: runtimeStatus ? runtimeStatus.dataset.kind || '' : '',
     error: window.__simulatteLastFailError?.message || runtimeError?.details?.message || '',
+    journeyPhase: document.body?.dataset.journeyPhase || '',
+    runState: window.__simulatteTierRunState?.state || '',
+    loadingStage: [...(window.__simulatteAutonomyRuntimeEvents || [])].reverse()
+      .find((row) => /load|bootstrap|application/.test(row.name || row.event || ''))?.name || '',
     receipt: receipt ? { actionStatus: receipt.actionResult && receipt.actionResult.status, obligations: (receipt.settlement && receipt.settlement[0] && receipt.settlement[0].obligationResults || []).length } : null,
   };
 })()`;
@@ -59,12 +63,12 @@ async function waitFor(probe, predicate, label, timeoutMs) {
     const state = await probe();
     if (state.status === 'Stopped') throw new Error(`${label}: runtime error (${state.error || 'Stopped'})`);
     if (predicate(state)) return state;
-    if (Date.now() - started > timeoutMs) throw new Error(`${label}: timeout after ${timeoutMs}ms (status=${state.status || 'unknown'})`);
+    if (Date.now() - started > timeoutMs) throw new Error(`${label}: timeout after ${timeoutMs}ms ${JSON.stringify(state)}`);
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }
 
-// Boot a tier, wait for Ready, click Start, and require a settled run receipt.
+// Boot a tier and require the authored opening run to settle without a Start click.
 async function auditTier(chromePath, baseUrl, item) {
   const report = { tier: item.tier, profileId: item.profileId, pluginId: item.pluginId, pass: false, status: null, receipt: null, profileProgram: null, errors: [] };
   let browser;
@@ -81,9 +85,7 @@ async function auditTier(chromePath, baseUrl, item) {
     const url = new URL(baseUrl); url.pathname = `/${item.tier}/${item.profileId}`; url.search = '';
     await client.send('Page.navigate', { url: url.toString() });
     const probe = async () => (await client.send('Runtime.evaluate', { expression: STATE_PROBE, returnByValue: true })).result.value;
-    await waitFor(probe, (state) => state.status === 'Ready', 'tier-ready', 45000);
-    await client.send('Runtime.evaluate', { expression: `const b = document.getElementById('start-button'); b && b.click();` });
-    const final = await waitFor(probe, (state) => Boolean(state.receipt) && state.status === 'Complete', 'tier-complete', 45000);
+    const final = await waitFor(probe, (state) => Boolean(state.receipt) && state.status === 'Complete', 'tier-complete', 120000);
     report.status = final.status;
     report.receipt = final.receipt;
     if (final.receipt.actionStatus !== 'settled') throw new Error(`action status ${final.receipt.actionStatus}`);
@@ -112,7 +114,7 @@ async function auditTier(chromePath, baseUrl, item) {
     await client.send('Runtime.evaluate', { expression: `window.__controlReloadSentinel = true; window.SimulatteTierRunController.clearStoredReceipt(window.sessionStorage, ${JSON.stringify(item.profileId)});` });
     await client.send('Page.reload');
     await waitFor(async () => ({ ...(await probe()), fresh: (await client.send('Runtime.evaluate', { expression: 'window.__controlReloadSentinel === undefined', returnByValue: true })).result.value }),
-      state => state.fresh && state.status === 'Ready', 'saved-controls-reloaded', 45000);
+      state => state.fresh && state.status === 'Complete' && Boolean(state.receipt), 'saved-controls-reloaded', 120000);
     const afterReload = (await client.send('Runtime.evaluate', { expression: controlsExpression, returnByValue: true })).result.value;
     report.savedControlsReload = { pass: JSON.stringify(beforeReload) === JSON.stringify(afterReload), parameters: afterReload };
     if (!report.savedControlsReload.pass) throw new Error('Reloaded model controls differ from the saved URL');

@@ -23,6 +23,7 @@ Define restrictive shared browser contracts.
 - Output: recursive [scopes](recursive-world-scope.schema.json), [ports](simulation-port.schema.json), and [couplings](coupling-plan.schema.json)
 - Output: typed [proof receipts](world-proof-intent.js)
 - Output: [mission validator](contract-validator.js)
+- Output: [simulation session semantics](simulation-session.js) for declared operations and separate lifecycle states; product adapters retain execution authority.
 - Output: [bounded input reader](input-source.js) and [data WorldSpec adapter](data-world-spec.js)
 
 ## Invariants

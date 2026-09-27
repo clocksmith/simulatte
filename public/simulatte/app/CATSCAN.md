@@ -30,7 +30,7 @@ Mount the hexagon chooser, optional data workbench, or selected simulation; expo
 - Scene preparation owns World-specific geometry, route, and presentation decisions. Rendering sessions consume prepared inputs and do not acquire tier data or manage HUD elements.
 - UI completion follows settled runtime state.
 - Profile replay compares deterministic execution identity and retains unproven proof classes.
-- Data imports remain local unless the user explicitly requests a URL. Prepared data does not execute until Run is selected.
+- Data imports remain local unless the user explicitly requests a URL. Once required mappings and units are declared, valid data prepares and plays automatically; unresolved semantics remain visible.
 - Data execution uses a declared adapter and backend, never inferred physics or a hidden prompt/model lane.
 - The root explains the available simulations and keeps Create and Use your data directly discoverable on desktop and mobile.
 - The root shows the hexagon chooser. Data tools open at #data; profile runtime and plugins load on explicit simulation selection.

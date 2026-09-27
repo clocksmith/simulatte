@@ -151,6 +151,8 @@
     let viewDirector=null;
     let runController=null;
     let profileProgram=null;
+    let session=null;
+    let statusView=null;
     let removeManualView=null;
     let lastPluginContributions=Object.freeze([]);
     let disposed=false;
@@ -226,6 +228,9 @@
       simulationClock?.pause();
       clusterInteraction?.dispose();clusterInteraction=null;
       runController?.dispose();
+      if(root.SimulatteActiveSession===session)root.SimulatteActiveSession=null;
+      session?.dispose();session=null;
+      statusView?.dispose();statusView=null;
       lifecycle.abort();
       removeManualView?.();
       const resources={runtime,pluginUi,profileSelectUi,tierVisualizer,profileProgram};
@@ -457,6 +462,7 @@
       return governedTierRoute();
     }
     function reportRunFailure(error){
+      session?.update({execution:'failed'});
       if(root.__simulatteLastFailError?.message===error.message)return;
       root.__simulatteLastFailError={message:error.message,code:error.code||null};
       ctx.setJourneyPhase?.('failed');
@@ -468,6 +474,28 @@
     }
     function configureRunController(owner){
       runController?.dispose();
+      session?.dispose();
+      statusView?.dispose();
+      statusView=root.SimulatteSimulationSessionStatus.create({host:document.getElementById('runtime-status').parentElement});
+      session=root.SimulatteSimulationSession.create({
+        id:data.applicationProfile.id,
+        onChange:(snapshot)=>statusView.render(snapshot),
+        capabilities:{selection:true,camera:true,pause:true,restart:true,replay:'model-receipt',
+          comparison:data.applicationProfile.experience?.comparisonMode!=='none',liveActions:owner==='gpu-supercluster'},
+        operations:[
+          {id:'pause',category:'execution',perform:()=>runController.pause()},
+          {id:'resume',category:'execution',perform:()=>runController.resume()},
+          {id:'restart',category:'reproduction',perform:()=>runController.reset().then(()=>runController.start())},
+          {id:'replay',category:'reproduction',perform:()=>runController.replay()},
+          {id:'reset-view',category:'observation',target:'camera',perform:()=>elements.cameraReset.click()},
+          {id:'apply-controls',category:'scenario',target:owner,requiresRestart:true,
+            perform:values=>runController.applyControls(values)},
+          ...(owner==='gpu-supercluster'?[{id:'straggler',category:'live',target:'rack',
+            perform:values=>runController.intervene('scenario.intervene',values)}]:[]),
+        ],
+      });
+      session.update({preparation:'ready',rendering:'ready'});
+      root.SimulatteActiveSession=session;
       root.__simulatteTierRunReceipt=null;
       root.__simulatteTierRunState=null;
       root.__simulatteLastFailError=null;
@@ -486,6 +514,8 @@
         resetRuntime:()=>activateScenario(activeScenario),
         buildReceipt:({actionResult,settlement,parameterValues,simulationActions})=>Object.freeze({schema:'simulatte.tierRunReceipt.v1',tier,profileId:data.applicationProfile.id,scenario:activeScenario,parameterValues,simulationActions,actionResult,settlement,pluginRuntime:runtime.runtimeReceipt(),loadReceipt:data.receipt}),
         onState:(state)=>{
+          session?.update({execution:state.state==='settled'?'complete':state.state==='running'?'running':
+            state.state==='paused'?'paused':state.state==='failed'?'failed':'idle'});
           root.__simulatteTierRunState=state;
           const isRunning=state.state==='running';
           const isPaused=state.state==='paused';
@@ -516,6 +546,7 @@
           else if(state.state==='idle'){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');}
         },
         onReceipt:(receipt)=>{
+          session?.update({execution:'complete'});
           root.__simulatteTierRunReceipt=receipt;
           root.__simulatteComparisonExecutionReceipts=Object.freeze(
             receipt.actionResult.comparisonExecutionReceipts

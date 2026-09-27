@@ -322,23 +322,25 @@
   </dialog>
 
 <!-- SIMULATTE_WORLD_RUNTIME_SCRIPTS_START -->
-  <script defer src="/simulation-routes.js?v=public-routes-v1"></script>
-<script defer src="./simulatte/app/world-runtime-script-manifest.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./simulatte/app/world-runtime-loader.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/design/program-editor.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/design/data-table.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/design/product-navigation.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/contracts/world-spec-authorship.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/contracts/world-spec.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/contracts/input-source.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/contracts/data-world-spec.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/core/pipeline-runner.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/core/simulation/point-motion.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/core/simulation/data-run.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./shared/render/point-scene-view.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./simulatte/app/data-workbench.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./simulatte/app/homepage-webgpu.js?v=nogit-f7417ed4cc72"></script>
-  <script defer src="./simulatte/app/homepage-effects.js?v=nogit-f7417ed4cc72"></script>
+  <script defer src="./simulatte/app/world-runtime-script-manifest.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./simulatte/app/world-runtime-loader.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./simulation-routes.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/design/program-editor.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/design/data-table.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/design/simulation-session-status.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/design/product-navigation.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/contracts/world-spec-authorship.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/contracts/world-spec.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/contracts/input-source.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/contracts/data-world-spec.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/contracts/simulation-session.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/core/pipeline-runner.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/core/simulation/point-motion.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/core/simulation/data-run.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./shared/render/point-scene-view.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./simulatte/app/data-workbench.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./simulatte/app/homepage-webgpu.js?v=public-routes-20260920-v1"></script>
+  <script defer src="./simulatte/app/homepage-effects.js?v=public-routes-20260920-v1"></script>
   <script defer src="./simulatte/app/workbench-entry.js?v=public-routes-20260920-v1"></script>
   <!-- generated-plugin-scripts:start -->
   <!-- Selected plugin scripts are loaded by world-runtime-loader.js after route selection. -->
@@ -348,6 +350,10 @@
   <!-- World Tiers Landing Page Selector -->
   <div id="world-tiers-landing-page">
   <section id="simulation-home" aria-label="Simulatte simulations">
+    <nav class="sim-product-nav landing-nav" aria-label="Other ways to start">
+      <a href="#data">Your data</a>
+      <a href="https://create.simulatte.world/" data-local-href="./blank/">Create</a>
+    </nav>
     <div class="hex-constellation-container" aria-label="Seven simulations">
       <canvas id="homepage-effects-canvas" class="homepage-effects-canvas" aria-hidden="true" hidden></canvas>
       <button class="hex-hub tier-card" type="button" role="button" data-tier="city" data-default-profile="sun-walker-v1" id="hex-center-sunwalker" aria-label="Open Sunwalker">
@@ -434,7 +440,7 @@
               <label>Y position<select id="data-map-y" class="sim-input"></select></label>
               <label>X velocity<select id="data-map-vx" class="sim-input"></select></label>
               <label>Y velocity<select id="data-map-vy" class="sim-input"></select></label>
-              <label>Coordinate units<input id="data-units" class="sim-input" value="units" maxlength="80"></label>
+              <label>Coordinate units<input id="data-units" class="sim-input" placeholder="Declare units, for example meters" maxlength="80"></label>
               <label>Duration (seconds)<input id="data-duration" class="sim-input" type="number" min="0" max="3600" value="10"></label>
               <label>Steps<input id="data-steps" class="sim-input" type="number" min="1" max="600" value="60"></label>
             </div>
@@ -445,6 +451,7 @@
           <h2>Run and inspect</h2>
           <div class="workbench-actions">
             <button id="data-run" class="sim-action" type="button" disabled>Run</button>
+            <button id="data-playback" class="sim-action" type="button" disabled>Pause</button>
             <button id="data-cancel" class="sim-action" type="button" disabled>Cancel</button>
             <button id="data-replay" class="sim-action" type="button" disabled>Replay</button>
             <button id="data-export" class="sim-action" type="button" disabled>Export program</button>

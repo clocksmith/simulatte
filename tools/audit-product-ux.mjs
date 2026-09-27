@@ -8,6 +8,7 @@ import { prepareAuditOutput } from './audit-output.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const output = process.argv.find(arg => arg.startsWith('--out='))?.slice(6)
   || `artifacts/product-ux/${new Date().toISOString().replace(/[:.]/g, '-')}`;
+const onlyWidth = Number(process.argv.find(arg => arg.startsWith('--only-width='))?.slice(13) || 0);
 const outDir = path.resolve(ROOT, output);
 await prepareAuditOutput(outDir, ['simulatte.productUx.v1']);
 const files = ['public/index.html', 'public/world-tiers.css', 'public/blank/index.html', 'public/blank/styles.css',
@@ -21,15 +22,20 @@ const report = { schema: 'simulatte.productUx.v1', recordedAt: new Date().toISOS
 const host = await createAuditHost({ publicRoot: path.join(ROOT, 'public') });
 try {
   for (const config of [{ width: 1440, height: 1000, theme: 'light' }, { width: 390, height: 844, theme: 'light' },
-    { width: 320, height: 740, theme: 'light' }, { width: 1440, height: 1000, theme: 'dark' }]) {
+    { width: 320, height: 740, theme: 'light' }, { width: 1440, height: 1000, theme: 'dark' }].filter(row => !onlyWidth || row.width === onlyWidth)) {
     const row = { ...config, pass: false, errors: [], resources: [], screenshots: [] };
     report.cases.push(row);
     let browser;
     try {
-      browser = await launchBrowser({ viewport: { width: config.width, height: config.height }, webgpu: true });
+      browser = await launchBrowser({ viewport: { width: config.width, height: config.height },
+        webgpu: !process.argv.includes('--without-webgpu') });
       const { client } = browser;
       row.browser = (await client.send('Browser.getVersion')).product;
       client.on('Runtime.exceptionThrown', event => row.errors.push(event.exceptionDetails.exception?.description || event.exceptionDetails.text));
+      client.on('Runtime.consoleAPICalled', event => {
+        if (event.args?.[0]?.value === 'audit-create-phase') row.createPhases.push(event.args[1]?.value);
+      });
+      row.createPhases = [];
       client.on('Network.responseReceived', ({ response }) => {
         if (response.status >= 400 && response.url.startsWith(host.baseUrl)) row.resources.push({ url: response.url, status: response.status });
       });
@@ -51,16 +57,16 @@ try {
       };
       await navigate(host.baseUrl);
       row.world = await evaluate(() => ({ simulations: document.querySelectorAll('.hex-satellite').length,
-        createHref: document.querySelector('#hex-center-create').href,
+        createHref: new URL(document.querySelector('#simulation-home .landing-nav a[data-local-href="./blank/"]').dataset.localHref, location.href).href,
         overflow: document.documentElement.scrollWidth > innerWidth,
         theme: document.documentElement.dataset.theme }));
       if (row.world.simulations !== 6 || row.world.overflow || row.world.theme !== config.theme
         || row.world.createHref !== new URL('blank/', host.baseUrl).href) throw new Error('World navigation or layout failed');
-      row.worldTargets = await evaluate(checkReachable, ['.landing-data-link', '.home-create-action', '#hex-center-create', '.hex-satellite']);
+      row.worldTargets = await evaluate(checkReachable, ['#simulation-home .landing-nav a', '.hex-satellite']);
       await evaluate(() => { document.querySelector('#world-tiers-landing-page').scrollTop = 0; });
       await screenshot('world');
       await evaluate(async () => {
-        document.querySelector('.landing-data-link').click();
+        location.hash = '#data';
         await new Promise(resolve => setTimeout(resolve, 100));
         if (document.querySelector('#data-page').hidden) throw new Error('Data entry did not open');
         document.querySelector('#data-sample').click();
@@ -77,10 +83,19 @@ try {
       await evaluate(() => { scrollTo(0, 0); document.querySelector('#create-editor').scrollTop = 0; });
       await screenshot('create-empty');
       await evaluate(() => {
+        const node = document.querySelector('#intent-runtime');
+        new MutationObserver(() => console.log('audit-create-phase', node.dataset.state + ':' + document.querySelector('#intent-runtime-message').textContent.slice(0, 60)
+          + ':' + window.SimulattePhysicsLab?._browserLab?.getPipelineRun()?.status
+          + ':' + document.querySelector('#physics-canvas').dataset.renderCount
+          + ':' + window.SimulattePhysicsLab?._browserLab?.getSpec()?.source?.prompt))
+          .observe(node, { attributes: true, attributeFilter: ['data-state'], childList: true, subtree: true, characterData: true });
+      });
+      await evaluate(() => {
         document.querySelector('[data-create-prompt="a red ball"]').click();
         if (document.activeElement.id !== 'build-prompt' || document.querySelector('#build-lab').disabled) throw new Error('Example does not prepare an editable prompt');
         document.querySelector('#build-prompt').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true }));
       });
+      row.phase = 'create-requested';
       row.run = await evaluate(waitForRun);
       row.resultTargets = await evaluate(checkReachable, ['#pause-lab', '#reset-lab', '#export-lab']);
       await screenshot('create-result');
@@ -133,7 +148,6 @@ async function waitForRun() {
     if (performance.now() > deadline) throw new Error('Create did not complete and render');
     await new Promise(resolve => setTimeout(resolve, 50));
   }
-  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   return { prompt: lab.getSpec().source.prompt, status: lab.getPipelineRun().status, worldSpecContentHash: lab.getPipelineRun().worldSpecContentHash,
     visible: document.querySelector('#physics-canvas').dataset.sceneVisible, viewportScroll: scrollY };
 }

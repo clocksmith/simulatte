@@ -4,9 +4,11 @@
   root.SimulatteWorldRuntimeScriptManifest = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldRuntimeScriptManifest() {
   const browser = Object.freeze([
+    'simulation-routes.js',
     'neural-model-consent.js',
     'shared/design/program-editor.js',
     'shared/design/data-table.js',
+    'shared/design/simulation-session-status.js',
     'shared/design/product-navigation.js',
     'shared/render/render-targets.js',
     'shared/render/renderer-session.js',
@@ -24,6 +26,7 @@
     'shared/contracts/world-spec.js',
     'shared/contracts/input-source.js',
     'shared/contracts/data-world-spec.js',
+    'shared/contracts/simulation-session.js',
     'shared/core/pipeline-runner.js',
     'shared/core/simulation/point-motion.js',
     'shared/core/simulation/data-run.js',
@@ -280,9 +283,12 @@
     optionalModel: Object.freeze(browser.filter(optionalModelPath)),
   });
   const workbenchPaths = new Set([
+    'simulation-routes.js',
     'shared/design/program-editor.js', 'shared/design/product-navigation.js', 'shared/design/data-table.js',
+    'shared/design/simulation-session-status.js',
     'shared/contracts/world-spec-authorship.js', 'shared/contracts/world-spec.js',
     'shared/contracts/input-source.js', 'shared/contracts/data-world-spec.js',
+    'shared/contracts/simulation-session.js',
     'shared/core/pipeline-runner.js', 'shared/core/simulation/point-motion.js',
     'shared/core/simulation/data-run.js', 'shared/render/point-scene-view.js',
     'simulatte/app/data-workbench.js',

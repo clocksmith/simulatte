@@ -271,6 +271,8 @@
       '../neural-model-consent.js',
       '../shared/design/program-editor.js',
       '../shared/design/product-navigation.js',
+      '../shared/design/simulation-session-status.js',
+      '../shared/contracts/simulation-session.js',
       '../shared/render/render-targets.js',
       '../shared/render/renderer-session.js',
       '../model-selection.js'

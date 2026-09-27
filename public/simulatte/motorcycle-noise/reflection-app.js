@@ -5,6 +5,23 @@
   let selected=null,placement=null,activeAudio=null,lastReadout=-Infinity,audioRequest=0,explorer=null;
   let populationWorker=null,populationRequest=0,cameraSnapshot=null,observationSnapshot=null,expectedReplay=null;
   let lifecycle;
+  const statusView=root.SimulatteSimulationSessionStatus.create({host:$('experience-status')});
+  const session=root.SimulatteSimulationSession.create({
+    id:'motorcycle-noise',
+    onChange:snapshot=>statusView.render(snapshot),
+    capabilities:{selection:true,camera:true,pause:true,restart:true,replay:'traffic-only',
+      liveActions:false,sound:true,measurement:'snapshot'},
+    operations:[
+      {id:'pause',category:'execution',perform:()=>setPaused(true)},
+      {id:'resume',category:'execution',perform:()=>setPaused(false)},
+      {id:'restart',category:'reproduction',perform:()=>{replayTraffic();setPaused(false);}},
+      {id:'replay',category:'reproduction',perform:()=>{replayTraffic();setPaused(false);}},
+      {id:'reset-view',category:'observation',target:'camera',perform:()=>view?.focus('Greenpoint')},
+      {id:'compare-snapshot',category:'execution',target:'viewpoint',perform:()=>run()},
+    ],
+  });
+  root.SimulatteMotorcycleSession=session;
+  statusView.render(session.snapshot());
   function createTraffic(config){
     populationWorker?.terminate();const request=++populationRequest;
     status('Preparing '+config.motorcycles+' autonomous motorcycles on the connected street network');
@@ -31,6 +48,7 @@
     audioSource=source;source.start();button.textContent='Stop';
   }
   function invalidate(){lastReadout=-Infinity;generation++;worker?.terminate();worker=null;result=null;activeAudio=null;stopAudio();view?.showMeasurements(null);
+    session.update({measurement:'stale'});
     $('results').hidden=true;$('progress').hidden=true;$('cancel').hidden=true;$('run').disabled=!scene;$('export').disabled=true;$('listen').disabled=true;}
   function read(){const p={...M.defaults};for(const key of Object.keys(p)){const element=form.elements.namedItem(key);if(element)p[key]=typeof p[key]==='boolean'?element.checked:typeof p[key]==='number'?Number(element.value):element.value;}return M.validate(p);}
   function showConfig(config){for(const[key,value]of Object.entries(config)){const element=form.elements.namedItem(key);if(!element)continue;if(typeof value==='boolean')element.checked=value;else element.value=value;}labels();}
@@ -70,6 +88,7 @@
       }
     }
     result=data.record;activeAudio=data.audio;$('results').hidden=false;$('export').disabled=false;$('listen').disabled=false;
+    session.update({measurement:'fresh'});
     const r=result.readings;$('before').textContent=r.baseline.laeq.toFixed(1);$('surface-level').textContent=r.withSurface.laeq.toFixed(1);$('after').textContent=r.total.laeq.toFixed(1);
     const change=r.total.laeq-r.baseline.laeq;$('change').textContent=`${change>0?'+':''}${change.toFixed(1)} dB`;$('change').dataset.direction=change>.5?'louder':change<-.5?'quieter':'same';
     $('interval').textContent=`${result.interval[0].toFixed(2)}-${result.interval[1].toFixed(2)} s / A-weighted equivalent levels / includes controller startup`;
@@ -179,6 +198,11 @@
   lifecycle=root.MotorcycleLifecycle.create({
     frame:tick,suspend,release:releaseRenderer,
     onState(state){
+      session.update({preparation:state.state==='loading'?'preparing':state.state==='failed'?'failed':'ready',
+        rendering:state.state==='recovering'?'recovering':state.state==='failed'?'failed':
+          ['running','paused'].includes(state.state)?'ready':'idle',
+        execution:state.state==='running'?'running':state.state==='paused'?'paused':
+          state.state==='failed'?'failed':'idle'});
       const previousState=document.body.dataset.state;
       document.body.dataset.state=state.state;
       if(previousState!==state.state){
@@ -211,6 +235,6 @@
     }
   });
   $('experience-retry').addEventListener('click',()=>{void lifecycle.retry();});
-  root.addEventListener('pagehide',()=>{populationWorker?.terminate();void lifecycle.dispose();audio?.close();});
+  root.addEventListener('pagehide',()=>{populationWorker?.terminate();session.dispose();statusView.dispose();void lifecycle.dispose();audio?.close();});
   await lifecycle.start();
 })(globalThis);

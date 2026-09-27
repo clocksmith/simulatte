@@ -5,7 +5,9 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createExperience() {
   function statusFor({ state, visible, prompt, message }) {
     if (['error', 'failed', 'unsupported'].includes(state)) return {
-      state: 'error', title: 'This run needs attention', message: message || 'Open Run details to inspect the failure.',
+      state: 'error', title: 'This run needs attention',
+      message: visible ? `Previous simulation remains visible. ${message || 'Open Run details to inspect the failure.'}`
+        : message || 'Open Run details to inspect the failure.',
     };
     if (state === 'not-proven') return {
       state: 'warning', title: 'Some requirements are not verified', message: message || 'Open Validation to see what is missing.',
@@ -25,6 +27,26 @@
     const canvas = documentRoot.getElementById('physics-canvas');
     const editor = documentRoot.getElementById('create-editor');
     const toggle = documentRoot.getElementById('prompt-dock-toggle');
+    const pause = documentRoot.getElementById('pause-lab');
+    const restart = documentRoot.getElementById('reset-lab');
+    const statusView = view.SimulatteSimulationSessionStatus.create({host:documentRoot.querySelector('.create-preview-bar')});
+    const session = view.SimulatteSimulationSession.create({
+      id: 'create',
+      onChange: snapshot => statusView.render(snapshot),
+      capabilities: { selection: true, camera: false, pause: true, restart: true,
+        replay: 'world-proof-when-settled', liveActions: true, authoring: true },
+      operations: [
+        { id: 'pause', category: 'execution', available: () => canvas.dataset.sceneVisible === 'true',
+          perform: () => { if (pause.getAttribute('aria-pressed') !== 'true') pause.click(); } },
+        { id: 'resume', category: 'execution', available: () => canvas.dataset.sceneVisible === 'true',
+          perform: () => { if (pause.getAttribute('aria-pressed') === 'true') pause.click(); } },
+        { id: 'restart', category: 'reproduction', available: () => canvas.dataset.sceneVisible === 'true',
+          perform: () => restart.click() },
+        { id: 'revise-description', category: 'authoring', requiresCompile: true,
+          perform: description => { input.value = String(description); input.dispatchEvent(new view.Event('input', { bubbles: true })); run.click(); } },
+      ],
+    });
+    view.SimulatteCreateSession = session;
     const listeners = [];
     const on = (node, event, handler) => { node.addEventListener(event, handler); listeners.push(() => node.removeEventListener(event, handler)); };
     const text = (id, value) => {
@@ -36,6 +58,12 @@
       const visible = canvas.dataset.sceneVisible === 'true';
       const status = statusFor({ state: runtime.dataset.state, visible, prompt: input.value,
         message: documentRoot.getElementById('intent-runtime-message').textContent });
+      session.update({
+        preparation: ['active', 'loading'].includes(runtime.dataset.state) ? 'preparing'
+          : status.state === 'error' ? 'failed' : visible ? 'ready' : 'idle',
+        execution: visible ? pause.getAttribute('aria-pressed') === 'true' ? 'paused' : 'running' : 'idle',
+        rendering: visible ? 'ready' : 'idle',
+      });
       stage.dataset.createState = status.state;
       text('create-status-title', status.title);
       text('create-status-message', status.message);
@@ -50,6 +78,8 @@
       previousVisible = visible;
     }
     on(input, 'input', refresh);
+    on(pause, 'click', () => view.queueMicrotask(refresh));
+    on(restart, 'click', () => view.queueMicrotask(refresh));
     on(input, 'keydown', event => {
       if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.isComposing && !run.disabled) {
         event.preventDefault(); run.click();
@@ -71,7 +101,7 @@
     observer.observe(runtime, { attributes: true, attributeFilter: ['data-state'], childList: true, subtree: true, characterData: true });
     observer.observe(canvas, { attributes: true, attributeFilter: ['data-scene-visible'] });
     refresh();
-    const dispose = () => { observer.disconnect(); listeners.splice(0).forEach(remove => remove()); };
+    const dispose = () => { observer.disconnect(); session.dispose(); statusView.dispose(); listeners.splice(0).forEach(remove => remove()); };
     on(view, 'pagehide', dispose);
     return Object.freeze({ dispose });
   }
