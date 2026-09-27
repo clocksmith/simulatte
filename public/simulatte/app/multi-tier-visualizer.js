@@ -46,6 +46,7 @@
       this.currentStarCutoff = null;
       this.defaultView = null;
       this.viewMode = 'overview';
+      this.sceneInsets = {};
       this.projectionMode = 'sphere';
 
       // Mouse control variables (zoom & pan/orbit)
@@ -675,6 +676,8 @@
         ? countryEvidenceView({
           countryBounds,
           evidenceBounds,
+          insets: this.sceneInsets,
+          viewMode: this.viewMode,
           width: this.width,
           height: this.height,
         })
@@ -755,7 +758,7 @@
         this.rotX = 0;
         this.rotY = 0;
       }
-      if (this.fittedTarget && ['overview', 'compare'].includes(mode)) {
+      if (this.fittedTarget && ['overview', 'compare', 'follow', 'pov', 'top'].includes(mode)) {
         this.fitPluginPresentationTarget(...this.fittedTarget);
       }
       return mode;
@@ -832,38 +835,19 @@
     return new URL(relativePath, TIER_CACHE_BASE_URL).toString();
   }
 
-  function countryEvidenceView({ countryBounds, evidenceBounds, width, height }) {
-    if (
-      !countryBounds ||
-      !evidenceBounds ||
-      !Number.isFinite(width) ||
-      !Number.isFinite(height) ||
-      width <= 0 ||
-      height <= 0 ||
-      ![
-        countryBounds.minLon, countryBounds.maxLon, countryBounds.minLat, countryBounds.maxLat,
-        evidenceBounds.minX, evidenceBounds.maxX, evidenceBounds.minY, evidenceBounds.maxY,
-      ].every(Number.isFinite)
-    ) return null;
-    const countryLonSpan = Math.max(1, countryBounds.maxLon - countryBounds.minLon);
-    const countryLatSpan = Math.max(1, countryBounds.maxLat - countryBounds.minLat);
-    const evidenceLonSpan = Math.max(2, evidenceBounds.maxX - evidenceBounds.minX) * 1.18;
-    const evidenceLatSpan = Math.max(2, evidenceBounds.maxY - evidenceBounds.minY) * 1.18;
-    const availableWidth = width * (width < 600 ? 0.84 : 0.58);
-    const availableHeight = width <= 820 ? Math.max(100, height - 660) : height * 0.58;
-    const desiredScale = Math.min(availableWidth / evidenceLonSpan, availableHeight / evidenceLatSpan);
-    const scalePerZoom = Math.min(width / countryLonSpan, height / countryLatSpan) * 0.06;
-    const zoom = Math.max(0.01, Math.min(250, desiredScale / Math.max(scalePerZoom, 0.0001)));
-    const countryCenterX = (countryBounds.minLon + countryBounds.maxLon) / 2;
-    const countryCenterY = (countryBounds.minLat + countryBounds.maxLat) / 2;
-    const targetCenterX = (evidenceBounds.minX + evidenceBounds.maxX) / 2;
-    const targetCenterY = (evidenceBounds.minY + evidenceBounds.maxY) / 2;
-    const scale = scalePerZoom * zoom;
-    return Object.freeze({
-      zoom,
-      panX: width / 2 - (targetCenterX - countryCenterX) * scale,
-      panY: (width <= 820 ? 375 + availableHeight / 2 : height / 2) + (targetCenterY - countryCenterY) * scale,
-    });
+  function countryEvidenceView({ countryBounds, evidenceBounds, width, height, insets = {}, viewMode = 'overview' }) {
+    if (!countryBounds || !evidenceBounds || ![
+      countryBounds.minLon, countryBounds.maxLon, countryBounds.minLat, countryBounds.maxLat,
+      evidenceBounds.minX, evidenceBounds.maxX, evidenceBounds.minY, evidenceBounds.maxY,
+    ].every(Number.isFinite)) return null;
+    const scale = Math.min(width / Math.max(1, countryBounds.maxLon - countryBounds.minLon),
+      height / Math.max(1, countryBounds.maxLat - countryBounds.minLat)) * 0.06;
+    const centerX = (countryBounds.minLon + countryBounds.maxLon) / 2;
+    const centerY = (countryBounds.minLat + countryBounds.maxLat) / 2;
+    const points = [[evidenceBounds.minX, evidenceBounds.minY], [evidenceBounds.maxX, evidenceBounds.maxY]]
+      .map(([x, y]) => ({ x: (x - centerX) * scale, y: -(y - centerY) * scale }));
+    const fit = typeof module === 'object' && module.exports ? require('./camera-fit.js') : globalThis.SimulatteCameraFit;
+    return fit.fitPoints(points, { width, height, insets, viewMode });
   }
 
   function coordinateEvidenceView(options) {

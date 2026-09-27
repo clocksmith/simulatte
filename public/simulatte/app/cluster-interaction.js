@@ -6,8 +6,12 @@
     panel.innerHTML='<div><label>Rack <select aria-label="Inspect rack"></select></label><strong class="cluster-task"></strong></div><p class="cluster-wait"></p><div><span class="cluster-progress"></span><button type="button" class="sim-action">Introduce straggler</button></div>';
     canvas.parentElement.append(panel);
     const select=panel.querySelector('select'),task=panel.querySelector('.cluster-task'),wait=panel.querySelector('.cluster-wait'),progress=panel.querySelector('.cluster-progress'),button=panel.querySelector('button');
-    const insets=()=>{visualizer.sceneInsets={bottom:panel.getBoundingClientRect().height+16};if(visualizer.fittedTarget)visualizer.fitPluginPresentationTarget(...visualizer.fittedTarget);};
-    const observer=new ResizeObserver(insets);observer.observe(panel);
+    const insets=()=>{
+      visualizer.sceneInsets=root.SimulatteCameraFit.measureInsets(canvas.getBoundingClientRect(),
+        [{edge:'bottom',rect:panel.getBoundingClientRect()}]);
+      if(visualizer.fittedTarget)visualizer.fitPluginPresentationTarget(...visualizer.fittedTarget);
+    };
+    const observer=new ResizeObserver(insets);observer.observe(panel);observer.observe(canvas);
     function fields(){return Object.fromEntries((contribution?.inspections.find(row=>row.id===`gpu-supercluster:inspection:${selected}`)?.fields||[]).map(row=>[row.id,row.value]));}
     function reflect(){
       const values=fields();select.value=selected;visualizer.selectedRack=selected;

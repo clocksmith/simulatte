@@ -441,8 +441,16 @@
         activeScenario=nextScenario;
         renderScenario();
         await activateScenario(activeScenario,nextSimulation);
+        lifecycle.throwIfAborted();
         configureRunController(owner);
         if(requestedParameters[owner])await runController.applyControls(requestedParameters[owner]);
+        lifecycle.throwIfAborted();
+        if(nextSimulation?.autoStart!==false&&options?.autoStart!==false){
+          await runController.start();
+        }else{
+          root.__simulatteTierRunState=runController.snapshot();
+          ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');
+        }
       }else{
         // The URL is authoritative. Clear controls first so removing a query
         // parameter cannot resurrect a stale in-memory value.

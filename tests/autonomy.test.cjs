@@ -1556,7 +1556,8 @@ test('workbench eagerly loads its declared shell and profile runtime retains dep
     .map((match) => match[1].replace(/\?v=.*$/, ''));
   const manifest = require('../public/simulatte/app/world-runtime-script-manifest.js');
   const scripts = manifest.profileRuntime.map((source) => `./${source}`);
-  assert.deepEqual(eagerScripts.filter((source) => !source.endsWith('/world-runtime-script-manifest.js') && !source.endsWith('/world-runtime-loader.js')), manifest.eager.map((source) => `./${source}`));
+  assert.deepEqual(eagerScripts.filter((source) => source !== '/simulation-routes.js' && !source.endsWith('/world-runtime-script-manifest.js') && !source.endsWith('/world-runtime-loader.js')), manifest.eager.map((source) => `./${source}`));
+  assert.ok(eagerScripts.includes('/simulation-routes.js'));
   assert.equal(eagerScripts.includes('./simulatte/app/main.js'), false);
   assert.ok(eagerScripts.includes('./simulatte/app/data-workbench.js'));
   assert.ok(scripts.indexOf('./simulatte/runtime/runtime-log.js') < scripts.indexOf('./simulatte/platform/transport/browser-transport.js'));
@@ -1573,13 +1574,13 @@ test('workbench eagerly loads its declared shell and profile runtime retains dep
   assert.match(html, /id="follow-minimap"/);
   assert.match(html, /id="shuffle-button"[^>]*>[\s\S]*?id="shuffle-label">Shuffle<\/span>/);
   assert.match(html, /id="start-button"[^>]*>[\s\S]*?id="start-label">Start<\/span>/);
-  assert.match(html, /class="sim-product-nav"[\s\S]*href="https:\/\/create\.simulatte\.world\/"[^>]*>Prompt<\/a>/);
+  assert.match(html, /class="sim-product-nav"[\s\S]*href="https:\/\/create\.simulatte\.world\/"[^>]*>Create<\/a>/);
   assert.match(html, /id="experience-doc-link" class="sim-text-link experience-doc-link"[^>]*target="_blank"[^>]*hidden>Experience docs<\/a>/);
   assert.doesNotMatch(html, /id="experience-doc-link"[^>]*sim-surface/);
-  const missionDockStart = html.indexOf('<section class="mission-dock');
-  const missionDockEnd = html.indexOf('</section>', missionDockStart);
+  const detailsStart = html.indexOf('id="decisions-drawer"');
+  const detailsEnd = html.indexOf('</aside>', detailsStart);
   const experienceDocsPosition = html.indexOf('id="experience-doc-link"');
-  assert.ok(missionDockStart >= 0 && experienceDocsPosition > missionDockStart && experienceDocsPosition < missionDockEnd);
+  assert.ok(detailsStart >= 0 && experienceDocsPosition > detailsStart && experienceDocsPosition < detailsEnd);
   assert.doesNotMatch(html, /class="blank-link"/);
   assert.match(compatibilityHtml, /Simulatte/);
   assert.match(compilerHtml, /class="sim-product-nav"[\s\S]*href="https:\/\/simulatte\.world\/" data-local-href="\.\.\/"/);
@@ -1627,8 +1628,8 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   const css = fs.readFileSync(path.join(publicDir, 'styles.css'), 'utf8');
   const design = ['tokens.css', 'primitives.css', 'components.css', 'compositions/consent.css']
     .map((file) => fs.readFileSync(path.join(publicDir, 'shared/design', file), 'utf8')).join('\n');
-  assert.match(html, /href="\.\/shared\/design\/simulatte\.css"/);
-  assert.match(blankHtml, /href="\.\.\/shared\/design\/simulatte\.css"/);
+  assert.match(html, /href="\.\/shared\/design\/simulatte\.css(?:\?[^"\s]*)?"/);
+  assert.match(blankHtml, /href="\.\.\/shared\/design\/simulatte\.css(?:\?[^"\s]*)?"/);
   assert.match(html, /class="mission-dock sim-surface"/);
   assert.match(html, /id="decisions-drawer"[^>]*aria-hidden="true"/);
   assert.match(html, /id="runtime-toggle"[^>]*aria-expanded="false"/);
@@ -1643,7 +1644,10 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.doesNotMatch(html, /camera-focus|>Focus</);
   assert.match(html, /id="dock-more-menu"[^>]*hidden/);
   assert.match(html, /id="dock-more-menu"[\s\S]*id="what-if-button"/);
-  assert.match(html, /id="playback-strip"[\s\S]*id="step-button"[\s\S]*id="reset-button"[\s\S]*id="playback-speed"/);
+  const dock = html.slice(html.indexOf('<section class="mission-dock'), html.indexOf('<section id="journey-hud"'));
+  for (const id of ['playback-strip', 'step-button', 'reset-button', 'playback-speed']) {
+    assert.ok(dock.includes(`id="${id}"`), `${id} belongs to the simulation controls`);
+  }
   assert.match(html, /id="advanced-section"[\s\S]*<details class="evidence-section retrieval-evidence">/);
   assert.match(html, /<details class="evidence-section retrieval-evidence">/);
   assert.match(html, /<details class="evidence-section receipt-evidence">/);

@@ -82,10 +82,12 @@ test('browser audit coordination and evidence modules stay below the source ceil
   }
 });
 
-test('datacenter visualizer loads the canonical tier world model', () => {
+test('datacenter visualizer takes physical racks from plugin contributions', () => {
   const visualizer = read('public/simulatte/app/multi-tier-visualizer.js');
   const worldModel = JSON.parse(read('public/data/simulatte/worlds/datacenter-supercluster-v1.json'));
-  assert.match(visualizer, /loadTierCache\('\.\.\/worlds\/datacenter-supercluster-v1\.json'/);
+  assert.doesNotMatch(visualizer, /loadTierCache\('\.\.\/worlds\/datacenter-supercluster-v1\.json'/);
+  assert.match(visualizer, /this\.data = \{racks:\[\]\}/);
+  assert.match(visualizer, /contributions\.find\(row=>row\.pluginId==='gpu-supercluster'\)/);
   assert.equal(worldModel.id, 'datacenter-supercluster-v1');
   assert.equal(worldModel.tier, 'datacenter');
 });
@@ -105,10 +107,12 @@ test('profile program scenario navigation drops stale control parameters', () =>
   assert.doesNotMatch(main, /navigateScenario: async \(scenario\) => \{\s*const simulation = \{ \.\.\.simulationRouteState\(\)/);
 });
 
-test('world landing keeps Create at the canonical center of the mobile honeycomb', () => {
+test('world landing keeps Create discoverable beside the simulation honeycomb', () => {
   const html = read('public/index.html');
   const css = read('public/world-tiers.css');
-  assert.match(html, /id="hex-center-create"[^>]+href="https:\/\/create\.simulatte\.world\/"|href="https:\/\/create\.simulatte\.world\/"[^>]+id="hex-center-create"/);
+  const landing = html.slice(html.indexOf('id="simulation-home"'));
+  assert.match(landing, /href="https:\/\/create\.simulatte\.world\/"[^>]*data-local-href="\.\/blank\/"[^>]*>Create<\/a>/);
+  assert.match(landing, /class="hex-hub tier-card"[^>]*data-default-profile="sun-walker-v1"/);
   assert.match(css, /\.hex-hub\s*\{\s*left: 30%;\s*top: 33\.333333%;/);
   assert.match(css, /\.pos-top-right\s*\{\s*left: 60%;\s*top: 16\.666667%;/);
   assert.match(css, /\.pos-bottom-left\s*\{\s*left: 0;\s*top: 50%;/);

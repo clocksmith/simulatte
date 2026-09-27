@@ -703,8 +703,8 @@ test('country evidence framing fills desktop and mobile viewports without clippi
   const countryBounds = { minLon: -171, maxLon: -66, minLat: 18, maxLat: 72 };
   const evidenceBounds = { minX: -124, maxX: -71, minY: 25, maxY: 48 };
   [
-    { width: 1440, height: 1000, minimumFraction: 0.45, maximumFraction: 0.58 },
-    { width: 390, height: 844, minimumFraction: 0.65, maximumFraction: 0.84 },
+    { width: 1440, height: 1000, minimumFraction: 0.9, maximumFraction: 1 },
+    { width: 390, height: 844, minimumFraction: 0.8, maximumFraction: 0.84 },
   ].forEach(({ width, height, minimumFraction, maximumFraction }) => {
     const fitted = multiTierVisualizer.countryEvidenceView({
       countryBounds,
@@ -870,10 +870,11 @@ test('only geographic paths split at the antimeridian; long Cartesian edges rema
   assert.equal(trace.filter(row => row[0] === 'line').length, 0);
 });
 
-test('mobile coordinate framing keeps the active path between the summary and playback panels', () => {
+test('mobile coordinate framing keeps the active path inside supplied overlay insets', () => {
   for (const coordinateSystem of ['heliocentric-ecliptic-au', 'icrs-cartesian-pc', 'wgs84']) {
     const coordinates = [[-2, -1, 0], [2, 1, 0]];
-    const view = multiTierVisualizer.coordinateEvidenceView({ coordinates, coordinateSystem, width: 390, height: 844 });
+    const view = multiTierVisualizer.coordinateEvidenceView({ coordinates, coordinateSystem, width: 390, height: 844,
+      insets: { top: 343, bottom: 192 } });
     for (const p of coordinates) {
       const pixel = tierPresentation.projectPoint(p, coordinateSystem, view);
       assert.ok(pixel.x >= 30 && pixel.x <= 360);

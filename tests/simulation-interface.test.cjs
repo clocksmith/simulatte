@@ -128,3 +128,74 @@ test('same-profile route edits serialize and only the newest result becomes cano
     assert.equal(canonical.some(route => route.simulation?.scenarioId === 'first'), false);
   } finally { global.document = previous; }
 });
+
+const cameraFit = require('../public/simulatte/app/camera-fit.js');
+test('national bounds fit asymmetric measured insets on short and tall canvases', () => {
+  const countryBounds = { minLon: -171, maxLon: -66, minLat: 18, maxLat: 72 };
+  const evidenceBounds = { minX: -124, maxX: -71, minY: 25, maxY: 48 };
+  for (const [width, height] of [[390, 360], [390, 844], [1440, 600]]) {
+    const insets = { left: 20, right: 55, top: 45, bottom: 100 };
+    const view = tiers.countryEvidenceView({ countryBounds, evidenceBounds, width, height, insets });
+    const scale = Math.min(width / 105, height / 54) * .06 * view.zoom;
+    for (const [x, y] of [[-124, 25], [-71, 48]]) {
+      const px = view.panX + (x + 118.5) * scale, py = view.panY - (y - 45) * scale;
+      assert.ok(px >= insets.left + 31.999 && px <= width - insets.right - 31.999);
+      assert.ok(py >= insets.top + 31.999 && py <= height - insets.bottom - 31.999);
+    }
+  }
+});
+
+test('camera insets measure canvas overlap and ignore panels outside the drawing', () => {
+  const canvas = { left: 10, right: 400, top: 100, bottom: 460, width: 390, height: 360 };
+  assert.deepEqual(cameraFit.measureInsets(canvas, [
+    { edge: 'bottom', rect: { left: 20, right: 390, top: 380, bottom: 448 } },
+    { edge: 'top', rect: { left: 0, right: 410, top: 10, bottom: 95 } },
+    { edge: 'right', rect: { left: 420, right: 500, top: 110, bottom: 300 } },
+  ]), { left: 0, right: 0, top: 0, bottom: 80 });
+});
+
+test('camera refuses fully occluded space and fits extreme bounds without a minimum zoom clipping them', () => {
+  const options = { coordinates: [[-1e8, -1e8], [1e8, 1e8]], coordinateSystem: 'local-m', width: 100, height: 80 };
+  assert.equal(cameraFit.fit({ ...options, insets: { top: 80 } }), null);
+  assert.equal(cameraFit.fit({ ...options, width: 0 }), null);
+  const view = cameraFit.fit(options);
+  for (const point of options.coordinates) {
+    const p = presentation.projectPoint(point, options.coordinateSystem, view);
+    assert.ok(p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 80);
+  }
+});
+
+test('same-profile scenario replacement starts the new controller after activation and controls', async () => {
+  const fs = require('node:fs');
+  const source = fs.readFileSync(require.resolve('../public/simulatte/app/world-tiers-boot.js'), 'utf8');
+  const start = source.indexOf('    async function updateSimulationFromRoute(');
+  const end = source.indexOf('    async function updateRouteFromUrl(', start);
+  // Exercise the route coordinator with isolated boundary ports, including an aborted activation.
+  for (const mode of ['automatic', 'paused', 'aborted']) {
+    const calls = [];
+    const next = { id: 'new', seed: 'new-seed' };
+    const controller = { dispose() { calls.push('dispose'); },
+      async applyControls() { calls.push('controls'); }, async start() { calls.push('start'); },
+      snapshot() { return { state: 'idle', scenarioId: next.id }; } };
+    const root = { sessionStorage: {}, SimulatteTierRunController: { clearStoredReceipt() {} } };
+    const ports = { root, options: {}, ctx: { setJourneyPhase() {}, setRuntimeStatus() {} }, elements: {},
+      lifecycle: { throwIfAborted() { if (mode === 'aborted') throw new Error('aborted'); } },
+      scenarioForRoute: () => next, acceptedRouteParameters: () => ({ fixture: { value: 2 } }),
+      data: { applicationProfile: { id: 'profile', interaction: { simulationOwnerPluginId: 'fixture' } } },
+      runtime: { activePluginIds: ['fixture'] }, pluginUi: { resetValues() {} }, renderScenario() {},
+      async activateScenario() { await Promise.resolve(); calls.push('activate'); },
+      configureRunController() { calls.push('configure'); }, simulationRouteState: () => next,
+      controller };
+    const update = new Function(...Object.keys(ports), `let activeScenario={id:'old',seed:'old-seed'};
+      let runController=controller; ${source.slice(start, end)}; return updateSimulationFromRoute;`)(...Object.values(ports));
+    const operation = update({ autoStart: mode !== 'paused' });
+    if (mode === 'aborted') {
+      await assert.rejects(operation, /aborted/);
+      assert.deepEqual(calls, ['dispose', 'activate']);
+    } else {
+      await operation;
+      assert.deepEqual(calls, ['dispose', 'activate', 'configure', 'controls', ...(mode === 'automatic' ? ['start'] : [])]);
+      if (mode === 'paused') assert.deepEqual(root.__simulatteTierRunState, { state: 'idle', scenarioId: 'new' });
+    }
+  }
+});

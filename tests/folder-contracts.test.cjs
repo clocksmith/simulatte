@@ -108,7 +108,7 @@ test('declared import boundaries accept inherited edges and reject undeclared ed
   assert.ok(edges.includes('simulatte.platform-bootstrap->simulatte.platform-contracts'));
   const restricted = structuredClone(contract);
   const app = restricted.nodes.find((node) => node.id === 'simulatte.app');
-  app.boundary.allowedImportNodeIds = app.boundary.allowedImportNodeIds.filter((id) => id !== 'simulatte.shared');
+  app.boundary.allowedImportNodeIds = app.boundary.allowedImportNodeIds.filter((id) => !['simulatte.shared', 'simulatte.public'].includes(id));
   assert.throws(() => checker.validateImports(restricted, inventory, root), (error) => error.code === 'folder_contract_import_boundary_violation');
 });
 
