@@ -17,7 +17,7 @@
         "affectedObligationIds": [],
         "author": "local-user",
         "authority": "userOverride",
-        "compilerBaselineContentHash": "fnv1a32:02d73711",
+        "compilerBaselineContentHash": "fnv1a32:53926c07",
         "id": "patch:1:38d70f16",
         "newValue": 2,
         "previousValue": 1,
@@ -38,7 +38,7 @@
       }
     ]
   },
-  "contentHash": "fnv1a32:3477dcab",
+  "contentHash": "fnv1a32:35cb7073",
   "controls": [],
   "dependencies": {
     "assets": [],
@@ -90,7 +90,7 @@
   "params": {
     "duration": 10,
     "steps": 60,
-    "units": "units"
+    "units": "example units"
   },
   "safety": {
     "rules": [],

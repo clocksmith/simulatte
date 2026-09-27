@@ -22,7 +22,8 @@ const report = { schema: 'simulatte.productUx.v1', recordedAt: new Date().toISOS
 const host = await createAuditHost({ publicRoot: path.join(ROOT, 'public') });
 try {
   for (const config of [{ width: 1440, height: 1000, theme: 'light' }, { width: 390, height: 844, theme: 'light' },
-    { width: 320, height: 740, theme: 'light' }, { width: 1440, height: 1000, theme: 'dark' }].filter(row => !onlyWidth || row.width === onlyWidth)) {
+    { width: 320, height: 740, theme: 'light' }, { width: 1440, height: 1000, theme: 'dark' }]
+    .filter(row => !onlyWidth || row.width === onlyWidth)) {
     const row = { ...config, pass: false, errors: [], resources: [], screenshots: [] };
     report.cases.push(row);
     let browser;
@@ -32,10 +33,6 @@ try {
       const { client } = browser;
       row.browser = (await client.send('Browser.getVersion')).product;
       client.on('Runtime.exceptionThrown', event => row.errors.push(event.exceptionDetails.exception?.description || event.exceptionDetails.text));
-      client.on('Runtime.consoleAPICalled', event => {
-        if (event.args?.[0]?.value === 'audit-create-phase') row.createPhases.push(event.args[1]?.value);
-      });
-      row.createPhases = [];
       client.on('Network.responseReceived', ({ response }) => {
         if (response.status >= 400 && response.url.startsWith(host.baseUrl)) row.resources.push({ url: response.url, status: response.status });
       });
@@ -83,21 +80,13 @@ try {
       await evaluate(() => { scrollTo(0, 0); document.querySelector('#create-editor').scrollTop = 0; });
       await screenshot('create-empty');
       await evaluate(() => {
-        const node = document.querySelector('#intent-runtime');
-        new MutationObserver(() => console.log('audit-create-phase', node.dataset.state + ':' + document.querySelector('#intent-runtime-message').textContent.slice(0, 60)
-          + ':' + window.SimulattePhysicsLab?._browserLab?.getPipelineRun()?.status
-          + ':' + document.querySelector('#physics-canvas').dataset.renderCount
-          + ':' + window.SimulattePhysicsLab?._browserLab?.getSpec()?.source?.prompt))
-          .observe(node, { attributes: true, attributeFilter: ['data-state'], childList: true, subtree: true, characterData: true });
-      });
-      await evaluate(() => {
         document.querySelector('[data-create-prompt="a red ball"]').click();
         if (document.activeElement.id !== 'build-prompt' || document.querySelector('#build-lab').disabled) throw new Error('Example does not prepare an editable prompt');
         document.querySelector('#build-prompt').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true }));
       });
       row.phase = 'create-requested';
-      row.run = await evaluate(waitForRun);
-      row.resultTargets = await evaluate(checkReachable, ['#pause-lab', '#reset-lab', '#export-lab']);
+      row.run = await waitForRun(evaluate);
+      row.resultTargets = await evaluate(checkVisible, ['#pause-lab', '#reset-lab', '#export-lab']);
       await screenshot('create-result');
       row.controls = await evaluate(checkResultControls);
       await screenshot('create-tools');
@@ -140,16 +129,20 @@ async function waitForCreate() {
   return { runDisabled: document.querySelector('#build-lab').disabled, toolsOpen: document.querySelector('#create-tools').open,
     overflow: document.documentElement.scrollWidth > innerWidth };
 }
-async function waitForRun() {
-  const deadline = performance.now() + 30000;
-  const lab = window.SimulattePhysicsLab._browserLab;
-  while (lab.getSpec()?.source?.prompt !== 'a red ball' || lab.getPipelineRun()?.status !== 'completed'
-    || Number(document.querySelector('#physics-canvas').dataset.renderCount || 0) < 1) {
-    if (performance.now() > deadline) throw new Error('Create did not complete and render');
-    await new Promise(resolve => setTimeout(resolve, 50));
+async function waitForRun(evaluate) {
+  const deadline = Date.now() + 30000;
+  while (Date.now() < deadline) {
+    const state = await evaluate(() => {
+      const lab = window.SimulattePhysicsLab._browserLab;
+      return { prompt: lab.getSpec()?.source?.prompt, status: lab.getPipelineRun()?.status,
+        worldSpecContentHash: lab.getPipelineRun()?.worldSpecContentHash,
+        renderCount: Number(document.querySelector('#physics-canvas').dataset.renderCount || 0),
+        visible: document.querySelector('#physics-canvas').dataset.sceneVisible, viewportScroll: scrollY };
+    });
+    if (state.prompt === 'a red ball' && state.status === 'completed' && state.renderCount > 0) return state;
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
-  return { prompt: lab.getSpec().source.prompt, status: lab.getPipelineRun().status, worldSpecContentHash: lab.getPipelineRun().worldSpecContentHash,
-    visible: document.querySelector('#physics-canvas').dataset.sceneVisible, viewportScroll: scrollY };
+  throw new Error('Create did not complete and render');
 }
 async function checkResultControls() {
   const lab = window.SimulattePhysicsLab._browserLab;
@@ -191,7 +184,6 @@ async function checkReachable(selectors) {
   const controls = [];
   for (const selector of selectors) for (const node of document.querySelectorAll(selector)) {
     node.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
-    await new Promise(resolve => requestAnimationFrame(resolve));
     const rect = node.getBoundingClientRect();
     const target = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
     const reachable = rect.width > 0 && rect.height >= 40 && target && (target === node || node.contains(target));
@@ -199,4 +191,15 @@ async function checkReachable(selectors) {
     controls.push({ selector, name: node.getAttribute('aria-label') || node.textContent.trim(), width: rect.width, height: rect.height });
   }
   return controls;
+}
+
+function checkVisible(selectors) {
+  return selectors.map(selector => {
+    const node = document.querySelector(selector);
+    const rect = node.getBoundingClientRect();
+    const target = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    if (rect.width <= 0 || rect.height < 40 || rect.top < 0 || rect.bottom > innerHeight
+      || !target || (target !== node && !node.contains(target))) throw new Error(`Control is not visible: ${selector}`);
+    return { selector, name: node.getAttribute('aria-label') || node.textContent.trim(), width: rect.width, height: rect.height };
+  });
 }

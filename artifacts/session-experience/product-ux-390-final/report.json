@@ -1,0 +1,252 @@
+{
+  "schema": "simulatte.productUx.v1",
+  "recordedAt": "2026-09-27T01:10:23.418Z",
+  "scope": "Local browser UI, navigation and one Create compilation per viewport; not simulation or model qualification",
+  "sources": [
+    {
+      "file": "public/index.html",
+      "sha256": "f677c539fb7f8c841993051bbebff4bda4190c7274075274b01d6051e8e41f67"
+    },
+    {
+      "file": "public/world-tiers.css",
+      "sha256": "5d7d83b1510eae1c470b49992ea871b2f9e083c14821a6b2882a46a1ebf40947"
+    },
+    {
+      "file": "public/blank/index.html",
+      "sha256": "d5798597c887f0c5ecaaf1304b184a93438544c8d36a7a13fd13623ef6cbf44e"
+    },
+    {
+      "file": "public/blank/styles.css",
+      "sha256": "933e63ec7061fe3e1eb33fc46692fade90d395a16bb423fc9a7c7020ee28ced8"
+    },
+    {
+      "file": "public/blank/app/create-experience.js",
+      "sha256": "425443d4e5a3df6d9b47aab5ca8f373060b43642ff9a041afba4f92c5f4e7979"
+    },
+    {
+      "file": "public/blank/app/prompt/prompt-controller-lab-controller.js",
+      "sha256": "3c407ed1c0109f79f482979387eaa1d5d51abd55b4e93c46ec07ab0df41ec791"
+    },
+    {
+      "file": "public/shared/design/product-navigation.js",
+      "sha256": "adc08a5cf0db39d99a51254aacabb5f60ccb3b77de51304cf0363307339fa9a9"
+    },
+    {
+      "file": "public/shared/design/tokens.css",
+      "sha256": "00ef8efd8a1df00bd6d085f3fe96a386d3b929f7bb9a036a493eae985a161351"
+    },
+    {
+      "file": "public/shared/design/themes/world.css",
+      "sha256": "601706e750362cf253dd32295740b0ac1fb79aa07efb4f3ed04311147e23cac1"
+    },
+    {
+      "file": "public/shared/design/workbench.css",
+      "sha256": "438fe62d3af570daf8c80f6f61de70298e1296f094609776088cf43b817f650a"
+    }
+  ],
+  "cases": [
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "pass": true,
+      "errors": [],
+      "resources": [],
+      "screenshots": [
+        {
+          "file": "390-light-world.png",
+          "sha256": "3599be13f1ed0cb7f895b4c35ae01f29049dc740fba3470d4a59b02af6a7f8ff"
+        },
+        {
+          "file": "390-light-data.png",
+          "sha256": "85c9f4f06b72ec7c9ed36dfe31009e96972be47fc4225433aa32f31e29094027"
+        },
+        {
+          "file": "390-light-create-empty.png",
+          "sha256": "7077711a1848a555d43b539bde95b9e7455f45abf2436e70b7aebcaa58b9e199"
+        },
+        {
+          "file": "390-light-create-result.png",
+          "sha256": "3a4f259cb2d9a3bbbbb45f24bf8f213eff00981648d3a80efa53a770d6786bd7"
+        },
+        {
+          "file": "390-light-create-tools.png",
+          "sha256": "8b47e5ee25251f7fd1ae732c1c41eabdf4adc763215ddd6575edf3fc45a58e32"
+        },
+        {
+          "file": "390-light-create-focus.png",
+          "sha256": "78cbef8099a879cd1db68003f58a08bd0bccf5126aa91887a424fd7400631f8a"
+        }
+      ],
+      "browser": "Chrome/153.0.8010.53",
+      "world": {
+        "simulations": 6,
+        "createHref": "http://127.0.0.1:63242/blank/",
+        "overflow": false,
+        "theme": "light"
+      },
+      "worldTargets": [
+        {
+          "selector": "#simulation-home .landing-nav a",
+          "name": "Your data",
+          "width": 81.765625,
+          "height": 44
+        },
+        {
+          "selector": "#simulation-home .landing-nav a",
+          "name": "Create",
+          "width": 63.9375,
+          "height": 44
+        },
+        {
+          "selector": ".hex-satellite",
+          "name": "Open 256-GPU Cluster",
+          "width": 132.44842529296875,
+          "height": 114.70001220703125
+        },
+        {
+          "selector": ".hex-satellite",
+          "name": "Open Interstellar Relay",
+          "width": 132.44842529296875,
+          "height": 114.70001220703125
+        },
+        {
+          "selector": ".hex-satellite",
+          "name": "Open Orbital Transfer",
+          "width": 132.44845581054688,
+          "height": 114.70001220703125
+        },
+        {
+          "selector": ".hex-satellite",
+          "name": "Open Grid Resilience",
+          "width": 132.44845581054688,
+          "height": 114.69998168945312
+        },
+        {
+          "selector": ".hex-satellite",
+          "name": "Open Subsea Network",
+          "width": 132.44842529296875,
+          "height": 114.699951171875
+        },
+        {
+          "selector": ".hex-satellite",
+          "name": "Open Motorcycle Noise",
+          "width": 132.44842529296875,
+          "height": 114.69998168945312
+        }
+      ],
+      "data": {
+        "prepared": true,
+        "overflow": false
+      },
+      "dataTargets": [
+        {
+          "selector": "#data-page .sim-product-nav a",
+          "name": "Simulations",
+          "width": 95.65625,
+          "height": 44
+        },
+        {
+          "selector": "#data-page .sim-product-nav a",
+          "name": "Create",
+          "width": 63.9375,
+          "height": 44
+        },
+        {
+          "selector": "#data-read",
+          "name": "Read pasted data",
+          "width": 141.984375,
+          "height": 44
+        },
+        {
+          "selector": "#data-sample",
+          "name": "Use example",
+          "width": 112.71875,
+          "height": 44
+        }
+      ],
+      "initial": {
+        "runDisabled": true,
+        "toolsOpen": false,
+        "overflow": false
+      },
+      "createTargets": [
+        {
+          "selector": "#prompt-dock-toggle",
+          "name": "Hide editor",
+          "width": 76.640625,
+          "height": 44
+        },
+        {
+          "selector": "#build-prompt",
+          "name": "Simulation request",
+          "width": 350,
+          "height": 110
+        },
+        {
+          "selector": "[data-create-prompt]",
+          "name": "A red ball",
+          "width": 71.09375,
+          "height": 44
+        },
+        {
+          "selector": "[data-create-prompt]",
+          "name": "A blue cube",
+          "width": 83.390625,
+          "height": 44
+        },
+        {
+          "selector": "[data-create-prompt]",
+          "name": "A pendulum",
+          "width": 85.234375,
+          "height": 44
+        },
+        {
+          "selector": "#shuffle-prompt",
+          "name": "Run a random example",
+          "width": 113.65625,
+          "height": 48
+        }
+      ],
+      "phase": "create-requested",
+      "run": {
+        "prompt": "a red ball",
+        "status": "completed",
+        "worldSpecContentHash": "fnv1a32:c62b9b41",
+        "renderCount": 1,
+        "visible": "true",
+        "viewportScroll": 674
+      },
+      "resultTargets": [
+        {
+          "selector": "#pause-lab",
+          "name": "Pause",
+          "width": 55.984375,
+          "height": 44
+        },
+        {
+          "selector": "#reset-lab",
+          "name": "Restart",
+          "width": 62.828125,
+          "height": 44
+        },
+        {
+          "selector": "#export-lab",
+          "name": "Export",
+          "width": 58.9375,
+          "height": 44
+        }
+      ],
+      "controls": {
+        "pause": true,
+        "resume": true,
+        "restart": true,
+        "exportSchema": "simulatte.worldSpec.v1",
+        "editor": true,
+        "validation": true
+      }
+    }
+  ],
+  "pass": true,
+  "sourcesUnchanged": true
+}

@@ -33,7 +33,7 @@
       ],
       "output": {
         "path": "public/data/simulatte/tier-application-manifest.json",
-        "sha256": "81feb861b9e2fe95b5c72cc262b49148962cf8e06887f13ddc78880b0c1f29ad"
+        "sha256": "2eacf51d60cca52d58a01d4b477ca6a428a4665616e1e01180009ae946fdfae7"
       },
       "contentVersion": "simulatte-tier-applications-v3",
       "activationState": "active",

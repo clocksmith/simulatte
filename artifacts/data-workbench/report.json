@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.workbenchBrowserAudit.v1",
-  "previousOutput": "/Users/xyz/deco/simulatte/artifacts/data-workbench.previous-5388f23e-8b8d-4765-9630-61fec327c6b7",
+  "previousOutput": "/Users/xyz/deco/simulatte-session/artifacts/data-workbench.previous-95058ed9-c47f-433b-a669-98ad1d434177",
   "cases": [
     {
       "name": "1440x1000",
@@ -8,26 +8,26 @@
         "width": 1440,
         "scrollWidth": 1440,
         "canvas": {
-          "x": 636.328125,
-          "y": 332,
-          "width": 683.65625,
+          "x": 629.65625,
+          "y": 320,
+          "width": 730.328125,
           "height": 360,
-          "top": 332,
-          "right": 1319.984375,
-          "bottom": 692,
-          "left": 636.328125
+          "top": 320,
+          "right": 1359.984375,
+          "bottom": 680,
+          "left": 629.65625
         },
         "pointCount": "3",
         "backend": "canvas2d",
         "step": "0",
         "smallButtons": [],
-        "build": "31029783d55a74ca0759046248137355ba25c333-52a55b518e2c"
+        "build": "public-routes-20260920-v1"
       },
       "receipt": {
         "schema": "simulatte.dataRunReceipt.v1",
-        "programHash": "fnv1a32:3477dcab",
-        "programSha256": "bde560923dbbec1fb3b4ecade0005f5d18130e76fa63648857091bd5ec21f864",
-        "outputSha256": "d3f34cea535696ce6d9057f9a0b4ffa6666dee7c54fa7bea75c2fc27ad326af0",
+        "programHash": "fnv1a32:35cb7073",
+        "programSha256": "e405f7cad950b1ea034fc7447f607495426dcd46e15957d28a85a5ee4374068e",
+        "outputSha256": "308e819b844cb91728767b49290513a6e81a63d8d084617610b43f74709a3c00",
         "sourceSha256": "0be1960583f10760ebb231a307ed968a3e1eb69c82fc04b9817e3515ef404d90",
         "adapter": "data-points-v1",
         "frameCount": 61,
@@ -41,7 +41,7 @@
       "replay": "pass",
       "reimport": "pass",
       "malformedRecovery": "pass",
-      "cancellation": "pass"
+      "automaticPlayback": "pass"
     },
     {
       "name": "390x844",
@@ -49,26 +49,26 @@
         "width": 390,
         "scrollWidth": 390,
         "canvas": {
-          "x": 24,
-          "y": 275.5,
-          "width": 342,
+          "x": 16,
+          "y": 271.5,
+          "width": 358,
           "height": 300,
-          "top": 275.5,
-          "right": 366,
-          "bottom": 575.5,
-          "left": 24
+          "top": 271.5,
+          "right": 374,
+          "bottom": 571.5,
+          "left": 16
         },
         "pointCount": "3",
         "backend": "canvas2d",
         "step": "0",
         "smallButtons": [],
-        "build": "31029783d55a74ca0759046248137355ba25c333-52a55b518e2c"
+        "build": "public-routes-20260920-v1"
       },
       "receipt": {
         "schema": "simulatte.dataRunReceipt.v1",
-        "programHash": "fnv1a32:3477dcab",
-        "programSha256": "bde560923dbbec1fb3b4ecade0005f5d18130e76fa63648857091bd5ec21f864",
-        "outputSha256": "d3f34cea535696ce6d9057f9a0b4ffa6666dee7c54fa7bea75c2fc27ad326af0",
+        "programHash": "fnv1a32:35cb7073",
+        "programSha256": "e405f7cad950b1ea034fc7447f607495426dcd46e15957d28a85a5ee4374068e",
+        "outputSha256": "308e819b844cb91728767b49290513a6e81a63d8d084617610b43f74709a3c00",
         "sourceSha256": "0be1960583f10760ebb231a307ed968a3e1eb69c82fc04b9817e3515ef404d90",
         "adapter": "data-points-v1",
         "frameCount": 61,
@@ -82,13 +82,13 @@
       "replay": "pass",
       "reimport": "pass",
       "malformedRecovery": "pass",
-      "cancellation": "pass"
+      "automaticPlayback": "pass"
     }
   ],
   "errors": [],
   "pass": true,
   "profileRuntime": {
     "lazyLoaded": true,
-    "route": "/city/sun-walker-v1"
+    "route": "/sunwalker"
   }
 }
