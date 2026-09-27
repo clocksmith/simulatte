@@ -398,7 +398,7 @@
     const failedResourceIds = arrayControl(
       values.failedResourceIds,
       selectedScenario.failedResourceIds || demandScenario.failedResourceIds || config.failureIds,
-      'failedResourceIds'
+      'failedResourceIds', true
     );
     const validFailures = new Set([
       ...datasets.topology.edges.map((row) => row.id),

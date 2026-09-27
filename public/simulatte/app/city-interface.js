@@ -1,8 +1,8 @@
 (function attachCityInterface(root, factory) {
-  const api = factory();
+  const api = factory(root);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCityInterface = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCityInterface() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCityInterface(root) {
   function wireCameraControls(elements, renderer, signal, hooks = {}) {
     const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal });
     const controls = [
@@ -15,6 +15,10 @@
     ];
     controls.forEach(([button, mode]) => on(button, 'click', () => {
       hooks.onManualNavigation?.({ control: 'mode', mode, targetIds: [] });
+      const session = root.SimulatteActiveSession;
+      if(session?.snapshot().operations.some(row=>row.id==='camera')) {
+        void session.invoke('camera',mode).catch(error=>console.error(error)); return;
+      }
       const target = preferredCameraTarget(renderer.cameraTargets(), mode);
       if (target) {
         renderer.focusCameraTarget(target.id);
@@ -206,7 +210,7 @@
     elements.resumeButton.hidden = phase !== 'paused';
     elements.stepButton.hidden = !['running', 'paused'].includes(phase);
     elements.resetButton.hidden = false;
-    elements.replayButton.hidden = !['completed', 'failed'].includes(phase);
+    elements.replayButton.hidden = !hasController;
     elements.newMissionButton.hidden = true;
     elements.whatIfButton.hidden = isExperiment || phase !== 'completed';
     elements.dockMoreButton.hidden = isExperiment || !['running', 'paused', 'completed'].includes(phase);

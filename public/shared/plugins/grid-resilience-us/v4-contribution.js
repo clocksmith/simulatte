@@ -190,6 +190,9 @@
         fields: [
           field('observed-demand-row', 'EIA demand row', region.observedDemandRowId || 'ready', null, observed),
           field('gross-demand', 'Scenario-adjusted demand', region.grossDemandMw, 'MW', simulated),
+          field('generation', 'Modeled generation', region.generationMw ?? null, 'MW', simulated),
+          field('storage', 'Stored energy', region.storageStateOfChargeMwh ?? null, 'MWh', simulated),
+          field('storage-discharge', 'Storage discharge', region.storageDischargeMw ?? null, 'MW', simulated),
           field('served', 'Modeled served load', region.servedMw, 'MW', simulated),
           field('unserved', 'Modeled unserved load', region.unservedMw, 'MW', simulated),
           field('reserve', 'Modeled reserve margin', region.reserveMarginRatio, 'ratio', simulated),

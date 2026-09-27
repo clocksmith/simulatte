@@ -29,6 +29,7 @@
     const toggle = documentRoot.getElementById('prompt-dock-toggle');
     const pause = documentRoot.getElementById('pause-lab');
     const restart = documentRoot.getElementById('reset-lab');
+    let controller = view.SimulatteCreateController, disconnect = null;
     const statusView = view.SimulatteSimulationSessionStatus.create({host:documentRoot.getElementById('create-preview-status')});
     const session = view.SimulatteSimulationSession.create({
       id: 'create',
@@ -36,14 +37,11 @@
       capabilities: { selection: true, camera: false, pause: true, restart: true,
         replay: 'world-proof-when-settled', liveActions: true, authoring: true },
       operations: [
-        { id: 'pause', category: 'execution', available: () => canvas.dataset.sceneVisible === 'true',
-          perform: () => { if (pause.getAttribute('aria-pressed') !== 'true') pause.click(); } },
-        { id: 'resume', category: 'execution', available: () => canvas.dataset.sceneVisible === 'true',
-          perform: () => { if (pause.getAttribute('aria-pressed') === 'true') pause.click(); } },
-        { id: 'restart', category: 'reproduction', available: () => canvas.dataset.sceneVisible === 'true',
-          perform: () => restart.click() },
+        { id: 'pause', category: 'execution', available: () => Boolean(controller?.snapshot().visible), perform: () => controller.pause() },
+        { id: 'resume', category: 'execution', available: () => Boolean(controller?.snapshot().visible), perform: () => controller.resume() },
+        { id: 'restart', category: 'reproduction', available: () => Boolean(controller?.snapshot().visible), perform: () => controller.restart() },
         { id: 'revise-description', category: 'authoring', requiresCompile: true,
-          perform: description => { input.value = String(description); input.dispatchEvent(new view.Event('input', { bubbles: true })); run.click(); } },
+          available: () => Boolean(controller), perform: (description, operation) => controller.build(description, operation) },
       ],
     });
     view.SimulatteCreateSession = session;
@@ -55,13 +53,13 @@
     };
     let previousVisible = false;
     function refresh() {
-      const visible = canvas.dataset.sceneVisible === 'true';
-      const status = statusFor({ state: runtime.dataset.state, visible, prompt: input.value,
-        message: documentRoot.getElementById('intent-runtime-message').textContent });
+      const current = controller?.snapshot() || { visible: false, state: 'idle' };
+      const visible = current.visible;
+      const status = statusFor({ ...current, prompt: input.value });
       session.update({
-        preparation: ['active', 'loading'].includes(runtime.dataset.state) ? 'preparing'
+        preparation: ['active', 'loading'].includes(current.state) ? 'preparing'
           : status.state === 'error' ? 'failed' : visible ? 'ready' : 'idle',
-        execution: visible ? pause.getAttribute('aria-pressed') === 'true' ? 'paused' : 'running' : 'idle',
+        execution: visible ? current.paused ? 'paused' : 'running' : 'idle',
         rendering: visible ? 'ready' : 'idle',
       });
       stage.dataset.createState = status.state;
@@ -82,7 +80,7 @@
     on(restart, 'click', () => view.queueMicrotask(refresh));
     on(input, 'keydown', event => {
       if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.isComposing && !run.disabled) {
-        event.preventDefault(); run.click();
+        event.preventDefault(); void session.invoke('revise-description').catch(() => {});
       }
     });
     for (const button of documentRoot.querySelectorAll('[data-create-prompt]')) on(button, 'click', () => {
@@ -97,11 +95,14 @@
       toggle.setAttribute('aria-expanded', String(!editor.hidden));
       if (!editor.hidden) input.focus();
     });
-    const observer = new view.MutationObserver(refresh);
-    observer.observe(runtime, { attributes: true, attributeFilter: ['data-state'], childList: true, subtree: true, characterData: true });
-    observer.observe(canvas, { attributes: true, attributeFilter: ['data-scene-visible'] });
+    function connectController() {
+      disconnect?.(); controller = view.SimulatteCreateController;
+      if (controller) disconnect = controller.subscribe(refresh);
+    }
+    on(view, 'create-controller-ready', connectController);
+    connectController();
     refresh();
-    const dispose = () => { observer.disconnect(); session.dispose(); statusView.dispose(); listeners.splice(0).forEach(remove => remove()); };
+    const dispose = () => { disconnect?.(); session.dispose(); statusView.dispose(); listeners.splice(0).forEach(remove => remove()); };
     on(view, 'pagehide', dispose);
     return Object.freeze({ dispose });
   }

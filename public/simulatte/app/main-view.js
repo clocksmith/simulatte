@@ -89,6 +89,8 @@
 
   function renderPlayback(elements, phase, snapshot) {
     const isProgressive = snapshot.totalSteps > 1;
+    elements.resetButton.textContent='Restart simulation';
+    elements.replayButton.textContent='Replay recorded run';
     const currentStep = Math.min(snapshot.currentStep, snapshot.totalSteps);
     elements.playbackSpeedControl.hidden = !isProgressive;
     elements.playbackTimelineControl.hidden = !isProgressive;
@@ -106,7 +108,7 @@
           : `${elements.playbackTimelineLabel.textContent} ${currentStep}`;
     if (!isProgressive && phase === 'completed') {
       elements.startButton.hidden = false;
-      elements.replayButton.hidden = true;
+      elements.replayButton.hidden = false;
       elements.newMissionButton.hidden = true;
     }
     if (phase === 'completed') return 'Complete';

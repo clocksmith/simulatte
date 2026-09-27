@@ -92,10 +92,11 @@ test('plugin session initializes the camera before view arbitration and cancels 
     } }, receipt: () => ({ pluginCompositor: {} }) };
   let frame = Promise.resolve();
   const session = create({
-    hostRoot: {}, extensions: { activePluginIds: [], views: () => [],
+    hostRoot: { SimulatteSimulationSession: require('../public/shared/contracts/simulation-session.js'),
+      SimulatteSimulationSessionStatus: { create: () => ({render(){},dispose(){}}) } }, extensions: { activePluginIds: [], views: () => [],
       platformV4: () => ({ contributions: [], timeline, provenanceReceipts: [] }) },
-    pluginUi: { render() {} }, elements: { decisionsButton: {}, applicationProfileLabel: {} },
-    profile: { experience: { defaultView: 'map' } }, interaction: {},
+    pluginUi: { render() {} }, elements: { decisionsButton: {}, applicationProfileLabel: {}, startButton: {parentElement:{}} },
+    profile: { id:'fixture', experience: { defaultView: 'map' } }, interaction: {},
     experienceCameraApi: { applyInitialCamera: () => { events.push('initial-camera'); return true; } },
     simulationClockApi: { createClock: () => clock },
     pluginViewRuntimeApi: { createCoordinator: () => ({
@@ -106,16 +107,29 @@ test('plugin session initializes the camera before view arbitration and cancels 
       sync: () => { events.push('view'); return {}; },
     }) },
     recordRenderWork() {}, renderWorkReceipt: () => ({}), renderExperienceSummary() {}, summarize: () => ({}),
-    yieldToFrame: () => frame, getScenario: () => ({}), getCameraMode: () => '', getRenderer: () => renderer,
+    yieldToFrame: () => typeof frame === 'function' ? frame() : frame, getScenario: () => ({}), getCameraMode: () => '', getRenderer: () => renderer,
     applyRouteParameters: () => false, onViewRuntime() {},
   });
   await session.render({});
   assert.deepEqual(events, ['draw', 'initial-camera', 'profile-view', 'view']);
+  const gates = [];
+  frame = () => new Promise(resolve => gates.push(resolve));
+  let firstDone = false, laterDone = false;
+  const firstRender = session.render({}).then(() => { firstDone = true; });
+  const laterRender = session.render({}).then(() => { laterDone = true; });
+  const flush = () => new Promise(resolve => setImmediate(resolve));
+  gates.shift()(); await flush();
+  gates.shift()(); await flush();
+  assert.equal(firstDone, true, 'a completed render batch must not wait for later playback frames');
+  assert.equal(laterDone, false);
+  gates.shift()(); await flush();
+  gates.shift()(); await Promise.all([firstRender, laterRender]);
+  const beforeDisposal = [...events];
   let release;
   frame = new Promise(resolve => { release = resolve; });
   const pending = session.render({});
   session.dispose(); release(); await pending;
-  assert.deepEqual(events, ['draw', 'initial-camera', 'profile-view', 'view']);
+  assert.deepEqual(events, beforeDisposal);
 });
 
 

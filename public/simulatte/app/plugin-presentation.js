@@ -291,6 +291,14 @@
         }));
       });
     });
+    // Object selection is independent of the current automatic camera intent.
+    presentation.layers.forEach(layer => {
+      if(compiled.cameraTargets.some(target=>target.id===namespace(layer.id)))return;
+      const points=layerPoints.get(layer.id)||[];if(!points.length)return;
+      compiled.cameraTargets.push(Object.freeze({id:namespace(layer.id),sourceId:layer.id,pluginId,kind:'plugin',
+        label:layer.label,target:Object.freeze(centerForPoints(points)),distance:distanceForPoints(points),
+        viewMode:'free',priority:0,reasonEventId:null}));
+    });
     // Manual Follow remains available when a terminal intent switches to an overview.
     compiled.actors.filter(actor => actor.pluginId === pluginId).forEach(actor => {
       if (compiled.cameraTargets.some(target => target.sourceId === actor.sourceId && target.viewMode === 'follow')) return;

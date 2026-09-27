@@ -71,6 +71,10 @@
           })
           : null;
         let simulationVisible = false;
+        let runtimeState = 'idle', runtimeMessage = '';
+        const stateListeners = new Set();
+        const sessionState = () => Object.freeze({ visible: simulationVisible, paused, state: runtimeState, message: runtimeMessage });
+        const emitState = () => stateListeners.forEach(listener => listener(sessionState()));
         const loadingCanvas = root.getElementById('loading-canvas');
         const loadingCanvasController = root.defaultView && root.defaultView.SimulatteLoadingCanvas
           ? root.defaultView.SimulatteLoadingCanvas.createController(loadingCanvas, { maxDpr: 1.25 })
@@ -100,10 +104,14 @@
           replay: false,
         });
         function publishRuntime(event = {}) {
-          return runtimeProgress.publish({
+          runtimeState = event.state || runtimeState;
+          runtimeMessage = event.message || runtimeMessage;
+          const published = runtimeProgress.publish({
             runId: trainingRun.runId || '',
             ...event,
           });
+          emitState();
+          return published;
         }
         unregisterLegacyModelCacheWorker(root.defaultView);
         if (!webGpuRenderer && stateReadout) {
@@ -395,6 +403,7 @@
 
         function setSimulationCanvasVisible(visible) {
           simulationVisible = Boolean(visible);
+          emitState();
           canvas.dataset.sceneVisible = simulationVisible ? 'true' : 'false';
           const stage = canvas.closest ? canvas.closest('.physics-stage') : null;
           if (stage) stage.dataset.sceneVisible = simulationVisible ? 'true' : 'false';
@@ -433,7 +442,10 @@
             reportIntentFailure(serial, error.message);
             return;
           }
-          if (await modelSelection.ensureConsent() !== true) {
+          if (serial !== buildSerial) return;
+          const consent = await modelSelection.ensureConsent();
+          if (serial !== buildSerial) return;
+          if (consent !== true) {
             reportIntentFailure(serial, 'Selected model requires local model consent');
             return;
           }
@@ -447,9 +459,9 @@
               message: 'Loading embeddings',
               canvasLoading: true,
             });
-            resolveWithEmbedding(prompt, params, serial, true, modelSelection);
+            await resolveWithEmbedding(prompt, params, serial, true, modelSelection);
           } else {
-            resolveDeterministically(prompt, params, serial, true, modelSelection);
+            await resolveDeterministically(prompt, params, serial, true, modelSelection);
           }
         };
 
@@ -472,18 +484,42 @@
             delete promptInput.dataset.exampleParams;
           });
         }
-        root.getElementById('build-lab')?.addEventListener('click', () => buildFromPrompt());
-        root.getElementById('reset-lab')?.addEventListener('click', () => {
-          paused = false;
-          const pauseButton = root.getElementById('pause-lab');
-          if (pauseButton) { pauseButton.textContent = 'Pause'; pauseButton.setAttribute('aria-pressed', 'false'); }
-          setSpec(spec);
+        function setPaused(value) {
+          paused = value; last = performance.now();
+          const button = root.getElementById('pause-lab');
+          if (button) { button.textContent = paused ? 'Resume' : 'Pause'; button.setAttribute('aria-pressed', String(paused)); }
+          emitState();
+        }
+        function cancelBuild() {
+          buildSerial++; compileSerial++; phaseCompiler.cancel(); pipelineCompiler?.cancel(); embedder?.cancel?.();
+          worldSpecReconciliation.abort('cancelled');
+          publishRuntime({ state: 'ready', message: 'Cancelled', canvasLoading: false });
+        }
+        const commands = Object.freeze({
+          snapshot: sessionState,
+          subscribe(listener) { stateListeners.add(listener); listener(sessionState()); return () => stateListeners.delete(listener); },
+          pause: () => setPaused(true), resume: () => setPaused(false),
+          restart: () => { setPaused(false); setSpec(spec); },
+          async build(description, operation) {
+            if (description !== undefined) promptInput.value = String(description);
+            operation?.signal.addEventListener('abort', cancelBuild, { once: true });
+            try {
+              await buildFromPrompt();
+              operation?.throwIfCancelled();
+              if (['error', 'failed', 'unsupported'].includes(runtimeState)) throw new Error(runtimeMessage);
+            } finally { operation?.signal.removeEventListener('abort', cancelBuild); }
+          },
         });
-        root.getElementById('pause-lab')?.addEventListener('click', () => {
-          paused = !paused;
-          root.getElementById('pause-lab').textContent = paused ? 'Resume' : 'Pause';
-          root.getElementById('pause-lab').setAttribute('aria-pressed', String(paused));
-        });
+        if (root.defaultView) {
+          root.defaultView.SimulatteCreateController = commands;
+          root.defaultView.dispatchEvent(new root.defaultView.Event('create-controller-ready'));
+        }
+        const command = (id, input) => root.defaultView?.SimulatteCreateSession
+          ? root.defaultView.SimulatteCreateSession.invoke(id, input).catch(error => { if (error.name !== 'AbortError') reportIntentFailure(buildSerial, error.message); })
+          : commands[id === 'revise-description' ? 'build' : id](input);
+        root.getElementById('build-lab')?.addEventListener('click', () => command('revise-description'));
+        root.getElementById('reset-lab')?.addEventListener('click', () => command('restart'));
+        root.getElementById('pause-lab')?.addEventListener('click', () => command(paused ? 'resume' : 'pause'));
         root.getElementById('remix-lab')?.addEventListener('click', () => setSpec(remixSpec(readSpecFromUi(spec, controlStack, nameInput))));
         async function resolveWithEmbedding(prompt, params, serial, showCanvasLoader = false, modelSelection) {
           if (!String(prompt || '').trim()) return;
@@ -565,11 +601,12 @@
               sceneLanguageGraph: retrievalQueryPlan.sceneLanguageGraph,
               promptRuntimeReceipt,
               classificationTierId: selectedClassificationTierId(modelSelection),
-              onProgress: (event) => publishRuntime({
+              onProgress: (event) => serial === buildSerial && publishRuntime({
                 ...event,
                 canvasLoading: showCanvasLoader,
               }),
               onPreview: (preview) => {
+                if (serial !== buildSerial) return;
                 syncTrainingPreviewArtifacts(trainingRun, preview);
                 publishRuntime({
                   state: 'active',

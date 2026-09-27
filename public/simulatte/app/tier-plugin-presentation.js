@@ -316,32 +316,15 @@
     let presentations = Object.freeze([]);
     let cameraTargets = Object.freeze([]);
     let simulationTimeSeconds = 0;
-    let animationStartedAt = performance.now();
     return Object.freeze({
       set(contributions, runtimeOptions = {}) {
         const view = host.view();
-        const previous = presentations;
-        const compiled = compileContributions(contributions, {
+        presentations = compileContributions(contributions, {
           ...runtimeOptions,
           viewport: { width: Math.max(1, host.width()), height: Math.max(1, host.height()) },
           project: (position, system) => projectPoint(position, system, view),
         });
-        presentations = Object.freeze(compiled.map((next) => {
-          const prior = previous.find((row) => row.pluginId === next.pluginId);
-          if (!prior) return next;
-          const priorActors = new Map(prior.actors.map((row) => [row.id, row]));
-          const actors = next.actors.map((actor) => {
-            const old = priorActors.get(actor.id);
-            if (!old || actor.pathCoordinates?.length > 1 || old.pathCoordinates?.length > 1) return actor;
-            const from = old.position;
-            const to = actor.position;
-            if (!from || !to || from.every((value, index) => value === to[index])) return actor;
-            return freezeRow({ ...actor, transitionFrom: Object.freeze([...from]) });
-          });
-          return Object.freeze({ ...next, actors: Object.freeze(actors) });
-        }));
         simulationTimeSeconds = Math.max(0, Number(runtimeOptions.simulationTimeMs || 0)) / 1000;
-        animationStartedAt = performance.now();
         cameraTargets = Object.freeze(presentations.flatMap((row) => row.cameraTargets || []));
         return presentations;
       },
@@ -358,7 +341,7 @@
       render(ctx) {
         if (!presentations.length) return;
         const view = host.view();
-        const animationElapsedSeconds = Math.max(0, (performance.now() - animationStartedAt) / 1000);
+        const animationElapsedSeconds = 0;
         draw(ctx, presentations, (position, system) => projectPoint(position, system, view), {
             timeSeconds: simulationTimeSeconds, drawMarker: host.drawMarker,
           animationElapsedSeconds,

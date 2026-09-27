@@ -3,12 +3,57 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCityPluginSession = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCityPluginSessionModule() {
-  function create({ hostRoot, extensions, pluginUi, elements, profile, interaction, playbackStorage,
+  function create({ hostRoot, extensions, pluginUi, elements, profile, interaction, playbackStorage, createPluginRuntime,
     experienceCameraApi, simulationClockApi, pluginPlaybackApi, pluginViewRuntimeApi, log,
     recordRenderWork, renderWorkReceipt, renderExperienceSummary, summarize, yieldToFrame,
     getScenario, getCameraMode, getRenderer, selectCamera, selectViewMode, applyRouteParameters,
-    onPhase, onPlayback, onViewRuntime, onError }) {
-    let disposed = false;
+    onPhase, onPlayback, onViewRuntime, onParametersApplied, onError }) {
+    let disposed = false, inspector = null;
+    const owner = profile.interaction?.simulationOwnerPluginId || extensions.activePluginIds[0];
+    const status = hostRoot.SimulatteSimulationSessionStatus.create({host: elements.runtimeStatus?.parentElement || elements.startButton.parentElement});
+    const session = hostRoot.SimulatteSimulationSession.create({ id: profile.id,
+      capabilities: { selection: true, camera: true, pause: true, restart: true, replay: 'model-receipt', liveActions: false },
+      onChange: snapshot => status.render(snapshot),
+      operations: [
+        ...['start','pause','resume','step','replay'].map(id => ({id,category:id==='replay'?'reproduction':'execution',perform:async(_,operation)=>{const result=await pluginPlayback[id]();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;}})),
+        {id:'restart',category:'reproduction',perform:async(_,operation)=>{await pluginPlayback.reset(getScenario());operation.throwIfCancelled();const result=await pluginPlayback.start();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;}},
+        {id:'seek',category:'reproduction',perform:value=>pluginPlayback.seek(value)},
+        {id:'speed',category:'execution',perform:value=>pluginPlayback.setPlaybackRate(value)},
+        {id:'select-object',category:'observation',perform:id=>inspector.select(id)},
+        {id:'focus-object',category:'observation',perform:id=>{
+          const targetId=`plugin:${owner}:${id}`;
+          pluginViewRuntime?.setManualOverride({mode:'free',targetIds:[targetId]});
+          selectCamera(getRenderer().focusCameraTarget(targetId));
+        }},
+        {id:'camera',category:'observation',perform:mode=>{
+          const renderer=getRenderer();
+          const target=hostRoot.SimulatteCityInterface.preferredCameraTarget(renderer.cameraTargets(),mode);
+          pluginViewRuntime?.setManualOverride({mode,targetIds:target?[target.id]:[]});
+          if(target)renderer.focusCameraTarget(target.id);
+          renderer.setCameraMode(mode);selectCamera(mode);
+        }},
+        {id:'reset-view',category:'observation',perform:()=>{pluginViewRuntime?.setManualOverride({mode:profile.camera.initialMode||profile.experience.defaultView,targetIds:[]});return experienceCameraApi.applyInitialCamera({configuration:profile.camera,renderer:getRenderer(),onModeSelected:selectCamera});}},
+        {id:'apply-controls',category:'scenario',requiresRestart:true,perform:async(values,operation)=>{
+          await pluginPlayback.applyControls(values);operation.throwIfCancelled();const result=await pluginPlayback.start();operation.throwIfCancelled();await renderPluginExperience({mission:null});operation.throwIfCancelled();await onParametersApplied?.();return result;
+        }},
+        {id:'preview-controls',category:'observation',perform:async(values,operation)=>{
+          const preview=await createPluginRuntime();
+          try {
+            operation.throwIfCancelled();
+            const result=await preview.dispatchAction(owner,'scenario.run',{scenario:getScenario(),values:{...values,phase:'start'}});
+            operation.throwIfCancelled();
+            if(result.status==='refused')throw new Error(result.reason);
+            return structuredClone(preview.platformV4({mission:null}).contributions.find(row=>row.pluginId===owner));
+          }finally{await preview.dispose();}
+        }},
+      ],
+    });
+    session.update({preparation:'preparing'});
+    hostRoot.SimulatteActiveSession=session;
+    const commands=Object.freeze({snapshot:()=>pluginPlayback.snapshot(),
+      ...Object.fromEntries(['start','pause','resume','step','replay'].map(id=>[id,()=>session.invoke(id)])),
+      reset:()=>session.invoke('restart'), seek:value=>session.invoke('seek',value), setPlaybackRate:value=>session.invoke('speed',value),
+    });
     let pluginRenderGeneration = 0;
     let hasAppliedInitialCamera = false;
     let pluginClock = null;
@@ -19,7 +64,28 @@
       samples: [],
       phases: Object.fromEntries(['platform', 'pluginUi', 'renderer', 'viewRuntime', 'total'].map((key) => [key, []])),
     };
-    async function renderPluginExperience(context) {
+    let rendering = false, pendingRender = null;
+    function renderPluginExperience(context) {
+      const promise = new Promise((resolve, reject) => {
+        pendingRender ||= { context, waiters: [] };
+        pendingRender.context = context;
+        pendingRender.waiters.push({ resolve, reject });
+      });
+      if (!rendering) void drainRenders();
+      return promise;
+    }
+    async function drainRenders() {
+      rendering = true;
+      while (pendingRender) {
+        const batch = pendingRender; pendingRender = null;
+        try {
+          await renderPluginExperienceNow(batch.context);
+          batch.waiters.forEach(waiter => waiter.resolve());
+        } catch (error) { batch.waiters.forEach(waiter => waiter.reject(error)); }
+      }
+      rendering = false;
+    }
+    async function renderPluginExperienceNow(context) {
       if (disposed) return;
       const renderGeneration = ++pluginRenderGeneration;
       await yieldToFrame();
@@ -35,6 +101,14 @@
         recordRenderWork(renderWork.phases[key], durationMs);
       });
       lastPluginContributions = platform.contributions;
+      if(profile.id==='sun-walker-v1') {
+        if(!inspector)inspector=hostRoot.SimulatteObjectInteraction.create({host:elements.autonomyCanvas.parentElement,canvas:elements.autonomyCanvas,
+          getSession:()=>session,projectObjects:()=>getRenderer()?.projectObjects?.()||[],
+          onInsets:panel=>getRenderer()?.setViewportInsets?.(hostRoot.SimulatteCameraFit.measureInsets(
+            elements.autonomyCanvas.getBoundingClientRect(),[{edge:'bottom',rect:panel.getBoundingClientRect()}]))});
+        inspector.update(platform.contributions.find(row=>row.pluginId===owner));
+      }
+
       const uiStartedAt = performance.now();
       pluginUi.render(extensions.views(pluginContext), platform.contributions);
       if (applyRouteParameters()) pluginUi.render(extensions.views(pluginContext), platform.contributions);
@@ -58,6 +132,7 @@
         selectedIds: [selected],
         provenanceReceipts: platform.provenanceReceipts,
       });
+      session.update({preparation:'ready',rendering:'ready'});
       recordRenderWork(renderWork.phases.renderer, performance.now() - rendererStartedAt);
       if (!hasAppliedInitialCamera) hasAppliedInitialCamera = experienceCameraApi.applyInitialCamera({
         configuration: getCameraMode() ? { ...profile.camera, initialMode: getCameraMode() } : profile.camera,
@@ -86,7 +161,7 @@
           getControlValues: pluginUi.values,
           setControlValues: pluginUi.setValues,
           render: () => renderPluginExperience({ mission: null }),
-          onPhase,
+          onPhase:(phase,snapshot)=>{session.update({execution:phase==='completed'?'complete':['running','paused','failed'].includes(phase)?phase:'idle'});onPhase(phase,snapshot);},
           onSettled: (receipt) => {
             hostRoot.__simulattePluginRunReceipt = receipt;
             hostRoot.__simulatteComparisonExecutionReceipts = Object.freeze(
@@ -150,8 +225,10 @@
       disposed = true;
       pluginRenderGeneration += 1;
       pluginClock?.pause();
+      inspector?.dispose();session.dispose();status.dispose();
+      if(hostRoot.SimulatteActiveSession===session)hostRoot.SimulatteActiveSession=null;
     }
-    return Object.freeze({ render: renderPluginExperience, summary: renderPluginSummary, appliedParameters: () => Object.fromEntries(lastPluginContributions.map(row => [row.pluginId, Object.fromEntries(row.controls.controls.map(control => [control.id, structuredClone(control.value)]))])), dispose });
+    return Object.freeze({ failRendering:()=>session.update({rendering:'failed'}), invoke:session.invoke, commands:()=>pluginPlayback?commands:null, render: renderPluginExperience, summary: renderPluginSummary, appliedParameters: () => Object.fromEntries(lastPluginContributions.map(row => [row.pluginId, Object.fromEntries(row.controls.controls.map(control => [control.id, structuredClone(control.value)]))])), dispose });
   }
   return Object.freeze({ create });
 });

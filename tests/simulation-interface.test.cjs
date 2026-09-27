@@ -199,3 +199,44 @@ test('same-profile scenario replacement starts the new controller after activati
     }
   }
 });
+
+test('opening inspectors and rotating mobile viewports fits each scene within the remaining space', () => {
+  for (const coordinateSystem of ['wgs84', 'heliocentric-ecliptic-au', 'icrs-cartesian-pc', 'datacenter-cartesian-meters']) {
+    for (const [width, height] of [[390,844],[844,390],[1440,1000]]) {
+      for (const coordinates of [[[0,0,0]], [[-1e4,-1e3,10],[4e3,9e3,-4]], [[1,2,0],[1.001,2.002,0]]]) {
+        const insets={bottom:Math.min(220,height/3),left:20,right:10,top:20};
+        const view=cameraFit.fit({coordinates,coordinateSystem,width,height,insets,rotX:.2,rotY:-.4});
+        const viewport=cameraFit.usableViewport({width,height,insets});
+        for(const point of coordinates){
+          const projected=presentation.projectPoint(point,coordinateSystem,{...view,rotX:.2,rotY:-.4});
+          assert.ok(projected.x>=viewport.left-1e-6&&projected.x<=viewport.right+1e-6);
+          assert.ok(projected.y>=viewport.top-1e-6&&projected.y<=viewport.bottom+1e-6);
+        }
+      }
+    }
+  }
+});
+
+test('tier actors do not move between model updates when wall time advances', () => {
+  const translations=[];
+  const context=new Proxy({}, { get(_target,key) {return key==='translate'?(x,y)=>translations.push([x,y]):()=>{};},set(){return true;} });
+  const layer=presentation.createLayer({view:()=>({panX:0,panY:0,zoom:1}),width:()=>500,height:()=>500});
+  const contribution=x=>[{pluginId:'fixture',presentation:{schema:'simulatte.pluginPresentation.v3',coordinateSystem:'local-m',actors:[{id:'walker',position:[x,10],quantityKind:'actor.pedestrian'}]}}];
+  layer.set(contribution(10),{simulationTimeMs:0});layer.render(context);
+  layer.set(contribution(20),{simulationTimeMs:1000});layer.render(context);layer.render(context);
+  assert.deepEqual(translations[1],translations[2]);
+  assert.notDeepEqual(translations[0],translations[1]);
+});
+
+
+test('3D projection frames the focus above an inspector without mutating camera geometry', () => {
+  const fit = require('../public/simulatte/app/camera-fit.js');
+  const identity = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+  for (const [width,height,bottom] of [[390,404,265],[844,390,180],[1440,500,300]]) {
+    const framed = fit.frameProjection(identity,{width,height,insets:{bottom}});
+    const focusY = (1-framed[13])*height/2;
+    assert.ok(focusY > 0 && focusY < height-bottom);
+    assert.equal(framed[10],1);assert.equal(framed[15],1);
+    assert.equal(identity[13],0,'the original camera transform remains unchanged');
+  }
+});

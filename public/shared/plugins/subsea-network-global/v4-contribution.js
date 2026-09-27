@@ -273,6 +273,8 @@
         targetIds: [`corridor:${edge.id}`],
         fields: [
           field('identity', 'Cable identity', cables.get(edge.cableId)?.label || edge.cableId, null, source),
+          field('failure', 'Resource state', edge.failureState, null, simulated),
+          field('available', 'Available capacity', edge.availableGbps, 'Gbps', simulated),
           field('capacity', 'Scenario capacity', edge.capacityGbps, 'Gbps', scenario),
           field('load', 'Simulated load', edge.loadGbps, 'Gbps', simulated),
           field('utilization', 'Utilization', edge.utilizationRatio, 'ratio', simulated),

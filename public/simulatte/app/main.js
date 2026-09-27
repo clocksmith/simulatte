@@ -210,7 +210,7 @@
     let activeScenario = routeSimulation ? scenarioForRoute(routeSimulation) : storedScenario || interaction.defaultScenario;
     const pluginArtifacts = artifactStoreApi.createGovernedArtifactStore({ transport: transportApi.createBrowserTransport({ fetchImpl: lifecycle.fetch }) });
     let activeMissionForPlugins = null;
-    extensions = await timedLoadStage('plugins.runtime', () => pluginRuntimeApi.createPluginRuntime({
+    const createPluginRuntime = () => pluginRuntimeApi.createPluginRuntime({
       registry: pluginRegistry,
       profile: data.applicationProfile,
       scenario: activeScenario,
@@ -256,7 +256,8 @@
         compute: pluginComputeApi ? pluginComputeApi.createComputePort({ workerPool: null }) : undefined,
         tier: Object.freeze({ schema: 'simulatte.tierQuery.v1', id: initialTier, worldId: data.world.id, profileId: data.applicationProfile.id, snapshot: () => data.world }),
       },
-    }), { pluginCount: data.applicationProfile.plugins.length });
+    });
+    extensions = await timedLoadStage('plugins.runtime', createPluginRuntime, { pluginCount: data.applicationProfile.plugins.length });
     lifecycle.throwIfAborted();
       pluginUi = pluginUiApi.createDeclarativeUiHost({
       rootElements: { inspector: elements.pluginInspector, map: elements.pluginMapUi },
@@ -277,6 +278,7 @@
         renderPluginExperience({ mission: activeMissionForPlugins });
       },
       onControlChange: async ({ pluginId, values }) => {
+        if(pluginSession?.commands())return pluginSession.invoke('apply-controls',values);
         if (hooks.navigate) {
           const simulation = simulationRouteState();
           await hooks.navigate(governedRoute({
@@ -386,7 +388,7 @@
       renderPlanning,
     });
     pluginSession = cityPluginSessionApi.create({
-      hostRoot, extensions, pluginUi, elements, profile: data.applicationProfile, interaction, playbackStorage,
+      hostRoot, extensions, pluginUi, elements, profile: data.applicationProfile, interaction, playbackStorage, createPluginRuntime,
       experienceCameraApi, simulationClockApi, pluginPlaybackApi, pluginViewRuntimeApi, log,
       recordRenderWork, renderWorkReceipt, renderExperienceSummary,
       summarize: hostRoot.SimulatteWorldTiersBoot.experienceHudSummary, yieldToFrame,
@@ -400,6 +402,7 @@
         routeParametersApplied = true;
         return Object.keys(accepted).length > 0;
       },
+      onParametersApplied: () => hooks.navigate?.(governedRoute({ ...simulationRouteState(), parameters: pluginSession.appliedParameters() }), { replace: true }),
       onPhase: reflectPluginPlaybackPhase,
       onPlayback: (value) => { pluginPlayback = value; },
       onViewRuntime: (value) => { pluginViewRuntime = value; },
@@ -524,7 +527,7 @@
           data,
           lifecycle,
           stopLoop,
-          fail: (error) => failRuntime(elements, error),
+          fail: (error) => {pluginSession?.failRendering();failRuntime(elements, error);},
           onCameraInteraction(cameraInteraction) {
             hasManualCamera = true;
             pluginViewRuntime?.setManualOverride({
@@ -614,7 +617,7 @@
 
     cityRunControlsApi.connect({
       elements, on, isActive: () => !lifecycle.signal.aborted, isRunning: () => isRunning,
-      interactionMode: interaction.mode, getPlayback: () => pluginPlayback,
+      interactionMode: interaction.mode, getPlayback: () => pluginSession?.commands() || pluginPlayback,
       getController: () => controller, getScenario: () => activeScenario,
       buildController, runLoop, stopLoop, selectNextScenario,
       selectRunCamera: () => { if (!hasManualCamera) selectGovernedCamera(experienceCameraApi.runCameraMode(data.applicationProfile.camera), true); },
@@ -634,6 +637,7 @@
     on(elements.cameraReset, 'click', () => {
       if (!renderer) return;
       hasManualCamera = true;
+      if(pluginSession?.commands()){void pluginSession.invoke('reset-view').catch(error=>failRuntime(elements,error));return;}
       experienceCameraApi.applyInitialCamera({ configuration: data.applicationProfile.camera, renderer,
         onModeSelected: (mode) => {
           activeCameraMode = mode;

@@ -22,10 +22,11 @@
   const sessions = typeof module === 'object' && module.exports
     ? require('../../shared/render/renderer-session.js') : root.SimulatteRendererSession;
   const shadows = typeof module === 'object' && module.exports ? require('./webgpu-sun-shadow.js') : root.SimulatteSunShadow;
-  const api = factory(shadows, math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions);
+  const cameraFit = typeof module === 'object' && module.exports ? require('./camera-fit.js') : root.SimulatteCameraFit;
+  const api = factory(cameraFit, shadows, math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(shadows, math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(cameraFit, shadows, math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions) {
   if (!targets) throw new Error('render_targets_dependency_missing');
   const SAMPLE_COUNT = 1;
   const MINIMAP_RADIUS_M = 420;
@@ -242,7 +243,6 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       pluginScene: source.compilePresentations([]),
       pluginTransitionActors: new Map(),
       pluginSimulationTimeSeconds: 0,
-      pluginAnimationStartedAt: performance.now(),
       workCpuMs: {
         pluginCompile: [],
         pluginStaticGeometry: [],
@@ -320,9 +320,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
     function setPluginPresentations(contributions, presentationOptions = {}) {
       state.pluginSimulationTimeSeconds = Math.max(0, Number(presentationOptions.simulationTimeMs || 0)) / 1000;
-      state.pluginAnimationStartedAt = performance.now();
       const compileStartedAt = performance.now();
-      const previousActors = new Map((state.pluginScene?.actors || []).map((row) => [row.id, row]));
       const nextScene = source.compilePresentations(contributions, {
         ...presentationOptions,
         viewport: {
@@ -330,14 +328,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           height: Math.max(1, canvas.clientHeight || canvas.height),
         },
       });
-      state.pluginTransitionActors = new Map(nextScene.actors.flatMap((row) => {
-        const previous = previousActors.get(row.id);
-        if (!previous || row.points.length !== 1 || previous.points?.length !== 1) return [];
-        const from = previous.points[0];
-        const to = row.points[0];
-        if (!from || !to || (from.x === to.x && from.y === to.y)) return [];
-        return [[row.id, { x: from.x, y: from.y }]];
-      }));
+      state.pluginTransitionActors = new Map();
       state.pluginScene = nextScene;
       recordWorkCpu(state.workCpuMs.pluginCompile, performance.now() - compileStartedAt);
       const staticStartedAt = performance.now();
@@ -390,10 +381,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       const cpuStartedAt = performance.now();
       resizeCanvas(canvas, device, format, state);
       const pose = source.advanceCamera(state, state.latestSnapshot, canvas.width / canvas.height, timestamp);
-      const camera = cameraForPose(pose, canvas);
+      const camera = cameraForPose(pose, canvas, state.viewportInsets);
+      state.displayCamera = camera;
       recordCameraDataset(canvas, pose);
       if (timestamp - state.lastSubmittedFrameAt < PRIMARY_RENDER_INTERVAL_MS) return false;
-      const animationTimeSeconds = Math.max(0, (timestamp - state.pluginAnimationStartedAt) / 1000);
+      const animationTimeSeconds = 0;
       refreshPluginDynamicGeometry(
         snapshotAtRenderTime(state.latestSnapshot, state.pluginSimulationTimeSeconds),
         animationTimeSeconds,
@@ -478,7 +470,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         canvas.width / canvas.height,
         performance.now(),
       );
-      const camera = cameraForPose(pose, canvas);
+      const camera = cameraForPose(pose, canvas, state.viewportInsets);
       const seconds = resolvedSimulationTimeSeconds(state.latestSnapshot, state.pluginSimulationTimeSeconds);
       writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun, uniformData);
       const currentTexture = context.getCurrentTexture();
@@ -586,6 +578,17 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
     function cameraTargets() {
       return structuredClone(state.targets);
+    }
+
+    function projectObjects() {
+      const viewport={width:canvas.clientWidth,height:canvas.clientHeight};
+      return ['actors','markers','paths','areas'].flatMap(key=>(state.pluginScene[key]||[]).map(row=>({
+        id:row.id.replace(/^plugin:[^:]+:/,''),
+        points:(row.points||[row.point||row.position].filter(Boolean)).map(point=>{
+          const p=semanticLabels.project(point,state.displayCamera?.viewProjection,viewport);
+          return p?{x:p[0],y:p[1]}:null;
+        }),
+      })));
     }
 
     function cameraState() {
@@ -696,6 +699,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       focusCameraTarget,
       cameraTargets,
       cameraState,
+      projectObjects,
+      setViewportInsets: insets => { state.viewportInsets = { ...insets }; },
       setPluginPresentations,
       capturePixels,
       receipt,
@@ -759,14 +764,16 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.height = height;
   }
 
-  function cameraForPose(pose, canvas) {
-    const aspect = canvas.width / canvas.height;
+  function cameraForPose(pose, canvas, insets = {}) {
+    const options = { width: canvas.clientWidth || canvas.width, height: canvas.clientHeight || canvas.height, insets, padding: 0 };
+    const viewport = cameraFit.usableViewport(options);
+    const aspect = viewport ? (viewport.right - viewport.left) / (viewport.bottom - viewport.top) : canvas.width / canvas.height;
     return {
       eye: pose.eye,
-      viewProjection: math.multiply(
+      viewProjection: cameraFit.frameProjection(math.multiply(
         math.perspective(pose.fieldOfViewRadians, aspect, pose.near, pose.far),
         math.lookAt(pose.eye, pose.target)
-      ),
+      ), options),
     };
   }
 

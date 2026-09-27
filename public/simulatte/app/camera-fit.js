@@ -17,6 +17,20 @@
     return { left: left + pad, right: right - pad, top: top + pad, bottom: bottom - pad };
   }
 
+  function frameProjection(matrix, options) {
+    const viewport = usableViewport({ ...options, padding: 0 });
+    if (!viewport) return matrix;
+    const { width, height } = options, { left, right, top, bottom } = viewport;
+    const sx = (right - left) / width, sy = (bottom - top) / height;
+    const tx = (left + right) / width - 1, ty = 1 - (top + bottom) / height;
+    const framed = Float32Array.from(matrix);
+    for (let column = 0; column < 16; column += 4) {
+      framed[column] = sx * matrix[column] + tx * matrix[column + 3];
+      framed[column + 1] = sy * matrix[column + 1] + ty * matrix[column + 3];
+    }
+    return framed;
+  }
+
   function fitPoints(points, options, maxZoom = 250) {
     const viewport = usableViewport(options);
     if (!viewport || !points.length || !points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y))) return null;
@@ -52,5 +66,5 @@
     return insets;
   }
 
-  return Object.freeze({ fit, fitPoints, usableViewport, measureInsets });
+  return Object.freeze({ fit, fitPoints, usableViewport, measureInsets, frameProjection });
 });

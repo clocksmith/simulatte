@@ -17,7 +17,11 @@
         indicator.textContent = snapshot.visibleStatus;
         indicator.dataset.sessionStatus = snapshot.visibleStatus.toLowerCase().replace(/\s+/g, '-');
         indicator.dataset.measurement = snapshot.measurement;
-        indicator.title = snapshot.measurement === 'stale' ? 'The last measurement is stale' : '';
+        indicator.title = snapshot.pending?.length ? 'An operation is pending'
+          : snapshot.lastOperation?.status === 'failed' ? snapshot.lastOperation.error
+          : snapshot.measurement === 'stale' ? 'The last measurement is stale'
+          : snapshot.measurement === 'pending' ? 'Updating the measurement' : '';
+        indicator.dataset.operation = snapshot.pending?.length ? 'pending' : snapshot.lastOperation?.status || 'idle';
       },
       dispose() { indicator.remove(); },
     });

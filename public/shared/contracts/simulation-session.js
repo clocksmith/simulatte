@@ -8,7 +8,7 @@
     preparation: ['idle', 'preparing', 'ready', 'failed'],
     execution: ['idle', 'running', 'paused', 'complete', 'failed'],
     rendering: ['idle', 'ready', 'recovering', 'failed'],
-    measurement: ['unavailable', 'fresh', 'stale'],
+    measurement: ['unavailable', 'pending', 'fresh', 'stale'],
   });
 
   function operation(definition) {
@@ -57,8 +57,20 @@
     let state = { preparation: 'idle', execution: 'idle', rendering: 'idle', measurement: 'unavailable' };
     let disposed = false;
     let revision = 0;
+    let generation = 0;
+    let sequence = 0;
+    let lastOperation = null;
+    const pending = new Map();
+    const cancelled = reason => Object.assign(new Error(reason || 'Operation cancelled'), { name: 'AbortError' });
+    const notify = () => { revision += 1; onChange(snapshot()); };
+    function cancel(reason = 'Operation cancelled') {
+      generation += 1;
+      for (const task of pending.values()) task.controller.abort(cancelled(reason));
+    }
     const snapshot = () => Object.freeze({
       id, capabilities: capabilitySet, ...state, visibleStatus: visibleStatus(state), revision,
+      pending: Object.freeze([...pending.values()].map(task => task.receipt)),
+      lastOperation, generation,
       operations: Object.freeze([...declared.values()].map((value) => Object.freeze({
         id: value.id, category: value.category, target: value.target,
         requiresRestart: value.requiresRestart, requiresCompile: value.requiresCompile,
@@ -80,9 +92,40 @@
       if (disposed) throw new Error('Session is disposed');
       const selected = declared.get(operationId);
       if (!selected || !selected.available()) throw new Error(`Session operation unavailable: ${operationId}`);
-      return selected.perform(input);
+      if (['scenario', 'authoring', 'reproduction'].includes(selected.category)) cancel('Superseded by ' + operationId);
+      // Repeating a command replaces that command, but observing and pausing do not cancel execution.
+      for (const task of pending.values()) if (task.receipt.id === operationId) task.controller.abort(cancelled('Superseded by ' + operationId));
+      const token = ++sequence, current = generation, controller = new AbortController();
+      const receipt = Object.freeze({ id: operationId, token, generation: current, status: 'pending' });
+      const task = { controller, receipt };
+      pending.set(token, task);
+      notify();
+      const isCurrent = () => !disposed && !controller.signal.aborted && current === generation;
+      const check = () => { if (!isCurrent()) throw controller.signal.reason || cancelled('Stale operation'); };
+      const context = Object.freeze({ signal: controller.signal, generation: current, isCurrent,
+        throwIfCancelled: check, commit(effect) { check(); return effect(); } });
+      let abort;
+      const aborted = new Promise((_, reject) => {
+        abort = () => reject(controller.signal.reason || cancelled());
+        controller.signal.addEventListener('abort', abort, { once: true });
+      });
+      try {
+        const value = await Promise.race([Promise.resolve().then(() => { check(); return selected.perform(input, context); }), aborted]);
+        check();
+        if (!lastOperation || lastOperation.token <= token) lastOperation = Object.freeze({ ...receipt, status: 'success' });
+        return value;
+      } catch (error) {
+        // A stale task can settle its own receipt, never replace the newer operation's result.
+        if (!lastOperation || lastOperation.token <= token) lastOperation = Object.freeze({ ...receipt,
+          status: !isCurrent() || error.name === 'AbortError' ? 'cancelled' : 'failed', error: error.message });
+        throw error;
+      } finally {
+        controller.signal.removeEventListener('abort', abort);
+        pending.delete(token);
+        if (!disposed) notify();
+      }
     }
-    return Object.freeze({ snapshot, update, invoke, dispose() { disposed = true; revision += 1; } });
+    return Object.freeze({ snapshot, update, invoke, cancel, dispose() { cancel('Session disposed'); disposed = true; revision += 1; } });
   }
 
   function visibleStatus(state) {
@@ -92,7 +135,8 @@
     if (state.execution === 'running' && state.rendering === 'ready') return 'Running';
     if (state.execution === 'paused') return 'Paused';
     if (state.execution === 'complete') return 'Complete';
-    return 'Preparing';
+    if (state.execution === 'running') return 'Preparing';
+    return 'Waiting for input';
   }
 
   return Object.freeze({ CATEGORIES, STATES, operation, create, visibleStatus });

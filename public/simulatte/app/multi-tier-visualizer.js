@@ -789,7 +789,7 @@
       const cpuStartedAt = performance.now();
       const view = { width: this.width, height: this.height, zoom: this.zoom, panX: this.panX, panY: this.panY,
         rotX: this.rotX, rotY: this.rotY, rotZ: this.rotZ, projectionMode: this.projectionMode,
-        timeSeconds: this.currentTier==='datacenter'?(this.pluginInputs?.[1]?.simulationTimeMs||0)/1000:performance.now()/1000,
+        timeSeconds: (this.pluginInputs?.[1]?.simulationTimeMs||0)/1000,
         nativeCoordinateSystems: this.nativeCoordinateSystems,
         projectCountryPoint: (x, y, bounds) => this.projectCountryPoint(x, y, bounds) };
       view.projectCoordinatePoint = (position, system) => tierPresentation.projectPoint(position, system, view);

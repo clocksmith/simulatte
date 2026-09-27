@@ -573,6 +573,69 @@
     );
   }
 
+  // Measurement updates patch keyed text nodes; inputs and focus retain their identity.
+  function createObjectInspector({ host, onSelect, onAction, onError }) {
+    const doc = host.ownerDocument;
+    const root = doc.createElement('section'); root.className = 'sim-object-inspector sim-surface';
+    root.setAttribute('aria-label', 'Object inspector');
+    const select = doc.createElement('select'); select.className = 'sim-field'; select.setAttribute('aria-label', 'Inspect object');
+    const body = doc.createElement('div'); body.hidden = true;
+    const title = doc.createElement('strong'), explanation = doc.createElement('p'), facts = doc.createElement('dl');
+    const actions = doc.createElement('div'); actions.className = 'sim-object-actions';
+    const message = doc.createElement('p'); message.setAttribute('role', 'status');
+    body.append(title, explanation, actions, message, facts); root.append(select, body); host.append(root);
+    const cells = new Map(), buttons = new Map(); let optionsKey = '', busy = false, current = null;
+    select.addEventListener('change', () => onSelect(select.value || null));
+    async function act(id) {
+      busy = true; reflectButtons(); message.textContent = 'Pending';
+      try { const result = await onAction(id); message.textContent = result?.message || 'Applied'; }
+      catch (error) { message.textContent = error.name === 'AbortError' ? 'Cancelled' : error.message; if (error.name !== 'AbortError') onError?.(error); }
+      finally { busy = false; reflectButtons(); }
+    }
+    function reflectButtons() {
+      for (const action of current?.actions || []) {
+        const button = buttons.get(action.id); if (button) { button.disabled = busy || action.disabled === true; button.textContent = action.label; }
+      }
+    }
+    return Object.freeze({
+      element: root,
+      render({ objects, selectedId, label, description, fields = [], actions: nextActions = [] }) {
+        current = { actions: nextActions };
+        const key = objects.map(row => row.id).join('|');
+        if (key !== optionsKey) {
+          optionsKey = key;
+          select.replaceChildren(...[{ id: '', label: 'Select an object…' }, ...objects].map(row => {
+            const option = doc.createElement('option'); option.value = row.id; option.textContent = row.label; return option;
+          }));
+        }
+        select.value = selectedId || ''; body.hidden = !selectedId;
+        if (!selectedId) return;
+        title.textContent = label; explanation.textContent = description;
+        const ids = new Set(fields.map(row => row.id));
+        for (const [id, cell] of cells) if (!ids.has(id)) { cell.node.remove(); cells.delete(id); }
+        for (const field of fields) {
+          let cell = cells.get(field.id);
+          if (!cell) {
+            const node = doc.createElement('div'), term = doc.createElement('dt'), value = doc.createElement('dd');
+            node.append(term, value); facts.append(node); cell = { node, term, value }; cells.set(field.id, cell);
+          }
+          cell.term.textContent = field.label;
+          const text = formatFieldValue(typeof field.value === 'number' ? Number(field.value.toPrecision(5)) : field.value, field.unit);
+          if (cell.value.textContent !== text) cell.value.textContent = text;
+        }
+        const actionIds = new Set(nextActions.map(row => row.id));
+        for (const [id, button] of buttons) if (!actionIds.has(id)) { button.remove(); buttons.delete(id); }
+        for (const action of nextActions) if (!buttons.has(action.id)) {
+          const button = doc.createElement('button'); button.type = 'button'; button.className = 'sim-action';
+          button.dataset.objectAction = action.id; button.addEventListener('click', () => { void act(action.id); });
+          actions.append(button); buttons.set(action.id, button);
+        }
+        reflectButtons();
+      },
+      dispose() { root.remove(); },
+    });
+  }
+
   function uiError(code, message, evidence) {
     const error = new Error(`${code}: ${message}`);
     error.name = 'SimulattePluginUiError';
@@ -585,6 +648,7 @@
     INITIAL_INSPECTION_COUNT,
     LARGE_OPTION_VISIBLE_LIMIT,
     createDeclarativeUiHost,
+    createObjectInspector,
     filterSelectOptions,
     formatFieldValue,
   };

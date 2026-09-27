@@ -158,3 +158,10 @@
 .experience-status { position:absolute; z-index:6; top:210px; left:16px; right:16px; width:fit-content; max-width:calc(100% - 32px); padding:12px; border-radius:8px; }
 body[data-state="running"] .experience-status, body[data-state="paused"] .experience-status { display:none; }
 .experience-status button { margin-left:12px; }
+
+.scene-playback { display:flex; gap:4px; white-space:nowrap; }
+@media (max-width:600px) {
+  .scene-playback { right:12px; bottom:72px; }
+  .scene-playback button { font-size:12px; padding:4px 8px; }
+  #reset-view { min-height:36px; padding:4px 8px; font-size:12px; }
+}

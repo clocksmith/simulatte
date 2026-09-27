@@ -63,7 +63,12 @@
       uncertainty: simulation.modelReceipt.uncertainty,
       records: [model],
     });
+    const destination = selected.samples.at(-1)?.point;
     const layers = [
+      ...(destination ? [builder.layer({id:'sun-destination',kind:'point',label:'Walking destination',
+        geometry:builder.geometry('point','city-local-m',[[destination.x,destination.y,0]]),
+        quantity:builder.quantity('destination.arrival',snapshot.state.progress,'ratio',[0,1]),
+        role:'primary',importance:1,aggregationKey:null,provenance:claim})] : []),
       routeLayer('shade-selected-route', 'Shade-selected route', selected, 'route.shade-selected', 'primary', 1, claim),
       ...(fastest.id === selected.id
         ? []
@@ -197,8 +202,11 @@
       inspections: [{
         id: 'sun-route-comparison',
         label: 'Sun exposure comparison',
-        targetIds: ['shade-selected-route'],
+        targetIds: ['shade-selected-route','sun-walker-actor','sun-destination'],
         fields: [
+          field('chosen-time', 'Chosen route walking time', selected.metrics.travelSeconds, 'seconds', claim),
+          field('chosen-sun', 'Chosen route direct sun', selected.metrics.directSunSeconds, 'seconds', claim),
+          field('fastest-time', 'Fastest route walking time', fastest.metrics.travelSeconds, 'seconds', claim),
           field('progress', 'Route progress', snapshot.state.progress, 'ratio', claim),
           field('current-status', 'Current exposure', exposureStatus.current.label, null, claim),
           field('current-geometric-status', 'Current geometric sun', exposureStatus.current.geometricLabel, null, claim),

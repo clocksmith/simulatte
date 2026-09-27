@@ -152,6 +152,7 @@
     let runController=null;
     let profileProgram=null;
     let session=null;
+    let objectInteraction=null, activationGeneration=0;
     let statusView=null;
     let removeManualView=null;
     let lastPluginContributions=Object.freeze([]);
@@ -215,18 +216,16 @@
       elements.cameraCompare.textContent='Compare';
       selectTierViewMode(data.applicationProfile.experience?.defaultView||'overview');
       [[elements.cameraBird,'overview'],[elements.cameraFollow,'follow'],[elements.cameraPov,'pov'],[elements.cameraTop,'top'],[elements.cameraFree,'free'],[elements.cameraCompare,'compare']]
-        .forEach(([button,mode])=>on(button,'click',()=>applyTierCamera(mode,true)));
-      on(elements.cameraReset, 'click', () => {
-        tierVisualizer.resetView();
-        applyTierCamera(data.applicationProfile.experience.defaultView, true);
-      });
+        .forEach(([button,mode])=>on(button,'click',()=>{void session.invoke('camera',mode).catch(reportRunFailure);}));
+      on(elements.cameraReset, 'click', () => { void session.invoke('reset-view').catch(reportRunFailure); });
     }
 
     async function dispose(){
       if(disposed)return;
       disposed=true;
       simulationClock?.pause();
-      clusterInteraction?.dispose();clusterInteraction=null;
+      objectInteraction?.dispose();objectInteraction=null;
+      activationGeneration++;
       runController?.dispose();
       if(root.SimulatteActiveSession===session)root.SimulatteActiveSession=null;
       session?.dispose();session=null;
@@ -263,15 +262,19 @@
     }
 
     async function activateScenario(scenario,routeSimulation=null){
+      const generation=++activationGeneration;
       pluginUi?.resetValues?.();
       if(runtime)await runtime.dispose();
-      runtime=await root.SimulattePluginRuntime.createPluginRuntime({registry:root.SimulatteGeneratedPluginRegistry,profile:data.applicationProfile,scenario,dataCatalog:data.dataCatalog,artifactStore:data.artifactStore,registryBaseUrl:data.registryBaseUrl,corePorts:createCorePorts(scenario)});
+      if(disposed||generation!==activationGeneration)return;
+      const nextRuntime=await root.SimulattePluginRuntime.createPluginRuntime({registry:root.SimulatteGeneratedPluginRegistry,profile:data.applicationProfile,scenario,dataCatalog:data.dataCatalog,artifactStore:data.artifactStore,registryBaseUrl:data.registryBaseUrl,corePorts:createCorePorts(scenario)});
+      if(disposed||generation!==activationGeneration){await nextRuntime.dispose();return;}
+      runtime=nextRuntime;
       if(!pluginUi)pluginUi=root.SimulatteDeclarativeUiHost.createDeclarativeUiHost({
         rootElements:{inspector:elements.pluginInspector,map:elements.pluginMapUi},
         onAction:async({pluginId,actionId,command,values})=>{
           if(command?.kind==='camera.focus'){viewDirector?.setManualOverride({mode:'free',targetIds:[command.targetId]});tierVisualizer.focusPluginTarget?.(`plugin:${pluginId}:${command.targetId}`);return;}
           if (actionId.endsWith('.configuration.apply')) {
-            await applyParameterValues(pluginId, values);
+            await session.invoke('apply-controls', values);
             setConfigurationDraft(false);
             return;
           }
@@ -299,7 +302,7 @@
             setConfigurationDraft(true);
             return { status: 'draft' };
           }
-          await applyParameterValues(pluginId, values);
+          await session.invoke('apply-controls', values);
         },
         onError:(error)=>reportRunFailure(error),
       });
@@ -315,35 +318,25 @@
       elements.startButton.title = pending ? 'Apply configuration or Reset draft before running' : '';
       ctx.setRuntimeStatus?.(elements, pending ? 'Unapplied controls' : 'Ready', 'ready');
     }
-    async function applyParameterValues(pluginId, values) {
-      if (ctx.navigate) {
-        const simulation = simulationRouteState();
-        await ctx.navigate(governedTierRoute({ ...simulation,
-          parameters: { ...simulation.parameters, [pluginId]: values },
-        }), { replace: true });
-        return;
-      }
-      if (!runController || runController.snapshot().ownerPluginId !== pluginId) return;
-      root.SimulatteTierRunController.clearStoredReceipt(root.sessionStorage, data.applicationProfile.id);
-      root.__simulatteTierRunReceipt = null;
-      root.__simulatteComparisonExecutionReceipts = Object.freeze([]);
-      ctx.setJourneyPhase?.('loading');
-      ctx.setRuntimeStatus?.(elements, 'Applying controls', 'loading');
-      try {
-        await runController.applyControls(values);
-        ctx.setJourneyPhase?.('ready');
-        ctx.setRuntimeStatus?.(elements, 'Ready', 'ready');
-      } catch (error) { reportRunFailure(error); throw error; }
-    }
     function renderPlugins(){
       if(!runtime)return;
       const context={scenario:activeScenario,compositionSize:runtime.activePluginIds.length};
       const platform=runtime.platformV4(context);
       lastPluginContributions=platform.contributions;
-      const cluster=platform.contributions.find(row=>row.pluginId==='gpu-supercluster');
-      if(cluster){
-        if(!clusterInteraction)clusterInteraction=root.SimulatteClusterInteraction.create({canvas:elements.overlayCanvas,visualizer:tierVisualizer,onIntervene:values=>runController.intervene('scenario.intervene',values),onError:reportRunFailure});
-        clusterInteraction.update(cluster);
+      const ownerContribution=platform.contributions.find(row=>row.pluginId===(data.applicationProfile.interaction.simulationOwnerPluginId||runtime.activePluginIds[0]));
+      if(ownerContribution){
+        if(!objectInteraction)objectInteraction=root.SimulatteObjectInteraction.create({
+          host:elements.overlayCanvas.parentElement,canvas:elements.overlayCanvas,getSession:()=>session,
+          projectObjects:contribution=>root.SimulatteObjectInteraction.objectsFor(contribution).map(row=>({id:row.id,
+            points:row.layer.geometry.coordinates.filter(Array.isArray).map(point=>root.SimulatteTierPluginPresentation.projectPoint(point,contribution.presentation.coordinateSystem,{...tierVisualizer,bounds:tierVisualizer.data?.bounds,projectCountry:(x,y,bounds)=>tierVisualizer.projectCountryPoint(x,y,bounds)}))})),
+          onInsets:panel=>{
+            const insets=root.SimulatteCameraFit.measureInsets(elements.overlayCanvas.getBoundingClientRect(),[{edge:'bottom',rect:panel.getBoundingClientRect()}]);
+            if(JSON.stringify(insets)===JSON.stringify(tierVisualizer.sceneInsets))return;
+            tierVisualizer.sceneInsets=insets;
+            if(tierVisualizer.fittedTarget)tierVisualizer.fitPluginPresentationTarget(...tierVisualizer.fittedTarget);
+          },
+        });
+        objectInteraction.update(ownerContribution);
       }
       pluginUi.render(runtime.views(context),platform.contributions);
       const controlCount=platform.contributions.reduce((total,contribution)=>total+contribution.controls.controls.length,0);
@@ -470,6 +463,7 @@
       return governedTierRoute();
     }
     function reportRunFailure(error){
+      if(error.name==='AbortError')return;
       session?.update({execution:'failed'});
       if(root.__simulatteLastFailError?.message===error.message)return;
       root.__simulatteLastFailError={message:error.message,code:error.code||null};
@@ -479,6 +473,25 @@
       elements.resetButton.hidden=false;
       elements.resetButton.disabled=false;
       (root.SimulatteAutonomyRuntimeLog||root.SimulatteRuntimeLog)?.error?.('tier.run.failed',{message:error.message,code:error.code||null});
+    }
+    function focusObject(owner,id){
+      const layer=lastPluginContributions.find(row=>row.pluginId===owner)?.presentation.layers.find(row=>row.id===id);
+      if(!layer)return;
+      viewDirector?.setManualOverride({mode:'free',targetIds:[id]});
+      tierVisualizer.setViewMode('free');selectTierViewMode('free');
+      const contribution=lastPluginContributions.find(row=>row.pluginId===owner);
+      tierVisualizer.fitPluginPresentationTarget({id,coordinates:layer.geometry.coordinates,center:layer.geometry.coordinates[0],bounds:{minX:Math.min(...layer.geometry.coordinates.map(p=>p[0])),maxX:Math.max(...layer.geometry.coordinates.map(p=>p[0])),minY:Math.min(...layer.geometry.coordinates.map(p=>p[1])),maxY:Math.max(...layer.geometry.coordinates.map(p=>p[1]))}},contribution.presentation.coordinateSystem);
+    }
+    async function previewControls(owner,values,operation){
+      const scenario=structuredClone(activeScenario);
+      const preview=await root.SimulattePluginRuntime.createPluginRuntime({registry:root.SimulatteGeneratedPluginRegistry,profile:data.applicationProfile,scenario,dataCatalog:data.dataCatalog,artifactStore:data.artifactStore,registryBaseUrl:data.registryBaseUrl,corePorts:createCorePorts(scenario)});
+      try{
+        operation.throwIfCancelled();
+        const result=await preview.dispatchAction(owner,'scenario.run',{scenario,values:{...values,phase:'start'}});
+        operation.throwIfCancelled();
+        if(result.status==='refused')throw new Error(result.reason);
+        return structuredClone(preview.platformV4({scenario}).contributions.find(row=>row.pluginId===owner));
+      }finally{await preview.dispose();}
     }
     function configureRunController(owner){
       runController?.dispose();
@@ -491,13 +504,21 @@
         capabilities:{selection:true,camera:true,pause:true,restart:true,replay:'model-receipt',
           comparison:data.applicationProfile.experience?.comparisonMode!=='none',liveActions:owner==='gpu-supercluster'},
         operations:[
+          {id:'start',category:'execution',perform:()=>runController.start()},
+          {id:'step',category:'execution',perform:()=>runController.step()},
+          {id:'seek',category:'reproduction',perform:value=>runController.seek(value)},
+          {id:'speed',category:'execution',perform:value=>runController.setPlaybackRate(value)},
+          {id:'camera',category:'observation',perform:mode=>applyTierCamera(mode,true)},
+          {id:'select-object',category:'observation',perform:id=>{objectInteraction.select(id);tierVisualizer.selectedRack=id?.startsWith('rack:')?id.slice(5):null;}},
+          {id:'focus-object',category:'observation',perform:id=>focusObject(owner,id)},
+          {id:'preview-controls',category:'observation',perform:(values,operation)=>previewControls(owner,values,operation)},
           {id:'pause',category:'execution',perform:()=>runController.pause()},
           {id:'resume',category:'execution',perform:()=>runController.resume()},
-          {id:'restart',category:'reproduction',perform:()=>runController.reset().then(()=>runController.start())},
+          {id:'restart',category:'reproduction',perform:async(_,operation)=>{const controller=runController;await controller.reset();operation.throwIfCancelled();return controller.start();}},
           {id:'replay',category:'reproduction',perform:()=>runController.replay()},
-          {id:'reset-view',category:'observation',target:'camera',perform:()=>elements.cameraReset.click()},
+          {id:'reset-view',category:'observation',target:'camera',perform:()=>{tierVisualizer.resetView();return applyTierCamera(data.applicationProfile.experience.defaultView,true);}},
           {id:'apply-controls',category:'scenario',target:owner,requiresRestart:true,
-            perform:values=>runController.applyControls(values)},
+            perform:async(values,operation)=>{const controller=runController;await controller.applyControls(values);operation.throwIfCancelled();const result=await controller.start();operation.throwIfCancelled();await ctx.navigate?.(governedTierRoute(appliedSimulationRouteState(activeScenario,lastPluginContributions)),{replace:true});return result;}},
           ...(owner==='gpu-supercluster'?[{id:'straggler',category:'live',target:'rack',
             perform:values=>runController.intervene('scenario.intervene',values)}]:[]),
         ],
@@ -536,7 +557,7 @@
           elements.resumeButton.hidden=!isPaused||!isProgressive;
           elements.stepButton.hidden=!isPaused||!isProgressive;
           elements.resetButton.hidden=!isProgressive||(!isRunning&&!isPaused);
-          elements.replayButton.hidden=!isSettled||!isProgressive;
+          elements.replayButton.hidden=!isProgressive;
           elements.dockMoreButton.hidden=true;
           const statusLabel=root.SimulatteMainView.renderPlayback(elements,shellPhase,{
             ...state,
@@ -546,7 +567,9 @@
           elements.startButton.disabled=false;
           elements.resetButton.hidden=false;
           elements.resetButton.disabled=state.state==='idle';
-          elements.resetButton.title=state.state==='idle'?'The simulation is already at its starting state':'Reset simulation state; keep the current camera';
+          elements.resetButton.textContent='Restart simulation';
+          elements.replayButton.textContent='Replay recorded run';
+          elements.resetButton.title='Recalculate from the start; keep the current camera';
           elements.scenarioSelect.disabled=isRunning||interaction.scenarios.length<2;
           elements.missionError.textContent='';
           renderTierSummary(state.state);
@@ -614,14 +637,15 @@
       applyTierCamera(requestedRoute.camera||data.applicationProfile.experience?.defaultView||'overview');
       const owner=data.applicationProfile.interaction.simulationOwnerPluginId||runtime.activePluginIds[0];
       configureRunController(owner);
-      on(elements.startButton,'click',()=>{void runController.start().catch(reportRunFailure);});
-      on(elements.pauseButton,'click',()=>runController.pause());
-      on(elements.resumeButton,'click',()=>{void runController.resume().catch(reportRunFailure);});
-      on(elements.stepButton,'click',()=>{void runController.step().catch(reportRunFailure);});
-      on(elements.resetButton,'click',()=>{void runController.reset().catch(reportRunFailure);});
-      on(elements.replayButton,'click',()=>{void runController.replay().catch(reportRunFailure);});
-      on(elements.playbackSpeed,'change',()=>{runController.setPlaybackRate(Number(elements.playbackSpeed.value));});
-      on(elements.playbackTimeline,'change',()=>{void runController.seek(Number(elements.playbackTimeline.value)).catch(reportRunFailure);});
+      const invoke=(id,input)=>{void session.invoke(id,input).catch(reportRunFailure);};
+      on(elements.startButton,'click',()=>invoke('start'));
+      on(elements.pauseButton,'click',()=>invoke('pause'));
+      on(elements.resumeButton,'click',()=>invoke('resume'));
+      on(elements.stepButton,'click',()=>invoke('step'));
+      on(elements.resetButton,'click',()=>invoke('restart'));
+      on(elements.replayButton,'click',()=>invoke('replay'));
+      on(elements.playbackSpeed,'change',()=>invoke('speed',Number(elements.playbackSpeed.value)));
+      on(elements.playbackTimeline,'change',()=>invoke('seek',Number(elements.playbackTimeline.value)));
       const selectScenario=async(scenarioId=null)=>{
         const nextScenario=scenarioId?interaction.scenarios.find((row)=>row.id===scenarioId):root.SimulatteApplicationProfileSelect.nextScenario(interaction,activeScenario.id);
         if(!nextScenario)throw tierRouteError('scenario',scenarioId,'declared scenario');

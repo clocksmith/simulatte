@@ -8,6 +8,7 @@
   const el = (id) => document.getElementById(`data-${id}`);
   const listeners = new AbortController();
   let acquisition = null, generation = 0, source = null, spec = null, result = null, previous = null, comparison = null;
+  let displayedProgram = null;
   let view = null, sceneBounds = null, selectedId = null, session = null;
   const statusView = root.SimulatteSimulationSessionStatus.create({ host: host.querySelector('.workbench-execution') });
   let playbackFrame = null, playbackPosition = 0, playbackStarted = 0, playbackPaused = true;
@@ -83,6 +84,7 @@
         renderTable(el('preview'), decoded.columns, decoded.rows);
         el('prepare-panel').hidden = false;
         status(`${decoded.rows.length} rows loaded. Declare coordinate units and resolve any missing columns.`, 'ready');
+        session?.update({ preparation: 'idle' });
         maybePrepare();
       }
     } catch (error) { if (current === generation) { session?.update({ preparation: 'failed' }); report(error); } }
@@ -126,7 +128,7 @@
     const last = result.frames.length - 1;
     if (restart || playbackPosition >= last) playbackPosition = 0;
     playbackPaused = false;
-    const durationMs = Math.max(1000, Math.min(30000, Number(spec?.params?.duration || 10) * 1000));
+    const durationMs = Math.max(1000, Math.min(30000, Number(displayedProgram.params.duration) * 1000));
     playbackStarted = performance.now() - playbackPosition / last * durationMs;
     el('playback').textContent = 'Pause';
     session?.update({ execution: 'running' });
@@ -156,9 +158,11 @@
     session?.update({ preparation: 'preparing', execution: 'idle' });
     status(result ? 'Preparing revision; showing previous simulation.' : 'Preparing simulation', 'running');
     try {
-      const output = await engine.run(spec);
+      const acceptedProgram = world.parseWorldSpec(world.serializeWorldSpec(replay ? displayedProgram : spec));
+      const output = await engine.run(acceptedProgram);
       if (current !== generation) return;
       result = output;
+      displayedProgram = acceptedProgram;
       session?.update({ preparation: 'ready' });
       comparison = before ? runs.compare(before, output) : null;
       sceneBounds = scenes.bounds(output.frames);
@@ -206,14 +210,11 @@
     catch (error) { report(error); }
   });
   on('reset', 'click', () => { if (spec) draft.setValue(world.serializeWorldSpec(spec)); });
-  on('run', 'click', () => { if (result) play({ restart: true }); else void execute(); });
-  on('playback', 'click', () => {
-    if (!result) return;
-    if (playbackPaused) play();
-    else { stopPlayback(); el('playback').textContent = 'Resume'; status('Paused', 'ready'); session?.update({ execution: 'paused' }); }
-  });
-  on('replay', 'click', () => void execute(true));
-  on('cancel', 'click', () => { invalidate({ keepVisible: Boolean(result) }); el('run').disabled = !spec || draft.isDirty(); status('Cancelled', 'cancelled'); });
+  on('run', 'click', () => { if (result) void session.invoke('restart').catch(report); else void execute(); });
+  function pausePlayback() { stopPlayback(); el('playback').textContent = 'Resume'; status('Paused', 'ready'); session?.update({ execution: 'paused' }); }
+  on('playback', 'click', () => { void session.invoke(playbackPaused ? 'resume' : 'pause').catch(report); });
+  on('replay', 'click', () => void session.invoke('replay').catch(report));
+  on('cancel', 'click', () => { invalidate({ keepVisible: Boolean(result) }); el('run').disabled = !spec || draft.isDirty(); status('Cancelled', 'cancelled'); session?.update({ preparation: 'idle', execution: result ? 'paused' : 'idle' }); });
   on('step', 'input', () => { stopPlayback(); playbackPosition = Number(el('step').value); el('playback').textContent = 'Play'; displayStep(playbackPosition); status('Paused', 'ready'); session?.update({ execution: 'paused' }); });
   on('export', 'click', () => { if (spec) void download(world.serializeWorldSpec(spec), `${editorUi.safeFilePart(spec.name)}.world.json`); });
   on('export-result', 'click', () => { if (result) void download({ ...result, comparison }, 'simulation-result.json'); });
@@ -222,8 +223,8 @@
     onChange: (snapshot) => statusView.render(snapshot),
     capabilities: { selection: true, pause: true, restart: true, replay: 'exact-trajectory', liveActions: false, camera: false },
     operations: [
-      { id: 'pause', category: 'execution', perform: () => { if (!playbackPaused) el('playback').click(); } },
-      { id: 'resume', category: 'execution', perform: () => { if (playbackPaused) el('playback').click(); } },
+      { id: 'pause', category: 'execution', perform: pausePlayback },
+      { id: 'resume', category: 'execution', perform: () => play() },
       { id: 'restart', category: 'reproduction', perform: () => play({ restart: true }) },
       { id: 'replay', category: 'reproduction', perform: () => execute(true) },
       { id: 'select-point', category: 'observation', target: 'point', perform: (id) => {
@@ -234,5 +235,5 @@
   statusView.render(session.snapshot());
   function dispose() { invalidate(); engine.dispose(); view?.dispose(); session.dispose(); statusView.dispose(); listeners.abort(); }
   root.addEventListener('pagehide', (event) => { if (!event.persisted) dispose(); });
-  root.SimulatteDataWorkbench = Object.freeze({ getSpec: () => spec, getResult: () => result, getComparison: () => comparison, session, dispose });
+  root.SimulatteDataWorkbench = Object.freeze({ getSpec: () => spec, getResult: () => result, getDisplayedProgram: () => displayedProgram ? structuredClone(displayedProgram) : null, getComparison: () => comparison, session, dispose });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

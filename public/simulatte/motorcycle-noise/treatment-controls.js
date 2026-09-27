@@ -1,5 +1,5 @@
 (function(root){
-  function create({view,getScene,getTime}){
+  function create({view,getScene,getTime,command}){
     const $=id=>document.getElementById(id),T=root.MotorcycleTreatments,events=new AbortController();let selected=null,placing=null,lastPaint=0,nextId=1,latest=[];
     const on=(node,event,fn)=>node.addEventListener(event,fn,{signal:events.signal});
     const control=document.createElement('label');control.className='compact';control.textContent='Place ';
@@ -32,11 +32,18 @@
       clear();return false;
     }
     on(add,'change',()=>{placing=add.value||null;if(placing==='observer'){placing=null;$('add-receiver').click();add.value='';}else if(placing){if($('add-receiver').getAttribute('aria-pressed')==='true')$('add-receiver').click();$('live-summary').textContent='Click a sidewalk or rooftop to place '+T.kinds[placing].name.toLowerCase()+'.';}});
-    on(enabled,'click',()=>{const node=getScene().treatments.find(row=>row.id===selected);if(node)node.enabled=node.enabled===false;paint();});
-    on(remove,'click',()=>{const scene=getScene();scene.treatments=scene.treatments.filter(row=>row.id!==selected);clear();$('inspection').hidden=true;});
-    on(frequency,'change',()=>{const node=getScene().treatments.find(row=>row.id===selected);if(node)node.frequency=Number(frequency.value);paint();});
+    function apply({action,value}){
+      const scene=getScene(),node=scene.treatments.find(row=>row.id===selected);if(!node)return;
+      if(action==='toggle')node.enabled=node.enabled===false;
+      if(action==='frequency')node.frequency=Number(value);
+      if(action==='remove'){scene.treatments=scene.treatments.filter(row=>row.id!==selected);clear();$('inspection').hidden=true;}
+      paint();
+    }
+    on(enabled,'click',()=>command('treatment',{action:'toggle'}));
+    on(remove,'click',()=>command('treatment',{action:'remove'}));
+    on(frequency,'change',()=>command('treatment',{action:'frequency',value:frequency.value}));
     on($('inspection-close'),'click',clear);
-    return {reset,pick,observe(data){latest=data.observer?.treatments||[];},update(now){if(now-lastPaint>250){lastPaint=now;paint();}view.setTreatmentSelection(selected);},dispose(){events.abort();control.remove();frequencies.remove();actions.remove();}};
+    return {apply,reset,pick,observe(data){latest=data.observer?.treatments||[];},update(now){if(now-lastPaint>250){lastPaint=now;paint();}view.setTreatmentSelection(selected);},dispose(){events.abort();control.remove();frequencies.remove();actions.remove();}};
   }
   root.MotorcycleTreatmentControls={create};
 })(globalThis);

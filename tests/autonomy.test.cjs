@@ -1557,7 +1557,7 @@ test('workbench eagerly loads its declared shell and profile runtime retains dep
   const manifest = require('../public/simulatte/app/world-runtime-script-manifest.js');
   const scripts = manifest.profileRuntime.map((source) => `./${source}`);
   assert.deepEqual(eagerScripts.filter((source) => source !== '/simulation-routes.js' && !source.endsWith('/world-runtime-script-manifest.js') && !source.endsWith('/world-runtime-loader.js')), manifest.eager.map((source) => `./${source}`));
-  assert.ok(eagerScripts.includes('/simulation-routes.js'));
+  assert.ok(eagerScripts.includes('./simulation-routes.js'));
   assert.equal(eagerScripts.includes('./simulatte/app/main.js'), false);
   assert.ok(eagerScripts.includes('./simulatte/app/data-workbench.js'));
   assert.ok(scripts.indexOf('./simulatte/runtime/runtime-log.js') < scripts.indexOf('./simulatte/platform/transport/browser-transport.js'));
