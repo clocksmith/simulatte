@@ -60,7 +60,8 @@ async function probePage(surface, expectedBuild) {
   };
   const visible = node => !!node && node.getBoundingClientRect().width > 0 && node.getBoundingClientRect().height > 0
     && getComputedStyle(node).visibility !== 'hidden';
-  const selectors = surface === 'world' ? ['#hex-center-sunwalker', '.hex-satellite'] : ['#build-prompt', '#build-lab', '#shuffle-prompt'];
+  const motorcycleLaunch = surface === 'world' && document.documentElement.dataset.worldLaunch === 'motorcycle';
+  const selectors = surface === 'world' ? motorcycleLaunch ? ['#motorcycle-launch .launch-link'] : ['#hex-center-sunwalker', '.hex-satellite'] : ['#build-prompt', '#build-lab', '#shuffle-prompt'];
   const deadline = performance.now() + 15000;
   while (!selectors.every(selector => visible(document.querySelector(selector)))) {
     if (performance.now() > deadline) throw new Error('Required product controls did not become visible');
@@ -69,7 +70,7 @@ async function probePage(surface, expectedBuild) {
   const checks = { build: document.querySelector('meta[name="simulatte-build"]')?.content === expectedBuild,
     horizontalFit: document.documentElement.scrollWidth <= innerWidth + 1 };
   const controls = [];
-  for (const node of document.querySelectorAll(surface === 'world' ? '#hex-center-sunwalker, .hex-satellite' : '#build-prompt, #build-lab, #shuffle-prompt')) {
+  for (const node of document.querySelectorAll(selectors.join(', '))) {
     node.scrollIntoView({ block: 'center' });
     const rect = node.getBoundingClientRect();
     const target = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
@@ -78,7 +79,16 @@ async function probePage(surface, expectedBuild) {
   }
   checks.controlsReachable = controls.length > 0 && controls.every(control => control.reachable);
   let execution;
-  if (surface === 'world') {
+  if (motorcycleLaunch) {
+    const links = [...document.querySelectorAll('a')].filter(visible);
+    checks.onlyMotorcycleLink = links.length === 1 && new URL(links[0].href).pathname === '/motorcycle'
+      && new URL(links[0].href).origin === location.origin;
+    checks.secondaryInterfacesDormant = !visible(document.querySelector('#world-tiers-landing-page'))
+      && !visible(document.querySelector('.map-workspace')) && !window.SimulatteDataWorkbench && !window.SimulatteActiveSession;
+    checks.ready = document.body.dataset.journeyPhase === 'ready';
+    const link = document.querySelector('#motorcycle-launch .launch-link');
+    link.focus(); checks.keyboardFocus = document.activeElement === link;
+  } else if (surface === 'world') {
     checks.simulationsVisible = document.querySelectorAll('.hex-satellite').length === 6;
     checks.createLink = document.querySelector('.sim-product-nav a[href="https://create.simulatte.world/"]')?.href === 'https://create.simulatte.world/';
   } else {
