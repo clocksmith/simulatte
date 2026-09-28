@@ -1,0 +1,242 @@
+{
+  "cases": [
+    {
+      "width": 1440,
+      "initial": {
+        "text": "Turn sound on for the full experience",
+        "visible": true,
+        "checked": false,
+        "animation": "sound-on-invitation",
+        "hint": {
+          "x": 261,
+          "y": 105.5,
+          "width": 224,
+          "height": 59.6875,
+          "top": 105.5,
+          "right": 485,
+          "bottom": 165.1875,
+          "left": 261
+        },
+        "toggle": {
+          "x": 262,
+          "y": 50.5,
+          "width": 112.484375,
+          "height": 42,
+          "top": 50.5,
+          "right": 374.484375,
+          "bottom": 92.5,
+          "left": 262
+        },
+        "readout": {
+          "x": 16,
+          "y": 184,
+          "width": 228.34375,
+          "height": 48.390625,
+          "top": 184,
+          "right": 244.34375,
+          "bottom": 232.390625,
+          "left": 16
+        },
+        "overflow": false,
+        "focus": ""
+      },
+      "enabled": {
+        "text": "Turn sound on for the full experience",
+        "visible": false,
+        "checked": true,
+        "animation": "sound-on-invitation",
+        "hint": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "toggle": {
+          "x": 262,
+          "y": 50.5,
+          "width": 112.484375,
+          "height": 42,
+          "top": 50.5,
+          "right": 374.484375,
+          "bottom": 92.5,
+          "left": 262
+        },
+        "readout": {
+          "x": 16,
+          "y": 122,
+          "width": 228.34375,
+          "height": 48.390625,
+          "top": 122,
+          "right": 244.34375,
+          "bottom": 170.390625,
+          "left": 16
+        },
+        "overflow": false,
+        "focus": ""
+      },
+      "reduced": {
+        "text": "Turn sound on for the full experience",
+        "visible": true,
+        "checked": false,
+        "animation": "none",
+        "hint": {
+          "x": 261,
+          "y": 105.5,
+          "width": 224,
+          "height": 59.6875,
+          "top": 105.5,
+          "right": 485,
+          "bottom": 165.1875,
+          "left": 261
+        },
+        "toggle": {
+          "x": 262,
+          "y": 50.5,
+          "width": 112.484375,
+          "height": 42,
+          "top": 50.5,
+          "right": 374.484375,
+          "bottom": 92.5,
+          "left": 262
+        },
+        "readout": {
+          "x": 16,
+          "y": 184,
+          "width": 228.34375,
+          "height": 48.390625,
+          "top": 184,
+          "right": 244.34375,
+          "bottom": 232.390625,
+          "left": 16
+        },
+        "overflow": false,
+        "focus": ""
+      }
+    },
+    {
+      "width": 390,
+      "initial": {
+        "text": "Turn sound on for the full experience",
+        "visible": true,
+        "checked": false,
+        "animation": "sound-on-invitation",
+        "hint": {
+          "x": 21,
+          "y": 127,
+          "width": 224,
+          "height": 59.6875,
+          "top": 127,
+          "right": 245,
+          "bottom": 186.6875,
+          "left": 21
+        },
+        "toggle": {
+          "x": 22,
+          "y": 72,
+          "width": 181.546875,
+          "height": 42,
+          "top": 72,
+          "right": 203.546875,
+          "bottom": 114,
+          "left": 22
+        },
+        "readout": {
+          "x": 10,
+          "y": 212,
+          "width": 228.34375,
+          "height": 48.390625,
+          "top": 212,
+          "right": 238.34375,
+          "bottom": 260.390625,
+          "left": 10
+        },
+        "overflow": false,
+        "focus": ""
+      },
+      "enabled": {
+        "text": "Turn sound on for the full experience",
+        "visible": false,
+        "checked": true,
+        "animation": "sound-on-invitation",
+        "hint": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "toggle": {
+          "x": 22,
+          "y": 72,
+          "width": 181.546875,
+          "height": 42,
+          "top": 72,
+          "right": 203.546875,
+          "bottom": 114,
+          "left": 22
+        },
+        "readout": {
+          "x": 10,
+          "y": 140,
+          "width": 358,
+          "height": 74.78125,
+          "top": 140,
+          "right": 368,
+          "bottom": 214.78125,
+          "left": 10
+        },
+        "overflow": false,
+        "focus": ""
+      },
+      "reduced": {
+        "text": "Turn sound on for the full experience",
+        "visible": true,
+        "checked": false,
+        "animation": "none",
+        "hint": {
+          "x": 21,
+          "y": 127,
+          "width": 224,
+          "height": 59.6875,
+          "top": 127,
+          "right": 245,
+          "bottom": 186.6875,
+          "left": 21
+        },
+        "toggle": {
+          "x": 22,
+          "y": 72,
+          "width": 181.546875,
+          "height": 42,
+          "top": 72,
+          "right": 203.546875,
+          "bottom": 114,
+          "left": 22
+        },
+        "readout": {
+          "x": 10,
+          "y": 212,
+          "width": 254.828125,
+          "height": 48.390625,
+          "top": 212,
+          "right": 264.828125,
+          "bottom": 260.390625,
+          "left": 10
+        },
+        "overflow": false,
+        "focus": ""
+      }
+    }
+  ],
+  "errors": [],
+  "pass": true,
+  "baseUrl": "https://simulatte.world/",
+  "build": "367378f42751c4da117a03c818fdc69787bc175d-b83627bb55d8"
+}
