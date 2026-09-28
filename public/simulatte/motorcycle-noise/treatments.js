@@ -4,23 +4,44 @@
   const kinds={mist:{name:'Water mist',color:'#b8deec'},directional:{name:'Directional sound',color:'#f1be79'},cancellation:{name:'Tonal cancellation',color:'#c2b5ec'}};
   const db=power=>10*Math.log10(Math.max(1e-12,power));
   function weight(hz){const f2=hz*hz;return 20*Math.log10(Math.max(1e-12,12194**2*f2*f2/((f2+20.6**2)*Math.sqrt((f2+107.7**2)*(f2+737.9**2))*(f2+12194**2))))+2;}
+  // Explicit fictional interaction, not a calibrated water/engine relationship.
+  const mistRules=Object.freeze({contactSeconds:2,spraySeconds:4,restartSeconds:12,maxBursts:24});
+  function planSpray(scene,time,{sourceId,nodeId}={}){
+    const node=scene.treatments?.find(row=>row.id===nodeId&&row.kind==='mist');
+    const source=sourceId?scene.sources.find(row=>row.id===sourceId&&row.kind==='motorcycle'):
+      states(scene,time).find(row=>row.id===nodeId)?.target?.source;
+    if(!source)throw new Error('Select a motorcycle to spray.');
+    if(nodeId&&(!node||node.enabled===false))throw new Error('Enable this mist marker first.');
+    if(time+mistRules.restartSeconds>180)throw new Error('Replay traffic before spraying again.');
+    if((scene.mistBursts||[]).length>=mistRules.maxBursts)throw new Error('Restart traffic to clear the spray history.');
+    if(scene.mistBursts?.some(row=>row.sourceId===source.id&&time>=row.start&&time<row.restart))throw new Error('This motorcycle is already in a spray cycle.');
+    const point=M.position(source,time),origin=node?{x:node.x,y:node.y,z:node.z}:{x:point.x-Math.sin(point.heading)*4,y:point.y+Math.cos(point.heading)*4,z:1.2};
+    return {id:'spray-'+(scene.mistBursts?.length||0),sourceId:source.id,start:time,contact:time+mistRules.contactSeconds,end:time+mistRules.spraySeconds,restart:time+mistRules.restartSeconds,origin};
+  }
   function states(scene,time){
-    return (scene.treatments||[]).map(node=>{
+    const rows=(scene.treatments||[]).map(node=>{
       let target=null,score=-Infinity;
-      if(node.kind!=='mist')for(const source of scene.sources){if(source.kind!=='motorcycle')continue;const point=M.position(source,Math.max(0,time-.02)),distance=M.dist(node,point);if(distance>100)continue;
+      for(const source of scene.sources){if(source.kind!=='motorcycle')continue;const point=M.position(source,Math.max(0,time-.02)),distance=M.dist(node,point);if(distance>(node.kind==='mist'?60:100))continue;
         const level=M.sourceLevel(source,time)-20*Math.log10(Math.max(1,distance));if(level>score){score=level;target={source,point,distance};}}
       const enabled=node.enabled!==false&&scene.treatmentsEnabled!==false&&(scene.treatmentMode!=='cancellation'||node.kind==='cancellation');
       let frequency=node.frequency||500,harmonic=null;
       if(node.kind==='cancellation'&&target){M.pressure(target.source,time);harmonic=target.source.harmonics.reduce((a,b)=>a.re*a.re+a.im*a.im>b.re*b.re+b.im*b.im?a:b);frequency=harmonic.n*target.point.rpm/120;}
       return {...node,enabled,target,frequency,harmonic,active:enabled&&(node.kind==='mist'||!!target)};
     });
+    for(const burst of scene.mistBursts||[]){
+      if(time<burst.start||time>=burst.restart)continue;
+      const source=scene.sources.find(row=>row.id===burst.sourceId);if(!source)continue;
+      const point=M.position(source,time);
+      rows.push({id:burst.id,kind:'mist',...burst.origin,enabled:true,active:time<burst.end,burst,target:{source,point,distance:M.dist(burst.origin,point)},stalled:!!point.stalled});
+    }
+    return rows;
   }
-  // Educational, output-limited emitters. No vehicle dynamics or hardware commands.
+  // Educational, output-limited emitters. Fictional spray dynamics are owned by traffic-motion; no hardware commands.
   function evaluate(scene,time,point,geometry,sourceEnergy,prepared){
     const c=M.soundSpeed(scene.config),rows=prepared||states(scene,time),groups=new Map(),tones=[],details=[];let added=0;
     for(const row of rows){
       if(!row.active){details.push({id:row.id,kind:row.kind,active:false,targetId:row.target?.source.id||null});continue;}
-      if(row.kind==='mist'){details.push({id:row.id,kind:row.kind,active:true,acousticDelta:0,model:'Advected droplet visualization; no calibrated attenuation or engine effect'});continue;}
+      if(row.kind==='mist'){details.push({id:row.id,kind:row.kind,active:true,acousticDelta:0,model:'Visible droplets; fictional stall mechanic, no calibrated acoustic attenuation'});continue;}
       const {target,frequency}=row,path=geometry.direct(row,point),aim=target.point,dx=aim.x-row.x,dy=aim.y-row.y,dz=aim.z-row.z,length=Math.max(.001,Math.hypot(dx,dy,dz));
       const beam=(p)=>{const x=p.x-row.x,y=p.y-row.y,z=p.z-row.z,d=Math.max(.001,Math.hypot(x,y,z)),cos=(dx*x+dy*y+dz*z)/(length*d);return cos<=0?0:Math.exp(-Math.pow(Math.acos(Math.min(1,cos))/Math.max(.22,Math.min(1.3,c/frequency)),2));};
       const reference=2e-5*10**(60/20),delay=path.length/c;
@@ -50,5 +71,5 @@
     for(const[id,g]of groups){const change=g.re*g.re+g.im*g.im-g.power;delta+=change;adjustments.set(id,Math.sqrt(Math.max(0,g.energy+change)/Math.max(1e-12,g.energy)));}
     return {powerDelta:added+delta,emittedPower:added,tones,adjustments,details};
   }
-  root.MotorcycleTreatments={kinds,states,evaluate};
+  root.MotorcycleTreatments={kinds,states,evaluate,planSpray,mistRules};
 })(globalThis);

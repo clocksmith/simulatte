@@ -216,8 +216,8 @@
       if(item.exhaust){
         const load=Math.max(0,Math.min(1,(p.speed||0)/Math.max(1,item.source.speed))),throttle=Math.max(0,Math.min(1,(p.acceleration||0)/2));
         const pulse=1+.07*Math.sin(state.time*11.7+(item.source.phase||0));
-        gain(item.tone,(1+.25*load+.35*throttle)*pulse,now);
-        gain(item.rough,.012+.025*throttle,now);
+        gain(item.tone,p.stalled?0:(1+.25*load+.35*throttle)*pulse,now);
+        gain(item.rough,p.stalled?0:.012+.025*throttle,now);
         item.body.frequency.setTargetAtTime(95+Math.min(110,(p.rpm||900)/35),now,.1);
         item.exhaust.frequency.setTargetAtTime(Math.max(180,Math.min(item.contribution.cutoff||2200,850+1000*load+600*throttle)),now,.06);
       }

@@ -223,7 +223,7 @@
     function nearestMotorcycle(){
       return trafficCandidates(getObserver()).sort((a,b)=>(b.score+b.ahead*5)-(a.score+a.ahead*5))[0]?.id||null;
     }
-    function focusSource(id){const source=current.sources.find(item=>item.id===id);if(!source)return;setCameraMode('map');camera.setTarget(vector(root.MotorcycleReflection.position(source,lastTime)));camera.radius=100;followed=id;}
+    function focusSource(id,close=false){const source=current.sources.find(item=>item.id===id);if(!source)return;setCameraMode('map');camera.setTarget(vector(root.MotorcycleReflection.position(source,lastTime)));camera.radius=close?28:100;if(close){camera.beta=.35;camera.alpha=Math.PI-root.MotorcycleReflection.position(source,lastTime).heading;}followed=id;}
     function pickScene(pick){if(!pick?.hit)return;
       if(pick.pickedMesh.metadata?.treatmentId)onPick({treatmentId:pick.pickedMesh.metadata.treatmentId});
       else if(pick.pickedMesh.metadata?.receiverId)onPick({receiverId:pick.pickedMesh.metadata.receiverId});
@@ -231,13 +231,13 @@
       else if(pick.pickedPoint&&pick.pickedMesh.name!=='nyc-walls'&&pick.pickedMesh.name!=='water-ground')onPick({buildingId:pick.pickedMesh.metadata?.buildingId||pick.pickedMesh.metadata?.buildingIds?.[pick.faceId],point:{x:pick.pickedPoint.x+origin.x,y:-pick.pickedPoint.z+origin.y,z:pick.pickedPoint.y+1.7},surface:pick.pickedMesh.name==='nyc-roofs'?'rooftop':'sidewalk'});
     }
     scene.onPointerObservable.add(info=>{if(info.type===B.PointerEventTypes.POINTERDOWN||info.type===B.PointerEventTypes.POINTERWHEEL)followed=null;if(info.type===B.PointerEventTypes.POINTERTAP)pickScene(info.pickInfo);});
-    const gestures=root.MotorcycleMapGestures.create({B,scene,canvas,getCamera:()=>scene.activeCamera,onTap:pickScene,onHome:homePark,onInteract:()=>{followed=null;}});
+    const gestures=root.MotorcycleMapGestures.create({B,scene,canvas,getCamera:()=>scene.activeCamera,onTap:pickScene,onHome:homePark,onInteract:()=>{followed=null;if(cameraMode==='rider'){const point=getObserver(),forward=scene.activeCamera.getDirection(B.Axis.Z);activateObserver(point,'free',{x:point.x+forward.x*20,y:point.y-forward.z*20,z:point.z+forward.y*20});canvas.dispatchEvent(new Event('camera-detached'));}}});
     cleanup.push(()=>gestures.dispose());
     const resize=()=>engine.resize();root.addEventListener('resize',resize);cleanup.push(()=>root.removeEventListener('resize',resize));
     const resizeObserver=new ResizeObserver(resize);cleanup.push(()=>resizeObserver.disconnect());resizeObserver.observe(canvas);
     function draw(state){
       const M=root.MotorcycleReflection,s=state.scene,t=state.time;current=s;lastTime=t;
-      if(openingPending){openingPending=false;focus('Greenpoint');const openingTraffic=trafficCandidates(getObserver())[0];if(openingTraffic)focusSource(openingTraffic.id);}
+      if(openingPending){openingPending=false;focus('Greenpoint');}
       if(followed&&cameraMode==='map'){const source=s.sources.find(row=>row.id===followed);if(source)camera.setTarget(vector(M.position(source,t)));}
       for(const source of s.sources){const mesh=city.vehicles.get(source.id),p=M.position(source,t);if(!mesh)continue;mesh.position=vector({...p,z:0});mesh.rotation.y=p.heading+Math.PI/2;city.animate(mesh,p,source.kind);}
       panel.position=vector(s.panel);panel.scaling.set(s.panel.width,s.panel.height,.35);panel.rotation.y=s.panel.angle+Math.PI/2;panel.isVisible=s.config.surface!=='none';
@@ -251,7 +251,8 @@
     function focusBase(name){
       if(name==='North Williamsburg'||name==='Greenpoint'){
         const north={x:(-73.9516433-map.origin.longitude)*111320*Math.cos(map.origin.latitude*Math.PI/180),y:(40.718694-map.origin.latitude)*110540+(40.7234878-40.718694)*111320};
-        const anchor=name==='Greenpoint'?sidewalkAt(north):williamsburgAnchor(map);
+        const crossing=name==='Greenpoint'?sidewalkAt(north):williamsburgAnchor(map);
+        const anchor=name==='Greenpoint'?crossing:{...crossing,x:crossing.x+35,y:crossing.y-35};
         const dx=parkCenter.x-anchor.x,dy=parkCenter.y-anchor.y,length=Math.max(1,Math.hypot(dx,dy));
         const target=name==='Greenpoint'?{x:anchor.x+dx/length*115,y:anchor.y+dy/length*115,z:0}:parkCenter;
         followed=null;scene.activeCamera.detachControl();cameraMode='map';scene.activeCamera=camera;

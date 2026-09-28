@@ -1,8 +1,8 @@
 'use strict';
-importScripts('./city-paths.js?v=city-controls-v7','./traffic-motion.js?v=city-controls-v7','./reflection-model.js?v=sidewalk-population-v18');
+importScripts('./city-paths.js?v=mist-camera-v20','./traffic-motion.js?v=mist-camera-v20','./reflection-model.js?v=mist-camera-v20');
 self.onmessage=({data})=>{
   try {
-    const scene=self.MotorcycleReflection.create(data.map,data.config);
+    const scene=self.MotorcycleReflection.create(data.map,data.config,data.mistBursts||[]);
     self.postMessage({scene},scene.sources.map(source=>source.motion.states.buffer));
   } catch(error) { self.postMessage({error:error.message}); }
 };

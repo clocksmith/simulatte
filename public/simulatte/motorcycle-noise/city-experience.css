@@ -21,22 +21,12 @@
 .city-toolbar > * { min-width:0; margin:0; }
 .city-toolbar .compact { display:grid; gap:4px; align-items:stretch; color:var(--muted); font-size:11px; }
 .city-toolbar .sim-field { width:100%; min-width:0; font-size:14px; }
-.camera-picker { position:relative; min-width:0; margin:0; padding:0; border:0; }
-.camera-picker > summary {
-  display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px;
-  padding:8px 12px; border:1px solid var(--line); border-radius:var(--sim-radius-small);
-  background:var(--field); color:var(--ink); font:500 14px/1.4 var(--sim-font); cursor:pointer; list-style:none;
-}
-.camera-picker > summary::-webkit-details-marker { display:none; }
-.camera-picker > summary::after { content:''; width:6px; height:6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); flex:none; }
-.camera-picker > summary:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
-.camera-options {
-  position:absolute; z-index:10; top:calc(100% + 6px); left:0; width:100%; min-width:210px;
-  display:grid; gap:4px; padding:6px; border:1px solid var(--line); border-radius:var(--sim-radius-small);
-  background:var(--sim-paper); box-shadow:var(--sim-shadow-small);
-}
-.camera-options > button { text-align:left; justify-content:flex-start; min-height:44px; padding:8px 12px; border:1px solid transparent; background:transparent; }
-.camera-options > button:hover, .camera-options > button[aria-pressed="true"] { background:var(--sim-accent-soft); border-color:var(--line); }
+/* Every preset is visible; the pressed state belongs to the chosen viewpoint. */
+.camera-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; }
+.camera-options > button { min-height:40px; padding:7px 10px; border:1px solid transparent; background:transparent; color:var(--muted); font-size:12px; white-space:nowrap; }
+.camera-options > button:hover { background:var(--sim-accent-soft); color:var(--ink); }
+.camera-options > button[aria-pressed="true"] { background:var(--sim-accent-soft); border-color:var(--accent); color:var(--ink); box-shadow:inset 0 -2px var(--accent); }
+.camera-options > button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 #sound-controls { position:relative; display:flex; justify-content:flex-end; align-items:center; }
 #header-advanced { align-self:end; }
 .sound-switch { position:relative; display:flex; align-items:center; gap:12px; min-height:44px; padding:8px 12px; border:1px solid var(--line); border-radius:var(--sim-radius-small); background:var(--field); cursor:pointer; }
@@ -225,4 +215,37 @@ body[data-state="running"] .experience-status, body[data-state="paused"] .experi
   .motorcycle-app:has(#sound-invitation:not([hidden])) .observer-readout { top:212px; }
   .canvas { min-height:360px; }
   .experience-status { top:200px; }
+}
+
+/* Six presets, with navigation available from every view. */
+.city-toolbar { grid-template-columns:minmax(340px,460px) auto auto auto; }
+.city-toolbar .camera-control { gap:5px; }
+.observer-readout,.motorcycle-app:has(#sound-invitation:not([hidden])) .observer-readout { top:150px; }
+.inspection { top:150px; }
+.map-navigation { align-items:end; }
+.map-directions { display:grid; grid-template-columns:repeat(3,44px); gap:4px; margin-right:4px; }
+.map-directions [data-pan="up"] { grid-column:2; }
+.map-directions [data-pan="left"] { grid-column:1; }
+@media(max-width:900px) {
+  .city-toolbar { grid-template-columns:minmax(0,1fr) auto auto; }
+  .city-toolbar .camera-control { grid-column:1/-1; grid-template-columns:1fr; gap:4px; }
+  .city-toolbar #camera-label { display:none; }
+  .camera-options > button { min-height:40px; padding:6px; }
+  .observer-readout { top:185px; }
+  .motorcycle-app:has(#sound-invitation:not([hidden])) .observer-readout { top:250px; }
+  .inspection { top:auto; bottom:128px; max-height:40svh; }
+  .map-navigation { gap:5px; }
+  .map-directions { grid-template-columns:repeat(3,40px); }
+  .map-directions button { min-width:40px; width:40px; padding:6px; }
+  .scene-playback { bottom:124px; }
+}
+
+#source-actions:not([hidden]) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+#source-actions button { min-height:44px; white-space:normal; }
+
+@media(max-width:760px) {
+  .inspection:has(#source-actions:not([hidden])) { bottom:112px; max-height:250px; padding:12px; }
+  .inspection:has(#source-actions:not([hidden])) .inspection-heading h2 { font-size:13px; }
+  .inspection:has(#source-actions:not([hidden])) #inspection-time { display:none; }
+  .inspection:has(#source-actions:not([hidden])) p { margin:4px 0 8px; }
 }

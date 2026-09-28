@@ -1,5 +1,5 @@
 'use strict';
-importScripts('./signal.js', './control.js', './city-paths.js?v=city-controls-v7', './traffic-motion.js?v=city-controls-v7', './reflection-model.js?v=city-controls-v7', './acoustic-field.js');
+importScripts('./signal.js', './control.js', './city-paths.js?v=mist-camera-v20', './traffic-motion.js?v=mist-camera-v20', './reflection-model.js?v=mist-camera-v20', './acoustic-field.js');
 self.onmessage = ({ data }) => {
   const { id, scene, time, mapHash } = data;
   const M = self.MotorcycleReflection, S = self.MotorcycleSignal;
@@ -56,7 +56,7 @@ self.onmessage = ({ data }) => {
     const counts = Object.fromEntries(['motorcycle', 'car', 'pedestrian'].map(kind => [kind, scene.sources.filter(source => source.kind === kind).length]));
     const record = {
       schema: 'simulatte.nycNoiseComparison.v4', mapHash,
-      scene: { config: scene.config, panel: scene.panel, receiver: scene.receiver, reference: scene.reference, speaker: scene.speaker, center: scene.center, observers: scene.observers, requestedCounts: scene.requestedCounts },
+      scene: { mistBursts:scene.mistBursts||[], config: scene.config, panel: scene.panel, receiver: scene.receiver, reference: scene.reference, speaker: scene.speaker, center: scene.center, observers: scene.observers, requestedCounts: scene.requestedCounts },
       time, interval: [start, start + duration], sampleRate: rate, readings, points, local, observers, ledger,
       poweredEmitter: { enabled: !!controller, energyJ: activeJoules, clippedSamples: controller ? controller.clipped : 0 },
       observation, counts, excludedIndoorPoints, geometryStepSeconds: solver.geometryStepSeconds,

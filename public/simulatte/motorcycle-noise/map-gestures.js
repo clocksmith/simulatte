@@ -6,7 +6,21 @@
     const local=touch=>{const rect=canvas.getBoundingClientRect();return {x:touch.clientX-rect.left,y:touch.clientY-rect.top};};
     const pair=touches=>{const a=local(touches[0]),b=local(touches[1]);return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,distance:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y))};};
     function stopInertia(camera){for(const key of ['inertialAlphaOffset','inertialBetaOffset','inertialRadiusOffset','inertialPanningX','inertialPanningY'])if(key in camera)camera[key]=0;}
-    function zoom(factor){onInteract();const camera=getCamera();if(!Number.isFinite(camera.radius))return;stopInertia(camera);camera.radius=Math.max(camera.lowerRadiusLimit||25,Math.min(camera.upperRadiusLimit||5000,camera.radius*factor));camera.getViewMatrix(true);}
+    function zoom(factor){
+      onInteract();const camera=getCamera();stopInertia(camera);
+      if(Number.isFinite(camera.radius))camera.radius=Math.max(camera.lowerRadiusLimit||25,Math.min(camera.upperRadiusLimit||5000,camera.radius*factor));
+      else{const direction=camera.getDirection(B.Axis.Z);camera.position.addInPlace(direction.scale((1-factor)*Math.max(8,camera.position.y)));camera.position.y=Math.max(1.7,camera.position.y);}
+      camera.getViewMatrix(true);
+    }
+    function pan(horizontal,forward){
+      onInteract();const camera=getCamera();stopInertia(camera);
+      const right=camera.getDirection(B.Axis.X),ahead=camera.getDirection(B.Axis.Z);
+      right.y=0;ahead.y=0;right.normalize();ahead.normalize();
+      const step=Number.isFinite(camera.radius)?Math.max(3,camera.radius*.06):Math.max(2,camera.position.y*.12);
+      const offset=right.scale(horizontal*step).add(ahead.scale(forward*step));
+      if(Number.isFinite(camera.radius))camera.target.addInPlace(offset);else camera.position.addInPlace(offset);
+      camera.getViewMatrix(true);
+    }
     function ground(point,camera){
       const ray=scene.createPickingRay(point.x,point.y,B.Matrix.Identity(),camera);
       if(Math.abs(ray.direction.y)<.05)return null;
@@ -19,7 +33,7 @@
       if(Number.isFinite(camera.radius)){
         const before=ground(from,camera);zoom(from.distance/to.distance);const after=ground(to,camera);
         if(before&&after){const offset=before.subtract(after);offset.y=0;if(offset.length()<camera.radius*2)camera.target.addInPlace(offset);}
-      }else if(camera.rotation){camera.rotation.y-=(to.x-from.x)*.004;camera.rotation.x=Math.max(-1.35,Math.min(1.35,camera.rotation.x-(to.y-from.y)*.004));}
+      }else{zoom(from.distance/to.distance);pan((from.x-to.x)*.035,(to.y-from.y)*.035);}
     }
     // Keep native one-finger document scrolling. Touch camera gestures are
     // handled here, not by Babylon's pointer-capture camera input.
@@ -40,8 +54,12 @@
     on(canvas,'touchcancel',()=>{single=null;previous=null;multiple=false;},{passive:true});
     on(canvas,'wheel',event=>{
       event.stopImmediatePropagation();
-      if(event.ctrlKey||event.metaKey){event.preventDefault();zoom(Math.exp(Math.max(-.25,Math.min(.25,event.deltaY*.002))));}
+      event.preventDefault();zoom(Math.exp(Math.max(-.25,Math.min(.25,event.deltaY*(event.deltaMode===1?.04:.002)))));
     },{capture:true,passive:false});
+    const directions={up:[0,1],down:[0,-1],left:[-1,0],right:[1,0]};
+    for(const button of document.querySelectorAll('[data-pan]'))on(button,'click',()=>pan(...directions[button.dataset.pan]));
+    // Capture before Babylon's keyboard camera input so each key moves once.
+    on(canvas,'keydown',event=>{const direction=event.key.replace('Arrow','').toLowerCase();if(directions[direction]){event.preventDefault();event.stopImmediatePropagation();pan(...directions[direction]);}},{capture:true});
     on(document.getElementById('map-zoom-in'),'click',()=>zoom(.8));
     on(document.getElementById('map-zoom-out'),'click',()=>zoom(1.25));
     return {dispose(){events.abort();}};

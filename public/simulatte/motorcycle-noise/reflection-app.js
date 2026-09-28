@@ -4,7 +4,7 @@
   let map,mapHash,scene,view,time=0,paused=false,last=0,worker=null,generation=0,result=null,audio=null,audioSource=null;
   let selected=null,placement=null,activeAudio=null,lastReadout=-Infinity,audioRequest=0,explorer=null;
   let populationWorker=null,populationRequest=0,cameraSnapshot=null,observationSnapshot=null,expectedReplay=null;
-  let lifecycle, cancelPopulation=null, cancelMeasurement=null;
+  let lifecycle, cancelPopulation=null, cancelMeasurement=null,mistPreparing=false;
   const statusView=root.SimulatteSimulationSessionStatus.create({host:$('experience-status')});
   const session=root.SimulatteSimulationSession.create({
     id:'motorcycle-noise',
@@ -16,6 +16,7 @@
       {id:'camera',category:'observation',perform:mode=>explorer?.setCamera(mode)},
       {id:'follow',category:'observation',perform:()=>explorer?.follow()},
       {id:'onboard',category:'observation',perform:()=>explorer?.setCamera('rider')},
+      {id:'mist-spray',category:'live',available:()=>!mistPreparing&&!cancelPopulation,perform:sprayMist},
       {id:'treatment',category:'live',perform:input=>explorer?.treatment(input)},
       {id:'configure',category:'scenario',requiresRestart:true,perform:async(config,operation)=>{
         invalidate();session.update({preparation:'preparing'});
@@ -28,7 +29,7 @@
       {id:'resume',category:'execution',perform:()=>setPaused(false)},
       {id:'restart',category:'reproduction',perform:()=>{replayTraffic();setPaused(false);}},
       {id:'replay',category:'reproduction',perform:()=>{replayTraffic();setPaused(false);}},
-      {id:'reset-view',category:'observation',target:'camera',perform:()=>view?.homePark()},
+      {id:'reset-view',category:'observation',target:'camera',perform:()=>explorer?.setCamera('map')},
       {id:'compare-snapshot',category:'execution',target:'viewpoint',perform:(observer,operation)=>run(observer,operation)},
     ],
   });
@@ -36,16 +37,16 @@
   root.SimulatteMotorcycleController=Object.freeze({snapshot:()=>({time,paused,selected,scenarioSeed:scene?.config.seed,
     observer:view?.getObserver(),sourceCount:scene?.sources.length,
     motorcycles:scene?.sources.filter(row=>row.kind==='motorcycle').slice(0,8).map(row=>({id:row.id,position:M.position(row,time)})),
-    treatments:structuredClone(scene?.treatments||[])}),invoke:session.invoke});
+    mistBursts:structuredClone(scene?.mistBursts||[]),treatments:structuredClone(scene?.treatments||[])}),invoke:session.invoke});
   statusView.render(session.snapshot());
-  function createTraffic(config,signal){
+  function createTraffic(config,signal,mistBursts=[]){
     cancelPopulation?.();populationWorker?.terminate();const request=++populationRequest;
     status('Preparing '+config.motorcycles+' autonomous motorcycles on the connected street network');
     return new Promise((resolve,reject)=>{
       const abort=()=>{finish();populationWorker?.terminate();populationWorker=null;reject(Object.assign(new Error('Traffic preparation cancelled'),{name:'AbortError'}));};
       cancelPopulation=abort;signal?.addEventListener('abort',abort,{once:true});
       const finish=()=>{signal?.removeEventListener('abort',abort);if(cancelPopulation===abort)cancelPopulation=null;};
-      populationWorker=new Worker('./population-worker.js?v=sidewalk-population-v18');
+      populationWorker=new Worker('./population-worker.js?v=mist-camera-v20');
       populationWorker.onerror=event=>{finish();reject(new Error(event.message||'Traffic preparation failed'));};
       populationWorker.onmessage=({data})=>{
         if(request!==populationRequest||signal?.aborted)return;
@@ -55,8 +56,23 @@
         Object.defineProperty(data.scene,'acousticContext',{value:root.MotorcycleCityPaths.create(map.buildings),configurable:true});
         resolve(data.scene);
       };
-      populationWorker.postMessage({map,config});
+      populationWorker.postMessage({map,config,mistBursts});
     });
+  }
+  async function sprayMist(input,operation){
+    if(!scene)return;
+    const previous=scene,start=time;
+    const burst=root.MotorcycleTreatments.planSpray(previous,start,input);
+    mistPreparing=true;$('spray-selected').dataset.preparing='true';$('spray-selected').disabled=true;
+    try{
+      const next=await createTraffic(previous.config,operation.signal,[...(previous.mistBursts||[]),burst]);
+      operation.commit(()=>{
+        for(const key of ['panel','receiver','reference','speaker','treatments'])if(previous[key])next[key]=structuredClone(previous[key]);
+        next.treatmentMode='live';next.treatmentsEnabled=true;$('technique').value='live';
+        invalidate();scene=next;selected=burst.sourceId;time=start;view.setSources(scene.sources);
+        explorer?.refreshScene();explorer?.followSpray(burst.sourceId);status('Spraying '+burst.sourceId+'. Fictional engine stall after contact.');
+      });
+    }finally{mistPreparing=false;delete $('spray-selected').dataset.preparing;}
   }
   const labels=()=>{for(const element of form.elements){const output=$(`${element.name}-value`);if(output)output.textContent=element.value;}};
   function stopAudio(){audioRequest++;if(audioSource){audioSource.onended=null;audioSource.stop();audioSource.disconnect();audioSource=null;}$('listen').textContent='Listen';$('listen-source').textContent='Hear selected source';}
@@ -143,7 +159,7 @@
     const abort=()=>{finish();worker?.terminate();worker=null;reject(Object.assign(new Error('Measurement cancelled'),{name:'AbortError'}));};
     cancelMeasurement=abort;operation?.signal.addEventListener('abort',abort,{once:true});
     const finish=()=>{operation?.signal.removeEventListener('abort',abort);if(cancelMeasurement===abort)cancelMeasurement=null;};
-    const id=generation;worker=new Worker('./reflection-worker.js?v=city-controls-v7');$('run').disabled=true;$('cancel').hidden=false;$('progress').hidden=false;$('progress').value=0;
+    const id=generation;worker=new Worker('./reflection-worker.js?v=mist-camera-v20');$('run').disabled=true;$('cancel').hidden=false;$('progress').hidden=false;$('progress').value=0;
     const fail=message=>{worker?.terminate();worker=null;$('run').disabled=false;$('cancel').hidden=true;$('progress').hidden=true;status(message,true);finish();session.update({measurement:'stale'});reject(new Error(message));};
     worker.onerror=event=>{if(id===generation)fail(event.message||'Acoustic worker failed');};worker.onmessage=({data})=>{if(data.id!==id||id!==generation)return;
       if(data.type==='progress'){$('progress').value=data.fraction;status(data.phase);}
@@ -173,7 +189,7 @@
   $('audio-mode').addEventListener('change',stopAudio);
   $('export').addEventListener('click',()=>{if(!result)return;try{
     const W=root.SimulatteWorldSpec,sourceId='source:nyc-noise-scenario';
-    const params={mapHash,config:result.scene.config,panel:result.scene.panel,receiver:result.scene.receiver,reference:result.scene.reference,speaker:result.scene.speaker,time:result.time};
+    const params={mapHash,config:result.scene.config,panel:result.scene.panel,receiver:result.scene.receiver,reference:result.scene.reference,speaker:result.scene.speaker,time:result.time,mistBursts:result.scene.mistBursts||[]};
     const spec=W.finalizeWorldSpec({id:'motorcycle-noise',kind:'nyc-noise-treatment-v4',templateId:'nyc-noise-treatment-v4',name:'NYC noise treatments',description:'Idealized redistribution, redirection and active cancellation.',params,objects:[],modules:[],controls:[],
       source:{schema:W.SOURCE_SCHEMA,prompt:'',compilerConfig:{adapter:'nyc-noise-treatment-v4'}},authorship:{schema:W.AUTHORING_SCHEMA,revision:0,sources:[{id:sourceId,authority:'userOverride',label:'Scenario controls'}],fieldProvenance:[{path:'/',authority:'userOverride',sourceId}],patches:[],reconciliations:[]},
       determinism:{schema:'simulatte.worldSpecDeterminism.v1',requiredClasses:['simulation-reproducible','replay-identified'],seed:params.config.seed,simulationTolerance:1e-8,pixelPolicy:null},dependencies:{schema:'simulatte.worldSpecDependencies.v1',governedPacks:[],plugins:[],assets:[]},safety:{schema:'simulatte.worldSpecSafety.v1',rules:[],status:'not-declared'},unsupportedRequirements:['Field calibration','Physical reflector design','Hardware control'],unresolvedAmbiguities:[]});
@@ -187,12 +203,12 @@
     for(const name of ['panel','receiver','reference','speaker'])if(!p[name]||!['x','y','z'].every(key=>Number.isFinite(p[name][key])&&Math.abs(p[name][key])<10000))throw new Error('Invalid replay geometry');
     if(!Number.isFinite(p.panel.angle)||Math.abs(p.panel.angle)>20||p.panel.width!==p.config.panelWidth||p.panel.height!==p.config.panelHeight)throw new Error('Invalid reflector geometry');
     if(!bundle.record?.readings)throw new Error('Replay measurements missing');
-    invalidate();const next=await createTraffic(p.config,operation.signal);operation.throwIfCancelled();scene=next;for(const name of ['panel','receiver','reference','speaker'])scene[name]={...p[name]};scene.observers[0]={name:'Listener',...scene.receiver};time=p.time;showConfig(p.config);view.setSources(scene.sources);expectedReplay=bundle.record;if(!expectedReplay?.readings)throw new Error('Replay measurements missing');await session.invoke('compare-snapshot',p.receiver);
+    invalidate();const next=await createTraffic(p.config,operation.signal,p.mistBursts||[]);operation.throwIfCancelled();scene=next;for(const name of ['panel','receiver','reference','speaker'])scene[name]={...p[name]};scene.observers[0]={name:'Listener',...scene.receiver};time=p.time;showConfig(p.config);view.setSources(scene.sources);expectedReplay=bundle.record;if(!expectedReplay?.readings)throw new Error('Replay measurements missing');await session.invoke('compare-snapshot',p.receiver);
   }
   $('import').addEventListener('change',event=>{const file=event.target.files[0];if(file)invoke('import-replay',file);event.target.value='';});
   function tick(now){
     if(!view)return;const dt=last?Math.max(0,(now-last)/1000):0;last=now;
-    if(!paused&&!document.hidden){time=Math.min(180,time+dt*Number($('playback').value));if(time>=180){if($('repeat-traffic').checked)replayTraffic();else setPaused(true);}if(result)invalidate();}
+    if(!paused&&!mistPreparing&&!document.hidden){time=Math.min(180,time+dt*Number($('playback').value));if(time>=180){if($('repeat-traffic').checked)replayTraffic();else setPaused(true);}if(result)invalidate();}
     $('timeline').value=time;$('clock').textContent=`${time.toFixed(2)} s`;
     $('sound-speed').textContent=`${M.soundSpeed(scene.config).toFixed(1)} m/s`;
     view.draw({scene,time,selected,paths:$('paths').checked});

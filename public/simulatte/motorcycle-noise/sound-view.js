@@ -27,7 +27,7 @@
       for(const source of sourceList){const marker=markers.get(source.id);if(!marker)continue;const position=M.position(source,state.time);marker.position=vector({...position,z:3});const distance=B.Vector3.Distance(eye,marker.position);marker.scaling.setAll(Math.max(1.1,Math.min(22,distance*.009)));marker.isVisible=distance>35&&!(active.name==='rider-camera'&&source.id===state.selected);}
       const source=sourceList.find(item=>item.id===state.selected);
       if(!source){label.isVisible=false;for(const line of Object.values(lines))line.isVisible=false;return;}
-      const position=M.position(source,state.time);label.position=vector({...position,z:4.3});label.scaling.setAll(Math.max(.7,Math.min(8,B.Vector3.Distance(eye,label.position)*.008)));label.isVisible=active.name!=='rider-camera';
+      const position=M.position(source,state.time);label.position=vector({...position,z:4.3});label.scaling.setAll(Math.max(.7,Math.min(8,B.Vector3.Distance(eye,label.position)*.008)));label.isVisible=active.name!=='rider-camera'&&!state.scene.mistBursts?.some(burst=>burst.sourceId===source.id&&state.time>=burst.start&&state.time<burst.restart);
       if(selected!==source.id){selected=source.id;const ctx=texture.getContext();ctx.clearRect(0,0,160,64);ctx.fillStyle='#10231de8';ctx.fillRect(8,5,144,54);ctx.fillStyle=colorFor(source.id);ctx.font='bold 32px monospace';ctx.textAlign='center';ctx.fillText('M'+source.id.split('-').pop(),80,44);texture.update(true);}
       const inspecting=!document.getElementById('inspection').hidden&&!document.getElementById('source-actions').hidden;
       const visible=state.paths||inspecting;for(const line of Object.values(lines))line.isVisible=visible;if(!visible)return;

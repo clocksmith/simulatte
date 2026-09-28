@@ -31,6 +31,7 @@
     const a=rows[low],b=rows[high],t=(d-a.distance)/Math.max(1e-9,b.distance-a.distance);
     return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,heading:Math.atan2(b.y-a.y,b.x-a.x),key:a.key};
   }
+  const stalled=(source,time)=>source.stalls?.some(event=>time>=event.start&&time<event.end)||false;
   function prepare(sources,geometry,quotas={}){
     const agents=[],counts={motorcycle:0,car:0,pedestrian:0};
     function overlaps(source,point,other) {
@@ -57,7 +58,7 @@
     }
     const reservations=new Map();
     function record(agent,index,acceleration=0,lean=0){
-      const p=agent.point,rpm=agent.idle+Math.max(0,agent.source.rpm-agent.idle)*Math.min(1.25,agent.speed/Math.max(.1,agent.source.speed));
+      const p=agent.point,rpm=stalled(agent.source,index*STEP)?0:agent.idle+Math.max(0,agent.source.rpm-agent.idle)*Math.min(1.25,agent.speed/Math.max(.1,agent.source.speed));
       agent.source.motion.states.set([p.x,p.y,p.heading,agent.speed,agent.phase,agent.progress,acceleration,lean,rpm],index*STRIDE);
     }
     agents.forEach(agent=>record(agent,0));
@@ -89,12 +90,13 @@
           if(!green||(holder&&holder.agent!==agent)){target=Math.min(target,Math.sqrt(2*brake*distance));limit=Math.min(limit,distance);}
           else if(distance<Math.max(.6,agent.speed*STEP+0.2))reservations.set(junction.id,{agent,exit:junction.exit});
         }
+        if(stalled(source,(step-1)*STEP))target=0;
         const oldSpeed=agent.speed,change=Math.max(-brake*STEP,Math.min((pedestrian?1:1.7)*STEP,target-oldSpeed));
         const speed=Math.max(0,oldSpeed+change),travel=Math.max(0,Math.min(limit,(oldSpeed+speed)*STEP/2));
         const progress=Math.min(agent.path.length-.001,agent.progress+travel),point=at(agent.path,progress);
         const actualSpeed=travel+1e-9<(oldSpeed+speed)*STEP/2?0:speed,acceleration=(actualSpeed-oldSpeed)/STEP,headingChange=Math.atan2(Math.sin(point.heading-agent.point.heading),Math.cos(point.heading-agent.point.heading));
         const lean=source.kind==='motorcycle'?Math.max(-.4,Math.min(.4,Math.atan(actualSpeed*headingChange/(STEP*9.81)))):0;
-        const rpm=agent.idle+Math.max(0,source.rpm-agent.idle)*Math.min(1.25,actualSpeed/Math.max(.1,source.speed));
+        const rpm=stalled(source,time)?0:agent.idle+Math.max(0,source.rpm-agent.idle)*Math.min(1.25,actualSpeed/Math.max(.1,source.speed));
         next.push({agent,progress,point,speed:actualSpeed,phase:agent.phase+2*Math.PI*rpm/120*STEP,acceleration,lean});
       }
       for(const row of next){Object.assign(row.agent,{progress:row.progress,point:row.point,speed:row.speed,phase:row.phase});record(row.agent,step,row.acceleration,row.lean);}
@@ -105,7 +107,7 @@
     const motion=source.motion;if(!motion)return null;
     const t=Math.max(0,Math.min((motion.states.length/STRIDE-1)*motion.step,time))/motion.step,low=Math.min(STEPS-2,Math.floor(t)),f=Math.min(1,t-low),a=low*STRIDE,b=(low+1)*STRIDE,rows=motion.states;
     const value=i=>rows[a+i]+(rows[b+i]-rows[a+i])*f;
-    return {x:value(0),y:value(1),heading:angleLerp(rows[a+2],rows[b+2],f),speed:value(3),phase:value(4),distance:value(5),acceleration:value(6),lean:value(7),rpm:value(8),z:source.kind==='pedestrian'?1.5:.7};
+    return {stalled:stalled(source,time),x:value(0),y:value(1),heading:angleLerp(rows[a+2],rows[b+2],f),speed:value(3),phase:value(4),distance:value(5),acceleration:value(6),lean:value(7),rpm:stalled(source,time)?0:value(8),z:source.kind==='pedestrian'?1.5:.7};
   }
   root.MotorcycleTrafficMotion={prepare,sample};
 })(globalThis);

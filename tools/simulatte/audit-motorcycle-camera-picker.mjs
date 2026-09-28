@@ -32,7 +32,7 @@ async function click(selector,touch){
     await c.send('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',clickCount:1});
   }
 }
-const snapshot=()=>ev(`({selected:document.getElementById('camera-mode').value,label:document.getElementById('camera-current').textContent,observer:SimulatteMotorcycleController.snapshot().observer,operation:SimulatteMotorcycleSession.snapshot().lastOperation,open:document.getElementById('camera-picker').open})`);
+const snapshot=()=>ev(`({selected:document.getElementById('camera-mode').value,pressed:[...document.querySelectorAll('[data-camera-mode][aria-pressed="true"]')].map(b=>b.dataset.cameraMode),observer:SimulatteMotorcycleController.snapshot().observer,operation:SimulatteMotorcycleSession.snapshot().lastOperation})`);
 try{
   await c.send('Page.enable');await c.send('Runtime.enable');
   c.on('Runtime.exceptionThrown',event=>report.errors.push(event.exceptionDetails));
@@ -47,16 +47,14 @@ try{
     await ev(`window.levelChanges=[];window.levelWatcher=new MutationObserver(()=>levelChanges.push(document.getElementById('observer-level').textContent));levelWatcher.observe(document.getElementById('observer-level'),{childList:true,characterData:true,subtree:true});`);
     await ev(`window.cameraClicks=[];document.getElementById('camera-options').addEventListener('click',e=>{if(e.target.dataset.cameraMode)cameraClicks.push({mode:e.target.dataset.cameraMode,trusted:e.isTrusted});});`);
     let previous=await snapshot();
-    for(const mode of ['rooftop','area:Greenpoint','rooftop','map','rooftop','sidewalk','rooftop','rider','rooftop','free','rooftop','rooftop']){
-      await click('#camera-picker summary',touch);
-      await wait(`document.getElementById('camera-picker').open`);
+    for(const mode of ['rooftop','area:Greenpoint','rooftop','map','rooftop','sidewalk','rooftop','rider','rooftop','area:North Williamsburg','rooftop','rooftop']){
       await click(`[data-camera-mode="${mode}"]`,touch);
       await wait(`SimulatteMotorcycleSession.snapshot().lastOperation?.token>${previous.operation?.token||0} && SimulatteMotorcycleSession.snapshot().lastOperation?.status==='success'`);
       await wait(`SimulatteMotorcycleController.snapshot().observer.mode===${JSON.stringify(mode.startsWith('area:')?'map':mode)}`);
       await new Promise(resolve=>setTimeout(resolve,350));
       const next=await snapshot();
-      assert.equal(next.selected,mode);assert.equal(next.open,false);
-      if(mode==='rooftop'){assert.equal(next.label,'Rooftop');assert.ok(next.observer.z>10);}
+      assert.equal(next.selected,mode);assert.deepEqual(next.pressed,[mode]);
+      if(mode==='rooftop'){assert.ok(next.observer.z>10);}
       row.steps.push(next);previous=next;
     }
     row.clicks=await ev('cameraClicks');assert.equal(row.clicks.length,row.steps.length);assert.ok(row.clicks.every(event=>event.trusted));

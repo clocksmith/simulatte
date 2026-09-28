@@ -15,7 +15,7 @@ Creators need to understand the world they requested and make targeted changes w
 3. Keep user-authored edits authoritative through the append-only authoring graph.
 4. Make simulation outputs and visible behavior inspectable against explicit obligations.
 5. Reuse only the runtime and plugin pieces a product actually needs, without making shared code own its interface or lifecycle.
-6. Make Motorcycle Noise directly discoverable from the World landing page, with calculated acoustic mitigation, uncertain synthetic sensing, and replayable WorldSpec inputs; exclude vehicle disabling and unsupported physical or enforcement claims.
+6. Make Motorcycle Noise directly discoverable from the World landing page, with calculated acoustic mitigation, uncertain synthetic sensing, and replayable WorldSpec inputs; allow an explicitly fictional, replayable mist-and-engine-stall interaction; exclude real vehicle interference and unsupported physical or enforcement claims.
 
 7. Open simulations as immediately interactive running worlds. GPU Supercluster models rack computation, communication, and synchronization dependencies, including live straggler interventions; steady-state thermal estimates do not imply thermal evolution. Keep configuration in Advanced and observation independent of execution.
 

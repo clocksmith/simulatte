@@ -3,14 +3,14 @@
 Parent: [World](../CATSCAN.md)
 
 ## Target
-Observe autonomous city traffic and viewpoint-linked noise; compare distribution, redirection, and cancellation on NYC geometry.
+Observe autonomous traffic and viewpoint noise on NYC geometry.
 
 ## Authority
 - Owns scenario traffic, acoustic calculations, measurements, graphics, and replay.
 - Does not own WorldSpec identity, hardware, or enforcement.
 
 ## Scope
-Motorcycle Noise only. Babylon renders; Simulatte owns simulation time and mathematics.
+Babylon renders; Simulatte owns time and mathematics.
 
 ## Contracts
 - Input: sourced [NYC geometry](nyc-map.json) and [scenario parameters](reflection-model.js).
@@ -27,6 +27,7 @@ Motorcycle Noise only. Babylon renders; Simulatte owns simulation time and mathe
 - Do not equate a panel ledger with complete canyon energy conservation.
 - Never prescribe cancellation success or infer identity from a spectral peak.
 - Distinguish sourced geometry, synthetic demand, approximate propagation, and measured evidence.
+- Fictional mist stalls share replayed events across traffic, RPM, and sound; never claim calibrated water physics.
 - Cameras cannot change traffic state. Comparisons retain traffic, time, and observer position.
 - Population counts represent simulated individuals.
 - Missing building heights remain explicit; illustrative vegetation cannot become an acoustic barrier.
@@ -37,10 +38,10 @@ Motorcycle Noise only. Babylon renders; Simulatte owns simulation time and mathe
 - Evidence: [City reference cases](../../../tests/city-acoustic-reference.test.cjs) check paths, convergence, waveform agreement, and learned control.
 - Evidence: [Measurement identity tests](../../../tests/measurement-contract.test.cjs) reject stale scenario, observer, and configuration responses.
 - Evidence: [Local browser probes](../../../tools/simulatte/audit-runtime-motorcycle-start.mjs), [recovery injection](../../../tools/simulatte/audit-runtime-motorcycle-failures.mjs), and [snapshot replay](../../../tools/simulatte/audit-runtime-motorcycle-analysis.mjs) qualify browser behavior.
-- Empirical calibration, uncertainty, and physical devices require separate qualification.
+- Physical calibration requires separate qualification.
 
 ## Non-goals
-Hardware actuation, incapacitation, vehicle interference, personal identification, or field-validation claims.
+Hardware actuation, incapacitation, real vehicle interference, personal identification, or field-validation claims.
 
 ## Freedom
 Any implementation is permitted while preserving these boundaries.

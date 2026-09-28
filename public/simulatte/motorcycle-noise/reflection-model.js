@@ -55,7 +55,16 @@
     const southwest=ring.reduce((best,p)=>(p.x-minX)/width+(p.y-minY)/height<(best.x-minX)/width+(best.y-minY)/height?p:best,ring[0]);
     return {x:southwest.x,y:southwest.y-180,z:0};
   }
-  function create(map, p) {
+  function create(map, p, mistBursts=[]) {
+    if(!Array.isArray(mistBursts)||mistBursts.length>24)throw new Error('Invalid mist history');
+    const ids=new Set();
+    for(const burst of mistBursts){
+      if(!burst||typeof burst.id!=='string'||ids.has(burst.id)||!/^motorcycle-\d+$/.test(burst.sourceId)||
+        !['start','contact','end','restart'].every(key=>Number.isFinite(burst[key]))||
+        !(burst.start>=0&&burst.start<burst.contact&&burst.contact<burst.end&&burst.end<burst.restart&&burst.restart<=180)||
+        !burst.origin||!['x','y','z'].every(key=>Number.isFinite(burst.origin[key])&&Math.abs(burst.origin[key])<10000))throw new Error('Invalid mist event');
+      ids.add(burst.id);
+    }
     validate(p); const rng = random(p.seed), edges = graph(map);
     if (!edges.length) throw new Error('The NYC snapshot contains no usable street segments');
     const anchor = edges.filter(row => /Manhattan Avenue/i.test(row.name) && row.length > 30).sort((a,b) => Math.abs(a.from.y-460)-Math.abs(b.from.y-460))[0] || edges[0];
@@ -125,12 +134,14 @@
       angle:Math.atan2(-n.y,-n.x), width:p.panelWidth, height:p.panelHeight };
     const receiver = { x:center.x-n.x*(anchor.width/2+3), y:center.y-n.y*(anchor.width/2+3), z:1.5 };
     const geometry = root.MotorcycleCityPaths.create(map.buildings);
+    for(const source of sources)source.stalls=mistBursts.filter(burst=>burst.sourceId===source.id).map(burst=>({start:burst.contact,end:burst.restart}));
     const moving = root.MotorcycleTrafficMotion.prepare(sources, geometry, {motorcycle:p.motorcycles,car:p.cars,pedestrian:p.pedestrians});
     for (const [kind, expected] of [['motorcycle',p.motorcycles],['car',p.cars],['pedestrian',p.pedestrians]]) {
       const actual = moving.filter(source => source.kind === kind).length;
       if (actual !== expected) throw new Error('Street placement produced '+actual+'/'+expected+' '+kind+' agents; choose a smaller population or another seed.');
     }
-    const state = { schema:'simulatte.nycAcousticScene.v4', config:{...p}, streetCoverage:edges.coverage, startLocation:{x:(startEdge.from.x+startEdge.to.x)/2,y:(startEdge.from.y+startEdge.to.y)/2,z:0,street:startEdge.name}, sources:moving, panel, receiver, buildings:map.buildings, requestedCounts:{motorcycles:p.motorcycles,cars:p.cars,pedestrians:p.pedestrians},
+    if(mistBursts.some(burst=>!moving.some(source=>source.id===burst.sourceId)))throw new Error('Mist target is absent from this scenario');
+    const state = { mistBursts:structuredClone(mistBursts), schema:'simulatte.nycAcousticScene.v4', config:{...p}, streetCoverage:edges.coverage, startLocation:{x:(startEdge.from.x+startEdge.to.x)/2,y:(startEdge.from.y+startEdge.to.y)/2,z:0,street:startEdge.name}, sources:moving, panel, receiver, buildings:map.buildings, requestedCounts:{motorcycles:p.motorcycles,cars:p.cars,pedestrians:p.pedestrians},
       reference:{x:receiver.x-anchor.ux*5,y:receiver.y-anchor.uy*5,z:1.5},
       speaker:{x:receiver.x+anchor.ux*1.5,y:receiver.y+anchor.uy*1.5,z:1.5}, center,
       observers:[{name:'Listener',...receiver},{name:'Opposite curb',x:panel.x+n.x*3,y:panel.y+n.y*3,z:1.5},{name:'Along street',x:receiver.x+anchor.ux*25,y:receiver.y+anchor.uy*25,z:1.5}] };
@@ -148,6 +159,7 @@
   function sourceLevel(source,time) {
     const state=root.MotorcycleTrafficMotion.sample(source,time);
     if(source.kind==='motorcycle'){
+      if(state?.stalled)return -120;
       // source.db is the full-load reference, not a continuously revving engine.
       const speed=Math.max(0,Math.min(1,(state?.speed||0)/Math.max(.1,source.speed)));
       const throttle=Math.max(0,Math.min(1,(state?.acceleration||0)/2));
@@ -173,7 +185,7 @@
     let noise=0;for(let n=0;n<8;n++)noise+=Math.sin(2*Math.PI*(173+n*211+n*n*7.37)*time+source.phase*(n+1.13));noise/=2;
     const mix=source.kind==='pedestrian'?1:source.kind==='car'?.6:.16;
     const waveform=((1-mix)*tone+mix*noise)/Math.hypot(1-mix,mix);
-    return C.p0*10**(sourceLevel(source,time)/20)*waveform;
+    return state?.stalled?0:C.p0*10**(sourceLevel(source,time)/20)*waveform;
   }
 
   function solidAngle(source,panel) {
