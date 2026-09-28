@@ -652,7 +652,7 @@ html[data-world-launch="motorcycle"] #motorcycle-launch {
 }
 .launch-masthead, .launch-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .launch-masthead { padding-right: 100px; }
-.launch-wordmark { font-size: 30px; font-weight: 600; letter-spacing: -1.5px; }
+.launch-wordmark { margin: 0; line-height: 1.2; font-size: 30px; font-weight: 600; letter-spacing: -1.5px; }
 .launch-wordmark > span { color: var(--sim-ink-faint); }
 .launch-edition, .launch-kicker, .launch-footer { font-family: var(--sim-mono); font-size: 12px; letter-spacing: 1px; }
 .launch-edition { color: var(--sim-ink-faint); }
