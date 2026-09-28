@@ -165,3 +165,26 @@ body[data-state="running"] .experience-status, body[data-state="paused"] .experi
   .scene-playback button { font-size:12px; padding:4px 8px; }
   #reset-view { min-height:36px; padding:4px 8px; font-size:12px; }
 }
+
+/* Keep observation and playback close; secondary controls live in Advanced. */
+.city-toolbar { right:auto; width:max-content; max-width:calc(100% - 32px); grid-template-columns:minmax(150px,220px) auto auto auto; align-items:end; }
+#sound-controls .sound-switch { margin-top:0; }
+#sound-controls:not([data-audio-used]) .sound-switch:not(.sound-placeholder) { animation:none; }
+.observer-readout { top:122px; right:auto; width:auto; max-width:calc(100% - 32px); display:block; padding:10px 12px; }
+.meter-reading { grid-template-columns:auto auto; align-items:center; gap:4px 12px; }
+#playback-state { grid-column:1 / -1; }
+#observer-level { font-size:22px; }
+.advanced-view-controls { display:grid; gap:16px; margin-bottom:16px; }
+.advanced-view-controls > button { justify-self:start; }
+.advanced-view-controls label { display:grid; gap:6px; }
+.advanced-replay { margin-bottom:12px; }
+.settings .camera-help { position:static; display:block; transform:none; max-width:none; padding:0; margin:0 0 20px; background:none; color:var(--muted); text-align:left; }
+@media(max-width:760px) {
+  .city-toolbar { right:var(--edge); max-width:none; width:auto; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; }
+  .city-toolbar .camera-control { grid-column:1 / -1; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:12px; }
+  #sound-controls .sound-switch { justify-content:center; gap:8px; padding:8px; }
+  #header-advanced { align-self:center; }
+  .observer-readout { top:140px; left:var(--edge); right:auto; }
+  .canvas { min-height:360px; }
+  .experience-status { top:200px; }
+}

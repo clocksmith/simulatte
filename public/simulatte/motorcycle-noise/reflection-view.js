@@ -1,4 +1,19 @@
 (function(root){
+  function williamsburgAnchor(map){
+    const eighth=map.streets.filter(street=>street.name==='North 8th Street');
+    const bedford=map.streets.filter(street=>street.name==='Bedford Avenue');
+    for(const street of eighth)for(let i=1;i<street.geometry.length;i++){
+      const a=street.geometry[i-1],b=street.geometry[i],rx=b.x-a.x,ry=b.y-a.y;
+      for(const avenue of bedford)for(let j=1;j<avenue.geometry.length;j++){
+        const c=avenue.geometry[j-1],d=avenue.geometry[j],sx=d.x-c.x,sy=d.y-c.y,denominator=rx*sy-ry*sx;
+        if(Math.abs(denominator)<1e-8)continue;
+        const dx=c.x-a.x,dy=c.y-a.y,t=(dx*sy-dy*sx)/denominator,u=(dx*ry-dy*rx)/denominator;
+        if(t>=0&&t<=1&&u>=0&&u<=1)return {x:a.x+t*rx,y:a.y+t*ry,z:58};
+      }
+    }
+    throw new Error('North 8th Street and Bedford Avenue intersection missing from city geometry');
+  }
+
   async function create(canvas,map,initial,onPick,options={}){
     const trackResponse=await fetch('./mccarren-track.json?v=city-controls-v7');
     if(!trackResponse.ok)throw new Error('McCarren track geometry HTTP '+trackResponse.status);
@@ -234,13 +249,12 @@
     }
     function focusBase(name){
       if(name==='North Williamsburg'||name==='Greenpoint'){
-        // Lilia: OSM node 2842523508, 567 Union Avenue. Geographic anchors
-        // remain fixed even when a different street has a denser swarm.
-        const williamsburgStart={x:(-73.954655-map.origin.longitude)*Math.cos(map.origin.latitude*Math.PI/180)*111320,y:(40.718694-map.origin.latitude)*110540};
-        const north={x:williamsburgStart.x+(-73.9516433+73.954655)*111320*Math.cos(map.origin.latitude*Math.PI/180),y:williamsburgStart.y+(40.7234878-40.718694)*111320};
-        const anchor=sidewalkAt(name==='Greenpoint'?north:williamsburgStart),dx=name==='Greenpoint'?parkCenter.x-anchor.x:-115,dy=name==='Greenpoint'?parkCenter.y-anchor.y:65,length=Math.max(1,Math.hypot(dx,dy));
+        const north={x:(-73.9516433-map.origin.longitude)*111320*Math.cos(map.origin.latitude*Math.PI/180),y:(40.718694-map.origin.latitude)*110540+(40.7234878-40.718694)*111320};
+        const anchor=name==='Greenpoint'?sidewalkAt(north):williamsburgAnchor(map);
+        const dx=parkCenter.x-anchor.x,dy=parkCenter.y-anchor.y,length=Math.max(1,Math.hypot(dx,dy));
+        const target=name==='Greenpoint'?{x:anchor.x+dx/length*115,y:anchor.y+dy/length*115,z:0}:parkCenter;
         followed=null;scene.activeCamera.detachControl();cameraMode='map';scene.activeCamera=camera;
-        camera.setTarget(vector({x:anchor.x+dx/length*115,y:anchor.y+dy/length*115,z:0}));camera.setPosition(vector({...anchor,z:58}));savedRadius=camera.radius;
+        camera.setTarget(vector(target));camera.setPosition(vector({...anchor,z:58}));savedRadius=camera.radius;
         camera.inertialAlphaOffset=0;camera.inertialBetaOffset=0;camera.inertialRadiusOffset=0;camera.inertialPanningX=0;camera.inertialPanningY=0;camera.attachControl(canvas,true);return;
       }
       const place=map.places.find(row=>row.label===name);if(place){setCameraMode('map');const traffic=trafficCandidates(place.position)[0];camera.setTarget(vector(traffic||place.position));camera.radius=190;camera.beta=.78;camera.alpha=Math.PI/2;}
@@ -261,5 +275,5 @@
       snapSidewalk:sidewalkAt,setTreatmentSelection(id){treatmentSelection=id;},draw,setSources,showMeasurements,setReceiverMarkers,setCameraMode,getFocus,getObserver,placeObserver,focusSource,focus,homePark,nearestMotorcycle,backend:engine instanceof B.WebGPUEngine?'WebGPU':'WebGL',dispose};
     } catch(error) { try{dispose();}catch(cleanupError){error.cleanupError=cleanupError.message;}throw error;}
   }
-  root.MotorcycleReflectionView={create};
+  root.MotorcycleReflectionView={create,williamsburgAnchor};
 })(globalThis);

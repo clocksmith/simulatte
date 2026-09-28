@@ -45,7 +45,7 @@
       const abort=()=>{finish();populationWorker?.terminate();populationWorker=null;reject(Object.assign(new Error('Traffic preparation cancelled'),{name:'AbortError'}));};
       cancelPopulation=abort;signal?.addEventListener('abort',abort,{once:true});
       const finish=()=>{signal?.removeEventListener('abort',abort);if(cancelPopulation===abort)cancelPopulation=null;};
-      populationWorker=new Worker('./population-worker.js?v=city-controls-v7');
+      populationWorker=new Worker('./population-worker.js?v=sidewalk-population-v18');
       populationWorker.onerror=event=>{finish();reject(new Error(event.message||'Traffic preparation failed'));};
       populationWorker.onmessage=({data})=>{
         if(request!==populationRequest||signal?.aborted)return;

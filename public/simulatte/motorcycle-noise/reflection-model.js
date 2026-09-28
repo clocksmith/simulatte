@@ -1,6 +1,6 @@
 (function (root) {
   const C = { rho: 1.204, p0: 20e-6, duration: 1.25, rate: 8000 };
-  const defaults = { seed: 731, motorcycles: 300, cars: 80, pedestrians: 120, speed: 9, rpm: 2400,
+  const defaults = { seed: 731, motorcycles: 300, cars: 80, pedestrians: 600, speed: 9, rpm: 2400,
     temperature: 20, background: 20, sourceDb: 136, surface: 'none', reflectivity: 0.7, transmission: 0.1,
     cancellation: false, latencyMs: 2, panelWidth: 16, panelHeight: 3, coneDegrees: 60 };
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, (a.z || 0) - (b.z || 0));
@@ -11,7 +11,7 @@
   function random(seed) { let n = seed >>> 0; return () => { n = (Math.imul(n, 1664525) + 1013904223) >>> 0; return n / 4294967296; }; }
   const soundSpeed = p => Math.sqrt(1.4 * 287.05 * (p.temperature + 273.15));
   function validate(p) {
-    for (const [key, low, high] of [['seed',1,2147483647],['motorcycles',0,600],['cars',0,240],['pedestrians',0,400],['speed',2,14],['rpm',1200,8000],['temperature',-10,40],['background',15,65],['sourceDb',60,145],['reflectivity',0,1],['transmission',0,1],['latencyMs',0,20],['panelWidth',4,24],['panelHeight',1,5],['coneDegrees',45,90]]) {
+    for (const [key, low, high] of [['seed',1,2147483647],['motorcycles',0,600],['cars',0,240],['pedestrians',0,1200],['speed',2,14],['rpm',1200,8000],['temperature',-10,40],['background',15,65],['sourceDb',60,145],['reflectivity',0,1],['transmission',0,1],['latencyMs',0,20],['panelWidth',4,24],['panelHeight',1,5],['coneDegrees',45,90]]) {
       if (!Number.isFinite(p[key]) || p[key] < low || p[key] > high) throw new Error(`Invalid ${key}`);
     }
     for (const key of ['seed','motorcycles','cars','pedestrians']) if (!Number.isInteger(p[key])) throw new Error(`Invalid integer ${key}`);
@@ -79,6 +79,7 @@
       return false;
     }
     const parkEdges=local.filter(nearPark);
+    const walkingEdges=local.filter(edge=>nearPark(edge)||/^(Bedford|Driggs) Avenue$/.test(edge.name));
     const packs = new Map();
     function packFor(index) {
       const id = Math.floor(index/16);
@@ -110,7 +111,8 @@
     }
     for (const [kind, count] of [['motorcycle',p.motorcycles],['car',p.cars],['pedestrian',p.pedestrians]]) for (let i=0;i<count*4;i++) {
       const pack = kind==='motorcycle' ? packFor(i) : null;
-      const edge = pack ? pack.edge : local[Math.floor(rng()*local.length)] || anchor;
+      const pool=kind==='pedestrian'&&i%4!==3&&walkingEdges.length?walkingEdges:local;
+      const edge = pack ? pack.edge : pool[Math.floor(rng()*pool.length)] || anchor;
       const speed = pack ? pack.speed : kind==='pedestrian' ? 1+0.5*rng() : p.speed*(0.8+0.3*rng());
       const cylinders = kind==='motorcycle' ? 2 : kind==='car' ? 4 : 0;
       sources.push({ id: `${kind}-${i+1}`, kind, cylinders, packId:pack ? pack.id : null, route:pack ? packRoute(pack,i) : route(edge,kind==='pedestrian'?'sidewalk':'lane'),

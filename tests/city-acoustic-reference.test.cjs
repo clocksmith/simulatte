@@ -56,3 +56,23 @@ test('facade identity survives input ordering and missing heights never become f
  assert.equal(first.hits({x:-1,y:2,z:2},{x:5,y:2,z:2}).length,0);
  assert.throws(()=>global.MotorcycleCityPaths.create([a,a]),/identity/);
 });
+
+test('Williamsburg uses the mapped North 8th and Bedford crossing and a populated sidewalk scene', () => {
+  require('../public/simulatte/motorcycle-noise/reflection-view.js');
+  const map = require('../public/simulatte/motorcycle-noise/nyc-map.json');
+  const anchor = global.MotorcycleReflectionView.williamsburgAnchor(map);
+  for (const name of ['North 8th Street', 'Bedford Avenue']) {
+    const distances = map.streets.filter(street => street.name === name).flatMap(street => street.geometry.slice(1).map((b, i) => {
+      const a = street.geometry[i], dx = b.x - a.x, dy = b.y - a.y;
+      const t = Math.max(0, Math.min(1, ((anchor.x-a.x)*dx+(anchor.y-a.y)*dy)/(dx*dx+dy*dy)));
+      return Math.hypot(anchor.x-a.x-t*dx, anchor.y-a.y-t*dy);
+    }));
+    assert.ok(Math.min(...distances) < .01, name);
+  }
+  assert.equal(anchor.z, 58);
+  const scene = M.create(map, {...M.defaults});
+  const walkers = scene.sources.filter(source => source.kind === 'pedestrian');
+  assert.equal(walkers.length, 600);
+  assert.ok(walkers.filter(source => M.position(source, 12).speed > .1).length > 500);
+  for (const source of walkers) assert.equal(scene.acousticContext.occupied(M.position(source, 12)), false);
+});
