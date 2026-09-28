@@ -2,7 +2,7 @@
   'use strict';
   const M=()=>root.MotorcycleReflection;
   let state,reading,context,master,limiter,bed,bedGain,enabled=false,button,soundLabel,statusNode,world;
-  let wanted=false,starting=false;
+  let wanted=false,starting=false,soundInvitation;
   let sequence=0,previousTime=null,voices=new Map(),waves=new Map(),noiseBuffer,appliedReading=null,fadePending=false;
   const MAX_VOICES=32;
   // Compress the scene's acoustic range into a usable listening range.
@@ -82,6 +82,7 @@
     if(context&&context.state!=='closed')void context.suspend().catch(error=>status(error.message));
     if(button)button.checked=false;
     if(soundLabel)soundLabel.textContent='Sound';
+    if(soundInvitation)soundInvitation.hidden=false;
     status('');
   }
   function fail(error){mute();releaseContext();if(button){button.checked=false;button.title=error.message||String(error);button.setAttribute('aria-label','Retry sound: '+(error.message||String(error)));}if(soundLabel)soundLabel.textContent='Retry sound';status(error.message||String(error));}
@@ -94,6 +95,10 @@
     button.title='Continuous synthesized traffic at your viewpoint. Playback volume is independent of modeled dBA. The strongest 32 sources have individual voices; remaining traffic contributes to the ambient mix. No live phase-cancellation claim.';
     statusNode=document.createElement('span');statusNode.id='traffic-audio-status';statusNode.className='muted';statusNode.setAttribute('role','status');statusNode.style.fontSize='.75rem';
     toolbar.prepend(soundControl);document.getElementById('audio-status-slot').append(statusNode);
+    soundInvitation=document.createElement('button');soundInvitation.id='sound-invitation';
+    soundInvitation.type='button';soundInvitation.className='sound-invitation';
+    soundInvitation.textContent='Turn sound on for the full experience';
+    toolbar.append(soundInvitation);button.setAttribute('aria-describedby',soundInvitation.id);
     const prompt=document.getElementById('sound-prompt'),startButton=document.getElementById('sound-start'),dismissButton=document.getElementById('sound-dismiss');
     startButton.disabled=false;dismissButton.disabled=false;
     function dismissPrompt(){if(prompt.contains(document.activeElement))button.focus({preventScroll:true});prompt.hidden=true;}
@@ -117,6 +122,7 @@
             if(!enabled||context?.state==='running')return;
             sequence++;wanted=false;starting=false;enabled=false;quiet();
             button.checked=false;soundLabel.textContent='Resume sound';
+            soundInvitation.hidden=false;
             status('Audio interrupted. Tap Sound to resume.');
           };
           master=context.createGain();master.gain.value=3;
@@ -148,6 +154,8 @@
         if(context.state!=='running')throw new Error('Sound is unavailable. Try the Sound switch again.');
         if(output&&output.paused)throw new Error('Mobile playback is paused. Tap Sound to retry.');
         enabled=true;button.checked=true;appliedReading=null;fadePending=false;
+        if(document.activeElement===soundInvitation)button.focus({preventScroll:true});
+        soundInvitation.hidden=true;
         button.setAttribute('aria-label','Traffic sound');
         soundLabel.textContent='Sound';
         dismissPrompt();
@@ -159,6 +167,7 @@
     }
     button.addEventListener('change',()=>{wanted=button.checked;if(!wanted)mute();else void enableSound();});
     startButton.addEventListener('click',()=>{wanted=true;void enableSound();});
+    soundInvitation.addEventListener('click',()=>{wanted=true;void enableSound();});
     dismissButton.addEventListener('click',dismissPrompt);
     document.addEventListener('click',event=>{if(event.target.closest('#listen, #listen-source'))mute();},true);
     document.addEventListener('visibilitychange',()=>{if(document.hidden)mute();});
