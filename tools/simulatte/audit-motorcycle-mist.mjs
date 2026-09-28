@@ -33,11 +33,17 @@ try{
  await ev(`SimulatteMotorcycleController.invoke('select-object',{sourceId:${JSON.stringify(sourceId)}})`);
  await click('#follow-selected');for(let i=0;i<6;i++)await click('#map-zoom-in');
  await ev(`window.sprayClicks=[];document.getElementById('spray-selected').addEventListener('click',e=>sprayClicks.push(e.isTrusted));`);
+ await ev(`SimulatteMotorcycleController.invoke('resume')`);
  await click('#spray-selected');await wait(`SimulatteMotorcycleController.snapshot().mistBursts.length===1`);report.spray=await snapshot();assert.deepEqual(await ev('sprayClicks'),[true]);
  const event=report.spray.mistBursts[0];
+ await wait(`SimulatteMotorcycleController.snapshot().time>=${event.contact+.4}`);
+ report.playing=await snapshot();assert.equal(report.playing.paused,false);assert.ok(report.playing.observer.z>20,'close camera keeps its height while following');assert.equal(report.playing.motorcycles.find(s=>s.id===sourceId).position.stalled,true,'engine stalls during ordinary playback');
+ await ev(`SimulatteMotorcycleController.invoke('pause')`);
  // Seek uses the same recorded interaction history and shared motion model.
  await ev(`SimulatteMotorcycleController.invoke('seek',${event.start+1.5})`);await new Promise(r=>setTimeout(r,500));await shot('spray-contact');
  report.visual=await ev(`(()=>{const scene=BABYLON.EngineStore.LastCreatedScene;return {plume:scene.meshes.filter(m=>m.name==='mist-plume'&&m.isEnabled()).length,contact:scene.meshes.filter(m=>m.name==='mist-contact'&&m.isEnabled()).length};})()`);
+ report.visibility=await ev(`(()=>{const s=BABYLON.EngineStore.LastCreatedScene,camera=s.activeCamera,target=camera.target,eye=camera.globalPosition,delta=target.subtract(eye),ray=new BABYLON.Ray(eye,delta.normalizeToNew(),delta.length());return {radius:camera.radius,height:eye.y,blocked:!!s.pickWithRay(ray,m=>/nyc-walls|nyc-roofs/.test(m.name))?.hit};})()`);
+ assert.equal(report.visibility.blocked,false,'a building must not hide the sprayed motorcycle');assert.ok(Math.abs(report.visibility.radius-28)<.01,'tracking preserves the close-up distance');
  assert.ok(report.visual.plume>=80);assert.ok(report.visual.contact>=32);
  await ev(`SimulatteMotorcycleController.invoke('seek',${event.contact+4})`);await new Promise(r=>setTimeout(r,500));report.stalled=await snapshot();const bike=report.stalled.motorcycles.find(s=>s.id===sourceId);assert.equal(bike.position.rpm,0);assert.equal(bike.position.speed,0);assert.equal(bike.position.stalled,true);await shot('stalled');
  await ev(`SimulatteMotorcycleController.invoke('seek',${event.restart+2})`);await new Promise(r=>setTimeout(r,200));report.restarted=await snapshot();assert.equal(report.restarted.motorcycles.find(s=>s.id===sourceId).position.stalled,false);assert.ok(report.restarted.motorcycles.find(s=>s.id===sourceId).position.rpm>0);

@@ -59,7 +59,7 @@
     const observerCamera=new B.UniversalCamera('observer-camera',vector(initial.receiver),scene);
     observerCamera.minZ=.1;observerCamera.fov=.95;observerCamera.speed=2.5;observerCamera.inertia=.7;
     scene.activeCamera=camera;
-    let followed=null,openingPending=true;
+    let followed=null,followClose=false,openingPending=true;
     let cameraMode='map',current=initial,lastTime=0,lastSource=null,selectedId=null,savedRadius=openingRadius;
     const receiverMarkers=new Map();
     new B.HemisphericLight('sky',new B.Vector3(0,1,0),scene).intensity=.65;
@@ -223,7 +223,7 @@
     function nearestMotorcycle(){
       return trafficCandidates(getObserver()).sort((a,b)=>(b.score+b.ahead*5)-(a.score+a.ahead*5))[0]?.id||null;
     }
-    function focusSource(id,close=false){const source=current.sources.find(item=>item.id===id);if(!source)return;setCameraMode('map');camera.setTarget(vector(root.MotorcycleReflection.position(source,lastTime)));camera.radius=close?28:100;if(close){camera.beta=.35;camera.alpha=Math.PI-root.MotorcycleReflection.position(source,lastTime).heading;}followed=id;}
+    function focusSource(id,close=false){const source=current.sources.find(item=>item.id===id);if(!source)return;setCameraMode('map');camera.setTarget(vector(root.MotorcycleReflection.position(source,lastTime)));camera.radius=close?28:100;if(close){camera.beta=.35;camera.alpha=Math.PI-root.MotorcycleReflection.position(source,lastTime).heading;}followClose=close;followed=id;}
     function pickScene(pick){if(!pick?.hit)return;
       if(pick.pickedMesh.metadata?.treatmentId)onPick({treatmentId:pick.pickedMesh.metadata.treatmentId});
       else if(pick.pickedMesh.metadata?.receiverId)onPick({receiverId:pick.pickedMesh.metadata.receiverId});
@@ -238,7 +238,7 @@
     function draw(state){
       const M=root.MotorcycleReflection,s=state.scene,t=state.time;current=s;lastTime=t;
       if(openingPending){openingPending=false;focus('Greenpoint');}
-      if(followed&&cameraMode==='map'){const source=s.sources.find(row=>row.id===followed);if(source)camera.setTarget(vector(M.position(source,t)));}
+      if(followed&&cameraMode==='map'){const source=s.sources.find(row=>row.id===followed);if(source){const point=M.position(source,t);camera.target.copyFrom(vector(point));if(followClose)camera.alpha=Math.PI-point.heading;}}
       for(const source of s.sources){const mesh=city.vehicles.get(source.id),p=M.position(source,t);if(!mesh)continue;mesh.position=vector({...p,z:0});mesh.rotation.y=p.heading+Math.PI/2;city.animate(mesh,p,source.kind);}
       panel.position=vector(s.panel);panel.scaling.set(s.panel.width,s.panel.height,.35);panel.rotation.y=s.panel.angle+Math.PI/2;panel.isVisible=s.config.surface!=='none';
       emitter.position=vector(s.speaker);emitter.isVisible=s.config.cancellation;
