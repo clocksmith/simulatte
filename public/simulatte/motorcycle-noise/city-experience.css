@@ -21,6 +21,22 @@
 .city-toolbar > * { min-width:0; margin:0; }
 .city-toolbar .compact { display:grid; gap:4px; align-items:stretch; color:var(--muted); font-size:11px; }
 .city-toolbar .sim-field { width:100%; min-width:0; font-size:14px; }
+.camera-picker { position:relative; min-width:0; margin:0; padding:0; border:0; }
+.camera-picker > summary {
+  display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px;
+  padding:8px 12px; border:1px solid var(--line); border-radius:var(--sim-radius-small);
+  background:var(--field); color:var(--ink); font:500 14px/1.4 var(--sim-font); cursor:pointer; list-style:none;
+}
+.camera-picker > summary::-webkit-details-marker { display:none; }
+.camera-picker > summary::after { content:''; width:6px; height:6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); flex:none; }
+.camera-picker > summary:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.camera-options {
+  position:absolute; z-index:10; top:calc(100% + 6px); left:0; width:100%; min-width:210px;
+  display:grid; gap:4px; padding:6px; border:1px solid var(--line); border-radius:var(--sim-radius-small);
+  background:var(--sim-paper); box-shadow:var(--sim-shadow-small);
+}
+.camera-options > button { text-align:left; justify-content:flex-start; min-height:44px; padding:8px 12px; border:1px solid transparent; background:transparent; }
+.camera-options > button:hover, .camera-options > button[aria-pressed="true"] { background:var(--sim-accent-soft); border-color:var(--line); }
 #sound-controls { position:relative; display:flex; justify-content:flex-end; align-items:center; }
 #header-advanced { align-self:end; }
 .sound-switch { position:relative; display:flex; align-items:center; gap:12px; min-height:44px; padding:8px 12px; border:1px solid var(--line); border-radius:var(--sim-radius-small); background:var(--field); cursor:pointer; }

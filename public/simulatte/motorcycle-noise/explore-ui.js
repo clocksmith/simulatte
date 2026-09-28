@@ -9,13 +9,27 @@
     const configuration=scene=>[scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode];
     const mapObservation=()=>[measurements.focusKey(view.getFocus(),view.getObserver()),markers];
     const events=new AbortController(),on=(element,type,handler)=>element.addEventListener(type,handler,{signal:events.signal});
+    const cameraSelect=$('camera-mode'),cameraPicker=$('camera-picker'),cameraOptions=$('camera-options');
+    cameraOptions.replaceChildren(...Array.from(cameraSelect.options,option=>{
+      const button=document.createElement('button');button.type='button';button.textContent=option.textContent;
+      button.dataset.cameraMode=option.value;button.dataset.ready='';button.disabled=true;
+      on(button,'click',()=>{cameraPicker.open=false;cameraPicker.querySelector('summary').focus({preventScroll:true});command('camera',option.value);});
+      return button;
+    }));
+    function showCamera(mode){
+      cameraSelect.value=mode;$('camera-current').textContent=cameraSelect.selectedOptions[0].textContent;
+      for(const button of cameraOptions.children)button.setAttribute('aria-pressed',String(button.dataset.cameraMode===mode));
+    }
+    showCamera(cameraSelect.value);
+    on(document,'click',event=>{if(!cameraPicker.contains(event.target))cameraPicker.open=false;});
+    on(cameraPicker,'keydown',event=>{if(event.key==='Escape'){event.preventDefault();cameraPicker.open=false;cameraPicker.querySelector('summary').focus();}});
     const setText=(id,text)=>$(id).textContent=text;
     const treatments=root.MotorcycleTreatmentControls.create({view,getScene,getTime,command});
     function renderMarkers(){view.setReceiverMarkers(markers,selectedMarker);}
     function inspectMarker(id){
       inspectedLocation=null;selectedMarker=id;inspectedSource=null;placing=false;$('add-receiver').setAttribute('aria-pressed','false');
       $('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=false;
-      const marker=markers.find(item=>item.id===id);if(marker){view.placeObserver(marker,marker.z>4?'rooftop':'sidewalk');$('camera-mode').value=marker.z>4?'rooftop':'sidewalk';}
+      const marker=markers.find(item=>item.id===id);if(marker){view.placeObserver(marker,marker.z>4?'rooftop':'sidewalk');showCamera(marker.z>4?'rooftop':'sidewalk');}
       renderMarkers();paint();nextAt=0;
     }
     function inspectSource(id){inspectedLocation=null;selectedMarker=null;inspectedSource=id;selectSource(id);$('inspection').hidden=false;$('source-actions').hidden=false;$('receiver-actions').hidden=true;renderMarkers();paint();}
@@ -115,10 +129,10 @@
         if(markers.length>=8){setText('live-summary','Eight markers placed; remove one to add another');return true;}
         const id=nextId++,marker={id:`receiver-${id}`,name:`Observer ${id}`,...value.point};markers.push(marker);inspectMarker(marker.id);return true;
       }
-      if(value.point){onMeasurement('stale');inspectedLocation={...value.point,buildingId:value.buildingId||null};selectedMarker=null;inspectedSource=null;view.placeObserver(value.point,value.surface||'sidewalk');$('camera-mode').value=value.surface||'sidewalk';$('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=true;renderMarkers();paint();nextAt=0;observerNextAt=0;return true;}
+      if(value.point){onMeasurement('stale');inspectedLocation={...value.point,buildingId:value.buildingId||null};selectedMarker=null;inspectedSource=null;view.placeObserver(value.point,value.surface||'sidewalk');showCamera(value.surface||'sidewalk');$('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=true;renderMarkers();paint();nextAt=0;observerNextAt=0;return true;}
       return false;
     }
-    on($('area-focus'),'change',event=>{if(event.target.value==='McCarren Park'){view.homePark();$('camera-mode').value='map';}else{if(event.target.value)view.focus(event.target.value);$('camera-mode').value='map';}nextAt=0;observerNextAt=0;});
+    on($('area-focus'),'change',event=>{if(event.target.value==='McCarren Park')view.homePark();else if(event.target.value)view.focus(event.target.value);showCamera('map');nextAt=0;observerNextAt=0;});
     function setCamera(mode){
       if(mode==='map')view.homePark();
       else if(mode.startsWith('area:'))view.focus(mode.slice(5));
@@ -126,9 +140,9 @@
         if(mode==='rider'&&!inspectedSource){const id=view.nearestMotorcycle();if(id)selectSource(id);}
         view.setCameraMode(mode);
       }
-      $('camera-mode').value=mode;nextAt=0;observerNextAt=0;onMeasurement('stale');
+      showCamera(mode);nextAt=0;observerNextAt=0;onMeasurement('stale');
     }
-    function follow(){ $('camera-mode').value='map';view.focusSource(inspectedSource||getSelected());nextAt=0;onMeasurement('stale'); }
+    function follow(){ showCamera('map');view.focusSource(inspectedSource||getSelected());nextAt=0;onMeasurement('stale'); }
     on($('camera-mode'),'change',event=>command('camera',event.target.value));
     on($('add-receiver'),'click',()=>{placing=!placing;$('add-receiver').setAttribute('aria-pressed',String(placing));setText('live-summary',placing?'Click a sidewalk or roof to place an observation marker':'Live sound estimate');});
     on($('inspection-close'),'click',()=>{inspectedLocation=null;selectedMarker=null;inspectedSource=null;$('inspection').hidden=true;renderMarkers();});
