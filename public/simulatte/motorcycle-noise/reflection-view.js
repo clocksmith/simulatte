@@ -1,4 +1,5 @@
 (function(root){
+  const PARK_VIEW_SOUTH_OFFSET_M=120;
   function williamsburgAnchor(map){
     const eighth=map.streets.filter(street=>street.name==='North 8th Street');
     const bedford=map.streets.filter(street=>street.name==='Bedford Avenue');
@@ -212,10 +213,10 @@
       const turn=Math.PI/3+Math.PI/2;
       const target={x:anchor.x+15*Math.cos(turn)-105*Math.sin(turn),y:anchor.y+15*Math.sin(turn)+105*Math.cos(turn),z:0};
       const dx=anchor.x-target.x,dy=anchor.y-target.y,distance=Math.max(1,Math.hypot(dx,dy));
-      const pan={x:100*dx/distance,y:100*dy/distance};
-      camera.setTarget(vector({...target,x:target.x+pan.x,y:target.y+pan.y}));
-      camera.setPosition(vector({x:anchor.x+pan.x,y:anchor.y+pan.y,z:92}));
-      camera.radius*=1.35;savedRadius=camera.radius;
+      const pan={x:100*dx/distance,y:100*dy/distance-PARK_VIEW_SOUTH_OFFSET_M};
+      camera.setTarget(vector(parkCenter));
+      camera.setPosition(vector({x:anchor.x+pan.x+dx*.35,y:anchor.y+pan.y+dy*.35,z:92*1.35}));
+      savedRadius=camera.radius;
       camera.inertialAlphaOffset=0;camera.inertialBetaOffset=0;camera.inertialRadiusOffset=0;camera.inertialPanningX=0;camera.inertialPanningY=0;
       camera.attachControl(canvas,true);
     }
