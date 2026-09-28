@@ -1,0 +1,696 @@
+{
+  "schema": "simulatte.cameraPickerAudit.v1",
+  "baseUrl": "https://simulatte.world/",
+  "sources": {
+    "head": "f455d597c4bcf86e88696c0fc1ace4653d47529c",
+    "capturedAt": "2026-09-28T20:13:39.927Z",
+    "modifiedSources": {
+      "public/blank/index.html": {
+        "sha256": "8df383626835026c119cf0cf59683ea9ab2dd5fa2c082ccdeca1404278b21f3e",
+        "modifiedAt": "2026-09-28T20:12:55.874Z"
+      },
+      "public/index.html": {
+        "sha256": "06d77acad4469704f559c6c02595831f992fe633b6d25947f631edbdfb7b68b9",
+        "modifiedAt": "2026-09-28T20:12:55.873Z"
+      },
+      "public/version.json": {
+        "sha256": "381bac98a5b951e1688d761a2b98e1d96f0fb04b930f0ed061d9e64e0c7521f0",
+        "modifiedAt": "2026-09-28T20:12:55.874Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "cases": [
+    {
+      "width": 1440,
+      "steps": [
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 1,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "area:Greenpoint",
+          "label": "Greenpoint",
+          "observer": {
+            "x": 2237.6874375136717,
+            "y": -199.9526911015625,
+            "z": 34.00000762939453,
+            "right": {
+              "x": 0.981550931930542,
+              "y": -0.19120068848133087
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "map"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 2,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 3,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "map",
+          "label": "McCarren Park",
+          "observer": {
+            "x": 2135.425764540039,
+            "y": -711.9836969609376,
+            "z": 124.19998168945312,
+            "right": {
+              "x": -0.9787289500236511,
+              "y": 0.20515762269496918
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "map"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 4,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 5,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "sidewalk",
+          "label": "Sidewalk",
+          "observer": {
+            "x": 2491.0985703261717,
+            "y": -566.5527887578126,
+            "z": 1.6999999284744263,
+            "right": {
+              "x": 0.5005782842636108,
+              "y": 0.8656913042068481
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "sidewalk"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 6,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 7,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rider",
+          "label": "Onboard motorcycle",
+          "observer": {
+            "x": 2493.8187241347655,
+            "y": -565.5519953007813,
+            "z": 1.7000000476837158,
+            "right": {
+              "x": 0.7486468553543091,
+              "y": 0.6629689931869507
+            },
+            "sourceId": "motorcycle-290",
+            "trackId": "motorcycle-290",
+            "mode": "rider"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 8,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 9,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "free",
+          "label": "Free camera",
+          "observer": {
+            "x": 2488.4527268203124,
+            "y": -563.5650568242188,
+            "z": 2.9999938011169434,
+            "right": {
+              "x": 0.5005791783332825,
+              "y": 0.8656907677650452
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "free"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 10,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 11,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 12,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        }
+      ],
+      "clicks": [
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "area:Greenpoint",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "map",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "sidewalk",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "rider",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "free",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "steps": [
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 1,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "area:Greenpoint",
+          "label": "Greenpoint",
+          "observer": {
+            "x": 2237.6874375136717,
+            "y": -199.9526911015625,
+            "z": 34.00000762939453,
+            "right": {
+              "x": 0.981550931930542,
+              "y": -0.19120068848133087
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "map"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 2,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 3,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "map",
+          "label": "McCarren Park",
+          "observer": {
+            "x": 2135.425764540039,
+            "y": -711.9836969609376,
+            "z": 124.19998168945312,
+            "right": {
+              "x": -0.9787289500236511,
+              "y": 0.20515762269496918
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "map"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 4,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 5,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "sidewalk",
+          "label": "Sidewalk",
+          "observer": {
+            "x": 2489.8692612441405,
+            "y": -565.1646051640626,
+            "z": 1.6999984979629517,
+            "right": {
+              "x": 0.500576913356781,
+              "y": 0.8656920194625854
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "sidewalk"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 6,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 7,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rider",
+          "label": "Onboard motorcycle",
+          "observer": {
+            "x": 2503.6379990371092,
+            "y": -574.6791925664063,
+            "z": 1.7000000476837158,
+            "right": {
+              "x": 0.7486468553543091,
+              "y": 0.6629689931869507
+            },
+            "sourceId": "motorcycle-73",
+            "trackId": "motorcycle-73",
+            "mode": "rider"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 8,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 9,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "free",
+          "label": "Free camera",
+          "observer": {
+            "x": 2489.3981003554686,
+            "y": -564.6325617070313,
+            "z": 2.9999990463256836,
+            "right": {
+              "x": 0.5005797743797302,
+              "y": 0.8656904101371765
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "free"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 10,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 11,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        },
+        {
+          "selected": "rooftop",
+          "label": "Rooftop",
+          "observer": {
+            "x": 2081.643541792236,
+            "y": -708.21819403125,
+            "z": 34.1276741027832,
+            "right": {
+              "x": -0.8807337880134583,
+              "y": 0.4736115634441376
+            },
+            "sourceId": null,
+            "trackId": null,
+            "mode": "rooftop"
+          },
+          "operation": {
+            "id": "camera",
+            "token": 12,
+            "generation": 0,
+            "status": "success"
+          },
+          "open": false
+        }
+      ],
+      "clicks": [
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "area:Greenpoint",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "map",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "sidewalk",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "rider",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "free",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        },
+        {
+          "mode": "rooftop",
+          "trusted": true
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/153.0.8010.53",
+    "revision": "@792bf6722e73a45aa9e47c163b9901bdc17f3230",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "jsVersion": "15.3.76.13"
+  },
+  "pass": true
+}
