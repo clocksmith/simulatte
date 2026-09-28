@@ -43,6 +43,8 @@ try{
     await c.send('Emulation.setTouchEmulationEnabled',{enabled:touch});
     await c.send('Page.navigate',{url:new URL('motorcycle',baseUrl).href});
     await wait(`document.body?.dataset.state==='running'`);
+    await wait(`/^\\d+(?:\\.\\d+)? dBA$/.test(document.getElementById('observer-level').textContent)`);
+    await ev(`window.levelChanges=[];window.levelWatcher=new MutationObserver(()=>levelChanges.push(document.getElementById('observer-level').textContent));levelWatcher.observe(document.getElementById('observer-level'),{childList:true,characterData:true,subtree:true});`);
     await ev(`window.cameraClicks=[];document.getElementById('camera-options').addEventListener('click',e=>{if(e.target.dataset.cameraMode)cameraClicks.push({mode:e.target.dataset.cameraMode,trusted:e.isTrusted});});`);
     let previous=await snapshot();
     for(const mode of ['rooftop','area:Greenpoint','rooftop','map','rooftop','sidewalk','rooftop','rider','rooftop','free','rooftop','rooftop']){
@@ -51,12 +53,16 @@ try{
       await click(`[data-camera-mode="${mode}"]`,touch);
       await wait(`SimulatteMotorcycleSession.snapshot().lastOperation?.token>${previous.operation?.token||0} && SimulatteMotorcycleSession.snapshot().lastOperation?.status==='success'`);
       await wait(`SimulatteMotorcycleController.snapshot().observer.mode===${JSON.stringify(mode.startsWith('area:')?'map':mode)}`);
+      await new Promise(resolve=>setTimeout(resolve,350));
       const next=await snapshot();
       assert.equal(next.selected,mode);assert.equal(next.open,false);
       if(mode==='rooftop'){assert.equal(next.label,'Rooftop');assert.ok(next.observer.z>10);}
       row.steps.push(next);previous=next;
     }
     row.clicks=await ev('cameraClicks');assert.equal(row.clicks.length,row.steps.length);assert.ok(row.clicks.every(event=>event.trusted));
+    row.readings=await ev('levelWatcher.disconnect();levelChanges');
+    assert.ok(row.readings.length>0,'new measurements continue arriving');
+    assert.ok(row.readings.every(text=>/^\d+(?:\.\d+)? dBA$/.test(text)),'the last number stays visible while the viewpoint updates');
     assert.equal(await ev('document.documentElement.scrollWidth>innerWidth'),false);
     const shot=await c.send('Page.captureScreenshot',{format:'png'});await fs.writeFile(out+'/rooftop-'+width+'.png',Buffer.from(shot.data,'base64'));
   }

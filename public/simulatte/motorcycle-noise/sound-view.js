@@ -28,7 +28,7 @@
       const source=sourceList.find(item=>item.id===state.selected);
       if(!source){label.isVisible=false;for(const line of Object.values(lines))line.isVisible=false;return;}
       const position=M.position(source,state.time);label.position=vector({...position,z:4.3});label.scaling.setAll(Math.max(.7,Math.min(8,B.Vector3.Distance(eye,label.position)*.008)));label.isVisible=active.name!=='rider-camera';
-      if(selected!==source.id){selected=source.id;const ctx=texture.getContext();ctx.clearRect(0,0,160,64);ctx.fillStyle='#10231de8';ctx.fillRect(8,5,144,54);ctx.fillStyle=colorFor(source.id);ctx.font='bold 32px monospace';ctx.textAlign='center';ctx.fillText('M'+source.id.split('-').pop(),80,44);texture.update(false);}
+      if(selected!==source.id){selected=source.id;const ctx=texture.getContext();ctx.clearRect(0,0,160,64);ctx.fillStyle='#10231de8';ctx.fillRect(8,5,144,54);ctx.fillStyle=colorFor(source.id);ctx.font='bold 32px monospace';ctx.textAlign='center';ctx.fillText('M'+source.id.split('-').pop(),80,44);texture.update(true);}
       const inspecting=!document.getElementById('inspection').hidden&&!document.getElementById('source-actions').hidden;
       const visible=state.paths||inspecting;for(const line of Object.values(lines))line.isVisible=visible;if(!visible)return;
       if(Math.abs(state.time-lastAt)<.1)return;lastAt=state.time;

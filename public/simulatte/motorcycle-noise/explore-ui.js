@@ -61,6 +61,7 @@
       if(history.length&&data.time<history[history.length-1].time)history=[];
       history.push({time:data.time,level:reading.total,point:reading.point});if(history.length>80)history.shift();
       setText('observer-level',`${reading.total.toFixed(1)} dBA`);
+      $('observer-level').title=`Measured at simulation time ${data.time.toFixed(1)} s`;
       setText('observer-position',`${reading.point.mode||'Observer'} / ${reading.point.z.toFixed(1)} m high`);
       onMeasurement('fresh');lastObserver=data;if(inspectedLocation)paint();
       setText('observer-time',`Traffic ${reading.traffic.toFixed(1)} / background ${data.background.toFixed(1)} dBA`);
@@ -80,10 +81,10 @@
       observerWorker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==observerRequest)return;
         observerPending=false;
-        if(data.type==='error'){setText('observer-level','Microphone unavailable');setText('observer-time',data.message);return;}
+        if(data.type==='error'){setText('observer-time',data.message);$('observer-level').title='Measurement unavailable; showing the last completed reading';onMeasurement('unavailable');return;}
         if(data.type==='observer'&&measurements.accepts(data.identity,observerIdentity,measurements.observerKey(view.getObserver()),configuration(world))){data.latencyMs=performance.now()-observerStarted;showObserver(data);}
       };
-      observerWorker.onerror=event=>{if(generation!==epoch)return;observerPending=false;setText('observer-level','Microphone unavailable');setText('observer-time',event.message||'Audio measurement worker failed');};
+      observerWorker.onerror=event=>{if(generation!==epoch)return;observerPending=false;setText('observer-time',event.message||'Audio measurement worker failed');$('observer-level').title='Measurement unavailable; showing the last completed reading';onMeasurement('unavailable');};
       worker=new Worker('./live-noise-worker.js?v=city-controls-v7');worker.postMessage({type:'init',scene});
       worker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==requestId)return;
@@ -108,7 +109,7 @@
         const observer=view.getObserver(),sampleTime=getTime(),key=JSON.stringify([sampleTime,observer,scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode]);
         if(key!==observerKey){
           onMeasurement('pending');
-          if(lastObserver&&measurements.observerKey(view.getObserver())!==measurements.observerKey(lastObserver.observer.point)){setText('observer-level','Updating measurement');setText('observer-time','Previous viewpoint result is stale');}
+          if(lastObserver&&measurements.observerKey(view.getObserver())!==measurements.observerKey(lastObserver.observer.point)){setText('observer-time','Updating viewpoint; showing the last completed reading');$('observer-level').title='Updating viewpoint; showing the last completed reading';}
           observerKey=key;observerPending=true;observerNextAt=now+200;observerStarted=performance.now();
           observerIdentity=measurements.capture(epoch,observerRequest+1,sampleTime,measurements.observerKey(observer),configuration(scene));
           observerWorker.postMessage({type:'sample',identity:observerIdentity,id:++observerRequest,time:sampleTime,observer,config:scene.config,panel:scene.panel,treatments:scene.treatments,treatmentsEnabled:scene.treatmentsEnabled,treatmentMode:scene.treatmentMode});
