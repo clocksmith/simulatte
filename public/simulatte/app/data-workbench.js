@@ -1,5 +1,10 @@
 (function attachDataWorkbench(root) {
   if (typeof module === 'object' && module.exports) return;
+  // The temporary launch mode leaves the full World interface dormant.
+  if (document.documentElement?.dataset?.worldLaunch === 'motorcycle') {
+    document.body.dataset.journeyPhase = 'ready';
+    return;
+  }
   const { SimulatteInputSource: input, SimulatteDataWorldSpec: dataSpec, SimulatteWorldSpec: world,
     SimulatteDataRun: runs, SimulattePointSceneView: scenes, SimulatteProgramEditor: editorUi, SimulatteDataTable: tables } = root;
   if (!input || !dataSpec || !world || !runs || !scenes || !editorUi || !tables) throw new Error('data_workbench_dependency_missing');

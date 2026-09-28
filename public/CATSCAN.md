@@ -3,7 +3,7 @@
 Parent: [Simulatte](../CATSCAN.md)
 ## Target
 
-Boot the hexagon simulation chooser, optional data tools, Create compiler, and World profiles from static assets with visible readiness, execution, proof, or refusal.
+Boot static browser products with visible readiness, execution, proof, or refusal. World temporarily advertises only Motorcycle Noise; preserve the chooser, data tools, Create compiler, and other profiles in source.
 
 ## Authority
 

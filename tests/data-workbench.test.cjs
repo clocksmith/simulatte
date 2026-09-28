@@ -11,7 +11,7 @@ const runs = require('../public/shared/core/simulation/data-run.js');
 const pipeline = require('../public/shared/core/pipeline-runner.js');
 const view = require('../public/shared/render/point-scene-view.js');
 const mapping = { id: 'id', label: null, x: 'x', y: 'y', vx: 'vx', vy: 'vy' };
-test('the hexagon homepage keeps simulations visible and data tools optional', () => {
+test('the dormant hexagon homepage retains every simulation and optional data tools', () => {
   const html = readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
   assert.match(html, /<section id="simulation-home/);
   assert.match(html, /class="hex-constellation-container"/);
@@ -25,6 +25,19 @@ test('the hexagon homepage keeps simulations visible and data tools optional', (
   for (const profile of ['gpu-supercluster-v1', 'interstellar-relay-network-v1', 'orbital-transfer-planner-v1',
     'grid-resilience-us-v1', 'subsea-network-global-v1', 'sun-walker-v1']) {
     assert.ok(html.includes(`data-default-profile="${profile}"`));
+  }
+});
+test('temporary Motorcycle launch suspends data and profile boot even on old deep links', () => {
+  const html = readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+  assert.match(html, /<html[^>]+data-world-launch="motorcycle"/);
+  for (const pathname of ['/', '/datacenter', '/sunwalker', '/grid']) {
+    const context = { document: { documentElement: { dataset: { worldLaunch: 'motorcycle' } }, body: { dataset: {} } },
+      location: { pathname, hash: '#data' } };
+    for (const script of ['data-workbench.js', 'workbench-entry.js']) {
+      vm.runInNewContext(readFileSync(path.join(__dirname, '../public/simulatte/app', script), 'utf8'), context);
+    }
+    assert.equal(context.document.body.dataset.journeyPhase, 'ready');
+    assert.equal(context.SimulatteDataWorkbench, undefined);
   }
 });
 async function fixture(text = 'id,x,y,vx,vy\na,0,2,1,-0.5\nb,4,4,-1,0') {

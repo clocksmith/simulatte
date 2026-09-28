@@ -3,7 +3,7 @@
 Parent: none
 ## Target
 
-Let people choose, create, and edit executable browser simulations. Preserve the hexagon homepage and keep data tools optional.
+Let people choose, create, and edit executable browser simulations. Temporarily present a Motorcycle Noise landing page; preserve the hexagon homepage and other workflows in source.
 
 ## Authority
 

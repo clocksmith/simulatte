@@ -7,7 +7,7 @@ Execute governed profiles and domain simulations with deterministic controls, dy
 
 ## Authority
 
-- Owns the root hexagon chooser, optional data workbench, and selected profile lifecycle.
+- Owns Motorcycle-only launch, preserved chooser, data workbench, and profile lifecycle.
 - Owns chartered domain WorldSpec applications, including Motorcycle Noise.
 - Owns cross-plugin WorldSpec compositions, including the Earth/Virginia datacenter reference world.
 - Owns recursive spatial residency through content-addressed render payloads, atomic parent-child replacement, predictive prefetch, pinning, and eviction independent of simulation residency.

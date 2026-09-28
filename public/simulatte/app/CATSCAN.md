@@ -3,7 +3,7 @@
 Parent: [World](../CATSCAN.md)
 ## Target
 
-Mount the hexagon chooser, optional data workbench, or selected simulation; expose controls, render progress, and support replay.
+Mount the temporary Motorcycle-only landing page. Preserve the chooser, data workbench, and simulation lifecycle for restoration.
 
 ## Authority
 
@@ -32,8 +32,8 @@ Mount the hexagon chooser, optional data workbench, or selected simulation; expo
 - Profile replay compares deterministic execution identity and retains unproven proof classes.
 - Data imports remain local unless the user explicitly requests a URL. Once required mappings and units are declared, valid data prepares and plays automatically; unresolved semantics remain visible.
 - Data execution uses a declared adapter and backend, never inferred physics or a hidden prompt/model lane.
-- The root explains the available simulations and keeps Create and Use your data directly discoverable on desktop and mobile.
-- The root shows the hexagon chooser. Data tools open at #data; profile runtime and plugins load on explicit simulation selection.
+- Temporary launch mode exposes only the Motorcycle Noise link on desktop and mobile; Create and other simulation navigation stay dormant.
+- The `data-world-launch="motorcycle"` setting on the root HTML suspends data and profile boot, including old deep links. Removing it restores the chooser, #data, and selected profile routes without rebuilding their implementation.
 
 ## Acceptance
 

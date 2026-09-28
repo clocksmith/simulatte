@@ -2,7 +2,7 @@
 
 ## Mission & Thesis
 
-Simulatte helps technical creators turn supported data and instructions into browser simulations they can inspect, edit, and reproduce. World and Blank/Create remain separate products sharing a small browser-native core where contracts genuinely match. Simulation is the product; the hexagon chooser remains the entrypoint, with data tools extending it rather than replacing it.
+Simulatte helps technical creators turn supported data and instructions into browser simulations they can inspect, edit, and reproduce. World and Blank/Create remain separate products sharing a small browser-native core where contracts genuinely match. Simulation is the product. During the temporary Motorcycle-only launch, World opens a minimal landing page linking to Motorcycle Noise. The hexagon chooser, other simulations, and Create remain implemented for restoration, but are not advertised from World.
 
 ## Intended Beneficiaries
 
@@ -15,7 +15,7 @@ Creators need to understand the world they requested and make targeted changes w
 3. Keep user-authored edits authoritative through the append-only authoring graph.
 4. Make simulation outputs and visible behavior inspectable against explicit obligations.
 5. Reuse only the runtime and plugin pieces a product actually needs, without making shared code own its interface or lifecycle.
-6. Make Motorcycle Noise directly discoverable from the main chooser, with calculated acoustic mitigation, uncertain synthetic sensing, and replayable WorldSpec inputs; exclude vehicle disabling and unsupported physical or enforcement claims.
+6. Make Motorcycle Noise directly discoverable from the World landing page, with calculated acoustic mitigation, uncertain synthetic sensing, and replayable WorldSpec inputs; exclude vehicle disabling and unsupported physical or enforcement claims.
 
 7. Open simulations as immediately interactive running worlds. GPU Supercluster models rack computation, communication, and synchronization dependencies, including live straggler interventions; steady-state thermal estimates do not imply thermal evolution. Keep configuration in Advanced and observation independent of execution.
 

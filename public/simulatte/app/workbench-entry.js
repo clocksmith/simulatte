@@ -1,5 +1,10 @@
 (function attachWorkbenchEntry(root) {
   if (typeof module === 'object' && module.exports) return;
+  // The temporary launch mode leaves the full World interface dormant.
+  if (document.documentElement?.dataset?.worldLaunch === 'motorcycle') {
+    document.body.dataset.journeyPhase = 'ready';
+    return;
+  }
   const manifest = root.SimulatteWorldRuntimeScriptManifest;
   const loader = root.SimulatteWorldRuntimeLoader;
   const effectsApi = root.SimulatteHomepageEffects || null;

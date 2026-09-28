@@ -12,7 +12,7 @@ Keep World and Blank/Create independently useful, with a small browser-native co
 
 ## Invariants
 
-Preserve the hexagon entrypoint and optional data tools. Shared code owns no page lifecycle. Use documented core entrypoints and injected adapters. Prompt compilation follows exactly eight phases and declared predecessor inputs. Preserve user edits through the append-only authoring graph. Supported free local execution needs no account, network, or model download.
+Preserve the hexagon entrypoint and optional data tools in source. Temporarily expose only the Motorcycle Noise landing page on World; keep the other products dormant there. Shared code owns no page lifecycle. Use documented core entrypoints and injected adapters. Prompt compilation follows exactly eight phases and declared predecessor inputs. Preserve user edits through the append-only authoring graph. Supported free local execution needs no account, network, or model download.
 
 ## Evidence
 

@@ -633,3 +633,62 @@ body.sim-app > .sim-theme-control button:is(:hover, :focus-visible) .sim-theme-c
 .cluster-interaction p { margin: 6px 0; min-height: 16px; }
 .cluster-interaction .cluster-task { font-size: 12px; text-align: right; }
 .cluster-interaction button { min-height: 32px; font-size: 12px; }
+
+/* A single HTML launch setting suspends the chooser without removing its implementation. */
+#motorcycle-launch { display: none; }
+html[data-world-launch="motorcycle"] body > :not(#motorcycle-launch):not(.sim-theme-control):not(script) { display: none !important; }
+html[data-world-launch="motorcycle"] body { overflow-y: auto; }
+html[data-world-launch="motorcycle"] body > .sim-theme-control { top: 28px; right: 6%; bottom: auto; left: auto; transform: none; }
+html[data-world-launch="motorcycle"] #motorcycle-launch {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow: hidden;
+  padding: 36px 6% 28px;
+  background: var(--sim-paper);
+  color: var(--sim-ink);
+}
+.launch-masthead, .launch-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.launch-masthead { padding-right: 100px; }
+.launch-wordmark { font-size: 30px; font-weight: 600; letter-spacing: -1.5px; }
+.launch-wordmark > span { color: var(--sim-ink-faint); }
+.launch-edition, .launch-kicker, .launch-footer { font-family: var(--sim-mono); font-size: 12px; letter-spacing: 1px; }
+.launch-edition { color: var(--sim-ink-faint); }
+.launch-main { position: relative; display: grid; grid-template-columns: 1fr 1.3fr; align-items: center; flex: 1; width: 100%; max-width: 1440px; margin: 0 auto; min-height: 600px; }
+.launch-copy { position: relative; z-index: 1; padding: 48px 0; }
+.launch-kicker { text-transform: uppercase; color: var(--sim-ink-soft); margin: 0 0 24px; }
+.launch-copy h1 { font-family: var(--sim-heading); font-size: 112px; font-weight: 600; line-height: .96; letter-spacing: -5px; margin: 0 0 44px; }
+.launch-link { display: inline-flex; align-items: center; justify-content: space-between; gap: 44px; min-height: 56px; padding: 12px 0; border-bottom: 1px solid var(--sim-ink); color: var(--sim-ink); text-decoration: none; font-size: 17px; }
+.launch-link span { font-size: 26px; transition: transform 180ms ease; }
+.launch-link:hover span { transform: translate(3px, -3px); }
+.launch-link:focus-visible { outline: 2px solid var(--sim-ink); outline-offset: 8px; }
+.launch-art { width: 115%; max-width: 850px; justify-self: center; overflow: visible; }
+.launch-city { stroke: var(--sim-line-strong); stroke-width: 1; }
+.launch-grid { opacity: .35; stroke: none; }
+#launch-grid path { stroke: var(--sim-line); stroke-width: .6; }
+.launch-road { stroke-dasharray: 8 12; opacity: .7; }
+.launch-waves { stroke: var(--sim-ink-faint); stroke-width: 1; }
+.launch-waves ellipse:nth-child(2) { opacity: .65; }
+.launch-waves ellipse:nth-child(3) { opacity: .4; }
+.launch-waves ellipse:nth-child(4) { opacity: .2; }
+.launch-bike { stroke: var(--sim-ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; fill: var(--sim-paper); }
+.launch-cross { stroke: var(--sim-ink-faint); }
+.launch-footer { padding-top: 24px; border-top: 1px solid var(--sim-line); color: var(--sim-ink-soft); }
+@media (max-width: 900px) {
+  .launch-copy h1 { font-size: 80px; letter-spacing: -3px; }
+  .launch-main { min-height: 520px; }
+}
+@media (max-width: 600px) {
+  html[data-world-launch="motorcycle"] #motorcycle-launch { padding: 24px 24px max(24px, env(safe-area-inset-bottom)); }
+  .launch-wordmark { font-size: 26px; }
+  .launch-edition { display: none; }
+  .launch-main { display: flex; flex-direction: column; align-items: stretch; min-height: 0; }
+  .launch-copy { padding: 64px 0 0; }
+  .launch-copy h1 { font-size: 72px; margin-bottom: 28px; }
+  .launch-kicker { margin-bottom: 20px; }
+  .launch-art { width: 100%; height: 280px; align-self: center; margin: 12px 0 0; }
+  .launch-footer { font-size: 10px; letter-spacing: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .launch-link span { transition: none; } }
