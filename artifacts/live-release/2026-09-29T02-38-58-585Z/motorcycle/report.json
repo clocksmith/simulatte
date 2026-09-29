@@ -1,0 +1,122 @@
+{
+  "sources": {
+    "head": "abdab63a250f39629903671c27ea0e44c7f69b0c",
+    "capturedAt": "2026-09-29T02:39:19.714Z",
+    "modifiedSources": {
+      "public/blank/index.html": {
+        "sha256": "3811db5009114a6cfeaeedda8379ada718eb5d5a414c1694eeaba04f122b5910",
+        "modifiedAt": "2026-09-29T02:38:24.837Z"
+      },
+      "public/index.html": {
+        "sha256": "4116a99e399547d3237757d0821a458e7a42ac0d7174d1b1de0939461153a49b",
+        "modifiedAt": "2026-09-29T02:38:24.834Z"
+      },
+      "public/version.json": {
+        "sha256": "b1efc4addee4a48760faad9adc1f3f8bac54db19317b8f89c99c3c24918a1a9f",
+        "modifiedAt": "2026-09-29T02:38:24.837Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "target": "https://simulatte.world/",
+  "viewports": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "errors": [],
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/154.0.8037.58",
+        "revision": "@a654841425914cbb703a2931e07b70a83aedbafd",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+        "jsVersion": "15.4.80.11"
+      },
+      "url": "https://simulatte.world/motorcycle",
+      "backend": "WebGPU",
+      "mist": {
+        "point": {
+          "x": 30,
+          "y": 350,
+          "mesh": "nyc-roofs"
+        },
+        "node": {
+          "id": "treatment-4",
+          "kind": "mist",
+          "x": 2037.6317388671819,
+          "y": -429.1376777334693,
+          "z": 22.289240000000003,
+          "frequency": 500,
+          "enabled": true
+        }
+      },
+      "directional": {
+        "point": {
+          "x": 30,
+          "y": 350,
+          "mesh": "nyc-roofs"
+        },
+        "node": {
+          "id": "treatment-6",
+          "kind": "directional",
+          "x": 2037.6317388671819,
+          "y": -429.1376777334693,
+          "z": 22.289240000000003,
+          "frequency": 500,
+          "enabled": true
+        }
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "errors": [],
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/154.0.8037.58",
+        "revision": "@a654841425914cbb703a2931e07b70a83aedbafd",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+        "jsVersion": "15.4.80.11"
+      },
+      "url": "https://simulatte.world/motorcycle",
+      "backend": "WebGPU",
+      "mist": {
+        "point": {
+          "x": 54,
+          "y": 518,
+          "mesh": "sidewalk_merged"
+        },
+        "node": {
+          "id": "treatment-4",
+          "kind": "mist",
+          "x": 2197.1180784512308,
+          "y": -315.5986085916715,
+          "z": 1.750000000745058,
+          "frequency": 500,
+          "enabled": true
+        }
+      },
+      "directional": {
+        "point": {
+          "x": 54,
+          "y": 518,
+          "mesh": "sidewalk_merged"
+        },
+        "node": {
+          "id": "treatment-6",
+          "kind": "directional",
+          "x": 2197.1180784512308,
+          "y": -315.5986085916715,
+          "z": 1.750000000745058,
+          "frequency": 500,
+          "enabled": true
+        }
+      },
+      "pass": true
+    }
+  ]
+}

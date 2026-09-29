@@ -1,0 +1,30 @@
+{
+  "build": "abdab63a250f39629903671c27ea0e44c7f69b0c-81696f70f1a9",
+  "files": [
+    {
+      "file": "public/simulatte/motorcycle-noise/index.html",
+      "url": "https://simulatte.world/motorcycle",
+      "sha256": "0225ab5fca5046c12394887eaff04d0cf214c3669a7714669cd91183e0bb4c18"
+    },
+    {
+      "file": "public/simulatte/motorcycle-noise/city-experience.css",
+      "url": "https://simulatte.world/simulatte/motorcycle-noise/city-experience.css?v=obstacle-controls-v22",
+      "sha256": "5b4f67be486a0130965fb0e702fd2e3c31a05f488ea644bab1046a8a91404c2a"
+    },
+    {
+      "file": "public/simulatte/motorcycle-noise/treatment-controls.js",
+      "url": "https://simulatte.world/simulatte/motorcycle-noise/treatment-controls.js?v=obstacle-controls-v22",
+      "sha256": "f13499e378ed16df06b469a374d359f0e519878f4f65482225af268ec08f8610"
+    },
+    {
+      "file": "public/simulatte/motorcycle-noise/reflection-app.js",
+      "url": "https://simulatte.world/simulatte/motorcycle-noise/reflection-app.js?v=obstacle-controls-v22",
+      "sha256": "4a049b8fc4c170489830763ce6562bc4e9e6e106840dc2e3fe96ae71b56bf825"
+    },
+    {
+      "file": "public/simulatte/motorcycle-noise/header-controls.js",
+      "url": "https://simulatte.world/simulatte/motorcycle-noise/header-controls.js?v=obstacle-controls-v22",
+      "sha256": "0627d0d989452efcd4fae1b529033b8ac670101858436a79217ffac7d804350c"
+    }
+  ]
+}

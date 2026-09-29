@@ -6,10 +6,11 @@ import {sourceReceipt} from './runtime-audit-sources.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const out=process.env.SIMULATTE_CONTROLS_OUT||'/tmp/simulatte-controls-proof';
+const origin=process.env.SIMULATTE_CONTROLS_ORIGIN||'';
 await fs.mkdir(out,{recursive:true});
-const report={sources:await sourceReceipt(root),viewports:[]};
+const report={sources:await sourceReceipt(root),target:origin||'local public output',viewports:[]};
 for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
-  const browser=await openBrowserAudit({publicRoot:root+'public',viewport}),c=browser.client;
+  const browser=await openBrowserAudit({publicRoot:root+'public',url:origin,viewport}),c=browser.client;
   const row={viewport,errors:[]};report.viewports.push(row);
   const ev=async expression=>{const r=await c.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
   const wait=async expression=>{const until=Date.now()+90000;while(Date.now()<until){if(await ev(expression))return;await new Promise(r=>setTimeout(r,100));}throw Error('Timeout: '+expression);};
