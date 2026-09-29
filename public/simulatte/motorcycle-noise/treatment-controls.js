@@ -2,14 +2,18 @@
   function create({view,getScene,getTime,command}){
     const $=id=>document.getElementById(id),T=root.MotorcycleTreatments,events=new AbortController();let selected=null,placing=null,lastPaint=0,nextId=1,latest=[];
     const on=(node,event,fn)=>node.addEventListener(event,fn,{signal:events.signal});
-    const control=document.createElement('label');control.className='compact';control.textContent='Place ';
-    const add=document.createElement('select');add.id='place-marker';add.setAttribute('aria-label','Place observation or treatment marker');
-    for(const[value,text]of [['','Choose marker'],['observer','Observation point'],['mist','Water mist'],['directional','Directional sound'],['cancellation','Tonal cancellation']]){const option=document.createElement('option');option.value=value;option.textContent=text;add.append(option);}control.append(add);document.getElementById('placement-controls').append(control);
+    const addButtons=[...document.querySelectorAll('[data-add-treatment]')],prompt=$('placement-prompt');
+    function setPlacement(kind,message){
+      placing=kind;prompt.hidden=!kind;
+      $('placement-message').textContent=message||(kind?'Tap a sidewalk or roof to add '+T.kinds[kind].name.toLowerCase()+'.':'');
+      for(const button of addButtons)button.setAttribute('aria-pressed',String(button.dataset.addTreatment===kind));
+      $('city').classList.toggle('is-placing',!!kind);
+    }
     const actions=document.createElement('div');actions.id='treatment-actions';actions.hidden=true;
     const spray=document.createElement('button');spray.id='mist-spray';spray.textContent='Spray nearest bike';
     const enabled=document.createElement('button');enabled.textContent='Disable';const remove=document.createElement('button');remove.textContent='Remove';
     const frequencies=document.createElement('label');frequencies.textContent='Frequency ';const frequency=document.createElement('select');frequency.setAttribute('aria-label','Directional sound frequency');
-    for(const hz of [125,500,2000]){const option=document.createElement('option');option.value=hz;option.textContent=hz+' Hz';frequency.append(option);}frequencies.append(frequency);frequencies.hidden=true;document.getElementById('placement-controls').append(frequencies);actions.append(spray,enabled,remove);$('treatment-controls-slot').append(actions);
+    for(const hz of [125,500,2000]){const option=document.createElement('option');option.value=hz;option.textContent=hz+' Hz';frequency.append(option);}frequencies.append(frequency);frequencies.hidden=true;actions.append(frequencies,spray,enabled,remove);$('treatment-controls-slot').append(actions);
     function clear(){selected=null;actions.hidden=true;frequencies.hidden=true;}
     function inspect(id){selected=id;$('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=true;actions.hidden=false;lastPaint=0;paint();}
     function paint(){
@@ -23,17 +27,34 @@
       frequencies.hidden=node.kind!=='directional';frequency.value=String(node.frequency||500);enabled.textContent=node.enabled===false?'Enable':'Disable';
     }
     function reset(scene){
-      selected=null;actions.hidden=true;frequencies.hidden=true;latest=[];
+      clear();setPlacement(null);latest=[];
+      nextId=Math.max(nextId,1,...(scene.treatments||[]).map(row=>Number(row.id.replace('treatment-',''))+1).filter(Number.isFinite));
       if(!scene.treatments){const point=view.getObserver();scene.treatments=['mist','directional','cancellation'].map((kind,i)=>({id:'treatment-'+nextId++,kind,...view.snapSidewalk({x:point.x+(i-1)*12,y:point.y+5,z:1.7}),frequency:500,enabled:true}));}
       scene.treatmentMode=$('technique').value;scene.treatmentsEnabled=['live','cancellation'].includes(scene.treatmentMode);
     }
     function pick(value){
-      if(value.treatmentId){placing=null;add.value='';inspect(value.treatmentId);return true;}
-      if(placing&&value.point){const scene=getScene();if(scene.acousticContext.occupied(value.point)&&value.surface!=='rooftop')return true;if(scene.treatments.length>=8){$('live-summary').textContent='Remove a treatment before adding another.';return true;}
-        const node={id:'treatment-'+nextId++,kind:placing,...value.point,frequency:500,enabled:true};scene.treatments.push(node);placing=null;add.value='';inspect(node.id);return true;}
+      if(placing){
+        const scene=getScene();
+        if(!value.point||(scene.acousticContext.occupied(value.point)&&value.surface!=='rooftop')){setPlacement(placing,'Choose an open sidewalk or rooftop.');return true;}
+        if(scene.treatments.length>=8){setPlacement(placing,'Eight obstacles placed. Cancel and remove one to add another.');return true;}
+        const node={id:'treatment-'+nextId++,kind:placing,...value.point,frequency:500,enabled:true};scene.treatments.push(node);
+        if(scene.treatmentsEnabled===false){$('technique').value='live';$('technique').dispatchEvent(new Event('change',{bubbles:true}));}
+        setPlacement(null);inspect(node.id);return true;
+      }
+      if(value.treatmentId){inspect(value.treatmentId);return true;}
       clear();return false;
     }
-    on(add,'change',()=>{placing=add.value||null;if(placing==='observer'){placing=null;$('add-receiver').click();add.value='';}else if(placing){if($('add-receiver').getAttribute('aria-pressed')==='true')$('add-receiver').click();$('live-summary').textContent='Click a sidewalk or rooftop to place '+T.kinds[placing].name.toLowerCase()+'.';}});
+    for(const button of addButtons)on(button,'click',()=>{
+      const kind=button.dataset.addTreatment;
+      if(placing===kind){setPlacement(null);return;}
+      if($('add-receiver').getAttribute('aria-pressed')==='true')$('add-receiver').click();
+      document.dispatchEvent(new Event('cancel-equipment-placement'));
+      $('inspection-close').click();
+      setPlacement(kind);$('city').focus({preventScroll:true});
+    });
+    on($('placement-cancel'),'click',()=>{const kind=placing;setPlacement(null);addButtons.find(button=>button.dataset.addTreatment===kind)?.focus();});
+    on(document,'keydown',event=>{if(event.key==='Escape'&&placing){setPlacement(null);event.preventDefault();}});
+    for(const button of document.querySelectorAll('[data-place],#add-receiver'))on(button,'click',()=>setPlacement(null));
     function apply({action,value}){
       const scene=getScene(),node=scene.treatments.find(row=>row.id===selected);if(!node)return;
       if(action==='toggle')node.enabled=node.enabled===false;
@@ -46,7 +67,7 @@
     on(remove,'click',()=>command('treatment',{action:'remove'}));
     on(frequency,'change',()=>command('treatment',{action:'frequency',value:frequency.value}));
     on($('inspection-close'),'click',clear);
-    return {apply,reset,pick,observe(data){latest=data.observer?.treatments||[];},update(now){if(now-lastPaint>250){lastPaint=now;paint();}view.setTreatmentSelection(selected);},dispose(){events.abort();control.remove();frequencies.remove();actions.remove();}};
+    return {apply,reset,pick,observe(data){latest=data.observer?.treatments||[];},update(now){if(now-lastPaint>250){lastPaint=now;paint();}view.setTreatmentSelection(selected);},dispose(){setPlacement(null);events.abort();actions.remove();}};
   }
   root.MotorcycleTreatmentControls={create};
 })(globalThis);

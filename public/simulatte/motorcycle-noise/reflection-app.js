@@ -107,6 +107,7 @@
   });
   $('panel-angle').addEventListener('input',()=>{if(!scene)return;scene.panel.angle=Number($('panel-angle').value)*Math.PI/180;invalidate();});
   for(const button of document.querySelectorAll('[data-place]'))button.addEventListener('click',()=>{placement=button.dataset.place;for(const item of document.querySelectorAll('[data-place]'))item.setAttribute('aria-pressed',String(item===button));status(`Tap the map to place the ${placement}.`);});
+  document.addEventListener('cancel-equipment-placement',()=>{placement=null;for(const button of document.querySelectorAll('[data-place]'))button.setAttribute('aria-pressed','false');});
   $('pause').addEventListener('click',()=>invoke(paused?(time>=180?'replay':'resume'):'pause'));
   $('reset-view').addEventListener('click',()=>invoke('reset-view'));
   $('replay-traffic').addEventListener('click',()=>invoke('replay'));

@@ -40,10 +40,7 @@
       const rect=dialog.getBoundingClientRect();
       if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)close();
     }
-    if(event.target.closest('[data-place],#add-receiver'))close();
-  });
-  dialog.addEventListener('change',event=>{
-    if(event.target.id==='place-marker'&&event.target.value)close();
+    if(event.target.closest('[data-place],[data-add-treatment],#add-receiver'))close();
   });
   const legacy=document.getElementById('advanced-entry');
   legacy?.addEventListener('click',event=>{event.preventDefault();open();});

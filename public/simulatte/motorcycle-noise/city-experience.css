@@ -249,3 +249,45 @@ body[data-state="running"] .experience-status, body[data-state="paused"] .experi
   .inspection:has(#source-actions:not([hidden])) #inspection-time { display:none; }
   .inspection:has(#source-actions:not([hidden])) p { margin:4px 0 8px; }
 }
+
+/* Direct placement stays on the map; specialist controls unfold by task. */
+#advanced-sheet { bottom:auto; height:auto; max-height:calc(100dvh - 32px); background:var(--sim-paper); }
+.city-toolbar .placement-controls {
+  grid-column:1 / -1; display:flex; flex-wrap:nowrap; gap:8px; margin:0;
+  padding-top:10px; border-top:1px solid var(--line);
+}
+.placement-controls > span { color:var(--muted); font-size:12px; }
+.placement-controls button { min-height:44px; }
+[data-add-treatment][aria-pressed="true"] { color:var(--ink); background:var(--sim-accent-soft); border-color:var(--accent); }
+.placement-prompt { grid-column:1 / -1; display:flex; align-items:center; gap:12px; max-width:480px; }
+.placement-prompt[hidden] { display:none; }
+.placement-prompt span { flex:1; font-size:13px; }
+#city.is-placing { cursor:crosshair; }
+.observer-readout,.motorcycle-app:has(#sound-invitation:not([hidden])) .observer-readout { top:232px; }
+.inspection { top:232px; }
+.motorcycle-app:has(#placement-prompt:not([hidden])) .observer-readout { top:296px; }
+.city-toolbar .sound-invitation { top:calc(100% + 76px); }
+.motorcycle-app:has(#placement-prompt:not([hidden])) .sound-invitation { display:none; }
+.settings-group { padding:0; margin:0; border:0; border-bottom:1px solid var(--line); border-radius:0; }
+.settings-group > summary { padding:16px 0; font-weight:600; cursor:pointer; }
+.settings-group > summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.settings-group > fieldset:first-of-type { padding-top:0; border-top:0; }
+.settings-group .advanced-playback > legend { display:none; }
+.settings-group .advanced-playback > label:first-of-type { display:grid; grid-template-columns:1fr 100px; align-items:center; gap:12px; margin-bottom:12px; }
+.settings-group .sheet-theme { margin-bottom:16px; }
+#scenario > .settings-group > button { margin-bottom:20px; }
+.settings-group > #add-receiver { margin-bottom:16px; }
+.settings-group > [data-add-treatment] { margin-bottom:16px; }
+#treatment-actions > label { display:flex; flex-basis:100%; gap:12px; align-items:center; }
+#treatment-actions > label[hidden] { display:none; }
+#treatment-actions select { flex:1; min-height:44px; }
+@media(max-width:900px) {
+  .placement-controls button { flex:1; padding:8px; font-size:13px; }
+  .observer-readout,.motorcycle-app:has(#sound-invitation:not([hidden])) .observer-readout { top:244px; }
+  .motorcycle-app:has(#placement-prompt:not([hidden])) .observer-readout { top:310px; }
+  .city-toolbar .sound-invitation { left:0; top:calc(100% + 136px); }
+  .inspection { top:auto; bottom:112px; max-height:38svh; }
+}
+@media(max-width:760px) {
+  #advanced-sheet { top:auto; bottom:0; height:auto; max-height:86dvh; }
+}
