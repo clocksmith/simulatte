@@ -207,6 +207,14 @@
       return start({ values: replayValues, actions: replayActions });
     }
 
+    async function restart() {
+      const values = normalizeValues(parameterValues);
+      const generation = runGeneration + 1;
+      await reset();
+      if (disposed || generation !== runGeneration) return snapshot();
+      return start({ values });
+    }
+
     async function reset() {
       assertActive();
       cancelTimer();
@@ -570,6 +578,8 @@
 
     return Object.freeze({
       applyControls,
+      acceptedControls: () => structuredClone(parameterValues),
+      restart,
       intervene,
       dispose,
       pause,

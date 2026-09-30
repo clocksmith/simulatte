@@ -21,3 +21,35 @@ test('route previews change the model objective without mutating accepted contro
   assert.deepEqual(api.actionFor(contribution,'sun-walker-actor').values,{directSunWeight:0,walkingSpeedMps:1.2});
   assert.equal(contribution.controls.controls[0].value,5);
 });
+
+test('measurements retain previews, but changed scenarios invalidate pending and completed previews', async () => {
+  const previous = global.SimulatteDeclarativeUiHost;
+  let callbacks, rendered, release, generation = 1;
+  global.SimulatteDeclarativeUiHost = { createObjectInspector(options) {
+    callbacks = options;
+    return { element: {}, render(value) { rendered = value; }, dispose() {} };
+  } };
+  const contribution = weight => ({ pluginId: 'sun-walker', state: { scenarioId: 'walk' },
+    controls: { controls: [{ id: 'directSunWeight', value: weight }] },
+    presentation: { layers: [{ id: 'walker', kind: 'point', label: 'Walker' }] },
+    inspections: [{ targetIds: ['walker'], fields: [{ id: 'time', label: 'Time', value: 12 }] }],
+  });
+  const inspector = api.create({ host: {}, canvas: { addEventListener() {} },
+    getSession: () => ({ snapshot: () => ({ generation }), invoke: () => new Promise(resolve => { release = resolve; }) }),
+  });
+  try {
+    inspector.update(contribution(5)); inspector.select('walker');
+    const stale = callbacks.onAction('preview');
+    inspector.update(contribution(0));
+    release(contribution(0));
+    await assert.rejects(stale, { name: 'AbortError' });
+    const pending = callbacks.onAction('preview');
+    release(contribution(5)); await pending;
+    inspector.update(contribution(0));
+    assert.ok(rendered.fields.some(row => row.id === 'preview-solution'), 'measurement updates keep the comparison');
+    generation++;
+    inspector.update(contribution(0));
+    assert.equal(rendered.fields.some(row => row.id === 'preview-solution'), false, 'replay with identical controls still invalidates a prior preview');
+    assert.equal(rendered.selectedId, 'walker');
+  } finally { inspector.dispose(); global.SimulatteDeclarativeUiHost = previous; }
+});

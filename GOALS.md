@@ -2,7 +2,7 @@
 
 ## Mission & Thesis
 
-Simulatte helps technical creators turn supported data and instructions into browser simulations they can inspect, edit, and reproduce. World and Blank/Create remain separate products sharing a small browser-native core where contracts genuinely match. Simulation is the product. During the temporary Motorcycle-only launch, World opens a minimal landing page linking to Motorcycle Noise. The hexagon chooser, other simulations, and Create remain implemented for restoration, but are not advertised from World.
+Simulatte helps technical creators turn supported data and instructions into browser simulations they can inspect, edit, and reproduce. World and Blank/Create remain separate products sharing a small browser-native core where contracts genuinely match. Simulation is the product. World opens a minimal landing page linking to Motorcycle Noise, GPU Cluster, and Sun Walker. The hexagon chooser, remaining simulations, data tools, and Create stay implemented but unadvertised while their interactions are improved.
 
 ## Intended Beneficiaries
 

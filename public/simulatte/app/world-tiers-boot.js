@@ -199,7 +199,7 @@
       tierVisualizer.setViewMode?.(canonical);
       if(target)tierVisualizer.focusPluginTarget?.(target.id);
       selectTierViewMode(canonical);
-      if(navigate)void ctx.navigate?.(governedTierRoute(),{replace:true});
+      if(navigate)ctx.canonicalize?.(governedTierRoute());
       return canonical;
     }
     function wireTierViewControls(){
@@ -340,7 +340,7 @@
       }
       pluginUi.render(runtime.views(context),platform.contributions);
       const controlCount=platform.contributions.reduce((total,contribution)=>total+contribution.controls.controls.length,0);
-      elements.decisionsButton.textContent=controlCount?`Advanced (${controlCount})`:'Evidence';
+      elements.decisionsButton.textContent=controlCount?'Advanced':'Evidence';
       renderTierSummary(root.__simulatteTierRunState?.state||'idle');
       tierVisualizer.removeHud?.();
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
@@ -412,12 +412,9 @@
       return accepted;
     }
     function simulationRouteState(){
-      const parameters={};
-      runtime.activePluginIds.forEach((pluginId)=>{
-        const values=pluginUi.values(pluginId);
-        if(Object.keys(values).length)parameters[pluginId]=values;
-      });
-      return {scenarioId:activeScenario.id,seed:activeScenario.seed,parameters};
+      const pluginId=data.applicationProfile.interaction.simulationOwnerPluginId||runtime.activePluginIds[0];
+      const accepted=runController?{pluginId,values:runController.acceptedControls()}:null;
+      return appliedSimulationRouteState(activeScenario,lastPluginContributions,accepted);
     }
     async function updateSimulationFromRoute(nextSimulation){
       const nextScenario=scenarioForRoute(nextSimulation);
@@ -451,7 +448,11 @@
         renderPlugins();
         Object.entries(requestedParameters).forEach(([pluginId,values])=>pluginUi.setValues(pluginId,values));
         if(Object.keys(requestedParameters).length)renderPlugins();
-        if(requestedParameters[owner])await runController?.applyControls(requestedParameters[owner]);
+        if(requestedParameters[owner]){
+          await runController?.applyControls(requestedParameters[owner]);
+          lifecycle.throwIfAborted();
+          if(nextSimulation?.autoStart!==false&&options?.autoStart!==false)await runController?.start();
+        }
       }
       return simulationRouteState();
     }
@@ -459,7 +460,7 @@
       if(route.profile&&route.profile!==data.applicationProfile.id)throw tierRouteError('profile',route.profile,data.applicationProfile.id);
       if(route.world&&route.world!==data.world.id)throw tierRouteError('world',route.world,data.world.id);
       if(route.camera&&route.camera!==activeCameraMode)applyTierCamera(route.camera);
-      if(root.SimulatteRouter.queryForSimulation(route.simulation)!==root.SimulatteRouter.queryForSimulation(appliedSimulationRouteState(activeScenario,lastPluginContributions)))await updateSimulationFromRoute(route.simulation||null);
+      if(root.SimulatteRouter.queryForSimulation(route.simulation)!==root.SimulatteRouter.queryForSimulation(simulationRouteState()))await updateSimulationFromRoute(route.simulation||null);
       return governedTierRoute();
     }
     function reportRunFailure(error){
@@ -504,9 +505,9 @@
         capabilities:{selection:true,camera:true,pause:true,restart:true,replay:'model-receipt',
           comparison:data.applicationProfile.experience?.comparisonMode!=='none',liveActions:owner==='gpu-supercluster'},
         operations:[
-          {id:'start',category:'execution',perform:()=>runController.start()},
-          {id:'step',category:'execution',perform:()=>runController.step()},
-          {id:'seek',category:'reproduction',perform:value=>runController.seek(value)},
+          {id:'start',serial:true,category:'execution',perform:()=>runController.start()},
+          {id:'step',serial:true,category:'execution',perform:()=>runController.step()},
+          {id:'seek',serial:true,category:'reproduction',perform:value=>runController.seek(value)},
           {id:'speed',category:'execution',perform:value=>runController.setPlaybackRate(value)},
           {id:'camera',category:'observation',perform:mode=>applyTierCamera(mode,true)},
           {id:'select-object',category:'observation',perform:id=>{objectInteraction.select(id);tierVisualizer.selectedRack=id?.startsWith('rack:')?id.slice(5):null;}},
@@ -514,12 +515,12 @@
           {id:'preview-controls',category:'observation',perform:(values,operation)=>previewControls(owner,values,operation)},
           {id:'pause',category:'execution',perform:()=>runController.pause()},
           {id:'resume',category:'execution',perform:()=>runController.resume()},
-          {id:'restart',category:'reproduction',perform:async(_,operation)=>{const controller=runController;await controller.reset();operation.throwIfCancelled();return controller.start();}},
-          {id:'replay',category:'reproduction',perform:()=>runController.replay()},
+          {id:'restart',serial:true,category:'reproduction',perform:()=>runController.restart()},
+          {id:'replay',serial:true,category:'reproduction',perform:()=>runController.replay()},
           {id:'reset-view',category:'observation',target:'camera',perform:()=>{tierVisualizer.resetView();return applyTierCamera(data.applicationProfile.experience.defaultView,true);}},
-          {id:'apply-controls',category:'scenario',target:owner,requiresRestart:true,
-            perform:async(values,operation)=>{const controller=runController;await controller.applyControls(values);operation.throwIfCancelled();const result=await controller.start();operation.throwIfCancelled();await ctx.navigate?.(governedTierRoute(appliedSimulationRouteState(activeScenario,lastPluginContributions)),{replace:true});return result;}},
-          ...(owner==='gpu-supercluster'?[{id:'straggler',category:'live',target:'rack',
+          {id:'apply-controls',serial:true,category:'scenario',target:owner,requiresRestart:true,
+            perform:async(values,operation)=>{const controller=runController;await controller.applyControls(values);operation.throwIfCancelled();const result=await controller.start();operation.throwIfCancelled();await ctx.navigate?.(governedTierRoute(simulationRouteState()),{replace:true});return result;}},
+          ...(owner==='gpu-supercluster'?[{id:'straggler',serial:true,category:'live',target:'rack',
             perform:values=>runController.intervene('scenario.intervene',values)}]:[]),
         ],
       });
@@ -606,7 +607,7 @@
         viewDirector?.setManualOverride({mode:'free',targetIds:[]});
         tierVisualizer.setViewMode?.('free');
         selectTierViewMode('free');
-        void ctx.navigate?.(governedTierRoute(),{replace:true});
+        ctx.canonicalize?.(governedTierRoute());
       });
       await timedLoadStage('tier.visualizer', () => tierVisualizer.loadTier(tier));
       lifecycle.throwIfAborted();
@@ -761,10 +762,11 @@
 
   function labelForProfile(id){if(PROFILE_LABELS[id])return PROFILE_LABELS[id];return String(id).replace(/-v\d+$/,'').split('-').filter(Boolean).map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');}
   function experienceHudSummary(options) { return experiencePresentationApi.summarize(options); }
-  function appliedSimulationRouteState(scenario, contributions) {
+  function appliedSimulationRouteState(scenario, contributions, accepted = null) {
     const parameters = Object.fromEntries(contributions.map(({ pluginId, controls }) => [
       pluginId, Object.fromEntries(controls.controls.map((control) => [control.id, structuredClone(control.value)])),
     ]));
+    if (accepted) parameters[accepted.pluginId] = structuredClone(accepted.values);
     return { scenarioId: scenario.id, seed: scenario.seed, parameters };
   }
   function createScenarioClock(scenario = {}) {

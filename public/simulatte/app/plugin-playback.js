@@ -79,9 +79,10 @@
       }
       if (!preparedResult && actionResult.presentationChanged !== false) render();
       publishPhase();
-      await applyInterventionsAtStep(0, runGeneration);
-      if (actionResult.status === 'settled') return complete();
-      clock.play();
+      await applyInterventionsAtStep(0, generation);
+      if (generation !== runGeneration) return snapshot();
+      if (actionResult.status === 'settled') return complete(generation);
+      if (phase === 'running') clock.play();
       return snapshot();
     }
 

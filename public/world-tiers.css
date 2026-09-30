@@ -636,10 +636,10 @@ body.sim-app > .sim-theme-control button:is(:hover, :focus-visible) .sim-theme-c
 
 /* A single HTML launch setting suspends the chooser without removing its implementation. */
 #motorcycle-launch { display: none; }
-html[data-world-launch="motorcycle"] body > :not(#motorcycle-launch):not(.sim-theme-control):not(script) { display: none !important; }
-html[data-world-launch="motorcycle"] body { overflow-y: auto; }
-html[data-world-launch="motorcycle"] body > .sim-theme-control { top: 28px; right: 6%; bottom: auto; left: auto; transform: none; }
-html[data-world-launch="motorcycle"] #motorcycle-launch {
+html[data-world-launch]:not([data-world-runtime]) body > :not(#motorcycle-launch):not(.sim-theme-control):not(script) { display: none !important; }
+html[data-world-launch]:not([data-world-runtime]) body { overflow-y: auto; }
+html[data-world-launch]:not([data-world-runtime]) body > .sim-theme-control { top: 28px; right: 6%; bottom: auto; left: auto; transform: none; }
+html[data-world-launch]:not([data-world-runtime]) #motorcycle-launch {
   display: flex;
   flex-direction: column;
   position: relative;
@@ -681,7 +681,7 @@ html[data-world-launch="motorcycle"] #motorcycle-launch {
   .launch-main { min-height: 520px; }
 }
 @media (max-width: 600px) {
-  html[data-world-launch="motorcycle"] #motorcycle-launch { padding: 24px 24px max(24px, env(safe-area-inset-bottom)); }
+  html[data-world-launch]:not([data-world-runtime]) #motorcycle-launch { padding: 24px 24px max(24px, env(safe-area-inset-bottom)); }
   .launch-wordmark { font-size: 26px; }
   .launch-edition { display: none; }
   .launch-main { display: flex; flex-direction: column; align-items: stretch; min-height: 0; }
@@ -692,3 +692,9 @@ html[data-world-launch="motorcycle"] #motorcycle-launch {
   .launch-footer { font-size: 10px; letter-spacing: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .launch-link span { transition: none; } }
+
+html[data-world-launch="featured"][data-world-runtime] #world-tiers-landing-page,
+html[data-world-launch="featured"] #world-tier-control,
+html[data-world-launch="featured"] #application-profile-control,
+html[data-world-launch="featured"] .sim-product-nav a[data-local-href="./blank/"] { display: none !important; }
+.launch-simulations { display: flex; flex-direction: column; align-items: stretch; max-width: 300px; }

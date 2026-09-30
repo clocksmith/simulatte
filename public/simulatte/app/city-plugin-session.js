@@ -15,15 +15,16 @@
       capabilities: { selection: true, camera: true, pause: true, restart: true, replay: 'model-receipt', liveActions: false },
       onChange: snapshot => status.render(snapshot),
       operations: [
-        ...['start','pause','resume','step','replay'].map(id => ({id,category:id==='replay'?'reproduction':'execution',perform:async(_,operation)=>{const result=await pluginPlayback[id]();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;}})),
-        {id:'restart',category:'reproduction',perform:async(_,operation)=>{await pluginPlayback.reset(getScenario());operation.throwIfCancelled();const result=await pluginPlayback.start();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;}},
-        {id:'seek',category:'reproduction',perform:value=>pluginPlayback.seek(value)},
+        ...['start','pause','resume','step','replay'].map(id => ({id,serial:!['pause','resume'].includes(id),category:id==='replay'?'reproduction':'execution',perform:async(_,operation)=>{const result=await pluginPlayback[id]();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;}})),
+        {id:'restart',serial:true,category:'reproduction',perform:async(_,operation)=>{await pluginPlayback.reset(getScenario());operation.throwIfCancelled();const result=await pluginPlayback.start();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;}},
+        {id:'seek',serial:true,category:'reproduction',perform:value=>pluginPlayback.seek(value)},
         {id:'speed',category:'execution',perform:value=>pluginPlayback.setPlaybackRate(value)},
         {id:'select-object',category:'observation',perform:id=>inspector.select(id)},
         {id:'focus-object',category:'observation',perform:id=>{
           const targetId=`plugin:${owner}:${id}`;
-          pluginViewRuntime?.setManualOverride({mode:'free',targetIds:[targetId]});
-          selectCamera(getRenderer().focusCameraTarget(targetId));
+          pluginViewRuntime?.setManualOverride({mode:'top',targetIds:[targetId]});
+          getRenderer().focusCameraTarget(targetId);
+          getRenderer().setCameraMode('top');selectCamera('top');
         }},
         {id:'camera',category:'observation',perform:mode=>{
           const renderer=getRenderer();
@@ -33,7 +34,7 @@
           renderer.setCameraMode(mode);selectCamera(mode);
         }},
         {id:'reset-view',category:'observation',perform:()=>{pluginViewRuntime?.setManualOverride({mode:profile.camera.initialMode||profile.experience.defaultView,targetIds:[]});return experienceCameraApi.applyInitialCamera({configuration:profile.camera,renderer:getRenderer(),onModeSelected:selectCamera});}},
-        {id:'apply-controls',category:'scenario',requiresRestart:true,perform:async(values,operation)=>{
+        {id:'apply-controls',serial:true,category:'scenario',requiresRestart:true,perform:async(values,operation)=>{
           await pluginPlayback.applyControls(values);operation.throwIfCancelled();const result=await pluginPlayback.start();operation.throwIfCancelled();await renderPluginExperience({mission:null});operation.throwIfCancelled();await onParametersApplied?.();return result;
         }},
         {id:'preview-controls',category:'observation',perform:async(values,operation)=>{
@@ -114,7 +115,7 @@
       if (applyRouteParameters()) pluginUi.render(extensions.views(pluginContext), platform.contributions);
       recordRenderWork(renderWork.phases.pluginUi, performance.now() - uiStartedAt);
       const controlCount = platform.contributions.reduce((total, contribution) => total + contribution.controls.controls.length, 0);
-      elements.decisionsButton.textContent = controlCount ? `Advanced (${controlCount})` : 'Evidence';
+      elements.decisionsButton.textContent = 'Advanced';
       renderPluginSummary(pluginPlayback?.snapshot().phase || 'ready');
       const renderer = getRenderer();
       if (!renderer) return;

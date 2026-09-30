@@ -22,6 +22,7 @@
         setRuntimeStatus: view.setRuntimeStatus,
         createTierVisualizer: root.SimulatteMultiTierVisualizer.createTierVisualizer,
         navigate,
+        canonicalize: route => router.canonicalize(route),
         onSelectTier: (nextTier) => navigate({ tier: nextTier, experience: null }),
       }, tier, profileId, options);
     }

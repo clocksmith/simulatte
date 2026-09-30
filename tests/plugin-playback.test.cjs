@@ -683,3 +683,17 @@ test('plugin playback restore rejects a newly introduced comparison proof', asyn
   );
   assert.equal(changed.controller.snapshot().phase, 'failed');
 });
+
+test('pausing an in-flight start keeps the model clock paused when preparation finishes', async () => {
+  let release;
+  const lane = fixture({ startGate: { promise: new Promise(resolve => { release = resolve; }) } });
+  const pending = lane.controller.start();
+  await Promise.resolve();
+  lane.controller.pause();
+  release(); await pending;
+  assert.equal(lane.controller.snapshot().phase, 'paused');
+  assert.equal(lane.clock.snapshot().state, 'paused');
+  await lane.controller.resume();
+  assert.equal(lane.clock.snapshot().state, 'playing');
+  lane.controller.dispose();
+});

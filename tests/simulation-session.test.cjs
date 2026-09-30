@@ -77,3 +77,28 @@ test('disposal cancels work even when a provider never resolves', async () => {
   session.dispose();
   await rejection;
 });
+
+test('cancelled non-abortable mutations drain before the next scenario, with observation available', async () => {
+  let release, model, paused = false;
+  const session = api.create({ id: 'runtime-queue', capabilities: {}, operations: [
+    { id: 'replace', category: 'scenario', requiresRestart: true, serial: true, perform: async value => {
+      if (value === 'old') await new Promise(resolve => { release = resolve; });
+      model = value;
+    } },
+    { id: 'pause', category: 'execution', perform: () => { paused = true; } },
+  ] });
+  const old = session.invoke('replace', 'old');
+  const cancelled = assert.rejects(old, { name: 'AbortError' });
+  await new Promise(resolve => setImmediate(resolve));
+  const skipped = session.invoke('replace', 'skipped');
+  const skippedCancellation = assert.rejects(skipped, { name: 'AbortError' });
+  const current = session.invoke('replace', 'current');
+  await cancelled; await skippedCancellation;
+  await session.invoke('pause');
+  assert.equal(paused, true, 'observation and pause remain responsive while runtime work drains');
+  assert.equal(model, undefined, 'new scenario cannot overlap the old mutation');
+  release(); await current;
+  assert.equal(model, 'current');
+  assert.equal(session.snapshot().pending.length, 0);
+  session.dispose();
+});

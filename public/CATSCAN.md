@@ -3,7 +3,7 @@
 Parent: [Simulatte](../CATSCAN.md)
 ## Target
 
-Boot static browser products with visible readiness, execution, proof, or refusal. World temporarily advertises only Motorcycle Noise; preserve the chooser, data tools, Create compiler, and other profiles in source.
+Boot static browser products with visible readiness, execution, proof, or refusal. World advertises Motorcycle Noise, GPU Cluster, and Sun Walker; preserve the chooser, data tools, Create compiler, and other profiles in source.
 
 ## Authority
 

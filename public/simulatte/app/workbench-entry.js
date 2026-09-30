@@ -1,9 +1,15 @@
 (function attachWorkbenchEntry(root) {
   if (typeof module === 'object' && module.exports) return;
-  // The temporary launch mode leaves the full World interface dormant.
-  if (document.documentElement?.dataset?.worldLaunch === 'motorcycle') {
+  const launch = document.documentElement?.dataset?.worldLaunch;
+  const featuredRoutes = new Set(['/datacenter/gpu-supercluster-v1', '/city/sun-walker-v1', '/datacenter', '/sunwalker']);
+  const featuredRoute = () => featuredRoutes.has(location.pathname.replace(/\/$/, ''));
+  if (launch && (launch !== 'featured' || !featuredRoute())) {
     document.body.dataset.journeyPhase = 'ready';
     return;
+  }
+  if (launch === 'featured') {
+    document.documentElement.dataset.worldRuntime = 'true';
+    root.addEventListener('popstate', () => { if (!featuredRoute()) location.reload(); });
   }
   const manifest = root.SimulatteWorldRuntimeScriptManifest;
   const loader = root.SimulatteWorldRuntimeLoader;
@@ -41,6 +47,10 @@
     const status = document.getElementById('simulation-status');
     status.textContent = `Could not load simulation: ${error.message}. Select it to retry.`;
     status.dataset.state = 'error';
+    if (launch === 'featured') {
+      delete document.documentElement.dataset.worldRuntime;
+      document.querySelector('#motorcycle-launch .launch-copy').append(status);
+    }
   }
 
   async function prepareSelection(card) {

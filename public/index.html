@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en" data-world-launch="motorcycle">
+<html lang="en" data-world-launch="featured">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <base href="/">
   <meta name="simulatte-build" content="abdab63a250f39629903671c27ea0e44c7f69b0c-81696f70f1a9">
   <title>Simulatte</title>
-  <meta name="description" content="Motorcycle Noise. Explore the sound of a city in motion.">
+  <meta name="description" content="Explore Motorcycle Noise, GPU Cluster, and Sun Walker.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script src="./shared/design/theme-controller.js"></script>
   <link rel="stylesheet" href="./shared/design/simulatte.css?v=abdab63a250f39629903671c27ea0e44c7f69b0c-81696f70f1a9">
@@ -43,8 +43,12 @@
     <header class="launch-masthead"><h1 id="launch-title" class="launch-wordmark">SIMULATTE</h1><span class="launch-edition" hidden>World / 001</span></header>
     <div class="launch-main">
       <div class="launch-copy">
-        <p class="launch-kicker">Motorcycle Noise</p>
-        <a class="launch-link" href="./motorcycle">Latest simulation <span aria-hidden="true">↗</span></a>
+        <p class="launch-kicker">Explore a simulation</p>
+        <nav class="launch-simulations" aria-label="Simulations">
+        <a class="launch-link" href="./motorcycle">Motorcycle Noise <span aria-hidden="true">↗</span></a>
+        <a class="launch-link" href="./datacenter">GPU Cluster <span aria-hidden="true">↗</span></a>
+        <a class="launch-link" href="./sunwalker">Sun Walker <span aria-hidden="true">↗</span></a>
+        </nav>
       </div>
       <svg class="launch-art" viewBox="0 0 720 680" fill="none" aria-hidden="true">
         <defs>
@@ -80,28 +84,8 @@
                   <span class="status-dot" aria-hidden="true"></span>
                   <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading</strong>
                 </button>
-                <div id="world-tier-control" class="profile-selector">
-                  <button id="world-tier-trigger" class="select-trigger" type="button" aria-label="Switch world scale" aria-haspopup="listbox" aria-controls="world-tier-options" aria-expanded="false">
-                    <span id="world-tier-label">Select scale</span>
-                  </button>
-                  <div id="world-tier-options" class="select-options" role="listbox" aria-label="Simulatte world scales" hidden>
-                    <div class="select-option" data-value="datacenter" role="option">Datacenter</div>
-                    <div class="select-option" data-value="city" role="option">City</div>
-                    <div class="select-option" data-value="country" role="option">Country</div>
-                    <div class="select-option" data-value="world" role="option">Planet</div>
-                    <div class="select-option" data-value="solar-system" role="option">Solar System</div>
-                    <div class="select-option" data-value="star-chart" role="option">Universe</div>
-                  </div>
-                </div>
-                <div id="application-profile-control" class="profile-selector">
-                  <select id="application-profile" aria-label="Experience" disabled hidden>
-                    <option>Loading experience</option>
-                  </select>
-                  <button id="application-profile-trigger" class="select-trigger" type="button" aria-label="Switch experience" aria-haspopup="listbox" aria-controls="application-profile-options" aria-expanded="false" disabled>
-                    <span id="application-profile-label">Loading experience</span>
-                  </button>
-                  <div id="application-profile-options" class="select-options" role="listbox" aria-label="Simulatte experiences" hidden></div>
-                </div>
+
+
               </div>
               <div id="runtime-details" class="runtime-details sim-popover" hidden>
                 <span class="sim-label">This device</span>
@@ -136,9 +120,9 @@
           <div class="loading-progress" aria-hidden="true"><span id="loading-progress-bar"></span></div>
           <span id="loading-status" class="loading-status" aria-live="polite">Starting</span>
         </div>
-        
+
         </div>
-      <div class="simulation-viewbar"><div id="camera-controls" class="camera-controls" aria-label="Camera experiences" data-semantic-label-exclusion>
+      <div class="simulation-viewbar"><details id="camera-menu" class="camera-menu"><summary class="sim-action">Camera</summary><div id="camera-controls" class="camera-controls" aria-label="Camera experiences" data-semantic-label-exclusion>
               <div class="camera-modes sim-segmented" role="group" aria-label="Camera experiences">
                 <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
                 <button id="camera-pov" type="button" aria-pressed="false">POV</button>
@@ -148,17 +132,50 @@
                 <button id="camera-compare" type="button" aria-pressed="false">Compare</button>
               </div>
               <button id="camera-reset" class="sim-action" type="button" title="Restore this simulation's intended framing without resetting its state">Reset view</button>
-            </div><button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false" data-semantic-label-exclusion>Advanced</button></div>
+            </div></details><div class="simulation-playback"><button id="start-button" class="sim-action sim-action-primary" type="button"><span class="play-mark" aria-hidden="true"></span><span id="start-label">Start</span></button><button id="pause-button" class="sim-action" type="button" hidden>Pause</button><button id="resume-button" class="sim-action sim-action-primary" type="button" hidden><span class="play-mark" aria-hidden="true"></span>Resume</button></div><button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false" data-semantic-label-exclusion>Advanced</button></div>
+    </section>
+
+    <div id="decisions-backdrop" class="drawer-backdrop" hidden></div>
+    <aside id="decisions-drawer" class="evidence-panel sim-surface" role="dialog" aria-modal="true" inert aria-label="Controls and evidence" aria-hidden="true">
+      <header class="evidence-heading">
+        <div>
+          <strong id="decision-title">Experiment controls</strong>
+          <p id="decision-meta">Scenario changes apply and restart. Inspect results and evidence here.</p>
+        </div>
+        <button id="decisions-close" class="drawer-close" type="button" aria-label="Close decisions">×</button>
+      </header>
+      <details id="profile-navigation" class="evidence-section"><summary>Experiences</summary><div id="world-tier-control" class="profile-selector">
+                  <button id="world-tier-trigger" class="select-trigger" type="button" aria-label="Switch world scale" aria-haspopup="listbox" aria-controls="world-tier-options" aria-expanded="false">
+                    <span id="world-tier-label">Select scale</span>
+                  </button>
+                  <div id="world-tier-options" class="select-options" role="listbox" aria-label="Simulatte world scales" hidden>
+                    <div class="select-option" data-value="datacenter" role="option">Datacenter</div>
+                    <div class="select-option" data-value="city" role="option">City</div>
+                    <div class="select-option" data-value="country" role="option">Country</div>
+                    <div class="select-option" data-value="world" role="option">Planet</div>
+                    <div class="select-option" data-value="solar-system" role="option">Solar System</div>
+                    <div class="select-option" data-value="star-chart" role="option">Universe</div>
+                  </div>
+                </div><div id="application-profile-control" class="profile-selector">
+                  <select id="application-profile" aria-label="Experience" disabled hidden>
+                    <option>Loading experience</option>
+                  </select>
+                  <button id="application-profile-trigger" class="select-trigger" type="button" aria-label="Switch experience" aria-haspopup="listbox" aria-controls="application-profile-options" aria-expanded="false" disabled>
+                    <span id="application-profile-label">Loading experience</span>
+                  </button>
+                  <div id="application-profile-options" class="select-options" role="listbox" aria-label="Simulatte experiences" hidden></div>
+                </div></details>
+      <details class="evidence-section"><summary>Playback and results</summary>
       <section class="mission-dock sim-surface" id="sim-mission-dock" aria-label="Simulation controls" data-semantic-label-exclusion>
-          
-          
+
+
           <div class="mission-actions" aria-label="Simulation actions">
 <button id="reset-button" class="sim-action" type="button" hidden>Reset</button>
 <button id="step-button" class="sim-action" type="button" hidden>Step</button>
             <button id="shuffle-button" class="sim-action" type="button"><span id="shuffle-label">Shuffle</span><span aria-hidden="true">↻</span></button>
-            <button id="start-button" class="sim-action sim-action-primary" type="button"><span class="play-mark" aria-hidden="true"></span><span id="start-label">Start</span></button>
-            <button id="pause-button" class="sim-action" type="button" hidden>Pause</button>
-            <button id="resume-button" class="sim-action sim-action-primary" type="button" hidden><span class="play-mark" aria-hidden="true"></span>Resume</button>
+
+
+
             <button id="replay-button" class="sim-action sim-action-primary" type="button" hidden>Replay</button>
             <button id="new-mission-button" class="sim-action" type="button" hidden>New mission</button>
             <div class="dock-more-anchor">
@@ -167,7 +184,7 @@
                 <button id="what-if-button" type="button" hidden>What if</button>
               </div>
             </div>
-            
+
             <input id="place-resolution-lane" type="checkbox" hidden aria-describedby="place-lane-note">
             <span id="place-lane-note" class="sr-only">Deterministic matching is active.</span>
           </div>
@@ -181,8 +198,8 @@
               <input id="playback-timeline" type="range" min="0" max="0" step="1" value="0">
             </label>
             <div class="playback-actions">
-              
-              
+
+
               <label id="playback-speed-control" class="playback-control playback-speed-control" hidden>
                 <span>Speed</span>
                 <select id="playback-speed" class="sim-field">
@@ -194,7 +211,7 @@
               </label>
             </div>
           </div>
-          
+
           <output id="mission-error" class="mission-error" aria-live="polite"></output>
         </section>
       <section id="journey-hud" class="journey-hud sim-surface" role="button" tabindex="0" aria-label="Journey progress. Open decision details." title="Open decision details" data-semantic-label-exclusion>
@@ -233,17 +250,7 @@
               <dl id="experience-summary-stats"></dl>
               <p id="experience-summary-comparison" class="experience-summary-comparison"></p>
             </details>
-    </section>
-
-    <div id="decisions-backdrop" class="drawer-backdrop" hidden></div>
-    <aside id="decisions-drawer" class="evidence-panel sim-surface" role="dialog" aria-modal="true" inert aria-label="Controls and evidence" aria-hidden="true">
-      <header class="evidence-heading">
-        <div>
-          <strong id="decision-title">Experiment controls</strong>
-          <p id="decision-meta">Change parameters before Start. Inspect evidence after the run.</p>
-        </div>
-        <button id="decisions-close" class="drawer-close" type="button" aria-label="Close decisions">×</button>
-      </header>
+      </details>
 
           <div id="scenario-field" class="scenario-field" hidden>
             <label class="scenario-picker" for="scenario-select"><span>Scenario</span><select id="scenario-select" class="sim-field" aria-describedby="scenario-description"></select></label>

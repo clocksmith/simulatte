@@ -37,6 +37,7 @@
       target: definition.target || 'session',
       requiresRestart: definition.requiresRestart === true,
       requiresCompile: definition.requiresCompile === true,
+      serial: definition.serial === true,
       available: definition.available || (() => true),
       perform: definition.perform,
     });
@@ -60,6 +61,7 @@
     let generation = 0;
     let sequence = 0;
     let lastOperation = null;
+    let runtimeQueue = Promise.resolve();
     const pending = new Map();
     const cancelled = reason => Object.assign(new Error(reason || 'Operation cancelled'), { name: 'AbortError' });
     const notify = () => { revision += 1; onChange(snapshot()); };
@@ -74,7 +76,7 @@
       operations: Object.freeze([...declared.values()].map((value) => Object.freeze({
         id: value.id, category: value.category, target: value.target,
         requiresRestart: value.requiresRestart, requiresCompile: value.requiresCompile,
-        available: !disposed && Boolean(value.available()),
+        serial: value.serial, available: !disposed && Boolean(value.available()),
       }))),
     });
     function update(changes) {
@@ -109,8 +111,14 @@
         abort = () => reject(controller.signal.reason || cancelled());
         controller.signal.addEventListener('abort', abort, { once: true });
       });
+      // Keep non-abortable runtime mutations in order. Cancellation rejects promptly,
+      // but a newer scenario waits until earlier runtime work has stopped touching it.
+      const perform = () => { check(); return selected.perform(input, context); };
+      const work = selected.serial ? runtimeQueue.then(perform) : Promise.resolve().then(perform);
+      if (selected.serial) runtimeQueue = work.catch(() => {});
+      if (controller.signal.aborted) abort();
       try {
-        const value = await Promise.race([Promise.resolve().then(() => { check(); return selected.perform(input, context); }), aborted]);
+        const value = await Promise.race([work, aborted]);
         check();
         if (!lastOperation || lastOperation.token <= token) lastOperation = Object.freeze({ ...receipt, status: 'success' });
         return value;

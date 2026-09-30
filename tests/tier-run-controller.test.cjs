@@ -564,3 +564,32 @@ test('tier controller auto-starts directly on boot without prior manual configur
   assert.equal(controller.snapshot().state, 'paused');
   controller.dispose();
 });
+
+test('Restart uses accepted controls even when Advanced contains an unapplied draft', async () => {
+  const calls = [], controls = { load: 25 };
+  const controller = create(fakeRuntime({ progressive: false, dispatchedValues: calls }), memoryStorage(), [], [], controls);
+  await controller.start();
+  controls.load = 90;
+  const accepted = controller.acceptedControls(); accepted.load = 100;
+  await controller.restart();
+  assert.deepEqual(calls.map(row => row.load), [25, 25]);
+  assert.deepEqual(controller.acceptedControls(), { load: 25 });
+});
+
+test('Replay retains recorded interventions while Restart clears them', async () => {
+  const interventions = [], runtime = fakeRuntime({ totalSteps: 5 });
+  const dispatch = runtime.dispatchAction;
+  runtime.dispatchAction = async (plugin, action, context) => {
+    if (action !== 'scenario.intervene') return dispatch(plugin, action, context);
+    interventions.push(structuredClone(context.values));
+    return { status: 'running', currentStep: 0, totalSteps: 5 };
+  };
+  const controller = create(runtime, memoryStorage(), [], [], { load: 25 });
+  await controller.start();
+  await controller.intervene('scenario.intervene', { rackId: 'R1', slowdown: 95 });
+  await controller.replay();
+  assert.equal(interventions.length, 2);
+  await controller.restart();
+  assert.equal(interventions.length, 2);
+  controller.dispose();
+});

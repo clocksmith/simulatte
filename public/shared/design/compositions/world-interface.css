@@ -291,3 +291,30 @@ html[data-theme="dark"] .sim-app .plugin-controls select {
     text-align: left;
   }
 }
+
+/* Shared running interface: camera and playback stay close; detail lives in Advanced. */
+body.sim-app .simulation-stage { gap: 8px; }
+.sim-app .simulation-toolbar { grid-row: 1; }
+.sim-app .simulation-viewbar { display: flex; grid-row: 2; flex-wrap: nowrap; align-items: center; justify-content: flex-start; }
+body.sim-app .canvas-shell { height: calc(100dvh - 156px); min-height: 200px; }
+body.sim-app .simulation-viewbar .decisions-button { width: auto; min-width: 0; margin-left: auto; }
+.sim-app .simulation-playback { display: flex; }
+.sim-app .camera-menu { position: relative; z-index: 30; }
+.sim-app .camera-menu > summary { cursor: pointer; list-style: none; }
+.sim-app .camera-menu > summary::-webkit-details-marker { display: none; }
+.sim-app .camera-menu[open] > summary { border-color: var(--sim-accent); }
+body.sim-app .camera-menu > .camera-controls { position: absolute; top: calc(100% + 6px); left: 0; width: min(320px, calc(100vw - 48px)); padding: 12px; background: var(--sim-glass); border: 1px solid var(--sim-line); box-shadow: var(--sim-shadow); }
+body.sim-app #decisions-drawer #sim-mission-dock { display: flex; flex-direction: column; padding: 8px 0; border: 0; }
+@media (max-height: 500px) {
+  .sim-app .sim-object-inspector > div { max-height: 90px; }
+}
+
+html[data-world-launch="featured"] body.sim-app .runtime-anchor { display: flex; flex-wrap: nowrap; }
+html[data-world-launch="featured"] .sim-app .runtime-toolbar { display: flex; }
+.sim-app #runtime-toggle:has(.sim-session-status) > :is(.status-dot, #runtime-status) { display: none; }
+
+body.sim-app .simulation-toolbar .runtime-anchor { display: flex; flex-wrap: nowrap; }
+body.sim-app .simulation-toolbar .runtime-toolbar { display: flex; width: auto; flex: 0 0 auto; }
+body.sim-app .simulation-toolbar .status-pill { width: auto; }
+.sim-app .simulation-toolbar .sim-product-nav { flex: 0 0 auto; }
+html[data-world-launch="featured"] #profile-navigation { display: none; }

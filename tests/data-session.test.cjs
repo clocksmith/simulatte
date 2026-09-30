@@ -18,7 +18,7 @@ test('pending data revision cannot change the displayed run identity or playback
     SimulatteInputSource: { decode: async () => ({ kind: 'worldSpec', source: {}, spec: nextProgram }) },
     SimulatteDataWorldSpec: { FIELDS: [], validate: value => value },
     SimulatteWorldSpec: { serializeWorldSpec: JSON.stringify, parseWorldSpec: JSON.parse },
-    SimulatteDataRun: { create: () => ({ run: program => new Promise(resolve => jobs.push({ program, resolve })), cancel() {}, dispose() {} }), compare: () => ({ sameProgram: true, sameOutput: true }) },
+    SimulatteDataRun: { create: () => ({ run: program => new Promise((resolve, reject) => jobs.push({ program, resolve, reject })), cancel() {}, dispose() {} }), compare: () => ({ sameProgram: true, sameOutput: true }) },
     SimulattePointSceneView: { bounds: () => ({}), create: () => ({ render() {}, dispose() {} }) },
     SimulatteProgramEditor: { createDraft: () => ({ setValue() {}, isDirty: () => false }), setStatus() {} },
     SimulatteDataTable: { render() {} }, SimulatteSimulationSession: sessionApi,
@@ -50,5 +50,17 @@ test('pending data revision cannot change the displayed run identity or playback
   jobs.at(-1).resolve(output); await replay;
   jobs[1].resolve({ frames: output.frames }); await settle();
   assert.equal(api.getDisplayedProgram().name, 'first', 'superseded revision cannot replace the replay');
+  const failure = api.session.invoke('replay'); await settle();
+  const rejected = assert.rejects(failure, /solver failed/);
+  jobs.at(-1).reject(new Error('solver failed')); await rejected;
+  assert.equal(api.session.snapshot().lastOperation.status, 'failed');
+  assert.equal(api.getDisplayedProgram().name, 'first');
+  const cancelled = api.session.invoke('replay'); await settle();
+  const cancellation = assert.rejects(cancelled, { name: 'AbortError' });
+  api.session.cancel(); await cancellation;
+  jobs.at(-1).resolve({ frames: [] }); await settle();
+  assert.equal(api.session.snapshot().lastOperation.status, 'cancelled');
+  assert.equal(api.getResult(), output, 'cancelled data execution must retain the displayed result');
+  assert.equal(api.session.snapshot().preparation, 'idle');
   api.dispose();
 });

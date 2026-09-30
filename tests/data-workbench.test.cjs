@@ -27,11 +27,11 @@ test('the dormant hexagon homepage retains every simulation and optional data to
     assert.ok(html.includes(`data-default-profile="${profile}"`));
   }
 });
-test('temporary Motorcycle launch suspends data and profile boot even on old deep links', () => {
+test('featured landing keeps data and unfeatured profiles dormant', () => {
   const html = readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
-  assert.match(html, /<html[^>]+data-world-launch="motorcycle"/);
-  for (const pathname of ['/', '/datacenter', '/sunwalker', '/grid']) {
-    const context = { document: { documentElement: { dataset: { worldLaunch: 'motorcycle' } }, body: { dataset: {} } },
+  assert.match(html, /<html[^>]+data-world-launch="featured"/);
+  for (const pathname of ['/', '/unlisted', '/orbital', '/grid']) {
+    const context = { document: { documentElement: { dataset: { worldLaunch: 'featured' } }, body: { dataset: {} } },
       location: { pathname, hash: '#data' } };
     for (const script of ['data-workbench.js', 'workbench-entry.js']) {
       vm.runInNewContext(readFileSync(path.join(__dirname, '../public/simulatte/app', script), 'utf8'), context);
@@ -217,4 +217,23 @@ test('drawing preserves equal coordinate scale on wide and narrow views with sta
     const project = view.projection(box, width, height);
     assert.ok(Math.abs((project({ x: 1, y: 0 }).x - project({ x: 0, y: 0 }).x) - (project({ x: 0, y: 0 }).y - project({ x: 0, y: 1 }).y)) < 1e-10);
   }
+});
+
+test('a featured-route loading failure returns to visible navigation with its error', async () => {
+  const attached = [];
+  const nodes = Object.fromEntries(['world-tiers-landing-page', 'simulation-home', 'data-page', 'simulation-status'].map(id => [id, {
+    hidden: false, dataset: {}, classList: { remove() {} }, addEventListener() {},
+  }]));
+  const context = { location: { pathname: '/datacenter', hash: '' },
+    document: { documentElement: { dataset: { worldLaunch: 'featured' } }, body: { dataset: {} },
+      getElementById: id => nodes[id], querySelector: selector => selector === '#motorcycle-launch .launch-copy' ? { append: node => attached.push(node) } : null },
+    SimulatteWorldRuntimeScriptManifest: {},
+    SimulatteWorldRuntimeLoader: { async loadNavigation() { throw new Error('network unavailable'); } },
+    addEventListener() {},
+  };
+  vm.runInNewContext(readFileSync(path.join(__dirname, '../public/simulatte/app/workbench-entry.js'), 'utf8'), context);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(context.document.documentElement.dataset.worldRuntime, undefined);
+  assert.deepEqual(attached, [nodes['simulation-status']]);
+  assert.match(nodes['simulation-status'].textContent, /network unavailable/);
 });

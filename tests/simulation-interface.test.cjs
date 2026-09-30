@@ -240,3 +240,14 @@ test('3D projection frames the focus above an inspector without mutating camera 
     assert.equal(identity[13],0,'the original camera transform remains unchanged');
   }
 });
+
+test('camera route identity uses accepted input, independent of measurements and editing drafts', () => {
+  const scenario = { id: 'cable', seed: 'seed' };
+  const contributions = [{ pluginId: 'subsea', controls: { controls: [{ id: 'failed', value: ['currently-broken'] }] } }];
+  const accepted = { pluginId: 'subsea', values: { failed: ['accepted-fault'] } };
+  const route = require('../public/simulatte/app/world-tiers-boot.js').appliedSimulationRouteState(scenario, contributions, accepted);
+  assert.deepEqual(route.parameters.subsea.failed, ['accepted-fault']);
+  accepted.values.failed.push('later-draft');
+  assert.deepEqual(route.parameters.subsea.failed, ['accepted-fault']);
+  assert.deepEqual(contributions[0].controls.controls[0].value, ['currently-broken']);
+});

@@ -49,9 +49,11 @@
     }
   }
   function create({ host, canvas, getSession, projectObjects, onInsets = () => {} }) {
-    let contribution = null, selectedId = null, down = null, preview = null, selectionRevision = 0;
+    let contribution = null, selectedId = null, down = null, preview = null, selectionRevision = 0, scenarioKey = null;
     const events = new AbortController();
     const command = (id, input) => getSession().invoke(id, input);
+    const identity = value => JSON.stringify([value?.pluginId, value?.state?.scenarioId,
+      value?.controls.controls.map(row => [row.id, row.value])]);
     const inspector = root.SimulatteDeclarativeUiHost.createObjectInspector({ host,
       onSelect: id => { void command('select-object', id).catch(() => {}); },
       onAction: async id => {
@@ -63,11 +65,11 @@
         const action = actionFor(contribution, selectedId);
         if (!action) throw new Error('No supported action for this object');
         if (id === 'preview') {
-          const revision = selectionRevision;
+          const revision = selectionRevision, generation = getSession().snapshot().generation;
           const original = selectedFields().map(row => ({ ...row }));
           const next = await command('preview-controls', action.values);
-          if(revision!==selectionRevision)throw Object.assign(new Error('Selection changed'),{name:'AbortError'});
-          preview = { original, next };
+          if(revision!==selectionRevision || generation!==getSession().snapshot().generation)throw Object.assign(new Error('Selection changed'),{name:'AbortError'});
+          preview = { original, next, generation };
           render();
           return { message: 'Preview calculated. Current simulation is unchanged. Apply and restart to use it.' };
         }
@@ -85,6 +87,7 @@
       return fields;
     }
     function render() {
+      if (preview && preview.generation !== getSession().snapshot().generation) preview = null;
       const objects = objectsFor(contribution);
       const object = objects.find(row => row.id === selectedId);
       const action = object ? actionFor(contribution, selectedId) : null;
@@ -111,6 +114,7 @@
       onInsets(inspector.element);
     }
     canvas.addEventListener('pointerdown', event => { down = { x: event.clientX, y: event.clientY }; }, { signal: events.signal });
+    canvas.addEventListener('pointercancel', () => { down = null; }, { signal: events.signal });
     canvas.addEventListener('pointerup', event => {
       if (!down) return;
       const moved = Math.hypot(down.x - event.clientX, down.y - event.clientY); down = null;
@@ -124,7 +128,11 @@
     resize?.observe(inspector.element); resize?.observe(canvas);
     return Object.freeze({
       select(id) { selectionRevision++; selectedId = id; preview = null; render(); },
-      update(next) { contribution = next; render(); },
+      update(next) {
+        const nextKey = identity(next);
+        if (nextKey !== scenarioKey) { selectionRevision++; preview = null; scenarioKey = nextKey; }
+        contribution = next; render();
+      },
       selected: () => selectedId,
       dispose() { delete canvas.__simulatteObjectTargets; events.abort(); resize?.disconnect(); inspector.dispose(); },
     });

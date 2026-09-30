@@ -1,7 +1,7 @@
 (function attachDataWorkbench(root) {
   if (typeof module === 'object' && module.exports) return;
   // The temporary launch mode leaves the full World interface dormant.
-  if (document.documentElement?.dataset?.worldLaunch === 'motorcycle') {
+  if (document.documentElement?.dataset?.worldLaunch) {
     document.body.dataset.journeyPhase = 'ready';
     return;
   }
@@ -56,7 +56,7 @@
     el('run').disabled = false;
     el('export').disabled = false;
     status(`Prepared ${spec.objects.length} points.`, 'ready');
-    if (autoRun) void execute();
+    if (autoRun) void session.invoke('start').catch(report);
   }
   function renderTable(target, columns, rows) {
     return tables.render(target, { columns, rows, limit: 20 });
@@ -155,24 +155,29 @@
     }
     playbackFrame = requestAnimationFrame(tick);
   }
-  async function execute(replay = false) {
+  async function execute(replay = false, operation) {
     const before = result || previous;
     invalidate({ keepVisible: Boolean(result) });
     const current = generation;
+    const abort = () => { if (current === generation) { invalidate({ keepVisible: Boolean(result) }); session.update({ preparation: 'idle', execution: result ? 'paused' : 'idle' }); } };
+    operation?.signal.addEventListener('abort', abort, { once: true });
     el('cancel').disabled = false;
     session?.update({ preparation: 'preparing', execution: 'idle' });
     status(result ? 'Preparing revision; showing previous simulation.' : 'Preparing simulation', 'running');
     try {
       const acceptedProgram = world.parseWorldSpec(world.serializeWorldSpec(replay ? displayedProgram : spec));
       const output = await engine.run(acceptedProgram);
-      if (current !== generation) return;
+      operation?.throwIfCancelled();
+      if (current !== generation) throw Object.assign(new Error('Superseded data run'), { name: 'AbortError' });
+      const nextComparison = before ? runs.compare(before, output) : null;
+      if (replay && !(nextComparison?.sameProgram && nextComparison?.sameOutput)) throw new Error('Replay failed: program or trajectory differs.');
       result = output;
       displayedProgram = acceptedProgram;
       session?.update({ preparation: 'ready' });
-      comparison = before ? runs.compare(before, output) : null;
+      comparison = nextComparison;
       sceneBounds = scenes.bounds(output.frames);
       el('result').hidden = false;
-      view ||= scenes.create(el('canvas'), { onSelect(point) { selectedId = point.id; updateSelection(result.frames[Number(el('step').value)]); } });
+      view ||= scenes.create(el('canvas'), { onSelect(point) { void session.invoke('select-point', point.id).catch(report); } });
       el('step').max = String(output.frames.length - 1); el('step').value = '0'; el('step').disabled = false;
       playbackPosition = 0;
       displayStep(0);
@@ -183,10 +188,10 @@
       el('replay').disabled = false; el('export-result').disabled = false;
       el('playback').disabled = false;
       el('run').textContent = 'Restart';
-      if (replay && !replayPassed) status('Replay failed: program or trajectory differs.', 'error');
+      if (replay && !replayPassed) throw new Error('Replay failed: program or trajectory differs.');
       else play({ restart: true });
-    } catch (error) { if (current === generation) { session?.update({ preparation: 'failed' }); report(error); if (result) el('comparison').textContent = 'Previous successful simulation remains visible.'; } }
-    finally { if (current === generation) { el('cancel').disabled = true; el('run').disabled = draft.isDirty() || !spec; } }
+    } catch (error) { if (current === generation) { session?.update({ preparation: 'failed' }); report(error); if (result) el('comparison').textContent = 'Previous successful simulation remains visible.'; } throw error; }
+    finally { operation?.signal.removeEventListener('abort', abort); if (current === generation) { el('cancel').disabled = true; el('run').disabled = draft.isDirty() || !spec; } }
   }
   async function download(value, name) {
     try { await editorUi.downloadJson(document, name, typeof value === 'string' ? value : JSON.stringify(value, null, 2)); }
@@ -215,11 +220,11 @@
     catch (error) { report(error); }
   });
   on('reset', 'click', () => { if (spec) draft.setValue(world.serializeWorldSpec(spec)); });
-  on('run', 'click', () => { if (result) void session.invoke('restart').catch(report); else void execute(); });
+  on('run', 'click', () => { if (result) void session.invoke('restart').catch(report); else void session.invoke('start').catch(report); });
   function pausePlayback() { stopPlayback(); el('playback').textContent = 'Resume'; status('Paused', 'ready'); session?.update({ execution: 'paused' }); }
   on('playback', 'click', () => { void session.invoke(playbackPaused ? 'resume' : 'pause').catch(report); });
   on('replay', 'click', () => void session.invoke('replay').catch(report));
-  on('cancel', 'click', () => { invalidate({ keepVisible: Boolean(result) }); el('run').disabled = !spec || draft.isDirty(); status('Cancelled', 'cancelled'); session?.update({ preparation: 'idle', execution: result ? 'paused' : 'idle' }); });
+  on('cancel', 'click', () => { session.cancel(); invalidate({ keepVisible: Boolean(result) }); el('run').disabled = !spec || draft.isDirty(); status('Cancelled', 'cancelled'); session?.update({ preparation: 'idle', execution: result ? 'paused' : 'idle' }); });
   on('step', 'input', () => { stopPlayback(); playbackPosition = Number(el('step').value); el('playback').textContent = 'Play'; displayStep(playbackPosition); status('Paused', 'ready'); session?.update({ execution: 'paused' }); });
   on('export', 'click', () => { if (spec) void download(world.serializeWorldSpec(spec), `${editorUi.safeFilePart(spec.name)}.world.json`); });
   on('export-result', 'click', () => { if (result) void download({ ...result, comparison }, 'simulation-result.json'); });
@@ -228,10 +233,11 @@
     onChange: (snapshot) => statusView.render(snapshot),
     capabilities: { selection: true, pause: true, restart: true, replay: 'exact-trajectory', liveActions: false, camera: false },
     operations: [
+      { id: 'start', category: 'execution', perform: (_, operation) => execute(false, operation) },
       { id: 'pause', category: 'execution', perform: pausePlayback },
       { id: 'resume', category: 'execution', perform: () => play() },
       { id: 'restart', category: 'reproduction', perform: () => play({ restart: true }) },
-      { id: 'replay', category: 'reproduction', perform: () => execute(true) },
+      { id: 'replay', category: 'reproduction', perform: (_, operation) => execute(true, operation) },
       { id: 'select-point', category: 'observation', target: 'point', perform: (id) => {
         selectedId = id; if (result) updateSelection(result.frames[playbackPosition]);
       } },

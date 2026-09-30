@@ -18,26 +18,47 @@
       {id:'onboard',category:'observation',perform:()=>explorer?.setCamera('rider')},
       {id:'mist-spray',category:'live',available:()=>!mistPreparing&&!cancelPopulation,perform:sprayMist},
       {id:'treatment',category:'live',perform:input=>explorer?.treatment(input)},
-      {id:'configure',category:'scenario',requiresRestart:true,perform:async(config,operation)=>{
-        invalidate();session.update({preparation:'preparing'});
-        const next=await createTraffic(config,operation.signal);
-        operation.commit(()=>{scene=next;view.setSources(scene.sources);time=0;selected=scene.sources.find(row=>row.kind==='motorcycle')?.id;setPaused(false);session.update({preparation:'ready'});});
-      }},
+      {id:'configure',category:'scenario',requiresRestart:true,perform:(config,operation)=>controller.configure(config,operation)},
       {id:'import-replay',category:'reproduction',perform:importReplay},
-      {id:'seek',category:'reproduction',perform:value=>{invalidate();time=Number(value);explorer?.resetClock();setPaused(true);}},
-      {id:'pause',category:'execution',perform:()=>setPaused(true)},
-      {id:'resume',category:'execution',perform:()=>setPaused(false)},
-      {id:'restart',category:'reproduction',perform:()=>{replayTraffic();setPaused(false);}},
-      {id:'replay',category:'reproduction',perform:()=>{replayTraffic();setPaused(false);}},
+      {id:'seek',category:'reproduction',perform:value=>controller.seek(value)},
+      {id:'pause',category:'execution',perform:()=>controller.pause()},
+      {id:'resume',category:'execution',perform:()=>controller.resume()},
+      {id:'restart',category:'reproduction',perform:()=>controller.restart()},
+      {id:'replay',category:'reproduction',perform:()=>controller.replay()},
       {id:'reset-view',category:'observation',target:'camera',perform:()=>explorer?.setCamera('map')},
-      {id:'compare-snapshot',category:'execution',target:'viewpoint',perform:(observer,operation)=>run(observer,operation)},
+      {id:'compare-snapshot',category:'execution',target:'viewpoint',perform:(observer,operation)=>controller.compareSnapshot(observer,operation)},
+      {id:'acoustics',category:'live',perform:values=>controller.setAcoustics(values)},
+      {id:'panel-angle',category:'live',perform:value=>{if(scene){scene.panel.angle=Number(value)*Math.PI/180;invalidate();}}},
+      {id:'technique',category:'live',perform:value=>controller.setTechnique(value)},
+      {id:'focus-target',category:'observation',perform:id=>view.focus(id)},
     ],
   });
   root.SimulatteMotorcycleSession=session;
-  root.SimulatteMotorcycleController=Object.freeze({snapshot:()=>({time,paused,selected,scenarioSeed:scene?.config.seed,
+  const controller=Object.freeze({
+    pause:()=>setPaused(true),resume:()=>setPaused(false),
+    restart:()=>{replayTraffic();setPaused(false);},replay:()=>{replayTraffic();setPaused(false);},
+    seek:value=>{invalidate();time=Number(value);explorer?.resetClock();setPaused(true);},
+    async configure(config,operation){
+      invalidate();session.update({preparation:'preparing'});
+      try{
+        const next=await createTraffic(config,operation?.signal);
+        operation?.throwIfCancelled();
+        scene=next;view.setSources(scene.sources);time=0;selected=scene.sources.find(row=>row.kind==='motorcycle')?.id;
+        setPaused(false);session.update({preparation:'ready'});
+      }catch(error){if(!operation||operation.isCurrent())session.update({preparation:error.name==='AbortError'?'ready':'failed'});throw error;}
+    },
+    compareSnapshot:run,
+    setAcoustics(values){
+      if(!scene)return;invalidate();
+      for(const key of ['surface','cancellation','reflectivity','latencyMs'])scene.config[key]=values[key];
+      status('Acoustic treatment changed; traffic and source positions are unchanged.');
+    },
+    setTechnique,
+    snapshot:()=>({time,paused,selected,scenarioSeed:scene?.config.seed,
     observer:view?.getObserver(),sourceCount:scene?.sources.length,
     motorcycles:scene?.sources.filter(row=>row.kind==='motorcycle').slice(0,8).map(row=>({id:row.id,position:M.position(row,time)})),
     mistBursts:structuredClone(scene?.mistBursts||[]),treatments:structuredClone(scene?.treatments||[])}),invoke:session.invoke});
+  root.SimulatteMotorcycleController=controller;
   statusView.render(session.snapshot());
   function createTraffic(config,signal,mistBursts=[]){
     cancelPopulation?.();populationWorker?.terminate();const request=++populationRequest;
@@ -103,9 +124,9 @@
   const invoke=(id,input)=>{void session.invoke(id,input).catch(error=>{if(error.name!=='AbortError')status(error.message,true);});};
   form.addEventListener('submit',event=>{event.preventDefault();try{invoke('configure',read());}catch(error){status(error.message,true);}});
   for(const name of ['surface','cancellation','reflectivity','latencyMs'])form.elements.namedItem(name).addEventListener('change',()=>{
-    if(!scene)return;try{const p=read();invalidate();for(const key of ['surface','cancellation','reflectivity','latencyMs'])scene.config[key]=p[key];status('Acoustic treatment changed; traffic and source positions are unchanged.');}catch(error){status(error.message,true);}
+    if(!scene)return;try{invoke('acoustics',read());}catch(error){status(error.message,true);}
   });
-  $('panel-angle').addEventListener('input',()=>{if(!scene)return;scene.panel.angle=Number($('panel-angle').value)*Math.PI/180;invalidate();});
+  $('panel-angle').addEventListener('input',()=>invoke('panel-angle',$('panel-angle').value));
   for(const button of document.querySelectorAll('[data-place]'))button.addEventListener('click',()=>{placement=button.dataset.place;for(const item of document.querySelectorAll('[data-place]'))item.setAttribute('aria-pressed',String(item===button));status(`Tap the map to place the ${placement}.`);});
   document.addEventListener('cancel-equipment-placement',()=>{placement=null;for(const button of document.querySelectorAll('[data-place]'))button.setAttribute('aria-pressed','false');});
   $('pause').addEventListener('click',()=>invoke(paused?(time>=180?'replay':'resume'):'pause'));
@@ -113,7 +134,7 @@
   $('replay-traffic').addEventListener('click',()=>invoke('replay'));
   $('reset').addEventListener('click',()=>invoke('replay'));
   $('timeline').addEventListener('input',()=>invoke('seek',$('timeline').value));
-  for(const button of document.querySelectorAll('[data-focus]'))button.addEventListener('click',()=>view.focus(button.dataset.focus));
+  for(const button of document.querySelectorAll('[data-focus]'))button.addEventListener('click',()=>invoke('focus-target',button.dataset.focus));
   function plot(canvas,series){
     const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.font='12px monospace';
     const colors=['#9aa8a1','#68c7c7','#bc9bdc'];
@@ -170,15 +191,16 @@
     worker.postMessage({id,scene:analysisScene,time,mapHash});
     });
   }
-  $('technique').addEventListener('change',()=>{
+  function setTechnique(technique){
     if(!scene)return;
     invalidate();
-    const technique=$('technique').value;scene.treatmentMode=technique;scene.treatmentsEnabled=['live','cancellation'].includes(technique);
+    scene.treatmentMode=technique;scene.treatmentsEnabled=['live','cancellation'].includes(technique);
     scene.config.surface=technique==='redirection'?'retro':'none';
     scene.config.cancellation=technique==='cancellation';showConfig(scene.config);
     const explanations={live:'Live treatments. Select a marker to inspect its contribution.',untreated:'Untreated traffic. Equipment and vehicle trajectories are unchanged.',redirection:'Live idealized reflection. The surface redirects intercepted sound; traffic keeps moving.',cancellation:'Live output-limited tonal cancellation at marked nodes. Broadband waveform analysis is in Advanced.'};
     $('technique-note').textContent=explanations[technique];
-  });
+  }
+  $('technique').addEventListener('change',()=>invoke('technique',$('technique').value));
   $('run').addEventListener('click',()=>{expectedReplay=null;invoke('compare-snapshot');});$('cancel').addEventListener('click',()=>{invalidate();status('Calculation cancelled.');});
   $('layer').addEventListener('change',()=>{if(result)view.showMeasurements(result,$('layer').value);});
   $('listen').addEventListener('click',async()=>{if(audioSource){stopAudio();return;}try{if(activeAudio)await playSamples(activeAudio[$('audio-mode').value],result.sampleRate,$('listen'));}catch(error){status(error.message,true);}});
@@ -246,7 +268,7 @@
   lifecycle=root.MotorcycleLifecycle.create({
     frame:tick,suspend,release:releaseRenderer,
     onState(state){
-      session.update({preparation:state.state==='loading'?'preparing':state.state==='failed'?'failed':'ready',
+      session.update({preparation:cancelPopulation||state.state==='loading'?'preparing':state.state==='failed'?'failed':'ready',
         rendering:state.state==='recovering'?'recovering':state.state==='failed'?'failed':
           ['running','paused'].includes(state.state)?'ready':'idle',
         execution:state.state==='running'?'running':state.state==='paused'?'paused':

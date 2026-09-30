@@ -11,6 +11,7 @@ const sourceFiles=[...new Set(execFileSync('git',['ls-files','--cached','--other
   /^public\/(blank\/app|shared\/(contracts|design|plugins)|simulatte\/(app|motorcycle-noise|platform))\//.test(name) && /\.(js|css|html)$/.test(name)
   || ['public/index.html','public/blank/index.html','public/world-tiers.css'].includes(name));
 const hashSources=async()=>Object.fromEntries(await Promise.all(sourceFiles.map(async name=>[name,createHash('sha256').update(await fs.readFile(path.join(root,name))).digest('hex')])));
+sourceFiles.push('tools/simulatte/audit-session-interactions.mjs');
 const sourceHashes=await hashSources();
 const mobile = process.argv.includes('--mobile');
 const viewport = mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 };
@@ -39,7 +40,7 @@ const selected = process.argv.find(arg => arg.startsWith('--profile='))?.split('
 const browser = await openBrowserAudit({ publicRoot: path.join(root, 'public'), viewport, headed: true, chromePath: '/usr/bin/google-chrome', webgpu: true, linuxVulkan: false,
   args:['--no-sandbox','--disable-dev-shm-usage','--use-angle=vulkan','--enable-features=Vulkan','--use-vulkan=swiftshader','--disable-vulkan-surface','--use-webgpu-adapter=swiftshader','--enable-unsafe-swiftshader'] });
 const { client, host } = browser;
-const report = { sourceHashes, schema: 'simulatte.sessionJourney.v1', viewport, layer: 'local-browser', backendPolicy: 'Headed Chrome on isolated Xvfb; explicit SwiftShader software rendering, not hardware performance evidence', routes: [] };
+const report = { navigationPolicy: 'Public landing exposes Motorcycle, GPU Cluster and Sun Walker. Other retained profiles and Your Data are tested with the launch gate disabled in this local browser only.', sourceHashes, schema: 'simulatte.sessionJourney.v1', viewport, layer: 'local-browser', backendPolicy: 'Headed Chrome on isolated Xvfb; explicit SwiftShader software rendering, not hardware performance evidence', routes: [] };
 const evaluate = async expression => {
   const response = await client.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
   if (response.exceptionDetails) throw new Error(response.exceptionDetails.exception?.description || response.exceptionDetails.text);
@@ -75,7 +76,7 @@ const click = async selector => {
   assert.notEqual(value.session.lastOperation?.status, 'failed', JSON.stringify(value.session.lastOperation));
   return value;
 };
-async function pixelEvidence(screenshot) {
+async function pixelEvidence(screenshot, { sparse = false } = {}) {
   const evidence = await evaluate(`(async () => {
     const scene = [...document.querySelectorAll('canvas')].find(c => c.__simulatteObjectTargets) || document.querySelector('.canvas canvas');
     const rect = scene.getBoundingClientRect();
@@ -86,16 +87,27 @@ async function pixelEvidence(screenshot) {
     const pixels = ctx.getImageData(0, 0, 120, 80).data, colors = new Set();
     let nonblack = 0;
     for(let i=0;i<pixels.length;i+=4){ if(pixels[i]+pixels[i+1]+pixels[i+2]>60)nonblack++; colors.add((pixels[i]>>3)+','+(pixels[i+1]>>3)+','+(pixels[i+2]>>3)); }
-    return { colors: colors.size, nonblackFraction: nonblack/9600 };
+    const visibleObjects=scene.__simulatteObjectTargets?.().filter(row=>row.points.some(p=>p && p.x>=0 && p.y>=0 && p.x<=rect.width && p.y<=rect.height)).length;
+    return { colors: colors.size, nonblackFraction: nonblack/9600, visibleObjects };
   })()`);
-  assert.ok(evidence.colors > 12 && evidence.nonblackFraction > .015, 'Scene pixel evidence: '+JSON.stringify(evidence));
+  // Star fields intentionally leave most pixels black; also require projected model geometry.
+  assert.ok(evidence.colors > 12 && evidence.nonblackFraction > (sparse ? .005 : .015)
+    && (!sparse || evidence.visibleObjects >= 2), 'Scene pixel and geometry evidence: '+JSON.stringify(evidence));
   return evidence;
 }
 async function journey(route, prefix) {
   const row = { route, steps: [] }; report.routes.push(row);
   await client.send('Page.navigate', { url: host.baseUrl + route });
-  await wait(`globalThis.SimulatteActiveSession?.snapshot().execution==='running'`);
+  await wait(`globalThis.SimulatteActiveSession?.snapshot().execution==='running' && document.querySelector('#pause-button')?.getBoundingClientRect().width>0 && !document.querySelector('#pause-button').disabled`);
   const initial = await snapshot(); assert.equal(initial.advanced, false); row.initial = initial;
+  const chrome = await evaluate(`(() => {
+    const bar=document.querySelector('.simulation-viewbar').getBoundingClientRect();
+    return {height:bar.height, bottom:bar.bottom, viewport:innerHeight,
+      camera:document.querySelector('#camera-menu > summary').getBoundingClientRect().width,
+      pause:document.querySelector('#pause-button').getBoundingClientRect().width};
+  })()`);
+  assert.ok(chrome.height<=60 && chrome.bottom<chrome.viewport && chrome.camera>0 && chrome.pause>0, 'Compact controls remain visible: '+JSON.stringify(chrome));
+  row.chrome=chrome;
   await wait(`(__simulattePluginPlatformV4?.contributions||[]).some(c=>c.state?.simulationTimeMs>0)`);
   row.steps.push('opened with Advanced closed; model time advanced');
   await click('#pause-button');
@@ -150,11 +162,15 @@ async function journey(route, prefix) {
     assert.ok(framing.point && (framing.point.y<framing.panelTop || framing.point.x>framing.panelRight),'Focused walker must not be covered by inspector');
     row.framing=framing;
   }
+  const wheel=await evaluate(`(() => {const c=[...document.querySelectorAll('canvas')].find(c=>c.__simulatteObjectTargets),r=c.getBoundingClientRect();return {x:r.right-40,y:r.top+50};})()`);
+  await client.send('Input.dispatchMouseEvent',{type:'mouseWheel',...wheel,deltaX:0,deltaY:80});
+  await new Promise(resolve=>setTimeout(resolve,150));
+  const explored=await snapshot();
   await evaluate(`document.querySelector('[data-object-action="focus"]').focus();document.querySelector('.sim-object-inspector > div').scrollTop=18`);
   await invoke('resume');
   await new Promise(resolve => setTimeout(resolve, 300));
   const focused=await snapshot();
-  await wait(`JSON.stringify(__simulattePluginPlatformV4.contributions.find(c=>SimulatteActiveSession.snapshot().id.startsWith(c.pluginId)).state)!==${JSON.stringify(JSON.stringify(focused.model))}`);
+  await wait(`__simulattePluginPlatformV4.contributions.find(c=>SimulatteActiveSession.snapshot().id.startsWith(c.pluginId)).state.simulationTimeMs>${focused.model.simulationTimeMs}`);
   await click('#pause-button');
   await new Promise(resolve => setTimeout(resolve, 150));
   const paused=await snapshot();
@@ -162,7 +178,7 @@ async function journey(route, prefix) {
   const still=await snapshot();
   assert.deepEqual(still.model,paused.model,'Paused model must not advance');
   assert.equal(still.selected,id); assert.equal(still.scroll,paused.scroll);
-  if(paused.view)assert.deepEqual(still.view,paused.view,'Measurements must not move the camera');
+  if(paused.view){assert.deepEqual(still.view,paused.view,'Paused camera must remain fixed');assert.deepEqual(paused.view,explored.view,'Model updates must preserve the manually explored camera');}
   assert.equal(focused.focus,'focus','Measurement updates must preserve focus');
   row.paused=paused;row.steps.push('camera focus, resume and pause preserved selection, focus and scroll');
   if(mobile){
@@ -173,11 +189,14 @@ async function journey(route, prefix) {
     row.steps.push('orientation retained selection');
   }
   const screenshot=await client.send('Page.captureScreenshot',{format:'png'});
-  row.pixels=await pixelEvidence(screenshot);
   const filename=route.replaceAll('/','-')+'.png';await fs.writeFile(path.join(out,filename),Buffer.from(screenshot.data,'base64'));row.screenshot=filename;
+  row.pixels=await pixelEvidence(screenshot,{sparse:route.includes('interstellar')});
+  await click('#decisions-button');
+  await evaluate(`document.getElementById('sim-mission-dock').parentElement.open=true`);
   await click('#replay-button');const replay=await snapshot();assert.equal(replay.session.execution,'running');assert.equal(replay.selected,id);
   assert.deepEqual(replay.controls,row.action.controls,'Replay must retain accepted parameters');
-  row.steps.push('replayed accepted run'); row.replay=replay; row.status='pass';
+  await click('#decisions-close');
+  row.steps.push('replayed accepted run from Advanced'); row.replay=replay; row.status='pass';
 }
 async function motorcycleJourney(){
   const row={route:'motorcycle',steps:[]};report.routes.push(row);
@@ -251,6 +270,26 @@ async function formsJourney() {
 
 try {
   await client.send('Runtime.enable'); await client.send('Page.enable');
+  await client.send('Emulation.setDeviceMetricsOverride',{...viewport,deviceScaleFactor:1,mobile});
+  await client.send('Emulation.setTouchEmulationEnabled',{enabled:mobile});
+  await client.send('Page.addScriptToEvaluateOnNewDocument', { source: `
+    if (['/world','/country','/solar-system','/star-chart','/subsea','/grid','/orbital','/interstellar'].some(prefix=>location.pathname.startsWith(prefix)) || location.hash === '#data') {
+      const restore = () => {
+        if (!document.documentElement?.hasAttribute('data-world-launch')) return;
+        document.documentElement.removeAttribute('data-world-launch'); observer.disconnect();
+      };
+      const observer = new MutationObserver(restore); observer.observe(document, { childList: true, subtree: true, attributes: true }); restore();
+    }
+  ` });
+  if(!selected){
+    await client.send('Page.navigate', { url: host.baseUrl });
+    await wait(`document.body?.dataset.journeyPhase==='ready'`);
+    const links=await evaluate(`Array.from(document.querySelectorAll('a')).filter(a=>a.getBoundingClientRect().width>0).map(a=>new URL(a.href).pathname).sort()`);
+    assert.deepEqual(links,['/datacenter','/motorcycle','/sunwalker']);
+    const shot=await client.send('Page.captureScreenshot',{format:'png'});
+    await fs.writeFile(path.join(out,'landing.png'),Buffer.from(shot.data,'base64'));
+    report.landing={status:'pass',links,screenshot:'landing.png'};
+  }
   if(selected==='forms'){try{await formsJourney();console.log('PASS Create and Your Data');}catch(error){const row=report.routes.at(-1);row.status='failed';row.error=error.message;console.log('FAIL forms',error.message);}}
   if(!selected||selected==='motorcycle'){try{await motorcycleJourney();console.log('PASS motorcycle');}catch(error){const row=report.routes.at(-1);row.status='failed';row.error=error.message;console.log('FAIL motorcycle',error.message);}}
   for(const [route,prefix] of routes.filter(([route])=>!selected||route.includes(selected))){
