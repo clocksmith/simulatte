@@ -165,6 +165,10 @@ async function journey(route, prefix) {
   const wheel=await evaluate(`(() => {const c=[...document.querySelectorAll('canvas')].find(c=>c.__simulatteObjectTargets),r=c.getBoundingClientRect();return {x:r.right-40,y:r.top+50};})()`);
   await client.send('Input.dispatchMouseEvent',{type:'mouseWheel',...wheel,deltaX:0,deltaY:80});
   await new Promise(resolve=>setTimeout(resolve,150));
+  if(route.includes('sun-walker')) {
+    assert.equal(await evaluate(`document.getElementById('autonomy-canvas').__simulatteRenderReceipt().camera.mode`),'top','Zoom retains the selected top view');
+    row.steps.push('top-view zoom preserves the viewing angle');
+  }
   const explored=await snapshot();
   await evaluate(`document.querySelector('[data-object-action="focus"]').focus();document.querySelector('.sim-object-inspector > div').scrollTop=18`);
   await invoke('resume');
@@ -211,6 +215,15 @@ async function motorcycleJourney(){
   row.steps.push('Advanced closed; seeded traffic moves');
   await call('pause');const paused=await read();
   await new Promise(resolve=>setTimeout(resolve,200));assert.equal((await read()).time,paused.time);
+  assert.equal(await evaluate(`document.getElementById('motorcycle-camera-menu').open`),false);
+  await evaluate(`document.querySelector('#motorcycle-camera-menu > summary').click()`);
+  assert.ok(await evaluate(`document.querySelector('[data-camera-mode="area:Greenpoint"]').getBoundingClientRect().width>0`));
+  await evaluate(`document.querySelector('[data-camera-mode="area:Greenpoint"]').click()`);
+  await wait(`!document.getElementById('motorcycle-camera-menu').open && SimulatteMotorcycleSession.snapshot().pending.length===0`);
+  assert.equal((await read()).time,paused.time);
+  row.toolbar=await evaluate(`(() => {const bar=document.querySelector('.city-toolbar').getBoundingClientRect(),meter=document.querySelector('.observer-readout').getBoundingClientRect();return {bottom:bar.bottom,meterTop:meter.top};})()`);
+  assert.ok(row.toolbar.bottom<=(mobile?220:180) && row.toolbar.meterTop>=row.toolbar.bottom,'Compact controls leave the meter and scene clear: '+JSON.stringify(row.toolbar));
+  row.steps.push('camera presets open on demand and preserve traffic time');
   const id=paused.motorcycles[0].id;
   await call('select-object',{sourceId:id});
   await evaluate(`document.getElementById('follow-selected').click()`);

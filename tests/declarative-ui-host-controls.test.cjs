@@ -576,3 +576,33 @@ test('explicit control.group attribute groups controls and advanced parameter se
   assert.ok(paramSection);
   assert.equal(paramSection.open, true);
 });
+
+test('object inspector keeps live labels current and rejects feedback for an old selection', async () => {
+  const doc = fakeDocument();
+  const create = doc.createElement;
+  doc.createElement = tag => { const node = create(tag); node.setAttribute = () => {}; return node; };
+  const host = new FakeNode('host', doc);
+  let resolveAction, selected;
+  const inspector = uiHost.createObjectInspector({ host, onSelect: id => { selected = id; },
+    onAction: () => new Promise(resolve => { resolveAction = resolve; }) });
+  const render = (id, label) => inspector.render({ objects: [{ id: 'rack-a', label }, { id: 'rack-b', label: 'Rack B' }],
+    selectedId: id, label, fields: [], actions: [{ id: 'slow', label: 'Slow rack' }] });
+  render('rack-a', 'Rack A · computing');
+  const select = find(host, node => node.tagName === 'select');
+  const option = select.children[1];
+  const body = host.children[0].children[1];
+  body.scrollTop = 90;
+  render('rack-a', 'Rack A · waiting');
+  assert.equal(select.children[1], option);
+  assert.equal(option.textContent, 'Rack A · waiting');
+  assert.equal(body.scrollTop, 90);
+  const action = find(host, node => node.dataset.objectAction === 'slow');
+  action.dispatch('click');
+  render('rack-b', 'Rack B');
+  assert.equal(body.scrollTop, 0); assert.equal(action.disabled, false);
+  resolveAction({ message: 'Rack A slowed' });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(body.children[3].textContent, '', 'old action cannot annotate the newly selected rack');
+  host.children[0].children[0].children[1].dispatch('click');
+  assert.equal(selected, null);
+});

@@ -189,3 +189,27 @@ test('plugin follow zoom changes the rendered camera distance as well as its con
   assert.ok(Math.hypot(...after.eye.map((value, index) => value - after.target[index]))
     < Math.hypot(...before.eye.map((value, index) => value - before.target[index])));
 });
+
+test('selecting an object leaves its camera intact; top-view zoom and drag retain their angle', () => {
+  const listeners = new Map(), interactions = [], state = cameraState();
+  state.mode = 'top';
+  const canvas = { dataset: {}, clientHeight: 600, focus() {}, setPointerCapture() {},
+    hasPointerCapture: () => false, addEventListener: (name, fn) => listeners.set(name, fn) };
+  webgpuRenderer.installCameraControls(canvas, state, camera, value => interactions.push(value));
+  const event = (values = {}) => ({ clientX: 100, clientY: 100, pointerId: 1, button: 0, preventDefault() {}, ...values });
+  listeners.get('pointerdown')(event());
+  listeners.get('pointermove')(event({ clientX: 102 }));
+  listeners.get('pointerup')(event({ clientX: 102 }));
+  assert.equal(state.mode, 'top');
+  assert.equal(interactions.length, 0, 'a selection tap must not detach the camera');
+  const distance = state.distance;
+  listeners.get('wheel')(event({ deltaY: -120 }));
+  assert.equal(state.mode, 'top'); assert.ok(state.distance < distance);
+  listeners.get('keydown')(event({ key: 'ArrowLeft' }));
+  assert.equal(state.mode, 'top');
+  listeners.get('pointerdown')(event());
+  listeners.get('pointermove')(event({ clientX: 130 }));
+  listeners.get('pointerup')(event({ clientX: 130 }));
+  assert.equal(state.mode, 'top'); assert.equal(state.isManualFrame, true);
+  assert.ok(interactions.every(row => row.mode === 'top'));
+});

@@ -59,7 +59,7 @@
     "public/shared/contracts/world-spec-authorship.js": "59a0b4a5f26d83fa56e3e98f84b9ebe8452466020f94a6aa8d9ba2b1f69afe8f",
     "public/shared/contracts/world-spec-reconciliation.js": "4ce9e09fe81abf45ad296fa8b521e58079020a71e5243ad654e623f993117701",
     "public/shared/contracts/world-spec.js": "fb546305aa4cd1f82daee44b21e0bd36f4c0d0c8cfd7c01b2f196d71131fc620",
-    "public/shared/design/components.css": "77dc4dacdc3d59061e37465291d54c19fc9013a54f58f437a0874996ee211a71",
+    "public/shared/design/components.css": "ddecde8f4cb92d198649ca1610c49a1b68e4579f1fe8eed72a9f86a66dd036d8",
     "public/shared/design/compositions/consent.css": "69553f73e874d98a7464a34a2051193eab0ff552107a5f1b9a4dd91ab5ca95aa",
     "public/shared/design/compositions/world-interface.css": "7d9095837d09f41d9b08c9993770c68dcd5c843338590bd17fa83c4f2f5a563f",
     "public/shared/design/data-table.js": "24146cbc220da413621e827e614e76a50ab4feb5a03b43928f8454f448a2c342",
@@ -209,7 +209,7 @@
     "public/simulatte/app/main.js": "664ec1061c17eaffd308f33b2adf1f385d97819e336adfc8d50950a29a353e92",
     "public/simulatte/app/mount-lifecycle.js": "3727374f100a81ba30407228c6521222b6815dba8d4d2affe629c3095de17dfe",
     "public/simulatte/app/multi-tier-visualizer.js": "316c71ec877fd6f8e8840295d153d5312aba914b8149c0d2a1f751f02010a491",
-    "public/simulatte/app/object-interaction.js": "7533c1048848cd2aa21f04d71435b0b15cf203d113ffd46794e0897bd715a1fe",
+    "public/simulatte/app/object-interaction.js": "70670fbdc2bff5ef61efbbe8c8727db36920d0b7b8249f0221b9d42bacbf770d",
     "public/simulatte/app/plugin-playback.js": "77b0bc31d42dba9cea6ddbbe985e3cb099d56527462c8e14a69ffd044dac8938",
     "public/simulatte/app/plugin-presentation.js": "9da84314dceaa95bcf3536d216ebcf4675c4ba667d536d3cd50856ffda4cba41",
     "public/simulatte/app/plugin-view-runtime.js": "e253bf88afcf187c8a2858ad57eca8c401f35644c102ccaf0d2b21128d4ff863",
@@ -230,7 +230,7 @@
     "public/simulatte/app/webgpu-geometry.js": "7f43ced5efac4e1603afbd2e83c3b9751ad9b896c78e65ffa1b55d2ca4532d39",
     "public/simulatte/app/webgpu-math.js": "3892b11742d47aaf39b30e860d783480167107e661cf1074387f61f33ed44ae0",
     "public/simulatte/app/webgpu-pass.js": "c4373c37301cd5aacedfe41b587396f09aa4e4c1785772144bc0d5453e24628c",
-    "public/simulatte/app/webgpu-renderer.js": "e4055c6d1ca7d6864787b3cf6db6c416c597a3c5b9724afe5a3230c6b98d8448",
+    "public/simulatte/app/webgpu-renderer.js": "63f1059934f47ed92c7b52173318d12ba58204b37abf87eccb288e8121bf497b",
     "public/simulatte/app/webgpu-sun-shadow.js": "f8144cf59d007ca5a17cb4b80a15d786afc318c6395304ae19bb8c42caad771d",
     "public/simulatte/app/workbench-entry.js": "d633ccb2d3e5f5f211eaa6fe295e8ac4ba66f3aaea2370998b14a05a0cc4434b",
     "public/simulatte/app/world-render-scene.js": "344e0fccfdc5c7b0432c550520ae8305973e0f3ed768c370a1a34e9c88478a74",
@@ -240,13 +240,13 @@
     "public/simulatte/motorcycle-noise/acoustic-field.js": "6105e72d1bcef8b11f75fa38c528910d9c2a6ddef3f4193bdaa70d4587bceaa7",
     "public/simulatte/motorcycle-noise/app.js": "84ba024ea1f70677b9c5c13862e4e5540eb08bc2aaff164a576bf3e58bcefd4b",
     "public/simulatte/motorcycle-noise/babylon-city.js": "1df078fc1bbbfc407a711b330a8f677a33045334dc6bd198c1fb055ceb57e96f",
-    "public/simulatte/motorcycle-noise/city-experience.css": "5b4f67be486a0130965fb0e702fd2e3c31a05f488ea644bab1046a8a91404c2a",
+    "public/simulatte/motorcycle-noise/city-experience.css": "efb226dbd1592cb8e3501ee523fbc9adbe97ca57d00bb2063b58edd880c785c0",
     "public/simulatte/motorcycle-noise/city-paths.js": "06130eb8ed0e77c72a45179ce5e8f096ef5e0c9878359c86155ff3309e495bd9",
     "public/simulatte/motorcycle-noise/city-sound.js": "23e72cd8ca43e2254fa0b0d2de84e0e8c05bc694a83510238b30ef05a520ed32",
     "public/simulatte/motorcycle-noise/control.js": "e5a1f6f85a65049b0072a0d6277e57d8796dab0dcf45559c51609cf1c688c71a",
-    "public/simulatte/motorcycle-noise/explore-ui.js": "f4986065ac3bae0b05ae7f28e47f238895f58282ade386a9674993a28e360545",
+    "public/simulatte/motorcycle-noise/explore-ui.js": "e27e52173908a01ed5676abd23654cdf809d39ad23da4a0b1868ece03b7ab964",
     "public/simulatte/motorcycle-noise/header-controls.js": "0627d0d989452efcd4fae1b529033b8ac670101858436a79217ffac7d804350c",
-    "public/simulatte/motorcycle-noise/index.html": "ac5151ecb7627a835ff3aa2bb50b4769d6448828060dd7d98dc6b9440ffd9c87",
+    "public/simulatte/motorcycle-noise/index.html": "9f8a1452754aface9a7a769144d82d6b3cc91b0cfc7f7d1ed3f6780bb15e0fd4",
     "public/simulatte/motorcycle-noise/lifecycle.js": "7843dcc697be8b011570ec2e763549f68f9a021e93d7b5b9f805c1757ff546e2",
     "public/simulatte/motorcycle-noise/live-noise-worker.js": "9f1dfd083a0deb8f6e51f167a1f7fd5ce034559231669aee9d1cd259bc6de84c",
     "public/simulatte/motorcycle-noise/map-gestures.js": "1de0f6f74215fd0dd8e3d2072457114479c92c928cb63d5d7c4de8bbf7374f22",
@@ -305,10 +305,10 @@
     "public/simulatte/platform/runtime/simulation-timeline.js": "ea9253cd3c79f5cdcf7cd86054e0e81cd8efed683b2446a97e867f607f462ed4",
     "public/simulatte/platform/storage/browser-tile-storage.js": "01c3559afdc575e27598835b5b72f6d77aa76f7fcf1c8cab92b316ec5ac7903b",
     "public/simulatte/platform/transport/browser-transport.js": "2c1db52f2c5af7585d5924b28064dfaa7aef0639af0385bb7a3f83712fa0d1d9",
-    "public/simulatte/platform/ui-host/declarative-ui-host.js": "09fb707f4bebb805bbd2722201f8a02b75f8f63b798aaf38a6593e6b761691dd",
+    "public/simulatte/platform/ui-host/declarative-ui-host.js": "a07d4132c8206f2866c3da27941c3d8345ee9a8d405cee2dac4afa0fdddcf8bf",
     "public/simulatte/platform/view/view-director.js": "51c21a4451f794aa96abdfce78c2044da7020d906b00725877d608a891a40729",
     "public/world-tiers.css": "8bf2e6d66504726001ca9c1fe9684f5e3f2ae6b5298d2d3b922748c482ab3110",
-    "tools/simulatte/audit-session-interactions.mjs": "e43d31d7c32219ce13cf6975bcec7eaa3b995dded0b765e4c597d9e90d8d6f07"
+    "tools/simulatte/audit-session-interactions.mjs": "4feced990f8d9b5e1d498f8f2be4d7f9c05aa94a5e41f8c88d4b19a9e1a52585"
   },
   "schema": "simulatte.sessionJourney.v1",
   "viewport": {
@@ -322,23 +322,28 @@
       "route": "motorcycle",
       "steps": [
         "Advanced closed; seeded traffic moves",
+        "camera presets open on demand and preserve traffic time",
         "selected motorcycle; follow and onboard preserve traffic time",
         "selected treatment and changed modeled emitter state",
         "moved observer without resetting traffic",
         "paused, resumed and replayed identified traffic"
       ],
+      "toolbar": {
+        "bottom": 153,
+        "meterTop": 166
+      },
       "beforeReplay": {
-        "time": 15.949825999999996,
+        "time": 14.766474000000002,
         "paused": true,
         "selected": "motorcycle-1",
         "scenarioSeed": 731,
         "observer": {
-          "x": 1966.7832627089842,
-          "y": -814.1277399296876,
-          "z": 1.6999998092651367,
+          "x": 1964.6090683730467,
+          "y": -816.7866754765626,
+          "z": 1.700000286102295,
           "right": {
-            "x": -0.7914414405822754,
-            "y": 0.6112450361251831
+            "x": -0.7918346524238586,
+            "y": 0.6107355356216431
           },
           "sourceId": null,
           "trackId": null,
@@ -350,15 +355,15 @@
             "id": "motorcycle-1",
             "position": {
               "stalled": false,
-              "x": 1969.1206953881835,
-              "y": -809.485079584961,
+              "x": 1963.6461450292968,
+              "y": -816.1803425939942,
               "heading": 0.8853793740272522,
-              "speed": 7.496993408517853,
-              "phase": 1431.6642801733394,
-              "distance": 77.57570674560544,
-              "acceleration": -1.0139161021850276,
-              "lean": 0,
-              "rpm": 2084.2855450683614,
+              "speed": 7.054158467702856,
+              "phase": 1303.902996242676,
+              "distance": 68.92721962753298,
+              "acceleration": -2.0890179840136898,
+              "lean": 9.891363566595731e-14,
+              "rpm": 2026.145289353026,
               "z": 0.7
             }
           },
@@ -366,15 +371,15 @@
             "id": "motorcycle-2",
             "position": {
               "stalled": false,
-              "x": 1972.0260296484375,
-              "y": -807.9855068310547,
+              "x": 1966.5515405371093,
+              "y": -814.6807698400879,
               "heading": 0.8853793740272522,
-              "speed": 7.49699317092897,
-              "phase": 1507.9686868896479,
-              "distance": 80.57570674560544,
-              "acceleration": -1.0139223982904126,
+              "speed": 7.054158944540014,
+              "phase": 1371.218508569336,
+              "distance": 71.92721962753298,
+              "acceleration": -2.0890179840136898,
               "lean": 0,
-              "rpm": 2232.7238686474634,
+              "rpm": 2165.815984365233,
               "z": 0.7
             }
           },
@@ -382,15 +387,15 @@
             "id": "motorcycle-3",
             "position": {
               "stalled": false,
-              "x": 1977.4758256152343,
-              "y": -799.2666142944336,
+              "x": 1971.6523713232423,
+              "y": -806.3887857641602,
               "heading": 0.8853793740272522,
-              "speed": 7.7971757231521535,
-              "phase": 1513.5269839746088,
-              "distance": 90.77515920089718,
-              "acceleration": -1.1599179762413439,
+              "speed": 7.475368235511784,
+              "phase": 1376.5942840502933,
+              "distance": 81.5752710751343,
+              "acceleration": -0.18220597202288014,
               "lean": 0,
-              "rpm": 2211.3148959228506,
+              "rpm": 2165.4482718017584,
               "z": 0.7
             }
           },
@@ -398,15 +403,15 @@
             "id": "motorcycle-4",
             "position": {
               "stalled": false,
-              "x": 1980.3812211230468,
-              "y": -797.7670415405273,
+              "x": 1974.5577668310548,
+              "y": -804.8892130102539,
               "heading": 0.8853793740272522,
-              "speed": 7.797175246314995,
-              "phase": 1548.209844360351,
-              "distance": 93.77515920089718,
-              "acceleration": -1.1599179762413439,
-              "lean": 1.4312500307805564e-13,
-              "rpm": 2277.6804200976553,
+              "speed": 7.475368235511784,
+              "phase": 1407.1700530615237,
+              "distance": 84.5752710751343,
+              "acceleration": -0.18220445331083646,
+              "lean": -3.68734775569079e-14,
+              "rpm": 2229.074959785157,
               "z": 0.7
             }
           },
@@ -414,15 +419,15 @@
             "id": "motorcycle-5",
             "position": {
               "stalled": false,
-              "x": 1986.2021504223633,
-              "y": -788.5943485437012,
+              "x": 1980.0872768041993,
+              "y": -796.0728540307617,
               "heading": 0.8853793740272522,
-              "speed": 8.29442055971145,
-              "phase": 1570.3258740576166,
-              "distance": 104.56089268081662,
+              "speed": 8.06503142409325,
+              "phase": 1428.2077714062502,
+              "distance": 94.90069355636598,
               "acceleration": 1.7000000476837158,
-              "lean": -1.5010804659596446e-13,
-              "rpm": 2311.418101499022,
+              "lean": 9.715308771340705e-14,
+              "rpm": 2277.9153792138677,
               "z": 0.7
             }
           },
@@ -430,15 +435,15 @@
             "id": "motorcycle-6",
             "position": {
               "stalled": false,
-              "x": 1989.1075459301758,
-              "y": -787.094775789795,
+              "x": 1982.9926723120118,
+              "y": -794.5732812768555,
               "heading": 0.8853793740272522,
-              "speed": 8.29442055971145,
-              "phase": 1609.2188554101558,
-              "distance": 107.56089268081662,
+              "speed": 8.06503142409325,
+              "phase": 1462.4883158422854,
+              "distance": 97.90069355636598,
               "acceleration": 1.7000000476837158,
               "lean": 0,
-              "rpm": 2386.9647237939444,
+              "rpm": 2351.372763447266,
               "z": 0.7
             }
           },
@@ -446,15 +451,15 @@
             "id": "motorcycle-7",
             "position": {
               "stalled": false,
-              "x": 1995.2364139477538,
-              "y": -777.5453840417481,
+              "x": 1988.9210001074218,
+              "y": -785.2691928344726,
               "heading": 0.8853793740272522,
-              "speed": 8.6421314342308,
-              "phase": 1596.8712629736324,
-              "distance": 118.83315580764767,
-              "acceleration": 1.4070266426587343,
-              "lean": -1.5700133504090137e-13,
-              "rpm": 2318.337346889648,
+              "speed": 8.514011288642884,
+              "phase": 1455.0218597412113,
+              "distance": 108.85607783279421,
+              "acceleration": 0.8466598652535379,
+              "lean": 1.2189676256173571e-13,
+              "rpm": 2300.2753955371095,
               "z": 0.7
             }
           },
@@ -462,15 +467,15 @@
             "id": "motorcycle-8",
             "position": {
               "stalled": false,
-              "x": 1998.1418094555663,
-              "y": -776.0458112878418,
+              "x": 1991.8263956152343,
+              "y": -783.7696200805664,
               "heading": 0.8853793740272522,
-              "speed": 8.6421314342308,
-              "phase": 1649.0772502514644,
-              "distance": 121.83315580764767,
-              "acceleration": 1.4070265238642932,
+              "speed": 8.514011288642884,
+              "phase": 1501.549774384766,
+              "distance": 111.85607783279421,
+              "acceleration": 0.8466597860103547,
               "lean": 0,
-              "rpm": 2412.212075585937,
+              "rpm": 2392.758573876953,
               "z": 0.7
             }
           }
@@ -522,8 +527,8 @@
         ]
       },
       "pixels": {
-        "colors": 445,
-        "nonblackFraction": 0.8771875
+        "colors": 377,
+        "nonblackFraction": 0.714375
       },
       "screenshot": "motorcycle.png",
       "replay": {
@@ -532,12 +537,12 @@
         "selected": "motorcycle-1",
         "scenarioSeed": 731,
         "observer": {
-          "x": 1966.7832627089842,
-          "y": -814.1277399296876,
-          "z": 1.6999998092651367,
+          "x": 1964.6090683730467,
+          "y": -816.7866754765626,
+          "z": 1.700000286102295,
           "right": {
-            "x": -0.7914414405822754,
-            "y": 0.6112450361251831
+            "x": -0.7918346524238586,
+            "y": 0.6107355356216431
           },
           "sourceId": null,
           "trackId": null,
@@ -3955,8 +3960,8 @@
         "advanced": false,
         "view": {
           "panX": 695,
-          "panY": 254,
-          "zoom": 47.83451842275372,
+          "panY": 233,
+          "zoom": 43.309631544925665,
           "rotX": 0.2,
           "rotY": -0.4,
           "width": 1390,
@@ -3965,7 +3970,7 @@
             "left": 0,
             "right": 0,
             "top": 0,
-            "bottom": 334
+            "bottom": 376
           }
         },
         "render": "canvas2d",
@@ -5575,8 +5580,8 @@
         "advanced": false,
         "view": {
           "panX": 695,
-          "panY": 242,
-          "zoom": 45.248868778280546,
+          "panY": 221,
+          "zoom": 40.723981900452486,
           "rotX": 0.2,
           "rotY": -0.4,
           "width": 1390,
@@ -5585,7 +5590,7 @@
             "left": 0,
             "right": 0,
             "top": 0,
-            "bottom": 358
+            "bottom": 400
           }
         },
         "render": "canvas2d",
@@ -7195,7 +7200,7 @@
         "advanced": false,
         "view": {
           "panX": 1663.4375,
-          "panY": 1199.4125,
+          "panY": 1181.5625,
           "zoom": 212.5,
           "rotX": 0.2,
           "rotY": -0.4,
@@ -7205,7 +7210,7 @@
             "left": 0,
             "right": 0,
             "top": 0,
-            "bottom": 358
+            "bottom": 400
           }
         },
         "render": "canvas2d",
@@ -7215,9 +7220,9 @@
       },
       "screenshot": "datacenter-gpu-supercluster-v1.png",
       "pixels": {
-        "colors": 84,
-        "nonblackFraction": 0.04697916666666667,
-        "visibleObjects": 18
+        "colors": 88,
+        "nonblackFraction": 0.050625,
+        "visibleObjects": 19
       },
       "replay": {
         "session": {
@@ -8821,7 +8826,7 @@
         "advanced": true,
         "view": {
           "panX": 1663.4375,
-          "panY": 1199.4125,
+          "panY": 1181.5625,
           "zoom": 212.5,
           "rotX": 0.2,
           "rotY": -0.4,
@@ -8831,7 +8836,7 @@
             "left": 0,
             "right": 0,
             "top": 0,
-            "bottom": 358
+            "bottom": 400
           }
         },
         "render": "canvas2d",
@@ -8847,6 +8852,7 @@
         "opened with Advanced closed; model time advanced",
         "isolated model preview retained displayed state",
         "applied model change and restarted explicitly",
+        "top-view zoom preserves the viewing angle",
         "camera focus, resume and pause preserved selection, focus and scroll",
         "replayed accepted run from Advanced"
       ],
@@ -9348,7 +9354,7 @@
           "rendering": "ready",
           "measurement": "unavailable",
           "visibleStatus": "Paused",
-          "revision": 20,
+          "revision": 19,
           "pending": [],
           "lastOperation": {
             "id": "select-object",
@@ -9488,23 +9494,22 @@
         },
         "model": {
           "schema": "simulatte.progressiveState.v4",
-          "id": "sun-walk-79042dec:step-5",
+          "id": "sun-walk-79042dec:step-4",
           "pluginId": "sun-walker",
-          "simulationTimeMs": 34018,
+          "simulationTimeMs": 26458,
           "status": "running",
-          "previousStateId": "sun-walk-79042dec:step-4",
+          "previousStateId": "sun-walk-79042dec:step-3",
           "eventIds": [
             "sun-event-0-4e4cf266",
             "sun-event-1-089451b0",
             "sun-event-2-b448ec97",
             "sun-event-3-8273a35f",
-            "sun-event-4-13f64e61",
-            "sun-event-5-ffa1030a"
+            "sun-event-4-13f64e61"
           ],
           "measures": [
             {
               "kind": "progress",
-              "value": 0.046729,
+              "value": 0.037383,
               "unit": "ratio",
               "domain": [
                 0,
@@ -9513,7 +9518,7 @@
             },
             {
               "kind": "direct-sun",
-              "value": 37.79843,
+              "value": 30.238744,
               "unit": "seconds",
               "domain": null
             },
@@ -9582,7 +9587,7 @@
             },
             {
               "kind": "direct-beam-equivalent",
-              "value": 13.22945,
+              "value": 10.58356,
               "unit": "seconds",
               "domain": null
             }
@@ -9672,7 +9677,7 @@
               {
                 "id": "progress",
                 "label": "Route progress",
-                "value": 0.046729,
+                "value": 0.037383,
                 "unit": "ratio"
               },
               {
@@ -9732,13 +9737,13 @@
               {
                 "id": "direct-sun",
                 "label": "Direct sun so far",
-                "value": 37.79843,
+                "value": 30.238744,
                 "unit": "seconds"
               },
               {
                 "id": "direct-beam-equivalent",
                 "label": "Weather/canopy-adjusted direct beam so far",
-                "value": 13.22945,
+                "value": 10.58356,
                 "unit": "seconds"
               },
               {
@@ -10302,8 +10307,8 @@
       },
       "framing": {
         "point": {
-          "x": 694.9995248255295,
-          "y": 218.82651981749228
+          "x": 695.0000841595464,
+          "y": 218.82671649834174
         },
         "panelTop": 438,
         "panelRight": 358
@@ -10464,11 +10469,11 @@
         },
         "model": {
           "schema": "simulatte.progressiveState.v4",
-          "id": "sun-walk-79042dec:step-15",
+          "id": "sun-walk-79042dec:step-16",
           "pluginId": "sun-walker",
-          "simulationTimeMs": 110246,
+          "simulationTimeMs": 118058,
           "status": "running",
-          "previousStateId": "sun-walk-79042dec:step-14",
+          "previousStateId": "sun-walk-79042dec:step-15",
           "eventIds": [
             "sun-event-0-4e4cf266",
             "sun-event-1-089451b0",
@@ -10485,12 +10490,13 @@
             "sun-event-12-1ba6fe74",
             "sun-event-13-3bf3fbe9",
             "sun-event-14-c95a9df9",
-            "sun-event-15-bab56465"
+            "sun-event-15-bab56465",
+            "sun-event-16-695960f7"
           ],
           "measures": [
             {
               "kind": "progress",
-              "value": 0.140187,
+              "value": 0.149533,
               "unit": "ratio",
               "domain": [
                 0,
@@ -10505,7 +10511,7 @@
             },
             {
               "kind": "shade",
-              "value": 30.74378,
+              "value": 38.555984,
               "unit": "seconds",
               "domain": null
             },
@@ -10523,7 +10529,7 @@
             },
             {
               "kind": "direct-sun-share",
-              "value": 0.73,
+              "value": 0.68,
               "unit": "ratio",
               "domain": [
                 0,
@@ -10532,7 +10538,7 @@
             },
             {
               "kind": "shade-share",
-              "value": 0.27,
+              "value": 0.32,
               "unit": "ratio",
               "domain": [
                 0,
@@ -10541,7 +10547,7 @@
             },
             {
               "kind": "geometric-direct-sun-share",
-              "value": 0.73,
+              "value": 0.68,
               "unit": "ratio",
               "domain": [
                 0,
@@ -10550,7 +10556,7 @@
             },
             {
               "kind": "geometric-shade-share",
-              "value": 0.27,
+              "value": 0.32,
               "unit": "ratio",
               "domain": [
                 0,
@@ -10559,7 +10565,7 @@
             },
             {
               "kind": "adjusted-direct-beam-share",
-              "value": 0.26,
+              "value": 0.24,
               "unit": "ratio",
               "domain": [
                 0,
@@ -10658,7 +10664,7 @@
               {
                 "id": "progress",
                 "label": "Route progress",
-                "value": 0.140187,
+                "value": 0.149533,
                 "unit": "ratio"
               },
               {
@@ -10682,37 +10688,37 @@
               {
                 "id": "exposure-split",
                 "label": "Walked exposure",
-                "value": "Exposure: Shade 27% / Sun 73% / Unknown 0% / Night 0%",
+                "value": "Exposure: Shade 32% / Sun 68% / Unknown 0% / Night 0%",
                 "unit": null
               },
               {
                 "id": "geometric-split",
                 "label": "Walked geometric sun",
-                "value": "Geometry: Shade 27% / Direct sun 73% / Unknown 0% / Night 0%",
+                "value": "Geometry: Shade 32% / Direct sun 68% / Unknown 0% / Night 0%",
                 "unit": null
               },
               {
                 "id": "shade-share",
                 "label": "Exposure shade percent",
-                "value": 0.27,
+                "value": 0.32,
                 "unit": "ratio"
               },
               {
                 "id": "direct-sun-share",
                 "label": "Exposure sun percent",
-                "value": 0.73,
+                "value": 0.68,
                 "unit": "ratio"
               },
               {
                 "id": "geometric-shade-share",
                 "label": "Geometric shade percent",
-                "value": 0.27,
+                "value": 0.32,
                 "unit": "ratio"
               },
               {
                 "id": "geometric-direct-sun-share",
                 "label": "Geometric direct sun percent",
-                "value": 0.73,
+                "value": 0.68,
                 "unit": "ratio"
               },
               {
@@ -10730,19 +10736,19 @@
               {
                 "id": "adjusted-direct-beam-share",
                 "label": "Weather/canopy-adjusted direct beam average",
-                "value": 0.26,
+                "value": 0.24,
                 "unit": "ratio"
               },
               {
                 "id": "modeled-shade",
                 "label": "Modeled shade so far",
-                "value": 30.74378,
+                "value": 38.555984,
                 "unit": "seconds"
               },
               {
                 "id": "building-shade",
                 "label": "Building shade so far",
-                "value": 30.74378,
+                "value": 38.555984,
                 "unit": "seconds"
               },
               {
@@ -10804,9 +10810,9 @@
       },
       "screenshot": "city-sun-walker-v1.png",
       "pixels": {
-        "colors": 227,
-        "nonblackFraction": 0.9178125,
-        "visibleObjects": 14
+        "colors": 242,
+        "nonblackFraction": 0.8253125,
+        "visibleObjects": 15
       },
       "replay": {
         "session": {
@@ -10824,7 +10830,7 @@
           "rendering": "ready",
           "measurement": "unavailable",
           "visibleStatus": "Running",
-          "revision": 76,
+          "revision": 77,
           "pending": [],
           "lastOperation": {
             "id": "replay",
@@ -10964,22 +10970,23 @@
         },
         "model": {
           "schema": "simulatte.progressiveState.v4",
-          "id": "sun-walk-79042dec:step-4",
+          "id": "sun-walk-79042dec:step-5",
           "pluginId": "sun-walker",
-          "simulationTimeMs": 26458,
+          "simulationTimeMs": 34018,
           "status": "running",
-          "previousStateId": "sun-walk-79042dec:step-3",
+          "previousStateId": "sun-walk-79042dec:step-4",
           "eventIds": [
             "sun-event-0-4e4cf266",
             "sun-event-1-089451b0",
             "sun-event-2-b448ec97",
             "sun-event-3-8273a35f",
-            "sun-event-4-13f64e61"
+            "sun-event-4-13f64e61",
+            "sun-event-5-ffa1030a"
           ],
           "measures": [
             {
               "kind": "progress",
-              "value": 0.037383,
+              "value": 0.046729,
               "unit": "ratio",
               "domain": [
                 0,
@@ -10988,7 +10995,7 @@
             },
             {
               "kind": "direct-sun",
-              "value": 30.238744,
+              "value": 37.79843,
               "unit": "seconds",
               "domain": null
             },
@@ -11057,7 +11064,7 @@
             },
             {
               "kind": "direct-beam-equivalent",
-              "value": 10.58356,
+              "value": 13.22945,
               "unit": "seconds",
               "domain": null
             }
@@ -11147,7 +11154,7 @@
               {
                 "id": "progress",
                 "label": "Route progress",
-                "value": 0.037383,
+                "value": 0.046729,
                 "unit": "ratio"
               },
               {
@@ -11207,13 +11214,13 @@
               {
                 "id": "direct-sun",
                 "label": "Direct sun so far",
-                "value": 30.238744,
+                "value": 37.79843,
                 "unit": "seconds"
               },
               {
                 "id": "direct-beam-equivalent",
                 "label": "Weather/canopy-adjusted direct beam so far",
-                "value": 10.58356,
+                "value": 13.22945,
                 "unit": "seconds"
               },
               {
@@ -14109,7 +14116,7 @@
         "advanced": false,
         "view": {
           "panX": 1448.409090909091,
-          "panY": 1067.0511363636363,
+          "panY": 1059.0511363636363,
           "zoom": 8.561466942148758,
           "rotX": 0.2,
           "rotY": -0.4,
@@ -14119,7 +14126,7 @@
             "left": 0,
             "right": 0,
             "top": 0,
-            "bottom": 388
+            "bottom": 404
           }
         },
         "render": "canvas2d",
@@ -20839,9 +20846,9 @@
         "selected": "grid-region:west",
         "advanced": false,
         "view": {
-          "panX": -901.4360240798319,
-          "panY": 9.597711083361531,
-          "zoom": 58.00097027295121,
+          "panX": -835.9412128355309,
+          "panY": 10.516779346608246,
+          "zoom": 55.62144328739423,
           "rotX": 0.2,
           "rotY": -0.4,
           "width": 1390,
@@ -20850,7 +20857,7 @@
             "left": 0,
             "right": 0,
             "top": 0,
-            "bottom": 388
+            "bottom": 404
           }
         },
         "render": "canvas2d",
@@ -21920,13 +21927,13 @@
         },
         "render": "canvas2d",
         "focus": "focus",
-        "scroll": 8,
+        "scroll": 18,
         "error": null
       },
       "screenshot": "country-grid-resilience-us-v1.png",
       "pixels": {
         "colors": 86,
-        "nonblackFraction": 0.5254166666666666,
+        "nonblackFraction": 0.5252083333333334,
         "visibleObjects": 4
       },
       "replay": {
@@ -22457,7 +22464,7 @@
         },
         "render": "canvas2d",
         "focus": "Close decisions",
-        "scroll": 8,
+        "scroll": 18,
         "error": null
       },
       "status": "pass"

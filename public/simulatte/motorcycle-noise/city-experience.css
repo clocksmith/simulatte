@@ -291,3 +291,31 @@ body[data-state="running"] .experience-status, body[data-state="paused"] .experi
 @media(max-width:760px) {
   #advanced-sheet { top:auto; bottom:0; height:auto; max-height:86dvh; }
 }
+
+/* Camera presets open on demand, leaving the running scene in view. */
+.city-toolbar .sound-invitation { display:none; }
+.city-toolbar { grid-template-columns:auto auto auto auto auto; align-items:center; }
+.city-toolbar .camera-control { display:block; position:relative; grid-column:auto; }
+.city-toolbar #camera-label { display:block; list-style:none; cursor:pointer; min-height:44px; }
+#camera-label::-webkit-details-marker { display:none; }
+.camera-control[open] > summary { border-color:var(--accent); }
+.camera-control .camera-options { position:absolute; z-index:8; top:calc(100% + 8px); left:0; width:300px; max-width:calc(100vw - 48px); padding:8px; background:var(--sim-paper); border:1px solid var(--line); border-radius:var(--sim-radius); box-shadow:var(--sim-shadow); }
+.city-toolbar .camera-options > button { min-height:44px; white-space:normal; }
+.observer-readout,.motorcycle-app:has(#sound-invitation:not([hidden])) .observer-readout { top:166px; }
+.motorcycle-app:has(#placement-prompt:not([hidden])) .observer-readout { top:230px; }
+.inspection { top:166px; }
+.inspection-heading { position:sticky; top:-16px; padding:8px 0; background:var(--sim-glass); z-index:1; }
+@media(max-width:600px) {
+  .city-toolbar { grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+  .city-toolbar > a:first-child { grid-column:1 / 3; justify-self:start; }
+  .city-toolbar #sound-controls { grid-column:3; grid-row:1; }
+  .city-toolbar .camera-control { grid-column:1; grid-row:2; }
+  .city-toolbar #pause { grid-column:2; grid-row:2; }
+  .city-toolbar #header-advanced { grid-column:3; grid-row:2; padding:8px; }
+  .city-toolbar #camera-label { text-align:center; }
+  .camera-control .camera-options { width:300px; }
+  .observer-readout,.motorcycle-app:has(#sound-invitation:not([hidden])) .observer-readout { top:210px; }
+  .motorcycle-app:has(#placement-prompt:not([hidden])) .observer-readout { top:274px; }
+  .city-toolbar .sound-invitation { top:calc(100% + 76px); }
+  .inspection { top:auto; bottom:112px; }
+}

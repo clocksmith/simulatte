@@ -14,7 +14,7 @@
     cameraOptions.replaceChildren(...Array.from(cameraSelect.options,option=>{
       const button=document.createElement('button');button.type='button';button.textContent=option.textContent;
       button.dataset.cameraMode=option.value;button.dataset.ready='';button.disabled=true;
-      on(button,'click',()=>{command('camera',option.value);});
+      on(button,'click',()=>{command('camera',option.value);$('motorcycle-camera-menu').open=false;});
       return button;
     }));
     function showCamera(mode){
@@ -50,7 +50,7 @@
         setText('inspection-time','Viewpoint microphone / '+inspectedLocation.z.toFixed(1)+' m high');
       }else if(inspectedSource){
         const source=scene.sources.find(item=>item.id===inspectedSource);if(!source)return;$('ride-selected').hidden=source.kind!=='motorcycle';
-        const p=M.position(source,getTime());$('spray-selected').hidden=source.kind!=='motorcycle';$('spray-selected').textContent=$('spray-selected').dataset.preparing?'Preparing spray…':'Spray with mist';$('spray-selected').disabled=!!$('spray-selected').dataset.preparing||p.stalled||!!scene.mistBursts?.some(b=>b.sourceId===source.id&&getTime()>=b.start&&getTime()<b.end);setText('inspection-title',source.kind==='motorcycle'?`Autonomous motorcycle ${source.id.split('-').pop()}`:source.id);
+        const p=M.position(source,getTime());$('spray-selected').hidden=source.kind!=='motorcycle';$('spray-selected').textContent=$('spray-selected').dataset.preparing?'Preparing spray…':'Spray with mist';$('spray-selected').disabled=!!$('spray-selected').dataset.preparing||p.stalled||!!scene.mistBursts?.some(b=>b.sourceId===source.id&&getTime()>=b.start&&getTime()<b.end);setText('inspection-title',source.kind==='motorcycle'?`Motorcycle ${source.id.split('-').pop()}`:source.id);
         setText('inspection-main',p.stalled?'Engine stalled':`${(p.speed*3.6).toFixed(1)} km/h`);setText('inspection-detail',p.stalled?'0 RPM / engine off':`${Math.round(p.rpm)} RPM / ${M.sourceLevel(source,getTime()).toFixed(1)} dB at 1 m`);
         setText('inspection-time',`${source.cylinders} cylinders / ${Math.round(p.rpm*source.cylinders/120)} Hz mean firing rate`);
       }

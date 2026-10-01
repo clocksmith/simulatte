@@ -826,17 +826,20 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       if (pointer || event.isPrimary === false) return;
       event.preventDefault();
       const action = state.mode === 'top' || event.shiftKey || event.button !== 0 ? 'pan' : 'orbit';
-      if (state.mode === 'top') state.pitch = Math.PI / 2 - 0.025;
-      camera.setCameraMode(state, 'free', performance.now());
-      pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, action };
-      canvas.dataset.cameraInteraction = action;
-      onInteraction?.({ control: action, mode: 'free', targetIds: [] });
+      pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, action, active: false };
       canvas.setPointerCapture(event.pointerId);
     });
     on('pointermove', (event) => {
       if (!pointer || pointer.id !== event.pointerId) return;
       const deltaX = event.clientX - pointer.x;
       const deltaY = event.clientY - pointer.y;
+      if (!pointer.active) {
+        if (Math.hypot(deltaX, deltaY) <= 5) return;
+        pointer.active = true;
+        if (state.mode !== 'top') camera.setCameraMode(state, 'free', performance.now());
+        canvas.dataset.cameraInteraction = pointer.action;
+        onInteraction?.({ control: pointer.action, mode: state.mode, targetIds: [] });
+      }
       if (pointer.action === 'pan') camera.panCamera(state, deltaX, deltaY, canvas.clientHeight);
       else camera.orbitCamera(state, deltaX, deltaY);
       pointer.x = event.clientX;
@@ -855,7 +858,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       event.preventDefault();
       if (['+', '=', '-'].includes(event.key)) camera.zoomCamera(state, event.key === '-' ? 120 : -120);
       else {
-        camera.setCameraMode(state, 'free', performance.now());
+        if (state.mode !== 'top') camera.setCameraMode(state, 'free', performance.now());
         camera.panCamera(state, event.key === 'ArrowLeft' ? 24 : event.key === 'ArrowRight' ? -24 : 0,
           event.key === 'ArrowUp' ? 24 : event.key === 'ArrowDown' ? -24 : 0, canvas.clientHeight);
       }
@@ -864,9 +867,9 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     on('wheel', (event) => {
       event.preventDefault();
       const trackedMode = ['follow', 'pov'].includes(state.mode);
-      if (!trackedMode) camera.setCameraMode(state, 'free', performance.now());
+      if (!trackedMode && state.mode !== 'top') camera.setCameraMode(state, 'free', performance.now());
       canvas.dataset.cameraInteraction = 'zoom';
-      onInteraction?.({ control: 'zoom', mode: trackedMode ? state.mode : 'free', targetIds: [] });
+      onInteraction?.({ control: 'zoom', mode: state.mode, targetIds: [] });
       camera.zoomCamera(state, event.deltaY);
     }, { passive: false });
   }
@@ -958,5 +961,5 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       capture: renderer.capturePixels, receipt: renderer.receipt, dispose: renderer.destroy,
     };
   }
-  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, createSceneRenderer, createSession, fogDensityForEye, readAdapterInfo, rendererError, resolveCameraController, resolvedSimulationTimeSeconds, snapshotAtRenderTime };
+  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, createSceneRenderer, createSession, fogDensityForEye, installCameraControls, readAdapterInfo, rendererError, resolveCameraController, resolvedSimulationTimeSeconds, snapshotAtRenderTime };
 });

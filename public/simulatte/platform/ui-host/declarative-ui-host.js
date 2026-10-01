@@ -579,18 +579,23 @@
     const root = doc.createElement('section'); root.className = 'sim-object-inspector sim-surface';
     root.setAttribute('aria-label', 'Object inspector');
     const select = doc.createElement('select'); select.className = 'sim-field'; select.setAttribute('aria-label', 'Inspect object');
+    const header = doc.createElement('header'); header.className = 'sim-object-heading';
+    const close = doc.createElement('button'); close.type = 'button'; close.className = 'sim-action';
+    close.textContent = '×'; close.setAttribute('aria-label', 'Close inspector');
+    close.addEventListener('click', () => onSelect(null)); header.append(select, close);
     const body = doc.createElement('div'); body.hidden = true;
     const title = doc.createElement('strong'), explanation = doc.createElement('p'), facts = doc.createElement('dl');
     const actions = doc.createElement('div'); actions.className = 'sim-object-actions';
     const message = doc.createElement('p'); message.setAttribute('role', 'status');
-    body.append(title, explanation, actions, message, facts); root.append(select, body); host.append(root);
-    const cells = new Map(), buttons = new Map(); let optionsKey = '', busy = false, current = null;
+    body.append(title, explanation, actions, message, facts); root.append(header, body); host.append(root);
+    const cells = new Map(), buttons = new Map(); let optionsKey = '', busy = false, current = null, selectionRevision = 0;
     select.addEventListener('change', () => onSelect(select.value || null));
     async function act(id) {
+      const revision = selectionRevision;
       busy = true; reflectButtons(); message.textContent = 'Pending';
-      try { const result = await onAction(id); message.textContent = result?.message || 'Applied'; }
-      catch (error) { message.textContent = error.name === 'AbortError' ? 'Cancelled' : error.message; if (error.name !== 'AbortError') onError?.(error); }
-      finally { busy = false; reflectButtons(); }
+      try { const result = await onAction(id); if (revision === selectionRevision) message.textContent = result?.message || 'Applied'; }
+      catch (error) { if (revision === selectionRevision) message.textContent = error.name === 'AbortError' ? 'Cancelled' : error.message; if (error.name !== 'AbortError') onError?.(error); }
+      finally { if (revision === selectionRevision) { busy = false; reflectButtons(); } }
     }
     function reflectButtons() {
       for (const action of current?.actions || []) {
@@ -599,15 +604,18 @@
     }
     return Object.freeze({
       element: root,
-      render({ objects, selectedId, label, description, fields = [], actions: nextActions = [] }) {
-        current = { actions: nextActions };
+      render({ objects, selectedId, label, description, prompt = 'Select an object…', fields = [], actions: nextActions = [] }) {
+        if (current?.selectedId !== selectedId) { selectionRevision++; busy = false; message.textContent = ''; body.scrollTop = 0; }
+        current = { actions: nextActions, selectedId };
         const key = objects.map(row => row.id).join('|');
         if (key !== optionsKey) {
           optionsKey = key;
-          select.replaceChildren(...[{ id: '', label: 'Select an object…' }, ...objects].map(row => {
+          select.replaceChildren(...[{ id: '', label: prompt }, ...objects].map(row => {
             const option = doc.createElement('option'); option.value = row.id; option.textContent = row.label; return option;
           }));
         }
+        [{ label: prompt }, ...objects].forEach((row, index) => { const option = select.children[index]; if (option && option.textContent !== row.label) option.textContent = row.label; });
+        close.hidden = !selectedId;
         select.value = selectedId || ''; body.hidden = !selectedId;
         if (!selectedId) return;
         title.textContent = label; explanation.textContent = description;

@@ -133,15 +133,20 @@
 
 /* The selected object owns this compact surface; measurements never remount it. */
 .sim-object-inspector { position: absolute; z-index: 18; bottom: 8px; left: 8px; width: min(350px, calc(100% - 16px)); padding: 10px; color: var(--sim-ink); background: var(--sim-glass); border: 1px solid var(--sim-line); border-radius: 12px; font-size: 12px; }
-.sim-object-inspector > select { width: 100%; }
+.sim-object-heading { display: flex; align-items: center; gap: 6px; }
+.sim-object-heading select { width: 100%; min-width: 0; }
+.sim-object-heading button { flex: none; min-width: 44px; padding: 6px; font-size: 20px; }
 .sim-object-inspector > div { max-height: min(34vh, 330px); overflow: auto; overscroll-behavior: contain; }
 .sim-object-inspector strong { display: block; margin-top: 8px; }
 .sim-object-inspector p { margin: 6px 0; }
+.sim-object-inspector p:empty { display: none; }
 .sim-object-inspector dl { margin: 8px 0; }
-.sim-object-inspector dl > div { display: flex; gap: 12px; justify-content: space-between; }
-.sim-object-inspector dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
-.sim-object-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.sim-object-inspector dl > div { display: flex; gap: 12px; justify-content: space-between; padding: 4px 0; }
+.sim-object-inspector dt { color: var(--sim-ink-soft); overflow-wrap: anywhere; }
+.sim-object-inspector dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.sim-object-actions { display: flex; flex-wrap: wrap; gap: 6px; position: sticky; top: 0; padding: 6px 0; background: var(--sim-glass); z-index: 1; }
 .sim-object-actions button { min-height: 44px; }
+.sim-object-actions [data-object-action="straggler"], .sim-object-actions [data-object-action="preview"] { border-color: var(--sim-accent); }
 @media (max-width: 600px) {
   .sim-object-inspector > div { max-height: 190px; }
 }

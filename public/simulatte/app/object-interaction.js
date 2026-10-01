@@ -4,8 +4,8 @@
   root.SimulatteObjectInteraction = api;
 })(globalThis, function(root) {
   const DESCRIPTIONS = Object.freeze({
-    'gpu-supercluster': 'Racks compute forward and backward passes, then wait for dependent racks before exchanging gradients. A straggler changes this running computation.',
-    'sun-walker': 'The route balances walking time and direct sun within the allowed detour. Preview another preference before applying it to a new walk.',
+    'gpu-supercluster': 'Racks compute, then wait for one another to exchange gradients. Slow a rack to see its dependencies wait.',
+    'sun-walker': 'This route balances walking time and sun exposure within the allowed detour. Preview a different preference before starting a new walk.',
     'subsea-network-global': 'Service depends on available cable capacity and allocation policy. Failures and repairs below recalculate the scenario.',
     'grid-resilience-us': 'Demand, generation and storage determine served load. Policy changes recalculate the regional dispatch scenario.',
     'orbital-transfer-planner': 'The selected solution balances transfer time and delta-v. Preview a different objective before restarting the transfer.',
@@ -60,7 +60,9 @@
         if (id === 'focus') return command('focus-object', selectedId);
         if (id === 'straggler') {
           const fields = selectedFields();
-          return command('straggler', { rackId: selectedId.slice(5), slowdown: fields.find(row => row.id === 'slowdown')?.value ? 0 : 95 });
+          const rackId = selectedId.slice(5), slowdown = fields.find(row => row.id === 'slowdown')?.value ? 0 : 95;
+          await command('straggler', { rackId, slowdown });
+          return { message: slowdown ? `${rackId}: compute speed reduced by 95%.` : `${rackId}: normal compute speed restored.` };
         }
         const action = actionFor(contribution, selectedId);
         if (!action) throw new Error('No supported action for this object');
@@ -83,8 +85,19 @@
       const inspections = matching.length ? [matching.sort((a,b)=>a.targetIds.length-b.targetIds.length)[0]] : ['sun-walker', 'orbital-transfer-planner', 'interstellar-relay-network'].includes(contribution.pluginId) ? contribution.inspections : [];
       const layer = objectsFor(contribution).find(row => row.id === selectedId)?.layer;
       const fields = inspections.flatMap(row => row.fields);
-      if (layer?.quantity) fields.unshift({ id: 'quantity', label: layer.quantity.kind, value: layer.quantity.value, unit: layer.quantity.unit });
-      return fields;
+      if (layer?.quantity) {
+        const { kind, value, unit } = layer.quantity;
+        const walking = contribution.pluginId === 'sun-walker';
+        const progress = walking && ['actor.pedestrian.route-progress', 'destination.arrival'].includes(kind);
+        const label = contribution.pluginId === 'gpu-supercluster' ? 'Current task progress' : progress ? 'Walk completed'
+          : walking ? (kind === 'occlusion.shadow-length' ? 'Shadow length' : kind.startsWith('exposure.') ? 'Time sampled on segment' : 'Direct sun on route') : kind;
+        fields.unshift({ id: 'quantity', label, value: progress ? value * 100 : value, unit: progress ? 'percent' : unit });
+      }
+      return fields.map(field => {
+        if (contribution.pluginId !== 'gpu-supercluster') return field;
+        if (field.id === 'task') return { ...field, unit: null, value: ({ forward: 'Forward pass', backward: 'Backward pass', allreduce: 'Gradient exchange', waiting: 'Waiting for racks' })[field.value] || field.value };
+        return field.unit === 'dependency' ? { ...field, unit: null } : field;
+      });
     }
     function render() {
       if (preview && preview.generation !== getSession().snapshot().generation) preview = null;
@@ -94,11 +107,11 @@
       const fields = selectedFields().slice(0, 10);
       const actions = object ? [{ id: 'focus', label: 'Focus object' }] : [];
       if (object && contribution.pluginId === 'gpu-supercluster' && selectedId.startsWith('rack:')) {
-        actions.push({ id: 'straggler', label: selectedFields().find(row => row.id === 'slowdown')?.value ? 'Remove straggler' : 'Introduce straggler', disabled: contribution.state.status === 'settled' });
+        actions.push({ id: 'straggler', label: selectedFields().find(row => row.id === 'slowdown')?.value ? 'Restore rack' : 'Slow rack', disabled: contribution.state.status === 'settled' });
       }
       if (action) {
-        fields.push({ id: 'proposed-change', label: 'Proposed change', value: action.label });
-        if (['sun-walker', 'orbital-transfer-planner'].includes(contribution.pluginId)) actions.push({ id: 'preview', label: 'Preview change' });
+        fields.unshift({ id: 'proposed-change', label: 'Proposed change', value: action.label });
+        if (['sun-walker', 'orbital-transfer-planner'].includes(contribution.pluginId)) actions.push({ id: 'preview', label: contribution.pluginId === 'sun-walker' ? (action.values.directSunWeight ? 'Preview shade' : 'Preview shortest walk') : 'Preview change' });
         actions.push({ id: 'apply', label: contribution.pluginId === 'interstellar-relay-network' ? 'Send packet · Apply and restart' : 'Apply and restart' });
       }
       if (contribution?.pluginId === 'interstellar-relay-network') {
@@ -110,6 +123,7 @@
         fields.push({ id: 'preview-solution', label: 'Recalculated preview', value: preview.next.inspections.flatMap(row => row.fields).slice(0, 6).map(row => `${row.label}: ${row.value}`).join(' · ') });
       }
       inspector.render({ objects, selectedId: object ? selectedId : null, label: object?.label,
+        prompt: contribution?.pluginId === 'gpu-supercluster' ? 'Select a rack or link…' : contribution?.pluginId === 'sun-walker' ? 'Select walker or route…' : 'Select an object…',
         description: DESCRIPTIONS[contribution?.pluginId] || '', fields, actions });
       onInsets(inspector.element);
     }
