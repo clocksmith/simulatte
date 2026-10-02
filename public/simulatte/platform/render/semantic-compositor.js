@@ -191,6 +191,7 @@
 
   function pathWidth(layer, normalized, roleWeight, selected) {
     const quantityKind = layer.quantity?.kind || '';
+    if (quantityKind.startsWith('preview.')) return selected ? 4 : 3;
     if (quantityKind.startsWith('exposure.')) return selected ? 9 : 7;
     if (quantityKind === 'route.shade-selected') return selected ? 7 : 5.5;
     if (quantityKind === 'route.fastest-baseline') return selected ? 6 : 4.5;
@@ -212,6 +213,7 @@
     if (/^(?:observed|forecast)-neighborhood-median-sale-price$/.test(quantityKind)) {
       return heatmapColor(normalized);
     }
+    if (layer.role === 'comparison' && quantityKind.startsWith('preview.')) return '#ffbd66';
     const exact = QUANTITY_COLORS[quantityKind];
     if (exact) return exact;
     const rule = QUANTITY_COLOR_RULES.find((row) => row.pattern.test(quantityKind));

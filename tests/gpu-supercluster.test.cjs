@@ -119,6 +119,11 @@ test('gpu-supercluster plugin produces deterministic simulation and valid receip
   const contribution = result.createContribution(100);
   v4Contracts.validateContribution(contribution, 'GPU model-owned presentation');
   assert.equal(contribution.presentation.layers.filter(row=>row.id.startsWith('rack:')).length,32);
+  const link=contribution.objects.find(row=>row.id.startsWith('link:'));
+  const fields=contribution.inspections.find(row=>row.targetIds.length===1&&row.targetIds[0]===link.id).fields;
+  assert.ok(fields.some(row=>row.id==='endpoints'&&row.value.includes('→')));
+  assert.ok(fields.some(row=>row.id==='bandwidth'&&row.value>0));
+  assert.ok(fields.some(row=>row.id==='work'));
 
 });
 

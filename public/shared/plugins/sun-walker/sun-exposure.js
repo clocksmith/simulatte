@@ -460,7 +460,8 @@
     const elevation = sun.elevationDegrees * DEG;
     const direction = { x: Math.sin(sun.azimuthDegrees * DEG), y: Math.cos(sun.azimuthDegrees * DEG) };
     const physicalQueryM = scene.maximumHeightM / Math.tan(elevation);
-    const maximumShadowQueryM = Math.min(physicalQueryM, scene.maximumQueryM || physicalQueryM);
+    // A small footprint can cast a long shadow outside the scene's bounds.
+    const maximumShadowQueryM = physicalQueryM;
     const candidates = buildingsAlongRay(scene, point, direction, maximumShadowQueryM);
     let unknownIntersected = false;
     let candidateBuildingChecks = 0;

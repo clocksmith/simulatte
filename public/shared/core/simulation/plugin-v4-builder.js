@@ -294,8 +294,10 @@
     state: progressiveState = null,
     inspections = [],
     provenanceRecords = [],
+    objects,
   }) {
     const value = {
+      ...(objects === undefined ? {} : { objects }),
       schema: 'simulatte.pluginContribution.v4',
       pluginId,
       presentation: visual,

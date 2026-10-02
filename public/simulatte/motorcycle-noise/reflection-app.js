@@ -54,6 +54,9 @@
       status('Acoustic treatment changed; traffic and source positions are unchanged.');
     },
     setTechnique,
+    placementPoint:point=>view?.snapSidewalk(point),
+    sourcePosition:id=>{const source=scene?.sources.find(row=>row.id===id);return source?M.position(source,time):null;},
+    interactionTargets:()=>view?.interactionTargets()||[],
     snapshot:()=>({time,paused,selected,scenarioSeed:scene?.config.seed,
     observer:view?.getObserver(),sourceCount:scene?.sources.length,
     motorcycles:scene?.sources.filter(row=>row.kind==='motorcycle').slice(0,8).map(row=>({id:row.id,position:M.position(row,time)})),

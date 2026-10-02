@@ -132,6 +132,15 @@
       events,
       controls,
       state,
+      objects: [...rackLayers, ...networkLayers].map(layer => {
+        const rack = workload?.racks.find(row => layer.id === `rack:${row.id}`);
+        return { id: layer.id, label: layer.label, description: rack ? 'This rack computes, then waits for its listed dependencies before exchanging gradients.' : 'This modeled link carries gradients between its connected racks.',
+          hit: { shape: rack || layer.id.startsWith('rack:') ? 'bounds' : 'path', radiusPx: 6, priority: layer.id.startsWith('rack:') ? 90 : 20 },
+          actions: rack ? [{ id: 'straggler', label: rack.slowdown ? 'Restore rack' : 'Slow rack', targetId: layer.id,
+            available: state.status !== 'settled', execution: 'continue', command: 'scenario.intervene',
+            values: { rackId: rack.id, slowdown: rack.slowdown ? 0 : 95 },
+            proposedChange: rack.slowdown ? 'Restore this rack’s compute speed.' : 'Reduce this rack’s compute speed by 95%; dependent racks may wait.' }] : [] };
+      }),
       inspections: [{
         id: `${PLUGIN_ID}:inspection:cluster`,
         label: 'Configured steady-state estimates',
@@ -146,7 +155,13 @@
           field('throttled-gpus', 'Modeled throttled GPUs', thermals.throttledGpuCount, 'GPUs', modeled),
           field('thermal-clock', 'Modeled thermal clock cap', thermals.thermalClockFraction * 100, 'percent', modeled),
         ],
-      }, ...(workload ? workload.racks.map(rack => ({
+      }, ...topology.links.filter(link=>link.type==='infiniband-rail').map(link=>({
+        id:`${PLUGIN_ID}:inspection:${link.id}`,label:link.id,targetIds:[`link:${link.id}`],
+        fields:[field('endpoints','Connects',`${link.sourceGpuId} → ${link.targetGpuId}`,null,modeled),
+          field('bandwidth','Modeled capacity',link.bandwidthGbps,'Gbps',modeled),
+          field('work','Current transfers',(workload?.transfers||[]).filter(row=>row.id===link.id).map(row=>`${row.from} → ${row.to}: ${Math.round(row.progress*100)}%`).join('; ')||'No transfer at this simulation instant',null,modeled),
+          field('dependency','Dependency','Collective transfer follows the rack compute barrier.',null,modeled)]
+      })), ...(workload ? workload.racks.map(rack => ({
         id:`${PLUGIN_ID}:inspection:${rack.id}`, label:rack.id,targetIds:[`rack:${rack.id}`],
         fields:[field('task','Task',rack.task,'task',modeled),field('work','Compute progress',Math.round(rack.work*100),'percent',modeled),
           field('waiting-for','Waiting for',rack.waitingFor.join(', ') || (rack.task==='allreduce'?'Collective transfer':'Nothing'),'dependency',modeled),

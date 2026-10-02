@@ -8,7 +8,8 @@
     recordRenderWork, renderWorkReceipt, renderExperienceSummary, summarize, yieldToFrame,
     getScenario, getCameraMode, getRenderer, selectCamera, selectViewMode, applyRouteParameters,
     onPhase, onPlayback, onViewRuntime, onParametersApplied, onError }) {
-    let disposed = false, inspector = null;
+    let disposed = false, inspector = null, inspectorInsets = {}, inspectorViewport = null;
+    const applyInspectorInsets = () => getRenderer()?.setViewportInsets?.(inspectorInsets);
     const owner = profile.interaction?.simulationOwnerPluginId || extensions.activePluginIds[0];
     const status = hostRoot.SimulatteSimulationSessionStatus.create({host: elements.runtimeStatus?.parentElement || elements.startButton.parentElement});
     const session = hostRoot.SimulatteSimulationSession.create({ id: profile.id,
@@ -21,19 +22,35 @@
         {id:'speed',category:'execution',perform:value=>pluginPlayback.setPlaybackRate(value)},
         {id:'select-object',category:'observation',perform:id=>inspector.select(id)},
         {id:'focus-object',category:'observation',perform:id=>{
+          applyInspectorInsets();
           const targetId=`plugin:${owner}:${id}`;
           pluginViewRuntime?.setManualOverride({mode:'top',targetIds:[targetId]});
           getRenderer().focusCameraTarget(targetId);
           getRenderer().setCameraMode('top');selectCamera('top');
         }},
         {id:'camera',category:'observation',perform:mode=>{
+          applyInspectorInsets();
           const renderer=getRenderer();
           const target=hostRoot.SimulatteCityInterface.preferredCameraTarget(renderer.cameraTargets(),mode);
           pluginViewRuntime?.setManualOverride({mode,targetIds:target?[target.id]:[]});
           if(target)renderer.focusCameraTarget(target.id);
           renderer.setCameraMode(mode);selectCamera(mode);
         }},
-        {id:'reset-view',category:'observation',perform:()=>{pluginViewRuntime?.setManualOverride({mode:profile.camera.initialMode||profile.experience.defaultView,targetIds:[]});return experienceCameraApi.applyInitialCamera({configuration:profile.camera,renderer:getRenderer(),onModeSelected:selectCamera});}},
+        {id:'reset-view',category:'observation',perform:()=>{applyInspectorInsets();pluginViewRuntime?.setManualOverride({mode:profile.camera.initialMode||profile.experience.defaultView,targetIds:[]});return experienceCameraApi.applyInitialCamera({configuration:profile.camera,renderer:getRenderer(),onModeSelected:selectCamera});}},
+        {id:'object-preview',category:'observation',perform:async(input,operation)=>{
+          const action=inspector.action(input.targetId,input.actionId);
+          const result=await extensions.dispatchAction(owner,action.command,{scenario:getScenario(),values:action.values});
+          operation.throwIfCancelled();return result;
+        }},
+        {id:'object-apply',serial:true,category:'scenario',requiresRestart:true,perform:async(input,operation)=>{
+          const action=input.prepared || inspector.action(input.targetId,input.actionId);
+          if(action.prepared)await pluginPlayback.applyPrepared(action);else await pluginPlayback.applyControls(action.values);
+          operation.throwIfCancelled();await pluginPlayback.start();operation.throwIfCancelled();
+          await renderPluginExperience({mission:null});await onParametersApplied?.();
+        }},
+        {id:'object-live',serial:true,category:'live',perform:async input=>{
+          const action=inspector.action(input.targetId,input.actionId);return pluginPlayback.intervene(action.command,action.values);
+        }},
         {id:'apply-controls',serial:true,category:'scenario',requiresRestart:true,perform:async(values,operation)=>{
           await pluginPlayback.applyControls(values);operation.throwIfCancelled();const result=await pluginPlayback.start();operation.throwIfCancelled();await renderPluginExperience({mission:null});operation.throwIfCancelled();await onParametersApplied?.();return result;
         }},
@@ -104,9 +121,13 @@
       lastPluginContributions = platform.contributions;
       if(profile.id==='sun-walker-v1') {
         if(!inspector)inspector=hostRoot.SimulatteObjectInteraction.create({host:elements.autonomyCanvas.parentElement,canvas:elements.autonomyCanvas,
-          getSession:()=>session,projectObjects:()=>getRenderer()?.projectObjects?.()||[],
-          onInsets:panel=>getRenderer()?.setViewportInsets?.(hostRoot.SimulatteCameraFit.measureInsets(
-            elements.autonomyCanvas.getBoundingClientRect(),[{edge:'bottom',rect:panel.getBoundingClientRect()}]))});
+          getSession:()=>session,onPreviewChange:()=>renderPluginExperience({mission:null}),projectObjects:()=>getRenderer()?.projectObjects?.()||[],
+          onInsets:panel=>{
+            const rect=elements.autonomyCanvas.getBoundingClientRect(),viewport=`${rect.width}:${rect.height}`;
+            inspectorInsets=hostRoot.SimulatteCameraFit.measureInsets(rect,[{edge:'bottom',rect:panel.getBoundingClientRect()}]);
+            // Opening selection preserves framing; orientation and explicit Focus use the new usable area.
+            if(inspectorViewport!==viewport){inspectorViewport=viewport;applyInspectorInsets();}
+          }});
         inspector.update(platform.contributions.find(row=>row.pluginId===owner));
       }
 
@@ -124,14 +145,14 @@
       const selected = renderer.cameraState?.()?.focusId || 'route';
       const semanticPresentations = platform.contributions.map((contribution) => ({
         pluginId: contribution.pluginId,
-        presentation: contribution.presentation,
+        presentation: contribution.pluginId===owner ? inspector?.presentation() || contribution.presentation : contribution.presentation,
       }));
       const platformTime = Math.max(0, ...platform.contributions.map((contribution) => contribution.state?.simulationTimeMs || 0));
       const rendererStartedAt = performance.now();
       renderer.session.setScene({ presentations: semanticPresentations,
         simulationTimeMs: platformTime,
         selectedIds: [selected],
-        provenanceReceipts: platform.provenanceReceipts,
+        provenanceReceipts: inspector?.provenanceReceipts(platform.provenanceReceipts) || platform.provenanceReceipts,
       });
       session.update({preparation:'ready',rendering:'ready'});
       recordRenderWork(renderWork.phases.renderer, performance.now() - rendererStartedAt);

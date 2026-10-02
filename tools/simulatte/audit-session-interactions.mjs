@@ -8,14 +8,19 @@ import { openBrowserAudit } from './browser-session.mjs';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const sourceFiles=[...new Set(execFileSync('git',['ls-files','--cached','--others','--exclude-standard','--','public'],{cwd:root,encoding:'utf8'}).trim().split('\n'))].filter(name=>
-  /^public\/(blank\/app|shared\/(contracts|design|plugins)|simulatte\/(app|motorcycle-noise|platform))\//.test(name) && /\.(js|css|html)$/.test(name)
+  /^public\/(blank\/app|shared\/(contracts|core|design|plugins)|simulatte\/(app|motorcycle-noise|platform))\//.test(name) && /\.(js|css|html)$/.test(name)
   || ['public/index.html','public/blank/index.html','public/world-tiers.css'].includes(name));
 const hashSources=async()=>Object.fromEntries(await Promise.all(sourceFiles.map(async name=>[name,createHash('sha256').update(await fs.readFile(path.join(root,name))).digest('hex')])));
 sourceFiles.push('tools/simulatte/audit-session-interactions.mjs');
 const sourceHashes=await hashSources();
 const mobile = process.argv.includes('--mobile');
+const soakSeconds = Number(process.argv.find(arg=>arg.startsWith('--soak-seconds='))?.slice(15) ?? 60);
+assert.ok(Number.isFinite(soakSeconds) && soakSeconds>=0 && soakSeconds<=600,'Soak duration must be 0..600 seconds');
+const publicOnly = process.argv.includes('--public');
+const hardware = process.argv.includes('--hardware');
+const deployedBase = process.argv.find(arg => arg.startsWith('--base-url='))?.slice(11);
 const viewport = mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 };
-const out = path.join(root, 'artifacts/session-interactions', mobile ? 'mobile' : 'desktop');
+const out = process.argv.find(arg=>arg.startsWith('--out='))?.slice(6) || path.join(root, 'artifacts/session-interactions', (deployedBase ? 'deployed-' : '') + (hardware ? 'hardware-' : '') + (mobile ? 'mobile' : 'desktop'));
 await fs.mkdir(out, { recursive: true });
 const routes = [
   ['datacenter/gpu-supercluster-v1', 'rack:R1-1'],
@@ -38,9 +43,10 @@ process.env.DISPLAY = await new Promise((resolve, reject) => {
 });
 const selected = process.argv.find(arg => arg.startsWith('--profile='))?.split('=')[1];
 const browser = await openBrowserAudit({ publicRoot: path.join(root, 'public'), viewport, headed: true, chromePath: '/usr/bin/google-chrome', webgpu: true, linuxVulkan: false,
-  args:['--no-sandbox','--disable-dev-shm-usage','--use-angle=vulkan','--enable-features=Vulkan','--use-vulkan=swiftshader','--disable-vulkan-surface','--use-webgpu-adapter=swiftshader','--enable-unsafe-swiftshader'] });
+  args:hardware ? ['--no-sandbox','--disable-dev-shm-usage','--use-angle=vulkan','--enable-features=Vulkan','--disable-vulkan-surface'] : ['--no-sandbox','--disable-dev-shm-usage','--use-angle=vulkan','--enable-features=Vulkan','--use-vulkan=swiftshader','--disable-vulkan-surface','--use-webgpu-adapter=swiftshader','--enable-unsafe-swiftshader'] });
 const { client, host } = browser;
-const report = { navigationPolicy: 'Public landing exposes Motorcycle, GPU Cluster and Sun Walker. Other retained profiles and Your Data are tested with the launch gate disabled in this local browser only.', sourceHashes, schema: 'simulatte.sessionJourney.v1', viewport, layer: 'local-browser', backendPolicy: 'Headed Chrome on isolated Xvfb; explicit SwiftShader software rendering, not hardware performance evidence', routes: [] };
+const baseUrl = deployedBase ? deployedBase.replace(/\/?$/, '/') : host.baseUrl;
+const report = { navigationPolicy: publicOnly ? 'Three public journeys with the launch gate untouched.' : 'Public landing exposes Motorcycle, GPU Cluster and Sun Walker. Other retained profiles and Your Data are tested with the launch gate disabled in this local browser only.', sourceHashes, schema: 'simulatte.sessionJourney.v1', viewport, soakSeconds, layer: deployedBase ? 'served-browser' : 'local-browser', physicalDevice: 'not run; emulated viewport and CDP touch input', backendPolicy: hardware ? 'Hardware adapter required' : 'Headed Chrome on isolated Xvfb; explicit SwiftShader software rendering, not hardware performance evidence', routes: [] };
 const evaluate = async expression => {
   const response = await client.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
   if (response.exceptionDetails) throw new Error(response.exceptionDetails.exception?.description || response.exceptionDetails.text);
@@ -63,7 +69,7 @@ const snapshot = () => evaluate(`(() => {
   return {session, model:owner?.state, controls:owner?.controls.controls.map(c=>({id:c.id,value:c.value})),
     inspections:owner?.inspections.map(row=>({id:row.id,targetIds:row.targetIds,fields:row.fields.map(({id,label,value,unit})=>({id,label,value,unit}))})), selected:panel?.querySelector('select').value,
     advanced:document.getElementById('decisions-drawer')?.classList.contains('is-open'),
-    view:canvas?.__simulatteRenderReceipt?.().view, render:canvas?.__simulatteRenderReceipt?.().backend,
+    adapter:canvas?.__simulatteRenderReceipt?.().adapter, view:canvas?.__simulatteRenderReceipt?.().view, render:canvas?.__simulatteRenderReceipt?.().backend,
     focus:document.activeElement?.dataset.objectAction||document.activeElement?.getAttribute('aria-label'),
     scroll:panel?.querySelector('div')?.scrollTop,
     error:globalThis.__simulatteLastFailError}; })()`);
@@ -97,9 +103,9 @@ async function pixelEvidence(screenshot, { sparse = false } = {}) {
 }
 async function journey(route, prefix) {
   const row = { route, steps: [] }; report.routes.push(row);
-  await client.send('Page.navigate', { url: host.baseUrl + route });
+  await client.send('Page.navigate', { url: baseUrl + route });
   await wait(`globalThis.SimulatteActiveSession?.snapshot().execution==='running' && document.querySelector('#pause-button')?.getBoundingClientRect().width>0 && !document.querySelector('#pause-button').disabled`);
-  const initial = await snapshot(); assert.equal(initial.advanced, false); row.initial = initial;
+  const initial = await snapshot(); if(hardware && initial.render==='webgpu')assert.ok(initial.adapter && !initial.adapter.isFallbackAdapter && !/swiftshader|llvmpipe|software/i.test(JSON.stringify(initial.adapter)),'Rendered scene must use hardware: '+JSON.stringify(initial.adapter)); assert.equal(initial.advanced, false); row.initial = initial;
   const chrome = await evaluate(`(() => {
     const bar=document.querySelector('.simulation-viewbar').getBoundingClientRect();
     return {height:bar.height, bottom:bar.bottom, viewport:innerHeight,
@@ -111,39 +117,94 @@ async function journey(route, prefix) {
   await wait(`(__simulattePluginPlatformV4?.contributions||[]).some(c=>c.state?.simulationTimeMs>0)`);
   row.steps.push('opened with Advanced closed; model time advanced');
   await click('#pause-button');
-  // A pointer selects rendered geometry; the keyboard-accessible selector resolves overlapping objects.
+  await wait(`(()=>{const c=[...document.querySelectorAll('canvas')].find(c=>c.__simulatteRenderReceipt);return c?.__simulatteRenderReceipt().camera?.transitionState!=='active';})()`);
+  await evaluate(`new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))`);
+  const selectionCamera=await snapshot();
+  // Direct geometry selection is required. No selector fallback may make this pass.
   const target = await evaluate(`(() => {
     const canvas=[...document.querySelectorAll('canvas')].find(c=>c.__simulatteObjectTargets);
     const rect=canvas.getBoundingClientRect();
     const rows=canvas.__simulatteObjectTargets();
-    const row=rows.find(r=>r.id.startsWith(${JSON.stringify(prefix)})&&r.points.some(p=>p&&p.x>20&&p.y>20&&p.x<rect.width-20&&p.y<rect.height-120));
-    const point=row?.points.find(p=>p&&p.x>20&&p.y>20&&p.x<rect.width-20&&p.y<rect.height-120);
-    return point?{x:point.x+rect.left,y:point.y+rect.top}:null;
+    const owner=__simulattePluginPlatformV4.contributions.find(c=>SimulatteActiveSession.snapshot().id.startsWith(c.pluginId));
+    for(const row of rows.filter(r=>r.id.startsWith(${JSON.stringify(prefix)}) && owner.objects.find(o=>o.id===r.id)?.actions.some(a=>a.available))) {
+      const points=row.points.filter(Boolean);
+      const candidates=points.length>1 ? points.slice(1).map((p,i)=>({x:(p.x+points[i].x)/2,y:(p.y+points[i].y)/2})).concat(points) : points;
+      for(const point of candidates) {
+        if(point.x<=20 || point.y<=20 || point.x>=rect.width-20 || point.y>=rect.height-60)continue;
+        const x=point.x+rect.left,y=point.y+rect.top;
+        if(document.elementFromPoint(x,y)!==canvas)continue;
+        const hits=SimulatteObjectInteraction.hitObjects(point,rows,owner.objects);
+        const tied=hits.filter(hit=>hit.priority===hits[0]?.priority && Math.abs(hit.distance-hits[0].distance)<2 && hit.shape==='path');
+        if(hits[0]?.id===row.id && tied.length<=1)return {id:row.id,x,y};
+      }
+    }
+    return null;
   })()`);
-  if (target) {
-    await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...target, button: 'left', clickCount: 1 });
-    await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...target, button: 'left', clickCount: 1 });
-    row.pointerSelected = (await snapshot()).selected;
-    assert.ok(row.pointerSelected, 'Pointer must select model geometry');
+  assert.ok(target, 'An unobstructed primary object target is mandatory: '+prefix);
+  row.pointerTarget=target;
+  await evaluate(`(()=>{globalThis.__auditPointerEvents=[];const c=[...document.querySelectorAll('canvas')].find(c=>c.__simulatteObjectTargets);for(const type of ['pointerdown','pointerup','pointercancel'])c.addEventListener(type,e=>__auditPointerEvents.push({type:e.type,x:e.clientX,y:e.clientY,pointerType:e.pointerType}),{capture:true});})()`);
+  if(mobile){
+    await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:target.x,y:target.y}]});
+    await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  }else{
+    await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', x:target.x,y:target.y, button: 'left', clickCount: 1 });
+    await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x:target.x,y:target.y, button: 'left', clickCount: 1 });
   }
-  const id = await evaluate(`(() => {const select=document.querySelector('[aria-label="Inspect object"]');const option=[...select.options].find(o=>o.value.startsWith(${JSON.stringify(prefix)}));if(!option)throw Error('Object missing');select.value=option.value;select.dispatchEvent(new Event('change'));return option.value;})()`);
+  row.pointerEvents=await evaluate(`__auditPointerEvents`);
+  await wait(`document.querySelector('[aria-label="Inspect object"]').value===${JSON.stringify(target.id)}`);
+  row.pointerSelected = (await snapshot()).selected;
+  assert.equal(row.pointerSelected,target.id,'Direct input must select the intended entity');
+  let id=target.id;
+  if(route.includes('sun-walker')){
+    await new Promise(resolve=>setTimeout(resolve,150));
+    const point=await evaluate(`(()=>{const c=document.getElementById('autonomy-canvas'),rect=c.getBoundingClientRect(),p=c.__simulatteObjectTargets().find(r=>r.id===${JSON.stringify(id)}).points[0];return {x:p.x+rect.left,y:p.y+rect.top};})()`);
+    assert.ok(Math.hypot(point.x-target.x,point.y-target.y)<2,'Selection must preserve the projected walker position');
+  }
   await wait(`document.querySelector('.sim-object-inspector > div').hidden===false`);
   const before = await snapshot(); row.selected = before;
+  if(selectionCamera.view){const {insets:beforeInsets,...beforeCamera}=before.view,{insets:initialInsets,...initialCamera}=selectionCamera.view;assert.deepEqual(beforeCamera,initialCamera,'Selection preserves camera framing');}
+  // Exercise native keyboard selection, then return to the pointer-selected object.
+  await evaluate(`document.querySelector('[aria-label="Inspect object"]').focus()`);
+  for(const key of ['Home','ArrowDown','Escape','Tab']) {
+    await client.send('Input.dispatchKeyEvent',{type:'keyDown',key,code:key});
+    await client.send('Input.dispatchKeyEvent',{type:'keyUp',key,code:key});
+  }
+  assert.ok((await snapshot()).selected,'Native keyboard selection chooses an object');
+  await invoke('select-object',id);
+  row.steps.push('native keyboard selector operates independently of direct pointing');
   if (route.includes('gpu-')) {
     await click('[data-object-action="straggler"]');
     const after = await snapshot();
     assert.equal(after.inspections.find(r=>r.targetIds.length===1&&r.targetIds[0]===id).fields.find(f=>f.id==='slowdown').value,95);
+    await invoke('resume');
+    await wait(`__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='gpu-supercluster').inspections.some(r=>r.fields.some(f=>f.id==='waiting-for' && String(f.value).includes(${JSON.stringify(id.replace('rack:',''))})) && r.fields.some(f=>f.id==='wait-ms' && f.value>0))`);
+    await invoke('pause');row.dependencies=await snapshot();
+    row.steps.push('dependent racks wait for the selected slowed rack and accumulate synchronization wait');
     row.action = after; row.steps.push('live rack slowdown changed the model');
   } else {
     if (route.includes('sun-walker') || route.includes('orbital')) {
       await click('[data-object-action="preview"]');
       assert.deepEqual((await snapshot()).model, before.model, 'Preview must retain the displayed run');
-      row.steps.push('isolated model preview retained displayed state');
+      row.preview=await evaluate(`(() => {const c=[...document.querySelectorAll('canvas')].find(c=>c.__simulattePreview);return c.__simulattePreview();})()`);
+      assert.ok(row.preview.presentation.layers[0].geometry.coordinates.length>1,'Alternative has spatial geometry');
+      await wait(`(() => {const canvas=[...document.querySelectorAll('canvas')].find(c=>c.__simulattePreview);const receipts=canvas.__simulatteRenderReceipt?.().pluginCompositor || __simulattePluginPlatformV4.compositor || [];return receipts.some(r=>(r.representedLayerIds||r.receipt?.representedLayerIds||[]).includes(${JSON.stringify(row.preview.presentation.layers[0].id)}));})()`);
+      assert.ok(!(await snapshot()).error,'Spatial preview must have no rendering failure');
+
+      assert.ok(row.preview.inspections[0].fields.some(f=>f.id.endsWith('difference') && typeof f.value==='number'),'Calculated differences are visible');
+      const previewShot=await client.send('Page.captureScreenshot',{format:'png'});
+      row.previewScreenshot=route.replaceAll('/','-')+'.png';
+      await fs.writeFile(path.join(out,row.previewScreenshot),Buffer.from(previewShot.data,'base64'));
+      row.steps.push('spatial model preview retained displayed state and exposes calculated differences');
     }
     await click('[data-object-action="apply"]');
+    if(row.preview)await wait(`document.querySelector('[aria-label="Inspect object"]').value===${JSON.stringify(row.preview.objects[0].actions[0].afterApplyTargetId)}`);
     const after = await snapshot();
     if (!route.includes('interstellar')) assert.notDeepEqual(after.controls,before.controls,'Accepted controls must change');
     assert.equal(after.session.execution,'running');
+    if(row.preview){
+      id=row.preview.objects[0].actions[0].afterApplyTargetId;
+      if(route.includes('sun-walker')) assert.ok(after.model.id.includes(row.preview.simulationId),'Accepted run is the identified preview');
+    }
     assert.equal(after.selected,id); row.action=after; row.steps.push('applied model change and restarted explicitly');
   }
   if(route.includes('subsea')) {
@@ -192,19 +253,39 @@ async function journey(route, prefix) {
     await client.send('Emulation.setDeviceMetricsOverride',{...viewport,deviceScaleFactor:1,mobile:true});
     row.steps.push('orientation retained selection');
   }
+  const soakStarted=Date.now();let cycles=0;
+  while(Date.now()-soakStarted<soakSeconds*1000){
+    if((await snapshot()).session.execution==='complete')await invoke('replay');else await invoke('resume');
+    await new Promise(resolve=>setTimeout(resolve,2000));await invoke('pause');
+    const sustained=await snapshot();
+    assert.equal(sustained.selected,id);assert.deepEqual(sustained.controls,row.action.controls);
+    assert.ok(!sustained.error);assert.notEqual(sustained.session.execution,'failed');cycles++;
+  }
+  row.sustained={elapsedMs:Date.now()-soakStarted,cycles};
   const screenshot=await client.send('Page.captureScreenshot',{format:'png'});
-  const filename=route.replaceAll('/','-')+'.png';await fs.writeFile(path.join(out,filename),Buffer.from(screenshot.data,'base64'));row.screenshot=filename;
+  const filename=route.replaceAll('/','-')+'.png';if(!row.previewScreenshot)await fs.writeFile(path.join(out,filename),Buffer.from(screenshot.data,'base64'));row.screenshot=filename;row.screenshotPhase=row.previewScreenshot?'prepared alternative':'accepted paused run';
   row.pixels=await pixelEvidence(screenshot,{sparse:route.includes('interstellar')});
   await click('#decisions-button');
   await evaluate(`document.getElementById('sim-mission-dock').parentElement.open=true`);
   await click('#replay-button');const replay=await snapshot();assert.equal(replay.session.execution,'running');assert.equal(replay.selected,id);
   assert.deepEqual(replay.controls,row.action.controls,'Replay must retain accepted parameters');
   await click('#decisions-close');
+  await invoke('pause');
+  const background=await snapshot();
+  const originalTarget=(await client.send('Target.getTargetInfo')).targetInfo.targetId;
+  const backgroundTarget=await client.send('Target.createTarget',{url:'about:blank',background:false});
+  await client.send('Target.activateTarget',{targetId:backgroundTarget.targetId});
+  await new Promise(resolve=>setTimeout(resolve,500));
+  await client.send('Target.activateTarget',{targetId:originalTarget});
+  await client.send('Target.closeTarget',{targetId:backgroundTarget.targetId});
+  await client.send('Page.bringToFront');
+  assert.deepEqual((await snapshot()).model,background.model,'Paused model survives background/resume');
+  row.steps.push('repeated interaction and paused background/resume retain accepted state');
   row.steps.push('replayed accepted run from Advanced'); row.replay=replay; row.status='pass';
 }
 async function motorcycleJourney(){
   const row={route:'motorcycle',steps:[]};report.routes.push(row);
-  await client.send('Page.navigate',{url:host.baseUrl+'motorcycle'});
+  await client.send('Page.navigate',{url:baseUrl+'motorcycle'});
   await wait(`globalThis.SimulatteMotorcycleSession?.snapshot().execution==='running'`);
   const read=()=>evaluate(`SimulatteMotorcycleController.snapshot()`);
   const call=(id,input)=>evaluate(`SimulatteMotorcycleSession.invoke(${JSON.stringify(id)},${JSON.stringify(input)||'undefined'}).then(()=>true)`);
@@ -224,27 +305,59 @@ async function motorcycleJourney(){
   row.toolbar=await evaluate(`(() => {const bar=document.querySelector('.city-toolbar').getBoundingClientRect(),meter=document.querySelector('.observer-readout').getBoundingClientRect();return {bottom:bar.bottom,meterTop:meter.top};})()`);
   assert.ok(row.toolbar.bottom<=(mobile?220:180) && row.toolbar.meterTop>=row.toolbar.bottom,'Compact controls leave the meter and scene clear: '+JSON.stringify(row.toolbar));
   row.steps.push('camera presets open on demand and preserve traffic time');
-  const id=paused.motorcycles[0].id;
-  await call('select-object',{sourceId:id});
+  const target=await evaluate(`(() => {const canvas=document.getElementById('city'),rect=canvas.getBoundingClientRect();return SimulatteMotorcycleController.interactionTargets().map(p=>({...p,x:p.x+rect.left,y:p.y+rect.top})).find(p=>document.elementFromPoint(p.x,p.y)===canvas);})()`);
+  assert.ok(target,'A directly visible motorcycle is required');
+  const id=target.id;
+  if(mobile){
+    await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:target.x,y:target.y}]});
+    await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  }else{
+    await client.send('Input.dispatchMouseEvent',{type:'mousePressed',x:target.x,y:target.y,button:'left',clickCount:1});
+    await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:target.x,y:target.y,button:'left',clickCount:1});
+  }
+  await wait(`SimulatteMotorcycleController.snapshot().selected===${JSON.stringify(id)} && !document.getElementById('source-actions').hidden`);
+  row.pointerSelected=id;
   await evaluate(`document.getElementById('follow-selected').click()`);
   await wait(`SimulatteMotorcycleSession.snapshot().pending.length===0`);
   await evaluate(`document.getElementById('ride-selected').click()`);
   await wait(`SimulatteMotorcycleSession.snapshot().pending.length===0`);
   assert.equal((await read()).time,paused.time);assert.equal((await read()).selected,id);
   row.steps.push('selected motorcycle; follow and onboard preserve traffic time');
-  const treatment=(await read()).treatments.find(row=>row.kind==='directional');
-  if(treatment){
-    await call('select-object',{treatmentId:treatment.id});await call('treatment',{action:'toggle'});
-    assert.equal((await read()).treatments.find(row=>row.id===treatment.id).enabled,!treatment.enabled);
-    row.steps.push('selected treatment and changed modeled emitter state');
-  }
+  const placement=await evaluate(`SimulatteMotorcycleController.placementPoint(SimulatteMotorcycleController.sourcePosition(${JSON.stringify(id)}))`);
+  await evaluate(`document.querySelector('[data-add-treatment="directional"]').click()`);
+  await call('select-object',{point:placement,surface:'sidewalk'});
+  const treatment=(await read()).treatments.at(-1);
+  assert.ok(treatment,'Directional treatment is required for the observer consequence check');
+  await call('technique','live');
+  await wait(`motorcycleMeasurementReceipt?.observer.treatments.some(t=>t.id===${JSON.stringify(treatment.id)} && t.active)`);
+  const targetId=await evaluate(`motorcycleMeasurementReceipt.observer.treatments.find(t=>t.id===${JSON.stringify(treatment.id)}).targetId`);
+  const aim=await evaluate(`SimulatteMotorcycleController.sourcePosition(${JSON.stringify(targetId)})`);
+  await call('select-object',{point:{x:treatment.x+(aim.x-treatment.x)*.2,y:treatment.y+(aim.y-treatment.y)*.2,z:1.7},surface:'sidewalk'});
+  await wait(`SimulatteMotorcycleSession.snapshot().measurement==='fresh' && motorcycleMeasurementReceipt?.observer.treatments.some(t=>t.id===${JSON.stringify(treatment.id)} && t.active && t.received>-80)`);
+  const measured=await evaluate(`structuredClone(motorcycleMeasurementReceipt)`);
+  await call('select-object',{treatmentId:treatment.id});await call('treatment',{action:'toggle'});
+  await wait(`SimulatteMotorcycleSession.snapshot().measurement==='fresh' && motorcycleMeasurementReceipt?.observer.treatments.some(t=>t.id===${JSON.stringify(treatment.id)} && !t.active)`);
+  const disabled=await evaluate(`structuredClone(motorcycleMeasurementReceipt)`);
+  assert.deepEqual(disabled.observer.point,measured.observer.point);
+  assert.equal(disabled.identity.time,measured.identity.time);
+  assert.equal(disabled.observer.direct,measured.observer.direct,'Original sound remains unchanged');
+  assert.equal(disabled.observer.returned,measured.observer.returned,'Returned sound remains unchanged');
+  assert.ok(disabled.observer.total<measured.observer.total,'Removing a powered contribution reduces calculated sound at the same observer');
+  row.treatmentConsequence={enabled:measured,disabled};
+  row.steps.push('identified observer loses the selected powered contribution while original and returned sound remain unchanged');
   const prior=(await read()).observer;
   await call('camera','map');await call('select-object',{point:{x:prior.x+8,y:prior.y+8,z:1.7},surface:'sidewalk'});
   assert.equal((await read()).time,paused.time);
   assert.notDeepEqual((await read()).observer,prior);
   row.steps.push('moved observer without resetting traffic');
   await call('resume');await wait(`SimulatteMotorcycleController.snapshot().time>${paused.time+.1}`);
-  await call('pause');row.beforeReplay=await read();
+  await call('pause');
+  const soakStarted=Date.now();let cycles=0;
+  while(Date.now()-soakStarted<soakSeconds*1000){
+    await call('resume');await new Promise(resolve=>setTimeout(resolve,2000));await call('pause');
+    assert.equal((await read()).selected,id);assert.equal((await read()).scenarioSeed,paused.scenarioSeed);cycles++;
+  }
+  row.sustained={elapsedMs:Date.now()-soakStarted,cycles};row.beforeReplay=await read();
   const screenshot=await client.send('Page.captureScreenshot',{format:'png'});
   row.pixels=await pixelEvidence(screenshot);
   await fs.writeFile(path.join(out,'motorcycle.png'),Buffer.from(screenshot.data,'base64'));row.screenshot='motorcycle.png';
@@ -254,7 +367,7 @@ async function motorcycleJourney(){
 
 async function formsJourney() {
   const row={route:'create-and-data',steps:[]};report.routes.push(row);
-  await client.send('Page.navigate',{url:host.baseUrl+'blank/'});
+  await client.send('Page.navigate',{url:baseUrl+'blank/'});
   await wait(`globalThis.SimulatteCreateController && SimulatteCreateSession.snapshot().visibleStatus==='Waiting for input'`);
   await evaluate(`SimulatteCreateSession.invoke('revise-description','a red ball').then(()=>true)`);
   await wait(`SimulatteCreateController.snapshot().visible && SimulatteCreateSession.snapshot().pending.length===0`);
@@ -266,7 +379,7 @@ async function formsJourney() {
   await wait(`SimulatteCreateSession.snapshot().lastOperation?.id==='restart' && SimulatteCreateSession.snapshot().lastOperation.status==='success'`);
   row.create=await evaluate(`({controller:SimulatteCreateController.snapshot(),session:SimulatteCreateSession.snapshot(),program:SimulattePhysicsLab._browserLab.getPipelineRun()?.worldSpecContentHash})`);
   row.steps.push('Create waits for input; actual compile, pause, resume and restart publish runtime state');
-  await client.send('Page.navigate',{url:host.baseUrl+'#data'});
+  await client.send('Page.navigate',{url:baseUrl+'#data'});
   await wait(`globalThis.SimulatteDataWorkbench?.session.snapshot().visibleStatus==='Waiting for input'`);
   await evaluate(`document.getElementById('data-sample').click()`);
   await wait(`SimulatteDataWorkbench.session.snapshot().execution==='running'`);
@@ -285,7 +398,7 @@ try {
   await client.send('Runtime.enable'); await client.send('Page.enable');
   await client.send('Emulation.setDeviceMetricsOverride',{...viewport,deviceScaleFactor:1,mobile});
   await client.send('Emulation.setTouchEmulationEnabled',{enabled:mobile});
-  await client.send('Page.addScriptToEvaluateOnNewDocument', { source: `
+  if (!publicOnly) await client.send('Page.addScriptToEvaluateOnNewDocument', { source: `
     if (['/world','/country','/solar-system','/star-chart','/subsea','/grid','/orbital','/interstellar'].some(prefix=>location.pathname.startsWith(prefix)) || location.hash === '#data') {
       const restore = () => {
         if (!document.documentElement?.hasAttribute('data-world-launch')) return;
@@ -294,8 +407,13 @@ try {
       const observer = new MutationObserver(restore); observer.observe(document, { childList: true, subtree: true, attributes: true }); restore();
     }
   ` });
+  if(hardware)await client.send('Page.navigate',{url:baseUrl});
+  if(hardware){
+    const adapter=await evaluate(`(async()=>{const a=await navigator.gpu.requestAdapter();return a?{...a.info.toJSON?.(),vendor:a.info.vendor,architecture:a.info.architecture,device:a.info.device,description:a.info.description}:null})()`);
+    assert.ok(adapter && !/swiftshader|llvmpipe|software/i.test(JSON.stringify(adapter)) && (adapter.vendor||adapter.device),'Hardware adapter required: '+JSON.stringify(adapter));report.adapter=adapter;
+  }
   if(!selected){
-    await client.send('Page.navigate', { url: host.baseUrl });
+    await client.send('Page.navigate', { url: baseUrl });
     await wait(`document.body?.dataset.journeyPhase==='ready'`);
     const links=await evaluate(`Array.from(document.querySelectorAll('a')).filter(a=>a.getBoundingClientRect().width>0).map(a=>new URL(a.href).pathname).sort()`);
     assert.deepEqual(links,['/datacenter','/motorcycle','/sunwalker']);
@@ -305,7 +423,7 @@ try {
   }
   if(selected==='forms'){try{await formsJourney();console.log('PASS Create and Your Data');}catch(error){const row=report.routes.at(-1);row.status='failed';row.error=error.message;console.log('FAIL forms',error.message);}}
   if(!selected||selected==='motorcycle'){try{await motorcycleJourney();console.log('PASS motorcycle');}catch(error){const row=report.routes.at(-1);row.status='failed';row.error=error.message;console.log('FAIL motorcycle',error.message);}}
-  for(const [route,prefix] of routes.filter(([route])=>!selected||route.includes(selected))){
+  for(const [route,prefix] of routes.filter(([route])=>(!publicOnly || /gpu-|sun-walker/.test(route)) && (!selected||route.includes(selected)))){
     try{await journey(route,prefix);console.log('PASS',route);}
     catch(error){const row=report.routes.at(-1);row.status='failed';row.error=error.message;row.failureState=await evaluate(`({error:globalThis.__simulatteLastFailError,text:document.body.innerText.slice(0,600)+document.body.innerText.slice(-600)})`).catch(()=>null);console.log('FAIL',route,error.message);}
     await fs.writeFile(path.join(out,selected?`report-${selected}.json`:'report.json'),JSON.stringify(report,null,2)+'\n');

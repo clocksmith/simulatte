@@ -183,6 +183,14 @@
       events,
       controls,
       state,
+      objects: layers.filter(layer => layer.id.startsWith('grid-region:')).map(layer => {
+        const control = controls.controls.find(row => row.id === 'storagePolicyId');
+        const next = control.options[(control.options.findIndex(row => row.value === control.value) + 1) % control.options.length];
+        return { id: layer.id, label: layer.label, description: 'Regional demand, generation, storage, and unmet service. The storage policy applies across the modeled grid.',
+          hit: { shape: 'polygon', layerId: layer.id.replace('grid-region:', 'grid-balance:'), radiusPx: 4, priority: 70 },
+          actions: [{ id: 'apply', label: `Storage: ${next.label}`, targetId: layer.id, available: true, execution: 'restart', command: 'scenario.run',
+            values: { ...Object.fromEntries(controls.controls.map(row => [row.id, row.value])), storagePolicyId: next.value }, proposedChange: `Apply ${next.label} across the grid and recompute this region’s service.` }] };
+      }),
       inspections: snapshot.regions.map((region) => ({
         id: `inspect:grid-region:${region.id}`,
         label: region.label,

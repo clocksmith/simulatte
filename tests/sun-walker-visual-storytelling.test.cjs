@@ -184,7 +184,7 @@ test('Walked-segment colors and inspector metrics agree with completed samples',
     const contribution = createContribution(result, step);
     const actor = contribution.presentation.layers.find((layer) => layer.id === 'sun-walker-actor');
     const segment = contribution.presentation.layers.find(
-      (layer) => layer.id === `sun-walked-segment-${activeSample.segmentId}`
+      (layer) => layer.id === `sun-walked-segment-${activeSample.id}`
     );
     const measures = Object.fromEntries(contribution.state.measures.map((row) => [row.kind, row.value]));
     const rows = plugin.inspectorRows(result, step);

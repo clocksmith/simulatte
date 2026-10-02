@@ -13,7 +13,7 @@
   root.SimulatteSunWalkerV4 = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerV4(builder, shadowGeometry, exposureSummaryApi) {
   const PLUGIN_ID = 'sun-walker';
-  const MODEL_HASH = '247a541a411fc6e61575dd309d7913dda66da47da0ad5f27fbb3ee1cdd0f6870';
+  const MODEL_HASH = '5b0667607ec6a03bdfd506af801a0c948dac42e1c0f270ddd090a1ac6f61df4d';
 
   function createContribution({ simulation, step, world, buildingReceipt, governanceReceipt, environmentReceipt }) {
     const buildings = builder.datasetRecord('world.buildings.v1', buildingReceipt, { coverage: simulation.dataReceipt.datasets[0].coverage });
@@ -63,7 +63,7 @@
       uncertainty: simulation.modelReceipt.uncertainty,
       records: [model],
     });
-    const destination = selected.samples.at(-1)?.point;
+    const destination = selected.segments.at(-1)?.geometry.at(-1);
     const layers = [
       ...(destination ? [builder.layer({id:'sun-destination',kind:'point',label:'Walking destination',
         geometry:builder.geometry('point','city-local-m',[[destination.x,destination.y,0]]),
@@ -130,7 +130,7 @@
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'city-node-segment-id',
-      epoch: simulation.departureAt,
+      epoch: activeSample?.timestamp || simulation.departureAt,
       layers,
       sun: activeSample?.solarPosition ? {
         id: 'modeled-sun',
@@ -199,6 +199,17 @@
       events,
       controls,
       state,
+      objects: layers.filter(layer => ['sun-walker-actor', 'sun-destination', 'shade-selected-route', 'fastest-route'].includes(layer.id) || layer.id.startsWith('sun-walked-segment-')).map(layer => ({
+        id: layer.id, label: layer.label,
+        description: layer.id.startsWith('sun-walked-segment-') ? 'Exposure is sampled at arrival time using modeled buildings and declared environmental coverage.' : 'Compare walking time, direct sun, and detour before choosing another walk.',
+        hit: { shape: ['actor', 'point'].includes(layer.kind) ? 'point' : 'path', radiusPx: layer.kind === 'actor' ? 18 : 8, priority: layer.kind === 'actor' ? 100 : layer.kind === 'point' ? 90 : layer.id.startsWith('sun-walked-segment-') ? 50 : 30 },
+        actions: ['sun-walker-actor', 'sun-destination', 'shade-selected-route', 'fastest-route'].includes(layer.id) ? [{
+          id: 'preview', label: controls.controls.find(row => row.id === 'directSunWeight').value > 0 ? 'Preview shortest walk' : 'Preview shade', targetId: layer.id,
+          available: true, execution: 'preview', command: 'sun-walker.preview-route',
+          values: { directSunWeight: controls.controls.find(row => row.id === 'directSunWeight').value > 0 ? 0 : 5 },
+          proposedChange: controls.controls.find(row => row.id === 'directSunWeight').value > 0 ? 'Minimize walking time within the current detour limit.' : 'Increase the cost of direct sun within the current detour limit.',
+        }] : [],
+      })),
       inspections: [{
         id: 'sun-route-comparison',
         label: 'Sun exposure comparison',
@@ -231,9 +242,42 @@
           field('environment', 'Environmental evidence', 'Historical 2015 trees + pinned 2024 Central Park analog', null, claim),
           field('boundary', 'Claim boundary', simulation.claimBoundary, null, claim),
         ],
-      }],
+      }, ...layers.filter(layer => layer.id.startsWith('sun-walked-segment-')).map(layer => {
+        const sample = samples.filter(row => `sun-walked-segment-${row.id}` === layer.id).at(-1);
+        return { id: `inspect:${layer.id}`, label: layer.label, targetIds: [layer.id], fields: [
+          field('sample-time', 'Sampled at arrival', sample.timestamp, null, claim),
+          field('occluder', 'Modeled occluder', sample.occluderId || 'No identified occluder', null, claim),
+          field('exposure', 'Exposure', exposureLabel(sample.geometricState || sample.state), null, claim),
+          field('sample-interval', 'Represented time', sample.representedSeconds, 'seconds', claim),
+        ] };
+      })],
       provenanceRecords: [buildings, governance, environment, model, ...buildingRows, ...canopyRows, ...weatherRows],
     });
+  }
+
+  function routePreview({ accepted, candidate, id, contribution }) {
+    const current = accepted.candidates.find(row => row.id === accepted.selectedCandidateId);
+    const next = candidate.candidates.find(row => row.id === candidate.selectedCandidateId);
+    const layer = contribution.presentation.layers.find(row => row.id === 'shade-selected-route');
+    const targetId = 'sun-preview-route';
+    const claim = layer.provenance;
+    return {
+      id, baseId: accepted.id, candidateId: candidate.selectedCandidateId, simulationId: candidate.id, controls: Object.fromEntries(contribution.controls.controls.map(row => [row.id, row.value])),
+      provenanceRecords: contribution.provenanceRecords,
+      presentation: { ...contribution.presentation, layers: [{ ...layer, id: targetId, label: 'Alternative walk · amber', quantity:{...layer.quantity,kind:`preview.${layer.quantity.kind}`}, role: 'comparison' }], viewIntents: [] },
+      objects: [{ id: targetId, label: 'Alternative walk', description: (next.id === current.id ? 'This preference selects the same route. Amber overlays the accepted green route.' : 'Amber is the alternative; green is the accepted route.') + ' Applying starts this identified walk from departure.',
+        hit: { shape: 'path', radiusPx: 8, priority: 70 }, actions: [{ id: 'apply', label: 'Apply and restart', targetId, available: true,
+          execution: 'restart', command: 'sun-walker.accept-preview', prepared: true, afterApplyTargetId: 'sun-walker-actor', values: { previewId: id }, proposedChange: 'Use the displayed alternative walk.' }] }],
+      inspections: [{ id: 'preview-route-comparison', label: 'Alternative walk', targetIds: [targetId], fields: [
+        field('preview-time', 'Alternative walking time', next.metrics.travelSeconds, 'seconds', claim),
+        field('preview-sun', 'Alternative direct sun', next.metrics.directSunSeconds, 'seconds', claim),
+        field('preview-detour', 'Alternative detour', next.metrics.addedTimeSeconds, 'seconds', claim),
+        field('time-difference', 'Walking time difference', next.metrics.travelSeconds - current.metrics.travelSeconds, 'seconds', claim),
+        field('sun-difference', 'Direct sun difference', next.metrics.directSunSeconds - current.metrics.directSunSeconds, 'seconds', claim),
+        field('detour-difference', 'Detour difference', next.metrics.addedTimeSeconds - current.metrics.addedTimeSeconds, 'seconds', claim),
+        field('route-choice', 'Route choice', next.id === current.id ? 'The same route remains best for this preference.' : 'The objective selects a different eligible route.', null, claim),
+      ] }],
+    };
   }
 
   function routeLayer(id, label, candidate, quantityKind, role, importance, provenance) {
@@ -241,7 +285,7 @@
       id,
       kind: 'path',
       label,
-      geometry: builder.geometry('segments', 'city-segment-id', candidate.route.segmentIds),
+      geometry: builder.geometry('polyline', 'city-local-m', candidate.segments.flatMap(segment => segment.geometry.map(point => [point.x, point.y, 0.3]))),
       quantity: builder.quantity(quantityKind, candidate.metrics.directSunSeconds, 'seconds', [0, Math.max(1, candidate.metrics.travelSeconds)]),
       role,
       importance,
@@ -250,22 +294,11 @@
   }
 
   function walkedSegmentLayers(samples, provenance) {
-    const bySegmentId = new Map();
-    samples.forEach((sample) => {
-      const row = bySegmentId.get(sample.segmentId) || {
-        segmentId: sample.segmentId,
-        representedSeconds: 0,
-        activeSample: sample,
-      };
-      row.representedSeconds += sample.representedSeconds;
-      row.activeSample = sample;
-      bySegmentId.set(sample.segmentId, row);
-    });
-    return [...bySegmentId.values()].map((row) => builder.layer({
-      id: `sun-walked-segment-${row.segmentId}`,
+    return samples.map((sample) => ({ activeSample:sample, representedSeconds:sample.representedSeconds })).map((row) => builder.layer({
+      id: `sun-walked-segment-${row.activeSample.id}`,
       kind: 'path',
       label: `${exposureLabel(row.activeSample.state)} · ${Math.round(row.representedSeconds)} s sampled`,
-      geometry: builder.geometry('segments', 'city-segment-id', [row.segmentId]),
+      geometry: builder.geometry('polyline', 'city-local-m', row.activeSample.geometry.map(point=>[point.x,point.y,.4])),
       quantity: builder.quantity(
         `exposure.${row.activeSample.state}`,
         row.representedSeconds,
@@ -329,5 +362,5 @@
     return settled || step === 0 ? 'overview' : 'follow';
   }
 
-  return Object.freeze({ createContribution, walkedSegmentLayers, walkerNavigationMode });
+  return Object.freeze({ createContribution, routePreview, walkedSegmentLayers, walkerNavigationMode });
 });

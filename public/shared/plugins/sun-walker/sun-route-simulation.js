@@ -178,7 +178,7 @@
   }) {
     const segmentLengthM = Number.isFinite(segment.lengthM) ? segment.lengthM : polylineLength(segment.geometry);
     const travelSeconds = segmentLengthM / config.walkingSpeedMps;
-    const { side: chosenSidewalk, samplePoints } = evaluateSegmentSidewalk({
+    const { side: chosenSidewalk, samplePoints, geometry } = evaluateSegmentSidewalk({
       segment,
       enteredAtMs,
       travelSeconds,
@@ -186,9 +186,11 @@
       world,
       config,
     });
-    const sampleSeconds = travelSeconds / samplePoints.length;
-    const samples = samplePoints.map((point, sampleIndex) => {
-      const arrivalOffsetSeconds = (sampleIndex + 0.5) * sampleSeconds;
+    const sampledLengthM = samplePoints.reduce((sum, point) => sum + point.intervalLengthM, 0);
+    const samples = samplePoints.map((samplePoint, sampleIndex) => {
+      const point = { x: samplePoint.x, y: samplePoint.y };
+      const sampleSeconds = travelSeconds * samplePoint.intervalLengthM / sampledLengthM;
+      const arrivalOffsetSeconds = travelSeconds * (samplePoint.intervalStartM + samplePoint.intervalLengthM / 2) / sampledLengthM;
       const timestamp = new Date(enteredAtMs + arrivalOffsetSeconds * 1000).toISOString();
       const origin = exposure.worldOrigin(world);
       const sun = exposure.solarPosition(timestamp, origin.lat, origin.lon);
@@ -222,6 +224,7 @@
         segmentIndex,
         sampleIndex,
         point,
+        geometry: samplePoint.geometry,
         heading: round(heading),
         sidewalk: chosenSidewalk,
         representedSeconds: round(sampleSeconds),
@@ -247,6 +250,7 @@
       summary: {
         schema: 'simulatte.sunWalkerSegmentExposure.v2',
         segmentId: segment.id,
+        geometry,
         sidewalk: chosenSidewalk,
         enteredAt: new Date(enteredAtMs).toISOString(),
         exitedAt: new Date(enteredAtMs + travelSeconds * 1000).toISOString(),
@@ -271,6 +275,7 @@
     if (sidewalkOffsetM <= 0 || !exposure.computeSidewalkPolyline) {
       return {
         side: 'center',
+        geometry: segment.geometry,
         samplePoints: samplePolylineAtMidpoints(segment.geometry, config.sampleSpacingM),
       };
     }
@@ -299,6 +304,7 @@
     const side = leftShade > rightShade ? 'left' : 'right';
     return {
       side,
+      geometry: side === 'left' ? leftPoly : rightPoly,
       samplePoints: side === 'left' ? leftPoints : rightPoints,
     };
   }
@@ -683,6 +689,7 @@
 
   function samplePolylineAtMidpoints(points, spacingM) {
     const rows = [];
+    let distanceM = 0;
     for (let index = 1; index < points.length; index += 1) {
       const start = points[index - 1];
       const end = points[index];
@@ -693,10 +700,14 @@
         rows.push({
           x: round(start.x + (end.x - start.x) * ratio),
           y: round(start.y + (end.y - start.y) * ratio),
+          intervalStartM: distanceM + sampleIndex * lengthM / count,
+          intervalLengthM: lengthM / count,
+          geometry: [sampleIndex / count, (sampleIndex + 1) / count].map(t => ({x:round(start.x+(end.x-start.x)*t),y:round(start.y+(end.y-start.y)*t)})),
         });
       }
+      distanceM += lengthM;
     }
-    return rows.length ? rows : [{ ...points[0] }];
+    return distanceM > 0 ? rows.filter(row=>row.intervalLengthM>0) : [{ ...points[0], intervalStartM:0, intervalLengthM:1, geometry:[points[0],points[0]] }];
   }
 
   function polylineLength(points) {

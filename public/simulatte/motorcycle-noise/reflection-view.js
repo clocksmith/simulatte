@@ -272,6 +272,17 @@
     }
     const parkLife=await root.MotorcycleParkLife.create(B,scene,vector,map,()=>lastTime);cleanup.push(()=>parkLife.dispose());
     return {backendFailures,
+      interactionTargets(){
+        const viewport=scene.activeCamera.viewport.toGlobal(engine.getRenderWidth(),engine.getRenderHeight()),rect=canvas.getBoundingClientRect();
+        return [...city.vehicles].filter(([id])=>id.startsWith('motorcycle-')).flatMap(([id,mesh])=>{
+          const bounds=mesh.getHierarchyBoundingVectors();
+          const p=B.Vector3.Project(bounds.min.add(bounds.max).scale(.5),B.Matrix.Identity(),scene.getTransformMatrix(),viewport);
+          const x=p.x*rect.width/engine.getRenderWidth(),y=p.y*rect.height/engine.getRenderHeight();
+          if(p.z<0||p.z>1||x<0||y<0||x>rect.width||y>rect.height)return [];
+          const hit=scene.pick(x,y);
+          return hit?.pickedMesh?.metadata?.sourceId===id?[{id,x,y}]:[];
+        });
+      },
       captureCamera(){return {mode:cameraMode,observer:getObserver(),target:camera.target.asArray(),alpha:camera.alpha,beta:camera.beta,radius:camera.radius};},
       restoreCamera(saved){openingPending=false;if(saved.mode==='map'){setCameraMode('map');camera.setTarget(B.Vector3.FromArray(saved.target));camera.alpha=saved.alpha;camera.beta=saved.beta;camera.radius=saved.radius;}else if(saved.mode==='rider')setCameraMode('rider');else placeObserver(saved.observer,saved.mode);},
       snapSidewalk:sidewalkAt,setTreatmentSelection(id){treatmentSelection=id;},draw,setSources,showMeasurements,setReceiverMarkers,setCameraMode,getFocus,getObserver,placeObserver,focusSource,focus,homePark,nearestMotorcycle,backend:engine instanceof B.WebGPUEngine?'WebGPU':'WebGL',dispose};

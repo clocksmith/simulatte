@@ -420,13 +420,41 @@
     return value;
   }
 
+  function validateObjects(objects, presentation, label) {
+    array(objects, 'plugin_objects_invalid', label);
+    unique(objects.map(row => row.id), 'plugin_object_duplicate', label);
+    const layers = new Set(presentation.layers.map(row => row.id));
+    for (const row of objects) {
+      exactKeys(row, ['id', 'label', 'description', 'hit', 'actions'], 'Interaction object');
+      if (!layers.has(row.id)) fail('plugin_object_layer_missing', row.id);
+      text(row.label, 'plugin_object_label_invalid', label);
+      text(row.description, 'plugin_object_description_invalid', label);
+      allowedKeys(row.hit, ['shape', 'radiusPx', 'priority', 'layerId'], ['shape', 'radiusPx', 'priority'], 'Hit geometry');
+      if (row.hit.layerId && !layers.has(row.hit.layerId)) fail('plugin_hit_layer_missing', row.hit.layerId);
+      enumValue(row.hit.shape, ['point', 'path', 'polygon', 'bounds'], 'plugin_hit_shape_invalid', label);
+      finite(row.hit.radiusPx, 0, 44, 'plugin_hit_radius_invalid', label);
+      finite(row.hit.priority, 0, 100, 'plugin_hit_priority_invalid', label);
+      array(row.actions, 'plugin_object_actions_invalid', label);
+      unique(row.actions.map(action => action.id), 'plugin_object_action_duplicate', label);
+      for (const action of row.actions) {
+        allowedKeys(action, ['id', 'label', 'targetId', 'available', 'execution', 'command', 'values', 'proposedChange', 'prepared', 'afterApplyTargetId'],
+          ['id', 'label', 'targetId', 'available', 'execution', 'command', 'values', 'proposedChange'], 'Object action');
+        ['id', 'label', 'command', 'proposedChange'].forEach(key => text(action[key], 'plugin_object_action_invalid', key));
+        equal(action.targetId, row.id, 'plugin_object_action_target_invalid', label);
+        if (typeof action.available !== 'boolean') fail('plugin_object_action_availability_invalid', label);
+        enumValue(action.execution, ['preview', 'restart', 'continue'], 'plugin_object_execution_invalid', label);
+        object(action.values, 'plugin_object_values_invalid', label);
+        if (action.afterApplyTargetId !== undefined) text(action.afterApplyTargetId, 'plugin_object_action_target_invalid', label);
+        if (action.prepared !== undefined && typeof action.prepared !== 'boolean') fail('plugin_object_prepared_invalid', label);
+      }
+    }
+  }
+
   function validateContribution(value, label = 'Plugin contribution') {
     object(value, 'plugin_v4_contribution_invalid', `${label} expected an object`);
-    exactKeys(
-      value,
-      ['schema', 'pluginId', 'presentation', 'events', 'controls', 'state', 'inspections', 'provenanceRecords'],
-      label
-    );
+    allowedKeys(value, ['schema', 'pluginId', 'presentation', 'events', 'controls', 'state', 'inspections', 'provenanceRecords', 'objects'],
+      ['schema', 'pluginId', 'presentation', 'events', 'controls', 'state', 'inspections', 'provenanceRecords'], label);
+    if (value.objects !== undefined) validateObjects(value.objects, value.presentation, label);
     equal(value.schema, 'simulatte.pluginContribution.v4', 'plugin_v4_contribution_schema_invalid', `${label} schema`);
     text(value.pluginId, 'plugin_v4_contribution_plugin_invalid', `${label} pluginId`);
     validatePresentation(value.presentation, `${label} presentation`);

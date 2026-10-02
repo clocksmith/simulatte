@@ -499,12 +499,21 @@
 
   }
 
+  function datacenterMarkerSize(zoom) {
+    const width = Math.max(4, Math.min(42, zoom * 0.8));
+    return { width, height: width * 1.58, depth: width * 0.28 };
+  }
+  function datacenterMarkerBounds(point, zoom) {
+    const { width, height, depth } = datacenterMarkerSize(zoom);
+    return [{x:point.x-width/2,y:point.y-height/2}, {x:point.x-width/2+depth,y:point.y-height/2-depth},
+      {x:point.x+width/2+depth,y:point.y-height/2-depth}, {x:point.x+width/2+depth,y:point.y+height/2-depth},
+      {x:point.x+width/2,y:point.y+height/2}, {x:point.x-width/2,y:point.y+height/2}];
+  }
+
   function drawDatacenterMarker(ctx, point, marker, zoom) {
     const task = marker.quantityKind.startsWith('workload-rack-') ? marker.quantityKind.slice(14) : null;
     if (!task && marker.quantityKind !== 'modeled-rack-temperature') return false;
-    const width = Math.max(4, Math.min(42, zoom * 0.8));
-    const height = width * 1.58;
-    const depth = width * 0.28;
+    const { width, height, depth } = datacenterMarkerSize(zoom);
     const temperature = Number(marker.quantityValue);
     const heat = task ? ({forward:'#4de8ff',backward:'#8fffb5',waiting:'#ffb347',allreduce:'#c384ff'}[task] || '#4de8ff') : temperature >= 80 ? '#ff5c66' : temperature >= 65 ? '#ffb347' : '#4de8ff';
     ctx.save();
@@ -568,5 +577,5 @@
     ctx.strokeStyle = strokeStyle; ctx.lineWidth = lineWidth; ctx.stroke();
   }
 
-  return Object.freeze({ drawSolarSystem, drawStarChart, drawWorld, drawCountry, drawDatacenter, drawDatacenterMarker });
+  return Object.freeze({ drawSolarSystem, drawStarChart, drawWorld, drawCountry, drawDatacenter, drawDatacenterMarker, datacenterMarkerBounds });
 });

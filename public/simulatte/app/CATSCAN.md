@@ -29,11 +29,12 @@ Mount the minimal Motorcycle, GPU Cluster, and Sun Walker landing page. Preserve
 - URL identity and resolved profile identity must match.
 - Scene preparation owns World-specific geometry, route, and presentation decisions. Rendering sessions consume prepared inputs and do not acquire tier data or manage HUD elements.
 - UI completion follows settled runtime state.
+- Inspectors dispatch plugin actions through sessions. Selection preserves framing; Focus moves cameras. Previews remain separate.
 - Profile replay compares deterministic execution identity and retains unproven proof classes.
 - Data imports remain local unless the user explicitly requests a URL. Once required mappings and units are declared, valid data prepares and plays automatically; unresolved semantics remain visible.
 - Data execution uses a declared adapter and backend, never inferred physics or a hidden prompt/model lane.
 - Featured launch mode exposes Motorcycle, GPU Cluster, and Sun Walker on desktop and mobile. Other navigation remains dormant.
-- `data-world-launch="featured"` enables the featured profile routes and suspends data and other profile boot. Removing it restores all workflows.
+- `data-world-launch="featured"` suspends dormant workflows; removing it restores them.
 
 ## Acceptance
 

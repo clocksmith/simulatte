@@ -51,6 +51,7 @@
       verificationStepDays: Number(config.verification.stepDays),
     });
     let current = computeScenario(activeScenario);
+    let preparedPreview = null, previewSequence = 0;
     sdk.state.register(reduce, {
       scenarioId: activeScenario.id,
       result: current,
@@ -231,6 +232,21 @@
     }
 
     function handleAction(actionId, context = {}) {
+      if (actionId === 'orbital.preview-transfer') {
+        const weights = weightsFrom({ deltaV: activeWeights.deltaV, timeOfFlight: context.values.timeWeight });
+        const result = computeScenario(activeScenario, weights, activeSettings);
+        const id = `${activeScenario.id}:preview-${++previewSequence}`;
+        preparedPreview = { id, base: current, result, weights };
+        const acceptedTrajectory = contributeV4().presentation.layers.some(row=>row.id==='transfer-trajectory') ? null : contributionFor(current,playbackState('settled',TRANSFER_TIMELINE.length-1),activeWeights).presentation.layers.find(row=>row.id==='transfer-trajectory');
+        return v4.transferPreview({ id, current, result, acceptedTrajectory, contribution: contributionFor(result, playbackState('settled', TRANSFER_TIMELINE.length - 1), weights) });
+      }
+      if (actionId === 'orbital.accept-preview') {
+        const preview = preparedPreview;
+        if (!preview || preview.id !== context.values.previewId || preview.base !== current) throw new Error('Preview is stale; calculate it again.');
+        current = preview.result; activeWeights = preview.weights; preparedPreview = null;
+        sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.playback-started`, scenarioId: activeScenario.id, actionId, result: current });
+        return playbackResult(sdk.state.read());
+      }
       if (actionId === 'scenario.run' || actionId === 'plan.transfer') {
         const values = context.values || {};
         if (values.phase === 'start' || actionId === 'plan.transfer') {
@@ -429,7 +445,8 @@
       });
     }
 
-    function contributeV4() {
+    function contributeV4() { return contributionFor(sdk.state.read().result, sdk.state.read().playback, activeWeights); }
+    function contributionFor(result, playback, weights) {
       const datasetIds = [
         'jpl.horizons.heliocentric-vectors.v1',
         'solar.system.gm-constants-de440.v1',
@@ -438,10 +455,9 @@
         'spacecraft.archetypes.v1',
       ];
       return v4.createContribution({
-        result: sdk.state.read().result,
-        playback: sdk.state.read().playback,
+        result, playback,
         ephemerisData,
-        profileWeights: { deltaV: activeWeights.deltaV, timeOfFlight: activeWeights.timeOfFlight },
+        profileWeights: { deltaV: weights.deltaV, timeOfFlight: weights.timeOfFlight },
         spacecraftData,
         datasetReceipts: datasetIds.map((id) => ({
           id,

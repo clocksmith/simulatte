@@ -29,12 +29,12 @@ scenario or replay invalidates it; measurement updates preserve it.
   the seeded traffic repeats with current acoustic treatments. Exported acoustic
   snapshot replay remains in Advanced.
 - **Apply and restart** explicitly recalculates a scenario. It is not a live
-  intervention. Sun Walker and Orbital preview through isolated instances of their
-  existing model runtime, keeping the displayed solution and preview distinct.
+  intervention. Sun Walker and Orbital prepare an identified alternative in their
+  existing plugin. Preview leaves accepted playback untouched; applying promotes
+  that candidate without another route or transfer search.
 
 GPU rack slowdown is a supported live intervention. Other inspectors expose
-existing model controls: Sun Walker route preference, Subsea failures and repair
-policy, Grid storage policy, Orbital objective weights, and Interstellar packet
+existing model controls: Sun Walker route preference, Subsea resource failures, Grid storage policy, Orbital objective weights, and Interstellar packet
 transmission. A recalculation can retain the same chosen route when the model
 finds no better alternative. The inspector reports model values rather than
 inventing a visible consequence.
@@ -50,7 +50,7 @@ remaining profiles, Create, and Your Data stay implemented and unadvertised.
 ## Evidence
 
 Run `node tools/simulatte/audit-session-interactions.mjs` and repeat with
-`--mobile`. Each route checks activity, selection, a supported action, camera
+`--mobile`. Each route requires direct selection of its intended object, then checks a supported action, camera
 focus, pause/resume and state preservation with Advanced closed, then replay
 from Advanced. It checks that the compact controls remain visible. Scene
 screenshots include pixel checks. Add `--profile=forms` for Create and Your Data.
@@ -64,3 +64,49 @@ hardware performance, deployment or human-review evidence. `SIMULATTE_XVFB` can
 select an installed Xvfb; the default also supports the existing solar-drive audit
 binary. Source regression tests cover cancellation races, stale commits, camera
 bounds/insets, model-time presentation, and pending data revisions.
+
+
+## Selected-object accuracy pass
+
+Plugins now declare selectable objects and their actions in the existing v4
+contribution. Sun Walker exposes the walker, destination, routes, and sampled
+walked segments. Shadow envelopes do not compete for clicks. Segment inspection
+identifies its modeled occluder and arrival sampling instant. Route alternatives
+show time, direct-sun exposure, and detour differences; zero differences remain
+explicit when the bounded search keeps the same route. Orbital alternatives
+include trajectory, departure, arrival, flight time, and delta-v.
+
+Numerical evidence is separate from appearance: rectangle fixtures independently
+compute shadow length as height / tan(elevation), including long shadows outside
+the footprint diameter. A 63-metre straight route crosses an analytically known
+30-metre shadow interval; reducing sample spacing from 24 to 0.5 metres converges
+to the expected exposure and preserves distance/arrival accounting. Unequal-edge
+fixtures require proportional distance/time weights instead of equal weights per
+sample. Each selectable exposure interval uses its sampled sidewalk geometry. Missing
+heights remain unknown. Shadow display and active exposure use the same sample
+instant. Displayed building shadows remain convex envelopes, so concave outlines
+and courtyard detail are not qualified by the rectangle reference. Historical
+tree coverage and weather analogs are unchanged, not new observations.
+
+The Sun Walker model source hash is generated from the ordered concatenation of
+`sun-route-simulation.js`, `sun-exposure.js`, and `environment.js`. Plugin source
+integrity additionally binds presentation and shadow drawing.
+
+Use `--public` to test only the three launched simulations without modifying the
+launch gate. `--base-url=https://simulatte.world/ --public` runs those journeys on
+the served site. `--hardware` requires a non-software adapter and must fail when
+none is available. Mobile uses CDP touch input and orientation emulation; this is
+not physical-device qualification. Native keyboard selection, repeated playback
+interaction, and paused background/resume augment the existing camera/focus/
+scroll regressions. Each journey defaults to a 60-second repeated pause/resume soak;
+`--soak-seconds` sets an explicit 0..600-second duration. This bounded check is not
+an endurance qualification.
+Deployment requires authenticated Firebase access and a separate served-build
+identity check; local captures do not establish a production release.
+
+
+Preview evidence records receive candidate-qualified identities before the host
+creates its existing provenance receipt. The accepted contribution remains
+unchanged. Browser preview acceptance requires the compositor to represent the
+alternative layer, not just report a completed calculation. Amber alternatives
+use a narrower comparison stroke over the accepted route when geometry coincides.

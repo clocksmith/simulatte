@@ -1,6 +1,6 @@
 (function(root){
   function create({view,getScene,getTime,command}){
-    const $=id=>document.getElementById(id),T=root.MotorcycleTreatments,events=new AbortController();let selected=null,placing=null,lastPaint=0,nextId=1,latest=[];
+    const $=id=>document.getElementById(id),T=root.MotorcycleTreatments,events=new AbortController();let selected=null,placing=null,lastPaint=0,nextId=1,latest=[],lastObserver=null;
     const on=(node,event,fn)=>node.addEventListener(event,fn,{signal:events.signal});
     const addButtons=[...document.querySelectorAll('[data-add-treatment]')],prompt=$('placement-prompt');
     function setPlacement(kind,message){
@@ -22,12 +22,16 @@
       $('inspection-title').textContent=T.kinds[node.kind].name;
       $('inspection-main').textContent=node.enabled===false?'Disabled':scene.treatmentsEnabled===false?'Comparison: off':node.kind==='mist'?(state.target?'Ready to spray':'Waiting for a bike'):state.target?state.frequency.toFixed(0)+' Hz':'Waiting for traffic';
       $('inspection-detail').textContent=node.kind==='mist'?'Select Spray nearest bike to aim a visible plume at the passing motorcycle.':(state.target?'Tracks '+state.target.source.id+' / '+state.target.distance.toFixed(1)+' m':'No motorcycle within 100 m')+(sample?.outputLimited?' / output limited':'');
+      if(lastObserver && node.kind==='directional'){
+        const point=lastObserver.observer.point;
+        $('inspection-detail').textContent+=` / Sample at (${point.x.toFixed(0)}, ${point.y.toFixed(0)}), ${lastObserver.time.toFixed(2)} s: original ${lastObserver.observer.direct.toFixed(1)}, returned ${lastObserver.observer.returned.toFixed(1)} dBA; this emitter ${sample?.active ? sample.received.toFixed(1)+' dBA' : 'off'}`;
+      }
       $('inspection-time').textContent=node.kind==='mist'?'Fictional interaction: contact stalls the engine briefly, then it restarts.':node.kind==='cancellation'?'Delayed, output-limited tonal model. Off-target reinforcement is possible.':'Powered emitter at 60 dB / 1 m; additional sound, not passive reflection.';
       spray.hidden=node.kind!=='mist';spray.disabled=!state.target||node.enabled===false||scene.mistBursts?.some(b=>b.sourceId===state.target?.source.id&&getTime()>=b.start&&getTime()<b.restart);
       frequencies.hidden=node.kind!=='directional';frequency.value=String(node.frequency||500);enabled.textContent=node.enabled===false?'Enable':'Disable';
     }
     function reset(scene){
-      clear();setPlacement(null);latest=[];
+      clear();setPlacement(null);latest=[];lastObserver=null;
       nextId=Math.max(nextId,1,...(scene.treatments||[]).map(row=>Number(row.id.replace('treatment-',''))+1).filter(Number.isFinite));
       if(!scene.treatments){const point=view.getObserver();scene.treatments=['mist','directional','cancellation'].map((kind,i)=>({id:'treatment-'+nextId++,kind,...view.snapSidewalk({x:point.x+(i-1)*12,y:point.y+5,z:1.7}),frequency:500,enabled:true}));}
       scene.treatmentMode=$('technique').value;scene.treatmentsEnabled=['live','cancellation'].includes(scene.treatmentMode);
@@ -67,7 +71,7 @@
     on(remove,'click',()=>command('treatment',{action:'remove'}));
     on(frequency,'change',()=>command('treatment',{action:'frequency',value:frequency.value}));
     on($('inspection-close'),'click',clear);
-    return {apply,reset,pick,observe(data){latest=data.observer?.treatments||[];},update(now){if(now-lastPaint>250){lastPaint=now;paint();}view.setTreatmentSelection(selected);},dispose(){setPlacement(null);events.abort();actions.remove();}};
+    return {apply,reset,pick,observe(data){latest=data.observer?.treatments||[];lastObserver=data;},update(now){if(now-lastPaint>250){lastPaint=now;paint();}view.setTreatmentSelection(selected);},dispose(){setPlacement(null);events.abort();actions.remove();}};
   }
   root.MotorcycleTreatmentControls={create};
 })(globalThis);

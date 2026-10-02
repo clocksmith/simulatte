@@ -387,3 +387,37 @@ test('launch search rejects nonadvancing, nonfinite, and excessive grids before 
     assert.throws(() => launchWindow.scanLaunchWindow({ ...input, ...patch }), /launch_window_search_bounds_invalid/);
   }
 });
+
+
+test('spatial transfer preview preserves the accepted flight and promotes the exact prepared solution once', async () => {
+  const host=fixture();
+  const instance=await plugin.activate({sdk:host.sdk,config,profile,scenario:profile.seeds[0]});
+  instance.handleAction('scenario.run',{values:{phase:'start'}});
+  instance.handleAction('scenario.run',{values:{phase:'step'}});
+  const before=structuredClone(instance.contributeV4());
+  const accepted=instance.capabilities['simulation.orbital-transfer.v1']();
+  const preview=instance.handleAction('orbital.preview-transfer',{values:{timeWeight:.2}});
+  assert.deepEqual(instance.contributeV4(),before);
+  assert.equal(preview.presentation.layers[0].id,'preview-transfer-trajectory');
+  const interaction=require('../public/simulatte/app/object-interaction.js');
+  const registry=require('../public/simulatte/platform/runtime/provenance-registry.js');
+  const compositor=require('../public/simulatte/platform/render/semantic-compositor.js').createCompositor();
+  const combined=interaction.withPreview(before,interaction.qualifyPreview(preview));
+  const provenanceReceipt=registry.createContributionProvenanceReceipt(combined);
+  const composition=compositor.compose(combined.presentation,{provenanceReceipt,viewport:{width:1440,height:1000}});
+  assert.ok(composition.receipt.representedLayerIds.includes(preview.presentation.layers[0].id));
+  assert.equal(composition.primitives.find(row=>row.id===preview.presentation.layers[0].id).style.color,'#ffbd66');
+
+  assert.ok(preview.presentation.layers[0].geometry.coordinates.length>1);
+  const solver=require('../public/shared/plugins/orbital-transfer-planner/launch-window.js');
+  const scan=solver.scanLaunchWindow;
+  try{
+    solver.scanLaunchWindow=()=>{throw Error('Prepared promotion must not search again');};
+    instance.handleAction('orbital.accept-preview',{values:{previewId:preview.id}});
+    const promoted=instance.capabilities['simulation.orbital-transfer.v1']();
+    assert.notEqual(promoted,accepted);
+    assert.deepEqual(promoted.verification.trajectory.map(row=>row.positionAu),preview.presentation.layers[0].geometry.coordinates);
+    assert.equal(promoted.acceptedParameters.timeWeight,.2);
+    assert.throws(()=>instance.handleAction('orbital.accept-preview',{values:{previewId:preview.id}}),/stale/);
+  }finally{solver.scanLaunchWindow=scan;}
+});

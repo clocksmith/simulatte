@@ -274,10 +274,19 @@
       events,
       controls,
       state,
+      objects: presentation.layers.filter(layer => /^(star:|relay-link:|packet)/.test(layer.id)).map(layer => {
+        const values = Object.fromEntries(controls.controls.map(row => [row.id, row.value]));
+        const target = layer.id.startsWith('star:') ? layer.id.slice(5) : null;
+        const available = target && target !== values.sourceId && controls.controls.find(row => row.id === 'targetId').options.some(row => row.value === target);
+        return { id: layer.id, label: layer.label, description: 'Packets transmit, wait for contacts, propagate, and process at relays. Sending starts a new calculated transmission.',
+          hit: { shape: layer.kind === 'path' ? 'path' : 'point', radiusPx: 12, priority: target ? 90 : 30 },
+          actions: available ? [{ id: 'apply', label: 'Send packet here', targetId: layer.id, available: true, execution: 'restart', command: 'scenario.run',
+            values: { ...values, targetId: target }, proposedChange: `Send from ${values.sourceId} to ${target} and replay its delivery events.` }] : [] };
+      }),
       inspections: [{
         id: 'relay-experiment',
         label: 'Relay experiment and limits',
-        targetIds: result.schedule.hops.map((_, index) => `relay-link:${index}`),
+        targetIds: presentation.layers.filter(layer => /^(star:|relay-link:|packet)/.test(layer.id)).map(layer => layer.id),
         fields: [
           field('event', 'Current event', currentEvent?.kind || 'ready', null, simulated),
           field('elapsed', 'Elapsed modeled time', progressive.elapsedSeconds, 'second', simulated),

@@ -47,31 +47,24 @@
     let activeScenario = scenario;
     let activeMission = null;
     let activeDepartureAt = null;
-    let contributionCache = null;
+    let contributionCache = null, preparedPreview = null, previewSequence = 0;
     sdk.state.register(reduce, {
       simulation: null,
       playback: { status: 'idle', step: 0 },
       scenario: activeScenario,
     });
 
+    function calculateMission(mission, configuration, departureAt) {
+      return routeSimulation.simulate({ world, worldModel, routes: sdk.routing.alternatives(mission, configuration.maximumAlternatives),
+        departureAt, config: configuration, seed: activeScenario?.seed || configuration.seed,
+        buildingReceipt, governance, governanceReceipt, environment, environmentReceipt });
+    }
+
     function simulateMission(mission) {
       if (!mission) throw pluginError('sun_mission_required', 'Sun Walker requires a resolved route mission');
       activeMission = mission;
-      const routes = sdk.routing.alternatives(mission, activeConfig.maximumAlternatives);
-      const departureAt = activeDepartureAt || sdk.clock.instantForMission(mission);
-      const simulation = routeSimulation.simulate({
-        world,
-        worldModel,
-        routes,
-        departureAt,
-        config: activeConfig,
-        seed: activeScenario?.seed || activeConfig.seed,
-        buildingReceipt,
-        governance,
-        governanceReceipt,
-        environment,
-        environmentReceipt,
-      });
+      preparedPreview = null;
+      const simulation = calculateMission(mission, activeConfig, activeDepartureAt || sdk.clock.instantForMission(mission));
       sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.simulation-created', simulation });
       appendSelectionReceipt(simulation);
       return simulation;
@@ -153,6 +146,7 @@
     }
 
     function setScenario(nextScenario) {
+      preparedPreview = null;
       activeScenario = nextScenario;
       activeMission = null;
       activeDepartureAt = null;
@@ -161,6 +155,27 @@
     }
 
     function handleAction(actionId, context = {}) {
+      if (actionId === 'sun-walker.preview-route') {
+        const accepted = sdk.state.read().simulation;
+        if (!accepted) throw pluginError('preview_missing_run', 'Start a walk before previewing.');
+        const weight = finiteControl(context.values?.directSunWeight, activeConfig.directSunWeight, 0, 100, 'directSunWeight');
+        const configuration = { ...activeConfig, directSunWeight: weight };
+        const simulation = calculateMission(activeMission, configuration, accepted.departureAt);
+        const id = `${accepted.id}:preview-${++previewSequence}`;
+        const contribution = v4Api.createContribution({ simulation, step: 0, world, buildingReceipt, governanceReceipt, environmentReceipt });
+        preparedPreview = { id, baseId: accepted.id, simulation, configuration };
+        return v4Api.routePreview({ accepted, candidate: simulation, id, contribution });
+      }
+      if (actionId === 'sun-walker.accept-preview') {
+        const preview = preparedPreview;
+        if (!preview || preview.id !== context.values?.previewId || preview.baseId !== sdk.state.read().simulation?.id)
+          throw pluginError('preview_stale', 'Calculate a new route preview before applying.');
+        activeConfig = preview.configuration; activeDepartureAt = preview.simulation.departureAt; preparedPreview = null;
+        sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.simulation-created', simulation: preview.simulation });
+        appendSelectionReceipt(preview.simulation);
+        sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.playback-started' });
+        return playbackAction(sdk.state.read());
+      }
       if (actionId === 'sun-walker.select-control') {
         applyControlValues(context.values || {});
         const mission = activeMission || sdk.routing.resolveMission(activeScenario?.missionText || '');

@@ -259,6 +259,17 @@
       events,
       controls,
       state: progressiveState,
+      objects: presentation.layers.filter(layer => /^(corridor:|landing:|repair-resource:)/.test(layer.id)).map(layer => {
+        const control = controls.controls.find(row => row.id === 'failedResourceIds');
+        const resource = control?.options?.find(row => layer.id === `corridor:${row.value}` || layer.id === row.value);
+        const failed = (control?.value || []).filter(id => id !== 'none'), restoring = resource && failed.includes(resource.value);
+        return { id: layer.id, label: layer.label, description: resource ? 'Failure removes this resource’s capacity; service is recalculated using the accepted allocation and repair policies.' : 'Repair resource from the accepted schedule. Its movement and assignments are calculated by the repair model.',
+          hit: { shape: layer.kind === 'path' ? 'path' : 'point', radiusPx: layer.kind === 'path' ? 8 : 14, priority: layer.kind === 'path' ? 30 : 80 },
+          actions: resource ? [{ id: 'apply', label: restoring ? 'Restore resource' : 'Fail resource', targetId: layer.id, available: true,
+            execution: 'restart', command: 'scenario.run', values: { ...Object.fromEntries(controls.controls.map(row => [row.id, row.value])),
+              failedResourceIds: restoring ? failed.filter(id => id !== resource.value) : [...failed, resource.value] },
+            proposedChange: `${restoring ? 'Restore' : 'Fail'} ${resource.label}; recalculate affected service.` }] : [] };
+      }),
       inspections: createInspections(snapshot, datasets, sourceProvenance, modeled, scenario, simulated),
       provenanceRecords: [...records, ...modelRecords],
     });

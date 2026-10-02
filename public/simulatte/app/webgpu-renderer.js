@@ -586,7 +586,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         id:row.id.replace(/^plugin:[^:]+:/,''),
         points:(row.points||[row.point||row.position].filter(Boolean)).map(point=>{
           const p=semanticLabels.project(point,state.displayCamera?.viewProjection,viewport);
-          return p?{x:p[0],y:p[1]}:null;
+          return p?{x:p[0],y:p[1],depth:math.transformPoint(state.displayCamera.viewProjection,[point.x,point.heightM??1.8,-point.y])[2]}:null;
         }),
       })));
     }

@@ -186,6 +186,7 @@ function fixture({
   });
   return {
     clock,
+    runtime,
     controller,
     dispatchedValues,
     errors,
@@ -696,4 +697,25 @@ test('pausing an in-flight start keeps the model clock paused when preparation f
   await lane.controller.resume();
   assert.equal(lane.clock.snapshot().state, 'playing');
   lane.controller.dispose();
+});
+
+
+test('prepared promotion neither resets nor starts another calculation and rejection preserves accepted parameters', async () => {
+  const lane=fixture({controlValues:{weight:1}});
+  await lane.controller.start();lane.controller.pause();
+  const dispatch=lane.runtime.dispatchAction;
+  const commands=[];
+  lane.runtime.setScenario=()=>{throw Error('Prepared promotion must not reset');};
+  lane.runtime.dispatchAction=async(owner,command,context)=>{
+    commands.push(command);
+    if(command==='fixture.accept')return {status:'running',currentStep:0,totalSteps:2,simulationTimeMs:0};
+    if(command==='fixture.stale')throw Error('stale candidate');
+    return dispatch(owner,command,context);
+  };
+  await lane.controller.applyPrepared({command:'fixture.accept',values:{previewId:'one'},controls:{weight:2}});
+  await lane.controller.start();lane.controller.pause();
+  assert.deepEqual(commands,['fixture.accept']);
+  assert.deepEqual(lane.reflectedControlValues.at(-1),{weight:2});
+  await assert.rejects(lane.controller.applyPrepared({command:'fixture.stale',values:{previewId:'old'},controls:{weight:9}}),/stale candidate/);
+  assert.deepEqual(lane.reflectedControlValues.at(-1),{weight:2});
 });

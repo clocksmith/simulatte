@@ -24,6 +24,7 @@ Define the versioned profile, plugin, presentation, and platform wire boundaries
 
 - Adapters cannot silently broaden authority.
 - Unknown contract versions fail explicitly.
+- The optional v4 objects contribution binds selectable layer IDs, interaction geometry, and target-bound actions. The contract validates these declarations without implementing their domain meaning.
 
 ## Acceptance
 

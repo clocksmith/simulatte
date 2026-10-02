@@ -120,6 +120,32 @@ change fails. The plugin still validates the resulting order. Label prefixes
 separated by `:` or `·` form collapsible presentation groups; they confer no
 simulation authority.
 
+## Selected objects and prepared alternatives
+
+The optional `objects` array extends the existing contribution envelope. Each
+object declares `id` (a presentation layer ID), `label`, `description`, `hit`,
+and `actions`. Layers without an object declaration are explanatory overlays.
+`hit` declares `shape` (`point`, `path`, `polygon`, or `bounds`), `radiusPx`,
+`priority`, and an optional `layerId` for a separate surface. The renderer supplies
+projected geometry and depth; cabinet bounds use the same dimensions as drawing.
+Region footprints support interior clicks. Equal overlapping paths ask for an
+explicit choice in the accessible selector. Selection never implies Focus.
+
+Each action declares `id`, `label`, `targetId`, `available`, `execution`
+(`preview`, `continue`, or `restart`), `command`, `values`, and `proposedChange`.
+Plugins own these meanings and validate their commands. The shared inspector
+renders and dispatches them through session operations. Global policies must be
+identified as global, even when accessed from a selected object.
+
+Preview commands return presentation layers, inspection fields, object actions,
+accepted-control values, and an identified candidate without publishing a new
+accepted run. A `prepared` restart action carries the candidate token; the plugin
+validates that its accepted base still matches and consumes the candidate once.
+`afterApplyTargetId` optionally restores selection to an accepted object. The
+controller promotes the prepared result instead of resetting and searching again.
+A scenario change or replay invalidates host previews through session generation.
+The plugin independently rejects stale or previously consumed candidate tokens.
+
 ## Compatibility
 
 V1 through v3 presentations, UI fields, and events pass through the backward

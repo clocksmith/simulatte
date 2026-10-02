@@ -359,9 +359,39 @@
       events,
       controls,
       state: progressiveState,
+      objects: layers.filter(layer => layer.id === `body:${result.targetBodyId}` || layer.id === 'screening-spacecraft' || layer.id === 'transfer-trajectory').map(layer => ({
+        id: layer.id, label: layer.label, description: 'Compare the selected transfer’s flight time and delta-v before replacing the accepted trajectory.',
+        hit: { shape: layer.kind === 'path' ? 'path' : 'point', radiusPx: 14, priority: layer.kind === 'path' ? 30 : 90 },
+        actions: [{ id: 'preview', label: profileWeights.timeOfFlight > 0.05 ? 'Preview lower delta-v' : 'Preview faster transfer', targetId: layer.id,
+          available: true, execution: 'preview', command: 'orbital.preview-transfer', values: { timeWeight: profileWeights.timeOfFlight > 0.05 ? 0.01 : 0.2 },
+          proposedChange: 'Re-rank the supported departure windows for this destination.' }],
+      })),
       inspections,
       provenanceRecords: [...datasets, ...bodyRecords, interpolation, model, verifier],
     });
+  }
+
+  function transferPreview({ id, current, result, contribution, acceptedTrajectory = null }) {
+    const trajectory = contribution.presentation.layers.find(layer => layer.id === 'transfer-trajectory');
+    if (!trajectory) throw new Error('No calculated trajectory is available for preview.');
+    const targetId = 'preview-transfer-trajectory', claim = trajectory.provenance;
+    return { id, controls: Object.fromEntries(contribution.controls.controls.map(row => [row.id, row.value])),
+      provenanceRecords: contribution.provenanceRecords,
+      presentation: { ...contribution.presentation, layers: [{ ...trajectory, id: targetId, label: 'Alternative trajectory · amber', quantity:{...trajectory.quantity,kind:`preview.${trajectory.quantity.kind}`}, role: 'comparison' }, ...(acceptedTrajectory ? [{...acceptedTrajectory,id:'accepted-transfer-trajectory',label:'Accepted transfer',role:'primary'}] : [])], viewIntents: [] },
+      objects: [{ id: targetId, label: 'Alternative trajectory', description: 'Prepared trajectory from the supported departure-window search. Applying promotes this exact solution.',
+        hit: { shape: 'path', radiusPx: 8, priority: 40 }, actions: [{ id: 'apply', label: 'Apply and restart', targetId, available: true, execution: 'restart',
+          command: 'orbital.accept-preview', prepared: true, afterApplyTargetId: `body:${result.targetBodyId}`, values: { previewId: id }, proposedChange: 'Use this calculated transfer.' }] }],
+      inspections: [{ id: 'preview-transfer', label: 'Alternative transfer', targetIds: [targetId], fields: [
+        field('accepted-departure', 'Accepted departure', current.metrics.departureEpoch || 'Circular screening baseline', null, claim),
+        field('accepted-arrival', 'Accepted arrival', current.metrics.arrivalEpoch || 'Circular screening baseline', null, claim),
+        field('departure', 'Alternative departure', result.metrics.departureEpoch || 'Circular screening baseline', null, claim),
+        field('arrival', 'Alternative arrival', result.metrics.arrivalEpoch || 'Circular screening baseline', null, claim),
+        field('flight-time', 'Alternative flight time', result.metrics.timeOfFlightDays, 'days', claim),
+        field('delta-v', 'Alternative delta-v', result.metrics.totalDeltaVKmS, 'km/s', claim),
+        field('time-difference', 'Flight time difference', result.metrics.timeOfFlightDays-current.metrics.timeOfFlightDays, 'days', claim),
+        field('delta-v-difference', 'Delta-v difference', result.metrics.totalDeltaVKmS-current.metrics.totalDeltaVKmS, 'km/s', claim),
+      ] }],
+    };
   }
 
   function numericControl(id, label, value, minimum, maximum, step, provenance) {
@@ -469,7 +499,7 @@
 
   return Object.freeze({
     candidatePreview,
-    createContribution,
+    createContribution, transferPreview,
     displayEphemerisDay,
     pointAlong,
   });

@@ -57,7 +57,7 @@
     }
     function showObserver(data){
       const reading=data.observer;if(!reading)return;treatments.observe(data);
-      root.motorcycleMeasurementReceipt={identity:data.identity,latencyMs:data.latencyMs,workerMs:data.workerMs,coverage:reading.coverage,model:reading.model};
+      root.motorcycleMeasurementReceipt={identity:data.identity,latencyMs:data.latencyMs,workerMs:data.workerMs,coverage:reading.coverage,model:reading.model,observer:structuredClone(reading)};
       if(history.length&&data.time<history[history.length-1].time)history=[];
       history.push({time:data.time,level:reading.total,point:reading.point});if(history.length>80)history.shift();
       setText('observer-level',`${reading.total.toFixed(1)} dBA`);

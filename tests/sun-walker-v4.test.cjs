@@ -341,6 +341,42 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
     directSun.value,
     `${Math.round((simulation.state.directSunSeconds / travelSeconds) * 100)}% / ${directSunSeconds} s`
   );
+  const acceptedBeforePreview = JSON.stringify(state);
+  const prepared = instance.handleAction('sun-walker.preview-route', { values: { directSunWeight: 0 } });
+  assert.equal(JSON.stringify(state), acceptedBeforePreview, 'preview cannot move or replace the accepted walk');
+  assert.equal(prepared.presentation.layers[0].id, 'sun-preview-route');
+  const interaction=require('../public/simulatte/app/object-interaction.js');
+  const registry=require('../public/simulatte/platform/runtime/provenance-registry.js');
+  const compositor=require('../public/simulatte/platform/render/semantic-compositor.js').createCompositor();
+  const combined=interaction.withPreview(instance.contributeV4(),interaction.qualifyPreview(prepared));
+  const provenanceReceipt=registry.createContributionProvenanceReceipt(combined);
+  const composition=compositor.compose(combined.presentation,{provenanceReceipt,viewport:{width:1440,height:1000}});
+  assert.ok(composition.receipt.representedLayerIds.includes(prepared.presentation.layers[0].id));
+  assert.equal(composition.primitives.find(row=>row.id===prepared.presentation.layers[0].id).style.color,'#ffbd66');
+
+  const differences = Object.fromEntries(prepared.inspections[0].fields.map(row=>[row.id,row.value]));
+  assert.ok(differences['sun-difference']>0, 'Fastest alternative increases direct-sun exposure in this reference scene');
+  assert.ok(differences['time-difference']<0, 'Fastest alternative saves walking time');
+  assert.notEqual(prepared.candidateId,state.simulation.selectedCandidateId);
+  const shown = instance.contributeV4();
+  const selected = state.simulation.candidates.find(row=>row.id===state.simulation.selectedCandidateId);
+  assert.equal(shown.presentation.epoch,selected.samples.at(-1).timestamp);
+  assert.equal(shown.presentation.sun.azimuthDegrees,selected.samples.at(-1).solarPosition.azimuthDegrees);
+  for(const object of shown.objects.filter(row=>row.id.startsWith('sun-walked-segment-'))) {
+    const fields=shown.inspections.find(row=>row.targetIds.length===1&&row.targetIds[0]===object.id).fields;
+    assert.ok(fields.some(row=>row.id==='sample-time'&&Date.parse(row.value)));
+    assert.ok(fields.some(row=>row.id==='occluder'));
+  }
+  const alternatives = sdk.routing.alternatives;
+  sdk.routing.alternatives = () => { throw new Error('Applying must not search again'); };
+  const promoted = instance.handleAction('sun-walker.accept-preview', { values: { previewId: prepared.id } });
+  assert.equal(promoted.status, 'running');
+  assert.equal(state.simulation.id, prepared.simulationId);
+  assert.equal(state.simulation.selectedCandidateId, prepared.candidateId);
+  assert.equal(state.simulation.controls.find(row => row.id === 'directSunWeight').defaultValue, 0);
+  sdk.routing.alternatives = alternatives;
+  assert.throws(() => instance.handleAction('sun-walker.accept-preview', { values: { previewId: prepared.id } }), /preview_stale/);
+
 });
 
 test('Sun Walker starts and settles in overview while active movement stays in follow', () => {
@@ -429,4 +465,74 @@ test('environment participation is causal and exactly replayable', () => {
   assert.equal(cloudy.weather.skyCode, 'OVC');
   assert.equal(cloudy.directBeamFactor, 0.15);
   assert.equal(weatherDisabled.directBeamFactor, 1);
+});
+
+test('rectangular building occlusion matches independent shadow-length geometry beyond the footprint diameter', () => {
+  const world = { renderGeometry: { buildings: [{ id: 'reference-block', heightM: 20,
+    footprint: [{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:0,y:10},{x:0,y:0}] }] } };
+  const scene = exposure.compiledBuildings(world);
+  for (const elevationDegrees of [15, 30, 45, 60]) {
+    const shadowLength = 20 / Math.tan(elevationDegrees * Math.PI / 180);
+    for (const fraction of [0.1, 0.5, 0.95, 1.05, 1.5]) {
+      const result = exposure.pointSunStateDetailed({x:-shadowLength*fraction,y:5}, scene, {azimuthDegrees:90,elevationDegrees});
+      assert.equal(result.state, fraction < 1 ? 'shade' : 'direct', `elevation ${elevationDegrees}, fraction ${fraction}`);
+      if (fraction < 1) assert.equal(result.occluderId, 'reference-block');
+    }
+    assert.equal(exposure.pointSunState({x:-shadowLength*.5,y:12}, scene, {azimuthDegrees:90,elevationDegrees}), 'direct');
+  }
+});
+
+test('route distance, arrival time, and sampled shade converge to an independent 30 metre shadow interval', () => {
+  const originalSolar = exposure.solarPosition;
+  exposure.solarPosition = () => ({azimuthDegrees:90,elevationDegrees:45});
+  try {
+    const world = { ...fixture().world, renderGeometry: { buildings: [{id:'reference-block',heightM:20,
+      footprint:[{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:0,y:10},{x:0,y:0}]}] } };
+    const segment = {id:'straight',geometry:[{x:-41,y:5},{x:22,y:5}],lengthM:63,speedLimitMps:1};
+    const errors = [];
+    for (const sampleSpacingM of [24,8,2,.5]) {
+      const result = simulate({world,worldModel:{segment:()=>segment},routes:[{segmentIds:['straight']}],
+        config:{...config,sampleSpacingM,walkingSpeedMps:1,sidewalkOffsetM:0,weatherParticipation:false,treeCanopyParticipation:false}});
+      const candidate = result.candidates[0];
+      assert.ok(Math.abs(candidate.metrics.travelSeconds - 63)<.001);
+      assert.equal(Date.parse(candidate.arrivalAt)-Date.parse(candidate.departureAt),63000);
+      assert.ok(Math.abs(candidate.metrics.directSunSeconds+candidate.metrics.shadeSeconds-63)<.001);
+      errors.push(Math.abs(candidate.metrics.shadeSeconds-30));
+      candidate.samples.forEach(sample => assert.equal(sample.geometricState, sample.point.x>-20 && sample.point.x<10 ? 'shade':'direct'));
+    }
+    assert.ok(errors.at(-1)<.001, JSON.stringify(errors));
+    assert.ok(errors.at(-1)<errors[0], JSON.stringify(errors));
+  } finally { exposure.solarPosition = originalSolar; }
+});
+
+
+test('drawn rectangular shadows match the analytical occlusion interval at the same sun instant', () => {
+  const shadows = require('../public/shared/plugins/sun-walker/shadow-geometry.js');
+  const world = {renderGeometry:{buildings:[{id:'block',heightM:40,footprint:[{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:0,y:10},{x:0,y:0}]}]}};
+  for(const elevationDegrees of [2,15,45,60]){
+    const sun={elevationDegrees,azimuthDegrees:90};
+    const [shadow]=shadows.projectedEvidenceShadows(world,['block'],sun);
+    const expected=40/Math.tan(elevationDegrees*Math.PI/180);
+    assert.ok(Math.abs(shadow.lengthM-expected)<1e-8);
+    assert.ok(Math.abs(Math.min(...shadow.points.map(p=>p.x))+expected)<1e-8);
+    assert.equal(exposure.pointSunState({x:-expected*.99,y:5},exposure.compiledBuildings(world),sun),'shade');
+    assert.equal(exposure.pointSunState({x:-expected*1.01,y:5},exposure.compiledBuildings(world),sun),'direct');
+  }
+  const unknown={renderGeometry:{buildings:[{...world.renderGeometry.buildings[0],heightM:null}]}};
+  assert.equal(exposure.pointSunState({x:-1,y:5},exposure.compiledBuildings(unknown),{elevationDegrees:45,azimuthDegrees:90}),'unknown');
+  assert.deepEqual(shadows.projectedEvidenceShadows(unknown,['block'],{elevationDegrees:45,azimuthDegrees:90}),[],'Missing heights cannot become rendered evidence');
+});
+
+
+test('unequal polyline edges represent distance and arrival time proportionally', () => {
+  const world={...fixture().world,renderGeometry:{buildings:[]}};
+  const segment={id:'unequal',geometry:[{x:0,y:0},{x:1,y:0},{x:101,y:0}],lengthM:101};
+  const result=simulate({world,worldModel:{segment:()=>segment},routes:[{segmentIds:['unequal']}],config:{...config,sampleSpacingM:25,walkingSpeedMps:1,sidewalkOffsetM:0}});
+  const candidate=result.candidates[0];
+  assert.equal(candidate.metrics.travelSeconds,101);
+  assert.equal(candidate.samples[0].representedSeconds,1);
+  assert.equal(Date.parse(candidate.samples[0].timestamp)-Date.parse(candidate.departureAt),500);
+  assert.equal(candidate.samples[1].representedSeconds,25);
+  assert.equal(Date.parse(candidate.samples[1].timestamp)-Date.parse(candidate.departureAt),13500);
+  assert.deepEqual(candidate.samples[0].geometry,[{x:0,y:0},{x:1,y:0}]);
 });

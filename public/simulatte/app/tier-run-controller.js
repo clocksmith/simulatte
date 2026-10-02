@@ -259,14 +259,14 @@
       return pending;
     }
 
-    function applyControls(values) {
+    function applyControls(values, prepared = null) {
       if (disposed) return Promise.reject(controllerError('tier_run_disposed', 'Tier run controller is no longer active'));
-      const pending = seekQueue.then(() => applyControlValues(values));
+      const pending = seekQueue.then(() => applyControlValues(values, prepared));
       seekQueue = pending.catch(() => {});
       return pending;
     }
 
-    async function applyControlValues(values) {
+    async function applyControlValues(values, prepared) {
       assertActive();
       cancelTimer();
       const generation = ++runGeneration;
@@ -275,17 +275,18 @@
       isRestoring = false;
       scenarioResult = null;
       finalReceipt = null;
-      parameterValues = normalizeValues(values);
+      const nextParameters = normalizeValues(values);
+      if (!prepared) parameterValues = nextParameters;
       simulationActions = [];
       hasPreparedStart = false;
       clearStoredReceipt(storage, profileId);
       reflect();
       try {
-        await resetRuntime();
+        if (prepared) { if (advancing) await advancing; } else await resetRuntime();
         if (generation !== runGeneration) return snapshot();
-        setControlValues(ownerPluginId, parameterValues);
-        let result = await dispatchScenario({ phase: 'start' });
-        if (result?.status === 'refused' && ['scenario_phase_invalid', 'unknown_action'].includes(result.reason)) {
+        if (!prepared) setControlValues(ownerPluginId, parameterValues);
+        let result = prepared ? await getRuntime().dispatchAction(ownerPluginId, prepared.command, { values: prepared.values }) : await dispatchScenario({ phase: 'start' });
+        if (!prepared && result?.status === 'refused' && ['scenario_phase_invalid', 'unknown_action'].includes(result.reason)) {
           result = await dispatchScenario({});
         }
         if (!['running', 'settled', 'failed'].includes(result?.status)) {
@@ -296,6 +297,7 @@
           );
         }
         if (generation !== runGeneration) return snapshot();
+        if (prepared) { parameterValues = nextParameters; setControlValues(ownerPluginId, parameterValues); }
         scenarioResult = result;
         render();
         state = 'idle';
@@ -577,6 +579,7 @@
     }
 
     return Object.freeze({
+      applyPrepared: prepared => applyControls(prepared.controls, prepared),
       applyControls,
       acceptedControls: () => structuredClone(parameterValues),
       restart,

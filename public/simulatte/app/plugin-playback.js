@@ -215,27 +215,28 @@
       return pending;
     }
 
-    function applyControls(values) {
+    function applyControls(values, prepared = null) {
       if (disposed) return Promise.reject(playbackError('plugin_playback_disposed', 'Plugin playback is no longer active'));
-      const pending = seekQueue.then(() => applyControlValues(values));
+      const pending = seekQueue.then(() => applyControlValues(values, prepared));
       seekQueue = pending.catch(() => {});
       return pending;
     }
 
-    async function applyControlValues(values) {
+    async function applyControlValues(values, prepared) {
       assertActive();
       clock.pause();
       const generation = ++runGeneration;
       try {
         await actionQueue;
         if (generation !== runGeneration) return snapshot();
-        parameterValues = normalizeValues(values);
+        const nextParameters = normalizeValues(values);
+        if (!prepared) parameterValues = nextParameters;
         interventionLog = [];
         hasPreparedStart = false;
-        await resetState(activeScenario, generation, { renderReadyState: false });
+        if (!prepared) await resetState(activeScenario, generation, { renderReadyState: false });
         if (generation !== runGeneration) return snapshot();
-        setControlValues(ownerPluginId, parameterValues);
-        actionResult = await dispatch('start');
+        if (!prepared) setControlValues(ownerPluginId, parameterValues);
+        actionResult = prepared ? await runtime.dispatchAction(ownerPluginId, prepared.command, { scenario: activeScenario, values: prepared.values }) : await dispatch('start');
         if (!['running', 'settled'].includes(actionResult?.status)) {
           throw playbackError(
             'plugin_playback_controls_refused',
@@ -244,6 +245,7 @@
           );
         }
         if (generation !== runGeneration) return snapshot();
+        if (prepared) { parameterValues = nextParameters; setControlValues(ownerPluginId, parameterValues); }
         render();
         clock.seek(0);
         hasPreparedStart = true;
@@ -626,7 +628,7 @@
       return Object.freeze(value);
     }
 
-    return Object.freeze({ applyControls, dispose, intervene, pause, replay, reset, restore, resume, seek, setPlaybackRate, snapshot, start, step });
+    return Object.freeze({ applyPrepared: prepared => applyControls(prepared.controls, prepared), applyControls, dispose, intervene, pause, replay, reset, restore, resume, seek, setPlaybackRate, snapshot, start, step });
   }
 
   function validateRestoreReceipt(value, ownerPluginId) {

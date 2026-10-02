@@ -6,14 +6,14 @@
   const MAX_EVIDENCE_SHADOWS = 64;
 
   function projectedEvidenceShadows(world, occluderIds, solarPosition) {
-    if (!solarPosition || solarPosition.elevationDegrees <= 2 || !occluderIds.length) return [];
+    if (!solarPosition || solarPosition.elevationDegrees < 2 || !occluderIds.length) return [];
     const buildingsById = new Map((world.renderGeometry?.buildings || []).map((row) => [row.id, row]));
     const azimuth = solarPosition.azimuthDegrees * Math.PI / 180;
     const elevation = solarPosition.elevationDegrees * Math.PI / 180;
     return [...new Set(occluderIds)].slice(-MAX_EVIDENCE_SHADOWS).flatMap((buildingId) => {
       const building = buildingsById.get(buildingId);
       if (!building || !Number.isFinite(building.heightM) || building.heightM <= 0) return [];
-      const lengthM = Math.min(400, building.heightM / Math.tan(elevation));
+      const lengthM = building.heightM / Math.tan(elevation);
       const delta = { x: -Math.sin(azimuth) * lengthM, y: -Math.cos(azimuth) * lengthM };
       const footprint = openRing(building.footprint);
       return [{

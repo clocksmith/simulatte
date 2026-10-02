@@ -593,3 +593,21 @@ test('Replay retains recorded interventions while Restart clears them', async ()
   assert.equal(interventions.length, 2);
   controller.dispose();
 });
+
+
+test('prepared tier promotion bypasses reset and rejects unsupported commands without a scenario fallback', async () => {
+  const runtime=fakeRuntime();const dispatch=runtime.dispatchAction,commands=[],reflected=[];
+  runtime.dispatchAction=async(owner,command,context)=>{
+    commands.push(command);
+    if(command==='fixture.accept')return {status:'running',currentStep:0,totalSteps:2};
+    if(command==='fixture.stale')return {status:'refused',reason:'unknown_action'};
+    return dispatch(owner,command,context);
+  };
+  const controller=create(runtime,memoryStorage(),[],[],{weight:1},{resetRuntime:()=>{throw Error('Prepared promotion must not reset');},setControlValues:(_,values)=>reflected.push(values)});
+  await controller.applyPrepared({command:'fixture.accept',values:{previewId:'one'},controls:{weight:2}});
+  await controller.start();controller.pause();
+  assert.deepEqual(commands,['fixture.accept']);
+  await assert.rejects(controller.applyPrepared({command:'fixture.stale',values:{previewId:'old'},controls:{weight:9}}),/refused/);
+  assert.deepEqual(commands,['fixture.accept','fixture.stale']);
+  assert.deepEqual(reflected.at(-1),{weight:2});
+});

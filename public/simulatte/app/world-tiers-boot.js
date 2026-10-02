@@ -327,13 +327,17 @@
       if(ownerContribution){
         if(!objectInteraction)objectInteraction=root.SimulatteObjectInteraction.create({
           host:elements.overlayCanvas.parentElement,canvas:elements.overlayCanvas,getSession:()=>session,
-          projectObjects:contribution=>root.SimulatteObjectInteraction.objectsFor(contribution).map(row=>({id:row.id,
-            points:row.layer.geometry.coordinates.filter(Array.isArray).map(point=>root.SimulatteTierPluginPresentation.projectPoint(point,contribution.presentation.coordinateSystem,{...tierVisualizer,bounds:tierVisualizer.data?.bounds,projectCountry:(x,y,bounds)=>tierVisualizer.projectCountryPoint(x,y,bounds)}))})),
+          onPreviewChange:()=>renderPlugins(),
+          projectObjects:contribution=>root.SimulatteObjectInteraction.objectsFor(contribution).map(row=>{
+            const geometry=(contribution.presentation.layers.find(layer=>layer.id===row.hit.layerId)||row.layer).geometry;
+            const points=geometry.coordinates.filter(Array.isArray).map(point=>root.SimulatteTierPluginPresentation.projectPoint(point,contribution.presentation.coordinateSystem,{...tierVisualizer,bounds:tierVisualizer.data?.bounds,projectCountry:(x,y,bounds)=>tierVisualizer.projectCountryPoint(x,y,bounds)}));
+            return {id:row.id,points,depth:-Math.max(...points.filter(Boolean).map(point=>point.depth||0)),bounds:row.hit.shape==='bounds'&&points[0]?root.SimulatteTierRenderers.datacenterMarkerBounds(points[0],tierVisualizer.zoom):null};
+          }),
           onInsets:panel=>{
             const insets=root.SimulatteCameraFit.measureInsets(elements.overlayCanvas.getBoundingClientRect(),[{edge:'bottom',rect:panel.getBoundingClientRect()}]);
             if(JSON.stringify(insets)===JSON.stringify(tierVisualizer.sceneInsets))return;
             tierVisualizer.sceneInsets=insets;
-            if(tierVisualizer.fittedTarget)tierVisualizer.fitPluginPresentationTarget(...tierVisualizer.fittedTarget);
+            // Selection changes the usable area for the next explicit fit, not the current camera.
           },
         });
         objectInteraction.update(ownerContribution);
@@ -344,7 +348,7 @@
       renderTierSummary(root.__simulatteTierRunState?.state||'idle');
       tierVisualizer.removeHud?.();
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
-      tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.presentation})),{simulationTimeMs,provenanceReceipts:platform.provenanceReceipts});
+      tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.pluginId===ownerContribution?.pluginId?objectInteraction?.presentation()||contribution.presentation:contribution.presentation})),{simulationTimeMs,provenanceReceipts:objectInteraction?.provenanceReceipts(platform.provenanceReceipts)||platform.provenanceReceipts});
       for (const [button, mode] of [[elements.cameraFollow, 'follow'], [elements.cameraCompare, 'compare']]) {
         const available = Boolean(preferredTierCameraTarget(tierVisualizer.pluginCameraTargets(), mode));
         button.disabled = !available;
@@ -476,7 +480,7 @@
       (root.SimulatteAutonomyRuntimeLog||root.SimulatteRuntimeLog)?.error?.('tier.run.failed',{message:error.message,code:error.code||null});
     }
     function focusObject(owner,id){
-      const layer=lastPluginContributions.find(row=>row.pluginId===owner)?.presentation.layers.find(row=>row.id===id);
+      const layer=(objectInteraction?.presentation()||lastPluginContributions.find(row=>row.pluginId===owner)?.presentation)?.layers.find(row=>row.id===id);
       if(!layer)return;
       viewDirector?.setManualOverride({mode:'free',targetIds:[id]});
       tierVisualizer.setViewMode('free');selectTierViewMode('free');
@@ -518,6 +522,19 @@
           {id:'restart',serial:true,category:'reproduction',perform:()=>runController.restart()},
           {id:'replay',serial:true,category:'reproduction',perform:()=>runController.replay()},
           {id:'reset-view',category:'observation',target:'camera',perform:()=>{tierVisualizer.resetView();return applyTierCamera(data.applicationProfile.experience.defaultView,true);}},
+          {id:'object-preview',category:'observation',perform:async(input,operation)=>{
+            const action=objectInteraction.action(input.targetId,input.actionId);
+            const result=await runtime.dispatchAction(owner,action.command,{scenario:activeScenario,values:action.values});
+            operation.throwIfCancelled();return result;
+          }},
+          {id:'object-apply',serial:true,category:'scenario',requiresRestart:true,perform:async(input,operation)=>{
+            const action=input.prepared||objectInteraction.action(input.targetId,input.actionId);
+            if(action.prepared)await runController.applyPrepared(action);else await runController.applyControls(action.values);
+            operation.throwIfCancelled();await runController.start();operation.throwIfCancelled();ctx.canonicalize?.(governedTierRoute(simulationRouteState()));
+          }},
+          {id:'object-live',serial:true,category:'live',perform:input=>{
+            const action=objectInteraction.action(input.targetId,input.actionId);return runController.intervene(action.command,action.values);
+          }},
           {id:'apply-controls',serial:true,category:'scenario',target:owner,requiresRestart:true,
             perform:async(values,operation)=>{const controller=runController;await controller.applyControls(values);operation.throwIfCancelled();const result=await controller.start();operation.throwIfCancelled();await ctx.navigate?.(governedTierRoute(simulationRouteState()),{replace:true});return result;}},
           ...(owner==='gpu-supercluster'?[{id:'straggler',serial:true,category:'live',target:'rack',

@@ -197,7 +197,7 @@
         }
       }
     });
-    scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), Math.min(0.45, row.intensity || 0.45)));
+    scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, row.style?.emphasis === 'comparison' ? 1.02 : 0.92, semanticColor(row), Math.min(0.45, row.intensity || 0.45)));
     scene.markers.forEach((row) => {
       if (row.semanticKind === 'person-residences') {
         addTinyNode(writer, row.point, semanticColor(row), row.radiusM, row.intensity);
@@ -209,7 +209,7 @@
     // presentation compiler, so they draw with the same beacon/ribbon/polygon builders.
     (scene.choropleths || []).forEach((row) => addFlatPolygon(writer, row.points, 3, semanticColor(row, 'fill'), row.intensity));
     (scene.geoAreas || []).forEach((row) => addFlatPolygon(writer, row.points, row.heightM, semanticColor(row, 'fill'), row.intensity));
-    (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), Math.min(0.45, row.intensity || 0.45)));
+    (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, row.style?.emphasis === 'comparison' ? 1.02 : 0.92, semanticColor(row), Math.min(0.45, row.intensity || 0.45)));
     (scene.geoMarkers || []).forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
     if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
   }
