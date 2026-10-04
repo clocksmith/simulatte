@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -149,6 +150,18 @@ function writeInventory(surfaceRoot, id) {
   return receipt;
 }
 
+function packageMandate() {
+  const sourceRoot = path.resolve(ROOT, '../gamma/games/2038');
+  if (!fs.existsSync(path.join(sourceRoot, 'package.json'))) fail('Mandate source checkout is required at ../gamma/games/2038');
+  execFileSync('npm', ['run', 'publish:firebase:build'], { cwd: sourceRoot, stdio: 'inherit' });
+  const published = path.join(sourceRoot, 'dist/firebase/public');
+  const manifest = JSON.parse(fs.readFileSync(path.join(published, 'site-manifest.json'), 'utf8'));
+  if (manifest.deploymentProfile !== 'public-playtest' || manifest.deployable !== true || manifest.publicBase !== '/mandate-2038') {
+    fail('Mandate must be the deployable public-playtest build for /mandate-2038');
+  }
+  copyTree(published, path.join(WORLD_ROOT, 'mandate-2038'));
+}
+
 function packageSurfaces() {
   resetOutput();
   copyTree(PUBLIC_ROOT, WORLD_ROOT, (relative) => relative !== 'blank' && !relative.startsWith('blank/'));
@@ -157,6 +170,7 @@ function packageSurfaces() {
     copyTree(path.join(PUBLIC_ROOT, entry), path.join(CREATE_ROOT, entry), () => true, entry);
   }
   writeCreateEntrypoint();
+  packageMandate();
   const receipts = [
     writeInventory(WORLD_ROOT, 'simulatte-world'),
     writeInventory(CREATE_ROOT, 'simulatte-create'),

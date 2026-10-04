@@ -194,3 +194,15 @@ Expected behavior:
 - Create loads compiler workers from `/blank/app/workers/`.
 - Both targets resolve shared governed data and pinned Doppler assets from their
   own origin.
+
+## Mandate 2038
+
+World also serves [Mandate 2038](https://simulatte.world/mandate-2038/).
+`tools/package-hosting-surfaces.mjs` runs the canonical public-playtest builder
+in the sibling `../gamma/games/2038` checkout, verifies its publication profile
+and base path, and copies only its allowlisted output into the World package.
+A missing source or failing immutable-release check stops deployment.
+Gamma retains game ownership; no game sources are duplicated here. Its release
+identity travels with the World inventory. The Simulatte homepage and Create
+remain separate. Browser saves and optional bridge pairing from the former
+canvascontext.com origin do not transfer to the new origin.

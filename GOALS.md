@@ -52,3 +52,9 @@ Related: [INTENT.md](INTENT.md), [CATSCAN.md](CATSCAN.md).
 <a id="compounding-asset"></a>
 
 Detailed requirements: [GOVERNANCE_DETAILS.md](GOVERNANCE_DETAILS.md).
+
+## Hosted game
+
+Host Mandate 2038 at `https://simulatte.world/mandate-2038/` without replacing
+the World homepage. Gamma owns its rules and public-playtest build; Simulatte
+packages that verified output alongside World.

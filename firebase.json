@@ -11,6 +11,11 @@
       ],
       "redirects": [
         {
+          "source": "/mandate-2038",
+          "destination": "/mandate-2038/",
+          "type": 301
+        },
+        {
           "source": "/motorcycle/",
           "destination": "/motorcycle",
           "type": 301
@@ -381,6 +386,19 @@
             {
               "key": "Cache-Control",
               "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/mandate-2038/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            },
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex, nofollow, noarchive, nosnippet, noimageindex"
             }
           ]
         }
