@@ -11,6 +11,7 @@ const TARGETS = { world: 'https://simulatte-world.web.app/', create: 'https://si
 export async function main(args = process.argv.slice(2)) {
   const options = { surface: 'both', out: path.join(ROOT, 'artifacts/live-release', new Date().toISOString().replace(/[:.]/g, '-')), chrome: '', 'http-only': false };
   for (const arg of args) {
+    if (arg === '--no-screenshots') { options.screenshots = false; continue; }
     if (arg === '--http-only') { options['http-only'] = true; continue; }
     const match = /^--(surface|base-url|expected-build|expected-source-sha|out|chrome)=(.+)$/.exec(arg);
     if (!match) throw new Error(`Unknown argument ${arg}; use --surface=world|create|both, --expected-build=ID, --out=DIR, --chrome=PATH or --http-only`);
@@ -23,6 +24,7 @@ export async function main(args = process.argv.slice(2)) {
   const outDir = path.resolve(options.out);
   await prepareAuditOutput(outDir, ['simulatte.liveRelease.v2']);
   const report = { schema: 'simulatte.liveRelease.v2', recordedAt: new Date().toISOString(), expectedBuild,
+    screenshots: options.screenshots !== false,
     scope: options['http-only'] ? 'HTTP identity and entry assets only' : 'HTTP identity, entry assets, browser startup, controls and one fixed Create execution',
     exclusions: ['Simulation correctness', 'Model qualification', 'Physical GPU qualification', 'Human visual adjudication'],
     surfaces: [], browsers: [], pass: false };
@@ -33,7 +35,7 @@ export async function main(args = process.argv.slice(2)) {
     report.surfaces.push(checked);
     if (!options['http-only']) {
       for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
-        report.browsers.push(await verifyHostingBrowser({ surface, baseUrl, expectedBuild, viewport, outDir, chromePath: options.chrome }));
+        report.browsers.push(await verifyHostingBrowser({ surface, baseUrl, expectedBuild, viewport, outDir, chromePath: options.chrome, screenshots: options.screenshots !== false }));
       }
     }
   }

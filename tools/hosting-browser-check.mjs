@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { launchBrowser } from './simulatte/browser-session.mjs';
 
-export async function verifyHostingBrowser({ surface, baseUrl, expectedBuild, viewport, outDir, chromePath }) {
+export async function verifyHostingBrowser({ surface, baseUrl, expectedBuild, viewport, outDir, chromePath, screenshots = true }) {
   const result = { surface, baseUrl, expectedBuild, viewport, pass: false, errors: [], failedResources: [] };
   let browser;
   try {
@@ -34,7 +34,7 @@ export async function verifyHostingBrowser({ surface, baseUrl, expectedBuild, vi
     result.pass = result.observation.pass && !result.errors.length && !result.failedResources.length;
   } catch (error) { result.errors.push(error.message); }
   finally {
-    if (browser) {
+    if (browser && screenshots) {
       try {
         const screenshot = await browser.client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
         const bytes = Buffer.from(screenshot.data, 'base64');
