@@ -425,7 +425,8 @@
     unique(objects.map(row => row.id), 'plugin_object_duplicate', label);
     const layers = new Set(presentation.layers.map(row => row.id));
     for (const row of objects) {
-      exactKeys(row, ['id', 'label', 'description', 'hit', 'actions'], 'Interaction object');
+      allowedKeys(row, ['id', 'label', 'description', 'hit', 'actions', 'inSelector'], ['id', 'label', 'description', 'hit', 'actions'], 'Interaction object');
+      if (row.inSelector !== undefined && typeof row.inSelector !== 'boolean') fail('plugin_object_selector_invalid', row.id);
       if (!layers.has(row.id)) fail('plugin_object_layer_missing', row.id);
       text(row.label, 'plugin_object_label_invalid', label);
       text(row.description, 'plugin_object_description_invalid', label);

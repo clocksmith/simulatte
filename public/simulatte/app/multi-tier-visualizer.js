@@ -75,7 +75,9 @@
       this.hudElement = null;
       this.pluginLayer = tierPresentation?.createLayer({
         drawMarker: (ctx, point, marker) => this.currentTier === 'datacenter'
-          && tierRenderers.drawDatacenterMarker(ctx, point, {...marker,selected:marker.id.includes(`rack:${this.selectedRack}`)}, this.zoom),
+          && (this.nativeCoordinateSystems?.includes('cluster-network-layout')
+            ? tierRenderers.drawNetworkRack(ctx, marker, position => this.projectCoordinatePoint(position, 'cluster-network-layout'), marker.id === `gpu-supercluster:rack:${this.selectedRack}` || marker.id === `rack:${this.selectedRack}`)
+            : tierRenderers.drawDatacenterMarker(ctx, point, {...marker,selected:marker.id.includes(`rack:${this.selectedRack}`)}, this.zoom)),
         width: () => this.width, height: () => this.height, pan: (dx, dy) => { this.panX += dx; this.panY += dy; },
         fit: (target, system) => this.fitPluginPresentationTarget(target, system),
         view: () => ({
@@ -178,7 +180,7 @@
         this.dragStartX = e.clientX;
         this.dragStartY = e.clientY;
 
-        if (this.currentTier === 'star-chart' || this.currentTier === 'solar-system') {
+        if (['star-chart', 'solar-system', 'datacenter'].includes(this.currentTier) && !e.shiftKey) {
           // Orbit coordinate-native evidence in 3D.
           this.rotY += dx * 0.005;
           this.rotX += dy * 0.005;
@@ -344,6 +346,7 @@
       if (tierName === 'datacenter') {
         // The contribution owns rack identities and physical coordinates. A
         // separate facility fixture must not fabricate a second physical world.
+        this.rotX = 0.62; this.rotY = -0.35;
         this.data = {racks:[]};
         this.updateHudContent('Datacenter', 'Preparing the modeled rack network.', {});
       } else if (tierName === 'solar-system') {
@@ -656,6 +659,10 @@
       return [];
     }
 
+    projectCoordinatePoint(position, system) {
+      return tierPresentation.projectPoint(position, system, this);
+    }
+
     projectCountryPoint(lon, lat, bounds) {
       const lonRange = bounds.maxLon - bounds.minLon;
       const latRange = bounds.maxLat - bounds.minLat;
@@ -682,7 +689,9 @@
           height: this.height,
         })
         : coordinateEvidenceView({
-          coordinates: target?.coordinates || [],
+          coordinates: coordinateSystem === 'cluster-network-layout'
+            ? (target?.coordinates || []).flatMap(point => tierRenderers.networkRackCoordinates(point))
+            : target?.coordinates || [],
           coordinateSystem,
           width: this.width,
           height: this.height,
@@ -720,7 +729,7 @@
           const [xM,yM,zM]=row.geometry.coordinates[0];
           return {id:row.id.slice(5),xM,yM,zM};
         });
-        this.data={racks,bounds:racks.length?{
+        this.data={racks, networkLayout: contributions.find(row=>row.pluginId==='gpu-supercluster')?.presentation.coordinateSystem === 'cluster-network-layout', bounds:racks.length?{
           minimumMeters:[Math.min(...racks.map(r=>r.xM))-2,Math.min(...racks.map(r=>r.yM))-2,0],
           maximumMeters:[Math.max(...racks.map(r=>r.xM))+2,Math.max(...racks.map(r=>r.yM))+2,3],
         }:null};
@@ -754,8 +763,8 @@
         this.rotY = this.defaultView.rotY;
         this.rotZ = this.defaultView.rotZ;
       }
-      if (mode === 'top' && ['solar-system', 'star-chart'].includes(this.currentTier)) {
-        this.rotX = 0;
+      if (mode === 'top' && ['solar-system', 'star-chart', 'datacenter'].includes(this.currentTier)) {
+        this.rotX = this.currentTier === 'datacenter' ? Math.PI / 2 : 0;
         this.rotY = 0;
       }
       if (this.fittedTarget && ['overview', 'compare', 'follow', 'pov', 'top'].includes(mode)) {

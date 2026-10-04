@@ -469,6 +469,7 @@
 
   function drawDatacenter(view) {
     const { ctx, data, timeSeconds = 0 } = view;
+    if (data?.networkLayout) return;
     const project = (position) => view.projectCoordinatePoint
       ? view.projectCoordinatePoint(position, 'datacenter-cartesian-meters')
       : { x: view.panX + position[0] * view.zoom, y: view.panY - position[1] * view.zoom };
@@ -497,6 +498,41 @@
     }
     ctx.restore();
 
+  }
+
+  function networkRackCoordinates(position) {
+    const [x, y, z] = position;
+    return [[-.32,-.27,-.45],[.32,-.27,-.45],[.32,.27,-.45],[-.32,.27,-.45],
+      [-.32,-.27,.45],[.32,-.27,.45],[.32,.27,.45],[-.32,.27,.45]]
+      .map(([dx,dy,dz]) => [x+dx,y+dy,z+dz]);
+  }
+  function networkRackFaces(position, project) {
+    const points = networkRackCoordinates(position).map(project);
+    return [[0,1,2,3],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]]
+      .map(indices => indices.map(i=>points[i])).sort((a,b)=>a.reduce((s,p)=>s+p.depth,0)-b.reduce((s,p)=>s+p.depth,0));
+  }
+  function networkRackBounds(position, project) {
+    const points = networkRackFaces(position, project).flat().sort((a,b)=>a.x-b.x||a.y-b.y);
+    const cross = (o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+    const half = rows => { const hull=[]; for(const p of rows){while(hull.length>1&&cross(hull.at(-2),hull.at(-1),p)<=0)hull.pop();hull.push(p);}return hull.slice(0,-1); };
+    return [...half(points),...half([...points].reverse())];
+  }
+  function drawNetworkRack(ctx, marker, project, selected) {
+    if (!marker.quantityKind.startsWith('workload-rack-') && marker.quantityKind !== 'modeled-rack-temperature') return false;
+    const task=marker.quantityKind.slice(14), tone=({forward:'#4de8ff',backward:'#8fffb5',waiting:'#ffb347',allreduce:'#c384ff'})[task] || '#4de8ff';
+    ctx.save();
+    const faces=networkRackFaces(marker.position,project);
+    faces.forEach((face,index)=>polygon(ctx,face,index<3?'#101a25':'#203142',selected?'#ffffff':tone,selected?2:1));
+    // Server shelves occupy real 3D rack faces and rotate with the object.
+    const [x,y,z]=marker.position;
+    for(const side of [-1,1]) for(let slot=0;slot<6;slot++){
+      const h=z-.32+slot*.125;
+      line(ctx,[project([x-.23,y+side*.275,h]),project([x+.23,y+side*.275,h])],tone,1.5);
+    }
+    const anchor=project([x,y,z+.64]);
+    ctx.textAlign='center';ctx.font='600 10px system-ui';ctx.fillStyle=selected?'#ffffff':'#c9d6e2';
+    ctx.fillText(marker.label.replace('Rack ',''),anchor.x,anchor.y);
+    ctx.restore();return true;
   }
 
   function datacenterMarkerSize(zoom) {
@@ -577,5 +613,5 @@
     ctx.strokeStyle = strokeStyle; ctx.lineWidth = lineWidth; ctx.stroke();
   }
 
-  return Object.freeze({ drawSolarSystem, drawStarChart, drawWorld, drawCountry, drawDatacenter, drawDatacenterMarker, datacenterMarkerBounds });
+  return Object.freeze({ drawSolarSystem, drawStarChart, drawWorld, drawCountry, drawDatacenter, drawDatacenterMarker, datacenterMarkerBounds, drawNetworkRack, networkRackBounds, networkRackCoordinates });
 });

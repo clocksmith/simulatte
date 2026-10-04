@@ -19,7 +19,7 @@
         {
           "id": "grid-resilience-us-v1",
           "path": "../application-profiles/grid-resilience-us-v1.json",
-          "sha256": "9c42551afa1cbbc44b35a3f902e751e927665c5b30e6798364b9214c402ceaf9",
+          "sha256": "7239efaffbe2f012510581f04938aadafc2c4fe228a6b36851c487dfb8a9600a",
           "world": {
             "id": "us-national-regions-v1",
             "path": "./worlds/us-national-regions-v1.json",
@@ -34,7 +34,7 @@
         {
           "id": "gpu-supercluster-v1",
           "path": "../application-profiles/gpu-supercluster-v1.json",
-          "sha256": "3572cb1a75297c53e2c53054a9025789ad928a672b7005ef3c1070de989af62d",
+          "sha256": "9fe5f4052aae5fb0db17471369283cbca1877142c32c5859767b6b0f38450d1b",
           "world": {
             "id": "datacenter-supercluster-v1",
             "path": "./worlds/datacenter-supercluster-v1.json",
@@ -49,7 +49,7 @@
         {
           "id": "orbital-transfer-planner-v1",
           "path": "../application-profiles/orbital-transfer-planner-v1.json",
-          "sha256": "d131b9def342d670d12578a1de3c8725bcffb3479f97ef400c171d1dba6b8782",
+          "sha256": "dd33b9325d87ec47d2045bd6382e897535a72d32b9895bbc3411b9d9a4a478a9",
           "world": {
             "id": "solar-system-ephemeris-v2",
             "path": "./worlds/solar-system-ephemeris-v2.json",
@@ -74,7 +74,7 @@
         {
           "id": "interstellar-relay-network-v1",
           "path": "../application-profiles/interstellar-relay-network-v1.json",
-          "sha256": "a6daca92b5b7492e8e068a969191f4725824267ccd7443dd466bc25b06f6fe9b",
+          "sha256": "d4bf090591d019224deba13a83271b21792d6fe89c837197b3e395842eac38dd",
           "world": {
             "id": "gaia-dr3-stellar-neighborhood-v1",
             "path": "./worlds/gaia-dr3-stellar-neighborhood-v1.json",
@@ -99,7 +99,7 @@
         {
           "id": "subsea-network-global-v1",
           "path": "../application-profiles/subsea-network-global-v1.json",
-          "sha256": "fcb5fe7ee4f1a5d1146b7602110dbd3ba55240bc30fd57be5013515f0cbe51ae",
+          "sha256": "301db8cb5a10b83c554a00c7b249a9e7024db3684bd86fa02850b662287c4118",
           "world": {
             "id": "earth-global-topology-v1",
             "path": "./worlds/earth-global-topology-v1.json",

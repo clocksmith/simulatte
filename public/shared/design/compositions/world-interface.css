@@ -318,3 +318,22 @@ body.sim-app .simulation-toolbar .runtime-toolbar { display: flex; width: auto; 
 body.sim-app .simulation-toolbar .status-pill { width: auto; }
 .sim-app .simulation-toolbar .sim-product-nav { flex: 0 0 auto; }
 html[data-world-launch="featured"] #profile-navigation { display: none; }
+
+/* A single model readout strip stays visible without opening Advanced. */
+.sim-app .sim-readouts { grid-row: 3; padding: 8px 14px; color: var(--sim-ink); }
+.sim-app .sim-readouts dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 24px; max-width: 640px; margin: 0; }
+.sim-app .sim-readouts dl > div { min-width: 0; }
+.sim-app .sim-readouts dt { font: 400 12px/1.4 var(--sim-font); color: var(--sim-ink-soft); }
+.sim-app .sim-readouts dd { margin: 2px 0 0; font: 600 20px/1.3 var(--sim-font); font-variant-numeric: tabular-nums; }
+.sim-app .sim-readouts p { margin: 4px 0 0; font: 400 11px/1.4 var(--sim-font); color: var(--sim-ink-soft); }
+.sim-app .sim-object-heading button { font-size: 13px; }
+@media (max-width: 600px) {
+  .sim-app .sim-readouts { padding: 6px 8px; }
+  .sim-app .sim-readouts dl { gap: 8px; justify-content: space-between; }
+  .sim-app .sim-readouts dd { font-size: 17px; }
+}
+
+body.sim-app .simulation-stage:has(.sim-readouts:not([hidden])) .canvas-shell { height: calc(100dvh - 244px); }
+@media (max-width: 600px) {
+  body.sim-app .simulation-stage:has(.sim-readouts:not([hidden])) .canvas-shell { height: calc(100dvh - 278px); }
+}

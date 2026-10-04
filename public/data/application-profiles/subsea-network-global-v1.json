@@ -13,7 +13,7 @@
   "experience": {
     "kind": "simulation",
     "timelineLabel": "Network event",
-    "primaryMeasureKinds": ["delivered-service", "dropped-demand", "maximum-utilization", "service-fairness"],
+    "primaryMeasureKinds": ["delivered-service", "dropped-demand", "maximum-utilization"],
     "supportedViews": ["overview", "free", "compare"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",

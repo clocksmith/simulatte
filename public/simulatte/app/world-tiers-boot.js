@@ -331,7 +331,9 @@
           projectObjects:contribution=>root.SimulatteObjectInteraction.objectsFor(contribution).map(row=>{
             const geometry=(contribution.presentation.layers.find(layer=>layer.id===row.hit.layerId)||row.layer).geometry;
             const points=geometry.coordinates.filter(Array.isArray).map(point=>root.SimulatteTierPluginPresentation.projectPoint(point,contribution.presentation.coordinateSystem,{...tierVisualizer,bounds:tierVisualizer.data?.bounds,projectCountry:(x,y,bounds)=>tierVisualizer.projectCountryPoint(x,y,bounds)}));
-            return {id:row.id,points,depth:-Math.max(...points.filter(Boolean).map(point=>point.depth||0)),bounds:row.hit.shape==='bounds'&&points[0]?root.SimulatteTierRenderers.datacenterMarkerBounds(points[0],tierVisualizer.zoom):null};
+            return {id:row.id,points,depth:-Math.max(...points.filter(Boolean).map(point=>point.depth||0)),bounds:row.hit.shape==='bounds'&&points[0]?(contribution.presentation.coordinateSystem === 'cluster-network-layout'
+              ? root.SimulatteTierRenderers.networkRackBounds(row.layer.geometry.coordinates[0],point=>tierVisualizer.projectCoordinatePoint(point,'cluster-network-layout'))
+              : root.SimulatteTierRenderers.datacenterMarkerBounds(points[0],tierVisualizer.zoom)):null};
           }),
           onInsets:panel=>{
             const insets=root.SimulatteCameraFit.measureInsets(elements.overlayCanvas.getBoundingClientRect(),[{edge:'bottom',rect:panel.getBoundingClientRect()}]);

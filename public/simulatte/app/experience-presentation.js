@@ -4,6 +4,24 @@
   root.SimulatteExperiencePresentation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createExperiencePresentation() {
   const MEASURE_LABELS = Object.freeze({
+    'compute-efficiency': 'Compute efficiency',
+    'executed-compute-tflops': 'Compute (PFLOP/s)',
+    'facility-power-kw': 'Facility power (est.)',
+    'direct-sun-share': 'Sun so far',
+    'shade-share': 'Shade so far',
+    'progress': 'Progress',
+    'modeled-unserved-load': 'Unmet demand',
+    'current-minimum-reserve-margin': 'Reserve margin',
+    'storage-state-of-charge': 'Stored energy',
+    'delivered-service': 'Service delivered',
+    'dropped-demand': 'Service lost',
+    'maximum-utilization': 'Busiest cable',
+    'total-delta-v': 'Transfer delta-v',
+    'time-of-flight': 'Flight time',
+    'solution-count': 'Feasible transfers',
+    'packet-distance': 'Distance traveled',
+    'bottleneck-rate': 'Link capacity',
+    'latency': 'Delivery delay',
     'cluster-tflops': 'Compute throughput',
     'model-flops-utilization': 'Compute utilization',
     'allreduce-latency-ms': 'Communication time',
@@ -29,10 +47,7 @@
     const latestEvent = latestStateEvent(primary);
     const stage = experience.stages.find((row) => row.id === latestEvent?.kind?.split('.').at(-1))
       || stageAt(experience.stages, progress);
-    const exposesResults = !['idle', 'ready'].includes(runState);
-    const stats = exposesResults
-      ? selectedMeasures(measures, experience.primaryMeasureKinds)
-      : { Controls: contributions.reduce((total, row) => total + (row.controls?.controls?.length || 0), 0) };
+    const stats = selectedMeasures(measures, experience.primaryMeasureKinds, primary?.pluginId);
     return Object.freeze({
       experienceId: profile.id,
       kind: experience.kind,
@@ -46,14 +61,25 @@
       progress,
       comparison: comparisonStatus(experience.comparisonMode, runState, comparisonReceipts),
       stats: Object.freeze(stats),
+      measurementContext: measurementContext(primary),
     });
   }
 
-  function selectedMeasures(measures, kinds) {
+  function measurementContext(primary) {
+    if (primary?.pluginId === 'gpu-supercluster') return 'Torus view of the node ring · Cyan: forward · Green: backward · Amber: waiting · Violet: transfer. Compute averaged since start; power estimated.';
+    if (primary?.pluginId === 'sun-walker') {
+      const measures = primary.state?.measures || [];
+      const share = kind => formatMeasure(measures.find(row => row.kind === kind) || { value: 0, unit: 'ratio' });
+      return `Time in modeled sun/shade over the completed walk · Unknown ${share('unknown-share')} · Night ${share('night-share')}`;
+    }
+    return 'Modeled results at the current simulation time.';
+  }
+
+  function selectedMeasures(measures, kinds, pluginId) {
     const byKind = new Map(measures.map((measure) => [measure.kind, measure]));
-    return Object.fromEntries(kinds.flatMap((kind) => {
+    return Object.fromEntries([...new Set(kinds)].flatMap((kind) => {
       const measure = byKind.get(kind);
-      return measure ? [[MEASURE_LABELS[kind] || humanize(kind), formatMeasure(measure)]] : [];
+      return measure ? [[(kind === 'progress' && pluginId === 'sun-walker' ? 'Walk completed' : MEASURE_LABELS[kind]) || humanize(kind), formatMeasure(measure)]] : [];
     }));
   }
 
@@ -101,13 +127,15 @@
   function formatMeasure(measure) {
     const value = Number(measure.value);
     if (Number.isFinite(value) && ['ratio', 'probability', 'fraction'].includes(String(measure.unit).toLowerCase())) {
-      return `${(value * 100).toLocaleString('en-US', { maximumFractionDigits: 2 })}%`;
+      return `${(value * 100).toLocaleString('en-US', { maximumFractionDigits: 1 })}%`;
     }
     const formatted = !Number.isFinite(value)
       ? String(measure.value)
       : value !== 0 && Math.abs(value) < 0.001
         ? value.toExponential(2)
         : value.toLocaleString('en-US', { maximumFractionDigits: 3 });
+    if (measure.kind === 'executed-compute-tflops') return (value / 1000).toLocaleString('en-US', { maximumFractionDigits: 2 });
+    if (measure.kind === 'compute-efficiency') return `${value.toFixed(2)}%`;
     if (measure.unit === 'multiple') return `${formatted}×`;
     if (measure.unit === 'percent') return `${formatted}%`;
     if (measure.unit === 'C') return `${formatted} °C`;

@@ -35,7 +35,7 @@
         document.body.dataset.journeyPhase = 'loading';
         const status = document.getElementById('loading-status');
         if (status) status.textContent = route?.experience ? 'Loading experience' : 'Loading world';
-        clearExperienceSummary();
+        clearExperienceSummary(route?.experience);
       } catch (_error) { /* no document */ }
     }
 
@@ -79,6 +79,7 @@
         const summary=document.getElementById('experience-summary');
         const cameraControls=document.getElementById('camera-controls');
         if(summary)summary.hidden=true;
+        const readouts=document.getElementById('experience-readouts'); if(readouts)readouts.hidden=true;
         if(cameraControls)cameraControls.hidden=true;
       } catch (_error) { /* no document */ }
     }
@@ -243,15 +244,18 @@
       } catch (_error) { /* toolbar not present yet */ }
     }
 
-    function clearExperienceSummary() {
+    function clearExperienceSummary(experienceId) {
       try {
         const summary = document.getElementById('experience-summary');
         const stats = document.getElementById('experience-summary-stats');
+        if (experienceId && stats?.dataset?.experienceId === experienceId) {
+          for (const row of stats.children) row.lastElementChild.textContent = 'Pending';
+        } else stats?.replaceChildren();
         if (summary) {
           summary.hidden = true;
           delete summary.dataset.experienceId;
         }
-        stats?.replaceChildren();
+        const readouts=document.getElementById('experience-readouts'); if(readouts)readouts.hidden=true;
       } catch (_error) { /* no document */ }
     }
 

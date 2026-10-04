@@ -11,7 +11,7 @@
       : result.topology.racks[0]?.id;
     if(!targetRack)throw Error('Unknown straggler node');
     const state = { durationMs, timeMs: 0, iteration: 0, communication: 0, communicating: false,
-      totalWaitMs: 0, transferMs: result.collectives.tensorCommunicationPlan.durationMs + result.collectives.communicationPlan.durationMs,
+      totalWaitMs: 0, computeEquivalentMs: 0, transferMs: result.collectives.tensorCommunicationPlan.durationMs + result.collectives.communicationPlan.durationMs,
       tensorPlan: result.collectives.tensorCommunicationPlan, plan: result.collectives.communicationPlan,
       computeMs: result.collectives.computeTimeMs, actions: actions.map(a => ({ ...a })), appliedActions: 0,
       racks: result.topology.racks.map((rack, index) => ({
@@ -74,6 +74,7 @@
         for (const rack of state.racks) {
           if (rack.work >= 1) { rack.waitMs += dt; state.totalWaitMs += dt; }
           else {
+            state.computeEquivalentMs += dt * (1 - rack.slowdown / 100);
             rack.work = Math.min(1, rack.work + dt * (1 - rack.slowdown / 100) / rack.computeMs);
             if (1 - rack.work < EPSILON) rack.work = 1;
           }
@@ -98,7 +99,7 @@
       collectiveOperation: plan.operation, collectiveRound: round?.index ?? null,
       activeLinkIds: stage ? [...new Set(stage.links.map(l => l.id))] : [],
       transfers: stage ? stage.links.map(l => ({...l,progress:(transferTime-round.startMs-stage.startMs)/stage.durationMs})) : [],
-      totalWaitMs: state.totalWaitMs, actions: state.actions.map(a => ({ ...a })),
+      totalWaitMs: state.totalWaitMs, computeEquivalentMs: state.computeEquivalentMs, actions: state.actions.map(a => ({ ...a })),
       racks: state.racks.map(r => ({ ...r, waitingFor: [...r.waitingFor] })) };
   }
   return Object.freeze({ create, step, intervene, snapshot, STEP_MS, DURATION_MS, TOTAL_STEPS });

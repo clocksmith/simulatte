@@ -603,6 +603,22 @@ test('object inspector keeps live labels current and rejects feedback for an old
   resolveAction({ message: 'Rack A slowed' });
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(body.children[3].textContent, '', 'old action cannot annotate the newly selected rack');
-  host.children[0].children[0].children[1].dispatch('click');
+  find(host, node => node.textContent === '×').dispatch('click');
   assert.equal(selected, null);
+});
+
+test('secondary objects stay accessible without changing the primary menu during measurements', () => {
+  const doc=fakeDocument(),create=doc.createElement;
+  doc.createElement=tag=>{const node=create(tag);node.setAttribute=()=>{};return node;};
+  const host=new FakeNode('host',doc);
+  const inspector=uiHost.createObjectInspector({host,onSelect(){},onAction(){}});
+  const objects=[{id:'rack',label:'Rack A'},{id:'link',label:'A to B',inSelector:false}];
+  const render=()=>inspector.render({objects,selectedId:'rack',label:'Rack A',fields:[],actions:[]});
+  render();const select=find(host,node=>node.tagName==='select'),option=select.children[1];
+  assert.equal(select.children.length,2);
+  doc.activeElement=select;select.value='';render();
+  assert.equal(select.value,'','Measurement update must not reset native keyboard navigation');
+  assert.equal(select.children[1],option);
+  find(host,node=>node.textContent==='All').dispatch('click');assert.equal(select.children.length,3);
+  find(host,node=>node.textContent==='All').dispatch('click');assert.equal(select.children.length,2);
 });

@@ -124,7 +124,10 @@ simulation authority.
 
 The optional `objects` array extends the existing contribution envelope. Each
 object declares `id` (a presentation layer ID), `label`, `description`, `hit`,
-and `actions`. Layers without an object declaration are explanatory overlays.
+and `actions`. Optional `inSelector: false` keeps secondary links or sampled
+segments out of the default menu; they remain directly pickable and available
+through All. Object labels name stable identities; changing state belongs in
+inspection fields. Layers without an object declaration are explanatory overlays.
 `hit` declares `shape` (`point`, `path`, `polygon`, or `bounds`), `radiusPx`,
 `priority`, and an optional `layerId` for a separate surface. The renderer supplies
 projected geometry and depth; cabinet bounds use the same dimensions as drawing.

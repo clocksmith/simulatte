@@ -213,6 +213,11 @@
         scale: perspective * topology.distanceScale,
       };
     }
+    if (system === 'cluster-network-layout') {
+      const rotated = rotatePoint([x, z, y], Number(view.rotX || 0), Number(view.rotY || 0));
+      return { x: view.panX + rotated[0] * view.zoom, y: view.panY - rotated[1] * view.zoom,
+        depth: rotated[2], scale: 1 };
+    }
     if (system === 'datacenter-cartesian-meters') {
       const depth = y + x * 0.08 + z * 0.15;
       return {
@@ -400,7 +405,7 @@
           else drawActor(ctx, projection(actorPosition(row, animationElapsedSeconds, presentation.coordinateSystem)), row, timeSeconds);
         });
       }
-      drawCollisionManagedLabels(ctx, presentation.coordinateSystem === 'datacenter-cartesian-meters' ? [] : presentation.labels, projection);
+      drawCollisionManagedLabels(ctx, ['datacenter-cartesian-meters', 'cluster-network-layout'].includes(presentation.coordinateSystem) ? [] : presentation.labels, projection);
     });
   }
 

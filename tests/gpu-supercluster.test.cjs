@@ -329,3 +329,18 @@ test('host refreshes cached GPU contributions after private control and playback
     assert.equal(runtime.platformV4({}).contributions[0].events.length, 1);
   } finally { await runtime.dispose(); }
 });
+
+test('network rack drawing, picking and fit use the same rotating 3D geometry',()=>{
+ const v4=require('../public/shared/plugins/gpu-supercluster/v4-contribution.js');
+ const projection=require('../public/simulatte/app/tier-plugin-presentation.js');
+ const renderers=require('../public/simulatte/app/tier-renderers.js');
+ const fit=require('../public/simulatte/app/camera-fit.js');
+ const coordinates=pluginApi.simulate().topology.racks.map(r=>v4.networkPosition(r,topologyApi.buildClusterTopology()));
+ const p=coordinates[0],a=projection.projectPoint(p,'cluster-network-layout',{panX:0,panY:0,zoom:1,rotX:.6,rotY:0});
+ const b=projection.projectPoint(p,'cluster-network-layout',{panX:0,panY:0,zoom:1,rotX:.6,rotY:1});assert.notDeepEqual(a,b);
+ for(const [width,height] of [[1440,800],[390,550],[844,280]]){
+  const view={...fit.fit({coordinates:coordinates.flatMap(renderers.networkRackCoordinates),coordinateSystem:'cluster-network-layout',width,height,insets:{bottom:65},rotX:.6,rotY:.3}),rotX:.6,rotY:.3};
+  const project=point=>projection.projectPoint(point,'cluster-network-layout',view);
+  for(const coordinate of coordinates){const bounds=renderers.networkRackBounds(coordinate,project);assert.ok(bounds.length>=4);assert.ok(bounds.every(point=>point.x>=0&&point.x<=width&&point.y>=0&&point.y<=height));}
+ }
+});

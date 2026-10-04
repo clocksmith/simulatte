@@ -16,7 +16,7 @@
       'occurrence-stats', 'occurrence-patterns', 'occurrence-effects',
       'metric-state', 'metric-tick', 'metric-time', 'metric-speed', 'metric-distance', 'metric-route', 'metric-bet', 'journey-progress-fill', 'journey-hud',
       'metric-settlement', 'metric-calibration', 'camera-controls', 'camera-follow', 'camera-pov', 'camera-bird', 'camera-top', 'camera-free', 'camera-compare', 'semantic-label-canvas',
-      'experience-summary', 'experience-summary-state', 'experience-summary-title', 'experience-summary-description', 'experience-summary-event', 'experience-summary-narrative', 'experience-summary-stats', 'experience-summary-comparison',
+      'experience-readouts', 'experience-readouts-context', 'experience-summary', 'experience-summary-state', 'experience-summary-title', 'experience-summary-description', 'experience-summary-event', 'experience-summary-narrative', 'experience-summary-stats', 'experience-summary-comparison',
       'planning-forecast', 'alternative-proof', 'ledger-proof', 'policy-arena-proof',
       'export-ledger-button', 'import-receipt-button', 'import-receipt-file',
       'profile-program-section', 'profile-world-spec-editor', 'profile-world-spec-status', 'apply-profile-world-spec', 'reset-profile-world-spec', 'replay-profile-world-spec', 'export-profile-world-spec', 'import-profile-world-spec', 'profile-world-spec-import-file', 'profile-world-proof-status', 'profile-world-proof',
@@ -178,6 +178,8 @@
   }
 
   function renderExperienceSummary(elements, summary) {
+    if (elements.experienceReadouts) elements.experienceReadouts.hidden = !summary;
+    if (elements.experienceReadoutsContext) elements.experienceReadoutsContext.textContent = summary?.measurementContext || '';
     if (!summary) {
       elements.experienceSummary.hidden = true;
       return;
@@ -191,16 +193,24 @@
     elements.experienceSummaryNarrative.textContent = summary.narrative;
     if (!elements.playbackStrip.hidden) elements.playbackEvent.textContent = summary.event;
     const documentRef = elements.experienceSummary.ownerDocument;
-    const rows = Object.entries(summary.stats || {}).map(([label, value]) => {
-      const row = documentRef.createElement('div');
-      const term = documentRef.createElement('dt');
-      const description = documentRef.createElement('dd');
-      term.textContent = label;
-      description.textContent = String(value);
-      row.append(term, description);
-      return row;
-    });
-    elements.experienceSummaryStats.replaceChildren(...rows);
+    const stats = Object.entries(summary.stats || {});
+    const container = elements.experienceSummaryStats;
+    const sameExperience = container.dataset.experienceId === summary.experienceId;
+    container.dataset.experienceId = summary.experienceId;
+    for (const row of [...container.children]) {
+      if (stats.some(([label]) => label === row.dataset.measureLabel)) continue;
+      if (sameExperience && !stats.length) row.lastElementChild.textContent = 'Pending';
+      else row.remove();
+    }
+    for (const [label, value] of stats) {
+      let row = [...container.children].find(node => node.dataset.measureLabel === label);
+      if (!row) {
+        row = documentRef.createElement('div'); row.dataset.measureLabel = label;
+        const term = documentRef.createElement('dt'), description = documentRef.createElement('dd');
+        term.textContent = label; row.append(term, description); container.append(row);
+      }
+      if (row.lastElementChild.textContent !== String(value)) row.lastElementChild.textContent = String(value);
+    }
     elements.experienceSummaryComparison.textContent = summary.comparison || '';
     elements.experienceSummaryComparison.hidden = !summary.comparison;
   }

@@ -66,8 +66,8 @@ test('experience HUD summary binds the active profile, scenario, and V4 state me
   assert.match(summary.narrative, /Dispatch, storage/);
   assert.equal(summary.comparison, 'Comparison settles after both branches complete');
   assert.deepEqual(summary.stats, {
-    'Modeled Unserved Load': '377,766.207 MW',
-    'Current Minimum Reserve Margin': '-12%',
+    'Unmet demand': '377,766.207 MW',
+    'Reserve margin': '-12%',
   });
 });
 
@@ -151,7 +151,9 @@ test('side metrics replace the previous experience rows instead of retaining sta
     dataset: {},
     hidden: false,
     textContent: '',
-    append(...children) { this.children.push(...children); },
+    append(...children) { for(const child of children) child.parent=this; this.children.push(...children); },
+    get lastElementChild() { return this.children.at(-1); },
+    remove() { this.parent.children=this.parent.children.filter(child=>child!==this); },
     replaceChildren(...children) { this.children = children; },
   });
   const documentRef = { createElement: node };
@@ -177,6 +179,12 @@ test('side metrics replace the previous experience rows instead of retaining sta
     stats: { 'Unserved Load': '12 MW', Reserves: '4%' },
     comparison: 'Baseline running',
   });
+  const preserved = [...elements.experienceSummaryStats.children];
+  mainView.renderExperienceSummary(elements, {experienceId:'grid-resilience-us-v1',stats:{}});
+  assert.deepEqual(elements.experienceSummaryStats.children,preserved,'Restart keeps the metric row identities');
+  assert.ok(preserved.every(row=>row.children[1].textContent==='Pending'),'Earlier measurements cannot masquerade as the next run');
+  mainView.renderExperienceSummary(elements, {experienceId:'grid-resilience-us-v1',stats:{'Unserved Load':'10 MW',Reserves:'5%'}});
+  assert.deepEqual(elements.experienceSummaryStats.children,preserved);
   mainView.renderExperienceSummary(elements, {
     experienceId: 'asteroid-defense-v1',
     state: 'Ready',

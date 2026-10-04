@@ -100,3 +100,39 @@ test('tensor transfers across nodes become native contribution actors on the exe
   assert.deepEqual(actors.map(layer => layer.id), rails.map(link => `transfer:${link.id}:${link.from}`));
   assert.ok(actors.every(layer => layer.quantity.value > 0 && layer.quantity.value < 1));
 });
+
+test('compute accounting integrates productive rack time independently of sampling and live faults', () => {
+ const fixture={topology:{racks:[{id:'a'},{id:'b'}]},config:{stragglerThrottlePercent:0},
+  collectives:{computeTimeMs:2,tensorCommunicationPlan:{durationMs:0,rounds:[]},communicationPlan:{durationMs:1,rounds:[]}}};
+ const values=[1,.25,.1].map(dt=>{const state=workload.create(fixture);while(state.timeMs<12-1e-8)workload.step(state,Math.min(dt,12-state.timeMs));return workload.snapshot(state);});
+ // Four iterations: rack a uses 1.88 ms and b uses 2 ms per iteration.
+ for(const value of values) assert.ok(Math.abs(value.computeEquivalentMs-4*(1.88+2))<1e-8);
+ const base=workload.create(result),slow=workload.create(result);workload.intervene(slow,'R1-1',95);
+ advance(base,8);advance(slow,8);
+ const v4=require('../public/shared/plugins/gpu-supercluster/v4-contribution.js');
+ const measures=state=>Object.fromEntries(v4.createContribution({result,workload:workload.snapshot(state)}).state.measures.map(m=>[m.kind,m.value]));
+ const a=measures(base),b=measures(slow);
+ assert.ok(b['compute-efficiency']<a['compute-efficiency']);
+ assert.ok(b['executed-compute-tflops']<a['executed-compute-tflops']);
+ assert.equal(b['facility-power-kw'],result.thermals.totalFacilityPowerKw,'Power is explicitly steady-state, not fabricated live telemetry');
+ const replay=workload.create(result,slow.actions);advance(replay,8);assert.deepEqual(measures(replay),b);
+});
+
+test('torus layout preserves physical links and stable rack identities across transfer phases',()=>{
+ const v4=require('../public/shared/plugins/gpu-supercluster/v4-contribution.js');
+ const state=workload.create(result);const first=v4.createContribution({result,workload:workload.snapshot(state)});
+ advance(state,8);const next=v4.createContribution({result,workload:workload.snapshot(state)});
+ assert.deepEqual(first.objects.map(o=>[o.id,o.label,o.inSelector]),next.objects.map(o=>[o.id,o.label,o.inSelector]));
+ assert.equal(first.objects.filter(o=>o.inSelector).length,result.topology.racks.length);
+ assert.equal(first.presentation.coordinateSystem,'cluster-network-layout');
+ const layers=first.presentation.layers,racks=layers.filter(l=>l.id.startsWith('rack:'));
+ assert.ok(Math.max(...racks.map(r=>r.geometry.coordinates[0][2]))-Math.min(...racks.map(r=>r.geometry.coordinates[0][2]))>5,'Torus has real depth');
+ const gpuById=new Map(result.topology.gpus.map(g=>[g.id,g]));
+ for(const link of result.topology.links.filter(l=>l.type==='infiniband-rail')){
+   const layer=layers.find(l=>l.id===`link:${link.id}`);
+   for(const [gpuId,point] of [[link.sourceGpuId,layer.geometry.coordinates[0]],[link.targetGpuId,layer.geometry.coordinates.at(-1)]]){
+     const target=racks.find(r=>r.id===`rack:${gpuById.get(gpuId).rackId}`).geometry.coordinates[0];
+     assert.ok(Math.hypot(...target.map((v,i)=>v-point[i]))<1e-10);
+   }
+ }
+});

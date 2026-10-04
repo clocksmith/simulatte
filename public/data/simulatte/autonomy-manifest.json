@@ -2,7 +2,7 @@
   "applicationProfile": {
     "id": "sun-walker-v1",
     "path": "../application-profiles/sun-walker-v1.json",
-    "sha256": "a93b151ff421f1231249ed7683bd183225758142cd5f397a95a5f550af80f14d"
+    "sha256": "fe2f78087ab964022992ba928646c3956489cd8bdd6ab8f95b5f0b3f12eb5836"
   },
   "applicationProfiles": [
     {

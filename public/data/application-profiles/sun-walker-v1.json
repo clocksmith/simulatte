@@ -5,7 +5,7 @@
   "experience": {
     "kind": "simulation",
     "timelineLabel": "Route sample",
-    "primaryMeasureKinds": ["progress", "direct-sun", "shade", "unknown", "direct-beam-equivalent"],
+    "primaryMeasureKinds": ["direct-sun-share", "shade-share", "progress"],
     "supportedViews": ["overview", "follow", "top"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",

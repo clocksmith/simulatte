@@ -119,6 +119,37 @@ async function journey(route, prefix) {
   await click('#pause-button');
   await wait(`(()=>{const c=[...document.querySelectorAll('canvas')].find(c=>c.__simulatteRenderReceipt);return c?.__simulatteRenderReceipt().camera?.transitionState!=='active';})()`);
   await evaluate(`new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))`);
+  row.readouts=await evaluate(`(() => {
+    const panel=document.getElementById('experience-readouts'),r=panel.getBoundingClientRect();
+    const cells=[...panel.querySelectorAll('dl > div')]; globalThis.__auditMetricCells=cells;
+    globalThis.__auditObjectOptions=[...document.querySelector('[aria-label="Inspect object"]').options];
+    const owner=__simulattePluginPlatformV4.contributions.find(c=>SimulatteActiveSession.snapshot().id.startsWith(c.pluginId));
+    return { visible:!panel.hidden && r.height>0 && r.bottom<innerHeight, values:cells.map(c=>[c.firstElementChild.textContent,c.lastElementChild.textContent]),
+      objectLabels:__auditObjectOptions.map(o=>o.textContent), selectedCount:__auditObjectOptions.length,
+      totalObjects:owner.objects.length, model:owner.state.measures };
+  })()`);
+  assert.ok(row.readouts.visible,'Primary model readouts must be visible with Advanced closed');
+  assert.equal(row.readouts.values.length,3,'Exactly three distinct primary measurements');
+  assert.equal(new Set(row.readouts.values.map(([label])=>label)).size,3);
+  if(route.includes('gpu-')) {
+    assert.ok(row.readouts.selectedCount<row.readouts.totalObjects,'Secondary links are out of the primary rack menu');
+    assert.ok(row.readouts.objectLabels.slice(1).every(label=>/^Rack R[0-9]+-[0-9]+$/.test(label)),'Rack names exclude live percentages');
+    assert.equal(row.readouts.values[0][1],row.readouts.model.find(m=>m.kind==='compute-efficiency').value.toFixed(2)+'%');
+    const orbitBefore=await snapshot();
+    const drag=await evaluate(`(()=>{const r=document.getElementById('overlay-canvas').getBoundingClientRect();return{x:r.right-100,y:r.top+70};})()`);
+    await client.send('Input.dispatchMouseEvent',{type:'mousePressed',...drag,button:'left',clickCount:1});
+    await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:drag.x-45,y:drag.y+25,button:'left',buttons:1});
+    await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:drag.x-45,y:drag.y+25,button:'left',clickCount:1});
+    const orbited=await snapshot();assert.notEqual(orbited.view.rotY,orbitBefore.view.rotY,'Drag rotates the network');assert.deepEqual(orbited.model,orbitBefore.model);
+    await invoke('reset-view');
+    row.steps.push('3D orbit changes rotation without changing the model');
+  }
+  if(route.includes('sun-walker')) {
+    for(const [label,kind] of [['Sun so far','direct-sun-share'],['Shade so far','shade-share'],['Walk completed','progress']])
+      assert.equal(row.readouts.values.find(([key])=>key===label)[1],await evaluate(`SimulatteExperiencePresentation.formatMeasure(${JSON.stringify(row.readouts.model.find(m=>m.kind===kind))})`));
+  }
+  const overviewShot=await client.send('Page.captureScreenshot',{format:'png'});
+  row.overviewScreenshot=route.replaceAll('/','-')+'-overview.png';await fs.writeFile(path.join(out,row.overviewScreenshot),Buffer.from(overviewShot.data,'base64'));
   const selectionCamera=await snapshot();
   // Direct geometry selection is required. No selector fallback may make this pass.
   const target = await evaluate(`(() => {
@@ -254,6 +285,8 @@ async function journey(route, prefix) {
   assert.equal(still.selected,id); assert.equal(still.scroll,paused.scroll);
   if(paused.view){assert.deepEqual(still.view,paused.view,'Paused camera must remain fixed');assert.deepEqual(paused.view,explored.view,'Model updates must preserve the manually explored camera');}
   assert.equal(focused.focus,'focus','Measurement updates must preserve focus');
+  assert.ok(await evaluate(`__auditMetricCells.every((cell,index)=>document.getElementById('experience-summary-stats').children[index]===cell)`),'Measurement updates preserve readout DOM identity');
+  if(route.includes('gpu-'))assert.ok(await evaluate(`__auditObjectOptions.every((option,index)=>document.querySelector('[aria-label="Inspect object"]').options[index]===option)`),'GPU playback preserves native option identity');
   row.paused=paused;row.steps.push('camera focus, resume and pause preserved selection, focus and scroll');
   if(mobile){
     await client.send('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:1,mobile:true});

@@ -14,14 +14,11 @@
   "experience": {
     "kind": "simulation",
     "timelineLabel": "Training step",
-    "primaryMeasureKinds": [
-      "training-iterations",
-      "synchronization-wait-ms"
-    ],
+    "primaryMeasureKinds": ["compute-efficiency", "executed-compute-tflops", "facility-power-kw"],
     "supportedViews": [
       "overview",
       "free",
-      "compare"
+      "top"
     ],
     "defaultView": "overview",
     "comparisonMode": "synchronized",

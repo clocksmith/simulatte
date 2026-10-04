@@ -185,6 +185,8 @@
         builder.quantity('unknown', snapshot.state.unknownSeconds, 'seconds'),
         builder.quantity('night', snapshot.state.nightSeconds, 'seconds'),
         builder.quantity('direct-sun-share', exposureStatus.percentages.direct / 100, 'ratio', [0, 1]),
+        builder.quantity('unknown-share', exposureStatus.percentages.unknown / 100, 'ratio', [0, 1]),
+        builder.quantity('night-share', exposureStatus.percentages.night / 100, 'ratio', [0, 1]),
         builder.quantity('shade-share', exposureStatus.percentages.shade / 100, 'ratio', [0, 1]),
         builder.quantity('geometric-direct-sun-share', exposureStatus.geometricPercentages.direct / 100, 'ratio', [0, 1]),
         builder.quantity('geometric-shade-share', exposureStatus.geometricPercentages.shade / 100, 'ratio', [0, 1]),
@@ -200,7 +202,7 @@
       controls,
       state,
       objects: layers.filter(layer => ['sun-walker-actor', 'sun-destination', 'shade-selected-route', 'fastest-route'].includes(layer.id) || layer.id.startsWith('sun-walked-segment-')).map(layer => ({
-        id: layer.id, label: layer.label,
+        id: layer.id, label: layer.id === 'sun-walker-actor' ? 'Walker' : layer.label, inSelector: !layer.id.startsWith('sun-walked-segment-'),
         description: layer.id.startsWith('sun-walked-segment-') ? 'Exposure is sampled at arrival time using modeled buildings and declared environmental coverage.' : 'Compare walking time, direct sun, and detour before choosing another walk.',
         hit: { shape: ['actor', 'point'].includes(layer.kind) ? 'point' : 'path', radiusPx: layer.kind === 'actor' ? 18 : 8, priority: layer.kind === 'actor' ? 100 : layer.kind === 'point' ? 90 : layer.id.startsWith('sun-walked-segment-') ? 50 : 30 },
         actions: ['sun-walker-actor', 'sun-destination', 'shade-selected-route', 'fastest-route'].includes(layer.id) ? [{

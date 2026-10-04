@@ -204,6 +204,16 @@ test('Walked-segment colors and inspector metrics agree with completed samples',
     assert.equal(measures['direct-sun'], snapshot.state.directSunSeconds);
     assert.equal(measures.shade, snapshot.state.shadeSeconds);
     assert.equal(measures.unknown, snapshot.state.unknownSeconds);
+    const summary=require('../public/simulatte/app/experience-presentation.js').summarize({
+      profile:require('../public/data/application-profiles/sun-walker-v1.json'), contributions:[contribution],runState:'running'});
+    assert.equal(summary.stats['Sun so far'],exposureStatus.percentages.direct+'%');
+    assert.equal(summary.stats['Shade so far'],exposureStatus.percentages.shade+'%');
+    assert.equal(Object.keys(summary.stats).length,3);
+    assert.equal(measures['unknown-share'],exposureStatus.percentages.unknown/100);
+    assert.equal(measures['night-share'],exposureStatus.percentages.night/100);
+    assert.equal(contribution.objects.find(row=>row.id==='sun-walker-actor').label,'Walker');
+    assert.ok(contribution.objects.filter(row=>row.id.startsWith('sun-walked-segment-')).every(row=>row.inSelector===false));
+
     assert.equal(
       rowValue(rows, 'Current exposure'),
       exposureStatus.current.label

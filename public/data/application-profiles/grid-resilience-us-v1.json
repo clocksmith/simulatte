@@ -13,7 +13,7 @@
   "experience": {
     "kind": "simulation",
     "timelineLabel": "Operating hour",
-    "primaryMeasureKinds": ["modeled-unserved-load", "current-minimum-reserve-margin", "storage-state-of-charge", "modeled-emissions-this-hour", "spilled-generation"],
+    "primaryMeasureKinds": ["modeled-unserved-load", "current-minimum-reserve-margin", "storage-state-of-charge"],
     "supportedViews": ["overview", "free", "compare"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",

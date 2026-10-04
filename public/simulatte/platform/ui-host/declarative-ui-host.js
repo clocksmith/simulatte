@@ -582,7 +582,11 @@
     const header = doc.createElement('header'); header.className = 'sim-object-heading';
     const close = doc.createElement('button'); close.type = 'button'; close.className = 'sim-action';
     close.textContent = '×'; close.setAttribute('aria-label', 'Close inspector');
-    close.addEventListener('click', () => onSelect(null)); header.append(select, close);
+    const more = doc.createElement('button'); more.type = 'button'; more.className = 'sim-action';
+    more.textContent = 'All'; more.title = 'Include links and sampled segments'; more.setAttribute('aria-pressed', 'false');
+    let includeAll = false, lastRender = null;
+    more.addEventListener('click', () => { includeAll = !includeAll; more.setAttribute('aria-pressed', String(includeAll)); render(lastRender); });
+    close.addEventListener('click', () => onSelect(null)); header.append(select, more, close);
     const body = doc.createElement('div'); body.hidden = true;
     const title = doc.createElement('strong'), explanation = doc.createElement('p'), facts = doc.createElement('dl');
     const actions = doc.createElement('div'); actions.className = 'sim-object-actions';
@@ -602,9 +606,12 @@
         const button = buttons.get(action.id); if (button) { button.disabled = busy || action.disabled === true; button.textContent = action.label; }
       }
     }
-    return Object.freeze({
-      element: root,
-      render({ objects, selectedId, label, description, prompt = 'Select an object…', fields = [], actions: nextActions = [] }) {
+    function render(input) {
+        if (!input) return;
+        lastRender = input;
+        const { objects: allObjects, selectedId, label, description, prompt = 'Select an object…', fields = [], actions: nextActions = [] } = input;
+        const objects = allObjects.filter(row => includeAll || row.inSelector !== false || row.id === selectedId);
+        more.hidden = !allObjects.some(row => row.inSelector === false);
         if (current?.selectedId !== selectedId) { selectionRevision++; busy = false; message.textContent = ''; body.scrollTop = 0; }
         current = { actions: nextActions, selectedId };
         const key = objects.map(row => row.id).join('|');
@@ -616,7 +623,7 @@
         }
         [{ label: prompt }, ...objects].forEach((row, index) => { const option = select.children[index]; if (option && option.textContent !== row.label) option.textContent = row.label; });
         close.hidden = !selectedId;
-        select.value = selectedId || ''; body.hidden = !selectedId;
+        if (doc.activeElement !== select && select.value !== (selectedId || '')) select.value = selectedId || ''; body.hidden = !selectedId;
         if (!selectedId) return;
         title.textContent = label; explanation.textContent = description;
         const ids = new Set(fields.map(row => row.id));
@@ -639,7 +646,8 @@
           actions.append(button); buttons.set(action.id, button);
         }
         reflectButtons();
-      },
+    }
+    return Object.freeze({ element: root, render,
       dispose() { root.remove(); },
     });
   }

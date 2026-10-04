@@ -82,12 +82,12 @@
       "path": "./receipt-factory.js"
     },
     {
-      "integrity": "sha384-cc610e29da9bbff581b5f7d473ac3c1288eb8619fff63e81cd0fe8d41b950d28d5bf28bcecba5b5071d690a4861dee89",
+      "integrity": "sha384-bac41e2daf62bb40904d93f23b0e51ebbdb2ab84e49002c5f3663ee6b95e8964898d530a32a0e7e2ec724c8e31e253cd",
       "path": "./v4-contribution.js"
     },
     {
       "path": "./workload.js",
-      "integrity": "sha384-e0b5cfcc050fe08d13f280fd33afdb98f72b638e815ceffd0168d1690bee893b8ce858369b7b2833b289aa95794d7659"
+      "integrity": "sha384-685a1f2ec65353b06b79886ee3cb004d43f4f4a89c459a9438c78c7d428b4a6917d1a143a0bfe2c5101938b294ddda68"
     }
   ],
   "schema": "simulatte.pluginManifest.v3",

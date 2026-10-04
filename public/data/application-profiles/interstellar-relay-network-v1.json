@@ -13,7 +13,7 @@
   "experience": {
     "kind": "simulation",
     "timelineLabel": "Relay event",
-    "primaryMeasureKinds": ["packet-depth", "packet-distance", "bottleneck-rate", "latency", "physical-packet-success"],
+    "primaryMeasureKinds": ["packet-distance", "bottleneck-rate", "latency"],
     "supportedViews": ["overview", "free", "compare"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",
