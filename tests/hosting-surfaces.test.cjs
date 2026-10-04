@@ -111,3 +111,11 @@ test('release and hosting validation run against the stamped build identity', ()
     /^npm run check:doppler:development && npm run stamp:build && npm run check:deploy && npm run package:hosting$/,
   );
 });
+
+
+test('directory routes do not redirect to their slash-normalized selves', () => {
+  const config = readJson('firebase.json').hosting.find((entry) => entry.target === 'world');
+  for (const redirect of config.redirects.filter((entry) => entry.source.startsWith('/mandate-2038'))) {
+    assert.notEqual(redirect.source.replace(/\/$/, ''), redirect.destination.replace(/\/$/, ''), `redirect loop: ${redirect.source}`);
+  }
+});

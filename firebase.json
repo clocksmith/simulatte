@@ -11,11 +11,6 @@
       ],
       "redirects": [
         {
-          "source": "/mandate-2038",
-          "destination": "/mandate-2038/",
-          "type": 301
-        },
-        {
           "source": "/motorcycle/",
           "destination": "/motorcycle",
           "type": 301
