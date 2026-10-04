@@ -8,7 +8,7 @@ Let people choose, create, and edit executable browser simulations. Present a mi
 ## Authority
 
 - Owns repository mission, product boundaries, and release-wide evidence meaning.
-- Hosts the Gamma-owned Mandate 2038 public playtest at `/mandate-2038/`; Gamma retains game, rules, and publication-allowlist authority.
+- Redirects former Mandate 2038 paths to m3t4.ai; Gamma owns game sources and m3t4 owns its public hosting.
 - Does not own the internal algorithms of child components.
 
 ## Scope

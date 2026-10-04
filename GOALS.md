@@ -55,6 +55,6 @@ Detailed requirements: [GOVERNANCE_DETAILS.md](GOVERNANCE_DETAILS.md).
 
 ## Hosted game
 
-Host Mandate 2038 at `https://simulatte.world/mandate-2038/` without replacing
-the World homepage. Gamma owns its rules and public-playtest build; Simulatte
-packages that verified output alongside World.
+Redirect the former `/mandate-2038/` paths to `https://m3t4.ai/mandate-2038/`,
+preserving deep links and the World homepage. Gamma owns rules and the public
+build; m3t4 owns hosting.

@@ -194,6 +194,16 @@
           "source": "/blank{,/**}",
           "destination": "https://create.simulatte.world",
           "type": 301
+        },
+        {
+          "source": "/mandate-2038",
+          "destination": "https://m3t4.ai/mandate-2038/",
+          "type": 301
+        },
+        {
+          "source": "/mandate-2038/:path*",
+          "destination": "https://m3t4.ai/mandate-2038/:path*",
+          "type": 301
         }
       ],
       "rewrites": [
@@ -381,19 +391,6 @@
             {
               "key": "Cache-Control",
               "value": "no-cache"
-            }
-          ]
-        },
-        {
-          "source": "/mandate-2038/**",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache"
-            },
-            {
-              "key": "X-Robots-Tag",
-              "value": "noindex, nofollow, noarchive, nosnippet, noimageindex"
             }
           ]
         }

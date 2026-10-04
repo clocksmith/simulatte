@@ -9,7 +9,7 @@ browser-native core:
   and renderer contracts without owning either product's UI or policy.
 
 - [Live site](https://simulatte.world)
-- [Mandate 2038](https://simulatte.world/mandate-2038/)
+- [Mandate 2038](https://m3t4.ai/mandate-2038/)
 - [Prompt compiler](https://create.simulatte.world/)
 - [Workbench workflow and component contracts](docs/workbench.md)
 - [Renderer API, scene adapters, and extension examples](docs/simulatte/rendering-api.md)
