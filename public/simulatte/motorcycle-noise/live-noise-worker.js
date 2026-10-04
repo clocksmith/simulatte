@@ -1,5 +1,5 @@
 'use strict';
-importScripts('./signal.js','./city-paths.js?v=mist-camera-v20','./traffic-motion.js?v=mist-camera-v20','./reflection-model.js?v=mist-camera-v20','./treatments.js?v=mist-camera-v20','./city-sound.js?v=mist-camera-v20');
+importScripts('./signal.js?v=object-inspection-v24','./city-paths.js?v=object-inspection-v24','./traffic-motion.js?v=object-inspection-v24','./reflection-model.js?v=object-inspection-v24','./treatments.js?v=object-inspection-v24','./city-sound.js?v=object-inspection-v24');
 let scene=null;
 self.onmessage=({data})=>{
   if(data.type==='init'){scene=data.scene;return;}
@@ -8,7 +8,7 @@ self.onmessage=({data})=>{
     const started=performance.now();
     scene.config=data.config;scene.panel=data.panel;scene.treatments=data.treatments||[];scene.treatmentsEnabled=data.treatmentsEnabled;scene.treatmentMode=data.treatmentMode;scene.receiver=data.receiver;scene.speaker=data.speaker;scene.reference=data.reference;
     const sampler=self.MotorcycleCitySound.create(scene,data.time);
-    const markers=data.markers.map(marker=>({id:marker.id,...sampler.measure(marker)}));
+    const markers=data.markers.map(marker=>({id:marker.id,point:{x:marker.x,y:marker.y,z:marker.z},...sampler.measure(marker)}));
     const points=[],spacing=data.focus.span/6;
     for(let y=0;y<7;y++)for(let x=0;x<7;x++){
       const point={x:data.focus.x+(x-3)*spacing,y:data.focus.y+(y-3)*spacing,z:1.5};

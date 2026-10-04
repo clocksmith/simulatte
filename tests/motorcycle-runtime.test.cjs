@@ -45,3 +45,34 @@ for(const count of [4096,3000])test(`frequency bins preserve tone frequency and 
 test('silent spectrum contains no candidate with positive power',()=>{
  const r=signal.frequencyBins(new Float64Array(3000),8000);assert.ok(r.bins.every(b=>b.power===0));
 });
+test('a completed silent source measurement is not presented as still waiting',()=>{
+ require('../public/simulatte/motorcycle-noise/explore-ui.js');
+ const ui=global.MotorcycleExplorer,data={time:12,observer:{point:{x:10,y:20,z:1.7},contributors:[]}};
+ assert.match(ui.sourceInspection(null,'bike',false),/Waiting for a sample/);
+ const silent=ui.sourceInspection(data,'bike',true);
+ assert.match(silent,/no received contribution/);assert.match(silent,/12.00 s/);assert.doesNotMatch(silent,/Waiting|Stale/);
+ assert.match(ui.sourceInspection(data,'bike',false),/Stale observer sample; updating/);
+ data.observer.contributors.push({id:'other-bike',outward:90,facade:80,returned:null,pathTotal:91});
+ assert.match(ui.sourceInspection(data,'bike',true),/no received contribution/,'Another source cannot fill the selected source’s measurement');
+ data.observer.contributors.push({id:'bike',outward:60,facade:50,returned:null,pathTotal:61});
+ assert.match(ui.sourceInspection(data,'bike',true),/combined paths 61.0 dBA/);
+});
+test('measurement workers and inspector assets share the page cache version',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const base=path.resolve(__dirname,'../public/simulatte/motorcycle-noise');
+ const page=fs.readFileSync(path.join(base,'index.html'),'utf8');
+ const scripts=[...page.matchAll(/<script\b[^>]*src="([^"]+)"/g)].map(row=>new URL(row[1],'https://example.test/'));
+ const version=scripts.find(url=>url.pathname.endsWith('/explore-ui.js')).searchParams.get('v');
+ assert.ok(version,'Inspector must have a cache version');
+ for(const file of ['measurement-contract.js','treatment-controls.js','reflection-app.js'])
+   assert.equal(scripts.find(url=>url.pathname.endsWith('/'+file)).searchParams.get('v'),version,file);
+ const explorer=fs.readFileSync(path.join(base,'explore-ui.js'),'utf8');
+ const workers=[...explorer.matchAll(/new Worker\('([^']+)'\)/g)].map(row=>new URL(row[1],'https://example.test/'));
+ assert.equal(workers.length,2);
+ for(const url of workers){
+   assert.equal(url.searchParams.get('v'),version,url.pathname);
+   const worker=fs.readFileSync(path.join(base,path.basename(url.pathname)),'utf8');
+   const imports=worker.match(/importScripts\(([^;]+)\)/)[1];
+   for(const row of imports.matchAll(/'([^']+)'/g))assert.equal(new URL(row[1],'https://example.test/').searchParams.get('v'),version,row[1]);
+ }
+});

@@ -1,4 +1,15 @@
 (function(root){
+  const level=value=>value===null?'none':value.toFixed(1)+' dBA';
+  function acousticSummary(reading){
+    return `Outward ${level(reading.outward)} / facades ${level(reading.facade)} / panel returns ${level(reading.panelReturns)} / added directional sound ${level(reading.powered)}`;
+  }
+  function sourceInspection(data,sourceId,current){
+    if(!data)return 'Waiting for a sample at the observer.';
+    const point=data.observer.point,received=data.observer.contributors.find(row=>row.id===sourceId);
+    const at=`${current?'At sampled observer':'Stale observer sample; updating'} (${point.x.toFixed(0)}, ${point.y.toFixed(0)}), ${data.time.toFixed(2)} s`;
+    if(!received)return `${at}: no received contribution from this source in this sample.`;
+    return `${at}: outward ${level(received.outward)} / facades ${level(received.facade)} / panel returns ${level(received.returned)} / combined paths ${level(received.pathTotal)}. Before powered treatment; dBA values do not add.`;
+  }
   function create({view,command,onMeasurement=()=>{},getScene,getTime,getSelected,getComparison,selectSource,initialObservation=null}){
     const $=id=>document.getElementById(id),M=root.MotorcycleReflection;
     let world=null,worker=null,pending=false,nextAt=0,epoch=0,placing=false,selectedMarker=null,inspectedSource=null,lastReading=null,lastPaint=0,markers=[],nextId=1,requestId=0,lastRequestKey='',history=[];
@@ -8,7 +19,6 @@
     let observerIdentity=null,mapIdentity=null,observerStarted=0,mapStarted=0;
     const configuration=scene=>[scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode];
     const observerCurrent=()=>measurements.matches(lastObserver?.identity,measurements.observerKey(view.getObserver()),configuration(getScene()));
-    const level=value=>value===null?'none':value.toFixed(1)+' dBA';
     const mapObservation=()=>[measurements.focusKey(view.getFocus(),view.getObserver()),markers];
     const events=new AbortController(),on=(element,type,handler)=>element.addEventListener(type,handler,{signal:events.signal});
     const cameraSelect=$('camera-mode'),cameraOptions=$('camera-options');
@@ -43,19 +53,19 @@
       if(selectedMarker){
         const marker=markers.find(item=>item.id===selectedMarker),reading=lastReading?.markers.find(item=>item.id===selectedMarker);if(!marker)return;
         setText('inspection-title',marker.name);setText('inspection-main',reading?`${reading.total.toFixed(1)} dBA`:'Calculating');
-        setText('inspection-detail',reading?`Original ${reading.direct.toFixed(1)} / returned ${reading.returned.toFixed(1)} dBA`:'Live path-energy estimate');
-        setText('inspection-time',reading?`Estimated at ${lastReading.time.toFixed(2)} s / ${marker.z.toFixed(1)} m high`:`Observer ${marker.z.toFixed(1)} m high`);
+        const current=measurements.matches(lastReading?.identity,mapObservation(),configuration(scene));
+        setText('inspection-detail',reading?acousticSummary(reading):'Waiting for a sample at this marker');
+        setText('inspection-time',reading?`${current?'Sample':'Stale sample; updating'} at (${reading.point.x.toFixed(0)}, ${reading.point.y.toFixed(0)}), ${lastReading.time.toFixed(2)} s / ${reading.point.z.toFixed(1)} m high. dBA values do not add.`:`Observer ${marker.z.toFixed(1)} m high`);
       }else if(inspectedLocation){
         const reading=lastObserver?.observer;
         setText('inspection-title',inspectedLocation.buildingId?'Building '+inspectedLocation.buildingId.replace('building-',''):'Observation point');setText('inspection-main',reading?reading.total.toFixed(1)+' dBA':'Measuring');
-        setText('inspection-detail',reading?`Outward ${level(reading.outward)} / facades ${level(reading.facade)} / panel returns ${level(reading.panelReturns)} / added directional sound ${level(reading.powered)}`:'Waiting for sound at this viewpoint');
+        setText('inspection-detail',reading?acousticSummary(reading):'Waiting for sound at this viewpoint');
         setText('inspection-time',reading?`${observerCurrent()?'Sample':'Stale sample; updating'} at (${reading.point.x.toFixed(0)}, ${reading.point.y.toFixed(0)}), ${lastObserver.time.toFixed(2)} s. Coherent paths can reinforce or cancel; dBA values do not add.`:'Viewpoint microphone / '+inspectedLocation.z.toFixed(1)+' m high');
       }else if(inspectedSource){
         const source=scene.sources.find(item=>item.id===inspectedSource);if(!source)return;$('ride-selected').hidden=source.kind!=='motorcycle';
         const p=M.position(source,getTime());$('spray-selected').hidden=source.kind!=='motorcycle';$('spray-selected').textContent=$('spray-selected').dataset.preparing?'Preparing spray…':'Spray with mist';$('spray-selected').disabled=!!$('spray-selected').dataset.preparing||p.stalled||!!scene.mistBursts?.some(b=>b.sourceId===source.id&&getTime()>=b.start&&getTime()<b.end);setText('inspection-title',source.kind==='motorcycle'?`Motorcycle ${source.id.split('-').pop()}`:source.id);
         setText('inspection-main',p.stalled?'Engine stalled':`${(p.speed*3.6).toFixed(1)} km/h`);setText('inspection-detail',p.stalled?'0 RPM / engine off':`${Math.round(p.rpm)} RPM / ${M.sourceLevel(source,getTime()).toFixed(1)} dB at 1 m`);
-        const received=lastObserver?.observer.contributors.find(row=>row.id===source.id),point=lastObserver?.observer.point;
-        setText('inspection-time',received?`${observerCurrent()?'At sampled observer':'Stale observer sample; updating'} (${point.x.toFixed(0)}, ${point.y.toFixed(0)}), ${lastObserver.time.toFixed(2)} s: outward ${level(received.outward)} / facades ${level(received.facade)} / panel returns ${level(received.returned)} / combined paths ${level(received.pathTotal)}. Before powered treatment; dBA values do not add.`:'Waiting for this source’s contribution at the observer.');
+        setText('inspection-time',sourceInspection(lastObserver,source.id,observerCurrent()));
       }
     }
     function showObserver(data){
@@ -79,7 +89,7 @@
       if(initialObservation){({markers,nextId,selectedMarker,inspectedSource,inspectedLocation}=initialObservation);initialObservation=null;}
       else{markers=[{id:'receiver-1',name:'Observer 1',...view.getObserver()}];nextId=2;selectedMarker=null;inspectedSource=null;inspectedLocation=null;}
       $('inspection').hidden=!(selectedMarker||inspectedSource||inspectedLocation);renderMarkers();
-      observerWorker=new Worker('./observer-noise-worker.js?v=mist-camera-v20');
+      observerWorker=new Worker('./observer-noise-worker.js?v=object-inspection-v24');
       observerWorker.postMessage({type:'init',scene});
       observerWorker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==observerRequest)return;
@@ -88,13 +98,13 @@
         if(data.type==='observer'&&measurements.accepts(data.identity,observerIdentity,measurements.observerKey(view.getObserver()),configuration(world))){data.latencyMs=performance.now()-observerStarted;showObserver(data);}
       };
       observerWorker.onerror=event=>{if(generation!==epoch)return;observerPending=false;setText('observer-time',event.message||'Audio measurement worker failed');$('observer-level').title='Measurement unavailable; showing the last completed reading';onMeasurement('unavailable');};
-      worker=new Worker('./live-noise-worker.js?v=mist-camera-v20');worker.postMessage({type:'init',scene});
+      worker=new Worker('./live-noise-worker.js?v=object-inspection-v24');worker.postMessage({type:'init',scene});
       worker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==requestId)return;
         pending=false;
         if(data.type==='error'){setText('live-summary',`Sound map unavailable: ${data.message}`);nextAt=Infinity;return;}
         if(data.type!=='sample'||!measurements.accepts(data.identity,mapIdentity,mapObservation(),configuration(world)))return;lastReading=data;
-        root.motorcycleMapMeasurementReceipt={identity:data.identity,latencyMs:performance.now()-mapStarted,workerMs:data.workerMs};
+        root.motorcycleMapMeasurementReceipt={identity:data.identity,latencyMs:performance.now()-mapStarted,workerMs:data.workerMs,markers:structuredClone(data.markers)};
         if($('live-overlay').checked&&!getComparison())view.showMeasurements(data,'total');
         const levels=data.points.map(point=>point.total).filter(Number.isFinite);
         setText('live-summary',levels.length?`${Math.min(...levels).toFixed(0)}-${Math.max(...levels).toFixed(0)} dBA / modeled street levels`:'No outdoor samples in view');
@@ -155,7 +165,7 @@
     on($('follow-selected'),'click',()=>command('follow'));
     on($('spray-selected'),'click',()=>command('mist-spray',{sourceId:inspectedSource}));
     on($('live-overlay'),'change',()=>view.showMeasurements($('live-overlay').checked?lastReading:null,'total'));
-    return {setCamera,follow,followSpray(id){showCamera(null);view.focusSource(id,true);},refreshScene(){initialObservation=this.captureObservation();init(getScene());},treatment:input=>{treatments.apply(input);onMeasurement('stale');},captureObservation(){if(!world)return null;return structuredClone({markers,nextId,selectedMarker,inspectedSource,inspectedLocation,cameraPreset});},update,pick,resetClock(){pending=false;observerPending=false;requestId++;observerRequest++;nextAt=0;observerNextAt=0;lastRequestKey='';observerKey='';lastReading=null;lastObserver=null;root.motorcycleMeasurementReceipt=null;root.motorcycleMapMeasurementReceipt=null;history=[];view.showMeasurements(null);},dispose(){treatments.dispose();epoch++;events.abort();worker?.terminate();observerWorker?.terminate();view.setReceiverMarkers([],null);}};
+    return {setCamera,follow,followSpray(id){showCamera(null);view.focusSource(id,true);},refreshScene(){initialObservation=this.captureObservation();init(getScene());},treatment:input=>{treatments.apply(input);paint();onMeasurement('stale');},captureObservation(){if(!world)return null;return structuredClone({markers,nextId,selectedMarker,inspectedSource,inspectedLocation,cameraPreset});},update,pick,resetClock(){pending=false;observerPending=false;requestId++;observerRequest++;nextAt=0;observerNextAt=0;lastRequestKey='';observerKey='';lastReading=null;lastObserver=null;root.motorcycleMeasurementReceipt=null;root.motorcycleMapMeasurementReceipt=null;history=[];view.showMeasurements(null);},dispose(){treatments.dispose();epoch++;events.abort();worker?.terminate();observerWorker?.terminate();view.setReceiverMarkers([],null);}};
   }
-  root.MotorcycleExplorer={create};
+  root.MotorcycleExplorer={create,acousticSummary,sourceInspection};
 })(globalThis);

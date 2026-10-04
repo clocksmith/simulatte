@@ -124,3 +124,7 @@ separately, and the total treatment change includes modeled tonal interference.
 Observer and treatment changes label retained readings stale until a matching
 measurement arrives. Reference tests compare components against sampled
 waveforms and directional sound against distance and A-weighting calculations.
+Saved observer markers use the same breakdown, bind coordinates to their worker
+result, and label results from an earlier configuration stale. A completed sample
+with no received contribution from the selected source is distinct from a pending
+sample; another source cannot supply that source's readout.
