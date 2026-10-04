@@ -719,3 +719,29 @@ test('prepared promotion neither resets nor starts another calculation and rejec
   await assert.rejects(lane.controller.applyPrepared({command:'fixture.stale',values:{previewId:'old'},controls:{weight:9}}),/stale candidate/);
   assert.deepEqual(lane.reflectedControlValues.at(-1),{weight:2});
 });
+
+test('saved playback is restored only within the build that produced its measurements', () => {
+  const values = new Map();
+  const storage = {
+    getItem: key => values.get(key) || null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: key => values.delete(key),
+  };
+  const receipt = { schema: 'simulatte.pluginPlaybackRunReceipt.v1', ownerPluginId: 'sun-walker' };
+  const discarded = [];
+  const options = { buildId: 'new-model', onDiscard: row => discarded.push(row) };
+  // Receipts written before build scoping must not be reconstructed with new physics.
+  playbackApi.saveStoredReceipt(storage, 'sun-walker-v1', receipt);
+  assert.equal(playbackApi.loadStoredReceipt(storage, 'sun-walker-v1', options), null);
+  assert.equal(values.size, 0);
+  playbackApi.saveStoredReceipt(storage, 'sun-walker-v1', receipt, { buildId: 'old-model' });
+  assert.equal(playbackApi.loadStoredReceipt(storage, 'sun-walker-v1', options), null);
+  assert.equal(values.size, 0);
+  assert.deepEqual(discarded.map(row => row.reason), ['build_changed', 'build_changed']);
+  assert.deepEqual(discarded.map(row => row.previousBuildId), [null, 'old-model']);
+  playbackApi.saveStoredReceipt(storage, 'sun-walker-v1', receipt, options);
+  assert.deepEqual(playbackApi.loadStoredReceipt(storage, 'sun-walker-v1', options), { ...receipt, buildId: 'new-model' });
+  assert.equal(values.size, 1, 'same-build evidence remains available for strict reconstruction');
+  assert.equal(discarded.length, 2);
+  assert.equal(receipt.buildId, undefined, 'storage metadata must not mutate exported evidence');
+});

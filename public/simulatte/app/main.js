@@ -194,8 +194,12 @@
       loadTrace?.stage('world.geometry').end({ skipped: true, reason: 'plugin-owned' });
     }
     const playbackStorage = pluginPlaybackApi?.browserStorage?.(hostRoot) || null;
+    const playbackBuildId = document.querySelector('meta[name="simulatte-build"]')?.content || null;
     let storedPlaybackReceipt = interaction.mode === 'playback'
-      ? pluginPlaybackApi.loadStoredReceipt(playbackStorage, data.applicationProfile.id)
+      ? pluginPlaybackApi.loadStoredReceipt(playbackStorage, data.applicationProfile.id, {
+          buildId: playbackBuildId,
+          onDiscard: evidence => log.info('plugin.playback.persistence.discarded', evidence),
+        })
       : null;
     const storedScenario = storedPlaybackReceipt
       ? interaction.scenarios.find((row) => (
@@ -388,7 +392,7 @@
       renderPlanning,
     });
     pluginSession = cityPluginSessionApi.create({
-      hostRoot, extensions, pluginUi, elements, profile: data.applicationProfile, interaction, playbackStorage, createPluginRuntime,
+      hostRoot, extensions, pluginUi, elements, profile: data.applicationProfile, interaction, playbackStorage, playbackBuildId, createPluginRuntime,
       experienceCameraApi, simulationClockApi, pluginPlaybackApi, pluginViewRuntimeApi, log,
       recordRenderWork, renderWorkReceipt, renderExperienceSummary,
       summarize: hostRoot.SimulatteWorldTiersBoot.experienceHudSummary, yieldToFrame,

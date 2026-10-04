@@ -3,7 +3,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCityPluginSession = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCityPluginSessionModule() {
-  function create({ hostRoot, extensions, pluginUi, elements, profile, interaction, playbackStorage, createPluginRuntime,
+  function create({ hostRoot, extensions, pluginUi, elements, profile, interaction, playbackStorage, playbackBuildId, createPluginRuntime,
     experienceCameraApi, simulationClockApi, pluginPlaybackApi, pluginViewRuntimeApi, log,
     recordRenderWork, renderWorkReceipt, renderExperienceSummary, summarize, yieldToFrame,
     getScenario, getCameraMode, getRenderer, selectCamera, selectViewMode, applyRouteParameters,
@@ -194,7 +194,8 @@
             const persisted = pluginPlaybackApi.saveStoredReceipt(
               playbackStorage,
               profile.id,
-              receipt
+              receipt,
+              { buildId: playbackBuildId }
             );
             if (!persisted) log.warn('plugin.playback.persistence.skipped', {
               profileId: profile.id,

@@ -678,23 +678,31 @@
     return `simulatte.pluginPlaybackRunReceipt.v1:${profileId}`;
   }
 
-  function loadStoredReceipt(storage, profileId) {
+  function loadStoredReceipt(storage, profileId, { buildId = null, onDiscard } = {}) {
     if (!storage || typeof storage.getItem !== 'function') return null;
     const source = storage.getItem(storageKey(profileId));
     if (!source) return null;
     try {
       const receipt = JSON.parse(source);
       if (receipt?.schema !== 'simulatte.pluginPlaybackRunReceipt.v1') return null;
+      // A deployment can change physics, datasets, or terminal state shape.
+      // Such a run is obsolete, not a replay candidate for the current build.
+      if (buildId !== null && receipt.buildId !== buildId) {
+        clearStoredReceipt(storage, profileId);
+        onDiscard?.({ profileId, reason: 'build_changed', previousBuildId: receipt.buildId || null, buildId });
+        return null;
+      }
       return receipt;
     } catch {
       return null;
     }
   }
 
-  function saveStoredReceipt(storage, profileId, receipt) {
+  function saveStoredReceipt(storage, profileId, receipt, { buildId = null } = {}) {
     if (!storage || typeof storage.setItem !== 'function') return false;
     const storedReceipt = {
       ...receipt,
+      ...(buildId === null ? {} : { buildId }),
       // The runtime receipt is retained by the in-memory/export evidence path. It
       // can contain complete event payloads and is not needed to reconstruct a run.
       runtime: undefined,
