@@ -115,3 +115,22 @@ test('Williamsburg uses the mapped North 8th and Bedford crossing and a populate
   assert.ok(walkers.filter(source => M.position(source, 12).speed > .1).length > 500);
   for (const source of walkers) assert.equal(scene.acousticContext.occupied(M.position(source, 12)), false);
 });
+
+test('each treatment compares removal at the same observer, instant and traffic state',()=>{
+ require('../public/simulatte/motorcycle-noise/treatments.js');
+ const scene=fixture(10);scene.sources[0].kind='motorcycle';scene.treatmentMode='live';scene.treatmentsEnabled=true;
+ scene.treatments=[{id:'one',kind:'directional',x:-2,y:0,z:1,frequency:500,enabled:true},
+  {id:'two',kind:'cancellation',x:-1,y:1,z:1,enabled:true}];
+ Object.assign(scene.sources[0].static,{rpm:2400,phase:0});
+ const before=JSON.stringify(scene.treatments),sampler=global.MotorcycleCitySound.create(scene,2);
+ const reading=sampler.measure(scene.receiver,true);
+ for(const treatment of reading.treatments){
+  const without={...scene,treatments:scene.treatments.filter(row=>row.id!==treatment.id)};
+  const reference=global.MotorcycleCitySound.create(without,2).measure(scene.receiver).total;
+  near(treatment.comparison.withDb,reading.total);
+  near(treatment.comparison.withoutDb,reference);
+  near(treatment.comparison.changeDb,reading.total-reference);
+ }
+ assert.ok(reading.treatments.find(row=>row.id==='one').comparison.changeDb>0,'Powered sound raises the level at this off-target observer');
+ assert.equal(JSON.stringify(scene.treatments),before);
+});

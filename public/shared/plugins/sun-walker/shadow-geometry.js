@@ -15,9 +15,8 @@
       if (!building || !Number.isFinite(building.heightM) || building.heightM <= 0) return [];
       const lengthM = building.heightM / Math.tan(elevation);
       const delta = { x: -Math.sin(azimuth) * lengthM, y: -Math.cos(azimuth) * lengthM };
-      const footprint = openRing(building.footprint);
-      return [{
-        id: `shadow-${building.id}`,
+      return footprintSlabs(building).map((footprint, index) => ({
+        id: `shadow-${building.id}-${index}`,
         sourceBuildingId: building.id,
         label: `${building.id} causal modeled shadow`,
         tone: 'shade',
@@ -28,8 +27,29 @@
         lengthM,
         heightM: 0.35,
         intensity: 0.12,
-      }];
+      }));
     });
+  }
+
+  // Sweep convex pieces of the actual footprint. A hull of the entire building
+  // incorrectly fills concave recesses and courtyard holes with shade.
+  function footprintSlabs(building) {
+    const rings = [building.footprint, ...(building.interiorRings || [])].map(openRing);
+    const edges = rings.flatMap(ring => ring.map((point, i) => [point, ring[(i + 1) % ring.length]]));
+    const levels = [...new Set(rings.flat().map(point => point.y))].sort((a, b) => a - b);
+    const xAt = ([a, b], y) => a.x + (y - a.y) * (b.x - a.x) / (b.y - a.y);
+    const pieces = [];
+    for (let i = 1; i < levels.length; i++) {
+      const bottom = levels[i - 1], top = levels[i], middle = (bottom + top) / 2;
+      const crossings = edges.filter(([a, b]) => Math.min(a.y, b.y) < middle && Math.max(a.y, b.y) > middle)
+        .sort((a, b) => xAt(a, middle) - xAt(b, middle));
+      for (let j = 0; j < crossings.length; j += 2) {
+        const left = crossings[j], right = crossings[j + 1];
+        pieces.push([{x:xAt(left,bottom),y:bottom},{x:xAt(right,bottom),y:bottom},
+          {x:xAt(right,top),y:top},{x:xAt(left,top),y:top}]);
+      }
+    }
+    return pieces;
   }
 
   function convexHull(points) {

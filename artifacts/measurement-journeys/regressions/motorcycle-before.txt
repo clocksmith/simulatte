@@ -1,0 +1,83 @@
+TAP version 13
+# Subtest: current city paths obey independent travel-time and image-source geometry
+ok 1 - current city paths obey independent travel-time and image-source geometry
+  ---
+  duration_ms: 1.437875
+  type: 'test'
+  ...
+# Subtest: live estimate and detailed waveform agree over stationary direct and reflected evaluation cases
+ok 2 - live estimate and detailed waveform agree over stationary direct and reflected evaluation cases
+  ---
+  duration_ms: 158.218375
+  type: 'test'
+  ...
+# Subtest: selected-source components match independently sampled direct and reflected waveforms
+ok 3 - selected-source components match independently sampled direct and reflected waveforms
+  ---
+  duration_ms: 20.515958
+  type: 'test'
+  ...
+# Subtest: directional contribution follows independent distance and weighting while passive components stay fixed
+ok 4 - directional contribution follows independent distance and weighting while passive components stay fixed
+  ---
+  duration_ms: 1.247375
+  type: 'test'
+  ...
+# Subtest: panel-return readings remain separate from facade reflections and agree with the waveform
+ok 5 - panel-return readings remain separate from facade reflections and agree with the waveform
+  ---
+  duration_ms: 19.580125
+  type: 'test'
+  ...
+# Subtest: current city waveform converges as moving-source geometry steps shrink
+ok 6 - current city waveform converges as moving-source geometry steps shrink
+  ---
+  duration_ms: 69.862125
+  type: 'test'
+  ...
+# Subtest: causal controller learns an unknown cancelling filter from delayed broadband observations
+ok 7 - causal controller learns an unknown cancelling filter from delayed broadband observations
+  ---
+  duration_ms: 15.225625
+  type: 'test'
+  ...
+# Subtest: facade identity survives input ordering and missing heights never become fabricated barriers
+ok 8 - facade identity survives input ordering and missing heights never become fabricated barriers
+  ---
+  duration_ms: 0.573292
+  type: 'test'
+  ...
+# Subtest: Williamsburg uses the mapped North 8th and Bedford crossing and a populated sidewalk scene
+ok 9 - Williamsburg uses the mapped North 8th and Bedford crossing and a populated sidewalk scene
+  ---
+  duration_ms: 2577.421875
+  type: 'test'
+  ...
+# Subtest: each treatment compares removal at the same observer, instant and traffic state
+not ok 10 - each treatment compares removal at the same observer, instant and traffic state
+  ---
+  duration_ms: 0.79975
+  type: 'test'
+  location: '/Users/xyz/deco/simulatte/tests/city-acoustic-reference.test.cjs:119:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'withDb')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (/Users/xyz/deco/simulatte/tests/city-acoustic-reference.test.cjs:129:29)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 9
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2929.521167

@@ -9,7 +9,7 @@
   const PLUGIN_ID = 'gpu-supercluster';
   const MODEL_DATASET_ID = 'repository-models:gpu-supercluster-v1';
   const MODEL_HASHES = Object.freeze({
-    workload: 'cdaf3bb0a92b1a134f68a5e1cb7615a9c36495b2b4c05e6e37529224f7ff7f4a',
+    workload: 'ab92b79f3dcc61f5f7f614050cdcb096e262a8eff9fab0fec14ed95a6d21f7cc',
     topology: 'cd13b2f7dd6116a1cfa129f07994671ee574964f37500bd8b5d47cd401207112',
     collectives: 'fb3aa8a8c8d6c3ad295da8153fe9f00d5d704211fea20bd5aa6464f70a0c5b5f',
     thermals: 'afabd35b2bba5a587d061c2e5303920de6077419abc5a4c491e3ebe590826548',
@@ -193,6 +193,14 @@
           field('blocking','Racks waiting on this rack',waitingByRack.get(rack.id).join(', ') || 'None',null,modeled),
           field('phase','Iteration phase',workload.communicating ? `${workload.communicationPhase === 'tensor' ? 'Tensor' : 'Data'} collective, round ${workload.collectiveRound + 1}` : 'Compute; all racks must finish before transfer',null,modeled),
           field('sample-time','Simulation time',workload.timeMs,'ms',modeled),
+          field('interval','Measured interval',`0–${workload.timeMs.toFixed(2)} ms since start`,null,modeled),
+          field('computing-ms','Computing',rack.computingMs,'ms',modeled),
+          field('communication-ms','Communicating',rack.communicationMs,'ms',modeled),
+          field('productive-ms','Productive compute equivalent',rack.productiveMs,'ms',modeled),
+          field('slowdown-loss-ms','Compute lost to slowdown',rack.slowdownLossMs,'ms',modeled),
+          field('throughput-contribution','Contribution to cluster compute',elapsed > 0
+            ? collectives.totalPeakClusterTflops / topology.racks.length * rack.productiveMs / elapsed * (1 - collectives.bubbleFraction) * thermals.thermalClockFraction : 0,'TFLOP/s',modeled),
+          field('time-accounting','Time accounting','Computing + communicating + waiting = elapsed time. Productive compute excludes slowdown; throughput also applies the configured pipeline and thermal factors.',null,modeled),
           field('slowdown','Slowdown',rack.slowdown,'percent',modeled),field('wait-ms','Synchronization wait',rack.waitMs,'ms',modeled)]
       })) : [])],
       provenanceRecords: records,

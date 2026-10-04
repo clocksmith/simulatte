@@ -157,3 +157,33 @@ test('measurements disclose their subject, interval and validity; physical layou
  const incomplete=structuredClone(active);incomplete.presentation.layouts[0].geometries.pop();
  assert.throws(()=>require('../public/simulatte/platform/contracts/plugin-v4-contracts.js').validateContribution(incomplete),/incomplete/);
 });
+
+test('rack intervals partition elapsed time and reconcile productive compute across timesteps',()=>{
+ const fixture={topology:{racks:[{id:'a'},{id:'b'}]},config:{stragglerThrottlePercent:0},
+  collectives:{computeTimeMs:2,tensorCommunicationPlan:{durationMs:0,rounds:[]},communicationPlan:{durationMs:1,rounds:[]}}};
+ const snapshots=[.1,1,12].map(dt=>{const state=workload.create(fixture,[{atMs:3,rackId:'a',slowdown:95},{atMs:7,rackId:'a',slowdown:0}],{durationMs:12});
+  while(state.timeMs<12)workload.step(state,dt);return workload.snapshot(state);});
+ for(const sample of snapshots){
+  for(const rack of sample.racks){
+   assert.ok(Math.abs(rack.computingMs+rack.communicationMs+rack.waitMs-sample.timeMs)<1e-8);
+   assert.ok(Math.abs(rack.productiveMs+rack.slowdownLossMs-rack.computingMs)<1e-8);
+  }
+  assert.ok(Math.abs(sample.racks.reduce((sum,r)=>sum+r.productiveMs,0)-sample.computeEquivalentMs)<1e-8);
+ }
+ for(const sample of snapshots.slice(1))for(const [i,rack]of sample.racks.entries())for(const key of ['computingMs','communicationMs','waitMs','productiveMs','slowdownLossMs'])
+  assert.ok(Math.abs(rack[key]-snapshots[0].racks[i][key])<1e-8);
+});
+
+test('selected rack throughput contributions sum to the cluster over their declared interval',()=>{
+ const state=workload.create(result),v4=require('../public/shared/plugins/gpu-supercluster/v4-contribution.js');
+ workload.intervene(state,'R1-1',95);advance(state,8);
+ const sample=workload.snapshot(state),contribution=v4.createContribution({result,workload:sample});
+ const rows=contribution.inspections.filter(row=>row.fields.some(f=>f.id==='throughput-contribution'));
+ assert.equal(rows.length,state.racks.length);
+ let sum=0;
+ for(const row of rows){const f=Object.fromEntries(row.fields.map(f=>[f.id,f.value]));
+  assert.equal(f.interval,`0–${sample.timeMs.toFixed(2)} ms since start`);
+  assert.ok(Math.abs(f['computing-ms']+f['communication-ms']+f['wait-ms']-sample.timeMs)<1e-8);
+  sum+=f['throughput-contribution'];}
+ assert.ok(Math.abs(sum-contribution.state.measures.find(m=>m.kind==='executed-compute-tflops').value)<1e-8);
+});

@@ -471,7 +471,7 @@
     const fastest = candidate(simulation, simulation.fastestCandidateId);
     const snapshot = simulation.timeline.snapshots[Math.min(step, simulation.timeline.snapshots.length - 1)];
     const completedSamples = snapshot.state.completedSamples;
-    const latestSample = completedSamples > 0 ? selected.samples[completedSamples - 1] : null;
+    const latestSample = snapshot.state.currentObservation;
     const settled = snapshot.state.status === 'settled';
     const exposureStatus = exposureSummaryApi.summarize(snapshot.state, latestSample);
     return [

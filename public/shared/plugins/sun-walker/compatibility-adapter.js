@@ -11,7 +11,7 @@
     const selected = simulation.candidates.find((row) => row.id === simulation.selectedCandidateId);
     const fastest = simulation.candidates.find((row) => row.id === simulation.fastestCandidateId);
     const completed = selected.samples.slice(0, snapshot.state.completedSamples);
-    const latest = completed.at(-1) || selected.samples[0];
+    const latest = snapshot.state.currentObservation;
     const paths = [{
       id: 'shade-route',
       label: `Shade-selected: ${Math.round(selected.metrics.modeledBuildingShadePercent)}% modeled building shade`,

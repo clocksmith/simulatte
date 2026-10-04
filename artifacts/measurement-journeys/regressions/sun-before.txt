@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: Sun Walker uses a route overview and follows the one registered walker without POV jumps
+ok 1 - Sun Walker uses a route overview and follows the one registered walker without POV jumps
+  ---
+  duration_ms: 71.777667
+  type: 'test'
+  ...
+# Subtest: Walker actor position advances while camera target identity remains stable
+ok 2 - Walker actor position advances while camera target identity remains stable
+  ---
+  duration_ms: 70.588791
+  type: 'test'
+  ...
+# Subtest: Building shadow geometry follows the active sun sample during playback
+ok 3 - Building shadow geometry follows the active sun sample during playback
+  ---
+  duration_ms: 67.376542
+  type: 'test'
+  ...
+# Subtest: Walked-segment colors and inspector metrics agree with completed samples
+ok 4 - Walked-segment colors and inspector metrics agree with completed samples
+  ---
+  duration_ms: 123.717167
+  type: 'test'
+  ...
+# Subtest: Sun Walker labels UTC inputs and separates geometric sun from adjusted exposure
+ok 5 - Sun Walker labels UTC inputs and separates geometric sun from adjusted exposure
+  ---
+  duration_ms: 57.050083
+  type: 'test'
+  ...
+# Subtest: Departure time and detour controls causally alter exposure and route choice
+ok 6 - Departure time and detour controls causally alter exposure and route choice
+  ---
+  duration_ms: 228.495125
+  type: 'test'
+  ...
+# Subtest: exposure readouts disclose completed intervals and never fabricate a denominator at departure
+ok 7 - exposure readouts disclose completed intervals and never fabricate a denominator at departure
+  ---
+  duration_ms: 67.413
+  type: 'test'
+  ...
+# Subtest: exposure intervals, playback clock and endpoint arrival agree
+not ok 8 - exposure intervals, playback clock and endpoint arrival agree
+  ---
+  duration_ms: 59.553625
+  type: 'test'
+  location: '/Users/xyz/deco/simulatte/tests/sun-walker-visual-storytelling.test.cjs:308:1'
+  failureType: 'testCodeFailure'
+  error: '14 s elapsed but 28 s credited'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/xyz/deco/simulatte/tests/sun-walker-visual-storytelling.test.cjs:315:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: projected shadows preserve sunny concavities and courtyards
+not ok 9 - projected shadows preserve sunny concavities and courtyards
+  ---
+  duration_ms: 0.718417
+  type: 'test'
+  location: '/Users/xyz/deco/simulatte/tests/sun-walker-visual-storytelling.test.cjs:324:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"x":5,"y":5}
+
+    'shade' !== 'direct'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'direct'
+  actual: 'shade'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/xyz/deco/simulatte/tests/sun-walker-visual-storytelling.test.cjs:335:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 7
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 824.475583

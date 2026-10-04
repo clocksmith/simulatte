@@ -225,6 +225,8 @@
 
   function comparisonLaneOffset(quantityKind) {
     return ({
+      'route.fastest-baseline': 5,
+      'preview.route.shade-selected': -5,
       'allocation-policy.cheapest': -3.5,
       'allocation-policy.fastest': 0,
       'allocation-policy.fairness-first': 3.5,

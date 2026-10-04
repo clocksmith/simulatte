@@ -59,7 +59,15 @@
     const directions={up:[0,1],down:[0,-1],left:[-1,0],right:[1,0]};
     for(const button of document.querySelectorAll('[data-pan]'))on(button,'click',()=>pan(...directions[button.dataset.pan]));
     // Capture before Babylon's keyboard camera input so each key moves once.
-    on(canvas,'keydown',event=>{const direction=event.key.replace('Arrow','').toLowerCase();if(directions[direction]){event.preventDefault();event.stopImmediatePropagation();pan(...directions[direction]);}},{capture:true});
+    on(canvas,'keydown',event=>{
+      if(event.key==='Enter'){
+        event.preventDefault();event.stopImmediatePropagation();
+        if(!event.repeat){const rect=canvas.getBoundingClientRect();onTap(scene.pick(rect.width/2,rect.height/2));}
+        return;
+      }
+      const direction=event.key.replace('Arrow','').toLowerCase();
+      if(directions[direction]){event.preventDefault();event.stopImmediatePropagation();pan(...directions[direction]);}
+    },{capture:true});
     on(document.getElementById('map-zoom-in'),'click',()=>zoom(.8));
     on(document.getElementById('map-zoom-out'),'click',()=>zoom(1.25));
     return {dispose(){events.abort();}};

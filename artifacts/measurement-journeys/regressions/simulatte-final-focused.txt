@@ -1,0 +1,796 @@
+TAP version 13
+# Subtest: current city paths obey independent travel-time and image-source geometry
+ok 1 - current city paths obey independent travel-time and image-source geometry
+  ---
+  duration_ms: 2.134166
+  type: 'test'
+  ...
+# Subtest: live estimate and detailed waveform agree over stationary direct and reflected evaluation cases
+ok 2 - live estimate and detailed waveform agree over stationary direct and reflected evaluation cases
+  ---
+  duration_ms: 344.259917
+  type: 'test'
+  ...
+# Subtest: selected-source components match independently sampled direct and reflected waveforms
+ok 3 - selected-source components match independently sampled direct and reflected waveforms
+  ---
+  duration_ms: 28.917584
+  type: 'test'
+  ...
+# Subtest: directional contribution follows independent distance and weighting while passive components stay fixed
+ok 4 - directional contribution follows independent distance and weighting while passive components stay fixed
+  ---
+  duration_ms: 1.356958
+  type: 'test'
+  ...
+# Subtest: panel-return readings remain separate from facade reflections and agree with the waveform
+ok 5 - panel-return readings remain separate from facade reflections and agree with the waveform
+  ---
+  duration_ms: 29.426083
+  type: 'test'
+  ...
+# Subtest: current city waveform converges as moving-source geometry steps shrink
+ok 6 - current city waveform converges as moving-source geometry steps shrink
+  ---
+  duration_ms: 94.30775
+  type: 'test'
+  ...
+# Subtest: causal controller learns an unknown cancelling filter from delayed broadband observations
+ok 7 - causal controller learns an unknown cancelling filter from delayed broadband observations
+  ---
+  duration_ms: 26.633792
+  type: 'test'
+  ...
+# Subtest: facade identity survives input ordering and missing heights never become fabricated barriers
+ok 8 - facade identity survives input ordering and missing heights never become fabricated barriers
+  ---
+  duration_ms: 0.601417
+  type: 'test'
+  ...
+# Subtest: Williamsburg uses the mapped North 8th and Bedford crossing and a populated sidewalk scene
+ok 9 - Williamsburg uses the mapped North 8th and Bedford crossing and a populated sidewalk scene
+  ---
+  duration_ms: 2695.260584
+  type: 'test'
+  ...
+# Subtest: each treatment compares removal at the same observer, instant and traffic state
+ok 10 - each treatment compares removal at the same observer, instant and traffic state
+  ---
+  duration_ms: 0.887125
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster topology generates 256 GPUs across 32 liquid-cooled racks
+ok 11 - gpu-supercluster topology generates 256 GPUs across 32 liquid-cooled racks
+  ---
+  duration_ms: 3.567459
+  type: 'test'
+  ...
+# Subtest: collective solver calculates step times, MFU, and bandwidth bottlenecks for Ring and Tree AllReduce
+ok 12 - collective solver calculates step times, MFU, and bandwidth bottlenecks for Ring and Tree AllReduce
+  ---
+  duration_ms: 92.180958
+  type: 'test'
+  ...
+# Subtest: straggler node fault injection degrades MFU and increases barrier step time
+ok 13 - straggler node fault injection degrades MFU and increases barrier step time
+  ---
+  duration_ms: 75.472667
+  type: 'test'
+  ...
+# Subtest: packet loss affects collective state and coolant controls use the declared 1000 L/min bound
+ok 14 - packet loss affects collective state and coolant controls use the declared 1000 L/min bound
+  ---
+  duration_ms: 46.185416
+  type: 'test'
+  ...
+# Subtest: thermal model solves coolant delta-T, PUE, and triggers thermal throttling under reduced flow
+ok 15 - thermal model solves coolant delta-T, PUE, and triggers thermal throttling under reduced flow
+  ---
+  duration_ms: 0.463125
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster plugin produces deterministic simulation and valid receipts
+ok 16 - gpu-supercluster plugin produces deterministic simulation and valid receipts
+  ---
+  duration_ms: 63.559292
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster activates as a native v4 plugin with deterministic playback and comparison
+ok 17 - gpu-supercluster activates as a native v4 plugin with deterministic playback and comparison
+  ---
+  duration_ms: 139.9965
+  type: 'test'
+  ...
+# Subtest: GPU controls preserve zero faults, clamp physical bounds, and refuse malformed input
+ok 18 - GPU controls preserve zero faults, clamp physical bounds, and refuse malformed input
+  ---
+  duration_ms: 0.494833
+  type: 'test'
+  ...
+# Subtest: pipeline time includes the full bubble share and throughput reconciles to work over time
+ok 19 - pipeline time includes the full bubble share and throughput reconciles to work over time
+  ---
+  duration_ms: 10.835584
+  type: 'test'
+  ...
+# Subtest: default NVLink uses directional bits per second without changing explicit configured units
+ok 20 - default NVLink uses directional bits per second without changing explicit configured units
+  ---
+  duration_ms: 32.467417
+  type: 'test'
+  ...
+# Subtest: coolant flow changes die temperature and thermal caps slow computation and conserve modeled heat
+ok 21 - coolant flow changes die temperature and thermal caps slow computation and conserve modeled heat
+  ---
+  duration_ms: 55.870458
+  type: 'test'
+  ...
+# Subtest: rack populations cannot silently drop GPUs or contradict the declared nodes
+ok 22 - rack populations cannot silently drop GPUs or contradict the declared nodes
+  ---
+  duration_ms: 0.177958
+  type: 'test'
+  ...
+# Subtest: rack visuals retain exact model temperatures and PUE remains a ratio
+ok 23 - rack visuals retain exact model temperatures and PUE remains a ratio
+  ---
+  duration_ms: 31.9115
+  type: 'test'
+  ...
+# Subtest: GPU model provenance binds the source bytes used by the simulation
+ok 24 - GPU model provenance binds the source bytes used by the simulation
+  ---
+  duration_ms: 17.621708
+  type: 'test'
+  ...
+# Subtest: rack glyph drawing uses model values unchanged across render calls
+ok 25 - rack glyph drawing uses model values unchanged across render calls
+  ---
+  duration_ms: 0.884458
+  type: 'test'
+  ...
+# Subtest: datacenter projection provides one isometric meter mapping for facility and plugin layers
+ok 26 - datacenter projection provides one isometric meter mapping for facility and plugin layers
+  ---
+  duration_ms: 1.131
+  type: 'test'
+  ...
+# Subtest: datacenter overview fits the model coordinates inside the exposed canvas at both widths
+ok 27 - datacenter overview fits the model coordinates inside the exposed canvas at both widths
+  ---
+  duration_ms: 2.027084
+  type: 'test'
+  ...
+# Subtest: training explanation stays on operating dependencies during playback
+ok 28 - training explanation stays on operating dependencies during playback
+  ---
+  duration_ms: 36.97975
+  type: 'test'
+  ...
+# Subtest: host refreshes cached GPU contributions after private control and playback mutations
+ok 29 - host refreshes cached GPU contributions after private control and playback mutations
+  ---
+  duration_ms: 142.273667
+  type: 'test'
+  ...
+# Subtest: network rack drawing, picking and fit use the same rotating 3D geometry
+ok 30 - network rack drawing, picking and fit use the same rotating 3D geometry
+  ---
+  duration_ms: 27.014541
+  type: 'test'
+  ...
+# Subtest: event integration converges without discarded substep work or shifted interventions
+ok 31 - event integration converges without discarded substep work or shifted interventions
+  ---
+  duration_ms: 1.508667
+  type: 'test'
+  ...
+# Subtest: a live straggler blocks the collective, accumulates waits, and removal releases dependent racks
+ok 32 - a live straggler blocks the collective, accumulates waits, and removal releases dependent racks
+  ---
+  duration_ms: 30.666791
+  type: 'test'
+  ...
+# Subtest: rack inspector names the actual blocked racks and clears them when compute releases
+ok 33 - rack inspector names the actual blocked racks and clears them when compute releases
+  ---
+  duration_ms: 77.499833
+  type: 'test'
+  ...
+# Subtest: live actions survive controller seek, replay, settlement, and persisted reload
+ok 34 - live actions survive controller seek, replay, settlement, and persisted reload
+  ---
+  duration_ms: 601.473625
+  type: 'test'
+  ...
+# Subtest: configured straggler node resolves to the same canonical rack shown by the scenario
+ok 35 - configured straggler node resolves to the same canonical rack shown by the scenario
+  ---
+  duration_ms: 10.913
+  type: 'test'
+  ...
+# Subtest: playback exposes physical transfers during both tensor and data communication
+ok 36 - playback exposes physical transfers during both tensor and data communication
+  ---
+  duration_ms: 0.295667
+  type: 'test'
+  ...
+# Subtest: tensor transfers across nodes become native contribution actors on the executed links
+ok 37 - tensor transfers across nodes become native contribution actors on the executed links
+  ---
+  duration_ms: 1.154125
+  type: 'test'
+  ...
+# Subtest: compute accounting integrates productive rack time independently of sampling and live faults
+ok 38 - compute accounting integrates productive rack time independently of sampling and live faults
+  ---
+  duration_ms: 18.567542
+  type: 'test'
+  ...
+# Subtest: torus layout preserves physical links and stable rack identities across transfer phases
+ok 39 - torus layout preserves physical links and stable rack identities across transfer phases
+  ---
+  duration_ms: 15.176333
+  type: 'test'
+  ...
+# Subtest: measurements disclose their subject, interval and validity; physical layouts retain every entity
+ok 40 - measurements disclose their subject, interval and validity; physical layouts retain every entity
+  ---
+  duration_ms: 12.799083
+  type: 'test'
+  ...
+# Subtest: rack intervals partition elapsed time and reconcile productive compute across timesteps
+ok 41 - rack intervals partition elapsed time and reconcile productive compute across timesteps
+  ---
+  duration_ms: 0.346834
+  type: 'test'
+  ...
+# Subtest: selected rack throughput contributions sum to the cluster over their declared interval
+ok 42 - selected rack throughput contributions sum to the cluster over their declared interval
+  ---
+  duration_ms: 5.801208
+  type: 'test'
+  ...
+# Subtest: measurement publication requires scenario, observer, configuration and sample time identity
+ok 43 - measurement publication requires scenario, observer, configuration and sample time identity
+  ---
+  duration_ms: 0.557084
+  type: 'test'
+  ...
+# Subtest: a moving tracked microphone retains identity until its subject or mode changes
+ok 44 - a moving tracked microphone retains identity until its subject or mode changes
+  ---
+  duration_ms: 0.121833
+  type: 'test'
+  ...
+# Subtest: displayed measurements distinguish matching values from changed observer and treatment drafts
+ok 45 - displayed measurements distinguish matching values from changed observer and treatment drafts
+  ---
+  duration_ms: 0.091416
+  type: 'test'
+  ...
+# Subtest: tracked sound maps retain sampled geometry while rejecting zoom and subject changes
+ok 46 - tracked sound maps retain sampled geometry while rejecting zoom and subject changes
+  ---
+  duration_ms: 0.4535
+  type: 'test'
+  ...
+# Subtest: sound history uses simulation timestamps and breaks at observer, configuration, or scenario boundaries
+ok 47 - sound history uses simulation timestamps and breaks at observer, configuration, or scenario boundaries
+  ---
+  duration_ms: 0.223292
+  type: 'test'
+  ...
+# Subtest: received sound descriptors bind position, height, units and instantaneous simulation time
+ok 48 - received sound descriptors bind position, height, units and instantaneous simulation time
+  ---
+  duration_ms: 1.704417
+  type: 'test'
+  ...
+# Subtest: Enter selects the centered scene target once and disposal removes the keyboard handler
+ok 49 - Enter selects the centered scene target once and disposal removes the keyboard handler
+  ---
+  duration_ms: 2.075875
+  type: 'test'
+  ...
+# Subtest: fictional stall brakes traffic, silences its engine, preserves the past, and restarts deterministically
+ok 50 - fictional stall brakes traffic, silences its engine, preserves the past, and restarts deterministically
+  ---
+  duration_ms: 80.4895
+  type: 'test'
+  ...
+# Subtest: spray admission rejects missing targets, duplicate cycles and the end of the pass
+ok 51 - spray admission rejects missing targets, duplicate cycles and the end of the pass
+  ---
+  duration_ms: 20.514875
+  type: 'test'
+  ...
+# Subtest: treatment edits validate atomically, preserve traffic, and supply reversible state
+ok 52 - treatment edits validate atomically, preserve traffic, and supply reversible state
+  ---
+  duration_ms: 0.903167
+  type: 'test'
+  ...
+# Subtest: experience HUD summary binds the active profile, scenario, and V4 state measures
+ok 53 - experience HUD summary binds the active profile, scenario, and V4 state measures
+  ---
+  duration_ms: 12.150667
+  type: 'test'
+  ...
+# Subtest: world-tier clock snapshots governed scenario time and fails closed when absent
+ok 54 - world-tier clock snapshots governed scenario time and fails closed when absent
+  ---
+  duration_ms: 1.7305
+  type: 'test'
+  ...
+# Subtest: all shipped experiences declare validated story, metric, comparison, and view behavior
+ok 55 - all shipped experiences declare validated story, metric, comparison, and view behavior
+  ---
+  duration_ms: 1.854709
+  type: 'test'
+  ...
+# Subtest: default scenarios foreground the governing disruption or relay mechanism
+ok 56 - default scenarios foreground the governing disruption or relay mechanism
+  ---
+  duration_ms: 0.211917
+  type: 'test'
+  ...
+# Subtest: the shared shell exposes POV and first-class playback controls
+ok 57 - the shared shell exposes POV and first-class playback controls
+  ---
+  duration_ms: 0.835666
+  type: 'test'
+  ...
+# Subtest: side metrics replace the previous experience rows instead of retaining stale values
+ok 58 - side metrics replace the previous experience rows instead of retaining stale values
+  ---
+  duration_ms: 0.334833
+  type: 'test'
+  ...
+# Subtest: tier camera controls resolve real overview, follow, POV, and compare targets by priority
+ok 59 - tier camera controls resolve real overview, follow, POV, and compare targets by priority
+  ---
+  duration_ms: 0.145291
+  type: 'test'
+  ...
+# Subtest: router paths preserve the governed tier and full experience id
+ok 60 - router paths preserve the governed tier and full experience id
+  ---
+  duration_ms: 0.455584
+  type: 'test'
+  ...
+# Subtest: router round-trips scenario and typed simulation parameters through a canonical URL
+ok 61 - router round-trips scenario and typed simulation parameters through a canonical URL
+  ---
+  duration_ms: 1.066791
+  type: 'test'
+  ...
+# Subtest: router refuses invalid identities, mismatched profiles, and unknown camera modes
+ok 62 - router refuses invalid identities, mismatched profiles, and unknown camera modes
+  ---
+  duration_ms: 0.312875
+  type: 'test'
+  ...
+# Subtest: every registered experience resolves to its canonical GitHub Markdown preview
+ok 63 - every registered experience resolves to its canonical GitHub Markdown preview
+  ---
+  duration_ms: 0.255583
+  type: 'test'
+  ...
+# Subtest: experience documentation link updates and fails closed for unknown profiles
+ok 64 - experience documentation link updates and fails closed for unknown profiles
+  ---
+  duration_ms: 0.0945
+  type: 'test'
+  ...
+# Subtest: experience actions use one honest verb taxonomy
+ok 65 - experience actions use one honest verb taxonomy
+  ---
+  duration_ms: 0.390583
+  type: 'test'
+  ...
+# Subtest: mount lifecycle links parent cancellation to listeners and fetches
+ok 66 - mount lifecycle links parent cancellation to listeners and fetches
+  ---
+  duration_ms: 0.211583
+  type: 'test'
+  ...
+# Subtest: mount lifecycle settles every disposer without masking failures
+ok 67 - mount lifecycle settles every disposer without masking failures
+  ---
+  duration_ms: 0.133083
+  type: 'test'
+  ...
+# Subtest: app shell aborts and disposes a superseded boot before mounting the latest route
+ok 68 - app shell aborts and disposes a superseded boot before mounting the latest route
+  ---
+  duration_ms: 4.440125
+  type: 'test'
+  ...
+# Subtest: app shell clears stale side metrics before a different experience boots
+ok 69 - app shell clears stale side metrics before a different experience boots
+  ---
+  duration_ms: 0.432333
+  type: 'test'
+  ...
+# Subtest: app shell reloads the tier default when browser history removes an experience segment
+ok 70 - app shell reloads the tier default when browser history removes an experience segment
+  ---
+  duration_ms: 0.561708
+  type: 'test'
+  ...
+# Subtest: app shell hides the mounted world synchronously and keeps only the loader until replacement boot completes
+ok 71 - app shell hides the mounted world synchronously and keeps only the loader until replacement boot completes
+  ---
+  duration_ms: 0.572959
+  type: 'test'
+  ...
+# Subtest: app shell keeps presentation-only and equivalent partial routes lifecycle-neutral while scenario updates load
+ok 72 - app shell keeps presentation-only and equivalent partial routes lifecycle-neutral while scenario updates load
+  ---
+  duration_ms: 1.379541
+  type: 'test'
+  ...
+# Subtest: route loading layer covers every mounted world panel without a transition delay
+ok 73 - route loading layer covers every mounted world panel without a transition delay
+  ---
+  duration_ms: 0.549416
+  type: 'test'
+  ...
+# Subtest: app shell aborts and releases a terminally failed boot attempt
+ok 74 - app shell aborts and releases a terminally failed boot attempt
+  ---
+  duration_ms: 0.576416
+  type: 'test'
+  ...
+# Subtest: app shell disposes a booted application whose resolved identity violates the route
+ok 75 - app shell disposes a booted application whose resolved identity violates the route
+  ---
+  duration_ms: 2.847292
+  type: 'test'
+  ...
+# Subtest: app shell recovers an unknown governed-tier experience with that tier default
+ok 76 - app shell recovers an unknown governed-tier experience with that tier default
+  ---
+  duration_ms: 0.462166
+  type: 'test'
+  ...
+# Subtest: route updates compare controls against applied plugin state, not a pending form edit
+ok 77 - route updates compare controls against applied plugin state, not a pending form edit
+  ---
+  duration_ms: 0.305166
+  type: 'test'
+  ...
+# Subtest: City presentation yields before collecting work, publishes queued batches, and drops disposed renders
+ok 78 - City presentation yields before collecting work, publishes queued batches, and drops disposed renders
+  ---
+  duration_ms: 3.843542
+  type: 'test'
+  ...
+# Subtest: tier renderer exposes exact Canvas2D pixels and bounded render cost
+ok 79 - tier renderer exposes exact Canvas2D pixels and bounded render cost
+  ---
+  duration_ms: 2.040792
+  type: 'test'
+  ...
+# Subtest: City presentation consumes compositor clustering, styles, and receipts
+ok 80 - City presentation consumes compositor clustering, styles, and receipts
+  ---
+  duration_ms: 33.891042
+  type: 'test'
+  ...
+# Subtest: City renderer converts compositor pixels into visible world dimensions
+ok 81 - City renderer converts compositor pixels into visible world dimensions
+  ---
+  duration_ms: 3.757416
+  type: 'test'
+  ...
+# Subtest: City expands one governed point-cloud layer into individual tiny markers
+ok 82 - City expands one governed point-cloud layer into individual tiny markers
+  ---
+  duration_ms: 0.447833
+  type: 'test'
+  ...
+# Subtest: City renders residence point clouds as lightweight six-vertex nodes
+ok 83 - City renders residence point clouds as lightweight six-vertex nodes
+  ---
+  duration_ms: 0.600375
+  type: 'test'
+  ...
+# Subtest: City separates plugin-static markers from time-varying plugin actors
+ok 84 - City separates plugin-static markers from time-varying plugin actors
+  ---
+  duration_ms: 21.749167
+  type: 'test'
+  ...
+# Subtest: City renders shadow overlays in a separate depth-safe geometry stream
+ok 85 - City renders shadow overlays in a separate depth-safe geometry stream
+  ---
+  duration_ms: 0.452083
+  type: 'test'
+  ...
+# Subtest: City keeps the ground grid and semantic coverage areas out of the opaque depth stream
+ok 86 - City keeps the ground grid and semantic coverage areas out of the opaque depth stream
+  ---
+  duration_ms: 0.348375
+  type: 'test'
+  ...
+# Subtest: plugin-owned worlds do not fabricate a core water surface or ground grid
+ok 87 - plugin-owned worlds do not fabricate a core water surface or ground grid
+  ---
+  duration_ms: 0.456958
+  type: 'test'
+  ...
+# Subtest: WebGPU pass composition shares one vertex contract and preserves depth-safe draw order
+ok 88 - WebGPU pass composition shares one vertex contract and preserves depth-safe draw order
+  ---
+  duration_ms: 0.553166
+  type: 'test'
+  ...
+# Subtest: City interpolates point actors between governed presentation snapshots
+ok 89 - City interpolates point actors between governed presentation snapshots
+  ---
+  duration_ms: 22.366334
+  type: 'test'
+  ...
+# Subtest: semantic volume compiles into an extruded City mesh and retains height in tier views
+ok 90 - semantic volume compiles into an extruded City mesh and retains height in tier views
+  ---
+  duration_ms: 1.760333
+  type: 'test'
+  ...
+# Subtest: City binds the actor mesh and camera to the same governed progress
+ok 91 - City binds the actor mesh and camera to the same governed progress
+  ---
+  duration_ms: 0.710917
+  type: 'test'
+  ...
+# Subtest: City segment-set paths render independently without invented connector geometry
+ok 92 - City segment-set paths render independently without invented connector geometry
+  ---
+  duration_ms: 0.400666
+  type: 'test'
+  ...
+# Subtest: governed tier presentation consumes the same compositor contract
+ok 93 - governed tier presentation consumes the same compositor contract
+  ---
+  duration_ms: 0.827417
+  type: 'test'
+  ...
+# Subtest: tier presentation preserves semantic actor identity and projects native 3D depth
+ok 94 - tier presentation preserves semantic actor identity and projects native 3D depth
+  ---
+  duration_ms: 0.473708
+  type: 'test'
+  ...
+# Subtest: tier presentation sends evidence-bound extent to the core-owned camera fitter
+ok 95 - tier presentation sends evidence-bound extent to the core-owned camera fitter
+  ---
+  duration_ms: 4.416834
+  type: 'test'
+  ...
+# Subtest: country evidence framing fills desktop and mobile viewports without clipping evidence
+ok 96 - country evidence framing fills desktop and mobile viewports without clipping evidence
+  ---
+  duration_ms: 1.478292
+  type: 'test'
+  ...
+# Subtest: City semantic labels project through the camera and suppress screen collisions
+ok 97 - City semantic labels project through the camera and suppress screen collisions
+  ---
+  duration_ms: 0.187167
+  type: 'test'
+  ...
+# Subtest: City semantic labels stay out of declared interface overlays
+ok 98 - City semantic labels stay out of declared interface overlays
+  ---
+  duration_ms: 0.052334
+  type: 'test'
+  ...
+# Subtest: tier animation is deterministic at a simulation time and changes only when time advances
+ok 99 - tier animation is deterministic at a simulation time and changes only when time advances
+  ---
+  duration_ms: 0.732125
+  type: 'test'
+  ...
+# Subtest: tier primitives are painter-sorted by projected 3D depth across primitive kinds
+ok 100 - tier primitives are painter-sorted by projected 3D depth across primitive kinds
+  ---
+  duration_ms: 0.062417
+  type: 'test'
+  ...
+# Subtest: tier labels remain collision-managed after camera reprojection
+ok 101 - tier labels remain collision-managed after camera reprojection
+  ---
+  duration_ms: 0.104917
+  type: 'test'
+  ...
+# Subtest: coordinate-native compare framing remains distinct from overview and follow
+ok 102 - coordinate-native compare framing remains distinct from overview and follow
+  ---
+  duration_ms: 0.196875
+  type: 'test'
+  ...
+# Subtest: only geographic paths split at the antimeridian; long Cartesian edges remain connected
+ok 103 - only geographic paths split at the antimeridian; long Cartesian edges remain connected
+  ---
+  duration_ms: 0.1545
+  type: 'test'
+  ...
+# Subtest: mobile coordinate framing keeps the active path inside supplied overlay insets
+ok 104 - mobile coordinate framing keeps the active path inside supplied overlay insets
+  ---
+  duration_ms: 0.1415
+  type: 'test'
+  ...
+# Subtest: interstellar sphere and torus views deterministically project the same ICRS evidence
+ok 105 - interstellar sphere and torus views deterministically project the same ICRS evidence
+  ---
+  duration_ms: 0.1845
+  type: 'test'
+  ...
+# Subtest: a point actor never borrows a nearby route or drifts away from its model position
+ok 106 - a point actor never borrows a nearby route or drifts away from its model position
+  ---
+  duration_ms: 0.532333
+  type: 'test'
+  ...
+# Subtest: linear weather selection preserves nearest-time, date fallback, and deterministic ties
+ok 107 - linear weather selection preserves nearest-time, date fallback, and deterministic ties
+  ---
+  duration_ms: 15.833375
+  type: 'test'
+  ...
+# Subtest: Sun Walker manifest identity-locks every owned resource and governed model data
+ok 108 - Sun Walker manifest identity-locks every owned resource and governed model data
+  ---
+  duration_ms: 17.482792
+  type: 'test'
+  ...
+# Subtest: arrival-time route simulation is deterministic, causal, progressive, and truth classified
+ok 109 - arrival-time route simulation is deterministic, causal, progressive, and truth classified
+  ---
+  duration_ms: 215.608959
+  type: 'test'
+  ...
+# Subtest: semantic layers carry quantities and evidence without permanent styling authority
+ok 110 - semantic layers carry quantities and evidence without permanent styling authority
+  ---
+  duration_ms: 77.001
+  type: 'test'
+  ...
+# Subtest: legacy adapter projects only causal shadow evidence and keeps compatibility styling bounded
+ok 111 - legacy adapter projects only causal shadow evidence and keeps compatibility styling bounded
+  ---
+  duration_ms: 90.609125
+  type: 'test'
+  ...
+# Subtest: plugin lifecycle advances the modeled walk without owning playback delay or camera commands
+ok 112 - plugin lifecycle advances the modeled walk without owning playback delay or camera commands
+  ---
+  duration_ms: 137.833334
+  type: 'test'
+  ...
+# Subtest: Sun Walker starts and settles in overview while active movement stays in follow
+ok 113 - Sun Walker starts and settles in overview while active movement stays in follow
+  ---
+  duration_ms: 0.133
+  type: 'test'
+  ...
+# Subtest: solar reference keeps nighttime distinct from missing geometric evidence
+ok 114 - solar reference keeps nighttime distinct from missing geometric evidence
+  ---
+  duration_ms: 0.095542
+  type: 'test'
+  ...
+# Subtest: governed canopy and weather engineering calibration cases reproduce exact outputs
+ok 115 - governed canopy and weather engineering calibration cases reproduce exact outputs
+  ---
+  duration_ms: 146.515042
+  type: 'test'
+  ...
+# Subtest: environment participation is causal and exactly replayable
+ok 116 - environment participation is causal and exactly replayable
+  ---
+  duration_ms: 277.509959
+  type: 'test'
+  ...
+# Subtest: rectangular building occlusion matches independent shadow-length geometry beyond the footprint diameter
+ok 117 - rectangular building occlusion matches independent shadow-length geometry beyond the footprint diameter
+  ---
+  duration_ms: 0.506166
+  type: 'test'
+  ...
+# Subtest: route distance, arrival time, and sampled shade converge to an independent 30 metre shadow interval
+ok 118 - route distance, arrival time, and sampled shade converge to an independent 30 metre shadow interval
+  ---
+  duration_ms: 92.303333
+  type: 'test'
+  ...
+# Subtest: drawn rectangular shadows match the analytical occlusion interval at the same sun instant
+ok 119 - drawn rectangular shadows match the analytical occlusion interval at the same sun instant
+  ---
+  duration_ms: 0.517333
+  type: 'test'
+  ...
+# Subtest: unequal polyline edges represent distance and arrival time proportionally
+ok 120 - unequal polyline edges represent distance and arrival time proportionally
+  ---
+  duration_ms: 65.707708
+  type: 'test'
+  ...
+# Subtest: Sun Walker uses a route overview and follows the one registered walker without POV jumps
+ok 121 - Sun Walker uses a route overview and follows the one registered walker without POV jumps
+  ---
+  duration_ms: 125.278458
+  type: 'test'
+  ...
+# Subtest: Walker actor position advances while camera target identity remains stable
+ok 122 - Walker actor position advances while camera target identity remains stable
+  ---
+  duration_ms: 93.74325
+  type: 'test'
+  ...
+# Subtest: Building shadow geometry follows the active sun sample during playback
+ok 123 - Building shadow geometry follows the active sun sample during playback
+  ---
+  duration_ms: 92.641292
+  type: 'test'
+  ...
+# Subtest: Walked-segment colors and inspector metrics agree with completed samples
+ok 124 - Walked-segment colors and inspector metrics agree with completed samples
+  ---
+  duration_ms: 188.241125
+  type: 'test'
+  ...
+# Subtest: Sun Walker labels UTC inputs and separates geometric sun from adjusted exposure
+ok 125 - Sun Walker labels UTC inputs and separates geometric sun from adjusted exposure
+  ---
+  duration_ms: 91.48775
+  type: 'test'
+  ...
+# Subtest: Departure time and detour controls causally alter exposure and route choice
+ok 126 - Departure time and detour controls causally alter exposure and route choice
+  ---
+  duration_ms: 290.830708
+  type: 'test'
+  ...
+# Subtest: exposure readouts disclose completed intervals and never fabricate a denominator at departure
+ok 127 - exposure readouts disclose completed intervals and never fabricate a denominator at departure
+  ---
+  duration_ms: 86.27325
+  type: 'test'
+  ...
+# Subtest: exposure intervals, playback clock and endpoint arrival agree
+ok 128 - exposure intervals, playback clock and endpoint arrival agree
+  ---
+  duration_ms: 87.836917
+  type: 'test'
+  ...
+# Subtest: projected shadows preserve sunny concavities and courtyards
+ok 129 - projected shadows preserve sunny concavities and courtyards
+  ---
+  duration_ms: 0.732166
+  type: 'test'
+  ...
+# Subtest: open-sky and night reference walks conserve duration at multiple sample spacings
+ok 130 - open-sky and night reference walks conserve duration at multiple sample spacings
+  ---
+  duration_ms: 400.101833
+  type: 'test'
+  ...
+# Subtest: distinct route alternatives have separate visible lanes even where paths overlap
+ok 131 - distinct route alternatives have separate visible lanes even where paths overlap
+  ---
+  duration_ms: 70.691959
+  type: 'test'
+  ...
+1..131
+# tests 131
+# suites 0
+# pass 131
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3294.623917

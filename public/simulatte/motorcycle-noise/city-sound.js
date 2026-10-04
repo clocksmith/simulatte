@@ -73,6 +73,14 @@
       const combined=Math.max(background,total+(treatment?.powerDelta||0));
       contributors.sort((a,b)=>b.level-a.level);
       const db=value=>10*Math.log10(Math.max(1e-12,value));
+      // Re-evaluate coherent treatment groups with one emitter removed. Subtracting
+      // its dBA or isolated power would discard interference with other emitters.
+      if(includeAudio && treatment)for(const detail of treatment.details){
+        if(detail.kind==='mist')continue;
+        const without=root.MotorcycleTreatments.evaluate(scene,time,point,geometry,sourceEnergy,treatments.filter(row=>row.id!==detail.id));
+        const withoutDb=db(Math.max(background,total+without.powerDelta));
+        detail.comparison={withDb:db(combined),withoutDb,changeDb:db(combined)-withoutDb};
+      }
       return {total:db(combined),direct:db(original),returned:db(returned),baseline:db(untreated),change:db(combined)-db(untreated),
         outward:outward>0?db(outward):null,facade:facade>0?db(facade):null,panelReturns:returned>0?db(returned):null,
         powered:treatment?.emittedPower>0?db(treatment.emittedPower):null,treatmentChangeDb:db(combined)-db(total),

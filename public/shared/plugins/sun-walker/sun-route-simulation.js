@@ -187,11 +187,7 @@
       config,
     });
     const sampledLengthM = samplePoints.reduce((sum, point) => sum + point.intervalLengthM, 0);
-    const samples = samplePoints.map((samplePoint, sampleIndex) => {
-      const point = { x: samplePoint.x, y: samplePoint.y };
-      const sampleSeconds = travelSeconds * samplePoint.intervalLengthM / sampledLengthM;
-      const arrivalOffsetSeconds = travelSeconds * (samplePoint.intervalStartM + samplePoint.intervalLengthM / 2) / sampledLengthM;
-      const timestamp = new Date(enteredAtMs + arrivalOffsetSeconds * 1000).toISOString();
+    function observe(point, timestamp) {
       const origin = exposure.worldOrigin(world);
       const sun = exposure.solarPosition(timestamp, origin.lat, origin.lon);
       const result = exposure.pointSunStateDetailed(point, buildings, sun, {
@@ -205,12 +201,21 @@
         config,
       });
       const state = exposureState(result, environmental, config);
-      const evidenceRefs = [
-        dataReceipt.id,
-        modelReceipt.id,
-        ...(result.occluderId ? [`building:${result.occluderId}`] : []),
-        ...environmental.evidenceRefs,
-      ];
+      return { point, timestamp, state:state.state, reason:state.reason,
+        geometricState:result.state, geometricReason:result.reason,
+        occluderId:result.occluderId || environmental.canopy.treeId,
+        occluderKind:result.occluderId ? 'building' : environmental.canopy.occluded ? 'tree-canopy' : null,
+        directBeamFactor:state.directBeamFactor, environment:environmental,
+        solarPosition:{azimuthDegrees:sun.azimuthDegrees,elevationDegrees:sun.elevationDegrees} };
+    }
+    const samples = samplePoints.map((samplePoint, sampleIndex) => {
+      const point = { x: samplePoint.x, y: samplePoint.y };
+      const sampleSeconds = travelSeconds * samplePoint.intervalLengthM / sampledLengthM;
+      const arrivalOffsetSeconds = travelSeconds * (samplePoint.intervalStartM + samplePoint.intervalLengthM / 2) / sampledLengthM;
+      const timestamp = new Date(enteredAtMs + arrivalOffsetSeconds * 1000).toISOString();
+      const observed = observe(point, timestamp);
+      const evidenceRefs = [dataReceipt.id, modelReceipt.id,
+        ...(observed.occluderKind === 'building' ? [`building:${observed.occluderId}`] : []), ...observed.environment.evidenceRefs];
       const heading = sampleIndex < samplePoints.length - 1
         ? Math.atan2(samplePoints[sampleIndex + 1].y - point.y, samplePoints[sampleIndex + 1].x - point.x)
         : sampleIndex > 0
@@ -228,19 +233,10 @@
         heading: round(heading),
         sidewalk: chosenSidewalk,
         representedSeconds: round(sampleSeconds),
-        geometricState: result.state,
-        geometricReason: result.reason,
-        state: state.state,
-        reason: state.reason,
-        occluderId: result.occluderId || environmental.canopy.treeId,
-        occluderKind: result.occluderId ? 'building' : environmental.canopy.occluded ? 'tree-canopy' : null,
-        directBeamFactor: state.directBeamFactor,
-        directBeamEquivalentSeconds: round(sampleSeconds * state.directBeamFactor),
-        environment: environmental,
-        solarPosition: {
-          azimuthDegrees: sun.azimuthDegrees,
-          elevationDegrees: sun.elevationDegrees,
-        },
+        ...observed,
+        directBeamEquivalentSeconds: round(sampleSeconds * observed.directBeamFactor),
+        endedAt: new Date(enteredAtMs + travelSeconds * (samplePoint.intervalStartM + samplePoint.intervalLengthM) / sampledLengthM * 1000).toISOString(),
+        endObservation: observe(samplePoint.geometry.at(-1), new Date(enteredAtMs + travelSeconds * (samplePoint.intervalStartM + samplePoint.intervalLengthM) / sampledLengthM * 1000).toISOString()),
         evidenceRefs,
         truth: modeledTruth(),
       };
@@ -252,6 +248,7 @@
         segmentId: segment.id,
         geometry,
         sidewalk: chosenSidewalk,
+        startObservation: { ...observe(geometry[0], new Date(enteredAtMs).toISOString()), sidewalk:chosenSidewalk, segmentId:segment.id },
         enteredAt: new Date(enteredAtMs).toISOString(),
         exitedAt: new Date(enteredAtMs + travelSeconds * 1000).toISOString(),
         ...totals,
@@ -329,10 +326,11 @@
     selected.samples.forEach((sample, index) => {
       const before = state;
       state = advanceState(state, sample, index + 1, selected.samples.length);
+      state.progress = round((Date.parse(sample.endedAt) - Date.parse(selected.departureAt)) / (Date.parse(selected.arrivalAt) - Date.parse(selected.departureAt)));
       const event = createEvent({
         sequence: index + 1,
         kind: `sun-walker.exposure-${sample.state}`,
-        timestamp: sample.timestamp,
+        timestamp: sample.endedAt,
         causalParents: [events.at(-1).id],
         affectedEntities: [selected.id, sample.segmentId, ...(sample.occluderId ? [sample.occluderId] : [])],
         before,
@@ -400,6 +398,7 @@
   function emptyState(selected) {
     return {
       status: 'ready',
+      currentObservation: selected.segments[0].startObservation,
       candidateId: selected.id,
       currentSegmentId: null,
       completedSamples: 0,
@@ -426,6 +425,7 @@
       ...state,
       status: 'running',
       currentSegmentId: sample.segmentId,
+      currentObservation: { ...sample.endObservation, sidewalk:sample.sidewalk, segmentId:sample.segmentId },
       completedSamples,
       totalSamples,
       progress: round(completedSamples / totalSamples),

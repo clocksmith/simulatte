@@ -1,0 +1,77 @@
+{
+  "schema": "simulatte.measurementAcceptance.v1",
+  "status": "passed",
+  "baseCommit": "999f3d41",
+  "component": "World simulation measurements and existing interaction controls",
+  "intent": "preserved",
+  "changes": [
+    "Sun exposure is credited at interval end; current position and sun state use the event instant, including departure and arrival.",
+    "Projected building shadows preserve concavities and courtyards; comparison paths use distinct screen lanes.",
+    "Each rack partitions elapsed time into computing, communicating, and waiting; productive contributions reconcile to cluster compute.",
+    "Treatment comparison removes only the selected emitter at a fixed observer and instant, preserving other emitters and traffic.",
+    "Enter selects or places the center map target through the existing session controls; key repeat is ignored and disposal removes the handler."
+  ],
+  "regressions": {
+    "before": "regressions/*-before.txt",
+    "after": "regressions/simulatte-final-focused.txt",
+    "passed": 131,
+    "failed": 0
+  },
+  "browser": {
+    "acceptedReports": [
+      "desktop-final/report.json",
+      "mobile-final/report.json"
+    ],
+    "preliminaryReports": [
+      "desktop/report.json"
+    ],
+    "harnessCorrections": {
+      "smoke/report.json": "macOS native keycode mismatch; removed incorrect native codes.",
+      "smoke-fixed-input/report.json": "Native selector interaction did not commit selection.",
+      "smoke-native-select/report.json": "Native selector interaction did not commit selection; replaced with native typeahead.",
+      "smoke-typeahead/report.json": "Harness incorrectly expected WebGPU for the configured Canvas2D GPU Cluster scene.",
+      "keyboard-placement/report.json": "Assertion raced the 250 ms inspector repaint; now waits for visible comparison.",
+      "keyboard-placement-painted/report.json": "Corrected keyboard placement and visible comparison smoke passed."
+    },
+    "desktopDurationSecondsPerRoute": 120,
+    "narrowViewportDurationSecondsPerRoute": 30
+  },
+  "limits": [
+    "No screenshots or human visual review.",
+    "No newcomer comprehension study.",
+    "Mobile coverage uses emulated viewport on this Mac; no physical phone.",
+    "Shared-host runs are correctness checks, not uncontended performance benchmarks.",
+    "GPU Cluster uses Canvas2D; adapter presence alone does not establish per-canvas GPU execution."
+  ],
+  "deployment": "Not deployed",
+  "boundaryEffects": "Additive measurement fields and current-observation state; session ownership and application architecture preserved.",
+  "hostGPU": [
+    {
+      "spdisplays_vendor": "sppci_vendor_Apple",
+      "sppci_cores": "10",
+      "sppci_model": "Apple M3"
+    }
+  ],
+  "postBrowserChanges": [
+    "Only public/data/generated-artifact-inventory.json changed: refreshed folder-contract hash after evidence inventory synchronization. Runtime source is identical to accepted browser reports."
+  ],
+  "checks": {
+    "npm run check:fast": {
+      "passed": true,
+      "tests": 201,
+      "files": 23
+    },
+    "focused regression suite": {
+      "passed": true,
+      "tests": 131
+    },
+    "npm run plugins:check": {
+      "passed": true,
+      "pluginBoundaryFiles": 114
+    },
+    "git diff --check": {
+      "passed": true
+    }
+  },
+  "cleanup": "Audit-owned Chrome profiles, processes and static servers closed; existing Doppler/Reploid sessions untouched."
+}

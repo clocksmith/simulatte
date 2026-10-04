@@ -13,7 +13,7 @@
   root.SimulatteSunWalkerV4 = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerV4(builder, shadowGeometry, exposureSummaryApi) {
   const PLUGIN_ID = 'sun-walker';
-  const MODEL_HASH = '5b0667607ec6a03bdfd506af801a0c948dac42e1c0f270ddd090a1ac6f61df4d';
+  const MODEL_HASH = 'f80feceeb3aed515c65f044d590422d8b5e5ad14be344bb0b9b789f188f90d76';
 
   function createContribution({ simulation, step, world, buildingReceipt, governanceReceipt, environmentReceipt }) {
     const buildings = builder.datasetRecord('world.buildings.v1', buildingReceipt, { coverage: simulation.dataReceipt.datasets[0].coverage });
@@ -32,9 +32,8 @@
     const fastest = simulation.candidates.find((row) => row.id === simulation.fastestCandidateId);
     const snapshot = simulation.timeline.snapshots[Math.min(step, simulation.timeline.snapshots.length - 1)];
     const samples = selected.samples.slice(0, snapshot.state.completedSamples);
-    const latestCompletedSample = samples.at(-1) || null;
-    const activeSample = latestCompletedSample || selected.samples[0];
-    const exposureStatus = exposureSummaryApi.summarize(snapshot.state, latestCompletedSample);
+    const activeSample = snapshot.state.currentObservation;
+    const exposureStatus = exposureSummaryApi.summarize(snapshot.state, activeSample);
     const elapsed = exposureStatus.elapsedSeconds;
     const context = `Now: ${exposureStatus.current.label}. Exposure so far: ${elapsed.toFixed(1)} s sampled · Unknown ${exposureStatus.seconds.unknown.toFixed(1)} s (${exposureStatus.percentages.unknown}%) · Night ${exposureStatus.seconds.night.toFixed(1)} s (${exposureStatus.percentages.night}%).`;
     const measurement = (label, definition, timeBasis = 'accumulated') => ({label, subject:`Walker on ${selected.id}`, definition, timeBasis,
@@ -183,7 +182,7 @@
       previousStateId: step ? `${simulation.id}:step-${step - 1}` : null,
       eventIds: events.slice(0, step + 1).map((row) => row.id),
       measures: [
-        builder.quantity('progress', snapshot.state.progress, 'ratio', [0, 1], measurement('Walk completed', 'Completed route sampling progress. Playback speed changes presentation timing; walking speed changes modeled arrival times.')),
+        builder.quantity('progress', snapshot.state.progress, 'ratio', [0, 1], measurement('Walk completed', 'Elapsed modeled walking time divided by predicted whole-route time. Playback speed changes presentation timing; walking speed changes modeled arrival times.')),
         builder.quantity('direct-sun', snapshot.state.directSunSeconds, 'seconds'),
         builder.quantity('shade', snapshot.state.shadeSeconds, 'seconds'),
         builder.quantity('unknown', snapshot.state.unknownSeconds, 'seconds'),
@@ -242,7 +241,7 @@
           field('canopy-shade', 'Canopy shade so far', snapshot.state.canopyShadeSeconds, 'seconds', claim),
           field('unknown', 'Unknown exposure so far', snapshot.state.unknownSeconds, 'seconds', claim),
           field('night', 'Night exposure so far', snapshot.state.nightSeconds, 'seconds', claim),
-          field('sidewalk-side', 'Sidewalk curb', activeSample?.sidewalk === 'left' ? 'Left sidewalk (shaded curb)' : activeSample?.sidewalk === 'right' ? 'Right sidewalk (shaded curb)' : 'Street centerline', null, claim),
+          field('sidewalk-side', 'Sidewalk curb', activeSample?.sidewalk === 'left' ? 'Left sidewalk' : activeSample?.sidewalk === 'right' ? 'Right sidewalk' : 'Street centerline', null, claim),
           field('shadow-display', 'Shadow display', exposureStatus.shadowDisplay, null, claim),
           field('shadow-calculation', 'Calculation', exposureStatus.shadowCalculation, null, claim),
           field('environment', 'Environmental evidence', 'Historical 2015 trees + pinned 2024 Central Park analog', null, claim),

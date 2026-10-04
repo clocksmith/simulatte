@@ -188,10 +188,10 @@ test('Walked-segment colors and inspector metrics agree with completed samples',
     );
     const measures = Object.fromEntries(contribution.state.measures.map((row) => [row.kind, row.value]));
     const rows = plugin.inspectorRows(result, step);
-    const exposureStatus = exposureSummaryApi.summarize(snapshot.state, activeSample);
+    const exposureStatus = exposureSummaryApi.summarize(snapshot.state, snapshot.state.currentObservation);
     const inspectionRows = contribution.inspections[0].fields;
 
-    assert.deepEqual(actor.geometry.coordinates[0], [activeSample.point.x, activeSample.point.y, 0]);
+    assert.deepEqual(actor.geometry.coordinates[0], [snapshot.state.currentObservation.point.x, snapshot.state.currentObservation.point.y, 0]);
     assert.match(actor.label, /UTC$/);
     assert.equal(segment.quantity.kind, `exposure.${activeSample.state}`);
     assert.equal(compositor.colorForLayer(segment), {
@@ -303,4 +303,61 @@ test('exposure readouts disclose completed intervals and never fabricate a denom
  assert.equal(descriptor.timeBasis,'accumulated');assert.match(descriptor.definition,new RegExp(seconds.toFixed(1)+' seconds'));
  assert.match(descriptor.definition,/unknown and night remain in the denominator/);
  assert.match(descriptor.definition,/No UV dose or thermal-comfort/);
+});
+
+test('exposure intervals, playback clock and endpoint arrival agree', () => {
+  const result = simulate({config:{...config,sidewalkOffsetM:0,walkingSpeedMps:1,sampleSpacingM:30,treeCanopyParticipation:false,weatherParticipation:false}});
+  const selected=result.candidates.find(row=>row.id===result.selectedCandidateId);
+  for(const snapshot of result.timeline.snapshots){
+    const event=result.timeline.events[snapshot.step];
+    const elapsed=(Date.parse(event.timestamp)-Date.parse(result.departureAt))/1000;
+    const measured=exposureSummaryApi.summarize(snapshot.state).elapsedSeconds;
+    assert.ok(Math.abs(elapsed-measured)<.002,`${elapsed} s elapsed but ${measured} s credited`);
+    assert.ok(Math.abs(snapshot.state.progress-elapsed/selected.metrics.travelSeconds)<1e-5);
+  }
+  for(const [step,point] of [[0,selected.segments[0].geometry[0]],[result.timeline.snapshots.length-1,selected.segments.at(-1).geometry.at(-1)]]){
+    const actor=createContribution(result,step).presentation.layers.find(row=>row.id==='sun-walker-actor');
+    assert.deepEqual(actor.geometry.coordinates[0],[point.x,point.y,0]);
+  }
+});
+
+test('projected shadows preserve sunny concavities and courtyards', () => {
+  const shadows=require('../public/shared/plugins/sun-walker/shadow-geometry.js');
+  const exposure=require('../public/shared/plugins/sun-walker/sun-exposure.js');
+  const ring=rows=>rows.map(([x,y])=>({x,y}));
+  const buildings=[{id:'L',heightM:1,footprint:ring([[0,0],[10,0],[10,2],[2,2],[2,10],[0,10]])},
+    {id:'court',heightM:1,footprint:ring([[20,0],[30,0],[30,10],[20,10]]),interiorRings:[ring([[22,2],[28,2],[28,8],[22,8]])]}];
+  const sun={azimuthDegrees:0,elevationDegrees:45};
+  const projected=shadows.projectedEvidenceShadows({renderGeometry:{buildings}},['L','court'],sun);
+  // Use the independent ray classifier on the displayed polygons at zenith.
+  const displayed=projected.map(row=>({footprint:row.points,heightM:1}));
+  for(const point of [{x:5,y:5},{x:25,y:5},{x:5,y:-.5},{x:21,y:5},{x:1,y:8}]){
+    assert.equal(exposure.pointSunState(point,displayed,{azimuthDegrees:0,elevationDegrees:90}),
+      exposure.pointSunState(point,buildings,sun),JSON.stringify(point));
+  }
+});
+
+test('open-sky and night reference walks conserve duration at multiple sample spacings',()=>{
+ for(const departureAt of ['2026-07-19T17:00:00Z','2026-07-19T04:00:00Z'])for(const sampleSpacingM of [30,10,2]){
+  const rows=fixture();rows.world.renderGeometry.buildings=[];
+  const result=simulate({...rows,departureAt,config:{...config,sampleSpacingM,sidewalkOffsetM:0,walkingSpeedMps:1,treeCanopyParticipation:false,weatherParticipation:false}});
+  const route=result.candidates.find(row=>row.id===result.selectedCandidateId);
+  assert.equal(route.metrics.travelSeconds,100);
+  assert.equal(Date.parse(route.arrivalAt)-Date.parse(departureAt),100000);
+  assert.equal(route.metrics[departureAt.includes('17:00')?'directSunSeconds':'nightSeconds'],100);
+  for(const snapshot of result.timeline.snapshots){
+   const current=snapshot.state.currentObservation;
+   assert.equal(current.timestamp,result.timeline.events[snapshot.step].timestamp);
+   assert.equal(current.geometricState,departureAt.includes('17:00')?'direct':'night');
+  }
+ }
+});
+
+test('distinct route alternatives have separate visible lanes even where paths overlap',()=>{
+ const result=simulate(),contribution=createContribution(result,0);
+ const routes=contribution.presentation.layers.filter(row=>['route.shade-selected','route.fastest-baseline'].includes(row.quantity.kind));
+ assert.equal(routes.length,2);
+ const styles=routes.map(row=>compositor.styleForLayer(row));
+ assert.notEqual(styles[0].color,styles[1].color);
+ assert.notEqual(styles[0].laneOffsetPx,styles[1].laneOffsetPx);
 });

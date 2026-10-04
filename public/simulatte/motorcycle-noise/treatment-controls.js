@@ -22,14 +22,14 @@
       $('focus-observer').hidden=true;$('inspection-title').textContent=T.kinds[node.kind].name;
       $('inspection-main').textContent=node.enabled===false?'Disabled':scene.treatmentsEnabled===false?'Comparison: off':node.kind==='mist'?(state.target?'Ready to spray':'Waiting for a bike'):state.target?state.frequency.toFixed(0)+' Hz':'Waiting for traffic';
       $('inspection-detail').textContent=node.kind==='mist'?'Scripted engine stall and restart. Excluded from acoustic baseline comparisons.':(state.target?'Tracks '+state.target.source.id+' / '+state.target.distance.toFixed(1)+' m':'No motorcycle within 100 m')+(sample?.outputLimited?' / output limited':'');
-      if(lastObserver && node.kind==='directional'){
-        const point=lastObserver.observer.point;
-        const panelReturns=lastObserver.observer.panelReturns;
-        $('inspection-detail').textContent+=` / ${isMeasurementCurrent()?'Sample':'Stale sample; updating'} at (${point.x.toFixed(0)}, ${point.y.toFixed(0)}), ${lastObserver.time.toFixed(2)} s: original + background ${lastObserver.observer.direct.toFixed(1)} dBA, panel returns ${panelReturns===null?'none':panelReturns.toFixed(1)+' dBA'}; this emitter ${sample?.active ? sample.received.toFixed(1)+' dBA' : 'off at sample time'}`;
+      $('inspection-time').textContent=node.kind==='mist'?'Fictional interaction; excluded from sound comparisons.':node.kind==='cancellation'?'Delayed tonal model; sound can increase away from its target.':'Powered sound; levels combine as energy, not added dBA.';
+      if(lastObserver && node.kind!=='mist' && sample?.comparison){
+        const {withDb,withoutDb,changeDb}=sample.comparison,point=lastObserver.observer.point;
+        const signed=(changeDb>=0?'+':'')+changeDb.toFixed(2);
+        $('inspection-main').textContent=`${isMeasurementCurrent()?'This treatment':'Stale sample'}: ${signed} dB here`;
+        $('inspection-detail').textContent=`With ${withDb.toFixed(2)} dBA · Without ${withoutDb.toFixed(2)} dBA. ${changeDb>0?'Increases sound at this observer.':changeDb<0?'Reduces sound at this observer.':'No change at this observer.'}`;
+        $('inspection-time').textContent+=` Same observer (${point.x.toFixed(1)}, ${point.y.toFixed(1)}, ${point.z.toFixed(1)} m), time ${lastObserver.time.toFixed(2)} s, traffic and other treatments.`;
       }
-      $('inspection-time').textContent=node.kind==='mist'?'Fictional interaction: contact stalls the engine briefly, then it restarts.':node.kind==='cancellation'?'Delayed, output-limited tonal model. Off-target reinforcement is possible.':'Add sound: powered emitter at 60 dB(Z) at 1 metre. Supports 125, 500, or 2000 Hz; not passive reflection.';
-      if(lastObserver && node.kind!=='mist') $('inspection-time').textContent += ` Total change here: ${lastObserver.observer.change >= 0 ? '+' : ''}${lastObserver.observer.change.toFixed(1)} dB relative to the modeled free-field baseline at this sample. Includes all active treatments; off-target increases are possible. Levels are combined as acoustic energy, not added dBA.`;
-      if(lastObserver&&node.kind!=='mist')$('inspection-main').textContent += ` · ${isMeasurementCurrent()?'All treatments here':'Stale sample'} ${lastObserver.observer.treatmentChangeDb>=0?'+':''}${lastObserver.observer.treatmentChangeDb.toFixed(1)} dB`;
       spray.hidden=node.kind!=='mist';spray.disabled=!scene.fictionalEventsEnabled||!state.target||node.enabled===false||scene.mistBursts?.some(b=>b.sourceId===state.target?.source.id&&getTime()>=b.start&&getTime()<b.restart);
       frequencies.hidden=node.kind!=='directional';if(document.activeElement!==frequency)frequency.value=String(node.frequency||500);enabled.textContent=node.enabled===false?'Enable':'Disable';
     }

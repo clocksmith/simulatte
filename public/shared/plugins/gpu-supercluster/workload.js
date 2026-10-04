@@ -15,7 +15,8 @@
       tensorPlan: result.collectives.tensorCommunicationPlan, plan: result.collectives.communicationPlan,
       computeMs: result.collectives.computeTimeMs, actions: actions.map(a => ({ ...a })), appliedActions: 0,
       racks: result.topology.racks.map((rack, index) => ({
-        id: rack.id, work: 0, waitMs: 0, task: 'forward', waitingFor: [],
+        id: rack.id, work: 0, waitMs: 0, computingMs: 0, communicationMs: 0,
+        productiveMs: 0, slowdownLossMs: 0, task: 'forward', waitingFor: [],
         computeMs: result.collectives.computeTimeMs * (0.94 + 0.06 * index / Math.max(1, result.topology.racks.length - 1)),
         slowdown: rack.id === targetRack ? result.config.stragglerThrottlePercent : 0,
       })) };
@@ -63,6 +64,7 @@
       if (state.communicating) {
         const remaining = (1 - state.communication) * state.transferMs;
         dt = Math.min(dt, remaining);
+        for (const rack of state.racks) rack.communicationMs += dt;
         state.communication = state.transferMs ? Math.min(1, state.communication + dt / state.transferMs) : 1;
         if (remaining <= dt + EPSILON) {
           state.iteration++; state.communicating = false; state.communication = 0;
@@ -74,6 +76,9 @@
         for (const rack of state.racks) {
           if (rack.work >= 1) { rack.waitMs += dt; state.totalWaitMs += dt; }
           else {
+            rack.computingMs += dt;
+            rack.productiveMs += dt * (1 - rack.slowdown / 100);
+            rack.slowdownLossMs += dt * rack.slowdown / 100;
             state.computeEquivalentMs += dt * (1 - rack.slowdown / 100);
             rack.work = Math.min(1, rack.work + dt * (1 - rack.slowdown / 100) / rack.computeMs);
             if (1 - rack.work < EPSILON) rack.work = 1;

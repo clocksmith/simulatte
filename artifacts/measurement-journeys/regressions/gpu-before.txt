@@ -1,0 +1,96 @@
+TAP version 13
+# Subtest: event integration converges without discarded substep work or shifted interventions
+ok 1 - event integration converges without discarded substep work or shifted interventions
+  ---
+  duration_ms: 1.340458
+  type: 'test'
+  ...
+# Subtest: a live straggler blocks the collective, accumulates waits, and removal releases dependent racks
+ok 2 - a live straggler blocks the collective, accumulates waits, and removal releases dependent racks
+  ---
+  duration_ms: 11.6895
+  type: 'test'
+  ...
+# Subtest: rack inspector names the actual blocked racks and clears them when compute releases
+ok 3 - rack inspector names the actual blocked racks and clears them when compute releases
+  ---
+  duration_ms: 27.980917
+  type: 'test'
+  ...
+# Subtest: live actions survive controller seek, replay, settlement, and persisted reload
+ok 4 - live actions survive controller seek, replay, settlement, and persisted reload
+  ---
+  duration_ms: 424.494709
+  type: 'test'
+  ...
+# Subtest: configured straggler node resolves to the same canonical rack shown by the scenario
+ok 5 - configured straggler node resolves to the same canonical rack shown by the scenario
+  ---
+  duration_ms: 10.955417
+  type: 'test'
+  ...
+# Subtest: playback exposes physical transfers during both tensor and data communication
+ok 6 - playback exposes physical transfers during both tensor and data communication
+  ---
+  duration_ms: 0.421625
+  type: 'test'
+  ...
+# Subtest: tensor transfers across nodes become native contribution actors on the executed links
+ok 7 - tensor transfers across nodes become native contribution actors on the executed links
+  ---
+  duration_ms: 1.099125
+  type: 'test'
+  ...
+# Subtest: compute accounting integrates productive rack time independently of sampling and live faults
+ok 8 - compute accounting integrates productive rack time independently of sampling and live faults
+  ---
+  duration_ms: 14.389875
+  type: 'test'
+  ...
+# Subtest: torus layout preserves physical links and stable rack identities across transfer phases
+ok 9 - torus layout preserves physical links and stable rack identities across transfer phases
+  ---
+  duration_ms: 10.427958
+  type: 'test'
+  ...
+# Subtest: measurements disclose their subject, interval and validity; physical layouts retain every entity
+ok 10 - measurements disclose their subject, interval and validity; physical layouts retain every entity
+  ---
+  duration_ms: 10.604791
+  type: 'test'
+  ...
+# Subtest: rack intervals partition elapsed time and reconcile productive compute across timesteps
+not ok 11 - rack intervals partition elapsed time and reconcile productive compute across timesteps
+  ---
+  duration_ms: 3.55875
+  type: 'test'
+  location: '/Users/xyz/deco/simulatte/tests/gpu-workload.test.cjs:161:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+
+      assert.ok(Math.abs(rack.computingMs+rack.communicationMs+rack.waitMs-sample.timeMs)<1e-8)
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/xyz/deco/simulatte/tests/gpu-workload.test.cjs:168:11)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 10
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 579.145375

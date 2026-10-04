@@ -360,8 +360,8 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.notEqual(prepared.candidateId,state.simulation.selectedCandidateId);
   const shown = instance.contributeV4();
   const selected = state.simulation.candidates.find(row=>row.id===state.simulation.selectedCandidateId);
-  assert.equal(shown.presentation.epoch,selected.samples.at(-1).timestamp);
-  assert.equal(shown.presentation.sun.azimuthDegrees,selected.samples.at(-1).solarPosition.azimuthDegrees);
+  assert.equal(shown.presentation.epoch,selected.samples.at(-1).endedAt);
+  assert.equal(shown.presentation.sun.azimuthDegrees,selected.samples.at(-1).endObservation.solarPosition.azimuthDegrees);
   for(const object of shown.objects.filter(row=>row.id.startsWith('sun-walked-segment-'))) {
     const fields=shown.inspections.find(row=>row.targetIds.length===1&&row.targetIds[0]===object.id).fields;
     assert.ok(fields.some(row=>row.id==='sample-time'&&Date.parse(row.value)));

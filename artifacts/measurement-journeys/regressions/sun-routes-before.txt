@@ -1,0 +1,92 @@
+TAP version 13
+# Subtest: Sun Walker uses a route overview and follows the one registered walker without POV jumps
+ok 1 - Sun Walker uses a route overview and follows the one registered walker without POV jumps
+  ---
+  duration_ms: 80.944417
+  type: 'test'
+  ...
+# Subtest: Walker actor position advances while camera target identity remains stable
+ok 2 - Walker actor position advances while camera target identity remains stable
+  ---
+  duration_ms: 74.755708
+  type: 'test'
+  ...
+# Subtest: Building shadow geometry follows the active sun sample during playback
+ok 3 - Building shadow geometry follows the active sun sample during playback
+  ---
+  duration_ms: 68.609166
+  type: 'test'
+  ...
+# Subtest: Walked-segment colors and inspector metrics agree with completed samples
+ok 4 - Walked-segment colors and inspector metrics agree with completed samples
+  ---
+  duration_ms: 125.413958
+  type: 'test'
+  ...
+# Subtest: Sun Walker labels UTC inputs and separates geometric sun from adjusted exposure
+ok 5 - Sun Walker labels UTC inputs and separates geometric sun from adjusted exposure
+  ---
+  duration_ms: 58.242584
+  type: 'test'
+  ...
+# Subtest: Departure time and detour controls causally alter exposure and route choice
+ok 6 - Departure time and detour controls causally alter exposure and route choice
+  ---
+  duration_ms: 230.639292
+  type: 'test'
+  ...
+# Subtest: exposure readouts disclose completed intervals and never fabricate a denominator at departure
+ok 7 - exposure readouts disclose completed intervals and never fabricate a denominator at departure
+  ---
+  duration_ms: 69.156625
+  type: 'test'
+  ...
+# Subtest: exposure intervals, playback clock and endpoint arrival agree
+ok 8 - exposure intervals, playback clock and endpoint arrival agree
+  ---
+  duration_ms: 70.519125
+  type: 'test'
+  ...
+# Subtest: projected shadows preserve sunny concavities and courtyards
+ok 9 - projected shadows preserve sunny concavities and courtyards
+  ---
+  duration_ms: 0.674
+  type: 'test'
+  ...
+# Subtest: open-sky and night reference walks conserve duration at multiple sample spacings
+ok 10 - open-sky and night reference walks conserve duration at multiple sample spacings
+  ---
+  duration_ms: 347.974375
+  type: 'test'
+  ...
+# Subtest: distinct route alternatives have separate visible lanes even where paths overlap
+not ok 11 - distinct route alternatives have separate visible lanes even where paths overlap
+  ---
+  duration_ms: 63.463291
+  type: 'test'
+  location: '/Users/xyz/deco/simulatte/tests/sun-walker-visual-storytelling.test.cjs:356:1'
+  failureType: 'testCodeFailure'
+  error: 'Expected "actual" to be strictly unequal to: 0'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 0
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/xyz/deco/simulatte/tests/sun-walker-visual-storytelling.test.cjs:362:9)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 10
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1264.728042
