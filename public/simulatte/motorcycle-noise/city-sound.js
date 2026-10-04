@@ -17,9 +17,9 @@
       const samples=(time-p.emissionTime)*RATE-(time*RATE-Math.floor(time*RATE)),delay=Math.floor(samples);
       return {...p,delay,fraction:samples-delay,memory:Math.exp(-2*Math.PI*(p.cutoff||3500)/RATE),amplitude:10**(M.sourceLevel(source,p.emissionTime)/20)*p.gain};
     });
-    const result={free:0,direct:0,returned:0,total:0,zPower:0};
+    const result={free:0,direct:0,returned:0,outward:0,facade:0,total:0,zPower:0};
     for(const band of bands){
-      const w=2*Math.PI*band.hz/RATE,cos=Math.cos(w),sin=Math.sin(w),sums={free:[0,0],direct:[0,0],returned:[0,0]};
+      const w=2*Math.PI*band.hz/RATE,cos=Math.cos(w),sin=Math.sin(w),sums={free:[0,0],direct:[0,0],returned:[0,0],outward:[0,0],facade:[0,0]};
       for(const p of prepared){
         // Fractional sample delay followed by the detailed solver's one-pole
         // filter. Retarded path phases combine before squaring within a source.
@@ -31,9 +31,11 @@
         if(p.channel==='original'){
           sums.free[0]+=r;sums.free[1]+=i;
           sums.direct[0]+=r*(p.transmission??1);sums.direct[1]+=i*(p.transmission??1);
+          const component=p.kind==='facade-reflection'?sums.facade:sums.outward;
+          component[0]+=r*(p.transmission??1);component[1]+=i*(p.transmission??1);
         }else{sums.returned[0]+=r;sums.returned[1]+=i;}
       }
-      for(const key of ['free','direct','returned'])result[key]+=band.power*band.weight*(sums[key][0]**2+sums[key][1]**2);
+      for(const key of ['free','direct','returned','outward','facade'])result[key]+=band.power*band.weight*(sums[key][0]**2+sums[key][1]**2);
       const square=(sums.direct[0]+sums.returned[0])**2+(sums.direct[1]+sums.returned[1])**2;
       result.total+=band.power*band.weight*square;result.zPower+=band.power*square;
     }
@@ -46,7 +48,7 @@
     const sources=scene.sources.map(source=>({source,position:M.position(source,time),bands:sourceSpectrum(source,time)}));
     function measure(point,includeAudio=false){
       const background=10**(scene.config.background/10);
-      let original=background,returned=0,untreated=background,total=background;
+      let original=background,returned=0,untreated=background,total=background,outward=0,facade=0;
       const contributors=[],sourceEnergy=new Map();
       for(const {source,position,bands}of sources){
         const distance=M.dist(position,point);let paths;
@@ -58,8 +60,12 @@
         }
         const value=energy(paths,bands,time,source);
         untreated+=value.free;original+=value.direct;returned+=value.returned;total+=value.total;
+        outward+=value.outward;facade+=value.facade;
         sourceEnergy.set(source.id,value.total);
         if(value.total>0)contributors.push({id:source.id,level:10*Math.log10(value.total),rms:2e-5*Math.sqrt(value.zPower),
+          outward:value.outward>0?10*Math.log10(value.outward):null,facade:value.facade>0?10*Math.log10(value.facade):null,
+          returned:value.returned>0?10*Math.log10(value.returned):null,
+          pathTotal:10*Math.log10(value.total),
           delay:Math.min(...paths.map(p=>time-p.emissionTime)),cutoff:Math.max(...paths.map(p=>p.cutoff||3500))});
       }
       const treatment=root.MotorcycleTreatments?.evaluate(scene,time,point,geometry,sourceEnergy,treatments);
@@ -68,6 +74,8 @@
       contributors.sort((a,b)=>b.level-a.level);
       const db=value=>10*Math.log10(Math.max(1e-12,value));
       return {total:db(combined),direct:db(original),returned:db(returned),baseline:db(untreated),change:db(combined)-db(untreated),
+        outward:outward>0?db(outward):null,facade:facade>0?db(facade):null,panelReturns:returned>0?db(returned):null,
+        powered:treatment?.emittedPower>0?db(treatment.emittedPower):null,treatmentChangeDb:db(combined)-db(total),
         traffic:db(Math.max(0,combined-background)),treatments:treatment?.details||[],contributors:includeAudio?contributors:contributors.slice(0,5),
         model:'locally-stationary-coherent-paths-independent-sources',coverage:geometry.coverage,uncertainty:{kind:'unquantified',reason:'Moving spectra, source correlation and omitted distant reflections require evaluation.'}};
     }

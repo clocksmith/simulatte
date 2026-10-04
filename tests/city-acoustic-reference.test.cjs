@@ -27,6 +27,45 @@ test('live estimate and detailed waveform agree over stationary direct and refle
     near(live,detailed,.3);
   }
 });
+test('selected-source components match independently sampled direct and reflected waveforms',()=>{
+ const scene=fixture(10,true),start=2,rate=8000;
+ const waveform=global.MotorcycleAcousticField.create(scene,start,rate,rate).receive(scene.receiver);
+ const outward=global.MotorcycleAcousticField.create(fixture(10,false),start,rate,rate).receive(scene.receiver).direct;
+ const facade=Float64Array.from(waveform.direct,(value,i)=>value-outward[i]);
+ const reading=global.MotorcycleCitySound.create(scene,start+.5).measure(scene.receiver,true);
+ const source=reading.contributors.find(row=>row.id==='engine');
+ near(source.outward,S.measure(outward,rate).laeq,.3);
+ near(source.facade,S.measure(facade,rate).laeq,.3);
+ assert.equal(source.returned,null);
+ near(source.pathTotal,S.measure(waveform.primary,rate).laeq,.3);
+ assert.ok(Math.abs(source.pathTotal-(source.outward+source.facade))>10,'dBA components must not be summed');
+ assert.equal(reading.powered,null);assert.equal(reading.panelReturns,null);assert.equal(reading.treatmentChangeDb,0);
+});
+test('directional contribution follows independent distance and weighting while passive components stay fixed',()=>{
+ require('../public/simulatte/motorcycle-noise/treatments.js');
+ const scene=fixture(10);scene.sources[0].kind='motorcycle';
+ scene.treatmentMode='live';scene.treatmentsEnabled=true;
+ scene.treatments=[{id:'column',kind:'directional',x:-2,y:0,z:1,frequency:500,enabled:true}];
+ const enabled=global.MotorcycleCitySound.create(scene,2).measure(scene.receiver,true);
+ const expected=60-20*Math.log10(12)+20*Math.log10(S.aWeight(500));
+ near(enabled.powered,expected,.01);
+ scene.treatments[0].enabled=false;
+ const disabled=global.MotorcycleCitySound.create(scene,2).measure(scene.receiver,true);
+ assert.equal(disabled.powered,null);assert.equal(enabled.direct,disabled.direct);assert.equal(enabled.returned,disabled.returned);
+ near(10**(enabled.total/10)-10**(disabled.total/10),10**(expected/10),1e-4);
+ near(enabled.treatmentChangeDb,enabled.total-disabled.total);
+});
+test('panel-return readings remain separate from facade reflections and agree with the waveform',()=>{
+ const scene=fixture(10),rate=8000;
+ scene.config.surface='flat';scene.panel={x:20,y:0,z:1,angle:Math.PI,width:16,height:3};
+ const waveform=global.MotorcycleAcousticField.create(scene,2,rate,rate).receive(scene.receiver);
+ const reading=global.MotorcycleCitySound.create(scene,2.5).measure(scene.receiver,true);
+ const source=reading.contributors.find(row=>row.id==='engine');
+ assert.equal(reading.panelReturns,source.returned);
+ assert.equal(source.facade,null);assert.ok(Number.isFinite(source.returned));
+ near(source.returned,S.measure(waveform.returned,rate).laeq,.3);
+ near(source.pathTotal,S.measure(waveform.primary,rate).laeq,.3);
+});
 test('current city waveform converges as moving-source geometry steps shrink',()=>{
  const scene=fixture(60),source=scene.sources[0];delete source.static;
  Object.assign(source,{speed:12,offset:0,route:{length:500,segments:[{x:0,y:0,tx:500,ty:0,ux:1,uy:0,start:0,length:500}]}});

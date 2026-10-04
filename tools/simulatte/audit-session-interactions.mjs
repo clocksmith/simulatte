@@ -179,7 +179,16 @@ async function journey(route, prefix) {
     await invoke('resume');
     await wait(`__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='gpu-supercluster').inspections.some(r=>r.fields.some(f=>f.id==='waiting-for' && String(f.value).includes(${JSON.stringify(id.replace('rack:',''))})) && r.fields.some(f=>f.id==='wait-ms' && f.value>0))`);
     await invoke('pause');row.dependencies=await snapshot();
+    const blocked = row.dependencies.inspections.filter(r=>r.targetIds.length===1 && r.fields.some(f=>f.id==='waiting-for' && String(f.value).includes(id.replace('rack:','')))).map(r=>r.targetIds[0].replace('rack:',''));
+    const selectedFields = row.dependencies.inspections.find(r=>r.targetIds.length===1 && r.targetIds[0]===id).fields;
+    assert.ok(blocked.length>0);
+    assert.equal(selectedFields.find(f=>f.id==='blocking').value,blocked.join(', '),'Slow rack inspector identifies actual dependents');
     row.steps.push('dependent racks wait for the selected slowed rack and accumulate synchronization wait');
+    await click('[data-object-action="straggler"]');await invoke('resume');
+    await wait(`__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='gpu-supercluster').inspections.some(r=>r.targetIds.length===1 && r.targetIds[0]===${JSON.stringify(id)} && r.fields.some(f=>f.id==='task' && f.value==='Collective transfer'))`);
+    await invoke('pause');row.restoredDependencies=await snapshot();
+    assert.equal(row.restoredDependencies.inspections.find(r=>r.targetIds.length===1 && r.targetIds[0]===id).fields.find(f=>f.id==='blocking').value,'None');
+    row.steps.push('restoring the selected rack releases compute dependencies and begins collective transfer');
     row.action = after; row.steps.push('live rack slowdown changed the model');
   } else {
     if (route.includes('sun-walker') || route.includes('orbital')) {
@@ -322,6 +331,11 @@ async function motorcycleJourney(){
   await evaluate(`document.getElementById('ride-selected').click()`);
   await wait(`SimulatteMotorcycleSession.snapshot().pending.length===0`);
   assert.equal((await read()).time,paused.time);assert.equal((await read()).selected,id);
+  await wait(`SimulatteMotorcycleSession.snapshot().measurement==='fresh' && document.getElementById('inspection-time').textContent.includes('combined paths') && !document.getElementById('inspection-time').textContent.includes('Stale')`);
+  row.sourceInspection=await evaluate(`({text:document.getElementById('inspection-time').textContent,sample:structuredClone(motorcycleMeasurementReceipt)})`);
+  const sourceReading=row.sourceInspection.sample.observer.contributors.find(row=>row.id===id);
+  assert.ok(Number.isFinite(sourceReading.outward) && Number.isFinite(sourceReading.pathTotal));
+  assert.ok(row.sourceInspection.text.includes(sourceReading.outward.toFixed(1)+' dBA'));
   row.steps.push('selected motorcycle; follow and onboard preserve traffic time');
   const placement=await evaluate(`SimulatteMotorcycleController.placementPoint(SimulatteMotorcycleController.sourcePosition(${JSON.stringify(id)}))`);
   await evaluate(`document.querySelector('[data-add-treatment="directional"]').click()`);
@@ -335,6 +349,8 @@ async function motorcycleJourney(){
   await call('select-object',{point:{x:treatment.x+(aim.x-treatment.x)*.2,y:treatment.y+(aim.y-treatment.y)*.2,z:1.7},surface:'sidewalk'});
   await wait(`SimulatteMotorcycleSession.snapshot().measurement==='fresh' && motorcycleMeasurementReceipt?.observer.treatments.some(t=>t.id===${JSON.stringify(treatment.id)} && t.active && t.received>-80)`);
   const measured=await evaluate(`structuredClone(motorcycleMeasurementReceipt)`);
+  row.observerBreakdown=await evaluate(`document.getElementById('inspection-detail').textContent`);
+  if(measured.observer.panelReturns===null)assert.ok(row.observerBreakdown.includes('panel returns none'),'Absent panel sound is not a numeric floor');
   await call('select-object',{treatmentId:treatment.id});await call('treatment',{action:'toggle'});
   await wait(`SimulatteMotorcycleSession.snapshot().measurement==='fresh' && motorcycleMeasurementReceipt?.observer.treatments.some(t=>t.id===${JSON.stringify(treatment.id)} && !t.active)`);
   const disabled=await evaluate(`structuredClone(motorcycleMeasurementReceipt)`);
@@ -343,10 +359,14 @@ async function motorcycleJourney(){
   assert.equal(disabled.observer.direct,measured.observer.direct,'Original sound remains unchanged');
   assert.equal(disabled.observer.returned,measured.observer.returned,'Returned sound remains unchanged');
   assert.ok(disabled.observer.total<measured.observer.total,'Removing a powered contribution reduces calculated sound at the same observer');
+  assert.ok(Number.isFinite(measured.observer.powered));
+  assert.ok(measured.observer.treatmentChangeDb>disabled.observer.treatmentChangeDb);
   row.treatmentConsequence={enabled:measured,disabled};
   row.steps.push('identified observer loses the selected powered contribution while original and returned sound remain unchanged');
   const prior=(await read()).observer;
-  await call('camera','map');await call('select-object',{point:{x:prior.x+8,y:prior.y+8,z:1.7},surface:'sidewalk'});
+  await call('camera','map');
+  row.staleObserverText=await evaluate(`SimulatteMotorcycleSession.invoke('select-object',${JSON.stringify({point:{x:prior.x+8,y:prior.y+8,z:1.7},surface:'sidewalk'})}).then(()=>document.getElementById('inspection-time').textContent)`);
+  assert.ok(row.staleObserverText.includes('Stale sample; updating'),'Old observer measurement is visibly stale immediately after moving');
   assert.equal((await read()).time,paused.time);
   assert.notDeepEqual((await read()).observer,prior);
   row.steps.push('moved observer without resetting traffic');

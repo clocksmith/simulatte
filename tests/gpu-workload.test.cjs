@@ -26,6 +26,18 @@ test('a live straggler blocks the collective, accumulates waits, and removal rel
  const replay=workload.create(result,slow.actions);assert.deepEqual(advance(replay,400),workload.snapshot(slow));
  assert.throws(()=>workload.intervene(slow,'R1-1',95),/finished/);
 });
+test('rack inspector names the actual blocked racks and clears them when compute releases',()=>{
+ const v4=require('../public/shared/plugins/gpu-supercluster/v4-contribution.js');
+ const state=workload.create(result);workload.intervene(state,'R1-1',95);advance(state,8);
+ const fields=()=>v4.createContribution({result,workload:workload.snapshot(state)}).inspections.find(row=>row.targetIds.length===1&&row.targetIds[0]==='rack:R1-1').fields;
+ const blocked=state.racks.filter(row=>row.id!=='R1-1').map(row=>row.id);
+ assert.equal(fields().find(row=>row.id==='blocking').value,blocked.join(', '));
+ assert.equal(fields().find(row=>row.id==='sample-time').value,8);
+ workload.intervene(state,'R1-1',0);advance(state,16);
+ assert.equal(state.communicating,true);
+ assert.equal(fields().find(row=>row.id==='blocking').value,'None');
+ assert.equal(fields().find(row=>row.id==='task').value,'Collective transfer');
+});
 test('live actions survive controller seek, replay, settlement, and persisted reload',async()=>{
  const scenario={id:'gpt4-3d-parallelism',seed:'test-live-actions'},store=new Map();
  const storage={getItem:key=>store.get(key),setItem:(key,value)=>store.set(key,value),removeItem:key=>store.delete(key)};

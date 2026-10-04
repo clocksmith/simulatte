@@ -7,6 +7,8 @@
     const measurements=root.MotorcycleMeasurementContract;
     let observerIdentity=null,mapIdentity=null,observerStarted=0,mapStarted=0;
     const configuration=scene=>[scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode];
+    const observerCurrent=()=>measurements.matches(lastObserver?.identity,measurements.observerKey(view.getObserver()),configuration(getScene()));
+    const level=value=>value===null?'none':value.toFixed(1)+' dBA';
     const mapObservation=()=>[measurements.focusKey(view.getFocus(),view.getObserver()),markers];
     const events=new AbortController(),on=(element,type,handler)=>element.addEventListener(type,handler,{signal:events.signal});
     const cameraSelect=$('camera-mode'),cameraOptions=$('camera-options');
@@ -24,7 +26,7 @@
     showCamera(cameraPreset);
     on($('city'),'camera-detached',()=>showCamera(null));
     const setText=(id,text)=>$(id).textContent=text;
-    const treatments=root.MotorcycleTreatmentControls.create({view,getScene,getTime,command});
+    const treatments=root.MotorcycleTreatmentControls.create({view,getScene,getTime,command,isMeasurementCurrent:observerCurrent});
     function renderMarkers(){view.setReceiverMarkers(markers,selectedMarker);}
     function inspectMarker(id){
       inspectedLocation=null;selectedMarker=id;inspectedSource=null;placing=false;$('add-receiver').setAttribute('aria-pressed','false');
@@ -46,13 +48,14 @@
       }else if(inspectedLocation){
         const reading=lastObserver?.observer;
         setText('inspection-title',inspectedLocation.buildingId?'Building '+inspectedLocation.buildingId.replace('building-',''):'Observation point');setText('inspection-main',reading?reading.total.toFixed(1)+' dBA':'Measuring');
-        setText('inspection-detail',reading?reading.contributors.slice(0,3).map(row=>row.id.replace('motorcycle-','Motorcycle ')+' '+row.level.toFixed(0)+' dBA').join(' / '):'Waiting for sound at this viewpoint');
-        setText('inspection-time','Viewpoint microphone / '+inspectedLocation.z.toFixed(1)+' m high');
+        setText('inspection-detail',reading?`Outward ${level(reading.outward)} / facades ${level(reading.facade)} / panel returns ${level(reading.panelReturns)} / added directional sound ${level(reading.powered)}`:'Waiting for sound at this viewpoint');
+        setText('inspection-time',reading?`${observerCurrent()?'Sample':'Stale sample; updating'} at (${reading.point.x.toFixed(0)}, ${reading.point.y.toFixed(0)}), ${lastObserver.time.toFixed(2)} s. Coherent paths can reinforce or cancel; dBA values do not add.`:'Viewpoint microphone / '+inspectedLocation.z.toFixed(1)+' m high');
       }else if(inspectedSource){
         const source=scene.sources.find(item=>item.id===inspectedSource);if(!source)return;$('ride-selected').hidden=source.kind!=='motorcycle';
         const p=M.position(source,getTime());$('spray-selected').hidden=source.kind!=='motorcycle';$('spray-selected').textContent=$('spray-selected').dataset.preparing?'Preparing spray…':'Spray with mist';$('spray-selected').disabled=!!$('spray-selected').dataset.preparing||p.stalled||!!scene.mistBursts?.some(b=>b.sourceId===source.id&&getTime()>=b.start&&getTime()<b.end);setText('inspection-title',source.kind==='motorcycle'?`Motorcycle ${source.id.split('-').pop()}`:source.id);
         setText('inspection-main',p.stalled?'Engine stalled':`${(p.speed*3.6).toFixed(1)} km/h`);setText('inspection-detail',p.stalled?'0 RPM / engine off':`${Math.round(p.rpm)} RPM / ${M.sourceLevel(source,getTime()).toFixed(1)} dB at 1 m`);
-        setText('inspection-time',`${source.cylinders} cylinders / ${Math.round(p.rpm*source.cylinders/120)} Hz mean firing rate`);
+        const received=lastObserver?.observer.contributors.find(row=>row.id===source.id),point=lastObserver?.observer.point;
+        setText('inspection-time',received?`${observerCurrent()?'At sampled observer':'Stale observer sample; updating'} (${point.x.toFixed(0)}, ${point.y.toFixed(0)}), ${lastObserver.time.toFixed(2)} s: outward ${level(received.outward)} / facades ${level(received.facade)} / panel returns ${level(received.returned)} / combined paths ${level(received.pathTotal)}. Before powered treatment; dBA values do not add.`:'Waiting for this source’s contribution at the observer.');
       }
     }
     function showObserver(data){
@@ -109,7 +112,7 @@
         const observer=view.getObserver(),sampleTime=getTime(),key=JSON.stringify([sampleTime,observer,scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode]);
         if(key!==observerKey){
           onMeasurement('pending');
-          if(lastObserver&&measurements.observerKey(view.getObserver())!==measurements.observerKey(lastObserver.observer.point)){setText('observer-time','Updating viewpoint; showing the last completed reading');$('observer-level').title='Updating viewpoint; showing the last completed reading';}
+          if(lastObserver&&!observerCurrent()){setText('observer-time','Updating observer or treatment; showing the last completed reading');$('observer-level').title='Updating observer or treatment; showing the last completed reading';}
           observerKey=key;observerPending=true;observerNextAt=now+200;observerStarted=performance.now();
           observerIdentity=measurements.capture(epoch,observerRequest+1,sampleTime,measurements.observerKey(observer),configuration(scene));
           observerWorker.postMessage({type:'sample',identity:observerIdentity,id:++observerRequest,time:sampleTime,observer,config:scene.config,panel:scene.panel,treatments:scene.treatments,treatmentsEnabled:scene.treatmentsEnabled,treatmentMode:scene.treatmentMode});

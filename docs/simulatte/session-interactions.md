@@ -110,3 +110,17 @@ creates its existing provenance receipt. The accepted contribution remains
 unchanged. Browser preview acceptance requires the compositor to represent the
 alternative layer, not just report a completed calculation. Amber alternatives
 use a narrower comparison stroke over the accepted route when geometry coincides.
+
+GPU rack inspections list the racks currently waiting on the selected rack, from
+the workload's compute barrier. Restoring the rack releases that dependency when
+its remaining compute finishes. Link inspections identify connected racks and
+whether the executed collective stage uses the link.
+
+Motorcycle source inspections distinguish outward paths, facade reflections, and
+panel returns at the sampled observer. These coherent components do not add as
+dBA values. The existing original channel retains both outward and facade paths;
+the returned channel remains panel sound. Directional added sound is reported
+separately, and the total treatment change includes modeled tonal interference.
+Observer and treatment changes label retained readings stale until a matching
+measurement arrives. Reference tests compare components against sampled
+waveforms and directional sound against distance and A-weighting calculations.

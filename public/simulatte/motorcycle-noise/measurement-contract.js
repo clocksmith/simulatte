@@ -26,7 +26,10 @@
   }
   function accepts(received, expected, observation, configuration) {
     return !!received && !!expected && Object.keys(expected).every(k => received[k] === expected[k]) &&
-      expected.observationKey === key(observation) && expected.configurationKey === key(configuration);
+      matches(expected, observation, configuration);
   }
-  return Object.freeze({capture,accepts,observerKey,focusKey});
+  function matches(identity, observation, configuration) {
+    return !!identity && identity.observationKey === key(observation) && identity.configurationKey === key(configuration);
+  }
+  return Object.freeze({capture,accepts,matches,observerKey,focusKey});
 });

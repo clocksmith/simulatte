@@ -15,6 +15,15 @@ test('a moving tracked microphone retains identity until its subject or mode cha
  assert.equal(M.accepts(expected,expected,M.observerKey({...first,trackId:'m2'}),config),false);
  assert.equal(M.accepts(expected,expected,M.observerKey({...first,mode:'map'}),config),false);
 });
+test('displayed measurements distinguish matching values from changed observer and treatment drafts',()=>{
+ const point={x:1,y:2,z:3},config=[{background:40},[{id:'column',enabled:true}]];
+ const identity=M.capture(1,1,2,point,config);
+ assert.equal(M.matches(identity,{...point},structuredClone(config)),true);
+ assert.equal(M.matches(identity,{...point,x:5},config),false);
+ config[1][0].enabled=false;
+ assert.equal(M.matches(identity,point,config),false);
+ assert.equal(M.matches(null,point,config),false);
+});
 
 test('tracked sound maps retain sampled geometry while rejecting zoom and subject changes',()=>{
  const contract=require('../public/simulatte/motorcycle-noise/measurement-contract.js');

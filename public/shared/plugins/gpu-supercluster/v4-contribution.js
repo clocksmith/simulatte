@@ -29,6 +29,8 @@
     });
     const gpuById = new Map(topology.gpus.map((gpu) => [gpu.id, gpu]));
     const thermalByRack = new Map(thermals.racks.map((rack) => [rack.rackIndex, rack]));
+    const waitingByRack = new Map((workload?.racks || []).map(rack => [rack.id, []]));
+    for (const rack of workload?.racks || []) for (const dependency of rack.waitingFor) waitingByRack.get(dependency)?.push(rack.id);
     const rackLayers = topology.racks.map((rack) => {
       const thermal = thermalByRack.get(rack.rackIndex);
       const task = workload?.racks.find(row => row.id === rack.id);
@@ -158,13 +160,20 @@
       }, ...topology.links.filter(link=>link.type==='infiniband-rail').map(link=>({
         id:`${PLUGIN_ID}:inspection:${link.id}`,label:link.id,targetIds:[`link:${link.id}`],
         fields:[field('endpoints','Connects',`${link.sourceGpuId} → ${link.targetGpuId}`,null,modeled),
+          field('racks','Connected racks',`${gpuById.get(link.sourceGpuId).rackId} ↔ ${gpuById.get(link.targetGpuId).rackId}`,null,modeled),
           field('bandwidth','Modeled capacity',link.bandwidthGbps,'Gbps',modeled),
           field('work','Current transfers',(workload?.transfers||[]).filter(row=>row.id===link.id).map(row=>`${row.from} → ${row.to}: ${Math.round(row.progress*100)}%`).join('; ')||'No transfer at this simulation instant',null,modeled),
-          field('dependency','Dependency','Collective transfer follows the rack compute barrier.',null,modeled)]
+          field('dependency','Dependency',!workload ? 'Start the workload to inspect dependencies.' : workload.communicating
+            ? `${workload.communicationPhase === 'tensor' ? 'Tensor' : 'Data'} collective; ${workload.activeLinkIds.includes(link.id) ? 'this link is active' : 'this link is not used in the current stage'}.`
+            : `Compute barrier: ${workload.racks.filter(rack=>rack.work<1).map(rack=>rack.id).join(', ')} still computing.`,null,modeled)]
       })), ...(workload ? workload.racks.map(rack => ({
         id:`${PLUGIN_ID}:inspection:${rack.id}`, label:rack.id,targetIds:[`rack:${rack.id}`],
-        fields:[field('task','Task',rack.task,'task',modeled),field('work','Compute progress',Math.round(rack.work*100),'percent',modeled),
-          field('waiting-for','Waiting for',rack.waitingFor.join(', ') || (rack.task==='allreduce'?'Collective transfer':'Nothing'),'dependency',modeled),
+        fields:[field('task','Task',({forward:'Forward pass',backward:'Backward pass',waiting:'Waiting at compute barrier',allreduce:'Collective transfer'})[rack.task],null,modeled),
+          field('work','Compute progress',Math.round(rack.work*100),'percent',modeled),
+          field('waiting-for','Waiting for',rack.waitingFor.join(', ') || (rack.task==='allreduce'?'Collective transfer':'Nothing'),null,modeled),
+          field('blocking','Racks waiting on this rack',waitingByRack.get(rack.id).join(', ') || 'None',null,modeled),
+          field('phase','Iteration phase',workload.communicating ? `${workload.communicationPhase === 'tensor' ? 'Tensor' : 'Data'} collective, round ${workload.collectiveRound + 1}` : 'Compute; all racks must finish before transfer',null,modeled),
+          field('sample-time','Simulation time',workload.timeMs,'ms',modeled),
           field('slowdown','Slowdown',rack.slowdown,'percent',modeled),field('wait-ms','Synchronization wait',rack.waitMs,'ms',modeled)]
       })) : [])],
       provenanceRecords: records,
