@@ -35,6 +35,10 @@
     const latestCompletedSample = samples.at(-1) || null;
     const activeSample = latestCompletedSample || selected.samples[0];
     const exposureStatus = exposureSummaryApi.summarize(snapshot.state, latestCompletedSample);
+    const elapsed = exposureStatus.elapsedSeconds;
+    const context = `Now: ${exposureStatus.current.label}. Exposure so far: ${elapsed.toFixed(1)} s sampled · Unknown ${exposureStatus.seconds.unknown.toFixed(1)} s (${exposureStatus.percentages.unknown}%) · Night ${exposureStatus.seconds.night.toFixed(1)} s (${exposureStatus.percentages.night}%).`;
+    const measurement = (label, definition, timeBasis = 'accumulated') => ({label, subject:`Walker on ${selected.id}`, definition, timeBasis,
+      interval:{start:0,end:elapsed,unit:'seconds'}, validity:elapsed ? 'valid' : 'not-sampled', freshness:'current',context});
     const corridorIds = corridorBuildingIds(world, selected.samples, 220);
     const candidateBuildingIds = [
       ...selected.samples.filter((row) => row.occluderKind === 'building').map((row) => row.occluderId),
@@ -179,15 +183,15 @@
       previousStateId: step ? `${simulation.id}:step-${step - 1}` : null,
       eventIds: events.slice(0, step + 1).map((row) => row.id),
       measures: [
-        builder.quantity('progress', snapshot.state.progress, 'ratio', [0, 1]),
+        builder.quantity('progress', snapshot.state.progress, 'ratio', [0, 1], measurement('Walk completed', 'Completed route sampling progress. Playback speed changes presentation timing; walking speed changes modeled arrival times.')),
         builder.quantity('direct-sun', snapshot.state.directSunSeconds, 'seconds'),
         builder.quantity('shade', snapshot.state.shadeSeconds, 'seconds'),
         builder.quantity('unknown', snapshot.state.unknownSeconds, 'seconds'),
         builder.quantity('night', snapshot.state.nightSeconds, 'seconds'),
-        builder.quantity('direct-sun-share', exposureStatus.percentages.direct / 100, 'ratio', [0, 1]),
+        builder.quantity('direct-sun-share', exposureStatus.percentages.direct / 100, 'ratio', [0, 1], {...measurement('Sun so far', `${exposureStatus.seconds.direct.toFixed(1)} seconds / ${elapsed.toFixed(1)} completed sampled seconds. Includes declared canopy coverage; unknown and night remain in the denominator. Building geometry is reported separately. No UV dose or thermal-comfort calculation.`), detail:`${exposureStatus.seconds.direct.toFixed(1)} s`}),
         builder.quantity('unknown-share', exposureStatus.percentages.unknown / 100, 'ratio', [0, 1]),
         builder.quantity('night-share', exposureStatus.percentages.night / 100, 'ratio', [0, 1]),
-        builder.quantity('shade-share', exposureStatus.percentages.shade / 100, 'ratio', [0, 1]),
+        builder.quantity('shade-share', exposureStatus.percentages.shade / 100, 'ratio', [0, 1], {...measurement('Shade so far', `${exposureStatus.seconds.shade.toFixed(1)} seconds / ${elapsed.toFixed(1)} completed sampled seconds. Includes declared canopy coverage; unknown and night remain in the denominator. Building geometry is reported separately. No UV dose or thermal-comfort calculation.`), detail:`${exposureStatus.seconds.shade.toFixed(1)} s`}),
         builder.quantity('geometric-direct-sun-share', exposureStatus.geometricPercentages.direct / 100, 'ratio', [0, 1]),
         builder.quantity('geometric-shade-share', exposureStatus.geometricPercentages.shade / 100, 'ratio', [0, 1]),
         builder.quantity('adjusted-direct-beam-share', exposureStatus.adjustedDirectBeamPercent / 100, 'ratio', [0, 1]),
@@ -202,7 +206,7 @@
       controls,
       state,
       objects: layers.filter(layer => ['sun-walker-actor', 'sun-destination', 'shade-selected-route', 'fastest-route'].includes(layer.id) || layer.id.startsWith('sun-walked-segment-')).map(layer => ({
-        id: layer.id, label: layer.id === 'sun-walker-actor' ? 'Walker' : layer.label, inSelector: !layer.id.startsWith('sun-walked-segment-'),
+        id: layer.id, label: layer.id === 'sun-walker-actor' ? 'Walker' : layer.label, inSelector: !layer.id.startsWith('sun-walked-segment-'), selectionGroup:'sampled segments', condition: layer.id === 'sun-walker-actor' ? exposureStatus.current.label : layer.id.startsWith('sun-walked-segment-') ? 'Completed exposure sample' : 'Predicted whole route',
         description: layer.id.startsWith('sun-walked-segment-') ? 'Exposure is sampled at arrival time using modeled buildings and declared environmental coverage.' : 'Compare walking time, direct sun, and detour before choosing another walk.',
         hit: { shape: ['actor', 'point'].includes(layer.kind) ? 'point' : 'path', radiusPx: layer.kind === 'actor' ? 18 : 8, priority: layer.kind === 'actor' ? 100 : layer.kind === 'point' ? 90 : layer.id.startsWith('sun-walked-segment-') ? 50 : 30 },
         actions: ['sun-walker-actor', 'sun-destination', 'shade-selected-route', 'fastest-route'].includes(layer.id) ? [{
@@ -217,8 +221,8 @@
         label: 'Sun exposure comparison',
         targetIds: ['shade-selected-route','sun-walker-actor','sun-destination'],
         fields: [
-          field('chosen-time', 'Chosen route walking time', selected.metrics.travelSeconds, 'seconds', claim),
-          field('chosen-sun', 'Chosen route direct sun', selected.metrics.directSunSeconds, 'seconds', claim),
+          field('chosen-time', 'Predicted whole-route walking time', selected.metrics.travelSeconds, 'seconds', claim),
+          field('chosen-sun', 'Predicted whole-route direct sun', selected.metrics.directSunSeconds, 'seconds', claim),
           field('fastest-time', 'Fastest route walking time', fastest.metrics.travelSeconds, 'seconds', claim),
           field('progress', 'Route progress', snapshot.state.progress, 'ratio', claim),
           field('current-status', 'Current exposure', exposureStatus.current.label, null, claim),
@@ -267,15 +271,16 @@
       id, baseId: accepted.id, candidateId: candidate.selectedCandidateId, simulationId: candidate.id, controls: Object.fromEntries(contribution.controls.controls.map(row => [row.id, row.value])),
       provenanceRecords: contribution.provenanceRecords,
       presentation: { ...contribution.presentation, layers: [{ ...layer, id: targetId, label: 'Alternative walk · amber', quantity:{...layer.quantity,kind:`preview.${layer.quantity.kind}`}, role: 'comparison' }], viewIntents: [] },
-      objects: [{ id: targetId, label: 'Alternative walk', description: (next.id === current.id ? 'This preference selects the same route. Amber overlays the accepted green route.' : 'Amber is the alternative; green is the accepted route.') + ' Applying starts this identified walk from departure.',
+      objects: [{ id: targetId, label: 'Alternative walk', condition:`Extra walking: ${(next.metrics.travelSeconds-current.metrics.travelSeconds).toFixed(1)} s · Direct-sun time saved: ${(current.metrics.directSunSeconds-next.metrics.directSunSeconds).toFixed(1)} s · Unknown: ${next.metrics.unknownSeconds.toFixed(1)} s`, description: (next.id === current.id ? 'This preference selects the same route. Amber overlays the accepted green route.' : 'Amber is the alternative; green is the accepted route.') + ' Applying starts this identified walk from departure.',
         hit: { shape: 'path', radiusPx: 8, priority: 70 }, actions: [{ id: 'apply', label: 'Apply and restart', targetId, available: true,
           execution: 'restart', command: 'sun-walker.accept-preview', prepared: true, afterApplyTargetId: 'sun-walker-actor', values: { previewId: id }, proposedChange: 'Use the displayed alternative walk.' }] }],
       inspections: [{ id: 'preview-route-comparison', label: 'Alternative walk', targetIds: [targetId], fields: [
         field('preview-time', 'Alternative walking time', next.metrics.travelSeconds, 'seconds', claim),
         field('preview-sun', 'Alternative direct sun', next.metrics.directSunSeconds, 'seconds', claim),
         field('preview-detour', 'Alternative detour', next.metrics.addedTimeSeconds, 'seconds', claim),
-        field('time-difference', 'Walking time difference', next.metrics.travelSeconds - current.metrics.travelSeconds, 'seconds', claim),
-        field('sun-difference', 'Direct sun difference', next.metrics.directSunSeconds - current.metrics.directSunSeconds, 'seconds', claim),
+        field('time-difference', 'Extra walking time', next.metrics.travelSeconds - current.metrics.travelSeconds, 'seconds', claim),
+        field('sun-difference', 'Direct-sun time saved', current.metrics.directSunSeconds - next.metrics.directSunSeconds, 'seconds', claim),
+        field('preview-unknown', 'Alternative unknown coverage', next.metrics.unknownSeconds, 'seconds', claim),
         field('detour-difference', 'Detour difference', next.metrics.addedTimeSeconds - current.metrics.addedTimeSeconds, 'seconds', claim),
         field('route-choice', 'Route choice', next.id === current.id ? 'The same route remains best for this preference.' : 'The objective selects a different eligible route.', null, claim),
       ] }],

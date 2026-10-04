@@ -82,7 +82,7 @@
       "path": "./receipt-factory.js"
     },
     {
-      "integrity": "sha384-bac41e2daf62bb40904d93f23b0e51ebbdb2ab84e49002c5f3663ee6b95e8964898d530a32a0e7e2ec724c8e31e253cd",
+      "integrity": "sha384-2e4c2a7e08b68cc6403fd59df5d1efd25f9db914f3f0da82f26496e7ce8d4d844a800e546ff48dc7f2b50e61603a481e",
       "path": "./v4-contribution.js"
     },
     {

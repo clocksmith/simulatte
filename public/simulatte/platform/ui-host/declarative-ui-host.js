@@ -588,10 +588,11 @@
     more.addEventListener('click', () => { includeAll = !includeAll; more.setAttribute('aria-pressed', String(includeAll)); render(lastRender); });
     close.addEventListener('click', () => onSelect(null)); header.append(select, more, close);
     const body = doc.createElement('div'); body.hidden = true;
-    const title = doc.createElement('strong'), explanation = doc.createElement('p'), facts = doc.createElement('dl');
+    const title = doc.createElement('strong'), condition = doc.createElement('p'), explanation = doc.createElement('p'), facts = doc.createElement('dl');
+    const details = doc.createElement('details'), detailLabel = doc.createElement('summary'); detailLabel.textContent = 'Detailed quantities'; details.append(detailLabel, facts);
     const actions = doc.createElement('div'); actions.className = 'sim-object-actions';
     const message = doc.createElement('p'); message.setAttribute('role', 'status');
-    body.append(title, explanation, actions, message, facts); root.append(header, body); host.append(root);
+    body.append(title, condition, actions, message, explanation, details); root.append(header, body); host.append(root);
     const cells = new Map(), buttons = new Map(); let optionsKey = '', busy = false, current = null, selectionRevision = 0;
     select.addEventListener('change', () => onSelect(select.value || null));
     async function act(id) {
@@ -612,6 +613,7 @@
         const { objects: allObjects, selectedId, label, description, prompt = 'Select an object…', fields = [], actions: nextActions = [] } = input;
         const objects = allObjects.filter(row => includeAll || row.inSelector !== false || row.id === selectedId);
         more.hidden = !allObjects.some(row => row.inSelector === false);
+        more.textContent = `${includeAll ? 'Hide' : 'Show'} ${[...new Set(allObjects.filter(row => row.inSelector === false).map(row => row.selectionGroup || 'more objects'))].join(' and ')}`;
         if (current?.selectedId !== selectedId) { selectionRevision++; busy = false; message.textContent = ''; body.scrollTop = 0; }
         current = { actions: nextActions, selectedId };
         const key = objects.map(row => row.id).join('|');
@@ -625,7 +627,7 @@
         close.hidden = !selectedId;
         if (doc.activeElement !== select && select.value !== (selectedId || '')) select.value = selectedId || ''; body.hidden = !selectedId;
         if (!selectedId) return;
-        title.textContent = label; explanation.textContent = description;
+        title.textContent = label; condition.textContent = allObjects.find(row => row.id === selectedId)?.condition || ''; explanation.textContent = description;
         const ids = new Set(fields.map(row => row.id));
         for (const [id, cell] of cells) if (!ids.has(id)) { cell.node.remove(); cells.delete(id); }
         for (const field of fields) {

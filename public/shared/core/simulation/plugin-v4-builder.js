@@ -191,8 +191,8 @@
     return value.startsWith('sha256-') ? value.slice('sha256-'.length) : value;
   }
 
-  function quantity(kind, value, unit, domain = null) {
-    return deepFreeze({ kind, value: finiteValue(value, kind), unit, domain });
+  function quantity(kind, value, unit, domain = null, measurement = null) {
+    return deepFreeze({ kind, value: finiteValue(value, kind), unit, domain, ...(measurement ? { measurement } : {}) });
   }
 
   function layer({
@@ -250,7 +250,7 @@
     return deepFreeze(value);
   }
 
-  function presentation({ pluginId, coordinateSystem, epoch = null, layers = [], viewIntents = [], sun = null }) {
+  function presentation({ pluginId, coordinateSystem, epoch = null, layers = [], viewIntents = [], sun = null, layouts = null }) {
     const value = {
       schema: 'simulatte.pluginPresentation.v4',
       pluginId,
@@ -259,6 +259,7 @@
       layers,
       viewIntents,
       sun,
+      ...(layouts ? {layouts} : {}),
     };
     contracts.validatePresentation(value);
     return deepFreeze(value);

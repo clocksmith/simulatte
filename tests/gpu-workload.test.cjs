@@ -136,3 +136,24 @@ test('torus layout preserves physical links and stable rack identities across tr
    }
  }
 });
+
+test('measurements disclose their subject, interval and validity; physical layouts retain every entity',()=>{
+ const api=require('../public/shared/plugins/gpu-supercluster/v4-contribution.js'),state=workload.create(result);
+ const initial=api.createContribution({result,workload:workload.snapshot(state)});
+ const measure=(c,kind)=>c.state.measures.find(row=>row.kind===kind);
+ assert.equal(measure(initial,'compute-efficiency').measurement.validity,'not-sampled');
+ assert.equal(measure(initial,'facility-power-kw').measurement.timeBasis,'configured');
+ workload.intervene(state,'R1-1',95);advance(state,8);
+ const active=api.createContribution({result,workload:workload.snapshot(state)});
+ assert.deepEqual(measure(active,'compute-efficiency').measurement.interval,{start:0,end:8,unit:'ms'});
+ assert.match(measure(active,'compute-efficiency').measurement.definition,/divided by rack count/);
+ assert.equal(active.objects.find(row=>row.id==='rack:R1-1').relatedIds.length,result.topology.racks.length-1);
+ for(const layout of active.presentation.layouts){
+   assert.deepEqual(layout.geometries.map(row=>row.id),active.presentation.layers.map(row=>row.id));
+   if(layout.id==='physical')for(const rack of result.topology.racks)assert.deepEqual(layout.geometries.find(row=>row.id==='rack:'+rack.id).geometry.coordinates[0],[rack.xM,rack.yM,rack.zM]);
+ }
+ const invalid=structuredClone(active);measure(invalid,'compute-efficiency').measurement.interval.start=9;
+ assert.throws(()=>require('../public/simulatte/platform/contracts/plugin-v4-contracts.js').validateContribution(invalid),/interval/);
+ const incomplete=structuredClone(active);incomplete.presentation.layouts[0].geometries.pop();
+ assert.throws(()=>require('../public/simulatte/platform/contracts/plugin-v4-contracts.js').validateContribution(incomplete),/incomplete/);
+});

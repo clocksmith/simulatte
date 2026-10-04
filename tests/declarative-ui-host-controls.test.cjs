@@ -619,6 +619,6 @@ test('secondary objects stay accessible without changing the primary menu during
   doc.activeElement=select;select.value='';render();
   assert.equal(select.value,'','Measurement update must not reset native keyboard navigation');
   assert.equal(select.children[1],option);
-  find(host,node=>node.textContent==='All').dispatch('click');assert.equal(select.children.length,3);
-  find(host,node=>node.textContent==='All').dispatch('click');assert.equal(select.children.length,2);
+  find(host,node=>node.textContent==='Show more objects').dispatch('click');assert.equal(select.children.length,3);
+  find(host,node=>node.textContent==='Hide more objects').dispatch('click');assert.equal(select.children.length,2);
 });

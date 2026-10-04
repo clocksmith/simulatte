@@ -180,3 +180,9 @@ City is shared world data and simulation substrate, not another experience.
 Blank is a separate product and has its own audit.
 Safety Explorer source and historical documentation remain in the repository,
 but it is not connected to the public profile or plugin registries.
+
+## Measurement meaning and alternate layouts
+
+Quantities may declare `measurement` with `label`, `subject`, `definition`, `timeBasis` (`instant`, `accumulated`, `prediction`, `configured`), `interval` (`start`, `end`, `unit`), `validity` (`valid`, `not-sampled`, `unavailable`), `freshness` (`current`, `pending`, `stale`), and concise `context`. Optional `detail` supplies a domain-owned companion value, such as accumulated seconds beside a percentage. The owning plugin supplies these fields; shared readouts format them and disclose definitions on selection. Numeric placeholders with `not-sampled` validity display as “Not sampled”. Existing quantities without descriptors remain supported.
+
+Presentation `layouts` optionally declares `{id, label, coordinateSystem, geometries}` alternatives. Every geometry entry `{id, geometry}` resolves exactly one existing layer; alternatives preserve the complete layer identity set. Layout selection is an observation command, never a model configuration change. Objects may declare `condition`, `selectionGroup`, and `relatedIds` for current condition, secondary selector wording, and selected-only dependency emphasis.

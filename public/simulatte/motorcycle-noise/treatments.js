@@ -1,7 +1,7 @@
 (function(root){
   'use strict';
   const M=root.MotorcycleReflection;
-  const kinds={mist:{name:'Water mist',color:'#b8deec'},directional:{name:'Directional sound',color:'#f1be79'},cancellation:{name:'Tonal cancellation',color:'#c2b5ec'}};
+  const kinds={mist:{name:'Fictional vehicle event',color:'#b8deec'},directional:{name:'Directional speaker · Add sound',color:'#f1be79'},cancellation:{name:'Local cancellation',color:'#c2b5ec'}};
   const db=power=>10*Math.log10(Math.max(1e-12,power));
   function weight(hz){const f2=hz*hz;return 20*Math.log10(Math.max(1e-12,12194**2*f2*f2/((f2+20.6**2)*Math.sqrt((f2+107.7**2)*(f2+737.9**2))*(f2+12194**2))))+2;}
   // Explicit fictional interaction, not a calibrated water/engine relationship.
@@ -23,7 +23,7 @@
       let target=null,score=-Infinity;
       for(const source of scene.sources){if(source.kind!=='motorcycle')continue;const point=M.position(source,Math.max(0,time-.02)),distance=M.dist(node,point);if(distance>(node.kind==='mist'?60:100))continue;
         const level=M.sourceLevel(source,time)-20*Math.log10(Math.max(1,distance));if(level>score){score=level;target={source,point,distance};}}
-      const enabled=node.enabled!==false&&scene.treatmentsEnabled!==false&&(scene.treatmentMode!=='cancellation'||node.kind==='cancellation');
+      const enabled=(node.kind!=='mist'||scene.fictionalEventsEnabled===true)&&node.enabled!==false&&scene.treatmentsEnabled!==false&&(scene.treatmentMode!=='cancellation'||node.kind==='cancellation');
       let frequency=node.frequency||500,harmonic=null;
       if(node.kind==='cancellation'&&target){M.pressure(target.source,time);harmonic=target.source.harmonics.reduce((a,b)=>a.re*a.re+a.im*a.im>b.re*b.re+b.im*b.im?a:b);frequency=harmonic.n*target.point.rpm/120;}
       return {...node,enabled,target,frequency,harmonic,active:enabled&&(node.kind==='mist'||!!target)};
@@ -71,5 +71,32 @@
     for(const[id,g]of groups){const change=g.re*g.re+g.im*g.im-g.power;delta+=change;adjustments.set(id,Math.sqrt(Math.max(0,g.energy+change)/Math.max(1e-12,g.energy)));}
     return {powerDelta:added+delta,emittedPower:added,tones,adjustments,details};
   }
-  root.MotorcycleTreatments={kinds,states,evaluate,planSpray,mistRules};
+  function edit(scene, input) {
+    const before = {treatments:structuredClone(scene.treatments || []), treatmentMode:scene.treatmentMode, treatmentsEnabled:scene.treatmentsEnabled};
+    const next = structuredClone(before), action = input.action;
+    let id = input.id, sequence = scene.treatmentSequence || 0;
+    if (action === 'add') {
+      if (!Object.hasOwn(kinds,input.kind)) throw Error('Unsupported treatment');
+      if (input.kind === 'mist' && !scene.fictionalEventsEnabled) throw Error('Enable the fictional vehicle event demonstration first.');
+      if (next.treatments.length >= 8) throw Error('Eight objects placed; remove one before adding another.');
+      const p = input.point;
+      if (!p || !['x','y','z'].every(k => Number.isFinite(p[k])) || p.z < 0 || p.z > 1000 || (scene.acousticContext.occupied(p) && input.surface !== 'rooftop')) throw Error('Choose an open sidewalk or rooftop.');
+      do { id = 'treatment-' + ++sequence; } while(next.treatments.some(row => row.id === id));
+      next.treatments.push({id,kind:input.kind,x:p.x,y:p.y,z:p.z,frequency:500,enabled:true});
+      next.treatmentMode='live'; next.treatmentsEnabled=true;
+    } else {
+      const node = next.treatments.find(row => row.id === id);
+      if (!node) throw Error('Selected treatment no longer exists.');
+      if (action === 'toggle') node.enabled = node.enabled === false;
+      else if (action === 'frequency') {
+        if (node.kind !== 'directional' || ![125,500,2000].includes(Number(input.value))) throw Error('Choose 125, 500, or 2000 Hz.');
+        node.frequency=Number(input.value);
+      } else if(action === 'remove') next.treatments=next.treatments.filter(row => row.id !== id);
+      else throw Error('Unsupported treatment edit');
+    }
+    // Publish only after all validation; failed edits leave the scene untouched.
+    Object.assign(scene,next,{treatmentSequence:sequence});
+    return {id,before};
+  }
+  root.MotorcycleTreatments={kinds,states,evaluate,planSpray,mistRules,edit};
 })(globalThis);

@@ -135,7 +135,8 @@
 
   function validateQuantity(value, label) {
     object(value, 'plugin_v4_quantity_invalid', `${label} expected an object`);
-    exactKeys(value, ['kind', 'value', 'unit', 'domain'], label);
+    allowedKeys(value, ['kind', 'value', 'unit', 'domain', 'measurement'], ['kind', 'value', 'unit', 'domain'], label);
+    if (value.measurement !== undefined) validateMeasurement(value.measurement, label);
     text(value.kind, 'plugin_v4_quantity_text_invalid', `${label} kind`);
     finite(value.value, -Number.MAX_VALUE, Number.MAX_VALUE, 'plugin_v4_quantity_value_invalid', `${label} value`);
     text(value.unit, 'plugin_v4_quantity_text_invalid', `${label} unit`);
@@ -144,6 +145,20 @@
         fail('plugin_v4_quantity_domain_invalid', `${label} domain expected an ascending finite pair`, { domain: value.domain });
       }
     }
+  }
+
+  function validateMeasurement(value, label) {
+    object(value, 'measurement_invalid', label);
+    allowedKeys(value, ['label', 'subject', 'definition', 'timeBasis', 'interval', 'validity', 'freshness', 'context', 'detail'], ['label', 'subject', 'definition', 'timeBasis', 'interval', 'validity', 'freshness', 'context'], label);
+    if(value.detail !== undefined)text(value.detail,'measurement_text_invalid',label);
+    for (const key of ['label', 'subject', 'definition', 'context']) text(value[key], 'measurement_text_invalid', `${label} ${key}`);
+    for (const [key, choices] of Object.entries({ timeBasis:['instant','accumulated','prediction','configured'], validity:['valid','not-sampled','unavailable'], freshness:['current','pending','stale'] })) {
+      if (!choices.includes(value[key])) fail('measurement_semantics_invalid', `${label} ${key}`, value[key]);
+    }
+    exactKeys(value.interval, ['start', 'end', 'unit'], label);
+    finite(value.interval.start, 0, Number.MAX_SAFE_INTEGER, 'measurement_interval_invalid', label);
+    finite(value.interval.end, value.interval.start, Number.MAX_SAFE_INTEGER, 'measurement_interval_invalid', label);
+    text(value.interval.unit, 'measurement_interval_invalid', label);
   }
 
   function validateTemporalExtent(value, label) {
@@ -239,7 +254,17 @@
 
   function validatePresentation(value, label = 'Presentation') {
     object(value, 'plugin_v4_presentation_invalid', `${label} expected an object`);
-    allowedKeys(value, ['schema', 'pluginId', 'coordinateSystem', 'epoch', 'layers', 'viewIntents', 'sun'], ['schema', 'pluginId', 'coordinateSystem', 'epoch', 'layers', 'viewIntents'], label);
+    allowedKeys(value, ['schema', 'pluginId', 'coordinateSystem', 'epoch', 'layers', 'viewIntents', 'sun', 'layouts'], ['schema', 'pluginId', 'coordinateSystem', 'epoch', 'layers', 'viewIntents'], label);
+    if(value.layouts !== undefined) {
+      array(value.layouts, 'presentation_layouts_invalid', label); unique(value.layouts.map(row=>row.id), 'presentation_layout_duplicate', label);
+      for(const layout of value.layouts){
+        exactKeys(layout,['id','label','coordinateSystem','geometries'],label);
+        for(const k of ['id','label','coordinateSystem'])text(layout[k],'presentation_layout_invalid',k);
+        array(layout.geometries,'presentation_layout_invalid',label);unique(layout.geometries.map(row=>row.id),'presentation_layout_duplicate',label);
+        if(layout.geometries.length!==value.layers.length)fail('presentation_layout_incomplete',label);
+        for(const row of layout.geometries){exactKeys(row,['id','geometry'],label);if(!value.layers.some(layer=>layer.id===row.id))fail('presentation_layout_identity_invalid',row.id);validateGeometry(row.geometry);if(row.geometry.coordinateSystem!==layout.coordinateSystem)fail('presentation_layout_coordinates_invalid',row.id);}
+      }
+    }
     equal(value.schema, 'simulatte.pluginPresentation.v4', 'plugin_v4_presentation_schema_invalid', `${label} schema`);
     text(value.pluginId, 'plugin_v4_presentation_plugin_invalid', `${label} pluginId`);
     text(value.coordinateSystem, 'plugin_v4_coordinate_system_invalid', `${label} coordinateSystem`);
@@ -425,8 +450,10 @@
     unique(objects.map(row => row.id), 'plugin_object_duplicate', label);
     const layers = new Set(presentation.layers.map(row => row.id));
     for (const row of objects) {
-      allowedKeys(row, ['id', 'label', 'description', 'hit', 'actions', 'inSelector'], ['id', 'label', 'description', 'hit', 'actions'], 'Interaction object');
+      allowedKeys(row, ['id', 'label', 'description', 'hit', 'actions', 'inSelector', 'selectionGroup', 'condition', 'relatedIds'], ['id', 'label', 'description', 'hit', 'actions'], 'Interaction object');
+      for (const key of ['selectionGroup','condition']) if (row[key] !== undefined) text(row[key], 'plugin_object_text_invalid', key);
       if (row.inSelector !== undefined && typeof row.inSelector !== 'boolean') fail('plugin_object_selector_invalid', row.id);
+      if(row.relatedIds !== undefined){array(row.relatedIds,'plugin_object_relations_invalid',label);for(const id of row.relatedIds)if(!layers.has(id))fail('plugin_object_relation_missing',id);}
       if (!layers.has(row.id)) fail('plugin_object_layer_missing', row.id);
       text(row.label, 'plugin_object_label_invalid', label);
       text(row.description, 'plugin_object_description_invalid', label);

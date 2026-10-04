@@ -29,7 +29,9 @@
         }
         entry.body.position=vector(row);entry.badge.position=vector({...row,z:row.z+3.5});
         const d=B.Vector3.Distance(scene.activeCamera.globalPosition,entry.body.position);entry.badge.scaling.setAll(Math.max(.65,Math.min(45,d*.012)));entry.body.scaling.setAll(Math.max(1,d*.003));entry.material.alpha=row.active?.85:.3;
-        entry.path.setEnabled(row.active&&!!row.target&&(selected===row.id||d<100));
+        entry.path.setEnabled(row.active&&!!row.target&&selected===row.id);
+        entry.badge.setEnabled(selected===row.id);
+        entry.body.rotation.z=row.kind==='directional'?Math.PI/2:0;
         if(row.target)B.MeshBuilder.CreateLines('treatment-path',{points:[vector(row),vector(row.target.point)],instance:entry.path},scene);
         if(row.kind==='mist'){
           const spraying=!!row.burst&&row.active,hit=row.target?.point;

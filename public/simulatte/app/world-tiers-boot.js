@@ -328,13 +328,13 @@
         if(!objectInteraction)objectInteraction=root.SimulatteObjectInteraction.create({
           host:elements.overlayCanvas.parentElement,canvas:elements.overlayCanvas,getSession:()=>session,
           onPreviewChange:()=>renderPlugins(),
-          projectObjects:contribution=>root.SimulatteObjectInteraction.objectsFor(contribution).map(row=>{
+          projectObjects:source=>{const contribution={...source,presentation:tierVisualizer.presentationFor(source.presentation)};return root.SimulatteObjectInteraction.objectsFor(contribution).map(row=>{
             const geometry=(contribution.presentation.layers.find(layer=>layer.id===row.hit.layerId)||row.layer).geometry;
             const points=geometry.coordinates.filter(Array.isArray).map(point=>root.SimulatteTierPluginPresentation.projectPoint(point,contribution.presentation.coordinateSystem,{...tierVisualizer,bounds:tierVisualizer.data?.bounds,projectCountry:(x,y,bounds)=>tierVisualizer.projectCountryPoint(x,y,bounds)}));
             return {id:row.id,points,depth:-Math.max(...points.filter(Boolean).map(point=>point.depth||0)),bounds:row.hit.shape==='bounds'&&points[0]?(contribution.presentation.coordinateSystem === 'cluster-network-layout'
               ? root.SimulatteTierRenderers.networkRackBounds(row.layer.geometry.coordinates[0],point=>tierVisualizer.projectCoordinatePoint(point,'cluster-network-layout'))
               : root.SimulatteTierRenderers.datacenterMarkerBounds(points[0],tierVisualizer.zoom)):null};
-          }),
+          });},
           onInsets:panel=>{
             const insets=root.SimulatteCameraFit.measureInsets(elements.overlayCanvas.getBoundingClientRect(),[{edge:'bottom',rect:panel.getBoundingClientRect()}]);
             if(JSON.stringify(insets)===JSON.stringify(tierVisualizer.sceneInsets))return;
@@ -343,6 +343,13 @@
           },
         });
         objectInteraction.update(ownerContribution);
+        tierVisualizer.relatedRackIds=ownerContribution.objects?.find(row=>row.id===objectInteraction.selected())?.relatedIds || [];
+        const camera=document.getElementById('camera-controls');
+        if(!ownerContribution.presentation.layouts)for(const button of camera.querySelectorAll('[data-presentation-layout]'))button.remove();
+        if(ownerContribution.presentation.layouts && !camera.querySelector('[data-presentation-layout]')){
+          for(const layout of ownerContribution.presentation.layouts){const button=document.createElement('button');button.type='button';button.dataset.presentationLayout=layout.id;button.textContent=layout.label;button.addEventListener('click',()=>session.invoke('layout',layout.id).catch(()=>{}));camera.append(button);}
+        }
+        for(const button of camera.querySelectorAll('[data-presentation-layout]'))button.setAttribute('aria-pressed',String(button.dataset.presentationLayout===(tierVisualizer.presentationLayout||'network')));
       }
       pluginUi.render(runtime.views(context),platform.contributions);
       const controlCount=platform.contributions.reduce((total,contribution)=>total+contribution.controls.controls.length,0);
@@ -482,12 +489,13 @@
       (root.SimulatteAutonomyRuntimeLog||root.SimulatteRuntimeLog)?.error?.('tier.run.failed',{message:error.message,code:error.code||null});
     }
     function focusObject(owner,id){
-      const layer=(objectInteraction?.presentation()||lastPluginContributions.find(row=>row.pluginId===owner)?.presentation)?.layers.find(row=>row.id===id);
+      const presentation=tierVisualizer.presentationFor(objectInteraction?.presentation()||lastPluginContributions.find(row=>row.pluginId===owner)?.presentation);
+      const layer=presentation?.layers.find(row=>row.id===id);
       if(!layer)return;
       viewDirector?.setManualOverride({mode:'free',targetIds:[id]});
       tierVisualizer.setViewMode('free');selectTierViewMode('free');
       const contribution=lastPluginContributions.find(row=>row.pluginId===owner);
-      tierVisualizer.fitPluginPresentationTarget({id,coordinates:layer.geometry.coordinates,center:layer.geometry.coordinates[0],bounds:{minX:Math.min(...layer.geometry.coordinates.map(p=>p[0])),maxX:Math.max(...layer.geometry.coordinates.map(p=>p[0])),minY:Math.min(...layer.geometry.coordinates.map(p=>p[1])),maxY:Math.max(...layer.geometry.coordinates.map(p=>p[1]))}},contribution.presentation.coordinateSystem);
+      tierVisualizer.fitPluginPresentationTarget({id,coordinates:layer.geometry.coordinates,center:layer.geometry.coordinates[0],bounds:{minX:Math.min(...layer.geometry.coordinates.map(p=>p[0])),maxX:Math.max(...layer.geometry.coordinates.map(p=>p[0])),minY:Math.min(...layer.geometry.coordinates.map(p=>p[1])),maxY:Math.max(...layer.geometry.coordinates.map(p=>p[1]))}},presentation.coordinateSystem);
     }
     async function previewControls(owner,values,operation){
       const scenario=structuredClone(activeScenario);
@@ -516,7 +524,8 @@
           {id:'seek',serial:true,category:'reproduction',perform:value=>runController.seek(value)},
           {id:'speed',category:'execution',perform:value=>runController.setPlaybackRate(value)},
           {id:'camera',category:'observation',perform:mode=>applyTierCamera(mode,true)},
-          {id:'select-object',category:'observation',perform:id=>{objectInteraction.select(id);tierVisualizer.selectedRack=id?.startsWith('rack:')?id.slice(5):null;}},
+          {id:'layout',category:'observation',perform:id=>{const p=lastPluginContributions.find(row=>row.pluginId===owner)?.presentation;if(!p?.layouts?.some(row=>row.id===id))throw Error('Unsupported layout');tierVisualizer.presentationLayout=id;renderPlugins();applyTierCamera('overview',true);}},
+          {id:'select-object',category:'observation',perform:id=>{objectInteraction.select(id);tierVisualizer.selectedRack=id?.startsWith('rack:')?id.slice(5):null;tierVisualizer.relatedRackIds=lastPluginContributions.find(row=>row.pluginId===owner)?.objects?.find(row=>row.id===id)?.relatedIds||[];}},
           {id:'focus-object',category:'observation',perform:id=>focusObject(owner,id)},
           {id:'preview-controls',category:'observation',perform:(values,operation)=>previewControls(owner,values,operation)},
           {id:'pause',category:'execution',perform:()=>runController.pause()},

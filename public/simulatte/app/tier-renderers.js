@@ -517,12 +517,12 @@
     const half = rows => { const hull=[]; for(const p of rows){while(hull.length>1&&cross(hull.at(-2),hull.at(-1),p)<=0)hull.pop();hull.push(p);}return hull.slice(0,-1); };
     return [...half(points),...half([...points].reverse())];
   }
-  function drawNetworkRack(ctx, marker, project, selected) {
+  function drawNetworkRack(ctx, marker, project, selected, related) {
     if (!marker.quantityKind.startsWith('workload-rack-') && marker.quantityKind !== 'modeled-rack-temperature') return false;
     const task=marker.quantityKind.slice(14), tone=({forward:'#4de8ff',backward:'#8fffb5',waiting:'#ffb347',allreduce:'#c384ff'})[task] || '#4de8ff';
     ctx.save();
     const faces=networkRackFaces(marker.position,project);
-    faces.forEach((face,index)=>polygon(ctx,face,index<3?'#101a25':'#203142',selected?'#ffffff':tone,selected?2:1));
+    faces.forEach((face,index)=>polygon(ctx,face,index<3?'#101a25':'#203142',selected?'#ffffff':related?'#ffb347':tone,selected||related?2:1));
     // Server shelves occupy real 3D rack faces and rotate with the object.
     const [x,y,z]=marker.position;
     for(const side of [-1,1]) for(let slot=0;slot<6;slot++){
@@ -531,7 +531,7 @@
     }
     const anchor=project([x,y,z+.64]);
     ctx.textAlign='center';ctx.font='600 10px system-ui';ctx.fillStyle=selected?'#ffffff':'#c9d6e2';
-    ctx.fillText(marker.label.replace('Rack ',''),anchor.x,anchor.y);
+    if(selected||related)ctx.fillText(marker.label.replace('Rack ',''),anchor.x,anchor.y);
     ctx.restore();return true;
   }
 
@@ -551,7 +551,7 @@
     if (!task && marker.quantityKind !== 'modeled-rack-temperature') return false;
     const { width, height, depth } = datacenterMarkerSize(zoom);
     const temperature = Number(marker.quantityValue);
-    const heat = task ? ({forward:'#4de8ff',backward:'#8fffb5',waiting:'#ffb347',allreduce:'#c384ff'}[task] || '#4de8ff') : temperature >= 80 ? '#ff5c66' : temperature >= 65 ? '#ffb347' : '#4de8ff';
+    const heat = marker.related ? '#ffb347' : task ? ({forward:'#4de8ff',backward:'#8fffb5',waiting:'#ffb347',allreduce:'#c384ff'}[task] || '#4de8ff') : temperature >= 80 ? '#ff5c66' : temperature >= 65 ? '#ffb347' : '#4de8ff';
     ctx.save();
     ctx.shadowBlur = marker.selected ? 6 : 0;
     ctx.shadowColor = heat;
@@ -585,7 +585,7 @@
     ctx.font = '600 8px "IBM Plex Mono", monospace';
     ctx.textAlign = 'center'; ctx.fillStyle = heat;
     const [id, temperatureLabel] = marker.label.split(' · ');
-    if (width >= 18) ctx.fillText(id, point.x, point.y + height / 2 - 4);
+    if (width >= 18 && (marker.selected || marker.related)) ctx.fillText(id, point.x, point.y + height / 2 - 4);
     if (task) {
       ctx.fillStyle=heat;ctx.fillRect(point.x-width/2,point.y+height/2+2,width*Math.max(0,Math.min(1,temperature/100)),2);
     } else if (temperatureLabel) {

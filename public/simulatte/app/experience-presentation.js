@@ -4,7 +4,7 @@
   root.SimulatteExperiencePresentation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createExperiencePresentation() {
   const MEASURE_LABELS = Object.freeze({
-    'compute-efficiency': 'Compute efficiency',
+    'compute-efficiency': 'Productive compute share',
     'executed-compute-tflops': 'Compute (PFLOP/s)',
     'facility-power-kw': 'Facility power (est.)',
     'direct-sun-share': 'Sun so far',
@@ -61,25 +61,21 @@
       progress,
       comparison: comparisonStatus(experience.comparisonMode, runState, comparisonReceipts),
       stats: Object.freeze(stats),
-      measurementContext: measurementContext(primary),
+      measurementContext: measures.find(row => row.measurement)?.measurement.context || 'Modeled results at the current simulation time.',
+      statDefinitions: Object.fromEntries(measures.filter(row => row.measurement).map(row => [row.measurement.label, measurementDefinition(row)])),
     });
   }
 
-  function measurementContext(primary) {
-    if (primary?.pluginId === 'gpu-supercluster') return 'Torus view of the node ring · Cyan: forward · Green: backward · Amber: waiting · Violet: transfer. Compute averaged since start; power estimated.';
-    if (primary?.pluginId === 'sun-walker') {
-      const measures = primary.state?.measures || [];
-      const share = kind => formatMeasure(measures.find(row => row.kind === kind) || { value: 0, unit: 'ratio' });
-      return `Time in modeled sun/shade over the completed walk · Unknown ${share('unknown-share')} · Night ${share('night-share')}`;
-    }
-    return 'Modeled results at the current simulation time.';
+  function measurementDefinition(row) {
+    const m = row.measurement;
+    return `${m.subject}. ${m.definition} ${m.timeBasis}: ${m.interval.start}–${m.interval.end} ${m.interval.unit}. ${m.validity}; ${m.freshness}. Unit: ${row.unit}.`;
   }
 
   function selectedMeasures(measures, kinds, pluginId) {
     const byKind = new Map(measures.map((measure) => [measure.kind, measure]));
     return Object.fromEntries([...new Set(kinds)].flatMap((kind) => {
       const measure = byKind.get(kind);
-      return measure ? [[(kind === 'progress' && pluginId === 'sun-walker' ? 'Walk completed' : MEASURE_LABELS[kind]) || humanize(kind), formatMeasure(measure)]] : [];
+      return measure ? [[(measure.measurement?.label || MEASURE_LABELS[kind]) || humanize(kind), formatMeasure(measure)]] : [];
     }));
   }
 
@@ -125,9 +121,11 @@
   }
 
   function formatMeasure(measure) {
+    if (measure.measurement?.validity === 'not-sampled') return 'Not sampled';
+    if (measure.measurement?.validity === 'unavailable') return 'Unavailable';
     const value = Number(measure.value);
     if (Number.isFinite(value) && ['ratio', 'probability', 'fraction'].includes(String(measure.unit).toLowerCase())) {
-      return `${(value * 100).toLocaleString('en-US', { maximumFractionDigits: 1 })}%`;
+      return `${(value * 100).toLocaleString('en-US', { maximumFractionDigits: 1 })}%${measure.measurement?.detail ? ' / ' + measure.measurement.detail : ''}`;
     }
     const formatted = !Number.isFinite(value)
       ? String(measure.value)

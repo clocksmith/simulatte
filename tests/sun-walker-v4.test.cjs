@@ -355,7 +355,7 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.equal(composition.primitives.find(row=>row.id===prepared.presentation.layers[0].id).style.color,'#ffbd66');
 
   const differences = Object.fromEntries(prepared.inspections[0].fields.map(row=>[row.id,row.value]));
-  assert.ok(differences['sun-difference']>0, 'Fastest alternative increases direct-sun exposure in this reference scene');
+  assert.ok(differences['sun-difference']<0, 'Negative direct-sun time saved means the fastest alternative increases exposure');
   assert.ok(differences['time-difference']<0, 'Fastest alternative saves walking time');
   assert.notEqual(prepared.candidateId,state.simulation.selectedCandidateId);
   const shown = instance.contributeV4();

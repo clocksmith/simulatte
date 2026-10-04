@@ -23,15 +23,18 @@
     const events=new AbortController(),on=(element,type,handler)=>element.addEventListener(type,handler,{signal:events.signal});
     const cameraSelect=$('camera-mode'),cameraOptions=$('camera-options');
     let cameraPreset=initialObservation?.cameraPreset??cameraSelect.value;
-    cameraOptions.replaceChildren(...Array.from(cameraSelect.options,option=>{
+    const groups={Locations:document.createElement('fieldset'),Views:document.createElement('fieldset')};
+    for(const [name,group] of Object.entries(groups)){const legend=document.createElement('legend');legend.textContent=name;group.append(legend);}
+    Array.from(cameraSelect.options,option=>{
       const button=document.createElement('button');button.type='button';button.textContent=option.textContent;
       button.dataset.cameraMode=option.value;button.dataset.ready='';button.disabled=true;
       on(button,'click',()=>{command('camera',option.value);$('motorcycle-camera-menu').open=false;});
-      return button;
-    }));
+      groups[option.value.startsWith('area:')||option.value==='map'?'Locations':'Views'].append(button);
+    });
+    cameraOptions.replaceChildren(...Object.values(groups));
     function showCamera(mode){
       cameraPreset=mode;cameraSelect.value=mode||'';
-      for(const button of cameraOptions.children)button.setAttribute('aria-pressed',String(button.dataset.cameraMode===mode));
+      for(const button of cameraOptions.querySelectorAll('button'))button.setAttribute('aria-pressed',String(button.dataset.cameraMode===mode));
     }
     showCamera(cameraPreset);
     on($('city'),'camera-detached',()=>showCamera(null));
@@ -41,10 +44,10 @@
     function inspectMarker(id){
       inspectedLocation=null;selectedMarker=id;inspectedSource=null;placing=false;$('add-receiver').setAttribute('aria-pressed','false');
       $('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=false;
-      const marker=markers.find(item=>item.id===id);if(marker){view.placeObserver(marker,marker.z>4?'rooftop':'sidewalk');showCamera(marker.z>4?'rooftop':'sidewalk');}
+      $('focus-observer').hidden=false;
       renderMarkers();paint();nextAt=0;
     }
-    function inspectSource(id){inspectedLocation=null;selectedMarker=null;inspectedSource=id;selectSource(id);$('inspection').hidden=false;$('source-actions').hidden=false;$('receiver-actions').hidden=true;renderMarkers();paint();}
+    function inspectSource(id){$('focus-observer').hidden=true;inspectedLocation=null;selectedMarker=null;inspectedSource=id;selectSource(id);$('inspection').hidden=false;$('source-actions').hidden=false;$('receiver-actions').hidden=true;renderMarkers();paint();}
     function paint(){
       const scene=getScene();if(!scene)return;
       const counts={motorcycle:0,car:0,pedestrian:0};let moving=0;
@@ -57,31 +60,32 @@
         setText('inspection-detail',reading?acousticSummary(reading):'Waiting for a sample at this marker');
         setText('inspection-time',reading?`${current?'Sample':'Stale sample; updating'} at (${reading.point.x.toFixed(0)}, ${reading.point.y.toFixed(0)}), ${lastReading.time.toFixed(2)} s / ${reading.point.z.toFixed(1)} m high. dBA values do not add.`:`Observer ${marker.z.toFixed(1)} m high`);
       }else if(inspectedLocation){
-        const reading=lastObserver?.observer;
-        setText('inspection-title',inspectedLocation.buildingId?'Building '+inspectedLocation.buildingId.replace('building-',''):'Observation point');setText('inspection-main',reading?reading.total.toFixed(1)+' dBA':'Measuring');
-        setText('inspection-detail',reading?acousticSummary(reading):'Waiting for sound at this viewpoint');
-        setText('inspection-time',reading?`${observerCurrent()?'Sample':'Stale sample; updating'} at (${reading.point.x.toFixed(0)}, ${reading.point.y.toFixed(0)}), ${lastObserver.time.toFixed(2)} s. Coherent paths can reinforce or cancel; dBA values do not add.`:'Viewpoint microphone / '+inspectedLocation.z.toFixed(1)+' m high');
+        const observer=lastObserver?.observer;const reading=observer&&Math.hypot(observer.point.x-inspectedLocation.x,observer.point.y-inspectedLocation.y)<1&&Math.abs(observer.point.z-inspectedLocation.z)<.1?observer:null;
+        setText('inspection-title',inspectedLocation.buildingId?'Building '+inspectedLocation.buildingId.replace('building-',''):'Observation point');setText('inspection-main',reading?reading.total.toFixed(1)+' dBA':'Not sampled');
+        setText('inspection-detail',reading?'Sound received at this sampled position.':'Select Focus here to move the observer and sample sound at this position.');
+        setText('inspection-time',reading?`${acousticSummary(reading)}. ${observerCurrent()?'Sample':'Stale sample; updating'} at (${reading.point.x.toFixed(0)}, ${reading.point.y.toFixed(0)}), ${lastObserver.time.toFixed(2)} s. Coherent paths can reinforce or cancel; dBA values do not add.`:'Viewpoint microphone / '+inspectedLocation.z.toFixed(1)+' m high');
       }else if(inspectedSource){
         const source=scene.sources.find(item=>item.id===inspectedSource);if(!source)return;$('ride-selected').hidden=source.kind!=='motorcycle';
-        const p=M.position(source,getTime());$('spray-selected').hidden=source.kind!=='motorcycle';$('spray-selected').textContent=$('spray-selected').dataset.preparing?'Preparing spray…':'Spray with mist';$('spray-selected').disabled=!!$('spray-selected').dataset.preparing||p.stalled||!!scene.mistBursts?.some(b=>b.sourceId===source.id&&getTime()>=b.start&&getTime()<b.end);setText('inspection-title',source.kind==='motorcycle'?`Motorcycle ${source.id.split('-').pop()}`:source.id);
-        setText('inspection-main',p.stalled?'Engine stalled':`${(p.speed*3.6).toFixed(1)} km/h`);setText('inspection-detail',p.stalled?'0 RPM / engine off':`${Math.round(p.rpm)} RPM / ${M.sourceLevel(source,getTime()).toFixed(1)} dB at 1 m`);
+        const p=M.position(source,getTime());$('spray-selected').hidden=source.kind!=='motorcycle'||!scene.fictionalEventsEnabled;$('spray-selected').textContent=$('spray-selected').dataset.preparing?'Preparing spray…':'Run fictional stall';$('spray-selected').disabled=!!$('spray-selected').dataset.preparing||p.stalled||!!scene.mistBursts?.some(b=>b.sourceId===source.id&&getTime()>=b.start&&getTime()<b.end);setText('inspection-title',source.kind==='motorcycle'?`Motorcycle ${source.id.split('-').pop()}`:source.id);
+        setText('inspection-main',p.stalled?'Engine stalled':`${(p.speed*3.6).toFixed(1)} km/h`);setText('inspection-detail',p.stalled?'0 RPM / engine off':`${Math.round(p.rpm)} RPM / ${M.sourceLevel(source,getTime()).toFixed(1)} dB(Z) source emission at 1 metre`);
         setText('inspection-time',sourceInspection(lastObserver,source.id,observerCurrent()));
       }
     }
     function showObserver(data){
       const reading=data.observer;if(!reading)return;treatments.observe(data);
-      root.motorcycleMeasurementReceipt={identity:data.identity,latencyMs:data.latencyMs,workerMs:data.workerMs,coverage:reading.coverage,model:reading.model,observer:structuredClone(reading)};
-      if(history.length&&data.time<history[history.length-1].time)history=[];
-      history.push({time:data.time,level:reading.total,point:reading.point});if(history.length>80)history.shift();
+      root.motorcycleMeasurementReceipt={identity:data.identity,latencyMs:data.latencyMs,workerMs:data.workerMs,coverage:reading.coverage,model:reading.model,observer:structuredClone(reading),measures:measurements.describe(data)};
+      history=measurements.appendHistory(history,data);
       setText('observer-level',`${reading.total.toFixed(1)} dBA`);
+      setText('observer-traffic',`${reading.traffic.toFixed(1)} dBA`);setText('observer-background',`${data.background.toFixed(1)} dBA`);
+      const descriptor=measurements.describe(data)[0].measurement;setText('observer-definition',`${descriptor.subject}. ${descriptor.definition} ${descriptor.context}.`);
       $('observer-level').title=`Measured at simulation time ${data.time.toFixed(1)} s`;
       setText('observer-position',`${reading.point.mode||'Observer'} / ${reading.point.z.toFixed(1)} m high`);
       onMeasurement('fresh');lastObserver=data;if(inspectedLocation)paint();
-      setText('observer-time',`Traffic ${reading.traffic.toFixed(1)} / background ${data.background.toFixed(1)} dBA`);
+      setText('observer-time',`Fresh sample · ${data.time.toFixed(2)} s`);
       root.MotorcycleTrafficAudio?.observe(data);
       const canvas=$('observer-history'),ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
       ctx.strokeStyle='#8da595';ctx.lineWidth=.5;for(const level of [40,80,120]){const y=canvas.height-(level-20)/120*canvas.height;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
-      ctx.strokeStyle='#c6e5aa';ctx.lineWidth=2;ctx.beginPath();history.forEach((row,i)=>{const x=i/79*canvas.width,y=canvas.height-Math.max(0,Math.min(1,(row.level-20)/120))*canvas.height;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+      ctx.strokeStyle='#c6e5aa';ctx.lineWidth=2;ctx.beginPath();history.forEach((row,i)=>{const x=(row.time-history[0].time)/Math.max(.001,history.at(-1).time-history[0].time)*canvas.width,y=canvas.height-Math.max(0,Math.min(1,(row.level-20)/120))*canvas.height;i&&!row.breakBefore?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();setText('history-interval',`${history[0]?.time.toFixed(2)}–${history.at(-1)?.time.toFixed(2)} simulation seconds / dBA. Gaps mark changed observer or treatments.`);
     }
     function init(scene){
       worker?.terminate();observerWorker?.terminate();observerPending=false;observerNextAt=0;observerKey='';lastObserver=null;root.motorcycleMeasurementReceipt=null;root.motorcycleMapMeasurementReceipt=null;world=scene;pending=false;lastRequestKey='';nextAt=0;lastReading=null;history=[];epoch++;const generation=epoch;
@@ -116,8 +120,11 @@
       const scene=getScene();if(!scene)return;if(world!==scene)init(scene);treatments.update(now);if(now-lastPaint>=300){lastPaint=now;paint();}
       if(lastObserver){
         const age=Math.max(0,getTime()-lastObserver.time);
-        setText('observer-position',lastObserver.observer.point.mode+' / '+lastObserver.observer.point.z.toFixed(1)+' m high / sampled '+lastObserver.time.toFixed(1)+' s'+(age>.7?' ('+age.toFixed(1)+' s behind)':''));
+        if(root.motorcycleMeasurementReceipt)root.motorcycleMeasurementReceipt.measures=lastObserver.observer?measurements.describe(lastObserver).map(row=>({...row,measurement:{...row.measurement,freshness:observerCurrent()&&age<=.7?'current':'stale'}})):[];
+        setText('observer-position',`${lastObserver.observer.point.mode} (${lastObserver.observer.point.x.toFixed(0)}, ${lastObserver.observer.point.y.toFixed(0)}) · ${lastObserver.observer.point.z.toFixed(1)} m high`);
       }
+      const tracked=view.getObserver().trackId;$('camera-tracking').hidden=!tracked;setText('camera-subject',tracked?`Following ${tracked}`:'');
+      if(lastObserver)setText('observer-time',`${observerCurrent()?'Sample':'Stale; updating'} · ${lastObserver.time.toFixed(2)} s${getTime()-lastObserver.time>.7?' · behind playback':''}${getScene().mistBursts?.length?' · Fictional event run':''}`);
       if(!observerPending&&now>=observerNextAt&&!document.hidden){
         const observer=view.getObserver(),sampleTime=getTime(),key=JSON.stringify([sampleTime,observer,scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode]);
         if(key!==observerKey){
@@ -143,20 +150,24 @@
         if(markers.length>=8){setText('live-summary','Eight markers placed; remove one to add another');return true;}
         const id=nextId++,marker={id:`receiver-${id}`,name:`Observer ${id}`,...value.point};markers.push(marker);inspectMarker(marker.id);return true;
       }
-      if(value.point){onMeasurement('stale');inspectedLocation={...value.point,buildingId:value.buildingId||null};selectedMarker=null;inspectedSource=null;view.placeObserver(value.point,value.surface||'sidewalk');showCamera(value.surface||'sidewalk');$('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=true;renderMarkers();paint();nextAt=0;observerNextAt=0;return true;}
+      if(value.point){inspectedLocation={...value.point,buildingId:value.buildingId||null};selectedMarker=null;inspectedSource=null;$('focus-observer').hidden=false;inspectedLocation.surface=value.surface||'sidewalk';$('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=true;renderMarkers();paint();nextAt=0;observerNextAt=0;return true;}
       return false;
     }
     on($('area-focus'),'change',event=>{if(event.target.value==='McCarren Park')view.homePark();else if(event.target.value)view.focus(event.target.value);showCamera(event.target.value==='McCarren Park'?'map':'area:'+event.target.value);nextAt=0;observerNextAt=0;});
     function setCamera(mode){
-      if(mode==='map')view.homePark();
+      if(mode==='follow'){follow();return;}
+      if(mode==='overview')view.setCameraMode('map');
+      else if(mode==='map')view.homePark();
       else if(mode.startsWith('area:'))view.focus(mode.slice(5));
       else {
         if(mode==='rider'&&!inspectedSource){const id=view.nearestMotorcycle();if(id)selectSource(id);}
-        view.setCameraMode(mode);
+        view.setCameraMode(mode,inspectedSource||getSelected()||view.nearestMotorcycle());
       }
-      showCamera(mode);nextAt=0;observerNextAt=0;onMeasurement('stale');
+      showCamera(mode);nextAt=0;observerNextAt=0;onMeasurement('stale');setText('observer-time','Stale sample; updating observer');
     }
-    function follow(){ showCamera(null);view.focusSource(inspectedSource||getSelected());nextAt=0;onMeasurement('stale'); }
+    function follow(){ showCamera('follow');view.focusSource(inspectedSource||getSelected()||view.nearestMotorcycle());nextAt=0;onMeasurement('stale'); }
+    on($('focus-observer'),'click',()=>command('focus-observer'));
+    on($('exit-follow'),'click',()=>command('camera','overview'));
     on($('camera-mode'),'change',event=>command('camera',event.target.value));
     on($('add-receiver'),'click',()=>{placing=!placing;$('add-receiver').setAttribute('aria-pressed',String(placing));setText('live-summary',placing?'Click a sidewalk or roof to place an observation marker':'Live sound estimate');});
     on($('inspection-close'),'click',()=>{inspectedLocation=null;selectedMarker=null;inspectedSource=null;$('inspection').hidden=true;renderMarkers();});
@@ -165,7 +176,7 @@
     on($('follow-selected'),'click',()=>command('follow'));
     on($('spray-selected'),'click',()=>command('mist-spray',{sourceId:inspectedSource}));
     on($('live-overlay'),'change',()=>view.showMeasurements($('live-overlay').checked?lastReading:null,'total'));
-    return {setCamera,follow,followSpray(id){showCamera(null);view.focusSource(id,true);},refreshScene(){initialObservation=this.captureObservation();init(getScene());},treatment:input=>{treatments.apply(input);paint();onMeasurement('stale');},captureObservation(){if(!world)return null;return structuredClone({markers,nextId,selectedMarker,inspectedSource,inspectedLocation,cameraPreset});},update,pick,resetClock(){pending=false;observerPending=false;requestId++;observerRequest++;nextAt=0;observerNextAt=0;lastRequestKey='';observerKey='';lastReading=null;lastObserver=null;root.motorcycleMeasurementReceipt=null;root.motorcycleMapMeasurementReceipt=null;history=[];view.showMeasurements(null);},dispose(){treatments.dispose();epoch++;events.abort();worker?.terminate();observerWorker?.terminate();view.setReceiverMarkers([],null);}};
+    return {setCamera,follow,focusObserver(){const point=inspectedLocation||markers.find(row=>row.id===selectedMarker);if(point){view.placeObserver(point,point.surface||(point.z>4?'rooftop':'sidewalk'));showCamera(point.z>4?'rooftop':'sidewalk');onMeasurement('stale');setText('observer-time','Stale sample; updating observer');nextAt=0;observerNextAt=0;}},followSpray(id){showCamera(null);view.focusSource(id,true);},refreshScene(){initialObservation=this.captureObservation();init(getScene());},treatment:input=>{treatments.apply(input);paint();onMeasurement('stale');},captureObservation(){if(!world)return null;return structuredClone({markers,nextId,selectedMarker,inspectedSource,inspectedLocation,cameraPreset});},update,pick,resetClock(){pending=false;observerPending=false;requestId++;observerRequest++;nextAt=0;observerNextAt=0;lastRequestKey='';observerKey='';lastReading=null;lastObserver=null;root.motorcycleMeasurementReceipt=null;root.motorcycleMapMeasurementReceipt=null;history=[];view.showMeasurements(null);},dispose(){treatments.dispose();epoch++;events.abort();worker?.terminate();observerWorker?.terminate();view.setReceiverMarkers([],null);}};
   }
   root.MotorcycleExplorer={create,acousticSummary,sourceInspection};
 })(globalThis);

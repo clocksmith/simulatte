@@ -76,8 +76,8 @@
       this.pluginLayer = tierPresentation?.createLayer({
         drawMarker: (ctx, point, marker) => this.currentTier === 'datacenter'
           && (this.nativeCoordinateSystems?.includes('cluster-network-layout')
-            ? tierRenderers.drawNetworkRack(ctx, marker, position => this.projectCoordinatePoint(position, 'cluster-network-layout'), marker.id === `gpu-supercluster:rack:${this.selectedRack}` || marker.id === `rack:${this.selectedRack}`)
-            : tierRenderers.drawDatacenterMarker(ctx, point, {...marker,selected:marker.id.includes(`rack:${this.selectedRack}`)}, this.zoom)),
+            ? tierRenderers.drawNetworkRack(ctx, marker, position => this.projectCoordinatePoint(position, 'cluster-network-layout'), marker.id === `gpu-supercluster:rack:${this.selectedRack}` || marker.id === `rack:${this.selectedRack}`, this.relatedRackIds?.some(id=>marker.id.endsWith(id)))
+            : tierRenderers.drawDatacenterMarker(ctx, point, {...marker,selected:marker.id === `gpu-supercluster:rack:${this.selectedRack}` || marker.id === `rack:${this.selectedRack}`,related:this.relatedRackIds?.some(id=>marker.id.endsWith(id))}, this.zoom)),
         width: () => this.width, height: () => this.height, pan: (dx, dy) => { this.panX += dx; this.panY += dy; },
         fit: (target, system) => this.fitPluginPresentationTarget(target, system),
         view: () => ({
@@ -693,6 +693,7 @@
             ? (target?.coordinates || []).flatMap(point => tierRenderers.networkRackCoordinates(point))
             : target?.coordinates || [],
           coordinateSystem,
+          padding: coordinateSystem === 'datacenter-cartesian-meters' ? 48 : 32,
           width: this.width,
           height: this.height,
           rotX: this.rotX,
@@ -721,7 +722,15 @@
       return 2 * earthRadius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
+    presentationFor(presentation) {
+      const layout=presentation.layouts?.find(row=>row.id===this.presentationLayout);
+      if(!layout)return presentation;
+      const geometries=new Map(layout.geometries.map(row=>[row.id,row.geometry]));
+      return {...presentation,coordinateSystem:layout.coordinateSystem,layers:presentation.layers.map(row=>({...row,geometry:geometries.get(row.id)||row.geometry}))};
+    }
+
     setPluginPresentations(contributions, options = {}) {
+      contributions=contributions.map(row=>({...row,presentation:this.presentationFor(row.presentation)}));
       this.pluginInputs = [contributions, options];
       if(this.currentTier==='datacenter'){
         const layers=contributions.find(row=>row.pluginId==='gpu-supercluster')?.presentation.layers||[];

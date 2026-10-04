@@ -151,6 +151,8 @@ test('side metrics replace the previous experience rows instead of retaining sta
     dataset: {},
     hidden: false,
     textContent: '',
+    addEventListener() {}, setAttribute() {},
+    get firstElementChild() { return this.children[0]; },
     append(...children) { for(const child of children) child.parent=this; this.children.push(...children); },
     get lastElementChild() { return this.children.at(-1); },
     remove() { this.parent.children=this.parent.children.filter(child=>child!==this); },
@@ -198,7 +200,7 @@ test('side metrics replace the previous experience rows instead of retaining sta
   assert.equal(elements.experienceSummary.dataset.experienceId, 'asteroid-defense-v1');
   assert.equal(elements.experienceSummaryTitle.textContent, 'Asteroid Defense');
   assert.equal(elements.experienceSummaryStats.children.length, 1);
-  assert.equal(elements.experienceSummaryStats.children[0].children[0].textContent, 'Encounter Distance');
+  assert.equal(elements.experienceSummaryStats.children[0].children[0].firstElementChild.textContent, 'Encounter Distance');
   assert.equal(elements.experienceSummaryStats.children[0].children[1].textContent, '42,000 km');
   assert.equal(elements.experienceSummaryComparison.hidden, true);
 });

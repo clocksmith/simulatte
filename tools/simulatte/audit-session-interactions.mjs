@@ -101,6 +101,14 @@ async function pixelEvidence(screenshot, { sparse = false } = {}) {
     && (!sparse || evidence.visibleObjects >= 2), 'Scene pixel and geometry evidence: '+JSON.stringify(evidence));
   return evidence;
 }
+async function largeTextCheck(selectors) {
+  return evaluate(`(()=>{
+    const nodes=[...document.querySelectorAll(${JSON.stringify(selectors)})].filter(el=>el.getBoundingClientRect().width>0);
+    const old=nodes.map(el=>el.style.fontSize);nodes.forEach(el=>el.style.fontSize=(parseFloat(getComputedStyle(el).fontSize)*1.5)+'px');
+    const results=nodes.map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent,left:r.left,right:r.right,width:r.width,viewport:innerWidth};});
+    nodes.forEach((el,i)=>el.style.fontSize=old[i]);return results;
+  })()`);
+}
 async function journey(route, prefix) {
   const row = { route, steps: [] }; report.routes.push(row);
   await client.send('Page.navigate', { url: baseUrl + route });
@@ -131,10 +139,22 @@ async function journey(route, prefix) {
   assert.ok(row.readouts.visible,'Primary model readouts must be visible with Advanced closed');
   assert.equal(row.readouts.values.length,3,'Exactly three distinct primary measurements');
   assert.equal(new Set(row.readouts.values.map(([label])=>label)).size,3);
+  await click('#experience-summary-stats .measurement-definition');
+  assert.ok(await evaluate(`document.querySelector('#experience-summary-stats > div').dataset.expanded==='true'`));
+  assert.ok(row.readouts.model.some(m=>m.measurement?.timeBasis==='accumulated'));
+  await click('#experience-summary-stats .measurement-definition');
   if(route.includes('gpu-')) {
     assert.ok(row.readouts.selectedCount<row.readouts.totalObjects,'Secondary links are out of the primary rack menu');
     assert.ok(row.readouts.objectLabels.slice(1).every(label=>/^Rack R[0-9]+-[0-9]+$/.test(label)),'Rack names exclude live percentages');
     assert.equal(row.readouts.values[0][1],row.readouts.model.find(m=>m.kind==='compute-efficiency').value.toFixed(2)+'%');
+    const layoutBefore=await snapshot();
+    await invoke('layout','physical');const physical=await snapshot();assert.deepEqual(physical.model,layoutBefore.model);assert.equal(physical.selected,layoutBefore.selected);
+    assert.equal(await evaluate(`document.querySelector('[data-presentation-layout=physical]').getAttribute('aria-pressed')`),'true');
+    await evaluate(`new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`);
+    row.physicalBounds=await evaluate(`(()=>{const c=document.getElementById('overlay-canvas');return {width:c.clientWidth,height:c.clientHeight,targets:c.__simulatteObjectTargets().filter(row=>row.id.startsWith('rack:'))};})()`);
+    assert.ok(row.physicalBounds.targets.every(target=>(target.bounds||target.points).every(p=>p.x>=0&&p.x<=row.physicalBounds.width&&p.y>=0&&p.y<=row.physicalBounds.height)),'All physical racks fit the canvas');
+    const physicalShot=await client.send('Page.captureScreenshot',{format:'png'});row.physicalScreenshot=route.replaceAll('/','-')+'-physical.png';await fs.writeFile(path.join(out,row.physicalScreenshot),Buffer.from(physicalShot.data,'base64'));
+    await invoke('layout','network');assert.deepEqual((await snapshot()).model,layoutBefore.model);
     const orbitBefore=await snapshot();
     const drag=await evaluate(`(()=>{const r=document.getElementById('overlay-canvas').getBoundingClientRect();return{x:r.right-100,y:r.top+70};})()`);
     await client.send('Input.dispatchMouseEvent',{type:'mousePressed',...drag,button:'left',clickCount:1});
@@ -148,6 +168,8 @@ async function journey(route, prefix) {
     for(const [label,kind] of [['Sun so far','direct-sun-share'],['Shade so far','shade-share'],['Walk completed','progress']])
       assert.equal(row.readouts.values.find(([key])=>key===label)[1],await evaluate(`SimulatteExperiencePresentation.formatMeasure(${JSON.stringify(row.readouts.model.find(m=>m.kind===kind))})`));
   }
+  row.largeText=await largeTextCheck('.simulation-viewbar button, .simulation-viewbar summary, .measurement-definition');
+  assert.ok(row.largeText.every(r=>r.left>=0 && r.right<=r.viewport),'Large text keeps public controls within the viewport');
   const overviewShot=await client.send('Page.captureScreenshot',{format:'png'});
   row.overviewScreenshot=route.replaceAll('/','-')+'-overview.png';await fs.writeFile(path.join(out,row.overviewScreenshot),Buffer.from(overviewShot.data,'base64'));
   const selectionCamera=await snapshot();
@@ -346,6 +368,8 @@ async function motorcycleJourney(){
   assert.equal((await read()).time,paused.time);
   row.toolbar=await evaluate(`(() => {const bar=document.querySelector('.city-toolbar').getBoundingClientRect(),meter=document.querySelector('.observer-readout').getBoundingClientRect();return {bottom:bar.bottom,meterTop:meter.top};})()`);
   assert.ok(row.toolbar.bottom<=(mobile?220:180) && row.toolbar.meterTop>=row.toolbar.bottom,'Compact controls leave the meter and scene clear: '+JSON.stringify(row.toolbar));
+  row.largeText=await largeTextCheck('.city-toolbar button:not([hidden]), .city-toolbar summary');
+  assert.ok(row.largeText.every(r=>r.left>=0 && r.right<=r.viewport),'Large text keeps Motorcycle controls within the viewport');
   row.steps.push('camera presets open on demand and preserve traffic time');
   const target=await evaluate(`(() => {const canvas=document.getElementById('city'),rect=canvas.getBoundingClientRect();return SimulatteMotorcycleController.interactionTargets().map(p=>({...p,x:p.x+rect.left,y:p.y+rect.top})).find(p=>document.elementFromPoint(p.x,p.y)===canvas);})()`);
   assert.ok(target,'A directly visible motorcycle is required');
@@ -369,22 +393,33 @@ async function motorcycleJourney(){
   const sourceReading=row.sourceInspection.sample.observer.contributors.find(row=>row.id===id);
   assert.ok(Number.isFinite(sourceReading.outward) && Number.isFinite(sourceReading.pathTotal));
   assert.ok(row.sourceInspection.text.includes(sourceReading.outward.toFixed(1)+' dBA'));
-  row.steps.push('selected motorcycle; follow and onboard preserve traffic time');
+  const onboard=(await read()).observer;
+  const other=(await read()).motorcycles.find(source=>source.id!==id).id;
+  await call('select-object',{sourceId:other});
+  await evaluate(`new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`);
+  assert.equal((await read()).selected,other);
+  assert.deepEqual((await read()).observer,onboard,'Selecting another bike must not change the onboard microphone');
+  await call('select-object',{sourceId:id});
+  row.steps.push('selected motorcycle; follow and onboard preserve traffic time and tracked identity');
   const placement=await evaluate(`SimulatteMotorcycleController.placementPoint(SimulatteMotorcycleController.sourcePosition(${JSON.stringify(id)}))`);
   await evaluate(`document.querySelector('[data-add-treatment="directional"]').click()`);
   await call('select-object',{point:placement,surface:'sidewalk'});
+  await wait(`SimulatteMotorcycleSession.snapshot().pending.length===0 && SimulatteMotorcycleController.snapshot().treatments.length>0`);
   const treatment=(await read()).treatments.at(-1);
   assert.ok(treatment,'Directional treatment is required for the observer consequence check');
   await call('technique','live');
   await wait(`motorcycleMeasurementReceipt?.observer.treatments.some(t=>t.id===${JSON.stringify(treatment.id)} && t.active)`);
   const targetId=await evaluate(`motorcycleMeasurementReceipt.observer.treatments.find(t=>t.id===${JSON.stringify(treatment.id)}).targetId`);
   const aim=await evaluate(`SimulatteMotorcycleController.sourcePosition(${JSON.stringify(targetId)})`);
+  const beforePointSelection=(await read()).observer;
   await call('select-object',{point:{x:treatment.x+(aim.x-treatment.x)*.2,y:treatment.y+(aim.y-treatment.y)*.2,z:1.7},surface:'sidewalk'});
+  const observerBeforeFocus=(await read()).observer;assert.deepEqual(observerBeforeFocus,beforePointSelection,'Selection alone cannot move the microphone');await call('focus-observer');
+  assert.notDeepEqual((await read()).observer,observerBeforeFocus,'Focus explicitly moves the microphone');
   await wait(`SimulatteMotorcycleSession.snapshot().measurement==='fresh' && motorcycleMeasurementReceipt?.observer.treatments.some(t=>t.id===${JSON.stringify(treatment.id)} && t.active && t.received>-80)`);
   const measured=await evaluate(`structuredClone(motorcycleMeasurementReceipt)`);
-  row.observerBreakdown=await evaluate(`document.getElementById('inspection-detail').textContent`);
+  row.observerBreakdown=await evaluate(`document.getElementById('inspection-time').textContent`);
   if(measured.observer.panelReturns===null)assert.ok(row.observerBreakdown.includes('panel returns none'),'Absent panel sound is not a numeric floor');
-  await call('select-object',{treatmentId:treatment.id});await call('treatment',{action:'toggle'});
+  await call('select-object',{treatmentId:treatment.id});await call('treatment',{action:'toggle',id:treatment.id});
   await wait(`SimulatteMotorcycleSession.snapshot().measurement==='fresh' && motorcycleMeasurementReceipt?.observer.treatments.some(t=>t.id===${JSON.stringify(treatment.id)} && !t.active)`);
   const disabled=await evaluate(`structuredClone(motorcycleMeasurementReceipt)`);
   assert.deepEqual(disabled.observer.point,measured.observer.point);
@@ -396,9 +431,13 @@ async function motorcycleJourney(){
   assert.ok(measured.observer.treatmentChangeDb>disabled.observer.treatmentChangeDb);
   row.treatmentConsequence={enabled:measured,disabled};
   row.steps.push('identified observer loses the selected powered contribution while original and returned sound remain unchanged');
+  await call('undo-treatment');await wait(`motorcycleMeasurementReceipt?.observer.total===${measured.observer.total}`);
+  assert.equal((await read()).time,paused.time,'Undo does not restart traffic');
+  assert.equal(await evaluate(`document.getElementById('fictional-events').checked`),false);
+  assert.equal(await evaluate(`SimulatteMotorcycleSession.invoke('mist-spray',{sourceId:${JSON.stringify(id)}}).then(()=>false,error=>error.message.includes('Enable'))`),true,'Fictional stall requires explicit opt-in');
   const prior=(await read()).observer;
   await call('camera','map');
-  row.staleObserverText=await evaluate(`SimulatteMotorcycleSession.invoke('select-object',${JSON.stringify({point:{x:prior.x+8,y:prior.y+8,z:1.7},surface:'sidewalk'})}).then(()=>document.getElementById('inspection-time').textContent)`);
+  row.staleObserverText=await evaluate(`SimulatteMotorcycleSession.invoke('select-object',${JSON.stringify({point:{x:prior.x+8,y:prior.y+8,z:1.7},surface:'sidewalk'})}).then(()=>SimulatteMotorcycleSession.invoke('focus-observer')).then(()=>document.getElementById('observer-time').textContent)`);
   assert.ok(row.staleObserverText.includes('Stale sample; updating'),'Old observer measurement is visibly stale immediately after moving');
   assert.equal((await read()).time,paused.time);
   assert.notDeepEqual((await read()).observer,prior);
@@ -431,7 +470,23 @@ async function motorcycleJourney(){
   row.pixels=await pixelEvidence(screenshot);
   await fs.writeFile(path.join(out,'motorcycle.png'),Buffer.from(screenshot.data,'base64'));row.screenshot='motorcycle.png';
   await call('replay');row.replay=await read();assert.ok(paused.scenarioSeed);assert.equal(row.replay.scenarioSeed,paused.scenarioSeed);assert.ok(row.replay.time<1);
-  row.steps.push('paused, resumed and replayed identified traffic');row.status='pass';
+  row.steps.push('paused, resumed and replayed identified traffic');
+  await evaluate(`SimulatteMotorcycleSession.invoke('configure',{...MotorcycleReflection.defaults,motorcycles:3,cars:1,pedestrians:0}).then(()=>true)`);
+  await call('pause');await call('fictional-events',true);
+  const fictionalId=(await read()).motorcycles[0].id;
+  await call('mist-spray',{sourceId:fictionalId});
+  const burst=(await read()).mistBursts[0];await call('seek',burst.contact+4);
+  assert.equal((await read()).motorcycles.find(source=>source.id===fictionalId).position.stalled,true);
+  const eventState=await read();await call('fictional-events',false);
+  assert.deepEqual((await read()).mistBursts,eventState.mistBursts,'Disabling future events must retain recorded history');
+  assert.deepEqual((await read()).motorcycles,eventState.motorcycles);
+  row.fictionalComparison=await evaluate(`SimulatteMotorcycleSession.invoke('compare-snapshot').then(record=>({bursts:record.scene.mistBursts,time:record.time,interval:record.interval}))`);
+  assert.deepEqual(row.fictionalComparison.bursts,[],'Acoustic comparison must exclude fictional stalls');
+  assert.deepEqual((await read()).mistBursts,eventState.mistBursts);
+  assert.deepEqual((await read()).motorcycles,eventState.motorcycles,'Comparison must not rewrite displayed traffic');
+  row.clearedEvents=await evaluate(`SimulatteMotorcycleSession.invoke('clear-fictional-events').then(()=>SimulatteMotorcycleController.snapshot())`);
+  assert.equal(row.clearedEvents.mistBursts.length,0);assert.equal(row.clearedEvents.time,0);
+  row.steps.push('fictional stall stops a vehicle; disabling retains history; acoustic comparison excludes it; explicit clearing restarts');row.status='pass';
 }
 
 async function formsJourney() {

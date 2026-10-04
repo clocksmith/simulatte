@@ -20,6 +20,12 @@
     const rackTimeMs = (workload?.timeMs || 0) * topology.racks.length;
     const efficiency = rackTimeMs > 0 ? workload.computeEquivalentMs / rackTimeMs : 0;
     const throughput = collectives.totalPeakClusterTflops * efficiency * (1 - collectives.bubbleFraction) * thermals.thermalClockFraction;
+    const elapsed = workload?.timeMs || 0;
+    const tasks = { compute:0, communication:0, waiting:0 };
+    for (const rack of workload?.racks || []) tasks[rack.task === 'allreduce' ? 'communication' : rack.task === 'waiting' ? 'waiting' : 'compute']++;
+    const context = `Now: ${tasks.compute} computing · ${tasks.communication} communicating · ${tasks.waiting} waiting. Cyan/green: compute · Violet: transfer · Amber: waiting.`;
+    const measurement = (label, definition, timeBasis = 'accumulated') => ({label, subject:'All modeled GPU racks', definition, timeBasis,
+      interval:{start:0,end:timeBasis === 'configured' ? 0 : elapsed,unit:'ms'}, validity:timeBasis !== 'configured' && !elapsed ? 'not-sampled' : 'valid', freshness:'current',context});
     const records = modelRecords(result.receipt.seed);
     const modeled = builder.provenance({
       origin: 'simulated',
@@ -83,7 +89,13 @@
       kind:`${PLUGIN_ID}.${workload.communicating?'allreduce-sync':workload.racks.some(r=>r.task==='waiting')?'synchronization-wait':'forward-pass'}`,
       causationIds:[],correlationId:`${PLUGIN_ID}:${result.receipt.seed}`,payload:{iteration:workload.iteration,waitingRacks:workload.racks.filter(r=>r.task==='waiting').length},provenance:modeled,
     })] : [];
+    const physical = new Map(rackLayers.map(layer=>{const rack=rackById.get(layer.id.slice(5));return [layer.id,builder.geometry('point','datacenter-cartesian-meters',[[rack.xM,rack.yM,rack.zM]])];}));
+    for(const layer of networkLayers){const link=topology.links.find(row=>'link:'+row.id===layer.id);physical.set(layer.id,physicalLink(gpuById.get(link.sourceGpuId),gpuById.get(link.targetGpuId)));}
+    for(const t of workload?.transfers || [])physical.set(`transfer:${t.id}:${t.from}`,physicalLink(gpuById.get(t.from),gpuById.get(t.to)));
+    const allLayers=[...rackLayers,...networkLayers,...tensorLayers];
     const presentation = builder.presentation({
+      layouts:[{id:'network',label:'Network layout',coordinateSystem:'cluster-network-layout',geometries:allLayers.map(row=>({id:row.id,geometry:row.geometry}))},
+        {id:'physical',label:'Physical racks',coordinateSystem:'datacenter-cartesian-meters',geometries:allLayers.map(row=>({id:row.id,geometry:physical.get(row.id)}))}],
       pluginId: PLUGIN_ID,
       coordinateSystem: 'cluster-network-layout',
       layers: [...rackLayers, ...networkLayers, ...tensorLayers],
@@ -122,9 +134,9 @@
       eventIds: events.map((event) => event.id),
       measures: [
         ...(workload ? [builder.quantity('training-iterations',workload.iteration,'iterations'),builder.quantity('synchronization-wait-ms',workload.totalWaitMs,'rack-ms')] : []),
-        builder.quantity('compute-efficiency', efficiency * 100, 'percent', [0, 100]),
-        builder.quantity('executed-compute-tflops', throughput, 'TFLOP/s'),
-        builder.quantity('facility-power-kw', thermals.totalFacilityPowerKw, 'kW'),
+        builder.quantity('compute-efficiency', efficiency * 100, 'percent', [0, 100], measurement('Productive compute share', 'Sum of computing rack milliseconds weighted by (1 − slowdown), divided by rack count × elapsed simulation milliseconds since start. Communication and barrier waiting contribute zero. This is not hardware utilization.')),
+        builder.quantity('executed-compute-tflops', throughput, 'TFLOP/s', null, measurement('Compute (PFLOP/s)', 'Modeled average since start: peak cluster compute × productive compute share × pipeline non-bubble fraction × thermal clock fraction.')),
+        builder.quantity('facility-power-kw', thermals.totalFacilityPowerKw, 'kW', null, measurement('Power (steady-state)', 'Configured steady-state facility power estimate, including cooling. This does not measure live consumption or respond to live rack faults.', 'configured')),
         builder.quantity('cluster-tflops', collectives.effectiveClusterTflops, 'TFLOP/s'),
         builder.quantity('model-flops-utilization', collectives.modelFlopsUtilization, 'percent', [0, 100]),
         builder.quantity('allreduce-latency-ms', collectives.commTimeMs, 'ms'),
@@ -141,7 +153,7 @@
       state,
       objects: [...rackLayers, ...networkLayers].map(layer => {
         const rack = workload?.racks.find(row => layer.id === `rack:${row.id}`);
-        return { id: layer.id, label: layer.label, inSelector: layer.id.startsWith('rack:'), description: rack ? 'One rack of GPUs. It computes, waits for slower racks, then exchanges gradients along the drawn links.' : 'This modeled link carries gradients between its connected racks.',
+        return { id: layer.id, label: layer.label, inSelector: layer.id.startsWith('rack:'), selectionGroup:'links', relatedIds:rack ? waitingByRack.get(rack.id).map(id=>'rack:'+id) : [], condition: rack ? `${rack.task === 'waiting' ? 'Waiting for ' + rack.waitingFor.join(', ') : rack.task === 'allreduce' ? 'Communicating' : rack.task + ' compute'} · ${rack.slowdown}% slowdown` : 'Modeled physical connection', description: rack ? 'One rack of GPUs. Outlined racks depend on this one. Restoring speed releases them when all pending racks finish computing; it does not skip the barrier.' : 'This modeled link carries gradients between its connected racks.',
           hit: { shape: rack || layer.id.startsWith('rack:') ? 'bounds' : 'path', radiusPx: 6, priority: layer.id.startsWith('rack:') ? 90 : 20 },
           actions: rack ? [{ id: 'straggler', label: rack.slowdown ? 'Restore rack' : 'Slow rack', targetId: layer.id,
             available: state.status !== 'settled', execution: 'continue', command: 'scenario.intervene',
@@ -186,6 +198,8 @@
       provenanceRecords: records,
     });
   }
+
+  function physicalLink(from,to){return builder.geometry('polyline','datacenter-cartesian-meters',[[from.xM,from.yM,from.zM],[to.xM,to.yM,to.zM]]);}
 
   // Presentation-only embedding. Topology, link lengths, and collective solving
   // retain physical facility coordinates and the executed node-ring graph.

@@ -32,3 +32,24 @@ test('tracked sound maps retain sampled geometry while rejecting zoom and subjec
  assert.notDeepEqual(first,contract.focusKey({x:1,y:2,span:200},{mode:'map',trackId:'bike-1'}));
  assert.notDeepEqual(first,contract.focusKey({x:1,y:2,span:100},{mode:'map',trackId:'bike-2'}));
 });
+
+test('sound history uses simulation timestamps and breaks at observer, configuration, or scenario boundaries',()=>{
+ const sample=(time,observation={x:1,y:2,z:1.7},config={speaker:false},scenario=1)=>({time,identity:M.capture(scenario,Math.floor(time*10)+1,time,observation,config),observer:{total:60,point:observation}});
+ let rows=M.appendHistory([],sample(1));rows=M.appendHistory(rows,sample(3));
+ assert.deepEqual(rows.map(r=>[r.time,r.breakBefore]),[[1,true],[3,false]]);
+ assert.equal(M.appendHistory(rows,sample(3)).length,2,'Repeated paused samples do not invent duration');
+ rows=M.appendHistory(rows,sample(4,{x:20,y:2,z:1.7}));assert.equal(rows.at(-1).breakBefore,true);
+ rows=M.appendHistory(rows,sample(5,{x:20,y:2,z:1.7},{speaker:true}));assert.equal(rows.at(-1).breakBefore,true);
+ rows=M.appendHistory(rows,sample(6,{x:20,y:2,z:1.7},{speaker:true},2));assert.equal(rows.at(-1).breakBefore,true);
+ assert.equal(M.appendHistory(rows,sample(0)).length,1,'Seek/replay does not connect to the preceding pass');
+});
+
+test('received sound descriptors bind position, height, units and instantaneous simulation time',()=>{
+ const rows=M.describe({time:7.25,background:20,observer:{total:63,traffic:62.99,point:{x:10,y:20,z:1.7,mode:'sidewalk'}}});
+ assert.deepEqual(rows.map(row=>row.value),[63,62.99,20]);
+ for(const row of rows){
+  assert.equal(row.unit,'dBA');assert.equal(row.measurement.timeBasis,'instant');
+  assert.deepEqual(row.measurement.interval,{start:7.25,end:7.25,unit:'seconds'});
+  assert.match(row.measurement.subject,/1.7 m high/);assert.match(row.measurement.definition,/does not measure accumulated exposure/);
+ }
+});

@@ -19,3 +19,21 @@ test('spray admission rejects missing targets, duplicate cycles and the end of t
  assert.throws(()=>global.MotorcycleTreatments.planSpray(scene,179,{sourceId:'motorcycle-2'}),/Replay/);
  assert.throws(()=>global.MotorcycleTreatments.planSpray(scene,5,{sourceId:'absent'}),/Select/);
 });
+
+test('treatment edits validate atomically, preserve traffic, and supply reversible state',()=>{
+ const api=global.MotorcycleTreatments,scene={sources:traffic(),acousticContext:geometry,treatments:[],treatmentMode:'untreated',treatmentsEnabled:false};
+ const sources=scene.sources;
+ assert.throws(()=>api.edit(scene,{action:'add',kind:'mist',point:{x:1,y:2,z:1.7}}),/Enable/);
+ assert.deepEqual(scene.treatments,[]);
+ const added=api.edit(scene,{action:'add',kind:'directional',point:{x:1,y:2,z:1.7}});
+ assert.equal(scene.treatmentsEnabled,true);assert.equal(scene.sources,sources);
+ const before=JSON.stringify(scene.treatments);
+ assert.throws(()=>api.edit(scene,{action:'frequency',id:added.id,value:1000}),/125, 500, or 2000/);
+ assert.equal(JSON.stringify(scene.treatments),before);
+ const tuned=api.edit(scene,{action:'frequency',id:added.id,value:2000});assert.equal(scene.treatments[0].frequency,2000);
+ Object.assign(scene,tuned.before);assert.equal(scene.treatments[0].frequency,500);
+ const removed=api.edit(scene,{action:'remove',id:added.id});assert.equal(scene.treatments.length,0);
+ Object.assign(scene,removed.before);assert.equal(scene.treatments[0].id,added.id);
+ Object.assign(scene,added.before);assert.equal(scene.treatmentsEnabled,false);assert.equal(scene.treatments.length,0);assert.equal(scene.sources,sources);
+ assert.throws(()=>api.edit(scene,{action:'add',kind:'directional',point:{x:NaN,y:2,z:1.7}}),/sidewalk/);
+});

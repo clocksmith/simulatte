@@ -1,5 +1,8 @@
 (function(){
   'use strict';
+  const toolbar=document.querySelector('.city-toolbar'),readout=document.querySelector('.observer-readout');
+  const sizeObserver=new ResizeObserver(()=>{readout.style.top=(toolbar.getBoundingClientRect().bottom+8)+'px';});sizeObserver.observe(toolbar);
+  addEventListener('pagehide',()=>sizeObserver.disconnect(),{once:true});
   const touchHint=document.getElementById('map-touch-hint');
   if(touchHint&&matchMedia('(pointer: coarse)').matches){
     touchHint.classList.add('is-visible');

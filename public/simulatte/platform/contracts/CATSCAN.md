@@ -26,6 +26,8 @@ Define the versioned profile, plugin, presentation, and platform wire boundaries
 - Unknown contract versions fail explicitly.
 - The optional v4 objects contribution binds selectable layer IDs, interaction geometry, and target-bound actions. The contract validates these declarations without implementing their domain meaning.
 
+- Optional measurement descriptors and alternate layouts validate semantics and identity without transferring calculation authority to the host.
+
 ## Acceptance
 
 - V4 fixtures satisfy exact schemas and reject legacy-only behavior.

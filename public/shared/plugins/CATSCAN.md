@@ -9,6 +9,7 @@ Contribute governed experience behavior through versioned manifests and capabili
 
 - Owns plugin source, declared resources, datasets, controls, contributions, and lifecycle hooks.
 - Owns selected-object meaning, action availability, proposed changes, and prepared alternative identity. Actions declare their target and whether they preview, continue, or restart execution.
+- Owns measurement definitions, subjects, intervals, validity, and freshness; presentation alternatives retain the same entity and topology identities.
 - Owns typed multiscale module adapters that expose plugin-private mathematics without exposing plugin-private state.
 - Does not own host capabilities, cross-plugin access, or profile activation.
 

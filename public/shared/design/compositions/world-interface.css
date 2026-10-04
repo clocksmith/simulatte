@@ -337,3 +337,11 @@ body.sim-app .simulation-stage:has(.sim-readouts:not([hidden])) .canvas-shell { 
 @media (max-width: 600px) {
   body.sim-app .simulation-stage:has(.sim-readouts:not([hidden])) .canvas-shell { height: calc(100dvh - 278px); }
 }
+
+/* Definitions stay attached to stable measurements without covering the scene. */
+.sim-readouts dl > div:first-child dd { font-size: 1.4rem; }
+.measurement-definition { color: inherit; font: inherit; background: none; border: 0; padding: 0; text-align: left; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.sim-readouts dl > div[data-expanded="true"]::after { content: attr(data-definition); display: block; font-size: .85rem; line-height: 1.4; margin-top: .4rem; }
+.sim-object-heading { flex-wrap: wrap; }
+.sim-object-heading select { min-width: 0; }
+.sim-object-inspector details > summary { cursor: pointer; margin-top: .6rem; }

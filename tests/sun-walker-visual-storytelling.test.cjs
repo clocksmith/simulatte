@@ -206,8 +206,8 @@ test('Walked-segment colors and inspector metrics agree with completed samples',
     assert.equal(measures.unknown, snapshot.state.unknownSeconds);
     const summary=require('../public/simulatte/app/experience-presentation.js').summarize({
       profile:require('../public/data/application-profiles/sun-walker-v1.json'), contributions:[contribution],runState:'running'});
-    assert.equal(summary.stats['Sun so far'],exposureStatus.percentages.direct+'%');
-    assert.equal(summary.stats['Shade so far'],exposureStatus.percentages.shade+'%');
+    assert.equal(summary.stats['Sun so far'],exposureStatus.percentages.direct+'% / '+exposureStatus.seconds.direct.toFixed(1)+' s');
+    assert.equal(summary.stats['Shade so far'],exposureStatus.percentages.shade+'% / '+exposureStatus.seconds.shade.toFixed(1)+' s');
     assert.equal(Object.keys(summary.stats).length,3);
     assert.equal(measures['unknown-share'],exposureStatus.percentages.unknown/100);
     assert.equal(measures['night-share'],exposureStatus.percentages.night/100);
@@ -283,4 +283,24 @@ test('Departure time and detour controls causally alter exposure and route choic
     detourBlocked.comparison.metrics.travelSeconds.intervention
   );
   assert.equal(detourBlocked.selectedCandidateId, detourBlocked.fastestCandidateId);
+});
+
+test('exposure readouts disclose completed intervals and never fabricate a denominator at departure',()=>{
+ const result=simulate(),initial=createContribution(result,0);
+ const format=require('../public/simulatte/app/experience-presentation.js').formatMeasure;
+ for(const kind of ['direct-sun-share','shade-share']){
+  const measure=initial.state.measures.find(row=>row.kind===kind);
+  assert.equal(measure.measurement.validity,'not-sampled');assert.equal(format(measure),'Not sampled');
+ }
+ const mixed=exposureSummaryApi.summarize({directSunSeconds:10,shadeSeconds:20,unknownSeconds:10,nightSeconds:10,
+  geometricDirectSunSeconds:20,geometricShadeSeconds:10,geometricUnknownSeconds:10,geometricNightSeconds:10});
+ assert.equal(mixed.elapsedSeconds,50);
+ assert.deepEqual(mixed.percentages,{shade:40,direct:20,unknown:20,night:20});
+ assert.equal(mixed.geometricPercentages.shade,20,'Canopy-adjusted exposure does not overwrite building geometry');
+ const final=createContribution(result,result.timeline.snapshots.length-1);
+ const seconds=final.state.measures.find(row=>row.kind==='direct-sun').value;
+ const descriptor=final.state.measures.find(row=>row.kind==='direct-sun-share').measurement;
+ assert.equal(descriptor.timeBasis,'accumulated');assert.match(descriptor.definition,new RegExp(seconds.toFixed(1)+' seconds'));
+ assert.match(descriptor.definition,/unknown and night remain in the denominator/);
+ assert.match(descriptor.definition,/No UV dose or thermal-comfort/);
 });

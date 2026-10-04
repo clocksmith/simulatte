@@ -207,8 +207,12 @@
       if (!row) {
         row = documentRef.createElement('div'); row.dataset.measureLabel = label;
         const term = documentRef.createElement('dt'), description = documentRef.createElement('dd');
-        term.textContent = label; row.append(term, description); container.append(row);
+        const button = documentRef.createElement('button'); button.type = 'button'; button.textContent = label; button.className = 'measurement-definition';
+        button.addEventListener('click', () => { row.dataset.expanded = String(row.dataset.expanded !== 'true'); button.setAttribute('aria-expanded', row.dataset.expanded); });
+        term.append(button); row.append(term, description); container.append(row);
       }
+      const definition = summary.statDefinitions?.[label] || label;
+      row.dataset.definition = definition; row.firstElementChild.firstElementChild?.setAttribute('aria-label', `${label}: ${definition}`);
       if (row.lastElementChild.textContent !== String(value)) row.lastElementChild.textContent = String(value);
     }
     elements.experienceSummaryComparison.textContent = summary.comparison || '';

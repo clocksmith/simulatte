@@ -60,7 +60,7 @@
     observerCamera.minZ=.1;observerCamera.fov=.95;observerCamera.speed=2.5;observerCamera.inertia=.7;
     scene.activeCamera=camera;
     let followed=null,followClose=false,openingPending=true;
-    let cameraMode='map',current=initial,lastTime=0,lastSource=null,selectedId=null,savedRadius=openingRadius;
+    let cameraMode='map',current=initial,lastTime=0,lastSource=null,selectedId=null,riderId=null,savedRadius=openingRadius;
     const receiverMarkers=new Map();
     new B.HemisphericLight('sky',new B.Vector3(0,1,0),scene).intensity=.65;
     const sunlight=new B.DirectionalLight('sun',new B.Vector3(-.4,-1,.3),scene);sunlight.intensity=.85;sunlight.position=new B.Vector3(90,180,-60);
@@ -71,7 +71,7 @@
     const emitter=B.MeshBuilder.CreateBox('secondary-emitter',{width:.6,height:1,depth:.5},scene);emitter.material=material('emitter','#c5afe6');
     const soundView=root.MotorcycleSoundView.create(B,scene,origin,initial,onPick),heatMeshes=[];cleanup.push(()=>soundView.dispose());
     const treatmentView=root.MotorcycleTreatmentView.create(B,scene,vector);cleanup.push(()=>treatmentView.dispose());let treatmentSelection=null;
-    function setSources(sources){city.setSources(sources);soundView.setSources(sources);}
+    function setSources(sources){if(cameraMode==='rider'&&riderId&&!sources.some(source=>source.id===riderId)){const point=getObserver();riderId=null;activateObserver(point,'free');}if(followed&&!sources.some(source=>source.id===followed))followed=null;city.setSources(sources);soundView.setSources(sources);}
     function showMeasurements(record,mode='total'){
       for(const mesh of heatMeshes)mesh.dispose();heatMeshes.length=0;
       if(!record?.points?.length)return;
@@ -180,7 +180,7 @@
       }
       return best||rooftopAt(parkCenter);
     }
-    function setCameraMode(mode){
+    function setCameraMode(mode,targetId=selectedId){
       followed=null;
       if(!['map','sidewalk','rooftop','rider','free'].includes(mode))return;
       if(cameraMode==='map')savedRadius=camera.radius;
@@ -194,13 +194,13 @@
       }
       if(['sidewalk','free'].includes(mode)){const destination=trafficView(point,mode);activateObserver(destination.position,mode,destination.target);return;}
       scene.activeCamera.detachControl();cameraMode=mode;
-      if(mode==='rider'){onboard.rotation.set(0,0,0);scene.activeCamera=onboard;onboard.attachControl(canvas,true);}
+      if(mode==='rider'){riderId=current.sources.find(source=>source.id===targetId&&source.kind==='motorcycle')?.id||current.sources.find(source=>source.kind==='motorcycle')?.id;onboard.rotation.set(0,0,0);scene.activeCamera=onboard;onboard.attachControl(canvas,true);}
       else{scene.activeCamera=camera;const target=trafficCandidates(point)[0];if(target){camera.setTarget(vector(target));camera.radius=145;camera.beta=.78;camera.alpha=Math.PI/2;}else camera.radius=savedRadius;camera.attachControl(canvas,true);}
     }
     function placeObserver(point,mode){activateObserver(point,mode||'sidewalk');}
     function getObserver(){
       const active=scene.activeCamera,p=active.globalPosition||active.position,right=active.getDirection(B.Axis.X);
-      return {x:p.x+origin.x,y:-p.z+origin.y,z:p.y,right:{x:right.x,y:-right.z},sourceId:cameraMode==='rider'?selectedId:null,trackId:cameraMode==='rider'?selectedId:followed,mode:cameraMode};
+      return {x:p.x+origin.x,y:-p.z+origin.y,z:p.y,right:{x:right.x,y:-right.z},sourceId:cameraMode==='rider'?riderId:null,trackId:cameraMode==='rider'?riderId:followed,mode:cameraMode};
     }
     function getFocus(){
       const point=cameraMode==='map'?targetPoint():getObserver();
@@ -242,8 +242,9 @@
       for(const source of s.sources){const mesh=city.vehicles.get(source.id),p=M.position(source,t);if(!mesh)continue;mesh.position=vector({...p,z:0});mesh.rotation.y=p.heading+Math.PI/2;city.animate(mesh,p,source.kind);}
       panel.position=vector(s.panel);panel.scaling.set(s.panel.width,s.panel.height,.35);panel.rotation.y=s.panel.angle+Math.PI/2;panel.isVisible=s.config.surface!=='none';
       emitter.position=vector(s.speaker);emitter.isVisible=s.config.cancellation;
-      const tracked=s.sources.find(source=>source.id===state.selected)||s.sources.find(source=>source.kind==='motorcycle');
-      if(tracked){selectedId=tracked.id;lastSource=M.position(tracked,t);onboardRig.position.copyFrom(vector({...lastSource,z:0}));onboardRig.rotation.set(0,lastSource.heading+Math.PI/2,-(lastSource.lean||0)*.3);}
+      selectedId=state.selected;
+      const tracked=s.sources.find(source=>source.id===(cameraMode==='rider'?riderId:selectedId));
+      if(tracked){lastSource=M.position(tracked,t);onboardRig.position.copyFrom(vector({...lastSource,z:0}));onboardRig.rotation.set(0,lastSource.heading+Math.PI/2,-(lastSource.lean||0)*.3);}
       for(const marker of receiverMarkers.values()){const scale=Math.max(1,B.Vector3.Distance(scene.activeCamera.globalPosition,marker.position)*.012);marker.scaling.setAll(scale);marker.metadata.badge.scaling.setAll(Math.min(45,scale));}
       treatmentView.draw(root.MotorcycleTreatments.states(s,t),t,treatmentSelection);
       soundView.draw(state);engine.beginFrame();try{scene.render();}finally{engine.endFrame();}
@@ -284,7 +285,7 @@
         });
       },
       captureCamera(){return {mode:cameraMode,observer:getObserver(),target:camera.target.asArray(),alpha:camera.alpha,beta:camera.beta,radius:camera.radius};},
-      restoreCamera(saved){openingPending=false;if(saved.mode==='map'){setCameraMode('map');camera.setTarget(B.Vector3.FromArray(saved.target));camera.alpha=saved.alpha;camera.beta=saved.beta;camera.radius=saved.radius;}else if(saved.mode==='rider')setCameraMode('rider');else placeObserver(saved.observer,saved.mode);},
+      restoreCamera(saved){openingPending=false;if(saved.mode==='map'){setCameraMode('map');camera.setTarget(B.Vector3.FromArray(saved.target));camera.alpha=saved.alpha;camera.beta=saved.beta;camera.radius=saved.radius;}else if(saved.mode==='rider')setCameraMode('rider',saved.observer.trackId);else placeObserver(saved.observer,saved.mode);},
       snapSidewalk:sidewalkAt,setTreatmentSelection(id){treatmentSelection=id;},draw,setSources,showMeasurements,setReceiverMarkers,setCameraMode,getFocus,getObserver,placeObserver,focusSource,focus,homePark,nearestMotorcycle,backend:engine instanceof B.WebGPUEngine?'WebGPU':'WebGL',dispose};
     } catch(error) { try{dispose();}catch(cleanupError){error.cleanupError=cleanupError.message;}throw error;}
   }
