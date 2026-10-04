@@ -1,0 +1,131 @@
+{
+  "schema": "simulatte.liveRelease.v2",
+  "recordedAt": "2026-10-04T16:09:01.866Z",
+  "expectedBuild": "cecf794e8a49ece7eeb55927df63af8755f61e08-6649c618a606",
+  "scope": "HTTP identity, entry assets, browser startup, controls and one fixed Create execution",
+  "exclusions": [
+    "Simulation correctness",
+    "Model qualification",
+    "Physical GPU qualification",
+    "Human visual adjudication"
+  ],
+  "surfaces": [
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "cecf794e8a49ece7eeb55927df63af8755f61e08-6649c618a606",
+      "checks": {},
+      "assets": [],
+      "errors": [
+        "Live build differs: expected cecf794e8a49ece7eeb55927df63af8755f61e08-6649c618a606, received 246244b884471c52153a41094d08e7d4467e0edc-6649c618a606"
+      ],
+      "pass": false,
+      "observedBuild": "246244b884471c52153a41094d08e7d4467e0edc-6649c618a606"
+    }
+  ],
+  "browsers": [
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "cecf794e8a49ece7eeb55927df63af8755f61e08-6649c618a606",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/154.0.8037.95",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Motorcycle Noise ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "GPU Cluster ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "Sun Walker ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "https://simulatte-world.web.app/"
+      },
+      "screenshot": {
+        "path": "world-1440x1000.png",
+        "sha256": "3af601f6798bc8ff499b08db219c8dc052b3f1710a885e3c0721281713fdd1f5"
+      }
+    },
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "cecf794e8a49ece7eeb55927df63af8755f61e08-6649c618a606",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/154.0.8037.95",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Motorcycle Noise ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "GPU Cluster ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "Sun Walker ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "https://simulatte-world.web.app/"
+      },
+      "screenshot": {
+        "path": "world-390x844.png",
+        "sha256": "d0342e10b744d4604b53df7e2f1634bd0cf9dff187d3ba2abeeae4e848df5285"
+      }
+    }
+  ],
+  "pass": false
+}
