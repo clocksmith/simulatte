@@ -162,8 +162,12 @@ html[data-theme-preference="dark"] [data-theme-icon="dark"] {
   border: 0;
 }
 
-.sim-theme-control ~ .map-workspace .simulation-toolbar,
 .sim-theme-control ~ .data-workbench-page .workbench-header { padding-right: 56px; }
+
+/* Running worlds keep appearance in the toolbar, without an empty right gutter. */
+.sim-app .runtime-toolbar > .sim-theme-control { position: relative; inset: auto; z-index: auto; }
+html[data-world-runtime] body.sim-app > .sim-theme-control,
+body.sim-app:has(#world-tiers-landing-page.hidden) > .sim-theme-control { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   html[data-theme-ready="true"] body,
