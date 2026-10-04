@@ -89,7 +89,7 @@ body.sim-app .runtime-anchor {
 .sim-app .runtime-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
 .sim-app .sim-product-nav { display: flex; gap: 8px; }
 .sim-app .sim-product-nav a { padding: 10px 12px; min-height: 44px; color: var(--sim-ink); }
-.sim-app .runtime-details { top: calc(100% + 8px); left: auto; right: 0; z-index: 40; max-width: min(440px, calc(100vw - 48px)); }
+.sim-app .runtime-details { position: absolute; top: calc(100% + 8px); left: auto; right: 0; z-index: 40; margin-top: 0; max-width: min(440px, calc(100vw - 48px)); }
 .sim-app :is(.sim-surface, .sim-popover, .sim-segmented, .select-options, .evidence-heading) {
   color: var(--sim-ink);
   background: var(--sim-glass);
@@ -204,7 +204,7 @@ html[data-theme="dark"] .sim-app .plugin-controls select {
 .sim-app :is(code, pre, .sim-program-editor) { font-family: var(--sim-mono); }
 .sim-app .mission-error { grid-column: 1 / -1; font-size: 14px; color: var(--sim-red); }
 .sim-app .experience-doc-link { margin: 16px; color: var(--sim-ink); }
-.sim-app .loading-screen { background: var(--sim-paint-hex-f0f1eded); }
+.sim-app .loading-screen { background: var(--sim-paper); }
 .sim-app .loading-status { color: var(--sim-ink); }
 .sim-app .loading-progress { background: var(--sim-line); }
 .sim-app #loading-progress-bar { width: 50%; background: var(--sim-accent); animation: loading-slide 1.5s ease-in-out infinite alternate; }
