@@ -1,0 +1,169 @@
+{
+  "sources": {
+    "head": "53e107c006592aa7ad88ea5d542b836d69160d77",
+    "capturedAt": "2026-10-05T20:24:03.828Z",
+    "modifiedSources": {
+      "public/blank/index.html": {
+        "sha256": "5ace348ee9d60aba592aadf9de148b6c03730f0b81cf1dc57ce3b56a96e2c688",
+        "modifiedAt": "2026-10-05T20:22:58.155Z"
+      },
+      "public/index.html": {
+        "sha256": "a52c59bb99b4961b1dc0df8af3b2fd1be3a94caba12d1d70e6135f06cef89ec1",
+        "modifiedAt": "2026-10-05T20:22:58.154Z"
+      },
+      "public/version.json": {
+        "sha256": "8a4a3dc77a0d80b0b3b712c3840e134d4990ee62697ec5cd28c742253456d673",
+        "modifiedAt": "2026-10-05T20:22:58.155Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "runs": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "url": "https://simulatte.world/motorcycle",
+      "build": {
+        "build": "53e107c006592aa7ad88ea5d542b836d69160d77-7a5313c3fb98"
+      },
+      "motion": [
+        {
+          "kind": "pan",
+          "samples": 15,
+          "context": "running",
+          "frames": 62,
+          "minRms": 0.09254724809984577,
+          "silentFrames": 0,
+          "statuses": [
+            "Viewpoint microphone / Playback -14 dBFS",
+            "Viewpoint microphone / Playback -10 dBFS",
+            "Viewpoint microphone / Playback -15 dBFS",
+            "Viewpoint microphone / Playback -13 dBFS",
+            "Viewpoint microphone / Playback -17 dBFS",
+            "Viewpoint microphone / Playback -18 dBFS",
+            "Viewpoint microphone / Playback -11 dBFS",
+            "Viewpoint microphone / Playback -12 dBFS"
+          ]
+        },
+        {
+          "kind": "zoom",
+          "samples": 16,
+          "context": "running",
+          "frames": 53,
+          "minRms": 0.08484606693537074,
+          "silentFrames": 0,
+          "statuses": [
+            "Moving microphone · updating acoustics / Playback -14 dBFS",
+            "Moving microphone · updating acoustics / Playback -17 dBFS",
+            "Viewpoint microphone / Playback -17 dBFS",
+            "Moving microphone · updating acoustics / Playback -16 dBFS",
+            "Viewpoint microphone / Playback -16 dBFS",
+            "Viewpoint microphone / Playback -10 dBFS",
+            "Moving microphone · updating acoustics / Playback -10 dBFS",
+            "Moving microphone · updating acoustics / Playback -13 dBFS",
+            "Moving microphone · updating acoustics / Playback -15 dBFS"
+          ]
+        },
+        {
+          "kind": "orbit",
+          "samples": 17,
+          "context": "running",
+          "frames": 57,
+          "minRms": 0.07874635139999943,
+          "silentFrames": 0,
+          "statuses": [
+            "Moving microphone · updating acoustics / Playback -9 dBFS",
+            "Viewpoint microphone / Playback -15 dBFS",
+            "Moving microphone · updating acoustics / Playback -15 dBFS",
+            "Moving microphone · updating acoustics / Playback -12 dBFS",
+            "Moving microphone · updating acoustics / Playback -14 dBFS",
+            "Viewpoint microphone / Playback -14 dBFS",
+            "Moving microphone · updating acoustics / Playback -16 dBFS",
+            "Viewpoint microphone / Playback -12 dBFS",
+            "Moving microphone · updating acoustics / Playback -11 dBFS",
+            "Moving microphone · updating acoustics / Playback -13 dBFS"
+          ]
+        }
+      ],
+      "pausedRms": 0,
+      "explicitMute": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "url": "https://simulatte.world/motorcycle",
+      "build": {
+        "build": "53e107c006592aa7ad88ea5d542b836d69160d77-7a5313c3fb98"
+      },
+      "motion": [
+        {
+          "kind": "pan",
+          "samples": 15,
+          "context": "running",
+          "frames": 49,
+          "minRms": 0.09820155769056522,
+          "silentFrames": 0,
+          "statuses": [
+            "Viewpoint microphone / Playback -20 dBFS",
+            "Viewpoint microphone / Playback -10 dBFS",
+            "Viewpoint microphone / Playback -13 dBFS",
+            "Viewpoint microphone / Playback -17 dBFS",
+            "Viewpoint microphone / Playback -14 dBFS",
+            "Viewpoint microphone / Playback -16 dBFS",
+            "Viewpoint microphone / Playback -12 dBFS"
+          ]
+        },
+        {
+          "kind": "zoom",
+          "samples": 15,
+          "context": "running",
+          "frames": 52,
+          "minRms": 0.09063303103434055,
+          "silentFrames": 0,
+          "statuses": [
+            "Viewpoint microphone / Playback -14 dBFS",
+            "Viewpoint microphone / Playback -11 dBFS",
+            "Moving microphone · updating acoustics / Playback -11 dBFS",
+            "Moving microphone · updating acoustics / Playback -15 dBFS",
+            "Moving microphone · updating acoustics / Playback -17 dBFS",
+            "Viewpoint microphone / Playback -15 dBFS",
+            "Viewpoint microphone / Playback -16 dBFS",
+            "Moving microphone · updating acoustics / Playback -16 dBFS",
+            "Moving microphone · updating acoustics / Playback -14 dBFS",
+            "Moving microphone · updating acoustics / Playback -13 dBFS",
+            "Viewpoint microphone / Playback -13 dBFS"
+          ]
+        },
+        {
+          "kind": "orbit",
+          "samples": 15,
+          "context": "running",
+          "frames": 48,
+          "minRms": 0.08521187457142185,
+          "silentFrames": 0,
+          "statuses": [
+            "Moving microphone · updating acoustics / Playback -16 dBFS",
+            "Viewpoint microphone / Playback -14 dBFS",
+            "Moving microphone · updating acoustics / Playback -14 dBFS",
+            "Moving microphone · updating acoustics / Playback -13 dBFS",
+            "Moving microphone · updating acoustics / Playback -17 dBFS",
+            "Viewpoint microphone / Playback -21 dBFS",
+            "Moving microphone · updating acoustics / Playback -21 dBFS",
+            "Moving microphone · updating acoustics / Playback -15 dBFS",
+            "Viewpoint microphone / Playback -15 dBFS",
+            "Viewpoint microphone / Playback -13 dBFS",
+            "Moving microphone · updating acoustics / Playback -12 dBFS"
+          ]
+        }
+      ],
+      "pausedRms": 0,
+      "explicitMute": true
+    }
+  ]
+}

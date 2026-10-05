@@ -1,0 +1,360 @@
+{
+  "schema": "simulatte.liveRelease.v2",
+  "recordedAt": "2026-10-05T16:22:45.799Z",
+  "expectedBuild": "fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+  "screenshots": true,
+  "scope": "HTTP identity, entry assets, browser startup, controls and one fixed Create execution",
+  "exclusions": [
+    "Simulation correctness",
+    "Model qualification",
+    "Physical GPU qualification",
+    "Human visual adjudication"
+  ],
+  "surfaces": [
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+      "checks": {
+        "exactBuild": true,
+        "packageIdentity": true,
+        "entrypointBytes": true,
+        "entrypointIdentity": true,
+        "entryAssets": true
+      },
+      "assets": [
+        {
+          "url": "https://simulatte-world.web.app/model-selection.css?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "style",
+          "deferred": false,
+          "pass": true,
+          "sha256": "015181aa6eb5a6578a18ee0992cea0f0dc9d68411678cfbefc5f7e0d148ba197"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/contracts/data-world-spec.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "fe7cf06e16527f8020740ccec84e27adb3a5c0150d66d655c591ea709adcfbd2"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/contracts/input-source.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "83884b4cba3983d491885a9b301058085ae503e2486afab036b4bbcf9957d2bb"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/contracts/simulation-session.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "a3779e0f54d17a29a1951417ea50f4d13e1aa9b1db8c6d84795f4592a0654cb9"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/contracts/world-spec-authorship.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "59a0b4a5f26d83fa56e3e98f84b9ebe8452466020f94a6aa8d9ba2b1f69afe8f"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/contracts/world-spec.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "fb546305aa4cd1f82daee44b21e0bd36f4c0d0c8cfd7c01b2f196d71131fc620"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/core/pipeline-runner.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "1d194861ea62cef6f47188311b95075e98d2a22427109cceff14b9495c2018fb"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/core/simulation/data-run.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "02386ca1853e1736abafd41692ca0a639941edbf917699e92a7d9e13e0f809da"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/core/simulation/point-motion.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "0e28b16075b222d06c8d0f887a1e33d6487a955edc940b803b619b35be3eddfa"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/design/compositions/world-interface.css?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "style",
+          "deferred": false,
+          "pass": true,
+          "sha256": "ac2a964a24d24147560fde464fcd5bec4f952a5bebd6a04ecbe850a1a435492c"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/design/data-table.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "24146cbc220da413621e827e614e76a50ab4feb5a03b43928f8454f448a2c342"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/design/product-navigation.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "adc08a5cf0db39d99a51254aacabb5f60ccb3b77de51304cf0363307339fa9a9"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/design/program-editor.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "56cb9a483a7ee6e1df86df0ee77808be14027b21de1b9bd1e0d876e70f5b860c"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/design/simulation-session-status.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "60f380112fc782c3ce367bababac1ded991038effd2870da2c7d9e11b4b62883"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/design/simulatte.css?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "style",
+          "deferred": false,
+          "pass": true,
+          "sha256": "d97d7307e10099e2bf0953f575e6449fac3a214f10ee26ef6c15864b9cfce0f2"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/design/theme-control.css?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "style",
+          "deferred": false,
+          "pass": true,
+          "sha256": "591cd617bc67b66b614901a3c224ce5d3ec8754be39a37829529466f8b9fc5cf"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/design/theme-controller.js",
+          "kind": "script",
+          "deferred": false,
+          "pass": true,
+          "sha256": "85fcc93f7087362d0e94a5ef50f4b1ddfa1fc51a9320e2ead7b258fd5ef52552"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/design/workbench.css?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "style",
+          "deferred": false,
+          "pass": true,
+          "sha256": "438fe62d3af570daf8c80f6f61de70298e1296f094609776088cf43b817f650a"
+        },
+        {
+          "url": "https://simulatte-world.web.app/shared/render/point-scene-view.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "df9ee7cc3181117f158e3f51f39bbca8cb304f2bbcb75bbc748babdd0954b1f8"
+        },
+        {
+          "url": "https://simulatte-world.web.app/simulation-routes.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "0b9fac6da57c38b28918bd678360c89e0a5bfa776f384fc4e604f293c37fc88e"
+        },
+        {
+          "url": "https://simulatte-world.web.app/simulatte/app/data-workbench.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "a354c13cd869a377ed76ee0e89b3210885e9bb1769b85884319a5de398d1b827"
+        },
+        {
+          "url": "https://simulatte-world.web.app/simulatte/app/homepage-effects.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "fa3c706d2964590183b5bc34a40f09df38fbeb85953fade077eeaab96d29f1ec"
+        },
+        {
+          "url": "https://simulatte-world.web.app/simulatte/app/homepage-webgpu.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "fee291dc68d3e7a754838b07410e3bf99d7560893f4c24db8c069e91200d8913"
+        },
+        {
+          "url": "https://simulatte-world.web.app/simulatte/app/workbench-entry.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "8454a667df41de7882d3ad0486d2ff430dcb23bc9fb12440c2992e0c5f55bfaf"
+        },
+        {
+          "url": "https://simulatte-world.web.app/simulatte/app/world-runtime-loader.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "1b99c0b2674863b7fb0c120f81fdbe5430b105d3b921acde2a3a3becbcbc102a"
+        },
+        {
+          "url": "https://simulatte-world.web.app/simulatte/app/world-runtime-script-manifest.js?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "script",
+          "deferred": true,
+          "pass": true,
+          "sha256": "4936545b888c30eaed2352a400d3ba31e3b631d145e1dff5eb412f06d7b5f94d"
+        },
+        {
+          "url": "https://simulatte-world.web.app/styles.css?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "style",
+          "deferred": false,
+          "pass": true,
+          "sha256": "7a9251b38d382f4475bceca77f32035279a5bd4e6769a49ecd91b1a506a25d3f"
+        },
+        {
+          "url": "https://simulatte-world.web.app/world-tiers.css?v=fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+          "kind": "style",
+          "deferred": false,
+          "pass": true,
+          "sha256": "f43060a920a9fe5403e2733e2b80d9a76be0c90bf65b486a25a4bb8a9ea7d7b3"
+        }
+      ],
+      "errors": [],
+      "pass": true,
+      "observedBuild": "fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+      "package": {
+        "expected": {
+          "schema": "simulatte.hostingSurface.v1",
+          "id": "simulatte-world",
+          "sourceRoot": "public",
+          "entrypoint": "index.html",
+          "fileCount": 2648,
+          "totalBytes": 279472370,
+          "inventorySha256": "c4b89b195481eb2a5e64d10f08d9afd006c9dfeb8cbcb3fba695c2b1f846b041"
+        },
+        "observed": {
+          "schema": "simulatte.hostingSurface.v1",
+          "id": "simulatte-world",
+          "sourceRoot": "public",
+          "entrypoint": "index.html",
+          "fileCount": 2648,
+          "totalBytes": 279472370,
+          "inventorySha256": "c4b89b195481eb2a5e64d10f08d9afd006c9dfeb8cbcb3fba695c2b1f846b041"
+        }
+      },
+      "inventorySha256": "c4b89b195481eb2a5e64d10f08d9afd006c9dfeb8cbcb3fba695c2b1f846b041"
+    }
+  ],
+  "browsers": [
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/154.0.8037.95",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "catalogVisible": true,
+          "originalIllustration": true,
+          "homepageScroll": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Motorcycle Noise ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "Sun Walker ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "GPU Cluster ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "https://simulatte-world.web.app/"
+      },
+      "screenshot": {
+        "path": "world-1440x1000.png",
+        "sha256": "4573e4361ab32c0b4d2de1a63432879d3416995d4a5a6329590af7936e737a0a"
+      }
+    },
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "fea8ea626bf7cef4d2a238637477b36b9513ea61-473ca7eb1917",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/154.0.8037.95",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "catalogVisible": true,
+          "originalIllustration": true,
+          "homepageScroll": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Motorcycle Noise ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "Sun Walker ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "GPU Cluster ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "https://simulatte-world.web.app/"
+      },
+      "screenshot": {
+        "path": "world-390x844.png",
+        "sha256": "caa0dded775e43594e7ed9a6c7f2cbf4b6169242aac8db5e5517466b6f9c7e56"
+      }
+    }
+  ],
+  "pass": true
+}
