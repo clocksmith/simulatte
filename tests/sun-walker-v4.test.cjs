@@ -174,6 +174,28 @@ test('arrival-time route simulation is deterministic, causal, progressive, and t
   assert.ok(first.candidates.every((row) => Number.isFinite(row.metrics.directBeamEquivalentSeconds)));
 });
 
+test('route cards retain both alternatives and use the full journey as the exposure denominator', () => {
+  const shade=simulate({config:{...config,directSunWeight:100}});
+  const fastest=simulate({config:{...config,directSunWeight:0}});
+  assert.equal(fastest.selectedCandidateId,fastest.fastestCandidateId);
+  assert.equal(fastest.shadeCandidateId,shade.selectedCandidateId);
+  assert.notEqual(fastest.shadeCandidateId,fastest.fastestCandidateId);
+  for(const simulation of [shade,fastest,simulate({departureAt:'2026-07-19T04:00:00Z'})]) {
+    const contribution=v4Api.createContribution({simulation,step:0,world:fixture().world,
+      buildingReceipt:{id:'world.buildings.v1',sha256:'a'.repeat(64)},
+      governanceReceipt:{id:governance.id,sha256:crypto.createHash('sha256').update(fs.readFileSync(governancePath)).digest('hex')},
+      environmentReceipt:{id:environment.id,sha256:crypto.createHash('sha256').update(fs.readFileSync(environmentPath)).digest('hex')}});
+    const fields=Object.fromEntries(contribution.inspections.find(row=>row.id==='sun-route-comparison').fields.map(row=>[row.id,row.value]));
+    for(const [prefix,id] of [['shade-choice',simulation.shadeCandidateId],['fastest',simulation.fastestCandidateId]]) {
+      const metrics=simulation.candidates.find(row=>row.id===id).metrics;
+      assert.equal(fields[`${prefix}-shade-percent`],100*metrics.shadeSeconds/metrics.travelSeconds);
+      assert.equal(fields[`${prefix}-sun-percent`],100*metrics.directSunSeconds/metrics.travelSeconds);
+      const total=fields[`${prefix}-shade-percent`]+fields[`${prefix}-sun-percent`]+100*(fields[`${prefix}-unknown`]+fields[`${prefix}-night`])/fields[`${prefix}-time`];
+      assert.ok(Math.abs(total-100)<0.01);
+    }
+  }
+});
+
 test('semantic layers carry quantities and evidence without permanent styling authority', () => {
   const simulation = simulate();
   const semantic = presentationApi.semanticPresentation(simulation, simulation.timeline.snapshots.length - 1);
@@ -210,6 +232,7 @@ test('legacy adapter projects only causal shadow evidence and keeps compatibilit
 
 test('plugin lifecycle advances the modeled walk without owning playback delay or camera commands', async () => {
   const rows = fixture();
+  rows.world.nodes = [{id:'a',label:'Start',landmark:true},{id:'b',label:'Park',landmark:true},{id:'c',label:'Square',landmark:true}];
   let reducer = null;
   let state = null;
   const receipts = [];
@@ -236,7 +259,7 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
     routing: {
       alternatives: () => rows.routes,
       policy: () => ({ routeObjective: { travelSeconds: 1, sunExposureSeconds: 0.4 } }),
-      resolveMission: () => ({ originNodeId: 'a', destinationNodeId: 'b', embodimentId: 'pedestrian' }),
+      resolveMission: text => ({ originNodeId: text.includes('from Square') ? 'c' : 'a', destinationNodeId: text.includes('to Square') ? 'c' : 'b', embodimentId: 'pedestrian' }),
     },
     clock: { instantForMission: () => '2026-07-19T17:00:00Z' },
     state: {
@@ -376,6 +399,20 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.equal(state.simulation.controls.find(row => row.id === 'directSunWeight').defaultValue, 0);
   sdk.routing.alternatives = alternatives;
   assert.throws(() => instance.handleAction('sun-walker.accept-preview', { values: { previewId: prepared.id } }), /preview_stale/);
+
+  const endpointControls=instance.contributeV4().controls.controls;
+  assert.equal(endpointControls.find(row=>row.id==='originPlace').value,'Start');
+  assert.deepEqual(endpointControls.find(row=>row.id==='destinationPlace').options.map(row=>row.value),['Park','Square','Start']);
+  const beforeEndpoint=createdCount();
+  instance.handleAction('scenario.run',{values:{phase:'start',destinationPlace:'Square'}});
+  assert.equal(createdCount(),beforeEndpoint+1,'Endpoint change must recompute routes');
+  assert.equal(instance.contributeV4().controls.controls.find(row=>row.id==='destinationPlace').value,'Square');
+  const accepted=instance.contributeV4();
+  assert.throws(()=>instance.handleAction('scenario.run',{values:{phase:'start',originPlace:'Square',walkingSpeedMps:1}}),/route_has_no_extent/);
+  assert.throws(()=>instance.handleAction('scenario.run',{values:{phase:'start',destinationPlace:'Unmapped'}}),/route_place_unknown/);
+  assert.equal(instance.contributeV4(),accepted,'Invalid endpoints must leave the accepted simulation intact');
+  instance.handleAction('scenario.run',{values:{phase:'start',originPlace:'Square',destinationPlace:'Park'}});
+  assert.equal(instance.contributeV4().controls.controls.find(row=>row.id==='originPlace').value,'Square');
 
 });
 

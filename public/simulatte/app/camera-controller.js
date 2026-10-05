@@ -237,7 +237,7 @@
         ? state.focusHeading ?? -DEFAULT_YAW
         : routeHeading(snapshot, worldModel);
       if (state.mode === 'pov') {
-        const eyeOffset = 0.45;
+        const eyeOffset = 0;
         const lookAhead = 24;
         return {
           eye: [
@@ -259,7 +259,7 @@
       const height = pluginTarget
         ? clamp(distance * 1.2, 120, 360)
         : clamp(distance * 0.58, 2.8, 92);
-      const trailingDistance = pluginTarget ? distance * 0.15 : distance;
+      const trailingDistance = pluginTarget?.subjectKind === 'pedestrian' ? 0.01 : pluginTarget ? distance * 0.15 : distance;
       const lookAhead = pluginTarget
         ? 0
         : clamp(distance * 0.68, 4, 96);

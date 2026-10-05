@@ -30,7 +30,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-c92f1c581128007f510ee54ea4fbf408d2a4655aa001794fa812c0707c824d1e877828d23a50cf53d370bf580a9b957c",
+    "integrity": "sha384-d8c1c133003368384e88d916f77328943332de8251f8499c653219bb136e2d4a88610d7c2696a55f75704cfd5ed18e34",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -108,11 +108,11 @@
       "path": "./sun-exposure.js"
     },
     {
-      "integrity": "sha384-149542b1f861c513eedbfd78da1cd232ecc974cede6b846961d56dab8b0beb77510b8d80305d7e2a4b11ebbfeb743ffb",
+      "integrity": "sha384-805ba3c17eb72798cbd3ac1ddaabd24e6e420a1de538a2561256e5c0b48149040575871efae64e5874eea243b8cb7dc8",
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-cc7f93855dc522ce2b634cd5f68d5fcdf23c1d7e42bca7d631a3df23a3acf9d2058304073639ee1dc33db86606558c66",
+      "integrity": "sha384-88161c448af3220c6ca335e44564bc1dc497ad088ea2bc0cc0c525c8c8a965387f9c2bcf28d19cdd5c500e6d1ac6c31a",
       "path": "./v4-contribution.js"
     }
   ],

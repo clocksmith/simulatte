@@ -10,8 +10,8 @@ Owner contract: `public/shared/plugins/sun-walker/index.js`.
 - Profile ID: `sun-walker-v1`
 - Default scenario: `village-union-shade`
 - Contract version: plugin v4 contribution
-- Last verified source: focused tests plus local desktop and mobile browser audits on 2026-07-28
-- Evidence: 15 projected shadow layers, one pedestrian actor, overview at rest, follow while moving, and no POV intent
+- Verification commands: `node --test tests/sun-walker-v4.test.cjs tests/sun-walker-visual-storytelling.test.cjs tests/plugin-camera-follow.test.cjs tests/plugin-actor-motion.test.cjs` and `node tools/simulatte/audit-sun-walker.mjs`
+- Browser evidence: `artifacts/sunwalker/20261005/browser.json` binds source hashes, viewport, rendering state, route controls, and screenshots. This is local browser evidence, not field calibration.
 
 ## What is it?
 
@@ -34,6 +34,8 @@ explicit unknown exposure. It does not measure current shade or thermal comfort.
 
 | Control | Default | Allowed values | Material effect |
 |---|---:|---|---|
+| From (A) / To (B) | Washington Square / Union Square | Distinct mapped landmark places | Recomputes candidate routes and arrival-time exposure |
+| Route choice | More shade | More shade / Shortest walk | Selects the shaded objective or the fastest candidate; both cards retain their predictions |
 | Departure instant | Scenario value | Valid local datetime | Changes solar position at every sample |
 | Maximum absolute detour | 600 seconds | 0 to 86,400 | Caps added travel time |
 | Maximum relative detour | 0.25 | 0 to 10 | Caps detour as a route-time ratio |
@@ -45,8 +47,9 @@ explicit unknown exposure. It does not measure current shade or thermal comfort.
 
 ## What does the user see?
 
-- Initial view: A bird’s-eye frame of the shade-selected route and the projected building-shadow polygons.
-- During playback: The camera follows one visible walker while route segments accumulate direct sun, building shade, canopy shade, night, and unknown exposure.
+- Initial view: Individual building geometry and surface shadows from the calculated sun position, with editable endpoints and whole-route shade/sun percentages.
+- During playback: Whole route, top-down follow, and first-person views share the same modeled walker. Adjacent accepted poses interpolate for display without changing model state. Pause, seek, and replacement use exact accepted positions.
+- Route comparison: Both cards report predicted duration and whole-route shade/sun percentages. Unknown exposure and night remain separate. The shade choice may be the same route as the fastest candidate.
 - Selection and inspection: Causal building rows, environmental evidence, sample times, and accumulated quantities.
 - Final view: A bird’s-eye route summary keeps the fastest baseline and shade-selected route legible.
 - Final settlement: Direct sun, beam-equivalent exposure, building shade, canopy shade, unknown time, and detour.
@@ -101,8 +104,7 @@ Cannot claim:
 - Unit tests: passing in `tests/sun-walker-v4.test.cjs`
 - Deterministic replay: verified
 - Comparison execution: verified
-- Desktop browser: overview, follow, shadows, one pedestrian, and controls pass locally
-- Mobile browser: overview, shadows, one pedestrian, and immediate control application pass locally
+- Desktop/mobile browser coverage: `audit-sun-walker.mjs` checks shadows, top-down and first-person cameras, both endpoint edits, route switching, pause, invalid endpoint preservation, and horizontal overflow.
 - Known unresolved failures: current canopy and route-time weather are not observed
 
 ## Where is it implemented?

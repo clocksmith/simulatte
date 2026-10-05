@@ -13,9 +13,9 @@
   root.SimulatteSunWalkerV4 = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerV4(builder, shadowGeometry, exposureSummaryApi) {
   const PLUGIN_ID = 'sun-walker';
-  const MODEL_HASH = 'f80feceeb3aed515c65f044d590422d8b5e5ad14be344bb0b9b789f188f90d76';
+  const MODEL_HASH = 'd354f8270b7a8422745b5ba00b221ac10456ad5483789f941426e7da0d411fce';
 
-  function createContribution({ simulation, step, world, buildingReceipt, governanceReceipt, environmentReceipt }) {
+  function createContribution({ simulation, step, world, mission = null, buildingReceipt, governanceReceipt, environmentReceipt }) {
     const buildings = builder.datasetRecord('world.buildings.v1', buildingReceipt, { coverage: simulation.dataReceipt.datasets[0].coverage });
     const governance = builder.datasetRecord('sun-walker.model-governance.v1', governanceReceipt, { coverage: 'solar equations and assumptions' });
     const environment = builder.datasetRecord('sun-walker.environment.v1', environmentReceipt, {
@@ -30,6 +30,7 @@
     });
     const selected = simulation.candidates.find((row) => row.id === simulation.selectedCandidateId);
     const fastest = simulation.candidates.find((row) => row.id === simulation.fastestCandidateId);
+    const shadeChoice = simulation.candidates.find(row=>row.id===simulation.shadeCandidateId);
     const snapshot = simulation.timeline.snapshots[Math.min(step, simulation.timeline.snapshots.length - 1)];
     const samples = selected.samples.slice(0, snapshot.state.completedSamples);
     const activeSample = snapshot.state.currentObservation;
@@ -159,7 +160,13 @@
         priority: isSettled ? 65 : isOverview ? 50 : 55,
       })],
     });
-    const controls = builder.controls(simulation.controls.filter((row) => row.isEnabled !== false).map((row) => ({
+    const endpointOptions = [...new Set((world.nodes || []).filter(row => row.landmark).map(row => row.label))]
+      .sort().map(label => ({value:label,label}));
+    const endpoints = mission && endpointOptions.length ? [
+      ['originPlace', 'From (A)', mission.originNodeId], ['destinationPlace', 'To (B)', mission.destinationNodeId],
+    ].map(([id,label,nodeId]) => ({id,label,kind:'select',value:world.nodes.find(row=>row.id===nodeId)?.label,
+      options:endpointOptions,minimum:null,maximum:null,step:null,provenance:claim})) : [];
+    const controls = builder.controls([...endpoints, ...simulation.controls.filter((row) => row.isEnabled !== false).map((row) => ({
       id: row.id,
       label: row.description,
       kind: row.kind === 'datetime' ? 'datetime-local' : row.kind === 'toggle' ? 'toggle' : 'number',
@@ -167,7 +174,7 @@
       options: null,
       ...controlBounds(row.id),
       provenance: claim,
-    })), [{
+    }))], [{
       id: 'fastest-versus-shade-selected',
       label: 'Fastest route vs shade-selected route',
       baselineScenarioId: fastest.id,
@@ -222,6 +229,18 @@
         fields: [
           field('chosen-time', 'Predicted whole-route walking time', selected.metrics.travelSeconds, 'seconds', claim),
           field('chosen-sun', 'Predicted whole-route direct sun', selected.metrics.directSunSeconds, 'seconds', claim),
+          field('shade-choice-time', 'Shade choice walking time', shadeChoice.metrics.travelSeconds, 'seconds', claim),
+          field('shade-choice-shade-percent', 'Shade choice shade', 100 * shadeChoice.metrics.shadeSeconds / shadeChoice.metrics.travelSeconds, 'percent', claim),
+          field('shade-choice-sun-percent', 'Shade choice sun', 100 * shadeChoice.metrics.directSunSeconds / shadeChoice.metrics.travelSeconds, 'percent', claim),
+          field('shade-choice-unknown', 'Shade choice unknown', shadeChoice.metrics.unknownSeconds, 'seconds', claim),
+          field('shade-choice-night', 'Shade choice night', shadeChoice.metrics.nightSeconds, 'seconds', claim),
+          field('chosen-shade-percent', 'Shaded route shade', 100 * selected.metrics.shadeSeconds / selected.metrics.travelSeconds, 'percent', claim),
+          field('chosen-sun-percent', 'Shaded route sun', 100 * selected.metrics.directSunSeconds / selected.metrics.travelSeconds, 'percent', claim),
+          field('chosen-unknown', 'Shaded route unknown', selected.metrics.unknownSeconds, 'seconds', claim),
+          field('fastest-shade-percent', 'Shortest route shade', 100 * fastest.metrics.shadeSeconds / fastest.metrics.travelSeconds, 'percent', claim),
+          field('fastest-sun-percent', 'Shortest route sun', 100 * fastest.metrics.directSunSeconds / fastest.metrics.travelSeconds, 'percent', claim),
+          field('fastest-unknown', 'Shortest route unknown', fastest.metrics.unknownSeconds, 'seconds', claim),
+          field('fastest-night', 'Shortest route night', fastest.metrics.nightSeconds, 'seconds', claim),
           field('fastest-time', 'Fastest route walking time', fastest.metrics.travelSeconds, 'seconds', claim),
           field('progress', 'Route progress', snapshot.state.progress, 'ratio', claim),
           field('current-status', 'Current exposure', exposureStatus.current.label, null, claim),

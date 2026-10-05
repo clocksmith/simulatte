@@ -6,7 +6,7 @@
     "kind": "simulation",
     "timelineLabel": "Route sample",
     "primaryMeasureKinds": ["direct-sun-share", "shade-share", "progress"],
-    "supportedViews": ["overview", "follow", "top"],
+    "supportedViews": ["overview", "follow", "top", "pov"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",
     "performanceBudget": {

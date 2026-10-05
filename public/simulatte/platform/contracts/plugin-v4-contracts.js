@@ -285,7 +285,7 @@
     text(value.id, 'plugin_v4_sun_id_invalid', `${label} id`);
     text(value.label, 'plugin_v4_sun_label_invalid', `${label} label`);
     finite(value.azimuthDegrees, 0, 360, 'plugin_v4_sun_azimuth_invalid', `${label} azimuth`);
-    finite(value.elevationDegrees, -5, 90, 'plugin_v4_sun_elevation_invalid', `${label} elevation`);
+    finite(value.elevationDegrees, -90, 90, 'plugin_v4_sun_elevation_invalid', `${label} elevation`);
     array(value.anchorSegmentIds, 'plugin_v4_sun_anchor_segments_invalid', `${label} anchor segments`);
     if (value.anchorSegmentIds.length > 4096) fail('plugin_v4_sun_anchor_segments_invalid', `${label} anchor segments exceed 4096`);
     value.anchorSegmentIds.forEach((id) => text(id, 'plugin_v4_sun_anchor_segment_id_invalid', `${label} anchor segment ID`));

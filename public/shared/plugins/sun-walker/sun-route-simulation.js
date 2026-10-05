@@ -66,7 +66,9 @@
       candidate.metrics.withinDetourBound = candidate.metrics.addedTimeSeconds <= allowedAddedSeconds + 1e-9;
     });
     const eligible = candidates.filter((row) => row.metrics.withinDetourBound);
-    const selected = (eligible.length ? eligible : candidates).slice().sort(compareObjective)[0];
+    const available = eligible.length ? eligible : candidates;
+    const selected = config.directSunWeight === 0 ? fastest : available.slice().sort(compareObjective)[0];
+    const shadeChoice = available.slice().sort((a,b) => candidateCost(a.metrics,100,config.unknownWeight)-candidateCost(b.metrics,100,config.unknownWeight)||compareFastest(a,b))[0];
     const comparison = createComparison(selected, fastest, allowedAddedSeconds, modelReceipt);
     const timeline = createTimeline(selected, dataReceipt, modelReceipt);
     const simulationId = `sun-walk-${truthApi.stableId([
@@ -84,6 +86,7 @@
       arrivalAt: selected.arrivalAt,
       selectedCandidateId: selected.id,
       fastestCandidateId: fastest.id,
+      shadeCandidateId: shadeChoice.id,
       candidates,
       comparison,
       timeline: {
@@ -136,9 +139,7 @@
       elapsedSeconds += row.summary.travelSeconds;
     });
     const totals = sumExposure(samples);
-    const generalizedCost = totals.travelSeconds
-      + totals.directBeamEquivalentSeconds * config.directSunWeight
-      + totals.unknownSeconds * config.unknownWeight;
+    const generalizedCost = candidateCost(totals,config.directSunWeight,config.unknownWeight);
     return {
       schema: 'simulatte.sunWalkerRouteCandidate.v2',
       id: `sun-route-${routeIndex + 1}-${truthApi.stableId(route.segmentIds.join('|'))}`,
@@ -716,6 +717,10 @@
       total += Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
     }
     return total;
+  }
+
+  function candidateCost(metrics, sunWeight, unknownWeight) {
+    return metrics.travelSeconds + metrics.directBeamEquivalentSeconds * sunWeight + metrics.unknownSeconds * unknownWeight;
   }
 
   function compareFastest(left, right) {

@@ -210,13 +210,14 @@
       if (phase === 'start') {
         const previousScenario = activeScenario;
         const previousConfig = activeConfig;
+        const previousMission = activeMission;
         activeScenario = context.scenario || activeScenario;
         const scenarioChanged = ['id', 'seed', 'missionText'].some(key => activeScenario?.[key] !== previousScenario?.[key]);
         if (scenarioChanged) activeMission = null;
         if (hasControlValues(context.values)) applyControlValues(context.values);
         const controlsChanged = Object.keys(activeConfig).some(key => activeConfig[key] !== previousConfig[key])
           || (activeDepartureAt !== null && activeDepartureAt !== state.simulation?.departureAt);
-        if (scenarioChanged || controlsChanged || !state.simulation) {
+        if (scenarioChanged || controlsChanged || activeMission !== previousMission || !state.simulation) {
           simulateMission(activeMission || sdk.routing.resolveMission(activeScenario?.missionText || ''));
           state = sdk.state.read();
         } else presentationChanged = state.playback.step !== 0;
@@ -249,8 +250,21 @@
         weatherParticipation: booleanControl(values.weatherParticipation, activeConfig.weatherParticipation, 'weatherParticipation'),
       };
       const nextDepartureAt = values.departureAt !== undefined ? datetimeControl(values.departureAt, 'departureAt') : activeDepartureAt;
+      let nextMission = activeMission;
+      if (values.originPlace !== undefined || values.destinationPlace !== undefined) {
+        const places = new Set(world.nodes.filter(row => row.landmark).map(row => row.label));
+        const origin = values.originPlace ?? world.nodes.find(row => row.id === activeMission?.originNodeId)?.label;
+        const destination = values.destinationPlace ?? world.nodes.find(row => row.id === activeMission?.destinationNodeId)?.label;
+        if (!places.has(origin) || !places.has(destination)) throw pluginError('route_place_unknown', 'Choose mapped starting and ending places.');
+        if (origin === destination) throw pluginError('route_has_no_extent', 'Choose different starting and ending places.');
+        const currentOrigin = world.nodes.find(row => row.id === activeMission?.originNodeId)?.label;
+        const currentDestination = world.nodes.find(row => row.id === activeMission?.destinationNodeId)?.label;
+        if (origin !== currentOrigin || destination !== currentDestination)
+          nextMission = sdk.routing.resolveMission(`Walk from ${origin} to ${destination} using the most building shade.`);
+      }
       activeConfig = nextConfig;
       activeDepartureAt = nextDepartureAt;
+      activeMission = nextMission;
     }
 
     function appendPlaybackReceipt(state) {
@@ -281,6 +295,7 @@
         simulation: state.simulation,
         step: state.playback.step,
         world,
+        mission: activeMission,
         buildingReceipt,
         governanceReceipt,
         environmentReceipt,
@@ -539,6 +554,8 @@
       'treeCanopyParticipation',
       'weatherParticipation',
       'departureAt',
+      'originPlace',
+      'destinationPlace',
     ].some((key) => Object.prototype.hasOwnProperty.call(values || {}, key));
   }
 

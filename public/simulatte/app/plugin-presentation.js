@@ -261,9 +261,12 @@
     presentation.viewIntents.forEach((intent) => {
       const points = intent.targetIds.flatMap((id) => layerPoints.get(id) || []);
       if (!points.length) return;
+      const subject = intent.targetIds.length === 1
+        ? compiled.actors.find(actor => actor.sourceId === intent.targetIds[0] && actor.pluginId === pluginId) : null;
       compiled.cameraTargets.push(Object.freeze({
         id: namespace(intent.id),
-        sourceId: intent.id,
+        sourceId: subject?.sourceId || intent.id,
+        subjectKind: subject?.kind || null,
         pluginId,
         kind: 'plugin',
         label: cameraTargetLabel(presentation.layers, intent),
@@ -282,6 +285,7 @@
           sourceId: targetId,
           pluginId,
           kind: 'plugin',
+          subjectKind: compiled.actors.find(actor=>actor.sourceId===targetId)?.kind || null,
           label: presentation.layers.find((layer) => layer.id === targetId)?.label || targetId,
           target: Object.freeze(centerForPoints(targetPoints)),
           distance: distanceForPoints(targetPoints),
@@ -304,7 +308,7 @@
       if (compiled.cameraTargets.some(target => target.sourceId === actor.sourceId && target.viewMode === 'follow')) return;
       compiled.cameraTargets.push(Object.freeze({
         id: `${actor.id}:follow`, sourceId: actor.sourceId, pluginId, kind: 'plugin',
-        label: actor.label, target: Object.freeze(centerForPoints(actor.points)),
+        label: actor.label, subjectKind:actor.kind, target: Object.freeze(centerForPoints(actor.points)),
         distance: distanceForPoints(actor.points), viewMode: 'follow', priority: 0, reasonEventId: null,
       }));
     });

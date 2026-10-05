@@ -23,10 +23,11 @@
     ? require('../../shared/render/renderer-session.js') : root.SimulatteRendererSession;
   const shadows = typeof module === 'object' && module.exports ? require('./webgpu-sun-shadow.js') : root.SimulatteSunShadow;
   const cameraFit = typeof module === 'object' && module.exports ? require('./camera-fit.js') : root.SimulatteCameraFit;
-  const api = factory(cameraFit, shadows, math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions);
+  const motionApi = typeof module === 'object' && module.exports ? require('./plugin-actor-motion.js') : root.SimulattePluginActorMotion;
+  const api = factory(motionApi, cameraFit, shadows, math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(cameraFit, shadows, math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(motionApi, cameraFit, shadows, math, geometry, cameraController, sceneSource, semanticLabels, passApi, targets, sessions) {
   if (!targets) throw new Error('render_targets_dependency_missing');
   const SAMPLE_COUNT = 1;
   const MINIMAP_RADIUS_M = 420;
@@ -91,7 +92,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
   // Only high-emissive dynamic signals are allowed to pulse; animating every
   // map fragment makes thin geometry shimmer as the camera moves.
   let pulse = select(1.0, 0.82 + 0.18 * sin(uniforms.timeViewport.x * 2.4 + input.worldPosition.x * 0.018 - input.worldPosition.z * 0.012), input.emissive > 1.4);
-  let diffuseColor = input.color.rgb * (0.2 + diffuse * 0.74) * (1.0 - metallic * 0.38);
+  let albedo = mix(input.color.rgb, sqrt(max(input.color.rgb, vec3<f32>(0.0))), uniforms.lightDirection.w);
+  let diffuseColor = albedo * (0.2 + diffuse * 0.74) * (1.0 - metallic * 0.38);
   let lit = diffuseColor + specular * visibility + input.color.rgb * rim + input.color.rgb * input.emissive * pulse;
   let toneMapped = lit / (lit + vec3<f32>(0.85));
   let cameraDistance = distance(uniforms.cameraPosition.xyz, input.worldPosition);
@@ -304,11 +306,15 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       refreshPluginDynamicGeometry(snapshot, 0);
     }
 
+    const actorMotion=motionApi.create();
     function refreshPluginDynamicGeometry(snapshot = null, animationTimeSeconds = null) {
       if (!state.pluginScene?.actors?.length) return;
       const pluginStartedAt = performance.now();
+      let displayScene=actorMotion.sample(performance.now()) || state.pluginScene;
+      const subject=state.targets.find(target=>target.id===state.focusId)?.sourceId;
+      if(state.mode==='pov')displayScene={...displayScene,actors:displayScene.actors.filter(actor=>actor.sourceId!==subject)};
       state.pluginDynamicData = geometry.createPluginDynamicGeometry(
-        state.pluginScene,
+        displayScene,
         snapshot || snapshotAtRenderTime(state.latestSnapshot, state.pluginSimulationTimeSeconds),
         state.pluginDynamicWriter,
         animationTimeSeconds,
@@ -328,6 +334,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           height: Math.max(1, canvas.clientHeight || canvas.height),
         },
       });
+      actorMotion.update(nextScene,presentationOptions.motion,performance.now());
       state.pluginTransitionActors = new Map();
       state.pluginScene = nextScene;
       recordWorkCpu(state.workCpuMs.pluginCompile, performance.now() - compileStartedAt);
@@ -339,7 +346,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       ensureGeometryBuffer(device, state, state.pluginOverlayData, 'pluginOverlayBuffer', 'pluginOverlayCapacity', 'autonomy-plugin-overlay-geometry');
       state.pluginShadowData = geometry.createPluginShadowGeometry(state.pluginScene, state.pluginShadowWriter);
       ensureGeometryBuffer(device, state, state.pluginShadowData, 'pluginShadowBuffer', 'pluginShadowCapacity', 'autonomy-plugin-shadow-geometry');
-      cameraApi.replacePluginCameraTargets(state, state.pluginScene.cameraTargets, performance.now());
+      cameraApi.replacePluginCameraTargets(state, actorMotion.sample(performance.now()).cameraTargets, performance.now());
       Object.entries(state.pluginScene.counts).forEach(([key, value]) => {
         canvas.dataset[`plugin${key.charAt(0).toUpperCase()}${key.slice(1)}Count`] = String(value);
       });
@@ -380,6 +387,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       if (state.isDestroyed || !state.latestSnapshot) return false;
       const cpuStartedAt = performance.now();
       resizeCanvas(canvas, device, format, state);
+      cameraApi.replacePluginCameraTargets(state,actorMotion.sample(timestamp)?.cameraTargets || state.pluginScene.cameraTargets,timestamp);
       const pose = source.advanceCamera(state, state.latestSnapshot, canvas.width / canvas.height, timestamp);
       const camera = cameraForPose(pose, canvas, state.viewportInsets);
       state.displayCamera = camera;
@@ -395,13 +403,13 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun, uniformData);
       state.semanticLabelReceipt = semanticLabels?.draw(
         labelCanvas,
-        state.pluginScene.labels,
+        state.mode==='pov'?[]:state.pluginScene.labels,
         camera.viewProjection,
         { width: canvas.width, height: canvas.height },
       ) || null;
       const encoder = device.createCommandEncoder({ label: 'autonomy-map-frame' });
       const currentTexture = context.getCurrentTexture();
-      const useOverviewStatic = pose.mode !== 'pov';
+      const useOverviewStatic = pose.mode !== 'pov' && !state.pluginScene.sun;
       const shadowReceipt = shadow.encode(encoder, { sun: state.pluginScene.sun, center: pose.target,
         radius: Math.max(1200, Math.hypot(...math.subtract(pose.eye, pose.target))),
         rows: [sceneGeometry(false).static, sceneGeometry(false).pluginStatic] });
@@ -415,7 +423,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         pipelines,
         sampleCount: SAMPLE_COUNT,
         geometry: sceneGeometry(useOverviewStatic),
-        clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
+        clearValue: state.pluginScene.sun?.directionToSun?.[1]>0 ? {r:.64,g:.78,b:.88,a:1} : { r: 0.006, g: 0.018, b: 0.035, a: 1 },
       });
       const minimapVisible = Boolean(pose.mode === 'follow' && minimapCanvas);
       canvas.dataset.followMinimap = minimapVisible ? 'visible' : 'hidden';
@@ -475,7 +483,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun, uniformData);
       const currentTexture = context.getCurrentTexture();
       const encoder = device.createCommandEncoder({ label: 'autonomy-evidence-frame' });
-      const useOverviewStatic = pose.mode !== 'pov';
+      const useOverviewStatic = pose.mode !== 'pov' && !state.pluginScene.sun;
       const shadowReceipt = shadow.encode(encoder, { sun: state.pluginScene.sun, center: pose.target,
         radius: Math.max(1200, Math.hypot(...math.subtract(pose.eye, pose.target))),
         rows: [sceneGeometry(false).static, sceneGeometry(false).pluginStatic] });
@@ -489,7 +497,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         pipelines,
         sampleCount: SAMPLE_COUNT,
         geometry: sceneGeometry(useOverviewStatic),
-        clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
+        clearValue: state.pluginScene.sun?.directionToSun?.[1]>0 ? {r:.64,g:.78,b:.88,a:1} : { r: 0.006, g: 0.018, b: 0.035, a: 1 },
       });
       const rowBytes = width * 4;
       const bytesPerRow = Math.ceil(rowBytes / 256) * 256;
@@ -807,8 +815,9 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const directionToSun = sun?.directionToSun || [0.38, 0.88, 0.26];
     values.set(camera.viewProjection, 0);
     values.set([...camera.eye, 1], 16);
-    values.set(directionToSun.map((value) => -value).concat(0), 20);
-    values.set([0.008, 0.025, 0.05, fogDensityForEye(camera.eye)], 24);
+    const daylight=sun&&directionToSun[1]>0;
+    values.set(directionToSun.map((value) => -value).concat(daylight?1:0), 20);
+    values.set([...(daylight?[.64,.78,.88]:[0.008,0.025,0.05]), fogDensityForEye(camera.eye)], 24);
     values.set([seconds, canvas.width, canvas.height, 0], 28);
     device.queue.writeBuffer(buffer, 0, values);
   }

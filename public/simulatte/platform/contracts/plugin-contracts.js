@@ -402,7 +402,7 @@
       text(value.sun.id, 'plugin_sun_id_invalid', `Plugin ${pluginId} sun ID`);
       text(value.sun.label, 'plugin_sun_label_invalid', `Plugin ${pluginId} sun label`);
       finiteRange(value.sun.azimuthDegrees, 0, 360, 'plugin_sun_azimuth_invalid', `Plugin ${pluginId} sun azimuth`);
-      finiteRange(value.sun.elevationDegrees, -5, 90, 'plugin_sun_elevation_invalid', `Plugin ${pluginId} sun elevation`);
+      finiteRange(value.sun.elevationDegrees, -90, 90, 'plugin_sun_elevation_invalid', `Plugin ${pluginId} sun elevation`);
       boundedIds(value.sun.anchorSegmentIds, 4096, `Plugin ${pluginId} sun anchor segments`);
       finiteRange(value.sun.distanceM, 50, 2000, 'plugin_sun_distance_invalid', `Plugin ${pluginId} sun distance`);
       finiteRange(value.sun.radiusM, 1, 100, 'plugin_sun_radius_invalid', `Plugin ${pluginId} sun radius`);

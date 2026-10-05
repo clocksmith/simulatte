@@ -8,6 +8,7 @@
     recordRenderWork, renderWorkReceipt, renderExperienceSummary, summarize, yieldToFrame,
     getScenario, getCameraMode, getRenderer, selectCamera, selectViewMode, applyRouteParameters,
     onPhase, onPlayback, onViewRuntime, onParametersApplied, onError }) {
+    let sunControls=null;
     let disposed = false, inspector = null, inspectorInsets = {}, inspectorViewport = null;
     const applyInspectorInsets = () => getRenderer()?.setViewportInsets?.(inspectorInsets);
     const owner = profile.interaction?.simulationOwnerPluginId || extensions.activePluginIds[0];
@@ -120,6 +121,8 @@
       });
       lastPluginContributions = platform.contributions;
       if(profile.id==='sun-walker-v1') {
+        sunControls ||= hostRoot.SimulatteSunWalkerControls.create({host:elements.experienceReadouts,session});
+        sunControls.update(platform.contributions.find(row=>row.pluginId===owner));
         if(!inspector)inspector=hostRoot.SimulatteObjectInteraction.create({host:elements.autonomyCanvas.parentElement,canvas:elements.autonomyCanvas,
           getSession:()=>session,onPreviewChange:()=>renderPluginExperience({mission:null}),projectObjects:()=>getRenderer()?.projectObjects?.()||[],
           onInsets:panel=>{
@@ -149,8 +152,10 @@
       }));
       const platformTime = Math.max(0, ...platform.contributions.map((contribution) => contribution.state?.simulationTimeMs || 0));
       const rendererStartedAt = performance.now();
+      const motionState = platform.contributions.find(contribution => contribution.pluginId === owner)?.state;
       renderer.session.setScene({ presentations: semanticPresentations,
         simulationTimeMs: platformTime,
+        motion: {id:motionState?.id,previousId:motionState?.previousStateId,running:pluginPlayback?.snapshot().phase==='running'},
         selectedIds: [selected],
         provenanceReceipts: inspector?.provenanceReceipts(platform.provenanceReceipts) || platform.provenanceReceipts,
       });
@@ -248,7 +253,7 @@
       disposed = true;
       pluginRenderGeneration += 1;
       pluginClock?.pause();
-      inspector?.dispose();session.dispose();status.dispose();
+      sunControls?.dispose();inspector?.dispose();session.dispose();status.dispose();
       if(hostRoot.SimulatteActiveSession===session)hostRoot.SimulatteActiveSession=null;
     }
     return Object.freeze({ failRendering:()=>session.update({rendering:'failed'}), invoke:session.invoke, commands:()=>pluginPlayback?commands:null, render: renderPluginExperience, summary: renderPluginSummary, appliedParameters: () => Object.fromEntries(lastPluginContributions.map(row => [row.pluginId, Object.fromEntries(row.controls.controls.map(control => [control.id, structuredClone(control.value)]))])), dispose });

@@ -86,6 +86,14 @@ test('POV mode uses the plugin actor rather than the hidden City journey state',
   assert.ok(pose.eye[1] < 2);
 });
 
+test('pedestrian follow looks straight down at the walker rather than trailing street level', () => {
+  const state=cameraState();
+  state.targets[1].subjectKind='pedestrian';
+  const pose=camera.advanceCamera(state,snapshot,worldModel,1.5,0);
+  assert.ok(Math.hypot(pose.eye[0]-pose.target[0],pose.eye[2]-pose.target[2])<0.02);
+  assert.ok(pose.eye[1]>pose.target[1]+100);
+});
+
 test('overview, free, and compare retain distinct camera modes and framing', () => {
   const overviewState = cameraState();
   camera.setCameraMode(overviewState, 'overview', 0);

@@ -284,6 +284,7 @@
         heading = LAST_ACTOR_HEADING.get(row.id)
           ?? approximateHeadingFromPaths(scene.paths, pose.point) ?? 0;
       }
+      if(Number.isFinite(row.heading))heading=row.heading;
       LAST_ACTOR_HEADING.set(row.id, heading);
       if (row.kind !== 'pedestrian') {
         addBeacon(writer, pose.point, semanticColor(row), row.isSelected ? 12 : 5, row.isSelected ? 3.2 : 1.8, row.isSelected ? 1.2 : 0.72);
@@ -293,7 +294,7 @@
         kind: row.kind,
         point: pose.point,
         heading,
-        motionPhase: elapsedSeconds * 3.2 + index * 1.7,
+        motionPhase: pose.point.motionPhase ?? elapsedSeconds * 3.2 + index * 1.7,
         isPrimary: row.isSelected,
       });
     });
