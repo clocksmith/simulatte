@@ -1,0 +1,378 @@
+{
+  "before": {
+    "execution": "paused",
+    "contribution": {
+      "schema": "simulatte.progressiveState.v4",
+      "id": "sun-walk-c5ca5667:step-0",
+      "pluginId": "sun-walker",
+      "simulationTimeMs": 0,
+      "status": "ready",
+      "previousStateId": null,
+      "eventIds": [
+        "sun-event-0-848cff6b"
+      ],
+      "measures": [
+        {
+          "kind": "progress",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ],
+          "measurement": {
+            "label": "Walk completed",
+            "subject": "Walker on sun-route-2-751f64f0",
+            "definition": "Elapsed modeled walking time divided by predicted whole-route time. Playback speed changes presentation timing; walking speed changes modeled arrival times.",
+            "timeBasis": "accumulated",
+            "interval": {
+              "start": 0,
+              "end": 0,
+              "unit": "seconds"
+            },
+            "validity": "not-sampled",
+            "freshness": "current",
+            "context": "Now: In direct sun. Exposure so far: 0.0 s sampled · Unknown 0.0 s (0%) · Night 0.0 s (0%)."
+          }
+        },
+        {
+          "kind": "direct-sun",
+          "value": 0,
+          "unit": "seconds",
+          "domain": null
+        },
+        {
+          "kind": "shade",
+          "value": 0,
+          "unit": "seconds",
+          "domain": null
+        },
+        {
+          "kind": "unknown",
+          "value": 0,
+          "unit": "seconds",
+          "domain": null
+        },
+        {
+          "kind": "night",
+          "value": 0,
+          "unit": "seconds",
+          "domain": null
+        },
+        {
+          "kind": "direct-sun-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ],
+          "measurement": {
+            "label": "Sun so far",
+            "subject": "Walker on sun-route-2-751f64f0",
+            "definition": "0.0 seconds / 0.0 completed sampled seconds. Includes declared canopy coverage; unknown and night remain in the denominator. Building geometry is reported separately. No UV dose or thermal-comfort calculation.",
+            "timeBasis": "accumulated",
+            "interval": {
+              "start": 0,
+              "end": 0,
+              "unit": "seconds"
+            },
+            "validity": "not-sampled",
+            "freshness": "current",
+            "context": "Now: In direct sun. Exposure so far: 0.0 s sampled · Unknown 0.0 s (0%) · Night 0.0 s (0%).",
+            "detail": "0.0 s"
+          }
+        },
+        {
+          "kind": "unknown-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ]
+        },
+        {
+          "kind": "night-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ]
+        },
+        {
+          "kind": "shade-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ],
+          "measurement": {
+            "label": "Shade so far",
+            "subject": "Walker on sun-route-2-751f64f0",
+            "definition": "0.0 seconds / 0.0 completed sampled seconds. Includes declared canopy coverage; unknown and night remain in the denominator. Building geometry is reported separately. No UV dose or thermal-comfort calculation.",
+            "timeBasis": "accumulated",
+            "interval": {
+              "start": 0,
+              "end": 0,
+              "unit": "seconds"
+            },
+            "validity": "not-sampled",
+            "freshness": "current",
+            "context": "Now: In direct sun. Exposure so far: 0.0 s sampled · Unknown 0.0 s (0%) · Night 0.0 s (0%).",
+            "detail": "0.0 s"
+          }
+        },
+        {
+          "kind": "geometric-direct-sun-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ]
+        },
+        {
+          "kind": "geometric-shade-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ]
+        },
+        {
+          "kind": "adjusted-direct-beam-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ]
+        },
+        {
+          "kind": "direct-beam-equivalent",
+          "value": 0,
+          "unit": "seconds",
+          "domain": null
+        }
+      ],
+      "provenance": {
+        "schema": "simulatte.provenance.v4",
+        "axes": {
+          "origin": "modeled",
+          "temporalStatus": "forecast",
+          "uncertainty": {
+            "kind": "missing",
+            "value": {
+              "buildingHeight": "unknown heights propagate as unknown exposure",
+              "treeCanopy": "historical tree identity observed; crown geometry and current presence modeled",
+              "cloudAndWeather": "historical station analog; street-scale irradiance missing",
+              "facadeAndAwningGeometry": "not available"
+            }
+          }
+        },
+        "evidenceRefs": [
+          {
+            "id": "sun-model-75aefaf7",
+            "datasetId": "sun-walker.model-governance.v1",
+            "contentHash": "13cb2e597e335ac4da20312b17b7d3de5b989c476d090181f181e07dd0169849",
+            "modelReceiptId": "sun-model-75aefaf7"
+          }
+        ]
+      }
+    },
+    "message": ""
+  },
+  "after": {
+    "execution": "paused",
+    "contribution": {
+      "schema": "simulatte.progressiveState.v4",
+      "id": "sun-walk-c5ca5667:step-0",
+      "pluginId": "sun-walker",
+      "simulationTimeMs": 0,
+      "status": "ready",
+      "previousStateId": null,
+      "eventIds": [
+        "sun-event-0-848cff6b"
+      ],
+      "measures": [
+        {
+          "kind": "progress",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ],
+          "measurement": {
+            "label": "Walk completed",
+            "subject": "Walker on sun-route-2-751f64f0",
+            "definition": "Elapsed modeled walking time divided by predicted whole-route time. Playback speed changes presentation timing; walking speed changes modeled arrival times.",
+            "timeBasis": "accumulated",
+            "interval": {
+              "start": 0,
+              "end": 0,
+              "unit": "seconds"
+            },
+            "validity": "not-sampled",
+            "freshness": "current",
+            "context": "Now: In direct sun. Exposure so far: 0.0 s sampled · Unknown 0.0 s (0%) · Night 0.0 s (0%)."
+          }
+        },
+        {
+          "kind": "direct-sun",
+          "value": 0,
+          "unit": "seconds",
+          "domain": null
+        },
+        {
+          "kind": "shade",
+          "value": 0,
+          "unit": "seconds",
+          "domain": null
+        },
+        {
+          "kind": "unknown",
+          "value": 0,
+          "unit": "seconds",
+          "domain": null
+        },
+        {
+          "kind": "night",
+          "value": 0,
+          "unit": "seconds",
+          "domain": null
+        },
+        {
+          "kind": "direct-sun-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ],
+          "measurement": {
+            "label": "Sun so far",
+            "subject": "Walker on sun-route-2-751f64f0",
+            "definition": "0.0 seconds / 0.0 completed sampled seconds. Includes declared canopy coverage; unknown and night remain in the denominator. Building geometry is reported separately. No UV dose or thermal-comfort calculation.",
+            "timeBasis": "accumulated",
+            "interval": {
+              "start": 0,
+              "end": 0,
+              "unit": "seconds"
+            },
+            "validity": "not-sampled",
+            "freshness": "current",
+            "context": "Now: In direct sun. Exposure so far: 0.0 s sampled · Unknown 0.0 s (0%) · Night 0.0 s (0%).",
+            "detail": "0.0 s"
+          }
+        },
+        {
+          "kind": "unknown-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ]
+        },
+        {
+          "kind": "night-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ]
+        },
+        {
+          "kind": "shade-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ],
+          "measurement": {
+            "label": "Shade so far",
+            "subject": "Walker on sun-route-2-751f64f0",
+            "definition": "0.0 seconds / 0.0 completed sampled seconds. Includes declared canopy coverage; unknown and night remain in the denominator. Building geometry is reported separately. No UV dose or thermal-comfort calculation.",
+            "timeBasis": "accumulated",
+            "interval": {
+              "start": 0,
+              "end": 0,
+              "unit": "seconds"
+            },
+            "validity": "not-sampled",
+            "freshness": "current",
+            "context": "Now: In direct sun. Exposure so far: 0.0 s sampled · Unknown 0.0 s (0%) · Night 0.0 s (0%).",
+            "detail": "0.0 s"
+          }
+        },
+        {
+          "kind": "geometric-direct-sun-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ]
+        },
+        {
+          "kind": "geometric-shade-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ]
+        },
+        {
+          "kind": "adjusted-direct-beam-share",
+          "value": 0,
+          "unit": "ratio",
+          "domain": [
+            0,
+            1
+          ]
+        },
+        {
+          "kind": "direct-beam-equivalent",
+          "value": 0,
+          "unit": "seconds",
+          "domain": null
+        }
+      ],
+      "provenance": {
+        "schema": "simulatte.provenance.v4",
+        "axes": {
+          "origin": "modeled",
+          "temporalStatus": "forecast",
+          "uncertainty": {
+            "kind": "missing",
+            "value": {
+              "buildingHeight": "unknown heights propagate as unknown exposure",
+              "treeCanopy": "historical tree identity observed; crown geometry and current presence modeled",
+              "cloudAndWeather": "historical station analog; street-scale irradiance missing",
+              "facadeAndAwningGeometry": "not available"
+            }
+          }
+        },
+        "evidenceRefs": [
+          {
+            "id": "sun-model-75aefaf7",
+            "datasetId": "sun-walker.model-governance.v1",
+            "contentHash": "13cb2e597e335ac4da20312b17b7d3de5b989c476d090181f181e07dd0169849",
+            "modelReceiptId": "sun-model-75aefaf7"
+          }
+        ]
+      }
+    },
+    "message": "sun_route_search_limit: narrow the detour limit or reduce shade preference"
+  },
+  "resumed": "running",
+  "pass": true
+}
