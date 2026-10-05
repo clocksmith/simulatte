@@ -184,7 +184,7 @@
     if(context.state!=='running'){status('Audio interrupted; toggle sound to resume');return;}
     const observer=reading?.observer;
     const moved=observer&&Math.hypot(observer.point.x-state.focus.x,observer.point.y-state.focus.y,(observer.point.z||0)-(state.focus.z||0));
-    if(!observer||moved>20){if(!fadePending){quiet();fadePending=true;}status('Updating microphone');return;}
+    if(!observer){if(!fadePending){quiet();fadePending=true;}status('Updating microphone');return;}
     const now=context.currentTime;
     if(appliedReading!==reading||fadePending){
       appliedReading=reading;fadePending=false;
@@ -224,7 +224,7 @@
       item.filter.frequency.setTargetAtTime(Math.max(160,Math.min(3500,item.contribution.cutoff||1800)),now,.06);
       item.panner.pan.setTargetAtTime(Math.max(-1,Math.min(1,(dx*right.x+dy*right.y)/length)),now,.04);
     }
-    status(state.cameraMode==='rider'?'Onboard microphone':'Viewpoint microphone');
+    status(moved>20?'Moving microphone · updating acoustics':state.cameraMode==='rider'?'Onboard microphone':'Viewpoint microphone');
   }
   root.MotorcycleTrafficAudio={update,observe,mute};
 })(window);

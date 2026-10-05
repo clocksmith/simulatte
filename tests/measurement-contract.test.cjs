@@ -53,3 +53,15 @@ test('received sound descriptors bind position, height, units and instantaneous 
   assert.match(row.measurement.subject,/1.7 m high/);assert.match(row.measurement.definition,/does not measure accumulated exposure/);
  }
 });
+
+test('audio accepts a completed sample while the camera moves without publishing it as a current measurement',()=>{
+ const point={mode:'map',x:10,y:20,z:30,right:{x:1,y:0}},config={surface:'none'};
+ const expected=M.capture(2,3,4,point,config),moved={...point,x:100,z:60,right:{x:0,y:1}};
+ assert.equal(M.acceptsCompleted(expected,expected,config),true);
+ assert.equal(M.accepts(expected,expected,moved,config),false,'The displayed measurement still requires the current viewpoint');
+ for(const field of ['scenarioId','requestId','time','observationKey','configurationKey'])
+  assert.equal(M.acceptsCompleted({...expected,[field]:'stale'},expected,config),false,field);
+ assert.equal(M.acceptsCompleted(expected,expected,{surface:'retro'}),false,'Treatment changes invalidate the sample');
+ assert.equal(M.acceptsCompleted(null,expected,config),false);
+ assert.equal(M.acceptsCompleted(expected,null,config),false);
+});

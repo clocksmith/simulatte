@@ -82,7 +82,6 @@
       setText('observer-position',`${reading.point.mode||'Observer'} / ${reading.point.z.toFixed(1)} m high`);
       onMeasurement('fresh');lastObserver=data;if(inspectedLocation)paint();
       setText('observer-time',`Fresh sample · ${data.time.toFixed(2)} s`);
-      root.MotorcycleTrafficAudio?.observe(data);
       const canvas=$('observer-history'),ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
       ctx.strokeStyle='#8da595';ctx.lineWidth=.5;for(const level of [40,80,120]){const y=canvas.height-(level-20)/120*canvas.height;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
       ctx.strokeStyle='#c6e5aa';ctx.lineWidth=2;ctx.beginPath();history.forEach((row,i)=>{const x=(row.time-history[0].time)/Math.max(.001,history.at(-1).time-history[0].time)*canvas.width,y=canvas.height-Math.max(0,Math.min(1,(row.level-20)/120))*canvas.height;i&&!row.breakBefore?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();setText('history-interval',`${history[0]?.time.toFixed(2)}–${history.at(-1)?.time.toFixed(2)} simulation seconds / dBA. Gaps mark changed observer or treatments.`);
@@ -93,16 +92,20 @@
       if(initialObservation){({markers,nextId,selectedMarker,inspectedSource,inspectedLocation}=initialObservation);initialObservation=null;}
       else{markers=[{id:'receiver-1',name:'Observer 1',...view.getObserver()}];nextId=2;selectedMarker=null;inspectedSource=null;inspectedLocation=null;}
       $('inspection').hidden=!(selectedMarker||inspectedSource||inspectedLocation);renderMarkers();
-      observerWorker=new Worker('./observer-noise-worker.js?v=misters-v25');
+      observerWorker=new Worker('./observer-noise-worker.js?v=audio-motion-v26');
       observerWorker.postMessage({type:'init',scene});
       observerWorker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==observerRequest)return;
         observerPending=false;
         if(data.type==='error'){setText('observer-time',data.message);$('observer-level').title='Measurement unavailable; showing the last completed reading';onMeasurement('unavailable');return;}
-        if(data.type==='observer'&&measurements.accepts(data.identity,observerIdentity,measurements.observerKey(view.getObserver()),configuration(world))){data.latencyMs=performance.now()-observerStarted;showObserver(data);}
+        if(data.type==='observer'&&measurements.acceptsCompleted(data.identity,observerIdentity,configuration(world))){
+          data.latencyMs=performance.now()-observerStarted;
+          root.MotorcycleTrafficAudio?.observe(data);
+          if(measurements.matches(data.identity,measurements.observerKey(view.getObserver()),configuration(world)))showObserver(data);
+        }
       };
       observerWorker.onerror=event=>{if(generation!==epoch)return;observerPending=false;setText('observer-time',event.message||'Audio measurement worker failed');$('observer-level').title='Measurement unavailable; showing the last completed reading';onMeasurement('unavailable');};
-      worker=new Worker('./live-noise-worker.js?v=misters-v25');worker.postMessage({type:'init',scene});
+      worker=new Worker('./live-noise-worker.js?v=audio-motion-v26');worker.postMessage({type:'init',scene});
       worker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==requestId)return;
         pending=false;

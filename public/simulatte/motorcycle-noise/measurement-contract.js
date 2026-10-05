@@ -25,8 +25,14 @@
     return observer.trackId?{mode:observer.mode,trackId:observer.trackId,span:focus.span}:focus;
   }
   function accepts(received, expected, observation, configuration) {
-    return !!received && !!expected && Object.keys(expected).every(k => received[k] === expected[k]) &&
+    return acceptsCompleted(received, expected, configuration) &&
       matches(expected, observation, configuration);
+  }
+  function acceptsCompleted(received, expected, configuration) {
+    // Audio can play a completed viewpoint sample while the next is in flight.
+    // Its request, scenario, sampled position, time, and treatment must still match.
+    return !!received && !!expected && Object.keys(expected).every(k => received[k] === expected[k]) &&
+      expected.configurationKey === key(configuration);
   }
   function matches(identity, observation, configuration) {
     return !!identity && identity.observationKey === key(observation) && identity.configurationKey === key(configuration);
@@ -50,5 +56,5 @@
     next.push({time:data.time,level:data.observer.total,point:{...data.observer.point},identity:{...identity},breakBefore:discontinuity});
     return next.slice(-80);
   }
-  return Object.freeze({capture,accepts,matches,observerKey,focusKey,appendHistory,describe});
+  return Object.freeze({capture,accepts,acceptsCompleted,matches,observerKey,focusKey,appendHistory,describe});
 });

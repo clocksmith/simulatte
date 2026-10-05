@@ -1,0 +1,67 @@
+{
+  "sources": {
+    "head": "c72d0a45dc4df8c51fe2666e87a7f3d6226c4530",
+    "capturedAt": "2026-10-05T20:19:50.669Z",
+    "modifiedSources": {},
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "runs": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": false,
+      "url": "http://127.0.0.1:60581/motorcycle",
+      "motion": [
+        {
+          "kind": "pan",
+          "samples": 0,
+          "context": "running",
+          "frames": 75,
+          "minRms": 0.10373958558246353,
+          "silentFrames": 0,
+          "statuses": [
+            "Viewpoint microphone / Playback -17 dBFS",
+            "Viewpoint microphone / Playback -19 dBFS",
+            "Viewpoint microphone / Playback -16 dBFS",
+            "Viewpoint microphone / Playback -14 dBFS",
+            "Viewpoint microphone / Playback -12 dBFS"
+          ]
+        },
+        {
+          "kind": "zoom",
+          "samples": 0,
+          "context": "running",
+          "frames": 68,
+          "minRms": 0,
+          "silentFrames": 37,
+          "statuses": [
+            "Updating microphone / Playback -28 dBFS",
+            "Updating microphone",
+            "Viewpoint microphone",
+            "Viewpoint microphone / Playback -27 dBFS",
+            "Updating microphone / Playback -27 dBFS",
+            "Updating microphone / Playback -32 dBFS",
+            "Viewpoint microphone / Playback -21 dBFS",
+            "Updating microphone / Playback -21 dBFS",
+            "Updating microphone / Playback -33 dBFS",
+            "Updating microphone / Playback -41 dBFS"
+          ]
+        },
+        {
+          "kind": "orbit",
+          "samples": 0,
+          "context": "running",
+          "frames": 79,
+          "minRms": 0,
+          "silentFrames": 79,
+          "statuses": [
+            "Updating microphone"
+          ]
+        }
+      ],
+      "error": "AssertionError [ERR_ASSERTION]: Completed microphone samples must continue during camera motion\n    at file:///Users/xyz/deco/simulatte/tools/simulatte/audit-motorcycle-audio-motion.mjs:41:11"
+    }
+  ]
+}
