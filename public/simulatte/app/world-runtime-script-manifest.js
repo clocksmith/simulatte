@@ -175,6 +175,7 @@
     'shared/plugins/subsea-network-global/index.js',
     'shared/plugins/sun-walker/sun-exposure.js',
     'shared/plugins/sun-walker/truth.js',
+    'shared/plugins/sun-walker/shade-router.js',
     'shared/plugins/sun-walker/sun-route-simulation.js',
     'shared/plugins/sun-walker/presentation.js',
     'shared/plugins/sun-walker/compatibility-adapter.js',

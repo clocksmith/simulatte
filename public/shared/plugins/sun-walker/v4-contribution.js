@@ -13,7 +13,7 @@
   root.SimulatteSunWalkerV4 = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerV4(builder, shadowGeometry, exposureSummaryApi) {
   const PLUGIN_ID = 'sun-walker';
-  const MODEL_HASH = 'd354f8270b7a8422745b5ba00b221ac10456ad5483789f941426e7da0d411fce';
+  const MODEL_HASH = '13cb2e597e335ac4da20312b17b7d3de5b989c476d090181f181e07dd0169849';
 
   function createContribution({ simulation, step, world, mission = null, buildingReceipt, governanceReceipt, environmentReceipt }) {
     const buildings = builder.datasetRecord('world.buildings.v1', buildingReceipt, { coverage: simulation.dataReceipt.datasets[0].coverage });
@@ -107,7 +107,7 @@
         label: `Walker · ${exposureStatus.current.geometricLabel} · ${sample.sidewalk ? (sample.sidewalk === 'left' ? 'Left sidewalk · ' : 'Right sidewalk · ') : ''}${sample.timestamp.slice(11, 16)} UTC`,
         geometry: builder.geometry('point', 'city-local-m', [[sample.point.x, sample.point.y, 0]]),
         quantity: builder.quantity('actor.pedestrian.route-progress', snapshot.state.progress, 'ratio', [0, 1]),
-        role: 'event',
+        role: 'primary',
         importance: 1,
         aggregationKey: null,
         provenance: claim,
@@ -237,6 +237,9 @@
           field('chosen-shade-percent', 'Shaded route shade', 100 * selected.metrics.shadeSeconds / selected.metrics.travelSeconds, 'percent', claim),
           field('chosen-sun-percent', 'Shaded route sun', 100 * selected.metrics.directSunSeconds / selected.metrics.travelSeconds, 'percent', claim),
           field('chosen-unknown', 'Shaded route unknown', selected.metrics.unknownSeconds, 'seconds', claim),
+          field('chosen-night', 'Selected route night', selected.metrics.nightSeconds, 'seconds', claim),
+          field('same-route', 'Selected and shortest paths match', selected.route.segmentIds.join('|') === fastest.route.segmentIds.join('|'), null, claim),
+          field('fastest-sun', 'Shortest route direct sun', fastest.metrics.directSunSeconds, 'seconds', claim),
           field('fastest-shade-percent', 'Shortest route shade', 100 * fastest.metrics.shadeSeconds / fastest.metrics.travelSeconds, 'percent', claim),
           field('fastest-sun-percent', 'Shortest route sun', 100 * fastest.metrics.directSunSeconds / fastest.metrics.travelSeconds, 'percent', claim),
           field('fastest-unknown', 'Shortest route unknown', fastest.metrics.unknownSeconds, 'seconds', claim),
@@ -353,7 +356,7 @@
   function controlBounds(id) {
     return {
       maximumAddedTimeSeconds: { minimum: 0, maximum: 86400, step: 30 },
-      maximumAddedRatio: { minimum: 0, maximum: 10, step: 0.05 },
+      maximumAddedRatio: { minimum: 0, maximum: 100, step: 0.05 },
       directSunWeight: { minimum: 0, maximum: 100, step: 0.1 },
       walkingSpeedMps: { minimum: 0.1, maximum: 3, step: 0.1 },
     }[id] || { minimum: null, maximum: null, step: null };

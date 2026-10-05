@@ -30,7 +30,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-d8c1c133003368384e88d916f77328943332de8251f8499c653219bb136e2d4a88610d7c2696a55f75704cfd5ed18e34",
+    "integrity": "sha384-4b5d1fde079afe2b5723be39602266a701139d2734506a245e2d4f1192e885ecc8d2d9662942dd0150225141ba6d7f34",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -72,11 +72,11 @@
   ],
   "resources": [
     {
-      "integrity": "sha384-e5bbb57d82e7710c099b3272ca2ca10b416aee3e082f4855991420046d16f02d40d281c1a6cf79065ed07d3f2e78f857",
+      "integrity": "sha384-4c9d5abd7be7a9b9127cf27d2a28c0eca7c2e017af9bcbd285cbe14dbe1e87f79a53a293ea63dad654e467593a633d6a",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-27c0dbd617a9c949f3e7d9829310cd82b062c24bc3b8f5f4b3fe5dd754fce725bb0c136d6090174d226bd643e7118c7d",
+      "integrity": "sha384-7e2a8e7cba8c5d9c9a6f1fb3192cd60a39e69632cb9d7a46d69c1f6103302263abacfea6af48fb8b6c154a3c040af8ea",
       "path": "./default-config.json"
     },
     {
@@ -104,15 +104,19 @@
       "path": "./presentation.js"
     },
     {
+      "integrity": "sha384-1b01b608376ddfb41a3534160b3323402389237e80abdff6cfd44aa11fb11758281e88d42952d79ff2eb48c0f7999f71",
+      "path": "./shade-router.js"
+    },
+    {
       "integrity": "sha384-a9f065212c5a17977962630433b9ae5363168e09b1ecadd01a2e424adb00b5622e1af3bbe5e64c4bfc5ee4197ae4c1ad",
       "path": "./sun-exposure.js"
     },
     {
-      "integrity": "sha384-805ba3c17eb72798cbd3ac1ddaabd24e6e420a1de538a2561256e5c0b48149040575871efae64e5874eea243b8cb7dc8",
+      "integrity": "sha384-0c0afbe206aa4fa4cc58f56cbebc07d5639b404371e093eee78a89a8018517c4c6f1c49964e310e03b1a9e6ab0d11b0b",
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-88161c448af3220c6ca335e44564bc1dc497ad088ea2bc0cc0c525c8c8a965387f9c2bcf28d19cdd5c500e6d1ac6c31a",
+      "integrity": "sha384-8fca71eb8dafe78dcf27a027647e13ab7d62c16218a2484d3513f78f355d58555ed418865359c43bdf99641e3a1bd615",
       "path": "./v4-contribution.js"
     }
   ],

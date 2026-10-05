@@ -55,7 +55,7 @@
     });
 
     function calculateMission(mission, configuration, departureAt) {
-      return routeSimulation.simulate({ world, worldModel, routes: sdk.routing.alternatives(mission, configuration.maximumAlternatives),
+      return routeSimulation.simulate({ world, worldModel, mission, mode:sdk.routing.modeFor(mission.embodimentId),
         departureAt, config: configuration, seed: activeScenario?.seed || configuration.seed,
         buildingReceipt, governance, governanceReceipt, environment, environmentReceipt });
     }
@@ -79,6 +79,7 @@
         dataReceiptId: simulation.dataReceipt.id,
         modelReceiptId: simulation.modelReceipt.id,
         selectedSegmentIds: selected.route.segmentIds,
+        routeSearch: simulation.routeSearch,
         comparison: simulation.comparison,
         uncertainty: simulation.modelReceipt.uncertainty,
         claimBoundary: simulation.claimBoundary,
@@ -103,7 +104,7 @@
             environmentFieldId: simulation.dataReceipt.id,
             selectionId: simulation.id,
             objective: selected.metrics.objective,
-            algorithm: 'sun_walker_arrival_sample_route_v2',
+            algorithm: 'sun_walker_arrival_time_graph_v3',
           },
         },
       };

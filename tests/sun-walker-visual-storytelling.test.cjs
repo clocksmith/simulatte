@@ -156,6 +156,39 @@ test('Walker actor position advances while camera target identity remains stable
   );
 });
 
+test('manual follow target survives the transition from route preparation to walking',()=>{
+  const simulation=simulate(),rows=fixture();
+  const compiler=require('../public/simulatte/app/plugin-presentation.js');
+  const registry=require('../public/simulatte/platform/runtime/provenance-registry.js');
+  const worldModel={...rows.worldModel,world:rows.world,node:()=>null};
+  for(const step of [0,1,simulation.timeline.snapshots.length-1]) {
+    const contribution=createContribution(simulation,step);
+    const compiled=compiler.compile([{pluginId:'sun-walker',presentation:contribution.presentation}],worldModel,
+      {provenanceReceipts:[registry.createContributionProvenanceReceipt(contribution)]});
+    const follow=compiled.cameraTargets.find(target=>target.id==='plugin:sun-walker:sun-walker-actor:follow');
+    assert.equal(follow?.subjectKind,'pedestrian');
+    assert.equal(follow?.sourceId,'sun-walker-actor');
+  }
+});
+
+test('the walker remains visible and followable when shadow evidence exceeds the layer budget',()=>{
+  const contribution=createContribution(simulate(),1),rows=fixture();
+  const shadow=contribution.presentation.layers.find(layer=>layer.quantity.kind==='occlusion.shadow-length');
+  assert.ok(shadow);
+  const dense={...contribution,presentation:{...contribution.presentation,layers:[
+    ...contribution.presentation.layers,
+    ...Array.from({length:400},(_,index)=>({...shadow,id:`dense-shadow-${index}`,aggregationKey:`dense-shadow-${index}`})),
+  ]}};
+  const registry=require('../public/simulatte/platform/runtime/provenance-registry.js');
+  const compiler=require('../public/simulatte/app/plugin-presentation.js');
+  const compiled=compiler.compile([{pluginId:'sun-walker',presentation:dense.presentation}],
+    {...rows.worldModel,world:rows.world,node:()=>null},
+    {provenanceReceipts:[registry.createContributionProvenanceReceipt(dense)]});
+  assert.equal(compiled.actors.length,1);
+  assert.ok(compiled.cameraTargets.some(target=>target.id==='plugin:sun-walker:sun-walker-actor:follow'));
+  assert.ok(compiled.areas.length<400,'Shadow evidence still respects the compositor budget');
+});
+
 test('Building shadow geometry follows the active sun sample during playback', () => {
   const result = simulate();
   const first = createContribution(result, 1);

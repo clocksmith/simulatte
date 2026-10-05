@@ -7,34 +7,41 @@
       <label>From (A)<select name="originPlace" aria-label="Starting point"></select></label>
       <label>To (B)<select name="destinationPlace" aria-label="Destination"></select></label>
       <button class="sim-action" type="submit">Update walk</button>
-    </form><div class="sun-walk-routes" role="group" aria-label="Choose a route">
-      <button class="sim-action" type="button" data-walk-weight="100"><strong>More shade</strong><span data-route-stats="shade-choice"></span></button>
-      <button class="sim-action" type="button" data-walk-weight="0"><strong>Shortest walk</strong><span data-route-stats="fastest"></span></button>
+    </form><label class="sun-walk-preference"><span>Time versus shade <output data-walk-preference-label>Balanced</output></span>
+      <input type="range" min="0" max="100" step="1" value="50" aria-label="Time versus shade">
+      <span><span>Shortest walk</span><span>Prefer shade</span></span>
+    </label><div class="sun-walk-routes" role="group" aria-label="Route comparison">
+      <div class="sun-walk-route"><strong>Shortest walk</strong><span data-route-stats="fastest"></span></div>
+      <div class="sun-walk-route"><strong>Your route</strong><span data-route-stats="chosen"></span></div>
     </div><div class="sun-walk-views" role="group" aria-label="Follow the walker">
       <span>View</span><button class="sim-action" type="button" data-walk-camera="overview">Whole route</button>
       <button class="sim-action" type="button" data-walk-camera="follow">Top-down follow</button>
       <button class="sim-action" type="button" data-walk-camera="pov">First person</button>
-    </div><p class="sun-walk-note">Predicted whole-route exposure · modeled buildings and declared canopy</p><p data-walk-message role="status" hidden></p>`;
+    </div><p class="sun-walk-note" data-route-tradeoff></p><p class="sun-walk-note">Predicted whole-route exposure · modeled buildings and declared canopy</p><p data-walk-message role="status" hidden></p>`;
     host.before(panel);
     const form=panel.querySelector('form'),message=panel.querySelector('[data-walk-message]');
-    let controls=[],dirty=false,busy=false;
+    const preference=panel.querySelector('input[type=range]');
+    let controls=[],dirty=false,preferenceDirty=false,busy=false;
     const on=(node,type,fn)=>node.addEventListener(type,fn,{signal:events.signal});
     function say(text){message.hidden=!text;message.textContent=text;}
-    function setBusy(value){busy=value;for(const e of panel.querySelectorAll('button,select'))e.disabled=value;panel.setAttribute('aria-busy',String(value));}
+    function setBusy(value){busy=value;for(const e of panel.querySelectorAll('button,select,input'))e.disabled=value;panel.setAttribute('aria-busy',String(value));}
     async function apply(weight) {
       if(busy)return;
       const values=Object.fromEntries(controls.map(row=>[row.id,row.value]));
       values.originPlace=form.elements.originPlace.value;values.destinationPlace=form.elements.destinationPlace.value;
       if(values.originPlace===values.destinationPlace){say('Choose different starting and ending places.');return;}
       const endpointsChanged=controls.some(row=>['originPlace','destinationPlace'].includes(row.id)&&row.value!==values[row.id]);
-      if(weight!==undefined)values.directSunWeight=weight;
+      values.directSunWeight=weight??Math.min(100,Number(preference.value)/Math.max(1,100-Number(preference.value)));
       setBusy(true);say('Calculating routes…');
-      try {await session.invoke('apply-controls',values);dirty=false;if(endpointsChanged)await session.invoke('camera','overview');say('');}
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      try {await session.invoke('apply-controls',values);dirty=false;preferenceDirty=false;if(endpointsChanged)await session.invoke('camera','overview');say('');}
       catch(error){say(error.message);}
       finally{setBusy(false);}
     }
     on(form,'change',()=>{dirty=true;});on(form,'submit',event=>{event.preventDefault();void apply();});
-    for(const button of panel.querySelectorAll('[data-walk-weight]'))on(button,'click',()=>void apply(Number(button.dataset.walkWeight)));
+    function showPreference(){const p=Number(preference.value);panel.querySelector('[data-walk-preference-label]').textContent=p===0?'Shortest walk':p===100?'Strongest shade preference':p===50?'Balanced':p<50?'Prefer time':'Prefer shade';}
+    on(preference,'input',()=>{preferenceDirty=true;showPreference();});
+    on(preference,'change',()=>void apply());
     for(const button of panel.querySelectorAll('[data-walk-camera]'))on(button,'click',()=>{
       void session.invoke('camera',button.dataset.walkCamera).then(()=>updateCamera()).catch(error=>say(error.message));
     });
@@ -52,12 +59,15 @@
       }
       const fields=contribution.inspections.find(row=>row.id==='sun-route-comparison')?.fields||[];
       const value=id=>fields.find(row=>row.id===id)?.value;
-      for(const prefix of ['shade-choice','fastest']){
+      for(const prefix of ['chosen','fastest']){
         const minutes=Number(value(prefix+'-time'))/60,shade=Number(value(prefix+'-shade-percent')),sun=Number(value(prefix+'-sun-percent')),unknown=Number(value(prefix+'-unknown')),night=Number(value(prefix+'-night'));
         panel.querySelector(`[data-route-stats="${prefix}"]`).textContent=`${minutes.toFixed(1)} min · ${Math.round(shade)}% shade · ${Math.round(sun)}% sun${unknown>0?` · ${Math.round(unknown/60/minutes*100)}% unknown`:''}${night>0?` · ${Math.round(night/60/minutes*100)}% night`:''}`;
       }
       const weight=controls.find(row=>row.id==='directSunWeight').value;
-      for(const button of panel.querySelectorAll('[data-walk-weight]'))button.setAttribute('aria-pressed',String(Number(button.dataset.walkWeight)===weight));
+      if(!preferenceDirty){preference.value=weight>=100?100:Math.round(100*weight/(1+weight));showPreference();}
+      const extra=(Number(value('chosen-time'))-Number(value('fastest-time')))/60;
+      const saved=(Number(value('fastest-sun'))-Number(value('chosen-sun')))/60;
+      panel.querySelector('[data-route-tradeoff]').textContent=value('same-route')?'Same route at this preference.':`${extra.toFixed(1)} min longer · ${Math.abs(saved).toFixed(1)} min ${saved>=0?'less':'more'} in direct sun`;
       updateCamera();
     }
     return {update,dispose(){events.abort();panel.remove();}};

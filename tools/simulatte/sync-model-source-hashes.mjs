@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 const models={
-  'sun-walker':{MODEL_HASH:['sun-route-simulation.js','sun-exposure.js','environment.js']},
+  'sun-walker':{MODEL_HASH:['sun-route-simulation.js','shade-router.js','sun-exposure.js','environment.js']},
   'gpu-supercluster':{workload:'workload.js',topology:'cluster-topology.js',collectives:'collective-solver.js',thermals:'thermal-model.js'},
   'orbital-transfer-planner':{MODEL_HASH:'launch-window.js',VERIFIER_HASH:'n-body-verifier.js',EPHEMERIS_HASH:'ephemeris.js'},
 };

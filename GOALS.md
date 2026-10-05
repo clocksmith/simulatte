@@ -21,6 +21,8 @@ Creators need to understand the world they requested and make targeted changes w
 
 8. Establish model accuracy with independent reference cases, timestep or spatial convergence, and separate calibration and evaluation records. Share physical entity identity and units across models and rendering; expose missing coverage and unquantified uncertainty. Improve opening activity and object interactions before adding configuration.
 
+9. Sun Walker first finds the shortest walking path without a shade preference. Its main time-versus-shade slider changes graph search using shadow geometry at predicted arrival times, rather than reranking a few ordinary routes. Show the selected route's extra walking time and reduced sun exposure against that fixed baseline. Keep editable endpoints and top-down/first-person walking views directly accessible.
+
 ## Operating Loops
 
 For data execution, acquire only the chosen input, validate its mapping and declared semantics, run the selected model, and compare identified results. For prompts, follow the eight phases with each consuming its declared predecessor artifact. Record rejected or unsupported obligations rather than inventing a successful scene. Edit and recompile while preserving accepted overrides, then export and verify reimport against the declared reproduction contract.

@@ -8,7 +8,7 @@ import {openBrowserAudit} from './browser-session.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const arg=(name,fallback='')=>process.argv.includes(name)?process.argv[process.argv.indexOf(name)+1]:fallback;
-const out=path.resolve(root,arg('--out','artifacts/sunwalker/20261005'));
+const out=path.resolve(root,arg('--out','artifacts/sunwalker/20261005-routing'));
 await fs.mkdir(out,{recursive:true});
 const report={observedAt:new Date().toISOString(),sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),sourceHashes:{},runs:[]};
 for(const file of ['public/simulatte/app/webgpu-renderer.js','public/simulatte/app/plugin-actor-motion.js','public/simulatte/app/plugin-presentation.js','public/simulatte/app/camera-controller.js','public/simulatte/app/sun-walker-controls.js','public/shared/plugins/sun-walker/plugin.json','public/world-tiers.css'])
@@ -41,6 +41,20 @@ try {
       assert.equal(run.initial.canvas.sunShadow,'depth-map');assert.ok(Number(run.initial.canvas.sunShadowCasterVertices)>900000);
       assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'),true);run.checks.push('solar shadows and individual building geometry; no horizontal overflow');
       await capture('overview');
+      const metrics=()=>evaluate(`(()=>{const c=globalThis.__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='sun-walker');return Object.fromEntries(c.inspections.find(i=>i.id==='sun-route-comparison').fields.map(f=>[f.id,f.value]))})()`);
+      const preference=async value=>{
+        await evaluate(`(()=>{const slider=document.querySelector('[aria-label="Time versus shade"]');slider.value=${value};slider.dispatchEvent(new Event('input',{bubbles:true}));slider.dispatchEvent(new Event('change',{bubbles:true}))})()`);
+        await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-walk-message]').hidden`);
+        return metrics();
+      };
+      run.shortest=await preference(0);assert.equal(run.shortest['same-route'],true);
+      run.balanced=await preference(50);run.shaded=await preference(100);
+      assert.equal(run.shortest['fastest-time'],run.shaded['fastest-time'],'Baseline must not move with the preference');
+      assert.ok(run.shaded['chosen-time']>run.shortest['chosen-time']);
+      assert.ok(run.shaded['chosen-sun']<run.shortest['chosen-sun']);
+      assert.ok(run.shaded['chosen-sun']<=run.balanced['chosen-sun']);
+      await capture('shade-preference');await preference(50);
+      run.checks.push('slider searches a longer shaded path; zero shade preference exactly restores the fixed shortest baseline');
       await click('[data-walk-camera=follow]');
       await wait(`(()=>{const d=document.querySelector('#autonomy-canvas').dataset;const e=d.cameraEye.split(',').map(Number),t=d.cameraTarget.split(',').map(Number);return d.cameraMode==='follow'&&d.cameraTransition==='settled'&&Math.hypot(e[0]-t[0],e[2]-t[2])<0.1})()`);
       await capture('follow');run.checks.push('top-down camera remains over the walker');
@@ -48,12 +62,10 @@ try {
       await wait(`(()=>{const d=document.querySelector('#autonomy-canvas').dataset;return d.cameraMode==='pov'&&d.cameraTransition==='settled'&&Number(d.cameraEye.split(',')[1])<2})()`);
       await capture('first-person');run.checks.push('first-person camera at walking eye height');
       await evaluate(`(()=>{const select=document.querySelector('[name=destinationPlace]');select.value='Tompkins Square';select.dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('.sun-walk-endpoints').requestSubmit()})()`);
-      await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-route-stats=fastest]').textContent.startsWith('21.0 min')`);
+      await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-walk-message]').hidden`);
       run.changedCards=await evaluate(`document.querySelector('.sun-walk-routes').innerText`);
-      assert.match(run.changedCards,/24% shade/);assert.match(run.changedCards,/22% shade/);
-      await click('[data-walk-weight="0"]');await wait(`document.querySelector('[data-walk-weight="0"]').getAttribute('aria-pressed')==='true' && document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false'`);
-      await click('[data-walk-weight="100"]');await wait(`document.querySelector('[data-walk-weight="100"]').getAttribute('aria-pressed')==='true' && document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false'`);
-      run.checks.push('changed destination; both route policies run with their own exposure predictions');
+      assert.notEqual(run.changedCards,run.initial.cards);
+      run.checks.push('changed destination recomputes both graph paths');
       await evaluate(`(()=>{const select=document.querySelector('[name=originPlace]');select.value='Union Square';select.dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('.sun-walk-endpoints').requestSubmit()})()`);
       await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-walk-message]').hidden`);
       run.changedOrigin=await evaluate(`document.querySelector('.sun-walk-routes').innerText`);

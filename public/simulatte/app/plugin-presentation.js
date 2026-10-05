@@ -305,7 +305,7 @@
     });
     // Manual Follow remains available when a terminal intent switches to an overview.
     compiled.actors.filter(actor => actor.pluginId === pluginId).forEach(actor => {
-      if (compiled.cameraTargets.some(target => target.sourceId === actor.sourceId && target.viewMode === 'follow')) return;
+      if (compiled.cameraTargets.some(target => target.id === `${actor.id}:follow`)) return;
       compiled.cameraTargets.push(Object.freeze({
         id: `${actor.id}:follow`, sourceId: actor.sourceId, pluginId, kind: 'plugin',
         label: actor.label, subjectKind:actor.kind, target: Object.freeze(centerForPoints(actor.points)),

@@ -8,17 +8,20 @@
   const environment = typeof module === 'object' && module.exports
     ? require('./environment.js')
     : root.SimulatteSunWalkerEnvironment;
-  const api = factory(exposure, truth, environment);
+  const router = typeof module === 'object' && module.exports ? require('./shade-router.js') : root.SimulatteShadeRouter;
+  const api = factory(exposure, truth, environment, router);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteSunWalkerRouteSimulation = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerRouteSimulation(exposure, truthApi, environmentApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerRouteSimulation(exposure, truthApi, environmentApi, router) {
   const DIRECT_SUN_TRANSFORM = 'sun-walker.sample-arrival-occlusion.v1';
-  const ROUTE_SELECTION_TRANSFORM = 'sun-walker.bounded-alternative-selection.v2';
+  const ROUTE_SELECTION_TRANSFORM = 'sun-walker.arrival-time-graph-selection.v3';
 
   function simulate({
     world,
     worldModel,
     routes,
+    mission = null,
+    mode = 'pedestrian',
     departureAt,
     config,
     seed,
@@ -28,7 +31,7 @@
     environment,
     environmentReceipt,
   }) {
-    validateInputs({ routes, departureAt, config });
+    validateInputs({ routes: mission ? [{}] : routes, departureAt, config });
     const buildings = exposure.compiledBuildings(world);
     const environmentalScene = environmentApi.compile(environment, world);
     const dataReceipt = createDataReceipt(
@@ -41,6 +44,21 @@
       environmentReceipt
     );
     const modelReceipt = createModelReceipt(config, seed, dataReceipt, governance);
+    let routeSearch = null;
+    if(mission) {
+      const blocked=new Set(worldModel.blockedSegmentIds(0));
+      const avoided=new Set((mission.constraints?.avoidStreetNames||[]).map(name=>name.toLowerCase()));
+      const result=router.search({worldModel,originNodeId:mission.originNodeId,destinationNodeId:mission.destinationNodeId,
+        eligible:segment=>segment.allowedModes.includes(mode)&&!blocked.has(segment.id)&&!avoided.has((segment.source?.street||'').toLowerCase()),
+        walkingSpeedMps:config.walkingSpeedMps,directSunWeight:config.directSunWeight,unknownWeight:config.unknownWeight,
+        timeBucketSeconds:config.routeTimeBucketSeconds,maximumLabels:config.maximumSearchLabels,
+        maximumAddedTimeSeconds:config.maximumAddedTimeSeconds,maximumAddedRatio:config.maximumAddedRatio,
+        evaluateEdge:(segment,elapsed)=>evaluateSegment({segment,segmentIndex:0,enteredAtMs:Date.parse(departureAt)+elapsed*1000,
+          buildings,world,config,dataReceipt,modelReceipt,environmentalScene}).summary});
+      routes=[result.baseline];
+      if(result.selected.segmentIds.join('|')!==result.baseline.segmentIds.join('|'))routes.push(result.selected);
+      routeSearch=result.receipt;
+    }
     const candidates = routes.map((route, routeIndex) => evaluateCandidate({
       route,
       routeIndex,
@@ -68,7 +86,7 @@
     const eligible = candidates.filter((row) => row.metrics.withinDetourBound);
     const available = eligible.length ? eligible : candidates;
     const selected = config.directSunWeight === 0 ? fastest : available.slice().sort(compareObjective)[0];
-    const shadeChoice = available.slice().sort((a,b) => candidateCost(a.metrics,100,config.unknownWeight)-candidateCost(b.metrics,100,config.unknownWeight)||compareFastest(a,b))[0];
+    const shadeChoice = mission ? selected : available.slice().sort((a,b) => candidateCost(a.metrics,100,config.unknownWeight)-candidateCost(b.metrics,100,config.unknownWeight)||compareFastest(a,b))[0];
     const comparison = createComparison(selected, fastest, allowedAddedSeconds, modelReceipt);
     const timeline = createTimeline(selected, dataReceipt, modelReceipt);
     const simulationId = `sun-walk-${truthApi.stableId([
@@ -87,6 +105,7 @@
       selectedCandidateId: selected.id,
       fastestCandidateId: fastest.id,
       shadeCandidateId: shadeChoice.id,
+      routeSearch,
       candidates,
       comparison,
       timeline: {
@@ -537,18 +556,19 @@
           citationIds: ['ncei-global-hourly-central-park'],
         },
         {
-          id: 'bounded_alternative_route_selection_v2',
-          equationIds: ['generalized-exposure-cost', 'maximum-detour-bound'],
+          id: 'arrival_time_shadow_graph_a_star',
+          equationIds: ['walking-time-shortest-path', 'arrival-time-shadow-cost', 'temporal-label-coalescing', 'maximum-detour-bound'],
           citationIds: [],
         },
       ],
       citations: governance.sources,
       parameters: {
-        maximumAlternatives: config.maximumAlternatives,
         directSunWeight: config.directSunWeight,
         unknownWeight: config.unknownWeight,
         maximumAddedTimeSeconds: config.maximumAddedTimeSeconds,
         maximumAddedRatio: config.maximumAddedRatio,
+        routeTimeBucketSeconds: config.routeTimeBucketSeconds,
+        maximumSearchLabels: config.maximumSearchLabels,
         sampleSpacingM: config.sampleSpacingM,
         walkingSpeedMps: config.walkingSpeedMps,
         minimumSolarElevationDegrees: config.minimumSolarElevationDegrees,
@@ -720,7 +740,7 @@
   }
 
   function candidateCost(metrics, sunWeight, unknownWeight) {
-    return metrics.travelSeconds + metrics.directBeamEquivalentSeconds * sunWeight + metrics.unknownSeconds * unknownWeight;
+    return metrics.travelSeconds + (metrics.directSunSeconds + metrics.unknownSeconds) * sunWeight + metrics.unknownSeconds * unknownWeight;
   }
 
   function compareFastest(left, right) {
@@ -787,7 +807,7 @@
   function validateInputs({ routes, departureAt, config }) {
     if (!Array.isArray(routes) || !routes.length) throw simulationError('sun_routes_missing', 'missing');
     if (!Number.isFinite(Date.parse(departureAt))) throw simulationError('sun_departure_invalid', departureAt);
-    const positive = ['maximumAlternatives', 'sampleSpacingM', 'walkingSpeedMps', 'minimumSolarElevationDegrees'];
+    const positive = ['sampleSpacingM', 'walkingSpeedMps', 'minimumSolarElevationDegrees'];
     positive.forEach((key) => {
       if (!Number.isFinite(config[key]) || config[key] <= 0) throw simulationError(`sun_config_${key}_invalid`, config[key]);
     });

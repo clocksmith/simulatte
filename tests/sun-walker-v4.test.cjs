@@ -233,6 +233,9 @@ test('legacy adapter projects only causal shadow evidence and keeps compatibilit
 test('plugin lifecycle advances the modeled walk without owning playback delay or camera commands', async () => {
   const rows = fixture();
   rows.world.nodes = [{id:'a',label:'Start',landmark:true},{id:'b',label:'Park',landmark:true},{id:'c',label:'Square',landmark:true}];
+  rows.world.segments = rows.routes.map(route=>({...rows.worldModel.segment(route.segmentIds[0]),fromNodeId:'a',toNodeId:'b',allowedModes:['pedestrian']}));
+  rows.world.segments.push(...['b:c','c:b'].map(id=>({id,fromNodeId:id[0],toNodeId:id[2],allowedModes:['pedestrian'],lengthM:50,geometry:[{x:100,y:0},{x:150,y:0}]})));
+  rows.worldModel = {world:rows.world,segment:id=>rows.world.segments.find(row=>row.id===id),outgoing:id=>rows.world.segments.filter(row=>row.fromNodeId===id),blockedSegmentIds:()=>[]};
   let reducer = null;
   let state = null;
   const receipts = [];
@@ -257,7 +260,7 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
       },
     },
     routing: {
-      alternatives: () => rows.routes,
+      modeFor: () => 'pedestrian',
       policy: () => ({ routeObjective: { travelSeconds: 1, sunExposureSeconds: 0.4 } }),
       resolveMission: text => ({ originNodeId: text.includes('from Square') ? 'c' : 'a', destinationNodeId: text.includes('to Square') ? 'c' : 'b', embodimentId: 'pedestrian' }),
     },
@@ -298,7 +301,7 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
     sourceText: 'Take the shadier walk',
     mission: { originNodeId: 'a', destinationNodeId: 'b', embodimentId: 'pedestrian' },
   });
-  assert.equal(contribution.missionPatch.routeOverride.algorithm, 'sun_walker_arrival_sample_route_v2');
+  assert.equal(contribution.missionPatch.routeOverride.algorithm, 'sun_walker_arrival_time_graph_v3');
   assert.equal(instance.semanticPresentation().schema, 'simulatte.presentationLayerSet.v4');
   const createdCount = () => proposed.filter(row => row.kind === 'sun-walker.simulation-created').length;
   const beforeStart = createdCount();
@@ -390,14 +393,14 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
     assert.ok(fields.some(row=>row.id==='sample-time'&&Date.parse(row.value)));
     assert.ok(fields.some(row=>row.id==='occluder'));
   }
-  const alternatives = sdk.routing.alternatives;
-  sdk.routing.alternatives = () => { throw new Error('Applying must not search again'); };
+  const outgoing = rows.worldModel.outgoing;
+  rows.worldModel.outgoing = () => { throw new Error('Applying must not search again'); };
   const promoted = instance.handleAction('sun-walker.accept-preview', { values: { previewId: prepared.id } });
   assert.equal(promoted.status, 'running');
   assert.equal(state.simulation.id, prepared.simulationId);
   assert.equal(state.simulation.selectedCandidateId, prepared.candidateId);
   assert.equal(state.simulation.controls.find(row => row.id === 'directSunWeight').defaultValue, 0);
-  sdk.routing.alternatives = alternatives;
+  rows.worldModel.outgoing = outgoing;
   assert.throws(() => instance.handleAction('sun-walker.accept-preview', { values: { previewId: prepared.id } }), /preview_stale/);
 
   const endpointControls=instance.contributeV4().controls.controls;

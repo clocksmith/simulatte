@@ -724,7 +724,11 @@ html[data-world-launch="featured"] .sim-product-nav a[data-local-href="./blank/"
 .sun-walk-endpoints label { display:grid; gap:4px; flex:1; min-width:130px; max-width:320px; font-size:12px; }
 .sun-walk-endpoints select { width:100%; min-height:44px; padding:8px; border:1px solid var(--sim-line); border-radius:var(--sim-radius-small); background:var(--sim-paper); color:var(--sim-ink); }
 .sun-walk-routes,.sun-walk-views { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-.sun-walk-routes button { display:grid; gap:3px; text-align:left; justify-content:start; padding:10px 14px; }
+.sun-walk-route { display:grid; gap:3px; text-align:left; padding:10px 14px; border:1px solid var(--sim-line); background:var(--sim-paper); }
+.sun-walk-preference { display:grid; gap:8px; max-width:640px; width:100%; font-size:13px; }
+.sun-walk-preference output { float:right; color:var(--sim-ink-soft); }
+.sun-walk-preference input { width:100%; margin:0; accent-color:var(--sim-accent); }
+.sun-walk-preference > span { display:flex; justify-content:space-between; color:var(--sim-ink-soft); font-size:12px; }
 .sun-walk-routes span { font-size:12px; font-weight:400; }
 .sun-walk-controls [aria-pressed="true"] { border-color:var(--sim-accent); background:var(--sim-accent-soft); }
 .sun-walk-note,.sun-walk-controls [role="status"] { margin:0; color:var(--sim-ink-soft); font-size:12px; }
@@ -733,7 +737,7 @@ html[data-world-launch="featured"] .sim-product-nav a[data-local-href="./blank/"
   .sun-walk-endpoints label { min-width:0; }
   .sun-walk-endpoints > button { flex-basis:100%; }
   .sun-walk-routes { align-items:stretch; }
-  .sun-walk-routes button { flex:1; min-width:0; padding:8px; }
+  .sun-walk-route { flex:1; min-width:0; padding:8px; }
   .sun-walk-routes span { font-size:11px; }
   .sun-walk-views > span { display:none; }
   .sun-walk-views button { flex:1; padding:8px 4px; font-size:12px; }
@@ -745,6 +749,6 @@ body.sim-app .simulation-stage:has(.sun-walk-controls) .sim-readouts { grid-row:
 body.sim-app .simulation-stage:has(.sun-walk-controls):has(.sim-readouts:not([hidden])) .canvas-shell { grid-row:5; height:max(420px,calc(100dvh - 410px)); }
 @media (min-width: 900px) {
   .sun-walk-controls { grid-template-columns:auto 1fr; align-items:center; }
-  .sun-walk-endpoints,.sun-walk-note,.sun-walk-controls [role="status"] { grid-column:1 / -1; }
+  .sun-walk-endpoints,.sun-walk-note,.sun-walk-preference,.sun-walk-controls [role="status"] { grid-column:1 / -1; }
   .sun-walk-views { justify-content:flex-end; }
 }
