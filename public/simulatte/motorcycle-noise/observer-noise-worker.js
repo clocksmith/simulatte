@@ -1,5 +1,5 @@
 'use strict';
-importScripts('./signal.js?v=object-inspection-v24','./city-paths.js?v=object-inspection-v24','./traffic-motion.js?v=object-inspection-v24','./reflection-model.js?v=object-inspection-v24','./treatments.js?v=object-inspection-v24','./city-sound.js?v=object-inspection-v24');
+importScripts('./signal.js?v=misters-v25','./city-paths.js?v=misters-v25','./traffic-motion.js?v=misters-v25','./reflection-model.js?v=misters-v25','./treatments.js?v=misters-v25','./city-sound.js?v=misters-v25');
 let scene=null;
 self.onmessage=({data})=>{
   if(data.type==='init'){scene=data.scene;return;}

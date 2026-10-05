@@ -5,12 +5,12 @@
     const addButtons=[...document.querySelectorAll('[data-add-treatment]')],prompt=$('placement-prompt');
     function setPlacement(kind,message){
       placing=kind;prompt.hidden=!kind;
-      $('placement-message').textContent=message||(kind?'Tap a sidewalk or roof to add '+T.kinds[kind].name.toLowerCase()+'.':'');
+      $('placement-message').textContent=message||(kind==='mist'?'Tap the map to place a water mister. Spray to trigger a simulated engine stall.':kind?'Tap a sidewalk or roof to add '+T.kinds[kind].name.toLowerCase()+'.':'');
       for(const button of addButtons)button.setAttribute('aria-pressed',String(button.dataset.addTreatment===kind));
       $('city').classList.toggle('is-placing',!!kind);
     }
     const actions=document.createElement('div');actions.id='treatment-actions';actions.hidden=true;
-    const spray=document.createElement('button');spray.id='mist-spray';spray.textContent='Run fictional stall';
+    const spray=document.createElement('button');spray.id='mist-spray';spray.textContent='Spray water';
     const enabled=document.createElement('button');enabled.textContent='Disable';const remove=document.createElement('button');remove.textContent='Remove';
     const frequencies=document.createElement('label');frequencies.textContent='Frequency ';const frequency=document.createElement('select');frequency.setAttribute('aria-label','Directional sound frequency');
     for(const hz of [125,500,2000]){const option=document.createElement('option');option.value=hz;option.textContent=hz+' Hz';frequency.append(option);}frequencies.append(frequency);frequencies.hidden=true;actions.append(frequencies,spray,enabled,remove);$('treatment-controls-slot').append(actions);
@@ -20,7 +20,7 @@
       const scene=getScene(),node=scene?.treatments?.find(row=>row.id===selected);if(!node)return;
       const state=T.states(scene,getTime()).find(row=>row.id===selected),sample=latest.find(row=>row.id===selected);
       $('focus-observer').hidden=true;$('inspection-title').textContent=T.kinds[node.kind].name;
-      $('inspection-main').textContent=node.enabled===false?'Disabled':scene.treatmentsEnabled===false?'Comparison: off':node.kind==='mist'?(state.target?'Ready to spray':'Waiting for a bike'):state.target?state.frequency.toFixed(0)+' Hz':'Waiting for traffic';
+      $('inspection-main').textContent=node.enabled===false||(node.kind==='mist'&&!scene.fictionalEventsEnabled)?'Disabled':scene.treatmentsEnabled===false?'Comparison: off':node.kind==='mist'?(state.target?'Ready to spray':'Waiting for a bike'):state.target?state.frequency.toFixed(0)+' Hz':'Waiting for traffic';
       $('inspection-detail').textContent=node.kind==='mist'?'Scripted engine stall and restart. Excluded from acoustic baseline comparisons.':(state.target?'Tracks '+state.target.source.id+' / '+state.target.distance.toFixed(1)+' m':'No motorcycle within 100 m')+(sample?.outputLimited?' / output limited':'');
       $('inspection-time').textContent=node.kind==='mist'?'Fictional interaction; excluded from sound comparisons.':node.kind==='cancellation'?'Delayed tonal model; sound can increase away from its target.':'Powered sound; levels combine as energy, not added dBA.';
       if(lastObserver && node.kind!=='mist' && sample?.comparison){
@@ -30,7 +30,7 @@
         $('inspection-detail').textContent=`With ${withDb.toFixed(2)} dBA · Without ${withoutDb.toFixed(2)} dBA. ${changeDb>0?'Increases sound at this observer.':changeDb<0?'Reduces sound at this observer.':'No change at this observer.'}`;
         $('inspection-time').textContent+=` Same observer (${point.x.toFixed(1)}, ${point.y.toFixed(1)}, ${point.z.toFixed(1)} m), time ${lastObserver.time.toFixed(2)} s, traffic and other treatments.`;
       }
-      spray.hidden=node.kind!=='mist';spray.disabled=!scene.fictionalEventsEnabled||!state.target||node.enabled===false||scene.mistBursts?.some(b=>b.sourceId===state.target?.source.id&&getTime()>=b.start&&getTime()<b.restart);
+      spray.hidden=node.kind!=='mist';spray.disabled=!state.enabled||!state.target||node.enabled===false||scene.mistBursts?.some(b=>b.sourceId===state.target?.source.id&&getTime()>=b.start&&getTime()<b.restart);
       frequencies.hidden=node.kind!=='directional';if(document.activeElement!==frequency)frequency.value=String(node.frequency||500);enabled.textContent=node.enabled===false?'Enable':'Disable';
     }
     function reset(scene){
@@ -42,7 +42,7 @@
         if(!value.point||(scene.acousticContext.occupied(value.point)&&value.surface!=='rooftop')){setPlacement(placing,'Choose an open sidewalk or rooftop.');return true;}
         if(scene.treatments.length>=8){setPlacement(placing,'Eight obstacles placed. Cancel and remove one to add another.');return true;}
         const kind=placing; setPlacement(null);
-        command('treatment',{action:'add',kind,point:value.point,surface:value.surface}).then(result=>{if(result?.id&&getScene()===scene&&scene.treatments.some(row=>row.id===result.id))inspect(result.id);});return true;
+        command('treatment',{action:'add',kind,point:value.point,surface:value.surface,enableFictionalEvent:kind==='mist'}).then(result=>{if(result?.id&&getScene()===scene&&scene.treatments.some(row=>row.id===result.id))inspect(result.id);});return true;
       }
       if(value.treatmentId){inspect(value.treatmentId);return true;}
       clear();return false;

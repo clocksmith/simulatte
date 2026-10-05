@@ -282,7 +282,7 @@ body[data-state="running"] .experience-status, body[data-state="paused"] .experi
 #treatment-actions > label[hidden] { display:none; }
 #treatment-actions select { flex:1; min-height:44px; }
 @media(max-width:900px) {
-  .placement-controls button { flex:1; padding:8px; font-size:13px; }
+  .placement-controls button { flex:1; min-width:0; padding:8px; font-size:13px; }
   .observer-readout,.motorcycle-app:has(#sound-invitation:not([hidden])) .observer-readout { top:244px; }
   .motorcycle-app:has(#placement-prompt:not([hidden])) .observer-readout { top:310px; }
   .city-toolbar .sound-invitation { left:0; top:calc(100% + 136px); }
@@ -296,7 +296,7 @@ body[data-state="running"] .experience-status, body[data-state="paused"] .experi
 .city-toolbar .sound-invitation { display:none; }
 .city-toolbar { grid-template-columns:auto auto auto auto auto; align-items:center; }
 .city-toolbar .camera-control { display:block; position:relative; grid-column:auto; }
-.city-toolbar #camera-label { display:block; list-style:none; cursor:pointer; min-height:44px; }
+.city-toolbar #camera-label { display:flex; align-items:center; justify-content:center; list-style:none; cursor:pointer; min-height:44px; }
 #camera-label::-webkit-details-marker { display:none; }
 .camera-control[open] > summary { border-color:var(--accent); }
 .camera-control .camera-options { position:absolute; z-index:8; top:calc(100% + 8px); left:0; width:300px; max-width:calc(100vw - 48px); padding:8px; background:var(--sim-paper); border:1px solid var(--line); border-radius:var(--sim-radius); box-shadow:var(--sim-shadow); }

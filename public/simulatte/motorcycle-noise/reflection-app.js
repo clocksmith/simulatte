@@ -60,11 +60,12 @@
     editTreatment(input){
       const result=root.MotorcycleTreatments.edit(scene,input); treatmentUndo.push(result.before); if(treatmentUndo.length>32)treatmentUndo.shift();
       $('undo-treatment').hidden=false;$('undo-treatment').disabled=false; $('technique').value=scene.treatmentMode;
+      $('fictional-events').checked=scene.fictionalEventsEnabled===true;
       invalidate();explorer?.treatment({...input,id:result.id}); return {id:result.id};
     },
     undoTreatment(){
       const previous=treatmentUndo.pop();if(!previous)return;
-      Object.assign(scene,previous);$('technique').value=scene.treatmentMode;$('undo-treatment').disabled=!treatmentUndo.length;
+      Object.assign(scene,previous);$('technique').value=scene.treatmentMode;$('undo-treatment').disabled=!treatmentUndo.length;$('fictional-events').checked=scene.fictionalEventsEnabled===true;
       invalidate();explorer?.treatment({action:'undo'});
     },
     setTechnique,

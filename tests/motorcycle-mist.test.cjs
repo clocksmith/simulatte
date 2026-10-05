@@ -37,3 +37,16 @@ test('treatment edits validate atomically, preserve traffic, and supply reversib
  Object.assign(scene,added.before);assert.equal(scene.treatmentsEnabled,false);assert.equal(scene.treatments.length,0);assert.equal(scene.sources,sources);
  assert.throws(()=>api.edit(scene,{action:'add',kind:'directional',point:{x:NaN,y:2,z:1.7}}),/sidewalk/);
 });
+
+test('explicit mister placement enables the fictional event atomically and undo restores it',()=>{
+ const api=global.MotorcycleTreatments,scene={sources:T.prepare(traffic(),geometry),acousticContext:geometry,treatments:[],treatmentMode:'live',treatmentsEnabled:true,fictionalEventsEnabled:false};
+ const add={action:'add',kind:'mist',enableFictionalEvent:true,point:{x:20,y:0,z:1.2}};
+ const before=structuredClone(scene.treatments);
+ assert.throws(()=>api.edit(scene,{...add,point:{x:NaN,y:0,z:1}}),/sidewalk/);
+ assert.equal(scene.fictionalEventsEnabled,false);assert.deepEqual(scene.treatments,before);
+ const result=api.edit(scene,add);
+ assert.equal(scene.fictionalEventsEnabled,true);assert.equal(scene.treatments[0].kind,'mist');
+ assert.equal(api.planSpray(scene,0,{nodeId:result.id}).origin.x,20);
+ Object.assign(scene,result.before);
+ assert.equal(scene.fictionalEventsEnabled,false);assert.deepEqual(scene.treatments,before);
+});

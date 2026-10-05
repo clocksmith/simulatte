@@ -66,7 +66,7 @@
         setText('inspection-time',reading?`${acousticSummary(reading)}. ${observerCurrent()?'Sample':'Stale sample; updating'} at (${reading.point.x.toFixed(0)}, ${reading.point.y.toFixed(0)}), ${lastObserver.time.toFixed(2)} s. Coherent paths can reinforce or cancel; dBA values do not add.`:'Viewpoint microphone / '+inspectedLocation.z.toFixed(1)+' m high');
       }else if(inspectedSource){
         const source=scene.sources.find(item=>item.id===inspectedSource);if(!source)return;$('ride-selected').hidden=source.kind!=='motorcycle';
-        const p=M.position(source,getTime());$('spray-selected').hidden=source.kind!=='motorcycle'||!scene.fictionalEventsEnabled;$('spray-selected').textContent=$('spray-selected').dataset.preparing?'Preparing spray…':'Run fictional stall';$('spray-selected').disabled=!!$('spray-selected').dataset.preparing||p.stalled||!!scene.mistBursts?.some(b=>b.sourceId===source.id&&getTime()>=b.start&&getTime()<b.end);setText('inspection-title',source.kind==='motorcycle'?`Motorcycle ${source.id.split('-').pop()}`:source.id);
+        const p=M.position(source,getTime());$('spray-selected').hidden=source.kind!=='motorcycle'||!scene.fictionalEventsEnabled;$('spray-selected').textContent=$('spray-selected').dataset.preparing?'Preparing spray…':'Spray water';$('spray-selected').disabled=!!$('spray-selected').dataset.preparing||p.stalled||!!scene.mistBursts?.some(b=>b.sourceId===source.id&&getTime()>=b.start&&getTime()<b.end);setText('inspection-title',source.kind==='motorcycle'?`Motorcycle ${source.id.split('-').pop()}`:source.id);
         setText('inspection-main',p.stalled?'Engine stalled':`${(p.speed*3.6).toFixed(1)} km/h`);setText('inspection-detail',p.stalled?'0 RPM / engine off':`${Math.round(p.rpm)} RPM / ${M.sourceLevel(source,getTime()).toFixed(1)} dB(Z) source emission at 1 metre`);
         setText('inspection-time',sourceInspection(lastObserver,source.id,observerCurrent()));
       }
@@ -93,7 +93,7 @@
       if(initialObservation){({markers,nextId,selectedMarker,inspectedSource,inspectedLocation}=initialObservation);initialObservation=null;}
       else{markers=[{id:'receiver-1',name:'Observer 1',...view.getObserver()}];nextId=2;selectedMarker=null;inspectedSource=null;inspectedLocation=null;}
       $('inspection').hidden=!(selectedMarker||inspectedSource||inspectedLocation);renderMarkers();
-      observerWorker=new Worker('./observer-noise-worker.js?v=object-inspection-v24');
+      observerWorker=new Worker('./observer-noise-worker.js?v=misters-v25');
       observerWorker.postMessage({type:'init',scene});
       observerWorker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==observerRequest)return;
@@ -102,7 +102,7 @@
         if(data.type==='observer'&&measurements.accepts(data.identity,observerIdentity,measurements.observerKey(view.getObserver()),configuration(world))){data.latencyMs=performance.now()-observerStarted;showObserver(data);}
       };
       observerWorker.onerror=event=>{if(generation!==epoch)return;observerPending=false;setText('observer-time',event.message||'Audio measurement worker failed');$('observer-level').title='Measurement unavailable; showing the last completed reading';onMeasurement('unavailable');};
-      worker=new Worker('./live-noise-worker.js?v=object-inspection-v24');worker.postMessage({type:'init',scene});
+      worker=new Worker('./live-noise-worker.js?v=misters-v25');worker.postMessage({type:'init',scene});
       worker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==requestId)return;
         pending=false;

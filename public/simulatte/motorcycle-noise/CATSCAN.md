@@ -28,7 +28,7 @@ Babylon renders; Simulatte owns mathematics.
 - Never prescribe cancellation success or infer identity from a spectral peak.
 - Distinguish geometry, synthetic demand, propagation, and measured evidence.
 - Session treatment edits validate atomically and support undo. Histories bind observer/configuration identity and simulation time.
-- Fictional stalls are opt-in and excluded from acoustic comparisons.
+- Fictional stalls are opt-in and excluded from acoustic comparisons. Placing a water mister from the main toolbar explicitly enables this interaction; cancellation leaves the scene unchanged.
 - Fictional events bind traffic, RPM, and sound without water-physics claims.
 - Cameras cannot change traffic state. Comparisons retain traffic, time, and observer position.
 - Population counts represent simulated individuals.
