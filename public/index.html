@@ -41,12 +41,33 @@
   <!-- SIMULATION_CATALOG_START -->
   <section id="simulation-launch" aria-labelledby="launch-title">
     <header class="launch-masthead"><h1 id="launch-title" class="launch-wordmark">SIMULATTE</h1></header>
-    <div class="launch-copy"><p class="launch-kicker">Explore a simulation</p>
-      <nav class="launch-simulations" aria-label="Featured simulations"><a class="launch-link" href="./motorcycle"><img src="./simulation-previews/motorcycle.png?v=31b9179312f1c080" width="1200" height="800" alt="Motorcycle Noise simulation" loading="eager"><h2>Motorcycle Noise</h2><p>Observe moving traffic and sound propagation.</p></a>
-<a class="launch-link" href="./sunwalker"><img src="./simulation-previews/sunwalker.png?v=f102e63a2d630b35" width="1200" height="800" alt="Sun Walker simulation" loading="eager"><h2>Sun Walker</h2><p>Compare walking routes through changing sun and shade.</p></a>
-<a class="launch-link" href="./datacenter"><img src="./simulation-previews/gpu.png?v=800b47bbb9ee4d60" width="1200" height="800" alt="GPU Cluster simulation" loading="eager"><h2>GPU Cluster</h2><p>Explore racks computing, communicating, and waiting.</p></a></nav>
+    <div class="launch-main"><div class="launch-copy"><p class="launch-kicker">Explore a simulation</p>
+      <nav class="launch-simulations" aria-label="Featured simulations"><a class="launch-link" href="./motorcycle">Motorcycle Noise <span aria-hidden="true">↗</span></a>
+<a class="launch-link" href="./sunwalker">Sun Walker <span aria-hidden="true">↗</span></a>
+<a class="launch-link" href="./datacenter">GPU Cluster <span aria-hidden="true">↗</span></a></nav>
       <a class="catalog-entry" href="#all-simulations">All simulations <span aria-hidden="true">↓</span></a>
-    </div>
+    </div><svg class="launch-art" viewBox="0 0 720 680" fill="none" aria-hidden="true">
+        <defs>
+          <pattern id="launch-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern>
+          <g id="launch-block"><path d="M0 0 42-24 84 0 42 24Z"/><path d="M0 0V-52L42-76 84-52V0M0-52 42-28 84-52M42-28V24"/></g>
+        </defs>
+        <g class="launch-city">
+          <path class="launch-grid" d="M0 0H720V680H0Z" fill="url(#launch-grid)"/>
+          <g transform="translate(70 240)"><use href="#launch-block"/><use href="#launch-block" x="110" y="64"/><use href="#launch-block" x="220" y="128"/><use href="#launch-block" x="330" y="192"/></g>
+          <g transform="translate(250 130)"><use href="#launch-block"/><use href="#launch-block" x="110" y="64"/><use href="#launch-block" x="220" y="128"/><use href="#launch-block" x="330" y="192"/></g>
+          <path class="launch-road" d="M60 360 540 82M135 548 650 250M20 450 500 172M210 625 700 342"/>
+        </g>
+        <g class="launch-waves" transform="translate(368 370) rotate(-30)">
+          <ellipse rx="105" ry="68"/><ellipse rx="166" ry="112"/><ellipse rx="232" ry="160"/><ellipse rx="300" ry="210"/>
+        </g>
+        <g class="launch-bike" transform="translate(295 310)">
+          <circle cx="20" cy="62" r="22"/><circle cx="115" cy="62" r="22"/>
+          <path d="M20 62 48 30 84 62H20M88 15 115 62M86 15H103L108 24M29 26H55"/>
+          <path d="M53 28Q64 10 83 24L89 34H52ZM50 38H76L80 53H54Z"/>
+          <path d="M36 65H85L95 60M14 35Q30 26 45 34M102 36Q120 30 133 43"/>
+        </g>
+        <path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+      </svg></div>
     <section id="all-simulations" class="simulation-catalog" aria-labelledby="catalog-title">
       <h2 id="catalog-title">All simulations</h2><p>Explore 14 simulations. Experimental experiences include their limitations.</p>
       <ul><li><div><h3>Motorcycle Noise</h3><p>Observe moving traffic and sound propagation.</p></div><span class="catalog-state">Available</span><a href="./motorcycle" aria-label="Open Motorcycle Noise">Open <span aria-hidden="true">↗</span></a></li>
