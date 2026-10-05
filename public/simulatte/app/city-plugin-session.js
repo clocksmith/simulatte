@@ -176,6 +176,9 @@
         || clockState.eventCount !== timelineReceipt.eventCount
         || (clockState.state !== 'playing' && clockState.currentMs !== platformTime)) {
         pluginClock.useTimeline(platform.timeline, { atMs: platformTime });
+        // Rebinding seeks the clock, which pauses it. Preserve the active walk
+        // after an asynchronous route redraw without undoing an explicit pause.
+        if (clockState.state === 'playing' && pluginPlayback?.snapshot().phase === 'running') pluginClock.play();
       }
       if (interaction.mode === 'playback' && !pluginPlayback) {
         if (!pluginPlaybackApi?.createController) throw new Error('Plugin playback dependency is unavailable');

@@ -170,3 +170,33 @@ test('invalidating a construction retry aborts execution and suppresses late pub
     assert.equal(events.length, count);
   }
 });
+
+test('replacing a route timeline preserves running playback without resuming paused playback',async()=>{
+  const {create}=require('../public/simulatte/app/city-plugin-session.js');
+  let timelineId='first',phase='ready';
+  const timeline={receipt:()=>({id:timelineId,eventCount:2})};
+  let clockState={timelineId,eventCount:2,currentMs:0,state:'paused'};
+  const clock={snapshot:()=>({...clockState}),receipt:()=>({}),pause(){clockState.state='paused';},
+    play(){clockState.state='playing';},useTimeline(){clockState={...clockState,timelineId,state:'paused'};}};
+  const renderer={cameraState:()=>({}),session:{setScene(){}},receipt:()=>({pluginCompositor:{}})};
+  const session=create({hostRoot:{SimulatteSimulationSession:require('../public/shared/contracts/simulation-session.js'),
+      SimulatteSimulationSessionStatus:{create:()=>({render(){},dispose(){}})}},
+    extensions:{activePluginIds:[],views:()=>[],platformV4:()=>({contributions:[],timeline,provenanceReceipts:[]})},
+    pluginUi:{render(){}},elements:{decisionsButton:{},applicationProfileLabel:{},startButton:{parentElement:{}}},
+    profile:{id:'fixture',experience:{defaultView:'map'}},interaction:{mode:'playback'},
+    experienceCameraApi:{applyInitialCamera:()=>true},simulationClockApi:{createClock:()=>clock},
+    pluginPlaybackApi:{createController:()=>({snapshot:()=>({phase})})},
+    pluginViewRuntimeApi:{createCoordinator:()=>({setManualOverride(){},sync:()=>({})})},
+    recordRenderWork(){},renderWorkReceipt:()=>({}),renderExperienceSummary(){},summarize:()=>({}),
+    yieldToFrame:()=>Promise.resolve(),getScenario:()=>({}),getCameraMode:()=>'',getRenderer:()=>renderer,
+    applyRouteParameters:()=>false,onViewRuntime(){},onPlayback(){},
+  });
+  await session.render({});
+  phase='running';clock.play();timelineId='new-route';
+  await session.render({});
+  assert.equal(clock.snapshot().state,'playing','Drawing the new route must not stop a running walk');
+  phase='paused';clock.pause();timelineId='paused-route';
+  await session.render({});
+  assert.equal(clock.snapshot().state,'paused','Drawing must not undo an explicit pause');
+  session.dispose();
+});

@@ -11,7 +11,7 @@ const arg=(name,fallback='')=>process.argv.includes(name)?process.argv[process.a
 const out=path.resolve(root,arg('--out','artifacts/sunwalker/20261005-routing'));
 await fs.mkdir(out,{recursive:true});
 const report={observedAt:new Date().toISOString(),sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),sourceHashes:{},runs:[]};
-for(const file of ['public/simulatte/app/webgpu-renderer.js','public/simulatte/app/plugin-actor-motion.js','public/simulatte/app/plugin-presentation.js','public/simulatte/app/camera-controller.js','public/simulatte/app/sun-walker-controls.js','public/shared/plugins/sun-walker/plugin.json','public/world-tiers.css'])
+for(const file of ['public/simulatte/app/city-plugin-session.js','public/simulatte/app/webgpu-renderer.js','public/simulatte/app/plugin-actor-motion.js','public/simulatte/app/plugin-presentation.js','public/simulatte/app/camera-controller.js','public/simulatte/app/sun-walker-controls.js','public/shared/plugins/sun-walker/plugin.json','public/world-tiers.css'])
   report.sourceHashes[file]=crypto.createHash('sha256').update(await fs.readFile(path.join(root,file))).digest('hex');
 
 try {
@@ -55,6 +55,8 @@ try {
       assert.ok(run.shaded['chosen-sun']<=run.balanced['chosen-sun']);
       await capture('shade-preference');await preference(50);
       run.checks.push('slider searches a longer shaded path; zero shade preference exactly restores the fixed shortest baseline');
+      await wait(`globalThis.__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='sun-walker').state.simulationTimeMs>0`);
+      run.checks.push('walker advances after route recalculation');
       await click('[data-walk-camera=follow]');
       await wait(`(()=>{const d=document.querySelector('#autonomy-canvas').dataset;const e=d.cameraEye.split(',').map(Number),t=d.cameraTarget.split(',').map(Number);return d.cameraMode==='follow'&&d.cameraTransition==='settled'&&Math.hypot(e[0]-t[0],e[2]-t[2])<0.1})()`);
       await capture('follow');run.checks.push('top-down camera remains over the walker');

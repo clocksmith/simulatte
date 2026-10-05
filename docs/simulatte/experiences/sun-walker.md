@@ -11,7 +11,7 @@ Owner contract: `public/shared/plugins/sun-walker/index.js`.
 - Default scenario: `village-union-shade`
 - Contract version: plugin v4 contribution
 - Verification commands: `node --test tests/sun-walker-routing.test.cjs tests/sun-walker-v4.test.cjs tests/sun-walker-visual-storytelling.test.cjs tests/plugin-camera-follow.test.cjs tests/plugin-actor-motion.test.cjs` and `node tools/simulatte/audit-sun-walker.mjs`
-- Browser evidence: `artifacts/sunwalker/20261005-routing-final/browser.json` binds source hashes, viewport, rendering state, slider comparisons, and screenshots. This is local browser evidence, not field calibration.
+- Browser evidence: `artifacts/sunwalker/20261005-routing-playback/browser.json` binds source hashes, viewport, rendering state, slider comparisons, and screenshots. This is local browser evidence, not field calibration.
 
 ## What is it?
 
