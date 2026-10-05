@@ -222,7 +222,7 @@ async function runBrowserSmoke(options) {
     if (featureViewEvaluation.exceptionDetails) throw new Error(featureViewEvaluation.exceptionDetails.exception && featureViewEvaluation.exceptionDetails.exception.description || featureViewEvaluation.exceptionDetails.text);
     const featureView = featureViewEvaluation.result.value;
     const profileProgramEvaluation = await client.send('Runtime.evaluate', {
-      expression: profileProgramRoundTripExpression(expectedProfile.seeds || []),
+      expression: profileProgramRoundTripExpression(expectedProfile.seeds || [], expectedProfile),
       awaitPromise: true,
       returnByValue: true,
     });

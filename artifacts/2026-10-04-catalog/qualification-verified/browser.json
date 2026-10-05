@@ -1,0 +1,597 @@
+{
+  "sources": {
+    "head": "43e080d0763355152a6949e24b737ec5c0e7f855",
+    "capturedAt": "2026-10-05T01:09:03.953Z",
+    "modifiedSources": {
+      "public/CATSCAN.md": {
+        "sha256": "3b0eeb377b445fdd96766456d674a5ccde71df6d48bcdc648d09482bcc5f730b",
+        "modifiedAt": "2026-10-05T00:48:19.134Z"
+      },
+      "public/index.html": {
+        "sha256": "3722b41a7987787fdb11519f060454fa6d7f0675b5be9e21de1428de31650570",
+        "modifiedAt": "2026-10-05T01:01:54.026Z"
+      },
+      "public/simulation-previews/capture-receipt.json": {
+        "sha256": "c39647b31164b502125124bca8ff0ed02459d5c85b6d4db3e5e1aa05bd42578b",
+        "modifiedAt": "2026-10-05T00:50:51.960Z"
+      },
+      "public/simulation-previews/gpu.png": {
+        "sha256": "800b47bbb9ee4d60241fcd916f20a960c1279d9db45a4d0956c04d4c2f205e94",
+        "modifiedAt": "2026-10-05T00:50:51.835Z"
+      },
+      "public/simulation-previews/motorcycle.png": {
+        "sha256": "31b9179312f1c080fc8c96595cc85c9d46c0026cfb6e6a914f425a64f3bee6cb",
+        "modifiedAt": "2026-10-05T00:50:30.671Z"
+      },
+      "public/simulation-previews/sunwalker.png": {
+        "sha256": "f102e63a2d630b352963f2d8ce7cad3a7cb11ba6591994a8b1fc640a634cdb6f",
+        "modifiedAt": "2026-10-05T00:50:49.597Z"
+      },
+      "public/simulation-routes.js": {
+        "sha256": "8d3522bec06ddb08f43cffd4c37e4c7d2c241a038e1c8794559fb197f762e137",
+        "modifiedAt": "2026-10-05T00:59:31.765Z"
+      },
+      "public/simulatte/CATSCAN.md": {
+        "sha256": "37cfcaf7b8a18b9d4099c626cfc5e0e049dfdb9e78eb31eb4b731eda5e086006",
+        "modifiedAt": "2026-10-05T00:55:27.385Z"
+      },
+      "public/simulatte/app/CATSCAN.md": {
+        "sha256": "f5ccd05b8beed088853087ee9ec9921235b31b9a490c07d729291e673411a06e",
+        "modifiedAt": "2026-10-05T00:55:27.385Z"
+      },
+      "public/simulatte/app/workbench-entry.js": {
+        "sha256": "8454a667df41de7882d3ad0486d2ff430dcb23bc9fb12440c2992e0c5f55bfaf",
+        "modifiedAt": "2026-10-05T01:01:53.870Z"
+      },
+      "public/world-tiers.css": {
+        "sha256": "15bc73df0f076882d1303dc567ed337a4bacd0216f94d77a3c1336d29cd0e245",
+        "modifiedAt": "2026-10-05T00:50:58.866Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "cases": [
+    {
+      "route": "/grid",
+      "profile": "grid-resilience-us-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "opening": "running",
+      "completion": "terminal preview followed by resumed settlement",
+      "measures": {
+        "text": "Unmet demand\n56,972.651 MW\nReserve margin\n-12%\nStored energy\n42,035.744 MWh",
+        "quantities": [
+          {
+            "kind": "modeled-unserved-load",
+            "value": 56972.650765,
+            "unit": "MW",
+            "domain": null
+          },
+          {
+            "kind": "modeled-emissions-this-hour",
+            "value": 81951.448,
+            "unit": "ton",
+            "domain": null
+          },
+          {
+            "kind": "current-minimum-reserve-margin",
+            "value": -0.12,
+            "unit": "ratio",
+            "domain": null
+          },
+          {
+            "kind": "storage-state-of-charge",
+            "value": 42035.744087,
+            "unit": "MWh",
+            "domain": null
+          },
+          {
+            "kind": "storage-charging-load",
+            "value": 0,
+            "unit": "MW",
+            "domain": null
+          },
+          {
+            "kind": "spilled-generation",
+            "value": 0,
+            "unit": "MW",
+            "domain": null
+          }
+        ]
+      },
+      "camera": "free and reset controls respond",
+      "selectedObject": "grid-region:west",
+      "objectAction": "Applied and restarted.",
+      "actionCompletion": "terminal preview followed by resumed settlement",
+      "beforeReplay": "2026-10-05T01:09:32.038Z",
+      "replay": "pass",
+      "screenshot": "grid-resilience-us-v1-1440.png"
+    },
+    {
+      "route": "/grid",
+      "profile": "grid-resilience-us-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "opening": "completed",
+      "completion": "ordinary settlement",
+      "measures": {
+        "text": "Unmet demand\n56,972.651 MW\nReserve margin\n-12%\nStored energy\n12,488.69 MWh",
+        "quantities": [
+          {
+            "kind": "modeled-unserved-load",
+            "value": 56972.650765,
+            "unit": "MW",
+            "domain": null
+          },
+          {
+            "kind": "modeled-emissions-this-hour",
+            "value": 81951.448,
+            "unit": "ton",
+            "domain": null
+          },
+          {
+            "kind": "current-minimum-reserve-margin",
+            "value": -0.12,
+            "unit": "ratio",
+            "domain": null
+          },
+          {
+            "kind": "storage-state-of-charge",
+            "value": 12488.690087,
+            "unit": "MWh",
+            "domain": null
+          },
+          {
+            "kind": "storage-charging-load",
+            "value": 0,
+            "unit": "MW",
+            "domain": null
+          },
+          {
+            "kind": "spilled-generation",
+            "value": 0,
+            "unit": "MW",
+            "domain": null
+          }
+        ]
+      },
+      "camera": "free and reset controls respond",
+      "selectedObject": "grid-region:west",
+      "objectAction": "Applied and restarted.",
+      "actionCompletion": "terminal preview followed by resumed settlement",
+      "beforeReplay": "2026-10-05T01:09:47.856Z",
+      "replay": "pass",
+      "screenshot": "grid-resilience-us-v1-390.png"
+    },
+    {
+      "route": "/subsea",
+      "profile": "subsea-network-global-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "opening": "running",
+      "completion": "terminal preview followed by resumed settlement",
+      "measures": {
+        "text": "Service delivered\n209,427.938 Gbps\nService lost\n104,572.062 Gbps\nBusiest cable\n63%",
+        "quantities": [
+          {
+            "kind": "delivered-service",
+            "value": 209427.937740547,
+            "unit": "Gbps",
+            "domain": null
+          },
+          {
+            "kind": "dropped-demand",
+            "value": 104572.062259453,
+            "unit": "Gbps",
+            "domain": null
+          },
+          {
+            "kind": "service-fairness",
+            "value": 0.900819036,
+            "unit": "ratio",
+            "domain": null
+          },
+          {
+            "kind": "maximum-utilization",
+            "value": 0.630434782,
+            "unit": "ratio",
+            "domain": null
+          }
+        ]
+      },
+      "camera": "free and reset controls respond",
+      "selectedObject": "landing:us-northeast",
+      "objectAction": "Applied and restarted.",
+      "actionCompletion": "terminal preview followed by resumed settlement",
+      "beforeReplay": "2026-10-05T01:10:04.776Z",
+      "replay": "pass",
+      "screenshot": "subsea-network-global-v1-1440.png"
+    },
+    {
+      "route": "/subsea",
+      "profile": "subsea-network-global-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "opening": "running",
+      "completion": "ordinary settlement",
+      "measures": {
+        "text": "Service delivered\n209,427.938 Gbps\nService lost\n104,572.062 Gbps\nBusiest cable\n63%",
+        "quantities": [
+          {
+            "kind": "delivered-service",
+            "value": 209427.937740547,
+            "unit": "Gbps",
+            "domain": null
+          },
+          {
+            "kind": "dropped-demand",
+            "value": 104572.062259453,
+            "unit": "Gbps",
+            "domain": null
+          },
+          {
+            "kind": "service-fairness",
+            "value": 0.900819036,
+            "unit": "ratio",
+            "domain": null
+          },
+          {
+            "kind": "maximum-utilization",
+            "value": 0.630434782,
+            "unit": "ratio",
+            "domain": null
+          }
+        ]
+      },
+      "camera": "free and reset controls respond",
+      "selectedObject": "landing:us-northeast",
+      "objectAction": "Applied and restarted.",
+      "actionCompletion": "terminal preview followed by resumed settlement",
+      "beforeReplay": "2026-10-05T01:10:20.278Z",
+      "replay": "pass",
+      "screenshot": "subsea-network-global-v1-390.png"
+    },
+    {
+      "route": "/orbital",
+      "profile": "orbital-transfer-planner-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "opening": "running",
+      "completion": "terminal preview followed by resumed settlement",
+      "measures": {
+        "text": "Transfer delta-v\n6.653 km/s\nFlight time\n205 day\nFeasible transfers\n3,477 solutions",
+        "quantities": [
+          {
+            "kind": "solution-count",
+            "value": 3477,
+            "unit": "solutions",
+            "domain": null
+          },
+          {
+            "kind": "attempted-count",
+            "value": 3477,
+            "unit": "candidates",
+            "domain": null
+          },
+          {
+            "kind": "time-of-flight",
+            "value": 205,
+            "unit": "day",
+            "domain": null
+          },
+          {
+            "kind": "total-delta-v",
+            "value": 6.653069233485769,
+            "unit": "km/s",
+            "domain": null
+          },
+          {
+            "kind": "modeled-flight-elapsed",
+            "value": 205,
+            "unit": "day",
+            "domain": null
+          },
+          {
+            "kind": "route-progress",
+            "value": 1,
+            "unit": "ratio",
+            "domain": null
+          },
+          {
+            "kind": "radiation-exposure-proxy",
+            "value": 429.74,
+            "unit": "shielded proton units",
+            "domain": null
+          },
+          {
+            "kind": "endpoint-position-error",
+            "value": 62674.671128744,
+            "unit": "km",
+            "domain": null
+          },
+          {
+            "kind": "endpoint-velocity-error",
+            "value": 0.001655814,
+            "unit": "km/s",
+            "domain": null
+          }
+        ]
+      },
+      "camera": "free and reset controls respond",
+      "selectedObject": "body:mars",
+      "objectAction": "Alternative drawn",
+      "actionCompletion": "ordinary settlement",
+      "beforeReplay": "2026-10-05T01:10:29.511Z",
+      "replay": "pass",
+      "screenshot": "orbital-transfer-planner-v1-1440.png"
+    },
+    {
+      "route": "/orbital",
+      "profile": "orbital-transfer-planner-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "opening": "completed",
+      "completion": "ordinary settlement",
+      "measures": {
+        "text": "Feasible transfers\n3,477 solutions\nTransfer delta-v\n6.653 km/s\nFlight time\n205 day",
+        "quantities": [
+          {
+            "kind": "solution-count",
+            "value": 3477,
+            "unit": "solutions",
+            "domain": null
+          },
+          {
+            "kind": "attempted-count",
+            "value": 3477,
+            "unit": "candidates",
+            "domain": null
+          },
+          {
+            "kind": "time-of-flight",
+            "value": 205,
+            "unit": "day",
+            "domain": null
+          },
+          {
+            "kind": "total-delta-v",
+            "value": 6.653069233485769,
+            "unit": "km/s",
+            "domain": null
+          },
+          {
+            "kind": "modeled-flight-elapsed",
+            "value": 205,
+            "unit": "day",
+            "domain": null
+          },
+          {
+            "kind": "route-progress",
+            "value": 1,
+            "unit": "ratio",
+            "domain": null
+          },
+          {
+            "kind": "radiation-exposure-proxy",
+            "value": 429.74,
+            "unit": "shielded proton units",
+            "domain": null
+          },
+          {
+            "kind": "endpoint-position-error",
+            "value": 62674.671128744,
+            "unit": "km",
+            "domain": null
+          },
+          {
+            "kind": "endpoint-velocity-error",
+            "value": 0.001655814,
+            "unit": "km/s",
+            "domain": null
+          }
+        ]
+      },
+      "camera": "free and reset controls respond",
+      "selectedObject": "body:mars",
+      "objectAction": "Alternative drawn",
+      "actionCompletion": "ordinary settlement",
+      "beforeReplay": "2026-10-05T01:10:37.909Z",
+      "replay": "pass",
+      "screenshot": "orbital-transfer-planner-v1-390.png"
+    },
+    {
+      "route": "/interstellar",
+      "profile": "interstellar-relay-network-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "opening": "running",
+      "completion": "terminal preview followed by resumed settlement",
+      "measures": {
+        "text": "Distance traveled\n1.827 pc\nLink capacity\n3.25e-4 Gb/s\nDelivery delay\n10.809 year",
+        "quantities": [
+          {
+            "kind": "latency",
+            "value": 10.808812260341691,
+            "unit": "year",
+            "domain": null
+          },
+          {
+            "kind": "bottleneck-rate",
+            "value": 0.0003247401285418025,
+            "unit": "Gb/s",
+            "domain": null
+          },
+          {
+            "kind": "minimum-margin",
+            "value": 15.115760772007448,
+            "unit": "dB",
+            "domain": null
+          },
+          {
+            "kind": "operational-delivery-probability",
+            "value": 1,
+            "unit": "probability",
+            "domain": null
+          },
+          {
+            "kind": "operational-p90-latency",
+            "value": 10.812016427397863,
+            "unit": "year",
+            "domain": null
+          },
+          {
+            "kind": "physical-packet-success",
+            "value": 0.9998833152597602,
+            "unit": "probability",
+            "domain": null
+          },
+          {
+            "kind": "packet-distance",
+            "value": 1.8270410155525703,
+            "unit": "pc",
+            "domain": null
+          },
+          {
+            "kind": "packet-depth",
+            "value": 0.15192449653943765,
+            "unit": "pc",
+            "domain": null
+          }
+        ]
+      },
+      "camera": "free and reset controls respond",
+      "selectedObject": "star:gaia-barnard",
+      "objectAction": "Applied and restarted.",
+      "actionCompletion": "terminal preview followed by resumed settlement",
+      "beforeReplay": "2026-10-05T01:10:48.156Z",
+      "replay": "pass",
+      "screenshot": "interstellar-relay-network-v1-1440.png"
+    },
+    {
+      "route": "/interstellar",
+      "profile": "interstellar-relay-network-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "opening": "running",
+      "completion": "terminal preview followed by resumed settlement",
+      "measures": {
+        "text": "Distance traveled\n1.827 pc\nLink capacity\n3.25e-4 Gb/s\nDelivery delay\n10.809 year",
+        "quantities": [
+          {
+            "kind": "latency",
+            "value": 10.808812260341691,
+            "unit": "year",
+            "domain": null
+          },
+          {
+            "kind": "bottleneck-rate",
+            "value": 0.0003247401285418025,
+            "unit": "Gb/s",
+            "domain": null
+          },
+          {
+            "kind": "minimum-margin",
+            "value": 15.115760772007448,
+            "unit": "dB",
+            "domain": null
+          },
+          {
+            "kind": "operational-delivery-probability",
+            "value": 1,
+            "unit": "probability",
+            "domain": null
+          },
+          {
+            "kind": "operational-p90-latency",
+            "value": 10.812016427397863,
+            "unit": "year",
+            "domain": null
+          },
+          {
+            "kind": "physical-packet-success",
+            "value": 0.9998833152597602,
+            "unit": "probability",
+            "domain": null
+          },
+          {
+            "kind": "packet-distance",
+            "value": 1.8270410155525703,
+            "unit": "pc",
+            "domain": null
+          },
+          {
+            "kind": "packet-depth",
+            "value": 0.15192449653943765,
+            "unit": "pc",
+            "domain": null
+          }
+        ]
+      },
+      "camera": "free and reset controls respond",
+      "selectedObject": "star:gaia-barnard",
+      "objectAction": "Applied and restarted.",
+      "actionCompletion": "terminal preview followed by resumed settlement",
+      "beforeReplay": "2026-10-05T01:11:06.617Z",
+      "replay": "pass",
+      "screenshot": "interstellar-relay-network-v1-390.png"
+    },
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "profile": null,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "replay": "pass",
+      "measures": "PAUSED",
+      "objectAction": "true",
+      "screenshot": "solar-drive-1440.png"
+    },
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "profile": null,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "replay": "pass",
+      "measures": "PAUSED",
+      "objectAction": "true",
+      "screenshot": "solar-drive-390.png"
+    }
+  ],
+  "errors": [],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/136.0.7103.59",
+    "revision": "@d4b493843f5f23217df99a83aa28747602841382",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.0.0 Safari/537.36",
+    "jsVersion": "13.6.233.8"
+  }
+}

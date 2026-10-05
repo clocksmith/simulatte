@@ -4,18 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <base href="/">
-  <meta name="simulatte-build" content="e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23">
+  <meta name="simulatte-build" content="43e080d0763355152a6949e24b737ec5c0e7f855-464358775876">
   <title>Simulatte</title>
   <meta name="description" content="Explore Motorcycle Noise, GPU Cluster, and Sun Walker.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script src="./shared/design/theme-controller.js"></script>
-  <link rel="stylesheet" href="./shared/design/simulatte.css?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23">
-  <link rel="stylesheet" href="./model-selection.css?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23">
-  <link rel="stylesheet" href="./styles.css?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23">
-  <link rel="stylesheet" href="./world-tiers.css?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23">
-  <link rel="stylesheet" href="./shared/design/workbench.css?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23">
-  <link rel="stylesheet" href="./shared/design/compositions/world-interface.css?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23">
-  <link rel="stylesheet" href="./shared/design/theme-control.css?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23">
+  <link rel="stylesheet" href="./shared/design/simulatte.css?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876">
+  <link rel="stylesheet" href="./model-selection.css?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876">
+  <link rel="stylesheet" href="./styles.css?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876">
+  <link rel="stylesheet" href="./world-tiers.css?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876">
+  <link rel="stylesheet" href="./shared/design/workbench.css?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876">
+  <link rel="stylesheet" href="./shared/design/compositions/world-interface.css?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876">
+  <link rel="stylesheet" href="./shared/design/theme-control.css?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LS3SFGCZSL"></script>
   <script>
@@ -38,43 +38,34 @@
     </button>
   </div>
 
-  <!-- Temporary launch surface. Remove data-world-launch from html to restore the preserved chooser. -->
-  <section id="motorcycle-launch" aria-labelledby="launch-title">
-    <header class="launch-masthead"><h1 id="launch-title" class="launch-wordmark">SIMULATTE</h1><span class="launch-edition" hidden>World / 001</span></header>
-    <div class="launch-main">
-      <div class="launch-copy">
-        <p class="launch-kicker">Explore a simulation</p>
-        <nav class="launch-simulations" aria-label="Simulations">
-        <a class="launch-link" href="./motorcycle">Motorcycle Noise <span aria-hidden="true">↗</span></a>
-        <a class="launch-link" href="./datacenter">GPU Cluster <span aria-hidden="true">↗</span></a>
-        <a class="launch-link" href="./sunwalker">Sun Walker <span aria-hidden="true">↗</span></a>
-        </nav>
-      </div>
-      <svg class="launch-art" viewBox="0 0 720 680" fill="none" aria-hidden="true">
-        <defs>
-          <pattern id="launch-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern>
-          <g id="launch-block"><path d="M0 0 42-24 84 0 42 24Z"/><path d="M0 0V-52L42-76 84-52V0M0-52 42-28 84-52M42-28V24"/></g>
-        </defs>
-        <g class="launch-city">
-          <path class="launch-grid" d="M0 0H720V680H0Z" fill="url(#launch-grid)"/>
-          <g transform="translate(70 240)"><use href="#launch-block"/><use href="#launch-block" x="110" y="64"/><use href="#launch-block" x="220" y="128"/><use href="#launch-block" x="330" y="192"/></g>
-          <g transform="translate(250 130)"><use href="#launch-block"/><use href="#launch-block" x="110" y="64"/><use href="#launch-block" x="220" y="128"/><use href="#launch-block" x="330" y="192"/></g>
-          <path class="launch-road" d="M60 360 540 82M135 548 650 250M20 450 500 172M210 625 700 342"/>
-        </g>
-        <g class="launch-waves" transform="translate(368 370) rotate(-30)">
-          <ellipse rx="105" ry="68"/><ellipse rx="166" ry="112"/><ellipse rx="232" ry="160"/><ellipse rx="300" ry="210"/>
-        </g>
-        <g class="launch-bike" transform="translate(295 310)">
-          <circle cx="20" cy="62" r="22"/><circle cx="115" cy="62" r="22"/>
-          <path d="M20 62 48 30 84 62H20M88 15 115 62M86 15H103L108 24M29 26H55"/>
-          <path d="M53 28Q64 10 83 24L89 34H52ZM50 38H76L80 53H54Z"/>
-          <path d="M36 65H85L95 60M14 35Q30 26 45 34M102 36Q120 30 133 43"/>
-        </g>
-        <path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
-      </svg>
+  <!-- SIMULATION_CATALOG_START -->
+  <section id="simulation-launch" aria-labelledby="launch-title">
+    <header class="launch-masthead"><h1 id="launch-title" class="launch-wordmark">SIMULATTE</h1></header>
+    <div class="launch-copy"><p class="launch-kicker">Explore a simulation</p>
+      <nav class="launch-simulations" aria-label="Featured simulations"><a class="launch-link" href="./motorcycle"><img src="./simulation-previews/motorcycle.png?v=31b9179312f1c080" width="1200" height="800" alt="Motorcycle Noise simulation" loading="eager"><h2>Motorcycle Noise</h2><p>Observe moving traffic and sound propagation.</p></a>
+<a class="launch-link" href="./sunwalker"><img src="./simulation-previews/sunwalker.png?v=f102e63a2d630b35" width="1200" height="800" alt="Sun Walker simulation" loading="eager"><h2>Sun Walker</h2><p>Compare walking routes through changing sun and shade.</p></a>
+<a class="launch-link" href="./datacenter"><img src="./simulation-previews/gpu.png?v=800b47bbb9ee4d60" width="1200" height="800" alt="GPU Cluster simulation" loading="eager"><h2>GPU Cluster</h2><p>Explore racks computing, communicating, and waiting.</p></a></nav>
+      <a class="catalog-entry" href="#all-simulations">All simulations <span aria-hidden="true">↓</span></a>
     </div>
-    <footer class="launch-footer" hidden><span>Brooklyn, NYC</span><span>Explore. Listen. Experiment.</span></footer>
+    <section id="all-simulations" class="simulation-catalog" aria-labelledby="catalog-title">
+      <h2 id="catalog-title">All simulations</h2><p>Explore 14 simulations. Experimental experiences include their limitations.</p>
+      <ul><li><div><h3>Motorcycle Noise</h3><p>Observe moving traffic and sound propagation.</p></div><span class="catalog-state">Available</span><a href="./motorcycle" aria-label="Open Motorcycle Noise">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Sun Walker</h3><p>Compare walking routes through changing sun and shade.</p></div><span class="catalog-state">Available</span><a href="./sunwalker" aria-label="Open Sun Walker">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>GPU Cluster</h3><p>Explore racks computing, communicating, and waiting.</p></div><span class="catalog-state">Available</span><a href="./datacenter" aria-label="Open GPU Cluster">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Interstellar Relay</h3><p>Explore relay coverage and communication delays.</p><p class="catalog-limit">Relay infrastructure is hypothetical; reliability is a seeded model.</p></div><span class="catalog-state">Available</span><a href="./interstellar" aria-label="Open Interstellar Relay">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Orbital Transfer</h3><p>Compare transfer windows, travel time, and propellant.</p><p class="catalog-limit">Transfer screening omits navigation covariance and maneuver execution error.</p></div><span class="catalog-state">Available</span><a href="./orbital" aria-label="Open Orbital Transfer">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Grid Resilience</h3><p>Compare regional power supply, demand, and restoration.</p><p class="catalog-limit">Dispatch and restoration are modeled; results are not a live grid forecast.</p></div><span class="catalog-state">Available</span><a href="./grid" aria-label="Open Grid Resilience">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Subsea Network</h3><p>Explore cable capacity, routing, and network disruptions.</p><p class="catalog-limit">Cable capacity, failures, and repairs are modeled; live operator data is not shown.</p></div><span class="catalog-state">Available</span><a href="./subsea" aria-label="Open Subsea Network">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Cable Trader</h3><p>Explore cable exchanges between neighborhood hubs.</p><p class="catalog-limit">Supply, demand, and exchanges are simulated, not actual local inventory.</p></div><span class="catalog-state">Experimental</span><a href="./city/cable-trader-pickup-v1" aria-label="Open Cable Trader">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Neighborhood Bulk Pool</h3><p>Coordinate local bulk purchases and pickups.</p><p class="catalog-limit">Purchases and pickup coordination are simulated, not live offers.</p></div><span class="catalog-state">Experimental</span><a href="./city/neighborhood-bulk-pool-v1" aria-label="Open Neighborhood Bulk Pool">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>NYC Development Atlas</h3><p>Inspect city development and governed source records.</p><p class="catalog-limit">Source records provide context; results do not establish development feasibility.</p></div><span class="catalog-state">Experimental</span><a href="./city/nyc-development-atlas-v1" aria-label="Open NYC Development Atlas">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Food Recall</h3><p>Trace distribution and compare recall responses.</p><p class="catalog-limit">Recall scenarios are simulated, not active food-safety notices.</p></div><span class="catalog-state">Experimental</span><a href="./country/food-recall-us-v1" aria-label="Open Food Recall">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Maritime Trade</h3><p>Compare shipping routes and trade disruptions.</p><p class="catalog-limit">Trade and disruptions are modeled, not live shipping operations.</p></div><span class="catalog-state">Experimental</span><a href="./world/maritime-trade-global-v1" aria-label="Open Maritime Trade">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Asteroid Defense</h3><p>Compare interception strategies and modeled outcomes.</p><p class="catalog-limit">Interception outcomes are screening models, not operational defense predictions.</p></div><span class="catalog-state">Experimental</span><a href="./solar-system/asteroid-defense-v1" aria-label="Open Asteroid Defense">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Solar Drive</h3><p>Inspect a solar vehicle’s component and energy model.</p><p class="catalog-limit">Starts with component inspection; run the idealized energy model explicitly. This is not a built-vehicle measurement.</p></div><span class="catalog-state">Experimental</span><a href="./simulatte/solar-drive/index.html" aria-label="Open Solar Drive">Open <span aria-hidden="true">↗</span></a></li></ul>
+    </section>
   </section>
+  <!-- SIMULATION_CATALOG_END -->
   <main class="map-workspace" aria-label="Simulatte">
     <section class="simulation-stage" aria-label="Selected simulation">
       <header class="simulation-toolbar"><div class="runtime-anchor" data-semantic-label-exclusion>
@@ -375,26 +366,26 @@
   </dialog>
 
 <!-- SIMULATTE_WORLD_RUNTIME_SCRIPTS_START -->
-  <script defer src="./simulatte/app/world-runtime-script-manifest.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./simulatte/app/world-runtime-loader.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./simulation-routes.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/design/program-editor.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/design/data-table.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/design/simulation-session-status.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/design/product-navigation.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/contracts/world-spec-authorship.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/contracts/world-spec.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/contracts/input-source.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/contracts/data-world-spec.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/contracts/simulation-session.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/core/pipeline-runner.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/core/simulation/point-motion.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/core/simulation/data-run.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./shared/render/point-scene-view.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./simulatte/app/data-workbench.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./simulatte/app/homepage-webgpu.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./simulatte/app/homepage-effects.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
-  <script defer src="./simulatte/app/workbench-entry.js?v=e029a4b99b40164a14d564600511ec141e20f151-fbe3b5c73f23"></script>
+  <script defer src="./simulatte/app/world-runtime-script-manifest.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./simulatte/app/world-runtime-loader.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./simulation-routes.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/design/program-editor.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/design/data-table.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/design/simulation-session-status.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/design/product-navigation.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/contracts/world-spec-authorship.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/contracts/world-spec.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/contracts/input-source.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/contracts/data-world-spec.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/contracts/simulation-session.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/core/pipeline-runner.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/core/simulation/point-motion.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/core/simulation/data-run.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./shared/render/point-scene-view.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./simulatte/app/data-workbench.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./simulatte/app/homepage-webgpu.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./simulatte/app/homepage-effects.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
+  <script defer src="./simulatte/app/workbench-entry.js?v=43e080d0763355152a6949e24b737ec5c0e7f855-464358775876"></script>
   <!-- generated-plugin-scripts:start -->
   <!-- Selected plugin scripts are loaded by world-runtime-loader.js after route selection. -->
   <!-- generated-plugin-scripts:end -->

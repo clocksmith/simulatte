@@ -1,0 +1,110 @@
+{
+  "reports": [
+    {
+      "surface": "world",
+      "baseUrl": "http://127.0.0.1:36139/",
+      "expectedBuild": "43e080d0763355152a6949e24b737ec5c0e7f855-464358775876",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/136.0.7103.59",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "catalogVisible": true,
+          "previewImages": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Motorcycle NoiseObserve moving traffic and sound propagation.",
+            "reachable": true,
+            "width": 397.328125,
+            "height": 303.5
+          },
+          {
+            "name": "Sun WalkerCompare walking routes through changing sun and shade.",
+            "reachable": true,
+            "width": 397.328125,
+            "height": 303.5
+          },
+          {
+            "name": "GPU ClusterExplore racks computing, communicating, and waiting.",
+            "reachable": true,
+            "width": 397.34375,
+            "height": 303.5
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "http://127.0.0.1:36139/"
+      },
+      "screenshot": {
+        "path": "world-1440x1000.png",
+        "sha256": "90cc5024ee5f8de8a0f449b2ffd5b282b5ff294ee2a24e405b4c34325cbe4f27"
+      }
+    },
+    {
+      "surface": "world",
+      "baseUrl": "http://127.0.0.1:36139/",
+      "expectedBuild": "43e080d0763355152a6949e24b737ec5c0e7f855-464358775876",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/136.0.7103.59",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "catalogVisible": true,
+          "previewImages": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Motorcycle NoiseObserve moving traffic and sound propagation.",
+            "reachable": true,
+            "width": 350,
+            "height": 112
+          },
+          {
+            "name": "Sun WalkerCompare walking routes through changing sun and shade.",
+            "reachable": true,
+            "width": 350,
+            "height": 112
+          },
+          {
+            "name": "GPU ClusterExplore racks computing, communicating, and waiting.",
+            "reachable": true,
+            "width": 350,
+            "height": 112
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "http://127.0.0.1:36139/"
+      },
+      "screenshot": {
+        "path": "world-390x844.png",
+        "sha256": "f1d328fe7f9fc04da723400863111fa1e39faaa27538735d89e37547fc3525d5"
+      }
+    }
+  ]
+}

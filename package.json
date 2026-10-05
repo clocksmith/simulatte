@@ -152,7 +152,12 @@
     "train:compile": "npm run compile:reviews --",
     "validate:universe": "node tools/validate-semantic-universe.mjs",
     "validate:visual-cards": "node tools/validate-visual-card-index.mjs",
-    "sync:world-entrypoint": "node tools/check-world-runtime-entrypoint.mjs --write"
+    "sync:world-entrypoint": "node tools/check-world-runtime-entrypoint.mjs --write",
+    "catalog:sync": "node tools/sync-simulation-homepage.mjs",
+    "catalog:check": "node tools/sync-simulation-homepage.mjs --check && node --test tests/simulation-catalog.test.cjs",
+    "audit:catalog:browser": "node tools/simulatte/audit-simulation-homepage.mjs",
+    "capture:featured": "node tools/simulatte/capture-featured-previews.mjs",
+    "qualify:catalog": "node tools/simulatte/qualify-catalog-experiences.mjs"
   },
   "devDependencies": {
     "doe-gpu": "0.4.7"

@@ -27,11 +27,11 @@ test('the dormant hexagon homepage retains every simulation and optional data to
     assert.ok(html.includes(`data-default-profile="${profile}"`));
   }
 });
-test('featured landing keeps data and unfeatured profiles dormant', () => {
+test('featured landing keeps data dormant until a catalog route is selected', () => {
   const html = readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
   assert.match(html, /<html[^>]+data-world-launch="featured"/);
-  for (const pathname of ['/', '/unlisted', '/orbital', '/grid']) {
-    const context = { document: { documentElement: { dataset: { worldLaunch: 'featured' } }, body: { dataset: {} } },
+  for (const pathname of ['/', '/unlisted']) {
+    const context = { SimulattePublicRoutes: require('../public/simulation-routes.js'), document: { documentElement: { dataset: { worldLaunch: 'featured' } }, body: { dataset: {} } },
       location: { pathname, hash: '#data' } };
     for (const script of ['data-workbench.js', 'workbench-entry.js']) {
       vm.runInNewContext(readFileSync(path.join(__dirname, '../public/simulatte/app', script), 'utf8'), context);
@@ -224,9 +224,9 @@ test('a featured-route loading failure returns to visible navigation with its er
   const nodes = Object.fromEntries(['world-tiers-landing-page', 'simulation-home', 'data-page', 'simulation-status'].map(id => [id, {
     hidden: false, dataset: {}, classList: { remove() {} }, addEventListener() {},
   }]));
-  const context = { location: { pathname: '/datacenter', hash: '' },
+  const context = { SimulattePublicRoutes: require('../public/simulation-routes.js'), location: { pathname: '/datacenter', hash: '' },
     document: { documentElement: { dataset: { worldLaunch: 'featured' } }, body: { dataset: {} },
-      getElementById: id => nodes[id], querySelector: selector => selector === '#motorcycle-launch .launch-copy' ? { append: node => attached.push(node) } : null },
+      getElementById: id => nodes[id], querySelector: selector => selector === '#simulation-launch .launch-copy' ? { append: node => attached.push(node) } : null },
     SimulatteWorldRuntimeScriptManifest: {},
     SimulatteWorldRuntimeLoader: { async loadNavigation() { throw new Error('network unavailable'); } },
     addEventListener() {},

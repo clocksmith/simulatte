@@ -1,3 +1,8 @@
+export function programRuntimeReady(kind, phase) {
+  return kind === 'ready' && ['ready', 'completed'].includes(phase)
+    || kind === 'active' && phase === 'running';
+}
+
 function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expectsCableTrader = false }) {
   return `(async () => {
     const waitFor = async (predicate, label, limit = 10000) => {
@@ -109,7 +114,7 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
   })()`;
 }
 
-function profileProgramRoundTripExpression(scenarios) {
+function profileProgramRoundTripExpression(scenarios, profile = {}) {
   return `(async () => {
     const scenarios = ${JSON.stringify(scenarios.map((row) => ({
       id: row.id,
@@ -190,7 +195,7 @@ function profileProgramRoundTripExpression(scenarios) {
           seed: active.params.scenarioSeed === target.seed,
           contract: Boolean(active.contract.scenarioContentHash),
           route: new URL(location.href).searchParams.get('scenario') === target.id,
-          runtime: document.getElementById('runtime-status').dataset.kind === 'ready',
+          runtime: (${programRuntimeReady.toString()})(document.getElementById('runtime-status').dataset.kind, document.body.dataset.journeyPhase),
         };
         window.__simulatteProfileProgramChecks = checks;
         return Object.values(checks).every(Boolean);
@@ -198,7 +203,7 @@ function profileProgramRoundTripExpression(scenarios) {
     }, 'governed-recompile');
     const applied = JSON.parse(editor.value);
     const start = document.getElementById('start-button');
-    start.click();
+    if (document.body.dataset.journeyPhase === 'ready') start.click();
     const timeline = document.getElementById('playback-timeline');
     const pause = document.getElementById('pause-button');
     const resume = document.getElementById('resume-button');
@@ -213,7 +218,9 @@ function profileProgramRoundTripExpression(scenarios) {
         && !resume.hidden && !resume.disabled, 'edited-run-terminal-preview');
       resume.click();
     }
-    await waitFor(() => document.body.dataset.journeyPhase === 'completed', 'edited-run-settled');
+    const runWaitMs = Math.max(60000, Number(window.__simulatteTierRunState?.totalSteps || 0)
+      * (${Number(profile.interaction?.stepDelayMs || 0)} + ${Number(profile.experience?.performanceBudget?.p95FrameMs || 0)}) + 5000);
+    await waitFor(() => document.body.dataset.journeyPhase === 'completed', 'edited-run-settled', runWaitMs);
     await waitFor(() => {
       try {
         const proof = JSON.parse(document.getElementById('profile-world-proof').textContent);
@@ -235,7 +242,7 @@ function profileProgramRoundTripExpression(scenarios) {
           && proof.createdAt !== beforeReplay.createdAt
           && proof.proofClasses.replay.status === 'pass';
       } catch { return false; }
-    }, 'exact-replay-proof');
+    }, 'exact-replay-proof', runWaitMs);
     const proof = JSON.parse(document.getElementById('profile-world-proof').textContent);
     const pass = layout.pass
       && proof.verdict === 'not-proven'

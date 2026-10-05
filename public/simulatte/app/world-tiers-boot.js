@@ -741,6 +741,7 @@
         getRuntime:()=>runtime,
         getScenario:()=>activeScenario,
         getRunReceipt:()=>root.__simulatteTierRunReceipt||root.__simulattePluginRunReceipt||null,
+        getRunState:()=>runController.snapshot(),
         getCanvas:()=>elements.overlayCanvas,
         navigateScenario:async(scenario)=>{
           const simulation={scenarioId:scenario.id,seed:scenario.seed};

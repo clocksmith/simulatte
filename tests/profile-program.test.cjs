@@ -256,3 +256,34 @@ test('World browser audit verifies governed intent at runtime proof rather than 
   assert.doesNotMatch(source, /active\.phaseArtifacts/);
   assert.match(source, /profileChecks=/);
 });
+
+test('program edits accept an automatically running recompiled scenario and reject loading or failure', async () => {
+  const { programRuntimeReady } = await import('../tools/simulatte/browser-profile-probes.mjs');
+  assert.equal(programRuntimeReady('ready', 'ready'), true);
+  assert.equal(programRuntimeReady('ready', 'completed'), true);
+  assert.equal(programRuntimeReady('active', 'running'), true);
+  for (const [kind, phase] of [['loading','running'], ['error','running'], ['ready','failed'], ['active','ready']]) {
+    assert.equal(programRuntimeReady(kind, phase), false);
+  }
+});
+
+test('exact replay survives more than sixty seconds of progress and rejects stalled execution', async () => {
+  const documentRoot = { body: { dataset: { journeyPhase: 'running' } } };
+  let clock = 0;
+  const settled = { status: 'settled' };
+  const timing = { now: () => clock, sleep: async () => { clock += 1000; } };
+  const receipt = await profileProgram.waitForNewSettledReceipt(() => {
+    if (clock < 90000) return null;
+    documentRoot.body.dataset.journeyPhase = 'completed';
+    return settled;
+  }, null, documentRoot, () => ({ state: 'running', currentStep: clock / 1000 }), timing);
+  assert.equal(receipt, settled);
+  assert.equal(clock, 90000);
+  clock = 0;
+  documentRoot.body.dataset.journeyPhase = 'running';
+  await assert.rejects(profileProgram.waitForNewSettledReceipt(() => null, null, documentRoot,
+    () => ({ state: 'running', currentStep: 0 }), timing), error => error.code === 'profile_program_replay_timeout');
+  assert.ok(clock <= 62000);
+  await assert.rejects(profileProgram.waitForNewSettledReceipt(() => null, null, documentRoot,
+    () => ({ state: 'failed', currentStep: 1 }), timing), error => error.code === 'profile_program_replay_failed');
+});

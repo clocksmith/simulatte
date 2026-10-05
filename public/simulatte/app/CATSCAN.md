@@ -3,7 +3,7 @@
 Parent: [World](../CATSCAN.md)
 ## Target
 
-Mount the minimal Motorcycle, GPU Cluster, and Sun Walker landing page. Preserve other workflows in source.
+Mount featured previews and the full catalog. Open registered profiles directly; preserve other workflows.
 
 ## Authority
 
@@ -33,7 +33,7 @@ Mount the minimal Motorcycle, GPU Cluster, and Sun Walker landing page. Preserve
 - Profile replay compares deterministic execution identity and retains unproven proof classes.
 - Data imports remain local unless the user explicitly requests a URL. Once required mappings and units are declared, valid data prepares and plays automatically; unresolved semantics remain visible.
 - Data execution uses a declared adapter and backend, never inferred physics or a hidden prompt/model lane.
-- Featured launch mode exposes Motorcycle, GPU Cluster, and Sun Walker on desktop and mobile. Other navigation remains dormant.
+- Featured launch mode shows three static captures and an All simulations entry on desktop and mobile. The shared route catalog drives discovery and readiness; other workflows remain dormant.
 - `data-world-launch="featured"` suspends dormant workflows; removing it restores them.
 
 ## Acceptance

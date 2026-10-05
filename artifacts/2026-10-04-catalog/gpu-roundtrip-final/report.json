@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-10-05T01:10:51.729Z",
+  "pass": false,
+  "totalTiers": 1,
+  "passedTiers": 0,
+  "reports": [
+    {
+      "tier": "datacenter",
+      "profileId": "gpu-supercluster-v1",
+      "pluginId": "gpu-supercluster",
+      "pass": false,
+      "status": "Complete",
+      "receipt": {
+        "actionStatus": "settled",
+        "obligations": 0
+      },
+      "profileProgram": null,
+      "errors": [
+        "Error: profile program failed at exact-replay-proof: fnv1a32:ca71e6b5 · straggler-fault-injection · profile_program_replay_timeout: Exact replay did not produce a new settled receipt\n    at waitFor (<anonymous>:16:17)\n    at async <anonymous>:120:5"
+      ],
+      "comparisonSummary": {
+        "text": "1 synchronized comparison settled",
+        "count": 1
+      }
+    }
+  ]
+}

@@ -73,7 +73,9 @@ async function auditTier(chromePath, baseUrl, item) {
   const report = { tier: item.tier, profileId: item.profileId, pluginId: item.pluginId, pass: false, status: null, receipt: null, profileProgram: null, errors: [] };
   let browser;
   try {
-    browser = await launchBrowser({ chromePath, webgpu: true });
+    // The five bounded program stages can each wait 60 seconds. Let their
+    // stage-specific diagnostics settle before the outer CDP deadline.
+    browser = await launchBrowser({ chromePath, webgpu: true, commandTimeoutMs: 330000 });
     const { client } = browser;
     await client.send('Runtime.enable');
     await client.send('Page.enable');
@@ -100,7 +102,7 @@ async function auditTier(chromePath, baseUrl, item) {
       throw new Error('Completed comparison receipt must reach the visible summary');
     }
     const programEvaluation = await client.send('Runtime.evaluate', {
-      expression: profileProgramRoundTripExpression(profile.seeds || []),
+      expression: profileProgramRoundTripExpression(profile.seeds || [], profile),
       awaitPromise: true,
       returnByValue: true,
     });

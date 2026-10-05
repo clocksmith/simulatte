@@ -123,7 +123,7 @@
       ],
       "output": {
         "path": "docs/simulatte/folder-contract.json",
-        "sha256": "e69d2b91d2603317e228d86eeb76e2db24846935dc154d272db279af74743a36"
+        "sha256": "b2d7a90507dc900f54502049f16ef37a0f6d8d723ee6842ce973cff0618c70e0"
       },
       "contentVersion": "unpopulated",
       "activationState": "active-generated-mirror",

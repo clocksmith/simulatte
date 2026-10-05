@@ -1,8 +1,8 @@
 (function attachWorkbenchEntry(root) {
   if (typeof module === 'object' && module.exports) return;
   const launch = document.documentElement?.dataset?.worldLaunch;
-  const featuredRoutes = new Set(['/datacenter/gpu-supercluster-v1', '/city/sun-walker-v1', '/datacenter', '/sunwalker']);
-  const featuredRoute = () => featuredRoutes.has(location.pathname.replace(/\/$/, ''));
+  if (launch && !root.SimulattePublicRoutes) throw new Error('workbench_catalog_dependency_missing');
+  const featuredRoute = () => Boolean(root.SimulattePublicRoutes?.forPath(location.pathname)?.profile);
   if (launch && (launch !== 'featured' || !featuredRoute())) {
     document.body.dataset.journeyPhase = 'ready';
     return;
@@ -49,7 +49,7 @@
     status.dataset.state = 'error';
     if (launch === 'featured') {
       delete document.documentElement.dataset.worldRuntime;
-      document.querySelector('#motorcycle-launch .launch-copy').append(status);
+      document.querySelector('#simulation-launch .launch-copy').append(status);
     }
   }
 

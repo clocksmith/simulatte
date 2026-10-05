@@ -125,7 +125,7 @@
         const replayReceipt = await options.replay();
         const afterReceipt = isSettledRunReceipt(replayReceipt)
           ? replayReceipt
-          : await waitForNewSettledReceipt(getRunReceipt, previousReceipt, documentRoot);
+          : await waitForNewSettledReceipt(getRunReceipt, previousReceipt, documentRoot, options.getRunState);
         const afterHash = await sha256Value(replayIdentity(afterReceipt));
         replayEvidence = Object.freeze({
           attempted: true,
@@ -452,14 +452,22 @@
     });
   }
 
-  async function waitForNewSettledReceipt(getRunReceipt, previous, documentRoot) {
-    const started = performance.now();
-    while (performance.now() - started <= RECEIPT_WAIT_MS) {
+  async function waitForNewSettledReceipt(getRunReceipt, previous, documentRoot, getRunState, timing = {}) {
+    const now = timing.now || (() => performance.now());
+    const sleep = timing.sleep || (ms => new Promise(resolve => setTimeout(resolve, ms)));
+    let lastProgressAt = now(), previousStep = -1;
+    while (now() - lastProgressAt <= RECEIPT_WAIT_MS) {
       const candidate = getRunReceipt();
       const previousReceipt = typeof previous?.deref === 'function' ? previous.deref() : previous;
       if (candidate && candidate !== previousReceipt && isSettledRunReceipt(candidate) &&
         documentRoot.body.dataset.journeyPhase === 'completed') return candidate;
-      await new Promise((resolve) => setTimeout(resolve, 40));
+      const state = getRunState?.();
+      if (state?.state === 'failed') throw programError('profile_program_replay_failed', 'Exact replay execution failed');
+      if (state?.state === 'running' && Number.isInteger(state.currentStep) && state.currentStep > previousStep) {
+        previousStep = state.currentStep;
+        lastProgressAt = now();
+      }
+      await sleep(40);
     }
     throw programError('profile_program_replay_timeout', 'Exact replay did not produce a new settled receipt');
   }
@@ -596,5 +604,6 @@
     isSettledRunReceipt,
     replayIdentity,
     scenarioEditTarget,
+    waitForNewSettledReceipt,
   });
 });

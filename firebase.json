@@ -204,6 +204,41 @@
           "source": "/mandate-2038/:path*",
           "destination": "https://m3t4.ai/mandate-2038/:path*",
           "type": 301
+        },
+        {
+          "source": "/city/cable-trader-pickup-v1/",
+          "destination": "/city/cable-trader-pickup-v1",
+          "type": 301
+        },
+        {
+          "source": "/city/neighborhood-bulk-pool-v1/",
+          "destination": "/city/neighborhood-bulk-pool-v1",
+          "type": 301
+        },
+        {
+          "source": "/city/nyc-development-atlas-v1/",
+          "destination": "/city/nyc-development-atlas-v1",
+          "type": 301
+        },
+        {
+          "source": "/country/food-recall-us-v1/",
+          "destination": "/country/food-recall-us-v1",
+          "type": 301
+        },
+        {
+          "source": "/world/maritime-trade-global-v1/",
+          "destination": "/world/maritime-trade-global-v1",
+          "type": 301
+        },
+        {
+          "source": "/solar-system/asteroid-defense-v1/",
+          "destination": "/solar-system/asteroid-defense-v1",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/solar-drive/index.html/",
+          "destination": "/simulatte/solar-drive/index.html",
+          "type": 301
         }
       ],
       "rewrites": [

@@ -1,0 +1,90 @@
+{
+  "capturedAt": "2026-10-05T00:49:46.620Z",
+  "sources": {
+    "head": "43e080d0763355152a6949e24b737ec5c0e7f855",
+    "capturedAt": "2026-10-05T00:49:46.768Z",
+    "modifiedSources": {
+      "public/CATSCAN.md": {
+        "sha256": "3b0eeb377b445fdd96766456d674a5ccde71df6d48bcdc648d09482bcc5f730b",
+        "modifiedAt": "2026-10-05T00:48:19.134Z"
+      },
+      "public/simulation-routes.js": {
+        "sha256": "b9bfcdc81c888945fbb2be39dfc9aa1c573a36676ccff3e69c5b2a8b38ff7701",
+        "modifiedAt": "2026-10-05T00:48:19.132Z"
+      },
+      "public/simulatte/CATSCAN.md": {
+        "sha256": "7c589d5501e5a59712fd1a4bca3d76a5177531df5166fd58f2fab0339ec5a33c",
+        "modifiedAt": "2026-10-05T00:48:19.134Z"
+      },
+      "public/simulatte/app/CATSCAN.md": {
+        "sha256": "e98626ecc0023890e1dfcc4dc94e881dd11adbcb394033be1756bd9e1b37ee6a",
+        "modifiedAt": "2026-10-05T00:48:19.134Z"
+      },
+      "public/simulatte/app/workbench-entry.js": {
+        "sha256": "660592259f3cef335eb763fbcf47cae9007be7db3dd5a280870e760b648d4060",
+        "modifiedAt": "2026-10-05T00:48:19.134Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "captures": [
+    {
+      "path": "/motorcycle",
+      "profile": null,
+      "asset": "/simulation-previews/motorcycle.png",
+      "state": {
+        "motorcycle": "running",
+        "ready": true
+      },
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 661,
+        "scale": 1
+      },
+      "sha256": "31b9179312f1c080fc8c96595cc85c9d46c0026cfb6e6a914f425a64f3bee6cb"
+    },
+    {
+      "path": "/sunwalker",
+      "profile": "sun-walker-v1",
+      "asset": "/simulation-previews/sunwalker.png",
+      "state": {
+        "phase": "running",
+        "ready": true
+      },
+      "clip": {
+        "x": 25,
+        "y": 218.3125,
+        "width": 1150,
+        "height": 415,
+        "scale": 1
+      },
+      "sha256": "f102e63a2d630b352963f2d8ce7cad3a7cb11ba6591994a8b1fc640a634cdb6f"
+    },
+    {
+      "path": "/datacenter",
+      "profile": "gpu-supercluster-v1",
+      "asset": "/simulation-previews/gpu.png",
+      "state": {
+        "phase": "running",
+        "ready": true
+      },
+      "clip": {
+        "x": 25,
+        "y": 218.3125,
+        "width": 1150,
+        "height": 415,
+        "scale": 1
+      },
+      "sha256": "800b47bbb9ee4d60241fcd916f20a960c1279d9db45a4d0956c04d4c2f205e94"
+    }
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/136.0.7103.59",
+    "revision": "@d4b493843f5f23217df99a83aa28747602841382",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.0.0 Safari/537.36",
+    "jsVersion": "13.6.233.8"
+  }
+}

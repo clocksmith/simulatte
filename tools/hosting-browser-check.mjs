@@ -61,7 +61,7 @@ async function probePage(surface, expectedBuild) {
   const visible = node => !!node && node.getBoundingClientRect().width > 0 && node.getBoundingClientRect().height > 0
     && getComputedStyle(node).visibility !== 'hidden';
   const motorcycleLaunch = surface === 'world' && Boolean(document.documentElement.dataset.worldLaunch);
-  const selectors = surface === 'world' ? motorcycleLaunch ? ['#motorcycle-launch .launch-link'] : ['#hex-center-sunwalker', '.hex-satellite'] : ['#build-prompt', '#build-lab', '#shuffle-prompt'];
+  const selectors = surface === 'world' ? motorcycleLaunch ? ['#simulation-launch .launch-link'] : ['#hex-center-sunwalker', '.hex-satellite'] : ['#build-prompt', '#build-lab', '#shuffle-prompt'];
   const deadline = performance.now() + 15000;
   while (!selectors.every(selector => visible(document.querySelector(selector)))) {
     if (performance.now() > deadline) throw new Error('Required product controls did not become visible');
@@ -80,13 +80,15 @@ async function probePage(surface, expectedBuild) {
   checks.controlsReachable = controls.length > 0 && controls.every(control => control.reachable);
   let execution;
   if (motorcycleLaunch) {
-    const links = [...document.querySelectorAll('a')].filter(visible);
+    const links = [...document.querySelectorAll('.launch-simulations a')].filter(visible);
     checks.featuredLinks = JSON.stringify(links.map(link => new URL(link.href).pathname).sort()) === JSON.stringify(['/datacenter', '/motorcycle', '/sunwalker'])
       && links.every(link => new URL(link.href).origin === location.origin);
+    checks.catalogVisible = visible(document.getElementById('all-simulations')) && document.querySelectorAll('.simulation-catalog li').length === 14;
+    checks.previewImages = [...document.querySelectorAll('.launch-simulations img')].every(img => img.complete && img.naturalWidth > 0);
     checks.secondaryInterfacesDormant = !visible(document.querySelector('#world-tiers-landing-page'))
       && !visible(document.querySelector('.map-workspace')) && !window.SimulatteDataWorkbench && !window.SimulatteActiveSession;
     checks.ready = document.body.dataset.journeyPhase === 'ready';
-    const link = document.querySelector('#motorcycle-launch .launch-link');
+    const link = document.querySelector('#simulation-launch .launch-link');
     link.focus(); checks.keyboardFocus = document.activeElement === link;
   } else if (surface === 'world') {
     checks.simulationsVisible = document.querySelectorAll('.hex-satellite').length === 6;
