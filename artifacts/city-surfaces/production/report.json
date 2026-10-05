@@ -1,0 +1,545 @@
+{
+  "sources": {
+    "head": "fa44cb4e8e911d0a08f78f3140af77e56f3120bc",
+    "capturedAt": "2026-10-05T20:41:09.236Z",
+    "modifiedSources": {
+      "public/blank/index.html": {
+        "sha256": "9bc1988c284f21280c445b6ad56896d641597f2e6ad1c9ea6a418c1fbd538169",
+        "modifiedAt": "2026-10-05T20:40:08.869Z"
+      },
+      "public/index.html": {
+        "sha256": "eaa9dc49e67808afe0d1dd7d5e3983019519b5b64e64504b3829458c9ba3d7c0",
+        "modifiedAt": "2026-10-05T20:40:08.868Z"
+      },
+      "public/version.json": {
+        "sha256": "5d7e49ef2cc345c6a4fa372bb5f2e8654db522c7b108a80ae21940c226170926",
+        "modifiedAt": "2026-10-05T20:40:08.869Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "origin": "https://simulatte.world/",
+  "servedHashes": {
+    "simulatte/app/webgpu-math.js": "96fd650783548cd501ad21d0195df678391b51a94a64125a0ed16c9a30045b40",
+    "simulatte/app/webgpu-pass.js": "11dadcbbb50395660bc9dfdabd88270d5be1a1c7d68ed47a00a5a140f71e0cce",
+    "simulatte/app/webgpu-renderer.js": "0e755977f8ecb6e418f5dd441c6792d7c4406ba4d25762a7441057f3dcfed633",
+    "simulatte/app/webgpu-geometry.js": "24c7a6fdb8519391bd05a675c3a6dd8b5276ee31025e41224623c3084a69036e",
+    "simulatte/motorcycle-noise/babylon-city.js": "de14f6961a886f035e7cf94316104d214595d7df89bfea3a47773f61c040020a",
+    "simulatte/motorcycle-noise/reflection-view.js": "c1adbee974e6eda16b9f0e9410bc9452e9135369b941068aef243a889673d59f"
+  },
+  "runs": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "motorcycle": [
+        {
+          "name": "street",
+          "radius": 190,
+          "near": 1.9000000000000001,
+          "far": 10000,
+          "engine": "QD"
+        },
+        {
+          "name": "city",
+          "radius": 3000,
+          "near": 30,
+          "far": 10000,
+          "engine": "QD"
+        },
+        {
+          "name": "grazing",
+          "radius": 5000,
+          "near": 50,
+          "far": 10000,
+          "engine": "QD"
+        }
+      ],
+      "motion": {
+        "frames": 60,
+        "minRatio": 0.009993180046387839
+      },
+      "motorcycleGpuErrors": [],
+      "sunwalkerMotion": [
+        {
+          "kind": "orbit",
+          "before": "-785.1,768.63,-1267.64",
+          "after": "-915.46,800.48,-1337.14"
+        },
+        {
+          "kind": "pan",
+          "before": "-916.41,800.71,-1337.57",
+          "after": "-865.54,800.81,-1265.02"
+        },
+        {
+          "kind": "zoom",
+          "before": "-865.2,800.81,-1264.55",
+          "after": "-946.85,631.14,-1153.18"
+        }
+      ],
+      "sunwalker": [
+        {
+          "mode": "overview",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "free",
+            "cameraFocus": "custom",
+            "cameraTransition": "settled",
+            "followMinimap": "hidden",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-950.38,623.81,-1148.36",
+            "cameraTarget": "-1251.24,0,-739.86",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1046262",
+            "frameCount": "100",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "44640",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "1",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "381",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "437",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "141.078057",
+            "sunElevationDegrees": "67.239877",
+            "pluginShadowVertexCount": "16965",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "51",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        },
+        {
+          "mode": "follow",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "follow",
+            "cameraFocus": "plugin:sun-walker:sun-walker-navigation",
+            "cameraTransition": "settled",
+            "followMinimap": "visible",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-1566.33,180,-654.93",
+            "cameraTarget": "-1566.32,1.4,-654.93",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1046268",
+            "frameCount": "141",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "44640",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "2",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "380",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "440",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "141.267026",
+            "sunElevationDegrees": "67.283397",
+            "pluginShadowVertexCount": "16926",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "54",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        },
+        {
+          "mode": "pov",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "pov",
+            "cameraFocus": "plugin:sun-walker:sun-walker-navigation",
+            "cameraTransition": "settled",
+            "followMinimap": "hidden",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-1550.91,1.7,-683.47",
+            "cameraTarget": "-1539.38,1.62,-704.52",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1046280",
+            "frameCount": "181",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "42516",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "5",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "377",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "443",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "4",
+            "sunAzimuthDegrees": "141.456614",
+            "sunElevationDegrees": "67.326739",
+            "pluginShadowVertexCount": "16791",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "57",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "4",
+            "cameraInteraction": "zoom"
+          }
+        }
+      ],
+      "depth": {
+        "pipelines": [
+          {
+            "label": "world-sun-depth-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": true,
+              "depthCompare": "less",
+              "depthBias": 2,
+              "depthBiasSlopeScale": 2
+            }
+          },
+          {
+            "label": "autonomy-map-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": true,
+              "depthCompare": "greater",
+              "depthBias": 0
+            }
+          },
+          {
+            "label": "autonomy-overlay-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": false,
+              "depthCompare": "greater-equal",
+              "depthBias": 2
+            }
+          }
+        ],
+        "textures": [
+          {
+            "label": "world-sun-depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world:depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world:depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world-minimap:depth",
+            "format": "depth32float"
+          }
+        ],
+        "errors": []
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "motorcycle": [
+        {
+          "name": "street",
+          "radius": 190,
+          "near": 1.9000000000000001,
+          "far": 10000,
+          "engine": "QD"
+        },
+        {
+          "name": "city",
+          "radius": 3000,
+          "near": 30,
+          "far": 10000,
+          "engine": "QD"
+        },
+        {
+          "name": "grazing",
+          "radius": 5000,
+          "near": 50,
+          "far": 10000,
+          "engine": "QD"
+        }
+      ],
+      "motion": {
+        "frames": 59,
+        "minRatio": 0.00999214010469954
+      },
+      "motorcycleGpuErrors": [],
+      "sunwalkerMotion": [
+        {
+          "kind": "orbit",
+          "before": "-688.33,912.23,-1352.51",
+          "after": "-843.05,950.02,-1434.99"
+        },
+        {
+          "kind": "pan",
+          "before": "-843.7,950.17,-1435.29",
+          "after": "-774.85,950.41,-1336.71"
+        },
+        {
+          "kind": "zoom",
+          "before": "-774.57,950.41,-1336.31",
+          "after": "-871.28,749.04,-1203.85"
+        }
+      ],
+      "sunwalker": [
+        {
+          "mode": "overview",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "free",
+            "cameraFocus": "custom",
+            "cameraTransition": "settled",
+            "followMinimap": "hidden",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-875.42,740.41,-1198.18",
+            "cameraTarget": "-1232.52,0,-713.32",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1046262",
+            "frameCount": "96",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "44640",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "1",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "381",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "436",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "141.009494",
+            "sunElevationDegrees": "67.224008",
+            "pluginShadowVertexCount": "16965",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "50",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        },
+        {
+          "mode": "follow",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "follow",
+            "cameraFocus": "plugin:sun-walker:sun-walker-navigation",
+            "cameraTransition": "settled",
+            "followMinimap": "visible",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-1567.12,180,-653.41",
+            "cameraTarget": "-1567.12,1.4,-653.42",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1046262",
+            "frameCount": "135",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "44640",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "1",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "381",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "439",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "141.206833",
+            "sunElevationDegrees": "67.26957",
+            "pluginShadowVertexCount": "16965",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "53",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        },
+        {
+          "mode": "pov",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "pov",
+            "cameraFocus": "plugin:sun-walker:sun-walker-navigation",
+            "cameraTransition": "settled",
+            "followMinimap": "hidden",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-1553.18,1.7,-679.33",
+            "cameraTarget": "-1542.05,1.62,-699.64",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1046280",
+            "frameCount": "173",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "42516",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "4",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "378",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "442",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "141.413472",
+            "sunElevationDegrees": "67.316904",
+            "pluginShadowVertexCount": "16839",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "56",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        }
+      ],
+      "depth": {
+        "pipelines": [
+          {
+            "label": "world-sun-depth-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": true,
+              "depthCompare": "less",
+              "depthBias": 2,
+              "depthBiasSlopeScale": 2
+            }
+          },
+          {
+            "label": "autonomy-map-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": true,
+              "depthCompare": "greater",
+              "depthBias": 0
+            }
+          },
+          {
+            "label": "autonomy-overlay-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": false,
+              "depthCompare": "greater-equal",
+              "depthBias": 2
+            }
+          }
+        ],
+        "textures": [
+          {
+            "label": "world-sun-depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world:depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world:depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world-minimap:depth",
+            "format": "depth32float"
+          }
+        ],
+        "errors": []
+      }
+    }
+  ],
+  "build": {
+    "build": "fa44cb4e8e911d0a08f78f3140af77e56f3120bc-ba823fc24eb0"
+  }
+}

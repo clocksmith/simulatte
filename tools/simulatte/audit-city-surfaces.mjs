@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {openBrowserAudit} from './browser-session.mjs';
 import {sourceReceipt} from './runtime-audit-sources.mjs';
@@ -7,11 +8,21 @@ import {sourceReceipt} from './runtime-audit-sources.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const out=process.env.SIMULATTE_SURFACES_OUT||'/tmp/simulatte-city-surfaces';
 await fs.mkdir(out,{recursive:true});
-const report={sources:await sourceReceipt(root),runs:[]};
+const origin=process.env.SIMULATTE_SURFACES_ORIGIN||'';
+const report={sources:await sourceReceipt(root),origin:origin||'local static server',servedHashes:{},runs:[]};
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 try {
+ if(origin) {
+  report.build=await (await fetch(new URL('version.json',origin))).json();
+  for(const file of ['simulatte/app/webgpu-math.js','simulatte/app/webgpu-pass.js','simulatte/app/webgpu-renderer.js','simulatte/app/webgpu-geometry.js','simulatte/motorcycle-noise/babylon-city.js','simulatte/motorcycle-noise/reflection-view.js']) {
+    const response=await fetch(new URL(file,origin));assert.ok(response.ok);
+    const served=Buffer.from(await response.arrayBuffer()),local=await fs.readFile(root+'public/'+file);
+    assert.ok(served.equals(local),`Hosted bytes differ: ${file}`);
+    report.servedHashes[file]=createHash('sha256').update(served).digest('hex');
+  }
+ }
  for(const viewport of [{width:1440,height:1000},{width:390,height:844}]) {
-  const browser=await openBrowserAudit({publicRoot:root+'public',url:process.env.SIMULATTE_SURFACES_ORIGIN||'',viewport,webgpu:true});
+  const browser=await openBrowserAudit({publicRoot:root+'public',url:origin,viewport,webgpu:true});
   const c=browser.client,row={viewport,pass:false};report.runs.push(row);
   const ev=async expression=>{const r=await c.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true,userGesture:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
   const wait=async expression=>{const until=Date.now()+90000;while(!await ev(expression)){if(Date.now()>until)throw Error('Timeout: '+expression);await pause(150);}};
