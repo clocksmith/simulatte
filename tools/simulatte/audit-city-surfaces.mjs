@@ -79,7 +79,7 @@ try {
    row.sunwalkerMotion.push({kind:'zoom',before:beforeZoom,after:afterZoom});await capture('sunwalker-zoom');
    row.sunwalker=[];
    for(const mode of ['overview','follow','pov']) {
-     if(mode!=='overview')await ev(`document.querySelector('[data-walk-camera=${mode}]').click()`);
+     if(mode!=='overview')await ev(`document.querySelector('#camera-menu').open=true;document.querySelector('#camera-${mode}').click();document.querySelector('#camera-menu').open=false`);
      await wait(`document.querySelector('#autonomy-canvas').dataset.cameraTransition==='settled'`);
      await ev(`document.querySelector('#autonomy-canvas').scrollIntoView({block:'center'})`);
      await pause(300);

@@ -13,10 +13,6 @@
     </label><div class="sun-walk-routes" role="group" aria-label="Route comparison">
       <div class="sun-walk-route"><strong>Shortest walk</strong><span data-route-stats="fastest"></span></div>
       <div class="sun-walk-route"><strong>Your route</strong><span data-route-stats="chosen"></span></div>
-    </div><div class="sun-walk-views" role="group" aria-label="Follow the walker">
-      <span>View</span><button class="sim-action" type="button" data-walk-camera="overview">Whole route</button>
-      <button class="sim-action" type="button" data-walk-camera="follow">Top-down follow</button>
-      <button class="sim-action" type="button" data-walk-camera="pov">First person</button>
     </div><p class="sun-walk-note" data-route-tradeoff></p><p class="sun-walk-note">Predicted whole-route exposure · modeled buildings and declared canopy</p><p data-walk-message role="status" hidden></p>`;
     host.before(panel);
     const form=panel.querySelector('form'),message=panel.querySelector('[data-walk-message]');
@@ -42,13 +38,6 @@
     function showPreference(){const p=Number(preference.value);panel.querySelector('[data-walk-preference-label]').textContent=p===0?'Shortest walk':p===100?'Strongest shade preference':p===50?'Balanced':p<50?'Prefer time':'Prefer shade';}
     on(preference,'input',()=>{preferenceDirty=true;showPreference();});
     on(preference,'change',()=>void apply());
-    for(const button of panel.querySelectorAll('[data-walk-camera]'))on(button,'click',()=>{
-      void session.invoke('camera',button.dataset.walkCamera).then(()=>updateCamera()).catch(error=>say(error.message));
-    });
-    function updateCamera(){
-      const mode=document.getElementById('autonomy-canvas').dataset.cameraMode;
-      for(const button of panel.querySelectorAll('[data-walk-camera]'))button.setAttribute('aria-pressed',String(mode===button.dataset.walkCamera));
-    }
     function update(contribution){
       controls=contribution.controls.controls;
       for(const id of ['originPlace','destinationPlace']){
@@ -68,7 +57,6 @@
       const extra=(Number(value('chosen-time'))-Number(value('fastest-time')))/60;
       const saved=(Number(value('fastest-sun'))-Number(value('chosen-sun')))/60;
       panel.querySelector('[data-route-tradeoff]').textContent=value('same-route')?'Same route at this preference.':`${extra.toFixed(1)} min longer · ${Math.abs(saved).toFixed(1)} min ${saved>=0?'less':'more'} in direct sun`;
-      updateCamera();
     }
     return {update,dispose(){events.abort();panel.remove();}};
   }

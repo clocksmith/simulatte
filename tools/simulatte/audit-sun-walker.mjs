@@ -57,10 +57,15 @@ try {
       run.checks.push('slider searches a longer shaded path; zero shade preference exactly restores the fixed shortest baseline');
       await wait(`globalThis.__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='sun-walker').state.simulationTimeMs>0`);
       run.checks.push('walker advances after route recalculation');
-      await click('[data-walk-camera=follow]');
+      assert.equal(await evaluate(`document.querySelector('.sun-walk-views')`),null);
+      await click('#camera-menu > summary');
+      await click('#camera-follow');
+      await click('#camera-menu > summary');
       await wait(`(()=>{const d=document.querySelector('#autonomy-canvas').dataset;const e=d.cameraEye.split(',').map(Number),t=d.cameraTarget.split(',').map(Number);return d.cameraMode==='follow'&&d.cameraTransition==='settled'&&Math.hypot(e[0]-t[0],e[2]-t[2])<0.1})()`);
       await capture('follow');run.checks.push('top-down camera remains over the walker');
-      await click('[data-walk-camera=pov]');
+      await click('#camera-menu > summary');
+      await click('#camera-pov');
+      await click('#camera-menu > summary');
       await wait(`(()=>{const d=document.querySelector('#autonomy-canvas').dataset;return d.cameraMode==='pov'&&d.cameraTransition==='settled'&&Number(d.cameraEye.split(',')[1])<2})()`);
       await capture('first-person');run.checks.push('first-person camera at walking eye height');
       await evaluate(`(()=>{const select=document.querySelector('[name=destinationPlace]');select.value='Tompkins Square';select.dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('.sun-walk-endpoints').requestSubmit()})()`);
