@@ -354,8 +354,8 @@ test('WebGPU pass composition shares one vertex contract and preserves depth-saf
   assert.ok(descriptors.every((row) => row.layout === layout));
   assert.deepEqual(descriptors[0].vertex.buffers, descriptors[1].vertex.buffers);
   assert.deepEqual(descriptors.map((row) => row.depthStencil), [
-    { format: 'depth24plus', depthWriteEnabled: true, depthCompare: 'less', depthBias: 0 },
-    { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'less-equal', depthBias: -2 },
+    { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater', depthBias: 0 },
+    { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal', depthBias: 2 },
   ]);
 
   const calls = [];
@@ -366,7 +366,10 @@ test('WebGPU pass composition shares one vertex contract and preserves depth-saf
     draw: (count) => calls.push(`draw:${count}`),
     end: () => calls.push('end'),
   };
-  gpuPass.encodeScene({ beginRenderPass: () => pass }, {
+  gpuPass.encodeScene({ beginRenderPass: (descriptor) => {
+    assert.equal(descriptor.depthStencilAttachment.depthClearValue, 0);
+    return pass;
+  } }, {
     label: 'test-pass',
     resolveTarget: null,
     targets: { color: { createView: () => 'color' }, depth: { createView: () => 'depth' } },

@@ -77,8 +77,9 @@
       addRibbon(writer, park.outerRing, 4.0, 0.26, COLORS.parkPerimeter, 1.0);
     }
     for (const street of world.renderGeometry.streets) {
-      addRibbon(writer, street.geometry, street.widthM + 3.6, SURFACE_LAYERS.street - 0.015, [0.19, 0.23, 0.27, 1], 0.02);
-      addRibbon(writer, street.geometry, street.widthM, SURFACE_LAYERS.street, isMajorStreet(street.highway) ? COLORS.roadMajor : COLORS.road, 0.03);
+      // Differently colored crossing roads need distinct depths, even with reversed Z.
+      addRibbon(writer, street.geometry, street.widthM + 3.6, SURFACE_LAYERS.street - 0.015, [0.19, 0.23, 0.27, 1], 0.02, street.widthM);
+      addRibbon(writer, street.geometry, street.widthM, SURFACE_LAYERS.street + (isMajorStreet(street.highway) ? 0.02 : 0), isMajorStreet(street.highway) ? COLORS.roadMajor : COLORS.road, 0.03);
     }
     for (const facility of world.renderGeometry.bikeFacilities) {
       addRibbon(writer, facility.geometry, facility.laneType === 'protected' ? 2.1 : 1.35, SURFACE_LAYERS.facility, COLORS[facility.laneType] || COLORS.connector, 0.55);
@@ -412,7 +413,7 @@
     return { get length() { return length; }, reset() { length = 0; }, vertex, triangle, finish: () => values.subarray(0, length) };
   }
 
-  function addRibbon(writer, points, width, height, color, emissive = 0) {
+  function addRibbon(writer, points, width, height, color, emissive = 0, innerWidth = 0) {
     const source = [...points];
     if (source.length < 2) return;
     const closed = source.length > 2 && distance2(source[0], source.at(-1)) < 0.001;
@@ -421,6 +422,9 @@
     const half = width / 2;
     const left = [];
     const right = [];
+    const innerLeft = [];
+    const innerRight = [];
+    const innerRatio = Math.max(0, Math.min(innerWidth / width, 1));
     for (let index = 0; index < path.length; index += 1) {
       const point = path[index];
       const previous = path[(index + path.length - 1) % path.length];
@@ -435,20 +439,25 @@
       const scale = clamp2(half / dot2(miter, endNormal), -half * 4, half * 4);
       left.push({ x: point.x + miter.x * scale, y: point.y + miter.y * scale });
       right.push({ x: point.x - miter.x * scale, y: point.y - miter.y * scale });
+      if (innerRatio) {
+        innerLeft.push({ x: point.x + miter.x * scale * innerRatio, y: point.y + miter.y * scale * innerRatio });
+        innerRight.push({ x: point.x - miter.x * scale * innerRatio, y: point.y - miter.y * scale * innerRatio });
+      }
     }
     const segmentCount = closed ? path.length : path.length - 1;
     for (let index = 0; index < segmentCount; index += 1) {
       const nextIndex = (index + 1) % path.length;
-      const aPoint = left[index];
-      const bPoint = right[index];
-      const cPoint = right[nextIndex];
-      const dPoint = left[nextIndex];
-      const a = [aPoint.x, height, -aPoint.y];
-      const b = [bPoint.x, height, -bPoint.y];
-      const c = [cPoint.x, height, -cPoint.y];
-      const d = [dPoint.x, height, -dPoint.y];
-      writer.triangle(a, b, c, [0, 1, 0], color, emissive);
-      writer.triangle(a, c, d, [0, 1, 0], color, emissive);
+      // Sidewalks are edge strips, never a second full road-sized surface.
+      const strips = innerRatio ? [[left, innerLeft], [innerRight, right]] : [[left, right]];
+      for (const [outer, inner] of strips) {
+        const vertex = (point) => [point.x, height, -point.y];
+        const a = vertex(outer[index]);
+        const b = vertex(inner[index]);
+        const c = vertex(inner[nextIndex]);
+        const d = vertex(outer[nextIndex]);
+        writer.triangle(a, b, c, [0, 1, 0], color, emissive);
+        writer.triangle(a, c, d, [0, 1, 0], color, emissive);
+      }
     }
   }
 

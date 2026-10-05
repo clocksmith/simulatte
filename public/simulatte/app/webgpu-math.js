@@ -32,25 +32,26 @@
     return vector.map((value) => value / length);
   }
 
-  function perspective(fieldOfViewRadians, aspect, near, far) {
+  function perspective(fieldOfViewRadians, aspect, near, far, reverseDepth = false) {
     const out = new Float32Array(16);
     const focal = 1 / Math.tan(fieldOfViewRadians / 2);
     out[0] = focal / aspect;
     out[5] = focal;
-    out[10] = far / (near - far);
+    // Floating-point reversed depth retains precision at city-scale distances.
+    out[10] = reverseDepth ? near / (far - near) : far / (near - far);
     out[11] = -1;
-    out[14] = far * near / (near - far);
+    out[14] = far * near / (reverseDepth ? far - near : near - far);
     return out;
   }
 
-  function orthographic(left, right, bottom, top, near, far) {
+  function orthographic(left, right, bottom, top, near, far, reverseDepth = false) {
     const out = new Float32Array(16);
     out[0] = 2 / (right - left);
     out[5] = 2 / (top - bottom);
-    out[10] = 1 / (near - far);
+    out[10] = 1 / (reverseDepth ? far - near : near - far);
     out[12] = (left + right) / (left - right);
     out[13] = (top + bottom) / (bottom - top);
-    out[14] = near / (near - far);
+    out[14] = reverseDepth ? far / (far - near) : near / (near - far);
     out[15] = 1;
     return out;
   }

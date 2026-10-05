@@ -53,6 +53,9 @@
     const camera=new B.ArcRotateCamera('city-camera',Math.PI/2,openingBeta,openingRadius,vector(openingTarget),scene);
     camera.lowerRadiusLimit=25;camera.upperRadiusLimit=5000;camera.upperBetaLimit=1.48;camera.lowerBetaLimit=.1;
     camera.wheelDeltaPercentage=.01;camera.panningSensibility=30;camera.inertia=.7;camera.attachControl(canvas,true);
+    // Keep the map depth range proportional to zoom; street-level cameras retain
+    // their own close near planes so riders and nearby buildings are not clipped.
+    scene.onBeforeRenderObservable.add(()=>{camera.minZ=Math.max(.25,Math.min(200,camera.radius*.01));});
     const onboardRig=new B.TransformNode('onboard-rig',scene);
     const onboard=new B.UniversalCamera('rider-camera',new B.Vector3(0,1.7,.5),scene);
     onboard.parent=onboardRig;onboard.minZ=.05;onboard.fov=.95;onboard.speed=0;onboard.inputs.removeByType('FreeCameraKeyboardMoveInput');

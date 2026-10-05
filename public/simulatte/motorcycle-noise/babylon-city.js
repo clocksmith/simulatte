@@ -121,10 +121,15 @@
       }
       if(Math.hypot(points[0].x-origin.x,points[0].y-origin.y)<600)for(const side of [0,1])curbLines.push(edges[side].map(p=>new B.Vector3(p.x,.13,p.z)));
       const road=B.MeshBuilder.CreateRibbon('road',{pathArray:edges.slice(0,2)},scene);road.material=pavement;asphalt.push(road);
-      const walk=B.MeshBuilder.CreateRibbon('sidewalk',{pathArray:edges.slice(2,4)},scene);walk.material=sidewalk;walkways.push(walk);
+      // Only draw the sidewalk beside the asphalt, not a competing surface below it.
+      const walks=[0,1].map(side=>{
+        const inner=edges[side].map(p=>new B.Vector3(p.x,.05,p.z));
+        const paths=side?[edges[side+2],inner]:[inner,edges[side+2]];
+        const walk=B.MeshBuilder.CreateRibbon('sidewalk',{pathArray:paths},scene);walk.material=sidewalk;walkways.push(walk);return walk;
+      });
       // Flat street surfaces share upward normals. Coplanar duplicate backfaces
       // otherwise alternate between lit and unlit triangles at intersections.
-      for(const surface of [road,walk])surface.setVerticesData(B.VertexBuffer.NormalKind,
+      for(const surface of [road,...walks])surface.setVerticesData(B.VertexBuffer.NormalKind,
         Array.from({length:surface.getTotalVertices()*3},(_,i)=>i%3===1?1:0));
     }
     for(const list of [asphalt,walkways])if(list.length){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);if(merged){merged.receiveShadows=true;merged.metadata={ground:true};}}

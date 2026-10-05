@@ -3,6 +3,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyGpuPass = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuPass() {
+  const DEPTH_FORMAT = 'depth32float';
   const BLEND_STATE = Object.freeze({
     color: Object.freeze({ srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' }),
     alpha: Object.freeze({ srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' }),
@@ -46,7 +47,7 @@
         targets: [{ format, blend: BLEND_STATE }],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: { format: 'depth24plus', depthWriteEnabled, depthCompare, depthBias },
+      depthStencil: { format: DEPTH_FORMAT, depthWriteEnabled, depthCompare, depthBias },
       multisample: { count: sampleCount },
     };
   }
@@ -64,7 +65,7 @@
         floatsPerVertex,
         sampleCount,
         depthWriteEnabled: true,
-        depthCompare: 'less',
+        depthCompare: 'greater',
       })),
       overlay: device.createRenderPipeline(pipelineDescriptor({
         label: 'autonomy-overlay-pipeline',
@@ -74,8 +75,8 @@
         floatsPerVertex,
         sampleCount,
         depthWriteEnabled: false,
-        depthCompare: 'less-equal',
-        depthBias: -2,
+        depthCompare: 'greater-equal',
+        depthBias: 2,
       })),
     });
   }
@@ -104,7 +105,7 @@
       }],
       depthStencilAttachment: {
         view: targets.depth.createView(),
-        depthClearValue: 1,
+        depthClearValue: 0,
         depthLoadOp: 'clear',
         depthStoreOp: 'discard',
       },
@@ -133,5 +134,5 @@
     return error;
   }
 
-  return Object.freeze({ BLEND_STATE, createPipelines, encodeScene, passError, pipelineDescriptor, vertexBufferLayout });
+  return Object.freeze({ BLEND_STATE, DEPTH_FORMAT, createPipelines, encodeScene, passError, pipelineDescriptor, vertexBufferLayout });
 });

@@ -752,7 +752,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const height = Math.max(260, Math.round(canvas.clientHeight * ratio));
     state.renderTargets = targets.resize(state.renderTargets, device, {
       width, height, sampleCount: SAMPLE_COUNT, colorFormat: format,
-      depthFormat: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT, label: 'world',
+      depthFormat: passApi.DEPTH_FORMAT, usage: GPUTextureUsage.RENDER_ATTACHMENT, label: 'world',
     });
     if (canvas.width === width && canvas.height === height) return;
     canvas.width = width;
@@ -765,7 +765,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const height = Math.max(120, Math.round(canvas.clientHeight * ratio));
     state.minimapTargets = targets.resize(state.minimapTargets, device, {
       width, height, sampleCount: SAMPLE_COUNT, colorFormat: format,
-      depthFormat: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT, label: 'world-minimap',
+      depthFormat: passApi.DEPTH_FORMAT, usage: GPUTextureUsage.RENDER_ATTACHMENT, label: 'world-minimap',
     });
     if (canvas.width === width && canvas.height === height) return;
     canvas.width = width;
@@ -779,7 +779,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     return {
       eye: pose.eye,
       viewProjection: cameraFit.frameProjection(math.multiply(
-        math.perspective(pose.fieldOfViewRadians, aspect, pose.near, pose.far),
+        math.perspective(pose.fieldOfViewRadians, aspect, pose.near, pose.far, true),
         math.lookAt(pose.eye, pose.target)
       ), options),
     };
@@ -794,7 +794,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       eye,
       center: [point.x, point.y],
       viewProjection: math.multiply(
-        math.orthographic(-MINIMAP_RADIUS_M * aspect, MINIMAP_RADIUS_M * aspect, -MINIMAP_RADIUS_M, MINIMAP_RADIUS_M, 1, 4000),
+        math.orthographic(-MINIMAP_RADIUS_M * aspect, MINIMAP_RADIUS_M * aspect, -MINIMAP_RADIUS_M, MINIMAP_RADIUS_M, 1, 4000, true),
         math.lookAt(eye, target, [0, 0, -1])
       ),
     };
