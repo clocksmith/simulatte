@@ -3,7 +3,7 @@
 Parent: none
 ## Target
 
-Let people choose, create, and edit executable browser simulations. Present equal Motorcycle, GPU Cluster, and Sun Walker previews and an evidence-bound full simulation catalog; preserve the hexagon homepage and other workflows in source.
+Let people choose, create, and edit executable browser simulations. Keep the original motorcycle line illustration and equal Motorcycle, GPU Cluster, and Sun Walker links and an evidence-bound full simulation catalog; preserve the hexagon homepage and other workflows in source.
 
 ## Authority
 

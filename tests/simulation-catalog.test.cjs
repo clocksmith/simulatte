@@ -23,7 +23,7 @@ test('the discovery catalog covers each registered profile and both standalone e
   }
 });
 
-test('featured images are captures of the exact simulation routes and the homepage is a catalog projection', () => {
+test('homepage retains its original illustration and catalog links without screenshot cards', () => {
   const receipt = JSON.parse(fs.readFileSync(path.join(root, 'public/simulation-previews/capture-receipt.json')));
   assert.deepEqual(catalog.featured.map(page => page.path).sort(), ['/datacenter', '/motorcycle', '/sunwalker']);
   for (const page of catalog.featured) {
@@ -33,5 +33,9 @@ test('featured images are captures of the exact simulation routes and the homepa
   execFileSync(process.execPath, ['tools/sync-simulation-homepage.mjs', '--check'], { cwd: root });
   const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
   assert.match(html, /href="#all-simulations"/);
-  assert.doesNotMatch(html, /launch-bike|launch-waves|launch-city|motorcycle-launch/);
+  assert.match(html, /class="launch-bike"/);
+  assert.match(html, /class="launch-waves"/);
+  assert.match(html, /class="launch-city"/);
+  assert.doesNotMatch(html, /<img[^>]+simulation-previews\//);
+  for (const page of catalog.featured) assert.ok(html.includes(`class="launch-link" href=".${page.path}"`));
 });

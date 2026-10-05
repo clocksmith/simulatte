@@ -3,7 +3,7 @@
 Parent: [Simulatte](../CATSCAN.md)
 ## Target
 
-Boot static browser products with visible readiness, execution, proof, or refusal. World features Motorcycle Noise, GPU Cluster, and Sun Walker equally and exposes the full simulation catalog; preserve the chooser, data tools, and Create compiler.
+Boot static browser products with visible readiness, execution, proof, or refusal. World keeps the original motorcycle line illustration and links to Motorcycle Noise, GPU Cluster, and Sun Walker equally and exposes the full simulation catalog; preserve the chooser, data tools, and Create compiler.
 
 ## Authority
 

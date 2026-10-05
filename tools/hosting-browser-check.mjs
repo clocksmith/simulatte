@@ -84,7 +84,13 @@ async function probePage(surface, expectedBuild) {
     checks.featuredLinks = JSON.stringify(links.map(link => new URL(link.href).pathname).sort()) === JSON.stringify(['/datacenter', '/motorcycle', '/sunwalker'])
       && links.every(link => new URL(link.href).origin === location.origin);
     checks.catalogVisible = visible(document.getElementById('all-simulations')) && document.querySelectorAll('.simulation-catalog li').length === 14;
-    checks.previewImages = [...document.querySelectorAll('.launch-simulations img')].every(img => img.complete && img.naturalWidth > 0);
+    checks.originalIllustration = visible(document.querySelector('.launch-art'))
+      && !!document.querySelector('.launch-bike') && !document.querySelector('.launch-simulations img');
+    const previousScroll = scrollY;
+    window.scrollTo(0, 200);
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    checks.homepageScroll = scrollY > 0;
+    window.scrollTo(0, previousScroll);
     checks.secondaryInterfacesDormant = !visible(document.querySelector('#world-tiers-landing-page'))
       && !visible(document.querySelector('.map-workspace')) && !window.SimulatteDataWorkbench && !window.SimulatteActiveSession;
     checks.ready = document.body.dataset.journeyPhase === 'ready';

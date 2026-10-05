@@ -2,7 +2,7 @@
 
 ## Mission & Thesis
 
-Simulatte helps technical creators turn supported data and instructions into browser simulations they can inspect, edit, and reproduce. World and Blank/Create remain separate products sharing a small browser-native core where contracts genuinely match. Simulation is the product. World features equal previews of Motorcycle Noise, GPU Cluster, and Sun Walker, with an All simulations catalog. The route catalog owns display names, entry points, readiness, featured status, previews, interactions, and evidence. Qualify Grid, Subsea, Orbital, and Interstellar before promoting them. Preserve the hexagon chooser, data tools, and Create implementation.
+Simulatte helps technical creators turn supported data and instructions into browser simulations they can inspect, edit, and reproduce. World and Blank/Create remain separate products sharing a small browser-native core where contracts genuinely match. Simulation is the product. World keeps its original motorcycle line illustration, with equal links to Motorcycle Noise, GPU Cluster, and Sun Walker and a scrollable All simulations catalog. The route catalog owns display names, entry points, readiness, featured status, previews, interactions, and evidence. Qualify Grid, Subsea, Orbital, and Interstellar before promoting them. Preserve the hexagon chooser, data tools, and Create implementation.
 
 ## Intended Beneficiaries
 

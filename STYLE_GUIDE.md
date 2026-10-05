@@ -1,5 +1,5 @@
 # Simulatte Style Guide
-001. Purpose: World opens with equal Motorcycle Noise, GPU Cluster, and Sun Walker previews and a full simulation catalog. Preserve the hexagon chooser, data tools, and Create implementation.
+001. Purpose: World opens with the original motorcycle line illustration, equal Motorcycle Noise, GPU Cluster, and Sun Walker links, and a scrollable simulation catalog. Preserve the hexagon chooser, data tools, and Create implementation.
 002. Source data, declared mappings, prompts, and accepted edits are authored inputs; every visible artifact must trace back to its actual authority.
 003. The compiled world model is the contract, not the visual template.
 004. The visible simulation is product truth and must preserve the declared program and source meaning.
