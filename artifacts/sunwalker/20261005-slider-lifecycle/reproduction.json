@@ -1,0 +1,51 @@
+{
+  "baselineCommit": "7d3015cba5c3c7048c0b4a4a5211a6f1f443c978",
+  "action": "Pause, choose POV, move shade preference to 80, then pause/resume",
+  "observations": [
+    {
+      "stage": "BEFORE",
+      "execution": "paused",
+      "cameraMode": "pov",
+      "cameraFocus": "plugin:sun-walker:sun-walker-navigation",
+      "clock": {
+        "schema": "simulatte.simulationClockState.v4",
+        "timelineId": "sun-walker-v1:village-union-shade",
+        "state": "paused",
+        "currentMs": 3731,
+        "playbackRate": 1,
+        "cursor": 2,
+        "eventCount": 111
+      }
+    },
+    {
+      "stage": "AFTER",
+      "execution": "running",
+      "cameraMode": "pov",
+      "cameraFocus": "route",
+      "clock": {
+        "schema": "simulatte.simulationClockState.v4",
+        "timelineId": "sun-walker-v1:village-union-shade",
+        "state": "playing",
+        "currentMs": 0,
+        "playbackRate": 1,
+        "cursor": 1,
+        "eventCount": 124
+      }
+    },
+    {
+      "stage": "RESUMED",
+      "execution": "running",
+      "cameraMode": "pov",
+      "cameraFocus": "route",
+      "clock": {
+        "schema": "simulatte.simulationClockState.v4",
+        "timelineId": "sun-walker-v1:village-union-shade",
+        "state": "playing",
+        "currentMs": 0,
+        "playbackRate": 1,
+        "cursor": 1,
+        "eventCount": 124
+      }
+    }
+  ]
+}

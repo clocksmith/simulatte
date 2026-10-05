@@ -9,6 +9,7 @@
     getScenario, getCameraMode, getRenderer, selectCamera, selectViewMode, applyRouteParameters,
     onPhase, onPlayback, onViewRuntime, onParametersApplied, onError }) {
     let sunControls=null;
+    let controlChange=null;
     let disposed = false, inspector = null, inspectorInsets = {}, inspectorViewport = null;
     const applyInspectorInsets = () => getRenderer()?.setViewportInsets?.(inspectorInsets);
     const owner = profile.interaction?.simulationOwnerPluginId || extensions.activePluginIds[0];
@@ -17,7 +18,14 @@
       capabilities: { selection: true, camera: true, pause: true, restart: true, replay: 'model-receipt', liveActions: false },
       onChange: snapshot => status.render(snapshot),
       operations: [
-        ...['start','pause','resume','step','replay'].map(id => ({id,serial:!['pause','resume'].includes(id),category:id==='replay'?'reproduction':'execution',perform:async(_,operation)=>{const result=await pluginPlayback[id]();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;}})),
+        ...['start','pause','resume','step','replay'].map(id => ({id,serial:!['pause','resume'].includes(id),category:id==='replay'?'reproduction':'execution',perform:async(_,operation)=>{
+          if(controlChange&&['pause','resume'].includes(id)){
+            controlChange.running=id==='resume';
+            if(id==='pause')pluginPlayback.pause();
+            return pluginPlayback.snapshot();
+          }
+          const result=await pluginPlayback[id]();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;
+        }})),
         {id:'restart',serial:true,category:'reproduction',perform:async(_,operation)=>{await pluginPlayback.reset(getScenario());operation.throwIfCancelled();const result=await pluginPlayback.start();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;}},
         {id:'seek',serial:true,category:'reproduction',perform:value=>pluginPlayback.seek(value)},
         {id:'speed',category:'execution',perform:value=>pluginPlayback.setPlaybackRate(value)},
@@ -53,7 +61,29 @@
           const action=inspector.action(input.targetId,input.actionId);return pluginPlayback.intervene(action.command,action.values);
         }},
         {id:'apply-controls',serial:true,category:'scenario',requiresRestart:true,perform:async(values,operation)=>{
-          await pluginPlayback.applyControls(values);operation.throwIfCancelled();const result=await pluginPlayback.start();operation.throwIfCancelled();await renderPluginExperience({mission:null});operation.throwIfCancelled();await onParametersApplied?.();return result;
+          const change={running:pluginPlayback.snapshot().phase==='running'};
+          controlChange=change;pluginRenderGeneration+=1;
+          let result,failure;
+          try {
+            const accepted=lastPluginContributions.find(row=>row.pluginId===owner)?.controls.controls;
+            const shadeOnly=profile.id==='sun-walker-v1'&&accepted&&accepted.every(row=>row.id==='directSunWeight'||JSON.stringify(values[row.id])===JSON.stringify(row.value));
+            if(shadeOnly){
+              // Calculate before replacing the accepted walk. Search refusal must
+              // leave its model, playback position and camera available.
+              const preview=await extensions.dispatchAction(owner,'sun-walker.preview-route',{scenario:getScenario(),values});
+              operation.throwIfCancelled();
+              await pluginPlayback.applyPrepared({command:'sun-walker.accept-preview',values:{previewId:preview.id},controls:preview.controls});
+            } else await pluginPlayback.applyControls(values);
+            operation.throwIfCancelled();await pluginPlayback.start({paused:true});operation.throwIfCancelled();
+            if(change.running)await pluginPlayback.resume();else pluginPlayback.pause();
+            result=pluginPlayback.snapshot();operation.throwIfCancelled();
+          } catch(error){
+            failure=error;
+            if(operation.isCurrent()&&change.running&&pluginPlayback.snapshot().phase==='paused')await pluginPlayback.resume();
+          } finally {if(controlChange===change)controlChange=null;}
+          await renderPluginExperience({mission:null});operation.throwIfCancelled();
+          if(failure)throw failure;
+          await onParametersApplied?.();return result;
         }},
         {id:'preview-controls',category:'observation',perform:async(values,operation)=>{
           const preview=await createPluginRuntime();
@@ -105,10 +135,12 @@
       rendering = false;
     }
     async function renderPluginExperienceNow(context) {
-      if (disposed) return;
+      // Scenario rebuilds mutate model state asynchronously. Keep the last complete
+      // presentation until the replacement is prepared.
+      if (disposed || controlChange) return;
       const renderGeneration = ++pluginRenderGeneration;
       await yieldToFrame();
-      if (disposed || renderGeneration !== pluginRenderGeneration) return;
+      if (disposed || controlChange || renderGeneration !== pluginRenderGeneration) return;
       const renderStartedAt = performance.now();
       const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
       const platformStartedAt = performance.now();
@@ -144,7 +176,7 @@
       const renderer = getRenderer();
       if (!renderer) return;
       await yieldToFrame();
-      if (disposed || renderGeneration !== pluginRenderGeneration || renderer !== getRenderer()) return;
+      if (disposed || controlChange || renderGeneration !== pluginRenderGeneration || renderer !== getRenderer()) return;
       const selected = renderer.cameraState?.()?.focusId || 'route';
       const semanticPresentations = platform.contributions.map((contribution) => ({
         pluginId: contribution.pluginId,

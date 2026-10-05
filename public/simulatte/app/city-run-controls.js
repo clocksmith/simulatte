@@ -8,7 +8,7 @@
     focusPrimary, setPaused, onError }) {
     const safely = (operation) => async () => {
       if (!isActive()) return;
-      try { await operation(); } catch (error) { if (isActive()) onError(error); }
+      try { await operation(); } catch (error) { if (isActive() && error.name !== 'AbortError') onError(error); }
     };
     const start = safely(async () => {
       if (interactionMode === 'playback') {
@@ -28,10 +28,10 @@
     on(elements.shuffleButton, 'click', safely(async () => {
       if (!isRunning()) await selectNextScenario();
     }));
-    on(elements.pauseButton, 'click', () => {
+    on(elements.pauseButton, 'click', safely(async () => {
       const playback = getPlayback();
-      if (playback) playback.pause(); else { stopLoop(); setPaused(); }
-    });
+      if (playback) await playback.pause(); else { stopLoop(); setPaused(); }
+    }));
     on(elements.stepButton, 'click', safely(async () => {
       const playback = getPlayback();
       if (playback) { await playback.step(); return; }

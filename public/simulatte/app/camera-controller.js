@@ -96,8 +96,13 @@
     ];
     if (!previousFocusId.startsWith('plugin:')) return state.targets;
     if (state.isManualFrame && !['follow', 'pov'].includes(state.mode)) return state.targets;
+    // Automatic view-intent IDs can change on a route restart. A manually
+    // followed actor remains the same subject even when that intent disappears.
+    const sameSubject = previousTarget?.pluginId && previousTarget?.sourceId && ['follow', 'pov'].includes(state.mode)
+      ? state.targets.find(row => row.kind === 'plugin' && row.pluginId === previousTarget.pluginId
+        && row.sourceId === previousTarget.sourceId && ['follow', 'pov'].includes(row.viewMode)) : null;
     const target = state.targets.find((row) => row.id === previousFocusId)
-      || state.targets.find((row) => row.id === 'route');
+      || sameSubject || state.targets.find((row) => row.id === 'route');
     state.focusId = target.id;
     const targetChanged = !previousTarget
       || target.id !== previousTarget.id

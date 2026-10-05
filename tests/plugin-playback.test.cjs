@@ -745,3 +745,17 @@ test('saved playback is restored only within the build that produced its measure
   assert.equal(discarded.length, 2);
   assert.equal(receipt.buildId, undefined, 'storage metadata must not mutate exported evidence');
 });
+
+test('a prepared route can open paused without playing the clock and resumes normally', async () => {
+  const lane = fixture();
+  await lane.controller.applyControls({ peopleCount: 512 });
+  const result = await lane.controller.start({ paused: true });
+  assert.equal(result.phase, 'paused');
+  assert.equal(lane.clock.snapshot().state, 'paused');
+  assert.equal(lane.clock.snapshot().currentMs, 0);
+  assert.equal(lane.dispatchedValues.length, 1);
+  await lane.controller.resume();
+  assert.equal(lane.controller.snapshot().phase, 'running');
+  assert.equal(lane.clock.snapshot().state, 'playing');
+  lane.controller.dispose();
+});

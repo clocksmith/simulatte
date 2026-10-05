@@ -21,20 +21,20 @@
     const on=(node,type,fn)=>node.addEventListener(type,fn,{signal:events.signal});
     function say(text){message.hidden=!text;message.textContent=text;}
     function setBusy(value){busy=value;for(const e of panel.querySelectorAll('button,select,input'))e.disabled=value;panel.setAttribute('aria-busy',String(value));}
-    async function apply(weight) {
+    async function apply({endpoints=false}={}) {
       if(busy)return;
       const values=Object.fromEntries(controls.map(row=>[row.id,row.value]));
-      values.originPlace=form.elements.originPlace.value;values.destinationPlace=form.elements.destinationPlace.value;
+      if(endpoints){values.originPlace=form.elements.originPlace.value;values.destinationPlace=form.elements.destinationPlace.value;}
       if(values.originPlace===values.destinationPlace){say('Choose different starting and ending places.');return;}
       const endpointsChanged=controls.some(row=>['originPlace','destinationPlace'].includes(row.id)&&row.value!==values[row.id]);
-      values.directSunWeight=weight??Math.min(100,Number(preference.value)/Math.max(1,100-Number(preference.value)));
+      values.directSunWeight=Math.min(100,Number(preference.value)/Math.max(1,100-Number(preference.value)));
       setBusy(true);say('Calculating routes…');
       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-      try {await session.invoke('apply-controls',values);dirty=false;preferenceDirty=false;if(endpointsChanged)await session.invoke('camera','overview');say('');}
+      try {await session.invoke('apply-controls',values);if(endpoints)dirty=false;preferenceDirty=false;if(endpointsChanged)await session.invoke('camera','overview');say('');}
       catch(error){say(error.message);}
       finally{setBusy(false);}
     }
-    on(form,'change',()=>{dirty=true;});on(form,'submit',event=>{event.preventDefault();void apply();});
+    on(form,'change',()=>{dirty=true;});on(form,'submit',event=>{event.preventDefault();void apply({endpoints:true});});
     function showPreference(){const p=Number(preference.value);panel.querySelector('[data-walk-preference-label]').textContent=p===0?'Shortest walk':p===100?'Strongest shade preference':p===50?'Balanced':p<50?'Prefer time':'Prefer shade';}
     on(preference,'input',()=>{preferenceDirty=true;showPreference();});
     on(preference,'change',()=>void apply());

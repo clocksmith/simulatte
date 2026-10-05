@@ -54,7 +54,7 @@
         });
     });
 
-    async function start({ values = null } = {}) {
+    async function start({ values = null, paused = false } = {}) {
       assertActive();
       if (['running', 'paused'].includes(phase)) return snapshot();
       const nextParameterValues = normalizeValues(
@@ -69,7 +69,7 @@
       parameterValues = nextParameterValues;
       hasPreparedStart = false;
       setControlValues(ownerPluginId, parameterValues);
-      setPhase('running');
+      setPhase(paused ? 'paused' : 'running');
       if (!preparedResult) {
         actionResult = await dispatch('start');
         if (generation !== runGeneration) return snapshot();

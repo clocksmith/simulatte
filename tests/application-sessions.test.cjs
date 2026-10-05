@@ -200,3 +200,20 @@ test('replacing a route timeline preserves running playback without resuming pau
   assert.equal(clock.snapshot().state,'paused','Drawing must not undo an explicit pause');
   session.dispose();
 });
+
+test('superseded playback controls do not report a runtime failure, but real errors do', async () => {
+  const handlers = new Map(), errors = [];
+  let failure = Object.assign(new Error('Superseded by apply-controls'), {name:'AbortError'});
+  const elements = Object.fromEntries(['startButton','resumeButton','newMissionButton','shuffleButton','pauseButton','stepButton','resetButton','replayButton','playbackSpeed','playbackTimeline'].map(id=>[id,{id}]));
+  const reject = async () => { throw failure; };
+  controlsApi.connect({elements,on:(node,type,fn)=>handlers.set(node.id,fn),isActive:()=>true,
+    interactionMode:'playback',getPlayback:()=>({snapshot:()=>({phase:'paused'}),resume:reject,pause:reject}),onError:error=>errors.push(error)});
+  await handlers.get('resumeButton')();
+  assert.equal(errors.length,0);
+  await handlers.get('pauseButton')();
+  assert.equal(errors.length,0);
+  failure = new Error('real playback failure');
+  await handlers.get('resumeButton')();
+  await handlers.get('pauseButton')();
+  assert.deepEqual(errors,[failure,failure]);
+});

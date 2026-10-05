@@ -221,3 +221,21 @@ test('selecting an object leaves its camera intact; top-view zoom and drag retai
   assert.equal(state.mode, 'top'); assert.equal(state.isManualFrame, true);
   assert.ok(interactions.every(row => row.mode === 'top'));
 });
+
+test('replacing a route keeps follow and POV on the same actor when the automatic view intent changes', () => {
+  for (const mode of ['follow', 'pov']) {
+    const state = cameraState();
+    state.mode = mode;
+    Object.assign(state.targets[1], { id: 'plugin:sun-walker:navigation', pluginId: 'sun-walker', sourceId: 'walker', viewMode: 'follow', subjectKind: 'pedestrian' });
+    state.focusId = state.targets[1].id;
+    const replacement = { ...state.targets[1], id: 'plugin:sun-walker:walker:follow', target: [120, 0, -210] };
+    camera.replacePluginCameraTargets(state, [
+      { ...replacement, id: 'plugin:other:walker', pluginId: 'other' },
+      replacement,
+    ], 16);
+    assert.equal(state.focusId, replacement.id);
+    assert.equal(state.mode, mode);
+    camera.replacePluginCameraTargets(state, [], 32);
+    assert.equal(state.focusId, 'route', 'A genuinely removed subject still uses the route fallback');
+  }
+});
