@@ -30,12 +30,18 @@ fn sunVisibility(position: vec3<f32>) -> f32 {
     const direction = sun?.directionToSun;
     if (!Array.isArray(direction) || direction.length !== 3 || !direction.every(Number.isFinite) || direction[1] <= 0) return null;
     const towardSun = math.normalize(direction);
-    const extent = Math.max(120, Math.min(6000, Number.isFinite(radius) ? radius : 1200));
+    const requested = Math.max(120, Math.min(6000, Number.isFinite(radius) ? radius : 1200));
+    // Keep a world-space texel grid while the camera pans and zooms. Continuous
+    // light-frustum scaling makes stationary buildings cast swimming shadows.
+    const extent = Math.min(6000, 1200 * 2 ** Math.ceil(Math.log2(requested / 1200)));
     const target = center.map(value => Number.isFinite(value) ? value : 0);
     const eye = math.add(target, math.scale(towardSun, extent * 3));
     const up = Math.abs(towardSun[1]) > 0.98 ? [0, 0, 1] : [0, 1, 0];
-    return { matrix: math.multiply(math.orthographic(-extent, extent, -extent, extent, 1, extent * 6), math.lookAt(eye, target, up)),
-      extent, towardSun };
+    const matrix = math.multiply(math.orthographic(-extent, extent, -extent, extent, 1, extent * 6), math.lookAt(eye, target, up));
+    const texelNdc = 2 / SIZE;
+    matrix[12] = Math.round(matrix[12] / texelNdc) * texelNdc;
+    matrix[13] = Math.round(matrix[13] / texelNdc) * texelNdc;
+    return { matrix, extent, towardSun };
   }
 
   function create(device, floatsPerVertex) {

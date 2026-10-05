@@ -36,3 +36,33 @@ test('sidewalk ribbons occupy only the two sides of a road, with continuous corn
   }
   for (const triangle of triangles) for (const vertex of triangle) assert.ok(vertex.every(Number.isFinite));
 });
+
+test('overlapping route and walked-segment annotations never write opaque depth or cast shadows', () => {
+  const path = {points:[{x:0,y:0},{x:10,y:0},{x:10,y:10}],widthM:2,tone:'green',intensity:0.3};
+  const scene = {areas:[],markers:[],paths:[path,{...path,tone:'amber',points:path.points.slice(0,2)}]};
+  const opaque = geometry.createPluginStaticGeometry(scene);
+  const overlay = geometry.createPluginOverlayGeometry(scene);
+  assert.equal(opaque.length, 0, 'Route paint must not enter opaque depth or the caster buffer');
+  assert.equal(overlay.length / geometry.FLOATS_PER_VERTEX, 18, 'Both annotations remain visible in the ordered overlay pass');
+});
+
+test('joined route segments produce the same ribbon as their continuous polyline', () => {
+  const a={x:0,y:0},b={x:0,y:10},c={x:10,y:10};
+  const ribbon = points => {const writer=geometry.createWriter();geometry.addRibbon(writer,points,2,.92,[0,1,0,1]);return [...writer.finish()];};
+  assert.deepEqual(ribbon([a,b,b,c]),ribbon([a,b,c]),'Repeated segment endpoints must not introduce zero-length triangles or false corner normals');
+});
+
+test('camera motion keeps fixed-world shadows on the same texel lattice', () => {
+  const shadow = require('../public/simulatte/app/webgpu-sun-shadow.js');
+  const sun={directionToSun:[1,1,.2]},point=[17,0,-23];
+  const a=shadow.projection(sun,[0,0,0],1400);
+  const b=shadow.projection(sun,[.013,0,.027],1400.05);
+  assert.equal(a.extent,b.extent,'Small zoom increments must not continually rescale the shadow texels');
+  const uv=p=>math.transformPoint(p.matrix,point).slice(0,2).map(n=>n*shadow.SIZE/2);
+  const one=uv(a),two=uv(b);
+  for(let axis=0;axis<2;axis++) {
+    const shift=two[axis]-one[axis];
+    assert.ok(Math.abs(shift-Math.round(shift))<1e-4,`Shadow grid must translate by whole texels, got ${shift}`);
+  }
+  assert.ok(a.extent>=1400&&a.extent<=6000);
+});

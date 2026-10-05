@@ -198,7 +198,6 @@
         }
       }
     });
-    scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, row.style?.emphasis === 'comparison' ? 1.02 : 0.92, semanticColor(row), Math.min(0.45, row.intensity || 0.45)));
     scene.markers.forEach((row) => {
       if (row.semanticKind === 'person-residences') {
         addTinyNode(writer, row.point, semanticColor(row), row.radiusM, row.intensity);
@@ -210,7 +209,6 @@
     // presentation compiler, so they draw with the same beacon/ribbon/polygon builders.
     (scene.choropleths || []).forEach((row) => addFlatPolygon(writer, row.points, 3, semanticColor(row, 'fill'), row.intensity));
     (scene.geoAreas || []).forEach((row) => addFlatPolygon(writer, row.points, row.heightM, semanticColor(row, 'fill'), row.intensity));
-    (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, row.style?.emphasis === 'comparison' ? 1.02 : 0.92, semanticColor(row), Math.min(0.45, row.intensity || 0.45)));
     (scene.geoMarkers || []).forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
     if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
   }
@@ -244,6 +242,10 @@
     scene.areas.forEach(addOverlay);
     (scene.choropleths || []).forEach(addOverlay);
     (scene.geoAreas || []).forEach(addOverlay);
+    // Route paint can overlap sampled segments. Blend in declared order without
+    // writing depth, so coplanar annotations cannot reject each other or cast shadows.
+    scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, row.style?.emphasis === 'comparison' ? 1.02 : 0.92, semanticColor(row), Math.min(0.45, row.intensity || 0.45)));
+    (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, row.style?.emphasis === 'comparison' ? 1.02 : 0.92, semanticColor(row), Math.min(0.45, row.intensity || 0.45)));
   }
 
   function addPluginShadowPresentation(writer, scene) {
@@ -414,7 +416,9 @@
   }
 
   function addRibbon(writer, points, width, height, color, emissive = 0, innerWidth = 0) {
-    const source = [...points];
+    // Adjacent route segments repeat their shared endpoint. Zero-length edges
+    // otherwise manufacture a fallback normal and folded, overlapping triangles.
+    const source = points.filter((point, index) => index === 0 || distance2(point, points[index - 1]) > 0.001);
     if (source.length < 2) return;
     const closed = source.length > 2 && distance2(source[0], source.at(-1)) < 0.001;
     const path = closed ? source.slice(0, -1) : openRing(source);

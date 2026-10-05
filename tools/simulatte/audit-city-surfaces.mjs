@@ -31,7 +31,15 @@ try {
    await c.send('Page.enable');await c.send('Runtime.enable');
    await c.send('Emulation.setDeviceMetricsOverride',{...viewport,deviceScaleFactor:1,mobile:viewport.width<600});
    await c.send('Page.addScriptToEvaluateOnNewDocument',{source:`
-     globalThis.__depthAudit={pipelines:[],textures:[],errors:[]};
+     globalThis.__depthAudit={pipelines:[],textures:[],errors:[],shadowMatrices:[]};
+     if(globalThis.GPUQueue) {
+       const original=GPUQueue.prototype.writeBuffer;
+       GPUQueue.prototype.writeBuffer=function(buffer,offset,data,...rest){
+         if(buffer.label==='world-sun-uniforms' && __depthAudit.captureShadow && __depthAudit.shadowMatrices.length<160)
+           __depthAudit.shadowMatrices.push(Array.from(data).slice(0,16));
+         return original.call(this,buffer,offset,data,...rest);
+       };
+     }
      if(globalThis.GPUDevice) {
        for(const name of ['createRenderPipeline','createTexture']) {
          const original=GPUDevice.prototype[name];
@@ -61,6 +69,9 @@ try {
    await wait(`document.querySelector('.sun-walk-controls') && Number(document.querySelector('#autonomy-canvas')?.dataset.frameCount)>25`);
    await ev(`document.querySelector('#autonomy-canvas').scrollIntoView({block:'center'})`);
    const center=await ev(`(()=>{const r=document.querySelector('#autonomy-canvas').getBoundingClientRect();return {x:r.x+r.width/2,y:Math.min(innerHeight-80,Math.max(80,r.y+r.height/2))}})()`);
+   await ev(`SimulatteActiveSession.invoke('pause')`);
+   await pause(300);
+   await ev(`__depthAudit.captureShadow=true`);
    row.sunwalkerMotion=[];
    for(const [kind,modifiers] of [['orbit',0],['pan',8]]) {
      const before=await ev(`document.querySelector('#autonomy-canvas').dataset.cameraEye`);
@@ -89,6 +100,11 @@ try {
      row.sunwalker.push({mode,canvas});await capture(`sunwalker-${mode}`);
    }
    row.depth=await ev('__depthAudit');
+   assert.ok(row.depth.shadowMatrices.length>10,'Observe actual shadow dispatch during camera movement');
+   for(const matrix of row.depth.shadowMatrices)for(const index of [12,13]){
+     const texels=matrix[index]*1024;
+     assert.ok(Math.abs(texels-Math.round(texels))<.001,'Shadow projection must stay on whole world-space texels');
+   }
    const map=row.depth.pipelines.find(p=>p.label==='autonomy-map-pipeline');
    assert.equal(map.depth.format,'depth32float');assert.equal(map.depth.depthCompare,'greater');
    const overlay=row.depth.pipelines.find(p=>p.label==='autonomy-overlay-pipeline');assert.equal(overlay.depth.depthCompare,'greater-equal');

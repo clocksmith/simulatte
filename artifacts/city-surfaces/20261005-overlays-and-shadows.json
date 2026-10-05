@@ -1,0 +1,621 @@
+{
+  "sources": {
+    "head": "d68e61e0c337185d7698f8aa8c3d6e81a354f53a",
+    "capturedAt": "2026-10-05T23:15:04.671Z",
+    "modifiedSources": {
+      "public/simulatte/app/webgpu-geometry.js": {
+        "sha256": "6055403a61e3da7f72d32bc736f94433266cf46bb47cc861832613c14d061f7a",
+        "modifiedAt": "2026-10-05T23:14:35.645Z"
+      },
+      "public/simulatte/app/webgpu-sun-shadow.js": {
+        "sha256": "1c4cf5b08a393f817bf1d5c06597460d7589bbc5878341cdf677e138e33ffcfc",
+        "modifiedAt": "2026-10-05T23:14:35.645Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "origin": "local static server",
+  "servedHashes": {},
+  "runs": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "motorcycle": [
+        {
+          "name": "street",
+          "radius": 190,
+          "near": 1.9000000000000001,
+          "far": 10000,
+          "engine": "QD"
+        },
+        {
+          "name": "city",
+          "radius": 3000,
+          "near": 30,
+          "far": 10000,
+          "engine": "QD"
+        },
+        {
+          "name": "grazing",
+          "radius": 5000,
+          "near": 50,
+          "far": 10000,
+          "engine": "QD"
+        }
+      ],
+      "motion": {
+        "frames": 49,
+        "minRatio": 0.00999211997217705
+      },
+      "motorcycleGpuErrors": [],
+      "sunwalkerMotion": [
+        {
+          "kind": "orbit",
+          "before": "-785.1,768.63,-1267.64",
+          "after": "-915.45,800.48,-1337.14"
+        },
+        {
+          "kind": "pan",
+          "before": "-916.33,800.69,-1337.54",
+          "after": "-865.54,800.81,-1265.03"
+        },
+        {
+          "kind": "zoom",
+          "before": "-865.21,800.81,-1264.55",
+          "after": "-946.85,631.14,-1153.18"
+        }
+      ],
+      "sunwalker": [
+        {
+          "mode": "overview",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "free",
+            "cameraFocus": "custom",
+            "cameraTransition": "settled",
+            "followMinimap": "hidden",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-950.38,623.81,-1148.36",
+            "cameraTarget": "-1251.24,0,-739.86",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1045788",
+            "frameCount": "109",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "44640",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "1",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "381",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "431",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "140.744583",
+            "sunElevationDegrees": "67.162291",
+            "pluginShadowVertexCount": "16965",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "45",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        },
+        {
+          "mode": "follow",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "follow",
+            "cameraFocus": "plugin:sun-walker:sun-walker-navigation",
+            "cameraTransition": "settled",
+            "followMinimap": "visible",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-1590.98,180,-596.73",
+            "cameraTarget": "-1590.97,1.4,-596.74",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1045788",
+            "frameCount": "149",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "44640",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "1",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "381",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "431",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "140.744583",
+            "sunElevationDegrees": "67.162291",
+            "pluginShadowVertexCount": "16965",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "45",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        },
+        {
+          "mode": "pov",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "pov",
+            "cameraFocus": "plugin:sun-walker:sun-walker-navigation",
+            "cameraTransition": "settled",
+            "followMinimap": "hidden",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-1590.97,1.7,-596.74",
+            "cameraTarget": "-1572.92,1.62,-612.56",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1045788",
+            "frameCount": "188",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "42516",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "1",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "381",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "431",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "140.744583",
+            "sunElevationDegrees": "67.162291",
+            "pluginShadowVertexCount": "16965",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "45",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        }
+      ],
+      "depth": {
+        "pipelines": [
+          {
+            "label": "world-sun-depth-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": true,
+              "depthCompare": "less",
+              "depthBias": 2,
+              "depthBiasSlopeScale": 2
+            }
+          },
+          {
+            "label": "autonomy-map-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": true,
+              "depthCompare": "greater",
+              "depthBias": 0
+            }
+          },
+          {
+            "label": "autonomy-overlay-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": false,
+              "depthCompare": "greater-equal",
+              "depthBias": 2
+            }
+          }
+        ],
+        "textures": [
+          {
+            "label": "world-sun-depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world:depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world:depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world-minimap:depth",
+            "format": "depth32float"
+          }
+        ],
+        "errors": [],
+        "captureShadow": true
+      },
+      "shadowGrid": {
+        "dispatchesChecked": 151,
+        "firstMatrix": [
+          0.0006452773814089596,
+          -0.0004859780892729759,
+          -3.4115211747121066e-05,
+          0,
+          0,
+          0.0003234352043364197,
+          -0.0001280188880627975,
+          0,
+          -0.0005273154238238931,
+          -0.0005946927703917027,
+          -4.17468800151255e-05,
+          0,
+          0.412109375,
+          -1.1171875,
+          0.4215213358402252,
+          1
+        ],
+        "lastMatrix": [
+          0.0006452773814089596,
+          -0.0004859780892729759,
+          -3.4115211747121066e-05,
+          0,
+          0,
+          0.0003234352043364197,
+          -0.0001280188880627975,
+          0,
+          -0.0005273154238238931,
+          -0.0005946927703917027,
+          -4.17468800151255e-05,
+          0,
+          0.6923828125,
+          -1.12890625,
+          0.4209047257900238,
+          1
+        ],
+        "maximumTexelAlignmentError": 0.0
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "motorcycle": [
+        {
+          "name": "street",
+          "radius": 190,
+          "near": 1.9000000000000001,
+          "far": 10000,
+          "engine": "QD"
+        },
+        {
+          "name": "city",
+          "radius": 3000,
+          "near": 30,
+          "far": 10000,
+          "engine": "QD"
+        },
+        {
+          "name": "grazing",
+          "radius": 5000,
+          "near": 50,
+          "far": 10000,
+          "engine": "QD"
+        }
+      ],
+      "motion": {
+        "frames": 60,
+        "minRatio": 0.009993171156064684
+      },
+      "motorcycleGpuErrors": [],
+      "sunwalkerMotion": [
+        {
+          "kind": "orbit",
+          "before": "-688.33,912.23,-1352.51",
+          "after": "-843.04,950.02,-1434.99"
+        },
+        {
+          "kind": "pan",
+          "before": "-843.69,950.17,-1435.28",
+          "after": "-774.87,950.41,-1336.74"
+        },
+        {
+          "kind": "zoom",
+          "before": "-774.51,950.41,-1336.23",
+          "after": "-871.27,749.04,-1203.86"
+        }
+      ],
+      "sunwalker": [
+        {
+          "mode": "overview",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "free",
+            "cameraFocus": "custom",
+            "cameraTransition": "settled",
+            "followMinimap": "hidden",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-875.42,740.41,-1198.18",
+            "cameraTarget": "-1232.52,0,-713.32",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1045788",
+            "frameCount": "106",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "44640",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "1",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "381",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "431",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "140.744583",
+            "sunElevationDegrees": "67.162291",
+            "pluginShadowVertexCount": "16965",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "45",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        },
+        {
+          "mode": "follow",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "follow",
+            "cameraFocus": "plugin:sun-walker:sun-walker-navigation",
+            "cameraTransition": "settled",
+            "followMinimap": "visible",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-1590.98,180,-596.73",
+            "cameraTarget": "-1590.97,1.4,-596.74",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1045788",
+            "frameCount": "144",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "44640",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "1",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "381",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "431",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "140.744583",
+            "sunElevationDegrees": "67.162291",
+            "pluginShadowVertexCount": "16965",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "45",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        },
+        {
+          "mode": "pov",
+          "canvas": {
+            "rendererBackend": "webgpu",
+            "adapterName": "metal-3",
+            "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
+            "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
+            "materialModel": "metallic_roughness_vertex_v1",
+            "worldSurfaceOwner": "core",
+            "ambientActorCount": "13",
+            "ambientActorKinds": "pedestrian,bicycle,scooter,car",
+            "cameraMode": "pov",
+            "cameraFocus": "plugin:sun-walker:sun-walker-navigation",
+            "cameraTransition": "settled",
+            "followMinimap": "hidden",
+            "cameraTransitionProgress": "1.000",
+            "cameraEye": "-1590.97,1.7,-596.74",
+            "cameraTarget": "-1572.92,1.62,-612.56",
+            "cameraFollowDistance": "62.000",
+            "sunShadow": "depth-map",
+            "sunShadowCasterVertices": "1045788",
+            "frameCount": "182",
+            "staticVertexCount": "1045728",
+            "dynamicVertexCount": "42516",
+            "pluginPluginsCount": "1",
+            "pluginMarkersCount": "1",
+            "pluginPathsCount": "1",
+            "pluginActorsCount": "1",
+            "pluginAreasCount": "381",
+            "pluginSunsCount": "1",
+            "pluginCameraTargetsCount": "431",
+            "pluginGeoMarkersCount": "0",
+            "pluginGeoPathsCount": "0",
+            "pluginGeoAreasCount": "0",
+            "pluginChoroplethsCount": "0",
+            "pluginLabelsCount": "3",
+            "sunAzimuthDegrees": "140.744583",
+            "sunElevationDegrees": "67.162291",
+            "pluginShadowVertexCount": "16965",
+            "solarLighting": "plugin",
+            "pluginCompositorReceiptCount": "1",
+            "pluginVisibleLayerCount": "384",
+            "pluginRepresentedLayerCount": "384",
+            "pluginSuppressedLayerCount": "45",
+            "pluginClusterCount": "0",
+            "pluginClusteredLayerCount": "0",
+            "pluginLabelCount": "3",
+            "cameraInteraction": "zoom"
+          }
+        }
+      ],
+      "depth": {
+        "pipelines": [
+          {
+            "label": "world-sun-depth-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": true,
+              "depthCompare": "less",
+              "depthBias": 2,
+              "depthBiasSlopeScale": 2
+            }
+          },
+          {
+            "label": "autonomy-map-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": true,
+              "depthCompare": "greater",
+              "depthBias": 0
+            }
+          },
+          {
+            "label": "autonomy-overlay-pipeline",
+            "depth": {
+              "format": "depth32float",
+              "depthWriteEnabled": false,
+              "depthCompare": "greater-equal",
+              "depthBias": 2
+            }
+          }
+        ],
+        "textures": [
+          {
+            "label": "world-sun-depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world:depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world:depth",
+            "format": "depth32float"
+          },
+          {
+            "label": "world-minimap:depth",
+            "format": "depth32float"
+          }
+        ],
+        "errors": [],
+        "captureShadow": true
+      },
+      "shadowGrid": {
+        "dispatchesChecked": 145,
+        "firstMatrix": [
+          0.0003226386907044798,
+          -0.00024298904463648796,
+          -1.7056421711458825e-05,
+          0,
+          0,
+          0.00016171760216820985,
+          -6.400499842129648e-05,
+          0,
+          -0.00026365771191194654,
+          -0.0002973463851958513,
+          -2.0871990273008123e-05,
+          0,
+          0.2060546875,
+          -0.55859375,
+          0.46076342463493347,
+          1
+        ],
+        "lastMatrix": [
+          0.0006452773814089596,
+          -0.0004859780892729759,
+          -3.4115211747121066e-05,
+          0,
+          0,
+          0.0003234352043364197,
+          -0.0001280188880627975,
+          0,
+          -0.0005273154238238931,
+          -0.0005946927703917027,
+          -4.17468800151255e-05,
+          0,
+          0.6923828125,
+          -1.12890625,
+          0.4209047257900238,
+          1
+        ],
+        "maximumTexelAlignmentError": 0.0
+      }
+    }
+  ],
+  "regressions": {
+    "testsPassed": 90,
+    "failuresReproducedBeforeRepair": [
+      "opaque route annotation depth writes",
+      "duplicate route endpoints create folded ribbon triangles",
+      "camera movement continuously shifts and rescales shadow texels"
+    ]
+  }
+}
