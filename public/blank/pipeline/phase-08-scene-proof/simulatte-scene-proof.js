@@ -33,7 +33,18 @@
       Array.isArray(renderExecution.objectRealization.rows)
       ? renderExecution.objectRealization.rows
       : [];
-    const settledObligations = (sourceLedger.obligations || []).map((row) => settleObligation(row, {
+    const activityEvidence = renderExecution.activityEvidence;
+    const activityProof = activityEvidence ? globalThis.SimulattePhaseModuleRegistry.family('physicsModel')
+      .proveActivitySequence(activityEvidence.program, activityEvidence.state) : null;
+    const activityDrawingBound = activityEvidence?.visualReceipt?.consumed === true &&
+      activityEvidence.visualReceipt.programHash === activityProof?.programHash &&
+      activityEvidence.visualReceipt.time === activityEvidence.state?.time;
+    const settledObligations = (sourceLedger.obligations || []).map((row) => row.activityBinding ? {
+      schema: 'simulatte.sceneProofObligation.v1', obligationId: row.id, kind: row.kind, required: row.required === true,
+      status: activityProof?.pass && activityDrawingBound && activityProof.programHash === row.activityBinding.programHash &&
+        visualProofByObligation.get(row.id)?.status === 'pass' ? 'preserved' : 'not-proven',
+      reason: 'bound activity trajectory plus participant pixels', evidence: [row.activityBinding.programHash],
+    } : settleObligation(row, {
       rendered,
       identities,
       visualProofByObligation,
@@ -44,6 +55,12 @@
       atmosphereProgram: renderExecution.atmosphereProgram || null,
       rendererConsumption: renderExecution.rendererConsumption || null,
     }));
+    for (const row of activityProof?.unsupported || []) settledObligations.push({
+      obligationId: row.id, kind: 'activity', required: true, status: 'unsupported', reason: row.reason });
+    if (activityProof && (!activityProof.pass || !activityDrawingBound)) {
+      settledObligations.push({ obligationId: 'activity:sequence', kind: 'activity', required: true,
+        status: activityProof.status === 'failed' ? 'lost' : 'not-proven', reason: 'activity sequence requires complete behavior and render consumption evidence' });
+    }
     const requiredLost = settledObligations.filter((row) => row.required === true && row.status === 'lost');
     const requiredUnsupported = settledObligations.filter((row) => row.required === true && row.status === 'unsupported');
     const requiredNotProven = settledObligations.filter((row) => row.required === true && row.status === 'not-proven');
@@ -76,6 +93,7 @@
       requiredFailures,
       summary,
       interactionProof,
+      activityProof,
       evidence: {
         packetIdentitySummary,
         pixelAuditStatus: renderExecution.pixelAudit && renderExecution.pixelAudit.status || '',

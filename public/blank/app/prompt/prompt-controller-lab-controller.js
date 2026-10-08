@@ -170,8 +170,9 @@
             setSimulationCanvasVisible(true);
             await webGpuRenderer.session.resize();
             if (signal.aborted) throw signal.reason;
+            const clock = model.createSimulationPlaybackClock(program);
             const initialState = replay ? await model.replaySimulationState(program, replay, signal)
-              : model.stepSimulation(createSimulationState(program), program, program.source.compilerConfig.simulationProof.stepSeconds);
+              : clock.advance(createSimulationState(program), program, clock.stepSeconds);
             const proofOptions = { buildId: appBuildVersion(root.defaultView), runtimeId: 'simulatte.blank.browser.webgpu.v1' };
             return model.createRenderInvocation(program, initialState, { index: replay ? replay.totalSteps : 1, simulationTime: initialState.t },
               { width: canvas.width, height: canvas.height }, { ...proofOptions,
@@ -291,12 +292,7 @@
           };
           const receiptForSpec = (key, create) => {
             if (!managedFrame) return create(nextProgram, proofOptions);
-            const receipt = managedFrame[key];
-            if (key === 'safetyReceipt' && nextProgram.safety.status === 'not-declared' && receipt === null) return null;
-            if (receipt?.worldSpecContentHash !== nextProgram.contentHash || receipt.worldSpecRevision !== nextProgram.authorship.revision) {
-              throw new Error(`Managed ${key} does not bind the published WorldSpec`);
-            }
-            return receipt;
+            return phaseDispatchApi.managedProofReceiptForSpec(managedFrame, key, nextProgram);
           };
           const preparedProofs = {
             intent: receiptForSpec('intentReceipt', createIntentProofReceiptForSpec),

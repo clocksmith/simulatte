@@ -183,6 +183,7 @@
       solverGraph: simulation.solverGraph,
       renderIR: simulation.renderIR,
       interactionIR: simulation.interactionIR,
+      ...(Object.hasOwn(simulation, 'activityProgram') ? { activityProgram: simulation.activityProgram } : {}),
       compositionGraph: visual.compositionGraph,
       renderProgram: { ...visual.renderProgramFields, visualIR: visualCompile.visualIR,
         sceneRenderPacket: visualCompile.sceneRenderPacket, rendererPlan: visualCompile.rendererPlan },

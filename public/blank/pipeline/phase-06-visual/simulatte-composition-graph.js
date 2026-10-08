@@ -12,6 +12,7 @@
     require('./simulatte-construction-evidence.js');
     require('./simulatte-construction-placement.js');
     require('./simulatte-construction-parts.js');
+    require('./simulatte-activity-visual.js');
     require('./simulatte-construction-geometry.js');
     require('./simulatte-prompt-visual-contracts.js');
     require('./simulatte-object-geometry-grammars.js');

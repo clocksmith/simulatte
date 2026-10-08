@@ -178,10 +178,10 @@
       width,
       height
     ) {
-      if (obligation.partBinding || obligation.simulationBinding?.targetEntityId) {
-        const binding = obligation.partBinding || obligation.simulationBinding;
+      if (obligation.activityBinding || obligation.partBinding || obligation.simulationBinding?.targetEntityId) {
+        const binding = obligation.activityBinding || obligation.partBinding || obligation.simulationBinding;
         const owner = drawables.find((row) => row.id === binding.entityId);
-        const requests = obligation.partBinding ? [
+        const requests = obligation.activityBinding ? binding.packetEntityIds.map(id => ({ id })) : obligation.partBinding ? [
           { id: binding.entityId, target: '', partIds: owner?.geometry?.program?.parts?.filter((part) => part.promptPartId !== binding.partId).map((part) => part.id) },
           { id: binding.entityId, target: '', partIds: owner?.geometry?.program?.parts?.filter((part) => part.promptPartId === binding.partId).map((part) => part.id) },
         ] : [...(binding.entityIds || [binding.entityId]), ...(binding.targetEntityIds || [binding.targetEntityId])].map((id) => ({ id }));
@@ -370,6 +370,7 @@
       if (phase7SemanticAbsenceObligation(obligation)) return 0;
       if (obligation.constraintKind === 'environment' || obligation.targetIdentity === 'sunset') return 1;
       if (obligation.partBinding) return 2;
+      if (obligation.activityBinding) return obligation.activityBinding.packetEntityIds.length;
       if (obligation.simulationBinding?.targetEntityId) return (obligation.simulationBinding.entityIds?.length || 1) +
         (obligation.simulationBinding.targetEntityIds?.length || 1);
       if (phase7ExpectedColor(obligation.expectedValue)) {

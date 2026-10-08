@@ -156,8 +156,10 @@
       vector[offset + 39] = active;
       if (selected || hovered || active) highlightedPartCount += 1;
     });
+    const activity = scope.scenePacketActivityPartData(vector, parts, packet, simulationState);
     return {
-      data: vector,
+      data: activity.data,
+      activityReceipt: activity.receipt,
       receipt: {
         schema: 'simulatte.phase7InteractionVisualReceipt.v1',
         phase: 7,

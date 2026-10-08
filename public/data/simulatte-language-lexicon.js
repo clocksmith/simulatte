@@ -472,6 +472,7 @@
     'calves', 'calve', 'calving', 'minimizes', 'minimize', 'minimizing',
     'readout', 'readouts', 'crash', 'crashes', 'crashing',
     'crosses', 'cross', 'crossing', 'watches', 'watch', 'watching',
+    'walk', 'walks', 'walking', 'drink', 'drinks', 'drinking', 'place', 'places', 'placing',
     'sits', 'sit', 'sitting', 'orbits', 'orbit', 'orbiting',
     'rest', 'rests', 'resting',
     'plays', 'play', 'playing', 'increases', 'increase', 'increasing',

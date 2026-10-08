@@ -55,6 +55,7 @@
     "solverGraph": { "type": ["object", "null"] },
     "renderIR": { "type": ["object", "null"] },
     "interactionIR": { "type": ["object", "null"] },
+    "activityProgram": { "type": ["object", "null"] },
     "phaseArtifacts": { "type": ["object", "null"] },
     "createdAt": { "type": "string" },
     "remixOf": { "type": "string" },

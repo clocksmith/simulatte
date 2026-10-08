@@ -586,18 +586,18 @@
         else if (normalized.templateId === 'fluid-vortex') state = createFluidState(normalized.params);
         else if (normalized.templateId === 'reaction-diffusion') state = scope.createReactionState(normalized.params);
         else state = createState(normalized.params);
-        return scope.withInteractionState
-          ? scope.withInteractionState(state, normalized.interactionIR)
-          : state;
+        state = scope.withInteractionState ? scope.withInteractionState(state, normalized.interactionIR) : state;
+        return scope.withActivityState(state, normalized.activityProgram);
       }
 
     function stepSimulation(inputState, spec, dt) {
         const normalized = scope.normalizeSpec(spec);
-        if (normalized.templateId === 'blank-world') return scope.stepBlankState(inputState, normalized, dt);
-        if (normalized.templateId === 'custom-world') return scope.stepCustomState(inputState, normalized, dt);
-        if (normalized.templateId === 'fluid-vortex') return stepFluidState(inputState, normalized.params, dt);
-        if (normalized.templateId === 'reaction-diffusion') return scope.stepReactionState(inputState, normalized.params, dt);
-        return stepState(inputState, normalized.params, dt);
+        const state = normalized.templateId === 'blank-world' ? scope.stepBlankState(inputState, normalized, dt) :
+          normalized.templateId === 'custom-world' ? scope.stepCustomState(inputState, normalized, dt) :
+          normalized.templateId === 'fluid-vortex' ? stepFluidState(inputState, normalized.params, dt) :
+          normalized.templateId === 'reaction-diffusion' ? scope.stepReactionState(inputState, normalized.params, dt) :
+          stepState(inputState, normalized.params, dt);
+        return scope.stepActivityState(state, normalized.activityProgram, dt);
       }
 
     function solarPower(params) {

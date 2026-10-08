@@ -17,8 +17,10 @@
       const pixelEvidenceSettled = sampleBinding.valid && (
         pixelAuditStatus === 'pass' || readbackAttemptCount >= scope.PHASE7_PIXEL_READBACK_MAX_ATTEMPTS
       );
-      const final = renderData.requireLivePixelSamples !== true ||
-        pixelEvidenceSettled || Boolean(readbackFailure);
+      const activityProof = renderer.phase8Output.artifact?.sceneProof?.activityProof;
+      const sequenceSettled = !activityProof || activityProof.coverage.complete || activityProof.unsupported.length > 0;
+      const final = sequenceSettled && (renderData.requireLivePixelSamples !== true ||
+        pixelEvidenceSettled || Boolean(readbackFailure));
       const report = {
         schema: 'simulatte.rendererSceneProofReport.v1',
         packetKey,

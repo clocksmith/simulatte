@@ -98,6 +98,12 @@
       const constructionPacketSatisfied = constructionVisualObligationPacketSatisfied(row, sceneRenderPacket);
       const promptPacketSatisfied = promptVisualObligationPacketSatisfied(row, sceneRenderPacket);
       const relationPacketSatisfied = relationVisualObligationPacketSatisfied(row, sceneRenderPacket);
+      const activity = row.activityBinding;
+      const activityBound = activity && activity.programHash === sceneRenderPacket.activityBindings?.programHash &&
+        activity.packetEntityIds.length === activity.participantIds.length &&
+        activity.packetEntityIds.every(id => (sceneRenderPacket.entities || []).some(entity => entity.id === id));
+      const activityConsumed = activityBound && renderData?.activityVisualReceipt?.programHash === activity.programHash &&
+        renderData.activityVisualReceipt.consumed === true && activity.packetEntityIds.every(id => renderData.objectParts?.some(part => part.entityId === id));
       const simulation = row.simulationBinding;
       const subjectIds = simulation ? simulation.entityIds || [simulation.entityId] : [];
       const targetIds = simulation?.targetEntityId ? simulation.targetEntityIds || [simulation.targetEntityId] : [];
@@ -112,14 +118,14 @@
       const simulationConsumed = Boolean(subjectsBound && Number(simulationReceipt?.solverFrame) > 0 &&
         subjectIds.every((id) => simulationReceipt.simulatedEntityIds?.includes(id)) &&
         simulationReceipt.executedOperatorIds?.includes(simulation.operatorId));
-      const packetSatisfied = partProof ? partProof.packetSatisfied : simulation ? subjectsBound && targetConsumed : relationPacketSatisfied != null ? relationPacketSatisfied :
+      const packetSatisfied = activity ? Boolean(activityBound) : partProof ? partProof.packetSatisfied : simulation ? subjectsBound && targetConsumed : relationPacketSatisfied != null ? relationPacketSatisfied :
         constructionPacketSatisfied != null ? constructionPacketSatisfied :
         promptPacketSatisfied == null ? visualObligationPacketSatisfied(
         target,
         packetText,
         distinctEntityIdentityCount
       ) : promptPacketSatisfied;
-      const geometrySatisfied = partProof ? partProof.geometrySatisfied : simulation ? targetConsumed && simulationConsumed && subjectIds.every((id) => (renderData?.objectParts || []).some((part) => part.entityId === id)) : visualObligationGeometrySatisfied(
+      const geometrySatisfied = activity ? Boolean(activityConsumed) : partProof ? partProof.geometrySatisfied : simulation ? targetConsumed && simulationConsumed && subjectIds.every((id) => (renderData?.objectParts || []).some((part) => part.entityId === id)) : visualObligationGeometrySatisfied(
         target,
         objectRealization,
         row,
@@ -402,10 +408,10 @@
         reason: 'required visual obligation has no live pixel readback',
       };
     }
-    const directedTargets = obligation.simulationBinding?.targetEntityId
+    const directedTargets = obligation.activityBinding?.packetEntityIds?.map(normalizeForProof) || (obligation.simulationBinding?.targetEntityId
       ? [...(obligation.simulationBinding.entityIds || [obligation.simulationBinding.entityId]),
         ...(obligation.simulationBinding.targetEntityIds || [obligation.simulationBinding.targetEntityId])].map(normalizeForProof)
-      : [];
+      : []);
     const expectedDrawableIds = directedTargets.length ? directedTargets : obligation.sourceKind === 'action'
       ? Array.from(new Set([...(obligation.evidence || []), ...(obligation.visualEvidence || [])]
         .map((value) => String(value || '').match(/^phase6:entity:(.+)$/))

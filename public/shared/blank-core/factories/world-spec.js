@@ -45,6 +45,7 @@ export default function createWorldSpecApi(authorshipContract) {
     'solverGraph',
     'renderIR',
     'interactionIR',
+    'activityProgram',
     'phaseArtifacts',
     'compositionGraph',
     'renderProgram',

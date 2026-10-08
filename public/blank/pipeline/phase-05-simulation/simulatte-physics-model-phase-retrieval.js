@@ -72,7 +72,7 @@
             ? phase1Output.artifact.promptIngress.sourceText || ''
             : '';
           const promptParse = scope.parsePrompt ? scope.parsePrompt(sourceText) : emptyPromptParse(sourceText);
-          const languageGraph = languageGraphFromPromptParse(sourceText, promptParse);
+          const languageGraph = scope.extractActivityLanguage(languageGraphFromPromptParse(sourceText, promptParse), runtimeContext.activityCapabilities);
           const sceneLanguageGraph = scope.sceneLanguageGraphFromLanguageGraph(languageGraph);
           const queryPlan = scope.queryPlanFromSceneLanguageGraph(sceneLanguageGraph);
           const intentRequirements = scope.worldProof.createIntentRequirementLedger({
@@ -304,7 +304,7 @@
               ? scope.semantic.createPrototypeSlotRetrieval(queryPlan, query)
               : null
         );
-            const slotEvidence = phase3SlotEvidence(queryPlan, typedEvidenceBuckets, rankedCards, rankedUniverseRows, slotRetrieval);
+            const slotEvidence = scope.attachActivitySlotEvidence(phase3SlotEvidence(queryPlan, typedEvidenceBuckets, rankedCards, rankedUniverseRows, slotRetrieval), languageGraph);
           const acceptedCandidatesBySlot = scope.phase3AcceptedCandidatesBySlot(slotEvidence);
           const supportOnlyCandidates = scope.phase3SupportOnlyCandidates(primitiveCuration, slotEvidence);
           const rejectedGenericCandidates = scope.phase3RejectedGenericCandidates(primitiveCuration, typedEvidenceBuckets);
@@ -338,6 +338,7 @@
         const retrievalRerankResult = {
                 schema: scope.RETRIEVAL_RERANK_RESULT_SCHEMA,
                 query,
+                activityRetrieval: scope.retrieveActivityComponents(languageGraph),
                 queryPlanSource: sceneLanguageGraph.schema || '',
                 queryPlan,
                 slotEvidence,

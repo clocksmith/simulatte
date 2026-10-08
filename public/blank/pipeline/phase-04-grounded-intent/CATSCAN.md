@@ -27,9 +27,11 @@ Produce the accepted semantic world graph with assumptions, refusals, and proven
 
 ## Invariants
 
+- Activity graphs bind participants and timing; writer/ownership conflicts refuse without serializing simultaneity.
+
 - Every accepted node has provenance.
 - WorldSpec authoring fields normalize before publication; controls require declared finite parameters within their bounds.
-- Every accepted entity, relation, property, exact quantity, and prohibition has source-bound provenance.
+- Entities, relations, properties, exact quantities, and prohibitions retain source provenance.
 - Inferences remain distinguishable from direct grounding.
 - Unresolved prompt nodes remain editable requirements; they do not acquire executable causal edges from rule or label matches.
 - User overrides replace the accepted graph only through explicit patch provenance.
@@ -51,5 +53,4 @@ Produce the accepted semantic world graph with assumptions, refusals, and proven
 
 ## Freedom
 
-Any implementation is permitted if it preserves these boundaries and passes the
-acceptance evidence.
+Any implementation is permitted.

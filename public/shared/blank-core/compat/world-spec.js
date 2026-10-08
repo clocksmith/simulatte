@@ -51,6 +51,7 @@
     'solverGraph',
     'renderIR',
     'interactionIR',
+    'activityProgram',
     'phaseArtifacts',
     'compositionGraph',
     'renderProgram',

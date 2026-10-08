@@ -282,6 +282,11 @@
     } else if (action.requiredCapability && (!target || !target.capabilities.includes(action.requiredCapability))) {
       status = 'rejected';
       reason = `target lacks ${action.requiredCapability}`;
+    } else if (state.activity && ['grab', 'drag', 'impulse', 'adjust', 'nudge', 'activate'].includes(command.actionId) &&
+        (state.activity.actors[String(command.targetId).replace(/^target:/, '')] ||
+          state.activity.objects[String(command.targetId).replace(/^target:/, '')]?.owner)) {
+      status = 'rejected';
+      reason = 'active activity owns this participant; pause alone does not release ownership';
     } else {
       const result = executeAction(state, target, command);
       state = result.state;

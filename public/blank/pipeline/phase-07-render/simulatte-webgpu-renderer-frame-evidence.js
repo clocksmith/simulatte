@@ -3,7 +3,8 @@
 
   function simulationEvidenceKey(input) {
     const receipt = input?.simulationState?.solverState?.executionReceipt;
-    return JSON.stringify([receipt?.status, receipt?.finiteChannels,
+    return JSON.stringify([input?.simulationState?.activity?.programHash, input?.simulationState?.activity?.time,
+      receipt?.status, receipt?.finiteChannels,
       receipt?.expectedOperatorIds, receipt?.executedOperatorIds, receipt?.missingOperatorIds]);
   }
 

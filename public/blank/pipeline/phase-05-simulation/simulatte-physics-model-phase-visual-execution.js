@@ -26,6 +26,7 @@
       solverGraph: simulationCompile.solverGraph || null,
       renderIR: simulationCompile.renderIR || null,
       interactionIR: simulationCompile.interactionIR || null,
+      activityProgram: simulationCompile.activityProgram || null,
       simulationCompile,
       phaseArtifacts: { phase5: phase5Output },
     };
@@ -113,7 +114,7 @@
 
   function visualObligationsFromLedger(compositionLedger = null) {
     return (compositionLedger && compositionLedger.obligations || [])
-      .filter((row) => (row.kind !== 'relation' || row.simulationBinding || row.partBinding) &&
+      .filter((row) => (row.kind !== 'relation' || row.simulationBinding || row.partBinding || row.activityBinding) &&
         !/^action:coexists/.test(String(row.id || '')) &&
         (row.kind === 'visual' || row.ownedByPhase === 6 || (
           row.required === true &&
@@ -230,6 +231,9 @@
           simulationReceipt: renderExecutionInput.simulationState &&
             renderExecutionInput.simulationState.solverState &&
             renderExecutionInput.simulationState.solverState.executionReceipt || null,
+          activityEvidence: sceneRenderPacket.activityProgram ? { program: sceneRenderPacket.activityProgram,
+            state: scope.phaseContracts.immutableArtifact(renderExecutionInput.simulationState?.activity || null),
+            visualReceipt: frameReceipt.activityVisualReceipt || null } : null,
           sceneRenderPacketSchema: sceneRenderPacket.schema || '',
           rendered: frameReceipt.rendered === true,
           packetIdentitySummary: scope.scenePacketIdentitySummary(sceneRenderPacket),

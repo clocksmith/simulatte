@@ -22,8 +22,10 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 
 ## Invariants
 
+- Activity geometry consumes bound snapshots without shader motion. Time/program identity invalidate stale evidence.
+
 - WGSL consumes resolved data and makes no policy decisions.
-- Renderer branches follow compiled scene data, not prompt keywords.
+- Drawing consumes compiled data, never prompt keywords.
 - Versioned snapshots preserve declared proof receipts unchanged; mismatched WorldSpec identities reject.
 - Interaction receipts preserve the Phase 5 program hash, command transitions, changed channels, and visible-state consumption.
 - Published frame evidence is immutable. Delayed readback uses submitted state and viewport; replacement inputs, interaction revisions, and resizing invalidate old pixels.
@@ -45,5 +47,4 @@ Execute the compiled scene packet and emit pixels plus identity, frame, and timi
 
 ## Freedom
 
-Any implementation is permitted if it preserves these boundaries and passes the
-acceptance evidence.
+Any implementation is permitted.

@@ -8,6 +8,7 @@ artifacts/tier-browser-smoke/
 artifacts/profile-evidence/
 artifacts/profile-evidence-review/
 artifacts/folder-contract/
+artifacts/activity-program/
 artifacts/samer-gold-*/
 tools/autonomy/data-sources/*/osm-api-tiles/
 tools/autonomy/data-sources/*/street-tiles/

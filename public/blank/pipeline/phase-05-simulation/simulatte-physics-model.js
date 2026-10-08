@@ -2,6 +2,13 @@
   if (typeof module === 'object' && module.exports) {
     require('./simulatte-physics-model-dependencies.js');
     require('./simulatte-physics-model-contracts.js');
+    require('../phase-01-runtime/simulatte-activity-capabilities.js');
+    require('../phase-02-language/simulatte-activity-language.js');
+    require('../phase-03-retrieval/simulatte-activity-retrieval.js');
+    require('../phase-04-grounded-intent/simulatte-activity-grounding.js');
+    require('./simulatte-activity-program.js');
+    require('./simulatte-activity-runtime.js');
+    require('../phase-08-scene-proof/simulatte-activity-proof.js');
     require('./simulatte-physics-model-phase-runtime-language.js');
     require('./simulatte-physics-model-phase-retrieval-boundary.js');
     require('./simulatte-physics-model-phase-retrieval.js');
@@ -60,6 +67,9 @@
     compileCompositionToRenderProgram: scope.compileCompositionToRenderProgram,
     compileRenderIR: scope.compileRenderIR,
     compileInteractionIR: scope.compileInteractionIR,
+    validateActivityProgram: scope.validateActivityProgram,
+    proveActivitySequence: scope.proveActivitySequence,
+    evaluateActivityFrame: scope.evaluateActivityFrame,
     compileSolverGraph: scope.compileSolverGraph,
     createPhaseEnvelope: scope.createPhaseEnvelope,
     assertPhaseEnvelope: scope.assertPhaseEnvelope,

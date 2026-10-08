@@ -135,6 +135,8 @@
                 simulationReproducibilityReceipt: renderExecutionInput &&
                   renderExecutionInput.simulationReproducibilityReceipt || null,
                 safetyReceipt: renderExecutionInput && renderExecutionInput.safetyReceipt || null,
+                activityEvidence: sceneRenderPacket.activityProgram ? { program: sceneRenderPacket.activityProgram,
+                  state: renderExecutionInput?.simulationState?.activity || null, visualReceipt: renderData?.activityVisualReceipt || null } : null,
                 renderExecutionInputSchema: renderExecutionInput && renderExecutionInput.schema || '',
                 sceneRenderPacketSchema: sceneRenderPacket && sceneRenderPacket.schema || '',
                 renderDataSchema: renderData && renderData.schema || '',
@@ -151,6 +153,7 @@
               atmosphereProgram: renderData && renderData.atmosphereProgram || null,
               objectRealization: renderData && renderData.objectRealization ||
                 scope.objectRealizationForScenePacket(sceneRenderPacket),
+              activityVisualReceipt: renderData?.activityVisualReceipt || null,
               rendererConsumption: renderData && renderData.rendererConsumption || null,
               interactionReceipt,
               simulationReceipt,

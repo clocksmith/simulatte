@@ -89,8 +89,11 @@
             groundedInterpretation,
             compositionLedger,
           });
+          const activityGraph = scope.groundActivityGraph(phase3Output.artifact.retrievalRerankResult.activityRetrieval, acceptedGraph);
+          if (acceptedGraph && activityGraph) acceptedGraph.activityGraph = activityGraph;
           const groundedIntent = {
             schema: 'simulatte.groundedIntent.v1',
+            activityGraph,
             acceptedGraph,
             rejectedGraph,
             typedEvidenceBuckets: scope.phaseCarryObject(
@@ -127,7 +130,8 @@
               compositionLedger: scope.phaseCarryObject(compositionLedger),
             groundedSceneContract,
             assumptions: groundingEvidence.assumptions || intentBrief.assumptions || [],
-            unsupported: groundingEvidence.unsupported || acceptedGraph && acceptedGraph.unsupported || intentBrief.unsupported || [],
+            unsupported: [...(groundingEvidence.unsupported || acceptedGraph && acceptedGraph.unsupported || intentBrief.unsupported || []),
+            ...(activityGraph?.unsupported || [])],
           provenanceByNode: scope.provenanceByNodeRows(acceptedGraph, {
             ...intentBrief,
             evidenceBindings: uniqueById([
@@ -533,6 +537,7 @@
               controls,
             })
             : null;
+          const activityProgram = scope.compileActivityProgram(acceptedGraph?.activityGraph || groundedIntent.activityGraph, acceptedGraph);
           const visualSource = groundedIntent.visualSource || {};
           const compositionLedger = scope.advanceCompositionLedger(
             physicsIR && physicsIR.compositionLedger ||
@@ -549,6 +554,7 @@
             solverGraph,
             renderIR,
             interactionIR,
+            activityProgram,
             loweredRelations: relationLoweringRows(physicsIR),
             physicsObligations: physicsObligationsFromLedger(compositionLedger, physicsIR),
             unsupportedPhysics: validationReceipt && Array.isArray(validationReceipt.unsupported)

@@ -8,6 +8,8 @@
     cat: ['body', 'head', 'leg', 'tail'],
     animal: ['body', 'head', 'leg'],
     person: ['head', 'torso', 'arm', ['leg', 'thigh']],
+    'person-activity-planar.v1': ['head', 'torso', 'left-upper-arm', 'left-forearm', 'left-hand',
+      'right-upper-arm', 'right-forearm', 'right-hand', 'left-thigh', 'left-shin', 'right-thigh', 'right-shin'],
     tree: ['trunk', 'branch', 'crown'],
     flower: ['stem', 'petal', 'center'],
     building: ['shell', 'roof', 'door', 'window'],
@@ -141,6 +143,9 @@
 
   function objectTopologyVerified(program = {}) {
     const parts = Array.isArray(program.parts) ? program.parts : [];
+    if (program.activityRigId === 'simulatte.planar-human.v1') {
+      return OBJECT_GRAMMAR_PART_REQUIREMENTS['person-activity-planar.v1'].every(id => parts.some(part => part.id === id));
+    }
     if (constructionGraphTopologyVerified(program, parts)) return true;
     if (hasConstructionEvidence(program)) return false;
     const ids = parts.map((part) => String(part.id || '').toLowerCase());
@@ -188,6 +193,11 @@
   }
 
   function objectSemanticFit(program = {}) {
+    if (program.source === 'phase5-declared-activity-skeleton') {
+      return program.selectionRole === 'activity-skeleton' && program.identityType === 'person' &&
+        /^object-grammar\.person(?:-sitting)?$/.test(program.grammarId) &&
+        program.activityRigId === 'simulatte.planar-human.v1' && objectTopologyVerified(program);
+    }
     const receipt = program.constructionReceipt || {};
     if (hasConstructionEvidence(program)) {
       return receipt.topologyTargetFit === true &&

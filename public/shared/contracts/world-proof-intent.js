@@ -300,6 +300,7 @@
       graph,
       nodes,
       edges: graph.edges || [],
+      activityGraph: groundedIntent.activityGraph || graph.activityGraph || null,
       visualObligations: graph.promptVisualObligations || [],
       negativeEvidence: groundedIntent.negativeEvidence || [],
       unsupported,
@@ -340,6 +341,28 @@
       .filter(({ row }) => rowMatchesRequirement(row, requirement, nodes));
   }
 
+  function matchingActivityRows(rows, requirement) {
+    if (!['action', 'relation'].includes(requirement.kind) || !requirement.sourceSpanIds.length) return [];
+    return (rows || []).filter((row) => {
+      const evidence = row.sourceEvidence || row.evidence;
+      return evidence?.verbSpanId && requirement.sourceSpanIds.includes(evidence.verbSpanId)
+        && requirement.sourceSpanIds.every(id => evidence.sourceSpanIds?.includes(id));
+    });
+  }
+
+  function acceptedActivityEvidence(requirement, context) {
+    const predicate = String(requirement.predicate || requirement.label || '').toLowerCase();
+    return matchingActivityRows(context.activityGraph?.actions, requirement).filter((action) => {
+      const component = action.component;
+      const declared = context.activityGraph.capabilities?.components?.find(row => row.id === component?.id && row.version === component.version);
+      const sourceVerb = String(action.sourceEvidence?.text || '').match(/^\w+/)?.[0]?.toLowerCase();
+      return action.status === 'accepted' && component?.execution?.supported === true && declared?.execution?.supported === true
+        && component.id === action.action && [action.action, sourceVerb].includes(predicate)
+        && context.nodes.some(node => node.id === action.actorId && node.spanId === action.actorSpanId && !node.unresolved)
+        && (!action.objectId || context.nodes.some(node => node.id === action.objectId && node.spanId === action.objectSpanId && !node.unresolved));
+    }).map(action => String(action.id));
+  }
+
   function acceptedEvidence(requirement, context, nodes) {
     if (requirement.polarity === 'forbidden') {
       return context.negativeEvidence
@@ -364,19 +387,19 @@
     }
     if (requirement.kind === 'action') {
       const predicate = String(requirement.predicate || requirement.label || '').toLowerCase();
-      return context.edges.filter((edge) => (
+      return uniqueStrings([...acceptedActivityEvidence(requirement, context), ...context.edges.filter((edge) => (
         [edge.processId, edge.predicate, edge.type].map((value) => String(value || '').toLowerCase()).includes(predicate)
-      )).map((edge) => String(edge.id || '')).filter(Boolean);
+      )).map((edge) => String(edge.id || '')).filter(Boolean)]);
     }
     if (requirement.kind === 'relation') {
       const nodeIds = new Set(nodes.map((node) => String(node.id || '')));
       const predicate = String(requirement.predicate || requirement.label || '').toLowerCase();
-      return context.edges.filter((edge) => {
+      return uniqueStrings([...acceptedActivityEvidence(requirement, context), ...context.edges.filter((edge) => {
         const values = [edge.type, edge.predicate, edge.spatialRelation, edge.processId]
           .map((value) => String(value || '').toLowerCase());
         const endpoints = [String(edge.from || ''), String(edge.to || '')];
         return values.includes(predicate) && endpoints.every((id) => !id || nodeIds.has(id));
-      }).map((edge) => String(edge.id || '')).filter(Boolean);
+      }).map((edge) => String(edge.id || '')).filter(Boolean)]);
     }
     return [];
   }
@@ -388,12 +411,13 @@
       return settlementRow(requirement, 'accepted', accepted, 'Phase 4 retained the extracted prohibition');
     }
     const refused = matchingRows(context.unsupported, requirement, nodes, 'unsupported');
+    const refusedActivity = matchingActivityRows(context.activityGraph?.unsupported, requirement);
     const refusedNodes = nodes.filter((node) => matchingRows(context.unsupported, requirement, [node], 'unsupported').length);
-    if (refused.length || refusedNodes.length) {
+    if (refused.length || refusedNodes.length || refusedActivity.length) {
       return settlementRow(
         requirement,
         'explicitly-refused',
-        uniqueStrings(refused.map((row) => row.id)),
+        uniqueStrings([...refused.map((row) => row.id), ...refusedActivity.map(row => String(row.id))]),
         'Phase 4 explicitly reported the requirement as unsupported'
       );
     }

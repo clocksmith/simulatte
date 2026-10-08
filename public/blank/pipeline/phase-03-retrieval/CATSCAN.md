@@ -21,6 +21,8 @@ Retrieve and rerank high-recall candidate knowledge with explicit provenance and
 
 ## Invariants
 
+- Activity candidates come from the predecessor's declared component inventory and retain its provenance and prerequisites.
+
 - Raw retrieval and fused activation remain separate artifacts.
 - Typed filters cannot silently remove a valid candidate.
 - Every valid query-plan slot is retained. Embedding batch limits bound calls, not prompt coverage.

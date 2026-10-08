@@ -22,6 +22,8 @@ Settle composition obligations against render receipts and pixel evidence withou
 
 ## Invariants
 
+- Activity sequence acceptance consumes Phase 7 trajectory and drawing evidence and checks bounded contacts, collisions, support, joint lengths, feet, participants, timing, and motion; incomplete sequences remain not-proven. Planar kinematics, force dynamics, and liquid transfer have distinct coverage.
+
 - An obligation without render evidence cannot silently pass.
 - Phase 8 supplies the canonical required-failure list; downstream displays cannot drop unsupported obligations.
 - Screenshots and hashes are evidence, not proof by themselves.

@@ -21,6 +21,8 @@ Prove required models, indexes, caches, schemas, and providers before compilatio
 
 ## Invariants
 
+- Declares the procedural activity component and planar skeleton inventory, units, limits, coverage, and provenance without selecting actions.
+
 - Missing required ML evidence blocks readiness.
 - Cache readiness never substitutes for provider readiness.
 

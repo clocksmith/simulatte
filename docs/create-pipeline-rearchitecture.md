@@ -3,6 +3,10 @@
 Status: proposed implementation, reviewed against the working tree on 2026-09-07.
 Owner: Simulatte. This document expands the original plan; it does not report the redesign as implemented.
 
+The [activity-program migration](create-activity-program.md) implements a bounded
+procedural composition slice within the existing eight phases. It does not imply
+that the broader learned-generation redesign below is complete.
+
 Preserve [GOALS](../GOALS.md), [STYLE_GUIDE](../STYLE_GUIDE.md), the fixed eight phases, static hosting, Doppler model execution, existing routes, WorldSpec compatibility, and accepted user edits. Model-generated programs must remain inspectable and editable. Scientific, illustrative, fictional, and symbolic representations must declare their interpretation and assumptions. The ambition is exceptional representation of open natural language; completion is judged against the request, not the availability of a familiar scene.
 
 **What the code actually provides**

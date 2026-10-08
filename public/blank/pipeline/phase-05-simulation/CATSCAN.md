@@ -26,15 +26,17 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 
 ## Invariants
 
+- Activity programs separate from user InteractionIR own planar rig/IK/attachment/scheduling state. Active mutations reject; kinematics cannot qualify forces/liquids.
+
 - Solver support does not masquerade as prompt-visible intent.
 - Render-addressable rows retain source evidence.
 - Directed motion binds subject and target state channels using bounded planar steering, without cognition or collision physics.
-- Solver receipts name executed operators and reject missing or non-finite state.
+- Solver receipts identify execution and reject missing/nonfinite state.
 - Create owns WorldSpec determinism, dependency, and safety defaults; shared validators cannot invent them.
 - Authored requests validate sources and program identity, requalify runtime, and recompile accepted edits. Synchronous compatibility projects sources without stale bindings.
 - WorldSpec projections preserve authoring, channels, visuals, and Phase 6 bindings; contradictions reject. Render snapshots bind WorldSpec and exact Phase 6.
-- Simulation reproducibility uses two fresh states, declared fixed-step policy, and a typed state comparison receipt.
-- Every applied interaction command retains its program identity and recomputable before/after state; a no-op cannot prove a transition.
+- Reproducibility compares two fresh fixed-step runs with typed receipts.
+- Commands retain program identity and recomputable transitions; no-ops prove nothing.
 - Declared safety rules execute at every fixed-step checkpoint in two fresh runs; missing, blocking, or divergent decisions fail closed.
 
 ## Acceptance
@@ -50,4 +52,4 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 
 ## Freedom
 
-Any implementation is permitted within these contracts and acceptance evidence.
+Any implementation is permitted.

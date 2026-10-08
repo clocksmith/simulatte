@@ -50,6 +50,7 @@
           solverGraph: overrides.solverGraph || null,
           renderIR: overrides.renderIR || null,
           interactionIR: overrides.interactionIR || null,
+          ...(Object.hasOwn(overrides, 'activityProgram') ? { activityProgram: overrides.activityProgram } : {}),
           phaseArtifacts: scope.mergePhaseArtifacts(
             overrides.intent && overrides.intent.phaseArtifacts,
             overrides.phaseArtifacts
@@ -77,6 +78,7 @@
           spec.solverGraph = spec.solverGraph || simulationCompile.solverGraph || null;
           spec.renderIR = spec.renderIR || simulationCompile.renderIR || null;
           spec.interactionIR = spec.interactionIR || simulationCompile.interactionIR || null;
+          if (Object.hasOwn(simulationCompile, 'activityProgram')) spec.activityProgram = spec.activityProgram || simulationCompile.activityProgram;
         }
         if (shouldCompileCustom) {
           reportCompilePhaseProgress(overrides, 'simulation', 100, 'Simulation compiled');
@@ -208,6 +210,7 @@
           solverGraph: raw.solverGraph || null,
           renderIR: raw.renderIR || null,
           interactionIR: raw.interactionIR || null,
+          ...(Object.hasOwn(raw, 'activityProgram') ? { activityProgram: raw.activityProgram } : {}),
           phaseArtifacts: raw.phaseArtifacts || null,
           createdAt: raw.createdAt || new Date(0).toISOString(),
           remixOf: raw.remixOf || '',
@@ -313,6 +316,7 @@
           solverGraph: simulationCompile.solverGraph || overrides.solverGraph || spec.solverGraph || null,
           renderIR: simulationCompile.renderIR || overrides.renderIR || spec.renderIR || null,
           interactionIR: simulationCompile.interactionIR || overrides.interactionIR || spec.interactionIR || null,
+          activityProgram: simulationCompile.activityProgram || null,
           phaseArtifacts: scope.mergePhaseArtifacts(phaseArtifacts, generatedPhaseArtifacts, scope.phaseArtifactSet(nextPhase4, nextPhase5)),
         };
       }
@@ -369,6 +373,7 @@
           solverGraph: raw.solverGraph,
           renderIR: raw.renderIR,
           interactionIR: raw.interactionIR,
+          activityProgram: raw.activityProgram || null,
           controls: raw.controls,
           visualSource: {
             specId: raw.id,
@@ -381,6 +386,7 @@
             contract: raw.contract,
           },
         };
+        if (!Object.hasOwn(raw, 'activityProgram')) delete simulationCompile.activityProgram;
         const phase5Receipt = compiledPhase5.receipts.find((row) => (
           row.id === 'phase5-simulation-compile'
         ));

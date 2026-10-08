@@ -336,12 +336,17 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   if (diagnostics.canvasRect && diagnostics.canvasRect.width > 0 && diagnostics.canvasRect.height > 0) {
     markStage('frozen-canvas-capture');
     try {
-      await evaluate(cdp, `(() => {
+      const freezeDrawCount = await evaluate(cdp, `(() => {
         const canvas = document.getElementById('physics-canvas');
-        if (!canvas || !canvas.dataset) return false;
+        if (!canvas || !canvas.dataset) throw new Error('Frozen capture requires a canvas');
         canvas.dataset.auditFreezeFrame = 'true';
-        return true;
+        return Number(canvas.dataset.renderCount || 0);
       })()`);
+      await waitForCondition('renderer consumed frozen frame', () => evaluate(cdp, `(() => {
+        const canvas = document.getElementById('physics-canvas');
+        const count = Number(canvas?.dataset.renderCount || 0);
+        return { ok: canvas?.dataset.auditFreezeFrame === 'true' && count > ${freezeDrawCount}, renderCount: count };
+      })()`), timeoutMs);
       await delay(Math.max(80, Math.min(frameDelayMs, 240)));
       const clip = {
         x: Math.max(0, diagnostics.canvasRect.x),

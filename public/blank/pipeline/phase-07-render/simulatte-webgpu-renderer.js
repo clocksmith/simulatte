@@ -11,6 +11,7 @@
     require('./simulatte-webgpu-renderer-renderer-class.js');
     require('./simulatte-webgpu-renderer-part-segmentation.js');
     require('./simulatte-webgpu-renderer-morphology.js');
+    require('./simulatte-webgpu-renderer-activity.js');
     require('./simulatte-webgpu-renderer-interaction.js');
     require('./simulatte-webgpu-renderer-packets.js');
     require('./simulatte-webgpu-renderer-pixel-proof.js');

@@ -836,7 +836,7 @@
         }
 
     function runPhase1RuntimeGate(sourceText = '', options = {}) {
-          const runtimeContext = runtimeContextFromOptions(options);
+          const runtimeContext = { ...runtimeContextFromOptions(options), activityCapabilities: scope.activityCapabilityInventory() };
           const promptText = String(sourceText || '');
           if (phase1RequiresModelProof(promptText, options, runtimeContext)) {
             throw new Error('Phase 1 runtime gate requires promptRuntimeReceipt with providerReady=true for nonblank browser prompt');

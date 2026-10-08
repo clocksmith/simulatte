@@ -22,6 +22,8 @@ Extract a source-bound language graph without deciding final world semantics.
 
 ## Invariants
 
+- Activity requests retain actor/object spans, hand qualifiers, simultaneity, duration, prohibitions, and temporal dependencies; actor parts do not become extra objects.
+
 - Source spans remain attached to extracted obligations.
 - Request text stays untouched. Normalized language evidence retains explicit half-open UTF-16 source spans and reversible whitespace mapping.
 - Counts and negation cannot be weakened into hints.

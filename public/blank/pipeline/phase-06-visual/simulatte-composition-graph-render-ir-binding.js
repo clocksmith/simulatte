@@ -595,7 +595,7 @@
           motionRows,
           sceneKind
         );
-        const baseCompositionLedger = scope.visualCompositionLedgerForSpec(spec, visualEntities, renderInstances, processRows, fieldRows);
+        let baseCompositionLedger = scope.visualCompositionLedgerForSpec(spec, visualEntities, renderInstances, processRows, fieldRows);
         const operators = scope.visualOperatorsForIR(
           visualEntities,
           materialRows,
@@ -634,6 +634,12 @@
             spec.simulationCompile && spec.simulationCompile.interactionIR ||
             null,
         });
+        if (spec.activityProgram) {
+          scope.bindActivityVisualProgram({ sceneRenderPacket }, spec.activityProgram);
+          Object.assign(camera, sceneRenderPacket.camera);
+          scope.projectActivityVisualBindings(sceneRenderPacket, visualEntities, geometryRows, renderInstances);
+          baseCompositionLedger = scope.bindActivityVisualLedger(baseCompositionLedger, spec.activityProgram, sceneRenderPacket);
+        }
         const compositionLedger = scope.mergeConstructionVisualObligations(baseCompositionLedger, sceneRenderPacket);
         sceneRenderPacket.compositionLedger = compositionLedger;
         scope.assertScenePacketIdentityPreserved(sceneRenderPacket);
@@ -657,6 +663,7 @@
           motion: motionRows,
           renderInstances,
           sceneRenderPacket,
+          ...(spec.activityProgram ? { activityBindings: sceneRenderPacket.activityBindings } : {}),
           interactionProgram: sceneRenderPacket.interactionProgram,
           compositionLedger,
           rejectedRows: scope.visualRejectedRowsForIR(rendererPlan, graphicsAtoms),

@@ -15,6 +15,17 @@
     return Object.assign(new Error(message), { name: 'AbortError', code: 'SIMULATTE_PIPELINE_ABORTED' });
   }
   const bytes = value => new TextEncoder().encode(contracts.canonicalJson(value)).byteLength;
+  function managedProofReceiptForSpec(frame, key, spec) {
+    const receipt = frame[key];
+    const optionalSimulation = key === 'simulationReproducibilityReceipt'
+      && !spec.determinism?.requiredClasses?.includes('simulation-reproducible');
+    const optionalSafety = key === 'safetyReceipt' && spec.safety.status === 'not-declared';
+    if (receipt === null && (optionalSimulation || optionalSafety)) return null;
+    if (receipt?.worldSpecContentHash !== spec.contentHash || receipt.worldSpecRevision !== spec.authorship.revision) {
+      throw new Error(`Managed ${key} does not bind the published WorldSpec`);
+    }
+    return receipt;
+  }
 
   function awaitCancellable(work, signal) {
     return new Promise((resolve, reject) => {
@@ -184,5 +195,5 @@
     if (config.schema !== 'simulatte.createPageExecutionPolicy.v1') throw new Error('Create execution policy schema mismatch');
     return contracts.immutableArtifact({ ...config, producer: { id: 'create-page-source-closure', buildDigest } });
   }
-  return Object.freeze({ create, loadConfiguration });
+  return Object.freeze({ create, loadConfiguration, managedProofReceiptForSpec });
 });

@@ -215,11 +215,15 @@ export async function inspectPhaseRail(cdp) {
     const rail = document.querySelector('.phase-rail-shell');
     const panel = document.querySelector('.physics-panel');
     if (!menu || !rail || !panel) return null;
-    const wasOpen = menu.open;
+    const ancestors = [];
+    for (let parent = rail.parentElement; parent; parent = parent.parentElement) {
+      if (parent.tagName === 'DETAILS' && !parent.open) ancestors.push(parent);
+    }
     const scrollTop = panel.scrollTop;
+    const pageScroll = [window.scrollX, window.scrollY];
     try {
-      if (!wasOpen) menu.querySelector('summary').click();
-      rail.scrollIntoView({ block: 'nearest' });
+      for (const details of ancestors.slice().reverse()) details.querySelector(':scope > summary').click();
+      rail.scrollIntoView({ block: 'center' });
       const rect = rail.getBoundingClientRect();
       const canvas = document.getElementById('physics-canvas').getBoundingClientRect();
       const overlapWidth = Math.max(0, Math.min(rect.right, canvas.right) - Math.max(rect.left, canvas.left));
@@ -233,8 +237,9 @@ export async function inspectPhaseRail(cdp) {
         detail: document.getElementById('phase-details')?.textContent || '',
       };
     } finally {
-      if (!wasOpen) menu.querySelector('summary').click();
+      for (const details of ancestors) details.querySelector(':scope > summary').click();
       panel.scrollTop = scrollTop;
+      window.scrollTo(...pageScroll);
     }
   })()`);
 }

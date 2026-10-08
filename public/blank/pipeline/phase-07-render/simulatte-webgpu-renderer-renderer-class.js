@@ -655,6 +655,7 @@
           const interaction = state && state.interaction || {};
           const key = [
             Number(interaction.version || 0),
+            state.activity?.time ?? -1,
             interaction.selectedTargetId || '',
             interaction.hoveredTargetId || '',
             interaction.grabbedTargetId || '',
@@ -670,16 +671,19 @@
             this.sceneRenderPacket || {},
             state
           );
+          this.activityVisualReceipt = applied.activityReceipt || null;
           this.objectPartData = applied.data;
           this.interactionVisualReceipt = applied.receipt;
           this.interactionVisualKey = key;
           this.objectPartBufferDirty = true;
           if (this.renderData) {
             this.renderData.interactionVisualReceipt = applied.receipt;
+            this.renderData.activityVisualReceipt = applied.activityReceipt || null;
             this.renderData.objectPartData = applied.data;
             this.renderData.objectParts = (this.baseObjectParts || []).map((part, index) => {
               const offset = index * scope.GPU_OBJECT_PART_FLOATS;
-              return { ...part, center: [applied.data[offset], applied.data[offset + 1]], rotation: applied.data[offset + 4] };
+              return { ...part, center: [applied.data[offset], applied.data[offset + 1]],
+                size: [applied.data[offset + 2], applied.data[offset + 3]], rotation: applied.data[offset + 4] };
             });
             if (this.renderData.rendererConsumption) {
               this.renderData.rendererConsumption.interactionVisualStateConsumed = applied.receipt.consumed === true;
