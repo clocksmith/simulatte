@@ -21,7 +21,7 @@ Compile simulation artifacts into a renderable scene program that preserves spec
 
 ## Invariants
 
-- Activity bindings map accepted participant/joint identities into geometry under one declared meter-to-scene projection. They do not repair motion or contacts; missing bindings remain explicit.
+- Activity bindings map accepted participant/joint identities and volume-preserving liquid bins into geometry under one declared meter-to-scene projection. They do not repair motion or contacts; missing bindings remain explicit.
 
 - Specific prompt objects do not collapse into generic helpers.
 - WorldSpec visual projections retain the accepted composition graph and program fields without recompilation.

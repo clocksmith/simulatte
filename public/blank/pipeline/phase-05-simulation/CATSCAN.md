@@ -26,22 +26,22 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 
 ## Invariants
 
-- Activity programs separate from user InteractionIR own planar rig/IK/attachment/scheduling state. Active mutations reject; kinematics cannot qualify forces/liquids.
+- Activities remain separate from user InteractionIR. Version 2 executes bounded driven-body reactions and conservative depth-averaged liquid with transfer events. Active mutations reject; kinematics cannot qualify forces/liquids.
+- Completed activities settle idle manipulation-only worlds; independent solvers and new forces continue execution.
 
-- Solver support does not masquerade as prompt-visible intent.
-- Render-addressable rows retain source evidence.
+- Solver support cannot invent intent.
+- Render rows retain source evidence.
 - Directed motion binds subject and target state channels using bounded planar steering, without cognition or collision physics.
 - Solver receipts identify execution and reject missing/nonfinite state.
 - Create owns WorldSpec determinism, dependency, and safety defaults; shared validators cannot invent them.
-- Authored requests validate sources and program identity, requalify runtime, and recompile accepted edits. Synchronous compatibility projects sources without stale bindings.
-- WorldSpec projections preserve authoring, channels, visuals, and Phase 6 bindings; contradictions reject. Render snapshots bind WorldSpec and exact Phase 6.
+- Authored edits requalify runtime and recompile accepted sources; compatibility excludes stale bindings.
+- WorldSpec preserves authoring, channels, visuals and Phase 6 bindings; contradictions reject. Snapshots bind exact WorldSpec/Phase 6.
 - Reproducibility compares two fresh fixed-step runs with typed receipts.
 - Commands retain program identity and recomputable transitions; no-ops prove nothing.
-- Declared safety rules execute at every fixed-step checkpoint in two fresh runs; missing, blocking, or divergent decisions fail closed.
+- Safety runs at every fixed-step checkpoint in two fresh executions; missing, blocking, or divergent decisions reject.
 
 ## Acceptance
 
-- Compiled simulations satisfy solver and state-transition fixtures.
 - Evidence: [simulation compiler tests](../../../../tests/physical-compiler-simulation-visual.test.cjs).
 - Evidence: [WorldSpec replay tests](../../../../tests/world-spec.test.cjs).
 - Evidence: [WorldSpec projection tests](../../../../tests/world-spec-phase-projection.test.cjs).

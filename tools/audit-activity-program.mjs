@@ -46,6 +46,10 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         const lab = window.SimulattePhysicsLab._browserLab;
         const spec = lab.getSpec(), state = lab.getState();
         const canvas = document.getElementById('physics-canvas');
+        if (canvas.dataset.sceneProofVerdict !== 'pass' || canvas.dataset.sceneProofFinal !== 'true') {
+          return { ok: false, verdict: canvas.dataset.sceneProofVerdict, final: canvas.dataset.sceneProofFinal,
+            time: state.activity.time, frame: state.solverState?.frame, failures: canvas.dataset.sceneProofRequiredFailures };
+        }
         const proof = window.SimulattePhysicsModel.proveActivitySequence(spec.activityProgram, state.activity);
         return { ok: canvas.dataset.sceneProofVerdict === 'pass' && canvas.dataset.sceneProofFinal === 'true',
           prompt: spec.source.prompt, worldSpecHash: spec.contentHash, programHash: spec.activityProgram.contentHash,
@@ -58,12 +62,20 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
           viewportFits: document.documentElement.scrollWidth <= innerWidth,
           spec, state };
       })()`), 15000);
+      assert.equal(evidence.ok, true);
       await fs.writeFile(path.join(directory, `${i + 1}-execution.json`), JSON.stringify(evidence));
       const { spec, state, ...summary } = evidence;
       rows.push({ viewport, ...summary, screenshot: result.screenshot, screenshotHash: result.screenshotHash });
       await fs.writeFile(path.join(out, 'report.json'), JSON.stringify({ schema: 'simulatte.activityBrowserAudit.v1', rows }, null, 2));
       assert.equal(evidence.prompt, prompts[i]);
       assert.equal(evidence.proof.pass, true, JSON.stringify(evidence.proof));
+      assert.equal(evidence.proof.coverage.forcesValidated, true);
+      if (i === 1) {
+        assert.equal(evidence.proof.coverage.liquidTransferValidated, true);
+        assert.ok(evidence.proof.metrics.consumedMassKg > 0);
+        assert.equal(evidence.proof.metrics.spilledMassKg, 0);
+        assert.equal(evidence.activityBinding.bindings.filter(binding => binding.kind === 'liquid-cell').length, 16);
+      }
       assert.equal(evidence.phase8, 'simulatte.phase8.output.v2');
       assert.equal(evidence.viewportFits, true);
       assert.equal(evidence.sceneProof.verdict, 'pass');

@@ -7,7 +7,10 @@
     require('../phase-03-retrieval/simulatte-activity-retrieval.js');
     require('../phase-04-grounded-intent/simulatte-activity-grounding.js');
     require('./simulatte-activity-program.js');
+    require('./simulatte-activity-liquid.js');
+    require('./simulatte-activity-dynamics.js');
     require('./simulatte-activity-runtime.js');
+    require('../phase-08-scene-proof/simulatte-activity-dynamics-proof.js');
     require('../phase-08-scene-proof/simulatte-activity-proof.js');
     require('./simulatte-physics-model-phase-runtime-language.js');
     require('./simulatte-physics-model-phase-retrieval-boundary.js');

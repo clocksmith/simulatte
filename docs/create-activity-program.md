@@ -1,8 +1,9 @@
 # Create activity programs
 
 Create now carries a versioned `activityProgram` inside its existing WorldSpec.
-This is the first executable migration slice: planar procedural walking, sitting,
-holding, and cup lifting/tilting compose through declared joint channels. Existing
+Version 2 composes planar procedural walking, sitting, holding and drinking through
+declared joint channels, constrained-body reactions and conservative liquid state.
+Version 1 remains executable through its original kinematic path. Existing
 user `InteractionIR` remains responsible for selection, dragging, and controls.
 No COSMI model, diffusion inference, SMPL-X assets, or new world format is used.
 
@@ -20,7 +21,7 @@ The fixed eight phases retain their authority:
 | Scene Proof | Check the retained sequence and drawing evidence separately; complete behavior and participant pixels are both required. |
 
 `hold` reserves one hand. `walk` owns root and leg channels. `sit` establishes
-pelvic support on a declared seat. `drink` controls a cup's lift and tilt; a
+pelvic support on a declared seat. `drink` raises a cup outside the torso, moves it to the mouth, tilts, and returns; a
 qualified same-hand, same-object hold/drink combination shares ownership through
 an explicit rule. Conflicting simultaneous actions are refused together instead
 of being silently reordered. Default height, duration, hand, and object dimensions
@@ -30,6 +31,7 @@ Runtime uses bounded analytic two-bone IK. Foot stance anchors stay fixed until
 their gait cycle changes. Attachments publish object transforms from the declared
 hand. Repeated walking accumulates displacement. Participant mutation through user
 controls is rejected while the activity state owns it; selection remains available.
+Walking starts and stops smoothly to respect the declared support friction.
 Restart creates fresh state and retained history. Serialization preserves the
 program, its identity, authoring, and phase sources without importing stale proof.
 Legacy WorldSpecs without an activity program retain their existing execution.
@@ -39,7 +41,11 @@ penetration, bone lengths, stance sliding, identities/counts, handedness, timing
 locomotion, and cup lift/tilt are measured over the retained sequence. Incomplete
 or truncated history cannot pass. The collision model uses object circles and
 torso rectangles; it does not validate finger, head, or seat mesh penetration.
-Force dynamics and liquid transfer remain unvalidated.
+Version 2 checks linear and angular momentum, gravity and constraint impulses,
+load and friction limits, water mass, positivity and CFL bounds. Every liquid
+transfer identifies its object, action, hand, time, opening and destination;
+Scene Proof independently checks the opening and mouth geometry and reconciles
+event volumes against state changes. Empty or detached cups cannot prove drinking.
 
 Placement/release, standing up or sitting down between root actions, unresolved
 repeated-object references, and individually unidentified plural participants
@@ -50,9 +56,11 @@ These are missing executable capabilities, not implemented COSMI behavior.
 Run qualification from the repository root:
 
 ```sh
-node --test tests/activity-program.test.cjs
-node tools/qualify-activity-program.mjs
-node tools/audit-activity-program.mjs
+node --test tests/activity-program.test.cjs tests/activity-dynamics.test.cjs
+npm run qualify:activity
+npm run qualify:activity:dynamics
+npm run audit:activity
+npm run qualify:cosmi
 ```
 
 The qualification command executes four primitives, two development compositions,
@@ -72,6 +80,41 @@ It exercises Pause, Restart, replayed motion, and browser serialization/reimport
 Screenshots, state, pixel proofs, and summaries go under
 `artifacts/activity-program/`; these are local execution evidence, not deployment.
 
-COSMI could later supply motion behind this contract after artifacts, licensing,
-skeleton mapping, contacts, latency, and browser resource use are qualified.
-Create continues to own composition and simulation authority.
+The body model is prescribed motion with lumped actor mass, constrained rigid
+objects, water momentum and bounded grip/support reactions. It does not solve
+articulated muscle or segment dynamics. Liquid uses conservative depth-averaged
+finite-volume fluxes in an extruded rectangular container, with translation,
+Euler, centrifugal and Coriolis acceleration. It assumes hydrostatic depth
+profiles; loss of positive effective normal gravity rejects execution. It does
+not model 3D wetting, turbulence, splashes or swallowing physiology. Water is
+998.2 kg/m³; the default drink starts with a declared 55% fill. Authored mass,
+capacity and fill parameters override recorded defaults.
+
+The solver uses 128 liquid cells, adaptive CFL steps and a maximum body step of
+1/240 second. Sixteen rendered columns average those cells without changing
+volume. This preview is a projection of simulated water, not a separate animation.
+The numerical qualification report records independent stationary weight and
+Ritter dam-break references, 32/64/128-cell refinement, and body steps of
+1/120, 1/240 and 1/480 second. The most recent 64-to-128-cell sip change is about
+9.5%; decreasing refinement differences establish numerical behavior, not
+empirical calibration or an exact real-world sip prediction. Diagnostic examples
+remain separate from sealed/unseen scientific evaluation.
+
+COSMI inference is externally blocked. The official repository at commit
+`bc23c06d4e2048062a25629438234358e1effdbc` contains a README, license and teaser,
+with no model code or checkpoints. Its README states that these will be released.
+`qualify:cosmi` fetches and records the exact current commit, file tree and release
+assets, writes `artifacts/activity-program/cosmi-acquisition.json`, and exits 2
+while acquisition/qualification is blocked. This is not an inference result.
+Requesting `activityMotionProvider: 'cosmi'` fails at Runtime with
+`COSMI_ARTIFACTS_UNAVAILABLE`; it cannot silently select procedural motion.
+
+Released checkpoints, model implementation, licensed SMPL-X assets and a qualified
+Doppler execution path are required for genuine COSMI motion. Create retains
+composition and simulation authority. Sources: [COSMI repository](https://github.com/ptrvilya/cosmi),
+[COSMI paper](https://arxiv.org/abs/2610.03252),
+[Clawpack shallow-water reference](https://www.clawpack.org/riemann_book/html/Shallow_water.html).
+
+Owners: `simulatte-activity-program.js`, `simulatte-activity-dynamics.js`,
+`simulatte-activity-liquid.js` in Phase 5, and
+`simulatte-activity-dynamics-proof.js` in Phase 8.

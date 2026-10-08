@@ -61,7 +61,26 @@
       if (!entity) { missing.push(object.id); continue; }
       const source = entity.geometry?.program;
       if (!source?.literal) { missing.push(object.id); continue; }
-      for (const part of source.parts) bindings.push({ entityId: entity.id, participantId: object.id,
+      if (object.liquidContainer && object.liquidContainer.fillFraction > 0) {
+        source.parts = source.parts.filter(part => !part.id.startsWith('liquid-cell-'));
+        const body = source.parts.find(part => part.id === 'body') || source.parts[0];
+        source.parts = source.parts.map(part => part.id === 'body' ? { ...part, center: [0, 0], size: [1, 1] }
+          : part.id === 'rim' ? { ...part, center: [0, -0.5], size: [1, 0.08] } : part);
+        for (let cell = 0; cell < program.dynamics.liquidVisualCells; cell++) {
+          const id = `liquid-cell-${cell}`;
+          source.parts.push({ ...body, id, constructionPartId: id, primitive: 'rounded-box', contourProfile: 'rounded-box',
+            center: [0, 0], size: [0.01, 0.01], rotation: 0, fill: '#2c87bb', opacity: 1,
+            surfacePattern: 'solid', accentPattern: 'none', order: 3 });
+          bindings.push({ entityId: entity.id, participantId: object.id, partId: id, kind: 'liquid-cell',
+            cellIndex: cell, container: object.liquidContainer, cellCount: program.dynamics.liquidVisualCells,
+            simulationCellStart: cell * program.dynamics.liquidCells / program.dynamics.liquidVisualCells,
+            simulationCellCount: program.dynamics.liquidCells / program.dynamics.liquidVisualCells });
+        }
+        const solidParts = source.parts.filter(part => !part.id.startsWith('liquid-cell-'));
+        source.morphologyReceipt = { ...visual.objectMorphologyReceipt(solidParts, source.identityType, source),
+          geometryScope: 'solid-container', simulationStatePartIds: source.parts.filter(part => part.id.startsWith('liquid-cell-')).map(part => part.id) };
+      }
+      for (const part of source.parts.filter(part => !part.id.startsWith('liquid-cell-'))) bindings.push({ entityId: entity.id, participantId: object.id,
         partId: part.constructionPartId || part.id, kind: 'object', localPart: part,
         localAnchor: object.kind === 'seat' ? (source.parts.find(part => /seat|surface/.test(part.id))?.center || [0, 0]) : [0, 0],
         objectKind: object.kind, radiusMeters: object.radius, seatHeightMeters: object.seatHeight });

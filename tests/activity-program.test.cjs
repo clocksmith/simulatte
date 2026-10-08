@@ -42,7 +42,7 @@ test('ordinary Create compilation preserves eight boundaries, hand spans, and co
     }
     assert.ok(spec.activityProgram.actions.every(action => action.actorId === spec.activityProgram.actors[0].id));
     assert.equal(spec.interactionIR.schema, 'simulatte.interactionIR.v1');
-    assert.equal(spec.activityProgram.schema, 'simulatte.activityProgram.v1');
+    assert.equal(spec.activityProgram.schema, 'simulatte.activityProgram.v2');
     assert.equal(spec.renderProgram.sceneRenderPacket.activityBindings.programHash, spec.activityProgram.contentHash);
   }
 });
@@ -57,7 +57,7 @@ test('walk and hold execute together: the cup follows the requested hand and sta
     assert.equal(frame.objects[objectId].owner.hand, 'left');
   }
   assert.equal(proof.metrics.footSlideMeters, 0);
-  assert.equal(proof.coverage.forcesValidated, false);
+  assert.equal(proof.coverage.forcesValidated, true);
 });
 test('sit, phone hold, and cup lift/tilt compose without changing handedness or seat support', () => {
   const state = run(sitting), proof = lab.proveActivitySequence(sitting.activityProgram, state.activity);
@@ -69,7 +69,7 @@ test('sit, phone hold, and cup lift/tilt compose without changing handedness or 
     assert.equal(frame.actors[sitting.activityProgram.actors[0].id].joints.pelvis[1], 0.45);
   }
   assert.ok(state.activity.history.some(frame => Math.abs(frame.objects[cup].rotation) > 0.6));
-  assert.equal(proof.coverage.liquidTransferValidated, false);
+  assert.equal(proof.coverage.liquidTransferValidated, true);
 });
 test('conflicting simultaneous hands refuse both actions while retaining compatible walking', () => {
   const spec = compile('a person walking while holding a cup in the left hand and holding a phone in the left hand');
@@ -135,7 +135,11 @@ test('two fresh executions, timestep changes, and export/reimport retain program
   assert.deepEqual(run(imported).activity, first.activity);
   const coarse = run(walking, 4, 1 / 30);
   assert.equal(lab.proveActivitySequence(walking.activityProgram, coarse.activity).pass, true);
-  assert.deepEqual(coarse.activity.actors, first.activity.actors);
+  for (const [id, actor] of Object.entries(first.activity.actors)) {
+    assert.deepEqual(coarse.activity.actors[id].joints, actor.joints);
+    assert.ok(coarse.activity.actors[id].velocity.every((v, i) => Math.abs(v - actor.velocity[i]) < 1e-10));
+    assert.ok(coarse.activity.actors[id].momentum.every((v, i) => Math.abs(v - actor.momentum[i]) < 1e-9));
+  }
   const corrupt = structuredClone(walking.activityProgram); corrupt.actions[0].hand = 'left';
   assert.throws(() => physics.validateActivityProgram(corrupt), /identity/);
 });

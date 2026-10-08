@@ -5,6 +5,7 @@
   const distance = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   const mix = (a, b, t) => a.map((value, i) => value + (b[i] - value) * t);
   const smooth = t => t * t * (3 - 2 * t);
+  const smoothTrajectory = t => t * t * t * (t * (t * 6 - 15) + 10);
   function solveActivityTwoBone(start, target, first, second, bend = 1) {
     const d = distance(start, target);
     if (!Number.isFinite(d) || d > first + second + 1e-8 || d < Math.abs(first - second) - 1e-8) {
@@ -26,7 +27,9 @@
       const h = actor.height, active = program.actions.filter(row => row.actorId === actor.id && time >= row.startSeconds);
       const walks = active.filter(row => row.action === 'walk');
       const walk = walks.at(-1), sit = active.find(row => row.action === 'sit');
-      const walkTime = walks.reduce((sum, row) => sum + Math.min(time, row.endSeconds) - row.startSeconds, 0);
+      const walkTime = walks.reduce((sum, row) => sum + (program.dynamics
+        ? row.durationSeconds * smoothTrajectory(Math.min(1, (time - row.startSeconds) / row.durationSeconds))
+        : Math.min(time, row.endSeconds) - row.startSeconds), 0);
       const speed = h * 0.2, x = actor.origin[0] + speed * walkTime;
       let pelvis = [x, h * 0.5], seat = null;
       if (sit) {
@@ -56,10 +59,13 @@
         const controlling = handActions.find(row => row.action === 'drink' && time < row.endSeconds) || handActions.at(-1);
         if (controlling) {
           const progress = Math.max(0, Math.min(1, (time - controlling.startSeconds) / controlling.durationSeconds));
+          const lift = program.dynamics
+            ? progress < 0.2 ? smooth(progress / 0.2) : progress > 0.8 ? smooth((1 - progress) / 0.2) : 1
+            : Math.sin(progress * Math.PI);
           if (controlling.action === 'drink') {
-            const lift = Math.sin(progress * Math.PI);
             // Lift outside the torso before moving inward to the mouth.
-            const inward = Math.max(0, (lift - 0.8) / 0.2);
+            const inward = program.dynamics ? progress < 0.4 ? smooth(Math.max(0, (progress - 0.2) / 0.2))
+              : progress > 0.6 ? smooth(Math.max(0, (0.8 - progress) / 0.2)) : 1 : Math.max(0, (lift - 0.8) / 0.2);
             target = [pelvis[0] + sign * h * (0.29 - 0.215 * inward), pelvis[1] + h * (0.05 + 0.39 * lift)];
           } else if (controlling.action === 'place') {
             target = mix(target, [pelvis[0] + sign * h * 0.3, h * 0.4], smooth(progress));
@@ -67,7 +73,8 @@
           if (controlling.action !== 'place' || time < controlling.endSeconds) {
             const object = objects[controlling.objectId];
             object.position = target.slice(); object.owner = { actorId: actor.id, hand: side, actionId: controlling.id };
-            object.rotation = controlling.action === 'drink' ? sign * Math.sin(progress * Math.PI) * 0.7 : 0;
+            object.rotation = controlling.action !== 'drink' ? 0 : !program.dynamics ? sign * Math.sin(progress * Math.PI) * 0.7
+              : progress >= 0.4 && progress <= 0.6 ? sign * Math.sin(smooth((progress - 0.4) / 0.2) * Math.PI) * 1.1 : 0;
           } else {
             objects[controlling.objectId].position = target.slice();
             objects[controlling.objectId].owner = null;
@@ -85,7 +92,7 @@
   }
   function withActivityState(state, program) {
     if (!program) return state;
-    const frame = evaluateActivityFrame(program, 0);
+    const frame = scope.initializeActivityDynamics(evaluateActivityFrame(program, 0), program);
     return publishActivityState(state, program, { ...frame, history: [frame], frameCount: 1, historyTruncated: false });
   }
   function publishActivityState(state, program, activity) {
@@ -102,9 +109,10 @@
     const previous = state.activity;
     if (!previous || previous.programHash !== program.contentHash) throw new Error('Activity state/program mismatch');
     const end = Math.max(0, ...program.actions.map(row => row.endSeconds));
-    const time = Math.min(end, previous.time + dt);
+    const proposed = previous.time + dt;
+    const time = proposed >= end - 1e-9 ? end : proposed;
     if (time === previous.time) return publishActivityState(state, program, previous);
-    const frame = evaluateActivityFrame(program, time);
+    const frame = program.dynamics ? scope.advanceActivityDynamics(previous, program, time) : evaluateActivityFrame(program, time);
     const history = [...previous.history, frame];
     const truncated = history.length > 1024;
     return publishActivityState(state, program, { ...frame, history: history.slice(-1024),
@@ -115,7 +123,23 @@
     const id = String(targetId || '').replace(/^target:/, '');
     return Boolean(state.activity.actors[id]) || Boolean(state.activity.objects[id]?.owner);
   }
+  function activitySimulationSettled(state, spec, dt) {
+    const program = spec.activityProgram, activity = state.activity;
+    if (!program?.dynamics || !activity || !Number.isFinite(dt) || dt < 0 || dt > 0.25 ||
+        spec.templateId !== 'custom-world' || activity.programHash !== program.contentHash ||
+        !program.actions.length || program.unsupported.length ||
+        activity.time < Math.max(...program.actions.map(row => row.endSeconds))) return false;
+    const steps = spec.solverGraph?.steps;
+    if (!Array.isArray(steps) || steps.some(row => row.operatorType !== 'interaction_kinematics')) return false;
+    // Only idle manipulation operators can settle with a bounded activity.
+    // A new impulse, force, or independent solver keeps the world advancing.
+    const zero = value => value === undefined || (typeof value === 'number' && value === 0) ||
+      (value && typeof value === 'object' && Object.values(value).every(zero));
+    return steps.every(row => (row.inputs || row.reads || []).every(id =>
+      !/^(velocity|angularVelocity|force|torque):/.test(id) || zero(state.solverState?.channels?.[id])));
+  }
   registry.define('physicsModel', 'simulatte-activity-runtime.js', {
     solveActivityTwoBone, evaluateActivityFrame, withActivityState, stepActivityState, activityMutationConflict,
+    activitySimulationSettled,
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

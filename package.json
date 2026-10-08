@@ -157,7 +157,11 @@
     "catalog:check": "node tools/sync-simulation-homepage.mjs --check && node --test tests/simulation-catalog.test.cjs",
     "audit:catalog:browser": "node tools/simulatte/audit-simulation-homepage.mjs",
     "capture:featured": "node tools/simulatte/capture-featured-previews.mjs",
-    "qualify:catalog": "node tools/simulatte/qualify-catalog-experiences.mjs"
+    "qualify:catalog": "node tools/simulatte/qualify-catalog-experiences.mjs",
+    "qualify:activity": "node tools/qualify-activity-program.mjs",
+    "qualify:activity:dynamics": "node tools/qualify-activity-dynamics.mjs",
+    "qualify:cosmi": "node tools/qualify-cosmi-artifacts.mjs",
+    "audit:activity": "node tools/audit-activity-program.mjs"
   },
   "devDependencies": {
     "doe-gpu": "0.4.7"

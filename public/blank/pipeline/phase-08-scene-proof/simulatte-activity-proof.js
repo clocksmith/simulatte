@@ -71,6 +71,8 @@
       previous = frame;
     }
     const end = Math.max(0, ...program.actions.map(row => row.endSeconds));
+    const dynamics = scope.proveActivityDynamics(program, frames);
+    violations.push(...dynamics.violations);
     if (frames.length > 1) for (const action of program.actions) {
       const samples = frames.filter(frame => frame.time >= action.startSeconds && frame.time <= action.endSeconds);
       if (action.action === 'walk' && samples.length > 1 &&
@@ -89,9 +91,12 @@
     return { schema: 'simulatte.activitySequenceProof.v1', programHash: program.contentHash,
       status: pass ? 'passed' : complete ? 'failed' : 'not-proven', pass,
       coverage: { firstTime: frames[0]?.time ?? null, lastTime: previous?.time ?? null, sampleCount: frames.length,
-        complete, dimensions: 2, contacts: 'kinematic', forcesValidated: false, liquidTransferValidated: false,
+        complete, dimensions: 2, contacts: program.dynamics ? 'holonomic-constraints' : 'kinematic',
+        forcesValidated: complete && !activity.historyTruncated && dynamics.forcesValidated,
+        liquidTransferValidated: complete && !activity.historyTruncated && dynamics.liquidTransferValidated,
         collisionScope: 'held-object circles, torso rectangles and ground; finger/head/seat mesh penetration is not validated' },
-      metrics: { contactErrorMeters: contactError, penetrationMeters: Math.max(0, penetration), footSlideMeters: footSlide },
+      metrics: { contactErrorMeters: contactError, penetrationMeters: Math.max(0, penetration), footSlideMeters: footSlide, ...dynamics.metrics },
+      dynamicsModel: dynamics.model || null,
       violations: [...new Set(violations)], unsupported: program.unsupported, tolerances: program.tolerances };
   }
   registry.define('physicsModel', 'simulatte-activity-proof.js', { proveActivitySequence });

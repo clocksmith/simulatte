@@ -836,6 +836,7 @@
         }
 
     function runPhase1RuntimeGate(sourceText = '', options = {}) {
+          if (options.activityMotionProvider != null) scope.requireActivityMotionProvider(options.activityMotionProvider);
           const runtimeContext = { ...runtimeContextFromOptions(options), activityCapabilities: scope.activityCapabilityInventory() };
           const promptText = String(sourceText || '');
           if (phase1RequiresModelProof(promptText, options, runtimeContext)) {

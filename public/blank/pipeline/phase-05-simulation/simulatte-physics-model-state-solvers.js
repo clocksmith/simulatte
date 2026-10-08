@@ -592,6 +592,7 @@
 
     function stepSimulation(inputState, spec, dt) {
         const normalized = scope.normalizeSpec(spec);
+        if (scope.activitySimulationSettled(inputState, normalized, dt)) return inputState;
         const state = normalized.templateId === 'blank-world' ? scope.stepBlankState(inputState, normalized, dt) :
           normalized.templateId === 'custom-world' ? scope.stepCustomState(inputState, normalized, dt) :
           normalized.templateId === 'fluid-vortex' ? stepFluidState(inputState, normalized.params, dt) :

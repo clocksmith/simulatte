@@ -11,13 +11,24 @@
     const project = point => [origin[0] + point[0] * scale, origin[1] - point[1] * scale];
     const byPart = new Map(contract.bindings.map(binding => [`${binding.entityId}:${binding.partId}`, binding]));
     const vector = new Float32Array(data), missing = contract.missingParticipantIds.slice();
-    let applied = 0;
+    let applied = 0, liquidParts = 0;
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i], binding = byPart.get(`${part.entityId}:${part.constructionPartId}`);
       if (!binding) continue;
       const offset = i * scope.GPU_OBJECT_PART_FLOATS;
       let center, size, rotation = 0;
-      if (binding.kind === 'object') {
+      if (binding.kind === 'liquid-cell') {
+        const object = activity.objects[binding.participantId];
+        const cells = object?.liquid?.depthMeters.slice(binding.simulationCellStart, binding.simulationCellStart + binding.simulationCellCount);
+        const depth = cells?.length === binding.simulationCellCount ? cells.reduce((s, h) => s + h, 0) / cells.length : NaN;
+        if (!Number.isFinite(depth)) { missing.push(binding.participantId); continue; }
+        const width = binding.container.widthMeters / binding.cellCount;
+        const x = (binding.cellIndex + 0.5) * width - binding.container.widthMeters / 2;
+        const y = (depth - binding.container.heightMeters) / 2, angle = object.rotation;
+        center = project([object.position[0] + x * Math.cos(angle) - y * Math.sin(angle),
+          object.position[1] + x * Math.sin(angle) + y * Math.cos(angle)]);
+        size = [width * scale, depth * scale]; rotation = angle; liquidParts++;
+      } else if (binding.kind === 'object') {
         const object = activity.objects[binding.participantId];
         if (!object) { missing.push(binding.participantId); continue; }
         const local = binding.localPart, radius = binding.radiusMeters;
@@ -48,6 +59,7 @@
     }
     return { data: vector, receipt: { schema: 'simulatte.activityVisualReceipt.v1', programHash: activity.programHash,
       time: activity.time, appliedPartCount: applied, expectedPartCount: contract.bindings.length,
+      liquidPartCount: liquidParts,
       missingParticipantIds: [...new Set(missing)], consumed: applied === contract.bindings.length && !missing.length } };
   }
   registry.define('webGpuRenderer', 'simulatte-webgpu-renderer-activity.js', { scenePacketActivityPartData });
