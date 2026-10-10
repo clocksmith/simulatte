@@ -1,0 +1,49 @@
+START asteroid-defense.test.cjs
+START catscan.test.cjs
+PASSED catscan.test.cjs tests=5
+START design-system.test.cjs
+PASSED design-system.test.cjs tests=7
+START field-experiments.test.cjs
+PASSED field-experiments.test.cjs tests=10
+START folder-contracts.test.cjs
+PASSED asteroid-defense.test.cjs tests=11
+START hosting-release.test.cjs
+PASSED hosting-release.test.cjs tests=9
+START hosting-surfaces.test.cjs
+PASSED hosting-surfaces.test.cjs tests=3
+START interstellar-relay-network-v4.test.cjs
+PASSED interstellar-relay-network-v4.test.cjs tests=19
+START multi-tier-plugin-completion.test.cjs
+PASSED multi-tier-plugin-completion.test.cjs tests=15
+START navigation-lifecycle.test.cjs
+PASSED navigation-lifecycle.test.cjs tests=26
+START object-interaction.test.cjs
+PASSED object-interaction.test.cjs tests=8
+START plugin-actor-motion.test.cjs
+PASSED plugin-actor-motion.test.cjs tests=2
+START plugin-camera-follow.test.cjs
+PASSED plugin-camera-follow.test.cjs tests=12
+START plugin-compositor-runtime.test.cjs
+PASSED plugin-compositor-runtime.test.cjs tests=28
+START plugin-data-custody.test.cjs
+PASSED plugin-data-custody.test.cjs tests=6
+START plugin-platform.test.cjs
+PASSED plugin-platform.test.cjs tests=25
+START plugin-playback.test.cjs
+PASSED plugin-playback.test.cjs tests=36
+START plugin-v4-platform.test.cjs
+PASSED plugin-v4-platform.test.cjs tests=16
+START plugin-view-runtime.test.cjs
+PASSED plugin-view-runtime.test.cjs tests=9
+START simulation-catalog.test.cjs
+PASSED simulation-catalog.test.cjs tests=2
+START tier-application-loader.test.cjs
+PASSED tier-application-loader.test.cjs tests=3
+START tier-renderers.test.cjs
+PASSED tier-renderers.test.cjs tests=2
+START tier-run-controller.test.cjs
+PASSED tier-run-controller.test.cjs tests=25
+START world-runtime-loader.test.cjs
+PASSED world-runtime-loader.test.cjs tests=3
+PASSED folder-contracts.test.cjs tests=8
+TEST-RUN files=24/24 tests=290 passed=24 failed=0

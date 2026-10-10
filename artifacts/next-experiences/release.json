@@ -1,0 +1,54 @@
+{
+  "schema": "simulatte.nextExperienceRelease.v1",
+  "build": "1eddca7e443fa8267186697adf8e9a5bb11c93c2-c99fb603aa58",
+  "sourceCommit": "1eddca7e443fa8267186697adf8e9a5bb11c93c2",
+  "package": {
+    "path": "artifacts/next-experiences/simulatte-world-1eddca7e.tar.gz",
+    "sha256": "5ace59d77546c26408794d991c1d2b6a8d142cc8fc846ea0506cb1bb404c9783",
+    "worldInventory": {
+      "schema": "simulatte.hostingSurface.v1",
+      "id": "simulatte-world",
+      "sourceRoot": "public",
+      "entrypoint": "index.html",
+      "fileCount": 2667,
+      "totalBytes": 279632204,
+      "inventorySha256": "bf3bae1b24960e709c27480e952c16f0bccf3ebf8d760916c50f1ada51c7db72"
+    }
+  },
+  "validation": {
+    "worldTests": {
+      "files": 24,
+      "tests": 290,
+      "passed": true,
+      "log": "world-tests.log"
+    },
+    "releaseRegressions": {
+      "tests": 23,
+      "passed": true,
+      "log": "release-tests.log"
+    },
+    "stampedReleaseTests": {
+      "tests": 13,
+      "passed": true
+    },
+    "deployCheck": {
+      "passed": true,
+      "log": "deploy-check.log"
+    },
+    "browser": {
+      "status": "passed",
+      "journeys": 10,
+      "sourceFreeze": true,
+      "packagedBytesMatch": true,
+      "report": "browser.json"
+    },
+    "fullSuite": "Interrupted during unchanged Create activity tests; no full-suite pass claimed."
+  },
+  "qualifications": {
+    "deployment": "pending by user direction",
+    "physicalMobile": "not performed; viewport emulation only",
+    "unfamiliarUsers": "No session recordings available; comprehension qualification pending",
+    "empiricalCalibration": "not performed",
+    "wholeCatalogReceipts": "Existing whole-catalog receipts are not refreshed by these five journeys"
+  }
+}

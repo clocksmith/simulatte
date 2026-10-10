@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: hosting targets separate World and Create while preserving governed shared assets
+ok 1 - hosting targets separate World and Create while preserving governed shared assets
+  ---
+  duration_ms: 1359.817339
+  type: 'test'
+  ...
+# Subtest: release and hosting validation run against the stamped build identity
+ok 2 - release and hosting validation run against the stamped build identity
+  ---
+  duration_ms: 0.363889
+  type: 'test'
+  ...
+# Subtest: directory routes do not redirect to their slash-normalized selves
+ok 3 - directory routes do not redirect to their slash-normalized selves
+  ---
+  duration_ms: 0.258965
+  type: 'test'
+  ...
+# Subtest: field entrypoint build stamping is complete and content-idempotent
+ok 4 - field entrypoint build stamping is complete and content-idempotent
+  ---
+  duration_ms: 72.281134
+  type: 'test'
+  ...
+# Subtest: every starting preset compiles finite links and reaches an honest terminal outcome
+ok 5 - every starting preset compiles finite links and reaches an honest terminal outcome
+  ---
+  duration_ms: 124.833496
+  type: 'test'
+  ...
+# Subtest: governed relay inputs preserve Gaia row identity, hashes, licenses, and independent truth axes
+ok 6 - governed relay inputs preserve Gaia row identity, hashes, licenses, and independent truth axes
+  ---
+  duration_ms: 1.986442
+  type: 'test'
+  ...
+# Subtest: runtime receipts distinguish newly modeled effects from remaining limitations
+ok 7 - runtime receipts distinguish newly modeled effects from remaining limitations
+  ---
+  duration_ms: 14.95253
+  type: 'test'
+  ...
+# Subtest: stellar propagation carries source rows, transformations, and missing radial-velocity uncertainty
+ok 8 - stellar propagation carries source rows, transformations, and missing radial-velocity uncertainty
+  ---
+  duration_ms: 0.410728
+  type: 'test'
+  ...
+# Subtest: moving-target light time solves a future intercept instead of freezing the target
+ok 9 - moving-target light time solves a future intercept instead of freezing the target
+  ---
+  duration_ms: 0.240062
+  type: 'test'
+  ...
+# Subtest: moving-target light time back-propagates reference-epoch states to transmission time
+ok 10 - moving-target light time back-propagates reference-epoch states to transmission time
+  ---
+  duration_ms: 0.148755
+  type: 'test'
+  ...
+# Subtest: optical model is inverse-square monotonic and exposes modeled rate uncertainty
+ok 11 - optical model is inverse-square monotonic and exposes modeled rate uncertainty
+  ---
+  duration_ms: 0.216543
+  type: 'test'
+  ...
+# Subtest: plugin advances one chronological causal event at a time and settles with receipts
+ok 12 - plugin advances one chronological causal event at a time and settles with receipts
+  ---
+  duration_ms: 31.160863
+  type: 'test'
+  ...
+# Subtest: semantic presentation carries quantities and evidence while v3 compatibility remains valid
+ok 13 - semantic presentation carries quantities and evidence while v3 compatibility remains valid
+  ---
+  duration_ms: 35.342889
+  type: 'test'
+  ...
+# Subtest: comparison reuses seed and epoch while reporting latency, rate, energy, and reliability
+ok 14 - comparison reuses seed and epoch while reporting latency, rate, energy, and reliability
+  ---
+  duration_ms: 12.696473
+  type: 'test'
+  ...
+# Subtest: native v4 contribution preserves true 3D evidence, moving packet depth, and omission inspections
+ok 15 - native v4 contribution preserves true 3D evidence, moving packet depth, and omission inspections
+  ---
+  duration_ms: 21.824484
+  type: 'test'
+  ...
+# Subtest: users can choose arbitrary endpoints and direct, automatic, or manual routing
+ok 16 - users can choose arbitrary endpoints and direct, automatic, or manual routing
+  ---
+  duration_ms: 27.619487
+  type: 'test'
+  ...
+# Subtest: every visible HYG star is selectable with source-specific uncertainty and receipts
+ok 17 - every visible HYG star is selectable with source-specific uncertainty and receipts
+  ---
+  duration_ms: 19.564221
+  type: 'test'
+  ...
+# Subtest: advanced physics lanes expose distinct causality and constructibility receipts
+ok 18 - advanced physics lanes expose distinct causality and constructibility receipts
+  ---
+  duration_ms: 49.354131
+  type: 'test'
+  ...
+# Subtest: operational profiles deterministically change delays, attenuation, and event traces
+ok 19 - operational profiles deterministically change delays, attenuation, and event traces
+  ---
+  duration_ms: 36.439676
+  type: 'test'
+  ...
+# Subtest: plugin manifest locks every browser resource with a matching SHA-384 digest
+ok 20 - plugin manifest locks every browser resource with a matching SHA-384 digest
+  ---
+  duration_ms: 1.490586
+  type: 'test'
+  ...
+# Subtest: routing rejects nonfinite link results and impossible success probabilities
+ok 21 - routing rejects nonfinite link results and impossible success probabilities
+  ---
+  duration_ms: 0.927116
+  type: 'test'
+  ...
+# Subtest: request and reply retain causal delivery, moving endpoints, distinct packets and a common terminal baseline
+ok 22 - request and reply retain causal delivery, moving endpoints, distinct packets and a common terminal baseline
+  ---
+  duration_ms: 264.977401
+  type: 'test'
+  ...
+# Subtest: a new destination creates a new request without mutating a prior in-flight schedule
+ok 23 - a new destination creates a new request without mutating a prior in-flight schedule
+  ---
+  duration_ms: 13.542509
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1482.432841
