@@ -45,6 +45,34 @@ test('blocked paths and exhausted budgets fail explicitly; loops are never retur
   assert.deepEqual(path,['ac','cb']);
 });
 
+test('same-arrival prefixes retain distinct legal continuations under every tested time bucket',()=>{
+  const w=fixture([['ax','A','X',1,0],['xc','X','C',2,0],['ay','A','Y',1,1],['yc','Y','C',2,0],['cx','C','X',1,0],['xb','X','B',1,0]]);
+  const evaluate=(s,t)=>({travelSeconds:s.lengthM,directSunSeconds:s.id==='xb'&&t<4?10:s.sun,unknownSeconds:0});
+  for(const timeBucketSeconds of [10,1,.1,.01]){
+    const result=run(w,2,evaluate,{timeBucketSeconds});
+    assert.deepEqual(result.selected.segmentIds,['ay','yc','cx','xb']);
+    assert.equal(result.receipt.objective,7);
+    assert.equal(result.receipt.dominance,'same-arrival-objective-and-visited-node-subset');
+  }
+});
+
+test('temporal refinement converges against exhaustive simple-path arrival-time evaluation',()=>{
+  const w=fixture([['early','A','C',5,0],['via','A','D',3,0],['later','D','C',3,0],['finish','C','B',2,0],['direct','A','B',10,0]]);
+  const evaluate=(s,t)=>({travelSeconds:s.lengthM,directSunSeconds:s.id==='finish'&&t<5.5?2:s.sun,unknownSeconds:0});
+  const paths=[];
+  function visit(node,seen,time,cost){
+    if(node==='B'){paths.push(cost);return;}
+    for(const s of w.outgoing(node))if(!seen.has(s.toNodeId)){
+      const row=evaluate(s,time);visit(s.toNodeId,new Set([...seen,s.toNodeId]),time+s.lengthM,cost+row.travelSeconds+10*row.directSunSeconds);
+    }
+  }
+  visit('A',new Set(['A']),0,0);const exact=Math.min(...paths);
+  const rows=[10,1,.1,.01].map(timeBucketSeconds=>run(w,10,evaluate,{timeBucketSeconds}));
+  assert.equal(exact,8);assert.equal(rows.at(-1).receipt.objective,exact);
+  assert.ok(rows.every(row=>row.receipt.objective>=exact));
+  assert.ok(rows.at(-1).receipt.objective<=rows[0].receipt.objective);
+});
+
 test('unknown geometry cannot become a cheap substitute for verified shade',()=>{
   const w=fixture([['missing','A','B',10,0],['shade','A','B',12,0]]);
   const result=run(w,100,s=>({travelSeconds:s.lengthM,directSunSeconds:0,unknownSeconds:s.id==='missing'?10:0}));

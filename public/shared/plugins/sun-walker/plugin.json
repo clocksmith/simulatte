@@ -104,7 +104,7 @@
       "path": "./presentation.js"
     },
     {
-      "integrity": "sha384-1b01b608376ddfb41a3534160b3323402389237e80abdff6cfd44aa11fb11758281e88d42952d79ff2eb48c0f7999f71",
+      "integrity": "sha384-5202a71511bb890c0c3746aa47affb4a721a62fe8303e38f70b2aea9306b6acb340bf0fe91ea325085b0dc612567c4c6",
       "path": "./shade-router.js"
     },
     {
@@ -116,7 +116,7 @@
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-8fca71eb8dafe78dcf27a027647e13ab7d62c16218a2484d3513f78f355d58555ed418865359c43bdf99641e3a1bd615",
+      "integrity": "sha384-19ac4c032cb17aebe4abe14f799e8c1e669a4baafa6cd64559ec54756ff764ae8e4642d13fd8ce281e2d4732e8102615",
       "path": "./v4-contribution.js"
     }
   ],

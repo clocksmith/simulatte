@@ -33,12 +33,12 @@
     const costOf=row=>row.travelSeconds+directSunWeight*(row.directSunSeconds+row.unknownSeconds)+unknownWeight*row.unknownSeconds;
     let elapsed=0,upperCost=0;
     for(const id of baseline){const segment=worldModel.segment(id),row=evaluateEdge(segment,elapsed);upperCost+=costOf(row);elapsed+=segment.lengthM/walkingSpeedMps;}
-    let winner=null,expanded=0,coalesced=0;
+    let winner=null,expanded=0,coalesced=0,generated=1,retained=1,peakRetained=1;
     const open=heap(),best=new Map();
-    const start={node:originNodeId,elapsed:0,objective:0,cost:shortestSeconds,parent:null,segment:null,key:`${originNodeId}:0`};
-    open.push(start);best.set(start.key,start);
+    const start={node:originNodeId,elapsed:0,objective:0,cost:shortestSeconds,parent:null,segment:null,key:`${originNodeId}:0`,visited:new Set([originNodeId])};
+    open.push(start);best.set(start.key,[start]);
     while(open.size) {
-      const current=open.pop();if(best.get(current.key)!==current)continue;
+      const current=open.pop();if(!best.get(current.key)?.includes(current))continue;
       if(current.cost>=upperCost-1e-9)break;
       if(++expanded>maximumLabels)throw new Error('sun_route_search_limit: narrow the detour limit or reduce shade preference');
       if(current.node===destinationNodeId){winner=current;upperCost=current.objective;continue;}
@@ -48,24 +48,29 @@
         const lowerBound=remaining.get(segment.toNodeId);
         if(arrival+lowerBound>deadline+1e-6||current.objective+segment.lengthM/walkingSpeedMps+lowerBound>=upperCost)continue;
         // Walking routes must not loop to wait for the sun to move.
-        let ancestor=current,cycle=false;
-        while(ancestor){if(ancestor.node===segment.toNodeId){cycle=true;break;}ancestor=ancestor.parent;}
-        if(cycle)continue;
+        if(current.visited.has(segment.toNodeId))continue;
         const objective=current.objective+costOf(evaluateEdge(segment,current.elapsed));
         if(objective+lowerBound>=upperCost-1e-9)continue;
         const key=`${segment.toNodeId}:${Math.floor(arrival/timeBucketSeconds)}`;
-        const previous=best.get(key);
-        if(previous)coalesced++;
-        if(previous&&previous.objective<=objective)continue;
-        const next={node:segment.toNodeId,elapsed:arrival,objective,cost:objective+lowerBound,parent:current,segment:segment.id,key};
-        best.set(key,next);open.push(next);
+        const labels=best.get(key)||[],visited=new Set([...current.visited,segment.toNodeId]);
+        // A lower prefix cost cannot dominate a path with more legal continuations.
+        const subset=(a,b)=>[...a].every(id=>b.has(id));
+        const sameArrival=row=>row.elapsed===arrival;
+        if(labels.some(row=>sameArrival(row)&&row.objective<=objective&&subset(row.visited,visited))){coalesced++;continue;}
+        const survivors=labels.filter(row=>!(sameArrival(row)&&objective<=row.objective&&subset(visited,row.visited)));
+        coalesced+=labels.length-survivors.length;retained+=1+survivors.length-labels.length;
+        if(retained>maximumLabels)throw new Error('sun_route_search_limit: retained path labels exceed the search budget');
+        generated++;peakRetained=Math.max(peakRetained,retained);
+        const next={node:segment.toNodeId,elapsed:arrival,objective,cost:objective+lowerBound,parent:current,segment:segment.id,key,visited};
+        best.set(key,[...survivors,next]);open.push(next);
       }
     }
     const selected=[];for(let current=winner;current?.parent;current=current.parent)selected.push(current.segment);
     return {baseline:baselineRoute,selected:winner?{segmentIds:selected.reverse()}:baselineRoute,
-      receipt:{algorithm:'arrival_time_shadow_graph_a_star',expandedLabels:expanded,coalescedLabels:coalesced,timeBucketSeconds,
+      receipt:{algorithm:'arrival_time_shadow_graph_a_star',expandedLabels:expanded,coalescedLabels:coalesced,generatedLabels:generated,peakRetainedLabels:peakRetained,
+        dominance:'same-arrival-objective-and-visited-node-subset',timeBucketSeconds,
         objective:upperCost,shortestSeconds,maximumTravelSeconds:deadline,
-        claimBoundary:'Arrival times are evaluated along each path. Cost labels within an arrival-time bucket are coalesced; this is a bounded temporal approximation, not a proof of continuous-time global optimality.'}};
+        claimBoundary:'Buckets index arrivals without rounding them. Dominance requires equal arrival time and a subset of visited nodes. Search covers modeled eligible simple paths within the detour bound; budget exhaustion refuses instead of returning an unqualified route. This is not empirical shadow validation.'}};
   }
   function heap(){
     const rows=[];let sequence=0;
