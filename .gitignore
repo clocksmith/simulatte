@@ -29,3 +29,6 @@ artifacts/model-cache-profile/
 artifacts/simulatte-train/*.log
 tools/samer/autonomy/sealed/
 tools/samer/model-selection/sealed/
+
+# Packaged releases are local artifacts; tracked receipts retain their hashes.
+artifacts/next-experiences/*.tar.gz

@@ -6,6 +6,10 @@ import { execFileSync } from "node:child_process";
 import { openBrowserAudit } from "./browser-session.mjs";
 const root = path.resolve(import.meta.dirname, "../.."),
   out = path.join(root, "artifacts/next-experiences");
+const publicRoot = path.join(
+  root,
+  process.argv.includes("--package") ? ".firebase-hosting/world" : "public",
+);
 await fs.mkdir(out, { recursive: true });
 const files = execFileSync("rg", ["--files", "public"], {
   cwd: root,
@@ -38,12 +42,35 @@ const report = {
     "Desktop host browser and emulated mobile viewport; no physical-phone or unfamiliar-human qualification.",
   routes: [],
 };
+if (process.argv.includes("--package")) {
+  const inventory = JSON.parse(
+    await fs.readFile(path.join(publicRoot, "hosting-surface.json"), "utf8"),
+  );
+  assert.equal(inventory.id, "simulatte-world");
+  assert.equal(
+    JSON.parse(await fs.readFile(path.join(publicRoot, "version.json"), "utf8"))
+      .build,
+    report.servedBuild,
+  );
+  for (const [file, hash] of Object.entries(sourceHashes)) {
+    if (file.startsWith("public/blank/")) continue;
+    const bytes = await fs.readFile(
+      path.join(publicRoot, file.slice("public/".length)),
+    );
+    assert.equal(
+      createHash("sha256").update(bytes).digest("hex"),
+      hash,
+      file + " package bytes differ",
+    );
+  }
+  report.packagedSurface = { ...inventory, sourceBytesMatch: true };
+}
 for (const viewport of [
   { width: 1440, height: 1000 },
   { width: 390, height: 844 },
 ]) {
   const browser = await openBrowserAudit({
-      publicRoot: path.join(root, "public"),
+      publicRoot,
       viewport,
       webgpu: true,
     }),
