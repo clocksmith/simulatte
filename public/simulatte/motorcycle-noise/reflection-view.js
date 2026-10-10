@@ -289,7 +289,7 @@
       },
       captureCamera(){return {mode:cameraMode,observer:getObserver(),target:camera.target.asArray(),alpha:camera.alpha,beta:camera.beta,radius:camera.radius};},
       restoreCamera(saved){openingPending=false;if(saved.mode==='map'){setCameraMode('map');camera.setTarget(B.Vector3.FromArray(saved.target));camera.alpha=saved.alpha;camera.beta=saved.beta;camera.radius=saved.radius;}else if(saved.mode==='rider')setCameraMode('rider',saved.observer.trackId);else placeObserver(saved.observer,saved.mode);},
-      snapSidewalk:sidewalkAt,setTreatmentSelection(id){treatmentSelection=id;},draw,setSources,showMeasurements,setReceiverMarkers,setCameraMode,getFocus,getObserver,placeObserver,focusSource,focus,homePark,nearestMotorcycle,backend:engine instanceof B.WebGPUEngine?'WebGPU':'WebGL',dispose};
+      setSoundExplanation(value){soundView.setExplanation(value);},snapSidewalk:sidewalkAt,setTreatmentSelection(id){treatmentSelection=id;},draw,setSources,showMeasurements,setReceiverMarkers,setCameraMode,getFocus,getObserver,placeObserver,focusSource,focus,homePark,nearestMotorcycle,backend:engine instanceof B.WebGPUEngine?'WebGPU':'WebGL',dispose};
     } catch(error) { try{dispose();}catch(cleanupError){error.cleanupError=cleanupError.message;}throw error;}
   }
   root.MotorcycleReflectionView={create,williamsburgAnchor};

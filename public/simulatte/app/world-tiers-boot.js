@@ -343,6 +343,7 @@
           },
         });
         objectInteraction.update(ownerContribution);
+        tierVisualizer.selectedRack=objectInteraction.selected()?.startsWith('rack:')?objectInteraction.selected().slice(5):null;
         tierVisualizer.relatedRackIds=ownerContribution.objects?.find(row=>row.id===objectInteraction.selected())?.relatedIds || [];
         const camera=document.getElementById('camera-controls');
         if(!ownerContribution.presentation.layouts)for(const button of camera.querySelectorAll('[data-presentation-layout]'))button.remove();

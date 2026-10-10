@@ -11,7 +11,7 @@ const arg=(name,fallback='')=>process.argv.includes(name)?process.argv[process.a
 const out=path.resolve(root,arg('--out','artifacts/sunwalker/20261005-routing'));
 await fs.mkdir(out,{recursive:true});
 const report={observedAt:new Date().toISOString(),sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),sourceHashes:{},runs:[]};
-for(const file of ['public/simulatte/app/city-plugin-session.js','public/simulatte/app/webgpu-renderer.js','public/simulatte/app/plugin-actor-motion.js','public/simulatte/app/plugin-presentation.js','public/simulatte/app/camera-controller.js','public/simulatte/app/sun-walker-controls.js','public/shared/plugins/sun-walker/plugin.json','public/shared/plugins/sun-walker/shade-router.js','public/shared/plugins/sun-walker/sun-route-simulation.js','public/simulatte/app/main.js','public/simulatte/world/simulation-task-worker.js','public/simulatte/world/simulation-task-operations.js','public/simulatte/platform/plugin-host/plugin-compute.js','public/world-tiers.css'])
+for(const file of ['public/simulatte/app/city-plugin-session.js','public/simulatte/app/webgpu-renderer.js','public/simulatte/app/plugin-actor-motion.js','public/simulatte/app/plugin-presentation.js','public/simulatte/app/camera-controller.js','public/simulatte/app/sun-walker-controls.js','public/shared/plugins/sun-walker/plugin.json','public/shared/plugins/sun-walker/shade-router.js','public/shared/plugins/sun-walker/sun-route-simulation.js','public/simulatte/app/main.js','public/simulatte/world/simulation-task-worker.js','public/simulatte/world/simulation-task-operations.js','public/simulatte/platform/plugin-host/plugin-compute.js','public/world-tiers.css','public/shared/plugins/sun-walker/v4-contribution.js'])
   report.sourceHashes[file]=crypto.createHash('sha256').update(await fs.readFile(path.join(root,file))).digest('hex');
 
 try {
@@ -39,6 +39,9 @@ try {
       run.build=await evaluate(`document.querySelector('meta[name="simulatte-build"]').content`);
       run.initial=await evaluate(`({canvas:{...document.querySelector('#autonomy-canvas').dataset},cards:document.querySelector('.sun-walk-routes').innerText,origin:document.querySelector('[name=originPlace]').value,destination:document.querySelector('[name=destinationPlace]').value})`);
       assert.equal(run.initial.canvas.sunShadow,'depth-map');assert.ok(Number(run.initial.canvas.sunShadowCasterVertices)>900000);
+      const paths=await evaluate(`document.querySelector('#autonomy-canvas').__simulatteRenderReceipt().pluginCompositor[0].representedLayerIds`);
+      assert.ok(paths.includes('shade-selected-route'));assert.ok(paths.includes('fastest-route'),'The shortest route baseline must reach the renderer despite dense shadow annotations');
+      run.checks.push('both compared routes reach the renderer without shadow annotation suppression');
       assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'),true);run.checks.push('solar shadows and individual building geometry; no horizontal overflow');
       await capture('overview');
       const metrics=()=>evaluate(`(()=>{const c=globalThis.__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='sun-walker');return Object.fromEntries(c.inspections.find(i=>i.id==='sun-route-comparison').fields.map(f=>[f.id,f.value]))})()`);
@@ -47,12 +50,22 @@ try {
         await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-walk-message]').hidden`);
         return metrics();
       };
+      await click('[data-show-route="fastest"]');
+      await wait(`document.querySelector('#autonomy-canvas').dataset.cameraMode==='overview'`);
+      const bars=()=>evaluate(`Object.fromEntries([...document.querySelectorAll('[data-exposure-bar]')].map(bar=>[bar.dataset.exposureBar,[...bar.children].map(part=>({width:parseFloat(part.style.width),label:part.title}))]))`);
       run.shortest=await preference(0);assert.equal(run.shortest['same-route'],true);
       run.balanced=await preference(50);run.shaded=await preference(100);
       assert.equal(run.shortest['fastest-time'],run.shaded['fastest-time'],'Baseline must not move with the preference');
       assert.ok(run.shaded['chosen-time']>run.shortest['chosen-time']);
       assert.ok(run.shaded['chosen-sun']<run.shortest['chosen-sun']);
       assert.ok(run.shaded['chosen-sun']<=run.balanced['chosen-sun']);
+      run.exposureBars=await bars();
+      for(const prefix of ['chosen','fastest']){
+        const parts=run.exposureBars[prefix],scale=Math.max(run.shaded['chosen-time'],run.shaded['fastest-time'],1);
+        assert.ok(Math.abs(parts.reduce((sum,part)=>sum+part.width,0)-100*run.shaded[prefix+'-time']/scale)<1e-4);
+        assert.ok(Math.abs(parts[0].width-100*run.shaded[prefix+'-sun']/scale)<1e-4);
+      }
+      run.checks.push('route buttons reveal accepted paths; exposure bars share one time scale and bind accepted route metrics');
       await capture('shade-preference');await preference(50);
       run.checks.push('slider searches a longer shaded path; zero shade preference exactly restores the fixed shortest baseline');
       await wait(`globalThis.__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='sun-walker').state.simulationTimeMs>0`);

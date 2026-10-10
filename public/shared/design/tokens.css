@@ -36,6 +36,12 @@
   --sim-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --sim-touch-target: 44px;
   /* Literal paint values preserve page and artwork colors independently of theme roles. */
+  --sim-paint-hex-ffb85c: #ffb85c;
+  --sim-paint-hex-36a96f: #36a96f;
+  --sim-paint-hex-dcae18: #dcae18;
+  --sim-paint-hex-378b99: #378b99;
+  --sim-paint-hex-9aa3b8: #9aa3b8;
+  --sim-paint-hex-505b71: #505b71;
   --sim-paint-rgba-0-0-0-0-6: rgba(0, 0, 0, 0.6);
   --sim-paint-rgba-255-255-255-0-1: rgba(255, 255, 255, 0.1);
   --sim-paint-rgba-255-255-255-0-5: rgba(255, 255, 255, 0.5);

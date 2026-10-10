@@ -64,7 +64,9 @@ try{
     assert.ok(comparison.view.includes(delta.toFixed(2)));row.treatmentComparison=comparison;
     await wait(`motorcycleMeasurementReceipt?.observer.matchedComparison?.rows.length>0`);
     row.matched=await evaluate(`motorcycleMeasurementReceipt.observer.matchedComparison`);
-    assert.equal(row.matched.scope,'current-observation');assert.equal(row.matched.time,before.time);
+    assert.equal(row.matched.scope,'current-observation');
+    const visual=await wait(`globalThis.motorcyclePathExplanationReceipt?.treatmentId===motorcycleMeasurementReceipt.observer.matchedComparison.treatmentId && motorcyclePathExplanationReceipt`);
+    assert.equal(visual.changeDb,row.matched.rows.find(row=>row.label==='Here').differenceDb);assert.ok(visual.pathCount>0);row.pathExplanation=visual;assert.equal(row.matched.time,before.time);
     assert.ok(row.matched.rows.length<=5&&row.matched.rows.length>0);
     assert.equal(await evaluate(`document.querySelector('[aria-label="Matched observer comparison"]').hidden`),false);
     assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);
@@ -93,6 +95,10 @@ try{
      await press('#resume-button');await wait(`__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='gpu-supercluster').inspections.some(i=>i.fields.some(f=>f.id==='extra-wait'&&f.value>0))`);
      await press('#pause-button');
      row.intervention=await state();
+     row.dependencies=await evaluate(`__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='gpu-supercluster').presentation.layers.filter(row=>row.id.startsWith('wait:'))`);
+     assert.ok(row.dependencies.length>0);assert.ok(row.dependencies.every(row=>row.id.startsWith('wait:R1-1:')));
+     const dependencyShot=await client.send('Page.captureScreenshot',{format:'png'});await fs.writeFile(path.join(out,'gpu-dependencies.png'),Buffer.from(dependencyShot.data,'base64'));
+
      const additional=row.intervention.inspections.flatMap(i=>i.fields).filter(f=>f.id==='extra-wait');
      assert.ok(additional.some(f=>f.value>0),'Slow rack must cause additional waiting');
      await press('[data-object-action="straggler"]');row.keyboard.push('Slow rack during execution; inspect additional waiting; restore selected rack');

@@ -500,6 +500,11 @@
     ctx.setLineDash(path.style?.dash || []);
     ctx.stroke();
     ctx.setLineDash([]);
+    if (path.quantityKind === 'dependency.synchronization-wait') {
+      const from=projected.at(-2),to=projected.at(-1),end={x:from.x+(to.x-from.x)*.7,y:from.y+(to.y-from.y)*.7},angle=Math.atan2(to.y-from.y,to.x-from.x);
+      ctx.beginPath();ctx.moveTo(end.x-12*Math.cos(angle-.45),end.y-12*Math.sin(angle-.45));
+      ctx.lineTo(end.x,end.y);ctx.lineTo(end.x-12*Math.cos(angle+.45),end.y-12*Math.sin(angle+.45));ctx.stroke();
+    }
     if (animatedFlow(path.quantityKind)) {
       splitProjectedPath(renderCoordinates, projected, coordinateSystem).forEach((segment) => {
         drawFlowParticles(ctx, segment, path, timeSeconds);

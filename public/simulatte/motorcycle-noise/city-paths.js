@@ -45,7 +45,7 @@
       const length=distance(a,first)+distance(first,last)+distance(last,b),excess=Math.max(0,length-straight);
       // Geometrical roof detour with an explicit, approximate frequency-dependent edge loss.
       return {id:'roof',length:Math.max(1,length),gain:1/Math.max(1,length)/Math.sqrt(3+20*2*500*excess/343),
-        cutoff:Math.max(160,1800/(1+excess)),kind:'roof-diffraction-approximation',excess};
+        cutoff:Math.max(160,1800/(1+excess)),kind:'roof-diffraction-approximation',excess,points:[a,{x:first.x,y:first.y,z:height},{x:last.x,y:last.y,z:height},b]};
     }
     function nearby(point){
       const found=new Set(),x=Math.floor(point.x/size),y=Math.floor(point.y/size);

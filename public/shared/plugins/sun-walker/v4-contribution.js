@@ -88,7 +88,7 @@
           shadow.points.map((point) => [point.x, point.y, 0]),
         ),
         quantity: builder.quantity('occlusion.shadow-length', shadow.lengthM, 'meters'),
-        role: 'primary',
+        role: 'context',
         importance: 0.7,
         aggregationKey: shadow.id,
         provenance: builder.provenance({
@@ -152,7 +152,7 @@
         targetIds: isSettled
           ? settledTargetIds
           : isOverview
-            ? ['shade-selected-route']
+            ? settledTargetIds
             : ['sun-walker-actor'],
         reasonEventId: isSettled || isOverview
           ? activeEvent?.id || null
@@ -213,7 +213,7 @@
       state,
       objects: layers.filter(layer => ['sun-walker-actor', 'sun-destination', 'shade-selected-route', 'fastest-route'].includes(layer.id) || layer.id.startsWith('sun-walked-segment-')).map(layer => ({
         id: layer.id, label: layer.id === 'sun-walker-actor' ? 'Walker' : layer.label, inSelector: !layer.id.startsWith('sun-walked-segment-'), selectionGroup:'sampled segments', condition: layer.id === 'sun-walker-actor' ? exposureStatus.current.label : layer.id.startsWith('sun-walked-segment-') ? 'Completed exposure sample' : 'Predicted whole route',
-        description: layer.id.startsWith('sun-walked-segment-') ? 'Exposure is sampled at arrival time using modeled buildings and declared environmental coverage.' : 'Compare walking time, direct sun, and detour before choosing another walk.',
+        description: layer.id.startsWith('sun-walked-segment-') ? 'Exposure is sampled at arrival time using modeled buildings and declared environmental coverage.' : `Your green route takes ${(selected.metrics.travelSeconds/60).toFixed(1)} min with ${(selected.metrics.directSunSeconds/60).toFixed(1)} min direct sun. The amber shortest path takes ${(fastest.metrics.travelSeconds/60).toFixed(1)} min with ${(fastest.metrics.directSunSeconds/60).toFixed(1)} min direct sun. Both use the same endpoints, departure, and arrival-time shadow model.`,
         hit: { shape: ['actor', 'point'].includes(layer.kind) ? 'point' : 'path', radiusPx: layer.kind === 'actor' ? 18 : 8, priority: layer.kind === 'actor' ? 100 : layer.kind === 'point' ? 90 : layer.id.startsWith('sun-walked-segment-') ? 50 : 30 },
         actions: ['sun-walker-actor', 'sun-destination', 'shade-selected-route', 'fastest-route'].includes(layer.id) ? [{
           id: 'preview', label: controls.controls.find(row => row.id === 'directSunWeight').value > 0 ? 'Preview shortest walk' : 'Preview shade', targetId: layer.id,

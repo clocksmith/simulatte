@@ -28,7 +28,7 @@
     };
   }
   function create({ host, canvas, getSession, projectObjects, onInsets = () => {}, onPreviewChange = () => {} }) {
-    let contribution = null, selectedId = null, down = null, tap = null, preview = null, selectionRevision = 0, scenarioKey = null, alternatives = null;
+    let contribution = null, selectedId = null, down = null, tap = null, preview = null, selectionRevision = 0, scenarioKey = null, alternatives = null, openingSelection = true;
     const events = new AbortController();
     const command = (id, input) => getSession().invoke(id, input);
     const identity = value => JSON.stringify([value?.pluginId, value?.controls.controls.map(row => [row.id, row.value])]);
@@ -52,7 +52,7 @@
         }
         await command(action.execution === 'restart' ? 'object-apply' : 'object-live', input);
         if (action.execution === 'restart') { preview = null; selectedId = action.afterApplyTargetId || selectedId; await onPreviewChange(); render(); }
-        return { message: action.execution === 'restart' ? 'Applied and restarted.' : action.proposedChange };
+        return { message: action.execution === 'restart' ? 'Applied and restarted.' : 'Applied to '+combined().objects.find(row=>row.id===input.targetId).label+'.' };
       },
     });
     function render() {
@@ -102,7 +102,9 @@
           selectionRevision++; preview = null; scenarioKey = nextKey;
           if (selectedId && !next.objects?.some(row => row.id === selectedId)) selectedId = null;
         }
-        contribution = next; render();
+        contribution = next;
+        if(openingSelection){openingSelection=false;if(next.pluginId==='gpu-supercluster'){const first=next.objects.find(row=>row.id.startsWith('rack:'));if(first)selectedId=first.id;}}
+        render();
       },
       action(targetId, actionId) {
         const action = actionFor(combined(), targetId, actionId);

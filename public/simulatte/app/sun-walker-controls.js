@@ -11,9 +11,9 @@
       <input type="range" min="0" max="100" step="1" value="50" aria-label="Time versus shade">
       <span><span>Shortest walk</span><span>Prefer shade</span></span>
     </label><div class="sun-walk-routes" role="group" aria-label="Route comparison">
-      <div class="sun-walk-route"><strong>Shortest walk</strong><span data-route-stats="fastest"></span></div>
-      <div class="sun-walk-route"><strong>Your route</strong><span data-route-stats="chosen"></span></div>
-    </div><p class="sun-walk-note" data-route-tradeoff></p><p class="sun-walk-note">Predicted whole-route exposure · modeled buildings and declared canopy</p><p data-walk-message role="status" hidden></p><button class="sim-action" type="button" data-cancel-walk hidden>Cancel recalculation</button>`;
+      <button type="button" class="sun-walk-route" data-show-route="fastest"><strong>Shortest walk · amber baseline</strong><span data-route-stats="fastest"></span><span class="sun-exposure-bar" data-exposure-bar="fastest"></span></button>
+      <button type="button" class="sun-walk-route" data-show-route="chosen"><strong>Your route · green</strong><span data-route-stats="chosen"></span><span class="sun-exposure-bar" data-exposure-bar="chosen"></span></button>
+    </div><p class="sun-walk-note" data-route-tradeoff></p><p class="sun-walk-note">Bars share one time scale: yellow sun · blue shade · gray unknown · dark night. Predicted at arrival time; both routes share endpoints and departure.</p><p data-walk-message role="status" hidden></p><button class="sim-action" type="button" data-cancel-walk hidden>Cancel recalculation</button>`;
     host.before(panel);
     const form=panel.querySelector('form'),message=panel.querySelector('[data-walk-message]');
     const preference=panel.querySelector('input[type=range]');
@@ -43,6 +43,10 @@
     on(preference,'input',()=>{requestSequence++;if(busy){session.cancel('Superseded route preference');setBusy(false);}preferenceDirty=true;showPreference();clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>void apply(),180);});
     on(preference,'change',()=>{clearTimeout(preferenceTimer);void apply();});
     on(panel.querySelector('[data-cancel-walk]'),'click',()=>{requestSequence+=1;clearTimeout(preferenceTimer);session.cancel('Route recalculation cancelled');pendingEndpoints=false;setBusy(false);say('Keeping the current walk.');});
+    for(const button of panel.querySelectorAll('[data-show-route]'))on(button,'click',async()=>{
+      try{await session.invoke('select-object',button.dataset.showRoute==='fastest'&&panel.dataset.sameRoute!=='true'?'fastest-route':'shade-selected-route');await session.invoke('camera','overview');}
+      catch(error){if(error.name!=='AbortError')say(error.message);}
+    });
     function update(contribution){
       controls=contribution.controls.controls;
       for(const id of ['originPlace','destinationPlace']){
@@ -57,11 +61,21 @@
         const minutes=Number(value(prefix+'-time'))/60,shade=Number(value(prefix+'-shade-percent')),sun=Number(value(prefix+'-sun-percent')),unknown=Number(value(prefix+'-unknown')),night=Number(value(prefix+'-night'));
         panel.querySelector(`[data-route-stats="${prefix}"]`).textContent=`${minutes.toFixed(1)} min · ${Math.round(shade)}% shade · ${Math.round(sun)}% sun${unknown>0?` · ${Math.round(unknown/60/minutes*100)}% unknown`:''}${night>0?` · ${Math.round(night/60/minutes*100)}% night`:''}`;
       }
+      panel.dataset.sameRoute=String(value('same-route'));
+      const scale=Math.max(Number(value('chosen-time')),Number(value('fastest-time')),1);
+      for(const prefix of ['chosen','fastest']){
+        const bar=panel.querySelector(`[data-exposure-bar="${prefix}"]`);
+        const seconds=Number(value(prefix+'-time')),sun=Number(value(prefix+'-sun')),unknown=Number(value(prefix+'-unknown')),night=Number(value(prefix+'-night'));
+        const parts=[['direct',sun],['shade',seconds-sun-unknown-night],['unknown',unknown],['night',night]];
+        if(!bar.children.length)for(const [kind]of parts){const part=document.createElement('span');part.className='sun-exposure-'+kind;bar.append(part);}
+        parts.forEach(([kind,time],i)=>{bar.children[i].style.width=`${100*Math.max(0,time)/scale}%`;bar.children[i].title=`${kind}: ${(time/60).toFixed(1)} min`;});
+        bar.setAttribute('aria-label',`${(sun/60).toFixed(1)} minutes sun, ${((seconds-sun-unknown-night)/60).toFixed(1)} minutes shade, ${(unknown/60).toFixed(1)} minutes unknown, ${(night/60).toFixed(1)} minutes night`);
+      }
       const weight=controls.find(row=>row.id==='directSunWeight').value;
       if(!preferenceDirty){preference.value=weight>=100?100:Math.round(100*weight/(1+weight));showPreference();}
       const extra=(Number(value('chosen-time'))-Number(value('fastest-time')))/60;
       const saved=(Number(value('fastest-sun'))-Number(value('chosen-sun')))/60;
-      panel.querySelector('[data-route-tradeoff]').textContent=value('same-route')?'Same route at this preference.':`${extra.toFixed(1)} min longer · ${Math.abs(saved).toFixed(1)} min ${saved>=0?'less':'more'} in direct sun`;
+      panel.querySelector('[data-route-tradeoff]').textContent=value('same-route')?'Same path as the shortest-walk baseline; no time or exposure change.':`${extra.toFixed(1)} min longer · ${Math.abs(saved).toFixed(1)} min ${saved>=0?'less':'more'} in direct sun`;
     }
     return {update,dispose(){requestSequence+=1;clearTimeout(preferenceTimer);events.abort();panel.remove();}};
   }

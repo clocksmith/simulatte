@@ -1,4 +1,22 @@
 (function(root){
+  function pathDiagram(comparison){
+    const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
+    svg.setAttribute('viewBox','0 0 300 150');svg.setAttribute('width','100%');svg.setAttribute('role','img');
+    svg.setAttribute('aria-label','Plan of sampled propagation paths: selected treatment in amber, retained source paths in blue-gray, ending at the observer.');
+    const paths=comparison.effectPaths?.paths||[],points=paths.flatMap(path=>path.points);if(!points.length)return svg;
+    const minX=Math.min(...points.map(p=>p.x)),maxX=Math.max(...points.map(p=>p.x)),minY=Math.min(...points.map(p=>p.y)),maxY=Math.max(...points.map(p=>p.y));
+    const scale=Math.min(260/Math.max(1,maxX-minX),105/Math.max(1,maxY-minY));
+    const project=p=>[150+(p.x-(minX+maxX)/2)*scale,74-(p.y-(minY+maxY)/2)*scale];
+    for(const path of paths){
+      const line=document.createElementNS(ns,'polyline');line.setAttribute('points',path.points.map(p=>project(p).join(',')).join(' '));
+      line.setAttribute('fill','none');line.setAttribute('stroke',path.role==='selected-treatment'?'#ffb85c':'#849bb4');line.setAttribute('stroke-width',path.role==='selected-treatment'?'3':'1');
+      const title=document.createElementNS(ns,'title');title.textContent=path.kind;line.append(title);svg.append(line);
+    }
+    const nodes=[['Observer',comparison.observer,'#f4fff9'],['Treatment',paths.find(p=>p.role==='selected-treatment')?.points[0],'#ffb85c'],['Traffic',paths.find(p=>p.role==='unchanged-source')?.points[0],'#a7bfdc']];
+    for(const [label,p,color]of nodes){if(!p)continue;const [x,y]=project(p),dot=document.createElementNS(ns,'circle');dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.setAttribute('r','4');dot.setAttribute('fill',color);svg.append(dot);
+      const text=document.createElementNS(ns,'text');text.setAttribute('x',Math.min(242,Math.max(4,x-22)));text.setAttribute('y',Math.min(146,y+16));text.setAttribute('fill',color);text.setAttribute('font-size','11');text.textContent=label;svg.append(text);}
+    svg.style.background='#10231d';svg.style.display='block';return svg;
+  }
   function create({view,getScene,getTime,command,isMeasurementCurrent}){
     const $=id=>document.getElementById(id),T=root.MotorcycleTreatments,events=new AbortController();let selected=null,placing=null,lastPaint=0,latest=[],lastObserver=null;
     const on=(node,event,fn)=>node.addEventListener(event,fn,{signal:events.signal});
@@ -14,7 +32,7 @@
     const enabled=document.createElement('button');enabled.textContent='Disable';const remove=document.createElement('button');remove.textContent='Remove';
     const frequencies=document.createElement('label');frequencies.textContent='Frequency ';const frequency=document.createElement('select');frequency.setAttribute('aria-label','Directional sound frequency');
     for(const hz of [125,500,2000]){const option=document.createElement('option');option.value=hz;option.textContent=hz+' Hz';frequency.append(option);}frequencies.append(frequency);frequencies.hidden=true;const comparison=document.createElement('div');comparison.setAttribute('aria-label','Matched observer comparison');comparison.hidden=true;actions.append(frequencies,spray,enabled,remove,comparison);$('treatment-controls-slot').append(actions);
-    function clear(){selected=null;actions.hidden=true;frequencies.hidden=true;}
+    function clear(){view.setSoundExplanation(null);selected=null;actions.hidden=true;frequencies.hidden=true;}
     function inspect(id){selected=id;$('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=true;actions.hidden=false;lastPaint=0;paint();}
     function paint(){
       const scene=getScene(),node=scene?.treatments?.find(row=>row.id===selected);if(!node)return;
@@ -27,14 +45,18 @@
         const {withDb,withoutDb,changeDb}=sample.comparison,point=lastObserver.observer.point;
         const signed=(changeDb>=0?'+':'')+changeDb.toFixed(2);
         $('inspection-main').textContent=`${isMeasurementCurrent()?'This treatment':'Stale sample'}: ${signed} dB here`;
-        $('inspection-detail').textContent=`With ${withDb.toFixed(2)} dBA · Without ${withoutDb.toFixed(2)} dBA. ${changeDb>0?'Increases sound at this observer.':changeDb<0?'Reduces sound at this observer.':'No change at this observer.'}`;
+        $('inspection-detail').textContent=`With ${withDb.toFixed(2)} dBA · Without ${withoutDb.toFixed(2)} dBA. ${Math.abs(changeDb)<.005?'Change below the 0.01 dB display precision.':changeDb>0?'Increases sound at this observer.':'Reduces sound at this observer.'}`;
         $('inspection-time').textContent+=` Same observer (${point.x.toFixed(1)}, ${point.y.toFixed(1)}, ${point.z.toFixed(1)} m), time ${lastObserver.time.toFixed(2)} s, traffic and other treatments.`;
       }
-      comparison.hidden=true;
+      comparison.hidden=true;view.setSoundExplanation(null);
       const matched=lastObserver?.observer?.matchedComparison;
       if(matched?.treatmentId===selected){
+        if(isMeasurementCurrent())view.setSoundExplanation(matched);
         comparison.hidden=false;comparison.replaceChildren();
         const heading=document.createElement('p');heading.textContent=`${isMeasurementCurrent()?'Current observation':'Stale observation'} · treatment removed versus included · ${matched.time.toFixed(2)} s`;comparison.append(heading);
+        const cause=document.createElement('p');cause.className='sound-path-explanation';
+        cause.textContent=matched.effectPaths?.active?`Amber: this treatment → observer. Blue-gray: ${matched.effectPaths.targetId}'s original paths, retained in the baseline. ${Math.abs(matched.effectPaths.changeDb||0)<.005?'Change below the 0.01 dB display precision here.':`Combined sound ${matched.effectPaths.changeDb>=0?'increases':'decreases'} here.`} Paths show propagation geometry; dBA contributions do not add.`:'No active treatment path at this instant; baseline and treated sound match.';
+        comparison.append(pathDiagram(matched),cause);
         const table=document.createElement('table'),header=document.createElement('tr');
         for(const text of ['Observer','Without','With','Change']){const th=document.createElement('th');th.textContent=text;header.append(th);}table.append(header);
         for(const row of matched.rows){const tr=document.createElement('tr');for(const value of [row.label,row.baseline.toFixed(1)+' dBA',row.intervention.toFixed(1)+' dBA',(row.differenceDb>=0?'+':'')+row.differenceDb.toFixed(2)+' dB']){const td=document.createElement('td');td.textContent=value;tr.append(td);}table.append(tr);}

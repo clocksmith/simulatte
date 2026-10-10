@@ -142,6 +142,13 @@ test('matched observers remove exactly one acoustic treatment at fixed traffic, 
  const before=JSON.stringify({config:scene.config,treatments:scene.treatments,sources:scene.sources.map(source=>({id:source.id,position:M.position(source,2) }))});
  const comparison=global.MotorcycleCitySound.compareTreatment(scene,2,scene.receiver,'selected');
  assert.equal(comparison.rows.length,5);assert.equal(comparison.scope,'current-observation');
+ assert.equal(comparison.effectPaths.targetId,'engine');
+ assert.equal(comparison.effectPaths.changeDb,comparison.rows[0].differenceDb);
+ assert.equal(comparison.effectPaths.paths.filter(row=>row.role==='selected-treatment').length,1);
+ for(const path of comparison.effectPaths.paths){assert.deepEqual(path.points.at(-1),scene.receiver);for(const point of path.points)assert.ok(['x','y','z'].every(key=>Number.isFinite(point[key])));}
+ const inactive=global.MotorcycleCitySound.compareTreatment({...scene,treatments:scene.treatments.map(row=>row.id==='selected'?{...row,enabled:false}:row)},2,scene.receiver,'selected');
+ assert.equal(inactive.effectPaths.active,false);assert.equal(inactive.effectPaths.paths.filter(row=>row.role==='selected-treatment').length,0);assert.equal(inactive.effectPaths.changeDb,0);
+
  for(const row of comparison.rows){
   const reference=global.MotorcycleCitySound.create({...scene,treatments:scene.treatments.filter(node=>node.id!=='selected')},2).measure(row.point);
   near(row.baseline,reference.total);near(row.differenceDb,row.intervention-row.baseline);
@@ -153,4 +160,13 @@ test('matched observers remove exactly one acoustic treatment at fixed traffic, 
  const fictional={...scene,mistBursts:[{sourceId:'engine',origin:{x:0,y:0,z:1},start:10,contact:11,restart:20}]};
  assert.throws(()=>global.MotorcycleCitySound.compareTreatment(fictional,2,scene.receiver,'selected'),/fictional/);
  assert.ok(global.MotorcycleCitySound.create(fictional,2).measure(scene.receiver,true).treatments.every(row=>!row.comparison),'Fictional history also excludes the compact comparison');
+});
+
+test('visual propagation follows the calculated roof detour rather than crossing a building',()=>{
+ const scene=fixture(10,false);
+ scene.buildings=[{id:'obstruction',heightM:8,footprint:[{x:4,y:-2},{x:6,y:-2},{x:6,y:2},{x:4,y:2}]}];
+ const geometry=global.MotorcycleCityPaths.create(scene.buildings),path=geometry.direct(scene.sources[0].static,scene.receiver);
+ assert.equal(path.kind,'roof-diffraction-approximation');assert.equal(path.points.length,4);
+ assert.ok(path.points[1].z>8&&path.points[2].z>8);
+ near(path.points.slice(1).reduce((sum,point,i)=>sum+M.dist(path.points[i],point),0),path.length);
 });

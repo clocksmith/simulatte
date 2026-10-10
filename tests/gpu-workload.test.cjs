@@ -218,3 +218,23 @@ test('executed-run comparison replays live actions over the identical interval a
  assert.equal(instance.handleAction('counterfactual.compare',{values:{comparisonId:'nominal-vs-degraded-cluster'}}).scope,'configured-scenario');
  assert.throws(()=>workload.compareExecuted(result,{...terminal.workload,totalWaitMs:terminal.workload.totalWaitMs+1}),/diverges/);
 });
+
+test('visual dependency arrows bind a slowed rack to actual waiters and disappear after release',()=>{
+ const v4=require('../public/shared/plugins/gpu-supercluster/v4-contribution.js');
+ const contracts=require('../public/simulatte/platform/contracts/plugin-v4-contracts.js');
+ const state=workload.create(result);workload.intervene(state,'R1-1',95);advance(state,8);
+ const contribution=v4.createContribution({result,workload:workload.snapshot(state)});
+ contracts.validateContribution(contribution);
+ const arrows=contribution.presentation.layers.filter(row=>row.quantity?.kind==='dependency.synchronization-wait');
+ assert.equal(arrows.length,31);
+ for(const arrow of arrows){
+  const [,from,to]=arrow.id.split(':');
+  assert.equal(from,'R1-1');assert.ok(state.racks.find(row=>row.id===to).waitingFor.includes(from));
+  assert.deepEqual(arrow.geometry.coordinates,[contribution.presentation.layers.find(row=>row.id==='rack:'+from).geometry.coordinates[0],contribution.presentation.layers.find(row=>row.id==='rack:'+to).geometry.coordinates[0]]);
+  assert.ok(arrow.quantity.value>0);
+  for(const layout of contribution.presentation.layouts)assert.ok(layout.geometries.find(row=>row.id===arrow.id));
+ }
+ assert.match(contribution.state.measures.find(row=>row.measurement).measurement.context,/without live actions/);
+ workload.intervene(state,'R1-1',0);advance(state,16);
+ assert.equal(v4.createContribution({result,workload:workload.snapshot(state)}).presentation.layers.filter(row=>row.id.startsWith('wait:')).length,0);
+});

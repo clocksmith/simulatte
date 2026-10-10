@@ -25,7 +25,8 @@
     const executed = workload ? workloadApi.compareExecuted(result,workload) : null;
     const tasks = { compute:0, communication:0, waiting:0 };
     for (const rack of workload?.racks || []) tasks[rack.task === 'allreduce' ? 'communication' : rack.task === 'waiting' ? 'waiting' : 'compute']++;
-    const context = `Now: ${tasks.compute} computing · ${tasks.communication} communicating · ${tasks.waiting} waiting. Cyan/green: compute · Violet: transfer · Amber: waiting.`;
+    const effect = executed?.actions.length ? `Live actions: ${executed.differences.synchronizationWaitingRackMs.toFixed(1)} ms more waiting, summed across racks; ${executed.branches.intervention.completedIterations} iterations versus ${executed.branches.baseline.completedIterations} without live actions over the same ${elapsed.toFixed(1)} ms.` : 'Each training step waits for every rack before exchanging gradients.';
+    const context = `Training together. ${effect} Now: ${tasks.compute} computing · ${tasks.communication} communicating · ${tasks.waiting} waiting. Cyan/green: compute · Violet: transfer · Amber: waiting.`;
     const measurement = (label, definition, timeBasis = 'accumulated') => ({label, subject:'All modeled GPU racks', definition, timeBasis,
       interval:{start:0,end:timeBasis === 'configured' ? 0 : elapsed,unit:'ms'}, validity:timeBasis !== 'configured' && !elapsed ? 'not-sampled' : 'valid', freshness:'current',context});
     const records = modelRecords(result.receipt.seed);
@@ -76,6 +77,13 @@
           provenance: modeled,
         });
       });
+    const dependencyLayers = (workload?.racks || []).filter(rack => rack.slowdown > 0).flatMap(rack =>
+      waitingByRack.get(rack.id).map(id => builder.layer({
+        id:`wait:${rack.id}:${id}`, kind:'path', label:`${id} waits for ${rack.id} to finish computing`,
+        geometry:builder.geometry('polyline','cluster-network-layout',[networkPosition(rackById.get(rack.id),topology),networkPosition(rackById.get(id),topology)]),
+        quantity:builder.quantity('dependency.synchronization-wait',executed.racks.find(row=>row.id===id).extraWaitingMs,'ms'),
+        role:'event',importance:1,aggregationKey:null,provenance:modeled,
+      })));
     const tensorLayers = (workload?.transfers || []).filter(t => topology.links.some(l => l.id === t.id && l.type === 'infiniband-rail')).map(t => {
       const from = gpuById.get(t.from), to = gpuById.get(t.to);
       return builder.layer({
@@ -94,13 +102,14 @@
     const physical = new Map(rackLayers.map(layer=>{const rack=rackById.get(layer.id.slice(5));return [layer.id,builder.geometry('point','datacenter-cartesian-meters',[[rack.xM,rack.yM,rack.zM]])];}));
     for(const layer of networkLayers){const link=topology.links.find(row=>'link:'+row.id===layer.id);physical.set(layer.id,physicalLink(gpuById.get(link.sourceGpuId),gpuById.get(link.targetGpuId)));}
     for(const t of workload?.transfers || [])physical.set(`transfer:${t.id}:${t.from}`,physicalLink(gpuById.get(t.from),gpuById.get(t.to)));
-    const allLayers=[...rackLayers,...networkLayers,...tensorLayers];
+    for(const layer of dependencyLayers){const [,from,to]=layer.id.split(':');physical.set(layer.id,builder.geometry('polyline','datacenter-cartesian-meters',[rackById.get(from),rackById.get(to)].map(rack=>[rack.xM,rack.yM,rack.zM])));}
+    const allLayers=[...rackLayers,...networkLayers,...tensorLayers,...dependencyLayers];
     const presentation = builder.presentation({
       layouts:[{id:'network',label:'Network layout',coordinateSystem:'cluster-network-layout',geometries:allLayers.map(row=>({id:row.id,geometry:row.geometry}))},
         {id:'physical',label:'Physical racks',coordinateSystem:'datacenter-cartesian-meters',geometries:allLayers.map(row=>({id:row.id,geometry:physical.get(row.id)}))}],
       pluginId: PLUGIN_ID,
       coordinateSystem: 'cluster-network-layout',
-      layers: [...rackLayers, ...networkLayers, ...tensorLayers],
+      layers: allLayers,
       viewIntents: [builder.viewIntent({
         id: `${PLUGIN_ID}:overview`,
         mode: 'overview',
@@ -156,7 +165,7 @@
       state,
       objects: [...rackLayers, ...networkLayers].map(layer => {
         const rack = workload?.racks.find(row => layer.id === `rack:${row.id}`);
-        return { id: layer.id, label: layer.label, inSelector: layer.id.startsWith('rack:'), selectionGroup:'links', relatedIds:rack ? waitingByRack.get(rack.id).map(id=>'rack:'+id) : [], condition: rack ? `${rack.task === 'waiting' ? 'Waiting for ' + rack.waitingFor.join(', ') : rack.task === 'allreduce' ? 'Communicating' : rack.task + ' compute'} · ${rack.slowdown}% slowdown` : 'Modeled physical connection', description: rack ? `${waitingByRack.get(rack.id).length} outlined racks currently wait for this rack. Over 0–${elapsed.toFixed(2)} ms, recorded actions changed total waiting by ${executed.differences.synchronizationWaitingRackMs.toFixed(2)} rack-ms and productive compute by ${executed.differences.productiveComputeRackMs.toFixed(2)} rack-ms versus no live actions. Completed ${executed.branches.intervention.completedIterations} iterations versus ${executed.branches.baseline.completedIterations}. ${executed.lastRestorationTimeMs===null?'No restoration recorded.':`Since restoration at ${executed.lastRestorationTimeMs.toFixed(2)} ms, additional waiting across racks is ${executed.racks.reduce((sum,row)=>sum+row.afterRestorationAdditionalWaitingMs,0).toFixed(2)} rack-ms.`} Restoring speed lets racks finish compute before the barrier releases.` : 'This modeled link carries gradients between its connected racks.',
+        return { id: layer.id, label: layer.label, inSelector: layer.id.startsWith('rack:'), selectionGroup:'links', relatedIds:rack ? waitingByRack.get(rack.id).map(id=>'rack:'+id) : [], condition: rack ? `${rack.task === 'waiting' ? 'Waiting for ' + rack.waitingFor.join(', ') : rack.task === 'allreduce' ? 'Communicating' : rack.task + ' compute'} · ${rack.slowdown}% slowdown` : 'Modeled physical connection', description: rack ? `${waitingByRack.get(rack.id).length} racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added ${executed.differences.synchronizationWaitingRackMs.toFixed(1)} ms waiting, summed across racks. Completed iterations: ${executed.branches.intervention.completedIterations} versus ${executed.branches.baseline.completedIterations} without live actions, over the same 0–${elapsed.toFixed(1)} ms. ${executed.lastRestorationTimeMs===null?'':`Restored at ${executed.lastRestorationTimeMs.toFixed(1)} ms; speed recovers before the next barrier releases.`}` : 'This modeled link carries gradients between its connected racks.',
           hit: { shape: rack || layer.id.startsWith('rack:') ? 'bounds' : 'path', radiusPx: 6, priority: layer.id.startsWith('rack:') ? 90 : 20 },
           actions: rack ? [{ id: 'straggler', label: rack.slowdown ? 'Restore rack' : 'Slow rack', targetId: layer.id,
             available: state.status !== 'settled', execution: 'continue', command: 'scenario.intervene',

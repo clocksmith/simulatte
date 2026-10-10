@@ -743,3 +743,15 @@ body.sim-app .simulation-stage:has(.sun-walk-controls) { grid-template-rows:auto
 body.sim-app .sun-walk-controls { grid-row:3; }
 body.sim-app .simulation-stage:has(.sun-walk-controls) .sim-readouts { grid-row:4; }
 body.sim-app .simulation-stage:has(.sun-walk-controls):has(.sim-readouts:not([hidden])) .canvas-shell { grid-row:5; height:max(420px,calc(100dvh - 410px)); }
+
+.sun-walk-route { flex:1; cursor:pointer; color:var(--sim-ink); font:inherit; min-width:0; }
+.sun-walk-route[data-show-route="fastest"] { border-left:4px solid var(--sim-paint-hex-ffb85c); }
+.sun-walk-route[data-show-route="chosen"] { border-left:4px solid var(--sim-paint-hex-36a96f); }
+.sun-walk-route:focus-visible { outline:2px solid var(--sim-ink); outline-offset:2px; }
+.sun-exposure-bar { display:flex; height:12px; width:100%; min-width:100px; background:transparent; }
+.sun-exposure-bar > span { display:block; height:100%; flex-shrink:0; }
+.sun-exposure-direct { background:var(--sim-paint-hex-dcae18); }
+.sun-exposure-shade { background:var(--sim-paint-hex-378b99); }
+.sun-exposure-unknown { background:var(--sim-paint-hex-9aa3b8); }
+.sun-exposure-night { background:var(--sim-paint-hex-505b71); }
+.sim-object-inspector p { white-space:pre-line; }

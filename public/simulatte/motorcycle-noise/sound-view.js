@@ -9,6 +9,21 @@
     const texture=new B.DynamicTexture('selected-source-label',{width:160,height:64},scene,false),labelMaterial=new B.StandardMaterial('selected-source-label',scene);
     labelMaterial.diffuseTexture=texture;labelMaterial.emissiveColor=B.Color3.White();labelMaterial.disableLighting=true;labelMaterial.useAlphaFromDiffuseTexture=true;labelMaterial.backFaceCulling=false;
     const label=B.MeshBuilder.CreatePlane('selected-source-label',{width:5,height:2},scene);label.material=labelMaterial;label.billboardMode=B.Mesh.BILLBOARDMODE_ALL;label.isPickable=false;
+    const effectLines={};
+    for(const [role,color]of [['unchanged-source','#9aadc8'],['selected-treatment','#ffb85c']]){
+      const mesh=B.MeshBuilder.CreateLineSystem('observer-effect-'+role,{lines:empty(),updatable:true},scene);
+      mesh.color=B.Color3.FromHexString(color);mesh.isPickable=false;mesh.alwaysSelectAsActiveMesh=true;mesh.isVisible=false;effectLines[role]=mesh;
+    }
+    function setExplanation(value){
+      const rows={'unchanged-source':[],'selected-treatment':[]};
+      for(const path of value?.effectPaths?.paths||[])for(let i=1;i<path.points.length&&rows[path.role].length<48;i++)rows[path.role].push([vector(path.points[i-1]),vector(path.points[i])]);
+      for(const [role,mesh]of Object.entries(effectLines)){
+        mesh.isVisible=rows[role].length>0;mesh.alpha=role==='selected-treatment'?1:.45;
+        while(rows[role].length<48)rows[role].push([hidden(),hidden()]);
+        B.MeshBuilder.CreateLineSystem(null,{lines:rows[role],instance:mesh},scene);
+      }
+      root.motorcyclePathExplanationReceipt=value?{time:value.time,treatmentId:value.treatmentId,observer:value.observer,changeDb:value.effectPaths.changeDb,pathCount:value.effectPaths.paths.length,roles:value.effectPaths.paths.map(path=>path.role)}:null;
+    }
     let selected=null,lastAt=-Infinity,sourceList=initial.sources;
     function prototype(color){
       if(prototypes.has(color))return prototypes.get(color);
@@ -17,7 +32,7 @@
       const mesh=B.MeshBuilder.CreatePlane('traffic-dot',{size:1},scene);mesh.material=material;mesh.isVisible=false;mesh.isPickable=false;mesh.billboardMode=B.Mesh.BILLBOARDMODE_ALL;prototypes.set(color,mesh);return mesh;
     }
     function setSources(sources){
-      sourceList=sources;for(const marker of markers.values())marker.dispose();markers.clear();host?.replaceChildren();
+      setExplanation(null);sourceList=sources;for(const marker of markers.values())marker.dispose();markers.clear();host?.replaceChildren();
       for(const source of sources)if(source.kind==='motorcycle'){const dot=prototype(colorFor(source.id)).createInstance(source.id+'-dot');dot.isVisible=true;dot.isPickable=true;dot.billboardMode=B.Mesh.BILLBOARDMODE_ALL;dot.metadata={sourceId:source.id};markers.set(source.id,dot);}
       lastAt=-Infinity;selected=null;
     }
@@ -51,8 +66,8 @@
       }
       for(const key of Object.keys(rows)){while(rows[key].length<48)rows[key].push([hidden(),hidden()]);B.MeshBuilder.CreateLineSystem(null,{lines:rows[key],instance:lines[key]},scene);}
     }
-    function dispose(){for(const marker of markers.values())marker.dispose();for(const mesh of prototypes.values()){mesh.material.diffuseTexture.dispose();mesh.material.dispose();mesh.dispose();}for(const line of Object.values(lines))line.dispose();label.dispose();texture.dispose();labelMaterial.dispose();}
-    return {setSources,draw,dispose};
+    function dispose(){for(const marker of markers.values())marker.dispose();for(const mesh of prototypes.values()){mesh.material.diffuseTexture.dispose();mesh.material.dispose();mesh.dispose();}for(const line of [...Object.values(lines),...Object.values(effectLines)])line.dispose();root.motorcyclePathExplanationReceipt=null;label.dispose();texture.dispose();labelMaterial.dispose();}
+    return {setSources,setExplanation,draw,dispose};
   }
   root.MotorcycleSoundView={create,colorFor};
 })(globalThis);

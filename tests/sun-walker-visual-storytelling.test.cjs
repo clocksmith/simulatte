@@ -394,3 +394,15 @@ test('distinct route alternatives have separate visible lanes even where paths o
  assert.notEqual(styles[0].color,styles[1].color);
  assert.notEqual(styles[0].laneOffsetPx,styles[1].laneOffsetPx);
 });
+
+test('shortest-route baseline survives a crowded shadow annotation layer budget',()=>{
+ const result=simulate(),contribution=createContribution(result,0);
+ const shadow=contribution.presentation.layers.find(row=>row.quantity?.kind==='occlusion.shadow-length');
+ assert.ok(shadow);
+ const crowded={...contribution.presentation,layers:[...contribution.presentation.layers,
+  ...Array.from({length:400},(_,i)=>({...shadow,id:'crowded-shadow-'+i}))]};
+ const composed=compositor.createCompositor().compose(crowded);
+ assert.ok(composed.primitives.some(row=>row.id==='shade-selected-route'));
+ assert.ok(composed.primitives.some(row=>row.id==='fastest-route'),'Both routes must survive the annotation budget');
+ assert.ok(composed.receipt.suppressedLayerIds.length>0,'The fixture must actually exhaust the layer budget');
+});

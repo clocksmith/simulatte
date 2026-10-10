@@ -17,6 +17,7 @@
     'modeled-distribution-corridor': '#63f3ff',
     'modeled-handoff-destination': '#e8fff8',
     'route.shade-selected': '#56e6a2',
+    'dependency.synchronization-wait': '#ffb347',
     'route.fastest-baseline': '#ffb85c',
     'exposure.direct': '#ffd75f',
     'exposure.shade': '#4fb9c6',

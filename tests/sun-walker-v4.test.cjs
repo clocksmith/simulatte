@@ -297,14 +297,14 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.ok(readyV4.presentation.layers.some((row) => row.kind === 'area' && row.quantity.kind === 'occlusion.shadow-length'));
   assert.ok(readyV4.presentation.layers
     .filter((row) => row.quantity.kind === 'occlusion.shadow-length')
-    .every((row) => row.role === 'primary'));
+    .every((row) => row.role === 'context'));
   assert.ok(readyV4.presentation.layers.every((row) => row.aggregationKey !== 'sun-exposure-samples'));
   assert.deepEqual(readyV4.presentation.viewIntents.map((row) => ({
     mode: row.mode,
     targetIds: row.targetIds,
   })), [{
     mode: 'overview',
-    targetIds: ['shade-selected-route'],
+    targetIds: ['shade-selected-route','fastest-route'],
   }]);
   const contribution = instance.contributeRequest({
     sourceText: 'Take the shadier walk',

@@ -23,6 +23,10 @@ Creators need to understand the world they requested and make targeted changes w
 
 9. Sun Walker first finds the shortest walking path without a shade preference. Its main time-versus-shade slider changes graph search using shadow geometry at predicted arrival times, rather than reranking a few ordinary routes. Show the selected route's extra walking time and reduced sun exposure against that fixed baseline. Keep editable endpoints and top-down/first-person walking views directly accessible.
 
+## Current product milestone
+
+Ship three featured experiences that explain themselves through interaction before adding physics features, architecture layers, or more catalog entries. Motorcycle highlights the sound paths changed at the observer; Sun Walker displays the accepted route and its actual time/exposure tradeoff against the shortest path; GPU shows how a slow rack holds up dependent racks. Each intervention connects affected objects, a measured change, and an identified comparison baseline. Preserve the numerical qualifications underneath. Observe unfamiliar people exploring without instructions, record whether they identify the activity, discover an action, and explain its consequence, and fix observed barriers. Automated browser checks do not substitute for these observations.
+
 ## Operating Loops
 
 For data execution, acquire only the chosen input, validate its mapping and declared semantics, run the selected model, and compare identified results. For prompts, follow the eight phases with each consuming its declared predecessor artifact. Record rejected or unsupported obligations rather than inventing a successful scene. Edit and recompile while preserving accepted overrides, then export and verify reimport against the declared reproduction contract.

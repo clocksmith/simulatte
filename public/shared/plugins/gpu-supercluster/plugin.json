@@ -86,7 +86,7 @@
       "path": "./workload.js"
     },
     {
-      "integrity": "sha384-eb1ccc5a0b137ff94402d7c9a64b4f0554ddfd3946726ad21686767cf9aca8a779876141244fdd6307702a8043623ff7",
+      "integrity": "sha384-c8c2d08754fe27423eb87e995cb035185a2ee2b148fc9333b740a5b421433678a8b780314556f7e2711229ba96afef48",
       "path": "./v4-contribution.js"
     }
   ],

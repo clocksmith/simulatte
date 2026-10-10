@@ -63,3 +63,12 @@ test('a touch opens the inspector only after its compatibility click; dragging d
     assert.equal(commands.length,1);
   }finally{inspector.dispose();global.SimulatteDeclarativeUiHost=previous;}
 });
+
+test('opening rack action is discoverable before the session exists and closing stays closed',()=>{
+ const previous=global.SimulatteDeclarativeUiHost;let rendered;
+ global.SimulatteDeclarativeUiHost={createObjectInspector(){return{element:{},render(value){rendered=value;},dispose(){}};}};
+ const contribution={pluginId:'gpu-supercluster',controls:{controls:[]},objects:[{id:'rack:a',label:'Rack a',description:'Training',actions:[]}],presentation:{layers:[{id:'rack:a'}]},inspections:[]};
+ const inspector=api.create({host:{},canvas:{addEventListener(){}},getSession:()=>null});
+ try{inspector.update(contribution);assert.equal(rendered.selectedId,'rack:a');inspector.select(null);inspector.update(contribution);assert.equal(rendered.selectedId,null);}
+ finally{inspector.dispose();global.SimulatteDeclarativeUiHost=previous;}
+});

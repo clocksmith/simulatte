@@ -105,8 +105,25 @@
         components:{baseline:{outward:before.outward,reflected:before.facade,returned:before.panelReturns,powered:before.powered},
           intervention:{outward:after.outward,reflected:after.facade,returned:after.panelReturns,powered:after.powered}}});
     }
+    const state=root.MotorcycleTreatments.states(scene,time).find(row=>row.id===treatmentId);
+    const target=state?.target?.source;
+    const paths=[];
+    if(target){
+      for(const path of M.fieldPaths(target,observer,time,scene)){
+        if(path.emissionTime<0)continue;
+        const emitted=M.position(target,path.emissionTime);
+        const points=path.points ? [...(path.channel==='returned'?[emitted]:[]),...path.points] : [emitted,...(path.channel==='returned'?[scene.panel]:[]),...(path.bounce?[path.bounce]:[]),observer];
+        paths.push({id:target.id+':'+path.id,sourceId:target.id,kind:path.kind,role:'unchanged-source',points:points.map(p=>({x:p.x,y:p.y,z:p.z||0}))});
+      }
+    }
+    const here=rows.find(row=>row.label==='Here');
+    if(state?.active&&target&&here){
+      const powered=geometry.direct(state,observer);
+      paths.push({id:treatmentId+':powered',sourceId:treatmentId,kind:powered.kind,role:'selected-treatment',points:(powered.points||[state,observer]).map(p=>({x:p.x,y:p.y,z:p.z||0}))});
+    }
     return {schema:'simulatte.matchedObserverComparison.v1',scope:'current-observation',time,treatmentId,
       observer:{x:observer.x,y:observer.y,z:observer.z},configuration:JSON.stringify([scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode]),
+      effectPaths:{treatmentId,targetId:target?.id||null,active:!!state?.active,paths,baseline:'Selected treatment removed; all source paths and other treatments retained',changeDb:here?.differenceDb??null},
       sourceStates:scene.sources.map(source=>({id:source.id,position:M.position(source,time)})),rows,excluded,
       claimBoundary:'Locally stationary modeled dBA at one frozen traffic instant. Baseline removes only the selected acoustic treatment. Components are inspectable contributions and their dBA values do not add. No field calibration or guaranteed quieting.',
     };
