@@ -88,3 +88,23 @@ test('worker task pool replaces a crashed worker before dispatching later work',
     await pool.dispose();
   }
 });
+
+
+test('plugin compute cancellation terminates busy numerical work before a replacement starts', async () => {
+  const {ControlledWorker,instances}=controlledWorkers();
+  const compute=require('../public/simulatte/platform/plugin-host/plugin-compute.js').createComputePort({
+    taskOperations:['test.advance/v1'],
+    createTaskPool:()=>poolApi.createWorkerTaskPool({WorkerClass:ControlledWorker,workerUrl:'controlled-worker.js'}),
+  });
+  const owner=compute.forPlugin('owner'),other=compute.forPlugin('other');
+  const pending=owner.executeTask({requestId:'superseded',operation:'test.advance/v1',payload:{}});
+  assert.equal(other.cancelTask('superseded'),false,'Cancellation must be bound to its plugin');
+  assert.equal(owner.cancelTask('superseded'),true);
+  await assert.rejects(pending,error=>error.code==='worker_pool_disposed');
+  assert.equal(instances[0].terminated,true);
+  const next=owner.executeTask({requestId:'accepted',operation:'test.advance/v1',payload:{}});
+  instances[1].emit('message',{schema:'simulatte.workerTaskResponse/v1',taskId:'owner:accepted',ok:true,result:{value:7}});
+  assert.deepEqual(await next,{value:7});
+  assert.equal(instances[1].terminated,true,'Completed preparation must release its worker');
+  await assert.rejects(owner.executeTask({requestId:'undeclared',operation:'secret.advance/v1',payload:{}}),error=>error.code==='compute_task_unavailable');
+});

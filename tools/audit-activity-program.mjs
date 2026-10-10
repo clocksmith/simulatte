@@ -1,17 +1,37 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { openBrowserAudit } from './simulatte/browser-session.mjs';
 import { setupPage, evaluate, captureCleanCanvasScreenshot, inspectPhaseRail } from './visual-audit-page.mjs';
 import { waitForCondition } from './audit-runtime-wait.mjs';
-import { runPrompt } from './visual-audit-run.mjs';
+import { runPrompt, sceneProofProgressSignature } from './visual-audit-run.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = path.join(root, 'artifacts', 'activity-program');
+const files = execFileSync('git', ['ls-files', '--', 'public'], { cwd: root, encoding: 'utf8' })
+  .trim().split('\n').filter(file => /\.(js|json|html|css)$/.test(file));
+const hashes = async () => Object.fromEntries(await Promise.all(files.map(async file =>
+  [file, createHash('sha256').update(await fs.readFile(path.join(root, file))).digest('hex')])));
+const sourceHashes = await hashes();
+const activityProgress = { extendOnProgress: true, stallTimeoutMs: 90000,
+  progressSignature: sceneProofProgressSignature };
+function waitForActivityTime(client,label,target=null) {
+  return waitForCondition(label,()=>evaluate(client,`(() => {
+    const lab=window.SimulattePhysicsLab._browserLab,spec=lab.getSpec(),activity=lab.getState().activity;
+    const end=${target===null?'Math.max(...spec.activityProgram.actions.map(action=>action.endSeconds))':JSON.stringify(target)};
+    const bound=activity.programHash===spec.activityProgram.contentHash;
+    return {ok:bound && activity.time>=end-1e-8,activityTime:bound?activity.time:null,activityEndSeconds:end};
+  })()`),60000,activityProgress);
+}
+const report = rows => ({ schema: 'simulatte.activityBrowserAudit.v1', sourceHashes,
+  physicalCoverage: 'Local browser GPU; mobile is an emulated viewport, not a physical phone.', rows });
 const prompts = [
   'a person walking while holding a cup in the left hand',
   'a person sits on a chair, holds a phone in the left hand, and drinks from a cup with the right hand',
+  'a person walks for 2 seconds then sits on a chair for 2 seconds then drinks from a cup with the right hand for 4 seconds then places the cup on a table with the right hand for 2 seconds then stands for 2 seconds',
 ];
 await fs.mkdir(out, { recursive: true });
 const rows = [];
@@ -26,10 +46,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       const result = await runPrompt(browser.client, { kind: 'activity-development', prompt: prompts[i] }, i, directory,
         { timeoutMs: 30000, frameDelayMs: 5000, intentMode: 'local', exactReplay: false });
       await evaluate(browser.client, `(() => { document.getElementById('physics-canvas').dataset.auditFreezeFrame = 'false'; window.SimulattePhysicsLab._browserLab.resume?.(); return true; })()`);
-      await waitForCondition('complete activity sequence', () => evaluate(browser.client, `(() => {
-        const lab = window.SimulattePhysicsLab._browserLab, spec = lab.getSpec(), state = lab.getState();
-        return { ok: state.activity.time >= Math.max(...spec.activityProgram.actions.map(action => action.endSeconds)) - 1e-8, time: state.activity.time };
-      })()`), 60000);
+      await waitForActivityTime(browser.client,'complete activity sequence');
       await waitForCondition('complete sequence pixel proof', () => evaluate(browser.client, `(() => {
         const canvas = document.getElementById('physics-canvas');
         return { ok: canvas.dataset.sceneProofVerdict === 'pass', verdict: canvas.dataset.sceneProofVerdict,
@@ -66,7 +83,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       await fs.writeFile(path.join(directory, `${i + 1}-execution.json`), JSON.stringify(evidence));
       const { spec, state, ...summary } = evidence;
       rows.push({ viewport, ...summary, screenshot: result.screenshot, screenshotHash: result.screenshotHash });
-      await fs.writeFile(path.join(out, 'report.json'), JSON.stringify({ schema: 'simulatte.activityBrowserAudit.v1', rows }, null, 2));
+      await fs.writeFile(path.join(out, 'report.json'), JSON.stringify(report(rows), null, 2));
       assert.equal(evidence.prompt, prompts[i]);
       assert.equal(evidence.proof.pass, true, JSON.stringify(evidence.proof));
       assert.equal(evidence.proof.coverage.forcesValidated, true);
@@ -86,10 +103,10 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       assert.equal(await evaluate(browser.client, `window.SimulattePhysicsLab._browserLab.getState().activity.time`), pausedTime);
       assert.ok(pausedTime < 0.5);
       await evaluate(browser.client, `(() => { document.getElementById('pause-lab').click(); return true; })()`);
-      await waitForCondition('replayed activity midpoint', () => evaluate(browser.client, `({ ok: window.SimulattePhysicsLab._browserLab.getState().activity.time >= 2 })`), 60000);
+      await waitForActivityTime(browser.client,'replayed activity midpoint',2);
       const middle = await captureCleanCanvasScreenshot(browser.client);
       await fs.writeFile(path.join(directory, `${i + 1}-midpoint.png`), Buffer.from(middle.data, 'base64'));
-      await waitForCondition('replayed activity completion', () => evaluate(browser.client, `({ ok: window.SimulattePhysicsLab._browserLab.getState().activity.time >= 4 - 1e-8 })`), 60000);
+      await waitForActivityTime(browser.client,'replayed activity completion');
       const replay = await evaluate(browser.client, `(() => {
         const api = window.SimulattePhysicsLab, state = api._browserLab.getState(), spec = api._browserLab.getSpec();
         const imported = api.deserializeSpec(api.serializeSpec(spec, { retainPhaseSources: true }));
@@ -99,7 +116,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       assert.deepEqual(replay.actors, state.activity.actors); assert.deepEqual(replay.objects, state.activity.objects);
       assert.equal(replay.importedProgramHash, evidence.programHash); assert.equal(replay.importedWorldHash, evidence.worldSpecHash);
       rows.at(-1).lifecycle = { pause: true, restart: true, replay: true, browserSerializationRoundtrip: true };
-      await fs.writeFile(path.join(out, 'report.json'), JSON.stringify({ schema: 'simulatte.activityBrowserAudit.v1', rows }, null, 2));
+      await fs.writeFile(path.join(out, 'report.json'), JSON.stringify(report(rows), null, 2));
       console.log(JSON.stringify({ viewport, prompt: prompts[i], activityProof: evidence.proof.status,
         screenshot: result.screenshot, phase8: evidence.phase8 }));
     }
@@ -110,3 +127,4 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     throw error;
   } finally { await browser.close(); }
 }
+assert.deepEqual(await hashes(), sourceHashes, 'Public sources changed during activity browser qualification');

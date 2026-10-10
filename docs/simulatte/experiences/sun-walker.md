@@ -25,7 +25,7 @@ explicit unknown exposure. It does not measure current shade or thermal comfort.
 1. Find the shortest walking path over eligible graph edges without evaluating shade.
 2. Search the graph again for the slider's time/sun-exposure cost, using the shortest-path distances as a lower bound.
 3. Compute solar position and building/canopy occlusion at arrival times along each explored path.
-4. Retain arrival-time labels at intersections; coalesce competing labels in one-second buckets to bound the search. Refuse explicitly if the search limit is exhausted.
+4. Retain distinct arrival times and legal onward paths at intersections. Production coalesces earlier, no-costlier arrivals within declared 0.01-second time buckets only when they preserve at least the same legal onward paths. An explicit eight-label-per-node beam bounds production path histories and records pruning. The exact-arrival reference retains different times and all non-dominated path histories. Refuse explicitly if the search limit is exhausted.
 5. Evaluate the selected complete paths with the same exposure equations used during search and playback.
 6. Compare added walking time and reduced sun exposure against the fixed shortest baseline. Unknown exposure is conservatively penalized, never counted as free shade.
 
@@ -50,8 +50,9 @@ explicit unknown exposure. It does not measure current shade or thermal comfort.
 - During playback: Whole route, top-down follow, and first-person views share the same modeled walker. Adjacent accepted poses interpolate for display without changing model state. Pause, seek, and replacement use exact accepted positions.
 - Route comparison: Shortest walk and Your route report duration and whole-route shade/sun percentages. Unknown exposure and night remain separate. Identical paths explicitly say “Same route at this preference.”
 - Selection and inspection: Causal building rows, environmental evidence, sample times, and accumulated quantities.
-- Final view: A bird’s-eye route summary keeps the fastest baseline and shade-selected route legible.
-- Final settlement: Direct sun, beam-equivalent exposure, building shade, canopy shade, unknown time, and detour.
+- Final view and settlement: A bird’s-eye route summary keeps both routes legible with direct sun, beam-equivalent exposure, building shade, canopy shade, unknown time, and detour.
+
+Route replacement prepares in a cancellable worker. Controls stay usable, later requests supersede earlier work, and calculation refusal keeps the accepted walk.
 
 ## What is real, derived, modeled, or simulated?
 
@@ -68,7 +69,7 @@ explicit unknown exposure. It does not measure current shade or thermal comfort.
 ## How does the simulation work?
 
 - State: Route sample cursor, arrival time, exposure class, causal occluders, and accumulated quantities.
-- Governing algorithm: Shortest-path walking baseline, followed by arrival-time graph search with geometric sun exposure and one-second label coalescing. No three-candidate shortlist or forced 25% detour gate precedes the shade search.
+- Governing algorithm: Shortest-path walking baseline, followed by arrival-time graph search with geometric sun exposure and temporal buckets, visited-node-subset dominance and a declared per-node beam, with an exact-arrival reference for qualification. No three-candidate shortlist or forced 25% detour gate precedes the shade search.
 - Progression: Samples advance in route order using simulated arrival times.
 - Randomness: Profile seeds select deterministic routes and departure conditions.
 - Invariants: Exposure classes remain exclusive and totals equal simulated travel time.
@@ -96,8 +97,7 @@ Cannot claim:
 - The display measures current shade or weather.
 - Historical trees prove current canopy shape.
 - Output represents thermal comfort or heat illness risk.
-- A selected route is universally optimal.
-- One-second temporal label coalescing proves continuous-time global optimality.
+- A modeled route is universally optimal, establishes current field conditions, or proves unrestricted continuous motion.
 
 ## What is verified?
 
@@ -105,6 +105,7 @@ Cannot claim:
 - Deterministic replay: verified
 - Comparison execution: verified
 - Desktop/mobile browser coverage: `audit-sun-walker.mjs` checks shadows, top-down and first-person cameras, both endpoint edits, route switching, pause, invalid endpoint preservation, and horizontal overflow.
+- Search approximation: `qualify-shade-router.mjs` compares 64 synthetic cyclic graphs and two twelve-branch cases that force the eight-label beam to prune against an exhaustive reference. At the configured 0.01-second precision, all 198 tested comparisons match within numerical tolerance; coarser widths expose regret. This is not a large-city optimality guarantee.
 - Known unresolved failures: current canopy and route-time weather are not observed
 
 ## Where is it implemented?

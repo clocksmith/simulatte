@@ -2,14 +2,15 @@
   const builder = typeof module === 'object' && module.exports
     ? require('../../core/simulation/plugin-v4-builder.js')
     : root.SimulattePluginV4Builder;
-  const api = factory(builder);
+  const workloadApi = typeof module === 'object' && module.exports ? require('./workload.js') : root.SimulatteClusterWorkload;
+  const api = factory(builder,workloadApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteGpuSuperclusterV4 = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createGpuSuperclusterV4(builder) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createGpuSuperclusterV4(builder,workloadApi) {
   const PLUGIN_ID = 'gpu-supercluster';
   const MODEL_DATASET_ID = 'repository-models:gpu-supercluster-v1';
   const MODEL_HASHES = Object.freeze({
-    workload: 'ab92b79f3dcc61f5f7f614050cdcb096e262a8eff9fab0fec14ed95a6d21f7cc',
+    workload: 'a3d065e7541cf4a592fc5fa98d8eed8915657d696db326d6983c3017e4e95406',
     topology: 'cd13b2f7dd6116a1cfa129f07994671ee574964f37500bd8b5d47cd401207112',
     collectives: 'fb3aa8a8c8d6c3ad295da8153fe9f00d5d704211fea20bd5aa6464f70a0c5b5f',
     thermals: 'afabd35b2bba5a587d061c2e5303920de6077419abc5a4c491e3ebe590826548',
@@ -21,6 +22,7 @@
     const efficiency = rackTimeMs > 0 ? workload.computeEquivalentMs / rackTimeMs : 0;
     const throughput = collectives.totalPeakClusterTflops * efficiency * (1 - collectives.bubbleFraction) * thermals.thermalClockFraction;
     const elapsed = workload?.timeMs || 0;
+    const executed = workload ? workloadApi.compareExecuted(result,workload) : null;
     const tasks = { compute:0, communication:0, waiting:0 };
     for (const rack of workload?.racks || []) tasks[rack.task === 'allreduce' ? 'communication' : rack.task === 'waiting' ? 'waiting' : 'compute']++;
     const context = `Now: ${tasks.compute} computing · ${tasks.communication} communicating · ${tasks.waiting} waiting. Cyan/green: compute · Violet: transfer · Amber: waiting.`;
@@ -120,11 +122,12 @@
       numberControl('cduFlowDegradationPercent', 'Cooling flow loss (%)', result.config.cduFlowDegradationPercent, 0, 90, 1, modeled),
     ], [{
       id: 'nominal-vs-degraded-cluster',
-      label: 'Nominal cluster versus selected degradation scenario',
+      label: 'Configured scenario: nominal versus selected degradation',
       baselineScenarioId: 'gpt4-3d-parallelism',
       variantScenarioId: result.receipt.seed,
       synchronizedClock: true,
-    }]);
+    }, ...(workload ? [{id:'executed-rack-interventions',label:'Executed run: recorded rack actions versus no live actions',
+      baselineScenarioId:result.receipt.seed,variantScenarioId:result.receipt.seed,synchronizedClock:true}] : [])]);
     const state = builder.state({
       id: `${PLUGIN_ID}:state:${result.receipt.seed}:${boundedStep}`,
       pluginId: PLUGIN_ID,
@@ -153,7 +156,7 @@
       state,
       objects: [...rackLayers, ...networkLayers].map(layer => {
         const rack = workload?.racks.find(row => layer.id === `rack:${row.id}`);
-        return { id: layer.id, label: layer.label, inSelector: layer.id.startsWith('rack:'), selectionGroup:'links', relatedIds:rack ? waitingByRack.get(rack.id).map(id=>'rack:'+id) : [], condition: rack ? `${rack.task === 'waiting' ? 'Waiting for ' + rack.waitingFor.join(', ') : rack.task === 'allreduce' ? 'Communicating' : rack.task + ' compute'} · ${rack.slowdown}% slowdown` : 'Modeled physical connection', description: rack ? 'One rack of GPUs. Outlined racks depend on this one. Restoring speed releases them when all pending racks finish computing; it does not skip the barrier.' : 'This modeled link carries gradients between its connected racks.',
+        return { id: layer.id, label: layer.label, inSelector: layer.id.startsWith('rack:'), selectionGroup:'links', relatedIds:rack ? waitingByRack.get(rack.id).map(id=>'rack:'+id) : [], condition: rack ? `${rack.task === 'waiting' ? 'Waiting for ' + rack.waitingFor.join(', ') : rack.task === 'allreduce' ? 'Communicating' : rack.task + ' compute'} · ${rack.slowdown}% slowdown` : 'Modeled physical connection', description: rack ? `${waitingByRack.get(rack.id).length} outlined racks currently wait for this rack. Over 0–${elapsed.toFixed(2)} ms, recorded actions changed total waiting by ${executed.differences.synchronizationWaitingRackMs.toFixed(2)} rack-ms and productive compute by ${executed.differences.productiveComputeRackMs.toFixed(2)} rack-ms versus no live actions. Completed ${executed.branches.intervention.completedIterations} iterations versus ${executed.branches.baseline.completedIterations}. ${executed.lastRestorationTimeMs===null?'No restoration recorded.':`Since restoration at ${executed.lastRestorationTimeMs.toFixed(2)} ms, additional waiting across racks is ${executed.racks.reduce((sum,row)=>sum+row.afterRestorationAdditionalWaitingMs,0).toFixed(2)} rack-ms.`} Restoring speed lets racks finish compute before the barrier releases.` : 'This modeled link carries gradients between its connected racks.',
           hit: { shape: rack || layer.id.startsWith('rack:') ? 'bounds' : 'path', radiusPx: 6, priority: layer.id.startsWith('rack:') ? 90 : 20 },
           actions: rack ? [{ id: 'straggler', label: rack.slowdown ? 'Restore rack' : 'Slow rack', targetId: layer.id,
             available: state.status !== 'settled', execution: 'continue', command: 'scenario.intervene',
@@ -175,7 +178,11 @@
           field('throttled-gpus', 'Modeled throttled GPUs', thermals.throttledGpuCount, 'GPUs', modeled),
           field('thermal-clock', 'Modeled thermal clock cap', thermals.thermalClockFraction * 100, 'percent', modeled),
         ],
-      }, ...topology.links.filter(link=>link.type==='infiniband-rail').map(link=>({
+      }, ...(executed ? [{id:'gpu-supercluster:executed-comparison',label:'Executed run: live rack interventions',targetIds:rackLayers.map(layer=>layer.id),fields:[
+        field('executed-interval','Matched interval',`0–${elapsed.toFixed(2)} ms`,null,modeled),
+        ...Object.entries(executed.differences).map(([id,value])=>field(`executed-${id}`,({completedIterations:'Change in completed iterations',productiveComputeRackMs:'Change in productive compute',communicationRackMs:'Change in communication time',synchronizationWaitingRackMs:'Change in synchronization waiting'})[id],value,id==='completedIterations'?'iterations':'rack-ms',modeled)),
+        field('executed-boundary','Comparison scope',executed.claimBoundary,null,modeled),
+      ]}] : []), ...topology.links.filter(link=>link.type==='infiniband-rail').map(link=>({
         id:`${PLUGIN_ID}:inspection:${link.id}`,label:link.id,targetIds:[`link:${link.id}`],
         fields:[field('endpoints','Connects',`${link.sourceGpuId} → ${link.targetGpuId}`,null,modeled),
           field('racks','Connected racks',`${gpuById.get(link.sourceGpuId).rackId} ↔ ${gpuById.get(link.targetGpuId).rackId}`,null,modeled),
@@ -201,7 +208,11 @@
           field('throughput-contribution','Contribution to cluster compute',elapsed > 0
             ? collectives.totalPeakClusterTflops / topology.racks.length * rack.productiveMs / elapsed * (1 - collectives.bubbleFraction) * thermals.thermalClockFraction : 0,'TFLOP/s',modeled),
           field('time-accounting','Time accounting','Computing + communicating + waiting = elapsed time. Productive compute excludes slowdown; throughput also applies the configured pipeline and thermal factors.',null,modeled),
-          field('slowdown','Slowdown',rack.slowdown,'percent',modeled),field('wait-ms','Synchronization wait',rack.waitMs,'ms',modeled)]
+          field('slowdown','Slowdown',rack.slowdown,'percent',modeled),field('wait-ms','Synchronization wait',rack.waitMs,'ms',modeled),
+          field('action-consequence','Executed-run comparison',`Same 0–${elapsed.toFixed(2)} ms interval; baseline keeps the initial configuration and omits live actions.`,null,modeled),
+          field('extra-wait','Additional wait versus no live actions',executed.racks.find(row=>row.id===rack.id).extraWaitingMs,'ms',modeled),
+          field('post-restoration-wait','Additional wait after latest restoration',executed.racks.find(row=>row.id===rack.id).afterRestorationAdditionalWaitingMs ?? 'No restoration recorded','ms',modeled),
+          field('completed-iteration-delta','Change in completed iterations',executed.differences.completedIterations,'iterations',modeled)]
       })) : [])],
       provenanceRecords: records,
     });

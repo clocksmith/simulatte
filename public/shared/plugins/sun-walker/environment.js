@@ -7,7 +7,8 @@
   root.SimulatteSunWalkerEnvironment = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerEnvironment(truthApi) {
   const CELL_SIZE_M = 40;
-  const compiledCache = new WeakMap();
+  const compiledCache = new WeakMap(),compiledWeather = new WeakSet(),weatherSelectionCache = new WeakMap();
+  const MAX_WEATHER_SELECTIONS=4096;
   const truth = () => {
     const api = truthApi || globalThis.SimulatteSunWalkerTruth;
     if (!api?.deepFreeze) throw new Error('sun_walker_truth_dependency_missing');
@@ -40,6 +41,7 @@
       interpolation: dataset.weather.model.interpolation,
     };
     const result = truth().deepFreeze({ dataset, origin, canopy, weather });
+    compiledWeather.add(result.weather);
     worldCache.set(world, result);
     return result;
   }
@@ -143,9 +145,10 @@
     const sameDay = weather.rows.filter((row) => row.observedAt.slice(5, 10) === monthDay);
     const pool = sameDay.length ? sameDay : weather.rows;
     const targetMinutes = target.getUTCHours() * 60 + target.getUTCMinutes();
-    let selected = null;
+    const key=`${monthDay}:${targetMinutes}`,cache=compiledWeather.has(weather)?weatherSelectionCache.get(weather)||new Map():null;
+    let selected = cache?.get(key)||null;
     let selectedDistance = Infinity;
-    for (const row of pool) {
+    for (const row of selected ? [] : pool) {
       const date = new Date(row.observedAt);
       const distance = circularMinuteDistance(targetMinutes, date.getUTCHours() * 60 + date.getUTCMinutes());
       if (!selected || distance < selectedDistance ||
@@ -154,6 +157,7 @@
         selectedDistance = distance;
       }
     }
+    if(cache){cache.set(key,selected);if(cache.size>MAX_WEATHER_SELECTIONS)cache.delete(cache.keys().next().value);weatherSelectionCache.set(weather,cache);}
     const directBeamFactor = weather.factors[selected.skyCode] ?? weather.factors.unknown;
     return {
       participation: true,

@@ -13,31 +13,36 @@
     </label><div class="sun-walk-routes" role="group" aria-label="Route comparison">
       <div class="sun-walk-route"><strong>Shortest walk</strong><span data-route-stats="fastest"></span></div>
       <div class="sun-walk-route"><strong>Your route</strong><span data-route-stats="chosen"></span></div>
-    </div><p class="sun-walk-note" data-route-tradeoff></p><p class="sun-walk-note">Predicted whole-route exposure · modeled buildings and declared canopy</p><p data-walk-message role="status" hidden></p>`;
+    </div><p class="sun-walk-note" data-route-tradeoff></p><p class="sun-walk-note">Predicted whole-route exposure · modeled buildings and declared canopy</p><p data-walk-message role="status" hidden></p><button class="sim-action" type="button" data-cancel-walk hidden>Cancel recalculation</button>`;
     host.before(panel);
     const form=panel.querySelector('form'),message=panel.querySelector('[data-walk-message]');
     const preference=panel.querySelector('input[type=range]');
-    let controls=[],dirty=false,preferenceDirty=false,busy=false;
+    let controls=[],dirty=false,preferenceDirty=false,busy=false,requestSequence=0,preferenceTimer=null,pendingEndpoints=false;
     const on=(node,type,fn)=>node.addEventListener(type,fn,{signal:events.signal});
     function say(text){message.hidden=!text;message.textContent=text;}
-    function setBusy(value){busy=value;for(const e of panel.querySelectorAll('button,select,input'))e.disabled=value;panel.setAttribute('aria-busy',String(value));}
+    function setBusy(value){busy=value;panel.querySelector('[data-cancel-walk]').hidden=!value;panel.setAttribute('aria-busy',String(value));}
     async function apply({endpoints=false}={}) {
-      if(busy)return;
+
+      endpoints=endpoints||pendingEndpoints;
+      pendingEndpoints=endpoints;
       const values=Object.fromEntries(controls.map(row=>[row.id,row.value]));
       if(endpoints){values.originPlace=form.elements.originPlace.value;values.destinationPlace=form.elements.destinationPlace.value;}
-      if(values.originPlace===values.destinationPlace){say('Choose different starting and ending places.');return;}
+      if(values.originPlace===values.destinationPlace){requestSequence++;session.cancel('Invalid route endpoints');pendingEndpoints=false;setBusy(false);say('Choose different starting and ending places.');return;}
+      const requestId=++requestSequence;
       const endpointsChanged=controls.some(row=>['originPlace','destinationPlace'].includes(row.id)&&row.value!==values[row.id]);
       values.directSunWeight=Math.min(100,Number(preference.value)/Math.max(1,100-Number(preference.value)));
       setBusy(true);say('Calculating routes…');
       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-      try {await session.invoke('apply-controls',values);if(endpoints)dirty=false;preferenceDirty=false;if(endpointsChanged)await session.invoke('camera','overview');say('');}
-      catch(error){say(error.message);}
-      finally{setBusy(false);}
+      if(requestId!==requestSequence)return;
+      try {await session.invoke('apply-controls',values);if(requestId!==requestSequence)return;if(endpoints)dirty=false;preferenceDirty=false;if(endpointsChanged)await session.invoke('camera','overview');say('');}
+      catch(error){if(requestId===requestSequence&&error.name!=='AbortError')say(error.message);}
+      finally{if(requestId===requestSequence){pendingEndpoints=false;setBusy(false);}}
     }
     on(form,'change',()=>{dirty=true;});on(form,'submit',event=>{event.preventDefault();void apply({endpoints:true});});
     function showPreference(){const p=Number(preference.value);panel.querySelector('[data-walk-preference-label]').textContent=p===0?'Shortest walk':p===100?'Strongest shade preference':p===50?'Balanced':p<50?'Prefer time':'Prefer shade';}
-    on(preference,'input',()=>{preferenceDirty=true;showPreference();});
-    on(preference,'change',()=>void apply());
+    on(preference,'input',()=>{requestSequence++;if(busy){session.cancel('Superseded route preference');setBusy(false);}preferenceDirty=true;showPreference();clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>void apply(),180);});
+    on(preference,'change',()=>{clearTimeout(preferenceTimer);void apply();});
+    on(panel.querySelector('[data-cancel-walk]'),'click',()=>{requestSequence+=1;clearTimeout(preferenceTimer);session.cancel('Route recalculation cancelled');pendingEndpoints=false;setBusy(false);say('Keeping the current walk.');});
     function update(contribution){
       controls=contribution.controls.controls;
       for(const id of ['originPlace','destinationPlace']){
@@ -58,7 +63,7 @@
       const saved=(Number(value('fastest-sun'))-Number(value('chosen-sun')))/60;
       panel.querySelector('[data-route-tradeoff]').textContent=value('same-route')?'Same route at this preference.':`${extra.toFixed(1)} min longer · ${Math.abs(saved).toFixed(1)} min ${saved>=0?'less':'more'} in direct sun`;
     }
-    return {update,dispose(){events.abort();panel.remove();}};
+    return {update,dispose(){requestSequence+=1;clearTimeout(preferenceTimer);events.abort();panel.remove();}};
   }
   root.SimulatteSunWalkerControls={create};
 })(globalThis);

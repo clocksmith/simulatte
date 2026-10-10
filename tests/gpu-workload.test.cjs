@@ -187,3 +187,34 @@ test('selected rack throughput contributions sum to the cluster over their decla
   sum+=f['throughput-contribution'];}
  assert.ok(Math.abs(sum-contribution.state.measures.find(m=>m.kind==='executed-compute-tflops').value)<1e-8);
 });
+
+test('executed-run comparison replays live actions over the identical interval and preserves configured power',async()=>{
+ const instance=await model.activate({scenario:{id:'gpt4-3d-parallelism',seed:'matched-run'}});
+ instance.handleAction('scenario.run',{values:{phase:'start'}});
+ const noActions=instance.handleAction('counterfactual.compare',{values:{comparisonId:'executed-rack-interventions'}});
+ assert.ok(Object.values(noActions.comparison.differences).every(value=>value===0));
+ instance.handleAction('scenario.intervene',{values:{rackId:'R1-1',slowdown:95}});
+ for(let i=0;i<12;i++)instance.handleAction('scenario.run',{values:{phase:'step'}});
+ const before=instance.handleAction('counterfactual.compare',{values:{comparisonId:'executed-rack-interventions'}});
+ assert.ok(before.comparison.differences.synchronizationWaitingRackMs>0);
+ assert.equal(before.comparison.lastRestorationTimeMs,null);
+ instance.handleAction('scenario.intervene',{values:{rackId:'R1-1',slowdown:0}});
+ let terminal;
+ for(let i=12;i<400;i++)terminal=instance.handleAction('scenario.run',{values:{phase:'step'}});
+ const measured=instance.handleAction('counterfactual.compare',{values:{comparisonId:'executed-rack-interventions'}});
+ const comparison=measured.comparison;
+ assert.equal(measured.scope,'executed-run');
+ assert.equal(comparison.interval.end,terminal.workload.timeMs);
+ assert.deepEqual(comparison.actions,terminal.workload.actions);
+ assert.equal(comparison.branches.intervention.completedIterations,terminal.workload.iteration);
+ assert.ok(Math.abs(comparison.branches.intervention.productiveComputeRackMs-terminal.workload.computeEquivalentMs)<1e-6);
+ assert.ok(comparison.racks.some(rack=>rack.extraWaitingMs>0));
+ assert.ok(comparison.racks.every(rack=>Number.isFinite(rack.afterRestorationAdditionalWaitingMs)));
+ const replay=workload.create(result,comparison.actions,{durationMs:terminal.workload.durationMs});workload.step(replay,terminal.workload.timeMs);
+ assert.ok(Math.abs(workload.snapshot(replay).totalWaitMs-comparison.branches.intervention.synchronizationWaitingRackMs)<1e-6);
+ const contribution=instance.contributeV4();
+ assert.equal(contribution.state.measures.find(row=>row.kind==='facility-power-kw').value,result.thermals.totalFacilityPowerKw);
+ assert.deepEqual(contribution.controls.comparisons.map(row=>row.id),['nominal-vs-degraded-cluster','executed-rack-interventions']);
+ assert.equal(instance.handleAction('counterfactual.compare',{values:{comparisonId:'nominal-vs-degraded-cluster'}}).scope,'configured-scenario');
+ assert.throws(()=>workload.compareExecuted(result,{...terminal.workload,totalWaitMs:terminal.workload.totalWaitMs+1}),/diverges/);
+});

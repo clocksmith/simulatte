@@ -129,13 +129,13 @@
       const tracked=view.getObserver().trackId;$('camera-tracking').hidden=!tracked;setText('camera-subject',tracked?`Following ${tracked}`:'');
       if(lastObserver)setText('observer-time',`${observerCurrent()?'Sample':'Stale; updating'} · ${lastObserver.time.toFixed(2)} s${getTime()-lastObserver.time>.7?' · behind playback':''}${getScene().mistBursts?.length?' · Fictional event run':''}`);
       if(!observerPending&&now>=observerNextAt&&!document.hidden){
-        const observer=view.getObserver(),sampleTime=getTime(),key=JSON.stringify([sampleTime,observer,scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode]);
+        const observer=view.getObserver(),sampleTime=getTime(),selectedTreatmentId=treatments.selectedId(),key=JSON.stringify([sampleTime,observer,scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode,selectedTreatmentId]);
         if(key!==observerKey){
           onMeasurement('pending');
           if(lastObserver&&!observerCurrent()){setText('observer-time','Updating observer or treatment; showing the last completed reading');$('observer-level').title='Updating observer or treatment; showing the last completed reading';}
           observerKey=key;observerPending=true;observerNextAt=now+200;observerStarted=performance.now();
           observerIdentity=measurements.capture(epoch,observerRequest+1,sampleTime,measurements.observerKey(observer),configuration(scene));
-          observerWorker.postMessage({type:'sample',identity:observerIdentity,id:++observerRequest,time:sampleTime,observer,config:scene.config,panel:scene.panel,treatments:scene.treatments,treatmentsEnabled:scene.treatmentsEnabled,treatmentMode:scene.treatmentMode});
+          observerWorker.postMessage({type:'sample',identity:observerIdentity,id:++observerRequest,time:sampleTime,observer,selectedTreatmentId,config:scene.config,panel:scene.panel,treatments:scene.treatments,treatmentsEnabled:scene.treatmentsEnabled,treatmentMode:scene.treatmentMode});
         }
       }
       if(pending||now<nextAt||document.hidden)return;

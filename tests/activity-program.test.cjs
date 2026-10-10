@@ -1,4 +1,9 @@
-const test = require('node:test');
+const nodeTest = require('node:test');
+// Yield between numerical cases so completed subtests reach the stall watchdog.
+const test = (name, body) => nodeTest(name, async context => {
+  await new Promise(setImmediate);
+  return body(context);
+});
 const assert = require('node:assert/strict');
 const lab = require('../public/blank/app/simulation/simulation-lab.js');
 require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
@@ -9,6 +14,50 @@ const WALK = 'a person walking while holding a cup in the left hand';
 const SIT = 'a person sits on a chair, holds a phone in the left hand, and drinks from a cup with the right hand';
 const compile = prompt => lab.createSpecFromPrompt(prompt, { deterministicRuntime: true });
 const walking = compile(WALK), sitting = compile(SIT);
+test('validation detects nested changes in mutable and shallow-frozen imported programs', () => {
+  for (const shallowFreeze of [false, true]) {
+    const program = structuredClone(walking.activityProgram);
+    if (shallowFreeze) Object.freeze(program);
+    physics.validateActivityProgram(program);
+    program.actors[0].height += 0.1;
+    assert.throws(() => physics.validateActivityProgram(program), /identity/);
+  }
+});
+test('fresh execution owns immutable frames and preserves earlier snapshots', () => {
+  const first = lab.createSimulationState(walking);
+  const snapshot = JSON.stringify(first.activity);
+  const next = lab.stepSimulation(first, walking, 1 / 60);
+  assert.equal(JSON.stringify(first.activity), snapshot);
+  assert.equal(next.activity.history[0], first.activity.history[0]);
+  assert.equal(Object.isFrozen(Object.values(next.activity.history[1].actors)[0].joints), true);
+  assert.deepEqual(lab.stepSimulation(lab.createSimulationState(walking), walking, 1 / 60), next);
+});
+test('reused immutable proof prefixes cannot hide a changed earlier frame', () => {
+  let state = lab.createSimulationState(walking);
+  for (let i = 0; i < 4; i++) state = lab.stepSimulation(state, walking, 1 / 60);
+  const original = lab.proveActivitySequence(walking.activityProgram, state.activity);
+  const frame = structuredClone(state.activity.history[2]);
+  Object.values(frame.actors)[0].massKg += 1;
+  const activity = physics.phaseContracts.immutableArtifact({ ...state.activity,
+    history: state.activity.history.map((row, index) => index === 2 ? frame : row) });
+  const changed = lab.proveActivitySequence(walking.activityProgram, activity);
+  assert.ok(original.metrics.massErrorKg < 1e-7);
+  assert.ok(changed.metrics.massErrorKg >= 1);
+  assert.ok(changed.violations.includes('liquid/body mass conservation failed'));
+});
+test('advancing JSON-restored activity takes immutable snapshots of the prior history', () => {
+  const original = lab.createSimulationState(walking);
+  const restored = JSON.parse(JSON.stringify(original));
+  assert.equal(physics.phaseContracts.isOwnedSnapshot(restored.activity.history[0]), false);
+  const next = lab.stepSimulation(restored, walking, 1 / 60);
+  assert.ok(next.activity.history.every(physics.phaseContracts.isOwnedSnapshot));
+  assert.deepEqual(next, lab.stepSimulation(original, walking, 1 / 60));
+  const prior = next.activity.history[0];
+  Object.values(restored.activity.history[0].actors)[0].massKg += 1;
+  assert.deepEqual(prior, original.activity.history[0]);
+  const later = lab.stepSimulation(next, walking, 1 / 60);
+  assert.equal(later.activity.history[0], prior);
+});
 test('managed publication accepts explicitly absent optional proofs but preserves required receipt bindings', () => {
   const { managedProofReceiptForSpec: receipt } = require('../public/blank/app/prompt/prompt-controller-phase-dispatch.js');
   const spec = { contentHash: 'world', authorship: { revision: 2 }, determinism: { requiredClasses: [] }, safety: { status: 'not-declared' } };
@@ -42,7 +91,7 @@ test('ordinary Create compilation preserves eight boundaries, hand spans, and co
     }
     assert.ok(spec.activityProgram.actions.every(action => action.actorId === spec.activityProgram.actors[0].id));
     assert.equal(spec.interactionIR.schema, 'simulatte.interactionIR.v1');
-    assert.equal(spec.activityProgram.schema, 'simulatte.activityProgram.v2');
+    assert.equal(spec.activityProgram.schema, 'simulatte.activityProgram.v3');
     assert.equal(spec.renderProgram.sceneRenderPacket.activityBindings.programHash, spec.activityProgram.contentHash);
   }
 });
@@ -94,7 +143,6 @@ test('repeated locomotion accumulates while unqualified root and ownership trans
   assert.equal(lab.proveActivitySequence(twice.activityProgram, final.activity).pass, true);
   for (const prompt of ['a person sits on a chair then walks',
     'a person holds a cup in the left hand then holds a phone in the left hand',
-    'a person holds a cup in the left hand then drinks from the cup with the left hand',
     'a person places a cup on a table']) {
     const spec = compile(prompt);
     assert.ok(spec.activityProgram.unsupported.length > 0, prompt);
@@ -175,6 +223,24 @@ test('Phase 7 binds all articulated parts and draws snapshot transforms without 
     assert.equal(b.data[i * renderer.GPU_OBJECT_PART_FLOATS + 7], 0);
   }
   assert.notEqual(renderer.simulationEvidenceKey({ simulationState: first }), renderer.simulationEvidenceKey({ simulationState: next }));
+});
+test('placing a cup draws its bottom on the declared tabletop and support legs on the ground', () => {
+  const spec=compile('a person holds a cup in the right hand for 2 seconds then places the cup on a table with the right hand for 2 seconds');
+  const packet=spec.renderProgram.sceneRenderPacket, program=spec.activityProgram;
+  const state={...lab.createSimulationState(spec),activity:physics.evaluateActivityFrame(program,4)};
+  const data=renderer.compileSceneRenderData(packet);
+  const applied=renderer.scenePacketInteractionPartData(data.objectPartData,data.objectParts,packet,state);
+  data.objectParts=data.objectParts.map((part,i)=>{const offset=i*renderer.GPU_OBJECT_PART_FLOATS;
+    return {...part,center:[applied.data[offset],applied.data[offset+1]],size:[applied.data[offset+2],applied.data[offset+3]],rotation:applied.data[offset+4]};});
+  const proof=require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+  const relations=spec.phaseArtifacts.phase6.artifact.compositionLedger.obligations.filter(row=>/^relation:spatial:.*:on:/.test(row.id));
+  assert.ok(relations.length>0);
+  for(const row of relations)assert.equal(proof.visualObligationGeometrySatisfied('',{},row,packet,data),true);
+  const support=program.objects.find(row=>row.kind==='support'),cup=program.objects.find(row=>row.kind==='cup');
+  assert.equal(state.activity.objects[cup.id].position[1]-cup.liquidContainer.heightMeters/2,support.supportHeight);
+  const tableId=packet.activityBindings.bindings.find(row=>row.participantId===support.id).entityId;
+  const bottoms=data.objectParts.filter(part=>part.entityId===tableId).map(part=>part.center[1]+(Math.abs(Math.sin(part.rotation))*part.size[0]+Math.abs(Math.cos(part.rotation))*part.size[1])/2);
+  assert.ok(Math.abs(Math.max(...bottoms)-packet.activityBindings.projection.origin[1])<1e-6);
 });
 
 test('retrieved concepts without source spans cannot become phantom activity participants', () => {
@@ -293,4 +359,39 @@ test('Scene Proof rejects drawing receipts from another program or sequence time
     assert.ok(failed.requiredFailures.some(row => row.obligationId === 'activity:sequence'));
     assert.ok(rows.every(row => failed.settledObligations.find(result => result.obligationId === row.id).status === 'not-proven'));
   }
+});
+
+test('a complete walk, sit, drink, place/release, stand chain retains one cup and passes force/liquid proof',()=>{
+ const prompt='a person walks for 2 seconds then sits on a chair for 2 seconds then drinks from a cup with the right hand for 4 seconds then places the cup on a table with the right hand for 2 seconds then stands for 2 seconds';
+ const spec=compile(prompt),program=spec.activityProgram;
+ assert.deepEqual(program.actions.map(row=>row.action),['walk','sit','drink','place','stand']);
+ assert.equal(program.unsupported.length,0);
+ assert.equal(program.objects.filter(row=>row.kind==='cup').length,1);
+ assert.equal(spec.universeGraph.nodes.filter(row=>row.visualArchetype==='cup').length,1);
+ assert.ok(!spec.universeGraph.nodes.some(row=>row.unresolved));
+ const state=run(spec),proof=lab.proveActivitySequence(program,state.activity);
+ assert.equal(proof.pass,true,JSON.stringify(proof));
+ assert.equal(proof.coverage.forcesValidated,true);assert.equal(proof.coverage.liquidTransferValidated,true);
+ const place=program.actions.find(row=>row.action==='place'),cup=program.objects.find(row=>row.kind==='cup');
+ const before=state.activity.history.find(frame=>frame.time>place.startSeconds&&frame.time<place.releaseSeconds);
+ assert.equal(before.objects[cup.id].owner.hand,'right');
+ const released=state.activity.history.find(frame=>frame.time>place.releaseSeconds);
+ assert.equal(released.objects[cup.id].owner,null);assert.equal(released.objects[cup.id].supportObjectId,place.supportObjectId);
+ assert.deepEqual(state.activity.objects[cup.id].position,released.objects[cup.id].position,'Standing must not move the released cup');
+ assert.equal(state.activity.actors[program.actors[0].id].supportObjectId,null);
+ const imported=lab.deserializeSpec(lab.serializeSpec(spec,{retainPhaseSources:true}));
+ assert.equal(imported.activityProgram.contentHash,program.contentHash);
+ assert.deepEqual(run(imported).activity,state.activity);
+ for(const corrupt of [a=>{a.history.at(-1).objects[cup.id].supportObjectId=null;},a=>{a.history.at(-1).objects[cup.id].position[1]+=.1;}]){
+   const copy=structuredClone(state.activity);corrupt(copy);assert.equal(lab.proveActivitySequence(program,copy).pass,false);
+ }
+});
+
+test('complete transition histories stay available past the former 1024-frame truncation',()=>{
+ const spec=compile('a person walks for 4 seconds then sits on a chair for 4 seconds then holds a phone in the right hand for 4 seconds then places the phone on a table with the right hand for 4 seconds then stands for 4 seconds');
+ const state=run(spec);
+ assert.ok(state.activity.history.length>1024);assert.equal(state.activity.historyTruncated,false);
+ assert.equal(lab.proveActivitySequence(spec.activityProgram,state.activity).pass,true);
+ const stand=spec.activityProgram.actions.at(-1),samples=state.activity.history.filter(frame=>frame.time>=stand.startSeconds);
+ assert.ok(samples.at(-1).actors[stand.actorId].joints.pelvis[1]>samples[0].actors[stand.actorId].joints.pelvis[1]+.1);
 });

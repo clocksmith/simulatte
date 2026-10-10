@@ -8,7 +8,10 @@
     subscribe = (handler) => parentPort.on('message', handler);
     send = (message, transferables) => parentPort.postMessage(message, transferables);
   } else {
-    importScripts('../../shared/plugins/gpu-supercluster/collective-solver.js', '../../shared/plugins/gpu-supercluster/thermal-model.js', '../../shared/plugins/gpu-supercluster/multiscale-modules.js', './simulation-task-operations.js');
+    importScripts('../../shared/plugins/gpu-supercluster/collective-solver.js', '../../shared/plugins/gpu-supercluster/thermal-model.js', '../../shared/plugins/gpu-supercluster/multiscale-modules.js', '../../shared/deterministic-values.js', './ambient-actors.js', './world-model.js',
+      '../../shared/plugins/sun-walker/truth.js', '../../shared/plugins/sun-walker/sun-exposure.js',
+      '../../shared/plugins/sun-walker/environment.js', '../../shared/plugins/sun-walker/shade-router.js',
+      '../../shared/plugins/sun-walker/sun-route-simulation.js', './simulation-task-operations.js');
     operations = self.SimulatteSimulationTaskOperations;
     subscribe = (handler) => self.addEventListener('message', (event) => handler(event.data));
     send = (message, transferables) => self.postMessage(message, transferables);

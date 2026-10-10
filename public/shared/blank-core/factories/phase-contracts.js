@@ -329,12 +329,25 @@ export default function createPhaseContractsApi() {
   // Freezing a caller's object does not establish serializability or deep immutability.
   const ownedSnapshots = new WeakSet();
   const snapshotDigests = new WeakMap();
+  const snapshotJson = new WeakMap();
+  const cleanForbiddenSnapshots = new WeakMap();
   const RENDER_PROOF_RECEIPTS = Object.freeze(['intentReceipt', 'semanticReceipt', 'compilerDeterminismReceipt',
     'simulationReproducibilityReceipt', 'safetyReceipt', 'replayBaseline']);
 
   function canonicalJson(value) {
     if ('toJSON' in Object.prototype || 'toJSON' in Array.prototype) throw new Error('Inherited serialization hooks are not permitted');
-    return JSON.stringify(immutableArtifact(value));
+    function serialize(snapshot) {
+      if (snapshot === null || typeof snapshot !== 'object') return JSON.stringify(snapshot);
+      if (snapshotJson.has(snapshot)) return snapshotJson.get(snapshot);
+      const text = Array.isArray(snapshot)
+        ? `[${snapshot.map(serialize).join(',')}]`
+        : `{${Object.keys(snapshot).map(key => `${JSON.stringify(key)}:${serialize(snapshot[key])}`).join(',')}}`;
+      // Reuse only library-owned immutable data. Bound retained strings so
+      // growing histories do not retain every serialized prefix in memory.
+      if (text.length <= 16384) snapshotJson.set(snapshot, text);
+      return text;
+    }
+    return serialize(immutableArtifact(value));
   }
 
   function immutableArtifact(value) {
@@ -544,16 +557,27 @@ export default function createPhaseContractsApi() {
     const paths = forbiddenRows
       .filter((field) => field.includes('.'))
       .map((field) => ({ field, parts: field.split('.') }));
-    const stack = [value];
+    const cacheKey = JSON.stringify(forbiddenRows);
+    const stack = [{ value, finish: false }];
     const seen = new WeakSet();
     while (stack.length) {
-      const current = stack.pop();
+      const item = stack.pop(), current = item.value;
+      if (item.finish) {
+        if (ownedSnapshots.has(current)) {
+          const checked = cleanForbiddenSnapshots.get(current) || new Set();
+          if (checked.size < 8) checked.add(cacheKey);
+          cleanForbiddenSnapshots.set(current, checked);
+        }
+        continue;
+      }
       if (!current || typeof current !== 'object' || seen.has(current)) continue;
+      if (ownedSnapshots.has(current) && cleanForbiddenSnapshots.get(current)?.has(cacheKey)) continue;
       seen.add(current);
+      stack.push({ value: current, finish: true });
       for (const key of Object.keys(current)) {
         if (names.has(key)) return key;
         const child = current[key];
-        if (child && typeof child === 'object') stack.push(child);
+        if (child && typeof child === 'object') stack.push({ value: child, finish: false });
       }
       for (const path of paths) {
         if (pathPresentAt(current, path.parts)) return path.field;
@@ -610,6 +634,7 @@ export default function createPhaseContractsApi() {
     BOUND_OUTPUT_SCHEMAS,
     canonicalJson,
     immutableArtifact,
+    isOwnedSnapshot: value => value !== null && typeof value === 'object' && ownedSnapshots.has(value),
     RENDER_PROOF_RECEIPTS,
     artifactDigest,
     createRequestEnvelope,

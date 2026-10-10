@@ -70,6 +70,7 @@
               groundedInterpretation,
               languageGraph,
             });
+          scope.bindActivityParticipantIdentities(phase3Output.artifact.retrievalRerankResult.activityRetrieval, acceptedGraph);
           const rejectedGraph = rejectedGraphFromGrounding(acceptedGraph, groundingEvidence, groundedInterpretation);
           const compositionLedger = scope.advanceCompositionLedger(
             settleUnresolvedParticipants(activationCloud.compositionLedger ||

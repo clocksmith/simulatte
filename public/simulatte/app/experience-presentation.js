@@ -59,7 +59,7 @@
       stageLabel: stage.label,
       timelineLabel: experience.timelineLabel,
       progress,
-      comparison: comparisonStatus(experience.comparisonMode, runState, comparisonReceipts),
+      comparison: comparisonStatus(experience.comparisonMode, runState, comparisonReceipts, primary?.comparisons || []),
       stats: Object.freeze(stats),
       measurementContext: measures.find(row => row.measurement)?.measurement.context || 'Modeled results at the current simulation time.',
       statDefinitions: Object.fromEntries(measures.filter(row => row.measurement).map(row => [row.measurement.label, measurementDefinition(row)])),
@@ -109,9 +109,11 @@
     return null;
   }
 
-  function comparisonStatus(mode, runState, receipts) {
+  function comparisonStatus(mode, runState, receipts, definitions = []) {
     if (mode === 'none') return null;
     const settled = receipts.filter((receipt) => receipt?.schema === 'simulatte.comparisonExecutionReceipt.v4').length;
+    const scopes=[...new Set(definitions.map(row=>String(row.label||'').split(':')[0]).filter(label=>['Configured scenario','Executed run','Current observation'].includes(label)))];
+    if(scopes.length)return scopes.join(' · ')+(settled?`; ${settled} comparison${settled===1?'':'s'} complete`:'; comparisons settle after both branches complete');
     if (settled) return `${settled} synchronized comparison${settled === 1 ? '' : 's'} settled`;
     if (runState === 'completed' || runState === 'settled') return 'Comparison evidence unavailable';
     if (runState === 'running' || runState === 'paused') return 'Comparison settles after both branches complete';

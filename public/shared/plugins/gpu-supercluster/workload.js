@@ -107,5 +107,38 @@
       totalWaitMs: state.totalWaitMs, computeEquivalentMs: state.computeEquivalentMs, actions: state.actions.map(a => ({ ...a })),
       racks: state.racks.map(r => ({ ...r, waitingFor: [...r.waitingFor] })) };
   }
-  return Object.freeze({ create, step, intervene, snapshot, STEP_MS, DURATION_MS, TOTAL_STEPS });
+  function compareExecuted(result, observed) {
+    if (!observed || !Array.isArray(observed.actions) || !Array.isArray(observed.racks) || !Number.isFinite(observed.durationMs) || !Number.isFinite(observed.timeMs) || observed.timeMs < 0 || observed.timeMs > observed.durationMs) throw Error('Invalid executed comparison interval');
+    const actions=observed.actions.filter(action=>action.atMs<=observed.timeMs);
+    const replay=(history,time)=>{const state=create(result,history,{durationMs:observed.durationMs});if(time>0)step(state,time);return snapshot(state);};
+    const baseline=replay([],observed.timeMs),intervention=replay(actions,observed.timeMs);
+    if(intervention.iteration!==observed.iteration || Math.abs(intervention.totalWaitMs-observed.totalWaitMs)>1e-6 ||
+      Math.abs(intervention.computeEquivalentMs-observed.computeEquivalentMs)>1e-6) throw Error('Executed comparison diverges from observed workload');
+    for (const key of ['iteration','totalWaitMs','computeEquivalentMs']) {
+      if(!Number.isFinite(observed[key]))throw Error('Invalid observed workload metric');
+    }
+    if(observed.racks.length!==intervention.racks.length)throw Error('Executed rack inventory diverges');
+    for(const [i,rack] of intervention.racks.entries()) {
+      const actual=observed.racks[i];
+      if(actual.id!==rack.id)throw Error('Executed rack identity diverges');
+      for(const key of ['waitMs','productiveMs','communicationMs','slowdownLossMs']) {
+        if(!Number.isFinite(actual[key])||Math.abs(actual[key]-rack[key])>1e-6)throw Error('Executed rack metric diverges');
+      }
+    }
+    const restoration=actions.filter(action=>action.slowdown===0).at(-1)?.atMs ?? null;
+    const baseRestore=restoration===null?null:replay([],restoration),variantRestore=restoration===null?null:replay(actions,restoration);
+    const metrics=sample=>({completedIterations:sample.iteration,productiveComputeRackMs:sample.computeEquivalentMs,
+      communicationRackMs:sample.racks.reduce((sum,rack)=>sum+rack.communicationMs,0),synchronizationWaitingRackMs:sample.totalWaitMs});
+    const branches={baseline:metrics(baseline),intervention:metrics(intervention)};
+    const differences=Object.fromEntries(Object.keys(branches.baseline).map(key=>[key,branches.intervention[key]-branches.baseline[key]]));
+    return {schema:'simulatte.executedClusterComparison.v1',scope:'executed-run',interval:{start:0,end:observed.timeMs,unit:'ms'},
+      startingConfiguration:JSON.stringify(result.config),actions:actions.map(action=>({...action})),branches,differences,
+      lastRestorationTimeMs:restoration,
+      racks:intervention.racks.map((rack,i)=>({id:rack.id,extraWaitingMs:rack.waitMs-baseline.racks[i].waitMs,
+        additionalComputeLossMs:rack.slowdownLossMs-baseline.racks[i].slowdownLossMs,
+        afterRestorationAdditionalWaitingMs:restoration===null?null:(rack.waitMs-variantRestore.racks[i].waitMs)-(baseline.racks[i].waitMs-baseRestore.racks[i].waitMs)})),
+      claimBoundary:'Same configured workload, duration and initial rack state; variant replays timestamped live actions, baseline omits them. Rack milliseconds sum across racks. Facility power and temperature are separate configured steady-state estimates.',
+    };
+  }
+  return Object.freeze({ create, step, intervene, snapshot, compareExecuted, STEP_MS, DURATION_MS, TOTAL_STEPS });
 });

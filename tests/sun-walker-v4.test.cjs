@@ -235,12 +235,21 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   rows.world.nodes = [{id:'a',label:'Start',landmark:true},{id:'b',label:'Park',landmark:true},{id:'c',label:'Square',landmark:true}];
   rows.world.segments = rows.routes.map(route=>({...rows.worldModel.segment(route.segmentIds[0]),fromNodeId:'a',toNodeId:'b',allowedModes:['pedestrian']}));
   rows.world.segments.push(...['b:c','c:b'].map(id=>({id,fromNodeId:id[0],toNodeId:id[2],allowedModes:['pedestrian'],lengthM:50,geometry:[{x:100,y:0},{x:150,y:0}]})));
+  rows.world.signals=[]; rows.world.actors=[]; rows.world.disruptions=[];
   rows.worldModel = {world:rows.world,segment:id=>rows.world.segments.find(row=>row.id===id),outgoing:id=>rows.world.segments.filter(row=>row.fromNodeId===id),blockedSegmentIds:()=>[]};
   let reducer = null;
   let state = null;
   const receipts = [];
   const proposed = [];
+  const compute = require('../public/simulatte/platform/plugin-host/plugin-compute.js').createComputePort({
+    taskOperations:['sun-walker.prepare/v1'],
+    createTaskPool:()=>require('../public/shared/core/simulation/worker-task-pool.js').createWorkerTaskPool({
+      WorkerClass:require('node:worker_threads').Worker,
+      workerUrl:require('node:path').resolve(__dirname,'../public/simulatte/world/simulation-task-worker.js'),
+    }),
+  }).forPlugin('sun-walker');
   const sdk = {
+    compute,
     worldQuery: { snapshot: () => rows.world, model: () => rows.worldModel },
     datasets: {
       require: (id) => {
@@ -416,6 +425,17 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.equal(instance.contributeV4(),accepted,'Invalid endpoints must leave the accepted simulation intact');
   instance.handleAction('scenario.run',{values:{phase:'start',originPlace:'Square',destinationPlace:'Park'}});
   assert.equal(instance.contributeV4().controls.controls.find(row=>row.id==='originPlace').value,'Square');
+  const beforePreparation = state.simulation;
+  const replacement = await instance.handleAction('sun-walker.prepare-route',{values:{requestId:'endpoint-worker',originPlace:'Start',destinationPlace:'Square',directSunWeight:0}});
+  assert.equal(state.simulation,beforePreparation,'Worker preparation must not mutate the accepted walk');
+  const workerResult = instance.handleAction('sun-walker.accept-preview',{values:{previewId:replacement.id}});
+  assert.equal(workerResult.simulationId,replacement.simulationId);
+  assert.equal(instance.contributeV4().controls.controls.find(row=>row.id==='originPlace').value,'Start');
+  assert.equal(instance.contributeV4().controls.controls.find(row=>row.id==='destinationPlace').value,'Square');
+  const expected = simulationApi.simulate({world:rows.world,worldModel:rows.worldModel,mission:sdk.routing.resolveMission('Walk from Start to Square'),mode:'pedestrian',
+    departureAt:state.simulation.departureAt,config:{...config,...state.simulation.modelReceipt.parameters},seed:'lifecycle-seed',
+    buildingReceipt:sdk.datasets.receipt('world.buildings.v1'),governance,governanceReceipt:sdk.datasets.receipt(governance.id),environment,environmentReceipt:sdk.datasets.receipt(environment.id)});
+  assert.deepEqual(state.simulation,expected,'Real worker results must equal serial domain execution');
 
 });
 

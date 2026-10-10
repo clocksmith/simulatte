@@ -7,27 +7,36 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
+const files = ['public/blank/pipeline/phase-05-simulation/simulatte-activity-liquid.js',
+  'public/blank/pipeline/phase-05-simulation/simulatte-activity-dynamics.js',
+  'public/blank/pipeline/phase-08-scene-proof/simulatte-activity-dynamics-proof.js'];
+const sourceHashes = () => files.map(file => ({ file,
+  sha256: crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex') }));
+const sources = sourceHashes();
 const lab = require('../public/blank/app/simulation/simulation-lab.js');
 const physics = globalThis.SimulattePhaseModuleRegistry.family('physicsModel');
 const prompt = 'a person sits on a chair, holds a phone in the left hand, and drinks from a cup with the right hand';
 const base = lab.createSpecFromPrompt(prompt, { deterministicRuntime: true }).activityProgram;
 function execute(liquidCells, maxStepSeconds) {
-  const program = structuredClone(base);
+  let program = structuredClone(base);
   program.dynamics.liquidCells = liquidCells; program.dynamics.maxStepSeconds = maxStepSeconds;
   program.contentHash = physics.activityProgramHash(program);
+  program = physics.phaseContracts.immutableArtifact(program);
   let state = physics.withActivityState({}, program);
   for (let i = 0; i < 241; i++) state = physics.stepActivityState(state, program, 1 / 60);
   const proof = lab.proveActivitySequence(program, state.activity);
   assert.equal(proof.pass, true, JSON.stringify(proof));
+  console.log(JSON.stringify({cells:liquidCells,dt:maxStepSeconds,sipKg:proof.metrics.consumedMassKg}));
   return { programHash: program.contentHash, liquidCells, maxStepSeconds, proof,
     maxGripForceNewtons: Math.max(...state.activity.history.map(f => f.dynamics.maxGripForceNewtons)),
     maxGripTorqueNewtonMeters: Math.max(...state.activity.history.map(f => f.dynamics.maxGripTorqueNewtonMeters)),
     maxSupportForceNewtons: Math.max(...state.activity.history.map(f => f.dynamics.maxSupportForceNewtons)) };
 }
 const temporal = [1 / 120, 1 / 240, 1 / 480].map(dt => execute(128, dt));
-const spatial = [32, 64, 128].map(cells => execute(cells, 1 / 240));
+const spatial = [320, 640, 1280, 2560].map(cells => execute(cells, 1 / 240));
 const differences = rows => rows.slice(1).map((row, i) => Math.abs(row.proof.metrics.consumedMassKg - rows[i].proof.metrics.consumedMassKg));
 const temporalDifferencesKg = differences(temporal), spatialDifferencesKg = differences(spatial);
+console.log(JSON.stringify({temporal:temporal.map(r=>({dt:r.maxStepSeconds,sipKg:r.proof.metrics.consumedMassKg})),temporalDifferencesKg,spatial:spatial.map(r=>({cells:r.liquidCells,sipKg:r.proof.metrics.consumedMassKg})),spatialDifferencesKg}));
 assert.ok(temporalDifferencesKg[1] < temporalDifferencesKg[0]);
 assert.ok(spatialDifferencesKg[1] < spatialDifferencesKg[0]);
 assert.ok(temporalDifferencesKg[1] < 0.001);
@@ -48,9 +57,23 @@ function damBreak(cells) {
   assert.ok(volumeErrorCubicMeters < 1e-12);
   return { cells, l1DepthErrorMeters, volumeErrorCubicMeters, maxCfl: result.maxCfl };
 }
-const ritter = [32, 64, 128].map(damBreak);
+const ritter = [64, 128, 256, 512].map(damBreak);
 assert.ok(ritter[1].l1DepthErrorMeters < ritter[0].l1DepthErrorMeters);
 assert.ok(ritter[2].l1DepthErrorMeters < ritter[1].l1DepthErrorMeters);
+const containerCases = [
+  {widthMeters:.08,heightMeters:.12,depthMeters:.08,fillFraction:.4},
+  {widthMeters:.12,heightMeters:.15,depthMeters:.1,fillFraction:.65},
+  {widthMeters:.06,heightMeters:.1,depthMeters:.06,fillFraction:.3},
+].map(container => {
+  const environment={angleRadians:.18,acceleration:[.5,.2],position:[0,0],velocity:[0,0],angularVelocity:0,angularAcceleration:0,mouth:null};
+  const coarse=physics.stepActivityLiquid(physics.createActivityLiquid(container,256),container,environment,.12,base.dynamics);
+  const fine=physics.stepActivityLiquid(physics.createActivityLiquid(container,512),container,environment,.12,base.dynamics);
+  const volumeErrorCubicMeters=Math.abs(fine.initialVolumeCubicMeters-fine.remainingVolumeCubicMeters-fine.spilledVolumeCubicMeters);
+  const l1DepthErrorMeters=coarse.depthMeters.reduce((sum,h,i)=>sum+Math.abs(h-(fine.depthMeters[2*i]+fine.depthMeters[2*i+1])/2),0)/256;
+  const relativeDepthError=l1DepthErrorMeters/(container.heightMeters*container.fillFraction);
+  assert.ok(volumeErrorCubicMeters<1e-12);assert.ok(relativeDepthError<.05);
+  return {container,environment,seconds:.12,grids:[256,512],volumeErrorCubicMeters,l1DepthErrorMeters,relativeDepthError};
+});
 const stationary = lab.createSpecFromPrompt('a person holds a phone in the left hand', { deterministicRuntime: true });
 let steady = lab.createSimulationState(stationary);
 for (let i = 0; i < 60; i++) steady = lab.stepSimulation(steady, stationary, 1 / 60);
@@ -62,14 +85,18 @@ assert.ok(Math.abs(receipt.objectImpulses[object.id].constraint[1] / dt - gripRe
 assert.ok(Math.abs(receipt.actorImpulses[actor.id].support[1] / dt - supportReferenceNewtons) < 1e-9);
 const runtimeIdentity = fs.readFileSync(path.join(root, 'public/blank/index.html'), 'utf8')
   .match(/name="simulatte-runtime-source" content="([^"]+)"/)?.[1];
-const files = ['public/blank/pipeline/phase-05-simulation/simulatte-activity-liquid.js',
-  'public/blank/pipeline/phase-05-simulation/simulatte-activity-dynamics.js',
-  'public/blank/pipeline/phase-08-scene-proof/simulatte-activity-dynamics-proof.js'];
-const sources = files.map(file => ({ file, sha256: crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex') }));
-const report = { schema: 'simulatte.activityDynamicsQualification.v1', runtimeIdentity, sources, prompt,
-  references: { stationary: { gripReferenceNewtons, supportReferenceNewtons }, ritter }, temporal, spatial,
+assert.deepEqual(sourceHashes(), sources, 'Numerical sources changed during qualification');
+const refinementBudget = {relativeSipChange:0.05,absoluteSipChangeKg:0.001,scope:'Numerical stability for inspecting modeled activity, not empirical sip prediction'};
+const qualifiedDefaultGrid=spatial.find(row=>row.liquidCells===base.dynamics.liquidCells);
+const refinedGrid=spatial.find(row=>row.liquidCells===base.dynamics.liquidCells*2);
+const defaultGridChangeKg=Math.abs(qualifiedDefaultGrid.proof.metrics.consumedMassKg-refinedGrid.proof.metrics.consumedMassKg);
+console.log(JSON.stringify({spatial:spatial.map(row=>({cells:row.liquidCells,sipKg:row.proof.metrics.consumedMassKg})),defaultGridChangeKg}));
+assert.ok(defaultGridChangeKg/refinedGrid.proof.metrics.consumedMassKg<=refinementBudget.relativeSipChange,'Default liquid grid exceeds relative refinement budget');
+assert.ok(defaultGridChangeKg<=refinementBudget.absoluteSipChangeKg,'Default liquid grid exceeds absolute refinement budget');
+const report = {refinementBudget,defaultGridChangeKg, schema: 'simulatte.activityDynamicsQualification.v1', runtimeIdentity, sources, prompt,
+  references: { containerCases, stationary: { gripReferenceNewtons, supportReferenceNewtons }, ritter }, temporal, spatial,
   convergence: { temporalDifferencesKg, spatialDifferencesKg,
-    finestGridChangeRelative: spatialDifferencesKg[1] / spatial.at(-1).proof.metrics.consumedMassKg },
+    finestGridChangeRelative: spatialDifferencesKg.at(-1) / spatial.at(-1).proof.metrics.consumedMassKg },
   scope: 'Numerical qualification of declared planar driven bodies and hydrostatic depth-averaged liquid. No empirical calibration, 3D fluid validation or COSMI inference.' };
 const output = path.join(root, 'artifacts/activity-program/dynamics-qualification.json');
 fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, `${JSON.stringify(report, null, 2)}\n`);

@@ -11,7 +11,7 @@ const arg=(name,fallback='')=>process.argv.includes(name)?process.argv[process.a
 const out=path.resolve(root,arg('--out','artifacts/sunwalker/20261005-routing'));
 await fs.mkdir(out,{recursive:true});
 const report={observedAt:new Date().toISOString(),sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),sourceHashes:{},runs:[]};
-for(const file of ['public/simulatte/app/city-plugin-session.js','public/simulatte/app/webgpu-renderer.js','public/simulatte/app/plugin-actor-motion.js','public/simulatte/app/plugin-presentation.js','public/simulatte/app/camera-controller.js','public/simulatte/app/sun-walker-controls.js','public/shared/plugins/sun-walker/plugin.json','public/world-tiers.css'])
+for(const file of ['public/simulatte/app/city-plugin-session.js','public/simulatte/app/webgpu-renderer.js','public/simulatte/app/plugin-actor-motion.js','public/simulatte/app/plugin-presentation.js','public/simulatte/app/camera-controller.js','public/simulatte/app/sun-walker-controls.js','public/shared/plugins/sun-walker/plugin.json','public/shared/plugins/sun-walker/shade-router.js','public/shared/plugins/sun-walker/sun-route-simulation.js','public/simulatte/app/main.js','public/simulatte/world/simulation-task-worker.js','public/simulatte/world/simulation-task-operations.js','public/simulatte/platform/plugin-host/plugin-compute.js','public/world-tiers.css'])
   report.sourceHashes[file]=crypto.createHash('sha256').update(await fs.readFile(path.join(root,file))).digest('hex');
 
 try {
@@ -24,7 +24,7 @@ try {
       if(result.exceptionDetails)throw new Error(result.exceptionDetails.exception?.description||result.exceptionDetails.text);
       return result.result.value;
     };
-    const wait=async expression=>{const start=Date.now();while(!(await evaluate(expression))){if(Date.now()-start>60000)throw new Error(`Timed out: ${expression}`);await new Promise(r=>setTimeout(r,100));}};
+    const wait=async expression=>{const start=Date.now();while(!(await evaluate(expression))){if(Date.now()-start>150000)throw new Error(`Timed out: ${expression}`);await new Promise(r=>setTimeout(r,100));}};
     const click=selector=>evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);
     const capture=async name=>{
       const filename=`${viewport.width}-${name}.png`;
@@ -93,6 +93,13 @@ try {
       assert.equal(await evaluate(`SimulatteActiveSession.snapshot().execution`),'running');
       run.checks.push('slider preserves pause and camera subject; resume works; draft endpoints remain unapplied; pause, resume and camera changes during rebuild win');
       await preference(50);
+      const kept=await evaluate(`__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='sun-walker').controls.controls.find(c=>c.id==='destinationPlace').value`);
+      await evaluate(`(()=>{const slider=document.querySelector('[aria-label="Time versus shade"]');slider.value=85;slider.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+      assert.equal(await evaluate(`document.querySelector('[aria-label="Time versus shade"]').disabled`),false);
+      await click('[data-cancel-walk]');
+      assert.equal(await evaluate(`__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='sun-walker').controls.controls.find(c=>c.id==='destinationPlace').value`),kept);
+      run.checks.push('controls stay usable during preparation; Cancel retains the accepted route');
+      await preference(50);
       await evaluate(`(()=>{const select=document.querySelector('[name=destinationPlace]');select.value='Tompkins Square';select.dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('.sun-walk-endpoints').requestSubmit()})()`);
       await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-walk-message]').hidden`);
       run.changedCards=await evaluate(`document.querySelector('.sun-walk-routes').innerText`);
@@ -114,4 +121,5 @@ try {
     } catch(error) {run.pass=false;run.error=error.stack;run.failure=await evaluate(`({controls:document.querySelector('.sun-walk-controls')?.innerText,error:globalThis.__simulatteLastFailError?.message||'',phase:document.body.dataset.journeyPhase})`);await capture('failure');throw error;}
     finally {await browser.close();}
   }
+  for(const [file,hash]of Object.entries(report.sourceHashes))assert.equal(crypto.createHash('sha256').update(await fs.readFile(path.join(root,file))).digest('hex'),hash,'Source changed during browser audit: '+file);
 } finally {await fs.writeFile(path.join(out,'browser.json'),JSON.stringify(report,null,2)+'\n');}

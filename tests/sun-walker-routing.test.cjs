@@ -78,3 +78,40 @@ test('unknown geometry cannot become a cheap substitute for verified shade',()=>
   const result=run(w,100,s=>({travelSeconds:s.lengthM,directSunSeconds:0,unknownSeconds:s.id==='missing'?10:0}));
   assert.deepEqual(result.selected.segmentIds,['shade']);
 });
+
+test('bounded cyclic graphs match an independent exhaustive reference at coarse and fine bucket widths',()=>{
+ let seed=87;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/2**32;};
+ for(let fixtureId=0;fixtureId<12;fixtureId++){
+  const nodes=['A','C','D','E','B'],edges=[['direct','A','B',7,3]];
+  for(const a of nodes.filter(n=>n!=='B'))for(const b of nodes.filter(n=>n!=='A'))if(a!==b&&random()<.55)edges.push([a+b,a,b,1+Math.floor(random()*4),Math.floor(random()*3)]);
+  const world=fixture(edges),evaluate=(s,t)=>({travelSeconds:s.lengthM,directSunSeconds:(Math.floor(t/3)+s.sun)%2?s.lengthM:0,unknownSeconds:s.id==='CE'?s.lengthM:0});
+  for(const weight of [1,5,20]){
+   let reference=Infinity;
+   function enumerate(node,seen,time,cost){if(node==='B'){reference=Math.min(reference,cost);return;}for(const edge of world.outgoing(node))if(!seen.has(edge.toNodeId)){const q=evaluate(edge,time);enumerate(edge.toNodeId,new Set([...seen,edge.toNodeId]),time+edge.lengthM,cost+q.travelSeconds+weight*(q.directSunSeconds+q.unknownSeconds)+2*q.unknownSeconds);}}
+   enumerate('A',new Set(['A']),0,0);
+   for(const timeBucketSeconds of [.01,1000])assert.equal(run(world,weight,evaluate,{timeBucketSeconds}).receipt.objective,reference,`Fixture ${fixtureId}, weight ${weight}, bucket ${timeBucketSeconds}`);
+  }
+ }
+});
+
+test('temporal approximation exposes cost regret and retains path-dependent legal continuations',()=>{
+ const w=fixture([['early','A','C',5,0],['via','A','D',3,0],['later','D','C',3,0],['finish','C','B',2,0],['direct','A','B',10,0]]);
+ const evaluate=(s,t)=>({travelSeconds:s.lengthM,directSunSeconds:s.id==='finish'&&t<5.5?2:0,unknownSeconds:0});
+ const exact=run(w,10,evaluate),rows=[10,1,.1,.01].map(timeBucketSeconds=>run(w,10,evaluate,{timeBucketSeconds,coalesceArrivalTimes:true}));
+ assert.equal(exact.receipt.objective,8);
+ assert.ok(rows[0].receipt.objective>exact.receipt.objective,'Coarse timing can lose a better route and must not claim exact optimality');
+ assert.equal(rows.at(-1).receipt.objective,exact.receipt.objective);
+ assert.ok(rows.every(row=>row.receipt.precision==='bucketed-approximation'));
+ const prefixes=fixture([['ax','A','X',1,0],['xc','X','C',2,0],['ay','A','Y',1,1],['yc','Y','C',2,0],['cx','C','X',1,0],['xb','X','B',1,0]]);
+ assert.deepEqual(run(prefixes,2,(s,t)=>({travelSeconds:s.lengthM,directSunSeconds:s.id==='xb'&&t<4?10:s.sun,unknownSeconds:0}),{timeBucketSeconds:1,coalesceArrivalTimes:true}).selected.segmentIds,['ay','yc','cx','xb']);
+});
+
+test('the declared production beam reports pruning and never applies to the exact reference',()=>{
+ const w=fixture([['ax','A','X',1,0],['xc','X','C',2,0],['ay','A','Y',1,1],['yc','Y','C',2,0],['cx','C','X',1,0],['xb','X','B',1,0]]);
+ const evaluate=(s,t)=>({travelSeconds:s.lengthM,directSunSeconds:s.id==='xb'&&t<4?10:s.sun,unknownSeconds:0});
+ const capped=run(w,2,evaluate,{timeBucketSeconds:.1,coalesceArrivalTimes:true,maximumLabelsPerNode:1});
+ assert.ok(capped.receipt.beamPrunedLabels>0);assert.equal(capped.receipt.maximumLabelsPerNode,1);
+ assert.equal(capped.receipt.precision,'bucketed-approximation');
+ const exact=run(w,2,evaluate,{maximumLabelsPerNode:1});
+ assert.equal(exact.receipt.beamPrunedLabels,0);assert.deepEqual(exact.selected.segmentIds,['ay','yc','cx','xb']);
+});

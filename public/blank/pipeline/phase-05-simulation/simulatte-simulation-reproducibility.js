@@ -59,7 +59,9 @@
         accumulatedSeconds += elapsedSeconds;
         const available = Math.floor((accumulatedSeconds + stepSeconds * 1e-9) / stepSeconds);
         // Retain excess work as debt instead of changing the simulation timestep.
-        const steps = Math.min(available, 64);
+        // Fine-grid activity integration must yield between fixed steps so
+        // accumulated playback debt cannot monopolize the browser event loop.
+        const steps = Math.min(available, currentSpec.activityProgram?.version >= 3 ? 1 : 64);
         for (let index = 0; index < steps; index += 1) {
           state = scope.stepSimulation(state, currentSpec, stepSeconds);
           accumulatedSeconds = Math.max(0, accumulatedSeconds - stepSeconds);

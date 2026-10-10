@@ -44,10 +44,10 @@ NVLink bandwidth reference: [NVIDIA Hopper tuning guide](https://docs.nvidia.com
 ## What does the user see?
 
 - Initial view: 32 rack glyphs placed at the model coordinates, with inter-rack connections.
-- During execution: rack colors and labels show the computed rack temperature; playback reveals the computation, exchange, and cooling stages.
-- Selection and inspection: Per-rack power draw, junction temperatures, NVLink bandwidth, and MFU efficiency.
-- Final settlement: Total step latency ($ms$), effective cluster TFLOPS, PUE, and immutable simulation receipts.
-- Comparison view: Baseline and intervention runs expose timing, thermal, network, and utilization differences.
+- During execution: rack colors distinguish computing, communicating, and waiting. The configured thermal estimate remains separate from live workload execution.
+- Selection and inspection: current dependencies, additional waiting, productive compute, completed iterations, and consequences after restoration; detailed configured thermal and network quantities remain inspectable.
+- Final settlement: completed iterations and accumulated compute, communication and waiting, alongside separately labeled configured step latency, temperature and PUE.
+- Comparison view: configured scenario comparison and executed-run comparison have distinct labels and receipts. Recorded rack actions are replayed against the same initial workload without those live actions, over an identical interval.
 
 ## What is real, derived, modeled, or simulated?
 
@@ -67,7 +67,7 @@ The declared rack count, accelerator count, link classes, control ranges, and sc
 - A baseline run retains the default controls and seed.
 - An intervention changes one or more declared controls while retaining the comparison identity.
 - Comparison rows keep step latency, utilization, temperature, cooling, and network effects separate.
-- Starting playback recomputes the selected controls, then reveals four stages of that deterministic result. Pausing does not evolve physical temperatures.
+- Starting playback executes rack computation, collective transfers and compute barriers from the accepted configuration. Recorded live actions alter rack compute speed; pausing preserves the workload. Temperature and facility power remain configured steady-state estimates.
 - Reload evidence is valid only when profile, plugin, seed, controls, and terminal receipts match.
 
 ## What can and cannot be claimed?

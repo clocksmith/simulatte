@@ -2,11 +2,13 @@
   const deterministicValues = typeof module === 'object' && module.exports
     ? require('../../../shared/deterministic-values.js')
     : root.SimulatteDeterministicValues;
-  const api = factory(deterministicValues);
+  const contracts = typeof module === 'object' && module.exports
+    ? require('../simulatte-phase-contracts.js') : root.SimulattePhaseContracts;
+  const api = factory(deterministicValues, contracts);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRenderEvidenceBinding = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createRenderEvidenceBindingApi(
-  deterministicValues = {}
+  deterministicValues = {}, contracts = {}
 ) {
   const fnv1a32 = deterministicValues.fnv1a32;
   if (typeof fnv1a32 !== 'function') {
@@ -27,12 +29,18 @@
     return output;
   }
 
+  const packetHashes = new WeakMap();
   function scenePacketRenderEvidenceHash(sceneRenderPacket = {}) {
+    const owned = contracts.isOwnedSnapshot?.(sceneRenderPacket);
+    if (owned && packetHashes.has(sceneRenderPacket)) return packetHashes.get(sceneRenderPacket);
     const text = JSON.stringify(stableRenderEvidenceValue(sceneRenderPacket));
-    return fnv1a32(text).toString(16).padStart(8, '0');
+    const hash = fnv1a32(text).toString(16).padStart(8, '0');
+    if (owned) packetHashes.set(sceneRenderPacket, hash);
+    return hash;
   }
 
   function immutableRenderEvidence(value) {
+    if (contracts.isOwnedSnapshot?.(value)) return value;
     if (ArrayBuffer.isView(value) && !(value instanceof DataView)) {
       return Object.freeze(Array.from(value, entry => immutableRenderEvidence(entry)));
     }

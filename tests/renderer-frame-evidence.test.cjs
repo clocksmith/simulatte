@@ -4,6 +4,22 @@ const model = require('../public/blank/pipeline/phase-05-simulation/simulatte-ph
 require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
 const { phaseFamily } = require('./phase-module-fixture.cjs');
 const scope = phaseFamily('webGpuRenderer');
+test('render evidence retains owned snapshots while mutable packets cannot reuse stale hashes', () => {
+  const contracts = require('../public/blank/pipeline/simulatte-phase-contracts.js');
+  const evidence = require('../public/blank/pipeline/phase-07-render/simulatte-render-evidence-binding.js');
+  const source = { entities: [{ id: 'cup', position: [0, 1] }] };
+  const owned = contracts.immutableArtifact(source);
+  assert.equal(evidence.immutableRenderEvidence(owned), owned);
+  const hash = evidence.scenePacketRenderEvidenceHash(source);
+  assert.equal(evidence.scenePacketRenderEvidenceHash(owned), hash);
+  source.entities[0].position[0] = 2;
+  assert.notEqual(evidence.scenePacketRenderEvidenceHash(source), hash);
+  assert.equal(evidence.scenePacketRenderEvidenceHash(owned), hash);
+  const shallow = Object.freeze({ entities: source.entities });
+  const captured = evidence.immutableRenderEvidence(shallow);
+  source.entities[0].position[0] = 3;
+  assert.equal(captured.entities[0].position[0], 2);
+});
 
 function fixture() {
   const spec = model.createSpecFromPrompt('a red ball', { deterministicRuntime: true });

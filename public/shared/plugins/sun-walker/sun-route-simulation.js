@@ -32,6 +32,7 @@
     environmentReceipt,
   }) {
     validateInputs({ routes: mission ? [{}] : routes, departureAt, config });
+    const sidewalkGeometryCache=new WeakMap();
     const buildings = exposure.compiledBuildings(world);
     const environmentalScene = environmentApi.compile(environment, world);
     const dataReceipt = createDataReceipt(
@@ -52,9 +53,9 @@
         eligible:segment=>segment.allowedModes.includes(mode)&&!blocked.has(segment.id)&&!avoided.has((segment.source?.street||'').toLowerCase()),
         walkingSpeedMps:config.walkingSpeedMps,directSunWeight:config.directSunWeight,unknownWeight:config.unknownWeight,
         timeBucketSeconds:config.routeTimeBucketSeconds,maximumLabels:config.maximumSearchLabels,
-        maximumAddedTimeSeconds:config.maximumAddedTimeSeconds,maximumAddedRatio:config.maximumAddedRatio,
+        maximumAddedTimeSeconds:config.maximumAddedTimeSeconds,maximumAddedRatio:config.maximumAddedRatio,coalesceArrivalTimes:config.routeSearchPrecision==='bucketed',maximumLabelsPerNode:config.maximumLabelsPerNode,
         evaluateEdge:(segment,elapsed)=>evaluateSegment({segment,segmentIndex:0,enteredAtMs:Date.parse(departureAt)+elapsed*1000,
-          buildings,world,config,dataReceipt,modelReceipt,environmentalScene}).summary});
+          buildings,world,config,dataReceipt,modelReceipt,environmentalScene,sidewalkGeometryCache,summaryOnly:true}).summary});
       routes=[result.baseline];
       if(result.selected.segmentIds.join('|')!==result.baseline.segmentIds.join('|'))routes.push(result.selected);
       routeSearch=result.receipt;
@@ -69,7 +70,7 @@
       config,
       dataReceipt,
       modelReceipt,
-      environmentalScene,
+      environmentalScene,sidewalkGeometryCache,
     }));
     const fastest = candidates.slice().sort(compareFastest)[0];
     const allowedAddedSeconds = Math.min(
@@ -133,7 +134,7 @@
     config,
     dataReceipt,
     modelReceipt,
-    environmentalScene,
+    environmentalScene,sidewalkGeometryCache,
   }) {
     const departureMs = Date.parse(departureAt);
     let elapsedSeconds = 0;
@@ -151,7 +152,7 @@
         config,
         dataReceipt,
         modelReceipt,
-        environmentalScene,
+        environmentalScene,sidewalkGeometryCache,
       });
       row.samples.forEach((sample) => samples.push(sample));
       segments.push(row.summary);
@@ -195,6 +196,7 @@
     dataReceipt,
     modelReceipt,
     environmentalScene,
+    sidewalkGeometryCache,summaryOnly=false,
   }) {
     const segmentLengthM = Number.isFinite(segment.lengthM) ? segment.lengthM : polylineLength(segment.geometry);
     const travelSeconds = segmentLengthM / config.walkingSpeedMps;
@@ -204,7 +206,7 @@
       travelSeconds,
       buildings,
       world,
-      config,
+      config,sidewalkGeometryCache,
     });
     const sampledLengthM = samplePoints.reduce((sum, point) => sum + point.intervalLengthM, 0);
     function observe(point, timestamp) {
@@ -234,6 +236,7 @@
       const arrivalOffsetSeconds = travelSeconds * (samplePoint.intervalStartM + samplePoint.intervalLengthM / 2) / sampledLengthM;
       const timestamp = new Date(enteredAtMs + arrivalOffsetSeconds * 1000).toISOString();
       const observed = observe(point, timestamp);
+      if(summaryOnly)return {representedSeconds:round(sampleSeconds),state:observed.state,occluderKind:observed.occluderKind,directBeamEquivalentSeconds:round(sampleSeconds*observed.directBeamFactor)};
       const evidenceRefs = [dataReceipt.id, modelReceipt.id,
         ...(observed.occluderKind === 'building' ? [`building:${observed.occluderId}`] : []), ...observed.environment.evidenceRefs];
       const heading = sampleIndex < samplePoints.length - 1
@@ -262,6 +265,7 @@
       };
     });
     const totals = sumExposure(samples);
+    if(summaryOnly)return {summary:totals};
     return {
       summary: {
         schema: 'simulatte.sunWalkerSegmentExposure.v2',
@@ -286,7 +290,7 @@
     travelSeconds,
     buildings,
     world,
-    config,
+    config,sidewalkGeometryCache=new WeakMap(),
   }) {
     const sidewalkOffsetM = Number.isFinite(config.sidewalkOffsetM) ? config.sidewalkOffsetM : 3.6;
     if (sidewalkOffsetM <= 0 || !exposure.computeSidewalkPolyline) {
@@ -296,10 +300,14 @@
         samplePoints: samplePolylineAtMidpoints(segment.geometry, config.sampleSpacingM),
       };
     }
-    const leftPoly = exposure.computeSidewalkPolyline(segment.geometry, sidewalkOffsetM);
-    const rightPoly = exposure.computeSidewalkPolyline(segment.geometry, -sidewalkOffsetM);
-    const leftPoints = samplePolylineAtMidpoints(leftPoly, config.sampleSpacingM);
-    const rightPoints = samplePolylineAtMidpoints(rightPoly, config.sampleSpacingM);
+    const cacheKey=`${sidewalkOffsetM}:${config.sampleSpacingM}`;
+    let cached=sidewalkGeometryCache.get(segment)?.get(cacheKey);
+    if(!cached){
+      const leftPoly=exposure.computeSidewalkPolyline(segment.geometry,sidewalkOffsetM),rightPoly=exposure.computeSidewalkPolyline(segment.geometry,-sidewalkOffsetM);
+      cached={leftPoly,rightPoly,leftPoints:samplePolylineAtMidpoints(leftPoly,config.sampleSpacingM),rightPoints:samplePolylineAtMidpoints(rightPoly,config.sampleSpacingM)};
+      const cache=sidewalkGeometryCache.get(segment)||new Map();cache.set(cacheKey,cached);sidewalkGeometryCache.set(segment,cache);
+    }
+    const {leftPoly,rightPoly,leftPoints,rightPoints}=cached;
 
     const origin = exposure.worldOrigin(world);
     const midTimestamp = new Date(enteredAtMs + travelSeconds * 500).toISOString();
@@ -557,7 +565,7 @@
         },
         {
           id: 'arrival_time_shadow_graph_a_star',
-          equationIds: ['walking-time-shortest-path', 'arrival-time-shadow-cost', 'temporal-label-coalescing', 'maximum-detour-bound'],
+          equationIds: ['walking-time-shortest-path', 'arrival-time-shadow-cost', 'declared-temporal-precision-and-visited-node-subset-dominance', 'maximum-detour-bound'],
           citationIds: [],
         },
       ],
@@ -568,6 +576,7 @@
         maximumAddedTimeSeconds: config.maximumAddedTimeSeconds,
         maximumAddedRatio: config.maximumAddedRatio,
         routeTimeBucketSeconds: config.routeTimeBucketSeconds,
+        routeSearchPrecision:config.routeSearchPrecision,maximumLabelsPerNode:config.maximumLabelsPerNode,
         maximumSearchLabels: config.maximumSearchLabels,
         sampleSpacingM: config.sampleSpacingM,
         walkingSpeedMps: config.walkingSpeedMps,

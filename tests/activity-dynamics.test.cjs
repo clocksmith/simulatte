@@ -1,4 +1,9 @@
-const test = require('node:test');
+const nodeTest = require('node:test');
+// Yield between numerical cases so completed subtests reach the stall watchdog.
+const test = (name, body) => nodeTest(name, async context => {
+  await new Promise(setImmediate);
+  return body(context);
+});
 const assert = require('node:assert/strict');
 const lab = require('../public/blank/app/simulation/simulation-lab.js');
 const physics = globalThis.SimulattePhaseModuleRegistry.family('physicsModel');
@@ -16,10 +21,21 @@ function amended(program, change) {
   physics.validateActivityProgram(copy); return copy;
 }
 function runProgram(program, dt = 1 / 60) {
+  program = physics.phaseContracts.immutableArtifact(program);
   let state = physics.withActivityState({}, program);
   for (let i = 0; i < Math.ceil(4 / dt) + 1; i++) state = physics.stepActivityState(state, program, dt);
   return state;
 }
+test('activity playback yields between fixed steps without dropping accumulated time', () => {
+  const spec = compile('a person holds a phone in the left hand');
+  const clock = physics.createSimulationPlaybackClock(spec);
+  let actual = clock.advance(lab.createSimulationState(spec), spec, 0.1);
+  assert.equal(actual.activity.time, 1 / 60);
+  for (let i = 0; i < 5; i++) actual = clock.advance(actual, spec, 0);
+  let expected = lab.createSimulationState(spec);
+  for (let i = 0; i < 6; i++) expected = lab.stepSimulation(expected, spec, 1 / 60);
+  assert.deepEqual(actual, expected);
+});
 test('stationary support and grip reactions match independent mg references', () => {
   const spec = compile('a person holds a phone in the left hand'), state = run(spec);
   const frame = state.activity.history[60], receipt = frame.dynamics;
@@ -128,7 +144,7 @@ test('declared grip and seat capacities reject mechanically impossible scenes', 
   }
 });
 test('new dynamics are bounded; old activity programs retain the old kinematic execution', () => {
-  for (const change of [p => { p.dynamics.cfl = 1; }, p => { p.dynamics.liquidCells = 1024; },
+  for (const change of [p => { p.dynamics.cfl = 1; }, p => { p.dynamics.liquidCells = 8192; },
     p => { p.objects[0].massKg = -1; }, p => { p.objects.find(o => o.kind === 'cup').liquidContainer.fillFraction = 2; }]) {
     assert.throws(() => amended(sitting.activityProgram, change));
   }
@@ -166,4 +182,18 @@ test('water remains bound and volume-preserving without being counted as structu
     }
     assert.ok(Math.abs(volume - state.activity.objects[cup.id].liquid.remainingVolumeCubicMeters) < 1e-10);
   }
+});
+
+test('repeated liquid substeps retain one volume event per fixed opening and conserve the transferred mass',()=>{
+ const container={widthMeters:.1,heightMeters:.05,depthMeters:.08,fillFraction:1};
+ const initial=physics.createActivityLiquid(container,64);
+ initial.dischargeSquareMetersPerSecond.fill(.015);
+ const state=physics.stepActivityLiquid(initial,container,{angleRadians:.1,acceleration:[0,0],position:[0,0],velocity:[0,0],angularVelocity:0,angularAcceleration:0,mouth:null},.02,policy);
+ assert.ok(state.stepCount>1);assert.ok(state.transferEvents.length>0);
+ assert.equal(new Set(state.transferEvents.map(event=>event.cellIndex)).size,state.transferEvents.length);
+ const transferred=state.transferEvents.reduce((sum,event)=>sum+event.volumeCubicMeters,0);
+ assert.ok(Math.abs(transferred-state.spilledVolumeCubicMeters)<1e-12);
+ assert.ok(Math.abs(initial.initialVolumeCubicMeters-state.remainingVolumeCubicMeters-transferred)<1e-12);
+ assert.ok(state.outflowMomentumKgMetersPerSecond.every(Number.isFinite));
+ assert.ok(state.maxCfl<=policy.cfl+1e-9);
 });

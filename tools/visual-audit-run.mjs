@@ -15,6 +15,18 @@ function slug(value) {
     .slice(0, 80) || 'intent';
 }
 
+function sceneProofProgressSignature(value = {}) {
+  const time = value.activityTime, end = value.activityEndSeconds;
+  return JSON.stringify({
+    sceneProofVerdict: value.sceneProofVerdict || '',
+    phase7PixelReadback: value.phase7PixelReadback || '',
+    phase7PixelProofStatus: value.phase7PixelProofStatus || '',
+    settled: value.phase7PixelSettledObligationCount || 0,
+    activityTime: Number.isFinite(time) && Number.isFinite(end) && end > 0
+      ? Math.max(0, Math.min(time, end)) : null,
+  });
+}
+
 async function runPrompt(cdp, entry, index, outDir, options) {
   const timeoutMs = options.timeoutMs;
   const frameDelayMs = options.frameDelayMs;
@@ -224,10 +236,17 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const sampled = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelSampledObligationCount || 0);
     const semanticAbsence = Number(canvas && canvas.dataset && canvas.dataset.phase7SemanticAbsenceObligationCount || 0);
     const settled = Number(canvas && canvas.dataset && canvas.dataset.phase7PixelSettledObligationCount || 0);
+    const activity = lab?.getState?.()?.activity;
+    const activityEndSeconds = spec?.activityProgram
+      ? Math.max(0, ...spec.activityProgram.actions.map(action => action.endSeconds)) : null;
+    const activityTime = promptMatches && renderInputMatches && activity?.programHash === spec?.activityProgram?.contentHash
+      ? activity?.time ?? null : null;
     return {
       ok: promptMatches && renderInputMatches && rendered >= 3 && terminalSceneProof &&
         terminalPixelReadback && terminalPixelProof && required >= 1,
       renderCount: rendered,
+      activityTime,
+      activityEndSeconds,
       sceneId,
       renderInputSerial,
       expectedRenderInputSerial: ${expectedRenderInputSerial},
@@ -251,12 +270,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   })()`), timeoutMs, {
     extendOnProgress: true,
     stallTimeoutMs: MODEL_RUNTIME_STALL_MS,
-    progressSignature: (value) => JSON.stringify({
-      sceneProofVerdict: value && value.sceneProofVerdict || '',
-      phase7PixelReadback: value && value.phase7PixelReadback || '',
-      phase7PixelProofStatus: value && value.phase7PixelProofStatus || '',
-      settled: value && value.phase7PixelSettledObligationCount || 0,
-    }),
+    progressSignature: sceneProofProgressSignature,
     describeLast: (value) => ({
       renderCount: value && value.renderCount || 0,
       sceneId: value && value.sceneId || '',
@@ -271,6 +285,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       sampledObligations: value && value.phase7PixelSampledObligationCount || 0,
       semanticAbsenceObligations: value && value.phase7SemanticAbsenceObligationCount || 0,
       settledObligations: value && value.phase7PixelSettledObligationCount || 0,
+      activityTime: value?.activityTime ?? null,
+      activityEndSeconds: value?.activityEndSeconds ?? null,
     }),
   });
   let exactReplay = null;
@@ -449,4 +465,4 @@ async function runPrompt(cdp, entry, index, outDir, options) {
 }
 
 
-export { runPrompt };
+export { runPrompt, sceneProofProgressSignature };

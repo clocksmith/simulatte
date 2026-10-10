@@ -26,7 +26,7 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 
 ## Invariants
 
-- Activities remain separate from user InteractionIR. Version 2 executes bounded driven-body reactions and conservative depth-averaged liquid with transfer events. Active mutations reject; kinematics cannot qualify forces/liquids.
+- Activities remain separate from user InteractionIR. Version 3 adds support and placement/release transitions. Driven-body reactions and conservative liquid remain bounded. Legacy trajectories/policies persist. Active mutations reject; kinematics cannot qualify forces/liquids.
 - Completed activities settle idle manipulation-only worlds; independent solvers and new forces continue execution.
 
 - Solver support cannot invent intent.

@@ -257,7 +257,10 @@
         scheduler: pluginSchedulerApi ? pluginSchedulerApi.createSchedulerPort({}) : undefined,
         environment: pluginEnvironmentApi ? pluginEnvironmentApi.createEnvironmentPort({ snapshots: {} }) : undefined,
         geography: pluginGeographyApi ? pluginGeographyApi.createGeographyPort({ world: data.world }) : undefined,
-        compute: pluginComputeApi ? pluginComputeApi.createComputePort({ workerPool: null }) : undefined,
+        compute: pluginComputeApi ? pluginComputeApi.createComputePort({ workerPool: null,
+          taskOperations:['sun-walker.prepare/v1'],
+          createTaskPool:()=>window.SimulatteWorkerTaskPool.createWorkerTaskPool({workerUrl:new URL('simulatte/world/simulation-task-worker.js',document.baseURI).href,taskTimeoutMs:120000}),
+        }) : undefined,
         tier: Object.freeze({ schema: 'simulatte.tierQuery.v1', id: initialTier, worldId: data.world.id, profileId: data.applicationProfile.id, snapshot: () => data.world }),
       },
     });

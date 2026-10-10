@@ -1,11 +1,12 @@
 (function registerActivityLanguage(root) {
   const registry = typeof module === 'object' && module.exports
     ? require('../../app/runtime/phase-module-registry.js') : root.SimulattePhaseModuleRegistry;
-  const VERBS = { walk: 'walk', walks: 'walk', walking: 'walk', sit: 'sit', sits: 'sit', sitting: 'sit',
+  const VERBS = { stand:'stand', stands:'stand', standing:'stand', walk: 'walk', walks: 'walk', walking: 'walk', sit: 'sit', sits: 'sit', sitting: 'sit',
     hold: 'hold', holds: 'hold', holding: 'hold', carry: 'hold', carries: 'hold', carrying: 'hold',
     drink: 'drink', drinks: 'drink', drinking: 'drink', place: 'place', places: 'place', placing: 'place' };
   function extractActivityLanguage(graph, capabilities) {
-    const spans = graph.spans, text = graph.sourceText;
+    const text = graph.sourceText;
+    const spans = graph.spans.map(row=>VERBS[row.text.toLowerCase()]&&/^stand/.test(row.text.toLowerCase()) ? {...row,kind:'process',semanticRole:null} : row);
     const actors = spans.filter(row => row.semanticRole === 'agent' && row.visualArchetype === 'person');
     const verbs = spans.filter(row => row.kind === 'process' && VERBS[row.text.toLowerCase()]);
     if (!actors.length || !verbs.length) return graph;
@@ -19,22 +20,27 @@
       if (!actor) continue;
       const tail = text.slice(verb.end, end);
       const hand = /\b(left|right)\s+hand\b/i.exec(tail);
+      const durationSpan=/\bfor\s+\d+(?:\.\d+)?\s+seconds?\b/i.exec(tail);
+      if(durationSpan){const start=verb.end+durationSpan.index,stop=start+durationSpan[0].length;for(const span of spans)if(span.start>=start&&span.end<=stop&&/^seconds?$/i.test(span.text))handSpans.add(span.id);}
       if (hand) {
         const start = verb.end + hand.index, stop = start + hand[0].length;
         for (const span of spans) if (span.start >= start && span.end <= stop) handSpans.add(span.id);
       }
       const action = VERBS[verb.text.toLowerCase()];
-      const object = action === 'walk' ? null : spans.find(row => row.start >= verb.end && row.end <= end &&
+      const object = ['walk','stand'].includes(action) ? null : spans.find(row => row.start >= verb.end && row.end <= end &&
         ['entity', 'term'].includes(row.kind) && !handSpans.has(row.id));
+      const support = action==='place' ? spans.find(row=>row.start>=(object?.end??end)&&row.end<=end&&['entity','term'].includes(row.kind)&&!handSpans.has(row.id)&&/table|shelf|surface|bench/i.test(row.text)) : null;
+      const definiteReference = object && /\bthe\s+$/i.test(text.slice(verb.end,object.start));
       const between = previous ? text.slice(previous.end, verb.start) : '';
       const sequential = /\b(?:then|afterward|afterwards|after that)\b/i.test(between);
       const duration = /\bfor\s+(\d+(?:\.\d+)?)\s+seconds?\b/i.exec(tail);
       requests.push({ id: `activity:${verb.id}`, action, actorSpanId: actor.id, objectSpanId: object?.id || null,
+        supportSpanId:support?.id||null, definiteReference:Boolean(definiteReference),
         hand: hand ? hand[1].toLowerCase() : null, negated: verb.negated === true,
         handEvidence: hand ? { start: verb.end + hand.index, end: verb.end + hand.index + hand[0].length } : null,
         timing: { after: sequential ? requests.at(-1)?.id || null : null,
           simultaneous: !sequential && requests.length > 0, durationSeconds: duration ? Number(duration[1]) : null },
-        evidence: { source: 'phase2-language', verbSpanId: verb.id, sourceSpanIds: [actor.id, verb.id, object?.id].filter(Boolean),
+        evidence: { source: 'phase2-language', verbSpanId: verb.id, sourceSpanIds: [actor.id, verb.id, object?.id, support?.id].filter(Boolean),
           start: verb.start, end, text: text.slice(verb.start, end) } });
       previous = verb;
     }

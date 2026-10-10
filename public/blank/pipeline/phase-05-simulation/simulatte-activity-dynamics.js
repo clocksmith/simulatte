@@ -16,6 +16,7 @@
     const c = Math.cos(object.rotation), s = Math.sin(object.rotation);
     for (let i = 0; i < liquid.depthMeters.length; i++) {
       const h = liquid.depthMeters[i], x = (i + 0.5) * dx - container.widthMeters / 2;
+      if (policy.liquidSpatialOrder === 2 && h === 0) continue;
       const y = (h - container.heightMeters) / 2, mass = h * dx * container.depthMeters * policy.liquidDensityKgPerCubicMeter;
       const u = h > policy.dryDepthMeters ? liquid.dischargeSquareMetersPerSecond[i] / h : 0;
       const r = [c * x - s * y, s * x + c * y];
@@ -39,6 +40,7 @@
     const c = Math.cos(object.rotation), s = Math.sin(object.rotation), result = zero();
     for (let i = 0; i < liquid.depthMeters.length; i++) {
       const h = liquid.depthMeters[i], x = (i + 0.5) * dx - container.widthMeters / 2;
+      if (policy.liquidSpatialOrder === 2 && h === 0) continue;
       const y = (h - container.heightMeters) / 2, mass = h * dx * container.depthMeters * policy.liquidDensityKgPerCubicMeter;
       const u = h > policy.dryDepthMeters ? liquid.dischargeSquareMetersPerSecond[i] / h : 0;
       result[0] += mass * (object.velocity[0] + c * u - object.angularVelocity * (s * x + c * y));
@@ -134,6 +136,11 @@
         receipt.outflowAngularMomentum += angularOutflow;
         const force = Math.hypot(...constraint) / dt;
         const torque = Math.abs(angularImpulse - cross(scale(add(object.position, before.position), 0.5), constraint)) / dt;
+        if(object.supportObjectId){
+          const support=program.objects.find(row=>row.id===object.supportObjectId);
+          receipt.maxSupportForceNewtons=Math.max(receipt.maxSupportForceNewtons,force);
+          if(!support||force>support.supportCapacityNewtons)receipt.violations.push('placement support load capacity exceeded');
+        }
         if (object.owner) {
           receipt.maxGripForceNewtons = Math.max(receipt.maxGripForceNewtons, force);
           receipt.maxGripTorqueNewtonMeters = Math.max(receipt.maxGripTorqueNewtonMeters, torque);

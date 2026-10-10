@@ -40,13 +40,33 @@
     });
   }
 
-  function createComputePort({ workerPool = null, yieldEvery = 16 } = {}) {
+  function createComputePort({ workerPool = null, yieldEvery = 16, createTaskPool = null, taskOperations = [] } = {}) {
     const mode = workerPool ? 'worker-pool' : 'cooperative-inline';
 
     function forPlugin(pluginId) {
+      const tasks = new Map();
       return Object.freeze({
         schema: SCHEMA,
         mode,
+        async executeTask({ requestId, operation, payload }) {
+          if (!createTaskPool || !taskOperations.includes(operation)) throw computeError('compute_task_unavailable', operation);
+          if (typeof requestId !== 'string' || !requestId || tasks.has(requestId)) throw computeError('compute_task_identity_invalid', requestId);
+          const pool = createTaskPool();
+          tasks.set(requestId, pool);
+          try {
+            return await pool.execute({schema:'simulatte.simulationWorkerTask/v1', id:`${pluginId}:${requestId}`,
+              moduleId:pluginId, implementationId:operation, implementationHash:operation,
+              operation, branchId:requestId, fromTime:0, toTime:0, payload});
+          } finally { tasks.delete(requestId); await pool.dispose(); }
+        },
+        cancelTask(requestId) {
+          const pool = tasks.get(requestId);
+          if (!pool) return false;
+          // Termination interrupts synchronous numerical work, which cannot receive
+          // a posted cancellation until its calculation finishes.
+          void pool.dispose();
+          return true;
+        },
         // simulate(replicateIndex) -> object of named finite metrics.
         async runEnsemble({ replicates, simulate, metrics = null } = {}) {
           if (!Number.isInteger(replicates) || replicates < 1) throw computeError('compute_replicates_invalid', `Plugin ${pluginId} ensemble expected replicates >= 1, received ${replicates}`);

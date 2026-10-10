@@ -5,7 +5,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginGpuSupercluster",
-    "integrity": "sha384-39ceb21555cfdee60162f24b80001f88feadf3dc53da2c90487d154e5e712a2f88652f14e9fff487c62456718f387ac5",
+    "integrity": "sha384-43630a325fab559bd9704e68aa6945d01faec6b38630a5fd65e945bba2fe47e1e7d218292a69a389623aa7040de2e700",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -82,12 +82,12 @@
       "path": "./receipt-factory.js"
     },
     {
-      "integrity": "sha384-f5b8502934a6813640287dfd9b142e0cbe541296af62ace396f7772f4811325f08129be6355308ffa28feaa8022a0259",
-      "path": "./v4-contribution.js"
+      "integrity": "sha384-9fb37095e73f3191f78212d8a36fd2573aeec97b91296ed985339967b8cf80f2c05428ea029ce7d18780f3a68472924d",
+      "path": "./workload.js"
     },
     {
-      "path": "./workload.js",
-      "integrity": "sha384-f2e03cfcc5b82274251828b6de902ddb9f6bd1965aca7c5dc369337aadbdeb1cebba19ba9394cb5b38cd94adf214cfea"
+      "integrity": "sha384-eb1ccc5a0b137ff94402d7c9a64b4f0554ddfd3946726ad21686767cf9aca8a779876141244fdd6307702a8043623ff7",
+      "path": "./v4-contribution.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v3",

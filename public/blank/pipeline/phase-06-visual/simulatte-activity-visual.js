@@ -7,6 +7,23 @@
     return packet.entities.find(entity => entity.id === id || entity.physicalRef === id
       || entity.sourceIds?.includes(id) || entity.representedEntityIds?.includes(id));
   }
+  function supportGeometryBinding(source, object) {
+    const top = source.parts.find(part => /^(top|surface|shelf)$/.test(part.id));
+    if (!top || source.parts.some(part => Math.abs(Math.sin(2 * (part.rotation || 0))) > 1e-8)) {
+      throw new Error('Activity support requires a declared top and orthogonal construction parts');
+    }
+    const bounds = part => {
+      const angle=part.rotation || 0, c=Math.abs(Math.cos(angle)), s=Math.abs(Math.sin(angle));
+      const halfX=(c*part.size[0]+s*part.size[1])/2, halfY=(s*part.size[0]+c*part.size[1])/2;
+      return {left:part.center[0]-halfX,right:part.center[0]+halfX,
+        top:part.center[1]-halfY,bottom:part.center[1]+halfY};
+    };
+    const rows=source.parts.map(bounds), anchorY=bounds(top).top;
+    const width=Math.max(...rows.map(row=>row.right))-Math.min(...rows.map(row=>row.left));
+    const height=Math.max(...rows.map(row=>row.bottom))-anchorY;
+    if (!(width>0 && height>0)) throw new Error('Activity support has no bounded contact geometry');
+    return {localAnchor:[top.center[0],anchorY],localScale:[object.radius*2/width,object.supportHeight/height]};
+  }
   function bindActivityVisualProgram(visualProgram, program) {
     scope.validateActivityProgram(program);
     const packet = visualProgram.sceneRenderPacket;
@@ -80,10 +97,12 @@
         source.morphologyReceipt = { ...visual.objectMorphologyReceipt(solidParts, source.identityType, source),
           geometryScope: 'solid-container', simulationStatePartIds: source.parts.filter(part => part.id.startsWith('liquid-cell-')).map(part => part.id) };
       }
+      const supportGeometry=object.kind==='support' ? supportGeometryBinding(source,object) : null;
       for (const part of source.parts.filter(part => !part.id.startsWith('liquid-cell-'))) bindings.push({ entityId: entity.id, participantId: object.id,
         partId: part.constructionPartId || part.id, kind: 'object', localPart: part,
-        localAnchor: object.kind === 'seat' ? (source.parts.find(part => /seat|surface/.test(part.id))?.center || [0, 0]) : [0, 0],
-        objectKind: object.kind, radiusMeters: object.radius, seatHeightMeters: object.seatHeight });
+        localAnchor: ['seat','support'].includes(object.kind) ? (source.parts.find(part => /seat|surface/.test(part.id))?.center || [0, 0]) : [0, 0],
+        ...(supportGeometry || {}),
+        objectKind: object.kind, radiusMeters: object.radius, seatHeightMeters: object.kind==='support'?object.supportHeight:object.seatHeight });
       entity.animation = { ...entity.animation, kind: 'static-pose', speed: 0, amplitude: 0 };
       entity.renderCodes.animationCode = 0;
     }
@@ -98,8 +117,10 @@
   function bindActivityVisualLedger(ledger, program, packet) {
     const actions = program.actions;
     const obligations = ledger.obligations.map(row => {
-      if (!['action', 'relation', 'visual'].includes(row.kind) || row.constraintKind === 'absence') return row;
+      if (!['action', 'relation', 'visual','object'].includes(row.kind) || row.constraintKind === 'absence') return row;
+      const reference=(program.identityBindings||[]).find(binding=>(ledger.entries.find(entry=>entry.id===row.id)?.sourceSpanIds||[]).includes(binding.sourceSpanId));
       const action = actions.find(action => {
+        if(row.kind==='object')return reference&&action.objectId===reference.targetNodeId;
         const entry = [...(ledger.entries || []), ...(ledger.relations || [])].find(entry => entry.id === row.id);
         const spans = row.sourceSpanIds || entry?.sourceSpanIds || [];
         if (spans.includes(action.sourceEvidence.verbSpanId)) return true;

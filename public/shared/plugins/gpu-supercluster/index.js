@@ -179,7 +179,7 @@
         workloadApi.intervene(workload,context.values.rackId,context.values.slowdown);
         return playbackResult();
       }
-      if (actionId === 'counterfactual.compare') return compareScenario();
+      if (actionId === 'counterfactual.compare') return context.values?.comparisonId==='executed-rack-interventions' ? compareExecuted() : compareScenario();
       if (actionId === 'update-controls') {
         currentStep = 0; workload = null;
         recompute({ ...current.config, ...(context.values || context.controls || {}) });
@@ -218,11 +218,22 @@
       });
     }
 
+    function compareExecuted() {
+      if(!workload)return {status:'refused',reason:'workload_not_running'};
+      const comparison=workloadApi.compareExecuted(current,workloadApi.snapshot(workload));
+      const comparisonBranches=Object.fromEntries(Object.entries(comparison.branches).map(([role,metrics])=>[role,{...metrics,
+        intervalEndMs:comparison.interval.end,initialConfiguration:comparison.startingConfiguration,
+        actionHistory:JSON.stringify(role==='intervention'?comparison.actions:[]),
+      }]));
+      return {status:'settled',comparisonId:'executed-rack-interventions',scope:'executed-run',comparisonBranches,comparison};
+    }
+
     function compareScenario() {
       const baseline = simulate(configForScenario(activeConfig, { id: 'gpt4-3d-parallelism' }));
       return Object.freeze({
         status: 'settled',
         comparisonId: `${PLUGIN_ID}:nominal-vs-degraded-cluster`,
+        scope:'configured-scenario',
         comparisonBranches: Object.freeze({
           baseline: comparisonBranch(baseline),
           intervention: comparisonBranch(current),

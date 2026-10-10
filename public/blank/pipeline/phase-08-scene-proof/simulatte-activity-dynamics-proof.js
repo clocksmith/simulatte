@@ -4,11 +4,22 @@
   const scope = registry.family('physicsModel');
   const finiteVector = v => Array.isArray(v) && v.length === 2 && v.every(Number.isFinite);
   const sum = vectors => vectors.reduce((a, b) => a.map((v, i) => v + b[i]), [0, 0]);
+  const checkedPrefixes = new WeakMap();
   function proveActivityDynamics(program, frames) {
     if (!program.dynamics) return { forcesValidated: false, liquidTransferValidated: false, violations: [], metrics: {} };
     const p = program.dynamics, violations = [];
     let momentumError = 0, angularError = 0, massError = 0, maxCfl = 0, consumed = 0, spilled = 0, previous = null;
+    let cacheable = scope.phaseContracts.isOwnedSnapshot(program) && frames.every(scope.phaseContracts.isOwnedSnapshot);
+    let prefix = null;
+    let cache = checkedPrefixes.get(program);
+    if (cacheable && !cache) { cache = new WeakMap(); checkedPrefixes.set(program, cache); }
     for (const frame of frames) {
+      const checked = cacheable && cache.get(frame);
+      if (checked && checked.previous === previous && checked.prefix === prefix) {
+        ({ momentumError, angularError, massError, maxCfl } = checked);
+        violations.length = 0; violations.push(...checked.violations);
+        previous = frame; prefix = checked; continue;
+      }
       const receipt = frame.dynamics;
       if (!receipt || receipt.schema !== 'simulatte.activityDynamicsFrame.v1' || receipt.programHash !== program.contentHash ||
           receipt.endTime !== frame.time || previous && receipt.startTime !== previous.time ||
@@ -17,7 +28,7 @@
           ![receipt.gravityImpulse, receipt.supportImpulse, receipt.outflowMomentum].every(finiteVector) ||
           !['maxGripForceNewtons', 'maxGripTorqueNewtonMeters', 'maxSupportForceNewtons'].every(k => Number.isFinite(receipt[k]) && receipt[k] >= 0) ||
           !['gravityAngularImpulse', 'supportAngularImpulse', 'outflowAngularMomentum'].every(k => Number.isFinite(receipt[k]))) {
-        violations.push('missing or mismatched dynamics evidence'); previous = frame; continue;
+        violations.push('missing or mismatched dynamics evidence'); previous = frame; cacheable = false; continue;
       }
       violations.push(...receipt.violations);
       const transfers = receipt.liquidTransfers, eventTotals = {};
@@ -91,6 +102,10 @@
           momentumError = Math.max(momentumError, Math.hypot(...object.momentum.map((v, i) =>
             v - prior.momentum[i] - row.gravity[i] - row.constraint[i] + row.outflow[i])));
           angularError = Math.max(angularError, Math.abs(object.angularMomentum - prior.angularMomentum - row.angularConstraint - row.angularGravity + row.angularOutflow));
+          if(object.supportObjectId){
+            const support=program.objects.find(o=>o.id===object.supportObjectId);
+            if(!support||Math.hypot(...row.constraint)>support.supportCapacityNewtons*(frame.time-previous.time)+1e-7)violations.push('placement support impulse outside declared capacity');
+          }
           if (object.owner && Math.hypot(...row.constraint) > definition.gripForceLimitNewtons * (frame.time - previous.time) + 1e-7) violations.push('grip impulse outside declared capacity');
           if (Math.abs(row.gravity[0]) > 1e-12 || row.gravity[1] > 0 ||
               Math.abs(row.gravity[1]) < Math.min(object.massKg, prior.massKg) * p.gravityMetersPerSecondSquared * (frame.time - previous.time) - 1e-9 ||
@@ -125,6 +140,10 @@
         const angular = [...Object.values(frame.objects), ...Object.values(frame.actors)].reduce((s, o) => s + o.angularMomentum, 0);
         const priorAngular = [...Object.values(previous.objects), ...Object.values(previous.actors)].reduce((s, o) => s + o.angularMomentum, 0);
         angularError = Math.max(angularError, Math.abs(angular - priorAngular - receipt.gravityAngularImpulse - receipt.supportAngularImpulse + receipt.outflowAngularMomentum));
+      }
+      if (cacheable) {
+        const checked = { previous, prefix, momentumError, angularError, massError, maxCfl, violations: violations.slice() };
+        cache.set(frame, checked); prefix = checked;
       }
       previous = frame;
     }

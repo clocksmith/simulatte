@@ -156,6 +156,8 @@
     }
 
     function handleAction(actionId, context = {}) {
+      if (actionId === 'sun-walker.cancel-preparation') return {cancelled:sdk.compute.cancelTask(context.values.requestId)};
+      if (actionId === 'sun-walker.prepare-route') return prepareRoute(context.values);
       if (actionId === 'sun-walker.preview-route') {
         const accepted = sdk.state.read().simulation;
         if (!accepted) throw pluginError('preview_missing_run', 'Start a walk before previewing.');
@@ -171,7 +173,7 @@
         const preview = preparedPreview;
         if (!preview || preview.id !== context.values?.previewId || preview.baseId !== sdk.state.read().simulation?.id)
           throw pluginError('preview_stale', 'Calculate a new route preview before applying.');
-        activeConfig = preview.configuration; activeDepartureAt = preview.simulation.departureAt; preparedPreview = null;
+        activeConfig = preview.configuration; activeMission = preview.mission || activeMission; activeDepartureAt = preview.simulation.departureAt; preparedPreview = null;
         sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.simulation-created', simulation: preview.simulation });
         appendSelectionReceipt(preview.simulation);
         sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.playback-started' });
@@ -240,7 +242,7 @@
       return { status: 'refused', reason: 'scenario_phase_invalid', phase: phase || null };
     }
 
-    function applyControlValues(values) {
+    function prepareControlValues(values) {
       const nextConfig = {
         ...activeConfig,
         maximumAddedTimeSeconds: finiteControl(values.maximumAddedTimeSeconds, activeConfig.maximumAddedTimeSeconds, 0, Infinity, 'maximumAddedTimeSeconds'),
@@ -263,9 +265,28 @@
         if (origin !== currentOrigin || destination !== currentDestination)
           nextMission = sdk.routing.resolveMission(`Walk from ${origin} to ${destination} using the most building shade.`);
       }
-      activeConfig = nextConfig;
-      activeDepartureAt = nextDepartureAt;
-      activeMission = nextMission;
+      return {configuration:nextConfig, departureAt:nextDepartureAt, mission:nextMission};
+    }
+
+    function applyControlValues(values) {
+      const next = prepareControlValues(values);
+      activeConfig=next.configuration; activeDepartureAt=next.departureAt; activeMission=next.mission;
+    }
+
+    async function prepareRoute(values) {
+      const accepted = sdk.state.read().simulation;
+      if (!accepted) throw pluginError('preview_missing_run', 'Start a walk before preparing a replacement.');
+      const next = prepareControlValues(values);
+      const simulation = await sdk.compute.executeTask({requestId:values.requestId, operation:'sun-walker.prepare/v1', payload:{
+        world, mission:next.mission, mode:sdk.routing.modeFor(next.mission.embodimentId),
+        departureAt:next.departureAt || accepted.departureAt, config:next.configuration,
+        seed:activeScenario?.seed || next.configuration.seed, buildingReceipt, governance, governanceReceipt, environment, environmentReceipt,
+      }});
+      if (sdk.state.read().simulation?.id !== accepted.id) throw pluginError('preview_stale','The accepted walk changed during preparation.');
+      const id = `${accepted.id}:preview-${++previewSequence}`;
+      const contribution = v4Api.createContribution({simulation, step:0, world, mission:next.mission, buildingReceipt, governanceReceipt, environmentReceipt});
+      preparedPreview = {id, baseId:accepted.id, simulation, configuration:next.configuration, mission:next.mission};
+      return v4Api.routePreview({accepted, candidate:simulation, id, contribution});
     }
 
     function appendPlaybackReceipt(state) {

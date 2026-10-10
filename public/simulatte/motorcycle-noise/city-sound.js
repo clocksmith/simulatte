@@ -75,7 +75,7 @@
       const db=value=>10*Math.log10(Math.max(1e-12,value));
       // Re-evaluate coherent treatment groups with one emitter removed. Subtracting
       // its dBA or isolated power would discard interference with other emitters.
-      if(includeAudio && treatment)for(const detail of treatment.details){
+      if(includeAudio && treatment && !scene.mistBursts?.length)for(const detail of treatment.details){
         if(detail.kind==='mist')continue;
         const without=root.MotorcycleTreatments.evaluate(scene,time,point,geometry,sourceEnergy,treatments.filter(row=>row.id!==detail.id));
         const withoutDb=db(Math.max(background,total+without.powerDelta));
@@ -89,5 +89,27 @@
     }
     return {measure,geometry};
   }
-  root.MotorcycleCitySound={create,sourceSpectrum,energy};
+  function compareTreatment(scene,time,observer,treatmentId) {
+    const treatment=scene.treatments.find(row=>row.id===treatmentId);
+    if(!treatment||treatment.kind==='mist'||scene.mistBursts?.length) throw Error('Acoustic comparison requires a supported treatment and traffic without fictional event history');
+    const geometry=scene.acousticContext||root.MotorcycleCityPaths.create(scene.buildings);
+    const without={...scene,treatments:scene.treatments.filter(row=>row.id!==treatmentId)};
+    const baseline=create(without,time),intervention=create(scene,time);
+    const points=[['Here',0,0],['3 m east',3,0],['3 m west',-3,0],['3 m north',0,3],['3 m south',0,-3]];
+    const rows=[],excluded=[];
+    for(const [label,x,y]of points){
+      const point={x:observer.x+x,y:observer.y+y,z:observer.z};
+      if(geometry.occupied(point)){excluded.push({label,point,reason:'inside-modeled-building'});continue;}
+      const before=baseline.measure(point),after=intervention.measure(point);
+      rows.push({label,point,baseline:before.total,intervention:after.total,differenceDb:after.total-before.total,
+        components:{baseline:{outward:before.outward,reflected:before.facade,returned:before.panelReturns,powered:before.powered},
+          intervention:{outward:after.outward,reflected:after.facade,returned:after.panelReturns,powered:after.powered}}});
+    }
+    return {schema:'simulatte.matchedObserverComparison.v1',scope:'current-observation',time,treatmentId,
+      observer:{x:observer.x,y:observer.y,z:observer.z},configuration:JSON.stringify([scene.config,scene.panel,scene.treatments,scene.treatmentsEnabled,scene.treatmentMode]),
+      sourceStates:scene.sources.map(source=>({id:source.id,position:M.position(source,time)})),rows,excluded,
+      claimBoundary:'Locally stationary modeled dBA at one frozen traffic instant. Baseline removes only the selected acoustic treatment. Components are inspectable contributions and their dBA values do not add. No field calibration or guaranteed quieting.',
+    };
+  }
+  root.MotorcycleCitySound={create,sourceSpectrum,energy,compareTreatment};
 })(globalThis);

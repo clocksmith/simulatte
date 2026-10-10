@@ -9,7 +9,7 @@
     getScenario, getCameraMode, getRenderer, selectCamera, selectViewMode, applyRouteParameters,
     onPhase, onPlayback, onViewRuntime, onParametersApplied, onError }) {
     let sunControls=null;
-    let controlChange=null;
+    let controlChange=null, routeRequestSequence=0;
     let disposed = false, inspector = null, inspectorInsets = {}, inspectorViewport = null;
     const applyInspectorInsets = () => getRenderer()?.setViewportInsets?.(inspectorInsets);
     const owner = profile.interaction?.simulationOwnerPluginId || extensions.activePluginIds[0];
@@ -65,13 +65,16 @@
           controlChange=change;pluginRenderGeneration+=1;
           let result,failure;
           try {
-            const accepted=lastPluginContributions.find(row=>row.pluginId===owner)?.controls.controls;
-            const shadeOnly=profile.id==='sun-walker-v1'&&accepted&&accepted.every(row=>row.id==='directSunWeight'||JSON.stringify(values[row.id])===JSON.stringify(row.value));
-            if(shadeOnly){
-              // Calculate before replacing the accepted walk. Search refusal must
-              // leave its model, playback position and camera available.
-              const preview=await extensions.dispatchAction(owner,'sun-walker.preview-route',{scenario:getScenario(),values});
-              operation.throwIfCancelled();
+            if(profile.id==='sun-walker-v1'){
+              const requestId=`route-${++routeRequestSequence}`;
+              const cancel=()=>void extensions.dispatchAction(owner,'sun-walker.cancel-preparation',{values:{requestId}}).catch(error=>{if(!disposed)onError(error);});
+              operation.signal.addEventListener('abort',cancel,{once:true});
+              let preview;
+              try {
+                operation.throwIfCancelled();
+                preview=await extensions.dispatchAction(owner,'sun-walker.prepare-route',{values:{...values,requestId}});
+                operation.throwIfCancelled();
+              } finally {operation.signal.removeEventListener('abort',cancel);}
               await pluginPlayback.applyPrepared({command:'sun-walker.accept-preview',values:{previewId:preview.id},controls:preview.controls});
             } else await pluginPlayback.applyControls(values);
             operation.throwIfCancelled();await pluginPlayback.start({paused:true});operation.throwIfCancelled();

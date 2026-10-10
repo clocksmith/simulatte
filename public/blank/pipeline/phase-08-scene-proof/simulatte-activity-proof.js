@@ -5,6 +5,7 @@
   const distance = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   function proveActivitySequence(program, activity) {
     if (!program) return null;
+    program = scope.phaseContracts.immutableArtifact(program);
     scope.validateActivityProgram(program);
     const frames = activity?.history || [], violations = [];
     let contactError = 0, penetration = 0, footSlide = 0, previous = null;
@@ -21,6 +22,10 @@
       for (const action of program.actions) {
         const expected = frame.time < action.startSeconds ? 'pending' : frame.time >= action.endSeconds ? 'completed' : 'active';
         if (frame.actionStates[action.id] !== expected) violations.push('incorrect action timing/order');
+        if(action.action==='place'&&frame.time>=action.releaseSeconds&&!program.actions.some(later=>later.objectId===action.objectId&&later.startSeconds>=action.endSeconds&&later.startSeconds<=frame.time&&['hold','drink','place'].includes(later.action))){
+          const object=frame.objects[action.objectId];
+          if(object?.owner||object?.supportObjectId!==action.supportObjectId)violations.push('placement did not release onto committed support');
+        }
         if (expected === 'active' && ['hold', 'drink'].includes(action.action)) {
           const owner = frame.objects[action.objectId]?.owner;
           if (!owner || owner.actorId !== action.actorId || owner.hand !== action.hand) violations.push('required attachment missing');
@@ -35,6 +40,15 @@
             violations.push('incorrect attachment participant/hand/order'); continue;
           }
           contactError = Math.max(contactError, distance(object.position, hand));
+        }
+        if(object.supportObjectId){
+          const support=program.objects.find(row=>row.id===object.supportObjectId);
+          if(!support||support.kind!=='support'||object.owner)violations.push('invalid placement support/ownership');
+          else {
+            const definition=program.objects.find(row=>row.id===object.id);
+            const halfHeight=definition?.liquidContainer?.heightMeters/2 || object.radius;
+            contactError=Math.max(contactError,distance(object.position,[support.position[0],support.supportHeight+halfHeight]));
+          }
         }
         if (object.kind !== 'seat') penetration = Math.max(penetration, object.radius - object.position[1]);
       }
@@ -78,6 +92,10 @@
       if (action.action === 'walk' && samples.length > 1 &&
           distance(samples[0].actors[action.actorId]?.joints.pelvis || [0, 0], samples.at(-1).actors[action.actorId]?.joints.pelvis || [0, 0]) < 0.01) {
         violations.push('requested locomotion did not execute');
+      }
+      if (['stand','sit'].includes(action.action) && action.startSeconds > 0 && samples.length > 1) {
+        const first=samples[0].actors[action.actorId]?.joints.pelvis[1],last=samples.at(-1).actors[action.actorId]?.joints.pelvis[1];
+        if(!Number.isFinite(first)||!Number.isFinite(last)||(action.action==='stand'?last-first:first-last)<0.05)violations.push('requested support transition did not execute');
       }
       if (action.action === 'drink' && samples.length > 1) {
         const heights = samples.map(frame => frame.objects[action.objectId]?.position[1] ?? -Infinity);

@@ -13,7 +13,7 @@
     const spray=document.createElement('button');spray.id='mist-spray';spray.textContent='Spray water';
     const enabled=document.createElement('button');enabled.textContent='Disable';const remove=document.createElement('button');remove.textContent='Remove';
     const frequencies=document.createElement('label');frequencies.textContent='Frequency ';const frequency=document.createElement('select');frequency.setAttribute('aria-label','Directional sound frequency');
-    for(const hz of [125,500,2000]){const option=document.createElement('option');option.value=hz;option.textContent=hz+' Hz';frequency.append(option);}frequencies.append(frequency);frequencies.hidden=true;actions.append(frequencies,spray,enabled,remove);$('treatment-controls-slot').append(actions);
+    for(const hz of [125,500,2000]){const option=document.createElement('option');option.value=hz;option.textContent=hz+' Hz';frequency.append(option);}frequencies.append(frequency);frequencies.hidden=true;const comparison=document.createElement('div');comparison.setAttribute('aria-label','Matched observer comparison');comparison.hidden=true;actions.append(frequencies,spray,enabled,remove,comparison);$('treatment-controls-slot').append(actions);
     function clear(){selected=null;actions.hidden=true;frequencies.hidden=true;}
     function inspect(id){selected=id;$('inspection').hidden=false;$('source-actions').hidden=true;$('receiver-actions').hidden=true;actions.hidden=false;lastPaint=0;paint();}
     function paint(){
@@ -30,6 +30,20 @@
         $('inspection-detail').textContent=`With ${withDb.toFixed(2)} dBA · Without ${withoutDb.toFixed(2)} dBA. ${changeDb>0?'Increases sound at this observer.':changeDb<0?'Reduces sound at this observer.':'No change at this observer.'}`;
         $('inspection-time').textContent+=` Same observer (${point.x.toFixed(1)}, ${point.y.toFixed(1)}, ${point.z.toFixed(1)} m), time ${lastObserver.time.toFixed(2)} s, traffic and other treatments.`;
       }
+      comparison.hidden=true;
+      const matched=lastObserver?.observer?.matchedComparison;
+      if(matched?.treatmentId===selected){
+        comparison.hidden=false;comparison.replaceChildren();
+        const heading=document.createElement('p');heading.textContent=`${isMeasurementCurrent()?'Current observation':'Stale observation'} · treatment removed versus included · ${matched.time.toFixed(2)} s`;comparison.append(heading);
+        const table=document.createElement('table'),header=document.createElement('tr');
+        for(const text of ['Observer','Without','With','Change']){const th=document.createElement('th');th.textContent=text;header.append(th);}table.append(header);
+        for(const row of matched.rows){const tr=document.createElement('tr');for(const value of [row.label,row.baseline.toFixed(1)+' dBA',row.intervention.toFixed(1)+' dBA',(row.differenceDb>=0?'+':'')+row.differenceDb.toFixed(2)+' dB']){const td=document.createElement('td');td.textContent=value;tr.append(td);}table.append(tr);}
+        comparison.append(table);
+        const detail=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Sound contributions';detail.append(summary);
+        for(const row of matched.rows){const text=document.createElement('p'),c=row.components.intervention;const db=value=>value===null?'none':value.toFixed(1)+' dBA';text.textContent=`${row.label}: outward ${db(c.outward)} · reflected ${db(c.reflected)} · returned ${db(c.returned)} · powered ${db(c.powered)}`;detail.append(text);}
+        comparison.append(detail);
+      }
+      if(lastObserver?.observer?.comparisonRefusal){comparison.hidden=false;comparison.replaceChildren();const refusal=document.createElement('p');refusal.textContent=lastObserver.observer.comparisonRefusal;comparison.append(refusal);}
       spray.hidden=node.kind!=='mist';spray.disabled=!state.enabled||!state.target||node.enabled===false||scene.mistBursts?.some(b=>b.sourceId===state.target?.source.id&&getTime()>=b.start&&getTime()<b.restart);
       frequencies.hidden=node.kind!=='directional';if(document.activeElement!==frequency)frequency.value=String(node.frequency||500);enabled.textContent=node.enabled===false?'Enable':'Disable';
     }
@@ -67,7 +81,7 @@
     on(remove,'click',()=>command('treatment',{action:'remove',id:selected}));
     on(frequency,'change',()=>command('treatment',{action:'frequency',id:selected,value:frequency.value}));
     on($('inspection-close'),'click',clear);
-    return {apply,reset,pick,observe(data){latest=data.observer?.treatments||[];lastObserver=data;},update(now){if(now-lastPaint>250){lastPaint=now;paint();}view.setTreatmentSelection(selected);},dispose(){setPlacement(null);events.abort();actions.remove();}};
+    return {selectedId:()=>selected,apply,reset,pick,observe(data){latest=data.observer?.treatments||[];lastObserver=data;},update(now){if(now-lastPaint>250){lastPaint=now;paint();}view.setTreatmentSelection(selected);},dispose(){setPlacement(null);events.abort();actions.remove();}};
   }
   root.MotorcycleTreatmentControls={create};
 })(globalThis);

@@ -32,12 +32,15 @@
         const object = activity.objects[binding.participantId];
         if (!object) { missing.push(binding.participantId); continue; }
         const local = binding.localPart, radius = binding.radiusMeters;
-        const width = binding.objectKind === 'seat' ? radius * 2.4 : radius * 2;
-        const height = binding.objectKind === 'seat' ? binding.seatHeightMeters * 2 : radius * 2.6;
+        const width = binding.localScale?.[0] ?? (['seat','support'].includes(binding.objectKind) ? radius * 2.4 : radius * 2);
+        const height = binding.localScale?.[1] ?? (['seat','support'].includes(binding.objectKind) ? binding.seatHeightMeters * 2 : radius * 2.6);
         const angle = object.rotation, dx = (local.center[0] - (binding.localAnchor?.[0] || 0)) * width, dy = -(local.center[1] - (binding.localAnchor?.[1] || 0)) * height;
         center = project([object.position[0] + dx * Math.cos(angle) - dy * Math.sin(angle),
           object.position[1] + dx * Math.sin(angle) + dy * Math.cos(angle)]);
-        size = [local.size[0] * width * scale, local.size[1] * height * scale];
+        const c=Math.abs(Math.cos(local.rotation || 0)), s=Math.abs(Math.sin(local.rotation || 0));
+        size = binding.localScale
+          ? [local.size[0]*(c*width+s*height)*scale,local.size[1]*(s*width+c*height)*scale]
+          : [local.size[0] * width * scale, local.size[1] * height * scale];
         rotation = angle + (local.rotation || 0);
       } else {
         const actor = activity.actors[binding.participantId];

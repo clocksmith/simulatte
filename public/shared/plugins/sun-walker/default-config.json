@@ -6,12 +6,14 @@
   "unknownWeight": 2,
   "maximumAddedTimeSeconds": 86400,
   "maximumAddedRatio": 100,
-  "routeTimeBucketSeconds": 1,
+  "routeTimeBucketSeconds": 0.01,
   "maximumSearchLabels": 50000,
   "sampleSpacingM": 12,
   "walkingSpeedMps": 1.4,
   "minimumSolarElevationDegrees": 2,
   "treeCanopyParticipation": true,
   "weatherParticipation": true,
-  "canopyShadeThreshold": 0.5
+  "canopyShadeThreshold": 0.5,
+  "routeSearchPrecision": "bucketed",
+  "maximumLabelsPerNode": 8
 }

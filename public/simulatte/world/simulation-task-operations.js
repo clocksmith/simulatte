@@ -1,10 +1,13 @@
 (function attachSimulationTaskOperations(root, factory) {
   const gpuApi = typeof module === 'object' && module.exports ? require('../../shared/plugins/gpu-supercluster/multiscale-modules.js') : root.SimulatteGpuMultiscaleModules;
-  const api = factory(gpuApi);
+  const sunApi = typeof module === 'object' && module.exports ? require('../../shared/plugins/sun-walker/sun-route-simulation.js') : root.SimulatteSunWalkerRouteSimulation;
+  const worldApi = typeof module === 'object' && module.exports ? require('./world-model.js') : root.SimulatteAutonomyWorld;
+  const api = factory(gpuApi, sunApi, worldApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteSimulationTaskOperations = api;
-})(typeof globalThis !== 'undefined' ? globalThis : self, function createSimulationTaskOperations(gpuApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : self, function createSimulationTaskOperations(gpuApi, sunApi, worldApi) {
   async function execute(task) {
+    if (task.operation === 'sun-walker.prepare/v1') return sunApi.simulate({...task.payload, worldModel:worldApi.createWorldModel(task.payload.world)});
     if (task.operation === 'subsea-capacity.advance/v1') return advanceSubsea(task);
     if (task.operation === 'gpu-supercluster.advance/v1') return advanceGpu(task);
     throw operationError('worker_operation_unknown', `Unknown operation ${task.operation}`);

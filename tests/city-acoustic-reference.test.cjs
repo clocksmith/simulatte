@@ -134,3 +134,23 @@ test('each treatment compares removal at the same observer, instant and traffic 
  assert.ok(reading.treatments.find(row=>row.id==='one').comparison.changeDb>0,'Powered sound raises the level at this off-target observer');
  assert.equal(JSON.stringify(scene.treatments),before);
 });
+
+test('matched observers remove exactly one acoustic treatment at fixed traffic, time and locations',()=>{
+ require('../public/simulatte/motorcycle-noise/treatments.js');
+ const scene=fixture(10,true);scene.sources[0].kind='motorcycle';scene.treatmentMode='live';scene.treatmentsEnabled=true;
+ scene.treatments=[{id:'selected',kind:'directional',x:-2,y:0,z:1,frequency:500,enabled:true},{id:'retained',kind:'directional',x:0,y:-3,z:1,frequency:125,enabled:true}];
+ const before=JSON.stringify({config:scene.config,treatments:scene.treatments,sources:scene.sources.map(source=>({id:source.id,position:M.position(source,2) }))});
+ const comparison=global.MotorcycleCitySound.compareTreatment(scene,2,scene.receiver,'selected');
+ assert.equal(comparison.rows.length,5);assert.equal(comparison.scope,'current-observation');
+ for(const row of comparison.rows){
+  const reference=global.MotorcycleCitySound.create({...scene,treatments:scene.treatments.filter(node=>node.id!=='selected')},2).measure(row.point);
+  near(row.baseline,reference.total);near(row.differenceDb,row.intervention-row.baseline);
+  assert.equal(row.components.intervention.outward,row.components.baseline.outward);
+  assert.equal(row.components.intervention.reflected,row.components.baseline.reflected);
+  assert.ok(Number.isFinite(row.components.intervention.powered));
+ }
+ assert.equal(JSON.stringify({config:scene.config,treatments:scene.treatments,sources:scene.sources.map(source=>({id:source.id,position:M.position(source,2)}))}),before);
+ const fictional={...scene,mistBursts:[{sourceId:'engine',origin:{x:0,y:0,z:1},start:10,contact:11,restart:20}]};
+ assert.throws(()=>global.MotorcycleCitySound.compareTreatment(fictional,2,scene.receiver,'selected'),/fictional/);
+ assert.ok(global.MotorcycleCitySound.create(fictional,2).measure(scene.receiver,true).treatments.every(row=>!row.comparison),'Fictional history also excludes the compact comparison');
+});

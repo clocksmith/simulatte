@@ -6,6 +6,15 @@ const { spawnSync } = require('node:child_process');
 const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
+test('activity proof waits track bounded simulation progress rather than repeated rendering', async () => {
+  const { sceneProofProgressSignature: signature } = await import('../tools/visual-audit-run.mjs');
+  const active = { activityTime: 8, activityEndSeconds: 12, sceneProofVerdict: 'fail' };
+  assert.notEqual(signature(active), signature({ ...active, activityTime: 9 }));
+  assert.equal(signature({ ...active, activityTime: 12 }), signature({ ...active, activityTime: 13 }));
+  assert.equal(signature(active), signature({ ...active, renderCount: 9999 }));
+  assert.equal(signature({ activityTime: Infinity }), signature({ activityTime: NaN }));
+  assert.notEqual(signature(active), signature({ ...active, phase7PixelProofStatus: 'pass' }));
+});
 
 test('pipeline scoring exits nonzero when a live Scene Proof fails', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-proof-gate-'));

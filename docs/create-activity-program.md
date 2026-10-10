@@ -1,9 +1,9 @@
 # Create activity programs
 
 Create now carries a versioned `activityProgram` inside its existing WorldSpec.
-Version 2 composes planar procedural walking, sitting, holding and drinking through
+Version 3 composes planar procedural walking, sitting, standing, holding, drinking and placing through
 declared joint channels, constrained-body reactions and conservative liquid state.
-Version 1 remains executable through its original kinematic path. Existing
+Versions 1 and 2 remain executable through their original trajectories and declared numerical policies. Existing
 user `InteractionIR` remains responsible for selection, dragging, and controls.
 No COSMI model, diffusion inference, SMPL-X assets, or new world format is used.
 
@@ -41,17 +41,15 @@ penetration, bone lengths, stance sliding, identities/counts, handedness, timing
 locomotion, and cup lift/tilt are measured over the retained sequence. Incomplete
 or truncated history cannot pass. The collision model uses object circles and
 torso rectangles; it does not validate finger, head, or seat mesh penetration.
-Version 2 checks linear and angular momentum, gravity and constraint impulses,
+Versions 2 and 3 check linear and angular momentum, gravity and constraint impulses,
 load and friction limits, water mass, positivity and CFL bounds. Every liquid
 transfer identifies its object, action, hand, time, opening and destination;
 Scene Proof independently checks the opening and mouth geometry and reconciles
 event volumes against state changes. Empty or detached cups cannot prove drinking.
 
-Placement/release, standing up or sitting down between root actions, unresolved
-repeated-object references, and individually unidentified plural participants
-produce explicit refusals. They cannot borrow success from a rendered preview.
+Placement releases a held object onto a declared support after a smooth hand trajectory. Sitting and standing explicitly transfer pelvic support without moving planted feet. Definite repeated references bind to one unique prior participant; ambiguous references and individually unidentified plural participants still refuse. They cannot borrow success from a rendered preview.
 Changing the object held by a hand requires a qualified release transition.
-These are missing executable capabilities, not implemented COSMI behavior.
+The supported transitions use procedural motion; they do not implement COSMI inference.
 
 Run qualification from the repository root:
 
@@ -90,14 +88,20 @@ not model 3D wetting, turbulence, splashes or swallowing physiology. Water is
 998.2 kg/m³; the default drink starts with a declared 55% fill. Authored mass,
 capacity and fill parameters override recorded defaults.
 
-The solver uses 128 liquid cells, adaptive CFL steps and a maximum body step of
-1/240 second. Sixteen rendered columns average those cells without changing
+Version 3 uses 1,280 liquid cells, positivity-limited second-order reconstruction,
+a half-step predictor, adaptive CFL steps and a maximum body step of
+1/240 second. CFL bounds include the predicted face states. Private scratch
+arrays avoid allocating new face and reconstruction objects at each substep.
+Sixteen rendered columns average those cells without changing
 volume. This preview is a projection of simulated water, not a separate animation.
 The numerical qualification report records independent stationary weight and
-Ritter dam-break references, 32/64/128-cell refinement, and body steps of
-1/120, 1/240 and 1/480 second. The most recent 64-to-128-cell sip change is about
-9.5%; decreasing refinement differences establish numerical behavior, not
-empirical calibration or an exact real-world sip prediction. Diagnostic examples
+Ritter dam-break references, three container geometries/fills, 320/640/1,280/2,560-cell
+sip refinement, and body steps of 1/120, 1/240 and 1/480 second.
+The acceptance budget for the default grid is a change below both 5% and 1 gram
+when its resolution doubles. The measured 1,280-to-2,560-cell change is 0.902 grams
+(1.30%). This qualifies numerical refinement for inspecting the declared model;
+it does not establish empirical calibration or an exact real-world sip prediction.
+Version 2 retains its original first-order policy and cell bounds. Diagnostic examples
 remain separate from sealed/unseen scientific evaluation.
 
 COSMI inference is externally blocked. The official repository at commit

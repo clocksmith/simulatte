@@ -16,7 +16,7 @@ const files=execFileSync('git',['ls-files','--','public'],{cwd:root,encoding:'ut
 const sourceHashes=Object.fromEntries(await Promise.all(files.map(async name=>[name,createHash('sha256').update(await fs.readFile(path.join(root,name))).digest('hex')])));
 const report={schema:'simulatte.measurementJourneys.v1',sourceHashes,platform:process.platform,
   viewport:mobile?{width:390,height:844}:{width:1440,height:1000},physicalCoverage:'Local host GPU; mobile is an emulated viewport, not a physical phone.',
-  screenshotCoverage:'None requested or captured; render receipts and DOM behavior only.',performanceClaim:false,seconds,routes:[]};
+  screenshotCoverage:'Completed intervention inspector on each tested desktop or emulated-mobile route.',performanceClaim:false,seconds,routes:[]};
 const browser=await openBrowserAudit({publicRoot:path.join(root,'public'),viewport:report.viewport,webgpu:true});
 const {client,host}=browser;
 const evaluate=async expression=>{
@@ -62,6 +62,13 @@ try{
     const comparison=await evaluate(`({reading:motorcycleMeasurementReceipt,view:document.getElementById('inspection-main').textContent})`);
     const delta=comparison.reading.observer.treatments[0].comparison.changeDb;
     assert.ok(comparison.view.includes(delta.toFixed(2)));row.treatmentComparison=comparison;
+    await wait(`motorcycleMeasurementReceipt?.observer.matchedComparison?.rows.length>0`);
+    row.matched=await evaluate(`motorcycleMeasurementReceipt.observer.matchedComparison`);
+    assert.equal(row.matched.scope,'current-observation');assert.equal(row.matched.time,before.time);
+    assert.ok(row.matched.rows.length<=5&&row.matched.rows.length>0);
+    assert.equal(await evaluate(`document.querySelector('[aria-label="Matched observer comparison"]').hidden`),false);
+    assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);
+    const shot=await client.send('Page.captureScreenshot',{format:'png'});await fs.writeFile(path.join(out,'motorcycle-comparison.png'),Buffer.from(shot.data,'base64'));
     assert.deepEqual((await evaluate(`SimulatteMotorcycleController.snapshot()`)).observer,before.observer,'Treatment placement preserves observer');
     assert.equal((await evaluate(`SimulatteMotorcycleController.snapshot()`)).time,before.time,'Treatment placement preserves time');
     row.keyboard.push('Enter places a treatment at map center; comparison retains observer and instant');
@@ -82,7 +89,14 @@ try{
     if(route==='datacenter'){
      await press('[data-object-action="straggler"]');
      await wait(`__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='gpu-supercluster').inspections.some(i=>i.targetIds.length===1&&i.targetIds[0]===${JSON.stringify(selected.selected)}&&i.fields.some(f=>f.id==='slowdown'&&f.value===95))`);
-     await press('[data-object-action="straggler"]');row.keyboard.push('Slow and restore selected rack');
+     const interventionStart=(await state()).model.simulationTimeMs;
+     await press('#resume-button');await wait(`__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='gpu-supercluster').inspections.some(i=>i.fields.some(f=>f.id==='extra-wait'&&f.value>0))`);
+     await press('#pause-button');
+     row.intervention=await state();
+     const additional=row.intervention.inspections.flatMap(i=>i.fields).filter(f=>f.id==='extra-wait');
+     assert.ok(additional.some(f=>f.value>0),'Slow rack must cause additional waiting');
+     await press('[data-object-action="straggler"]');row.keyboard.push('Slow rack during execution; inspect additional waiting; restore selected rack');
+     const shot=await client.send('Page.captureScreenshot',{format:'png'});await fs.writeFile(path.join(out,'gpu-comparison.png'),Buffer.from(shot.data,'base64'));
     }else{
      await press('[data-object-action="preview"]');const preview=await state();assert.deepEqual(preview.model,selected.model);
      row.keyboard.push('Preview alternative preserves accepted run');

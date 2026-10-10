@@ -370,6 +370,7 @@
     'simulatte/platform/plugin-host/plugin-environment.js',
     'simulatte/platform/plugin-host/plugin-geography.js',
     'simulatte/platform/plugin-host/plugin-compute.js',
+    'shared/core/simulation/worker-task-pool.js',
     'simulatte/platform/plugin-host/generated-plugin-registry.js',
     'simulatte/platform/bootstrap/application-load-context.js',
     'simulatte/platform/ui-host/declarative-ui-host.js',

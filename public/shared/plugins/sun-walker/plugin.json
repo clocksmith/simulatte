@@ -30,7 +30,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-4b5d1fde079afe2b5723be39602266a701139d2734506a245e2d4f1192e885ecc8d2d9662942dd0150225141ba6d7f34",
+    "integrity": "sha384-54dfde83f7c76c2b4b2c709af13cc8f3f2fc18977e3610ef2c0c33df6656f599116848372f4089b8e590aa9fbbc5b72d",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -53,6 +53,7 @@
   "id": "sun-walker",
   "permissions": [
     "clock.read.v1",
+    "compute.worker.v1",
     "environment.read.v1",
     "events.propose.v1",
     "receipts.append.v1",
@@ -72,11 +73,11 @@
   ],
   "resources": [
     {
-      "integrity": "sha384-4c9d5abd7be7a9b9127cf27d2a28c0eca7c2e017af9bcbd285cbe14dbe1e87f79a53a293ea63dad654e467593a633d6a",
+      "integrity": "sha384-591bb035c39154bfd202cc32ecfa9ca6b80676b2e64d591ba6b229d9cdc37207e8b908059ab453ec41f86aa3e061d286",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-7e2a8e7cba8c5d9c9a6f1fb3192cd60a39e69632cb9d7a46d69c1f6103302263abacfea6af48fb8b6c154a3c040af8ea",
+      "integrity": "sha384-f1ed9d2591c0d4ef0ab4e346596aec546800042640e7a32097645bc07b2321132e63fdd825c991dcf6c48f5f76d387a1",
       "path": "./default-config.json"
     },
     {
@@ -92,7 +93,7 @@
       "path": "./truth.js"
     },
     {
-      "integrity": "sha384-f78ec7161b0e2491795394d8193affbb60286194291bfa3631059b511ebee4174bc9df21ad44d026030e913a0c6d52e7",
+      "integrity": "sha384-d72c7025901155f5571c52e0bb80cbeae6ae25f8a166462efdaa76951bc5c9a52d03bcd921127ed3c95db6539b8845c1",
       "path": "./environment.js"
     },
     {
@@ -104,7 +105,7 @@
       "path": "./presentation.js"
     },
     {
-      "integrity": "sha384-5202a71511bb890c0c3746aa47affb4a721a62fe8303e38f70b2aea9306b6acb340bf0fe91ea325085b0dc612567c4c6",
+      "integrity": "sha384-392424c1a7e33429eab4d6c9dc6e61a8d23c73a246d1b7f184d79358678c02f099e77c6aaa522f1d5020047fb9d0cee6",
       "path": "./shade-router.js"
     },
     {
@@ -112,11 +113,11 @@
       "path": "./sun-exposure.js"
     },
     {
-      "integrity": "sha384-0c0afbe206aa4fa4cc58f56cbebc07d5639b404371e093eee78a89a8018517c4c6f1c49964e310e03b1a9e6ab0d11b0b",
+      "integrity": "sha384-5ce6c022ae53618b2bd7946e27f353b2aa0bd71911e37066cee1621bbcb6bace4182e5f10a6b6dfb09acfd4066d2f3c5",
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-19ac4c032cb17aebe4abe14f799e8c1e669a4baafa6cd64559ec54756ff764ae8e4642d13fd8ce281e2d4732e8102615",
+      "integrity": "sha384-01c48e304421d010804732f352588e80fff2611dfd0c9f10d9f87d9f8b3cad4707db0d239045fc0b014e8df1c400d647",
       "path": "./v4-contribution.js"
     }
   ],

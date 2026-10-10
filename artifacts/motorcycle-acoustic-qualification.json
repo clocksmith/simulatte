@@ -1,0 +1,219 @@
+{
+  "schema": "simulatte.cityAcousticQualification.v1",
+  "sources": [
+    {
+      "file": "public/simulatte/motorcycle-noise/signal.js",
+      "sha256": "899f6f2eccdbe3d104ddb5adcd7b08f7ae4cdec61304fa071b6c5355c336a618"
+    },
+    {
+      "file": "public/simulatte/motorcycle-noise/traffic-motion.js",
+      "sha256": "a3d74f6a08dc37ad0975f3e66e5a0f1f47ad50622cfc28dd522e857feb9e07f5"
+    },
+    {
+      "file": "public/simulatte/motorcycle-noise/city-paths.js",
+      "sha256": "06130eb8ed0e77c72a45179ce5e8f096ef5e0c9878359c86155ff3309e495bd9"
+    },
+    {
+      "file": "public/simulatte/motorcycle-noise/reflection-model.js",
+      "sha256": "2cdb29baecd39ebc2b5fa9eb8f582e0f662b44bee0ac1dddec28f657ad18dbe2"
+    },
+    {
+      "file": "public/simulatte/motorcycle-noise/acoustic-field.js",
+      "sha256": "6105e72d1bcef8b11f75fa38c528910d9c2a6ddef3f4193bdaa70d4587bceaa7"
+    },
+    {
+      "file": "public/simulatte/motorcycle-noise/city-sound.js",
+      "sha256": "2d286918e8b4be075f1157da6cf10c322b3f508db1dc9d4eb74694b771c6f344"
+    },
+    {
+      "file": "public/simulatte/motorcycle-noise/treatments.js",
+      "sha256": "c5bdcc0c8d6b10e38b40acca1764d568e3b6bea5f3b9d3fb39d08074e95fcab4"
+    }
+  ],
+  "rows": [
+    {
+      "kind": "stationary",
+      "distance": 4,
+      "wall": false,
+      "start": 2,
+      "detailedDb": 74.51951969241476,
+      "liveDb": 74.52696128868016,
+      "errorDb": 0.007441596265394423,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 4,
+      "wall": false,
+      "start": 2.12345,
+      "detailedDb": 74.20926685297478,
+      "liveDb": 74.21280674218555,
+      "errorDb": 0.0035398892107707525,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 4,
+      "wall": true,
+      "start": 2,
+      "detailedDb": 74.33627268184507,
+      "liveDb": 74.34475116685032,
+      "errorDb": 0.00847848500524151,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 4,
+      "wall": true,
+      "start": 2.12345,
+      "detailedDb": 73.99307121919949,
+      "liveDb": 73.99656434662825,
+      "errorDb": 0.0034931274287544056,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 10,
+      "wall": false,
+      "start": 2,
+      "detailedDb": 67.11312636649252,
+      "liveDb": 67.11493691883734,
+      "errorDb": 0.0018105523448213034,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 10,
+      "wall": false,
+      "start": 2.12345,
+      "detailedDb": 66.14956227626561,
+      "liveDb": 66.153063627804,
+      "errorDb": 0.0035013515383894855,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 10,
+      "wall": true,
+      "start": 2,
+      "detailedDb": 66.74049568205578,
+      "liveDb": 66.74319452412979,
+      "errorDb": 0.002698842074011054,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 10,
+      "wall": true,
+      "start": 2.12345,
+      "detailedDb": 65.83679754698979,
+      "liveDb": 65.84082881972543,
+      "errorDb": 0.004031272735645075,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 23,
+      "wall": false,
+      "start": 2,
+      "detailedDb": 59.87562622283062,
+      "liveDb": 59.87189261668277,
+      "errorDb": -0.003733606147847013,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 23,
+      "wall": false,
+      "start": 2.12345,
+      "detailedDb": 58.92210303825554,
+      "liveDb": 58.91799224384449,
+      "errorDb": -0.0041107944110549965,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 23,
+      "wall": true,
+      "start": 2,
+      "detailedDb": 60.11178503895912,
+      "liveDb": 60.10885113638309,
+      "errorDb": -0.00293390257603221,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "stationary",
+      "distance": 23,
+      "wall": true,
+      "start": 2.12345,
+      "detailedDb": 59.425773574834686,
+      "liveDb": 59.42402125435002,
+      "errorDb": -0.0017523204846625617,
+      "acceptanceDb": 0.3
+    },
+    {
+      "kind": "moving",
+      "speed": 1,
+      "wall": false,
+      "start": 2,
+      "duration": 1,
+      "detailedDb": 51.40558783362626,
+      "liveIntervalDb": 51.39206699826143,
+      "errorDb": -0.013520835364829509
+    },
+    {
+      "kind": "moving",
+      "speed": 1,
+      "wall": true,
+      "start": 2,
+      "duration": 1,
+      "detailedDb": 52.47025285272517,
+      "liveIntervalDb": 52.4626331251437,
+      "errorDb": -0.00761972758147067
+    },
+    {
+      "kind": "moving",
+      "speed": 4,
+      "wall": false,
+      "start": 2,
+      "duration": 1,
+      "detailedDb": 52.56597688936452,
+      "liveIntervalDb": 52.54014514010605,
+      "errorDb": -0.025831749258472314
+    },
+    {
+      "kind": "moving",
+      "speed": 4,
+      "wall": true,
+      "start": 2,
+      "duration": 1,
+      "detailedDb": 53.389967830012594,
+      "liveIntervalDb": 53.37121193984685,
+      "errorDb": -0.018755890165742528
+    },
+    {
+      "kind": "moving",
+      "speed": 12,
+      "wall": false,
+      "start": 2,
+      "duration": 1,
+      "detailedDb": 57.0185051211208,
+      "liveIntervalDb": 56.91154821474238,
+      "errorDb": -0.10695690637842148
+    },
+    {
+      "kind": "moving",
+      "speed": 12,
+      "wall": true,
+      "start": 2,
+      "duration": 1,
+      "detailedDb": 57.833206750285584,
+      "liveIntervalDb": 57.75092701100233,
+      "errorDb": -0.08227973928325127
+    }
+  ],
+  "limits": {
+    "stationaryAbsoluteErrorDb": 0.3
+  },
+  "scope": "Synthetic stationary direct/image-source scenes and matched-interval moving sources within the live near-path range. Moving errors are measured diagnostics. No empirical calibration, distant-path bound or guaranteed treatment benefit."
+}
