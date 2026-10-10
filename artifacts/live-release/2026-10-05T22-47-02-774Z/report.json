@@ -1,0 +1,138 @@
+{
+  "schema": "simulatte.liveRelease.v2",
+  "recordedAt": "2026-10-05T22:47:02.775Z",
+  "expectedBuild": "66cabcd435ddca04ddc43b0b174e417847bb91d4-e6c93507f0ca",
+  "screenshots": true,
+  "scope": "HTTP identity, entry assets, browser startup, controls and one fixed Create execution",
+  "exclusions": [
+    "Simulation correctness",
+    "Model qualification",
+    "Physical GPU qualification",
+    "Human visual adjudication"
+  ],
+  "surfaces": [
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "66cabcd435ddca04ddc43b0b174e417847bb91d4-e6c93507f0ca",
+      "checks": {},
+      "assets": [],
+      "errors": [
+        "Live build differs: expected 66cabcd435ddca04ddc43b0b174e417847bb91d4-e6c93507f0ca, received fa44cb4e8e911d0a08f78f3140af77e56f3120bc-ba823fc24eb0"
+      ],
+      "pass": false,
+      "observedBuild": "fa44cb4e8e911d0a08f78f3140af77e56f3120bc-ba823fc24eb0"
+    }
+  ],
+  "browsers": [
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "66cabcd435ddca04ddc43b0b174e417847bb91d4-e6c93507f0ca",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": false,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/154.0.8037.95",
+      "observation": {
+        "checks": {
+          "build": false,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "catalogVisible": true,
+          "originalIllustration": true,
+          "homepageScroll": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Motorcycle Noise ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "Sun Walker ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "GPU Cluster ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          }
+        ],
+        "pass": false,
+        "title": "Simulatte",
+        "url": "https://simulatte-world.web.app/"
+      },
+      "screenshot": {
+        "path": "world-1440x1000.png",
+        "sha256": "e3a1e2670b2cb2b18f8f81e189d600d1d8113dc79df8115117c1afb25b9667c4"
+      }
+    },
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "66cabcd435ddca04ddc43b0b174e417847bb91d4-e6c93507f0ca",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/154.0.8037.95",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "catalogVisible": true,
+          "originalIllustration": true,
+          "homepageScroll": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Motorcycle Noise ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "Sun Walker ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          },
+          {
+            "name": "GPU Cluster ↗",
+            "reachable": true,
+            "width": 300,
+            "height": 64
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "https://simulatte-world.web.app/"
+      },
+      "screenshot": {
+        "path": "world-390x844.png",
+        "sha256": "ae205e24f120e3a60e84c4d5a8898d1046dad8b4377345e09148327cba9f2b7e"
+      }
+    }
+  ],
+  "pass": false
+}
