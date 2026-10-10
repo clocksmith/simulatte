@@ -71,7 +71,7 @@
     "description": "Send a packet and follow when a reply can return.",
     "readiness": "available",
     "featured": true,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/interstellar.png",
     "limitations": "Relay infrastructure is hypothetical; reliability is a seeded model.",
     "evidence": [
       "artifacts/next-experiences/browser.json",

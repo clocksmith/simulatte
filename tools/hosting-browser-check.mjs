@@ -60,8 +60,8 @@ async function probePage(surface, expectedBuild) {
   };
   const visible = node => !!node && node.getBoundingClientRect().width > 0 && node.getBoundingClientRect().height > 0
     && getComputedStyle(node).visibility !== 'hidden';
-  const motorcycleLaunch = surface === 'world' && Boolean(document.documentElement.dataset.worldLaunch);
-  const selectors = surface === 'world' ? motorcycleLaunch ? ['#simulation-launch .launch-link'] : ['#hex-center-sunwalker', '.hex-satellite'] : ['#build-prompt', '#build-lab', '#shuffle-prompt'];
+  const featuredLaunch = surface === 'world' && Boolean(document.documentElement.dataset.worldLaunch);
+  const selectors = surface === 'world' ? featuredLaunch ? ['#simulation-launch .launch-link'] : ['#hex-center-sunwalker', '.hex-satellite'] : ['#build-prompt', '#build-lab', '#shuffle-prompt'];
   const deadline = performance.now() + 15000;
   while (!selectors.every(selector => visible(document.querySelector(selector)))) {
     if (performance.now() > deadline) throw new Error('Required product controls did not become visible');
@@ -79,13 +79,46 @@ async function probePage(surface, expectedBuild) {
   }
   checks.controlsReachable = controls.length > 0 && controls.every(control => control.reachable);
   let execution;
-  if (motorcycleLaunch) {
-    const links = [...document.querySelectorAll('.launch-simulations a')].filter(visible);
-    checks.featuredLinks = JSON.stringify(links.map(link => new URL(link.href).pathname).sort()) === JSON.stringify(['/datacenter', '/motorcycle', '/sunwalker'])
+  if (featuredLaunch) {
+    const catalog = window.SimulattePublicRoutes;
+    const links = [...document.querySelectorAll('.launch-simulations a')];
+    checks.featuredLinks = JSON.stringify(links.map(link => new URL(link.href).pathname).sort()) === JSON.stringify(catalog.featured.map(page => page.path).sort())
       && links.every(link => new URL(link.href).origin === location.origin);
-    checks.catalogVisible = visible(document.getElementById('all-simulations')) && document.querySelectorAll('.simulation-catalog li').length === 14;
-    checks.originalIllustration = visible(document.querySelector('.launch-art'))
-      && !!document.querySelector('.launch-bike') && !document.querySelector('.launch-simulations img');
+    checks.catalogVisible = visible(document.getElementById('all-simulations')) && document.querySelectorAll('.simulation-catalog li').length === catalog.pages.length;
+    await waitFor('simulation previews', () => links.every(link => link.querySelector('img')?.complete));
+    checks.simulationPreviews = links.every(link => link.querySelector('img').naturalWidth > 0);
+    const track = document.querySelector('.launch-simulations');
+    const previous = document.querySelector('[data-gallery-previous]');
+    const next = document.querySelector('[data-gallery-next]');
+    const settle = async () => {
+      await new Promise(resolve => setTimeout(resolve, 600));
+    };
+    track.scrollTo({ left: 0, behavior: 'instant' });
+    track.scrollIntoView({ block: 'center' });
+    await settle();
+    const trackRect = track.getBoundingClientRect();
+    const fullyVisible = links.filter(link => {
+      const rect = link.getBoundingClientRect();
+      return rect.left >= trackRect.left - 1 && rect.right <= trackRect.right + 1;
+    });
+    checks.previewCount = fullyVisible.length === (innerWidth > 700 ? Math.min(3, links.length) : 1);
+    checks.galleryStartsAtFirst = previous.disabled && !next.disabled;
+    next.click();
+    await settle();
+    checks.galleryAdvances = track.scrollLeft > 0 && !previous.disabled;
+    const lastRect = links.at(-1).getBoundingClientRect();
+    if (innerWidth > 700) checks.galleryReachesLast = next.disabled && lastRect.right <= trackRect.right + 1;
+    previous.click();
+    await settle();
+    checks.galleryReturns = track.scrollLeft < 2 && previous.disabled;
+    track.focus();
+    track.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    await settle();
+    checks.galleryKeyboardEnd = next.disabled;
+    track.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    await settle();
+    checks.galleryKeyboardHome = previous.disabled;
+    checks.galleryStatus = document.querySelector('.gallery-status').textContent === `1–${innerWidth > 700 ? Math.min(3, links.length) : 1} of ${links.length} simulations`;
     const previousScroll = scrollY;
     window.scrollTo(0, 200);
     await new Promise(resolve => requestAnimationFrame(resolve));

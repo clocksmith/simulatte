@@ -27,7 +27,7 @@ execution.
 
 ## How to use Simulatte
 
-The root page shows the simulation chooser. Use your data opens CSV/JSON input, explicit column mapping,
+The root page shows captured previews of featured simulations, three at a time on desktop with manual paging and swipe scrolling on mobile. Each preview opens its simulation; All simulations lists the full catalog. The original chooser and data tools remain in source. The data workbench supports CSV/JSON input, explicit column mapping,
 constant-velocity 2D point execution, a timeline and output table, WorldSpec
 editing, result comparison, exact replay, and program/result export. Local data
 does not leave the browser. URL acquisition happens only on Fetch URL.

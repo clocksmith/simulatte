@@ -23,7 +23,10 @@ try {
   await client.send('Page.enable'); await client.send('Runtime.enable');
   receipt.browser = await client.send('Browser.getVersion');
   for (const page of catalog.featured) {
+    if (!page.previewAsset) throw new Error('Featured preview asset missing: ' + page.path);
+    const loaded = client.once('Page.loadEventFired');
     await client.send('Page.navigate', { url: browser.host.baseUrl.replace(/\/$/, '') + page.path });
+    await loaded;
     const deadline = Date.now() + 120000;
     let state;
     do {
@@ -35,18 +38,25 @@ try {
       if (state.error || state.phase === 'failed') throw new Error(JSON.stringify(state));
       if (Date.now() > deadline) throw new Error('Preview did not become ready: ' + JSON.stringify(state));
     } while (page.profile ? !['running', 'completed'].includes(state.phase) : !state.ready);
+    if (page.profile) {
+      await evaluate(`globalThis.SimulatteActiveSession.invoke('select-object', null)`);
+      await new Promise(resolve => setTimeout(resolve, 200));
+      await evaluate(`document.getElementById('camera-bird').click()`);
+    }
     await new Promise(resolve => setTimeout(resolve, 1200));
     const clip = await evaluate(`(() => { const canvas = [...document.querySelectorAll('canvas')]
       .filter(c => c.checkVisibility() && c.getBoundingClientRect().width > 500)
       .sort((a,b) => b.getBoundingClientRect().width * b.getBoundingClientRect().height - a.getBoundingClientRect().width * a.getBoundingClientRect().height)[0];
       if (!canvas) throw new Error('Visible simulation canvas missing');
-      const r = canvas.getBoundingClientRect(); return { x: Math.max(0,r.x), y: Math.max(0,r.y),
-        width: Math.min(r.width,innerWidth-r.x), height: Math.min(r.height,innerHeight-r.y), scale: 1 }; })()`);
-    const shot = await client.send('Page.captureScreenshot', { format: 'png', clip });
+      canvas.scrollIntoView({ block: 'center' });
+      const r = canvas.getBoundingClientRect(); return { x: r.x + scrollX, y: r.y + scrollY,
+        width: r.width, height: r.height, scale: 1 }; })()`);
+    const shot = await client.send('Page.captureScreenshot', { format: 'png', clip, captureBeyondViewport: true });
     const bytes = Buffer.from(shot.data, 'base64');
     await fs.writeFile(root + 'public' + page.previewAsset, bytes);
     receipt.captures.push({ path: page.path, profile: page.profile || null, asset: page.previewAsset,
-      state, clip, sha256: crypto.createHash('sha256').update(bytes).digest('hex') });
+      state, camera: page.profile ? 'overview, selection cleared' : 'default', clip,
+      sha256: crypto.createHash('sha256').update(bytes).digest('hex') });
     console.log('Captured ' + page.displayName);
   }
 } finally {

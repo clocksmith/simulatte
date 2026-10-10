@@ -1,28 +1,52 @@
 {
-  "capturedAt": "2026-10-05T00:49:46.620Z",
+  "capturedAt": "2026-10-10T23:57:26.923Z",
   "sources": {
-    "head": "43e080d0763355152a6949e24b737ec5c0e7f855",
-    "capturedAt": "2026-10-05T00:49:46.768Z",
+    "head": "e063790c2d10e5b02a2d8be272502b63e1c8fe81",
+    "capturedAt": "2026-10-10T23:57:26.955Z",
     "modifiedSources": {
       "public/CATSCAN.md": {
-        "sha256": "3b0eeb377b445fdd96766456d674a5ccde71df6d48bcdc648d09482bcc5f730b",
-        "modifiedAt": "2026-10-05T00:48:19.134Z"
+        "sha256": "067eb5bf48ea6a25c7f5ff13dd31990ad09cd2f6185c4a4cf6b5bd94fd8f4884",
+        "modifiedAt": "2026-10-10T23:52:02.100Z"
+      },
+      "public/index.html": {
+        "sha256": "e52521dfb58fa666b31b7c9f058ac161e56c7d0985412727c0ae57b6e2553d0f",
+        "modifiedAt": "2026-10-10T23:53:45.286Z"
+      },
+      "public/simulation-previews/capture-receipt.json": {
+        "sha256": "4db2e05f09357be7f685e416904ced5e4e45663c1c304edd8ff7534405a3eb4d",
+        "modifiedAt": "2026-10-10T23:56:36.148Z"
+      },
+      "public/simulation-previews/gpu.png": {
+        "sha256": "638568bd2de888dad7efddbd5950db2dba0feac251791a3309322053c8029196",
+        "modifiedAt": "2026-10-10T23:56:34.318Z"
+      },
+      "public/simulation-previews/interstellar.png": {
+        "sha256": "81c314973382f095ef95a34256e0693333ba536e3ccb2815f64a06380f730fc6",
+        "modifiedAt": "2026-10-10T23:56:36.095Z"
+      },
+      "public/simulation-previews/motorcycle.png": {
+        "sha256": "8ef5d2b3fb96c42075425eefa9d1a2321efad7616777cc4ca55b61528e9fe4e4",
+        "modifiedAt": "2026-10-10T23:56:21.831Z"
+      },
+      "public/simulation-previews/sunwalker.png": {
+        "sha256": "b54748fe59f7bc5a9b835643d9fea3653a0f67e640d4661b92fe74ca58ff4693",
+        "modifiedAt": "2026-10-10T23:56:32.597Z"
       },
       "public/simulation-routes.js": {
-        "sha256": "b9bfcdc81c888945fbb2be39dfc9aa1c573a36676ccff3e69c5b2a8b38ff7701",
-        "modifiedAt": "2026-10-05T00:48:19.132Z"
+        "sha256": "a414fc2bef3ffddb1d69e838ce853a8aeafad7070cd1097adcf2deece9dc9686",
+        "modifiedAt": "2026-10-10T23:51:24.991Z"
       },
-      "public/simulatte/CATSCAN.md": {
-        "sha256": "7c589d5501e5a59712fd1a4bca3d76a5177531df5166fd58f2fab0339ec5a33c",
-        "modifiedAt": "2026-10-05T00:48:19.134Z"
+      "public/simulatte/app/homepage-gallery.js": {
+        "sha256": "8aa4346bb19b2f66ca3e351987690660fa44bf6b35f7594575bc115ca319328f",
+        "modifiedAt": "2026-10-10T23:55:37.258Z"
       },
-      "public/simulatte/app/CATSCAN.md": {
-        "sha256": "e98626ecc0023890e1dfcc4dc94e881dd11adbcb394033be1756bd9e1b37ee6a",
-        "modifiedAt": "2026-10-05T00:48:19.134Z"
+      "public/simulatte/app/world-runtime-script-manifest.js": {
+        "sha256": "fa26cf2cb6ef6bd54fda35c5c8a6d0cf5f669acd759f13e2a9d2771236a01eb4",
+        "modifiedAt": "2026-10-10T23:53:45.064Z"
       },
-      "public/simulatte/app/workbench-entry.js": {
-        "sha256": "660592259f3cef335eb763fbcf47cae9007be7db3dd5a280870e760b648d4060",
-        "modifiedAt": "2026-10-05T00:48:19.134Z"
+      "public/world-tiers.css": {
+        "sha256": "ad49e84f9106ed7258f1abacd698a6571e2a6a7508370ca8b13399f0cd551896",
+        "modifiedAt": "2026-10-10T23:52:02.100Z"
       }
     },
     "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
@@ -36,6 +60,7 @@
         "motorcycle": "running",
         "ready": true
       },
+      "camera": "default",
       "clip": {
         "x": 0,
         "y": 0,
@@ -43,7 +68,7 @@
         "height": 661,
         "scale": 1
       },
-      "sha256": "31b9179312f1c080fc8c96595cc85c9d46c0026cfb6e6a914f425a64f3bee6cb"
+      "sha256": "f4c921b62bb7c94060172967cced882945e8de11aa4d664ac6ba9e22a8435cbf"
     },
     {
       "path": "/sunwalker",
@@ -53,14 +78,15 @@
         "phase": "running",
         "ready": true
       },
+      "camera": "overview, selection cleared",
       "clip": {
         "x": 25,
-        "y": 218.3125,
+        "y": 527.3125,
         "width": 1150,
-        "height": 415,
+        "height": 418,
         "scale": 1
       },
-      "sha256": "f102e63a2d630b352963f2d8ce7cad3a7cb11ba6591994a8b1fc640a634cdb6f"
+      "sha256": "2581017f0a8117fca31297f43e2b7cbf1f6a4d18167d8bda047f5e9d9cf31bd5"
     },
     {
       "path": "/datacenter",
@@ -70,6 +96,7 @@
         "phase": "running",
         "ready": true
       },
+      "camera": "overview, selection cleared",
       "clip": {
         "x": 25,
         "y": 218.3125,
@@ -77,7 +104,25 @@
         "height": 415,
         "scale": 1
       },
-      "sha256": "800b47bbb9ee4d60241fcd916f20a960c1279d9db45a4d0956c04d4c2f205e94"
+      "sha256": "914305be13f91c231b7e7513b7f1b54ffd67bbc2b7633147519f0e68216a67fe"
+    },
+    {
+      "path": "/interstellar",
+      "profile": "interstellar-relay-network-v1",
+      "asset": "/simulation-previews/interstellar.png",
+      "state": {
+        "phase": "running",
+        "ready": true
+      },
+      "camera": "overview, selection cleared",
+      "clip": {
+        "x": 25,
+        "y": 233.703125,
+        "width": 1150,
+        "height": 415,
+        "scale": 1
+      },
+      "sha256": "81c314973382f095ef95a34256e0693333ba536e3ccb2815f64a06380f730fc6"
     }
   ],
   "browser": {

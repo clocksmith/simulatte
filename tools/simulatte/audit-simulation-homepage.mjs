@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { createAuditHost, findChrome } from './browser-session.mjs';
 import { verifyHostingBrowser } from '../hosting-browser-check.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const output = root + 'artifacts/2026-10-04-catalog/homepage';
+const output = root + 'artifacts/homepage-gallery';
 await fs.mkdir(output, { recursive: true });
 const html = await fs.readFile(root + 'public/index.html', 'utf8');
 const expectedBuild = html.match(/name="simulatte-build" content="([^"]+)"/)[1];

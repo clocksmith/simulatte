@@ -23,19 +23,23 @@ test('the discovery catalog covers each registered profile and standalone experi
   }
 });
 
-test('homepage retains its original illustration and catalog links without screenshot cards', () => {
+test('homepage previews follow the featured catalog with bound simulation captures', () => {
   const receipt = JSON.parse(fs.readFileSync(path.join(root, 'public/simulation-previews/capture-receipt.json')));
   assert.deepEqual(catalog.featured.map(page => page.path).sort(), ['/datacenter', '/interstellar', '/motorcycle', '/sunwalker']);
-  for (const page of catalog.featured.filter(page=>page.previewAsset)) {
-    assert.ok(fs.existsSync(path.join(root, 'public', page.previewAsset)));
-    assert.ok(receipt.captures.some(row => row.path === page.path && row.asset === page.previewAsset));
+  const { createHash } = require('node:crypto');
+  for (const page of catalog.featured) {
+    assert.ok(page.previewAsset, 'Featured experience requires its own preview');
+    const bytes = fs.readFileSync(path.join(root, 'public', page.previewAsset));
+    const capture = receipt.captures.find(row => row.path === page.path && row.asset === page.previewAsset);
+    assert.ok(capture, 'Preview must come from the corresponding simulation');
+    assert.equal(capture.sha256, createHash('sha256').update(bytes).digest('hex'));
   }
   execFileSync(process.execPath, ['tools/sync-simulation-homepage.mjs', '--check'], { cwd: root });
   const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
   assert.match(html, /href="#all-simulations"/);
-  assert.match(html, /class="launch-bike"/);
-  assert.match(html, /class="launch-waves"/);
-  assert.match(html, /class="launch-city"/);
-  assert.doesNotMatch(html, /<img[^>]+simulation-previews\//);
-  for (const page of catalog.featured) assert.ok(html.includes(`class="launch-link" href=".${page.path}"`));
+  assert.doesNotMatch(html, /launch-bike|launch-waves|launch-city/);
+  for (const page of catalog.featured) {
+    assert.ok(html.includes(`href=".${page.path}" aria-label="Open ${page.displayName}"`));
+    assert.ok(html.includes(`src=".${page.previewAsset}"`));
+  }
 });
