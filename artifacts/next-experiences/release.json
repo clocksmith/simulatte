@@ -40,7 +40,10 @@
       "journeys": 10,
       "sourceFreeze": true,
       "packagedBytesMatch": true,
-      "report": "browser.json"
+      "report": "browser.json",
+      "reportSchema": "simulatte.nextExperienceJourneys.v2",
+      "reportSha256": "ecbb6479c825347ecfdc45ff998df19079aec5cc2ffe4a38680c60516aae832c",
+      "originalCaptureCommit": "69470ab0"
     },
     "fullSuite": "Interrupted during unchanged Create activity tests; no full-suite pass claimed."
   },

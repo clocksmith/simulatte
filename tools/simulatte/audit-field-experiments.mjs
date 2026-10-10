@@ -11,6 +11,115 @@ const publicRoot = path.join(
   process.argv.includes("--package") ? ".firebase-hosting/world" : "public",
 );
 await fs.mkdir(out, { recursive: true });
+const reportPath = path.join(out, "browser.json");
+const identity = (value) => ({
+  schema: value?.schema || null,
+  sha256: createHash("sha256").update(JSON.stringify(value)).digest("hex"),
+});
+function compact(report) {
+  for (const row of report.routes) {
+    if (row.contribution) {
+      const c = row.contribution;
+      row.contribution = {
+        schema: c.schema,
+        pluginId: c.pluginId,
+        identity: identity(c),
+        state: {
+          id: c.state.id,
+          status: c.state.status,
+          simulationTimeMs: c.state.simulationTimeMs,
+          measures: c.state.measures.map(
+            ({ kind, value, unit, domain, measurement }) => ({
+              kind,
+              value,
+              unit,
+              domain,
+              measurement,
+            }),
+          ),
+        },
+        controls: c.controls.controls.map(({ id, value }) => ({ id, value })),
+        comparisons: c.controls.comparisons,
+        objects: c.objects.map(
+          ({ id, label, condition, relatedIds, actions }) => ({
+            id,
+            label,
+            condition,
+            relatedIds,
+            actions: actions.map(
+              ({ id, label, available, execution, command }) => ({
+                id,
+                label,
+                available,
+                execution,
+                command,
+              }),
+            ),
+          }),
+        ),
+        presentation: {
+          coordinateSystem: c.presentation.coordinateSystem,
+          layers: c.presentation.layers.map(
+            ({ id, kind, label, geometry, role }) => ({
+              id,
+              kind,
+              label,
+              geometry,
+              role,
+            }),
+          ),
+        },
+      };
+    }
+    if (row.receipt) {
+      const r = row.receipt;
+      row.receipt = {
+        identity: identity(r),
+        schema: r.schema,
+        tier: r.tier,
+        profileId: r.profileId,
+        scenario: r.scenario,
+        parameterValues: r.parameterValues,
+        simulationActions: r.simulationActions,
+        settlement: r.settlement,
+        actionResult: {
+          identity: identity(r.actionResult),
+          status: r.actionResult.status,
+        },
+        runtime: {
+          identity: identity(r.pluginRuntime),
+          schema: r.pluginRuntime.schema,
+          profileId: r.pluginRuntime.profileId,
+          worldSpecHash: r.pluginRuntime.worldSpec.contentHash,
+          sdkVersion: r.pluginRuntime.sdkVersion,
+          activationOrder: r.pluginRuntime.activationOrder,
+        },
+        loadReceipt: identity(r.loadReceipt),
+      };
+    }
+  }
+  report.schema = "simulatte.nextExperienceJourneys.v2";
+  return report;
+}
+if (process.argv.includes("--compact")) {
+  const original = await fs.readFile(reportPath);
+  const report = JSON.parse(original);
+  assert.equal(report.schema, "simulatte.nextExperienceJourneys.v1");
+  assert.ok(
+    report.sourceFreeze.passed &&
+      report.routes.every((row) => row.status === "passed"),
+  );
+  report.originalCaptureIdentity = {
+    sha256: createHash("sha256").update(original).digest("hex"),
+    bytes: original.length,
+  };
+  await fs.writeFile(
+    reportPath,
+    JSON.stringify(compact(report), null, 2) + "\n",
+  );
+  console.log("Compact source-bound browser report written.");
+  process.exit(0);
+}
 const files = execFileSync("rg", ["--files", "public"], {
   cwd: root,
   encoding: "utf8",
@@ -331,7 +440,7 @@ for (const [file, expected] of Object.entries(sourceHashes)) {
 report.sourceFreeze = { passed: changedSources.length === 0, changedSources };
 await fs.writeFile(
   path.join(out, "browser.json"),
-  JSON.stringify(report, null, 2) + "\n",
+  JSON.stringify(compact(report), null, 2) + "\n",
 );
 if (
   !report.sourceFreeze.passed ||
