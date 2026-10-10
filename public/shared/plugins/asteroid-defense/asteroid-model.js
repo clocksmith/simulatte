@@ -35,6 +35,7 @@
       observationBudget: scenario.observationBudget,
       followUpPolicyId,
       fit: config.fit,
+      observationIds: policyOverrides.observationIds || scenario.observationIds || null,
     });
     if (!fitReceipt.covarianceReceipt.positiveSemidefinite) {
       throw modelError('asteroid_covariance_invalid', campaign.id);
@@ -61,7 +62,8 @@
     const thresholdSatisfied = baselineEncounter.modeledScreeningFraction >= scenario.decisionThreshold;
     const evidenceSatisfied = scenario.decisionPolicyId === 'act-at-threshold'
       || (fitReceipt.converged && fitReceipt.observationIds.length >= Math.min(8, campaign.observations.length));
-    const interventionApplied = requestedIntervention.id !== 'none' && thresholdSatisfied && evidenceSatisfied;
+    const decisionCommitted = scenario.decisionCommitted !== false;
+    const interventionApplied = decisionCommitted && requestedIntervention.id !== 'none' && thresholdSatisfied && evidenceSatisfied;
     const appliedIntervention = interventionApplied ? requestedIntervention : noIntervention;
     const interventionEncounter = appliedIntervention.id === 'none'
       ? baselineEncounter
@@ -83,10 +85,12 @@
       seed: scenario.seed,
       followUpPolicyId,
       decisionPolicyId: scenario.decisionPolicyId,
+      decisionCommitted,
       interventionArchetypeId: requestedIntervention.id,
       executionUncertaintyModelId: executionModel.id,
       ensembleSize: scenario.ensembleSize,
       observationBudget: scenario.observationBudget,
+      observationIds: fitReceipt.observationIds,
       decisionThreshold: scenario.decisionThreshold,
       fit: config.fit,
       propagation: config.propagation,
@@ -102,6 +106,7 @@
       interventionEncounter,
       requestedIntervention,
       appliedIntervention,
+      decisionCommitted,
     });
     const snapshots = buildSnapshots({
       scenarioIdentity,
@@ -115,6 +120,8 @@
       appliedIntervention,
     });
     const metrics = {
+      decisionDay: decisionNotBeforeDay,
+      remainingDecisionDays: Math.max(0,campaign.terminalDay-decisionNotBeforeDay),
       observationCount: fitReceipt.observationIds.length,
       fitResidualRmsArcsec: fitReceipt.residualRmsRad * 180 / Math.PI * 3600,
       fitStateErrorAu: fitError.positionErrorAu,
@@ -127,7 +134,7 @@
       interventionExecutionProfile: interventionEncounter.executionProfile,
     };
     return deepFreeze({
-      schema: 'simulatte.asteroidDefenseRun.v1',
+      schema: 'simulatte.asteroidDefenseRun.v2',
       id: `asteroid:${scenarioIdentity}`,
       scenarioIdentity,
       scenarioId: campaign.id,
@@ -148,6 +155,7 @@
         policyAccessible: false,
       },
       metrics,
+      decisionNotBeforeDay,
       events,
       snapshots,
       settlement: {
@@ -172,9 +180,10 @@
     interventionEncounter,
     requestedIntervention,
     appliedIntervention,
+    decisionCommitted,
   }) {
     const rows = [];
-    const analysisStartDay = campaign.observations.at(-1).epochDayTdb;
+    const analysisStartDay = Math.max(...campaign.observations.filter(row=>fitReceipt.observationIds.includes(row.id)).map(row=>row.epochDayTdb));
     append('observations.acquired', analysisStartDay * DAY_MS, {
       observationIds: fitReceipt.observationIds,
     });
@@ -186,6 +195,7 @@
       ensembleSize: ensembleReceipt.ensembleSize,
       covarianceIdentity: ensembleReceipt.covarianceIdentity,
     });
+    if (!decisionCommitted) {append('scenario.settled',(analysisStartDay+3)*DAY_MS,{decisionCommitted:false,stage:'observations-ready'});return rows;}
     for (const [offset, progressFraction] of [[3, 0.25], [4, 0.5], [5, 0.75]]) {
       append('encounter.baseline-progressed', (analysisStartDay + offset) * DAY_MS, {
         progressFraction,

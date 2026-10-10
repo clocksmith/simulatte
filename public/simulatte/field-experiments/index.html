@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Simulatte experiment</title>
+    <meta name="simulatte-build" content="BUILD-STAMP" />
+    <base href="/simulatte/field-experiments/" />
+    <link rel="stylesheet" href="../../shared/design/tokens.css" />
+    <link rel="stylesheet" href="../../shared/design/themes/world.css" />
+    <link rel="stylesheet" href="./experiment.css" />
+  </head>
+  <body>
+    <header>
+      <a href="../../">SIMULATTE</a>
+      <h1 id="title">Loading experiment</h1>
+      <button id="theme" type="button">Theme</button>
+    </header>
+    <main>
+      <p id="question"></p>
+      <div class="experiments">
+        <section>
+          <h2>Selected experiment</h2>
+          <canvas
+            id="scene"
+            tabindex="0"
+            aria-label="Select an object in the simulation"
+          ></canvas>
+        </section>
+        <section>
+          <h2>Untouched baseline</h2>
+          <canvas
+            id="baseline"
+            aria-label="Same initial conditions without interventions"
+          ></canvas>
+        </section>
+      </div>
+      <div class="toolbar">
+        <button id="pause">Pause</button><button id="restart">Restart</button
+        ><button id="replay">Replay actions</button
+        ><label
+          >Playback
+          <select id="speed">
+            <option value="1">1×</option>
+            <option value="4">4×</option>
+          </select></label
+        ><button id="export">Export run</button
+        ><label class="import-button"
+          >Import run<input
+            id="import"
+            type="file"
+            accept="application/json" /></label
+        ><output id="clock"></output>
+      </div>
+      <dl id="measures"></dl>
+      <aside>
+        <h2 id="selection">Selected object</h2>
+        <p id="condition"></p>
+        <div id="actions"></div>
+        <p id="consequence" aria-live="polite"></p>
+      </aside>
+      <details>
+        <summary>Advanced: model and evidence</summary>
+        <p id="boundary"></p>
+        <dl id="checks"></dl>
+        <div id="sources"></div>
+        <textarea id="spec" aria-label="WorldSpec" readonly></textarea>
+      </details>
+      <p id="status" role="status"></p>
+    </main>
+    <script defer src="../../simulation-routes.js"></script>
+    <script defer src="../../shared/design/theme-controller.js"></script>
+    <script
+      defer
+      src="../../shared/contracts/world-spec-authorship.js"
+    ></script>
+    <script defer src="../../shared/contracts/world-spec.js"></script>
+    <script defer src="../../shared/core/simulation/field-grid.js"></script>
+    <script defer src="../../shared/core/simulation/tissue-growth.js"></script>
+    <script defer src="../../shared/core/simulation/river-erosion.js"></script>
+    <script
+      defer
+      src="../../shared/core/simulation/crystal-solidification.js"
+    ></script>
+    <script defer src="./program.js"></script>
+    <script defer src="./drawing.js"></script>
+    <script defer src="./app.js"></script>
+  </body>
+</html>

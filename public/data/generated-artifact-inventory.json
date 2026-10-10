@@ -33,7 +33,7 @@
       ],
       "output": {
         "path": "public/data/simulatte/tier-application-manifest.json",
-        "sha256": "3f5bb1b12b1f0037d2bbcc6d973c3ab3c905b1420ebb3cd5a859df19a0d5ff5c"
+        "sha256": "abb9c27744819b52ac1517eedba3f2895eede5a99edeb1962a1d078bc9b37423"
       },
       "contentVersion": "simulatte-tier-applications-v3",
       "activationState": "active",
@@ -123,11 +123,65 @@
       ],
       "output": {
         "path": "docs/simulatte/folder-contract.json",
-        "sha256": "c0d906387466591db5ef7d801054d0dfb10b0e16ffda1a6fdc449f794cc3aab0"
+        "sha256": "f4401718731a67c902d6fefc49b9813ea8b24c2de8e3ca8f4d40a004b18de9e4"
       },
       "contentVersion": "unpopulated",
       "activationState": "active-generated-mirror",
       "validationCommand": "npm run folder-contracts:check"
+    },
+    {
+      "artifactId": "living-tissue-model-identity",
+      "owner": "field-experiments",
+      "schema": "simulatte.fieldExperiment.v1",
+      "generatorCommand": "npm run sync:field-models",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/field-experiments/living-tissue.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/field-experiments/living-tissue.json",
+        "sha256": "1790afbe52226c05806f8103db2196e426009a45049fbb279e06fa1ddb1a9239"
+      },
+      "contentVersion": "living-tissue",
+      "activationState": "active",
+      "validationCommand": "npm run check:field-models"
+    },
+    {
+      "artifactId": "river-formation-model-identity",
+      "owner": "field-experiments",
+      "schema": "simulatte.fieldExperiment.v1",
+      "generatorCommand": "npm run sync:field-models",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/field-experiments/river-formation.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/field-experiments/river-formation.json",
+        "sha256": "75798df92c9de58f52d1bada01948a0df69f1c8d538e3ba1c07e73899ccbfe2b"
+      },
+      "contentVersion": "river-formation",
+      "activationState": "active",
+      "validationCommand": "npm run check:field-models"
+    },
+    {
+      "artifactId": "crystal-foundry-model-identity",
+      "owner": "field-experiments",
+      "schema": "simulatte.fieldExperiment.v1",
+      "generatorCommand": "npm run sync:field-models",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/field-experiments/crystal-foundry.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/field-experiments/crystal-foundry.json",
+        "sha256": "9bd6e40aab518dd980e0bc213e6537be85ae1c0ad14c339abbcce3f354333b2d"
+      },
+      "contentVersion": "crystal-foundry",
+      "activationState": "active",
+      "validationCommand": "npm run check:field-models"
     },
     {
       "artifactId": "us-major-cities",

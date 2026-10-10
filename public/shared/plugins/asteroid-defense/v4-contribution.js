@@ -65,13 +65,19 @@
       },
       records: records.filter((row) => /jpl-neo-context/.test(row.id)),
     });
+    const observationProgram = typeof module === 'object' && module.exports ? require('./observation-program.js') : globalThis.SimulatteAsteroidObservationProgram;
+    const campaignSource = datasets.campaigns.campaigns.find(row=>row.id===result.scenarioId);
+    const acquiredIds = result.fitReceipt.observationIds;
+    const decisionTime = result.decisionNotBeforeDay;
+    const remaining = Math.max(0,result.campaign.terminalDay-decisionTime);
+    const explanation = `${acquiredIds.length} acquired observations through day ${decisionTime.toFixed(2)} leave ${remaining.toFixed(2)} days until the modeled encounter. Paths are alternative fits, not known trajectories. Compare acting on this evidence with one more scheduled observation; both branches share the synthetic truth and execution seed. Screening fractions are model counts, not impact probabilities.`;
     const encounter = snapshot.activeEncounter === 'intervention'
       ? result.interventionEncounter
       : snapshot.activeEncounter === 'baseline'
         ? result.baselineEncounter
         : snapshot.interventionEncounter
           ? result.interventionEncounter
-          : snapshot.baselineEncounter ? result.baselineEncounter : null;
+          : result.baselineEncounter;
     const representative = encounter?.members?.[0] || null;
     const actorPosition = representative && Number.isFinite(snapshot.trajectoryDay)
       ? positionAtDay(representative.trajectory, snapshot.trajectoryDay)
@@ -85,11 +91,9 @@
         datasets.forceModels.models[0].gmSunAu3Day2
       ).positionAu
       : [1, 0, 0];
-    const activeTrajectories = snapshot.ensembleReceipt
-      ? (encounter?.members || []).slice(0, 10)
-      : [];
+    const activeTrajectories = (encounter?.members || []).slice(0,10);
     const showBranchComparison = Boolean(
-      snapshot.interventionEncounter || snapshot.status === 'intervention-propagating' || snapshot.status === 'settled'
+      result.configurationIdentity.decisionCommitted && (snapshot.interventionEncounter || snapshot.status === 'intervention-propagating' || snapshot.status === 'settled')
     );
     const interventionActor = interventionVisual({
       result,
@@ -98,9 +102,11 @@
       earthPosition,
       simulated,
     });
-    const visibleObservations = observationsForSnapshot(result, snapshot);
+    const visibleObservations = result.campaign.observations.filter(row=>acquiredIds.includes(row.id));
     const maxDistance = Math.max(1, ...(encounter?.members || []).map((row) => row.minimumDistanceKm));
     const layers = [
+      ...(snapshot.status === 'settled' && result.configurationIdentity.decisionCommitted ? [builder.layer({id:'synthetic-truth-revealed',kind:'path',label:'Revealed synthetic trajectory after the experiment',geometry:builder.geometry('polyline','heliocentric-ecliptic-au',propagation.propagate({stateVector:campaignSource.hiddenTruth.initialState,startDay:0,durationDays:campaignSource.terminalDay,stepDays:config.propagation.stepDays,gmSunAuD2:datasets.forceModels.models[0].gmSunAu3Day2}).trajectory.map(row=>row.positionAu)),role:'event',importance:1,provenance:scenarioClaim})] : []),
+      ...datasets.stations.stations.map((station)=>builder.layer({id:`station:${station.id}`,kind:'point',label:station.label,geometry:builder.geometry('point','heliocentric-ecliptic-au',[earthPosition]),role:'event',importance:1,provenance:scenarioClaim})),
       ...catalogObjects.map(({ object, positionAu }) => builder.layer({
         id: `jpl-neo-context:${object.id}`,
         kind: 'point',
@@ -320,16 +326,17 @@
       ], scenarioClaim),
       select('interventionArchetypeId', 'Intervention', result.configurationIdentity.interventionArchetypeId,
         datasets.interventions.archetypes.map((row) => option(row.id, row.label)), scenarioClaim),
-      number('observationBudget', 'Observation budget', result.configurationIdentity.observationBudget, 4, campaign.observations.length, 1, scenarioClaim),
+      {id:'observationIds', label:'Evidence for this replay', kind:'multiselect', value:acquiredIds, options:campaign.observations.slice().sort((a,b)=>a.epochDayTdb-b.epochDayTdb).map(row=>option(row.id,`${row.stationId} · day ${row.epochDayTdb.toFixed(2)}`)), minimum:null,maximum:null,step:null,provenance:scenarioClaim},
+      {id:'decisionCommitted',label:'Commit selected decision policy',kind:'toggle',value:result.configurationIdentity.decisionCommitted,options:null,minimum:null,maximum:null,step:null,provenance:scenarioClaim},
       number('ensembleSize', 'Orbit clones', result.configurationIdentity.ensembleSize, 4, 64, 4, scenarioClaim),
       range('decisionThreshold', 'Modeled screening threshold', result.configurationIdentity.decisionThreshold, 0, 1, 0.05, scenarioClaim),
-    ], [{
+    ], [...(result.configurationIdentity.decisionCommitted ? [{
       id: 'no-intervention-vs-selected',
       label: 'No intervention versus selected policy',
       baselineScenarioId: `${result.scenarioId}:no-intervention`,
       variantScenarioId: `${result.scenarioId}:${result.requestedInterventionId}`,
       synchronizedClock: true,
-    }]);
+    }] : []), ...(observationProgram.next(campaignSource,acquiredIds) ? [{id:'observe-again-vs-act-now',label:'One more observation versus act on current evidence',baselineScenarioId:result.scenarioId,variantScenarioId:result.scenarioId,synchronizedClock:true}] : [])]);
     const state = builder.state({
       id: snapshot.id,
       pluginId: PLUGIN_ID,
@@ -338,7 +345,8 @@
       previousStateId: previousSnapshotId(result, snapshot),
       eventIds: snapshot.eventIds,
       measures: [
-        builder.quantity('observation-count', snapshot.observationCount, 'observations'),
+        builder.quantity('observation-count', acquiredIds.length, 'observations',null,{label:'Acquired observations',subject:'Synthetic campaign',definition:'Only acquired observation rows are used to refit.',timeBasis:'accumulated',interval:{start:0,end:decisionTime,unit:'day'},validity:'valid',freshness:'current',context:explanation}),
+        builder.quantity('decision-time-remaining',remaining,'day'),
         ...(snapshot.fitReceipt ? [builder.quantity('fit-residual', result.metrics.fitResidualRmsArcsec, 'arcsec')] : []),
         ...(snapshot.baselineEncounter ? [builder.quantity('baseline-screening-frequency', snapshot.baselineEncounter.modeledScreeningFraction, 'ratio')] : []),
         ...(snapshot.baselineEncounter ? [
@@ -388,6 +396,7 @@
             field('applied-intervention', 'Applied intervention', snapshot.appliedInterventionId, null, simulated),
             field('execution-profile', 'Intervention execution profile', result.metrics.interventionExecutionProfile, null, simulated),
           ] : []),
+        ...(snapshot.status === 'settled' && result.configurationIdentity.decisionCommitted ? [field('revealed-error','Fit error against revealed synthetic truth',result.hiddenEvaluation.positionErrorAu,'AU',simulated)] : []),
         field('hidden-policy-access', 'Policy access to hidden truth', false, null, simulated),
         field('force-omissions', 'Force-model omissions', datasets.forceModels.models[0].omissions, null, simulated),
         field('claim-boundary', 'Claim boundary', result.settlement.claimBoundary, null, simulated),
@@ -400,6 +409,11 @@
       controls,
       state,
       inspections,
+      objects: datasets.stations.stations.map(station=> {
+        const next = observationProgram.next(campaignSource,acquiredIds,station.id);
+        const values = Object.fromEntries(controls.controls.map(row=>[row.id,row.value]));
+        return {id:`station:${station.id}`,label:station.label,inSelector:true,condition:result.configurationIdentity.decisionCommitted ? (result.interventionApplied ? 'Decision committed: intervention executed.' : 'Decision committed: the selected policy withheld intervention because its evidence or screening threshold was not met.') : next?`Next scheduled observation: day ${next.epochDayTdb.toFixed(2)}`:'No admissible later observation',description:explanation,relatedIds:layers.filter(row=>row.id.startsWith('asteroid-clone-path:')).map(row=>row.id),hit:{shape:'point',radiusPx:15,priority:100},actions:[...(next?[{id:'observe',label:'Acquire next observation',targetId:`station:${station.id}`,available:true,execution:'restart',command:'scenario.run',values:{...values,observationIds:[...acquiredIds,next.id]},proposedChange:`Acquire ${next.id}, refit the same synthetic campaign, and compare the resulting trajectories.`}]:[]),{id:'commit',label:'Act using current evidence',targetId:`station:${station.id}`,available:!result.configurationIdentity.decisionCommitted,execution:'restart',command:'scenario.run',values:{...values,decisionCommitted:true,decisionPolicyId:'act-at-threshold'},proposedChange:'Commit the selected intervention policy using only acquired evidence, then reveal the synthetic truth after the experiment.'}]};
+      }),
       provenanceRecords: [...records, ...models],
     });
   }
@@ -506,15 +520,6 @@
     ];
   }
 
-  function observationsForSnapshot(result, snapshot) {
-    if (!snapshot.observationCount) return [];
-    const selectedIds = snapshot.fitReceipt?.observationIds || [];
-    if (selectedIds.length) {
-      const selected = new Set(selectedIds);
-      return result.campaign.observations.filter((row) => selected.has(row.id));
-    }
-    return result.campaign.observations.slice(0, snapshot.observationCount);
-  }
 
   function angularSigma(observation) {
     const covariance = observation.covarianceRad2 || [];

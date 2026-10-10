@@ -1,6 +1,11 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const api=require('../public/simulatte/app/object-interaction.js');
+test('live capability comes from action contracts, independently of plugin names and momentary availability',()=>{
+  assert.equal(api.supportsLiveActions({pluginId:'new-domain',objects:[{actions:[{execution:'continue',available:false}]}]}),true);
+  assert.equal(api.supportsLiveActions({pluginId:'gpu-supercluster',objects:[{actions:[{execution:'restart'}]}]}),false);
+  assert.equal(api.supportsLiveActions(null),false);
+});
 test('selection uses segment distance rather than only endpoints',()=>{
   assert.equal(api.distanceToObject({x:50,y:3},[{x:0,y:0},{x:100,y:0}]),3);
   assert.equal(api.distanceToObject({x:50,y:3},[null]),Infinity);

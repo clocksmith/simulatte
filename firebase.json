@@ -11,6 +11,21 @@
       ],
       "redirects": [
         {
+          "source": "/living-tissue/",
+          "destination": "/living-tissue",
+          "type": 301
+        },
+        {
+          "source": "/river-formation/",
+          "destination": "/river-formation",
+          "type": 301
+        },
+        {
+          "source": "/crystal-foundry/",
+          "destination": "/crystal-foundry",
+          "type": 301
+        },
+        {
           "source": "/motorcycle/",
           "destination": "/motorcycle",
           "type": 301
@@ -271,6 +286,18 @@
           "destination": "/index.html"
         },
         {
+          "source": "/living-tissue",
+          "destination": "/simulatte/field-experiments/index.html"
+        },
+        {
+          "source": "/river-formation",
+          "destination": "/simulatte/field-experiments/index.html"
+        },
+        {
+          "source": "/crystal-foundry",
+          "destination": "/simulatte/field-experiments/index.html"
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -422,6 +449,42 @@
         },
         {
           "source": "/subsea",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/living-tissue",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/river-formation",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/crystal-foundry",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/data/field-experiments/**",
           "headers": [
             {
               "key": "Cache-Control",

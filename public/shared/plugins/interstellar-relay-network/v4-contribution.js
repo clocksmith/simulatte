@@ -2,13 +2,19 @@
   const builder = typeof module === 'object' && module.exports
     ? require('../../core/simulation/plugin-v4-builder.js')
     : root.SimulattePluginV4Builder;
-  const api = factory(builder);
+  const exchange = typeof module === 'object' && module.exports ? require('./message-exchange.js') : root.InterstellarMessageExchange;
+  const controlsApi = typeof module === 'object' && module.exports ? require('./relay-controls.js') : root.InterstellarRelayControls;
+  const api = factory(builder, exchange, controlsApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.InterstellarRelayV4 = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createInterstellarV4(builder) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createInterstellarV4(builder, exchange, controlsApi) {
   const PLUGIN_ID = 'interstellar-relay-network';
   function createContribution({ result, progressive }) {
     const started = progressive.currentEventIndex >= 0;
+    const timing = exchange.breakdown(result.schedule);
+    const years = seconds => (seconds / 31557600).toFixed(3);
+    const context = `${result.exchange ? 'Request and full-packet reply' : 'One-way packet'}: ${years(timing.transmissionSeconds)} y transmitting · ${years(timing.propagationSeconds)} y propagating · ${years(timing.waitingSeconds)} y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.`;
+    const measurement = label => ({label,subject:result.exchange?'Request and reply':'Selected packet',definition:context,timeBasis:'prediction',interval:{start:0,end:result.schedule.totalLatencySeconds,unit:'second'},validity:'valid',freshness:'current',context});
     const settled = progressive.status === 'settled';
     const datasets = result.dataReceipts.filter((row) => row.sha256).map((row) => builder.datasetRecord(row.datasetId, row, {
       coverage: row.coverage,
@@ -147,10 +153,15 @@
       ...alternativeLayers,
     ];
     const packetPosition = locatePacket(result, progressive, stateById);
+    if (result.exchange && progressive.messageLeg === 'response') layers.push(builder.layer({
+      id: result.packet.packetId, kind: 'actor', label: 'Request delivered; response is a separate packet',
+      geometry: builder.geometry('point','icrs-cartesian-pc',[displayPositionById.get(result.controls.targetId)]),
+      quantity: builder.quantity('actor.packet.route-progress',1,'ratio',[0,1]), role:'context',importance:.6,provenance:simulated,
+    }));
     if (packetPosition) layers.push(builder.layer({
-      id: result.packet.packetId,
+      id: result.exchange && progressive.messageLeg === 'response' ? result.exchange.responsePacket.packetId : result.packet.packetId,
       kind: 'actor',
-      label: `Packet ${stateById.get(result.controls.sourceId).name} → ${stateById.get(result.controls.targetId).name} · ${progressive.status}`,
+      label: `${progressive.messageLeg === 'response' ? 'Reply' : 'Packet'} ${stateById.get(progressive.messageLeg === 'response' ? result.controls.targetId : result.controls.sourceId).name} → ${stateById.get(progressive.messageLeg === 'response' ? result.controls.sourceId : result.controls.targetId).name} · ${progressive.status}`,
       geometry: builder.geometry('point', 'icrs-cartesian-pc', [packetPosition]),
       quantity: builder.quantity(
         'actor.packet.route-progress',
@@ -194,7 +205,7 @@
         id: 'interstellar-relay-overview',
         mode: progressive.status === 'settled' ? 'compare' : activeLayerId ? 'follow' : 'overview',
         targetIds: activeLayerId
-          ? [result.packet.packetId]
+          ? [result.exchange && progressive.messageLeg === 'response' ? result.exchange.responsePacket.packetId : result.packet.packetId]
           : [
             ...result.schedule.hops.map((_, index) => `relay-link:${index}`),
             ...alternativeLayers.map((row) => row.id),
@@ -223,8 +234,8 @@
         options.stars.filter((row) => row.value !== result.controls.sourceId),
         modeled
       ),
-      select('routingMode', 'Route: mode', result.controls.routingMode, routeModes(), modeled),
-      select('routeObjective', 'Route: objective', result.controls.routeObjective, routeObjectives(), modeled),
+      select('routingMode', 'Route: mode', result.controls.routingMode, controlsApi.routeModes(), modeled),
+      select('routeObjective', 'Route: objective', result.controls.routeObjective, controlsApi.routeObjectives(), modeled),
       multiselect('requiredRelayIds', 'Relays: required stars', requiredRelays, options.relays, modeled),
       multiselect('eligibleRelayIds', 'Relays: eligible stars', result.controls.eligibleRelayIds, options.stars, modeled),
       numeric('maxHops', 'Relays: maximum hops', result.controls.maxHops, 1, 8, 1, modeled),
@@ -238,6 +249,7 @@
       numeric('retryLimit', 'Operations: retry limit', result.controls.retryLimit, 0, 20, 1, modeled),
       select('channelMode', 'Physics: channel lane', result.controls.channelMode, options.channels, channelProvenance),
       ...advancedControls(result, channelProvenance),
+      select('messageMode','Message experiment',result.controls.messageMode,[{value:'one-way',label:'One-way packet'},{value:'request-reply',label:'Request and reply after delivery'}],modeled),
     ], [{
       id: result.comparisonDefinition.id,
       label: result.comparisonDefinition.label || 'Relay path vs direct baseline',
@@ -254,10 +266,11 @@
       eventIds: events.slice(0, progressive.currentEventIndex + 1).map((row) => row.id),
       measures: [
         ...(started ? [
-          builder.quantity('latency', result.metrics.oneWayLatencyYears, 'year'),
+          builder.quantity('latency', result.metrics.oneWayLatencyYears, 'year', null, measurement('Request delivery')),
           builder.quantity('bottleneck-rate', result.metrics.bottleneckDataRateGbps, 'Gb/s'),
           builder.quantity('minimum-margin', result.metrics.minimumLinkMarginDb, 'dB'),
         ] : []),
+        ...(result.exchange ? [builder.quantity('round-trip-latency', result.exchange.roundTripYears, 'year', null, measurement('Full-packet reply arrival'))] : []),
         ...(settled ? [builder.quantity('operational-delivery-probability', result.operations.deliveryProbability, 'probability')] : []),
         ...(settled && Number.isFinite(result.operations.latencySeconds.p90)
           ? [builder.quantity('operational-p90-latency', result.operations.latencySeconds.p90 / 31557600, 'year')]
@@ -278,10 +291,10 @@
         const values = Object.fromEntries(controls.controls.map(row => [row.id, row.value]));
         const target = layer.id.startsWith('star:') ? layer.id.slice(5) : null;
         const available = target && target !== values.sourceId && controls.controls.find(row => row.id === 'targetId').options.some(row => row.value === target);
-        return { id: layer.id, label: layer.label, description: 'Packets transmit, wait for contacts, propagate, and process at relays. Sending starts a new calculated transmission.',
+        return { id: layer.id, label: layer.label, inSelector: Boolean(target || layer.kind === 'actor'), relatedIds: layer.kind === 'actor' ? result.schedule.hops.map((_,i)=>`relay-link:${i}`) : [], condition: progressive.messageLeg === 'response' ? 'Reply traveling after request delivery' : progressive.status, description: context,
           hit: { shape: layer.kind === 'path' ? 'path' : 'point', radiusPx: 12, priority: target ? 90 : 30 },
           actions: available ? [{ id: 'apply', label: 'Send packet here', targetId: layer.id, available: true, execution: 'restart', command: 'scenario.run',
-            values: { ...values, targetId: target }, proposedChange: `Send from ${values.sourceId} to ${target} and replay its delivery events.` }] : [] };
+            values: { ...values, targetId: target }, proposedChange: `Send from ${values.sourceId} to ${target} and replay its delivery events.` }] : layer.kind === 'actor' && !result.exchange ? [{id:'reply',label:'Compare request and reply',targetId:layer.id,available:true,execution:'restart',command:'scenario.run',values:{...values,messageMode:'request-reply'},proposedChange:'Start a new experiment: the destination creates a reply only after receiving the complete request.'}] : [] };
       }),
       inspections: [{
         id: 'relay-experiment',
@@ -294,6 +307,8 @@
             field('latency', 'One-way latency', result.metrics.oneWayLatencyYears, 'year', modeled),
             field('rate', 'Bottleneck rate', result.metrics.bottleneckDataRateGbps, 'Gb/s', modeled),
           ] : []),
+          field('time-breakdown', 'What takes time', context, null, modeled),
+          ...(result.exchange ? [field('reply-boundary','Reply timing',result.exchange.boundary,null,modeled)] : []),
           field('route', 'Selected route', pathLabel(result.routeSelection.selectedPath, stateById), null, modeled),
           field('route-candidates', 'Valid route candidates', result.routeSelection.candidateCount, 'routes', modeled),
           field('route-search', 'Bounded route work', `${result.routeSelection.searchAttempts}/${result.routeSelection.searchBound} edge attempts · ${result.routeSelection.pathSearchAttempts}/${result.routeSelection.pathSearchBound} route states · ${result.routeSelection.candidateCount} valid${result.routeSelection.pathSearchTruncated ? ' · truncated' : ''}`, null, modeled),
@@ -302,8 +317,8 @@
           field('constructibility', 'Constructibility status', uniqueJoin(result.channelReceipts, 'constructibilityStatus'), null, channelProvenance),
           field('channel-constraints', 'Constraint receipt', JSON.stringify(result.channelReceipts[0]?.constraintReceipt || {}), null, channelProvenance),
           ...(settled ? [
-            field('physical-reliability', 'Physical packet success', result.metrics.physicalChannelSuccessProbability, 'probability', modeled),
-            field('operational-reliability', 'Operational delivery probability', result.operations.deliveryProbability, 'probability', simulated),
+            field('physical-reliability', 'Request physical packet success', result.metrics.physicalChannelSuccessProbability, 'probability', modeled),
+            field('operational-reliability', 'Request operational delivery probability', result.operations.deliveryProbability, 'probability', simulated),
             field('operational-latency', 'Successful latency p10 / p50 / p90', quantileLabel(result.operations.latencySeconds), null, simulated),
             field('operational-effects', 'Modeled operations', result.operations.modeledEffectIds.join('; '), null, simulated),
             field('operational-counts', 'Mean retries / outages / maintenance', `${result.operations.meanRetryCount.toFixed(2)} / ${result.operations.meanOutageCount.toFixed(2)} / ${result.operations.meanMaintenanceCount.toFixed(2)}`, null, simulated),
@@ -320,7 +335,8 @@
   }
   function locatePacket(result, progressive, stateById) {
     if (progressive.activeHopIndex === null) {
-      return stateById.get(progressive.packetLocationId)?.positionPc || [0, 0, 0];
+      const state = stateById.get(progressive.packetLocationId);
+      return state ? positionAtEpoch(state, progressive.timestamp) : [0,0,0];
     }
     const hop = result.schedule.hops[progressive.activeHopIndex];
     const source = stateById.get(hop.fromId).positionPc;
@@ -385,22 +401,6 @@
       numeric('speculativeStabilityProbability', 'Physics: speculative stability', value.speculativeStabilityProbability, 0, 1, 0.01, provenance),
     ];
     return [];
-  }
-  function routeModes() {
-    return [
-      { value: 'automatic', label: 'Automatic route search' },
-      { value: 'manual', label: 'Use required relay set' },
-      { value: 'direct', label: 'Direct link only' },
-    ];
-  }
-  function routeObjectives() {
-    return [
-      { value: 'balanced', label: 'Balanced frontier' },
-      { value: 'latency', label: 'Lowest latency' },
-      { value: 'throughput', label: 'Highest throughput' },
-      { value: 'energy', label: 'Lowest energy' },
-      { value: 'reliability', label: 'Highest reliability' },
-    ];
   }
   function pathLabel(path, stateById) {
     return path.map((id) => stateById.get(id)?.name || id).join(' → ');

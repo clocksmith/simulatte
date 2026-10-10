@@ -1,0 +1,76 @@
+{
+  "schema": "simulatte.fieldExperiment.v1",
+  "version": "1.0.0",
+  "seed": 17,
+  "stepsPerFrame": 8,
+  "durationSteps": 12000,
+  "modelTolerance": 1e-7,
+  "id": "living-tissue",
+  "name": "Living Tissue",
+  "question": "How can local cell behavior produce a coherent shape?",
+  "model": "SimulatteTissueGrowth",
+  "modelId": "center-based-morphogen-growth-v1",
+  "modelPath": "../../shared/core/simulation/tissue-growth.js",
+  "view": "cells",
+  "timeUnit": "model time",
+  "params": {
+    "size": 32,
+    "spacing": 1,
+    "step": 0.5,
+    "diffusion": 2,
+    "decay": 0.01,
+    "production": 0.3,
+    "growthMin": -0.005,
+    "growthMax": 0.045,
+    "threshold": 0.14,
+    "hill": 8,
+    "crowding": 6,
+    "maxCells": 128,
+    "mechanicalRate": 0.8
+  },
+  "actions": [
+    {
+      "kind": "remove",
+      "label": "Remove this patch"
+    },
+    {
+      "kind": "source",
+      "label": "Move signaling source here"
+    },
+    {
+      "kind": "boundary",
+      "label": "Place a boundary here"
+    }
+  ],
+  "measures": [
+    {
+      "id": "cells",
+      "label": "Living cells",
+      "unit": "cells"
+    },
+    {
+      "id": "divisions",
+      "label": "Divisions",
+      "unit": "divisions"
+    },
+    {
+      "id": "area",
+      "label": "Tissue area",
+      "unit": "model area"
+    }
+  ],
+  "sources": [
+    {
+      "label": "Morpheus M5932 growth-regulation reference",
+      "url": "https://morpheus.gitlab.io/model/m5932/"
+    }
+  ],
+  "boundary": "Center-based variant with one producer, diffusing/decaying signal and Hill-regulated growth. Uses soft contact relaxation, not Morpheus cellular Potts mechanics. Model units and illustrative parameters; no medical prediction.",
+  "modelSources": [
+    {
+      "id": "tissue-growth",
+      "path": "../../shared/core/simulation/tissue-growth.js",
+      "sha256": "40dab921005f6ffc68ec6719f0ab3adb1121d837febfbf4ae2fac00330d40e36"
+    }
+  ]
+}

@@ -518,7 +518,8 @@
         id:data.applicationProfile.id,
         onChange:(snapshot)=>statusView.render(snapshot),
         capabilities:{selection:true,camera:true,pause:true,restart:true,replay:'model-receipt',
-          comparison:data.applicationProfile.experience?.comparisonMode!=='none',liveActions:owner==='gpu-supercluster'},
+          comparison:data.applicationProfile.experience?.comparisonMode!=='none',
+          liveActions:root.SimulatteObjectInteraction.supportsLiveActions(lastPluginContributions.find(row=>row.pluginId===owner))},
         operations:[
           {id:'start',serial:true,category:'execution',perform:()=>runController.start()},
           {id:'step',serial:true,category:'execution',perform:()=>runController.step()},
@@ -549,8 +550,6 @@
           }},
           {id:'apply-controls',serial:true,category:'scenario',target:owner,requiresRestart:true,
             perform:async(values,operation)=>{const controller=runController;await controller.applyControls(values);operation.throwIfCancelled();const result=await controller.start();operation.throwIfCancelled();await ctx.navigate?.(governedTierRoute(simulationRouteState()),{replace:true});return result;}},
-          ...(owner==='gpu-supercluster'?[{id:'straggler',serial:true,category:'live',target:'rack',
-            perform:values=>runController.intervene('scenario.intervene',values)}]:[]),
         ],
       });
       session.update({preparation:'ready',rendering:'ready'});

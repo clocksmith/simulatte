@@ -42,10 +42,5 @@
       }),
     });
   }
-  // Compatibility wrapper for callers that only need a non-cryptographic draft. New code
-  // should call createPacket so the host SHA-256 receipt tools are used.
-  function enqueuePacket(payloadText, relayPath, lightTimeReceipt) {
-    return Object.freeze({ schema: 'simulatte.interstellarPacketDraft.v1', payload: payloadText, relayPath: relayPath.slice(), transmissionEpoch: lightTimeReceipt.transmissionEpochIso, estimatedArrivalEpoch: lightTimeReceipt.arrivalEpochIso, latencyYears: lightTimeReceipt.latencyYears });
-  }
-  return Object.freeze({ createPacket, enqueuePacket });
+  return Object.freeze({createPacket});
 });

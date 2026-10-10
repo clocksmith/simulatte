@@ -3,23 +3,23 @@
   "id": "asteroid-defense-config-v1",
   "observationCampaignId": "short-arc-follow-up",
   "forceModelId": "heliocentric-two-body-screening-v1",
-  "followUpPolicyId": "information-gain",
+  "followUpPolicyId": "fixed-cadence",
   "decisionPolicyId": "observe-then-decide",
   "interventionArchetypeId": "kinetic-impactor",
   "executionUncertaintyModelId": "execution-independent-v1",
   "ensembleSize": 24,
-  "observationBudget": 8,
+  "observationBudget": 4,
   "decisionThreshold": 0.1,
   "fit": {
     "maximumIterations": 16,
     "initialDamping": 0.001,
-    "correctionTolerance": 1e-9,
-    "residualToleranceRad": 1e-7
+    "correctionTolerance": 1e-09,
+    "residualToleranceRad": 1e-07
   },
   "propagation": {
     "stepDays": 0.05,
     "verificationStepDays": 0.025,
-    "maximumEnergyDriftAu2D2": 1e-8
+    "maximumEnergyDriftAu2D2": 1e-08
   },
   "startInstant": "2036-01-01T00:00:00Z"
 }

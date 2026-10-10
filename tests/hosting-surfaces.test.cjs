@@ -119,3 +119,27 @@ test('directory routes do not redirect to their slash-normalized selves', () => 
     assert.notEqual(redirect.source.replace(/\/$/, ''), redirect.destination.replace(/\/$/, ''), `redirect loop: ${redirect.source}`);
   }
 });
+
+// New standalone HTML must participate in the same release identity and URL cache keys.
+test('field entrypoint build stamping is complete and content-idempotent', t => {
+  const temporary = fs.mkdtempSync(path.join(require('node:os').tmpdir(),'simulatte-stamp-'));
+  t.after(()=>fs.rmSync(temporary,{recursive:true,force:true}));
+  fs.mkdirSync(path.join(temporary,'tools'),{recursive:true});
+  fs.copyFileSync(path.join(root,'tools/stamp-build.mjs'),path.join(temporary,'tools/stamp-build.mjs'));
+  for (const entry of ['index.html','blank/index.html','simulatte/field-experiments/index.html']) {
+    const file=path.join(temporary,'public',entry);
+    fs.mkdirSync(path.dirname(file),{recursive:true});
+    fs.writeFileSync(file,'<meta name="simulatte-build" content="initial"><script defer src="./app.js"></script><link rel="stylesheet" href="./app.css">');
+  }
+  const run=()=>execFileSync(process.execPath,[path.join(temporary,'tools/stamp-build.mjs')],{cwd:temporary,stdio:'pipe'});
+  run();
+  const first=JSON.parse(fs.readFileSync(path.join(temporary,'public/version.json'),'utf8')).build;
+  run();
+  assert.equal(JSON.parse(fs.readFileSync(path.join(temporary,'public/version.json'),'utf8')).build,first);
+  for(const entry of ['index.html','blank/index.html','simulatte/field-experiments/index.html']) {
+    const html=fs.readFileSync(path.join(temporary,'public',entry),'utf8');
+    assert.ok(html.includes('content="'+first+'"'));
+    assert.ok(html.includes('./app.js?v='+encodeURIComponent(first)));
+    assert.ok(html.includes('./app.css?v='+encodeURIComponent(first)));
+  }
+});

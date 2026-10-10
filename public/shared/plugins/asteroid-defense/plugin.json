@@ -116,7 +116,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginAsteroidDefense",
-    "integrity": "sha384-fc74625a21f7dc33a75ee67c1a33cfecbaa204750ae9fc8704fe69fc42fe41f3c9e081a784c7d2e678a3afcbfe23646b",
+    "integrity": "sha384-03afac934acfd6823da2a4804f7a3cc4c53c4b4b329047ea5129161a9a6bfb2ed098893d3a29a3ff265089c3d7bd00d4",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -150,7 +150,7 @@
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-5fce09e397b976fc16ad42ca70bd7f9abdcff13381c86029e57fb06d691a11cf10f3eec367bd3c82cd6651c574bdd766",
+      "integrity": "sha384-48368d1bff53f7b0c19058bbbb33193a9abbd2cbfe8effd5bbb907bd39044b5765ed113cd0136e060841a6a8d8ceec1b",
       "path": "./default-config.json"
     },
     {
@@ -166,19 +166,23 @@
       "path": "./encounter-model.js"
     },
     {
-      "integrity": "sha384-86175d1bacd8b3250b0e1df8a3621d33e368418d82de2750f408628680b0983b9b7f0fae9ea05dfa120e9aa1c3a487c0",
+      "path": "./observation-program.js",
+      "integrity": "sha384-c3f2fad0599002b6fe9e8604403c76913a82f6a6d41b8a7568151cfdc8f9cd0b9b4162c0d3766971ba3c36ff69fb4597"
+    },
+    {
+      "integrity": "sha384-d0a92d3127c7e0afb3d1d32fbfa607ecff0c9a7abad27072d4def00af7f73edb51db057fde01ca3a5e3a0048d1d8b1ae",
       "path": "./orbit-determination.js"
     },
     {
-      "integrity": "sha384-7c079a1c132ba1e7a4b0e8823758428fa0e8a287fccdea65744c9fbd2b088097a1adbb881d9c4b84c356a01719365222",
+      "integrity": "sha384-996aba52a3eca6b51dd06d525fbb51ac0e6f85fe18c5502c81b9530735be1f0d15f85884596820b56bd951482a73b256",
       "path": "./asteroid-model.js"
     },
     {
-      "integrity": "sha384-e75b22e6f20b63eaf10cfbfd0bd59b84ef1cc5448b8c1a912d65fa4334a26263b7af00cf10bb3640df16a3cdc815ce3f",
+      "integrity": "sha384-fa804e17cdbc8ba79bafbb0cdd4f326b89d12b4d8e4a80fd208c88827285ea7a53dcccbb3b4bab1efda460dca7d0cb64",
       "path": "./v4-contribution.js"
     },
     {
-      "integrity": "sha384-35b26b15fc7f6cfc025f93eaeb1fd0a7926864f401f35fd2b84d7fd78d62d15d61d39673f26cbd29410dedf9aedee325",
+      "integrity": "sha384-32258d9cb6d7c3dc62fd95b1053306a58eb1ffde3dbbe24e2638dcfaf6f6e2a9447ea528e3644601850a3eb1860b1a84",
       "path": "./comparison-driver.js"
     },
     {
@@ -194,9 +198,9 @@
     "signatureStatus": "not-applicable-repository-bundled",
     "marketplaceEligible": false,
     "status": "active",
-    "revocationId": "plugin:asteroid-defense@1.0.0"
+    "revocationId": "plugin:asteroid-defense@2.0.0"
   },
   "schema": "simulatte.pluginManifest.v3",
   "sdkVersion": 2,
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

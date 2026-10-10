@@ -1,0 +1,78 @@
+{
+  "schema": "simulatte.fieldExperiment.v1",
+  "version": "1.0.0",
+  "seed": 17,
+  "stepsPerFrame": 8,
+  "durationSteps": 12000,
+  "modelTolerance": 1e-7,
+  "id": "river-formation",
+  "name": "River Formation",
+  "question": "How does flowing water change the landscape that directs it?",
+  "model": "SimulatteRiverErosion",
+  "modelId": "conservative-water-sediment-v1",
+  "modelPath": "../../shared/core/simulation/river-erosion.js",
+  "view": "terrain",
+  "timeUnit": "water seconds",
+  "params": {
+    "size": 32,
+    "spacing": 1,
+    "step": 0.2,
+    "rainRate": 0.015,
+    "conductivity": 4,
+    "erosionRate": 0.004,
+    "depositionRate": 0.01,
+    "capacity": 0.3,
+    "terrainTimeScale": 200,
+    "slope": 0.06
+  },
+  "actions": [
+    {
+      "kind": "channel",
+      "label": "Scratch a shallow channel"
+    },
+    {
+      "kind": "ridge",
+      "label": "Place a ridge"
+    },
+    {
+      "kind": "rain",
+      "label": "Move rainfall here"
+    }
+  ],
+  "measures": [
+    {
+      "id": "water",
+      "label": "Water retained",
+      "unit": "m³"
+    },
+    {
+      "id": "sedimentExport",
+      "label": "Sediment exported",
+      "unit": "m³"
+    },
+    {
+      "id": "terrain",
+      "label": "Terrain volume",
+      "unit": "m³"
+    }
+  ],
+  "sources": [
+    {
+      "label": "Landlab erosion/deposition reference",
+      "url": "https://landlab.csdms.io/tutorials/landscape_evolution/erosion_deposition/erosion_deposition_component.html"
+    }
+  ],
+  "boundary": "Bounded height-field surface-water routing and capacity-limited erosion/deposition. Water advances in seconds; erosion and deposition use 200× morphological time. No full shallow-water momentum solver or calibrated catchment forecast.",
+  "modelSources": [
+    {
+      "id": "river-erosion",
+      "path": "../../shared/core/simulation/river-erosion.js",
+      "sha256": "50dd16f27314f0959066c9a17860ec8e2c973428d4a2240f3e2a5492f3493835"
+    },
+    {
+      "id": "field-grid",
+      "path": "../../shared/core/simulation/field-grid.js",
+      "sha256": "5997a62399793cd93e5d9311923a011e0ca3f63a05c1068c9041fcc159493dc8"
+    }
+  ]
+}

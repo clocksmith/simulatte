@@ -714,3 +714,48 @@ test('routing rejects nonfinite link results and impossible success probabilitie
     assert.throws(() => router.selectRoute({ ...input, evaluateEdge: () => ({ ...edge, ...patch }) }), /interstellar_route_unreachable/);
   }
 });
+
+
+test('request and reply retain causal delivery, moving endpoints, distinct packets and a common terminal baseline', async () => {
+  const host = await activateDefault();
+  const initial = host.state().result;
+  await host.instance.handleAction('scenario.run', {values:{...initial.controls,messageMode:'request-reply',phase:'start'}});
+  const result = host.state().result;
+  assert.ok(result.exchange);
+  const exchange = result.exchange;
+  assert.equal(exchange.response.schedule.startEpochIso, exchange.request.schedule.deliveryEpochIso);
+  assert.deepEqual(exchange.response.routeSelection.selectedPath, [...exchange.request.routeSelection.selectedPath].reverse());
+  assert.notEqual(exchange.responsePacket.packetId, result.packet.packetId);
+  const firstReply = result.schedule.trace[exchange.request.schedule.trace.length];
+  assert.deepEqual(firstReply.causalParentIds, [result.schedule.trace[exchange.request.schedule.trace.length-1].id]);
+  const seen = new Set();
+  for (const event of result.schedule.trace) {
+    assert.ok(event.causalParentIds.every(id=>seen.has(id)));
+    seen.add(event.id);
+  }
+  for (let i=0;i<result.schedule.trace.length;i++) {
+    assert.deepEqual(result.schedule.trace[i].beforeState, result.schedule.snapshots[i]);
+    assert.deepEqual(result.schedule.trace[i].afterState, result.schedule.snapshots[i+1]);
+    assert.ok(i===0 || result.schedule.trace[i].timeSeconds>=result.schedule.trace[i-1].timeSeconds);
+    await host.instance.handleAction('scenario.run',{values:{phase:'step'}});
+    require('../public/simulatte/platform/contracts/plugin-v4-contracts.js').validateContribution(host.instance.contributeV4());
+  }
+  assert.equal(host.state().progressive.status,'settled');
+  assert.equal(host.state().progressive.messageLeg,'response');
+  assert.ok(exchange.roundTripYears > result.metrics.oneWayLatencyYears);
+  assert.equal(host.instance.settle().obligationResults.every(row=>row.status==='settled'),true);
+  const comparison = await host.instance.handleAction('counterfactual.compare');
+  assert.equal(comparison.comparison.baseline.transceiverId, comparison.comparison.intervention.transceiverId);
+});
+
+test('a new destination creates a new request without mutating a prior in-flight schedule', async () => {
+  const host = await activateDefault();
+  const prior = host.state().result;
+  const priorText = JSON.stringify(prior.schedule);
+  const target = prior.controls.sourceId === 'gaia-proxima' ? 'gaia-barnard' : 'gaia-proxima';
+  await host.instance.handleAction('scenario.run',{values:{...prior.controls,targetId:target,requiredRelayIds:[],routingMode:'direct',phase:'start'}});
+  assert.equal(JSON.stringify(prior.schedule),priorText);
+  assert.equal(host.state().result.controls.targetId,target);
+  assert.notEqual(host.state().result.packet.integrity.packetHash,prior.packet.integrity.packetHash);
+  assert.notEqual(host.state().result.packet.packetId,prior.packet.packetId);
+});

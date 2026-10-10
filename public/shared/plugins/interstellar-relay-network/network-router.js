@@ -8,6 +8,7 @@
   const MAXIMUM_ALTERNATIVES = 5;
 
   function selectRoute({
+    fixedPath = null,
     stellarStates,
     sourceId,
     targetId,
@@ -70,7 +71,10 @@
       edgeCache.set(id, value);
       return value;
     };
-    const pathSearch = routingMode === 'direct'
+    if (fixedPath && (fixedPath[0] !== sourceId || fixedPath.at(-1) !== targetId || new Set(fixedPath).size !== fixedPath.length || fixedPath.length - 1 > maxHops)) throw routeError('interstellar_fixed_path_invalid', fixedPath);
+    const pathSearch = fixedPath
+      ? {paths:[fixedPath],attempts:1,truncated:false}
+      : routingMode === 'direct'
       ? { paths: [[sourceId, targetId]], attempts: 1, truncated: false }
       : routingMode === 'manual'
         ? manualPaths(sourceId, targetId, requiredRelayIds, maxHops, statesById)

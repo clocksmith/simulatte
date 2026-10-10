@@ -1,12 +1,17 @@
 (function attachAsteroidOrbitDetermination(root, factory) {
   const propagation = typeof module === 'object' && module.exports
     ? require('../../core/simulation/n-body-propagation.js') : root.SimulatteNBodyPropagation;
-  const api = factory(propagation);
+  const observations = typeof module === 'object' && module.exports ? require('./observation-program.js') : root.SimulatteAsteroidObservationProgram;
+  const api = factory(propagation, observations);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAsteroidOrbitDetermination = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createOrbitDetermination(propagation) {
-  function fit({ campaign, forceModel, observationBudget, followUpPolicyId, fit }) {
-    const selection = selectObservations(
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createOrbitDetermination(propagation, observationProgram) {
+  function fit({ campaign, forceModel, observationBudget, followUpPolicyId, fit, observationIds = null }) {
+    const selection = observationIds ? {
+      observations: observationProgram.acquire(campaign, observationIds),
+      receipt: {method:'explicit_acquired_observations_v1',selectedObservationIds:observationIds.slice(),
+        selectionSteps:observationIds.map((id,index)=>({step:index,observationId:id}))},
+    } : selectObservations(
       campaign.observations,
       observationBudget,
       followUpPolicyId,

@@ -233,6 +233,7 @@ test('typed controls rebuild once, step existing state, replay exactly, and clos
   const instance = await plugin.activate({ sdk: harness.sdk, config, profile, scenario });
   const values = {
     observationCampaignId: 'late-precision-observation',
+    decisionCommitted:true,
     followUpPolicyId: 'fixed-cadence',
     decisionPolicyId: 'act-at-threshold',
     interventionArchetypeId: 'gravity-tractor',
@@ -322,7 +323,8 @@ test('typed controls rebuild once, step existing state, replay exactly, and clos
     'ensembleSize',
     'followUpPolicyId',
     'interventionArchetypeId',
-    'observationBudget',
+    'observationIds',
+    'decisionCommitted',
     'observationCampaignId',
   ].sort());
   assert.ok(!contribution.inspections[0].fields.some((row) => row.id === 'screening-language'));
@@ -398,3 +400,36 @@ function datasetsById() {
   ]));
 }
 function json(path) { return JSON.parse(readFileSync(path, 'utf8')); }
+
+
+test('station acquisition is chronological, fits exact acquired rows and preserves the synthetic scenario', async () => {
+  const program = require('../public/shared/plugins/asteroid-defense/observation-program.js');
+  const campaign = datasets.campaigns.campaigns[0];
+  const ids = program.initial(campaign,4);
+  const initial = model.runScenario({datasets,config,scenario:{...scenario,observationBudget:4,observationIds:ids}});
+  const next = program.next(campaign,ids);
+  const updated = model.runScenario({datasets,config,scenario:{...scenario,observationBudget:5,observationIds:[...ids,next.id]}});
+  assert.deepEqual(initial.fitReceipt.observationIds,ids);
+  assert.deepEqual(updated.fitReceipt.observationIds,[...ids,next.id]);
+  assert.equal(initial.hiddenEvaluation.hiddenTruthHash,updated.hiddenEvaluation.hiddenTruthHash);
+  assert.ok(updated.metrics.remainingDecisionDays<initial.metrics.remainingDecisionDays);
+  assert.notDeepEqual(initial.fitReceipt.covariance,updated.fitReceipt.covariance);
+  assert.throws(()=>program.acquire(campaign,[...ids,ids[0]]),/invalid/);
+  const result = await comparison.runComparison({datasets,config,scenario:{...scenario,observationBudget:4,observationIds:ids},kind:'observe-again-vs-act-now'});
+  assert.equal(result.settlement.status,'settled');
+  assert.equal(result.comparisonExecutionReceipt.synchronizationPolicy,'event-time');
+  assert.equal(result.branchMetrics.baseline.observationCount,4);
+  assert.equal(result.branchMetrics.intervention.observationCount,5);
+  assert.ok(result.branchMetrics.baseline.remainingDecisionDays>result.branchMetrics.intervention.remainingDecisionDays);
+  assert.doesNotMatch(JSON.stringify(result.comparisonExecutionReceipt),/"positionAu":\[/);
+  const harness = createSdkHarness();
+  const instance = await plugin.activate({sdk:harness.sdk,config,profile,scenario:{...scenario,observationBudget:4}});
+  const station = instance.contributeV4().objects.find(row=>row.actions.length);
+  assert.ok(station);
+  const oldIds = instance.contributeV4().objects[0].description;
+  const action = station.actions[0];
+  const start = await instance.handleAction('scenario.run',{values:{...action.values,phase:'start'}});
+  assert.equal(start.status,'running');
+  assert.equal(start.acceptedParameters.observationIds.length,5);
+  assert.notEqual(instance.contributeV4().objects[0].description,oldIds);
+});

@@ -25,6 +25,8 @@
     'observationBudget',
     'ensembleSize',
     'decisionThreshold',
+    'decisionCommitted',
+    'observationIds',
   ]);
 
   function dep(globalName, path) {
@@ -68,7 +70,7 @@
       if (actionId === 'asteroid.view.manual') return setViewAuthority('manual');
       if (actionId === 'asteroid.view.automatic') return setViewAuthority('automatic');
       if (actionId === 'scenario.run') return playback(context);
-      if (actionId === 'counterfactual.compare') return compare();
+      if (actionId === 'counterfactual.compare') return compare(context);
       return { status: 'refused', reason: 'unknown_action', actionId };
     }
 
@@ -116,6 +118,7 @@
     function playback(context) {
       const phase = context.values?.phase;
       if (phase === 'start') {
+        if (context.values?.observationIds) applyConfiguration(context);
         const state = sdk.state.read();
         if (hasUnappliedDraft(context, state.acceptedParameters)) {
           return {
@@ -143,12 +146,13 @@
       return { status: 'refused', reason: 'scenario_phase_invalid', phase };
     }
 
-    async function compare() {
+    async function compare(context = {}) {
       const state = sdk.state.read();
       comparison = await comparisonApi.runComparison({
         datasets,
         config,
         scenario: state.acceptedParameters,
+        kind: context.values?.comparisonId === 'observe-again-vs-act-now' ? 'observe-again-vs-act-now' : 'no-intervention-vs-selected',
       });
       sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.comparison-computed`, comparison });
       sdk.receipts.append(comparison.comparisonExecutionReceipt);
@@ -349,11 +353,20 @@
       selected.observationCampaignId || config.observationCampaignId,
       datasets.campaigns.campaigns.map((row) => row.id), 'observationCampaignId');
     const campaign = datasets.campaigns.campaigns.find((row) => row.id === observationCampaignId);
+    const program = dep('SimulatteAsteroidObservationProgram','./observation-program.js');
+    const budget = number(values.observationBudget, values.observationIds?.length ?? selected.observationBudget ?? config.observationBudget,4,campaign.observations.length,true,'observationBudget');
+    const policy = values.followUpPolicyId || selected.followUpPolicyId || config.followUpPolicyId;
+    const selectedRows = policy === 'fixed-cadence' ? program.initial(campaign,budget) : dep('SimulatteAsteroidOrbitDetermination','./orbit-determination.js').selectObservations(campaign.observations,budget,policy,{initialState:campaign.initialGuess,forceModel:datasets.forceModels.models.find(row=>row.id===config.forceModelId)}).observations.slice().sort((a,b)=>a.epochDayTdb-b.epochDayTdb).map(row=>row.id);
+    const observationIds = values.observationIds || selectedRows;
+    program.acquire(campaign,observationIds);
+    if (observationIds.length !== budget) throw pluginError('asteroid_observation_budget_mismatch','Acquired rows must match the declared budget');
     return deepFreeze({
       id: observationCampaignId,
       scenarioId: observationCampaignId,
       seed: selected.seed || observationCampaignId,
       observationCampaignId,
+      observationIds,
+      decisionCommitted: choose(values.decisionCommitted, selected.decisionCommitted ?? false,[true,false],'decisionCommitted'),
       forceModelId: config.forceModelId,
       followUpPolicyId: choose(values.followUpPolicyId, selected.followUpPolicyId || config.followUpPolicyId,
         ['fixed-cadence', 'information-gain'], 'followUpPolicyId'),
@@ -364,8 +377,7 @@
         datasets.interventions.archetypes.map((row) => row.id), 'interventionArchetypeId'),
       executionUncertaintyModelId: config.executionUncertaintyModelId,
       ensembleSize: number(values.ensembleSize, selected.ensembleSize ?? config.ensembleSize, 4, 64, true, 'ensembleSize'),
-      observationBudget: number(values.observationBudget, selected.observationBudget ?? config.observationBudget,
-        4, campaign.observations.length, true, 'observationBudget'),
+      observationBudget: budget,
       decisionThreshold: number(values.decisionThreshold, selected.decisionThreshold ?? config.decisionThreshold,
         0, 1, false, 'decisionThreshold'),
     });

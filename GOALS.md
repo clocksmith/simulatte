@@ -2,7 +2,7 @@
 
 ## Mission & Thesis
 
-Simulatte helps technical creators turn supported data and instructions into browser simulations they can inspect, edit, and reproduce. World and Blank/Create remain separate products sharing a small browser-native core where contracts genuinely match. Simulation is the product. World keeps its original motorcycle line illustration, with equal links to Motorcycle Noise, GPU Cluster, and Sun Walker and a scrollable All simulations catalog. The route catalog owns display names, entry points, readiness, featured status, previews, interactions, and evidence. Qualify Grid, Subsea, Orbital, and Interstellar before promoting them. Preserve the hexagon chooser, data tools, and Create implementation.
+Simulatte helps technical creators turn supported data and instructions into browser simulations they can inspect, edit, and reproduce. World and Blank/Create remain separate products sharing a small browser-native core where contracts genuinely match. Simulation is the product. World keeps its original motorcycle line illustration, with equal links to Motorcycle Noise, GPU Cluster, Sun Walker, and Interstellar Relay and a scrollable All simulations catalog. The route catalog owns display names, entry points, readiness, featured status, previews, interactions, and evidence. Qualify Grid, Subsea and Orbital before promoting them; preserve Interstellar’s qualification as it develops. Preserve the hexagon chooser, data tools, and Create implementation.
 
 ## Intended Beneficiaries
 
@@ -25,7 +25,11 @@ Creators need to understand the world they requested and make targeted changes w
 
 ## Current product milestone
 
-Ship three featured experiences that explain themselves through interaction before adding physics features, architecture layers, or more catalog entries. Motorcycle highlights the sound paths changed at the observer; Sun Walker displays the accepted route and its actual time/exposure tradeoff against the shortest path; GPU shows how a slow rack holds up dependent racks. Each intervention connects affected objects, a measured change, and an identified comparison baseline. Preserve the numerical qualifications underneath. Observe unfamiliar people exploring without instructions, record whether they identify the activity, discover an action, and explain its consequence, and fix observed barriers. Automated browser checks do not substitute for these observations.
+Keep the three established featured experiences understandable through interaction while developing the next experiences below. Their unfamiliar-user qualification remains required. Motorcycle highlights the sound paths changed at the observer; Sun Walker displays the accepted route and its actual time/exposure tradeoff against the shortest path; GPU shows how a slow rack holds up dependent racks. Each intervention connects affected objects, a measured change, and an identified comparison baseline. Preserve the numerical qualifications underneath. Observe unfamiliar people exploring without instructions, record whether they identify the activity, discover an action, and explain its consequence, and fix observed barriers. Automated browser checks do not substitute for these observations.
+
+## Next experience development
+
+Develop Interstellar Relay's delayed-message and return-message interaction, then Asteroid Defense's observation-versus-action experiment. Build Living Tissue first among the three new standalone experiences, followed by River Formation and Crystal Foundry. Each uses the same interaction milestone: active opening, selected-object actions, affected objects, a changed measurement, a named baseline, and reproducible inputs. Keep numerical validation separate from empirical calibration and unfamiliar-user qualification. Retain the existing featured experiences while qualifying additions. Remove superseded paths as consumers migrate; put behavior-changing policy in governed configuration, derive host capabilities from plugin contracts, and reuse bounded numerical and interaction components rather than duplicating controllers or adding a universal simulation engine.
 
 ## Operating Loops
 

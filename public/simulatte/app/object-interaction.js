@@ -148,5 +148,8 @@
     });
     return distance;
   }
-  return Object.freeze({ create, objectsFor, actionFor, withPreview, qualifyPreview, hitObjects, distanceToObject });
+  function supportsLiveActions(contribution) {
+    return (contribution?.objects || []).some(object => object.actions.some(action => action.execution === 'continue'));
+  }
+  return Object.freeze({ create, objectsFor, actionFor, withPreview, qualifyPreview, hitObjects, distanceToObject, supportsLiveActions });
 });

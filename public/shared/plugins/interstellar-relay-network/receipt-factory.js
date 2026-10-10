@@ -181,9 +181,12 @@
 
   function runReceipt(result) {
     return Object.freeze({
-      schema: 'simulatte.plugin.interstellarRunReceipt.v3',
+      schema: result.exchange ? 'simulatte.plugin.interstellarRunReceipt.v4' : 'simulatte.plugin.interstellarRunReceipt.v3',
       scenarioId: result.scenarioId,
       packetId: result.packet.packetId,
+      ...(result.exchange ? {exchange:{schema:result.exchange.schema,responsePacketId:result.exchange.responsePacket.packetId,
+        responseCreatedAt:result.exchange.responseCreatedAt,roundTripYears:result.exchange.roundTripYears,
+        responsePacketHash:result.exchange.responsePacket.integrity.packetHash,boundary:result.exchange.boundary}} : {}),
       eventIds: result.schedule.trace.map((event) => event.id),
       causalEdges: result.schedule.trace.flatMap((event) => (
         event.causalParentIds.map((parentId) => ({ parentId, childId: event.id }))

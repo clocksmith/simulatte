@@ -1,0 +1,82 @@
+{
+  "schema": "simulatte.fieldExperiment.v1",
+  "version": "1.0.0",
+  "seed": 17,
+  "stepsPerFrame": 8,
+  "durationSteps": 12000,
+  "modelTolerance": 1e-7,
+  "id": "crystal-foundry",
+  "name": "Crystal Foundry",
+  "question": "How do growth rules produce intricate material structure?",
+  "model": "SimulatteCrystalSolidification",
+  "modelId": "anisotropic-phase-field-v1",
+  "modelPath": "../../shared/core/simulation/crystal-solidification.js",
+  "view": "phase",
+  "timeUnit": "model time",
+  "params": {
+    "size": 64,
+    "spacing": 0.025,
+    "step": 0.00002,
+    "thermalDiffusion": 2.25,
+    "alpha": 0.015,
+    "anisotropy": 0.02,
+    "symmetry": 6,
+    "tau": 0.0003,
+    "kappa1": 0.9,
+    "kappa2": 20,
+    "undercooling": -0.5,
+    "seedRadius": 0.05
+  },
+  "actions": [
+    {
+      "kind": "seed",
+      "label": "Place a crystal seed",
+      "orientation": 0.39269908169872414
+    },
+    {
+      "kind": "rotate",
+      "label": "Rotate nearest grain"
+    },
+    {
+      "kind": "thermal",
+      "label": "Move a cooling boundary",
+      "temperature": -0.75
+    }
+  ],
+  "measures": [
+    {
+      "id": "solidArea",
+      "label": "Solid area",
+      "unit": "model area"
+    },
+    {
+      "id": "solidFraction",
+      "label": "Solid fraction",
+      "unit": "fraction"
+    },
+    {
+      "id": "meanTemperature",
+      "label": "Mean undercooling",
+      "unit": "dimensionless"
+    }
+  ],
+  "sources": [
+    {
+      "label": "NIST FiPy anisotropic phase-field equations",
+      "url": "https://pages.nist.gov/fipy/en/latest/generated/examples.phase.anisotropy.html"
+    }
+  ],
+  "boundary": "Explicit finite-volume anisotropic Allen-Cahn phase field coupled to diffusion and latent heat. Grain orientations are prescribed labels; grain-boundary energy and atomic dynamics are not modeled. Model units; no material calibration.",
+  "modelSources": [
+    {
+      "id": "crystal-solidification",
+      "path": "../../shared/core/simulation/crystal-solidification.js",
+      "sha256": "d0d1949b9057f652f7a00e7ef3db3eabdda589ae109bff8b8627b5e433001807"
+    },
+    {
+      "id": "field-grid",
+      "path": "../../shared/core/simulation/field-grid.js",
+      "sha256": "5997a62399793cd93e5d9311923a011e0ca3f63a05c1068c9041fcc159493dc8"
+    }
+  ]
+}

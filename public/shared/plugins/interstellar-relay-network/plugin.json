@@ -76,7 +76,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginInterstellarRelayNetwork",
-    "integrity": "sha384-5bb48258290b09d0f2b1a381d36b95e2648f2a3fcc2825100392c5bfca167b2ec4521926397f5762ab0137a8b8029adf",
+    "integrity": "sha384-88247923b12cb079c7724a43200af54634383c0ffb3df7214866012df9df3559924a814fd913ea36a4d93b65d1adff17",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -86,6 +86,16 @@
     "ui",
     "presentation"
   ],
+  "governance": {
+    "executionIsolation": "same-realm-contract",
+    "marketplaceEligible": false,
+    "provenance": "repository-source",
+    "publisher": "simulatte",
+    "revocationId": "plugin:interstellar-relay-network@3.1.0",
+    "signatureStatus": "not-applicable-repository-bundled",
+    "status": "active",
+    "trustLevel": "repository-bundled"
+  },
   "id": "interstellar-relay-network",
   "permissions": [
     "capabilities.invoke.v1",
@@ -125,15 +135,16 @@
     "simulatte.plugin.interstellarCounterfactualReceipt.v1",
     "simulatte.plugin.interstellarRunReceipt.v2",
     "simulatte.plugin.interstellarRunReceipt.v3",
-    "simulatte.plugin.interstellarCounterfactualReceipt.v2"
+    "simulatte.plugin.interstellarCounterfactualReceipt.v2",
+    "simulatte.plugin.interstellarRunReceipt.v4"
   ],
   "resources": [
     {
-      "integrity": "sha384-fb93f3ec23e0a18019949e9d2249681ac8b1928a48b1ae226524d6644f7a72ed308e6fe27447c6b22cc2bcc47ab8c2eb",
+      "integrity": "sha384-482d5ca39f2a944a1f1207491f524516b6268a09a228f9e605ed7269f4dd545e61fb69f6b4ae823845d903523bcdfeb0",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-fd22d7263b9e418182d4f0101fe49fd72510d5a8af255657faef1964bb7d2c2ecaea46e111223782c056609caab7384f",
+      "integrity": "sha384-fbfdfe8edec6c96a4b66403c333000f899afc0a02b43bbddf63bc0686b407534ab94c10bb93b7cc3403757ce7b1d7fa9",
       "path": "./default-config.json"
     },
     {
@@ -157,11 +168,15 @@
       "path": "./light-time.js"
     },
     {
+      "integrity": "sha384-113e0917a78fc8a7ef64c68533dfa10582655853a87100781e8b6e683348c5a4f74bd5a2b5206184705c0645d9d38f04",
+      "path": "./message-exchange.js"
+    },
+    {
       "integrity": "sha384-58268e6c2a11a79186914354a58acaf05b0d4117480028e56074488fa9227c44e89ebe2f32ce2ca71215e13c4da83b79",
       "path": "./metrics.js"
     },
     {
-      "integrity": "sha384-5baaef60d5f86e174d2368307c3ca52d3228293d28bba4fdd90f50a78f678026cbc66c28e364946a3cd078ce9468df60",
+      "integrity": "sha384-a1c0ba9a08376875a3e7e1555c5d8596ad9f2966571b48e002ea0eb6f3912261c09048ef2e94dc9fbba4c60df51eb41f",
       "path": "./network-router.js"
     },
     {
@@ -173,7 +188,7 @@
       "path": "./optical-link-budget.js"
     },
     {
-      "integrity": "sha384-4ea144ddf6d3233cc7aed89282db0c7a4d0e270c432610f95b3963cff77889dfed69109f24e46c5a771f9491ff4f0ffc",
+      "integrity": "sha384-b4653f674bf339267973250beb0d04ad05176e1428b39ecbe2d57dd1b492cfe881940c02ac539da7d945748570c1de1f",
       "path": "./packet-queue.js"
     },
     {
@@ -181,11 +196,11 @@
       "path": "./presentation.js"
     },
     {
-      "integrity": "sha384-5ef9c998d1097b1d5557e9410fb115f56bacaa84256de8a0847c286190a8cdd122eb3535eea1ea56672efba42fd19b0f",
+      "integrity": "sha384-e8a3d73b96dfa5a869d447edc30f95156fcdbc3809fbebc5e5577dcee5bbdeac388fbf83a25a6d98804a75ed82366f2a",
       "path": "./receipt-factory.js"
     },
     {
-      "integrity": "sha384-3739c9d31caed2fa7e7a0c6a7e657cc56184706254ee51de5099f7346b961da67f17bb1a089252586a578f7cc0197267",
+      "integrity": "sha384-4f9bd32f4070fdff6ec5f34c25e12815c857a2064fbc8383f8dbcb74ba1fdb713e517c8601e423679c68da055970bb65",
       "path": "./relay-controls.js"
     },
     {
@@ -197,21 +212,15 @@
       "path": "./stellar-state.js"
     },
     {
-      "integrity": "sha384-b8a94baca9ddcdb857059b7c0b0ed4ebe44d95133dc3bf35d8cbfdcfa66eaefb8268b4aeea1bd4ed66371c82e316ccfa",
+      "integrity": "sha384-08aa07e8cb7ad347ac926f169773c77108cd58f7d48b4cb6db3ebb5da6dfd483302c5b3b8830d69c6b922ce5c9eef296",
+      "path": "./transmission-model.js"
+    },
+    {
+      "integrity": "sha384-a16509606e7833f68d5db7e64e4dd479e08a4ae0af3cc6787f7ddbe753f7e8cdf84bea0a9e3d80f3554c48a0f0ad95c1",
       "path": "./v4-contribution.js"
     }
   ],
-  "governance": {
-    "trustLevel": "repository-bundled",
-    "executionIsolation": "same-realm-contract",
-    "publisher": "simulatte",
-    "provenance": "repository-source",
-    "signatureStatus": "not-applicable-repository-bundled",
-    "marketplaceEligible": false,
-    "status": "active",
-    "revocationId": "plugin:interstellar-relay-network@3.0.0"
-  },
   "schema": "simulatte.pluginManifest.v3",
   "sdkVersion": 2,
-  "version": "3.0.0"
+  "version": "3.1.0"
 }

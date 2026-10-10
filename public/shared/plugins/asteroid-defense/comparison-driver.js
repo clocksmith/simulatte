@@ -24,19 +24,27 @@
   const PLUGIN_ID = 'asteroid-defense';
   const ROLES = ['baseline', 'intervention'];
 
-  async function runComparison({ datasets, config, scenario }) {
+  async function runComparison({ datasets, config, scenario, kind = 'no-intervention-vs-selected' }) {
     const campaign = datasets.campaigns.campaigns.find((row) => row.id === scenario.observationCampaignId);
-    const configurations = {
+    const program = typeof module === 'object' && module.exports ? require('./observation-program.js') : globalThis.SimulatteAsteroidObservationProgram;
+    const currentIds = scenario.observationIds || program.initial(campaign,scenario.observationBudget);
+    const next = kind === 'observe-again-vs-act-now' ? program.next(campaign,currentIds) : null;
+    if (kind === 'observe-again-vs-act-now' && !next) throw comparisonError('asteroid_no_future_observation','No later scheduled observation is available');
+    const configurations = kind === 'observe-again-vs-act-now' ? {
+      baseline:{interventionArchetypeId:scenario.interventionArchetypeId,observationIds:currentIds},
+      intervention:{interventionArchetypeId:scenario.interventionArchetypeId,observationIds:[...currentIds,next.id]},
+    } : {
       baseline: { interventionArchetypeId: 'none' },
       intervention: { interventionArchetypeId: scenario.interventionArchetypeId },
     };
     const runs = Object.fromEntries(ROLES.map((role) => [role, model.runScenario({
       datasets,
       config,
-      scenario,
+      scenario: kind === 'observe-again-vs-act-now' ? {...scenario,decisionCommitted:true,decisionPolicyId:'act-at-threshold',observationBudget:configurations[role].observationIds.length} : scenario,
       policyOverrides: configurations[role],
     })]));
-    assertSharedInputs(runs);
+    if (kind === 'no-intervention-vs-selected') assertSharedInputs(runs);
+    else if (runs.baseline.hiddenEvaluation.hiddenTruthHash !== runs.intervention.hiddenEvaluation.hiddenTruthHash) throw comparisonError('asteroid_shared_truth_mismatch',kind);
     const hiddenValue = {
       hiddenTruthId: campaign.hiddenTruth.id,
       initialState: campaign.hiddenTruth.initialState,
@@ -45,7 +53,7 @@
     };
     const hiddenHash = await sha256(hiddenValue);
     const inputHash = await sha256({
-      scenario: { ...scenario, interventionArchetypeId: null },
+      kind, scenario: { ...scenario, interventionArchetypeId: null },
       datasets: datasets.dataReceipts.map((row) => [row.datasetId, row.sha256]),
     });
     const startingIdentity = {
@@ -65,7 +73,7 @@
     ])));
     const execution = comparisonApi.createComparisonExecution({
       id: comparisonId,
-      synchronizationPolicy: 'lockstep',
+      synchronizationPolicy: kind === 'observe-again-vs-act-now' ? 'event-time' : 'lockstep',
       startingIdentity,
       observableInput: {
         campaignId: scenario.observationCampaignId,
@@ -92,11 +100,12 @@
       evidenceCatalog,
       requiredEvidenceIds,
     });
-    execution.step(runs.baseline.snapshots.length - 1);
+    execution.step((runs.baseline.snapshots.length - 1) * 2);
     const settlement = execution.settle();
     return deepFreeze({
-      schema: 'simulatte.asteroidComparisonRun.v1',
+      schema: kind === 'observe-again-vs-act-now' ? 'simulatte.asteroidComparisonRun.v2' : 'simulatte.asteroidComparisonRun.v1',
       comparisonId,
+      kind,
       branchMetrics: Object.fromEntries(ROLES.map((role) => [role, publicMetrics(runs[role].metrics)])),
       settlement,
       comparisonExecutionReceipt: execution.receipt(),
@@ -127,6 +136,7 @@
     return Object.freeze({
       startingIdentity: () => startingIdentity,
       observe: observation,
+      nextEventTimeMs: () => run.snapshots[Math.min(cursor+1,run.snapshots.length-1)].simulationTimeMs,
       advance(request) {
         if (request.action.interventionArchetypeId !== run.configurationIdentity.interventionArchetypeId) {
           throw comparisonError('asteroid_comparison_policy_mismatch', role);

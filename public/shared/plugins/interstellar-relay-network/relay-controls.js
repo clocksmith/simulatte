@@ -43,6 +43,7 @@
     const eligibleDefault = starsData.defaultRelayIds || starsData.stars.map((row) => row.sourceId);
     const startEpochIso = normalizeEpoch(values.startEpochIso || config.startEpochIso);
     const controls = {
+      messageMode: String(values.messageMode || config.defaultMessageMode || 'one-way'),
       startEpochIso,
       astrometryEpochYear: decimalYear(startEpochIso),
       processingDelayHours: Number(values.processingDelayHours ?? config.processingDelayHours),
@@ -103,6 +104,7 @@
   }
 
   function validateControls(value, { starIds, hardwareIds }) {
+    if (!['one-way', 'request-reply'].includes(value.messageMode)) throw controlError('interstellar_message_mode_invalid', value.messageMode);
     if (!starIds.has(value.sourceId)) throw controlError('interstellar_source_star_missing', value.sourceId);
     if (!starIds.has(value.targetId)) throw controlError('interstellar_target_star_missing', value.targetId);
     if (value.sourceId === value.targetId) throw controlError('interstellar_route_endpoints_equal', value.sourceId);

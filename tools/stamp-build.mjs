@@ -17,6 +17,8 @@ function getGitHash() {
   }
 }
 
+const ENTRYPOINTS = Object.freeze(['index.html', 'blank/index.html', 'simulatte/field-experiments/index.html']);
+
 function publicFiles(dir, baseDir = dir) {
   const files = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -32,7 +34,7 @@ function publicFiles(dir, baseDir = dir) {
 
 function normalizedDeployContent(relativePath, content) {
   if (relativePath === 'version.json') return null;
-  if (!['index.html', 'blank/index.html'].includes(relativePath)) return content;
+  if (!ENTRYPOINTS.includes(relativePath)) return content;
   return content
     .replace(
       /<meta\s+name="simulatte-build"\s+content="[^"]*"\s*\/?>/i,
@@ -53,7 +55,7 @@ function getDeployContentHash() {
   const hash = crypto.createHash('sha256');
   for (const relativePath of publicFiles(publicDir)) {
     const filePath = path.join(publicDir, relativePath);
-    const content = ['index.html', 'blank/index.html'].includes(relativePath)
+    const content = ENTRYPOINTS.includes(relativePath)
       ? fs.readFileSync(filePath, 'utf8')
       : fs.readFileSync(filePath);
     const normalized = normalizedDeployContent(relativePath, content);
@@ -106,8 +108,7 @@ function main() {
   const buildParam = encodeURIComponent(buildHash);
   console.log(`Generated build stamp: ${buildHash}`);
 
-  stampEntrypoint('index.html', buildHash, buildParam);
-  stampEntrypoint('blank/index.html', buildHash, buildParam);
+  for (const entrypoint of ENTRYPOINTS) stampEntrypoint(entrypoint, buildHash, buildParam);
 
   const versionPath = path.join(rootDir, 'public', 'version.json');
   const versionData = JSON.stringify({ build: buildHash }, null, 2);

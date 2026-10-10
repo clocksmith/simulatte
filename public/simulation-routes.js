@@ -68,12 +68,13 @@
       "/simulatte/star-chart/interstellar-relay-network-v1"
     ],
     "displayName": "Interstellar Relay",
-    "description": "Explore relay coverage and communication delays.",
+    "description": "Send a packet and follow when a reply can return.",
     "readiness": "available",
-    "featured": false,
+    "featured": true,
     "previewAsset": null,
     "limitations": "Relay infrastructure is hypothetical; reliability is a seeded model.",
     "evidence": [
+      "artifacts/next-experiences/browser.json",
       "artifacts/2026-10-04-catalog/opening/browser.json",
       "artifacts/2026-10-04-catalog/qualification-verified/browser.json"
     ]
@@ -238,7 +239,55 @@
     "evidence": [
       "artifacts/2026-10-04-catalog/qualification-verified/browser.json"
     ]
-  }
+  },
+{
+  "path": "/living-tissue",
+  "entry": "/simulatte/field-experiments/index.html",
+  "experimentId": "living-tissue",
+  "legacy": [],
+  "displayName": "Living Tissue",
+  "description": "How can local cell behavior produce a coherent shape?",
+  "readiness": "experimental",
+  "featured": false,
+  "previewAsset": null,
+  "limitations": "Two-dimensional tissue with illustrative parameters; no medical prediction.",
+  "evidence": [
+    "tests/field-experiments.test.cjs",
+    "artifacts/next-experiences/browser.json"
+  ]
+},
+{
+  "path": "/river-formation",
+  "entry": "/simulatte/field-experiments/index.html",
+  "experimentId": "river-formation",
+  "legacy": [],
+  "displayName": "River Formation",
+  "description": "How does flowing water change the landscape that directs it?",
+  "readiness": "experimental",
+  "featured": false,
+  "previewAsset": null,
+  "limitations": "Bounded terrain; erosion advances 200 times faster than water time. No calibrated landscape forecast.",
+  "evidence": [
+    "tests/field-experiments.test.cjs",
+    "artifacts/next-experiences/browser.json"
+  ]
+},
+{
+  "path": "/crystal-foundry",
+  "entry": "/simulatte/field-experiments/index.html",
+  "experimentId": "crystal-foundry",
+  "legacy": [],
+  "displayName": "Crystal Foundry",
+  "description": "How do growth rules produce intricate material structure?",
+  "readiness": "experimental",
+  "featured": false,
+  "previewAsset": null,
+  "limitations": "Two-dimensional continuum solidification with prescribed grain orientations; no calibrated material prediction.",
+  "evidence": [
+    "tests/field-experiments.test.cjs",
+    "artifacts/next-experiences/browser.json"
+  ]
+}
 ].map(page=>Object.freeze({...page,legacy:Object.freeze(page.legacy),evidence:Object.freeze(page.evidence)})));
   const normalize=path=>String(path||'/').replace(/\/+$/,'')||'/';
   function forPath(path){const name=normalize(path);return pages.find(page=>page.path===name||page.legacy.includes(name))||null;}

@@ -74,7 +74,7 @@
         {
           "id": "interstellar-relay-network-v1",
           "path": "../application-profiles/interstellar-relay-network-v1.json",
-          "sha256": "d4bf090591d019224deba13a83271b21792d6fe89c837197b3e395842eac38dd",
+          "sha256": "82a3822b546993b8c0de4a9dc000af9a1f151f36ee25754c570c26746fcea115",
           "world": {
             "id": "gaia-dr3-stellar-neighborhood-v1",
             "path": "./worlds/gaia-dr3-stellar-neighborhood-v1.json",

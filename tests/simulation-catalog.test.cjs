@@ -6,12 +6,12 @@ const test = require('node:test');
 const catalog = require('../public/simulation-routes.js');
 const root = path.resolve(__dirname, '..');
 
-test('the discovery catalog covers each registered profile and both standalone experiences once', () => {
+test('the discovery catalog covers each registered profile and standalone experiences once', () => {
   const inventory = JSON.parse(fs.readFileSync(path.join(root, 'public/data/application-profiles/profile-claim-inventory-v1.json')));
   assert.deepEqual(catalog.pages.filter(page => page.profile).map(page => page.profile).sort(), inventory.profileIds);
-  assert.equal(catalog.pages.length, 14);
-  assert.equal(new Set(catalog.pages.map(page => page.path)).size, 14);
-  assert.equal(catalog.pages.filter(page => page.entry).length, 2);
+  assert.equal(catalog.pages.length, 17);
+  assert.equal(new Set(catalog.pages.map(page => page.path)).size, 17);
+  assert.equal(catalog.pages.filter(page => page.entry).length, 5);
   for (const page of catalog.pages) {
     assert.ok(page.displayName && page.description);
     assert.ok(['available', 'experimental', 'in-development'].includes(page.readiness));
@@ -25,8 +25,8 @@ test('the discovery catalog covers each registered profile and both standalone e
 
 test('homepage retains its original illustration and catalog links without screenshot cards', () => {
   const receipt = JSON.parse(fs.readFileSync(path.join(root, 'public/simulation-previews/capture-receipt.json')));
-  assert.deepEqual(catalog.featured.map(page => page.path).sort(), ['/datacenter', '/motorcycle', '/sunwalker']);
-  for (const page of catalog.featured) {
+  assert.deepEqual(catalog.featured.map(page => page.path).sort(), ['/datacenter', '/interstellar', '/motorcycle', '/sunwalker']);
+  for (const page of catalog.featured.filter(page=>page.previewAsset)) {
     assert.ok(fs.existsSync(path.join(root, 'public', page.previewAsset)));
     assert.ok(receipt.captures.some(row => row.path === page.path && row.asset === page.previewAsset));
   }
