@@ -644,12 +644,12 @@ html[data-world-launch]:not([data-world-runtime]) #simulation-launch {
 .launch-masthead { display: flex; align-items: center; padding-right: 100px; }
 .launch-wordmark { margin: 0; line-height: 1.2; font-size: 30px; font-weight: 600; letter-spacing: -1.5px; }
 .launch-main { width: 100%; max-width: 1240px; margin: 0 auto; padding: 64px 0 24px; }
-.launch-copy { margin-bottom: 36px; }
-.launch-kicker { font-family: var(--sim-mono); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--sim-ink-soft); margin: 0 0 20px; }
-.launch-copy h2 { font-family: var(--sim-heading); font-size: 64px; font-weight: 600; line-height: 1.05; letter-spacing: -2px; margin: 0; }
+.launch-copy { margin-bottom: 24px; }
+.launch-copy > p { font-family: var(--sim-heading); font-size: 64px; font-weight: 600; line-height: 1.05; letter-spacing: -2px; margin: 0; }
 .simulation-gallery { min-width: 0; }
-.launch-simulations { --preview-columns: 3; display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 40px) / 3); gap: 20px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding: 8px 0 16px; }
-.simulation-preview { display: flex; flex-direction: column; gap: 12px; min-width: 0; color: var(--sim-ink); text-decoration: none; scroll-snap-align: start; }
+.launch-simulations { display: grid; grid-template-columns: minmax(0, 1fr); }
+.simulation-preview { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: center; gap: 48px; min-width: 0; min-height: 560px; padding: 40px 0; border-top: 1px solid var(--sim-line); color: var(--sim-ink); text-decoration: none; scroll-margin-block: 24px; }
+.preview-copy { min-width: 0; display: grid; gap: 16px; }
 /* Static illustrations share the original motorcycle line art and theme. */
 .simulation-preview .launch-art { display:block; width:100%; height:auto; aspect-ratio:720/680; }
 .launch-city, .art-context { stroke:var(--sim-line-strong); stroke-width:1; }
@@ -664,46 +664,26 @@ html[data-world-launch]:not([data-world-runtime]) #simulation-launch {
 .art-primary .art-context { fill:none; }
 .art-shade { fill:var(--sim-line); opacity:.45; }
 .launch-cross { stroke:var(--sim-ink-faint); }
-.preview-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 20px; font-weight: 600; }
+.preview-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 32px; font-weight: 600; margin: 0; }
 .preview-heading > span { font-weight: 400; }
-.preview-description { color: var(--sim-ink-soft); font-size: 14px; line-height: 1.5; }
+.preview-description { color: var(--sim-ink-soft); font-size: 16px; line-height: 1.5; margin: 0; }
+.catalog-state, .catalog-limit { color: var(--sim-ink-soft); font-size: 12px; line-height: 1.5; margin: 0; }
 .simulation-preview:hover .preview-heading { text-decoration: underline; text-underline-offset: 5px; }
 .simulation-preview:focus-visible, .launch-simulations:focus-visible { outline: 2px solid var(--sim-ink); outline-offset: -2px; }
-.gallery-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 12px; }
-.gallery-controls[hidden] { display: none; }
-.gallery-status { color: var(--sim-ink-soft); font-family: var(--sim-mono); font-size: 12px; margin: 0; }
-.gallery-controls > div { display: flex; gap: 8px; }
-.gallery-controls button { min-width: 48px; min-height: 48px; border: 1px solid var(--sim-line-strong); background: var(--sim-paper); color: var(--sim-ink); font-size: 22px; cursor: pointer; }
-.gallery-controls button:disabled { opacity: .35; cursor: default; }
 @media (max-width: 700px) {
   html[data-world-launch]:not([data-world-runtime]) #simulation-launch { padding: 24px 24px max(24px, env(safe-area-inset-bottom)); }
   .launch-wordmark { font-size: 26px; }
   .launch-main { padding-top: 48px; }
-  .launch-copy h2 { font-size: 40px; letter-spacing: -1px; }
-  .launch-simulations { --preview-columns: 1; grid-auto-columns: 88%; gap: 16px; }
+  .launch-copy > p { font-size: 40px; letter-spacing: -1px; }
+  .simulation-preview { grid-template-columns: minmax(0, 1fr); gap: 20px; min-height: 0; padding: 28px 0 40px; }
+  .preview-copy { gap: 12px; }
+  .preview-heading { font-size: 26px; }
 }
 
 html[data-world-launch="featured"][data-world-runtime] #world-tiers-landing-page,
 html[data-world-launch="featured"] #world-tier-control,
 html[data-world-launch="featured"] #application-profile-control,
 html[data-world-launch="featured"] .sim-product-nav a[data-local-href="./blank/"] { display: none !important; }
-
-.catalog-entry { display: inline-flex; gap: 16px; align-items: center; min-height: 48px; margin-top: 28px; color: inherit; text-underline-offset: 5px; }
-.simulation-catalog { scroll-margin-top: 24px; padding-top: 32px; border-top: 1px solid var(--sim-line); }
-.simulation-catalog h2 { font-size: 26px; margin: 0 0 12px; }
-.simulation-catalog > p { color: var(--sim-ink-soft); font-size: 15px; }
-.simulation-catalog ul { list-style: none; padding: 0; margin: 24px 0 0; }
-.simulation-catalog li { display: grid; grid-template-columns: minmax(0,1fr) 130px 64px; align-items: center; gap: 24px; padding: 20px 0; border-top: 1px solid var(--sim-line); }
-.simulation-catalog h3 { font-size: 18px; margin: 0 0 8px; }
-.simulation-catalog p { line-height: 1.5; margin: 4px 0; }
-.simulation-catalog .catalog-limit, .catalog-state { color: var(--sim-ink-soft); font-size: 12px; }
-.simulation-catalog a { color: inherit; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
-
-.simulation-catalog { width: 100%; max-width: 1240px; margin: 32px auto 0; }
-@media (max-width: 700px) {
-  .simulation-catalog li { grid-template-columns: minmax(0,1fr) 64px; gap: 8px 16px; }
-  .simulation-catalog li > div { grid-column: 1 / -1; }
-}
 
 /* Sunwalker's route choices stay beside the running view. */
 .sun-walk-controls { display:grid; gap:10px; margin:0 0 12px; }

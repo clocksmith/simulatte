@@ -12,30 +12,22 @@ const preview = page => {
   if (!/^<svg\b/.test(art) || /<(?:script|image|foreignObject)\b|\bon\w+\s*=|(?:href|src)\s*=\s*["'](?!#)/i.test(art)) throw new Error('Unsafe illustration: ' + page.path);
   return `<a class="launch-link simulation-preview" href=".${escape(page.path)}" aria-label="Open ${escape(page.displayName)}">
         ${art}
-        <span class="preview-heading">${escape(page.displayName)} <span aria-hidden="true">↗</span></span>
-        <span class="preview-description">${escape(page.description)}</span>
-        <span class="catalog-state">${states[page.readiness]}</span>
+        <div class="preview-copy">
+          <h2 class="preview-heading">${escape(page.displayName)} <span aria-hidden="true">↗</span></h2>
+          <p class="preview-description">${escape(page.description)}</p>
+          <span class="catalog-state">${states[page.readiness]}</span>${page.limitations ? `\n          <p class="catalog-limit">${escape(page.limitations)}</p>` : ''}
+        </div>
       </a>`;
 };
-const row = page => `<li><div><h3>${escape(page.displayName)}</h3><p>${escape(page.description)}</p>${page.limitations ? `<p class="catalog-limit">${escape(page.limitations)}</p>` : ''}</div><span class="catalog-state">${states[page.readiness]}</span>${page.readiness === 'in-development' ? '<span>Not yet open</span>' : `<a href=".${escape(page.path)}" aria-label="Open ${escape(page.displayName)}">Open <span aria-hidden="true">↗</span></a>`}</li>`;
 const section = `<!-- SIMULATION_CATALOG_START -->
   <section id="simulation-launch" aria-labelledby="launch-title">
     <header class="launch-masthead"><h1 id="launch-title" class="launch-wordmark">SIMULATTE</h1></header>
-    <div class="launch-main"><div class="launch-copy"><p class="launch-kicker">Explore a simulation</p>
-      <h2>Change something.<br>See what happens.</h2>
-      <a class="catalog-entry" href="#all-simulations">All simulations <span aria-hidden="true">↓</span></a>
+    <div class="launch-main">
+      <div class="launch-copy"><p>Change something.<br>See what happens.</p></div>
+      <section class="simulation-gallery" aria-label="All simulations">
+        <nav id="featured-simulations" class="launch-simulations" aria-label="Simulation spotlights" tabindex="0">${pages.map(preview).join('\n')}</nav>
+      </section>
     </div>
-    <section class="simulation-gallery" aria-label="All simulations" aria-roledescription="carousel">
-      <nav id="featured-simulations" class="launch-simulations" aria-label="Simulation illustrations" tabindex="0">${pages.map(preview).join('\n')}</nav>
-      <div class="gallery-controls" hidden>
-        <p class="gallery-status" role="status" aria-live="polite" aria-atomic="true"></p>
-        <div><button type="button" data-gallery-previous aria-label="Previous simulations" aria-controls="featured-simulations">←</button><button type="button" data-gallery-next aria-label="Next simulations" aria-controls="featured-simulations">→</button></div>
-      </div>
-    </section></div>
-    <section id="all-simulations" class="simulation-catalog" aria-labelledby="catalog-title">
-      <h2 id="catalog-title">All simulations</h2><p>Explore ${pages.length} simulations. Experimental experiences include their limitations.</p>
-      <ul>${pages.map(row).join('\n')}</ul>
-    </section>
   </section>
   <!-- SIMULATION_CATALOG_END -->`;
 const original = fs.readFileSync(path, 'utf8');

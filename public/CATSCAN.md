@@ -3,7 +3,7 @@
 Parent: [Simulatte](../CATSCAN.md)
 ## Target
 
-Boot static browser products with visible readiness, execution, proof, or refusal. World gives every catalog simulation an SVG illustration in the original motorcycle line-art style, with three visible on desktop and manual paging or mobile scrolling, and exposes the full simulation catalog; preserve the chooser, data tools, and Create compiler.
+Boot static browser products with visible readiness, execution, proof, or refusal. World gives every catalog simulation an SVG illustration in the original motorcycle line-art style, in one vertically scrolling spotlight catalog with readiness and limitations on desktop and mobile; preserve the chooser, data tools, and Create compiler.
 
 ## Authority
 

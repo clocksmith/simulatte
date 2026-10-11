@@ -3,7 +3,7 @@
 Parent: [World](../CATSCAN.md)
 ## Target
 
-Mount SVG illustrations for every catalog experience and the catalog; open profiles directly.
+Present every catalog experience once in a vertically scrolling SVG spotlight; open profiles directly.
 
 ## Authority
 
@@ -33,7 +33,7 @@ Mount SVG illustrations for every catalog experience and the catalog; open profi
 - Profile replay compares deterministic execution identity and retains unproven proof classes.
 - Imports remain local unless a URL is requested. Declared mappings and units enable automatic playback; unresolved semantics stay visible.
 - Data execution uses a declared adapter and backend, never inferred physics or a hidden prompt/model lane.
-- The shared catalog drives all illustrated gallery entries, All simulations and readiness on desktop/mobile.
+- The shared catalog drives all illustrated spotlights and readiness on desktop/mobile.
 - `data-world-launch="featured"` suspends dormant workflows; removing it restores them.
 
 ## Acceptance

@@ -84,45 +84,43 @@ async function probePage(surface, expectedBuild) {
     const links = [...document.querySelectorAll('.launch-simulations a')];
     checks.featuredLinks = JSON.stringify(links.map(link => new URL(link.href).pathname).sort()) === JSON.stringify(catalog.pages.map(page => page.path).sort())
       && links.every(link => new URL(link.href).origin === location.origin);
-    checks.catalogVisible = visible(document.getElementById('all-simulations')) && document.querySelectorAll('.simulation-catalog li').length === catalog.pages.length;
+    checks.catalogVisible = visible(document.querySelector('.simulation-gallery')) && links.length === catalog.pages.length;
+    checks.singleCatalog = !document.querySelector('.simulation-catalog, .gallery-controls, [aria-roledescription="carousel"]');
     checks.simulationPreviews = links.every(link => link.querySelector('svg')?.getAttribute('viewBox') === '0 0 720 680' && !link.querySelector('img'));
+    checks.catalogLimits = links.every((link, index) => !catalog.pages[index].limitations
+      || link.querySelector('.catalog-limit')?.textContent === catalog.pages[index].limitations);
     const track = document.querySelector('.launch-simulations');
-    const previous = document.querySelector('[data-gallery-previous]');
-    const next = document.querySelector('[data-gallery-next]');
+    checks.verticalSpotlights = links.every((link, index) => {
+      const rect = link.getBoundingClientRect();
+      return Math.abs(rect.left - links[0].getBoundingClientRect().left) < 1
+        && (index === 0 || rect.top >= links[index - 1].getBoundingClientRect().bottom - 1);
+    });
+    checks.noHorizontalScroller = track.scrollWidth <= track.clientWidth + 1;
     const settle = async () => {
       await new Promise(resolve => setTimeout(resolve, 600));
     };
-    track.scrollTo({ left: 0, behavior: 'instant' });
-    track.scrollIntoView({ block: 'center' });
+    links[0].scrollIntoView({ block: 'center', behavior: 'instant' });
     await settle();
-    const trackRect = track.getBoundingClientRect();
-    const fullyVisible = links.filter(link => {
-      const rect = link.getBoundingClientRect();
-      return rect.left >= trackRect.left - 1 && rect.right <= trackRect.right + 1;
-    });
-    checks.previewCount = fullyVisible.length === (innerWidth > 700 ? Math.min(3, links.length) : 1);
-    checks.galleryStartsAtFirst = previous.disabled && !next.disabled;
-    next.click();
+    const firstScroll = scrollY;
+    links.at(-1).scrollIntoView({ block: 'center', behavior: 'instant' });
     await settle();
-    checks.galleryAdvances = track.scrollLeft > 0 && !previous.disabled;
-    for (let i = 0; i < links.length && !next.disabled; i++) { next.click(); await settle(); }
     const lastRect = links.at(-1).getBoundingClientRect();
-    checks.galleryReachesLast = next.disabled && lastRect.right <= trackRect.right + 1;
-    for (let i = 0; i < links.length && !previous.disabled; i++) { previous.click(); await settle(); }
-    checks.galleryReturns = track.scrollLeft < 2 && previous.disabled;
-    track.focus();
-    track.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
-    await settle();
-    checks.galleryKeyboardEnd = next.disabled;
+    checks.scrollReachesLast = scrollY > firstScroll && lastRect.top < innerHeight && lastRect.bottom > 0;
+    track.focus({ preventScroll: true });
     track.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
     await settle();
-    checks.galleryKeyboardHome = previous.disabled;
-    checks.galleryStatus = document.querySelector('.gallery-status').textContent === `1–${innerWidth > 700 ? Math.min(3, links.length) : 1} of ${links.length} simulations`;
-    const previousScroll = scrollY;
+    checks.spotlightKeyboardHome = document.activeElement === links[0];
+    links[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    await settle();
+    checks.spotlightKeyboardNext = document.activeElement === links[1];
+    links[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    checks.spotlightKeyboardPrevious = document.activeElement === links[0];
+    links[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    await settle();
+    checks.spotlightKeyboardEnd = document.activeElement === links.at(-1);
     window.scrollTo(0, 200);
     await new Promise(resolve => requestAnimationFrame(resolve));
     checks.homepageScroll = scrollY > 0;
-    window.scrollTo(0, previousScroll);
     checks.secondaryInterfacesDormant = !visible(document.querySelector('#world-tiers-landing-page'))
       && !visible(document.querySelector('.map-workspace')) && !window.SimulatteDataWorkbench && !window.SimulatteActiveSession;
     checks.ready = document.body.dataset.journeyPhase === 'ready';

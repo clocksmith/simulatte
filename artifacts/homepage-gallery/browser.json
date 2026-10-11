@@ -2,7 +2,7 @@
   "reports": [
     {
       "surface": "world",
-      "baseUrl": "http://127.0.0.1:41981/",
+      "baseUrl": "http://127.0.0.1:34219/",
       "expectedBuild": "3dc9a51b8a3fd3ee96d453d250e6d02f7fd78e01-f9a55a498580",
       "viewport": {
         "width": 1440,
@@ -19,15 +19,16 @@
           "controlsReachable": true,
           "featuredLinks": true,
           "catalogVisible": true,
+          "singleCatalog": true,
           "simulationPreviews": true,
-          "previewCount": true,
-          "galleryStartsAtFirst": true,
-          "galleryAdvances": true,
-          "galleryReachesLast": true,
-          "galleryReturns": true,
-          "galleryKeyboardEnd": true,
-          "galleryKeyboardHome": true,
-          "galleryStatus": true,
+          "catalogLimits": true,
+          "verticalSpotlights": true,
+          "noHorizontalScroller": true,
+          "scrollReachesLast": true,
+          "spotlightKeyboardHome": true,
+          "spotlightKeyboardNext": true,
+          "spotlightKeyboardPrevious": true,
+          "spotlightKeyboardEnd": true,
           "homepageScroll": true,
           "secondaryInterfacesDormant": true,
           "ready": true,
@@ -37,118 +38,118 @@
           {
             "name": "Open Motorcycle Noise",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Sun Walker",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open GPU Cluster",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Interstellar Relay",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Orbital Transfer",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Grid Resilience",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Subsea Network",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Cable Trader",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Neighborhood Bulk Pool",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open NYC Development Atlas",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Food Recall",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Maritime Trade",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Asteroid Defense",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Solar Drive",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Living Tissue",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open River Formation",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           },
           {
             "name": "Open Crystal Foundry",
             "reachable": true,
-            "width": 399.984375,
-            "height": 482.75
+            "width": 1240,
+            "height": 727.71875
           }
         ],
         "pass": true,
         "title": "Simulatte",
-        "url": "http://127.0.0.1:41981/"
+        "url": "http://127.0.0.1:34219/"
       },
       "screenshot": {
         "path": "world-1440x1000.png",
-        "sha256": "8a53afdeb7b4c80a6f7be49afdeb79caa82d52fb6ae9eb3697d1f0a15890b1aa"
+        "sha256": "2866b0a38ed3315f1dbdd179ce24c1593f3c8a2a5de5278bc73dcb3479ebf5b3"
       }
     },
     {
       "surface": "world",
-      "baseUrl": "http://127.0.0.1:41981/",
+      "baseUrl": "http://127.0.0.1:34219/",
       "expectedBuild": "3dc9a51b8a3fd3ee96d453d250e6d02f7fd78e01-f9a55a498580",
       "viewport": {
         "width": 390,
@@ -165,15 +166,16 @@
           "controlsReachable": true,
           "featuredLinks": true,
           "catalogVisible": true,
+          "singleCatalog": true,
           "simulationPreviews": true,
-          "previewCount": true,
-          "galleryStartsAtFirst": true,
-          "galleryAdvances": true,
-          "galleryReachesLast": true,
-          "galleryReturns": true,
-          "galleryKeyboardEnd": true,
-          "galleryKeyboardHome": true,
-          "galleryStatus": true,
+          "catalogLimits": true,
+          "verticalSpotlights": true,
+          "noHorizontalScroller": true,
+          "scrollReachesLast": true,
+          "spotlightKeyboardHome": true,
+          "spotlightKeyboardNext": true,
+          "spotlightKeyboardPrevious": true,
+          "spotlightKeyboardEnd": true,
           "homepageScroll": true,
           "secondaryInterfacesDormant": true,
           "ready": true,
@@ -183,113 +185,113 @@
           {
             "name": "Open Motorcycle Noise",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 517
           },
           {
             "name": "Open Sun Walker",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 541
           },
           {
             "name": "Open GPU Cluster",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 541
           },
           {
             "name": "Open Interstellar Relay",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           },
           {
             "name": "Open Orbital Transfer",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           },
           {
             "name": "Open Grid Resilience",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           },
           {
             "name": "Open Subsea Network",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           },
           {
             "name": "Open Cable Trader",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           },
           {
             "name": "Open Neighborhood Bulk Pool",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 565
           },
           {
             "name": "Open NYC Development Atlas",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           },
           {
             "name": "Open Food Recall",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 571
           },
           {
             "name": "Open Maritime Trade",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 565
           },
           {
             "name": "Open Asteroid Defense",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           },
           {
             "name": "Open Solar Drive",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           },
           {
             "name": "Open Living Tissue",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           },
           {
             "name": "Open River Formation",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           },
           {
             "name": "Open Crystal Foundry",
             "reachable": true,
-            "width": 300.953125,
-            "height": 410.21875
+            "width": 342,
+            "height": 589
           }
         ],
         "pass": true,
         "title": "Simulatte",
-        "url": "http://127.0.0.1:41981/"
+        "url": "http://127.0.0.1:34219/"
       },
       "screenshot": {
         "path": "world-390x844.png",
-        "sha256": "517b6c00fa760bb02678af0ddbff4ce25d53631c9a9cfd4c92dd6e9701122130"
+        "sha256": "5bd202b4b4dad1ff14a800a712b3a2d332d44d68b4b2c6bac517483f7cbf87d9"
       }
     }
   ]

@@ -3,7 +3,7 @@
 Parent: none
 ## Target
 
-Let people choose, create, and edit executable browser simulations. Show catalog-driven SVG illustrations of every simulation, three at a time on desktop with manual paging and mobile scrolling, and an evidence-bound full simulation catalog; preserve the hexagon homepage and other workflows in source.
+Let people choose, create, and edit executable browser simulations. Show catalog-driven SVG illustrations of every simulation, once in a vertically scrolling spotlight catalog on desktop and mobile, with evidence-bound readiness and limitations; preserve the hexagon homepage and other workflows in source.
 
 ## Authority
 

@@ -32,6 +32,12 @@ test('every catalog entry has safe SVG line art and appears in the gallery', asy
   const gallery = html.split('id="featured-simulations"')[1].split('</nav>')[0];
   assert.equal((gallery.match(/class="launch-link simulation-preview"/g)||[]).length, catalog.pages.length);
   assert.equal((gallery.match(/<svg /g)||[]).length, catalog.pages.length);
+  const launch = html.split('<!-- SIMULATION_CATALOG_START -->')[1].split('<!-- SIMULATION_CATALOG_END -->')[0];
+  assert.doesNotMatch(launch, /simulation-catalog|gallery-controls|catalog-entry|aria-roledescription="carousel"/);
+  for (const page of catalog.pages) {
+    assert.equal(launch.split(`<h2 class="preview-heading">${page.displayName} `).length - 1, 1);
+    if (page.limitations) assert.ok(launch.includes(page.limitations));
+  }
   assert.doesNotMatch(gallery, /<img|<script|<image|<foreignObject/i);
   const ids = [...gallery.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]);
   assert.equal(new Set(ids).size, ids.length, 'Inline definitions must not collide across illustrations');
