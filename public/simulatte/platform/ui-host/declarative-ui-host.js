@@ -413,7 +413,8 @@
         if (control.kind === 'range') input.addEventListener('input', () => input._controlUpdate());
         input.addEventListener('change', () => input._controlChange());
       }
-      label.append(caption, ...(optionSearch ? [optionSearch, input] : [input]), ...(readout ? [readout] : []));
+      if(input.dataset.controlComponent)input.querySelector('legend').textContent=caption.textContent;
+      label.append(...(input.dataset.controlComponent ? [] : [caption]), ...(optionSearch ? [optionSearch, input] : [input]), ...(readout ? [readout] : []));
       fields.append(label);
     });
     return fields;
