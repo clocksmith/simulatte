@@ -23,7 +23,7 @@ const section = `<!-- SIMULATION_CATALOG_START -->
   <section id="simulation-launch" aria-labelledby="launch-title">
     <header class="launch-masthead"><h1 id="launch-title" class="launch-wordmark">SIMULATTE</h1></header>
     <div class="launch-main">
-      <div class="launch-copy"><p>Change something.<br>See what happens.</p></div>
+      <div class="launch-copy"></div>
       <section class="simulation-gallery" aria-label="All simulations">
         <nav id="featured-simulations" class="launch-simulations" aria-label="Simulation spotlights" tabindex="0">${pages.map(preview).join('\n')}</nav>
       </section>
