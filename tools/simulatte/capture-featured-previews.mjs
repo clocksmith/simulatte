@@ -14,6 +14,7 @@ const browser = await openBrowserAudit({ publicRoot: root + 'public', viewport: 
   webgpu: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const { client } = browser;
 const receipt = { capturedAt: new Date().toISOString(), sources: await sourceReceipt(root), captures: [] };
+const images = [];
 const evaluate = async expression => {
   const result = await client.send('Runtime.evaluate', { expression, returnByValue: true });
   if (result.exceptionDetails) throw new Error(result.exceptionDetails.text);
@@ -53,7 +54,7 @@ try {
         width: r.width, height: r.height, scale: 1 }; })()`);
     const shot = await client.send('Page.captureScreenshot', { format: 'png', clip, captureBeyondViewport: true });
     const bytes = Buffer.from(shot.data, 'base64');
-    await fs.writeFile(root + 'public' + page.previewAsset, bytes);
+    images.push({ path: root + 'public' + page.previewAsset, bytes });
     receipt.captures.push({ path: page.path, profile: page.profile || null, asset: page.previewAsset,
       state, camera: page.profile ? 'overview, selection cleared' : 'default', clip,
       sha256: crypto.createHash('sha256').update(bytes).digest('hex') });
@@ -61,5 +62,6 @@ try {
   }
 } finally {
   await browser.close();
-  await fs.writeFile(output + '/capture-receipt.json', JSON.stringify(receipt, null, 2) + '\n');
 }
+for (const image of images) await fs.writeFile(image.path, image.bytes);
+await fs.writeFile(output + '/capture-receipt.json', JSON.stringify(receipt, null, 2) + '\n');

@@ -1,0 +1,139 @@
+{
+  "reports": [
+    {
+      "surface": "world",
+      "baseUrl": "http://127.0.0.1:36189/",
+      "expectedBuild": "f6c389693e77b983b3a79df6e45fa4747e824724-3310b8236f4c",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/136.0.7103.59",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "catalogVisible": true,
+          "simulationPreviews": true,
+          "previewCount": true,
+          "galleryStartsAtFirst": true,
+          "galleryAdvances": true,
+          "galleryReachesLast": true,
+          "galleryReturns": true,
+          "galleryKeyboardEnd": true,
+          "galleryKeyboardHome": true,
+          "galleryStatus": true,
+          "homepageScroll": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Open Motorcycle Noise",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 299.984375
+          },
+          {
+            "name": "Open Sun Walker",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 299.984375
+          },
+          {
+            "name": "Open GPU Cluster",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 299.984375
+          },
+          {
+            "name": "Open Interstellar Relay",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 299.984375
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "http://127.0.0.1:36189/"
+      },
+      "screenshot": {
+        "path": "world-1440x1000.png",
+        "sha256": "01d5c2a29d8de491112853a5df71d6b83d2f117777a23967a4270c3c1d622ade"
+      }
+    },
+    {
+      "surface": "world",
+      "baseUrl": "http://127.0.0.1:36189/",
+      "expectedBuild": "f6c389693e77b983b3a79df6e45fa4747e824724-3310b8236f4c",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/136.0.7103.59",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "catalogVisible": true,
+          "simulationPreviews": true,
+          "previewCount": true,
+          "galleryStartsAtFirst": true,
+          "galleryAdvances": true,
+          "galleryReturns": true,
+          "galleryKeyboardEnd": true,
+          "galleryKeyboardHome": true,
+          "galleryStatus": true,
+          "homepageScroll": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Open Motorcycle Noise",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 265.28125
+          },
+          {
+            "name": "Open Sun Walker",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 265.28125
+          },
+          {
+            "name": "Open GPU Cluster",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 265.28125
+          },
+          {
+            "name": "Open Interstellar Relay",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 265.28125
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "http://127.0.0.1:36189/"
+      },
+      "screenshot": {
+        "path": "world-390x844.png",
+        "sha256": "954b1475df55a1281607f8f829ca074b20f11f4fbb6d50e9d134ed7ff51be982"
+      }
+    }
+  ]
+}
