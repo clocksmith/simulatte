@@ -662,6 +662,10 @@
           button.dataset.objectAction = action.id; button.addEventListener('click', () => { void act(action.id); });
           actions.append(button); buttons.set(action.id, button);
         }
+        nextActions.forEach((action, index) => {
+          const button = buttons.get(action.id);
+          if (actions.children[index] !== button) actions.insertBefore(button, actions.children[index] || null);
+        });
         reflectButtons();
     }
     return Object.freeze({ element: root, render,

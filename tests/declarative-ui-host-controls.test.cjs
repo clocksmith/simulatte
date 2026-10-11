@@ -20,6 +20,12 @@ class FakeNode {
     this.children.push(...nodes);
   }
 
+  insertBefore(node, reference) {
+    const previous = this.children.indexOf(node);
+    if (previous >= 0) this.children.splice(previous, 1);
+    this.children.splice(reference ? this.children.indexOf(reference) : this.children.length, 0, node);
+  }
+
   replaceChildren(...nodes) {
     this.children = nodes;
   }
@@ -634,4 +640,21 @@ test('connected-object actions preserve selection authority and hide absent over
   const button=find(host,node=>node.dataset.relatedObject==='peer');
   await button.dispatch('click');assert.deepEqual(selected,['peer']);
   assert.ok(!find(host,node=>node.dataset.relatedObject==='overlay'));
+});
+
+test('late domain actions appear before Focus while keyed controls keep their identity', () => {
+  const doc=fakeDocument(),create=doc.createElement;
+  doc.createElement=tag=>{const node=create(tag);node.setAttribute=()=>{};return node;};
+  const host=new FakeNode('host',doc);
+  const inspector=uiHost.createObjectInspector({host,onSelect(){},onAction(){}});
+  const render=actions=>inspector.render({objects:[{id:'rack',label:'Rack'}],selectedId:'rack',label:'Rack',fields:[],actions});
+  const focus={id:'focus',label:'Focus object'};
+  render([focus]);const focusNode=find(host,node=>node.dataset.objectAction==='focus');doc.activeElement=focusNode;
+  render([{id:'slow',label:'Slow rack'},focus]);
+  const group=find(host,node=>node.className==='sim-object-actions');
+  assert.deepEqual(group.children.map(node=>node.dataset.objectAction),['slow','focus']);
+  assert.equal(group.children[1],focusNode);assert.equal(doc.activeElement,focusNode);
+  const slowNode=group.children[0];
+  render([{id:'slow',label:'Restore rack'},focus]);
+  assert.equal(group.children[0],slowNode);assert.equal(slowNode.textContent,'Restore rack');
 });

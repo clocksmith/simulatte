@@ -44,6 +44,7 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
      row.checks.openingObjectExplainsItself=true;
      await evaluate("SimulatteActiveSession.invoke('pause')");
      if(route==='datacenter'){
+      assert.equal(await evaluate("document.querySelector('.sim-object-actions button').dataset.objectAction"),'straggler');row.checks.domainActionFirst=true;
       const snapshot=await evaluate('SimulatteActiveSession.snapshot()');
       await click('[data-object-action="straggler"]');
       await until("document.querySelector('[data-object-action=straggler]').textContent==='Restore rack'");
@@ -63,6 +64,7 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
       assert.match(await evaluate("document.querySelector('.sim-object-inspector').innerText"),/Rack speed restored/);
       assert.equal(await evaluate('SimulatteActiveSession.snapshot().generation'),snapshot.generation);row.checks.liveRestorePreservesRun=true;
      }else if(route==='orbital'){
+      assert.equal(await evaluate("document.querySelector('.sim-object-actions button').dataset.objectAction"),'preview');row.checks.domainActionFirst=true;
       const before=await evaluate('JSON.stringify(__simulattePluginPlatformV4.contributions[0].state)');
       await click('[data-object-action="preview"]');
       await until("document.querySelector('.sim-object-inspector select').value==='preview-transfer-trajectory'");
