@@ -67,7 +67,8 @@
       }else if(inspectedSource){
         const source=scene.sources.find(item=>item.id===inspectedSource);if(!source)return;$('ride-selected').hidden=source.kind!=='motorcycle';
         const p=M.position(source,getTime());$('spray-selected').hidden=source.kind!=='motorcycle'||!scene.fictionalEventsEnabled;$('spray-selected').textContent=$('spray-selected').dataset.preparing?'Preparing spray…':'Spray water';$('spray-selected').disabled=!!$('spray-selected').dataset.preparing||p.stalled||!!scene.mistBursts?.some(b=>b.sourceId===source.id&&getTime()>=b.start&&getTime()<b.end);setText('inspection-title',source.kind==='motorcycle'?`Motorcycle ${source.id.split('-').pop()}`:source.id);
-        setText('inspection-main',p.stalled?'Engine stalled':`${(p.speed*3.6).toFixed(1)} km/h`);setText('inspection-detail',p.stalled?'0 RPM / engine off':`${Math.round(p.rpm)} RPM / ${M.sourceLevel(source,getTime()).toFixed(1)} dB(Z) source emission at 1 metre`);
+        const received=lastObserver?.observer.contributors.find(row=>row.id===source.id);
+        setText('inspection-main',received?`${level(received.pathTotal)} received here${observerCurrent()?'':' · stale sample'}`:'Observer contribution not sampled');setText('inspection-detail',p.stalled?'Engine stalled / 0 RPM / engine off':`${(p.speed*3.6).toFixed(1)} km/h / ${Math.round(p.rpm)} RPM / ${M.sourceLevel(source,getTime()).toFixed(1)} dB(Z) source emission at 1 metre`);
         setText('inspection-time',sourceInspection(lastObserver,source.id,observerCurrent()));
       }
     }

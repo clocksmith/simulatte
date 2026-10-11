@@ -16,10 +16,10 @@
     "description": "Observe moving traffic and sound propagation.",
     "readiness": "available",
     "featured": true,
-    "previewAsset": "/simulation-previews/motorcycle.png",
+    "previewAsset": "/simulation-previews/motorcycle.svg",
     "limitations": "",
     "evidence": [
-      "public/simulation-previews/capture-receipt.json"
+      "artifacts/five-experiences/before/report.json"
     ]
   },
   {
@@ -34,7 +34,7 @@
     "description": "Compare walking routes through changing sun and shade.",
     "readiness": "available",
     "featured": true,
-    "previewAsset": "/simulation-previews/sunwalker.png",
+    "previewAsset": "/simulation-previews/sunwalker.svg",
     "limitations": "",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json"
@@ -52,7 +52,7 @@
     "description": "Explore racks computing, communicating, and waiting.",
     "readiness": "available",
     "featured": true,
-    "previewAsset": "/simulation-previews/gpu.png",
+    "previewAsset": "/simulation-previews/gpu.svg",
     "limitations": "",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json",
@@ -71,7 +71,7 @@
     "description": "Send a packet and follow when a reply can return.",
     "readiness": "available",
     "featured": true,
-    "previewAsset": "/simulation-previews/interstellar.png",
+    "previewAsset": "/simulation-previews/interstellar.svg",
     "limitations": "Relay infrastructure is hypothetical; reliability is a seeded model.",
     "evidence": [
       "artifacts/next-experiences/browser.json",
@@ -88,10 +88,10 @@
       "/simulatte/solar-system/orbital-transfer-planner-v1"
     ],
     "displayName": "Orbital Transfer",
-    "description": "Compare transfer windows, travel time, and propellant.",
+    "description": "Compare transfer windows, travel time, and velocity change.",
     "readiness": "available",
     "featured": false,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/orbital.svg",
     "limitations": "Transfer screening omits navigation covariance and maneuver execution error.",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json",
@@ -110,7 +110,7 @@
     "description": "Compare regional power supply, demand, and restoration.",
     "readiness": "available",
     "featured": false,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/grid.svg",
     "limitations": "Dispatch and restoration are modeled; results are not a live grid forecast.",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json",
@@ -129,7 +129,7 @@
     "description": "Explore cable capacity, routing, and network disruptions.",
     "readiness": "available",
     "featured": false,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/subsea.svg",
     "limitations": "Cable capacity, failures, and repairs are modeled; live operator data is not shown.",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json",
@@ -145,7 +145,7 @@
     "description": "Explore cable exchanges between neighborhood hubs.",
     "readiness": "experimental",
     "featured": false,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/cable-trader.svg",
     "limitations": "Supply, demand, and exchanges are simulated, not actual local inventory.",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json"
@@ -160,7 +160,7 @@
     "description": "Coordinate local bulk purchases and pickups.",
     "readiness": "experimental",
     "featured": false,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/bulk-pool.svg",
     "limitations": "Purchases and pickup coordination are simulated, not live offers.",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json"
@@ -175,7 +175,7 @@
     "description": "Inspect city development and governed source records.",
     "readiness": "experimental",
     "featured": false,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/nyc-atlas.svg",
     "limitations": "Source records provide context; results do not establish development feasibility.",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json"
@@ -190,7 +190,7 @@
     "description": "Trace distribution and compare recall responses.",
     "readiness": "experimental",
     "featured": false,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/food-recall.svg",
     "limitations": "Recall scenarios are simulated, not active food-safety notices.",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json"
@@ -205,7 +205,7 @@
     "description": "Compare shipping routes and trade disruptions.",
     "readiness": "experimental",
     "featured": false,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/maritime.svg",
     "limitations": "Trade and disruptions are modeled, not live shipping operations.",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json"
@@ -220,7 +220,7 @@
     "description": "Compare interception strategies and modeled outcomes.",
     "readiness": "experimental",
     "featured": false,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/asteroid.svg",
     "limitations": "Interception outcomes are screening models, not operational defense predictions.",
     "evidence": [
       "artifacts/2026-10-04-catalog/opening/browser.json"
@@ -234,7 +234,7 @@
     "description": "Inspect a solar vehicle’s component and energy model.",
     "readiness": "experimental",
     "featured": false,
-    "previewAsset": null,
+    "previewAsset": "/simulation-previews/solar-drive.svg",
     "limitations": "Starts with component inspection; run the idealized energy model explicitly. This is not a built-vehicle measurement.",
     "evidence": [
       "artifacts/2026-10-04-catalog/qualification-verified/browser.json"
@@ -249,7 +249,7 @@
   "description": "How can local cell behavior produce a coherent shape?",
   "readiness": "experimental",
   "featured": false,
-  "previewAsset": null,
+  "previewAsset": "/simulation-previews/living-tissue.svg",
   "limitations": "Two-dimensional tissue with illustrative parameters; no medical prediction.",
   "evidence": [
     "tests/field-experiments.test.cjs",
@@ -265,7 +265,7 @@
   "description": "How does flowing water change the landscape that directs it?",
   "readiness": "experimental",
   "featured": false,
-  "previewAsset": null,
+  "previewAsset": "/simulation-previews/river-formation.svg",
   "limitations": "Bounded terrain; erosion advances 200 times faster than water time. No calibrated landscape forecast.",
   "evidence": [
     "tests/field-experiments.test.cjs",
@@ -281,7 +281,7 @@
   "description": "How do growth rules produce intricate material structure?",
   "readiness": "experimental",
   "featured": false,
-  "previewAsset": null,
+  "previewAsset": "/simulation-previews/crystal-foundry.svg",
   "limitations": "Two-dimensional continuum solidification with prescribed grain orientations; no calibrated material prediction.",
   "evidence": [
     "tests/field-experiments.test.cjs",

@@ -23,70 +23,26 @@ test('the discovery catalog covers each registered profile and standalone experi
   }
 });
 
-test('homepage previews follow the featured catalog with bound simulation captures', () => {
-  const receipt = JSON.parse(fs.readFileSync(path.join(root, 'public/simulation-previews/capture-receipt.json')));
-  assert.deepEqual(catalog.featured.map(page => page.path).sort(), ['/datacenter', '/interstellar', '/motorcycle', '/sunwalker']);
-  const { createHash } = require('node:crypto');
-  for (const page of catalog.featured) {
-    assert.ok(page.previewAsset, 'Featured experience requires its own preview');
-    const bytes = fs.readFileSync(path.join(root, 'public', page.previewAsset));
-    const capture = receipt.captures.find(row => row.path === page.path && row.asset === page.previewAsset);
-    assert.ok(capture, 'Preview must come from the corresponding simulation');
-    assert.equal(capture.sha256, createHash('sha256').update(bytes).digest('hex'));
-  }
-  execFileSync(process.execPath, ['tools/sync-simulation-homepage.mjs', '--check'], { cwd: root });
+test('every catalog entry has safe SVG line art and appears in the gallery', async () => {
+  const {buildIllustrations} = await import('../tools/simulatte/build-simulation-illustrations.mjs');
+  assert.throws(() => buildIllustrations([{path:'/missing',previewAsset:'/simulation-previews/missing.svg'}]), /Unknown illustration/);
+  execFileSync(process.execPath, ['tools/simulatte/build-simulation-illustrations.mjs', '--check'], {cwd:root});
+  execFileSync(process.execPath, ['tools/sync-simulation-homepage.mjs', '--check'], {cwd:root});
   const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
-  assert.match(html, /href="#all-simulations"/);
-  assert.doesNotMatch(html, /launch-bike|launch-waves|launch-city/);
-  for (const page of catalog.featured) {
-    assert.ok(html.includes(`href=".${page.path}" aria-label="Open ${page.displayName}"`));
-    assert.ok(html.includes(`src=".${page.previewAsset}"`));
+  const gallery = html.split('id="featured-simulations"')[1].split('</nav>')[0];
+  assert.equal((gallery.match(/class="launch-link simulation-preview"/g)||[]).length, catalog.pages.length);
+  assert.equal((gallery.match(/<svg /g)||[]).length, catalog.pages.length);
+  assert.doesNotMatch(gallery, /<img|<script|<image|<foreignObject/i);
+  const ids = [...gallery.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]);
+  assert.equal(new Set(ids).size, ids.length, 'Inline definitions must not collide across illustrations');
+  for (const match of gallery.matchAll(/(?:href="#|url\(#)([^"\)]+)/g)) assert.ok(ids.includes(match[1]), 'Every SVG reference resolves');
+  for (const page of catalog.pages) {
+    const art=fs.readFileSync(path.join(root, 'public', page.previewAsset), 'utf8');
+    assert.match(art, /viewBox="0 0 720 680"/);
+    assert.doesNotMatch(art, /<(?:script|image|foreignObject)\b|\bon\w+\s*=|(?:href|src)\s*=\s*["'](?!#)/i);
+    assert.ok(gallery.includes(`href=".${page.path}" aria-label="Open ${page.displayName}"`));
+    assert.ok(gallery.includes(art.trim()));
   }
-});
-
-test('a failed preview recapture preserves existing images and their receipt', () => {
-  const script = `
-    const vm = require('node:vm');
-    const fs = require('node:fs');
-    const { pathToFileURL } = require('node:url');
-    const writes = [];
-    let navigations = 0, closed = false;
-    const client = {
-      once: () => Promise.resolve(),
-      async send(method) {
-        if (method === 'Page.navigate' && ++navigations === 2) throw Error('capture failed');
-        if (method === 'Page.captureScreenshot') return { data: Buffer.from('image').toString('base64') };
-        return { result: { value: { ready: true, phase: 'running', x: 0, y: 0, width: 1200, height: 800, scale: 1 } } };
-      }
-    };
-    const context = vm.createContext({ Buffer, URL, console: { log() {} },
-      setTimeout: callback => { callback(); },
-    });
-    const tool = new vm.SourceTextModule(fs.readFileSync('tools/simulatte/capture-featured-previews.mjs', 'utf8'), {
-      context, identifier: pathToFileURL(require('node:path').resolve('tools/simulatte/capture-featured-previews.mjs')).href,
-      initializeImportMeta: meta => { meta.url = tool.identifier; }
-    });
-    const imports = {
-      'node:fs/promises': { default: { mkdir: async () => {}, writeFile: async (...args) => writes.push(args) } },
-      'node:crypto': { default: require('node:crypto') },
-      'node:module': { createRequire: require('node:module').createRequire },
-      'node:url': { fileURLToPath: require('node:url').fileURLToPath },
-      './browser-session.mjs': { openBrowserAudit: async () => ({ client,
-        host: { baseUrl: 'http://simulatte.test/' }, close: async () => { closed = true; } }) },
-      './runtime-audit-sources.mjs': { sourceReceipt: async () => ({ head: 'fixture' }) }
-    };
-    (async () => {
-      await tool.link(specifier => {
-        const values = imports[specifier];
-        return new vm.SyntheticModule(Object.keys(values), function () {
-          for (const [key, value] of Object.entries(values)) this.setExport(key, value);
-        }, { context });
-      });
-      await require('node:assert/strict').rejects(tool.evaluate(), /capture failed/);
-      require('node:assert/strict').equal(navigations, 2);
-      require('node:assert/strict').equal(closed, true);
-      require('node:assert/strict').deepEqual(writes, []);
-    })().catch(error => { console.error(error); process.exitCode = 1; });
-  `;
-  execFileSync(process.execPath, ['--experimental-vm-modules', '-e', script], { cwd: root, stdio: 'pipe' });
+  assert.match(gallery, /class="launch-bike" transform="translate\(295 310\)"/);
+  assert.match(gallery, /<ellipse rx="300" ry="210"/);
 });

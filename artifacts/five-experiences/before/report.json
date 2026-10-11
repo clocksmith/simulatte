@@ -1,0 +1,2076 @@
+[
+  {
+    "route": "/motorcycle",
+    "text": "Simulations\nCamera\nSound\nPause\nAdvanced\nWater mister\nDirectional speaker\nLocal cancellation\n↑\n←\n↓\n→\n-\n+\nEstimated dBA\n30\n80\n130+\nEstimated sound here\n83.3 dBA\nTraffic 83.3 dBA\nBackground 20.0 dBA\nmap (2238, -200) · 34.0 m high\nSample · 14.08 s"
+  },
+  {
+    "route": "/sunwalker",
+    "text": "Simulations\n◐\n☼\n☾\nSYSTEM\nRunning\nSelect an object…\nWalking destination\nShade-selected route\nFastest route baseline\nWalker\nShow sampled segments\nFrom (A)\nEast Village\nGreenpoint\nMcCarren Park\nNorth Williamsburg\nTompkins Square\nUnion Square\nWashington Square\nWest Village\nWilliamsburg Bridge\nWilliamsburg Waterfront\nTo (B)\nEast Village\nGreenpoint\nMcCarren Park\nNorth Williamsburg\nTompkins Square\nUnion Square\nWashington Square\nWest Village\nWilliamsburg Bridge\nWilliamsburg Waterfront\nUpdate walk\nTime versus shade\nBalanced\nShortest walk\nPrefer shade\nShortest walk · amber baseline\n10.8 min · 48% shade · 52% sun\nYour route · green\n11.2 min · 55% shade · 45% sun\n\n0.4 min longer · 0.6 min less in direct sun\n\nBars share one time scale: yellow sun · blue shade · gray unknown · dark night. Predicted at arrival time; both routes share endpoints and departure.\n\nSun so far\n100% / 16.1 s\nShade so far\n0% / 0.0 s\nWalk completed\n2.4%\n\nNow: In direct sun. Exposure so far: 16.1 s sampled · Unknown 0.0 s (0%) · Night 0.0 s (0%).\n\nCamera\nPause\nAdvanced",
+    "inspector": "Select an object…\nWalking destination\nShade-selected route\nFastest route baseline\nWalker\nShow sampled segments",
+    "objects": [
+      {
+        "plugin": "sun-walker",
+        "objects": [
+          {
+            "id": "sun-destination",
+            "label": "Walking destination",
+            "inSelector": true,
+            "selectionGroup": "sampled segments",
+            "condition": "Predicted whole route",
+            "description": "Your green route takes 11.2 min with 5.1 min direct sun. The amber shortest path takes 10.8 min with 5.6 min direct sun. Both use the same endpoints, departure, and arrival-time shadow model.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 8,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "preview",
+                "label": "Preview shortest walk",
+                "targetId": "sun-destination",
+                "available": true,
+                "execution": "preview",
+                "command": "sun-walker.preview-route",
+                "values": {
+                  "directSunWeight": 0
+                },
+                "proposedChange": "Minimize walking time within the current detour limit."
+              }
+            ]
+          },
+          {
+            "id": "shade-selected-route",
+            "label": "Shade-selected route",
+            "inSelector": true,
+            "selectionGroup": "sampled segments",
+            "condition": "Predicted whole route",
+            "description": "Your green route takes 11.2 min with 5.1 min direct sun. The amber shortest path takes 10.8 min with 5.6 min direct sun. Both use the same endpoints, departure, and arrival-time shadow model.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 8,
+              "priority": 30
+            },
+            "actions": [
+              {
+                "id": "preview",
+                "label": "Preview shortest walk",
+                "targetId": "shade-selected-route",
+                "available": true,
+                "execution": "preview",
+                "command": "sun-walker.preview-route",
+                "values": {
+                  "directSunWeight": 0
+                },
+                "proposedChange": "Minimize walking time within the current detour limit."
+              }
+            ]
+          },
+          {
+            "id": "fastest-route",
+            "label": "Fastest route baseline",
+            "inSelector": true,
+            "selectionGroup": "sampled segments",
+            "condition": "Predicted whole route",
+            "description": "Your green route takes 11.2 min with 5.1 min direct sun. The amber shortest path takes 10.8 min with 5.6 min direct sun. Both use the same endpoints, departure, and arrival-time shadow model.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 8,
+              "priority": 30
+            },
+            "actions": [
+              {
+                "id": "preview",
+                "label": "Preview shortest walk",
+                "targetId": "fastest-route",
+                "available": true,
+                "execution": "preview",
+                "command": "sun-walker.preview-route",
+                "values": {
+                  "directSunWeight": 0
+                },
+                "proposedChange": "Minimize walking time within the current detour limit."
+              }
+            ]
+          },
+          {
+            "id": "sun-walked-segment-sample-street-route-1232833559-0-ft-1",
+            "label": "Direct sun · 4 s sampled",
+            "inSelector": false,
+            "selectionGroup": "sampled segments",
+            "condition": "Completed exposure sample",
+            "description": "Exposure is sampled at arrival time using modeled buildings and declared environmental coverage.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 8,
+              "priority": 50
+            },
+            "actions": []
+          },
+          {
+            "id": "sun-walked-segment-sample-street-route-1232833559-0-ft-2",
+            "label": "Direct sun · 7 s sampled",
+            "inSelector": false,
+            "selectionGroup": "sampled segments",
+            "condition": "Completed exposure sample",
+            "description": "Exposure is sampled at arrival time using modeled buildings and declared environmental coverage.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 8,
+              "priority": 50
+            },
+            "actions": []
+          },
+          {
+            "id": "sun-walked-segment-sample-street-route-1027206713-0-tf-1",
+            "label": "Direct sun · 5 s sampled",
+            "inSelector": false,
+            "selectionGroup": "sampled segments",
+            "condition": "Completed exposure sample",
+            "description": "Exposure is sampled at arrival time using modeled buildings and declared environmental coverage.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 8,
+              "priority": 50
+            },
+            "actions": []
+          },
+          {
+            "id": "sun-walker-actor",
+            "label": "Walker",
+            "inSelector": true,
+            "selectionGroup": "sampled segments",
+            "condition": "In direct sun",
+            "description": "Your green route takes 11.2 min with 5.1 min direct sun. The amber shortest path takes 10.8 min with 5.6 min direct sun. Both use the same endpoints, departure, and arrival-time shadow model.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 18,
+              "priority": 100
+            },
+            "actions": [
+              {
+                "id": "preview",
+                "label": "Preview shortest walk",
+                "targetId": "sun-walker-actor",
+                "available": true,
+                "execution": "preview",
+                "command": "sun-walker.preview-route",
+                "values": {
+                  "directSunWeight": 0
+                },
+                "proposedChange": "Minimize walking time within the current detour limit."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/datacenter",
+    "text": "Simulations\n◐\n☼\n☾\nSYSTEM\nRunning\nSelect an object…\nRack R1-1\nRack R1-2\nRack R1-3\nRack R1-4\nRack R1-5\nRack R1-6\nRack R1-7\nRack R1-8\nRack R2-1\nRack R2-2\nRack R2-3\nRack R2-4\nRack R2-5\nRack R2-6\nRack R2-7\nRack R2-8\nRack R3-1\nRack R3-2\nRack R3-3\nRack R3-4\nRack R3-5\nRack R3-6\nRack R3-7\nRack R3-8\nRack R4-1\nRack R4-2\nRack R4-3\nRack R4-4\nRack R4-5\nRack R4-6\nRack R4-7\nRack R4-8\nShow links\n×\nRack R1-1\n\nCommunicating · 0% slowdown\n\nFocus object\nSlow rack\n\n0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms.\n\nDetailed quantities\nProductive compute share\n1.53%\nCompute (PFLOP/s)\n6.51\nPower (steady-state)\n62.6 kW\n\nTraining together. Each training step waits for every rack before exchanging gradients. Now: 0 computing · 32 communicating · 0 waiting. Cyan/green: compute · Violet: transfer · Amber: waiting.\n\nCamera\nPause\nAdvanced",
+    "inspector": "Select an object…\nRack R1-1\nRack R1-2\nRack R1-3\nRack R1-4\nRack R1-5\nRack R1-6\nRack R1-7\nRack R1-8\nRack R2-1\nRack R2-2\nRack R2-3\nRack R2-4\nRack R2-5\nRack R2-6\nRack R2-7\nRack R2-8\nRack R3-1\nRack R3-2\nRack R3-3\nRack R3-4\nRack R3-5\nRack R3-6\nRack R3-7\nRack R3-8\nRack R4-1\nRack R4-2\nRack R4-3\nRack R4-4\nRack R4-5\nRack R4-6\nRack R4-7\nRack R4-8\nShow links\n×\nRack R1-1\n\nCommunicating · 0% slowdown\n\nFocus object\nSlow rack\n\n0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms.\n\nDetailed quantities",
+    "objects": [
+      {
+        "plugin": "gpu-supercluster",
+        "objects": [
+          {
+            "id": "rack:R1-1",
+            "label": "Rack R1-1",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R1-1",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R1-1",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R1-2",
+            "label": "Rack R1-2",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R1-2",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R1-2",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R1-3",
+            "label": "Rack R1-3",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R1-3",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R1-3",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R1-4",
+            "label": "Rack R1-4",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R1-4",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R1-4",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R1-5",
+            "label": "Rack R1-5",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R1-5",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R1-5",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R1-6",
+            "label": "Rack R1-6",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R1-6",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R1-6",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R1-7",
+            "label": "Rack R1-7",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R1-7",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R1-7",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R1-8",
+            "label": "Rack R1-8",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R1-8",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R1-8",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R2-1",
+            "label": "Rack R2-1",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R2-1",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R2-1",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R2-2",
+            "label": "Rack R2-2",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R2-2",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R2-2",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R2-3",
+            "label": "Rack R2-3",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R2-3",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R2-3",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R2-4",
+            "label": "Rack R2-4",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R2-4",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R2-4",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R2-5",
+            "label": "Rack R2-5",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R2-5",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R2-5",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R2-6",
+            "label": "Rack R2-6",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R2-6",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R2-6",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R2-7",
+            "label": "Rack R2-7",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R2-7",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R2-7",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R2-8",
+            "label": "Rack R2-8",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R2-8",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R2-8",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R3-1",
+            "label": "Rack R3-1",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R3-1",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R3-1",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R3-2",
+            "label": "Rack R3-2",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R3-2",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R3-2",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R3-3",
+            "label": "Rack R3-3",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R3-3",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R3-3",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R3-4",
+            "label": "Rack R3-4",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R3-4",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R3-4",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R3-5",
+            "label": "Rack R3-5",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R3-5",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R3-5",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R3-6",
+            "label": "Rack R3-6",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R3-6",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R3-6",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R3-7",
+            "label": "Rack R3-7",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R3-7",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R3-7",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R3-8",
+            "label": "Rack R3-8",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R3-8",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R3-8",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R4-1",
+            "label": "Rack R4-1",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R4-1",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R4-1",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R4-2",
+            "label": "Rack R4-2",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R4-2",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R4-2",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R4-3",
+            "label": "Rack R4-3",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R4-3",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R4-3",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R4-4",
+            "label": "Rack R4-4",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R4-4",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R4-4",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R4-5",
+            "label": "Rack R4-5",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R4-5",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R4-5",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R4-6",
+            "label": "Rack R4-6",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R4-6",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R4-6",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R4-7",
+            "label": "Rack R4-7",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R4-7",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R4-7",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "rack:R4-8",
+            "label": "Rack R4-8",
+            "inSelector": true,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Communicating · 0% slowdown",
+            "description": "0 racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added 0.0 ms waiting, summed across racks. Completed iterations: 0 versus 0 without live actions, over the same 0–254.0 ms. ",
+            "hit": {
+              "shape": "bounds",
+              "radiusPx": 6,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "straggler",
+                "label": "Slow rack",
+                "targetId": "rack:R4-8",
+                "available": true,
+                "execution": "continue",
+                "command": "scenario.intervene",
+                "values": {
+                  "rackId": "R4-8",
+                  "slowdown": 95
+                },
+                "proposedChange": "Reduce this rack’s compute speed by 95%; dependent racks may wait."
+              }
+            ]
+          },
+          {
+            "id": "link:infiniband-ring:gpu-7-gpu-8",
+            "label": "R1-1 ↔ R1-2",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-15-gpu-16",
+            "label": "R1-2 ↔ R1-3",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-23-gpu-24",
+            "label": "R1-3 ↔ R1-4",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-31-gpu-32",
+            "label": "R1-4 ↔ R1-5",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-39-gpu-40",
+            "label": "R1-5 ↔ R1-6",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-47-gpu-48",
+            "label": "R1-6 ↔ R1-7",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-55-gpu-56",
+            "label": "R1-7 ↔ R1-8",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-63-gpu-64",
+            "label": "R1-8 ↔ R2-1",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-71-gpu-72",
+            "label": "R2-1 ↔ R2-2",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-79-gpu-80",
+            "label": "R2-2 ↔ R2-3",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-87-gpu-88",
+            "label": "R2-3 ↔ R2-4",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-95-gpu-96",
+            "label": "R2-4 ↔ R2-5",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-103-gpu-104",
+            "label": "R2-5 ↔ R2-6",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-111-gpu-112",
+            "label": "R2-6 ↔ R2-7",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-119-gpu-120",
+            "label": "R2-7 ↔ R2-8",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-127-gpu-128",
+            "label": "R2-8 ↔ R3-1",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-135-gpu-136",
+            "label": "R3-1 ↔ R3-2",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-143-gpu-144",
+            "label": "R3-2 ↔ R3-3",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-151-gpu-152",
+            "label": "R3-3 ↔ R3-4",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-159-gpu-160",
+            "label": "R3-4 ↔ R3-5",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-167-gpu-168",
+            "label": "R3-5 ↔ R3-6",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-175-gpu-176",
+            "label": "R3-6 ↔ R3-7",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-183-gpu-184",
+            "label": "R3-7 ↔ R3-8",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-191-gpu-192",
+            "label": "R3-8 ↔ R4-1",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-199-gpu-200",
+            "label": "R4-1 ↔ R4-2",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-207-gpu-208",
+            "label": "R4-2 ↔ R4-3",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-215-gpu-216",
+            "label": "R4-3 ↔ R4-4",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-223-gpu-224",
+            "label": "R4-4 ↔ R4-5",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-231-gpu-232",
+            "label": "R4-5 ↔ R4-6",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-239-gpu-240",
+            "label": "R4-6 ↔ R4-7",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-247-gpu-248",
+            "label": "R4-7 ↔ R4-8",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          },
+          {
+            "id": "link:infiniband-ring:gpu-255-gpu-0",
+            "label": "R4-8 ↔ R1-1",
+            "inSelector": false,
+            "selectionGroup": "links",
+            "relatedIds": [],
+            "condition": "Modeled physical connection",
+            "description": "This modeled link carries gradients between its connected racks.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 6,
+              "priority": 20
+            },
+            "actions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/interstellar",
+    "text": "Simulations\n◐\n☼\n☾\nSYSTEM\nRunning\nSelect an object…\nSol\nBarnard's Star\nProxima Centauri\nWolf 359\nLalande 21185\nEpsilon Eridani\n61 Cygni A\nPacket Sol → Barnard's Star · running\nShow more objects\nRequest delivery\n10.809 year\nLink capacity\n3.25e-4 Gb/s\n\nOne-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.\n\nCamera\nPause\nAdvanced",
+    "inspector": "Select an object…\nSol\nBarnard's Star\nProxima Centauri\nWolf 359\nLalande 21185\nEpsilon Eridani\n61 Cygni A\nPacket Sol → Barnard's Star · running\nShow more objects",
+    "objects": [
+      {
+        "plugin": "interstellar-relay-network",
+        "objects": [
+          {
+            "id": "star:gaia-sol",
+            "label": "Sol",
+            "inSelector": true,
+            "relatedIds": [],
+            "condition": "running",
+            "description": "One-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 12,
+              "priority": 90
+            },
+            "actions": []
+          },
+          {
+            "id": "star:gaia-barnard",
+            "label": "Barnard's Star",
+            "inSelector": true,
+            "relatedIds": [],
+            "condition": "running",
+            "description": "One-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 12,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "apply",
+                "label": "Send packet here",
+                "targetId": "star:gaia-barnard",
+                "available": true,
+                "execution": "restart",
+                "command": "scenario.run",
+                "values": {
+                  "sourceId": "gaia-sol",
+                  "targetId": "gaia-barnard",
+                  "routingMode": "automatic",
+                  "routeObjective": "balanced",
+                  "requiredRelayIds": [
+                    "gaia-proxima"
+                  ],
+                  "eligibleRelayIds": [
+                    "gaia-sol",
+                    "gaia-proxima",
+                    "gaia-barnard",
+                    "gaia-wolf-359",
+                    "gaia-lalande-21185",
+                    "gaia-epsilon-eridani",
+                    "gaia-61-cygni-a"
+                  ],
+                  "maxHops": 6,
+                  "maxHopDistancePc": 20,
+                  "startEpochIso": "2026-07-25T00:00",
+                  "packetBytes": 1048576,
+                  "processingDelayHours": 8,
+                  "transceiverId": "high-power-array",
+                  "operationsProfileId": "nominal-autonomous",
+                  "ensembleSize": 64,
+                  "retryLimit": 3,
+                  "channelMode": "classical-optical",
+                  "messageMode": "one-way"
+                },
+                "proposedChange": "Send from gaia-sol to gaia-barnard and replay its delivery events."
+              }
+            ]
+          },
+          {
+            "id": "star:gaia-proxima",
+            "label": "Proxima Centauri",
+            "inSelector": true,
+            "relatedIds": [],
+            "condition": "running",
+            "description": "One-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 12,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "apply",
+                "label": "Send packet here",
+                "targetId": "star:gaia-proxima",
+                "available": true,
+                "execution": "restart",
+                "command": "scenario.run",
+                "values": {
+                  "sourceId": "gaia-sol",
+                  "targetId": "gaia-proxima",
+                  "routingMode": "automatic",
+                  "routeObjective": "balanced",
+                  "requiredRelayIds": [
+                    "gaia-proxima"
+                  ],
+                  "eligibleRelayIds": [
+                    "gaia-sol",
+                    "gaia-proxima",
+                    "gaia-barnard",
+                    "gaia-wolf-359",
+                    "gaia-lalande-21185",
+                    "gaia-epsilon-eridani",
+                    "gaia-61-cygni-a"
+                  ],
+                  "maxHops": 6,
+                  "maxHopDistancePc": 20,
+                  "startEpochIso": "2026-07-25T00:00",
+                  "packetBytes": 1048576,
+                  "processingDelayHours": 8,
+                  "transceiverId": "high-power-array",
+                  "operationsProfileId": "nominal-autonomous",
+                  "ensembleSize": 64,
+                  "retryLimit": 3,
+                  "channelMode": "classical-optical",
+                  "messageMode": "one-way"
+                },
+                "proposedChange": "Send from gaia-sol to gaia-proxima and replay its delivery events."
+              }
+            ]
+          },
+          {
+            "id": "star:gaia-wolf-359",
+            "label": "Wolf 359",
+            "inSelector": true,
+            "relatedIds": [],
+            "condition": "running",
+            "description": "One-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 12,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "apply",
+                "label": "Send packet here",
+                "targetId": "star:gaia-wolf-359",
+                "available": true,
+                "execution": "restart",
+                "command": "scenario.run",
+                "values": {
+                  "sourceId": "gaia-sol",
+                  "targetId": "gaia-wolf-359",
+                  "routingMode": "automatic",
+                  "routeObjective": "balanced",
+                  "requiredRelayIds": [
+                    "gaia-proxima"
+                  ],
+                  "eligibleRelayIds": [
+                    "gaia-sol",
+                    "gaia-proxima",
+                    "gaia-barnard",
+                    "gaia-wolf-359",
+                    "gaia-lalande-21185",
+                    "gaia-epsilon-eridani",
+                    "gaia-61-cygni-a"
+                  ],
+                  "maxHops": 6,
+                  "maxHopDistancePc": 20,
+                  "startEpochIso": "2026-07-25T00:00",
+                  "packetBytes": 1048576,
+                  "processingDelayHours": 8,
+                  "transceiverId": "high-power-array",
+                  "operationsProfileId": "nominal-autonomous",
+                  "ensembleSize": 64,
+                  "retryLimit": 3,
+                  "channelMode": "classical-optical",
+                  "messageMode": "one-way"
+                },
+                "proposedChange": "Send from gaia-sol to gaia-wolf-359 and replay its delivery events."
+              }
+            ]
+          },
+          {
+            "id": "star:gaia-lalande-21185",
+            "label": "Lalande 21185",
+            "inSelector": true,
+            "relatedIds": [],
+            "condition": "running",
+            "description": "One-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 12,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "apply",
+                "label": "Send packet here",
+                "targetId": "star:gaia-lalande-21185",
+                "available": true,
+                "execution": "restart",
+                "command": "scenario.run",
+                "values": {
+                  "sourceId": "gaia-sol",
+                  "targetId": "gaia-lalande-21185",
+                  "routingMode": "automatic",
+                  "routeObjective": "balanced",
+                  "requiredRelayIds": [
+                    "gaia-proxima"
+                  ],
+                  "eligibleRelayIds": [
+                    "gaia-sol",
+                    "gaia-proxima",
+                    "gaia-barnard",
+                    "gaia-wolf-359",
+                    "gaia-lalande-21185",
+                    "gaia-epsilon-eridani",
+                    "gaia-61-cygni-a"
+                  ],
+                  "maxHops": 6,
+                  "maxHopDistancePc": 20,
+                  "startEpochIso": "2026-07-25T00:00",
+                  "packetBytes": 1048576,
+                  "processingDelayHours": 8,
+                  "transceiverId": "high-power-array",
+                  "operationsProfileId": "nominal-autonomous",
+                  "ensembleSize": 64,
+                  "retryLimit": 3,
+                  "channelMode": "classical-optical",
+                  "messageMode": "one-way"
+                },
+                "proposedChange": "Send from gaia-sol to gaia-lalande-21185 and replay its delivery events."
+              }
+            ]
+          },
+          {
+            "id": "star:gaia-epsilon-eridani",
+            "label": "Epsilon Eridani",
+            "inSelector": true,
+            "relatedIds": [],
+            "condition": "running",
+            "description": "One-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 12,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "apply",
+                "label": "Send packet here",
+                "targetId": "star:gaia-epsilon-eridani",
+                "available": true,
+                "execution": "restart",
+                "command": "scenario.run",
+                "values": {
+                  "sourceId": "gaia-sol",
+                  "targetId": "gaia-epsilon-eridani",
+                  "routingMode": "automatic",
+                  "routeObjective": "balanced",
+                  "requiredRelayIds": [
+                    "gaia-proxima"
+                  ],
+                  "eligibleRelayIds": [
+                    "gaia-sol",
+                    "gaia-proxima",
+                    "gaia-barnard",
+                    "gaia-wolf-359",
+                    "gaia-lalande-21185",
+                    "gaia-epsilon-eridani",
+                    "gaia-61-cygni-a"
+                  ],
+                  "maxHops": 6,
+                  "maxHopDistancePc": 20,
+                  "startEpochIso": "2026-07-25T00:00",
+                  "packetBytes": 1048576,
+                  "processingDelayHours": 8,
+                  "transceiverId": "high-power-array",
+                  "operationsProfileId": "nominal-autonomous",
+                  "ensembleSize": 64,
+                  "retryLimit": 3,
+                  "channelMode": "classical-optical",
+                  "messageMode": "one-way"
+                },
+                "proposedChange": "Send from gaia-sol to gaia-epsilon-eridani and replay its delivery events."
+              }
+            ]
+          },
+          {
+            "id": "star:gaia-61-cygni-a",
+            "label": "61 Cygni A",
+            "inSelector": true,
+            "relatedIds": [],
+            "condition": "running",
+            "description": "One-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 12,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "apply",
+                "label": "Send packet here",
+                "targetId": "star:gaia-61-cygni-a",
+                "available": true,
+                "execution": "restart",
+                "command": "scenario.run",
+                "values": {
+                  "sourceId": "gaia-sol",
+                  "targetId": "gaia-61-cygni-a",
+                  "routingMode": "automatic",
+                  "routeObjective": "balanced",
+                  "requiredRelayIds": [
+                    "gaia-proxima"
+                  ],
+                  "eligibleRelayIds": [
+                    "gaia-sol",
+                    "gaia-proxima",
+                    "gaia-barnard",
+                    "gaia-wolf-359",
+                    "gaia-lalande-21185",
+                    "gaia-epsilon-eridani",
+                    "gaia-61-cygni-a"
+                  ],
+                  "maxHops": 6,
+                  "maxHopDistancePc": 20,
+                  "startEpochIso": "2026-07-25T00:00",
+                  "packetBytes": 1048576,
+                  "processingDelayHours": 8,
+                  "transceiverId": "high-power-array",
+                  "operationsProfileId": "nominal-autonomous",
+                  "ensembleSize": 64,
+                  "retryLimit": 3,
+                  "channelMode": "classical-optical",
+                  "messageMode": "one-way"
+                },
+                "proposedChange": "Send from gaia-sol to gaia-61-cygni-a and replay its delivery events."
+              }
+            ]
+          },
+          {
+            "id": "relay-link:0",
+            "label": "Classical optical link: Sol to Proxima Centauri",
+            "inSelector": false,
+            "relatedIds": [],
+            "condition": "running",
+            "description": "One-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 12,
+              "priority": 30
+            },
+            "actions": []
+          },
+          {
+            "id": "relay-link:1",
+            "label": "Classical optical link: Proxima Centauri to Barnard's Star",
+            "inSelector": false,
+            "relatedIds": [],
+            "condition": "running",
+            "description": "One-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 12,
+              "priority": 30
+            },
+            "actions": []
+          },
+          {
+            "id": "packet:sol-proxima-barnard-relay:intervention:55c3e26eefa6775878db1d5bdf9a512b341b520238f32bcd18ff8f4ce869e64c",
+            "label": "Packet Sol → Barnard's Star · running",
+            "inSelector": true,
+            "relatedIds": [
+              "relay-link:0",
+              "relay-link:1"
+            ],
+            "condition": "running",
+            "description": "One-way packet: 0.000 y transmitting · 10.805 y propagating · 0.004 y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 12,
+              "priority": 30
+            },
+            "actions": [
+              {
+                "id": "reply",
+                "label": "Compare request and reply",
+                "targetId": "packet:sol-proxima-barnard-relay:intervention:55c3e26eefa6775878db1d5bdf9a512b341b520238f32bcd18ff8f4ce869e64c",
+                "available": true,
+                "execution": "restart",
+                "command": "scenario.run",
+                "values": {
+                  "sourceId": "gaia-sol",
+                  "targetId": "gaia-barnard",
+                  "routingMode": "automatic",
+                  "routeObjective": "balanced",
+                  "requiredRelayIds": [
+                    "gaia-proxima"
+                  ],
+                  "eligibleRelayIds": [
+                    "gaia-sol",
+                    "gaia-proxima",
+                    "gaia-barnard",
+                    "gaia-wolf-359",
+                    "gaia-lalande-21185",
+                    "gaia-epsilon-eridani",
+                    "gaia-61-cygni-a"
+                  ],
+                  "maxHops": 6,
+                  "maxHopDistancePc": 20,
+                  "startEpochIso": "2026-07-25T00:00",
+                  "packetBytes": 1048576,
+                  "processingDelayHours": 8,
+                  "transceiverId": "high-power-array",
+                  "operationsProfileId": "nominal-autonomous",
+                  "ensembleSize": 64,
+                  "retryLimit": 3,
+                  "channelMode": "classical-optical",
+                  "messageMode": "request-reply"
+                },
+                "proposedChange": "Start a new experiment: the destination creates a reply only after receiving the complete request."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/orbital",
+    "text": "Simulations\n◐\n☼\n☾\nSYSTEM\nRunning\nSelect an object…\nMars\nLambert transfer with accepted screening verification\nFeasible transfers\n3,477 solutions\nTransfer delta-v\n6.653 km/s\nFlight time\n205 day\n\nModeled results at the current simulation time.\n\nCamera\nPause\nAdvanced",
+    "inspector": "Select an object…\nMars\nLambert transfer with accepted screening verification",
+    "objects": [
+      {
+        "plugin": "orbital-transfer-planner",
+        "objects": [
+          {
+            "id": "body:mars",
+            "label": "Mars",
+            "description": "Compare the selected transfer’s flight time and delta-v before replacing the accepted trajectory.",
+            "hit": {
+              "shape": "point",
+              "radiusPx": 14,
+              "priority": 90
+            },
+            "actions": [
+              {
+                "id": "preview",
+                "label": "Preview faster transfer",
+                "targetId": "body:mars",
+                "available": true,
+                "execution": "preview",
+                "command": "orbital.preview-transfer",
+                "values": {
+                  "timeWeight": 0.2
+                },
+                "proposedChange": "Re-rank the supported departure windows for this destination."
+              }
+            ]
+          },
+          {
+            "id": "transfer-trajectory",
+            "label": "Lambert transfer with accepted screening verification",
+            "description": "Compare the selected transfer’s flight time and delta-v before replacing the accepted trajectory.",
+            "hit": {
+              "shape": "path",
+              "radiusPx": 14,
+              "priority": 30
+            },
+            "actions": [
+              {
+                "id": "preview",
+                "label": "Preview faster transfer",
+                "targetId": "transfer-trajectory",
+                "available": true,
+                "execution": "preview",
+                "command": "orbital.preview-transfer",
+                "values": {
+                  "timeWeight": 0.2
+                },
+                "proposedChange": "Re-rank the supported departure windows for this destination."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

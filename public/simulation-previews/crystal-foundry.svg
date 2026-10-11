@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="crystal-foundry-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#crystal-foundry-grid)"/>
+      <g class="art-context"><path d="M110 150H610V550H110Z M110 225H610M110 475H610"/></g><g class="art-primary"><path d="M350 500V200 M350 300 270 220M350 300 430 220M350 380 230 260M350 380 470 260 M290 320V260M410 320V260M350 460 230 340M350 460 470 340 M280 430 250 400M420 430 450 400 M350 200 335 220M350 200 365 220"/><circle cx="350" cy="500" r="10"/></g><g class="art-flow"><path d="M170 190H550M530 175 550 190 530 205"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

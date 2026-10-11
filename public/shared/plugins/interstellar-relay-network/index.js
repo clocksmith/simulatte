@@ -308,6 +308,7 @@
       return v4Api.createContribution({
         result: state.result,
         progressive: state.progressive,
+        comparison: state.comparison,
       });
     }
     function viewIntents() {

@@ -82,11 +82,10 @@ async function probePage(surface, expectedBuild) {
   if (featuredLaunch) {
     const catalog = window.SimulattePublicRoutes;
     const links = [...document.querySelectorAll('.launch-simulations a')];
-    checks.featuredLinks = JSON.stringify(links.map(link => new URL(link.href).pathname).sort()) === JSON.stringify(catalog.featured.map(page => page.path).sort())
+    checks.featuredLinks = JSON.stringify(links.map(link => new URL(link.href).pathname).sort()) === JSON.stringify(catalog.pages.map(page => page.path).sort())
       && links.every(link => new URL(link.href).origin === location.origin);
     checks.catalogVisible = visible(document.getElementById('all-simulations')) && document.querySelectorAll('.simulation-catalog li').length === catalog.pages.length;
-    await waitFor('simulation previews', () => links.every(link => link.querySelector('img')?.complete));
-    checks.simulationPreviews = links.every(link => link.querySelector('img').naturalWidth > 0);
+    checks.simulationPreviews = links.every(link => link.querySelector('svg')?.getAttribute('viewBox') === '0 0 720 680' && !link.querySelector('img'));
     const track = document.querySelector('.launch-simulations');
     const previous = document.querySelector('[data-gallery-previous]');
     const next = document.querySelector('[data-gallery-next]');
@@ -106,10 +105,10 @@ async function probePage(surface, expectedBuild) {
     next.click();
     await settle();
     checks.galleryAdvances = track.scrollLeft > 0 && !previous.disabled;
+    for (let i = 0; i < links.length && !next.disabled; i++) { next.click(); await settle(); }
     const lastRect = links.at(-1).getBoundingClientRect();
-    if (innerWidth > 700) checks.galleryReachesLast = next.disabled && lastRect.right <= trackRect.right + 1;
-    previous.click();
-    await settle();
+    checks.galleryReachesLast = next.disabled && lastRect.right <= trackRect.right + 1;
+    for (let i = 0; i < links.length && !previous.disabled; i++) { previous.click(); await settle(); }
     checks.galleryReturns = track.scrollLeft < 2 && previous.disabled;
     track.focus();
     track.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));

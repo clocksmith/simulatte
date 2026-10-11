@@ -2,8 +2,8 @@
   "reports": [
     {
       "surface": "world",
-      "baseUrl": "http://127.0.0.1:36189/",
-      "expectedBuild": "f6c389693e77b983b3a79df6e45fa4747e824724-3310b8236f4c",
+      "baseUrl": "http://127.0.0.1:40055/",
+      "expectedBuild": "9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153",
       "viewport": {
         "width": 1440,
         "height": 1000
@@ -38,40 +38,118 @@
             "name": "Open Motorcycle Noise",
             "reachable": true,
             "width": 399.984375,
-            "height": 299.984375
+            "height": 482.75
           },
           {
             "name": "Open Sun Walker",
             "reachable": true,
             "width": 399.984375,
-            "height": 299.984375
+            "height": 482.75
           },
           {
             "name": "Open GPU Cluster",
             "reachable": true,
             "width": 399.984375,
-            "height": 299.984375
+            "height": 482.75
           },
           {
             "name": "Open Interstellar Relay",
             "reachable": true,
             "width": 399.984375,
-            "height": 299.984375
+            "height": 482.75
+          },
+          {
+            "name": "Open Orbital Transfer",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open Grid Resilience",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open Subsea Network",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open Cable Trader",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open Neighborhood Bulk Pool",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open NYC Development Atlas",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open Food Recall",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open Maritime Trade",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open Asteroid Defense",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open Solar Drive",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open Living Tissue",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open River Formation",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
+          },
+          {
+            "name": "Open Crystal Foundry",
+            "reachable": true,
+            "width": 399.984375,
+            "height": 482.75
           }
         ],
         "pass": true,
         "title": "Simulatte",
-        "url": "http://127.0.0.1:36189/"
+        "url": "http://127.0.0.1:40055/"
       },
       "screenshot": {
         "path": "world-1440x1000.png",
-        "sha256": "01d5c2a29d8de491112853a5df71d6b83d2f117777a23967a4270c3c1d622ade"
+        "sha256": "8a53afdeb7b4c80a6f7be49afdeb79caa82d52fb6ae9eb3697d1f0a15890b1aa"
       }
     },
     {
       "surface": "world",
-      "baseUrl": "http://127.0.0.1:36189/",
-      "expectedBuild": "f6c389693e77b983b3a79df6e45fa4747e824724-3310b8236f4c",
+      "baseUrl": "http://127.0.0.1:40055/",
+      "expectedBuild": "9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153",
       "viewport": {
         "width": 390,
         "height": 844
@@ -91,6 +169,7 @@
           "previewCount": true,
           "galleryStartsAtFirst": true,
           "galleryAdvances": true,
+          "galleryReachesLast": true,
           "galleryReturns": true,
           "galleryKeyboardEnd": true,
           "galleryKeyboardHome": true,
@@ -105,34 +184,112 @@
             "name": "Open Motorcycle Noise",
             "reachable": true,
             "width": 300.953125,
-            "height": 265.28125
+            "height": 410.21875
           },
           {
             "name": "Open Sun Walker",
             "reachable": true,
             "width": 300.953125,
-            "height": 265.28125
+            "height": 410.21875
           },
           {
             "name": "Open GPU Cluster",
             "reachable": true,
             "width": 300.953125,
-            "height": 265.28125
+            "height": 410.21875
           },
           {
             "name": "Open Interstellar Relay",
             "reachable": true,
             "width": 300.953125,
-            "height": 265.28125
+            "height": 410.21875
+          },
+          {
+            "name": "Open Orbital Transfer",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open Grid Resilience",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open Subsea Network",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open Cable Trader",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open Neighborhood Bulk Pool",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open NYC Development Atlas",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open Food Recall",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open Maritime Trade",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open Asteroid Defense",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open Solar Drive",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open Living Tissue",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open River Formation",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
+          },
+          {
+            "name": "Open Crystal Foundry",
+            "reachable": true,
+            "width": 300.953125,
+            "height": 410.21875
           }
         ],
         "pass": true,
         "title": "Simulatte",
-        "url": "http://127.0.0.1:36189/"
+        "url": "http://127.0.0.1:40055/"
       },
       "screenshot": {
         "path": "world-390x844.png",
-        "sha256": "954b1475df55a1281607f8f829ca074b20f11f4fbb6d50e9d134ed7ff51be982"
+        "sha256": "517b6c00fa760bb02678af0ddbff4ce25d53631c9a9cfd4c92dd6e9701122130"
       }
     }
   ]

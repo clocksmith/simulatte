@@ -9,12 +9,14 @@
   root.InterstellarRelayV4 = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createInterstellarV4(builder, exchange, controlsApi) {
   const PLUGIN_ID = 'interstellar-relay-network';
-  function createContribution({ result, progressive }) {
+  function createContribution({ result, progressive, comparison = null }) {
     const started = progressive.currentEventIndex >= 0;
-    const timing = exchange.breakdown(result.schedule);
-    const years = seconds => (seconds / 31557600).toFixed(3);
-    const context = `${result.exchange ? 'Request and full-packet reply' : 'One-way packet'}: ${years(timing.transmissionSeconds)} y transmitting · ${years(timing.propagationSeconds)} y propagating · ${years(timing.waitingSeconds)} y in acquisition, queues, processing and retries. Baseline: direct classical link, same terminal, packet, departure epoch and operational profile. A new destination starts a new transmission.`;
-    const measurement = label => ({label,subject:result.exchange?'Request and reply':'Selected packet',definition:context,timeBasis:'prediction',interval:{start:0,end:result.schedule.totalLatencySeconds,unit:'second'},validity:'valid',freshness:'current',context});
+    const requestSchedule = result.exchange?.request.schedule || result.schedule;
+    const timing = exchange.breakdown(requestSchedule);
+    const delivery = formatDuration(requestSchedule.totalLatencySeconds);
+    const baseline = comparison ? `Direct classical baseline: ${formatDuration(comparison.baseline.latencyYears * 31557600)} to deliver the same packet; selected route: ${delivery}.` : 'Direct classical comparison is computed when the run finishes; no baseline result is available yet.';
+    const context = `${result.exchange ? 'Request delivered in' : 'Packet delivered in'} ${delivery}${result.exchange ? `; full reply returns after ${formatDuration(result.exchange.roundTripYears * 31557600)} from departure` : ''}.\n${formatDuration(timing.transmissionSeconds)} transmitting · ${formatDuration(timing.propagationSeconds)} traveling · ${formatDuration(timing.waitingSeconds)} acquiring, waiting, processing and retrying.\n${baseline} Same terminal, packet, departure epoch and operational profile. A new destination starts a new experiment; it cannot redirect a packet already traveling.`;
+    const measurement = label => ({label,subject:label==='Full-packet reply arrival'?'Request and full reply':'Selected request packet',definition:context,timeBasis:'prediction',interval:{start:0,end:label==='Full-packet reply arrival'?result.schedule.totalLatencySeconds:requestSchedule.totalLatencySeconds,unit:'second'},validity:'valid',freshness:'current',context});
     const settled = progressive.status === 'settled';
     const datasets = result.dataReceipts.filter((row) => row.sha256).map((row) => builder.datasetRecord(row.datasetId, row, {
       coverage: row.coverage,
@@ -291,9 +293,9 @@
         const values = Object.fromEntries(controls.controls.map(row => [row.id, row.value]));
         const target = layer.id.startsWith('star:') ? layer.id.slice(5) : null;
         const available = target && target !== values.sourceId && controls.controls.find(row => row.id === 'targetId').options.some(row => row.value === target);
-        return { id: layer.id, label: layer.label, inSelector: Boolean(target || layer.kind === 'actor'), relatedIds: layer.kind === 'actor' ? result.schedule.hops.map((_,i)=>`relay-link:${i}`) : [], condition: progressive.messageLeg === 'response' ? 'Reply traveling after request delivery' : progressive.status, description: context,
+        return { id: layer.id, label: layer.label, inSelector: Boolean(target || layer.kind === 'actor'), initiallySelected: layer.id === result.packet.packetId, relatedIds: layer.kind === 'actor' ? result.schedule.hops.map((_,i)=>`relay-link:${i}`) : [], condition: progressive.messageLeg === 'response' ? 'Reply traveling after request delivery' : progressive.status, description: context,
           hit: { shape: layer.kind === 'path' ? 'path' : 'point', radiusPx: 12, priority: target ? 90 : 30 },
-          actions: available ? [{ id: 'apply', label: 'Send packet here', targetId: layer.id, available: true, execution: 'restart', command: 'scenario.run',
+          actions: available ? [{ id: 'apply', label: 'Start new message here', targetId: layer.id, available: true, execution: 'restart', command: 'scenario.run',
             values: { ...values, targetId: target }, proposedChange: `Send from ${values.sourceId} to ${target} and replay its delivery events.` }] : layer.kind === 'actor' && !result.exchange ? [{id:'reply',label:'Compare request and reply',targetId:layer.id,available:true,execution:'restart',command:'scenario.run',values:{...values,messageMode:'request-reply'},proposedChange:'Start a new experiment: the destination creates a reply only after receiving the complete request.'}] : [] };
       }),
       inspections: [{
@@ -413,5 +415,12 @@
     return `${format(value.p10)} / ${format(value.p50)} / ${format(value.p90)}`;
   }
   function field(id, label, value, unit, provenance) { return { id, label, value, unit, provenance }; }
-  return Object.freeze({ activeHopProgress, createContribution, locatePacket, positionAtEpoch });
+  function formatDuration(seconds) {
+    if (!Number.isFinite(seconds) || seconds < 0) return 'not available';
+    if (seconds === 0) return '0 seconds';
+    const [scale, unit] = seconds >= 31557600 ? [31557600, 'years'] : seconds >= 86400 ? [86400, 'days'] : seconds >= 3600 ? [3600, 'hours'] : seconds >= 60 ? [60, 'minutes'] : seconds >= 1 ? [1, 'seconds'] : [0.001, 'milliseconds'];
+    const value = seconds / scale;
+    return `${value.toLocaleString('en-US', {maximumSignificantDigits:3})} ${value === 1 ? unit.replace(/s$/, '') : unit}`;
+  }
+  return Object.freeze({ activeHopProgress, createContribution, locatePacket, positionAtEpoch, formatDuration });
 });

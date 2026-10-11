@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="orbital-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#orbital-grid)"/>
+      <g class="art-context"><ellipse cx="345" cy="345" rx="145" ry="80" transform="rotate(-25 345 345)"/><ellipse cx="345" cy="345" rx="285" ry="190" transform="rotate(-25 345 345)"/></g><g class="art-flow"><path d="M210 400C185 135 470 100 570 260"/></g><g class="art-primary"><circle cx="345" cy="345" r="45"/><circle cx="210" cy="400" r="18"/><circle cx="570" cy="260" r="24"/><path d="M360 170 390 155 380 185Z M380 172 410 194M370 180 355 205"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

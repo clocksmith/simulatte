@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="food-recall-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#food-recall-grid)"/>
+      <g class="art-flow"><path d="M150 350H550 M250 350 360 510 550 350"/></g><g class="art-primary"><g transform="translate(150 350)"><path d="M-45-30H45V30H-45Z M-30-30V30M30-30V30M-45 0H45"/></g><g transform="translate(360 510)"><path d="M-45-30H45V30H-45Z M-30-30V30M30-30V30M-45 0H45"/></g><g transform="translate(550 350)"><path d="M-45-30H45V30H-45Z M-30-30V30M30-30V30M-45 0H45"/></g><path d="M310 310 360 215 410 310Z M360 242V274M360 289V292"/></g><g class="art-context"><path d="M80 165H640M80 570H640"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

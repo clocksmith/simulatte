@@ -69,11 +69,26 @@ test('a touch opens the inspector only after its compatibility click; dragging d
   }finally{inspector.dispose();global.SimulatteDeclarativeUiHost=previous;}
 });
 
-test('opening rack action is discoverable before the session exists and closing stays closed',()=>{
+test('plugin-declared opening action is discoverable before the session exists and closing stays closed',()=>{
  const previous=global.SimulatteDeclarativeUiHost;let rendered;
  global.SimulatteDeclarativeUiHost={createObjectInspector(){return{element:{},render(value){rendered=value;},dispose(){}};}};
- const contribution={pluginId:'gpu-supercluster',controls:{controls:[]},objects:[{id:'rack:a',label:'Rack a',description:'Training',actions:[]}],presentation:{layers:[{id:'rack:a'}]},inspections:[]};
+ const contribution={pluginId:'gpu-supercluster',controls:{controls:[]},objects:[{id:'rack:a',label:'Rack a',description:'Training',initiallySelected:true,actions:[]}],presentation:{layers:[{id:'rack:a'}]},inspections:[]};
  const inspector=api.create({host:{},canvas:{addEventListener(){}},getSession:()=>null});
  try{inspector.update(contribution);assert.equal(rendered.selectedId,'rack:a');inspector.select(null);inspector.update(contribution);assert.equal(rendered.selectedId,null);}
  finally{inspector.dispose();global.SimulatteDeclarativeUiHost=previous;}
+});
+
+test('restart follows the new opening object but never overrides an explicit close during execution', async () => {
+  const previous=global.SimulatteDeclarativeUiHost;let callbacks,rendered,release;
+  global.SimulatteDeclarativeUiHost={createObjectInspector(options){callbacks=options;return{element:{},render:value=>{rendered=value;},dispose(){}};}};
+  const action={id:'reply',execution:'restart',available:true,command:'scenario.run',values:{messageMode:'request-reply'}};
+  const make=(id,mode)=>({pluginId:'any-domain',controls:{controls:[{id:'messageMode',value:mode}]},objects:[{id,label:id,initiallySelected:true,actions:[action]}],presentation:{layers:[{id}]},inspections:[]});
+  const inspector=api.create({host:{},canvas:{addEventListener(){}},getSession:()=>({snapshot:()=>({generation:1}),invoke:()=>new Promise(resolve=>{release=resolve;})})});
+  try {
+    inspector.update(make('packet-one','one-way'));
+    const work=callbacks.onAction('reply');inspector.update(make('packet-two','request-reply'));release();await work;
+    assert.equal(rendered.selectedId,'packet-two');
+    const pending=callbacks.onAction('reply');inspector.select(null);inspector.update(make('packet-three','request-reply'));release();await pending;
+    assert.equal(rendered.selectedId,null);
+  }finally{inspector.dispose();global.SimulatteDeclarativeUiHost=previous;}
 });

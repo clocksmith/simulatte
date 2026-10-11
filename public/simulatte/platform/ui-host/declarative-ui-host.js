@@ -592,7 +592,10 @@
     const details = doc.createElement('details'), detailLabel = doc.createElement('summary'); detailLabel.textContent = 'Detailed quantities'; details.append(detailLabel, facts);
     const actions = doc.createElement('div'); actions.className = 'sim-object-actions';
     const message = doc.createElement('p'); message.setAttribute('role', 'status');
-    body.append(title, condition, actions, message, explanation, details); root.append(header, body); host.append(root);
+    const related = doc.createElement('details'), relatedLabel = doc.createElement('summary'), relatedObjects = doc.createElement('div');
+    related.className = 'sim-object-related'; related.hidden = true; related.append(relatedLabel, relatedObjects);
+    body.append(title, condition, actions, message, explanation, related, details); root.append(header, body); host.append(root);
+    let relatedKey = '';
     const cells = new Map(), buttons = new Map(); let optionsKey = '', busy = false, current = null, selectionRevision = 0;
     select.addEventListener('change', () => onSelect(select.value || null));
     async function act(id) {
@@ -627,7 +630,19 @@
         close.hidden = !selectedId;
         if (doc.activeElement !== select && select.value !== (selectedId || '')) select.value = selectedId || ''; body.hidden = !selectedId;
         if (!selectedId) return;
-        title.textContent = label; condition.textContent = allObjects.find(row => row.id === selectedId)?.condition || ''; explanation.textContent = description;
+        const selected = allObjects.find(row => row.id === selectedId);
+        title.textContent = label; condition.textContent = selected?.condition || ''; explanation.textContent = description;
+        const peers = (selected?.relatedIds || []).map(id => allObjects.find(row => row.id === id)).filter(Boolean);
+        const nextRelatedKey = JSON.stringify(peers.map(row => [row.id, row.label]));
+        related.hidden = !peers.length; relatedLabel.textContent = `Connected objects (${peers.length})`;
+        if (nextRelatedKey !== relatedKey) {
+          relatedKey = nextRelatedKey;
+          relatedObjects.replaceChildren(...peers.map(row => {
+            const button = doc.createElement('button'); button.type = 'button'; button.className = 'sim-action';
+            button.dataset.relatedObject = row.id; button.textContent = row.label;
+            button.addEventListener('click', () => onSelect(row.id)); return button;
+          }));
+        }
         const ids = new Set(fields.map(row => row.id));
         for (const [id, cell] of cells) if (!ids.has(id)) { cell.node.remove(); cells.delete(id); }
         for (const field of fields) {

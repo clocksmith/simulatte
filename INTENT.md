@@ -12,7 +12,7 @@ Keep World and Blank/Create independently useful, with a small browser-native co
 
 ## Invariants
 
-Preserve the hexagon entrypoint and optional data tools in source. Expose catalog-driven featured simulation captures with three previews per desktop view, manual paging, mobile scrolling, and a full catalog. Keep other workflows dormant on the landing page. Shared code owns no page lifecycle. Use documented core entrypoints and injected adapters. Prompt compilation follows exactly eight phases and declared predecessor inputs. Preserve user edits through the append-only authoring graph. Supported free local execution needs no account, network, or model download.
+Preserve the hexagon entrypoint and optional data tools in source. Expose catalog-driven SVG illustrations for every simulation in the original motorcycle line-art style with three previews per desktop view, manual paging, mobile scrolling, and a full catalog. Keep other workflows dormant on the landing page. Shared code owns no page lifecycle. Use documented core entrypoints and injected adapters. Prompt compilation follows exactly eight phases and declared predecessor inputs. Preserve user edits through the append-only authoring graph. Supported free local execution needs no account, network, or model download.
 
 ## Evidence
 

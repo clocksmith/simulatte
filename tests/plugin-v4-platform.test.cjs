@@ -237,6 +237,12 @@ test('v4 contribution closes every rendered and simulated claim over provenance 
   const targetId=value.presentation.layers[0].id;
   const selectable={...value,objects:[{id:targetId,label:'Selected fixture',description:'Fixture action owned by its plugin.',hit:{shape:'polygon',radiusPx:6,priority:20},actions:[{id:'change',label:'Preview change',targetId,available:true,execution:'preview',command:'fixture.preview',values:{preference:2},proposedChange:'Compare preference 2.'}]}]};
   assert.equal(contracts.validateContribution(selectable),selectable);
+  const opening={...selectable,objects:[{...selectable.objects[0],initiallySelected:true}]};
+  assert.equal(contracts.validateContribution(opening),opening);
+  assert.throws(()=>contracts.validateContribution({...opening,objects:[{...opening.objects[0],initiallySelected:'yes'}]}),{code:'plugin_object_initial_selection_invalid'});
+  const secondLayer={...opening.presentation.layers[0],id:'second-object'};
+  assert.throws(()=>contracts.validateContribution({...opening,presentation:{...opening.presentation,layers:[...opening.presentation.layers,secondLayer]},objects:[opening.objects[0],{...opening.objects[0],id:'second-object',actions:[]}]}),{code:'plugin_object_initial_selection_duplicate'});
+
   assert.throws(()=>contracts.validateContribution({...selectable,objects:[{...selectable.objects[0],id:'missing'}]}),{code:'plugin_object_layer_missing'});
   assert.throws(()=>contracts.validateContribution({...selectable,objects:[{...selectable.objects[0],actions:[{...selectable.objects[0].actions[0],targetId:'wrong'}]}]}),{code:'plugin_object_action_target_invalid'});
   assert.throws(()=>contracts.validateContribution({...selectable,objects:[{...selectable.objects[0],hit:{shape:'guessed',radiusPx:6,priority:20}}]}),{code:'plugin_hit_shape_invalid'});

@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="nyc-atlas-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#nyc-atlas-grid)"/>
+      <g class="art-context"><path d="M90 435 360 280 630 435 360 595Z M130 465 400 310M225 520 495 365M315 570 585 415"/></g><g class="art-primary"><path d="M160 420V320L205 294 250 320V420L205 446Z M160 320 205 346 250 320 M205 346V446"/><path d="M280 490V290L325 264 370 290V490L325 516Z M280 290 325 316 370 290 M325 316V516"/><path d="M410 415V155L455 129 500 155V415L455 441Z M410 155 455 181 500 155 M455 181V441"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

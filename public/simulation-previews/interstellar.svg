@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="interstellar-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#interstellar-grid)"/>
+      <g class="art-context"><ellipse cx="360" cy="340" rx="255" ry="215"/><ellipse cx="360" cy="340" rx="120" ry="215"/><path d="M105 340H615M145 210H575M145 470H575"/></g><g class="art-flow"><path d="M155 440 360 180 570 385"/><path stroke-dasharray="8 12" d="M155 440 570 385"/></g><g class="art-primary"><path d="M155 420V460M135 440H175M360 160V200M340 180H380M570 365V405M550 385H590"/><circle cx="260" cy="308" r="13"/><path d="M285 278 308 251 303 275M308 251 285 258"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

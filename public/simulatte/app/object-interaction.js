@@ -28,7 +28,7 @@
     };
   }
   function create({ host, canvas, getSession, projectObjects, onInsets = () => {}, onPreviewChange = () => {} }) {
-    let contribution = null, selectedId = null, down = null, tap = null, preview = null, selectionRevision = 0, scenarioKey = null, alternatives = null, openingSelection = true;
+    let contribution = null, selectedId = null, down = null, tap = null, preview = null, selectionRevision = 0, userSelectionRevision = 0, scenarioKey = null, alternatives = null, openingSelection = true;
     const events = new AbortController();
     const command = (id, input) => getSession().invoke(id, input);
     const identity = value => JSON.stringify([value?.pluginId, value?.controls.controls.map(row => [row.id, row.value])]);
@@ -41,6 +41,7 @@
         const action = actionFor(combined(), selectedId, id);
         if (!action?.available) throw new Error('This action is not currently available.');
         const revision = selectionRevision, generation = getSession().snapshot().generation;
+        const userRevision = userSelectionRevision;
         const input = { targetId: selectedId, actionId: id, ...(action.prepared ? { prepared: { ...action, controls: preview.controls } } : {}) };
         if (action.execution === 'preview') {
           const next = await command('object-preview', input);
@@ -51,7 +52,12 @@
           return { message: 'Alternative drawn. The accepted run is unchanged.' };
         }
         await command(action.execution === 'restart' ? 'object-apply' : 'object-live', input);
-        if (action.execution === 'restart') { preview = null; selectedId = action.afterApplyTargetId || selectedId; await onPreviewChange(); render(); }
+        if (action.execution === 'restart') {
+          preview = null;
+          if (userRevision === userSelectionRevision) selectedId = action.afterApplyTargetId ||
+            (combined().objects.some(row => row.id === selectedId) ? selectedId : combined().objects.find(row => row.initiallySelected)?.id || null);
+          await onPreviewChange(); render();
+        }
         return { message: action.execution === 'restart' ? 'Applied and restarted.' : 'Applied to '+combined().objects.find(row=>row.id===input.targetId).label+'.' };
       },
     });
@@ -59,9 +65,9 @@
       const all = combined(), objects = objectsFor(all), object = objects.find(row => row.id === selectedId);
       const matching = all?.inspections.filter(row => row.targetIds.includes(selectedId)) || [];
       const fields = matching.sort((a, b) => a.targetIds.length - b.targetIds.length)[0]?.fields || [];
-      const actions = object ? [{ id: 'focus', label: 'Focus object' }, ...object.actions.map(action => ({
+      const actions = object ? [...object.actions.map(action => ({
         id: action.id, label: action.execution === 'restart' && !action.prepared ? `${action.label} · Apply and restart` : action.label, disabled: !action.available,
-      }))] : [];
+      })), { id: 'focus', label: 'Focus object' }] : [];
       if (preview) actions.push({ id: 'dismiss-preview', label: 'Dismiss alternative' });
       inspector.render({ objects: alternatives || objects, selectedId: object ? selectedId : null, label: object?.label,
         prompt: alternatives ? 'Overlapping objects: choose…' : 'Select an object…', description: object?.description || '',
@@ -95,7 +101,7 @@
     const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(() => onInsets(inspector.element)) : null;
     resize?.observe(inspector.element); resize?.observe(canvas);
     return Object.freeze({
-      select(id) { selectionRevision++; selectedId = id; alternatives = null; render(); },
+      select(id) { openingSelection = false; selectionRevision++; userSelectionRevision++; selectedId = id; alternatives = null; render(); },
       update(next) {
         const nextKey = identity(next), generation = getSession()?.snapshot().generation ?? 0;
         if (nextKey !== scenarioKey || (preview && preview.generation !== generation)) {
@@ -103,7 +109,7 @@
           if (selectedId && !next.objects?.some(row => row.id === selectedId)) selectedId = null;
         }
         contribution = next;
-        if(openingSelection){openingSelection=false;if(next.pluginId==='gpu-supercluster'){const first=next.objects.find(row=>row.id.startsWith('rack:'));if(first)selectedId=first.id;}}
+        if(openingSelection){const first=next.objects?.find(row=>row.initiallySelected);if(first){openingSelection=false;selectedId=first.id;}}
         render();
       },
       action(targetId, actionId) {

@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="cable-trader-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#cable-trader-grid)"/>
+      <g class="art-context"><path d="M90 410 350 255 640 420 380 575Z M130 380V240L220 190 310 240V380L220 430Z M130 240 220 290 310 240M220 290V430 M450 420V300L520 260 590 300V420L520 460Z M450 300 520 340 590 300M520 340V460"/></g><g class="art-flow"><path d="M220 430 350 490 520 460"/></g><g class="art-primary"><ellipse cx="355" cy="420" rx="50" ry="25"/><ellipse cx="355" cy="420" rx="30" ry="13"/><path d="M305 420V450Q350 485 405 450V420M320 450 290 480 270 470M405 420 430 400 452 410"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

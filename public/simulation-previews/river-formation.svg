@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="river-formation-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#river-formation-grid)"/>
+      <g class="art-context"><path d="M70 360 350 190 650 360 360 570Z M95 345 360 495 610 340 M130 320 360 440 565 315 M180 290 360 385 520 290 M220 265 360 335 470 265"/></g><g class="art-flow"><path d="M350 210 325 285 385 345 350 400 385 465 360 560 M245 290 325 285M460 295 385 345M500 385 350 400"/></g><g class="art-primary"><path d="M300 130Q275 120 290 95Q290 65 325 70Q350 35 380 70Q425 65 425 100Q445 130 400 130Z M310 150 305 170M350 150 345 170M390 150 385 170"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

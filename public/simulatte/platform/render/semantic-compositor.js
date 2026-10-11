@@ -14,6 +14,7 @@
     scenario: '#ff7c9c',
   });
   const QUANTITY_COLORS = Object.freeze({
+    'data-rate': '#54c5ba',
     'modeled-distribution-corridor': '#63f3ff',
     'modeled-handoff-destination': '#e8fff8',
     'route.shade-selected': '#56e6a2',
@@ -184,6 +185,7 @@
         : round(clamp(0.18 + roleWeight * 0.36 + (selected ? 0.18 : 0) - (uncertain ? 0.1 : 0), 0.12, 0.82)),
       strokeOpacity: isPriceHeatmap
         ? (selected ? 1 : 0.9)
+        : layer.quantity?.kind === 'route-score' && !selected ? 0.22
         : round(clamp(0.48 + roleWeight * 0.42 - (uncertain ? 0.1 : 0), 0.35, 1)),
       dash: uncertaintyDash(layer.provenance.axes.uncertainty),
       emphasis: selected ? 'selected' : layer.role,
@@ -192,6 +194,7 @@
 
   function pathWidth(layer, normalized, roleWeight, selected) {
     const quantityKind = layer.quantity?.kind || '';
+    if (quantityKind === 'route-score') return selected ? 3 : 1.2;
     if (quantityKind.startsWith('preview.')) return selected ? 4 : 3;
     if (quantityKind.startsWith('exposure.')) return selected ? 9 : 7;
     if (quantityKind === 'route.shade-selected') return selected ? 7 : 5.5;

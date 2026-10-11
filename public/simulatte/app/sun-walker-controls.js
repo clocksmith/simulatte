@@ -3,14 +3,14 @@
   function create({host, session}) {
     const events=new AbortController();
     const panel=document.createElement('section');panel.className='sun-walk-controls';panel.setAttribute('aria-label','Plan your walk');
-    panel.innerHTML=`<form class="sun-walk-endpoints">
+    panel.innerHTML=`<details class="sun-walk-endpoint-menu"><summary>Change starting point or destination</summary><form class="sun-walk-endpoints">
       <label>From (A)<select name="originPlace" aria-label="Starting point"></select></label>
       <label>To (B)<select name="destinationPlace" aria-label="Destination"></select></label>
       <button class="sim-action" type="submit">Update walk</button>
-    </form><label class="sun-walk-preference"><span>Time versus shade <output data-walk-preference-label>Balanced</output></span>
+    </form></details><label class="sun-walk-preference"><span>Time versus shade <output data-walk-preference-label>Balanced</output></span>
       <input type="range" min="0" max="100" step="1" value="50" aria-label="Time versus shade">
       <span><span>Shortest walk</span><span>Prefer shade</span></span>
-    </label><div class="sun-walk-routes" role="group" aria-label="Route comparison">
+    </label><p class="sun-walk-note" data-preference-cost></p><div class="sun-walk-routes" role="group" aria-label="Route comparison">
       <button type="button" class="sun-walk-route" data-show-route="fastest"><strong>Shortest walk · amber baseline</strong><span data-route-stats="fastest"></span><span class="sun-exposure-bar" data-exposure-bar="fastest"></span></button>
       <button type="button" class="sun-walk-route" data-show-route="chosen"><strong>Your route · green</strong><span data-route-stats="chosen"></span><span class="sun-exposure-bar" data-exposure-bar="chosen"></span></button>
     </div><p class="sun-walk-note" data-route-tradeoff></p><p class="sun-walk-note">Bars share one time scale: yellow sun · blue shade · gray unknown · dark night. Predicted at arrival time; both routes share endpoints and departure.</p><p data-walk-message role="status" hidden></p><button class="sim-action" type="button" data-cancel-walk hidden>Cancel recalculation</button>`;
@@ -34,12 +34,12 @@
       setBusy(true);say('Calculating routes…');
       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
       if(requestId!==requestSequence)return;
-      try {await session.invoke('apply-controls',values);if(requestId!==requestSequence)return;if(endpoints)dirty=false;preferenceDirty=false;if(endpointsChanged)await session.invoke('camera','overview');say('');}
+      try {await session.invoke('apply-controls',values);if(requestId!==requestSequence)return;if(endpoints)dirty=false;preferenceDirty=false;if(endpointsChanged)await session.invoke('camera','overview');say('Walk restarted at the chosen departure; the amber baseline shares those endpoints and departure.');}
       catch(error){if(requestId===requestSequence&&error.name!=='AbortError')say(error.message);}
       finally{if(requestId===requestSequence){pendingEndpoints=false;setBusy(false);}}
     }
     on(form,'change',()=>{dirty=true;});on(form,'submit',event=>{event.preventDefault();void apply({endpoints:true});});
-    function showPreference(){const p=Number(preference.value);panel.querySelector('[data-walk-preference-label]').textContent=p===0?'Shortest walk':p===100?'Strongest shade preference':p===50?'Balanced':p<50?'Prefer time':'Prefer shade';}
+    function showPreference(){const p=Number(preference.value);const weight=Math.min(100,p/Math.max(1,100-p));panel.querySelector('[data-preference-cost]').textContent=`Route search counts each minute in direct sun as ${weight.toFixed(2)} extra minutes of cost. The comparison below shows actual time and exposure.`;panel.querySelector('[data-walk-preference-label]').textContent=p===0?'Shortest walk':p===100?'Strongest shade preference':p===50?'Balanced':p<50?'Prefer time':'Prefer shade';}
     on(preference,'input',()=>{requestSequence++;if(busy){session.cancel('Superseded route preference');setBusy(false);}preferenceDirty=true;showPreference();clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>void apply(),180);});
     on(preference,'change',()=>{clearTimeout(preferenceTimer);void apply();});
     on(panel.querySelector('[data-cancel-walk]'),'click',()=>{requestSequence+=1;clearTimeout(preferenceTimer);session.cancel('Route recalculation cancelled');pendingEndpoints=false;setBusy(false);say('Keeping the current walk.');});

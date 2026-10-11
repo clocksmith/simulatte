@@ -759,3 +759,35 @@ test('a new destination creates a new request without mutating a prior in-flight
   assert.notEqual(host.state().result.packet.integrity.packetHash,prior.packet.integrity.packetHash);
   assert.notEqual(host.state().result.packet.packetId,prior.packet.packetId);
 });
+
+test('communication durations retain seconds instead of rounding small waits to zero years', () => {
+  assert.equal(v4.formatDuration(0),'0 seconds');
+  assert.equal(v4.formatDuration(30),'30 seconds');
+  assert.equal(v4.formatDuration(0.5),'500 milliseconds');
+  assert.equal(v4.formatDuration(3600),'1 hour');
+  assert.equal(v4.formatDuration(31557600),'1 year');
+  assert.equal(v4.formatDuration(NaN),'not available');
+});
+
+test('request and reply explanations and measurement intervals bind distinct schedules', async () => {
+  const host=await activateDefault();
+  await host.instance.handleAction('scenario.run',{values:{phase:'start',messageMode:'request-reply'}});
+  await host.instance.handleAction('scenario.run',{values:{phase:'step'}});
+  const result=host.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  const contribution=host.instance.contributeV4();
+  const context=contribution.objects.find(row=>row.initiallySelected).description;
+  assert.ok(context.includes(`Request delivered in ${v4.formatDuration(result.exchange.request.schedule.totalLatencySeconds)}`));
+  assert.ok(context.includes(`full reply returns after ${v4.formatDuration(result.schedule.totalLatencySeconds)}`));
+  const request=contribution.state.measures.find(row=>row.kind==='latency');
+  const reply=contribution.state.measures.find(row=>row.kind==='round-trip-latency');
+  assert.equal(request.measurement.interval.end,result.exchange.request.schedule.totalLatencySeconds);
+  assert.equal(reply.measurement.interval.end,result.schedule.totalLatencySeconds);
+  assert.ok(reply.measurement.interval.end>request.measurement.interval.end);
+  const compiled=require('../public/simulatte/app/tier-plugin-presentation.js').compileTierPresentation(contribution.presentation,'icrs-cartesian-pc');
+  const selected=compiled.paths.find(row=>row.id.startsWith('relay-link:'));
+  const alternative=compiled.paths.find(row=>row.id.startsWith('route-alternative:'));
+  assert.notEqual(selected.style.color,alternative.style.color);
+  assert.ok(selected.style.strokeOpacity>alternative.style.strokeOpacity*2);
+  assert.ok(selected.style.widthPx>alternative.style.widthPx);
+  host.instance.dispose();
+});

@@ -4,18 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <base href="/">
-  <meta name="simulatte-build" content="36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c">
+  <meta name="simulatte-build" content="9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153">
   <title>Simulatte</title>
   <meta name="description" content="Explore interactive simulations of sound, shade, computing, and interstellar communication.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script src="./shared/design/theme-controller.js"></script>
-  <link rel="stylesheet" href="./shared/design/simulatte.css?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c">
-  <link rel="stylesheet" href="./model-selection.css?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c">
-  <link rel="stylesheet" href="./styles.css?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c">
-  <link rel="stylesheet" href="./world-tiers.css?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c">
-  <link rel="stylesheet" href="./shared/design/workbench.css?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c">
-  <link rel="stylesheet" href="./shared/design/compositions/world-interface.css?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c">
-  <link rel="stylesheet" href="./shared/design/theme-control.css?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c">
+  <link rel="stylesheet" href="./shared/design/simulatte.css?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153">
+  <link rel="stylesheet" href="./model-selection.css?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153">
+  <link rel="stylesheet" href="./styles.css?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153">
+  <link rel="stylesheet" href="./world-tiers.css?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153">
+  <link rel="stylesheet" href="./shared/design/workbench.css?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153">
+  <link rel="stylesheet" href="./shared/design/compositions/world-interface.css?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153">
+  <link rel="stylesheet" href="./shared/design/theme-control.css?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LS3SFGCZSL"></script>
   <script>
@@ -45,26 +45,193 @@
       <h2>Change something.<br>See what happens.</h2>
       <a class="catalog-entry" href="#all-simulations">All simulations <span aria-hidden="true">↓</span></a>
     </div>
-    <section class="simulation-gallery" aria-label="Featured simulations" aria-roledescription="carousel">
-      <nav id="featured-simulations" class="launch-simulations" aria-label="Simulation previews" tabindex="0"><a class="launch-link simulation-preview" href="./motorcycle" aria-label="Open Motorcycle Noise">
-        <img src="./simulation-previews/motorcycle.png" alt="" width="1200" height="675" decoding="async">
+    <section class="simulation-gallery" aria-label="All simulations" aria-roledescription="carousel">
+      <nav id="featured-simulations" class="launch-simulations" aria-label="Simulation illustrations" tabindex="0"><a class="launch-link simulation-preview" href="./motorcycle" aria-label="Open Motorcycle Noise">
+        <svg xmlns="http://www.w3.org/2000/svg" class="launch-art" viewBox="0 0 720 680" fill="none" aria-hidden="true">
+        <defs>
+          <pattern id="motorcycle-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern>
+          <g id="motorcycle-block"><path d="M0 0 42-24 84 0 42 24Z"/><path d="M0 0V-52L42-76 84-52V0M0-52 42-28 84-52M42-28V24"/></g>
+        </defs>
+        <g class="launch-city">
+          <path class="launch-grid" d="M0 0H720V680H0Z" fill="url(#motorcycle-grid)"/>
+          <g transform="translate(70 240)"><use href="#motorcycle-block"/><use href="#motorcycle-block" x="110" y="64"/><use href="#motorcycle-block" x="220" y="128"/><use href="#motorcycle-block" x="330" y="192"/></g>
+          <g transform="translate(250 130)"><use href="#motorcycle-block"/><use href="#motorcycle-block" x="110" y="64"/><use href="#motorcycle-block" x="220" y="128"/><use href="#motorcycle-block" x="330" y="192"/></g>
+          <path class="launch-road" d="M60 360 540 82M135 548 650 250M20 450 500 172M210 625 700 342"/>
+        </g>
+        <g class="launch-waves" transform="translate(368 370) rotate(-30)">
+          <ellipse rx="105" ry="68"/><ellipse rx="166" ry="112"/><ellipse rx="232" ry="160"/><ellipse rx="300" ry="210"/>
+        </g>
+        <g class="launch-bike" transform="translate(295 310)">
+          <circle cx="20" cy="62" r="22"/><circle cx="115" cy="62" r="22"/>
+          <path d="M20 62 48 30 84 62H20M88 15 115 62M86 15H103L108 24M29 26H55"/>
+          <path d="M53 28Q64 10 83 24L89 34H52ZM50 38H76L80 53H54Z"/>
+          <path d="M36 65H85L95 60M14 35Q30 26 45 34M102 36Q120 30 133 43"/>
+        </g>
+        <path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+      </svg>
         <span class="preview-heading">Motorcycle Noise <span aria-hidden="true">↗</span></span>
         <span class="preview-description">Observe moving traffic and sound propagation.</span>
+        <span class="catalog-state">Available</span>
       </a>
 <a class="launch-link simulation-preview" href="./sunwalker" aria-label="Open Sun Walker">
-        <img src="./simulation-previews/sunwalker.png" alt="" width="1200" height="675" decoding="async">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="sunwalker-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#sunwalker-grid)"/>
+      <g class="art-context"><path d="M80 440 370 270 640 430 350 600Z M170 390V210L270 150 370 210V390L270 450Z M170 210 270 270 370 210M270 270V450 M450 390V290L520 250 590 290V390L520 430Z M450 290 520 330 590 290M520 330V430"/><path class="art-shade" d="M170 390 270 450 190 510 90 450Z M450 390 520 430 440 490 370 450Z"/></g><g class="art-flow"><path d="M130 470 240 540 440 425 580 500"/><path stroke-dasharray="8 12" d="M130 470 380 610 580 500"/></g><g class="art-primary"><circle cx="340" cy="445" r="12"/><path d="M340 457V490M340 468 320 483M340 468 360 478M340 490 325 510M340 490 357 511"/><circle cx="530" cy="130" r="35"/><path d="M530 75V60M530 185V200M475 130H460M585 130H600M490 90 480 80M570 170 580 180"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
         <span class="preview-heading">Sun Walker <span aria-hidden="true">↗</span></span>
         <span class="preview-description">Compare walking routes through changing sun and shade.</span>
+        <span class="catalog-state">Available</span>
       </a>
 <a class="launch-link simulation-preview" href="./datacenter" aria-label="Open GPU Cluster">
-        <img src="./simulation-previews/gpu.png" alt="" width="1200" height="675" decoding="async">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="gpu-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#gpu-grid)"/>
+      <g class="art-flow"><ellipse cx="360" cy="360" rx="235" ry="155"/><ellipse cx="360" cy="360" rx="165" ry="95"/><path d="M135 350 580 350M240 205 485 515M240 515 485 205"/></g><g class="art-primary"><g transform="translate(105 280)"><path d="M0 0 45-26 90 0 45 26Z M0 0V100L45 126 90 100V0M45 26V126 M8 28 36 44M8 48 36 64M8 68 36 84M8 88 36 104"/></g><g transform="translate(235 150)"><path d="M0 0 45-26 90 0 45 26Z M0 0V100L45 126 90 100V0M45 26V126 M8 28 36 44M8 48 36 64M8 68 36 84M8 88 36 104"/></g><g transform="translate(435 160)"><path d="M0 0 45-26 90 0 45 26Z M0 0V100L45 126 90 100V0M45 26V126 M8 28 36 44M8 48 36 64M8 68 36 84M8 88 36 104"/></g><g transform="translate(510 345)"><path d="M0 0 45-26 90 0 45 26Z M0 0V100L45 126 90 100V0M45 26V126 M8 28 36 44M8 48 36 64M8 68 36 84M8 88 36 104"/></g><g transform="translate(330 470)"><path d="M0 0 45-26 90 0 45 26Z M0 0V100L45 126 90 100V0M45 26V126 M8 28 36 44M8 48 36 64M8 68 36 84M8 88 36 104"/></g><g transform="translate(165 430)"><path d="M0 0 45-26 90 0 45 26Z M0 0V100L45 126 90 100V0M45 26V126 M8 28 36 44M8 48 36 64M8 68 36 84M8 88 36 104"/></g></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
         <span class="preview-heading">GPU Cluster <span aria-hidden="true">↗</span></span>
         <span class="preview-description">Explore racks computing, communicating, and waiting.</span>
+        <span class="catalog-state">Available</span>
       </a>
 <a class="launch-link simulation-preview" href="./interstellar" aria-label="Open Interstellar Relay">
-        <img src="./simulation-previews/interstellar.png" alt="" width="1200" height="675" decoding="async">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="interstellar-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#interstellar-grid)"/>
+      <g class="art-context"><ellipse cx="360" cy="340" rx="255" ry="215"/><ellipse cx="360" cy="340" rx="120" ry="215"/><path d="M105 340H615M145 210H575M145 470H575"/></g><g class="art-flow"><path d="M155 440 360 180 570 385"/><path stroke-dasharray="8 12" d="M155 440 570 385"/></g><g class="art-primary"><path d="M155 420V460M135 440H175M360 160V200M340 180H380M570 365V405M550 385H590"/><circle cx="260" cy="308" r="13"/><path d="M285 278 308 251 303 275M308 251 285 258"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
         <span class="preview-heading">Interstellar Relay <span aria-hidden="true">↗</span></span>
         <span class="preview-description">Send a packet and follow when a reply can return.</span>
+        <span class="catalog-state">Available</span>
+      </a>
+<a class="launch-link simulation-preview" href="./orbital" aria-label="Open Orbital Transfer">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="orbital-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#orbital-grid)"/>
+      <g class="art-context"><ellipse cx="345" cy="345" rx="145" ry="80" transform="rotate(-25 345 345)"/><ellipse cx="345" cy="345" rx="285" ry="190" transform="rotate(-25 345 345)"/></g><g class="art-flow"><path d="M210 400C185 135 470 100 570 260"/></g><g class="art-primary"><circle cx="345" cy="345" r="45"/><circle cx="210" cy="400" r="18"/><circle cx="570" cy="260" r="24"/><path d="M360 170 390 155 380 185Z M380 172 410 194M370 180 355 205"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Orbital Transfer <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">Compare transfer windows, travel time, and velocity change.</span>
+        <span class="catalog-state">Available</span>
+      </a>
+<a class="launch-link simulation-preview" href="./grid" aria-label="Open Grid Resilience">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="grid-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#grid-grid)"/>
+      <g class="art-context"><path d="M80 410 220 280 400 290 620 420 470 580 250 570Z M220 280 250 570M400 290 470 580"/></g><g class="art-flow"><path d="M160 400 350 350 540 440M350 350 340 535"/></g><g class="art-primary"><path d="M140 440 160 305 180 440M125 340H195M135 370H185M140 440 175 390 145 345M180 440 145 390 175 345 M510 475 530 335 550 475M495 370H565M505 400H555 M320 410V280H370V410Z M330 310H360M330 340H360M330 370H360"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Grid Resilience <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">Compare regional power supply, demand, and restoration.</span>
+        <span class="catalog-state">Available</span>
+      </a>
+<a class="launch-link simulation-preview" href="./subsea" aria-label="Open Subsea Network">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="subsea-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#subsea-grid)"/>
+      <g class="art-context"><circle cx="360" cy="340" r="240"/><ellipse cx="360" cy="340" rx="110" ry="240"/><path d="M120 340H600 M190 180 260 220 245 290 300 325 260 390 240 490M455 160 425 255 480 310 445 390 515 470"/></g><g class="art-flow"><path d="M240 390Q380 520 490 300 M250 220Q350 180 480 310"/></g><g class="art-primary"><circle cx="240" cy="390" r="14"/><circle cx="490" cy="300" r="14"/><circle cx="250" cy="220" r="14"/><path d="M345 452 375 440M360 430V465"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Subsea Network <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">Explore cable capacity, routing, and network disruptions.</span>
+        <span class="catalog-state">Available</span>
+      </a>
+<a class="launch-link simulation-preview" href="./city/cable-trader-pickup-v1" aria-label="Open Cable Trader">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="cable-trader-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#cable-trader-grid)"/>
+      <g class="art-context"><path d="M90 410 350 255 640 420 380 575Z M130 380V240L220 190 310 240V380L220 430Z M130 240 220 290 310 240M220 290V430 M450 420V300L520 260 590 300V420L520 460Z M450 300 520 340 590 300M520 340V460"/></g><g class="art-flow"><path d="M220 430 350 490 520 460"/></g><g class="art-primary"><ellipse cx="355" cy="420" rx="50" ry="25"/><ellipse cx="355" cy="420" rx="30" ry="13"/><path d="M305 420V450Q350 485 405 450V420M320 450 290 480 270 470M405 420 430 400 452 410"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Cable Trader <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">Explore cable exchanges between neighborhood hubs.</span>
+        <span class="catalog-state">Experimental</span>
+      </a>
+<a class="launch-link simulation-preview" href="./city/neighborhood-bulk-pool-v1" aria-label="Open Neighborhood Bulk Pool">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="bulk-pool-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#bulk-pool-grid)"/>
+      <g class="art-context"><path d="M100 440 350 290 620 440 370 590Z M125 250 185 205 245 250V335H125Z M475 250 535 205 595 250V335H475Z"/></g><g class="art-flow"><path d="M185 335 350 440 535 335M350 440V565"/></g><g class="art-primary"><path d="M290 365 350 330 410 365 350 400Z M290 365V445L350 480 410 445V365M350 400V480 M315 350 375 385M350 330V400"/><path d="M265 500 280 550H430L445 500M285 500V480M425 500V480"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Neighborhood Bulk Pool <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">Coordinate local bulk purchases and pickups.</span>
+        <span class="catalog-state">Experimental</span>
+      </a>
+<a class="launch-link simulation-preview" href="./city/nyc-development-atlas-v1" aria-label="Open NYC Development Atlas">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="nyc-atlas-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#nyc-atlas-grid)"/>
+      <g class="art-context"><path d="M90 435 360 280 630 435 360 595Z M130 465 400 310M225 520 495 365M315 570 585 415"/></g><g class="art-primary"><path d="M160 420V320L205 294 250 320V420L205 446Z M160 320 205 346 250 320 M205 346V446"/><path d="M280 490V290L325 264 370 290V490L325 516Z M280 290 325 316 370 290 M325 316V516"/><path d="M410 415V155L455 129 500 155V415L455 441Z M410 155 455 181 500 155 M455 181V441"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">NYC Development Atlas <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">Inspect city development and governed source records.</span>
+        <span class="catalog-state">Experimental</span>
+      </a>
+<a class="launch-link simulation-preview" href="./country/food-recall-us-v1" aria-label="Open Food Recall">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="food-recall-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#food-recall-grid)"/>
+      <g class="art-flow"><path d="M150 350H550 M250 350 360 510 550 350"/></g><g class="art-primary"><g transform="translate(150 350)"><path d="M-45-30H45V30H-45Z M-30-30V30M30-30V30M-45 0H45"/></g><g transform="translate(360 510)"><path d="M-45-30H45V30H-45Z M-30-30V30M30-30V30M-45 0H45"/></g><g transform="translate(550 350)"><path d="M-45-30H45V30H-45Z M-30-30V30M30-30V30M-45 0H45"/></g><path d="M310 310 360 215 410 310Z M360 242V274M360 289V292"/></g><g class="art-context"><path d="M80 165H640M80 570H640"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Food Recall <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">Trace distribution and compare recall responses.</span>
+        <span class="catalog-state">Experimental</span>
+      </a>
+<a class="launch-link simulation-preview" href="./world/maritime-trade-global-v1" aria-label="Open Maritime Trade">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="maritime-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#maritime-grid)"/>
+      <g class="art-context"><path d="M50 240 125 220 190 260 205 350 160 410M555 195 605 250 575 350 640 410 M60 480Q140 450 220 480T380 480T540 480T660 480 M60 530Q140 500 220 530T380 530T540 530T660 530"/></g><g class="art-flow"><path d="M130 370Q300 590 590 365"/></g><g class="art-primary"><path d="M240 360H490L450 415H280Z M275 360V310H450V360 M320 310V255H395V310M355 255V220 M290 330H430 M325 275H380"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Maritime Trade <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">Compare shipping routes and trade disruptions.</span>
+        <span class="catalog-state">Experimental</span>
+      </a>
+<a class="launch-link simulation-preview" href="./solar-system/asteroid-defense-v1" aria-label="Open Asteroid Defense">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="asteroid-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#asteroid-grid)"/>
+      <g class="art-context"><path d="M110 125Q450 220 475 550 M170 125Q500 220 460 550 M230 125Q560 220 445 550"/><circle cx="450" cy="465" r="65"/></g><g class="art-flow"><path d="M170 125Q495 240 450 465M165 445 335 205"/></g><g class="art-primary"><path d="M300 175 325 148 355 165 365 192 340 220 310 205Z M125 425 175 390 200 425 150 460Z M150 460V500M125 515 150 480 175 515"/><path d="M425 430 450 405 480 425 475 470 505 480"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Asteroid Defense <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">Compare interception strategies and modeled outcomes.</span>
+        <span class="catalog-state">Experimental</span>
+      </a>
+<a class="launch-link simulation-preview" href="./simulatte/solar-drive/index.html" aria-label="Open Solar Drive">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="solar-drive-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#solar-drive-grid)"/>
+      <g class="art-context"><path d="M85 465 340 315 640 485M150 530 580 280"/></g><g class="art-primary"><path d="M185 390 250 300H450L540 390 510 460H215Z M250 300 305 340H495 M305 340 285 410M450 300 495 340 475 410 M225 385H520"/><ellipse cx="240" cy="455" rx="25" ry="35"/><ellipse cx="480" cy="455" rx="25" ry="35"/><path d="M285 310 450 310M295 320H470M325 310 340 330M365 310 380 330M405 310 420 330"/><circle cx="510" cy="150" r="35"/></g><g class="art-flow"><path d="M495 205 400 280M395 265 400 280 415 280"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Solar Drive <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">Inspect a solar vehicle’s component and energy model.</span>
+        <span class="catalog-state">Experimental</span>
+      </a>
+<a class="launch-link simulation-preview" href="./living-tissue" aria-label="Open Living Tissue">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="living-tissue-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#living-tissue-grid)"/>
+      <g class="art-flow"><circle cx="355" cy="350" r="230"/><circle cx="355" cy="350" r="175"/></g><g class="art-primary"><circle cx="355" cy="350" r="37"/><circle class="art-context" cx="362" cy="345" r="9"/><circle cx="285" cy="310" r="37"/><circle class="art-context" cx="292" cy="305" r="9"/><circle cx="285" cy="390" r="37"/><circle class="art-context" cx="292" cy="385" r="9"/><circle cx="355" cy="270" r="37"/><circle class="art-context" cx="362" cy="265" r="9"/><circle cx="425" cy="310" r="37"/><circle class="art-context" cx="432" cy="305" r="9"/><circle cx="425" cy="390" r="37"/><circle class="art-context" cx="432" cy="385" r="9"/><circle cx="355" cy="430" r="37"/><circle class="art-context" cx="362" cy="425" r="9"/><circle cx="215" cy="350" r="37"/><circle class="art-context" cx="222" cy="345" r="9"/><circle cx="215" cy="270" r="37"/><circle class="art-context" cx="222" cy="265" r="9"/><circle cx="285" cy="230" r="37"/><circle class="art-context" cx="292" cy="225" r="9"/><circle cx="425" cy="230" r="37"/><circle class="art-context" cx="432" cy="225" r="9"/><circle cx="495" cy="350" r="37"/><circle class="art-context" cx="502" cy="345" r="9"/><circle cx="495" cy="270" r="37"/><circle class="art-context" cx="502" cy="265" r="9"/><circle cx="425" cy="470" r="37"/><circle class="art-context" cx="432" cy="465" r="9"/><circle cx="285" cy="470" r="37"/><circle class="art-context" cx="292" cy="465" r="9"/><circle cx="215" cy="430" r="37"/><circle class="art-context" cx="222" cy="425" r="9"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Living Tissue <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">How can local cell behavior produce a coherent shape?</span>
+        <span class="catalog-state">Experimental</span>
+      </a>
+<a class="launch-link simulation-preview" href="./river-formation" aria-label="Open River Formation">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="river-formation-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#river-formation-grid)"/>
+      <g class="art-context"><path d="M70 360 350 190 650 360 360 570Z M95 345 360 495 610 340 M130 320 360 440 565 315 M180 290 360 385 520 290 M220 265 360 335 470 265"/></g><g class="art-flow"><path d="M350 210 325 285 385 345 350 400 385 465 360 560 M245 290 325 285M460 295 385 345M500 385 350 400"/></g><g class="art-primary"><path d="M300 130Q275 120 290 95Q290 65 325 70Q350 35 380 70Q425 65 425 100Q445 130 400 130Z M310 150 305 170M350 150 345 170M390 150 385 170"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">River Formation <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">How does flowing water change the landscape that directs it?</span>
+        <span class="catalog-state">Experimental</span>
+      </a>
+<a class="launch-link simulation-preview" href="./crystal-foundry" aria-label="Open Crystal Foundry">
+        <svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="crystal-foundry-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#crystal-foundry-grid)"/>
+      <g class="art-context"><path d="M110 150H610V550H110Z M110 225H610M110 475H610"/></g><g class="art-primary"><path d="M350 500V200 M350 300 270 220M350 300 430 220M350 380 230 260M350 380 470 260 M290 320V260M410 320V260M350 460 230 340M350 460 470 340 M280 430 250 400M420 430 450 400 M350 200 335 220M350 200 365 220"/><circle cx="350" cy="500" r="10"/></g><g class="art-flow"><path d="M170 190H550M530 175 550 190 530 205"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>
+        <span class="preview-heading">Crystal Foundry <span aria-hidden="true">↗</span></span>
+        <span class="preview-description">How do growth rules produce intricate material structure?</span>
+        <span class="catalog-state">Experimental</span>
       </a></nav>
       <div class="gallery-controls" hidden>
         <p class="gallery-status" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -77,7 +244,7 @@
 <li><div><h3>Sun Walker</h3><p>Compare walking routes through changing sun and shade.</p></div><span class="catalog-state">Available</span><a href="./sunwalker" aria-label="Open Sun Walker">Open <span aria-hidden="true">↗</span></a></li>
 <li><div><h3>GPU Cluster</h3><p>Explore racks computing, communicating, and waiting.</p></div><span class="catalog-state">Available</span><a href="./datacenter" aria-label="Open GPU Cluster">Open <span aria-hidden="true">↗</span></a></li>
 <li><div><h3>Interstellar Relay</h3><p>Send a packet and follow when a reply can return.</p><p class="catalog-limit">Relay infrastructure is hypothetical; reliability is a seeded model.</p></div><span class="catalog-state">Available</span><a href="./interstellar" aria-label="Open Interstellar Relay">Open <span aria-hidden="true">↗</span></a></li>
-<li><div><h3>Orbital Transfer</h3><p>Compare transfer windows, travel time, and propellant.</p><p class="catalog-limit">Transfer screening omits navigation covariance and maneuver execution error.</p></div><span class="catalog-state">Available</span><a href="./orbital" aria-label="Open Orbital Transfer">Open <span aria-hidden="true">↗</span></a></li>
+<li><div><h3>Orbital Transfer</h3><p>Compare transfer windows, travel time, and velocity change.</p><p class="catalog-limit">Transfer screening omits navigation covariance and maneuver execution error.</p></div><span class="catalog-state">Available</span><a href="./orbital" aria-label="Open Orbital Transfer">Open <span aria-hidden="true">↗</span></a></li>
 <li><div><h3>Grid Resilience</h3><p>Compare regional power supply, demand, and restoration.</p><p class="catalog-limit">Dispatch and restoration are modeled; results are not a live grid forecast.</p></div><span class="catalog-state">Available</span><a href="./grid" aria-label="Open Grid Resilience">Open <span aria-hidden="true">↗</span></a></li>
 <li><div><h3>Subsea Network</h3><p>Explore cable capacity, routing, and network disruptions.</p><p class="catalog-limit">Cable capacity, failures, and repairs are modeled; live operator data is not shown.</p></div><span class="catalog-state">Available</span><a href="./subsea" aria-label="Open Subsea Network">Open <span aria-hidden="true">↗</span></a></li>
 <li><div><h3>Cable Trader</h3><p>Explore cable exchanges between neighborhood hubs.</p><p class="catalog-limit">Supply, demand, and exchanges are simulated, not actual local inventory.</p></div><span class="catalog-state">Experimental</span><a href="./city/cable-trader-pickup-v1" aria-label="Open Cable Trader">Open <span aria-hidden="true">↗</span></a></li>
@@ -393,27 +560,27 @@
   </dialog>
 
 <!-- SIMULATTE_WORLD_RUNTIME_SCRIPTS_START -->
-  <script defer src="./simulatte/app/world-runtime-script-manifest.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./simulatte/app/world-runtime-loader.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./simulation-routes.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/design/program-editor.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/design/data-table.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/design/simulation-session-status.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/design/product-navigation.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/contracts/world-spec-authorship.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/contracts/world-spec.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/contracts/input-source.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/contracts/data-world-spec.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/contracts/simulation-session.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/core/pipeline-runner.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/core/simulation/point-motion.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/core/simulation/data-run.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./shared/render/point-scene-view.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./simulatte/app/data-workbench.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./simulatte/app/homepage-webgpu.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./simulatte/app/homepage-effects.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./simulatte/app/homepage-gallery.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
-  <script defer src="./simulatte/app/workbench-entry.js?v=36fbb20ef8e23766687fda9327cff21d1d3c8c6a-3310b8236f4c"></script>
+  <script defer src="./simulatte/app/world-runtime-script-manifest.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./simulatte/app/world-runtime-loader.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./simulation-routes.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/design/program-editor.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/design/data-table.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/design/simulation-session-status.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/design/product-navigation.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/contracts/world-spec-authorship.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/contracts/world-spec.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/contracts/input-source.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/contracts/data-world-spec.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/contracts/simulation-session.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/core/pipeline-runner.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/core/simulation/point-motion.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/core/simulation/data-run.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./shared/render/point-scene-view.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./simulatte/app/data-workbench.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./simulatte/app/homepage-webgpu.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./simulatte/app/homepage-effects.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./simulatte/app/homepage-gallery.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
+  <script defer src="./simulatte/app/workbench-entry.js?v=9069c4c1437d161e7f24bba6e654a10a53f5dbad-98259393c153"></script>
   <!-- generated-plugin-scripts:start -->
   <!-- Selected plugin scripts are loaded by world-runtime-loader.js after route selection. -->
   <!-- generated-plugin-scripts:end -->

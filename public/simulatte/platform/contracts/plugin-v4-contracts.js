@@ -448,9 +448,11 @@
   function validateObjects(objects, presentation, label) {
     array(objects, 'plugin_objects_invalid', label);
     unique(objects.map(row => row.id), 'plugin_object_duplicate', label);
+    if (objects.filter(row => row.initiallySelected === true).length > 1) fail('plugin_object_initial_selection_duplicate', label);
     const layers = new Set(presentation.layers.map(row => row.id));
     for (const row of objects) {
-      allowedKeys(row, ['id', 'label', 'description', 'hit', 'actions', 'inSelector', 'selectionGroup', 'condition', 'relatedIds'], ['id', 'label', 'description', 'hit', 'actions'], 'Interaction object');
+      allowedKeys(row, ['id', 'label', 'description', 'hit', 'actions', 'inSelector', 'selectionGroup', 'condition', 'relatedIds', 'initiallySelected'], ['id', 'label', 'description', 'hit', 'actions'], 'Interaction object');
+      if (row.initiallySelected !== undefined && typeof row.initiallySelected !== 'boolean') fail('plugin_object_initial_selection_invalid', row.id);
       for (const key of ['selectionGroup','condition']) if (row[key] !== undefined) text(row[key], 'plugin_object_text_invalid', key);
       if (row.inSelector !== undefined && typeof row.inSelector !== 'boolean') fail('plugin_object_selector_invalid', row.id);
       if(row.relatedIds !== undefined){array(row.relatedIds,'plugin_object_relations_invalid',label);for(const id of row.relatedIds)if(!layers.has(id))fail('plugin_object_relation_missing',id);}

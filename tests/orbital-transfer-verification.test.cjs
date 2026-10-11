@@ -421,3 +421,17 @@ test('spatial transfer preview preserves the accepted flight and promotes the ex
     assert.throws(()=>instance.handleAction('orbital.accept-preview',{values:{previewId:preview.id}}),/stale/);
   }finally{solver.scanLaunchWindow=scan;}
 });
+
+test('direct mission choices override the active numerical objective without changing the flight before apply', async () => {
+  const host=fixture();const instance=await plugin.activate({sdk:host.sdk,config,profile,scenario:profile.seeds[0]});
+  instance.handleAction('scenario.run',{values:{phase:'start',deltaVWeight:0,timeWeight:1}});
+  const before=instance.capabilities['simulation.orbital-transfer.v1']();
+  const object=instance.contributeV4().objects.find(row=>row.initiallySelected);
+  assert.equal(object.actions.length,2);
+  const efficient=object.actions.find(row=>row.id==='preview-efficient');
+  const preview=instance.handleAction(efficient.command,{values:efficient.values});
+  assert.equal(preview.controls.deltaVWeight,1);assert.equal(preview.controls.timeWeight,0);
+  assert.equal(instance.capabilities['simulation.orbital-transfer.v1'](),before);
+  assert.ok(preview.inspections[0].fields.find(field=>field.id==='delta-v').value<=before.metrics.totalDeltaVKmS);
+  instance.dispose();
+});

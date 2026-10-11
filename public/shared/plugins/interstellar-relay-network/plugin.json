@@ -76,7 +76,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginInterstellarRelayNetwork",
-    "integrity": "sha384-88247923b12cb079c7724a43200af54634383c0ffb3df7214866012df9df3559924a814fd913ea36a4d93b65d1adff17",
+    "integrity": "sha384-330f1de40174198286ad9b51834c458b3e57563f04afbfd4b5a34a30fd14a82043172ec75db8b553b198b5b74d611f5e",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -216,7 +216,7 @@
       "path": "./transmission-model.js"
     },
     {
-      "integrity": "sha384-a16509606e7833f68d5db7e64e4dd479e08a4ae0af3cc6787f7ddbe753f7e8cdf84bea0a9e3d80f3554c48a0f0ad95c1",
+      "integrity": "sha384-1a20e3b4920cf60a13c2efcfd31f953fc7a42542ec1b14a6529163fefa0379a752133d6020e17d2d562b5cb88c920b23",
       "path": "./v4-contribution.js"
     }
   ],

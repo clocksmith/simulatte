@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="solar-drive-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#solar-drive-grid)"/>
+      <g class="art-context"><path d="M85 465 340 315 640 485M150 530 580 280"/></g><g class="art-primary"><path d="M185 390 250 300H450L540 390 510 460H215Z M250 300 305 340H495 M305 340 285 410M450 300 495 340 475 410 M225 385H520"/><ellipse cx="240" cy="455" rx="25" ry="35"/><ellipse cx="480" cy="455" rx="25" ry="35"/><path d="M285 310 450 310M295 320H470M325 310 340 330M365 310 380 330M405 310 420 330"/><circle cx="510" cy="150" r="35"/></g><g class="art-flow"><path d="M495 205 400 280M395 265 400 280 415 280"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

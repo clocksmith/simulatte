@@ -622,3 +622,16 @@ test('secondary objects stay accessible without changing the primary menu during
   find(host,node=>node.textContent==='Show more objects').dispatch('click');assert.equal(select.children.length,3);
   find(host,node=>node.textContent==='Hide more objects').dispatch('click');assert.equal(select.children.length,2);
 });
+
+test('connected-object actions preserve selection authority and hide absent overlays', async () => {
+  const doc=fakeDocument(),create=doc.createElement;
+  doc.createElement=tag=>{const node=create(tag);node.setAttribute=()=>{};return node;};
+  const host=new FakeNode('host',doc),selected=[];
+  const inspector=uiHost.createObjectInspector({host,onSelect:id=>selected.push(id),onAction(){}});
+  const objects=[{id:'rack',label:'Rack A',relatedIds:['peer','overlay']},{id:'peer',label:'Waiting rack'}];
+  inspector.render({objects,selectedId:'rack',label:'Rack A',fields:[],actions:[]});
+  assert.equal(find(host,node=>node.tagName==='summary'&&node.textContent==='Connected objects (1)').textContent,'Connected objects (1)');
+  const button=find(host,node=>node.dataset.relatedObject==='peer');
+  await button.dispatch('click');assert.deepEqual(selected,['peer']);
+  assert.ok(!find(host,node=>node.dataset.relatedObject==='overlay'));
+});

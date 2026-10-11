@@ -233,7 +233,7 @@
 
     function handleAction(actionId, context = {}) {
       if (actionId === 'orbital.preview-transfer') {
-        const weights = weightsFrom({ deltaV: activeWeights.deltaV, timeOfFlight: context.values.timeWeight });
+        const weights = weightsFrom({ deltaV: context.values.deltaVWeight ?? activeWeights.deltaV, timeOfFlight: context.values.timeWeight });
         const result = computeScenario(activeScenario, weights, activeSettings);
         const id = `${activeScenario.id}:preview-${++previewSequence}`;
         preparedPreview = { id, base: current, result, weights };

@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="subsea-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#subsea-grid)"/>
+      <g class="art-context"><circle cx="360" cy="340" r="240"/><ellipse cx="360" cy="340" rx="110" ry="240"/><path d="M120 340H600 M190 180 260 220 245 290 300 325 260 390 240 490M455 160 425 255 480 310 445 390 515 470"/></g><g class="art-flow"><path d="M240 390Q380 520 490 300 M250 220Q350 180 480 310"/></g><g class="art-primary"><circle cx="240" cy="390" r="14"/><circle cx="490" cy="300" r="14"/><circle cx="250" cy="220" r="14"/><path d="M345 452 375 440M360 430V465"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="grid-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#grid-grid)"/>
+      <g class="art-context"><path d="M80 410 220 280 400 290 620 420 470 580 250 570Z M220 280 250 570M400 290 470 580"/></g><g class="art-flow"><path d="M160 400 350 350 540 440M350 350 340 535"/></g><g class="art-primary"><path d="M140 440 160 305 180 440M125 340H195M135 370H185M140 440 175 390 145 345M180 440 145 390 175 345 M510 475 530 335 550 475M495 370H565M505 400H555 M320 410V280H370V410Z M330 310H360M330 340H360M330 370H360"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

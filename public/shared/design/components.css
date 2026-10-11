@@ -146,6 +146,8 @@
 .sim-object-inspector dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .sim-object-actions { display: flex; flex-wrap: wrap; gap: 6px; position: sticky; top: 0; padding: 6px 0; background: var(--sim-glass); z-index: 1; }
 .sim-object-actions button { min-height: 44px; }
+.sim-object-related > div { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; }
+.sim-object-related button { min-height:44px; }
 .sim-object-actions [data-object-action="straggler"], .sim-object-actions [data-object-action="preview"] { border-color: var(--sim-accent); }
 @media (max-width: 600px) {
   .sim-object-inspector > div { max-height: 190px; }

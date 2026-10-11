@@ -165,7 +165,10 @@
       state,
       objects: [...rackLayers, ...networkLayers].map(layer => {
         const rack = workload?.racks.find(row => layer.id === `rack:${row.id}`);
-        return { id: layer.id, label: layer.label, inSelector: layer.id.startsWith('rack:'), selectionGroup:'links', relatedIds:rack ? waitingByRack.get(rack.id).map(id=>'rack:'+id) : [], condition: rack ? `${rack.task === 'waiting' ? 'Waiting for ' + rack.waitingFor.join(', ') : rack.task === 'allreduce' ? 'Communicating' : rack.task + ' compute'} · ${rack.slowdown}% slowdown` : 'Modeled physical connection', description: rack ? `${waitingByRack.get(rack.id).length} racks wait for this rack to finish; amber arrows show synchronization dependencies, not cables.\nLive actions added ${executed.differences.synchronizationWaitingRackMs.toFixed(1)} ms waiting, summed across racks. Completed iterations: ${executed.branches.intervention.completedIterations} versus ${executed.branches.baseline.completedIterations} without live actions, over the same 0–${elapsed.toFixed(1)} ms. ${executed.lastRestorationTimeMs===null?'':`Restored at ${executed.lastRestorationTimeMs.toFixed(1)} ms; speed recovers before the next barrier releases.`}` : 'This modeled link carries gradients between its connected racks.',
+        return { id: layer.id, label: layer.label, inSelector: layer.id.startsWith('rack:'), initiallySelected: layer.id === rackLayers[0]?.id, selectionGroup:'links',
+          relatedIds:rack ? [...new Set([...waitingByRack.get(rack.id), ...rack.waitingFor])].map(id=>'rack:'+id) : [],
+          condition: rack ? `${rack.task === 'waiting' ? 'Waiting for ' + rack.waitingFor.join(', ') : rack.task === 'allreduce' ? 'Exchanging results' : 'Computing'}${rack.slowdown ? ` · ${rack.slowdown}% slower` : ''}` : 'Modeled physical connection',
+          description: rack ? rackExplanation(rack, waitingByRack.get(rack.id), executed, elapsed) : 'This modeled link carries gradients between its connected racks.',
           hit: { shape: rack || layer.id.startsWith('rack:') ? 'bounds' : 'path', radiusPx: 6, priority: layer.id.startsWith('rack:') ? 90 : 20 },
           actions: rack ? [{ id: 'straggler', label: rack.slowdown ? 'Restore rack' : 'Slow rack', targetId: layer.id,
             available: state.status !== 'settled', execution: 'continue', command: 'scenario.intervene',
@@ -225,6 +228,13 @@
       })) : [])],
       provenanceRecords: records,
     });
+  }
+
+  function rackExplanation(rack, blocked, executed, elapsed) {
+    const condition = blocked.length ? `${blocked.length} racks are waiting for ${rack.id}. Amber arrows connect the waiting racks to their blocker.` : 'Every rack must finish its work before the group can exchange results.';
+    if (!executed.actions.length) return `${condition} Slow this rack to see who has to wait.`;
+    const change = executed.differences.synchronizationWaitingRackMs;
+    return `${condition}\nExtra waiting: ${change.toFixed(1)} rack-ms (summed across racks). Completed steps: ${executed.branches.intervention.completedIterations} vs ${executed.branches.baseline.completedIterations}.\nBaseline: no live actions, same initial workload and 0–${elapsed.toFixed(1)} ms.${executed.actions.filter(action => action.rackId === rack.id).at(-1)?.slowdown === 0 ? '\nRack speed restored; accumulated waiting remains in the comparison.' : ''}`;
   }
 
   function physicalLink(from,to){return builder.geometry('polyline','datacenter-cartesian-meters',[[from.xM,from.yM,from.zM],[to.xM,to.yM,to.zM]]);}

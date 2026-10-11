@@ -1,0 +1,5 @@
+<svg class="launch-art simulation-art" viewBox="0 0 720 680" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="maritime-grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72"/></pattern></defs>
+      <path class="art-grid" d="M0 0H720V680H0Z" fill="url(#maritime-grid)"/>
+      <g class="art-context"><path d="M50 240 125 220 190 260 205 350 160 410M555 195 605 250 575 350 640 410 M60 480Q140 450 220 480T380 480T540 480T660 480 M60 530Q140 500 220 530T380 530T540 530T660 530"/></g><g class="art-flow"><path d="M130 370Q300 590 590 365"/></g><g class="art-primary"><path d="M240 360H490L450 415H280Z M275 360V310H450V360 M320 310V255H395V310M355 255V220 M290 330H430 M325 275H380"/></g><path class="launch-cross" d="M50 100H70M60 90V110M630 550H650M640 540V560"/>
+    </svg>

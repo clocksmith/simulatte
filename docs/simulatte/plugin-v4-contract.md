@@ -149,6 +149,13 @@ controller promotes the prepared result instead of resetting and searching again
 A scenario change or replay invalidates host previews through session generation.
 The plugin independently rejects stale or previously consumed candidate tokens.
 
+One object may declare `initiallySelected: true` to expose its explanation and
+actions on entry. The host honors it once, without moving the camera or reopening
+a dismissed inspector. Plugins own this choice; the host contains no domain-name
+selection rules. `relatedIds` also exposes connected selectable objects through
+the inspector, without changing execution or implying a causal relation beyond
+the plugin's declared meaning.
+
 ## Compatibility
 
 V1 through v3 presentations, UI fields, and events pass through the backward
