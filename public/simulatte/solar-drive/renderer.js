@@ -115,9 +115,9 @@
       const eye = [camera.target[0] + camera.distance * Math.sin(camera.yaw) * Math.cos(camera.pitch),
         camera.target[1] + camera.distance * Math.sin(camera.pitch),
         camera.target[2] + camera.distance * Math.cos(camera.yaw) * Math.cos(camera.pitch)];
-      const viewProjection = math.multiply(math.perspective(width / height), math.lookAt(eye, camera.target));
-      const sun = math.norm([-0.6, 1.2, 0.8]);
-      const lightProjection = math.multiply(math.orthographic(5.8), math.lookAt(sun.map((x) => x * 14), [0, 0.8, 0]));
+      const viewProjection = math.multiply(math.perspective(width / height,0.65,0.05,150), math.lookAt(eye, camera.target));
+      const sun = math.norm(scene.sunDirection||[-0.6, 1.2, 0.8]);
+      const lightProjection = math.multiply(math.orthographic(scene.route?24:5.8,0.1,400), math.lookAt(sun.map((x) => x * 120), [0, 0.8, 0]));
       frame.set(viewProjection); frame.set(lightProjection, 16); frame.set([...eye, scene.timeS], 32);
       frame.set([...sun, 1], 36); frame.set([selected, 0, 0, 0], 40);
       device.queue.writeBuffer(uniform, 0, frame);

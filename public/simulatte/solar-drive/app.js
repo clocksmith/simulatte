@@ -1,4 +1,4 @@
-(function solarDriveApp(root) {
+(async function solarDriveApp(root) {
   'use strict';
   const program = root.SimulatteSolarDriveProgram, model = root.SimulatteSolarDriveModel, world = root.SimulatteWorldSpec;
   if (!program || !model || !world || !root.SimulatteSolarScene || !root.SimulatteSolarRenderer) throw new Error('solar_instance_dependency_missing');
@@ -7,12 +7,19 @@
   const signed = (v, digits = 0) => `${v > 0 ? '+' : ''}${nf(v, digits)}`;
   const canvas = el('scene'), events = new AbortController();
   const on = (node, event, fn, options = {}) => node.addEventListener(event, fn, { ...options, signal: events.signal });
-  let spec = program.validate(program.create('bicycle')), state = model.initial(spec.params);
+  const routeResponse = await fetch('../../data/solar-drive/union-square-route-v1.json');
+  if (!routeResponse.ok) throw Error('Solar route could not load: '+routeResponse.status);
+  const routeData = await routeResponse.json(); program.registerRoute(routeData);
+  const referenceResponse=await fetch('../../data/solar-drive/published-ride-reference-v1.json');if(!referenceResponse.ok)throw Error('Published ride reference could not load');program.registerReference(await referenceResponse.json());
+  const rideScene = root.SimulatteSolarRideScene.create(routeData);
+  let spec = program.createRide('bicycle'), state = model.initial(spec.params);
+  let initialSpec = structuredClone(spec), liveActions = [], matchedInitialSpec = null, matchedActions = [], comparisonStartS = 0, replayActions = null, matchedReplayActions = null;
   let scene = root.SimulatteSolarScene.create(spec.params), drawing = null, currentFrame = null;
   let running = false, disposed = false, raf = 0, generation = 0, lastTime = 0, lastUi = 0, lastSample = -1;
   let history = [], selected = 'solar', timer = 0, cameraGoal = null, matchedParams = null, matchedState = null, matchedSpec = null, interventionLabel = '';
   const flowLabels = new Map();
-  const view = { explode: 0.88, targetExplode: 0.88, cutaway: true, fields: false, flows: true, labels: true, selected: 'solar' };
+  const view = { mode:'ride', explode:0, targetExplode:0, cutaway:false, fields:false, flows:true, labels:false, selected:'solar' };
+  let inspectView = {explode:0.88,cutaway:true,labels:true};
   const camera = { yaw: 0.40, pitch: 0.32, distance: 5.7, target: [0, 1.14, 0] };
   const labels = new Map(), partRows = new Map();
   let scheduler = root.SimulatteSimulationClock.createFixedStepScheduler({ stepsPerSecond: 1 / spec.params.stepS });
@@ -22,16 +29,17 @@
     timer = setTimeout(() => { el('status-message').textContent = ''; }, 7000);
   }
   function failure(error) {
-    running = false; el('gpu-status').dataset.state = 'error'; el('gpu-status').textContent = 'WebGPU unavailable';
+    running = false; el('gpu-status').dataset.state = 'error'; el('gpu-status').textContent = drawing?'Ride stopped':'WebGPU unavailable';
     el('gpu-message').hidden = false; el('gpu-message').replaceChildren();
     const title = document.createElement('strong'), detail = document.createElement('span');
-    title.textContent = 'The 3D view could not start'; detail.textContent = error.message || String(error);
+    title.textContent = drawing?'The ride stopped after an error':'The 3D view could not start'; detail.textContent = error.message || String(error);
     el('gpu-message').append(title, detail); el('run').disabled = true; document.body.dataset.runtimeError = detail.textContent;
   }
-  function geometryPoints(id = null, frame = scene.frame(state, { ...view, explode: view.targetExplode })) {
+  function renderFrame(candidateView=view) { const machine=scene.frame(state,candidateView);return view.mode==='ride'?rideScene.frame(machine,program.environment(spec,state),spec.params):machine; }
+  function geometryPoints(id = null, frame = renderFrame({ ...view, explode: view.targetExplode })) {
     const points = [];
     for (const instance of frame.instances) {
-      if (!instance.group || instance.group === 'ground' || (id && instance.group !== id)) continue;
+      if (!instance.group || !program.COMPONENTS.some(part=>part.id===instance.group) || (id && instance.group !== id)) continue;
       const radius = instance.mesh === 'box' ? 0.5 : 1;
       const m = instance.matrix;
       for (const x of [-radius, radius]) for (const y of [-radius, radius]) for (const z of [-radius, radius])
@@ -89,39 +97,90 @@
       if (el(`${key}-value`)) el(`${key}-value`).textContent = formatParam(key, spec.params[key]);
     });
     document.querySelectorAll('[data-vehicle]').forEach((button) => button.setAttribute('aria-checked', String(button.dataset.vehicle === spec.params.vehicle)));
+    el('grade').disabled = spec.params.route === 'identified';
+    el('ride').disabled=spec.params.route!=='identified';
     el('program-identity').textContent = `${spec.contentHash} / revision ${spec.authorship.revision}\n${program.MODEL_VERSION}`;
   }
   function apply(next, message = '') {
     program.validate(next);
     const wasRunning = running;
     generation += 1; running = false; spec = next; state = model.initial(spec.params);
+    if(spec.params.route!=='identified'&&view.mode==='ride')setMode('inspect');
     scene = root.SimulatteSolarScene.create(spec.params); scheduler = root.SimulatteSimulationClock.createFixedStepScheduler({stepsPerSecond:1/spec.params.stepS}); replayTarget = null; history = []; lastSample = -1;
     matchedParams=null;matchedState=null;matchedSpec=null;interventionLabel='';
+    initialSpec=structuredClone(spec);liveActions=[];matchedInitialSpec=null;matchedActions=[];comparisonStartS=0;replayActions=null;matchedReplayActions=null;
     el('comparison-result').textContent = ''; syncControls(); updateActions(); updateUi();
     if (wasRunning && drawing) running = true;
     if (message) notify(message);
     return structuredClone(spec);
   }
   function updateActions() {
-    const actions=selected==='solar'?[{label:spec.params.shade>0?'Restore full sunlight':'Shade the panel',values:{shade:spec.params.shade>0?0:0.65}}]
+    el('focus-selection').disabled=selected==='flywheel'&&!spec.params.flywheel||selected==='solar'&&!spec.params.panelArea;
+    const actions=selected==='solar'?(view.mode==='ride'?[]:[{label:spec.params.shade>0?'Remove panel cover':'Shade the panel',values:{shade:spec.params.shade>0?0:0.65}}])
       : ['motor','chassis'].includes(selected)?[{label:spec.params.targetKph>10?'Try a slower ride':'Try a faster ride',values:{targetKph:spec.params.targetKph>10?Math.max(5,spec.params.targetKph-5):20}}]
       : selected==='flywheel'?[{label:spec.params.flywheel?'Try without the flywheel':'Fit the flywheel',values:{flywheel:!spec.params.flywheel}}]:[];
-    el('part-actions').replaceChildren(...actions.map(action=>{const button=document.createElement('button');button.textContent=action.label+' · Restart comparison';button.dataset.solarAction=selected;button.addEventListener('click',()=>{
+    el('part-actions').replaceChildren(...actions.map(action=>{const button=document.createElement('button');button.disabled=selected==='solar'&&state.status==='complete';button.textContent=selected==='solar'?(spec.params.shade>0?'Remove panel cover':'Shade the panel'):action.label+' · Restart comparison';button.dataset.solarAction=selected;button.addEventListener('click',()=>{
+      if(selected==='solar'){shadePanel();return;}
       const baseline=structuredClone(spec),wasRunning=running;
       apply(program.edit(spec,action.values));matchedSpec=baseline;matchedParams=baseline.params;matchedState=model.initial(matchedParams);interventionLabel=action.label;
+      matchedInitialSpec=structuredClone(baseline);matchedActions=[];
       running=wasRunning;updateUi();notify('Both branches restarted from their declared reserves. Same drive cycle and simulated interval.');
     },{signal:events.signal});return button;}));
   }
   function setParameters(changes) { return apply(program.edit(spec, changes), 'Parameters applied. Restarted from declared initial reserves.'); }
-  function setVehicle(vehicle) { apply(program.create(vehicle)); resetCamera(); notify(`${vehicle[0].toUpperCase() + vehicle.slice(1)} preset loaded.`); }
+  function shadePanel() {
+    if(state.status==='complete'){notify('Replay the ride to compare another intervention.');return;}
+    const shade=spec.params.shade>0?0:.65,next=program.edit(spec,{shade});
+    generation++;replayActions=null;matchedReplayActions=null;replayTarget=null;
+    matchedSpec=structuredClone(spec);matchedParams=matchedSpec.params;matchedState=structuredClone(state);
+    matchedInitialSpec=structuredClone(initialSpec);matchedActions=structuredClone(liveActions);comparisonStartS=state.timeS;
+    spec=next;liveActions.push({step:state.step,changes:{shade}});scene=root.SimulatteSolarScene.create(spec.params);
+    interventionLabel=shade?'Panel cover added':'Panel cover removed';scheduler.rebase();syncControls();updateActions();updateUi();
+  }
+  function setMode(mode) {
+    if(!['ride','inspect'].includes(mode))throw Error('solar_view_unsupported');
+    if(mode==='ride'&&spec.params.route!=='identified')throw Error('solar_ride_route_required');
+    if(view.mode===mode)return;
+    if(view.mode==='inspect')inspectView={explode:view.targetExplode,cutaway:view.cutaway,labels:view.labels};
+    view.mode=mode;setView(mode==='ride'?{explode:0,cutaway:false,labels:false}:inspectView);
+    el('ride').setAttribute('aria-checked',String(mode==='ride'));el('inspect').setAttribute('aria-checked',String(mode==='inspect'));
+    el('assembly-tools').hidden=mode!=='inspect';el('component-drawer').open=mode==='inspect';document.querySelector('.ride-action').hidden=mode==='inspect';updateActions();resetCamera();
+  }
+  function applyReplayActions() {
+    for(const [queue,isBaseline] of [[replayActions,false],[matchedReplayActions,true]]){
+      const activeState=isBaseline?matchedState:state;if(!queue||!activeState)continue;
+      while(queue[0]?.step<=activeState.step){const action=queue.shift();
+        if(isBaseline){matchedSpec=program.edit(matchedSpec,action.changes);matchedParams=matchedSpec.params;}
+        else {spec=program.edit(spec,action.changes);liveActions.push(structuredClone(action));scene=root.SimulatteSolarScene.create(spec.params);syncControls();updateActions();}
+      }
+    }
+  }
+  const mapBounds={minX:Math.min(...routeData.points.map(p=>p.x)),maxX:Math.max(...routeData.points.map(p=>p.x)),minY:Math.min(...routeData.points.map(p=>p.y)),maxY:Math.max(...routeData.points.map(p=>p.y))};
+  const mapScale=Math.min(280/(mapBounds.maxX-mapBounds.minX),64/(mapBounds.maxY-mapBounds.minY));
+  const mapPoint=p=>[160+(p.x-(mapBounds.minX+mapBounds.maxX)/2)*mapScale,45-(p.y-(mapBounds.minY+mapBounds.maxY)/2)*mapScale];
+  el('route-line').setAttribute('d',routeData.points.map((p,i)=>`${i?'L':'M'}${mapPoint(p).join(',')}`).join(' '));
+  function updateRide(t) {
+    const env=program.environment(spec,state);el('ride-summary').hidden=!env;
+    el('shade-panel').disabled=state.status==='complete';el('shade-panel').textContent=spec.params.shade>0?'Remove panel cover':'Shade the panel';
+    if(env){const pos=mapPoint(env.point);el('route-marker').setAttribute('cx',pos[0]);el('route-marker').setAttribute('cy',pos[1]);
+      el('route-position').textContent=`${env.point.street} · ${nf(env.point.distanceM)} / ${nf(env.lengthM)} m · grade ${signed(env.grade,1)}%`;
+      el('route-condition').textContent=(env.dwellS>0?`Stopped: ${nf(env.dwellS,1)} s remaining · `:'')+`${nf(env.directFraction*100)}% direct panel exposure · `+new Intl.DateTimeFormat('en-US',{timeZone:routeData.timeZone,hour:'numeric',minute:'2-digit',second:'2-digit'}).format(new Date(env.timestamp));
+    }
+    let copy=`Solar supplies ${nf(t.busW)} W. Battery ${t.batteryW>=0?'supplies':'receives'} ${nf(Math.abs(t.batteryW))} W${spec.params.flywheel?`; flywheel ${signed(t.flywheelW)} W`:''}.`;
+    if(matchedState){const bt=program.telemetry(matchedSpec,matchedState);copy+=` ${interventionLabel}: ${signed(t.busW-bt.busW)} W solar and ${signed((matchedState.batteryJ-state.batteryJ)/3600,3)} Wh extra battery use since ${nf(comparisonStartS,1)} s. Baseline: same ride without this change.`;}
+    el('ride-consequence').textContent=copy;
+    const reference=program.referenceComparison(spec,state);el('reference-comparison').textContent=`This ride: ${reference.modeledElectricalWhKm===null?'starting':nf(reference.modeledElectricalWhKm,1)+' Wh/km electrical demand'}. Published touring median: ${nf(reference.publishedMedianWhKm,1)} Wh/km across ${reference.evaluationCount} reserved rides. Different routes, terrain, rider input and vehicle shape; this is a scale comparison.`;
+  }
+  function setVehicle(vehicle) { apply(vehicle==='bicycle'?program.createRide(vehicle):program.create(vehicle)); resetCamera(); notify(`${vehicle[0].toUpperCase() + vehicle.slice(1)} preset loaded.`); }
   function setView(changes) {
+    if(view.mode==='ride'&&changes.explode>0)setMode('inspect');
     if (Object.hasOwn(changes, 'explode')) view.targetExplode = Math.max(0, Math.min(1, changes.explode));
     for (const key of ['cutaway', 'fields', 'flows', 'labels']) if (Object.hasOwn(changes, key)) view[key] = Boolean(changes[key]);
     el('assembled').setAttribute('aria-checked', String(view.targetExplode === 0)); el('exploded').setAttribute('aria-checked', String(view.targetExplode > 0));
     for (const key of ['cutaway', 'fields', 'flows', 'labels']) el(key).setAttribute('aria-checked', String(view[key]));
   }
   function updateDetail() {
-    const p = spec.params, t = model.telemetry(p, state);
+    const p = spec.params, t = program.telemetry(spec, state);
     const index = program.COMPONENTS.findIndex((row) => row.id === selected), part = program.COMPONENTS[index];
     el('part-number').textContent = `${String(index + 1).padStart(2, '0')} / ${part.role.toUpperCase()}`;
     el('part-title').textContent = part.label; el('part-badge').textContent = selected.toUpperCase();
@@ -149,10 +208,10 @@
     const small = document.createElement('small'); small.textContent = unit; el(id).replaceChildren(document.createTextNode(`${value} `), small);
   }
   function updateUi() {
-    const p = spec.params, t = model.telemetry(p, state);
-    metric('metric-solar', nf(t.pvW), 'W'); metric('metric-drive', nf(t.driveW), 'W'); metric('metric-rpm', nf(t.rpm), 'rpm'); metric('metric-battery', nf(t.batterySoc * 100, 1), '%');
+    const p = spec.params, t = program.telemetry(spec, state);
+    metric('metric-solar', nf(t.busW), 'W'); metric('metric-speed', nf(t.speedKph,1), 'km/h'); metric('metric-battery', nf(t.batterySoc * 100, 1), '%');
     el('solar-detail').textContent = `${nf(t.poa)} W/m2 on the collector`; el('speed-detail').textContent = `${nf(t.speedKph, 1)} km/h actual / ${nf(p.targetKph)} target`;
-    el('flywheel-detail').textContent = `${nf(t.flywheelUsableWh, 2)} Wh above minimum speed`; el('battery-detail').textContent = `${nf(state.batteryJ / 3600, 1)} / ${nf(p.batteryWh)} Wh remaining`;
+    el('battery-detail').textContent = `${nf(state.batteryJ / 3600, 1)} / ${nf(p.batteryWh)} Wh remaining`;
     el('clock').textContent = `${String(Math.floor(state.timeS / 60)).padStart(2, '0')}:${String(Math.floor(state.timeS % 60)).padStart(2, '0')}`;
     el('run-state').textContent = state.status === 'complete' ? 'CYCLE COMPLETE' : running ? state.status.toUpperCase().replaceAll('-', ' ') : state.step ? 'PAUSED' : 'READY';
     el('run').querySelector('span').textContent = running ? 'Pause' : state.status === 'complete' || (replayTarget !== null && state.step >= replayTarget) ? 'Replay' : state.step ? 'Resume' : 'Resume';
@@ -163,10 +222,10 @@
     const netWh = (state.batteryJ + state.flywheelJ - state.initialJ) / 3600;
     el('reserve-copy').textContent = !state.step ? 'Run the model to see whether sunlight covers motion and system losses.'
       : `${positive ? 'Reserves are increasing at this operating point.' : 'Motion and losses currently exceed available solar power.'} Net reserve change: ${signed(netWh, 2)} Wh. Repeated cycles and adverse weather still determine autonomy.`;
-    if(matchedState){const bt=model.telemetry(matchedParams,matchedState);const used=s=>(s.initialJ-s.batteryJ-s.flywheelJ)/3600;
-      el('part-effect').textContent=`${interventionLabel}: solar ${signed(t.pvW-bt.pvW)} W; reserve use ${signed(used(state)-used(matchedState),2)} Wh; distance ${signed(state.distanceM-matchedState.distanceM,1)} m versus the prior configuration at ${nf(state.timeS)} s. Both branches count initial stored energy.`;
+    if(matchedState){const bt=program.telemetry(matchedSpec,matchedState);const used=s=>(s.initialJ-s.batteryJ-s.flywheelJ)/3600;
+      el('part-effect').textContent=`${interventionLabel}: solar ${signed(t.busW-bt.busW)} W; reserve use ${signed(used(state)-used(matchedState),2)} Wh; distance ${signed(state.distanceM-matchedState.distanceM,1)} m versus the same ride without this change, from ${nf(comparisonStartS,1)} to ${nf(state.timeS,1)} s. Both branches count initial stored energy.`;
     }else el('part-effect').textContent='';
-    updateDetail(); updateChart();
+    updateRide(t); updateDetail(); updateChart();
   }
   function sample() {
     const bucket = Math.floor(state.timeS); if (bucket === lastSample) return; lastSample = bucket;
@@ -210,42 +269,43 @@
   }
   function advance(count) {
     if (!Number.isInteger(count) || count < 0 || count > 100000) throw new Error('solar_manual_step_budget_invalid');
-    for (let i = 0; i < count && state.status !== 'complete'; i += 1) { state = model.step(spec.params, state); if(matchedState) matchedState=model.step(matchedParams,matchedState); sample(); }
+    for (let i = 0; i < count && state.status !== 'complete'; i += 1) { applyReplayActions(); state = program.step(spec, state); if(matchedState) matchedState=program.step(matchedSpec,matchedState); sample(); }
     if (state.status === 'complete') running = false;
-    return state;
+    applyReplayActions();return state;
   }
   async function verifyReplay() {
     const wasRunning = running; running = false; scheduler.rebase();
     const epoch = ++generation, original = state, active = spec;
-    let candidate = model.initial(active.params), candidateBaseline=matchedParams?model.initial(matchedParams):null;
+    const candidate=program.execution(initialSpec,liveActions),candidateBaseline=matchedInitialSpec?program.execution(matchedInitialSpec,matchedActions):null;
     const recordedBaseline=matchedState;el('verify-replay').disabled = true;
     try {
       for (let i = 0; i < original.step; i += 1) {
-        candidate = model.step(active.params, candidate);if(candidateBaseline)candidateBaseline=model.step(matchedParams,candidateBaseline);
+        candidate.advance();if(candidateBaseline)candidateBaseline.advance();
         if (i % 800 === 0) { await new Promise((resolve) => setTimeout(resolve, 0)); if (epoch !== generation) return { status: 'cancelled' }; }
       }
-      const pass = world.canonicalJson(candidate) === world.canonicalJson(original) && (!candidateBaseline || world.canonicalJson(candidateBaseline)===world.canonicalJson(recordedBaseline));
+      const reproduced=candidate.snapshot();
+      const pass = world.canonicalJson(reproduced.state) === world.canonicalJson(original) && reproduced.worldSpec.contentHash===active.contentHash && (!candidateBaseline || world.canonicalJson(candidateBaseline.snapshot().state)===world.canonicalJson(recordedBaseline));
       document.body.dataset.replay = pass ? 'pass' : 'fail'; notify(pass ? `Replay matches every state field across ${original.step} fixed steps.` : 'Replay differs from the recorded state.');
       return { status: pass ? 'pass' : 'fail', stepCount: original.step, worldSpecHash: active.contentHash };
     } finally { if (epoch === generation) running = wasRunning; el('verify-replay').disabled = false; updateUi(); }
   }
   function replay() {
     const target = state.step || Math.ceil(spec.params.durationS / spec.params.stepS);
-    const baseline = matchedSpec, label = interventionLabel;
-    apply(spec); matchedSpec = baseline; matchedParams = baseline?.params || null;
-    matchedState = matchedParams ? model.initial(matchedParams) : null; interventionLabel = label;
+    const baseline=matchedInitialSpec,label=interventionLabel,actions=structuredClone(liveActions),baselineActions=structuredClone(matchedActions),start=comparisonStartS;
+    const beginning=structuredClone(initialSpec);apply(beginning);replayActions=actions;matchedInitialSpec=baseline;matchedSpec=baseline;matchedParams=baseline?.params||null;matchedState=matchedParams?model.initial(matchedParams):null;matchedActions=baselineActions;matchedReplayActions=structuredClone(baselineActions);comparisonStartS=start;interventionLabel=label;applyReplayActions();
     replayTarget = target; running = true; scheduler.reset(); updateUi();
     notify('Replaying the accepted run from the beginning.');
   }
   async function compare() {
     const epoch = generation, active = spec;
     const count = Math.min(Math.ceil(active.params.durationS / active.params.stepS), Math.max(state.step, Math.round(300 / active.params.stepS)));
-    const hybridP = { ...active.params, flywheel: true }, batteryP = { ...active.params, flywheel: false };
+    const hybridSpec=active.params.flywheel?active:program.edit(active,{flywheel:true}),batterySpec=!active.params.flywheel?active:program.edit(active,{flywheel:false});
+    const hybridP=hybridSpec.params,batteryP=batterySpec.params;
     let hybrid = model.initial(hybridP), battery = model.initial(batteryP);
     el('compare').disabled = true; el('comparison-result').textContent = 'Running both configurations against identical conditions...';
     try {
       for (let i = 0; i < count; i += 1) {
-        hybrid = model.step(hybridP, hybrid); battery = model.step(batteryP, battery);
+        hybrid = program.step(hybridSpec, hybrid); battery = program.step(batterySpec, battery);
         if (i % 500 === 0) { await new Promise((resolve) => setTimeout(resolve, 0)); if (epoch !== generation) return { status: 'cancelled' }; }
       }
       const net = (s) => (s.initialJ - s.batteryJ - s.flywheelJ) / 3600;
@@ -261,22 +321,34 @@
     const url = URL.createObjectURL(new Blob([typeof value === 'string' ? value : JSON.stringify(value, null, 2)], { type: 'application/json' }));
     const link = document.createElement('a'); link.href = url; link.download = name; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-  function exportData() { return { worldSpec: structuredClone(spec), run: program.receipt(spec, state, drawing?.receipt() || null), samples: structuredClone(history), matchedComparison:matchedSpec?{schema:'simulatte.solarDriveIntervention.v1',baselineWorldSpec:structuredClone(matchedSpec),baselineRun:program.receipt(matchedSpec,matchedState,null),interventionWorldSpecHash:spec.contentHash,interval:{start:0,end:state.timeS,unit:'s'}}:null }; }
+  function exportData() { return { initialWorldSpec:structuredClone(initialSpec),actions:structuredClone(liveActions),worldSpec: structuredClone(spec), run: program.receipt(spec, state, drawing?.receipt() || null), samples: structuredClone(history), matchedComparison:matchedSpec?{schema:'simulatte.solarDriveIntervention.v1',baselineWorldSpec:structuredClone(matchedSpec),baselineInitialWorldSpec:structuredClone(matchedInitialSpec),baselineActions:structuredClone(matchedActions),baselineRun:program.receipt(matchedSpec,matchedState,null),interventionWorldSpecHash:spec.contentHash,interval:{start:comparisonStartS,end:state.timeS,unit:'s'}}:null }; }
   function importSpec(text) {
     if (typeof text !== 'string' || text.length > 2000000) throw new Error('solar_import_size_invalid');
-    const parsed = JSON.parse(text); return apply(program.validate(parsed.worldSpec || parsed), 'Imported WorldSpec; run from its initial state.');
+    const parsed=JSON.parse(text),finalSpec=program.validate(parsed.worldSpec||parsed);
+    if(!parsed.initialWorldSpec)return apply(finalSpec,'Imported WorldSpec; run from its initial state.');
+    const plan=program.execution(parsed.initialWorldSpec,parsed.actions||[]);
+    if(plan.finalSpec().contentHash!==finalSpec.contentHash)throw Error('solar_import_action_identity_mismatch');
+    let base=null;
+    if(parsed.matchedComparison){const base=parsed.matchedComparison,baseline=program.execution(base.baselineInitialWorldSpec,base.baselineActions);
+      if(baseline.finalSpec().contentHash!==program.validate(base.baselineWorldSpec).contentHash)throw Error('solar_import_baseline_identity_mismatch');
+      if(!Number.isFinite(base.interval?.start)||base.interval.start<0)throw Error('solar_import_interval_invalid');
+    }
+    base=parsed.matchedComparison;
+    apply(parsed.initialWorldSpec);replayActions=structuredClone(parsed.actions||[]);
+    if(base){matchedInitialSpec=structuredClone(base.baselineInitialWorldSpec);matchedSpec=structuredClone(matchedInitialSpec);matchedParams=matchedSpec.params;matchedState=model.initial(matchedParams);matchedActions=structuredClone(base.baselineActions||[]);matchedReplayActions=structuredClone(matchedActions);comparisonStartS=base.interval.start;interventionLabel='Imported panel intervention';}
+    applyReplayActions();updateUi();return structuredClone(spec);
   }
   function loop(now) {
     if (disposed) return;
     const delta = lastTime ? Math.max(0, (now - lastTime) / 1000) : 0; lastTime = now;
-    scheduler.frame(now, { running, visible: !document.hidden, speed: Number(el('playback').value), advance: () => {
+    try { scheduler.frame(now, { running, visible: !document.hidden, speed: Number(el('playback').value), advance: () => {
       if (state.status === 'complete' || (replayTarget !== null && state.step >= replayTarget)) { running = false; return false; }
       advance(1); return true;
-    } });
+    } }); } catch(error) { failure(error);return; }
     el('playback-health').textContent = `${Number(el('playback').value)} simulated seconds / real second` + (scheduler.snapshot().slowerPlayback ? ' · Slower playback: computing every fixed step.' : '');
     const ease = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 1 - Math.exp(-delta * 10);
     view.explode += (view.targetExplode - view.explode) * ease;
-    currentFrame = scene.frame(state, view);
+    try {currentFrame=renderFrame();}catch(error){failure(error);return;}
     if (cameraGoal) {
       for (const key of ['yaw', 'pitch', 'distance']) camera[key] += (cameraGoal[key] - camera[key]) * ease;
       camera.target = camera.target.map((v, i) => v + (cameraGoal.target[i] - v) * ease);
@@ -300,12 +372,13 @@
     });
   });
   on(el('run'), 'click', () => { if (state.status === 'complete' || (replayTarget !== null && state.step >= replayTarget)) { replay(); return; } running = !running; scheduler.rebase(); updateUi(); });
-  on(el('reset'), 'click', () => apply(spec));
+  on(el('reset'), 'click', () => apply(initialSpec));
   on(el('replay'), 'click', replay);
   on(el('verify-replay'), 'click', () => void verifyReplay().catch(error => notify(error.message)));
   on(el('focus-selection'), 'click', focusSelection);
   on(el('compare'), 'click', () => void compare().catch((error) => { el('comparison-result').textContent = error.message; }));
   on(el('export'), 'click', () => download(exportData(), 'solar-drive-run.json'));
+  on(el('ride'),'click',()=>setMode('ride')); on(el('inspect'),'click',()=>setMode('inspect')); on(el('shade-panel'),'click',shadePanel);
   on(el('assembled'), 'click', () => { setView({ explode: 0 }); resetCamera(); });
   on(el('exploded'), 'click', () => { setView({ explode: 0.88 }); resetCamera(); });
   for (const key of ['cutaway', 'fields', 'flows', 'labels']) on(el(key), 'click', () => setView({ [key]: !view[key] }));
@@ -344,7 +417,7 @@
     const rect = canvas.getBoundingClientRect(), x = event.clientX - rect.left, y = event.clientY - rect.top;
     let picked = null, best = Infinity;
     for (const item of currentFrame.instances) {
-      if (item.group === 'ground') continue;
+      if (!program.COMPONENTS.some(part=>part.id===item.group)) continue;
       const point = drawing.project([item.matrix[12], item.matrix[13], item.matrix[14]]); if (!point) continue;
       const distance = Math.hypot(point.x - x, point.y - y), score = distance + point.z * 4;
       if (distance < 22 && score < best) { best = score; picked = item.group; }
@@ -369,8 +442,8 @@
   on(root, 'pagehide', (event) => { if (!event.persisted) dispose(); });
   root.SimulatteSolarDrive = Object.freeze({ getSpec: () => structuredClone(spec), getState: () => structuredClone(state),
     getReceipt: () => program.receipt(spec, state, drawing?.receipt() || null), exportData, importSpec,
-    setParameters, setVehicle, setView, select, replay, verifyReplay, compare, focus: focusSelection, resetCamera,
-    snapshot: () => ({ camera: structuredClone(camera), selected, running, playback: scheduler.snapshot(), frame: currentFrame && {anchors:currentFrame.anchors},
+    setParameters, setVehicle, setView, setMode, shadePanel, select, replay, verifyReplay, compare, focus: focusSelection, resetCamera,
+    snapshot: () => ({ mode:view.mode, viewState:structuredClone(view), route:program.environment(spec,state), actions:structuredClone(liveActions), camera: structuredClone(camera), selected, running, playback: scheduler.snapshot(), frame: currentFrame && {anchors:currentFrame.anchors},
       view: {width:canvas.clientWidth,height:canvas.clientHeight,insets:{top:90,bottom:58},points:currentFrame&&drawing?geometryPoints(selected,currentFrame).map(point=>drawing.project(point)):[]} }),
     getMatchedState:()=>matchedState?{params:structuredClone(matchedParams),state:structuredClone(matchedState)}:null,
     isViewSettled: () => Math.abs(view.explode - view.targetExplode) < 0.002 && !cameraGoal,
@@ -380,4 +453,4 @@
     drawing = renderer; el('gpu-message').hidden = true; el('gpu-status').dataset.state = 'ready';
     el('gpu-status').innerHTML = '<i></i>WebGPU / live'; el('run').disabled = false; running=true;updateUi(); raf = requestAnimationFrame(loop);
   }).catch(failure);
-})(globalThis);
+})(globalThis).catch(error=>{document.body.dataset.runtimeError=error.message;document.getElementById('gpu-status').textContent='Ride unavailable';const panel=document.getElementById('gpu-message');panel.hidden=false;panel.textContent=error.message;});

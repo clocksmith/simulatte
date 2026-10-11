@@ -451,7 +451,8 @@
     return pointSunStateDetailed(point, buildings, sun, options).state;
   }
 
-  function pointSunStateDetailed(point, buildings, sun, { minimumSolarElevationDegrees = DEFAULT_MINIMUM_SOLAR_ELEVATION_DEGREES } = {}) {
+  function pointSunStateDetailed(point, buildings, sun, { minimumSolarElevationDegrees = DEFAULT_MINIMUM_SOLAR_ELEVATION_DEGREES, receiverHeightM = 0 } = {}) {
+    if (!Number.isFinite(receiverHeightM)) throw exposureError('sun_receiver_height_invalid', String(receiverHeightM));
     if (sun.elevationDegrees <= 0) return stateResult('night', 'sun_below_horizon');
     if (sun.elevationDegrees < minimumSolarElevationDegrees) {
       return stateResult('unknown', 'solar_elevation_below_bounded_floor');
@@ -467,12 +468,14 @@
     let candidateBuildingChecks = 0;
     for (const building of candidates) {
       candidateBuildingChecks += 1;
-      const maximumShadowM = (building.heightM || UNKNOWN_BUILDING_HEIGHT_M) / Math.tan(elevation);
+      const relativeRoofM = (building.heightM || UNKNOWN_BUILDING_HEIGHT_M) - receiverHeightM;
+      if (relativeRoofM <= 0) continue;
+      const maximumShadowM = relativeRoofM / Math.tan(elevation);
       if (!rayMayReachBounds(point, direction, maximumShadowM, building.bounds)) continue;
       const distanceM = raySolidEntryDistance(point, direction, building, maximumShadowM);
       if (distanceM === null || distanceM > maximumShadowM) continue;
       if (building.heightState === 'unknown') unknownIntersected = true;
-      else if (building.heightM > distanceM * Math.tan(elevation)) {
+      else if (relativeRoofM > distanceM * Math.tan(elevation)) {
         return stateResult('shade', 'building_occlusion', candidateBuildingChecks, maximumShadowQueryM, building.id);
       }
     }

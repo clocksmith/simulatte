@@ -113,3 +113,71 @@ test('unsupported execution declarations refuse and receipts detach their state'
   const receipt = program.receipt(spec, state); receipt.state.ledger.incidentJ = -1;
   assert.ok(state.ledger.incidentJ > 0);
 });
+
+test('identified ride binds published reference sizes and refuses missing or changed route evidence', () => {
+  const spec=program.createRide(),data=require('../public/data/solar-drive/union-square-route-v1.json');
+  assert.equal(spec.params.flywheel,false);assert.equal(spec.params.batteryWh,1080);
+  near(spec.params.panelArea*spec.params.pvEfficiency*1000,500);
+  near(model.properties(spec.params).massKg-spec.params.riderKg,60);
+  assert.equal(spec.contract.route.contentHash,data.contentHash);
+  assert.throws(()=>model.step(spec.params,model.initial(spec.params)),/environment_missing/);
+  const bad=structuredClone(spec);bad.contract.route.contentHash='wrong';
+  assert.throws(()=>program.validate(world.finalizeWorldSpec(bad)),/reference_unavailable/);
+  assert.throws(()=>program.edit(spec,{grade:1}),/grade_offset_unsupported/);
+});
+
+test('route handles a full ten-second stop, building shade and arrival while conserving energy', () => {
+  const spec=program.createRide();let state=model.initial(spec.params),stopSteps=0,shadedSteps=0;
+  const initialEnv=program.environment(spec,state);assert.equal(initialEnv.samples.length,9);
+  for(let i=0;i<12000&&state.status!=='complete';i++){
+    state=program.step(spec,state);const env=program.environment(spec,state);
+    stopSteps+=state.routeDwellS>0;shadedSteps+=env.directFraction<1;
+    near(state.residualJ,0);assert.ok(state.batteryJ>=0);
+    if(state.routeDwellS>0)assert.ok(state.speedMs<.08);
+    assert.equal(Date.parse(env.timestamp),Date.parse(initialEnv.timestamp)+Math.round(state.timeS*1000));
+  }
+  assert.equal(state.status,'complete');assert.equal(stopSteps,200);assert.ok(shadedSteps>100);
+  assert.ok(Math.abs(state.distanceM-program.routeFor(spec).lengthM)<=.5);
+  assert.ok(state.ledger.electricalLoadJ>0);assert.ok(state.ledger.electricalLoadJ>state.ledger.tractionJ);
+  const reference=program.referenceComparison(spec,state);assert.equal(reference.evaluationCount,28);
+  assert.equal(reference.calibration,'not-performed');assert.ok(reference.modeledElectricalWhKm>0);
+});
+
+test('route timestep refinement preserves travel, battery use and stop duration', () => {
+  const a=program.createRide(),b=program.edit(a,{stepS:.025});
+  function ride(spec){let s=model.initial(spec.params);for(let i=0;i<24000&&s.status!=='complete';i++)s=program.step(spec,s);return s;}
+  const coarse=ride(a),fine=ride(b);assert.equal(fine.status,'complete');
+  near(coarse.distanceM,fine.distanceM,.5);near(coarse.timeS,fine.timeS,.5);
+  assert.ok(Math.abs(coarse.batteryJ-fine.batteryJ)<100);
+});
+
+test('recorded mid-ride panel actions reproduce state, authored identity and counterfactual power', () => {
+  const initial=program.createRide();let state=model.initial(initial.params);
+  for(let i=0;i<300;i++)state=program.step(initial,state);
+  const beginning=structuredClone(state),shaded=program.edit(initial,{shade:.65});
+  assert.equal(program.telemetry(shaded,state).busW<program.telemetry(initial,state).busW*.4,true);
+  let baseline=structuredClone(beginning);
+  for(let i=0;i<1200;i++){state=program.step(shaded,state);baseline=program.step(initial,baseline);}
+  assert.ok(state.batteryJ<baseline.batteryJ);near(state.timeS,baseline.timeS);
+  const plan=program.execution(initial,[{step:300,changes:{shade:.65}}]);
+  for(let i=0;i<state.step;i++)plan.advance();
+  assert.deepEqual(plan.snapshot().state,state);assert.equal(plan.snapshot().worldSpec.contentHash,shaded.contentHash);
+  assert.throws(()=>program.execution(initial,[{step:1,changes:{batterySoc:1}}]),/action_invalid/);
+  const restored=program.validate(JSON.parse(world.serializeWorldSpec(shaded)));assert.equal(restored.contentHash,shaded.contentHash);
+});
+
+test('previous bench WorldSpecs retain their identity and numeric parameters', () => {
+  const prior=program.create();prior.modules[0].id='solar-longitudinal-1.0.0';prior.modules[0].version='1.0.0';
+  prior.dependencies.assets[0].id='solar-longitudinal-1.0.0';prior.source.compilerConfig.adapter='solar-longitudinal-1.0.0';
+  const legacy=world.finalizeWorldSpec(prior);assert.equal(program.validate(legacy).contentHash,legacy.contentHash);
+  assert.deepEqual(program.step(legacy,model.initial(legacy.params)),model.step(legacy.params,model.initial(legacy.params)));
+});
+
+test('panel receiver height changes occlusion without changing pedestrian ground results', () => {
+  const exposure=require('../public/shared/plugins/sun-walker/sun-exposure.js');
+  const buildings=[{id:'low',heightM:1, heightState:'known',footprint:[{x:-1,y:1},{x:1,y:1},{x:1,y:2},{x:-1,y:2},{x:-1,y:1}]}];
+  const sun={azimuthDegrees:0,elevationDegrees:30};
+  assert.equal(exposure.pointSunState({x:0,y:0},buildings,sun),'shade');
+  assert.equal(exposure.pointSunStateDetailed({x:0,y:0},buildings,sun,{receiverHeightM:2}).state,'direct');
+  assert.throws(()=>exposure.pointSunStateDetailed({x:0,y:0},buildings,sun,{receiverHeightM:NaN}),/receiver_height_invalid/);
+});

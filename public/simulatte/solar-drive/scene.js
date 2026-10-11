@@ -232,6 +232,8 @@
         ['flywheel', 'controller', state.flows.flywheelW, M.copper],
         ['controller', 'motor', state.flows.driveW - state.flows.regenW, M.flow],
       ];
+      if(p.shade>0&&p.panelArea>0)addInstance('box',g.multiply(groupMatrices.solar,
+        g.matrix([(-length+p.shade*length)/2,.065,0],[length*p.shade,.025,width])),M.dark,'solar');
       for (const [from, to, watts, material] of flows) {
         if (from === 'flywheel' && !p.flywheel || from === 'solar' && !p.panelArea) continue;
         const a = positions[from], b = positions[to];

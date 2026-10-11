@@ -102,21 +102,34 @@ try {
     await waitFor(`(() => { if (document.body?.dataset.runtimeError) throw new Error(document.body.dataset.runtimeError); return !!globalThis.SimulatteSolarDrive && SimulatteSolarDrive.getReceipt().evidence.renderer?.completedFrames >= 2; })()`);
     check(await evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), `${name}: horizontal overflow`);
     check(await evaluate('Number(document.getElementById("scene").dataset.instanceCount) > 300'), `${name}: assembly missing`);
+    check(await evaluate('SimulatteSolarDrive.snapshot().mode==="ride" && SimulatteSolarDrive.snapshot().viewState.targetExplode===0 && !SimulatteSolarDrive.snapshot().viewState.cutaway && SimulatteSolarDrive.getSpec().params.route==="identified" && !SimulatteSolarDrive.getSpec().params.flywheel'),`${name}: assembled route opening missing`);
     await evaluate('SimulatteSolarDrive.runSteps(1200)');
     check(await evaluate('Math.abs(SimulatteSolarDrive.getState().residualJ) < 0.001'), `${name}: energy ledger failed`);
     const frames = await evaluate('SimulatteSolarDrive.getReceipt().evidence.renderer.completedFrames');
     await waitFor(`SimulatteSolarDrive.getReceipt().evidence.renderer.completedFrames > ${frames + 1}`);
-    await capture(`${name}-exploded`, width, height);
+    await capture(`${name}-ride`, width, height);
+    check(await evaluate('(()=>{const before=SimulatteSolarDrive.exportData(),hash=before.run.stateHash;SimulatteSolarDrive.setMode("inspect");const after=SimulatteSolarDrive.exportData();return after.run.stateHash===hash&&after.worldSpec.contentHash===before.worldSpec.contentHash;})()'),`${name}: Inspect changed execution`);
+    await capture(`${name}-exploded`,width,height);
+    check(await evaluate('(()=>{const before=SimulatteSolarDrive.getReceipt().stateHash;SimulatteSolarDrive.setMode("ride");return SimulatteSolarDrive.getReceipt().stateHash===before;})()'),`${name}: Ride changed execution`);
+    check(await evaluate('(()=>{const before=SimulatteSolarDrive.getState();document.getElementById("shade-panel").click();return SimulatteSolarDrive.getState().timeS===before.timeS&&SimulatteSolarDrive.getState().batteryJ===before.batteryJ&&SimulatteSolarDrive.snapshot().actions.length===1;})()'),`${name}: panel action restarted the ride`);
+    await evaluate('SimulatteSolarDrive.runSteps(300)');
+    await capture(`${name}-panel-cover`,width,height);
+    check(await evaluate('SimulatteSolarDrive.getState().batteryJ < SimulatteSolarDrive.getMatchedState().state.batteryJ'),`${name}: panel shade did not increase battery use`);
+    check((await evaluate('SimulatteSolarDrive.verifyReplay()')).status==='pass',`${name}: action replay failed`);
+    check(await evaluate('(()=>{const data=SimulatteSolarDrive.exportData();SimulatteSolarDrive.importSpec(JSON.stringify(data));SimulatteSolarDrive.runSteps(data.run.step);return SimulatteSolarDrive.getReceipt().stateHash===data.run.stateHash&&SimulatteSolarDrive.getSpec().contentHash===data.worldSpec.contentHash;})()'),`${name}: action export/reimport diverged`);
+    check(await evaluate('(()=>{const before=SimulatteSolarDrive.getReceipt().stateHash,copy=SimulatteSolarDrive.exportData();copy.actions[0].changes={batterySoc:1};try{SimulatteSolarDrive.importSpec(JSON.stringify(copy));return false;}catch(error){return SimulatteSolarDrive.getReceipt().stateHash===before;}})()'),`${name}: rejected import changed accepted state`);
+    await evaluate('SimulatteSolarDrive.setParameters({shade:0});SimulatteSolarDrive.runSteps(1200)');
     const replay = await evaluate('SimulatteSolarDrive.verifyReplay()'); check(replay.status === 'pass', `${name}: replay failed`);
     const sun = await evaluate('SimulatteSolarDrive.getState().flows.pvW');
+    const revision=await evaluate('SimulatteSolarDrive.getSpec().authorship.revision');
     await evaluate('document.getElementById("shade").value = "0.9"; document.getElementById("shade").dispatchEvent(new Event("change", { bubbles: true })); SimulatteSolarDrive.runSteps(1200)');
-    check(await evaluate(`SimulatteSolarDrive.getState().flows.pvW < ${sun * 0.2} && SimulatteSolarDrive.getSpec().authorship.revision === 1`), `${name}: shade edit had no effect`);
+    check(await evaluate(`SimulatteSolarDrive.getState().flows.pvW < ${sun * 0.2} && SimulatteSolarDrive.getSpec().params.shade===0.9 && SimulatteSolarDrive.getSpec().authorship.revision === ${revision+1}`), `${name}: shade edit had no effect`);
     check(await evaluate('(() => { const data = SimulatteSolarDrive.exportData(); SimulatteSolarDrive.importSpec(JSON.stringify(data)); return data.worldSpec.contentHash === SimulatteSolarDrive.getSpec().contentHash && SimulatteSolarDrive.getState().step === 0; })()'), `${name}: export/import failed`);
     await evaluate('SimulatteSolarDrive.setParameters({shade: 0}); document.getElementById("assembled").click(); SimulatteSolarDrive.runSteps(1200)');
     await delay(1200);
     await capture(`${name}-assembled`, width, height);
     if (name === 'desktop') {
-      await evaluate('document.getElementById("exploded").click(); document.getElementById("fields").click(); document.querySelector(".component-row[data-component=flywheel]").click()');
+      await evaluate('SimulatteSolarDrive.setMode("inspect"); SimulatteSolarDrive.setParameters({flywheel:true});document.getElementById("exploded").click(); document.getElementById("fields").click(); document.querySelector(".component-row[data-component=flywheel]").click()');
       await delay(1300); await capture('flywheel-detail', width, height);
       for (const vehicle of ['scooter', 'car']) {
         await evaluate(`document.querySelector('[data-vehicle="${vehicle}"]').click(); SimulatteSolarDrive.runSteps(1200)`);
@@ -134,7 +147,7 @@ try {
   }
   const exceptions = client.diagnostics().filter((e) => e.method === 'Runtime.exceptionThrown' || e.method === 'Log.entryAdded' && e.params.entry?.level === 'error');
   check(exceptions.length === 0, JSON.stringify(exceptions));
-  for (const file of ['public/shared/core/simulation/solar-drive.js', ...['program.js', 'geometry.js', 'shaders.js', 'scene.js', 'renderer.js', 'app.js', 'index.html', 'solar-drive.css'].map((f) => `public/simulatte/solar-drive/${f}`)]) {
+  for (const file of ['public/shared/core/simulation/solar-drive.js','public/shared/plugins/sun-walker/sun-exposure.js','public/data/solar-drive/union-square-route-v1.json','public/data/solar-drive/published-ride-reference-v1.json', ...['program.js', 'geometry.js', 'shaders.js', 'scene.js', 'route.js','route-scene.js','renderer.js', 'app.js', 'index.html', 'solar-drive.css'].map((f) => `public/simulatte/solar-drive/${f}`)]) {
     receipt.sourceHashes[file] = sha(await fs.readFile(path.join(ROOT, file)));
   }
   receipt.status = 'pass';

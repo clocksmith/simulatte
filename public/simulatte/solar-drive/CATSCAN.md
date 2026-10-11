@@ -1,53 +1,53 @@
-# CATSCAN: Solar drive instance
+# CATSCAN: Solar Drive
 
 Parent: [World](../CATSCAN.md)
 
 ## Target
 
-Let people inspect, edit, run, replay, and export a solar vehicle WorldSpec with
-an interactive WebGPU component assembly and an explicit energy balance.
+Ride an identified route, inspect the solar vehicle and compare exposure changes.
 
 ## Authority
 
-- Owns the solar vehicle instance, engineering presets, scene assembly, and controls.
-- The shared longitudinal solver owns state evolution; drawing consumes that state.
-- Uses the public WorldSpec authoring, validation, identity, and edit contracts.
-- Does not own shared schema policy, hardware certification, or the profile chooser.
+- Owns vehicle presets, controls, assembly, route adaptation and recorded interventions.
+- The [longitudinal solver](../../shared/core/simulation/solar-drive.js) owns dynamics.
+- [WorldSpec](../../shared/contracts/world-spec.js) owns authoring and identity.
+- Does not own schema policy, hardware certification or catalog activation.
 
 ## Scope
 
-- `public/simulatte/solar-drive/`, served directly at `/simulatte/solar-drive/`.
+`public/simulatte/solar-drive/`.
 
 ## Contracts
 
-- Input: [WorldSpec](../../shared/contracts/world-spec.js).
-- Input: [longitudinal model](../../shared/core/simulation/solar-drive.js).
-- Output: [instance entrypoint](index.html), [program adapter](program.js).
-- Output: [scene assembly](scene.js), [WebGPU renderer](renderer.js).
+- Input: [route](../../data/solar-drive/union-square-route-v1.json) and [published rides](../../data/solar-drive/published-ride-reference-v1.json).
+- Input: [route builder](../../../tools/simulatte/build-solar-route.mjs), [reference builder](../../../tools/simulatte/build-solar-reference.py).
+- Output: [program](program.js), [panel-plane adapter](route.js).
+- Output: [entrypoint](index.html), [assembly](scene.js), [route scene](route-scene.js), [renderer](renderer.js).
 
 ## Invariants
 
-- Selection through scene, list, or keyboard preserves the camera. Focus fits declared geometry; Restart preserves playback preference, and visible Replay is separate from Verify replay.
-
-- Parameters describe hypothetical designs, not measured hardware or certified CAD.
-- Every run consumes a validated WorldSpec; accepted edits retain authorship.
-- Logical time advances in fixed steps. Camera, selection, and frame rate do not change physics.
-- Solar input, initial stored energy, gravity, conversion losses, and braking remain separately accounted.
-- Magnetic fields and slowed rotor animation explain components, not electromagnetic field solutions.
-- GPU readiness requires successful device and pipeline creation; no hidden rendering fallback.
-- Model checks, completed GPU execution, and human visual review remain distinct evidence.
+- Runs consume validated WorldSpecs; edits preserve authorship.
+- Fixed steps govern time. Cameras and rendering never change physics.
+- Selection preserves camera; Focus fits geometry. Restart preserves playback preference.
+- Replay executes recorded actions; Verify replay checks reproduction.
+- Ride opens assembled without the experimental flywheel. Ride/Inspect preserves execution, selection and comparisons.
+- Panel interventions fork prior state and retain logical steps for replay.
+- Panel-plane rays use the shared Sun Walker geometry, not pedestrian shade percentages.
+- Street/building/DEM inputs identify geometry. Weather, stop timing and efficiencies remain assumptions.
+- Published touring sizes and measurements provide approximate context, not calibrated accuracy or certified CAD.
+- Solar input, initial reserves, gravity, losses and braking remain separately accounted.
+- Fields and slowed rotors illustrate components, not solved electromagnetics.
+- GPU readiness requires device and pipeline creation; no hidden fallback.
+- Numerical, GPU, empirical and human evidence remain separate.
 
 ## Acceptance
 
-- Evidence: [energy and replay tests](../../../tests/solar-drive.test.cjs).
-- Evidence: [desktop/mobile WebGPU audit](../../../tools/simulatte/audit-solar-drive.mjs).
-- Edit, replay, export, and reimport preserve declared program identity.
+- Evidence: [energy/replay tests](../../../tests/solar-drive.test.cjs) and [desktop/mobile audit](../../../tools/simulatte/audit-solar-drive.mjs) verify edit, comparison, replay and export/reimport identity.
 
 ## Non-goals
 
-- Rotor certification, electromagnetic finite element analysis, battery electrochemistry,
-  measured weather prediction, or unconditional perpetual operation.
+Hardware certification, battery electrochemistry, weather prediction or perpetual operation.
 
 ## Freedom
 
-Any implementation is permitted if it preserves these boundaries and passes the acceptance evidence.
+Any implementation is permitted within these contracts.

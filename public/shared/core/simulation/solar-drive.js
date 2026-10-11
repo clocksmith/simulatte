@@ -37,7 +37,7 @@
       }
     }
     if (!['bicycle', 'scooter', 'car'].includes(p.vehicle)) throw new Error('solar_vehicle_invalid');
-    if (!['flat', 'rolling', 'commute'].includes(p.route)) throw new Error('solar_route_invalid');
+    if (!['flat', 'rolling', 'commute', 'identified'].includes(p.route)) throw new Error('solar_route_invalid');
     if (typeof p.flywheel !== 'boolean') throw new Error('solar_flywheel_switch_invalid');
     if (p.cutoffC <= p.throttleC) throw new Error('solar_thermal_limits_invalid');
     return p;
@@ -55,18 +55,23 @@
     };
   }
 
-  function solar(p, timeS) {
+  function solar(p, timeS, environment = null) {
+    if (p.route === 'identified' && !environment) throw new Error('solar_route_environment_missing');
     const cloud = p.route === 'commute' ? clamp(p.cloud + 0.45 * Math.max(0, Math.sin(timeS / 37)), 0, 1) : p.cloud;
     const incidence = p.sunElevation === 0 ? 0 : 0.85 * Math.max(0, Math.sin(rad(p.sunElevation + p.tilt)))
       + 0.15 * (1 + Math.cos(rad(p.tilt))) / 2;
-    const poa = p.irradiance * incidence * (1 - cloud) * (1 - p.shade);
+    const panelIncidence = environment ? (1 - environment.diffuseFraction) * environment.incidence * environment.directFraction
+      + environment.diffuseFraction * environment.skyFactor : incidence;
+    const poa = p.irradiance * panelIncidence * (1 - cloud) * (1 - p.shade);
     const panelC = p.ambient + 25 * poa / 800 / (1 + 0.08 * p.wind);
     const incidentW = poa * p.panelArea;
     const electricalW = incidentW * clamp(p.pvEfficiency * (1 + p.pvTempCoeff * (panelC - 25)), 0, 1);
     return { poa, panelC, incidentW, electricalW, busW: electricalW * p.mpptEfficiency, cloud };
   }
 
-  function road(p, s) {
+  function road(p, s, environment = null) {
+    if (p.route === 'identified' && !environment) throw new Error('solar_route_environment_missing');
+    if (environment) return {grade:environment.grade,angle:Math.atan(environment.grade/100),target:environment.targetMs};
     const grade = p.grade + (p.route === 'rolling' ? 4 * Math.sin(s.distanceM * 2 * Math.PI / 800) : 0);
     const cycle = s.timeS % 100;
     const target = p.route === 'commute' && cycle >= 65 && cycle < 80 ? 0 : p.targetKph / 3.6;
@@ -90,7 +95,7 @@
       motorC: p.ambient, wheelAngle: 0, rotorAngle: 0,
       ledger: { incidentJ: 0, panelLossJ: 0, mpptLossJ: 0, auxiliaryJ: 0, parasiticJ: 0,
         storageLossJ: 0, motorLossJ: 0, rollingJ: 0, aeroJ: 0, frictionBrakeJ: 0,
-        curtailedJ: 0, regenJ: 0, tractionJ: 0 },
+        curtailedJ: 0, regenJ: 0, tractionJ: 0, electricalLoadJ: 0 },
       flows: { pvW: 0, driveW: 0, batteryW: 0, flywheelW: 0, regenW: 0, auxiliaryW: 0,
         curtailedW: 0, motorLossW: 0, reserveW: 0, unservedAuxW: 0 },
       status: 'ready', residualJ: 0,
@@ -106,17 +111,21 @@
 
   function losses(s) {
     return Object.entries(s.ledger).reduce((sum, [key, value]) =>
-      ['incidentJ', 'regenJ', 'tractionJ'].includes(key) ? sum : sum + value, 0);
+      ['incidentJ', 'regenJ', 'tractionJ', 'electricalLoadJ'].includes(key) ? sum : sum + value, 0);
   }
 
-  function step(p, previous) {
+  function step(p, previous, environment = null) {
+    if (environment) {
+      for (const key of ['incidence','directFraction','diffuseFraction','skyFactor']) if (!Number.isFinite(environment[key]) || environment[key]<0 || environment[key]>1) throw Error('solar_environment_invalid: '+key);
+      if (!Number.isFinite(environment.grade) || Math.abs(environment.grade)>20 || !Number.isFinite(environment.targetMs) || environment.targetMs<0 || environment.targetMs>130/3.6) throw Error('solar_environment_road_invalid');
+    }
     if (previous.timeS >= p.durationS - 1e-8) return previous;
     const dt = Math.min(p.stepS, p.durationS - previous.timeS);
     const q = properties(p);
     const s = { ...previous, ledger: { ...previous.ledger }, flows: {} };
     const l = s.ledger;
-    const sun = solar(p, s.timeS);
-    const terrain = road(p, s);
+    const sun = solar(p, s.timeS, environment);
+    const terrain = road(p, s, environment);
     const batteryBefore = s.batteryJ;
     const rotorBefore = s.flywheelJ;
     const speedFraction = q.rotorMaxJ > 0 ? Math.sqrt(s.flywheelJ / q.rotorMaxJ) : 0;
@@ -217,6 +226,7 @@
     const regenShaftJ = regenEta > 0 ? regenJ / regenEta : 0;
     const motorLossJ = driveBusJ - driveJ + regenShaftJ - regenJ;
     l.auxiliaryJ += auxJ;
+    l.electricalLoadJ += driveBusJ + auxJ;
     l.motorLossJ += motorLossJ;
     l.rollingJ += rollingForce * travel;
     l.aeroJ += aero(f.mid) * travel;
@@ -246,10 +256,10 @@
     return s;
   }
 
-  function telemetry(p, s) {
+  function telemetry(p, s, environment = null) {
     const q = properties(p);
     return {
-      ...q, ...s.flows, ...solar(p, s.timeS), ...road(p, s),
+      ...q, ...s.flows, ...solar(p, s.timeS, environment), ...road(p, s, environment),
       speedKph: s.speedMs * 3.6,
       batterySoc: q.batteryMaxJ ? s.batteryJ / q.batteryMaxJ : 0,
       flywheelFraction: q.rotorMaxJ ? Math.sqrt(s.flywheelJ / q.rotorMaxJ) : 0,

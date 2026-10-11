@@ -16,6 +16,8 @@ const definitions = [
   ['pipeline-jobs', 'public/data/pipeline-job-registry.json', 'shared-pipeline', 'npm run pipeline:matrix:sync', 'active', 'npm run pipeline:matrix:check'],
   ['folder-contract', 'docs/simulatte/folder-contract.json', 'repository-governance', 'npm run folder-contracts:update', 'active-generated-mirror', 'npm run folder-contracts:check'],
   ...['living-tissue','river-formation','crystal-foundry'].map(id=>[id+'-model-identity','public/data/field-experiments/'+id+'.json','field-experiments','npm run sync:field-models','active','npm run check:field-models']),
+  ['solar-ride-route','public/data/solar-drive/union-square-route-v1.json','solar-drive','npm run sync:solar-drive','active','npm run check:solar-drive-data'],
+  ['solar-ride-reference','public/data/solar-drive/published-ride-reference-v1.json','solar-drive','npm run sync:solar-drive','reference-context','npm run check:solar-drive-data'],
   ['us-major-cities', 'public/data/simulatte/cache/country/us-cities-v1.json', 'world-tiers', 'curated fixture', 'active-fixture', 'npm run check:artifacts'],
   ['solar-system-cache', 'public/data/simulatte/cache/space/solar-system.json', 'world-tiers', 'npm run simulatte:fetch:solar-system', 'inactive-empty-placeholder', 'npm run check:artifacts'],
 ];

@@ -13,7 +13,7 @@
   root.SimulatteSunWalkerV4 = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerV4(builder, shadowGeometry, exposureSummaryApi) {
   const PLUGIN_ID = 'sun-walker';
-  const MODEL_HASH = 'f9ce20c5bb7a9c1e834d1d2bde1b15a44c97777222b9ade8ca869a842664bf27';
+  const MODEL_HASH = '676cc5776c8d48b7c93ad64bb852ede601cfa9dd773650214972f078683c5acf';
 
   function createContribution({ simulation, step, world, mission = null, buildingReceipt, governanceReceipt, environmentReceipt }) {
     const buildings = builder.datasetRecord('world.buildings.v1', buildingReceipt, { coverage: simulation.dataReceipt.datasets[0].coverage });

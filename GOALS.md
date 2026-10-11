@@ -27,6 +27,15 @@ Creators need to understand the world they requested and make targeted changes w
 
 ## Current product milestone
 
+Pause further catalog expansion while deepening the strongest experiences. Solar
+Drive opens as an assembled vehicle operating on one identified NYC route, with
+Ride and Inspect views preserving execution and comparison state. Panel shading
+connects visible exposure, available solar power, and reserve use against an
+identified counterfactual. Reuse frozen street/building inputs and DEM elevation;
+evaluate the panel plane at the vehicle's position and timestamp. Published ride
+sizes and consumption provide approximate reference context; numerical checks,
+matched empirical validation and human observation remain separate qualifications.
+
 Keep the three established featured experiences understandable through interaction while developing the next experiences below. Their unfamiliar-user qualification remains required. Motorcycle highlights the sound paths changed at the observer; Sun Walker displays the accepted route and its actual time/exposure tradeoff against the shortest path; GPU shows how a slow rack holds up dependent racks. Each intervention connects affected objects, a measured change, and an identified comparison baseline. Preserve the numerical qualifications underneath. Observe unfamiliar people exploring without instructions, record whether they identify the activity, discover an action, and explain its consequence, and fix observed barriers. Automated browser checks do not substitute for these observations.
 
 ## Next experience development

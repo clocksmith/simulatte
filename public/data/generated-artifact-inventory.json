@@ -123,7 +123,7 @@
       ],
       "output": {
         "path": "docs/simulatte/folder-contract.json",
-        "sha256": "51871222a1e5e59f3e15d90bbc41b53e0b28a6c2c9264e0052f0c7991bfe0a8f"
+        "sha256": "c1cb9e470c852674f65eb9d94282d4b329ebb65d0eec2d97ba77a93e0d40ccaa"
       },
       "contentVersion": "unpopulated",
       "activationState": "active-generated-mirror",
@@ -182,6 +182,42 @@
       "contentVersion": "crystal-foundry",
       "activationState": "active",
       "validationCommand": "npm run check:field-models"
+    },
+    {
+      "artifactId": "solar-ride-route",
+      "owner": "solar-drive",
+      "schema": "simulatte.solarRideRoute.v1",
+      "generatorCommand": "npm run sync:solar-drive",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/solar-drive/union-square-route-v1.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/solar-drive/union-square-route-v1.json",
+        "sha256": "0e0a8ce0ad450dbaa251264e824213b77b8a6aade8f16ec48a5ebf3b5cce58ea"
+      },
+      "contentVersion": "union-square-washington-square-v1",
+      "activationState": "active",
+      "validationCommand": "npm run check:solar-drive-data"
+    },
+    {
+      "artifactId": "solar-ride-reference",
+      "owner": "solar-drive",
+      "schema": "simulatte.solarRideReference.v1",
+      "generatorCommand": "npm run sync:solar-drive",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/solar-drive/published-ride-reference-v1.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/solar-drive/published-ride-reference-v1.json",
+        "sha256": "bb94712396b3ea821d2e8f29dc404a311ce809c54873a9619640d7eb12150634"
+      },
+      "contentVersion": "sun-trip-stephane-bujadoux-2021",
+      "activationState": "reference-context",
+      "validationCommand": "npm run check:solar-drive-data"
     },
     {
       "artifactId": "us-major-cities",

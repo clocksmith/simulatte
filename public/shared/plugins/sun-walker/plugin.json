@@ -109,7 +109,7 @@
       "path": "./shade-router.js"
     },
     {
-      "integrity": "sha384-a9f065212c5a17977962630433b9ae5363168e09b1ecadd01a2e424adb00b5622e1af3bbe5e64c4bfc5ee4197ae4c1ad",
+      "integrity": "sha384-5f8ebee2c77e4c298840977e4b2b080d720edf247bbbf767cedf24c9a83ea5c45b53377170478a6b3f938fd88c33654c",
       "path": "./sun-exposure.js"
     },
     {
@@ -117,7 +117,7 @@
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-9a8db5b2a60eaa0d77452cb66438433a85f983148ec3bd565dfcf87bda6749e2b302506cfa30072db458db72e17879c3",
+      "integrity": "sha384-09f9a4ecfe6279a7629c17828db62ae6a708e8b4caa4722ebb6445487032a934703ea4fd6ca9640bea8fb784220347c5",
       "path": "./v4-contribution.js"
     }
   ],

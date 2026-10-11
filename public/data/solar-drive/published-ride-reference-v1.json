@@ -1,0 +1,665 @@
+{
+  "configuration": {
+    "batteryWh": 1080,
+    "form": "Recumbent bicycle and solar trailer",
+    "motor": "NineContinent FH212",
+    "panelRatedW": 500,
+    "unloadedVehicleKg": 60
+  },
+  "id": "sun-trip-stephane-bujadoux-2021",
+  "limits": [
+    "Different route, riding style, terrain, weather and vehicle geometry from the NYC simulation.",
+    "Daily aggregates do not provide a synchronized measured speed/power trajectory.",
+    "Reference size parameters are used approximately; efficiency, payload and aerodynamic parameters remain assumptions.",
+    "Numerical energy conservation is separate from empirical accuracy."
+  ],
+  "rows": [
+    {
+      "ascentM": 960.0,
+      "averageKph": 24.5593220338983,
+      "consumptionWh": 1060.0,
+      "consumptionWhKm": 10.9730848861284,
+      "date": "2021-06-08",
+      "distanceKm": 96.6,
+      "route": "Dijon - Belan-sur-Ource",
+      "solarWh": 655.0
+    },
+    {
+      "ascentM": 2030.0,
+      "averageKph": 26.693661971831,
+      "consumptionWh": 2965.0,
+      "consumptionWhKm": 11.7332805698457,
+      "date": "2021-06-09",
+      "distanceKm": 252.7,
+      "route": "Belan-sur-Ource - Douzy",
+      "solarWh": 2772.0
+    },
+    {
+      "ascentM": 2190.0,
+      "averageKph": 24.3368983957219,
+      "consumptionWh": 2010.0,
+      "consumptionWhKm": 13.2498352010547,
+      "date": "2021-06-10",
+      "distanceKm": 151.7,
+      "route": "Douzy (FR) - Jalhay (BE)",
+      "solarWh": 2503.0
+    },
+    {
+      "ascentM": 560.0,
+      "averageKph": 21.8964143426295,
+      "consumptionWh": 1199.0,
+      "consumptionWhKm": 13.089519650655,
+      "date": "2021-06-11",
+      "distanceKm": 91.6,
+      "route": "Jalhay (BE) - Oteppe (BE)",
+      "solarWh": 1400.0
+    },
+    {
+      "ascentM": 750.0,
+      "averageKph": 23.0987124463519,
+      "consumptionWh": 1121.0,
+      "consumptionWhKm": 12.4972129319955,
+      "date": "2021-06-12",
+      "distanceKm": 89.7,
+      "route": "Oteppe (BE) - Overijse (BE)",
+      "solarWh": 1267.0
+    },
+    {
+      "ascentM": 775.0,
+      "averageKph": 21.7241379310345,
+      "consumptionWh": 2420.0,
+      "consumptionWhKm": 12.8042328042328,
+      "date": "2021-06-16",
+      "distanceKm": 189.0,
+      "route": "Overijse (BE) - Bruxelles - Horst (NL)",
+      "solarWh": 1448.0
+    },
+    {
+      "ascentM": 500.0,
+      "averageKph": 22.8063943161634,
+      "consumptionWh": 1704.0,
+      "consumptionWhKm": 7.96261682242991,
+      "date": "2021-06-17",
+      "distanceKm": 214.0,
+      "route": "Horf (NL) - Bielefeld (DE)",
+      "solarWh": 2168.0
+    },
+    {
+      "ascentM": 725.0,
+      "averageKph": 24.3809523809524,
+      "consumptionWh": 1417.0,
+      "consumptionWhKm": 11.0703125,
+      "date": "2021-06-19",
+      "distanceKm": 128.0,
+      "route": "Bielefeld - Hildesheim (DE)",
+      "solarWh": 1087.0
+    },
+    {
+      "ascentM": 795.0,
+      "averageKph": 26.3478260869565,
+      "consumptionWh": 1484.0,
+      "consumptionWhKm": 9.7953795379538,
+      "date": "2021-06-20",
+      "distanceKm": 151.5,
+      "route": "Hildesheim - Magdeburg (DE)",
+      "solarWh": 1639.0
+    },
+    {
+      "ascentM": 430.0,
+      "averageKph": 27.7437325905292,
+      "consumptionWh": 1826.0,
+      "consumptionWhKm": 11.0,
+      "date": "2021-06-21",
+      "distanceKm": 166.0,
+      "route": "Magdeburg - Berlin (DE)",
+      "solarWh": 2060.0
+    },
+    {
+      "ascentM": 450.0,
+      "averageKph": 17.7216494845361,
+      "consumptionWh": 552.0,
+      "consumptionWhKm": 4.81675392670157,
+      "date": "2021-06-22",
+      "distanceKm": 114.6,
+      "route": "Berlin - Kostrzyn-nad-Odra (PL)",
+      "solarWh": 400.0
+    },
+    {
+      "ascentM": 1090.0,
+      "averageKph": 25.0496760259179,
+      "consumptionWh": 1676.0,
+      "consumptionWhKm": 8.67046042421107,
+      "date": "2021-06-23",
+      "distanceKm": 193.3,
+      "route": "Kostrzyn-nad-Odra - Krajenka (PL)",
+      "solarWh": 1523.0
+    },
+    {
+      "ascentM": 670.0,
+      "averageKph": 17.9253112033195,
+      "consumptionWh": 620.0,
+      "consumptionWhKm": 4.30555555555556,
+      "date": "2021-06-24",
+      "distanceKm": 144.0,
+      "route": "Krajenka - Mlynki (PL)",
+      "solarWh": 366.0
+    },
+    {
+      "ascentM": 850.0,
+      "averageKph": 22.5513307984791,
+      "consumptionWh": 1276.0,
+      "consumptionWhKm": 6.45422357106727,
+      "date": "2021-06-25",
+      "distanceKm": 197.7,
+      "route": "Mlynki - Lidzbark-Warminsky (PL)",
+      "solarWh": 1209.0
+    },
+    {
+      "ascentM": 680.0,
+      "averageKph": 22.0235294117647,
+      "consumptionWh": 1033.0,
+      "consumptionWhKm": 6.62179487179487,
+      "date": "2021-06-26",
+      "distanceKm": 156.0,
+      "route": "Lidzbark-Warminsky - Goldap (PL)",
+      "solarWh": 1528.0
+    },
+    {
+      "ascentM": 1080.0,
+      "averageKph": 27.9625292740047,
+      "consumptionWh": 2216.0,
+      "consumptionWhKm": 11.1356783919598,
+      "date": "2021-06-27",
+      "distanceKm": 199.0,
+      "route": "Gołdap (PL) - Kaunas (LT)",
+      "solarWh": 1930.0
+    },
+    {
+      "ascentM": 425.0,
+      "averageKph": 22.7560975609756,
+      "consumptionWh": 1187.0,
+      "consumptionWhKm": 9.54180064308682,
+      "date": "2021-06-28",
+      "distanceKm": 124.4,
+      "route": "Kaunas - Seduva (LT)",
+      "solarWh": 1188.5
+    },
+    {
+      "ascentM": 260.0,
+      "averageKph": 26.3174603174603,
+      "consumptionWh": 1857.0,
+      "consumptionWhKm": 11.2002412545235,
+      "date": "2021-06-29",
+      "distanceKm": 165.8,
+      "route": "Seduva (LT) - Riga (LV)",
+      "solarWh": 1883.0
+    },
+    {
+      "ascentM": 305.0,
+      "averageKph": 26.1007957559682,
+      "consumptionWh": 2123.0,
+      "consumptionWhKm": 12.9451219512195,
+      "date": "2021-06-30",
+      "distanceKm": 164.0,
+      "route": "Riga (LV) - Pasvalys (LT)",
+      "solarWh": 2067.0
+    },
+    {
+      "ascentM": 790.0,
+      "averageKph": 22.0718336483932,
+      "consumptionWh": 1954.0,
+      "consumptionWhKm": 10.0411099691675,
+      "date": "2021-07-01",
+      "distanceKm": 194.6,
+      "route": "Paslavys - Vilnius (LT)",
+      "solarWh": 1764.0
+    },
+    {
+      "ascentM": 1170.0,
+      "averageKph": 23.5485148514851,
+      "consumptionWh": 1630.0,
+      "consumptionWhKm": 8.22401614530777,
+      "date": "2021-07-02",
+      "distanceKm": 198.2,
+      "route": "Vilnius (LT) - Augustow (PL)",
+      "solarWh": 1437.0
+    },
+    {
+      "ascentM": 880.0,
+      "averageKph": 25.1180124223603,
+      "consumptionWh": 1814.0,
+      "consumptionWhKm": 8.97131552917903,
+      "date": "2021-07-03",
+      "distanceKm": 202.2,
+      "route": "Augustow - Białowieża (PL)",
+      "solarWh": 1949.0
+    },
+    {
+      "ascentM": 310.0,
+      "averageKph": 16.6463414634146,
+      "consumptionWh": 386.0,
+      "consumptionWhKm": 4.24175824175824,
+      "date": "2021-07-04",
+      "distanceKm": 91.0,
+      "route": "Białowieża - Siemiatycze (PL)",
+      "solarWh": 357.0
+    },
+    {
+      "ascentM": 425.0,
+      "averageKph": 23.0534351145038,
+      "consumptionWh": 1181.0,
+      "consumptionWhKm": 7.82119205298013,
+      "date": "2021-07-05",
+      "distanceKm": 151.0,
+      "route": "Siemiatycze - Lubartow (PL)",
+      "solarWh": 1464.0
+    },
+    {
+      "ascentM": 1180.0,
+      "averageKph": 29.4163424124514,
+      "consumptionWh": 2782.0,
+      "consumptionWhKm": 11.0396825396825,
+      "date": "2021-07-06",
+      "distanceKm": 252.0,
+      "route": "Lubartów - Rzeszów (PL)",
+      "solarWh": 2420.0
+    },
+    {
+      "ascentM": 1365.0,
+      "averageKph": 28.2745098039216,
+      "consumptionWh": 2285.0,
+      "consumptionWhKm": 10.5640314378178,
+      "date": "2021-07-07",
+      "distanceKm": 216.3,
+      "route": "Rzeszów (PL) - Michalovce (SK)",
+      "solarWh": 2382.0
+    },
+    {
+      "ascentM": 260.0,
+      "averageKph": 28.906329113924,
+      "consumptionWh": 2339.0,
+      "consumptionWhKm": 12.2911192853389,
+      "date": "2021-07-08",
+      "distanceKm": 190.3,
+      "route": "Michalovce (SK) - (HU) - Satu Mare (RO)",
+      "solarWh": 2373.0
+    },
+    {
+      "ascentM": 800.0,
+      "averageKph": 29.0649350649351,
+      "consumptionWh": 2173.0,
+      "consumptionWhKm": 14.5643431635389,
+      "date": "2021-07-09",
+      "distanceKm": 149.2,
+      "route": "Satu Mare - Dej (RO)",
+      "solarWh": 2376.0
+    },
+    {
+      "ascentM": 1045.0,
+      "averageKph": 25.92,
+      "consumptionWh": 1716.0,
+      "consumptionWhKm": 10.5925925925926,
+      "date": "2021-07-10",
+      "distanceKm": 162.0,
+      "route": "Dej - Cluj Napoca - Alba Iulia (RO)",
+      "solarWh": 1646.0
+    },
+    {
+      "ascentM": 1040.0,
+      "averageKph": 29.4252873563218,
+      "consumptionWh": 1771.0,
+      "consumptionWhKm": 13.8359375,
+      "date": "2021-07-12",
+      "distanceKm": 128.0,
+      "route": "Alba Iulia - Cârța (RO)",
+      "solarWh": 1092.0
+    },
+    {
+      "ascentM": 1210.0,
+      "averageKph": 27.7624703087886,
+      "consumptionWh": 2077.0,
+      "consumptionWhKm": 10.6622176591376,
+      "date": "2021-07-13",
+      "distanceKm": 194.8,
+      "route": "Cârța - Ploiești (RO)",
+      "solarWh": 2354.0
+    },
+    {
+      "ascentM": 380.0,
+      "averageKph": 27.5823095823096,
+      "consumptionWh": 2139.0,
+      "consumptionWhKm": 11.4323890967397,
+      "date": "2021-07-14",
+      "distanceKm": 187.1,
+      "route": "Ploiești - Ostrov (RO)",
+      "solarWh": 2465.0
+    },
+    {
+      "ascentM": 1220.0,
+      "averageKph": 30.1098901098901,
+      "consumptionWh": 2132.0,
+      "consumptionWhKm": 15.5620437956204,
+      "date": "2021-07-15",
+      "distanceKm": 137.0,
+      "route": "Ostrov - Constanta (RO)",
+      "solarWh": 2160.0
+    },
+    {
+      "ascentM": 1970.0,
+      "averageKph": 29.7035294117647,
+      "consumptionWh": 2713.0,
+      "consumptionWhKm": 12.8944866920152,
+      "date": "2021-07-16",
+      "distanceKm": 210.4,
+      "route": "Constanta (RO) - Tutrakan (BG)",
+      "solarWh": 2221.0
+    },
+    {
+      "ascentM": 1450.0,
+      "averageKph": 27.9716312056738,
+      "consumptionWh": 2144.0,
+      "consumptionWhKm": 10.8722109533469,
+      "date": "2021-07-17",
+      "distanceKm": 197.2,
+      "route": "Tutrakan - Totleben (BG)",
+      "solarWh": 2197.0
+    },
+    {
+      "ascentM": 1280.0,
+      "averageKph": 28.7647058823529,
+      "consumptionWh": 1916.0,
+      "consumptionWhKm": 11.7546012269939,
+      "date": "2021-07-18",
+      "distanceKm": 163.0,
+      "route": "Totleben - Montana (BG)",
+      "solarWh": 1936.0
+    },
+    {
+      "ascentM": 900.0,
+      "averageKph": 27.9522184300341,
+      "consumptionWh": 1669.0,
+      "consumptionWhKm": 12.2271062271062,
+      "date": "2021-07-19",
+      "distanceKm": 136.5,
+      "route": "Montana (BG) - Negotin (RS)",
+      "solarWh": 1706.0
+    },
+    {
+      "ascentM": 1310.0,
+      "averageKph": 22.7916666666667,
+      "consumptionWh": 1645.0,
+      "consumptionWhKm": 15.036563071298,
+      "date": "2021-07-20",
+      "distanceKm": 109.4,
+      "route": "Negotin - Globulac (RS)",
+      "solarWh": 1396.0
+    },
+    {
+      "ascentM": 305.0,
+      "averageKph": 22.9714285714286,
+      "consumptionWh": 1288.0,
+      "consumptionWhKm": 10.6799336650083,
+      "date": "2021-07-21",
+      "distanceKm": 120.6,
+      "route": "Globulac - Jabuka (RS)",
+      "solarWh": 1484.0
+    },
+    {
+      "ascentM": 280.0,
+      "averageKph": 25.4631379962193,
+      "consumptionWh": 2283.0,
+      "consumptionWhKm": 10.1692650334076,
+      "date": "2021-07-22",
+      "distanceKm": 224.5,
+      "route": "Jabuka (RS) - Osijek (HR)",
+      "solarWh": 2058.0
+    },
+    {
+      "ascentM": 260.0,
+      "averageKph": 27.2608695652174,
+      "consumptionWh": 1805.0,
+      "consumptionWhKm": 10.7954545454545,
+      "date": "2021-07-23",
+      "distanceKm": 167.2,
+      "route": "Osijek - Durdevac (HR)",
+      "solarWh": 1991.0
+    },
+    {
+      "ascentM": 915.0,
+      "averageKph": 26.0542797494781,
+      "consumptionWh": 2410.0,
+      "consumptionWhKm": 11.5865384615385,
+      "date": "2021-07-24",
+      "distanceKm": 208.0,
+      "route": "Durdevac (HR) - Vransko (SI)",
+      "solarWh": 2152.0
+    },
+    {
+      "ascentM": 360.0,
+      "averageKph": 26.8421052631579,
+      "consumptionWh": 913.0,
+      "consumptionWhKm": 17.9019607843137,
+      "date": "2021-07-25",
+      "distanceKm": 51.0,
+      "route": "Vransko - Ljubljana (SI)",
+      "solarWh": 1574.0
+    },
+    {
+      "ascentM": 990.0,
+      "averageKph": 26.0540540540541,
+      "consumptionWh": 1431.0,
+      "consumptionWhKm": 14.844398340249,
+      "date": "2021-07-26",
+      "distanceKm": 96.4,
+      "route": "Ljubljana - Gozd Martuljek (SI)",
+      "solarWh": 931.0
+    },
+    {
+      "ascentM": 810.0,
+      "averageKph": 21.3076923076923,
+      "consumptionWh": 830.0,
+      "consumptionWhKm": 7.49097472924188,
+      "date": "2021-07-27",
+      "distanceKm": 110.8,
+      "route": "Gozd Martuljek (SI) - Prato Carnico (IT)",
+      "solarWh": 863.0
+    },
+    {
+      "ascentM": 1900.0,
+      "averageKph": 18.9428571428571,
+      "consumptionWh": 1686.0,
+      "consumptionWhKm": 19.0723981900452,
+      "date": "2021-07-28",
+      "distanceKm": 88.4,
+      "route": "Prato Carnico - Cortina d'Ampezzo (IT)",
+      "solarWh": 1527.0
+    },
+    {
+      "ascentM": 1410.0,
+      "averageKph": 29.0438799076212,
+      "consumptionWh": 2516.0,
+      "consumptionWhKm": 12.0038167938931,
+      "date": "2021-07-29",
+      "distanceKm": 209.6,
+      "route": "Cortina d'Ampezzo - Naturno (IT)",
+      "solarWh": 2062.0
+    },
+    {
+      "ascentM": 1200.0,
+      "averageKph": 21.0833333333333,
+      "consumptionWh": 1018.0,
+      "consumptionWhKm": 20.1185770750988,
+      "date": "2021-07-30",
+      "distanceKm": 50.6,
+      "route": "Naturno - Trafoi (IT)",
+      "solarWh": 1857.0
+    },
+    {
+      "ascentM": 1250.0,
+      "averageKph": 22.583850931677,
+      "consumptionWh": 1093.0,
+      "consumptionWhKm": 18.036303630363,
+      "date": "2021-07-31",
+      "distanceKm": 60.6,
+      "route": "Trafoi - Passo Stelvio - Grossoto (IT)",
+      "solarWh": 771.0
+    },
+    {
+      "ascentM": 205.0,
+      "averageKph": 21.84,
+      "consumptionWh": 567.0,
+      "consumptionWhKm": 6.23076923076923,
+      "date": "2021-08-01",
+      "distanceKm": 91.0,
+      "route": "Grossoto - Sorico (Lac de Côme) (IT)",
+      "solarWh": 640.0
+    },
+    {
+      "ascentM": 1020.0,
+      "averageKph": 25.3311258278146,
+      "consumptionWh": 1589.0,
+      "consumptionWhKm": 12.4627450980392,
+      "date": "2021-08-02",
+      "distanceKm": 127.5,
+      "route": "Sorico (Lac de Côme) - Turbigo (IT)",
+      "solarWh": 1375.0
+    },
+    {
+      "ascentM": 225.0,
+      "averageKph": 25.9859154929577,
+      "consumptionWh": 997.0,
+      "consumptionWhKm": 8.10569105691057,
+      "date": "2021-08-03",
+      "distanceKm": 123.0,
+      "route": "Turbigo - Foglizzo (IT)",
+      "solarWh": 1127.0
+    },
+    {
+      "ascentM": 1520.0,
+      "averageKph": 18.2353697749196,
+      "consumptionWh": 1178.0,
+      "consumptionWhKm": 12.4629707998307,
+      "date": "2021-08-04",
+      "distanceKm": 94.52,
+      "route": "Foglizzo - Bar Cenisio (IT)",
+      "solarWh": 577.0
+    },
+    {
+      "ascentM": 1015.0,
+      "averageKph": 30.8790697674419,
+      "consumptionWh": 960.0,
+      "consumptionWhKm": 10.8450067781292,
+      "date": "2021-08-05",
+      "distanceKm": 88.52,
+      "route": "Bar Cenisio (IT) - St-Jean-de-Maurienne (FR)",
+      "solarWh": 1760.0
+    },
+    {
+      "ascentM": 630.0,
+      "averageKph": 26.756183745583,
+      "consumptionWh": 1743.0,
+      "consumptionWhKm": 13.811410459588,
+      "date": "2021-08-06",
+      "distanceKm": 126.2,
+      "route": "St-Jean-de-Maurienne - Cuzieu (FR)",
+      "solarWh": 1455.0
+    },
+    {
+      "ascentM": 555.0,
+      "averageKph": 20.7920792079208,
+      "consumptionWh": 692.0,
+      "consumptionWhKm": 6.59047619047619,
+      "date": "2021-08-07",
+      "distanceKm": 105.0,
+      "route": "Cuzieu - Lyon (FR)",
+      "solarWh": 194.0
+    },
+    {
+      "ascentM": 620.0,
+      "averageKph": 22.3636363636364,
+      "consumptionWh": 2550.0,
+      "consumptionWhKm": 12.4390243902439,
+      "date": "2021-08-08",
+      "distanceKm": 205.0,
+      "route": "Lyon – Dijon",
+      "solarWh": 1800.0
+    }
+  ],
+  "schema": "simulatte.solarRideReference.v1",
+  "source": {
+    "download": "https://www.thesuntrip.com/wp-content/uploads/2022/04/st2021-europe-stephanep-bujadoux.ods",
+    "sha256": "c93a04f366583488839459bfad2d867d3a165c397999244c956006d7fdb20301",
+    "status": "Published historical ride measurements; not independently remeasured",
+    "url": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/"
+  },
+  "split": {
+    "calibration": "None. No simulation parameter was fit to these measurements.",
+    "developmentDates": [
+      "2021-06-08",
+      "2021-06-10",
+      "2021-06-12",
+      "2021-06-17",
+      "2021-06-20",
+      "2021-06-22",
+      "2021-06-24",
+      "2021-06-26",
+      "2021-06-28",
+      "2021-06-30",
+      "2021-07-02",
+      "2021-07-04",
+      "2021-07-06",
+      "2021-07-08",
+      "2021-07-10",
+      "2021-07-13",
+      "2021-07-15",
+      "2021-07-17",
+      "2021-07-19",
+      "2021-07-21",
+      "2021-07-23",
+      "2021-07-25",
+      "2021-07-27",
+      "2021-07-29",
+      "2021-07-31",
+      "2021-08-02",
+      "2021-08-04",
+      "2021-08-06",
+      "2021-08-08"
+    ],
+    "evaluationDates": [
+      "2021-06-09",
+      "2021-06-11",
+      "2021-06-16",
+      "2021-06-19",
+      "2021-06-21",
+      "2021-06-23",
+      "2021-06-25",
+      "2021-06-27",
+      "2021-06-29",
+      "2021-07-01",
+      "2021-07-03",
+      "2021-07-05",
+      "2021-07-07",
+      "2021-07-09",
+      "2021-07-12",
+      "2021-07-14",
+      "2021-07-16",
+      "2021-07-18",
+      "2021-07-20",
+      "2021-07-22",
+      "2021-07-24",
+      "2021-07-26",
+      "2021-07-28",
+      "2021-07-30",
+      "2021-08-01",
+      "2021-08-03",
+      "2021-08-05",
+      "2021-08-07"
+    ]
+  },
+  "summary": {
+    "count": 57,
+    "maxWhKm": 20.1185770750988,
+    "medianWhKm": 11.0703125,
+    "minWhKm": 4.24175824175824
+  }
+}
