@@ -45,8 +45,7 @@ or proof that a mission is feasible.
 ## What does the user see?
 
 - Initial view: Solar System bodies and pinned reference paths in heliocentric coordinates.
-- During playback: A bounded family of candidate paths appears during search, the selected Lambert solution is verified, and a spacecraft follows the independently propagated trajectory to its endpoint residual.
-- Primary readouts show flight time, combined departure/arrival velocity change, and elapsed modeled flight. The inspector distinguishes search, selected plan, screening verification, and coast. Faint reference paths retain planetary context; the violet accepted path and amber alternative remain separate. Velocity change is not fuel mass, and screening verification is not navigation qualification.
+- During playback: A bounded family of candidate paths appears during search, the selected Lambert solution is verified, and a spacecraft follows the independently propagated trajectory to its endpoint residual. Primary readouts show flight time, combined departure/arrival velocity change, and elapsed modeled flight. The inspector distinguishes search, selected plan, screening verification, and coast. Faint reference paths retain planetary context; the violet accepted path and amber alternative remain separate. Velocity change is not fuel mass, and screening verification is not navigation qualification.
 - Selection and inspection: Epochs, flight time, delta-v, branch, revolutions, iterations, residual, hashes, frame, and center.
 - Comparison view: Selected Lambert transfer and circular coplanar Hohmann screen remain explicitly distinct.
 - Final settlement: Convergence, fallback, endpoint position and velocity error, verifier status, and claim gate.

@@ -1,0 +1,343 @@
+START activation-fusion.test.cjs
+START activity-composition.test.cjs
+PASSED activation-fusion.test.cjs tests=4
+START activity-dynamics.test.cjs
+PASSED activity-composition.test.cjs tests=10
+START activity-program.test.cjs
+PASSED activity-dynamics.test.cjs tests=13
+START activity-revisions.test.cjs
+PASSED activity-revisions.test.cjs tests=13
+START application-sessions.test.cjs
+PASSED application-sessions.test.cjs tests=9
+START architecture-boundaries.test.cjs
+PASSED architecture-boundaries.test.cjs tests=11
+START asteroid-defense.test.cjs
+PASSED asteroid-defense.test.cjs tests=12
+START audit-pipeline-cli.test.cjs
+PASSED audit-pipeline-cli.test.cjs tests=4
+START audit-proof-gate.test.cjs
+PASSED audit-proof-gate.test.cjs tests=3
+START audit-runtime-wait.test.cjs
+PASSED audit-runtime-wait.test.cjs tests=9
+START autonomy-artifact-immutability.test.cjs
+PASSED autonomy-artifact-immutability.test.cjs tests=1
+START autonomy-performance.test.cjs
+PASSED autonomy-performance.test.cjs tests=7
+START autonomy.test.cjs
+PASSED activity-program.test.cjs tests=26
+START blank-classification-tiers.test.cjs
+PASSED blank-classification-tiers.test.cjs tests=5
+START blank-core-package.test.cjs
+PASSED blank-core-package.test.cjs tests=1
+START blank-pipeline-boundaries.test.cjs
+PASSED blank-pipeline-boundaries.test.cjs tests=20
+START browser-harness.test.cjs
+PASSED browser-harness.test.cjs tests=7
+START browser-memory-receipt.test.cjs
+PASSED browser-memory-receipt.test.cjs tests=2
+START cable-trader.test.cjs
+PASSED cable-trader.test.cjs tests=13
+START catalog-audit.test.cjs
+PASSED catalog-audit.test.cjs tests=3
+START catscan.test.cjs
+PASSED catscan.test.cjs tests=5
+START causal-phase-diagnosis.test.cjs
+PASSED causal-phase-diagnosis.test.cjs tests=5
+START city-acoustic-reference.test.cjs
+PASSED city-acoustic-reference.test.cjs tests=12
+START city-surface-depth.test.cjs
+PASSED city-surface-depth.test.cjs tests=6
+START collective-reference.test.cjs
+PASSED collective-reference.test.cjs tests=9
+START commands.test.cjs
+PASSED commands.test.cjs tests=2
+START comparison-execution.test.cjs
+PASSED comparison-execution.test.cjs tests=9
+START comparison-result-adapter.test.cjs
+PASSED comparison-result-adapter.test.cjs tests=2
+START compile-human-reviews.test.cjs
+PASSED compile-human-reviews.test.cjs tests=1
+START create-experience.test.cjs
+PASSED create-experience.test.cjs tests=3
+START create-page-execution-evidence.test.cjs
+PASSED create-page-execution-evidence.test.cjs tests=2
+START create-phase-runner.test.cjs
+PASSED create-phase-runner.test.cjs tests=18
+START data-session.test.cjs
+PASSED autonomy.test.cjs tests=56
+PASSED data-session.test.cjs tests=1
+START data-workbench.test.cjs
+START declarative-ui-host-controls.test.cjs
+PASSED declarative-ui-host-controls.test.cjs tests=23
+START design-system.test.cjs
+PASSED data-workbench.test.cjs tests=13
+START doppler-execution-v1.test.cjs
+PASSED design-system.test.cjs tests=7
+START doppler-model-provenance.test.cjs
+PASSED doppler-execution-v1.test.cjs tests=1
+START doppler-model-qualification.test.cjs
+PASSED doppler-model-qualification.test.cjs tests=2
+START dynamic-relation-proof.test.cjs
+PASSED doppler-model-provenance.test.cjs tests=2
+START editor-audit-failure.test.cjs
+PASSED editor-audit-failure.test.cjs tests=2
+START exact-world-proof-replay-audit.test.cjs
+PASSED exact-world-proof-replay-audit.test.cjs tests=2
+START experience-docs.test.cjs
+PASSED experience-docs.test.cjs tests=5
+START field-experiments.test.cjs
+PASSED field-experiments.test.cjs tests=13
+START folder-contracts.test.cjs
+PASSED dynamic-relation-proof.test.cjs tests=2
+START food-recall-causal-inputs.test.cjs
+PASSED food-recall-causal-inputs.test.cjs tests=5
+START generated-world-interaction.test.cjs
+PASSED folder-contracts.test.cjs tests=8
+START governing-metric.test.cjs
+PASSED governing-metric.test.cjs tests=4
+START gpu-supercluster.test.cjs
+PASSED gpu-supercluster.test.cjs tests=21
+START gpu-workload.test.cjs
+PASSED gpu-workload.test.cjs tests=14
+START graph-synthesis.test.cjs
+PASSED graph-synthesis.test.cjs tests=3
+START grid-resilience-us.test.cjs
+PASSED grid-resilience-us.test.cjs tests=10
+START grounding-boundary.test.cjs
+PASSED grounding-boundary.test.cjs tests=4
+START hosting-release.test.cjs
+PASSED hosting-release.test.cjs tests=9
+START hosting-surfaces.test.cjs
+PASSED hosting-surfaces.test.cjs tests=4
+START intent-forensics.test.cjs
+PASSED intent-forensics.test.cjs tests=6
+START interstellar-relay-network-v4.test.cjs
+PASSED generated-world-interaction.test.cjs tests=11
+START js-shape-architecture.test.cjs
+PASSED js-shape-architecture.test.cjs tests=9
+START js-shape-browser-render.test.cjs
+PASSED interstellar-relay-network-v4.test.cjs tests=21
+START js-shape-model-data.test.cjs
+PASSED js-shape-browser-render.test.cjs tests=12
+START js-shape-runtime-progress.test.cjs
+PASSED js-shape-runtime-progress.test.cjs tests=11
+START language-source-spans.test.cjs
+PASSED js-shape-model-data.test.cjs tests=17
+START lazy-universe-loading.test.cjs
+PASSED lazy-universe-loading.test.cjs tests=2
+START loading-canvas-mechanics.test.cjs
+PASSED loading-canvas-mechanics.test.cjs tests=8
+START managed-render-phase.test.cjs
+PASSED language-source-spans.test.cjs tests=4
+START maritime-trade-global.test.cjs
+PASSED managed-render-phase.test.cjs tests=6
+START measurement-contract.test.cjs
+PASSED maritime-trade-global.test.cjs tests=14
+PASSED measurement-contract.test.cjs tests=7
+START model-boundary-evaluators.test.cjs
+START model-candidate-runtime.test.cjs
+PASSED model-boundary-evaluators.test.cjs tests=3
+START model-reference-report.test.cjs
+PASSED model-reference-report.test.cjs tests=1
+START model-selection-calibration.test.cjs
+PASSED model-selection-calibration.test.cjs tests=7
+START model-selection-frontier.test.cjs
+PASSED model-selection-frontier.test.cjs tests=9
+START motorcycle-keyboard.test.cjs
+PASSED motorcycle-keyboard.test.cjs tests=1
+START motorcycle-mist.test.cjs
+PASSED motorcycle-mist.test.cjs tests=4
+START motorcycle-mitigation.test.cjs
+PASSED motorcycle-mitigation.test.cjs tests=7
+START motorcycle-noise.test.cjs
+PASSED motorcycle-noise.test.cjs tests=13
+START motorcycle-runtime.test.cjs
+PASSED motorcycle-runtime.test.cjs tests=9
+START multi-tier-plugin-completion.test.cjs
+PASSED multi-tier-plugin-completion.test.cjs tests=15
+START multirate-coordinator.test.cjs
+PASSED multirate-coordinator.test.cjs tests=9
+START multiscale-contracts.test.cjs
+PASSED multiscale-contracts.test.cjs tests=9
+START navigation-lifecycle.test.cjs
+PASSED navigation-lifecycle.test.cjs tests=26
+START neighborhood-bulk-pool.test.cjs
+PASSED model-candidate-runtime.test.cjs tests=8
+START neural-model-consent.test.cjs
+PASSED neural-model-consent.test.cjs tests=4
+PASSED neighborhood-bulk-pool.test.cjs tests=16
+START nyc-real-estate.test.cjs
+START object-interaction.test.cjs
+PASSED object-interaction.test.cjs tests=9
+START open-language-composition.test.cjs
+PASSED nyc-real-estate.test.cjs tests=14
+START orbital-data-provenance.test.cjs
+PASSED orbital-data-provenance.test.cjs tests=2
+START orbital-transfer-verification.test.cjs
+PASSED orbital-transfer-verification.test.cjs tests=13
+START phase-module-registry.test.cjs
+PASSED phase-module-registry.test.cjs tests=3
+START phase7-pixel-readback.test.cjs
+PASSED open-language-composition.test.cjs tests=13
+START physical-compiler-language-grounding.test.cjs
+PASSED phase7-pixel-readback.test.cjs tests=18
+START physical-compiler-render-proof.test.cjs
+PASSED physical-compiler-render-proof.test.cjs tests=6
+START physical-compiler-simulation-visual.test.cjs
+PASSED physical-compiler-simulation-visual.test.cjs tests=31
+START physical-compiler-solvers.test.cjs
+PASSED physical-compiler-solvers.test.cjs tests=10
+START physics-ir-factory.test.cjs
+PASSED physics-ir-factory.test.cjs tests=3
+START physics-lab.test.cjs
+PASSED physics-lab.test.cjs tests=37
+START physics-solver.test.cjs
+PASSED physics-solver.test.cjs tests=7
+START physics-visual-correctness.test.cjs
+PASSED physical-compiler-language-grounding.test.cjs tests=36
+START physics-world-compile.test.cjs
+PASSED physics-visual-correctness.test.cjs tests=30
+START pinned-package-compression.test.cjs
+PASSED pinned-package-compression.test.cjs tests=6
+START pipeline-model-selection.test.cjs
+PASSED pipeline-model-selection.test.cjs tests=4
+START pipeline-worker-phases.test.cjs
+PASSED pipeline-worker-phases.test.cjs tests=12
+START playback-ready-reset.test.cjs
+PASSED playback-ready-reset.test.cjs tests=3
+START plugin-actor-motion.test.cjs
+PASSED plugin-actor-motion.test.cjs tests=2
+START plugin-camera-follow.test.cjs
+PASSED plugin-camera-follow.test.cjs tests=12
+START plugin-compositor-runtime.test.cjs
+PASSED plugin-compositor-runtime.test.cjs tests=29
+START plugin-data-custody.test.cjs
+PASSED plugin-data-custody.test.cjs tests=6
+START plugin-platform.test.cjs
+PASSED plugin-platform.test.cjs tests=25
+START plugin-playback.test.cjs
+PASSED plugin-playback.test.cjs tests=36
+START plugin-v4-platform.test.cjs
+PASSED plugin-v4-platform.test.cjs tests=18
+START plugin-view-runtime.test.cjs
+PASSED plugin-view-runtime.test.cjs tests=9
+START profile-evidence-review.test.cjs
+PASSED profile-evidence-review.test.cjs tests=6
+START profile-evidence-runner.test.cjs
+PASSED profile-evidence-runner.test.cjs tests=44
+START profile-program.test.cjs
+PASSED profile-program.test.cjs tests=12
+START profile-world-spec.test.cjs
+PASSED profile-world-spec.test.cjs tests=9
+START program-editor.test.cjs
+PASSED program-editor.test.cjs tests=3
+START prompt-controller-factory.test.cjs
+PASSED prompt-controller-factory.test.cjs tests=6
+START provenance-contracts.test.cjs
+PASSED provenance-contracts.test.cjs tests=9
+START recursive-reference-qualification-validator.test.cjs
+PASSED recursive-reference-qualification-validator.test.cjs tests=3
+START recursive-reference-world.test.cjs
+PASSED recursive-reference-world.test.cjs tests=4
+START recursive-spatial-residency.test.cjs
+PASSED recursive-spatial-residency.test.cjs tests=4
+START recursive-world-proof.test.cjs
+PASSED recursive-world-proof.test.cjs tests=4
+START recursive-world-webgpu-renderer.test.cjs
+PASSED recursive-world-webgpu-renderer.test.cjs tests=7
+START render-data-cache-key.test.cjs
+PASSED render-data-cache-key.test.cjs tests=1
+START render-mesh-library.test.cjs
+PASSED render-mesh-library.test.cjs tests=2
+START render-targets.test.cjs
+PASSED render-targets.test.cjs tests=3
+START renderer-backends.test.cjs
+PASSED renderer-backends.test.cjs tests=3
+START renderer-frame-evidence.test.cjs
+PASSED renderer-frame-evidence.test.cjs tests=6
+START renderer-session.test.cjs
+PASSED renderer-session.test.cjs tests=4
+START reranker-frontier.test.cjs
+PASSED reranker-frontier.test.cjs tests=3
+START review-bridge.test.cjs
+PASSED review-bridge.test.cjs tests=2
+START route-contributor-objective.test.cjs
+PASSED route-contributor-objective.test.cjs tests=3
+START run-control-values.test.cjs
+PASSED run-control-values.test.cjs tests=2
+START run-status.test.cjs
+PASSED run-status.test.cjs tests=3
+START safety-explorer-truth.test.cjs
+PASSED safety-explorer-truth.test.cjs tests=5
+START samer-construction.test.cjs
+PASSED samer-construction.test.cjs tests=9
+START scene-proof.test.cjs
+PASSED physics-world-compile.test.cjs tests=42
+START scene-surface-contact.test.cjs
+PASSED scene-surface-contact.test.cjs tests=4
+START semantic-universe.test.cjs
+PASSED scene-proof.test.cjs tests=15
+START shared-domain-contracts.test.cjs
+PASSED shared-domain-contracts.test.cjs tests=6
+START simulation-catalog.test.cjs
+PASSED simulation-catalog.test.cjs tests=2
+START simulation-control-boundaries.test.cjs
+PASSED simulation-control-boundaries.test.cjs tests=5
+START simulation-interface.test.cjs
+PASSED simulation-interface.test.cjs tests=24
+START simulation-residency-manager.test.cjs
+PASSED semantic-universe.test.cjs tests=4
+START simulation-session.test.cjs
+PASSED simulation-session.test.cjs tests=5
+START simulation-worker-parity.test.cjs
+PASSED simulation-residency-manager.test.cjs tests=5
+START solar-drive.test.cjs
+PASSED solar-drive.test.cjs tests=12
+START spherical-morphology.test.cjs
+PASSED spherical-morphology.test.cjs tests=2
+START subsea-network-global.test.cjs
+PASSED subsea-network-global.test.cjs tests=14
+START sun-walker-routing.test.cjs
+PASSED sun-walker-routing.test.cjs tests=10
+START sun-walker-v4.test.cjs
+PASSED simulation-worker-parity.test.cjs tests=5
+START sun-walker-visual-storytelling.test.cjs
+PASSED sun-walker-v4.test.cjs tests=15
+START test-file-watchdog.test.cjs
+PASSED test-file-watchdog.test.cjs tests=1
+START theme-controller.test.cjs
+PASSED theme-controller.test.cjs tests=3
+START tier-application-loader.test.cjs
+PASSED tier-application-loader.test.cjs tests=3
+START tier-renderers.test.cjs
+PASSED tier-renderers.test.cjs tests=2
+START tier-run-controller.test.cjs
+PASSED tier-run-controller.test.cjs tests=26
+START vendor-inference-receipt.test.cjs
+PASSED vendor-inference-receipt.test.cjs tests=2
+START visual-card-index.test.cjs
+PASSED visual-card-index.test.cjs tests=5
+START visual-dialect.test.cjs
+PASSED sun-walker-visual-storytelling.test.cjs tests=14
+START visual-morphology-pipeline.test.cjs
+PASSED visual-dialect.test.cjs tests=11
+START visual-rubric-evidence.test.cjs
+PASSED visual-rubric-evidence.test.cjs tests=3
+START world-improvement-record.test.cjs
+PASSED world-improvement-record.test.cjs tests=7
+START world-proof.test.cjs
+PASSED visual-morphology-pipeline.test.cjs tests=12
+START world-runtime-loader.test.cjs
+PASSED world-runtime-loader.test.cjs tests=3
+START world-spec-phase-projection.test.cjs
+PASSED world-spec-phase-projection.test.cjs tests=8
+START world-spec-reconciliation-controller.test.cjs
+PASSED world-spec-reconciliation-controller.test.cjs tests=3
+START world-spec-reconciliation.test.cjs
+PASSED world-proof.test.cjs tests=26
+START world-spec.test.cjs
+PASSED world-spec-reconciliation.test.cjs tests=7
+START world-tile-manager.test.cjs
+PASSED world-tile-manager.test.cjs tests=2
+PASSED world-spec.test.cjs tests=18
+TEST-RUN files=171/171 tests=1604 passed=171 failed=0

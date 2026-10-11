@@ -2,10 +2,11 @@
   const contracts = typeof module === 'object' && module.exports
     ? require('../contracts/plugin-contracts.js')
     : root.SimulattePluginContracts;
-  const api = factory(contracts);
+  const components = typeof module === 'object' && module.exports ? require('../../../shared/design/control-components.js') : root.SimulatteControlComponents;
+  const api = factory(contracts, components);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteDeclarativeUiHost = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createDeclarativeUiHostModule(contracts) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createDeclarativeUiHostModule(contracts, components) {
   const INITIAL_INSPECTION_COUNT = 12;
   const EAGER_INSPECTION_COUNT = 3;
   const LARGE_OPTION_VISIBLE_LIMIT = 80;
@@ -21,6 +22,8 @@
     const requiredSlots = ['inspector', 'map'];
     const controlValues = new Map();
     const controlGroups = new Map();
+    const acceptedValues = new Map();
+    const controlNodes = new Map(), controlRevisions = new Map();
     if (!roots.inspector || typeof roots.inspector.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', 'Declarative UI host expected an inspector root element', null);
     Object.entries(roots).forEach(([slot, element]) => {
       if (!requiredSlots.includes(slot) || !element || typeof element.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', `Declarative UI host received an invalid ${slot} root`, null);
@@ -39,13 +42,14 @@
       const focusedId = focused?.id && Object.values(roots).some((element) => element.contains?.(focused)) ? focused.id : null;
       const uiState = Object.fromEntries(Object.entries(roots).map(([slot, element]) => [slot, {
         scrollTop: element.scrollTop,
-        open: [...(element.querySelectorAll?.('details') || [])].map((row) => row.open),
+        open: new Map([...(element.querySelectorAll?.('details') || [])].map(row => [row.dataset.uiKey, row.open])),
       }]));
       const drafts = [...(roots.inspector.querySelectorAll?.('[data-plugin-control]') || [])].flatMap((input) => {
         const pluginId = input.closest('[data-plugin-id]')?.dataset.pluginId;
         const controlId = input.dataset.pluginControl;
-        const applied = controlValues.get(pluginId)?.get(controlId);
-        const current = input.multiple ? [...input.selectedOptions].map((row) => row.value)
+        const applied = acceptedValues.get(pluginId)?.get(controlId);
+        const definition = v4Contributions.find(row => row.pluginId === pluginId)?.controls.controls.find(row => row.id === controlId);
+        const current = input.dataset.controlComponent && definition ? components.read(input, definition) : input.multiple ? [...input.selectedOptions].map((row) => row.value)
           : input.type === 'checkbox' ? input.checked : input.value;
         const same = Array.isArray(current) ? Array.isArray(applied)
           && JSON.stringify(current.map(String).sort()) === JSON.stringify(applied.map(String).sort())
@@ -68,10 +72,11 @@
             contribution.controls.controls,
             controlValues,
             onControlChange,
-            values, controlGroups, onError,
+            values, controlGroups, onError, acceptedValues, controlNodes, controlRevisions,
             contribution.controls.title || null,
           );
           parameterSections.set(contribution.pluginId, section);
+          if(section.primaryControls.children.length)(fragments.map||fragments.inspector).append(section.primaryControls);
         }
       });
       [...contributions].sort((left, right) => left.view.slot.localeCompare(right.view.slot) || left.pluginId.localeCompare(right.pluginId)).forEach(({ pluginId, view }) => {
@@ -82,6 +87,7 @@
         const section = documentRef.createElement(view.slot === 'inspector' ? 'details' : 'section');
         section.className = view.slot === 'inspector' ? 'evidence-section plugin-evidence' : `plugin-${view.slot}-card sim-surface`;
         section.dataset.pluginId = pluginId;
+        section.dataset.uiKey = `view:${pluginId}:${view.slot}`;
         const heading = documentRef.createElement(view.slot === 'inspector' ? 'summary' : 'strong');
         heading.textContent = view.title;
         section.append(heading);
@@ -180,15 +186,16 @@
       });
       Object.entries(roots).forEach(([slot, element]) => element.replaceChildren(fragments[slot]));
       Object.entries(roots).forEach(([slot, element]) => {
-        [...(element.querySelectorAll?.('details') || [])].forEach((row, index) => {
-          if (uiState[slot].open[index] !== undefined) row.open = uiState[slot].open[index];
+        [...(element.querySelectorAll?.('details') || [])].forEach(row => {
+          if (uiState[slot].open.has(row.dataset.uiKey)) row.open = uiState[slot].open.get(row.dataset.uiKey);
         });
         element.scrollTop = uiState[slot].scrollTop;
       });
       for (const draft of drafts) {
         const input = documentRef.getElementById(draft.id);
         if (!input) continue;
-        if (input.multiple) [...input.options].forEach((row) => { row.selected = draft.value.includes(row.value); });
+        if (input.dataset.controlComponent) components.write(input, draft.value);
+        else if (input.multiple) [...input.options].forEach((row) => { row.selected = draft.value.includes(row.value); });
         else if (input.type === 'checkbox') input.checked = draft.value;
         else input.value = draft.value;
         input.dataset.applyStatus = draft.applyStatus;
@@ -214,20 +221,23 @@
         current.set(id, cloneControlValue(value));
       });
       controlValues.set(pluginId, current);
+      acceptedValues.set(pluginId, new Map(current));
       return values(pluginId);
     }
 
     function resetValues(pluginId = null) {
-      if (pluginId === null) controlValues.clear();
-      else controlValues.delete(pluginId);
+      for(const [key,revision] of controlRevisions)if(pluginId===null||key.startsWith(pluginId+':'))controlRevisions.set(key,revision+1);
+      if (pluginId === null) { controlValues.clear(); acceptedValues.clear(); controlNodes.clear(); }
+      else { controlValues.delete(pluginId); acceptedValues.delete(pluginId); for (const key of controlNodes.keys()) if (key.startsWith(pluginId+':')) controlNodes.delete(key); }
     }
 
     function dispose() {
-      controlValues.clear();
+      for(const [key,revision] of controlRevisions)controlRevisions.set(key,revision+1);
+      controlValues.clear(); acceptedValues.clear(); controlNodes.clear();
       Object.values(roots).forEach((element) => element.replaceChildren());
     }
 
-    return Object.freeze({ render, values, setValues, resetValues, dispose });
+    return Object.freeze({ render, values, acceptedValues: id => Object.fromEntries([...(acceptedValues.get(id) || [])].map(([key,value])=>[key,cloneControlValue(value)])), setValues, resetValues, dispose });
   }
 
   function renderControls(
@@ -236,7 +246,7 @@
     controls,
     controlValues,
     onControlChange,
-    readValues, controlGroups, onError,
+    readValues, controlGroups, onError, acceptedValues, controlNodes, controlRevisions,
     customTitle = null,
   ) {
     const section = documentRef.createElement('details');
@@ -244,6 +254,7 @@
     section.dataset.pluginId = pluginId;
     section.dataset.controlCount = String(controls.length);
     const key = `params:${pluginId}`;
+    section.dataset.uiKey = key;
     section.open = controlGroups.get(key) ?? false;
     section.addEventListener('toggle', () => controlGroups.set(key, section.open));
     const heading = documentRef.createElement('summary');
@@ -258,7 +269,12 @@
       if (!values.has(control.id)) values.set(control.id, cloneControlValue(control.value));
     });
     section.append(heading);
-    const editing = { controls, inputs: new Map(), applied: new Map(values), revisions: new Map() };
+    const primary=documentRef.createElement('section');primary.className='plugin-primary-controls';primary.dataset.pluginId=pluginId;primary.dataset.uiKey=`primary:${pluginId}`;
+    if (!acceptedValues.has(pluginId)) acceptedValues.set(pluginId, new Map(values));
+    const accepted=acceptedValues.get(pluginId);
+    for(const id of accepted.keys())if(!activeControlIds.has(id))accepted.delete(id);
+    for(const control of controls)if(!accepted.has(control.id))accepted.set(control.id,cloneControlValue(control.value));
+    const editing = { controls, inputs: new Map(), applied: acceptedValues.get(pluginId), revisions: controlRevisions, controlNodes };
     const groups = new Map();
     controls.forEach(control => {
       let name = '';
@@ -272,15 +288,18 @@
           label = match[2];
         }
       }
-      if (!groups.has(name)) groups.set(name, []);
-      groups.get(name).push({ ...control, label });
+      const groupKey=`${control.placement==='primary'?'primary':'advanced'}:${name}`;
+      if (!groups.has(groupKey)) groups.set(groupKey, {name,primary:control.placement==='primary',rows:[]});
+      groups.get(groupKey).rows.push({ ...control, label });
     });
-    [...groups].forEach(([name, rows], index) => {
+    [...groups.values()].forEach(({name,rows,primary:isPrimary}, index) => {
       const fields = renderControlFields(documentRef, pluginId, rows, values, onControlChange, readValues, onError, editing);
+      if(isPrimary){primary.append(fields);return;}
       if (!name) { section.append(fields); return; }
       const group = documentRef.createElement('details');
       group.className = 'plugin-control-group';
       const groupKey = `${pluginId}:${name}`;
+      group.dataset.uiKey = groupKey;
       group.open = controlGroups.get(groupKey) ?? index === 0;
       group.addEventListener('toggle', () => controlGroups.set(groupKey, group.open));
       const title = documentRef.createElement('summary');
@@ -288,6 +307,7 @@
       group.append(title, fields);
       section.append(group);
     });
+    section.primaryControls=primary;
     return section;
   }
 
@@ -302,18 +322,26 @@
     const fields = documentRef.createElement('div');
     fields.className = 'plugin-controls';
     controls.forEach((control) => {
-      const label = documentRef.createElement('label');
+      const label = documentRef.createElement(control.purpose === 'choice' || control.purpose === 'multiple' ? 'div' : 'label');
       const caption = documentRef.createElement('span');
-      caption.textContent = control.label;
-      const input = createControlInput(documentRef, control, values.get(control.id));
+      caption.textContent = control.label + (control.unit ? ` (${control.unit})` : '');
+      const key = `${pluginId}:${control.id}`;
+      const identity = JSON.stringify([control.kind, control.purpose, control.options]);
+      const previous = editing.controlNodes.get(key);
+      const input = previous?.identity === identity ? previous.input : createControlInput(documentRef, control, values.get(control.id));
+      editing.controlNodes.set(key, { identity, input });
+      writeControlInput(input, control, values.get(control.id));
       input.id = `plugin-control-${domId(pluginId)}-${domId(control.id)}`;
-      input.className = 'sim-field';
+      if (input.dataset.controlComponent) for (const radio of input.querySelectorAll('input')) {radio.name = key;radio.id=`${input.id}-option-${encodeURIComponent(radio.value)}`;}
+      input.className = input.dataset.controlComponent === 'multiple' ? 'sim-field sim-checkbox-group' : input.dataset.controlComponent === 'choice' ? 'sim-field sim-segmented' : 'sim-field';
       input.dataset.pluginControl = control.id;
-      input.dataset.sessionCategory = 'scenario';
-      input.dataset.requiresRestart = 'true';
+      input.dataset.sessionCategory = control.scope || 'scenario';
+      input.dataset.requiresRestart = String((control.application || 'restart') === 'restart');
+      input.dataset.application = control.application || 'restart';
+      input.disabled = control.available === false;
       editing.inputs.set(control.id, input);
       const peers = control.selectionGroup ? editing.controls.filter(row => row.selectionGroup === control.selectionGroup) : [control];
-      const revisionKey = control.selectionGroup ? `group:${control.selectionGroup}` : `control:${control.id}`;
+      const revisionKey = `${pluginId}:` + (control.selectionGroup ? `group:${control.selectionGroup}` : `control:${control.id}`);
       const optionSearch = createOptionSearch(documentRef, control, input);
       label.htmlFor = input.id;
       const readout = control.kind === 'range' ? documentRef.createElement('output') : null;
@@ -335,8 +363,8 @@
         if (readout) readout.textContent = String(nextValue);
         return nextValue;
       };
-      if (control.kind === 'range') input.addEventListener('input', updateValue);
-      input.addEventListener('change', async () => {
+      input._controlUpdate = updateValue;
+      input._controlChange = async () => {
         const nextValue = updateValue();
         if (nextValue === undefined) {
           values.set(control.id, cloneControlValue(appliedValue));
@@ -349,10 +377,13 @@
         editing.revisions.set(revisionKey, revision);
         const requestedValues = readValues(pluginId);
         input.dataset.applyStatus = 'applying';
+        input.dataset.acceptedValue = JSON.stringify(editing.applied.get(control.id));
+        input.setAttribute?.('aria-busy', 'true');
         try {
           const outcome = await onControlChange({
             pluginId,
             controlId: control.id,
+            control,
             values: requestedValues,
           });
           if (revision !== editing.revisions.get(revisionKey)) return;
@@ -364,6 +395,7 @@
           peers.forEach(row => editing.applied.set(row.id, cloneControlValue(requestedValues[row.id])));
           appliedValue = cloneControlValue(nextValue);
           input.dataset.applyStatus = 'applied';
+          input.dataset.acceptedValue = JSON.stringify(nextValue);
         } catch (error) {
           if (revision !== editing.revisions.get(revisionKey)) return;
           peers.forEach(row => {
@@ -374,8 +406,13 @@
           if (readout) readout.textContent = String(editing.applied.get(control.id));
           input.dataset.applyStatus = 'failed';
           onError?.(error, { controlId: control.id, pluginId });
-        }
-      });
+        } finally { if(revision===editing.revisions.get(revisionKey))input.setAttribute?.('aria-busy', 'false'); }
+      };
+      if (!input._controlBound) {
+        input._controlBound = true;
+        if (control.kind === 'range') input.addEventListener('input', () => input._controlUpdate());
+        input.addEventListener('change', () => input._controlChange());
+      }
       label.append(caption, ...(optionSearch ? [optionSearch, input] : [input]), ...(readout ? [readout] : []));
       fields.append(label);
     });
@@ -383,6 +420,8 @@
   }
 
   function createControlInput(documentRef, control, currentValue) {
+    const component = control.purpose && components.create(documentRef, control, currentValue);
+    if (component) return component;
     if (['select', 'multiselect'].includes(control.kind)) {
       const input = documentRef.createElement('select');
       input.multiple = control.kind === 'multiselect';
@@ -400,6 +439,7 @@
     }
     const input = documentRef.createElement('input');
     input.type = control.kind === 'toggle' ? 'checkbox' : control.kind;
+    if (control.kind === 'toggle') input.setAttribute?.('role', 'switch');
     if (control.minimum !== null) input.min = String(control.minimum);
     if (control.maximum !== null) input.max = String(control.maximum);
     if (control.step !== null) input.step = String(control.step);
@@ -429,15 +469,19 @@
     const normalizedQuery = String(query || '').trim().toLocaleLowerCase();
     let admitted = 0;
     [...select.children].forEach((option) => {
+      if (option.tagName === 'LEGEND') return;
+      const checkbox = select.dataset.controlComponent ? option.querySelector('input') : null;
+      const selected = checkbox ? checkbox.checked : option.selected;
       const matches = !normalizedQuery
         || `${option.textContent} ${option.value}`.toLocaleLowerCase().includes(normalizedQuery);
-      const visible = option.selected || (matches && admitted < LARGE_OPTION_VISIBLE_LIMIT);
+      const visible = selected || (matches && admitted < LARGE_OPTION_VISIBLE_LIMIT);
       option.hidden = !visible;
-      if (visible && !option.selected) admitted += 1;
+      if (visible && !selected) admitted += 1;
     });
   }
 
   function readControlInput(input, control) {
+    if (input.dataset.controlComponent) return components.read(input, control);
     if (control.kind === 'toggle') return input.checked;
     if (control.kind === 'multiselect') {
       const selected = [...input.selectedOptions].map((option) => typedOptionValue(option.value, control.options));
@@ -464,6 +508,7 @@
   }
 
   function writeControlInput(input, control, value) {
+    if (input?.dataset.controlComponent) { components.write(input, value); return; }
     if (control.kind === 'toggle') {
       input.checked = Boolean(value);
       return;
@@ -486,6 +531,7 @@
     section.className = 'evidence-section plugin-evidence';
     section.dataset.pluginId = pluginId;
     section.dataset.targetIds = inspection.targetIds.join(' ');
+    section.dataset.uiKey = `inspection:${pluginId}:${inspection.id}`;
     const heading = documentRef.createElement('summary');
     heading.textContent = inspection.label;
     section.append(heading);
@@ -525,6 +571,7 @@
     section.className = 'evidence-section plugin-evidence plugin-deferred-inspections';
     section.dataset.pluginId = pluginId;
     section.dataset.deferredInspectionCount = String(deferred.length);
+    section.dataset.uiKey = `inspections:${pluginId}:deferred`;
     const heading = documentRef.createElement('summary');
     heading.textContent = `More evidence (${deferred.length})`;
     section.append(heading);

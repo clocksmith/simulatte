@@ -211,10 +211,23 @@
 
   function validateControl(value, label) {
     object(value, 'plugin_v4_control_invalid', `${label} expected an object`);
-    allowedKeys(value, ['id', 'label', 'kind', 'value', 'options', 'minimum', 'maximum', 'step', 'provenance', 'selectionGroup'], ['id', 'label', 'kind', 'value', 'options', 'minimum', 'maximum', 'step', 'provenance'], label);
+    allowedKeys(value, ['id', 'label', 'kind', 'value', 'options', 'minimum', 'maximum', 'step', 'provenance', 'selectionGroup', 'purpose', 'scope', 'application', 'group', 'placement', 'available', 'unit'], ['id', 'label', 'kind', 'value', 'options', 'minimum', 'maximum', 'step', 'provenance'], label);
     text(value.id, 'plugin_v4_control_text_invalid', `${label} id`);
     text(value.label, 'plugin_v4_control_text_invalid', `${label} label`);
     enumValue(value.kind, CONTROL_KINDS, 'plugin_v4_control_kind_invalid', `${label} kind`);
+    if (value.purpose !== undefined) {
+      enumValue(value.purpose, ['state','choice','multiple','preference','quantity','time'], 'plugin_v4_control_purpose_invalid', label);
+      const kinds={state:'toggle',choice:'select',multiple:'multiselect',preference:'range',quantity:'number',time:'time'};
+      if(value.purpose==='time' ? !['time','date','datetime-local'].includes(value.kind) : kinds[value.purpose]!==value.kind)fail('plugin_v4_control_purpose_mismatch',`${label} purpose does not match its value contract`);
+      enumValue(value.scope, ['observation','execution','live','scenario','authoring','reproduction'], 'plugin_v4_control_scope_invalid', label);
+      enumValue(value.application, ['immediate','restart','compile','draft'], 'plugin_v4_control_application_invalid', label);
+      enumValue(value.placement, ['primary','advanced'], 'plugin_v4_control_placement_invalid', label);
+      if (typeof value.available !== 'boolean') fail('plugin_v4_control_availability_invalid', label);
+      if (['observation','live','execution'].includes(value.scope) && value.application !== 'immediate') fail('plugin_v4_control_semantics_invalid', label);
+      if (value.scope === 'scenario' && !['restart','draft'].includes(value.application)) fail('plugin_v4_control_semantics_invalid', label);
+      if (value.group !== null) text(value.group, 'plugin_v4_control_group_invalid', label);
+      if (value.unit !== null) text(value.unit, 'plugin_v4_control_unit_invalid', label);
+    }
     if (value.selectionGroup !== undefined) {
       text(value.selectionGroup, 'plugin_v4_control_group_invalid', `${label} selectionGroup`);
       equal(value.kind, 'select', 'plugin_v4_control_group_invalid', `${label} grouped control kind`);
@@ -243,6 +256,14 @@
     });
     if (value.minimum !== null && value.maximum !== null && value.minimum >= value.maximum) fail('plugin_v4_control_bounds_invalid', `${label} minimum must be below maximum`);
     validateProvenance(value.provenance, `${label} provenance`);
+  }
+
+  // V4's original controls described scenario parameters. This adapter preserves
+  // that meaning while new producers can declare observation and live behavior.
+  function controlSemantics(row) {
+    const purposes = { toggle:'state', select:'choice', multiselect:'multiple', range:'preference', number:'quantity', time:'time' };
+    return { purpose: purposes[row.kind] || 'time', scope:'scenario', application:'restart',
+      placement:'advanced', available:true, group:null, unit:null, ...row };
   }
 
   function validateComparison(value, label) {
@@ -733,6 +754,7 @@
 
   return Object.freeze({
     CONTROL_KINDS,
+    controlSemantics,
     GEOMETRY_KINDS,
     LAYER_KINDS,
     ORIGINS,

@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="../../shared/design/tokens.css?v=7aa0bd1b3c9ca2e06dde60e1fca07689b0ad5cbe-7df25bd07753" />
     <link rel="stylesheet" href="../../shared/design/themes/world.css?v=7aa0bd1b3c9ca2e06dde60e1fca07689b0ad5cbe-7df25bd07753" />
     <link rel="stylesheet" href="./experiment.css?v=7aa0bd1b3c9ca2e06dde60e1fca07689b0ad5cbe-7df25bd07753" />
-  </head>
+  <link rel="stylesheet" href="../../shared/design/components.css">
+</head>
   <body>
     <header>
       <a href="../../">SIMULATTE</a>
@@ -18,7 +19,9 @@
     </header>
     <main>
       <p id="question"></p>
-      <div class="toolbar primary-toolbar"><button id="pause">Pause</button><button id="restart">Restart</button><button id="signal" aria-pressed="true">Signal exchange</button><output id="clock"></output></div>
+      <div class="toolbar primary-toolbar"><button id="pause">Pause</button><button id="restart">Restart</button><label class="sim-switch"><input id="signal" type="checkbox" role="switch" checked>Show signal field</label><button id="reset-view">Reset view</button><button id="replay">Replay</button><label>Speed <select id="speed"><option value="1">1×</option><option value="4">4×</option></select></label><output id="clock"></output></div>
+      <p><output id="playback-rate"></output> <span id="playback-health" role="status"></span></p>
+      <div id="camera-views" data-control-choice role="radiogroup" aria-label="Camera view"><button data-view="overview" aria-checked="true">Overview</button><button data-view="top" aria-checked="false">Top</button></div>
       <p id="legend" class="legend"><span>Green: growing</span><span>Blue: growth limited</span><span>Gold: source and signal exchange</span><span>Outline: selected lineage</span></p>
       <div class="experiments">
         <section>
@@ -41,13 +44,13 @@
       <aside>
         <h2 id="selection">Selected object</h2>
         <p id="condition"></p>
-        <div id="actions"></div>
+        <div id="actions"></div><button id="focus-selection">Focus selection</button>
         <p id="preview-description"></p>
         <p id="consequence" aria-live="polite"></p>
       </aside>
       <details>
         <summary>Advanced: replay, files and evidence</summary>
-        <div class="toolbar"><button id="replay">Replay actions</button><label>Playback <select id="speed"><option value="1">1×</option><option value="4">4×</option></select></label><button id="export">Export run</button><label class="import-button">Import run<input id="import" type="file" accept="application/json"></label></div>
+        <div class="toolbar"><button id="verify-replay">Verify replay</button><button id="export">Export run</button><label class="import-button">Import run<input id="import" type="file" accept="application/json"></label></div>
         <p id="boundary"></p>
         <dl id="checks"></dl>
         <div id="sources"></div>
@@ -69,8 +72,10 @@
       defer
       src="../../shared/core/simulation/crystal-solidification.js?v=7aa0bd1b3c9ca2e06dde60e1fca07689b0ad5cbe-7df25bd07753"
     ></script>
+    <script defer src="../platform/runtime/simulation-clock.js"></script>
     <script defer src="./program.js?v=7aa0bd1b3c9ca2e06dde60e1fca07689b0ad5cbe-7df25bd07753"></script>
     <script defer src="./drawing.js?v=7aa0bd1b3c9ca2e06dde60e1fca07689b0ad5cbe-7df25bd07753"></script>
     <script defer src="./app.js?v=7aa0bd1b3c9ca2e06dde60e1fca07689b0ad5cbe-7df25bd07753"></script>
-  </body>
+  <script defer src="../../shared/design/control-components.js"></script>
+</body>
 </html>

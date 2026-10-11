@@ -26,10 +26,10 @@
           }
           const result=await pluginPlayback[id]();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;
         }})),
-        {id:'restart',serial:true,category:'reproduction',perform:async(_,operation)=>{await pluginPlayback.reset(getScenario());operation.throwIfCancelled();const result=await pluginPlayback.start();operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;}},
+        {id:'restart',serial:true,category:'reproduction',perform:async(_,operation)=>{const wasRunning=pluginPlayback.snapshot().phase==='running';await pluginPlayback.reset(getScenario());operation.throwIfCancelled();const result=await pluginPlayback.start({paused:!wasRunning});operation.throwIfCancelled();await renderPluginExperience({mission:null});return result;}},
         {id:'seek',serial:true,category:'reproduction',perform:value=>pluginPlayback.seek(value)},
         {id:'speed',category:'execution',perform:value=>pluginPlayback.setPlaybackRate(value)},
-        {id:'select-object',category:'observation',perform:id=>inspector.select(id)},
+        {id:'select-object',category:'observation',perform:id=>{inspector.select(id);return renderPluginExperience({mission:null});}},
         {id:'focus-object',category:'observation',perform:id=>{
           applyInspectorInsets();
           const targetId=`plugin:${owner}:${id}`;
@@ -37,6 +37,7 @@
           getRenderer().focusCameraTarget(targetId);
           getRenderer().setCameraMode('top');selectCamera('top');
         }},
+        {id:'camera-state',category:'observation',perform:()=>getRenderer()?.cameraState()},
         {id:'camera',category:'observation',perform:mode=>{
           applyInspectorInsets();
           const renderer=getRenderer();
@@ -174,18 +175,19 @@
         recordRenderWork(renderWork.phases[key], durationMs);
       });
       lastPluginContributions = platform.contributions;
-      if(profile.id==='sun-walker-v1') {
-        sunControls ||= hostRoot.SimulatteSunWalkerControls.create({host:elements.experienceReadouts,session});
-        sunControls.update(platform.contributions.find(row=>row.pluginId===owner));
+      const ownerContribution = platform.contributions.find(row=>row.pluginId===owner);
+      if(ownerContribution) {
+        if(profile.id==='sun-walker-v1'){sunControls ||= hostRoot.SimulatteSunWalkerControls.create({host:elements.experienceReadouts,session});
+        sunControls.update(platform.contributions.find(row=>row.pluginId===owner));}
         if(!inspector)inspector=hostRoot.SimulatteObjectInteraction.create({host:elements.autonomyCanvas.parentElement,canvas:elements.autonomyCanvas,
-          getSession:()=>session,onPreviewChange:reason=>{if(reason==='dismissed')sunControls.dismissPreview();return renderPluginExperience({mission:null});},projectObjects:()=>getRenderer()?.projectObjects?.()||[],
+          getSession:()=>session,onPreviewChange:reason=>{if(reason==='dismissed')sunControls?.dismissPreview();return renderPluginExperience({mission:null});},projectObjects:()=>getRenderer()?.projectObjects?.()||[],
           onInsets:panel=>{
             const rect=elements.autonomyCanvas.getBoundingClientRect(),viewport=`${rect.width}:${rect.height}`;
             inspectorInsets=hostRoot.SimulatteCameraFit.measureInsets(rect,[{edge:'bottom',rect:panel.getBoundingClientRect()}]);
             // Opening selection preserves framing; orientation and explicit Focus use the new usable area.
             if(inspectorViewport!==viewport){inspectorViewport=viewport;applyInspectorInsets();}
           }});
-        inspector.update(platform.contributions.find(row=>row.pluginId===owner));
+        inspector.update(ownerContribution);
       }
 
       const uiStartedAt = performance.now();
@@ -199,7 +201,7 @@
       if (!renderer) return;
       await yieldToFrame();
       if (disposed || controlChange || renderGeneration !== pluginRenderGeneration || renderer !== getRenderer()) return;
-      const selected = renderer.cameraState?.()?.focusId || 'route';
+      const selected = inspector?.selected() || null;
       const semanticPresentations = platform.contributions.map((contribution) => ({
         pluginId: contribution.pluginId,
         presentation: contribution.pluginId===owner ? inspector?.presentation() || contribution.presentation : contribution.presentation,
@@ -210,7 +212,7 @@
       renderer.session.setScene({ presentations: semanticPresentations,
         simulationTimeMs: platformTime,
         motion: {id:motionState?.id,previousId:motionState?.previousStateId,running:pluginPlayback?.snapshot().phase==='running'},
-        selectedIds: [selected],
+        selectedIds: selected?[selected]:[],
         provenanceReceipts: inspector?.provenanceReceipts(platform.provenanceReceipts) || platform.provenanceReceipts,
       });
       session.update({preparation:'ready',rendering:'ready'});

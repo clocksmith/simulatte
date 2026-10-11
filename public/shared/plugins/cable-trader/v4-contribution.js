@@ -72,6 +72,7 @@
     const contribution = builder.contribution({
       pluginId: PLUGIN_ID,
       presentation,
+      objects: builder.inspectionObjects(presentation.layers.filter(layer=>layer.role==='primary')),
       events: staticData.events,
       controls: staticData.controls,
       state: progressiveState,

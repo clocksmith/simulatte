@@ -281,6 +281,7 @@ test('declarative UI applies a complete typed control snapshot on change', async
   assert.deepEqual(changes, [{
     pluginId: 'fixture',
     controlId: 'people',
+    control: { ...control('people', 'number', 256), maximum: 1000 },
     values: { people: 512, enabled: true },
   }]);
   assert.equal(people.dataset.applyStatus, 'applied');
@@ -657,4 +658,23 @@ test('late domain actions appear before Focus while keyed controls keep their id
   const slowNode=group.children[0];
   render([{id:'slow',label:'Restore rack'},focus]);
   assert.equal(group.children[0],slowNode);assert.equal(slowNode.textContent,'Restore rack');
+});
+
+test('pending controls survive rerender and stale rejection cannot overwrite the latest accepted edit', async () => {
+  const documentRef = fakeDocument(), inspector = new FakeNode('root', documentRef), pending = [];
+  const host = uiHost.createDeclarativeUiHost({rootElement:inspector,onAction(){},
+    onControlChange(){return new Promise((resolve,reject)=>pending.push({resolve,reject}));}});
+  const contribution = {pluginId:'fixture',controls:{controls:[control('amount','number',1)]},inspections:[]};
+  host.render([], [contribution]);
+  const input = find(inspector,node=>node.dataset?.pluginControl==='amount');
+  input.value='2';const first=input.dispatch('change');
+  host.render([], [contribution]);
+  assert.equal(find(inspector,node=>node.dataset?.pluginControl==='amount'),input);
+  assert.deepEqual(host.acceptedValues('fixture'),{amount:1});
+  input.value='3';const second=input.dispatch('change');
+  pending[1].resolve();await second;
+  pending[0].reject(new Error('Superseded edit rejected'));await first;
+  assert.deepEqual(host.acceptedValues('fixture'),{amount:3});
+  assert.deepEqual(host.values('fixture'),{amount:3});
+  assert.equal(input.dataset.applyStatus,'applied');
 });

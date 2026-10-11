@@ -159,7 +159,7 @@
     let disposed=false;
     const requestedSimulation = options.simulation || null;
     const requestedRoute = options.routeState || {};
-    let activeCameraMode = requestedRoute.camera || null;
+    let activeCameraMode = requestedRoute.camera || null, keepCameraFraming=false;
     const runtimeLog = root.SimulatteAutonomyRuntimeLog || root.SimulatteRuntimeLog;
     const loadTrace = runtimeLog?.createLoadTrace?.(runtimeLog, {
       details: {
@@ -183,12 +183,13 @@
       ].forEach(([button, buttonMode]) => {
         const active=mode===buttonMode;
         button.classList.toggle('is-active',active);
-        button.setAttribute('aria-pressed',String(active));
+        button.setAttribute('role','radio');button.setAttribute('aria-checked',String(active));button.tabIndex=active?0:-1;button.removeAttribute('aria-pressed');
       });
     }
     function governedTierRoute(simulation=simulationRouteState()){return {tier,experience:data.applicationProfile.id,world:data.world.id,profile:data.applicationProfile.id,camera:activeCameraMode,simulation};}
     function tierRouteError(kind,requested,resolved){const error=new Error(`Requested ${kind} ${requested}; resolved ${resolved}`);error.code=`route_${kind}_resolution_mismatch`;return error;}
     function applyTierCamera(mode,navigate=false){
+      if(navigate)keepCameraFraming=false;
       const canonical=mode==='bird'?'overview':mode;
       const supported=new Set(data.applicationProfile.experience?.supportedViews||['overview','free']);
       if(!supported.has(canonical))throw tierRouteError('camera',canonical,[...supported].join(','));
@@ -215,6 +216,7 @@
       elements.cameraFree.textContent='Free';
       elements.cameraCompare.textContent='Compare';
       selectTierViewMode(data.applicationProfile.experience?.defaultView||'overview');
+      root.SimulatteControlComponents.decorateGroup(elements.cameraBird.parentElement);
       [[elements.cameraBird,'overview'],[elements.cameraFollow,'follow'],[elements.cameraPov,'pov'],[elements.cameraTop,'top'],[elements.cameraFree,'free'],[elements.cameraCompare,'compare']]
         .forEach(([button,mode])=>on(button,'click',()=>{void session.invoke('camera',mode).catch(reportRunFailure);}));
       on(elements.cameraReset, 'click', () => { void session.invoke('reset-view').catch(reportRunFailure); });
@@ -346,15 +348,17 @@
         tierVisualizer.selectedRack=objectInteraction.selected()?.startsWith('rack:')?objectInteraction.selected().slice(5):null;
         tierVisualizer.relatedRackIds=ownerContribution.objects?.find(row=>row.id===objectInteraction.selected())?.relatedIds || [];
         const camera=document.getElementById('camera-controls');
-        if(!ownerContribution.presentation.layouts)for(const button of camera.querySelectorAll('[data-presentation-layout]'))button.remove();
+        if(!ownerContribution.presentation.layouts)camera.querySelector('[data-layout-choices]')?.remove();
         if(ownerContribution.presentation.layouts && !camera.querySelector('[data-presentation-layout]')){
-          for(const layout of ownerContribution.presentation.layouts){const button=document.createElement('button');button.type='button';button.dataset.presentationLayout=layout.id;button.textContent=layout.label;button.addEventListener('click',()=>session.invoke('layout',layout.id).catch(()=>{}));camera.append(button);}
+          const group=document.createElement('div');group.dataset.layoutChoices='';group.className='sim-segmented';group.setAttribute('aria-label','Presentation layout');camera.append(group);
+          for(const layout of ownerContribution.presentation.layouts){const button=document.createElement('button');button.type='button';button.dataset.presentationLayout=layout.id;button.textContent=layout.label;button.addEventListener('click',()=>session.invoke('layout',layout.id).catch(()=>{}));group.append(button);}
+          root.SimulatteControlComponents.decorateGroup(group);
         }
-        for(const button of camera.querySelectorAll('[data-presentation-layout]'))button.setAttribute('aria-pressed',String(button.dataset.presentationLayout===(tierVisualizer.presentationLayout||'network')));
+        for(const button of camera.querySelectorAll('[data-presentation-layout]')){const active=button.dataset.presentationLayout===(tierVisualizer.presentationLayout||'network');button.setAttribute('aria-checked',String(active));button.tabIndex=active?0:-1;}
       }
       pluginUi.render(runtime.views(context),platform.contributions);
       const controlCount=platform.contributions.reduce((total,contribution)=>total+contribution.controls.controls.length,0);
-      elements.decisionsButton.textContent=controlCount?'Advanced':'Evidence';
+      elements.decisionsButton.textContent='Advanced';
       renderTierSummary(root.__simulatteTierRunState?.state||'idle');
       tierVisualizer.removeHud?.();
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
@@ -375,7 +379,7 @@
       }));
       if(manualDecision)viewDirector.setManualOverride({mode:manualDecision.mode,targetIds:manualDecision.targetIds});
       const viewState=viewDirector.snapshot();
-      if(!preserveCamera&&!viewState.manualOverride&&viewState.decision.source!=='core-fallback'){
+      if(!preserveCamera&&!keepCameraFraming&&!viewState.manualOverride&&viewState.decision.source!=='core-fallback'){
         const sourceIntentId=viewState.decision.intentId?.slice(`${viewState.decision.source}:`.length)||null;
         const intentTargetId=sourceIntentId?`plugin:${viewState.decision.source}:${sourceIntentId}`:null;
         const subjectTargetIds=viewState.decision.targetIds.map((id)=>`plugin:${viewState.decision.source}:${id}`);
@@ -385,7 +389,7 @@
         tierVisualizer.setViewMode?.(viewState.decision.mode);
         candidates.some((id)=>tierVisualizer.focusPluginTarget?.(id));
         selectTierViewMode(viewState.decision.mode);
-      } else if (!preserveCamera && viewState.manualOverride && ['overview', 'compare'].includes(activeCameraMode)) {
+      } else if (!preserveCamera && !keepCameraFraming && viewState.manualOverride && ['overview', 'compare'].includes(activeCameraMode)) {
         // A chosen framing mode follows new evidence; a manually panned Free view stays put.
         applyTierCamera(activeCameraMode);
       }
@@ -527,12 +531,13 @@
           {id:'speed',category:'execution',perform:value=>runController.setPlaybackRate(value)},
           {id:'camera',category:'observation',perform:mode=>applyTierCamera(mode,true)},
           {id:'layout',category:'observation',perform:id=>{const p=lastPluginContributions.find(row=>row.pluginId===owner)?.presentation;if(!p?.layouts?.some(row=>row.id===id))throw Error('Unsupported layout');tierVisualizer.presentationLayout=id;renderPlugins();applyTierCamera('overview',true);}},
-          {id:'select-object',category:'observation',perform:id=>{objectInteraction.select(id);tierVisualizer.selectedRack=id?.startsWith('rack:')?id.slice(5):null;tierVisualizer.relatedRackIds=lastPluginContributions.find(row=>row.pluginId===owner)?.objects?.find(row=>row.id===id)?.relatedIds||[];renderPlugins({preserveCamera:true});}},
+          {id:'camera-state',category:'observation',perform:()=>({mode:activeCameraMode,zoom:tierVisualizer.zoom,panX:tierVisualizer.panX,panY:tierVisualizer.panY,rotX:tierVisualizer.rotX,rotY:tierVisualizer.rotY})},
+          {id:'select-object',category:'observation',perform:id=>{keepCameraFraming=true;objectInteraction.select(id);tierVisualizer.selectedRack=id?.startsWith('rack:')?id.slice(5):null;tierVisualizer.relatedRackIds=lastPluginContributions.find(row=>row.pluginId===owner)?.objects?.find(row=>row.id===id)?.relatedIds||[];renderPlugins({preserveCamera:true});}},
           {id:'focus-object',category:'observation',perform:id=>focusObject(owner,id)},
           {id:'preview-controls',category:'observation',perform:(values,operation)=>previewControls(owner,values,operation)},
           {id:'pause',category:'execution',perform:()=>runController.pause()},
           {id:'resume',category:'execution',perform:()=>runController.resume()},
-          {id:'restart',serial:true,category:'reproduction',perform:()=>runController.restart()},
+          {id:'restart',serial:true,category:'reproduction',perform:()=>{keepCameraFraming=true;return runController.restart();}},
           {id:'replay',serial:true,category:'reproduction',perform:()=>runController.replay()},
           {id:'reset-view',category:'observation',target:'camera',perform:()=>{tierVisualizer.resetView();return applyTierCamera(data.applicationProfile.experience.defaultView,true);}},
           {id:'object-preview',category:'observation',perform:async(input,operation)=>{
@@ -815,7 +820,7 @@
   }
   function preferredTierCameraTarget(targets, mode) {
     return [...(targets || [])]
-      .filter((target) => target.viewMode === mode || (mode === 'pov' && target.viewMode === 'follow'))
+      .filter((target) => target.viewMode === mode)
       .sort((left, right) => Number(right.priority || 0) - Number(left.priority || 0))[0]
       || null;
   }

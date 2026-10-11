@@ -209,10 +209,13 @@
 
     async function restart() {
       const values = normalizeValues(parameterValues);
+      const wasRunning = state === "running";
       const generation = runGeneration + 1;
       await reset();
       if (disposed || generation !== runGeneration) return snapshot();
-      return start({ values });
+      const result=await start({ values });
+      if(!wasRunning && state === "running") return pause();
+      return result;
     }
 
     async function reset() {

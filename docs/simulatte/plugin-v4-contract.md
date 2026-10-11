@@ -112,8 +112,15 @@ authoritative until the user releases it.
 
 Controls use a consistent host-rendered definition. Comparison definitions
 name baseline and variant scenario IDs and declare whether clocks synchronize.
-Controls describe scenario parameters. They do not directly mutate camera or
-renderer state. Optional `selectionGroup` on select controls declares an ordered
+Controls declare `purpose` (state, choice, multiple, preference, quantity or time),
+`scope`, `application`, `group`, `placement`, `available` and optional `unit`.
+The value kind must agree with purpose. Legacy definitions adapt to scenario
+parameters with restart application. Observation, execution and live controls
+require immediate application; the owner validates and executes their meaning.
+The host selects switches, native radio or checkbox groups, searchable pickers,
+sliders and numerical fields without assuming every edit restarts. Stable
+plugin/control keys retain inputs and group expansion; rejected edits restore
+the accepted value and stale completions cannot supersede newer requests. Optional `selectionGroup` on select controls declares an ordered
 permutation of one shared option set. The host swaps the displaced selection
 before applying the complete parameter snapshot, and restores the group if the
 change fails. The plugin still validates the resulting order. Label prefixes

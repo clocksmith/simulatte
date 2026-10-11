@@ -54,6 +54,27 @@
     return result && Object.freeze({ ...result, projectionMode });
   }
 
+  function fitPerspective(points, { width, height, yaw = 0.4, pitch = 0.32, fov = 0.65, padding = 32, insets = {} }) {
+    if (![width,height,fov].every(value=>Number.isFinite(value)&&value>0) || fov>=Math.PI) throw new TypeError('Camera fit requires a valid viewport and field of view');
+    if (!points.length || !points.every(p => p.length === 3 && p.every(Number.isFinite))) throw new TypeError('Camera fit requires finite geometry');
+    const target = [0, 1, 2].map(i => (Math.min(...points.map(p => p[i])) + Math.max(...points.map(p => p[i]))) / 2);
+    const horizontal = Math.max(1, width - 2 * (padding + Math.max(insets.left || 0, insets.right || 0)));
+    const vertical = Math.max(1, height - 2 * (padding + Math.max(insets.top || 0, insets.bottom || 0)));
+    const tangentY = Math.tan(fov / 2) * vertical / height;
+    const tangentX = Math.tan(fov / 2) * width / height * horizontal / width;
+    const right = [Math.cos(yaw), 0, -Math.sin(yaw)];
+    const up = [-Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), -Math.cos(yaw) * Math.sin(pitch)];
+    const forward = [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch)];
+    const dot = (a, b) => a.reduce((v, x, i) => v + x * b[i], 0);
+    let distance = 0.1;
+    for (const point of points) {
+      const delta = point.map((v, i) => v - target[i]), depth = dot(delta, forward);
+      distance = Math.max(distance, depth + Math.abs(dot(delta, right)) / tangentX,
+        depth + Math.abs(dot(delta, up)) / tangentY, depth + 0.1);
+    }
+    return { target, distance: distance * 1.05, yaw, pitch };
+  }
+
   function measureInsets(canvas, overlays) {
     const insets = { left: 0, right: 0, top: 0, bottom: 0 };
     for (const { edge, rect } of overlays) {
@@ -66,5 +87,5 @@
     return insets;
   }
 
-  return Object.freeze({ fit, fitPoints, usableViewport, measureInsets, frameProjection });
+  return Object.freeze({ fit, fitPoints, usableViewport, measureInsets, frameProjection, fitPerspective });
 });

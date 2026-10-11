@@ -251,3 +251,22 @@ test('camera route identity uses accepted input, independent of measurements and
   assert.deepEqual(route.parameters.subsea.failed, ['accepted-fault']);
   assert.deepEqual(contributions[0].controls.controls[0].value, ['currently-broken']);
 });
+
+
+test('perspective camera fits actual geometry inside desktop and mobile overlay margins', () => {
+  const fit=require('../public/simulatte/app/camera-fit.js');
+  const points=[[-3,-1,-2],[3,2,2],[-3,2,2],[3,-1,-2],[0,4,0]];
+  for(const [width,height] of [[1100,530],[390,420]]) {
+    const insets={top:90,bottom:58},padding=12;
+    const camera=fit.fitPerspective(points,{width,height,insets,padding});
+    const {yaw,pitch,target,distance}=camera, dot=(a,b)=>a.reduce((sum,v,i)=>sum+v*b[i],0);
+    const right=[Math.cos(yaw),0,-Math.sin(yaw)];
+    const up=[-Math.sin(yaw)*Math.sin(pitch),Math.cos(pitch),-Math.cos(yaw)*Math.sin(pitch)];
+    const forward=[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)];
+    for(const p of points){const d=p.map((v,i)=>v-target[i]),z=distance-dot(d,forward);
+      const x=width/2+dot(d,right)/z/Math.tan(.65/2)*height/2;
+      const y=height/2-dot(d,up)/z/Math.tan(.65/2)*height/2;
+      assert.ok(x>=padding&&x<=width-padding);assert.ok(y>=insets.top+padding&&y<=height-insets.bottom-padding);
+    }
+  }
+});

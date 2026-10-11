@@ -67,8 +67,7 @@ The declared rack count, accelerator count, link classes, control ranges, and sc
 - A baseline run retains the default controls and seed.
 - An intervention changes one or more declared controls while retaining the comparison identity.
 - Comparison rows keep step latency, utilization, temperature, cooling, and network effects separate.
-- Starting playback executes rack computation, collective transfers and compute barriers from the accepted configuration. Recorded live actions alter rack compute speed; pausing preserves the workload. Temperature and facility power remain configured steady-state estimates.
-- Primary readouts show completed training steps, waiting added by recorded live actions, and productive compute share. Added waiting compares identical initial workloads over the same elapsed interval with and without live actions. Rack-ms sums simultaneous waits across racks; it is not elapsed time. Configured power and throughput estimates remain inspectable in Advanced.
+- Starting playback executes rack computation, collective transfers and compute barriers from the accepted configuration. Recorded live actions alter rack compute speed; pausing preserves the workload. Temperature and facility power remain configured steady-state estimates. Primary readouts show completed training steps, waiting added by recorded live actions, and productive compute share. Added waiting compares identical initial workloads over the same elapsed interval with and without live actions. Rack-ms sums simultaneous waits across racks; it is not elapsed time. Configured power and throughput estimates remain inspectable in Advanced.
 - Reload evidence is valid only when profile, plugin, seed, controls, and terminal receipts match.
 
 ## What can and cannot be claimed?

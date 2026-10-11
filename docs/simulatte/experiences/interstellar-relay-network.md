@@ -47,8 +47,7 @@ traffic, advanced channels, or an operating interstellar network exist.
 ## What does the user see?
 
 - Initial view: The 1,638-star HYG backdrop plus active Gaia-default relay candidates in depth-aware 3D ICRS Cartesian parsecs.
-- During playback: Selected links, route alternatives, packet depth, acquisition, queue, retry, transmit, receive, and delivery events.
-- Primary readouts distinguish predicted request arrival, predicted full-packet reply arrival, and elapsed modeled time since departure. The selected packet identifies its current station or active hop and connected objects. Future arrival is never described as an already completed delivery. Link capacity remains in Advanced.
+- During playback: Selected links, route alternatives, packet depth, acquisition, queue, retry, transmit, receive, and delivery events. Primary readouts distinguish predicted request arrival, predicted full-packet reply arrival, and elapsed modeled time since departure. The selected packet identifies its current station or active hop and connected objects. Future arrival is never described as an already completed delivery. Link capacity remains in Advanced.
 - Selection and inspection: Route work, link budget, causality, constructibility, reliability, operational effects, omissions, and coordinates.
 - Comparison view: Direct classical baseline and selected intervention use synchronized endpoints, epochs, packet, and operations seed.
 - Final settlement: Latency, bottleneck rate, link margin, energy, delivery distribution, retries, failures, and claim boundary.

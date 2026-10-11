@@ -265,12 +265,17 @@ for (const viewport of [
           await evaluate("globalThis.__fieldExperimentError||null"),
           null,
         );
-        await click("#pause");
+        if(await evaluate("__fieldExperimentState.running"))await click("#pause");
         await wait("!__fieldExperimentState.running");
+        if(await evaluate("__fieldExperimentState.complete"))await click("#restart");
         const before = await evaluate("__fieldExperimentSnapshot()");
         await click("#scene");
         if(id==='living-tissue'){
-          assert.equal(await evaluate("document.querySelector('#signal').getAttribute('aria-pressed')"),'true');
+          // A center click may hit the protected source or empty space. Select a real patch.
+          for(let attempt=0;attempt<100&&await evaluate("document.querySelector('#actions button').disabled");attempt++)
+            await evaluate("document.getElementById('scene').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true}))");
+          assert.equal(await evaluate("document.querySelector('#actions button').disabled"),false,'Select a patch containing removable cells');
+          assert.equal(await evaluate("document.querySelector('#signal').checked"),true);
           assert.ok(await evaluate("document.querySelector('#preview-description').textContent.includes('dashed patch')"));
           const stateHash=await evaluate('__fieldExperimentSnapshot().stateHash');await click('#signal');
           assert.equal(await evaluate('__fieldExperimentSnapshot().stateHash'),stateHash);
@@ -289,7 +294,7 @@ for (const viewport of [
         await wait("!__fieldExperimentState.running");
         const expected = await evaluate("__fieldExperimentSnapshot()");
         await evaluate("document.querySelector('main > details').open=true");
-        await click("#replay");
+        await click("#verify-replay");
         await wait(
           `document.getElementById('status').textContent.startsWith('Replay verified')`,
         );
@@ -364,9 +369,11 @@ for (const viewport of [
       try {
         await client.send("Page.navigate", { url: host.baseUrl + route });
         await wait(
-          `globalThis.SimulatteActiveSession?.snapshot().id==='${route === "interstellar" ? "interstellar-relay-network-v1" : "asteroid-defense-v1"}' && globalThis.globalThis.SimulatteActiveSession?.snapshot().execution==='running'||globalThis.__simulatteLastFailError`,
+          `globalThis.SimulatteActiveSession?.snapshot().id==='${route === "interstellar" ? "interstellar-relay-network-v1" : "asteroid-defense-v1"}' && ['running','complete'].includes(globalThis.SimulatteActiveSession?.snapshot().execution)||globalThis.__simulatteLastFailError`,
         );
-        await click("#pause-button");
+        await evaluate("SimulatteActiveSession.invoke('pause')");
+        if(await evaluate("SimulatteActiveSession.snapshot().execution==='complete'"))
+          await evaluate("SimulatteActiveSession.invoke('restart')");
         await wait(`SimulatteActiveSession.snapshot().execution==='paused'`);
         const pluginId =
           route === "interstellar"
@@ -386,7 +393,7 @@ for (const viewport of [
         await click(
           `[data-object-action="${route === "interstellar" ? "reply" : "observe"}"]`,
         );
-        await wait(`SimulatteActiveSession.snapshot().execution==='running'`);
+        await wait(`['running','complete'].includes(SimulatteActiveSession.snapshot().execution)`);
         await wait(
           route === "interstellar"
             ? `__simulattePluginPlatformV4.contributions.find(row=>row.pluginId==='${pluginId}').controls.controls.some(row=>row.id==='messageMode'&&row.value==='request-reply')`
@@ -404,7 +411,7 @@ for (const viewport of [
             false,
           );
           await click('[data-object-action="commit"]');
-          await wait("SimulatteActiveSession.snapshot().execution==='running'");
+          await wait("['running','complete'].includes(SimulatteActiveSession.snapshot().execution)");
           await wait(
             "SimulatteActiveSession.snapshot().execution==='complete'",
             90000,
@@ -459,7 +466,7 @@ for (const viewport of [
           row.selectedCondition=await evaluate("document.querySelector('.sim-object-inspector').textContent");
           const camera=await evaluate("document.querySelector('#tier-canvas')?.__simulatteRenderReceipt?.().view||null");
           await click('[data-object-action=apply]');
-          await wait("SimulatteActiveSession.snapshot().execution==='running'");
+          await wait("['running','complete'].includes(SimulatteActiveSession.snapshot().execution)");
           await evaluate("SimulatteActiveSession.invoke('pause')");
           const after=await evaluate("__simulattePluginPlatformV4.contributions.find(row=>row.pluginId==='subsea-network-global')");
           assert.ok(after.controls.controls.find(row=>row.id==='failedResourceIds').value.every(id=>object.id!==`corridor:${id}`));
@@ -479,7 +486,7 @@ for (const viewport of [
           await evaluate("document.querySelector('[data-component=motor]').click()");
           assert.deepEqual(await evaluate('SimulatteSolarDrive.getState()'),before);
           row.matchedComparison=matched;row.receipt=await evaluate('SimulatteSolarDrive.getReceipt()');
-          const replay=await evaluate('SimulatteSolarDrive.replay()');assert.equal(replay.status,'pass');
+          const replay=await evaluate('SimulatteSolarDrive.verifyReplay()');assert.equal(replay.status,'pass');
           row.replay=replay;
           await wait('SimulatteSolarDrive.isViewSettled()');
         }

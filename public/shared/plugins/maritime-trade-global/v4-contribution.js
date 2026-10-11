@@ -174,6 +174,7 @@
     return builder.contribution({
       pluginId: PLUGIN_ID,
       presentation,
+      objects: builder.inspectionObjects(presentation.layers.filter(layer=>layer.role==='primary')),
       events,
       controls,
       state,

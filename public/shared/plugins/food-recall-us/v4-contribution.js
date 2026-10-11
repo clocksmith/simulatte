@@ -189,6 +189,7 @@
     return builder.contribution({
       pluginId: PLUGIN_ID,
       presentation: visual,
+      objects: builder.inspectionObjects(visual.layers.filter(layer=>layer.role==='primary')),
       events,
       controls,
       state: progressiveState,

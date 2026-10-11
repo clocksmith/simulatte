@@ -107,7 +107,7 @@ try {
     const frames = await evaluate('SimulatteSolarDrive.getReceipt().evidence.renderer.completedFrames');
     await waitFor(`SimulatteSolarDrive.getReceipt().evidence.renderer.completedFrames > ${frames + 1}`);
     await capture(`${name}-exploded`, width, height);
-    const replay = await evaluate('SimulatteSolarDrive.replay()'); check(replay.status === 'pass', `${name}: replay failed`);
+    const replay = await evaluate('SimulatteSolarDrive.verifyReplay()'); check(replay.status === 'pass', `${name}: replay failed`);
     const sun = await evaluate('SimulatteSolarDrive.getState().flows.pvW');
     await evaluate('document.getElementById("shade").value = "0.9"; document.getElementById("shade").dispatchEvent(new Event("change", { bubbles: true })); SimulatteSolarDrive.runSteps(1200)');
     check(await evaluate(`SimulatteSolarDrive.getState().flows.pvW < ${sun * 0.2} && SimulatteSolarDrive.getSpec().authorship.revision === 1`), `${name}: shade edit had no effect`);

@@ -195,7 +195,7 @@
         },
         onCameraInteraction,
       });
-      wireCameraControls(elements, renderer, lifecycle.signal, { onManualNavigation });
+      wireCameraControls(elements, renderer, lifecycle.signal, { onManualNavigation, supportedViews:data.applicationProfile.experience.supportedViews });
       const receipt = renderer.receipt();
       log.info('renderer.ready', {
         backend: receipt.backend,

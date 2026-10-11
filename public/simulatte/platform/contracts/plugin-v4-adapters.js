@@ -98,7 +98,7 @@
         synchronizedClock: true,
       }));
     });
-    const normalized = { schema: 'simulatte.pluginControls.v4', controls, comparisons };
+    const normalized = { schema: 'simulatte.pluginControls.v4', controls: controls.map(contracts.controlSemantics), comparisons };
     contracts.validateControls(normalized);
     return deepFreeze(normalized);
   }

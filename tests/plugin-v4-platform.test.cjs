@@ -574,3 +574,23 @@ test('ranked select groups require a complete unique shared option set', () => {
   assert.throws(() => contracts.validateControls({ ...value, controls: [controls[0]] }), /shared option set/);
   assert.throws(() => contracts.validateControls({ ...value, controls: [{ ...controls[0], kind: 'number' }, controls[1]] }), /grouped control kind/);
 });
+
+
+test('fixed-step playback is identical at 30, 60 and 144 Hz and speed changes only scheduling', () => {
+  for(const frequency of [30,60,144]) for(const speed of [1,4]) {
+    const scheduler=clockModule.createFixedStepScheduler({stepsPerSecond:480});
+    let steps=0, modelTime=0;
+    for(let i=0;i<=frequency;i++)scheduler.frame(i*1000/frequency,{running:true,speed,advance(){steps++;modelTime+=0.002;}});
+    assert.equal(steps,480*speed);assert.ok(Math.abs(modelTime-steps*0.002)<1e-9);
+  }
+});
+test('fixed-step playback retains overdue work and freezes it while paused', () => {
+  const scheduler=clockModule.createFixedStepScheduler({stepsPerSecond:100,maxStepsPerFrame:10});
+  let steps=0;const advance=()=>{steps++;};
+  scheduler.frame(0,{running:true,advance});scheduler.frame(1000,{running:true,advance});
+  assert.equal(steps,10);assert.equal(scheduler.snapshot().pendingSteps,90);assert.equal(scheduler.snapshot().slowerPlayback,true);
+  scheduler.frame(2000,{running:false,advance});assert.equal(steps,10);
+  for(let i=0;i<9;i++)scheduler.frame(2000,{running:true,advance});
+  assert.equal(steps,100);assert.equal(scheduler.snapshot().pendingSteps,0);
+  scheduler.frame(3000,{running:true,visible:false,advance});assert.equal(steps,100);
+});

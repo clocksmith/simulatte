@@ -123,7 +123,7 @@
       ],
       "output": {
         "path": "docs/simulatte/folder-contract.json",
-        "sha256": "aec914cee186becbe15aaf3bbec000943d549a7be52e4e855184807f7d103d2d"
+        "sha256": "c9fd006c950c3d5253ae21519022ca2c85f755b936d9a45aab9cb15b9eab7797"
       },
       "contentVersion": "unpopulated",
       "activationState": "active-generated-mirror",
@@ -141,7 +141,7 @@
       ],
       "output": {
         "path": "public/data/field-experiments/living-tissue.json",
-        "sha256": "f30bec41d14a1ae57953d9c896ebff48beb0e3352309792c8f72533260f6da45"
+        "sha256": "1267d6c58ded63d8bdc379235f5a2e340941fa9b940da8340e5a75874c25a99b"
       },
       "contentVersion": "living-tissue",
       "activationState": "active",
@@ -159,7 +159,7 @@
       ],
       "output": {
         "path": "public/data/field-experiments/river-formation.json",
-        "sha256": "75798df92c9de58f52d1bada01948a0df69f1c8d538e3ba1c07e73899ccbfe2b"
+        "sha256": "ca68cb6ce51f6e01babe79b93100040ce0985eb1a4a783efb03e6ffd4ca61442"
       },
       "contentVersion": "river-formation",
       "activationState": "active",
@@ -177,7 +177,7 @@
       ],
       "output": {
         "path": "public/data/field-experiments/crystal-foundry.json",
-        "sha256": "9bd6e40aab518dd980e0bc213e6537be85ae1c0ad14c339abbcce3f354333b2d"
+        "sha256": "1306fb09d1633bd55bf954b46e451d3de87d47390f2adc8ca103681e18b321cd"
       },
       "contentVersion": "crystal-foundry",
       "activationState": "active",

@@ -87,7 +87,7 @@ test('plugin session initializes the camera before view arbitration and cancels 
   const renderer = { cameraState: () => ({}),
     session: { setScene: (scene) => {
       assert.deepEqual(scene.presentations, []);
-      assert.deepEqual(scene.selectedIds, ['route']);
+      assert.deepEqual(scene.selectedIds, [], 'Camera targets cannot invent a selected object');
       events.push('draw');
     } }, receipt: () => ({ pluginCompositor: {} }) };
   let frame = Promise.resolve();

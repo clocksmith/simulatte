@@ -2,9 +2,8 @@
   "schema": "simulatte.fieldExperiment.v1",
   "version": "1.0.0",
   "seed": 17,
-  "stepsPerFrame": 8,
   "durationSteps": 12000,
-  "modelTolerance": 1e-7,
+  "modelTolerance": 1e-07,
   "id": "river-formation",
   "name": "River Formation",
   "question": "How does flowing water change the landscape that directs it?",
@@ -43,17 +42,17 @@
     {
       "id": "water",
       "label": "Water retained",
-      "unit": "m³"
+      "unit": "m\u00b3"
     },
     {
       "id": "sedimentExport",
       "label": "Sediment exported",
-      "unit": "m³"
+      "unit": "m\u00b3"
     },
     {
       "id": "terrain",
       "label": "Terrain volume",
-      "unit": "m³"
+      "unit": "m\u00b3"
     }
   ],
   "sources": [
@@ -62,7 +61,7 @@
       "url": "https://landlab.csdms.io/tutorials/landscape_evolution/erosion_deposition/erosion_deposition_component.html"
     }
   ],
-  "boundary": "Bounded height-field surface-water routing and capacity-limited erosion/deposition. Water advances in seconds; erosion and deposition use 200× morphological time. No full shallow-water momentum solver or calibrated catchment forecast.",
+  "boundary": "Bounded height-field surface-water routing and capacity-limited erosion/deposition. Water advances in seconds; erosion and deposition use 200\u00d7 morphological time. No full shallow-water momentum solver or calibrated catchment forecast.",
   "modelSources": [
     {
       "id": "river-erosion",
@@ -74,5 +73,6 @@
       "path": "../../shared/core/simulation/field-grid.js",
       "sha256": "5997a62399793cd93e5d9311923a011e0ca3f63a05c1068c9041fcc159493dc8"
     }
-  ]
+  ],
+  "stepsPerSecond": 480
 }

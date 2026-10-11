@@ -603,6 +603,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       return Object.freeze({
         mode: state.mode,
         focusId: state.focusId,
+        yaw:state.yaw,pitch:state.pitch,distance:state.distance,panX:state.panX,panY:state.panY,
+        orbitTarget:[...state.orbitTarget],followDistance:state.followDistance,
         transition: state.transition ? 'active' : 'settled',
       });
     }

@@ -217,7 +217,8 @@ test('tier camera controls resolve real overview, follow, POV, and compare targe
   ];
   assert.equal(bootApi.preferredTierCameraTarget(targets, 'overview').id, 'overview-high');
   assert.equal(bootApi.preferredTierCameraTarget(targets, 'follow').id, 'follow');
-  assert.equal(bootApi.preferredTierCameraTarget(targets, 'pov').id, 'follow');
+  assert.equal(bootApi.preferredTierCameraTarget(targets, 'pov'), null, 'Follow cannot stand in for an unsupported onboard view');
+  assert.equal(bootApi.preferredTierCameraTarget([...targets,{id:'onboard',viewMode:'pov',priority:80}], 'pov').id,'onboard');
   assert.equal(bootApi.preferredTierCameraTarget(targets, 'compare').id, 'compare');
   assert.equal(bootApi.preferredTierCameraTarget(targets, 'free'), null);
 });

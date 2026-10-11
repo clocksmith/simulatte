@@ -110,7 +110,7 @@
       "path": "./pool-solver.js"
     },
     {
-      "integrity": "sha384-acb87a5353daae50fabd0d75bcc68cc3ff391af5c653e7bece698585285bf122b87ca0dfab88fb1cdff2763909e65ee2",
+      "integrity": "sha384-2442b01b43839aa9421fcafdaef29da9aa634f28c174254b9598ebe5189d3684f8d1153a68a1c1fe51dd60ec52a3eb9c",
       "path": "./v4-contribution.js"
     }
   ],

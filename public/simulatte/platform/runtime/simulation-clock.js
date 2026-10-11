@@ -187,6 +187,31 @@
     });
   }
 
+  // Rendering requests work; only the owning model commits its fixed steps.
+  function createFixedStepScheduler({ stepsPerSecond, maxStepsPerFrame = 128 }) {
+    positive(stepsPerSecond, 'simulation_clock_rate_invalid', 'Normal steps per second');
+    if (!Number.isInteger(maxStepsPerFrame) || maxStepsPerFrame < 1) throw new TypeError('Invalid frame work budget');
+    let previous = null, debt = 0, completed = 0;
+    function reset() { previous = null; debt = 0; completed = 0; }
+    function frame(now, { running, speed = 1, advance, visible = true }) {
+      nonNegative(now, 'simulation_clock_time_invalid', 'Frame time');
+      rate(speed);
+      const elapsed = previous === null ? 0 : Math.max(0, now - previous) / 1000;
+      previous = now;
+      if (!running || !visible) return snapshot();
+      debt += elapsed * stepsPerSecond * speed;
+      const due = Math.min(maxStepsPerFrame, Math.floor(debt + 1e-9));
+      for (let i = 0; i < due; i++) {
+        if (advance() === false) { debt = 0; break; }
+        debt = Math.max(0, debt - 1); completed++;
+      }
+      return snapshot();
+    }
+    function snapshot() { return { pendingSteps: debt, completedSteps: completed,
+      slowerPlayback: debt >= maxStepsPerFrame, stepsPerSecond }; }
+    return Object.freeze({ frame, reset, rebase() { previous = null; }, snapshot });
+  }
+
   function firstAfter(events, simulationTimeMs) {
     let low = 0;
     let high = events.length;
@@ -223,5 +248,5 @@
     return error;
   }
 
-  return Object.freeze({ createClock, firstAfter });
+  return Object.freeze({ createClock, createFixedStepScheduler, firstAfter });
 });

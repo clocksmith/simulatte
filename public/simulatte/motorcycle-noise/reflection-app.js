@@ -5,15 +5,21 @@
   let selected=null,placement=null,activeAudio=null,lastReadout=-Infinity,audioRequest=0,explorer=null;
   let populationWorker=null,populationRequest=0,cameraSnapshot=null,observationSnapshot=null,expectedReplay=null;
   let lifecycle, cancelPopulation=null, cancelMeasurement=null,mistPreparing=false,treatmentUndo=[];
+  let acceptedTraffic=null, liveHistory=[], replayCursor=null, replayUntil=null;
+  const liveKeys=["config","panel","receiver","reference","speaker","observers","treatments","treatmentMode","treatmentsEnabled","fictionalEventsEnabled","mistBursts","treatmentSequence"];
+  const captureLive=()=>Object.fromEntries(liveKeys.map(key=>[key,structuredClone(scene[key])]));
+  function rememberLive(){if(!scene)return;liveHistory=liveHistory.filter(row=>row.time<=time);liveHistory.push({time,state:captureLive()});replayCursor=null;replayUntil=null;}
+  function restoreLive(state){for(const key of liveKeys)scene[key]=structuredClone(state[key]);$("fictional-events").checked=scene.fictionalEventsEnabled;$("technique").value=scene.treatmentMode;showConfig(scene.config);explorer?.resetClock();}
   const statusView=root.SimulatteSimulationSessionStatus.create({host:$('experience-status')});
   const session=root.SimulatteSimulationSession.create({
     id:'motorcycle-noise',
     onChange:snapshot=>statusView.render(snapshot),
-    capabilities:{selection:true,camera:true,pause:true,restart:true,replay:'traffic-only',
+    capabilities:{selection:true,camera:true,pause:true,restart:true,replay:'recorded-traffic-and-treatments',
       liveActions:true,sound:true,measurement:'snapshot'},
     operations:[
       {id:'select-object',category:'observation',perform:pick=>{if(explorer?.pick(pick))return;if(placement&&pick.point)setEquipment(pick.point);else if(pick.sourceId)selected=pick.sourceId;}},
       {id:'camera',category:'observation',perform:mode=>explorer?.setCamera(mode)},
+      {id:'location',category:'observation',perform:location=>explorer?.setLocation(location)},
       {id:'follow',category:'observation',perform:()=>explorer?.follow()},
       {id:'onboard',category:'observation',perform:()=>explorer?.setCamera('rider')},
       {id:'mist-spray',category:'live',available:()=>!mistPreparing&&!cancelPopulation,perform:sprayMist},
@@ -27,12 +33,13 @@
       {id:'seek',category:'reproduction',perform:value=>controller.seek(value)},
       {id:'pause',category:'execution',perform:()=>controller.pause()},
       {id:'resume',category:'execution',perform:()=>controller.resume()},
-      {id:'restart',category:'reproduction',perform:()=>controller.restart()},
+      {id:'restart',category:'reproduction',perform:(_,operation)=>controller.restart(operation)},
       {id:'replay',category:'reproduction',perform:()=>controller.replay()},
-      {id:'reset-view',category:'observation',target:'camera',perform:()=>explorer?.setCamera('area:Greenpoint')},
+      {id:'verify-replay',serial:true,category:'reproduction',perform:(_,operation)=>verifyReplay(operation)},
+      {id:'reset-view',category:'observation',target:'camera',perform:()=>explorer?.setCamera('overview')},
       {id:'compare-snapshot',category:'execution',target:'viewpoint',perform:(observer,operation)=>controller.compareSnapshot(observer,operation)},
       {id:'acoustics',category:'live',perform:values=>controller.setAcoustics(values)},
-      {id:'panel-angle',category:'live',perform:value=>{if(scene){scene.panel.angle=Number(value)*Math.PI/180;invalidate();}}},
+      {id:'panel-angle',category:'live',perform:value=>{if(scene){const angle=Number(value);if(!Number.isFinite(angle)||angle<0||angle>360)throw Error('Panel angle must be between 0 and 360 degrees');scene.panel.angle=angle*Math.PI/180;rememberLive();invalidate();}}},
       {id:'technique',category:'live',perform:value=>controller.setTechnique(value)},
       {id:'focus-target',category:'observation',perform:id=>view.focus(id)},
     ],
@@ -40,39 +47,40 @@
   root.SimulatteMotorcycleSession=session;
   const controller=Object.freeze({
     pause:()=>setPaused(true),resume:()=>setPaused(false),
-    restart:()=>{replayTraffic();setPaused(false);},replay:()=>{replayTraffic();setPaused(false);},
-    seek:value=>{invalidate();time=Number(value);explorer?.resetClock();setPaused(true);},
+    restart:async(operation)=>{const next=await createTraffic(acceptedTraffic.config,operation?.signal);operation?.throwIfCancelled();scene=next;restoreLive(acceptedTraffic);scene.mistBursts=[];liveHistory=[];replayCursor=null;replayUntil=null;treatmentUndo=[];$('undo-treatment').disabled=true;view.setSources(scene.sources);replayTraffic();setPaused(paused);},
+    replay:()=>{replayUntil=time||180;replayCursor=0;restoreLive(acceptedTraffic);replayTraffic();setPaused(false);},
+    seek:value=>{const at=Number(value);if(!Number.isFinite(at)||at<0||at>180)throw Error('Seek time must be between 0 and 180 seconds');invalidate();time=at;restoreLive(liveHistory.filter(row=>row.time<=at).at(-1)?.state||acceptedTraffic);replayCursor=null;replayUntil=null;setPaused(true);},
     async configure(config,operation){
-      invalidate();session.update({preparation:'preparing'});
+      const wasPaused=paused;invalidate();session.update({preparation:'preparing'});
       try{
         const next=await createTraffic(config,operation?.signal);
         operation?.throwIfCancelled();
         scene=next;treatmentUndo=[];$('undo-treatment').disabled=true;$('fictional-events').checked=false;view.setSources(scene.sources);time=0;selected=scene.sources.find(row=>row.kind==='motorcycle')?.id;
-        setPaused(false);session.update({preparation:'ready'});
+        acceptedTraffic=captureLive();liveHistory=[];replayCursor=null;replayUntil=null;setPaused(wasPaused);session.update({preparation:'ready'});
       }catch(error){if(!operation||operation.isCurrent())session.update({preparation:error.name==='AbortError'?'ready':'failed'});throw error;}
     },
     compareSnapshot:run,
     setAcoustics(values){
       if(!scene)return;const accepted=M.validate({...scene.config,...values});invalidate();
       for(const key of ['surface','cancellation','reflectivity','latencyMs'])scene.config[key]=accepted[key];
-      status('Acoustic treatment changed; traffic and source positions are unchanged.');
+      rememberLive();status('Acoustic treatment changed; traffic and source positions are unchanged.');
     },
     editTreatment(input){
       const result=root.MotorcycleTreatments.edit(scene,input); treatmentUndo.push(result.before); if(treatmentUndo.length>32)treatmentUndo.shift();
       $('undo-treatment').hidden=false;$('undo-treatment').disabled=false; $('technique').value=scene.treatmentMode;
       $('fictional-events').checked=scene.fictionalEventsEnabled===true;
-      invalidate();explorer?.treatment({...input,id:result.id}); return {id:result.id};
+      rememberLive();invalidate();explorer?.treatment({...input,id:result.id}); return {id:result.id};
     },
     undoTreatment(){
       const previous=treatmentUndo.pop();if(!previous)return;
       Object.assign(scene,previous);$('technique').value=scene.treatmentMode;$('undo-treatment').disabled=!treatmentUndo.length;$('fictional-events').checked=scene.fictionalEventsEnabled===true;
-      invalidate();explorer?.treatment({action:'undo'});
+      rememberLive();invalidate();explorer?.treatment({action:'undo'});
     },
     setTechnique,
     placementPoint:point=>view?.snapSidewalk(point),
     sourcePosition:id=>{const source=scene?.sources.find(row=>row.id===id);return source?M.position(source,time):null;},
     interactionTargets:()=>view?.interactionTargets()||[],
-    snapshot:()=>({time,paused,selected,scenarioSeed:scene?.config.seed,
+    snapshot:()=>({time,paused,selected,camera:view?.captureCamera(),speed:Number($('playback').value),actions:liveHistory.length,scenarioSeed:scene?.config.seed,
     observer:view?.getObserver(),sourceCount:scene?.sources.length,
     motorcycles:scene?.sources.filter(row=>row.kind==='motorcycle').slice(0,8).map(row=>({id:row.id,position:M.position(row,time)})),
     mistBursts:structuredClone(scene?.mistBursts||[]),treatments:structuredClone(scene?.treatments||[])}),invoke:session.invoke});
@@ -93,7 +101,7 @@
         if(data.error){populationWorker.terminate();populationWorker=null;reject(new Error(data.error));return;}
         populationWorker.terminate();populationWorker=null;
         Object.defineProperty(data.scene,'acousticContext',{value:root.MotorcycleCityPaths.create(map.buildings),configurable:true});
-        data.scene.treatments=[];data.scene.treatmentMode='live';data.scene.treatmentsEnabled=true;data.scene.fictionalEventsEnabled=false;
+        data.scene.treatments=[];data.scene.treatmentSequence=0;data.scene.treatmentMode='live';data.scene.treatmentsEnabled=true;data.scene.fictionalEventsEnabled=false;
         resolve(data.scene);
       };
       populationWorker.postMessage({map,config,mistBursts});
@@ -111,14 +119,14 @@
         for(const key of ['panel','receiver','reference','speaker','treatments'])if(previous[key])next[key]=structuredClone(previous[key]);
         next.fictionalEventsEnabled=true;next.treatmentMode='live';next.treatmentsEnabled=true;$('technique').value='live';
         invalidate();scene=next;selected=burst.sourceId;time=start;view.setSources(scene.sources);
-        explorer?.refreshScene();explorer?.followSpray(burst.sourceId);status('Spraying '+burst.sourceId+'. Fictional engine stall after contact.');
+        rememberLive();explorer?.refreshScene();explorer?.followSpray(burst.sourceId);status('Spraying '+burst.sourceId+'. Fictional engine stall after contact.');
       });
     }finally{mistPreparing=false;delete $('spray-selected').dataset.preparing;}
   }
   function setFictionalEvents(enabled){
     if(typeof enabled!=='boolean')throw Error('Fictional event choice must be boolean');
     if(!scene)return;
-    scene.fictionalEventsEnabled=enabled;$('fictional-events').checked=enabled;
+    scene.fictionalEventsEnabled=enabled;$('fictional-events').checked=enabled;rememberLive();
   }
   const labels=()=>{for(const element of form.elements){const output=$(`${element.name}-value`);if(output)output.textContent=element.value;}};
   function stopAudio(){audioRequest++;if(audioSource){audioSource.onended=null;audioSource.stop();audioSource.disconnect();audioSource=null;}$('listen').textContent='Listen';$('listen-source').textContent='Hear selected source';}
@@ -143,7 +151,7 @@
       const dx=point.x-scene.receiver.x,dy=point.y-scene.receiver.y;
       for(const target of [scene.receiver,scene.reference,scene.speaker,scene.observers[0]]){target.x+=dx;target.y+=dy;}
     }
-    placement=null;for(const button of document.querySelectorAll('[data-place]'))button.setAttribute('aria-pressed','false');invalidate();status('Position changed. Compare to calculate the new field.');
+    rememberLive();placement=null;for(const button of document.querySelectorAll('[data-place]'))button.setAttribute('aria-pressed','false');invalidate();status('Position changed. Compare to calculate the new field.');
   }
   form.addEventListener('input',labels);
   const invoke=(id,input)=>{return session.invoke(id,input).catch(error=>{if(error.name!=='AbortError')status(error.message,true);});};
@@ -160,7 +168,8 @@
   $('pause').addEventListener('click',()=>invoke(paused?(time>=180?'replay':'resume'):'pause'));
   $('reset-view').addEventListener('click',()=>invoke('reset-view'));
   $('replay-traffic').addEventListener('click',()=>invoke('replay'));
-  $('reset').addEventListener('click',()=>invoke('replay'));
+  $('reset').addEventListener('click',()=>invoke('restart'));
+  $('verify-replay').addEventListener('click',()=>invoke('verify-replay'));
   $('timeline').addEventListener('input',()=>invoke('seek',$('timeline').value));
   for(const button of document.querySelectorAll('[data-focus]'))button.addEventListener('click',()=>invoke('focus-target',button.dataset.focus));
   function plot(canvas,series){
@@ -199,6 +208,15 @@
     $('playback-state').textContent='Replaying traffic';clearTimeout(replayNoticeTimer);
     replayNoticeTimer=setTimeout(()=>{$('playback-state').textContent='';},4000);
   }
+  async function verifyReplay(operation){
+    const wasPaused=paused,at=time,expected=scene.sources.map(source=>M.position(source,at));setPaused(true);
+    try { const candidate=await createTraffic(acceptedTraffic.config,operation.signal,scene.mistBursts||[]);operation.throwIfCancelled();
+      const actual=candidate.sources.map(source=>M.position(source,at));
+      const expectedState=captureLive(), replayed=liveHistory.filter(row=>row.time<=at).at(-1)?.state||acceptedTraffic;
+      const equal=root.SimulatteWorldSpec.contentHash(actual)===root.SimulatteWorldSpec.contentHash(expected)&&root.SimulatteWorldSpec.contentHash(replayed)===root.SimulatteWorldSpec.contentHash(expectedState);
+      status(equal?'Replay verified: seeded traffic and recorded treatments reproduce this state.':'Replay mismatch',!equal);return {status:equal?'pass':'fail'};
+    } finally { setPaused(wasPaused); }
+  }
   async function run(observerOverride=null,operation=null){
     if(!scene||!view)return;invalidate();setPaused(true);if(time<M.C.duration)time=M.C.duration;
     const observer=observerOverride&&typeof observerOverride.x==='number'?observerOverride:view.getObserver();
@@ -227,7 +245,7 @@
     invalidate();
     scene.treatmentMode=technique;scene.treatmentsEnabled=['live','cancellation'].includes(technique);
     scene.config.surface=technique==='redirection'?'retro':'none';
-    scene.config.cancellation=technique==='cancellation';showConfig(scene.config);
+    scene.config.cancellation=technique==='cancellation';rememberLive();showConfig(scene.config);
     const explanations={live:'Live treatments. Select a marker to inspect its contribution.',untreated:'Untreated traffic. Equipment and vehicle trajectories are unchanged.',redirection:'Live idealized reflection. The surface redirects intercepted sound; traffic keeps moving.',cancellation:'Live output-limited tonal cancellation at marked nodes. Broadband waveform analysis is in Advanced.'};
     $('technique-note').textContent=explanations[technique];
   }
@@ -243,12 +261,22 @@
   $('audio-mode').addEventListener('change',stopAudio);
   $('export').addEventListener('click',()=>{if(!result)return;try{
     const W=root.SimulatteWorldSpec,sourceId='source:nyc-noise-scenario';
-    const params={mapHash,config:result.scene.config,panel:result.scene.panel,receiver:result.scene.receiver,reference:result.scene.reference,speaker:result.scene.speaker,time:result.time,mistBursts:result.scene.mistBursts||[]};
+    const params={mapHash,config:result.scene.config,panel:result.scene.panel,receiver:result.scene.receiver,reference:result.scene.reference,speaker:result.scene.speaker,time:result.time,mistBursts:scene.mistBursts||[],acceptedTraffic,liveHistory};
     const spec=W.finalizeWorldSpec({id:'motorcycle-noise',kind:'nyc-noise-treatment-v4',templateId:'nyc-noise-treatment-v4',name:'NYC noise treatments',description:'Idealized redistribution, redirection and active cancellation.',params,objects:[],modules:[],controls:[],
       source:{schema:W.SOURCE_SCHEMA,prompt:'',compilerConfig:{adapter:'nyc-noise-treatment-v4'}},authorship:{schema:W.AUTHORING_SCHEMA,revision:0,sources:[{id:sourceId,authority:'userOverride',label:'Scenario controls'}],fieldProvenance:[{path:'/',authority:'userOverride',sourceId}],patches:[],reconciliations:[]},
       determinism:{schema:'simulatte.worldSpecDeterminism.v1',requiredClasses:['simulation-reproducible','replay-identified'],seed:params.config.seed,simulationTolerance:1e-8,pixelPolicy:null},dependencies:{schema:'simulatte.worldSpecDependencies.v1',governedPacks:[],plugins:[],assets:[]},safety:{schema:'simulatte.worldSpecSafety.v1',rules:[],status:'not-declared'},unsupportedRequirements:['Field calibration','Physical reflector design','Hardware control'],unresolvedAmbiguities:[]});
     const url=URL.createObjectURL(new Blob([JSON.stringify({schema:'simulatte.nycNoiseReplay.v4',spec,record:result},null,2)],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download=`nyc-noise-${scene.config.seed}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }catch(error){status(error.message,true);}});
+  function validateLive(value){
+    if(!value||typeof value!=='object'||Object.keys(value).sort().join(',')!==[...liveKeys].sort().join(','))throw Error('Invalid replay state');
+    M.validate(value.config);
+    const point=p=>p&&['x','y','z'].every(key=>Number.isFinite(p[key])&&Math.abs(p[key])<10000);
+    if(!['panel','receiver','reference','speaker'].every(key=>point(value[key]))||!Number.isFinite(value.panel.angle))throw Error('Invalid replay coordinates');
+    if(!['live','untreated','redirection','cancellation'].includes(value.treatmentMode)||typeof value.treatmentsEnabled!=='boolean'||typeof value.fictionalEventsEnabled!=='boolean'||!Number.isInteger(value.treatmentSequence)||value.treatmentSequence<0)throw Error('Invalid replay treatment mode');
+    if(!Array.isArray(value.observers)||value.observers.length>8||!value.observers.every(point))throw Error('Invalid replay observers');
+    if(!Array.isArray(value.treatments)||value.treatments.length>8||!value.treatments.every(row=>point(row)&&typeof row.id==='string'&&['mist','directional','cancellation'].includes(row.kind)&&typeof row.enabled==='boolean'&&[125,500,2000].includes(row.frequency)))throw Error('Invalid replay treatments');
+    if(!Array.isArray(value.mistBursts)||value.mistBursts.length>24||!value.mistBursts.every(row=>point(row.origin)&&typeof row.sourceId==='string'&&[row.start,row.contact,row.end,row.restart].every(Number.isFinite)&&row.start>=0&&row.contact>=row.start&&row.end>=row.contact&&row.restart>=row.end&&row.restart<=180))throw Error('Invalid fictional event history');
+  }
   async function importReplay(file,operation){
     if(file.size>8000000)throw new Error('Replay exceeds 8 MB');
     const bundle=JSON.parse(await file.text());operation.throwIfCancelled();if(bundle.schema!=='simulatte.nycNoiseReplay.v4')throw new Error('Unsupported replay');root.SimulatteWorldSpec.validateWorldSpec(bundle.spec);
@@ -257,12 +285,18 @@
     for(const name of ['panel','receiver','reference','speaker'])if(!p[name]||!['x','y','z'].every(key=>Number.isFinite(p[name][key])&&Math.abs(p[name][key])<10000))throw new Error('Invalid replay geometry');
     if(!Number.isFinite(p.panel.angle)||Math.abs(p.panel.angle)>20||p.panel.width!==p.config.panelWidth||p.panel.height!==p.config.panelHeight)throw new Error('Invalid reflector geometry');
     if(!bundle.record?.readings)throw new Error('Replay measurements missing');
-    invalidate();const next=await createTraffic(p.config,operation.signal,p.mistBursts||[]);operation.throwIfCancelled();scene=next;treatmentUndo=[];$('undo-treatment').disabled=true;for(const name of ['panel','receiver','reference','speaker'])scene[name]={...p[name]};scene.observers[0]={name:'Listener',...scene.receiver};time=p.time;showConfig(p.config);view.setSources(scene.sources);expectedReplay=bundle.record;if(!expectedReplay?.readings)throw new Error('Replay measurements missing');await session.invoke('compare-snapshot',p.receiver);
+    if(p.acceptedTraffic!==undefined)validateLive(p.acceptedTraffic);
+    if(p.liveHistory!==undefined){
+      if(!Array.isArray(p.liveHistory)||p.liveHistory.length>4096)throw Error('Invalid treatment history');
+      let previous=0;for(const event of p.liveHistory){if(!Number.isFinite(event.time)||event.time<previous||event.time>180)throw Error('Invalid treatment time');validateLive(event.state);previous=event.time;}
+    }
+    invalidate();const next=await createTraffic(p.config,operation.signal,p.mistBursts||[]);operation.throwIfCancelled();scene=next;treatmentUndo=[];$('undo-treatment').disabled=true;for(const name of ['panel','receiver','reference','speaker'])scene[name]={...p[name]};scene.observers[0]={name:'Listener',...scene.receiver};time=p.time;acceptedTraffic=p.acceptedTraffic||captureLive();liveHistory=p.liveHistory||[];if(p.acceptedTraffic)restoreLive(liveHistory.filter(row=>row.time<=time).at(-1)?.state||acceptedTraffic);replayCursor=null;replayUntil=null;showConfig(p.config);view.setSources(scene.sources);expectedReplay=bundle.record;if(!expectedReplay?.readings)throw new Error('Replay measurements missing');await session.invoke('compare-snapshot',p.receiver);
   }
   $('import').addEventListener('change',event=>{const file=event.target.files[0];if(file)invoke('import-replay',file);event.target.value='';});
   function tick(now){
     if(!view)return;const dt=last?Math.max(0,(now-last)/1000):0;last=now;
-    if(!paused&&!mistPreparing&&!document.hidden){time=Math.min(180,time+dt*Number($('playback').value));if(time>=180){if($('repeat-traffic').checked)replayTraffic();else setPaused(true);}if(result)invalidate();}
+    if(!paused&&!mistPreparing&&!document.hidden){time=Math.min(replayUntil??180,time+dt*Number($('playback').value));
+      if(replayCursor!==null){while(replayCursor<liveHistory.length&&liveHistory[replayCursor].time<=time)restoreLive(liveHistory[replayCursor++].state);if(time>=replayUntil){replayUntil=null;replayCursor=null;setPaused(true);}}if(time>=180){if($('repeat-traffic').checked)controller.replay();else setPaused(true);}if(result)invalidate();}
     $('timeline').value=time;$('clock').textContent=`${time.toFixed(2)} s`;
     $('sound-speed').textContent=`${M.soundSpeed(scene.config).toFixed(1)} m/s`;
     view.draw({scene,time,selected,paths:$('paths').checked});
@@ -324,7 +358,7 @@
         const bytes=await response.arrayBuffer();mapHash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');map=JSON.parse(new TextDecoder().decode(bytes));
         if(map.schema!=='simulatte.nycReflectionMap.v1')throw new Error('Unsupported NYC map schema');
       }
-      if(!scene){scene=await createTraffic({...M.defaults});time=12;showConfig(scene.config);selected=scene.sources.find(row=>row.kind==='motorcycle')?.id;}
+      if(!scene){scene=await createTraffic({...M.defaults});acceptedTraffic=captureLive();time=12;showConfig(scene.config);selected=scene.sources.find(row=>row.kind==='motorcycle')?.id;}
       if(!isCurrent())return;
       const previous=$('city'),canvas=previous.cloneNode(false);previous.replaceWith(canvas);
       view=await root.MotorcycleReflectionView.create(canvas,map,scene,pick=>invoke('select-object',pick),{backend});

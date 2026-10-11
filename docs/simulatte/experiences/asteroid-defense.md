@@ -46,10 +46,8 @@ danger, or recommend observation, launch, or civil-defense action.
 ## What does the user see?
 
 - Initial view: A bounded 120-object projection from the governed JPL small-body context catalog, with the hypothetical threat visually and semantically separate.
-- During playback: Angular observation sightlines, fitted clone paths, policy decisions, intervention travel/effects, encounter screening, and settlement events.
-- Selection and inspection: Campaign identity, observation count, residuals, clone state, encounter quantities, and truth boundary.
-- Opening measures: Acquired observations, decision time remaining from the last acquired measurement, and spread of fitted closest approaches. Playback alone does not acquire evidence.
-- Visual meaning: Gold angular observations, blue alternative fits, amber screened fits, and a green Earth reference. Station selection highlights related evidence without moving the camera; Focus moves it explicitly. Station markers share the modeled Earth position, rather than invented station offsets.
+- During playback: Angular observation sightlines, fitted clone paths, policy decisions, intervention travel/effects, encounter screening, and settlement events. Visual meaning: Gold angular observations, blue alternative fits, amber screened fits, and a green Earth reference. Station selection highlights related evidence without moving the camera; Focus moves it explicitly. Station markers share the modeled Earth position, rather than invented station offsets.
+- Selection and inspection: Campaign identity, observation count, residuals, clone state, encounter quantities, and truth boundary. Opening measures: Acquired observations, decision time remaining from the last acquired measurement, and spread of fitted closest approaches. Playback alone does not acquire evidence.
 - Comparison view: No-intervention and selected-policy branches share hidden truth while displaying separate outcomes.
 - Final settlement: Baseline and intervention screening fractions, execution status, uncertainty, omissions, and policy result.
 

@@ -66,15 +66,15 @@
       ctx.fillStyle=ink;ctx.font='11px sans-serif';ctx.fillText('Cell signal / growth / lineage',margin,height-12);
     } else if (config.view === "terrain") {
       const n = config.params.size,
-        unit = (width * 0.58) / extent,
-        c = Math.cos(yaw),
-        s = Math.sin(yaw);
+        unit = (width * (options.top?0.88:0.58)) / bounds.span,
+        c = Math.cos(options.top?0:yaw),
+        s = Math.sin(options.top?0:yaw);
       const project = (x, y, z) => {
-        const dx = x - extent / 2,
-          dy = y - extent / 2;
+        const dx = x - bounds.origin[0] - bounds.span / 2,
+          dy = y - bounds.origin[1] - bounds.span / 2;
         return [
           width / 2 + (dx * c - dy * s) * unit,
-          height * 0.57 + (dx * s + dy * c) * unit * 0.45 - z * unit * 1.8,
+          height * (options.top?0.5:0.57) + (dx * s + dy * c) * unit * (options.top?1:0.45) - (options.top?0:z * unit * 1.8),
         ];
       };
       const cells = [];
@@ -131,10 +131,10 @@
       }
     } else if (config.view === "phase") {
       const n = config.params.size,
-        cellSize = (width - 2 * margin) / n;
+        cellSize = config.params.spacing * scale;
       for (let i = 0; i < n * n; i++) {
-        const x = margin + (i % n) * cellSize,
-          y = margin + Math.floor(i / n) * cellSize,
+        const x = margin + ((i % n) * config.params.spacing-bounds.origin[0])*scale,
+          y = margin + (Math.floor(i / n) * config.params.spacing-bounds.origin[1])*scale,
           phi = state.phase[i],
           temperature = state.temperature[i],
           grain = state.grain[i];

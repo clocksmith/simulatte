@@ -9,12 +9,14 @@
   const on = (node, event, fn, options = {}) => node.addEventListener(event, fn, { ...options, signal: events.signal });
   let spec = program.validate(program.create('bicycle')), state = model.initial(spec.params);
   let scene = root.SimulatteSolarScene.create(spec.params), drawing = null, currentFrame = null;
-  let running = false, disposed = false, raf = 0, generation = 0, accumulator = 0, lastTime = 0, lastUi = 0, lastSample = -1;
+  let running = false, disposed = false, raf = 0, generation = 0, lastTime = 0, lastUi = 0, lastSample = -1;
   let history = [], selected = 'solar', timer = 0, cameraGoal = null, matchedParams = null, matchedState = null, matchedSpec = null, interventionLabel = '';
   const flowLabels = new Map();
   const view = { explode: 0.88, targetExplode: 0.88, cutaway: true, fields: false, flows: true, labels: true, selected: 'solar' };
   const camera = { yaw: 0.40, pitch: 0.32, distance: 5.7, target: [0, 1.14, 0] };
   const labels = new Map(), partRows = new Map();
+  let scheduler = root.SimulatteSimulationClock.createFixedStepScheduler({ stepsPerSecond: 1 / spec.params.stepS });
+  let replayTarget = null;
   function notify(message) {
     el('status-message').textContent = message; clearTimeout(timer);
     timer = setTimeout(() => { el('status-message').textContent = ''; }, 7000);
@@ -26,17 +28,27 @@
     title.textContent = 'The 3D view could not start'; detail.textContent = error.message || String(error);
     el('gpu-message').append(title, detail); el('run').disabled = true; document.body.dataset.runtimeError = detail.textContent;
   }
-  function resetCamera() {
-    cameraGoal = { yaw: 0.40, pitch: 0.32, distance: canvas.clientWidth < 600 ? 9.5 : spec.params.vehicle === 'car' ? 7.3 : 5.7, target: [0, 1.14, 0] };
+  function fittedCamera(id = null) {
+    const frame = scene.frame(state, { ...view, explode: view.targetExplode });
+    const points = [];
+    for (const instance of frame.instances) {
+      if (!instance.group || instance.group === 'ground' || (id && instance.group !== id)) continue;
+      const radius = instance.mesh === 'box' ? 0.5 : 1;
+      const m = instance.matrix;
+      for (const x of [-radius, radius]) for (const y of [-radius, radius]) for (const z of [-radius, radius])
+        points.push([m[0]*x+m[4]*y+m[8]*z+m[12], m[1]*x+m[5]*y+m[9]*z+m[13], m[2]*x+m[6]*y+m[10]*z+m[14]]);
+    }
+    return root.SimulatteCameraFit.fitPerspective(points, { width: canvas.clientWidth, height: canvas.clientHeight,
+      insets: { top: 90, bottom: 58 }, padding: 12 });
   }
-  function select(id, focus = false) {
+  function resetCamera() { cameraGoal = fittedCamera(); }
+  function focusSelection() { cameraGoal = { ...fittedCamera(selected), focus: selected }; }
+  function select(id) {
     if (!program.COMPONENTS.some((row) => row.id === id)) return;
     selected = id; view.selected=id;
     updateActions();
     for (const [key, row] of partRows) row.setAttribute('aria-pressed', String(key === id));
     for (const [key, label] of labels) label.setAttribute('aria-pressed', String(key === id));
-    if (focus && currentFrame) cameraGoal = { ...camera, focus: id, target: [...currentFrame.anchors[id]],
-      distance: id === 'chassis' ? 5.7 : id === 'solar' ? 4.9 : spec.params.vehicle === 'car' && id === 'battery' ? 3.2 : 2.35 };
     updateDetail();
   }
   function buildComponents() {
@@ -47,11 +59,11 @@
       const number = document.createElement('span'), icon = document.createElement('span'), text = document.createElement('span'), arrow = document.createElement('span');
       number.textContent = String(index + 1).padStart(2, '0'); icon.className = 'component-icon'; icon.textContent = icons[index]; icon.setAttribute('aria-hidden', 'true');
       text.textContent = part.label; arrow.textContent = '+'; button.append(number, icon, text, arrow);
-      on(button, 'click', () => select(part.id, true)); el('component-list').append(button); partRows.set(part.id, button);
+      on(button, 'click', () => select(part.id)); el('component-list').append(button); partRows.set(part.id, button);
       const label = document.createElement('button'), labelNumber = document.createElement('strong');
       label.className = 'component-label'; label.dataset.component = part.id; label.setAttribute('aria-pressed', String(selected === part.id));
       labelNumber.textContent = number.textContent; label.append(labelNumber, document.createTextNode(part.label));
-      on(label, 'click', () => select(part.id, true)); el('component-labels').append(label); labels.set(part.id, label);
+      on(label, 'click', () => select(part.id)); el('component-labels').append(label); labels.set(part.id, label);
     });
     program.SOURCES.forEach((source) => {
       const row = document.createElement('li'), link = document.createElement('a');
@@ -74,14 +86,14 @@
       if (control.type === 'checkbox') control.checked = spec.params[key]; else control.value = spec.params[key];
       if (el(`${key}-value`)) el(`${key}-value`).textContent = formatParam(key, spec.params[key]);
     });
-    document.querySelectorAll('[data-vehicle]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.vehicle === spec.params.vehicle)));
+    document.querySelectorAll('[data-vehicle]').forEach((button) => button.setAttribute('aria-checked', String(button.dataset.vehicle === spec.params.vehicle)));
     el('program-identity').textContent = `${spec.contentHash} / revision ${spec.authorship.revision}\n${program.MODEL_VERSION}`;
   }
   function apply(next, message = '') {
     program.validate(next);
     const wasRunning = running;
     generation += 1; running = false; spec = next; state = model.initial(spec.params);
-    scene = root.SimulatteSolarScene.create(spec.params); accumulator = 0; history = []; lastSample = -1;
+    scene = root.SimulatteSolarScene.create(spec.params); scheduler = root.SimulatteSimulationClock.createFixedStepScheduler({stepsPerSecond:1/spec.params.stepS}); replayTarget = null; history = []; lastSample = -1;
     matchedParams=null;matchedState=null;matchedSpec=null;interventionLabel='';
     el('comparison-result').textContent = ''; syncControls(); updateActions(); updateUi();
     if (wasRunning && drawing) running = true;
@@ -103,8 +115,8 @@
   function setView(changes) {
     if (Object.hasOwn(changes, 'explode')) view.targetExplode = Math.max(0, Math.min(1, changes.explode));
     for (const key of ['cutaway', 'fields', 'flows', 'labels']) if (Object.hasOwn(changes, key)) view[key] = Boolean(changes[key]);
-    el('assembled').setAttribute('aria-pressed', String(view.targetExplode === 0)); el('exploded').setAttribute('aria-pressed', String(view.targetExplode > 0));
-    for (const key of ['cutaway', 'fields', 'flows', 'labels']) el(key).setAttribute('aria-pressed', String(view[key]));
+    el('assembled').setAttribute('aria-checked', String(view.targetExplode === 0)); el('exploded').setAttribute('aria-checked', String(view.targetExplode > 0));
+    for (const key of ['cutaway', 'fields', 'flows', 'labels']) el(key).setAttribute('aria-checked', String(view[key]));
   }
   function updateDetail() {
     const p = spec.params, t = model.telemetry(p, state);
@@ -141,7 +153,7 @@
     el('flywheel-detail').textContent = `${nf(t.flywheelUsableWh, 2)} Wh above minimum speed`; el('battery-detail').textContent = `${nf(state.batteryJ / 3600, 1)} / ${nf(p.batteryWh)} Wh remaining`;
     el('clock').textContent = `${String(Math.floor(state.timeS / 60)).padStart(2, '0')}:${String(Math.floor(state.timeS % 60)).padStart(2, '0')}`;
     el('run-state').textContent = state.status === 'complete' ? 'CYCLE COMPLETE' : running ? state.status.toUpperCase().replaceAll('-', ' ') : state.step ? 'PAUSED' : 'READY';
-    el('run').querySelector('span').textContent = running ? 'Pause simulation' : state.status === 'complete' ? 'Run again' : state.step ? 'Resume simulation' : 'Run simulation';
+    el('run').querySelector('span').textContent = running ? 'Pause' : state.status === 'complete' || (replayTarget !== null && state.step >= replayTarget) ? 'Replay' : state.step ? 'Resume' : 'Resume';
     el('energy-error').textContent = `${nf(state.residualJ / 3600, 6)} Wh`; el('distance').textContent = `${nf(state.distanceM / 1000, 3)} km`; el('recovered').textContent = `${nf(state.ledger.regenJ / 3600, 2)} Wh`;
     el('reserve-change').textContent = signed(t.reserveW);
     const positive = t.reserveW >= 0;
@@ -200,11 +212,11 @@
     if (state.status === 'complete') running = false;
     return state;
   }
-  async function replay() {
-    running = false; accumulator = 0;
+  async function verifyReplay() {
+    const wasRunning = running; running = false; scheduler.rebase();
     const epoch = ++generation, original = state, active = spec;
     let candidate = model.initial(active.params), candidateBaseline=matchedParams?model.initial(matchedParams):null;
-    const recordedBaseline=matchedState;el('replay').disabled = true;
+    const recordedBaseline=matchedState;el('verify-replay').disabled = true;
     try {
       for (let i = 0; i < original.step; i += 1) {
         candidate = model.step(active.params, candidate);if(candidateBaseline)candidateBaseline=model.step(matchedParams,candidateBaseline);
@@ -213,7 +225,15 @@
       const pass = world.canonicalJson(candidate) === world.canonicalJson(original) && (!candidateBaseline || world.canonicalJson(candidateBaseline)===world.canonicalJson(recordedBaseline));
       document.body.dataset.replay = pass ? 'pass' : 'fail'; notify(pass ? `Replay matches every state field across ${original.step} fixed steps.` : 'Replay differs from the recorded state.');
       return { status: pass ? 'pass' : 'fail', stepCount: original.step, worldSpecHash: active.contentHash };
-    } finally { el('replay').disabled = false; updateUi(); }
+    } finally { if (epoch === generation) running = wasRunning; el('verify-replay').disabled = false; updateUi(); }
+  }
+  function replay() {
+    const target = state.step || Math.ceil(spec.params.durationS / spec.params.stepS);
+    const baseline = matchedSpec, label = interventionLabel;
+    apply(spec); matchedSpec = baseline; matchedParams = baseline?.params || null;
+    matchedState = matchedParams ? model.initial(matchedParams) : null; interventionLabel = label;
+    replayTarget = target; running = true; scheduler.reset(); updateUi();
+    notify('Replaying the accepted run from the beginning.');
   }
   async function compare() {
     const epoch = generation, active = spec;
@@ -246,18 +266,21 @@
   }
   function loop(now) {
     if (disposed) return;
-    const delta = lastTime ? Math.min(0.12, (now - lastTime) / 1000) : 0; lastTime = now;
-    if (running) {
-      accumulator += delta * Number(el('playback').value);
-      const steps = Math.min(128, Math.floor(accumulator / spec.params.stepS)); accumulator -= steps * spec.params.stepS; advance(steps);
-    }
+    const delta = lastTime ? Math.max(0, (now - lastTime) / 1000) : 0; lastTime = now;
+    scheduler.frame(now, { running, visible: !document.hidden, speed: Number(el('playback').value), advance: () => {
+      if (state.status === 'complete' || (replayTarget !== null && state.step >= replayTarget)) { running = false; return false; }
+      advance(1); return true;
+    } });
+    el('playback-health').textContent = `${Number(el('playback').value)} simulated seconds / real second` + (scheduler.snapshot().slowerPlayback ? ' · Slower playback: computing every fixed step.' : '');
     const ease = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 1 - Math.exp(-delta * 10);
     view.explode += (view.targetExplode - view.explode) * ease;
     currentFrame = scene.frame(state, view);
     if (cameraGoal) {
-      if (cameraGoal.focus) cameraGoal.target = [...currentFrame.anchors[cameraGoal.focus]];
       for (const key of ['yaw', 'pitch', 'distance']) camera[key] += (cameraGoal[key] - camera[key]) * ease;
       camera.target = camera.target.map((v, i) => v + (cameraGoal.target[i] - v) * ease);
+      if(['yaw','pitch','distance'].every(key=>Math.abs(camera[key]-cameraGoal[key])<0.001)&&camera.target.every((v,i)=>Math.abs(v-cameraGoal.target[i])<0.001)){
+        Object.assign(camera,{yaw:cameraGoal.yaw,pitch:cameraGoal.pitch,distance:cameraGoal.distance,target:[...cameraGoal.target]});cameraGoal=null;
+      }
     }
     try {
       if (drawing) { drawing.render(currentFrame, camera, program.COMPONENTS.findIndex((p) => p.id === selected) + 1); updateLabels(); }
@@ -274,9 +297,11 @@
       try { setParameters({ [control.dataset.param]: value }); } catch (error) { notify(error.message); syncControls(); }
     });
   });
-  on(el('run'), 'click', () => { if (state.status === 'complete') apply(spec); running = !running; accumulator = 0; updateUi(); });
-  on(el('reset'), 'click', () => { running = false; apply(spec); });
-  on(el('replay'), 'click', () => void replay().catch((error) => notify(error.message)));
+  on(el('run'), 'click', () => { if (state.status === 'complete' || (replayTarget !== null && state.step >= replayTarget)) { replay(); return; } running = !running; scheduler.rebase(); updateUi(); });
+  on(el('reset'), 'click', () => apply(spec));
+  on(el('replay'), 'click', replay);
+  on(el('verify-replay'), 'click', () => void verifyReplay().catch(error => notify(error.message)));
+  on(el('focus-selection'), 'click', focusSelection);
   on(el('compare'), 'click', () => void compare().catch((error) => { el('comparison-result').textContent = error.message; }));
   on(el('export'), 'click', () => download(exportData(), 'solar-drive-run.json'));
   on(el('assembled'), 'click', () => { setView({ explode: 0 }); resetCamera(); });
@@ -335,16 +360,15 @@
     if (event.key === '+' || event.key === '=') camera.distance = Math.max(0.65, camera.distance * 0.9);
     if (event.key === '-') camera.distance = Math.min(18, camera.distance * 1.1);
   });
-  on(document, 'visibilitychange', () => { if (document.hidden) { running = false; accumulator = 0; updateUi(); } });
+  on(document, 'visibilitychange', () => scheduler.rebase());
   function dispose() { if (disposed) return; disposed = true; generation += 1; running = false; cancelAnimationFrame(raf); clearTimeout(timer); events.abort(); drawing?.dispose(); }
   on(root, 'pagehide', (event) => { if (!event.persisted) dispose(); });
   root.SimulatteSolarDrive = Object.freeze({ getSpec: () => structuredClone(spec), getState: () => structuredClone(state),
     getReceipt: () => program.receipt(spec, state, drawing?.receipt() || null), exportData, importSpec,
-    setParameters, setVehicle, setView, select, replay, compare,
+    setParameters, setVehicle, setView, select, replay, verifyReplay, compare, focus: focusSelection, resetCamera,
+    snapshot: () => ({ camera: structuredClone(camera), selected, running, playback: scheduler.snapshot(), frame: currentFrame && {anchors:currentFrame.anchors} }),
     getMatchedState:()=>matchedState?{params:structuredClone(matchedParams),state:structuredClone(matchedState)}:null,
-    isViewSettled: () => Math.abs(view.explode - view.targetExplode) < 0.002 && (!cameraGoal ||
-      ['yaw', 'pitch', 'distance'].every((key) => Math.abs(camera[key] - cameraGoal[key]) < 0.004)
-      && camera.target.every((value, i) => Math.abs(value - cameraGoal.target[i]) < 0.004)),
+    isViewSettled: () => Math.abs(view.explode - view.targetExplode) < 0.002 && !cameraGoal,
     runSteps(count) { running = false; const result = advance(count); updateUi(); return structuredClone(result); }, dispose });
   root.SimulatteSolarRenderer.create(canvas, failure).then((renderer) => {
     if (disposed) { renderer.dispose(); return; }

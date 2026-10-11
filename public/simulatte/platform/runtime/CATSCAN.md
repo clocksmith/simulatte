@@ -22,6 +22,8 @@ Provide deterministic clock, timeline, and provenance services to governed runs.
 
 ## Invariants
 
+- Fixed-step scheduling retains unfinished work; speed changes scheduling, never the model timestep.
+
 - Simulation time derives from declared run state.
 - Provenance records cannot be rewritten into stronger claims.
 

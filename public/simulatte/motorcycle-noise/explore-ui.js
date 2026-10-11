@@ -32,12 +32,16 @@
       on(button,'click',()=>{command('camera',option.value);$(location?'motorcycle-location-menu':'motorcycle-camera-menu').open=false;});
       groups[location?'Locations':'Views'].append(button);
     });
+    for(const name of ['Greenpoint','North Williamsburg','McCarren Park']) {
+      const button=document.createElement('button');button.type='button';button.textContent=name;button.dataset.ready='';button.disabled=true;
+      on(button,'click',()=>{command('location',name);$('motorcycle-location-menu').open=false;});groups.Locations.append(button);
+    }
     cameraOptions.replaceChildren(groups.Views);locationOptions.replaceChildren(groups.Locations);
     function showCamera(mode){
       cameraPreset=mode;cameraSelect.value=mode||'';
-      for(const button of [...cameraOptions.querySelectorAll('button'),...locationOptions.querySelectorAll('button')])button.setAttribute('aria-pressed',String(button.dataset.cameraMode===mode));
+      for(const button of [...cameraOptions.querySelectorAll('button'),...locationOptions.querySelectorAll('button')]){const active=button.dataset.cameraMode===mode;button.setAttribute('role','radio');button.setAttribute('aria-checked',String(active));button.tabIndex=active?0:-1;}
     }
-    showCamera(cameraPreset);
+    showCamera(cameraPreset);root.SimulatteControlComponents.decorateGroup(groups.Views);
     on($('city'),'camera-detached',()=>showCamera(null));
     const setText=(id,text)=>$(id).textContent=text;
     const treatments=root.MotorcycleTreatmentControls.create({view,getScene,getTime,command,isMeasurementCurrent:observerCurrent});
@@ -181,7 +185,7 @@
     on($('follow-selected'),'click',()=>command('follow'));
     on($('spray-selected'),'click',()=>command('mist-spray',{sourceId:inspectedSource}));
     on($('live-overlay'),'change',()=>view.showMeasurements($('live-overlay').checked?lastReading:null,'total'));
-    return {setCamera,follow,focusObserver(){const point=inspectedLocation||markers.find(row=>row.id===selectedMarker);if(point){view.placeObserver(point,point.surface||(point.z>4?'rooftop':'sidewalk'));showCamera(point.z>4?'rooftop':'sidewalk');onMeasurement('stale');setText('observer-time','Stale sample; updating observer');nextAt=0;observerNextAt=0;}},followSpray(id){showCamera(null);view.focusSource(id,true);},refreshScene(){initialObservation=this.captureObservation();init(getScene());},treatment:input=>{treatments.apply(input);paint();onMeasurement('stale');},captureObservation(){if(!world)return null;return structuredClone({markers,nextId,selectedMarker,inspectedSource,inspectedLocation,cameraPreset});},update,pick,resetClock(){pending=false;observerPending=false;requestId++;observerRequest++;nextAt=0;observerNextAt=0;lastRequestKey='';observerKey='';lastReading=null;lastObserver=null;root.motorcycleMeasurementReceipt=null;root.motorcycleMapMeasurementReceipt=null;history=[];view.showMeasurements(null);},dispose(){treatments.dispose();epoch++;events.abort();worker?.terminate();observerWorker?.terminate();view.setReceiverMarkers([],null);}};
+    return {setCamera,setLocation(name){if(!["Greenpoint","North Williamsburg","McCarren Park"].includes(name))throw Error("Unsupported location");if(name==="McCarren Park")view.homePark();else view.focus(name);showCamera(null);nextAt=0;observerNextAt=0;},follow,focusObserver(){const point=inspectedLocation||markers.find(row=>row.id===selectedMarker);if(point){view.placeObserver(point,point.surface||(point.z>4?'rooftop':'sidewalk'));showCamera(point.z>4?'rooftop':'sidewalk');onMeasurement('stale');setText('observer-time','Stale sample; updating observer');nextAt=0;observerNextAt=0;}},followSpray(id){showCamera(null);view.focusSource(id,true);},refreshScene(){initialObservation=this.captureObservation();init(getScene());},treatment:input=>{treatments.apply(input);paint();onMeasurement('stale');},captureObservation(){if(!world)return null;return structuredClone({markers,nextId,selectedMarker,inspectedSource,inspectedLocation,cameraPreset});},update,pick,resetClock(){pending=false;observerPending=false;requestId++;observerRequest++;nextAt=0;observerNextAt=0;lastRequestKey='';observerKey='';lastReading=null;lastObserver=null;root.motorcycleMeasurementReceipt=null;root.motorcycleMapMeasurementReceipt=null;history=[];view.showMeasurements(null);},dispose(){treatments.dispose();epoch++;events.abort();worker?.terminate();observerWorker?.terminate();view.setReceiverMarkers([],null);}};
   }
   root.MotorcycleExplorer={create,acousticSummary,sourceInspection};
 })(globalThis);

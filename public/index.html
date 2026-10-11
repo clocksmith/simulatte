@@ -342,7 +342,7 @@
         <dl id="experience-summary-stats"></dl>
         <p id="experience-readouts-context"></p>
       </section>
-      <div class="simulation-viewbar"><details id="camera-menu" class="camera-menu"><summary class="sim-action">Camera</summary><div id="camera-controls" class="camera-controls" aria-label="Camera experiences" data-semantic-label-exclusion>
+      <div class="simulation-viewbar"><label class="sim-switch"><input id="show-measurements" type="checkbox" role="switch" data-session-category="observation" data-requires-restart="false" checked>Show measurements</label><details id="camera-menu" class="camera-menu"><summary class="sim-action">Camera</summary><div id="camera-controls" class="camera-controls" aria-label="Camera experiences" data-semantic-label-exclusion>
               <div class="camera-modes sim-segmented" role="group" aria-label="Camera experiences">
                 <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
                 <button id="camera-pov" type="button" aria-pressed="false">POV</button>
@@ -499,7 +499,7 @@
         <div class="receipt-actions profile-program-actions">
           <button id="apply-profile-world-spec" class="sim-action" type="button" disabled>Apply WorldSpec</button>
           <button id="reset-profile-world-spec" class="sim-action" type="button">Discard edit</button>
-          <button id="replay-profile-world-spec" class="sim-action" type="button" disabled>Replay exact spec</button>
+          <button id="replay-profile-world-spec" class="sim-action" type="button" disabled>Verify replay</button>
           <button id="export-profile-world-spec" class="sim-action" type="button">Export</button>
           <button id="import-profile-world-spec" class="sim-action" type="button">Import</button>
           <input id="profile-world-spec-import-file" type="file" accept="application/json,.json" hidden>

@@ -41,9 +41,8 @@
       if (isActive() && controller && controller === getController()) await controller.step();
     }));
     on(elements.resetButton, 'click', safely(async () => {
-      stopLoop(); resetJourney();
       const playback = getPlayback();
-      if (playback) await playback.reset(getScenario()); else await buildController();
+      if (playback) await playback.reset(getScenario()); else { stopLoop(); resetJourney(); await buildController(); }
     }));
     on(elements.replayButton, 'click', safely(async () => {
       const playback = getPlayback();

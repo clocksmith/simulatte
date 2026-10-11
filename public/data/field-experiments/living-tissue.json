@@ -2,9 +2,8 @@
   "schema": "simulatte.fieldExperiment.v1",
   "version": "1.0.0",
   "seed": 17,
-  "stepsPerFrame": 8,
   "durationSteps": 12000,
-  "modelTolerance": 1e-7,
+  "modelTolerance": 1e-07,
   "id": "living-tissue",
   "name": "Living Tissue",
   "question": "How can local cell behavior produce a coherent shape?",
@@ -72,5 +71,6 @@
       "path": "../../shared/core/simulation/tissue-growth.js",
       "sha256": "9312d2e25e5bc11ccd02de37788fce7f898064c2fb98b4567b133d0ef0d72a62"
     }
-  ]
+  ],
+  "stepsPerSecond": 480
 }

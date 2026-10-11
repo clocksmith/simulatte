@@ -70,3 +70,7 @@ Detailed requirements: [GOVERNANCE_DETAILS.md](GOVERNANCE_DETAILS.md).
 Redirect the former `/mandate-2038/` paths to `https://m3t4.ai/mandate-2038/`,
 preserving deep links and the World homepage. Gamma owns rules and the public
 build; m3t4 owns hosting.
+
+## Catalog interaction policy
+
+Every simulation autoplays an authored default with audio off. Pause freezes simulation time while inspection and navigation remain available. Restart restores accepted inputs and clears live interventions while preserving camera and running preference. Replay visibly executes recorded actions; Verify replay checks numerical reproduction separately. Completion retains its result and offers Replay. Speed schedules fixed model steps using each domain's declared normal playback mapping; work is retained when rendering falls behind. Selection never moves the camera; Focus does. Supported camera views fit the subject in the usable viewport. Controls communicate immediate display state, live actions, pending scenario edits and accepted values, with keyed identities and rejection rollback.

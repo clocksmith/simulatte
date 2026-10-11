@@ -8,6 +8,7 @@
   <title>Solar drive | Simulatte</title>
   <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./solar-drive.css">
+<link rel="stylesheet" href="../../shared/design/components.css">
 </head>
 <body>
   <header class="masthead">
@@ -18,14 +19,15 @@
     <section class="workspace" aria-label="Solar drive engineering instance">
       <div class="visual-column">
         <div class="scene-heading"><div><p class="eyebrow">SOLAR MOBILITY / INSTANCE 001</p><h1>Solar drive<span>.</span></h1><p class="lede">Follow sunlight to the wheels. What happens when the panel is shaded?</p></div>
-          <div class="vehicle-switch" role="group" aria-label="Vehicle preset"><button data-vehicle="bicycle" aria-pressed="true">Bicycle</button><button data-vehicle="scooter" aria-pressed="false">Scooter</button><button data-vehicle="car" aria-pressed="false">Car</button></div>
+          <div class="vehicle-switch" data-control-choice role="radiogroup" aria-label="Vehicle preset"><button data-vehicle="bicycle" aria-pressed="true">Bicycle</button><button data-vehicle="scooter" aria-pressed="false">Scooter</button><button data-vehicle="car" aria-pressed="false">Car</button></div>
         </div>
         <div class="viewport" id="viewport">
           <canvas id="scene" aria-label="Interactive 3D solar vehicle assembly. Drag to orbit, scroll to zoom, or choose a component below." tabindex="0"></canvas>
           <div id="flow-labels" class="flow-labels" aria-label="Measured energy transfers"></div>
           <div id="component-labels" class="component-labels" aria-label="3D component labels"></div>
-          <div class="view-toolbar" role="group" aria-label="Assembly view"><button id="assembled" aria-pressed="false">Assembled</button><button id="exploded" aria-pressed="true">Exploded</button><button id="cutaway" aria-pressed="true">Cutaway</button></div>
-          <details class="view-options"><summary>View layers</summary><button id="fields" aria-pressed="false">Magnetic fields</button><button id="flows" aria-pressed="true">Energy flow</button><button id="labels" aria-pressed="true">Labels</button></details>
+          <div class="view-toolbar" data-control-choice role="radiogroup" aria-label="Assembly view"><button id="assembled" aria-pressed="false">Assembled</button><button id="exploded" aria-pressed="true">Exploded</button><button id="cutaway" role="switch" aria-checked="true">Cutaway</button></div>
+          <details class="view-options"><summary>View layers</summary><button id="fields" role="switch" aria-checked="false">Magnetic fields</button><button id="flows" role="switch" aria-checked="true">Energy flow</button><button id="labels" role="switch" aria-checked="true">Labels</button></details>
+
           <button id="reset-camera" class="camera-reset" title="Reset camera" aria-label="Reset camera"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9V5h4M19 9V5h-4M5 15v4h4M19 15v4h-4M8 12h8M12 8v8"/></svg></button>
           <div class="scene-scale"><span></span>1 m <small>Representative engineering assembly</small></div>
           <div class="orbit-hint">DRAG TO ORBIT <b>/</b> SCROLL TO ZOOM</div>
@@ -36,7 +38,7 @@
           <button id="reset" class="square-button" title="Restart from initial state" aria-label="Restart simulation">&#8634;</button>
           <div class="simulation-clock"><strong id="clock">00:00</strong><span id="run-state">READY</span></div>
           <div class="speed-control"><label for="playback">Playback</label><select id="playback"><option value="1">1x</option><option value="8" selected>8x</option><option value="32">32x</option></select></div>
-          <button id="replay" class="text-button">Replay</button><button id="export" class="text-button">Export run <span aria-hidden="true">&#8599;</span></button>
+          <button id="replay" class="text-button">Replay</button><output id="playback-health" role="status"></output><button id="export" class="text-button">Export run <span aria-hidden="true">&#8599;</span></button>
         </div>
         <div class="readouts" aria-label="Live readouts">
           <div><span class="metric-label"><i class="solar-dot"></i>Solar to bus</span><strong id="metric-solar">0 <small>W</small></strong><span id="solar-detail">Incident sunlight converted to DC</span></div>
@@ -47,7 +49,7 @@
       </div>
       <aside class="inspector">
         <div class="panel-heading"><span class="eyebrow">INSIDE THE MACHINE</span><span class="small-mono">06 SYSTEMS</span></div>
-        <div id="component-list" class="component-list"></div>
+        <button id="focus-selection" class="text-button">Focus selection</button><div id="component-list" class="component-list"></div>
         <div class="component-detail"><div class="detail-kicker"><span id="part-number">01 / SOURCE</span><span id="part-badge">SOLAR</span></div><h2 id="part-title">Solar canopy</h2><p id="part-description"></p><div id="part-actions" class="part-actions"></div><p id="part-effect" role="status"></p><dl id="part-values"></dl></div>
         <details class="controls-section"><summary>Advanced: operating conditions <span>+</span></summary><div class="controls-inner">
           <div class="control"><label for="irradiance">Direct sunlight <output id="irradiance-value"></output></label><input id="irradiance" data-param="irradiance" type="range" min="0" max="1200" step="10"></div>
@@ -73,7 +75,7 @@
       </div>
       <div class="reserve-panel"><div class="panel-heading"><h2>Can it sustain itself?</h2><span class="small-mono">ENERGY ACCOUNTING</span></div><div class="reserve-number"><strong id="reserve-change">0</strong><span>W<br>reserve change</span><span id="reserve-state" class="reserve-state">READY</span></div><p id="reserve-copy">Run the model to see whether sunlight covers motion and system losses.</p><button id="compare" class="compare-button">Compare with battery only <span aria-hidden="true">&#8594;</span></button><p id="comparison-result" class="comparison-result" role="status"></p></div>
     </section>
-    <details class="model-notes"><summary>Model, assumptions & evidence <span>+</span></summary><div class="notes-grid"><div><h3>What is simulated</h3><p>Fixed-step longitudinal motion, panel irradiance and temperature derating, motor efficiency by speed and load, storage power limits, regeneration, thermal derating, and energy conservation. Initial battery and rotor energy are counted.</p><p>Gravity exchanges potential energy. Magnets exert forces; they add no energy. Solar surplus can recharge reserves. Empty storage and inadequate sunlight can stop the vehicle.</p></div><div><h3>What the image means</h3><p>The component assembly is representative engineering geometry, not manufacturing CAD. Field lines show topology, not a solved electromagnetic field. Flywheel rotation is slowed 120x to remain inspectable.</p><p>Dimensions, material choices, efficiency curves, bearing consumption, and containment mass are assumptions. No rotor structural certification, measured weather, cell aging, or crash analysis is claimed.</p></div><div><h3>Sources & run identity</h3><ul id="sources"></ul><p id="program-identity" class="mono"></p><p id="evidence-status">Physical calibration: not performed. Human visual review: pending.</p></div></div></details>
+    <details class="model-notes"><summary>Model, assumptions & evidence <span>+</span></summary><button id="verify-replay" class="text-button">Verify replay</button><div class="notes-grid"><div><h3>What is simulated</h3><p>Fixed-step longitudinal motion, panel irradiance and temperature derating, motor efficiency by speed and load, storage power limits, regeneration, thermal derating, and energy conservation. Initial battery and rotor energy are counted.</p><p>Gravity exchanges potential energy. Magnets exert forces; they add no energy. Solar surplus can recharge reserves. Empty storage and inadequate sunlight can stop the vehicle.</p></div><div><h3>What the image means</h3><p>The component assembly is representative engineering geometry, not manufacturing CAD. Field lines show topology, not a solved electromagnetic field. Flywheel rotation is slowed 120x to remain inspectable.</p><p>Dimensions, material choices, efficiency curves, bearing consumption, and containment mass are assumptions. No rotor structural certification, measured weather, cell aging, or crash analysis is claimed.</p></div><div><h3>Sources & run identity</h3><ul id="sources"></ul><p id="program-identity" class="mono"></p><p id="evidence-status">Physical calibration: not performed. Human visual review: pending.</p></div></div></details>
     <div id="status-message" class="status-message" role="status" aria-live="polite"></div>
   </main>
   <footer><a href="../../">SIMULATTE</a><span>Solar drive / energy systems</span><span>Sunlight is the source. Storage is the buffer.</span></footer>
@@ -86,6 +88,8 @@
   <script src="./shaders.js"></script>
   <script src="./scene.js"></script>
   <script src="./renderer.js"></script>
-  <script src="./app.js"></script>
+  <script src="../platform/runtime/simulation-clock.js"></script><script src="../app/camera-fit.js"></script>
+<script src="./app.js"></script>
+<script defer src="../../shared/design/control-components.js"></script>
 </body>
 </html>

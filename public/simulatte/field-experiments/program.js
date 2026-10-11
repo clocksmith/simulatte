@@ -12,7 +12,7 @@
       "schema",
       "version",
       "seed",
-      "stepsPerFrame",
+      "stepsPerSecond",
       "durationSteps",
       "modelTolerance",
       "id",
@@ -37,12 +37,12 @@
       config.schema !== "simulatte.fieldExperiment.v1"
     )
       throw Error("field_configuration_contract_invalid");
-    for (const key of ["seed", "stepsPerFrame", "durationSteps"])
+    for (const key of ["seed", "stepsPerSecond", "durationSteps"])
       if (!Number.isInteger(config[key]) || config[key] < 1)
         throw Error("field_configuration_integer_invalid: " + key);
     if (
       config.durationSteps > 20000 ||
-      config.stepsPerFrame > 32 ||
+      config.stepsPerSecond > 1920 ||
       !(config.modelTolerance > 0) ||
       !Array.isArray(config.actions) ||
       !config.actions.length ||
@@ -234,23 +234,17 @@
       throw Error("field_experiment_step_invalid");
     let baseline = model.initial(spec.params.model, spec.determinism.seed),
       intervention = structuredClone(baseline);
-    let cursor = 0;
-    for (let i = 0; i <= steps; i++) {
-      while (
-        cursor < spec.params.actions.length &&
-        spec.params.actions[cursor].atStep === i
-      )
-        intervention = model.apply(
-          intervention,
-          spec.params.actions[cursor++],
-          spec.params.model,
-        );
-      if (i < steps) {
-        baseline = model.step(baseline, spec.params.model);
-        intervention = model.step(intervention, spec.params.model);
-      }
-    }
-    return { baseline, intervention };
+    for(const action of spec.params.actions.filter(row=>row.atStep===0))intervention=model.apply(intervention,action,spec.params.model);
+    let pair={baseline,intervention};
+    for(let i=0;i<steps;i++)pair=advance(pair,spec,model);
+    return pair;
+  }
+  // Commit one numerical step and all events at its resulting boundary atomically.
+  function advance(pair,spec,model) {
+    const baseline=model.step(pair.baseline,spec.params.model);
+    let intervention=model.step(pair.intervention,spec.params.model);
+    for(const action of spec.params.actions.filter(row=>row.atStep===intervention.step))intervention=model.apply(intervention,action,spec.params.model);
+    return {baseline,intervention};
   }
   function receipt(spec, config, model, pair) {
     return {
@@ -275,6 +269,7 @@
     validateAction,
     append,
     execute,
+    advance,
     receipt,
     validateConfig,
   });

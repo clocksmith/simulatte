@@ -27,6 +27,8 @@ an interactive WebGPU component assembly and an explicit energy balance.
 
 ## Invariants
 
+- Selection through scene, list, or keyboard preserves the camera. Focus fits declared geometry; Restart preserves playback preference, and visible Replay is separate from Verify replay.
+
 - Parameters describe hypothetical designs, not measured hardware or certified CAD.
 - Every run consumes a validated WorldSpec; accepted edits retain authorship.
 - Logical time advances in fixed steps. Camera, selection, and frame rate do not change physics.

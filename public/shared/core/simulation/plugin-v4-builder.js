@@ -266,7 +266,7 @@
   }
 
   function controls(rows = [], comparisons = []) {
-    const value = { schema: 'simulatte.pluginControls.v4', controls: rows, comparisons };
+    const value = { schema: 'simulatte.pluginControls.v4', controls: rows.map(contracts.controlSemantics), comparisons };
     contracts.validateControls(value);
     return deepFreeze(value);
   }
@@ -285,6 +285,14 @@
     };
     contracts.validateProgressiveState(value);
     return deepFreeze(value);
+  }
+
+  // Owners choose the inspectable layers; the host supplies selection and Focus.
+  function inspectionObjects(layers) {
+    return layers.map(layer=>({id:layer.id,label:layer.label,
+      description:layer.label,
+      condition:layer.quantity ? `${layer.quantity.kind}: ${typeof layer.quantity.value === 'object' ? JSON.stringify(layer.quantity.value) : layer.quantity.value} ${layer.quantity.unit}` : layer.label,
+      hit:{shape:layer.kind==='point'?'point':layer.kind==='path'?'path':'bounds',radiusPx:12,priority:40},actions:[]}));
   }
 
   function contribution({
@@ -364,6 +372,7 @@
 
   return Object.freeze({
     contribution,
+    inspectionObjects,
     controls,
     datasetRecord,
     evidence,

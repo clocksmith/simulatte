@@ -13,6 +13,9 @@
       [elements.cameraFree, 'free'],
       [elements.cameraCompare, 'compare'],
     ];
+    const supported=new Set(hooks.supportedViews || ['follow','pov','overview','top','free','compare']);
+    for(const [button,mode] of controls)button.hidden=!supported.has(mode);
+    root.SimulatteControlComponents?.decorateGroup(elements.cameraBird.parentElement);
     controls.forEach(([button, mode]) => on(button, 'click', () => {
       hooks.onManualNavigation?.({ control: 'mode', mode, targetIds: [] });
       const session = root.SimulatteActiveSession;
@@ -40,20 +43,23 @@
     ].forEach(([button, buttonMode]) => {
       const active = buttonMode === selectedMode;
       button.classList.toggle('is-active', active);
-      button.setAttribute('aria-pressed', String(active));
+      button.setAttribute('role','radio'); button.setAttribute('aria-checked', String(active));
+      button.tabIndex=active?0:-1; button.removeAttribute?.('aria-pressed');
     });
   }
 
   function preferredCameraTarget(targets, mode) {
     if (!['follow', 'pov', 'overview', 'compare'].includes(mode)) return null;
     return [...targets]
-      .filter((target) => target.viewMode === mode || (mode === 'pov' && target.viewMode === 'follow'))
+      .filter((target) => target.viewMode === mode)
       .sort((left, right) => Number(right.priority || 0) - Number(left.priority || 0))[0]
       || null;
   }
 
   function wireInterfaceControls(elements, signal) {
     const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal });
+    const measurements=elements.decisionsButton.ownerDocument.getElementById('show-measurements');
+    if(measurements)on(measurements,'change',()=>{elements.decisionsButton.ownerDocument.body.dataset.measurementsHidden=String(!measurements.checked);});
     let lastDrawerTrigger = null;
     const popovers = [
       [elements.runtimeToggle, elements.runtimeDetails],

@@ -611,3 +611,14 @@ test('prepared tier promotion bypasses reset and rejects unsupported commands wi
   assert.deepEqual(commands,['fixture.accept','fixture.stale']);
   assert.deepEqual(reflected.at(-1),{weight:2});
 });
+
+
+test('restart clears interventions, retains accepted controls and preserves pause preference', async () => {
+  const runtime=fakeRuntime({totalSteps:20}), controller=create(runtime,null,[],[],{count:7});
+  await controller.start();controller.pause();await controller.step();
+  assert.ok(controller.snapshot().currentStep>0);
+  await controller.restart();assert.equal(controller.snapshot().state,'paused');
+  assert.equal(controller.snapshot().currentStep,0);assert.equal(controller.acceptedControls().count,7);
+  controller.resume();await controller.restart();assert.equal(controller.snapshot().state,'running');
+  controller.dispose();
+});

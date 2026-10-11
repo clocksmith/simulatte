@@ -215,3 +215,15 @@ test('tissue branches share a camera fit and region picking inverts the actual v
   const selected=drawing.pick({view:'cells',hits:[],extent:32,margin,scale,origin:bounds.origin},margin+(point.worldX-bounds.origin[0])*scale,margin+(point.worldY-bounds.origin[1])*scale);
   assert.equal(selected.worldX,point.worldX);assert.equal(selected.worldY,point.worldY);
 });
+
+
+test('visible fixed-step replay applies zero-step and terminal-boundary actions exactly once', () => {
+  const config=require('../public/data/field-experiments/river-formation.json');
+  const program=require('../public/simulatte/field-experiments/program.js');
+  const model=require('../public/shared/core/simulation/river-erosion.js');
+  let spec=program.create(config);
+  for(const atStep of [0,4])spec=program.append(spec,{kind:'ridge',x:10,y:10,atStep},config,model);
+  let pair=program.execute(spec,config,model,0);
+  for(let i=0;i<4;i++)pair=program.advance(pair,spec,model);
+  assert.deepEqual(pair,program.execute(spec,config,model,4));
+});

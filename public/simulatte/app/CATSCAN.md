@@ -26,6 +26,8 @@ Present every catalog experience once in a vertically scrolling SVG spotlight; o
 
 ## Invariants
 
+- Restart clears live interventions and preserves accepted configuration, camera, and running preference. Replay visibly executes recorded actions; Verify replay checks reproduction separately.
+
 - URL identity and resolved profile identity must match.
 - Scene preparation owns World-specific geometry, route, and presentation decisions. Rendering sessions consume prepared inputs and do not acquire tier data or manage HUD elements.
 - UI completion follows settled runtime state.

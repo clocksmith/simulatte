@@ -14,12 +14,14 @@
     yaw = 0.65,
     disposed = false,
     raf = 0,
-    appliedThrough = -1,
     lastUi = 0,
     lastSpecHash = null,
     previewAction = null,
     showSignal = true,
-    lastAction = null;
+    lastAction = null,
+    scheduler = null,
+    replayEnd = null,
+    cameraBounds = null, cameraMode = "overview";
   const listeners = new AbortController(),
     on = (node, type, fn) =>
       node.addEventListener(type, fn, { signal: listeners.signal });
@@ -47,11 +49,16 @@
       const cell=pair.intervention.cells.find(c=>c.id===selected?.id);
       if(cell) selected={...selected,worldX:cell.x,worldY:cell.y};
     }
-    const bounds=config.view === "cells" ? drawing.cellBounds([pair.intervention,pair.baseline],selected) : null;
+    const bounds=config.view === "cells" ? drawing.cellBounds([pair.intervention,pair.baseline]) : null;
     const region=config.view === "cells" && selected ? model.actionRegion(pair.intervention,{kind:previewAction?.kind || "remove",x:selected.worldX,y:selected.worldY}) : null;
-    const options={bounds,signal:showSignal,preview:region?{kind:previewAction?.kind || "remove",...region}:null};
+    const viewBounds=cameraBounds || bounds;
+    const options={bounds:viewBounds,top:cameraMode==="top",signal:showSignal,preview:region?{kind:previewAction?.kind || "remove",...region}:null};
     frame = drawing.draw(el("scene"), config, pair.intervention, selected, yaw, options);
-    drawing.draw(el("baseline"), config, pair.baseline, null, yaw, {bounds,signal:showSignal});
+    drawing.draw(el("baseline"), config, pair.baseline, null, yaw, {bounds:viewBounds,top:cameraMode==="top",signal:showSignal});
+    el("focus-selection").disabled=!selected;
+    for(const button of el("camera-views").querySelectorAll("button")) {
+      const checked=button.dataset.view===cameraMode;button.setAttribute("aria-checked",String(checked));button.tabIndex=checked?0:-1;
+    }
     for(const button of el("actions").querySelectorAll("button")) {
       const kind=button.dataset.action;
       const target=config.view === "cells" && selected ? model.actionRegion(pair.intervention,{kind,x:selected.worldX,y:selected.worldY}) : null;
@@ -85,7 +92,10 @@
       pair.intervention,
       selected,
     );
-    el("pause").textContent = running ? "Pause" : "Resume";
+    const complete = pair.intervention.step >= (replayEnd ?? config.durationSteps);
+    el("pause").textContent = complete ? "Replay" : running ? "Pause" : "Resume";
+    el("playback-rate").textContent = `${(config.stepsPerSecond * spec.params.model.step * Number(el("speed").value)).toFixed(2)} ${config.timeUnit} / real second`;
+    el("playback-health").textContent = scheduler?.snapshot().slowerPlayback ? "Slower playback: computing every fixed step." : "";
     if (lastSpecHash !== spec.contentHash) {
       el("spec").value = world.serializeWorldSpec(spec);
       lastSpecHash = spec.contentHash;
@@ -98,6 +108,11 @@
       baseline,
       current,
       running,
+      complete,
+      selectedId: selected?.id || null,
+      camera: { yaw, bounds:viewBounds, mode:cameraMode },
+      showSignal,
+      playback: scheduler?.snapshot(),
     };
   }
   function replay(target = pair.intervention.step) {
@@ -123,7 +138,6 @@
       const next = model.apply(pair.intervention, input, spec.params.model);
       spec = program.append(spec, input, config, model);
       pair.intervention = next;
-      appliedThrough = pair.intervention.step;
       lastUi = 0;
       lastAction = `${description.label} at ${pair.intervention.time.toFixed(2)} ${config.timeUnit}`;
       render();
@@ -131,37 +145,36 @@
       el("status").textContent=error.message;
     }
   }
-  function tick() {
+  function advanceStep() {
+    if (pair.intervention.step >= (replayEnd ?? config.durationSteps)) {
+      running = false;
+      el("status").textContent = "Run complete. Compare the result, replay, or restart.";
+      return false;
+    }
+    pair = program.advance(pair,spec,model);
+    return true;
+  }
+  function beginReplay() {
+    replayEnd = pair.intervention.step || config.durationSteps;
+    pair = program.execute(spec, config, model, 0);
+    scheduler.reset(); running = true; lastUi = 0;
+    el("status").textContent = "Replaying recorded actions from the beginning.";
+    render();
+  }
+  function restart() {
+    if(config.view==="cells"&&!cameraBounds)cameraBounds=drawing.cellBounds([pair.intervention,pair.baseline]);
+    spec = program.create(config); replayEnd = null;
+    pair = program.execute(spec, config, model, 0);
+    scheduler.reset(); selected = null; lastAction = null; lastUi = 0;
+    el("consequence").textContent = "Original inputs restored in both branches.";
+    render();
+  }
+  function tick(now) {
     if (disposed) return;
     try {
-      if (running) {
-        const speed = Number(el("speed").value);
-        for (let i = 0; i < config.stepsPerFrame * speed; i++) {
-          if (pair.intervention.step >= config.durationSteps) {
-            running = false;
-            el("status").textContent =
-              "Run complete. Compare the result, replay, or restart.";
-            break;
-          }
-          const at = pair.intervention.step;
-          for (const action of spec.params.actions)
-            if (action.atStep === at && appliedThrough < at)
-              pair.intervention = model.apply(
-                pair.intervention,
-                action,
-                spec.params.model,
-              );
-          appliedThrough = at;
-          pair = {
-            baseline: model.step(pair.baseline, spec.params.model),
-            intervention: model.step(pair.intervention, spec.params.model),
-          };
-        }
-      }
+      scheduler.frame(now, { running, speed: Number(el("speed").value), visible: !document.hidden, advance: advanceStep });
       render();
-    } catch (error) {
-      fail(error);
-    }
+    } catch (error) { fail(error); }
     raf = requestAnimationFrame(tick);
   }
   try {
@@ -178,6 +191,7 @@
     if (!response.ok) throw Error("Experiment configuration unavailable");
     config = await response.json();
     program.validateConfig(config);
+    scheduler = root.SimulatteSimulationClock.createFixedStepScheduler({ stepsPerSecond: config.stepsPerSecond, maxStepsPerFrame: 64 });
     for (const source of config.modelSources) {
       const sourceUrl = new URL(source.path, document.baseURI);
       sourceUrl.searchParams.set("v", source.sha256);
@@ -198,12 +212,12 @@
     if (!model) throw Error("Experiment numerical model unavailable");
     spec = program.validate(program.create(config), config, model);
     pair = program.execute(spec, config, model, 0);
-    appliedThrough = -1;
     document.title = `${config.name} · Simulatte`;
     el("title").textContent = config.name;
     el("question").textContent = config.question;
     el("boundary").textContent = config.boundary;
-    el("signal").hidden=config.view!=="cells";
+    el("signal").closest("label").hidden=config.view!=="cells";
+    el("camera-views").hidden=config.view!=="terrain";
     el("legend").hidden=config.view!=="cells";
     document.body.dataset.experiment=config.id;
     for (const source of config.sources) {
@@ -222,29 +236,16 @@
       el("actions").append(button);
     }
     on(el("pause"), "click", () => {
-      running = !running;
-      render();
+      if (pair.intervention.step >= (replayEnd ?? config.durationSteps)) { beginReplay(); return; }
+      running = !running; scheduler.rebase(); lastUi = 0; render();
     });
-    on(el("restart"), "click", () => {
-      spec = program.create(config);
-      pair = program.execute(spec, config, model, 0);
-      appliedThrough = -1;
-      selected = null; lastAction=null;
-      el("consequence").textContent =
-        "Original inputs restored in both branches.";
-      running = true;
-      render();
-    });
-    on(el("replay"), "click", () => {
-      const target = pair.intervention.step;
-      running = false;
+    on(el("restart"), "click", restart);
+    on(el("replay"), "click", beginReplay);
+    on(el("verify-replay"), "click", () => {
       const expected = world.contentHash(pair);
-      replay(target);
-      appliedThrough = target;
-      el("status").textContent =
-        world.contentHash(pair) === expected
-          ? "Replay verified: the same inputs and actions reproduce both states."
-          : "Replay mismatch";
+      const candidate = program.execute(spec, config, model, pair.intervention.step);
+      el("status").textContent = world.contentHash(candidate) === expected
+        ? "Replay verified: the same inputs and actions reproduce both states." : "Replay mismatch";
     });
     on(el("export"), "click", () => {
       const record = {
@@ -281,15 +282,23 @@
           record.receipt.stateHash !== world.contentHash(restored)
         )
           throw Error("Imported run identity mismatch");
-        running = false;
+        running = false; scheduler.reset(); replayEnd = null;
         spec = imported;
         pair = restored;
-        appliedThrough = pair.intervention.step;
-        el("status").textContent = "Imported run verified.";
+          el("status").textContent = "Imported run verified.";
         render();
       } catch (error) {
         fail(error);
       }
+    });
+    on(el("reset-view"), "click", () => { yaw=0.65; cameraBounds=null; cameraMode="overview"; lastUi=0; render(); });
+    on(el("focus-selection"), "click", () => {
+      if(!selected)return;
+      const span=config.view==="cells"?12:config.params.size*config.params.spacing/2;
+      cameraBounds={origin:[selected.worldX-span/2,selected.worldY-span/2],span};lastUi=0;render();
+    });
+    for(const button of el("camera-views").querySelectorAll("button")) on(button,"click",()=>{
+      cameraMode=button.dataset.view;lastUi=0;render();
     });
     let pointer = null;
     on(el("scene"), "pointerdown", (event) => {
@@ -326,11 +335,12 @@
         frame.hits[(index + direction + frame.hits.length) % frame.hits.length];
       render();
     });
-    on(el("signal"),"click",()=>{showSignal=!showSignal;el("signal").setAttribute("aria-pressed",String(showSignal));render();});
+    on(el("signal"),"change",()=>{showSignal=el("signal").checked;lastUi=0;render();});
     on(el("theme"), "click", () => {
       root.SimulatteTheme.cyclePreference();
       render();
     });
+    on(document,"visibilitychange",()=>scheduler.rebase());
     root.addEventListener(
       "pagehide",
       () => {
