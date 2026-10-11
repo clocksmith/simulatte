@@ -20,13 +20,14 @@
   <div id="experience-status" class="experience-status sim-surface" role="status"><span id="experience-message">Loading city</span><button id="experience-retry" class="sim-action" hidden>Retry</button></div>
   <div class="toolbar city-toolbar sim-surface" aria-label="City exploration">
     <a class="sim-action" href="../../" aria-label="All simulations">Simulations</a>
+    <details class="camera-control" id="motorcycle-location-menu"><summary class="sim-action">Location</summary><div class="camera-options" id="location-options" role="group" aria-label="City locations"></div></details>
     <details class="camera-control" id="motorcycle-camera-menu"><summary class="sim-action" id="camera-label">Camera</summary><div class="camera-options" id="camera-options" role="group" aria-label="Camera viewpoints"></div><select id="camera-mode" hidden aria-label="Camera viewpoint"><option value="area:Greenpoint" selected>Greenpoint</option><option value="area:North Williamsburg">Williamsburg</option><option value="map">McCarren Park</option><option value="overview">Overview</option><option value="follow">Follow</option><option value="sidewalk">Sidewalk</option><option value="rooftop">Rooftop</option><option value="rider">Onboard</option></select></details>
 
 
     <button class="sim-action" id="reset-view" data-ready disabled>Reset view</button><div id="sound-controls" class="sound-controls"><label class="sound-switch sound-placeholder" aria-busy="true"><input type="checkbox" role="switch" aria-label="Traffic sound loading" disabled><span class="sound-switch-track" aria-hidden="true"></span><span>Sound</span></label></div><button class="sim-action" id="pause" data-ready disabled>Pause</button><button class="sim-action" id="header-advanced" type="button" aria-haspopup="dialog" aria-controls="advanced-sheet" aria-expanded="false">Advanced</button><a id="advanced-entry" href="#advanced-settings" hidden>Advanced</a>
-    <div id="placement-controls" class="placement-controls" role="group" aria-label="Place on the map">
+    <details class="camera-control" id="motorcycle-treatment-menu"><summary class="sim-action">Try a treatment</summary><div id="placement-controls" class="camera-options placement-controls" role="group" aria-label="Place on the map">
       <button class="sim-action" type="button" data-add-treatment="mist" aria-label="Place water mister" aria-pressed="false" data-ready disabled>Water mister</button><button class="sim-action" type="button" data-add-treatment="directional" aria-label="Add directional speaker" aria-pressed="false" data-ready disabled>Directional speaker</button><button class="sim-action" type="button" data-add-treatment="cancellation" aria-pressed="false" data-ready disabled>Local cancellation</button><button class="sim-action" id="undo-treatment" disabled hidden>Undo edit</button>
-    </div>
+    </div></details>
 
     <div id="camera-tracking" hidden><span id="camera-subject"></span><button class="sim-action" id="exit-follow">Exit follow</button></div>
     <div id="placement-prompt" class="placement-prompt" hidden><span id="placement-message" role="status"></span><button class="sim-action" id="placement-cancel" type="button">Cancel</button></div>

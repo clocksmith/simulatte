@@ -14,7 +14,7 @@
   "experience": {
     "kind": "simulation",
     "timelineLabel": "Training step",
-    "primaryMeasureKinds": ["compute-efficiency", "executed-compute-tflops", "facility-power-kw"],
+    "primaryMeasureKinds": ["training-iterations", "extra-synchronization-wait-ms", "compute-efficiency"],
     "supportedViews": [
       "overview",
       "free",

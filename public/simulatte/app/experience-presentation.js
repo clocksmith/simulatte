@@ -16,9 +16,10 @@
     'delivered-service': 'Service delivered',
     'dropped-demand': 'Service lost',
     'maximum-utilization': 'Busiest cable',
-    'total-delta-v': 'Transfer delta-v',
+    'total-delta-v': 'Velocity change (Δv)',
     'time-of-flight': 'Flight time',
     'solution-count': 'Feasible transfers',
+    'modeled-flight-elapsed': 'Flight elapsed',
     'packet-distance': 'Distance traveled',
     'bottleneck-rate': 'Link capacity',
     'latency': 'Delivery delay',
@@ -126,6 +127,12 @@
     if (measure.measurement?.validity === 'not-sampled') return 'Not sampled';
     if (measure.measurement?.validity === 'unavailable') return 'Unavailable';
     const value = Number(measure.value);
+    if (Number.isFinite(value) && measure.unit === 'year') {
+      const seconds=value*31557600;
+      const [scale,unit]=seconds>=31557600?[31557600,'years']:seconds>=86400?[86400,'days']:seconds>=3600?[3600,'hours']:seconds>=60?[60,'minutes']:[1,'seconds'];
+      const converted=seconds/scale;
+      return `${converted.toLocaleString('en-US',{maximumSignificantDigits:3})} ${converted===1?unit.replace(/s$/,''):unit}`;
+    }
     if (Number.isFinite(value) && ['ratio', 'probability', 'fraction'].includes(String(measure.unit).toLowerCase())) {
       return `${(value * 100).toLocaleString('en-US', { maximumFractionDigits: 1 })}%${measure.measurement?.detail ? ' / ' + measure.measurement.detail : ''}`;
     }

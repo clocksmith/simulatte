@@ -1,14 +1,23 @@
 {
-  "observedAt": "2026-10-05T20:12:03.701Z",
-  "sourceCommit": "9cf7b7259b4fc2ea78255d788c94d0ab8365a4c9",
+  "observedAt": "2026-10-11T01:22:08.534Z",
+  "sourceCommit": "2fda1d6534a4c1ab9dbd80347170cec2d4bb3e57",
   "sourceHashes": {
-    "public/simulatte/app/webgpu-renderer.js": "7d86f70d687ab6e55c7fc63ee7e0baee1afe94003e0e089afe46dfbcc2fd19f8",
+    "public/simulatte/app/city-plugin-session.js": "90c983933e63e2b3203f60c0decefe058785cfe8d6d9c111788b10c37bdc2395",
+    "public/simulatte/app/object-interaction.js": "29861ebd110992283499ef9116fc5ffa10c93dfa76bddb1cc52e42c2c1696a26",
+    "public/simulatte/app/webgpu-renderer.js": "0e755977f8ecb6e418f5dd441c6792d7c4406ba4d25762a7441057f3dcfed633",
     "public/simulatte/app/plugin-actor-motion.js": "a92ce57f713f8bff2f924ead2ae745541dddc6f06f67eb138a00d7390bb5bc12",
     "public/simulatte/app/plugin-presentation.js": "98f094e03a8d830830374f696dc75dffab3d5e5a41d19809e31688d8e4f53388",
-    "public/simulatte/app/camera-controller.js": "c4951ab2ce9d85dd5856bed405b2243e953cb9ec2f2fcbcba7ceb0ba1fb1df49",
-    "public/simulatte/app/sun-walker-controls.js": "58aa911c907e90157ff0991e6f2408ea8ee6f174106b35b7cfe97f1d9392d697",
-    "public/shared/plugins/sun-walker/plugin.json": "fc87fb30d84a008f8e71a29671b2c8915d4077eb3b5face66d241e0266d9e859",
-    "public/world-tiers.css": "eb018857fc9e8692cde8cdc89749e7de6416332e7687a80ee5710ba90e6049be"
+    "public/simulatte/app/camera-controller.js": "fbf81d27cd950f21734cd9a56851b037e2d5b01fc628fe2ee96fdb10d175424c",
+    "public/simulatte/app/sun-walker-controls.js": "7e86364bedbbc9edcf33a89f973585a61236e0f56cd8b9092ab9b14a0e665112",
+    "public/shared/plugins/sun-walker/plugin.json": "b3fe61badfca9708d5e0674cd5bffa42638760d8d1db3ec547fed1eb94e15d92",
+    "public/shared/plugins/sun-walker/shade-router.js": "3f826b15416911edd65cf5ca7f5dd0b3feab1e1f54023638e18adf69e4d6cef0",
+    "public/shared/plugins/sun-walker/sun-route-simulation.js": "16a3f6f286d42f801501e4fd7941dcfe1ad4ec27b431c587c5f48d87f4fb06f8",
+    "public/simulatte/app/main.js": "6e88efa1a996511e25bb9029f7e728d5d09eb0b8fde3b72d04f30b3a40737cee",
+    "public/simulatte/world/simulation-task-worker.js": "c2b5e805eac7add3d0e6020b7b09d082d091cd7734f3b193ce213d7bc05c3777",
+    "public/simulatte/world/simulation-task-operations.js": "9511ffdec615ec2db6c06f3a6ebb26bc0957b841b93eabdbb87930e4dbc1e69c",
+    "public/simulatte/platform/plugin-host/plugin-compute.js": "47bb19b70604d08568643186e72d81a2dacf33dbd54c477be7341c0670da0da6",
+    "public/world-tiers.css": "93bd4dd2fd43cb933ae346ebef10e537860812c1edac698d53a4f15bf3c40e42",
+    "public/shared/plugins/sun-walker/v4-contribution.js": "7b4cbdb536e32444cf08017bd0b6a945c51986c1e4644291e0d41010f76b6e01"
   },
   "runs": [
     {
@@ -16,13 +25,17 @@
         "width": 1440,
         "height": 1000
       },
-      "url": "http://127.0.0.1:59899/sunwalker",
+      "url": "http://127.0.0.1:36245/sunwalker",
       "checks": [
+        "both compared routes reach the renderer without shadow annotation suppression",
         "solar shadows and individual building geometry; no horizontal overflow",
+        "route buttons reveal accepted paths; exposure bars share one time scale and bind accepted route metrics",
         "slider searches a longer shaded path; zero shade preference exactly restores the fixed shortest baseline",
         "walker advances after route recalculation",
         "top-down camera remains over the walker",
         "first-person camera at walking eye height",
+        "slider preserves pause and camera subject; resume works; draft endpoints remain unapplied; pause, resume and camera changes during rebuild win",
+        "controls stay usable during preparation; Cancel retains the accepted route",
         "changed destination recomputes both graph paths",
         "changed origin recomputes the route",
         "pause freezes the walk; invalid endpoints preserve the accepted walk"
@@ -33,11 +46,11 @@
         "1440-follow.png",
         "1440-first-person.png"
       ],
-      "build": "9cf7b7259b4fc2ea78255d788c94d0ab8365a4c9-ae12e86dbb67",
+      "build": "3dc9a51b8a3fd3ee96d453d250e6d02f7fd78e01-f9a55a498580",
       "initial": {
         "canvas": {
           "rendererBackend": "webgpu",
-          "adapterName": "metal-3",
+          "adapterName": "gen-12lp",
           "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
           "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
           "materialModel": "metallic_roughness_vertex_v1",
@@ -53,35 +66,35 @@
           "cameraTarget": "-1303.07,0,-813.35",
           "cameraFollowDistance": "62.000",
           "sunShadow": "depth-map",
-          "sunShadowCasterVertices": "959544",
-          "frameCount": "27",
-          "staticVertexCount": "959010",
+          "sunShadowCasterVertices": "1045788",
+          "frameCount": "28",
+          "staticVertexCount": "1045728",
           "dynamicVertexCount": "44640",
           "pluginPluginsCount": "1",
           "pluginMarkersCount": "1",
-          "pluginPathsCount": "1",
+          "pluginPathsCount": "5",
           "pluginActorsCount": "1",
-          "pluginAreasCount": "381",
+          "pluginAreasCount": "377",
           "pluginSunsCount": "1",
-          "pluginCameraTargetsCount": "431",
+          "pluginCameraTargetsCount": "433",
           "pluginGeoMarkersCount": "0",
           "pluginGeoPathsCount": "0",
           "pluginGeoAreasCount": "0",
           "pluginChoroplethsCount": "0",
           "pluginLabelsCount": "3",
-          "sunAzimuthDegrees": "140.744583",
-          "sunElevationDegrees": "67.162291",
-          "pluginShadowVertexCount": "16965",
+          "sunAzimuthDegrees": "140.855526",
+          "sunElevationDegrees": "67.188215",
+          "pluginShadowVertexCount": "16791",
           "solarLighting": "plugin",
           "pluginCompositorReceiptCount": "1",
           "pluginVisibleLayerCount": "384",
           "pluginRepresentedLayerCount": "384",
-          "pluginSuppressedLayerCount": "45",
+          "pluginSuppressedLayerCount": "47",
           "pluginClusterCount": "0",
           "pluginClusteredLayerCount": "0",
           "pluginLabelCount": "3"
         },
-        "cards": "Shortest walk\n10.8 min · 48% shade · 52% sun\nYour route\n11.2 min · 55% shade · 45% sun",
+        "cards": "Shortest walk · amber baseline\n10.8 min · 48% shade · 52% sun\nYour route · green\n11.2 min · 55% shade · 45% sun",
         "origin": "Washington Square",
         "destination": "Union Square"
       },
@@ -214,8 +227,46 @@
         "environment": "Historical 2015 trees + pinned 2024 Central Park analog",
         "boundary": "Deterministic direct-beam exposure using retained buildings, historical 2015 street-tree identities with modeled crown envelopes, and a pinned 2024 Central Park weather analog. It is not current observed street shade, measured irradiance, thermal comfort, or a forecast of present canopy or weather."
       },
-      "changedCards": "Shortest walk\n20.6 min · 18% shade · 82% sun\nYour route\n22.1 min · 43% shade · 57% sun · 1% unknown",
-      "changedOrigin": "Shortest walk\n19.3 min · 30% shade · 70% sun\nYour route\n19.3 min · 30% shade · 70% sun",
+      "exposureBars": {
+        "fastest": [
+          {
+            "width": 42.6725,
+            "label": "direct: 5.6 min"
+          },
+          {
+            "width": 39.2025,
+            "label": "shade: 5.2 min"
+          },
+          {
+            "width": 0,
+            "label": "unknown: 0.0 min"
+          },
+          {
+            "width": 0,
+            "label": "night: 0.0 min"
+          }
+        ],
+        "chosen": [
+          {
+            "width": 33.0978,
+            "label": "direct: 4.4 min"
+          },
+          {
+            "width": 66.9022,
+            "label": "shade: 8.8 min"
+          },
+          {
+            "width": 0,
+            "label": "unknown: 0.0 min"
+          },
+          {
+            "width": 0,
+            "label": "night: 0.0 min"
+          }
+        ]
+      },
+      "changedCards": "Shortest walk · amber baseline\n20.6 min · 18% shade · 82% sun\nYour route · green\n22.1 min · 43% shade · 57% sun · 1% unknown",
+      "changedOrigin": "Shortest walk · amber baseline\n19.3 min · 30% shade · 70% sun\nYour route · green\n19.3 min · 30% shade · 70% sun",
       "pass": true
     },
     {
@@ -223,13 +274,17 @@
         "width": 390,
         "height": 844
       },
-      "url": "http://127.0.0.1:59993/sunwalker",
+      "url": "http://127.0.0.1:35423/sunwalker",
       "checks": [
+        "both compared routes reach the renderer without shadow annotation suppression",
         "solar shadows and individual building geometry; no horizontal overflow",
+        "route buttons reveal accepted paths; exposure bars share one time scale and bind accepted route metrics",
         "slider searches a longer shaded path; zero shade preference exactly restores the fixed shortest baseline",
         "walker advances after route recalculation",
         "top-down camera remains over the walker",
         "first-person camera at walking eye height",
+        "slider preserves pause and camera subject; resume works; draft endpoints remain unapplied; pause, resume and camera changes during rebuild win",
+        "controls stay usable during preparation; Cancel retains the accepted route",
         "changed destination recomputes both graph paths",
         "changed origin recomputes the route",
         "pause freezes the walk; invalid endpoints preserve the accepted walk"
@@ -240,11 +295,11 @@
         "390-follow.png",
         "390-first-person.png"
       ],
-      "build": "9cf7b7259b4fc2ea78255d788c94d0ab8365a4c9-ae12e86dbb67",
+      "build": "3dc9a51b8a3fd3ee96d453d250e6d02f7fd78e01-f9a55a498580",
       "initial": {
         "canvas": {
           "rendererBackend": "webgpu",
-          "adapterName": "metal-3",
+          "adapterName": "gen-12lp",
           "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
           "actorMeshKinds": "pedestrian,bicycle,scooter,car,package",
           "materialModel": "metallic_roughness_vertex_v1",
@@ -260,15 +315,15 @@
           "cameraTarget": "-1303.07,0,-813.35",
           "cameraFollowDistance": "62.000",
           "sunShadow": "depth-map",
-          "sunShadowCasterVertices": "959544",
-          "frameCount": "26",
-          "staticVertexCount": "959010",
+          "sunShadowCasterVertices": "1045788",
+          "frameCount": "27",
+          "staticVertexCount": "1045728",
           "dynamicVertexCount": "44640",
           "pluginPluginsCount": "1",
           "pluginMarkersCount": "1",
-          "pluginPathsCount": "1",
+          "pluginPathsCount": "3",
           "pluginActorsCount": "1",
-          "pluginAreasCount": "381",
+          "pluginAreasCount": "379",
           "pluginSunsCount": "1",
           "pluginCameraTargetsCount": "431",
           "pluginGeoMarkersCount": "0",
@@ -278,7 +333,7 @@
           "pluginLabelsCount": "3",
           "sunAzimuthDegrees": "140.744583",
           "sunElevationDegrees": "67.162291",
-          "pluginShadowVertexCount": "16965",
+          "pluginShadowVertexCount": "16887",
           "solarLighting": "plugin",
           "pluginCompositorReceiptCount": "1",
           "pluginVisibleLayerCount": "384",
@@ -288,7 +343,7 @@
           "pluginClusteredLayerCount": "0",
           "pluginLabelCount": "3"
         },
-        "cards": "Shortest walk\n10.8 min · 48% shade · 52% sun\nYour route\n11.2 min · 55% shade · 45% sun",
+        "cards": "Shortest walk · amber baseline\n10.8 min · 48% shade · 52% sun\nYour route · green\n11.2 min · 55% shade · 45% sun",
         "origin": "Washington Square",
         "destination": "Union Square"
       },
@@ -421,8 +476,46 @@
         "environment": "Historical 2015 trees + pinned 2024 Central Park analog",
         "boundary": "Deterministic direct-beam exposure using retained buildings, historical 2015 street-tree identities with modeled crown envelopes, and a pinned 2024 Central Park weather analog. It is not current observed street shade, measured irradiance, thermal comfort, or a forecast of present canopy or weather."
       },
-      "changedCards": "Shortest walk\n20.6 min · 18% shade · 82% sun\nYour route\n22.1 min · 43% shade · 57% sun · 1% unknown",
-      "changedOrigin": "Shortest walk\n19.3 min · 30% shade · 70% sun\nYour route\n19.3 min · 30% shade · 70% sun",
+      "exposureBars": {
+        "fastest": [
+          {
+            "width": 42.6725,
+            "label": "direct: 5.6 min"
+          },
+          {
+            "width": 39.2025,
+            "label": "shade: 5.2 min"
+          },
+          {
+            "width": 0,
+            "label": "unknown: 0.0 min"
+          },
+          {
+            "width": 0,
+            "label": "night: 0.0 min"
+          }
+        ],
+        "chosen": [
+          {
+            "width": 33.0978,
+            "label": "direct: 4.4 min"
+          },
+          {
+            "width": 66.9022,
+            "label": "shade: 8.8 min"
+          },
+          {
+            "width": 0,
+            "label": "unknown: 0.0 min"
+          },
+          {
+            "width": 0,
+            "label": "night: 0.0 min"
+          }
+        ]
+      },
+      "changedCards": "Shortest walk · amber baseline\n20.6 min · 18% shade · 82% sun\nYour route · green\n22.1 min · 43% shade · 57% sun · 1% unknown",
+      "changedOrigin": "Shortest walk · amber baseline\n19.3 min · 30% shade · 70% sun\nYour route · green\n19.3 min · 30% shade · 70% sun",
       "pass": true
     }
   ]

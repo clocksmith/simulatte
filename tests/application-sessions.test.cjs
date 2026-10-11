@@ -217,3 +217,45 @@ test('superseded playback controls do not report a runtime failure, but real err
   await handlers.get('pauseButton')();
   assert.deepEqual(errors,[failure,failure]);
 });
+
+test('route preference preparation preserves playback and rejects superseded or explicitly dismissed previews', async () => {
+  const {create}=require('../public/simulatte/app/city-plugin-session.js');
+  const pending=[],cancelled=[],shown=[],mutations=[];
+  let selection=0;
+  const timeline={receipt:()=>({id:'accepted',eventCount:2})};
+  const clock={snapshot:()=>({timelineId:'accepted',eventCount:2,currentMs:0,state:'playing'}),receipt:()=>({}),pause(){}};
+  const contribution={pluginId:'sun-walker',controls:{controls:[]},state:{simulationTimeMs:0},presentation:{layers:[]}};
+  const renderer={cameraState:()=>({}),session:{setScene(){}},receipt:()=>({pluginCompositor:{}})};
+  const inspector={selected:()=> 'walker',selectionRevision:()=>selection,update(){},presentation:()=>contribution.presentation,
+    provenanceReceipts:()=>[],showPreview:async preview=>shown.push(preview.id),dispose(){}};
+  const session=create({hostRoot:{SimulatteSimulationSession:require('../public/shared/contracts/simulation-session.js'),
+    SimulatteSimulationSessionStatus:{create:()=>({render(){},dispose(){}})},SimulatteSunWalkerControls:{create:()=>({update(){},dispose(){}})},
+    SimulatteObjectInteraction:{create:()=>inspector}},
+    extensions:{activePluginIds:['sun-walker'],views:()=>[],platformV4:()=>({contributions:[contribution],timeline,provenanceReceipts:[]}),
+      dispatchAction:async(_owner,command,{values})=>{
+        if(command==='sun-walker.cancel-preparation'){cancelled.push(values.requestId);return {};}
+        assert.equal(command,'sun-walker.prepare-route');
+        return new Promise(resolve=>pending.push({resolve,requestId:values.requestId}));
+      }},pluginUi:{render(){}},elements:{decisionsButton:{},applicationProfileLabel:{},startButton:{parentElement:{}},autonomyCanvas:{parentElement:{}}},
+    profile:{id:'sun-walker-v1',camera:{},experience:{defaultView:'overview'}},interaction:{mode:'playback'},
+    experienceCameraApi:{applyInitialCamera:()=>true},simulationClockApi:{createClock:()=>clock},
+    pluginPlaybackApi:{createController:()=>({snapshot:()=>({phase:'running'}),start:()=>mutations.push('start'),applyPrepared:()=>mutations.push('apply')})},
+    pluginViewRuntimeApi:{createCoordinator:()=>({setManualOverride(){},sync:()=>({})})},
+    recordRenderWork(){},renderWorkReceipt:()=>({}),renderExperienceSummary(){},summarize:()=>({}),yieldToFrame:async()=>{},
+    getScenario:()=>({}),getCameraMode:()=>'',getRenderer:()=>renderer,applyRouteParameters:()=>false,onViewRuntime(){},onPlayback(){},onError:error=>assert.fail(error.message),
+  });
+  const flush=()=>new Promise(resolve=>setImmediate(resolve));
+  try {
+    await session.render({});
+    const first=session.invoke('preview-route',{directSunWeight:2});await flush();
+    const rejected=assert.rejects(first,{name:'AbortError'});
+    const second=session.invoke('preview-route',{directSunWeight:3});await flush();
+    pending[0].resolve({id:'stale'});pending[1].resolve({id:'latest'});
+    await rejected;await second;
+    assert.deepEqual(shown,['latest']);assert.deepEqual(cancelled,[pending[0].requestId]);assert.deepEqual(mutations,[]);
+    const dismissed=session.invoke('preview-route',{directSunWeight:4});await flush();
+    selection++;pending[2].resolve({id:'dismissed'});
+    await assert.rejects(dismissed,{name:'AbortError'});
+    assert.deepEqual(shown,['latest']);assert.deepEqual(mutations,[]);
+  }finally{session.dispose();}
+});

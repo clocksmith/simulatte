@@ -37,6 +37,15 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
      const after=await evaluate('SimulatteMotorcycleSession.snapshot()');
      assert.equal(after.execution,before.execution);row.checks.resetViewPreservesPause=true;
      assert.equal(await evaluate("document.querySelector('#advanced-sheet').open"),false);row.checks.resetViewOutsideAdvanced=true;
+     assert.equal(await evaluate("document.querySelector('#motorcycle-treatment-menu').open"),false);row.checks.treatmentsProgressive=true;
+     await click('#motorcycle-treatment-menu summary');
+     const generation=await evaluate('SimulatteMotorcycleSession.snapshot().generation');
+     await click('[data-add-treatment=directional]');
+     assert.equal(await evaluate("document.querySelector('#motorcycle-treatment-menu').open"),false);
+     await click('#placement-cancel');
+     assert.equal(await evaluate('SimulatteMotorcycleSession.snapshot().generation'),generation);row.checks.cancelPlacementPreservesRun=true;
+     assert.equal(await evaluate("document.querySelector('#camera-options [data-camera-mode=\"area:Greenpoint\"]')===null"),true);row.checks.locationsSeparateFromViews=true;
+     assert.equal(await evaluate("document.querySelector('#location-options [data-camera-mode=\"area:Greenpoint\"]').getAttribute('aria-pressed')"),'true');row.checks.resetRestoresOpeningView=true;
      await until('Boolean(globalThis.motorcycleMeasurementReceipt?.observer)',30000);
      row.measurement=await evaluate('motorcycleMeasurementReceipt');
     }else{
@@ -53,6 +62,7 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
       await evaluate("SimulatteActiveSession.invoke('pause')");
       assert.match(await evaluate("document.querySelector('.sim-object-inspector').innerText"),/Extra waiting:.*Baseline:/s);
       row.checks.executedBaselineExplained=true;
+      assert.deepEqual(await evaluate("[...document.querySelector('#experience-summary-stats').children].map(row=>row.dataset.measureLabel)"),['Training steps completed','Waiting added by actions','Productive compute share']);row.checks.executedMeasuresPrioritized=true;
       const rack=await evaluate("document.querySelector('.sim-object-inspector select').value");
       await click('.sim-object-related summary');
       const camera=await evaluate('JSON.stringify(__simulattePluginPlatformV4.view)');
@@ -75,6 +85,7 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
       await click('[data-object-action="preview-efficient"]');
       await until("document.querySelector('.sim-object-inspector select').value==='preview-transfer-trajectory'");
       assert.equal(await evaluate('JSON.stringify(__simulattePluginPlatformV4.contributions[0].state)'),before);row.checks.secondObjectiveAvailable=true;
+      const labels=await evaluate("[...document.querySelector('#experience-summary-stats').children].map(row=>row.dataset.measureLabel)");assert.ok(!labels.includes('Feasible transfers'));assert.equal(labels[0],'Planned flight time');assert.equal(labels[1],'Planned velocity change (Δv)');row.checks.flightMeasuresPrioritized=true;
      }else if(route==='interstellar'){
       assert.match(await evaluate("document.querySelector('.sim-object-inspector').innerText"),/transmitting.*traveling.*baseline result/s);row.checks.timeBreakdownExplicit=true;
       await click('[data-object-action="reply"]');
@@ -82,10 +93,25 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
       assert.match(await evaluate("document.querySelector('.sim-object-inspector').innerText"),/full reply returns after/);
       const intervals=await evaluate("__simulattePluginPlatformV4.contributions[0].state.measures.filter(m=>['latency','round-trip-latency'].includes(m.kind)).map(m=>m.measurement.interval.end)");
       assert.equal(intervals.length,2);assert.ok(intervals[1]>intervals[0]);row.checks.fullReplyAfterRequest=true;
+      assert.deepEqual(await evaluate("[...document.querySelector('#experience-summary-stats').children].map(row=>row.dataset.measureLabel)"),['Request arrives after','Full-packet reply arrival','Time since departure']);row.checks.arrivalAndElapsedSeparate=true;
      }else if(route==='sunwalker'){
       assert.equal(await evaluate("document.querySelector('.sun-walk-endpoint-menu').open"),false);row.checks.endpointsProgressive=true;
+      const before=await evaluate('JSON.stringify(__simulattePluginPlatformV4.contributions[0].state)');
+      const generation=await evaluate('SimulatteActiveSession.snapshot().generation');
       await evaluate("(()=>{const slider=document.querySelector('.sun-walk-preference input');slider.value=75;slider.dispatchEvent(new Event('input',{bubbles:true}));slider.dispatchEvent(new Event('change',{bubbles:true}));})()");
-      await until("document.querySelector('[data-walk-message]').textContent.includes('Walk restarted')");
+      await until("document.querySelector('[data-walk-message]').textContent.includes('Current walk unchanged')");
+      assert.equal(await evaluate('JSON.stringify(__simulattePluginPlatformV4.contributions[0].state)'),before);row.checks.preferencePreviewPreservesWalk=true;
+      assert.equal(await evaluate('SimulatteActiveSession.snapshot().generation'),generation);
+      assert.equal(await evaluate("document.querySelector('.sim-object-inspector select').value"),'sun-preview-route');
+      assert.match(await evaluate("document.querySelector('.sim-object-inspector').innerText"),/Extra walking.*Direct-sun time saved/s);
+      await click('[data-object-action="dismiss-preview"]');
+      await until("document.querySelector('[data-walk-message]').textContent.includes('Alternative dismissed')");
+      assert.equal(await evaluate("document.querySelector('.sun-walk-preference input').value"),'50');row.checks.dismissRestoresAcceptedPreference=true;
+      await evaluate("(()=>{const slider=document.querySelector('.sun-walk-preference input');slider.value=75;slider.dispatchEvent(new Event('change',{bubbles:true}));})()");
+      await until("document.querySelector('.sim-object-inspector select').value==='sun-preview-route' && document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false'");
+      await click('[data-object-action=apply]');
+      await until("document.querySelector('.sim-object-inspector select').value==='sun-walker-actor'");
+      assert.equal(await evaluate('SimulatteActiveSession.snapshot().execution'),'paused');row.checks.applyPreservesPause=true;
       assert.match(await evaluate("document.querySelector('[data-preference-cost]').textContent"),/3.00 extra minutes/);row.checks.preferenceMeaningExplained=true;
       row.tradeoff=await evaluate("document.querySelector('[data-route-tradeoff]').textContent");
       assert.match(row.tradeoff,/min|Same path/);row.checks.actualTradeoffVisible=true;

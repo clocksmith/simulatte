@@ -29,7 +29,7 @@
       {id:'resume',category:'execution',perform:()=>controller.resume()},
       {id:'restart',category:'reproduction',perform:()=>controller.restart()},
       {id:'replay',category:'reproduction',perform:()=>controller.replay()},
-      {id:'reset-view',category:'observation',target:'camera',perform:()=>explorer?.setCamera('map')},
+      {id:'reset-view',category:'observation',target:'camera',perform:()=>explorer?.setCamera('area:Greenpoint')},
       {id:'compare-snapshot',category:'execution',target:'viewpoint',perform:(observer,operation)=>controller.compareSnapshot(observer,operation)},
       {id:'acoustics',category:'live',perform:values=>controller.setAcoustics(values)},
       {id:'panel-angle',category:'live',perform:value=>{if(scene){scene.panel.angle=Number(value)*Math.PI/180;invalidate();}}},

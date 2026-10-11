@@ -22,6 +22,7 @@
     const on=(node,event,fn)=>node.addEventListener(event,fn,{signal:events.signal});
     const addButtons=[...document.querySelectorAll('[data-add-treatment]')],prompt=$('placement-prompt');
     function setPlacement(kind,message){
+      if(kind)$('motorcycle-treatment-menu').open=false;
       placing=kind;prompt.hidden=!kind;
       $('placement-message').textContent=message||(kind==='mist'?'Tap the map to place a water mister. Spray to trigger a simulated engine stall.':kind?'Tap a sidewalk or roof to add '+T.kinds[kind].name.toLowerCase()+'.':'');
       for(const button of addButtons)button.setAttribute('aria-pressed',String(button.dataset.addTreatment===kind));

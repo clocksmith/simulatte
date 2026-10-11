@@ -216,7 +216,7 @@
       "path": "./transmission-model.js"
     },
     {
-      "integrity": "sha384-1a20e3b4920cf60a13c2efcfd31f953fc7a42542ec1b14a6529163fefa0379a752133d6020e17d2d562b5cb88c920b23",
+      "integrity": "sha384-602300c4db775d2967f1cc6849c491ff579b922da456ad26dddec18bdaf18c1cb88de9f1bb976e12633a49db59791835",
       "path": "./v4-contribution.js"
     }
   ],

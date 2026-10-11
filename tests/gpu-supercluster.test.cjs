@@ -344,3 +344,18 @@ test('network rack drawing, picking and fit use the same rotating 3D geometry',(
   for(const coordinate of coordinates){const bounds=renderers.networkRackBounds(coordinate,project);assert.ok(bounds.length>=4);assert.ok(bounds.every(point=>point.x>=0&&point.x<=width&&point.y>=0&&point.y<=height));}
  }
 });
+
+
+test('the primary training readout separates executed consequences from configured power', () => {
+  const profile=require('../public/data/application-profiles/gpu-supercluster-v1.json');
+  const result=pluginApi.simulate();
+  const contribution=result.createContribution(1);
+  const summary=require('../public/simulatte/app/experience-presentation.js').summarize({profile,contributions:[contribution],runState:'running'});
+  assert.ok('Training steps completed' in summary.stats);
+  assert.ok('Waiting added by actions' in summary.stats);
+  assert.ok(!Object.keys(summary.stats).some(label=>/power|PFLOP/i.test(label)));
+  const extra=contribution.state.measures.find(row=>row.kind==='extra-synchronization-wait-ms');
+  assert.equal(extra.value,0);
+  assert.match(extra.measurement.definition,/simultaneous waits are summed/);
+  assert.equal(contribution.state.measures.find(row=>row.kind==='facility-power-kw').measurement.timeBasis,'configured');
+});

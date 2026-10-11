@@ -16,7 +16,7 @@
     "primaryMeasureKinds": [
       "latency",
       "round-trip-latency",
-      "bottleneck-rate"
+      "message-elapsed"
     ],
     "supportedViews": [
       "overview",

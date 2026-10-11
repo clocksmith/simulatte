@@ -51,10 +51,29 @@
           const result=await extensions.dispatchAction(owner,action.command,{scenario:getScenario(),values:action.values});
           operation.throwIfCancelled();return result;
         }},
+        {id:'preview-route',category:'observation',available:()=>profile.id==='sun-walker-v1',perform:async(values,operation)=>{
+          const requestId=`route-${++routeRequestSequence}`;
+          const cancel=()=>void extensions.dispatchAction(owner,'sun-walker.cancel-preparation',{values:{requestId}}).catch(error=>{if(!disposed)onError(error);});
+          operation.signal.addEventListener('abort',cancel,{once:true});
+          const selection=inspector.selectionRevision();
+          try {
+            operation.throwIfCancelled();
+            const preview=await extensions.dispatchAction(owner,'sun-walker.prepare-route',{values:{...values,requestId}});
+            operation.throwIfCancelled();
+            // Closing or selecting during preparation remains the user's choice.
+            if(inspector.selectionRevision()!==selection)throw Object.assign(new Error('Selection changed; keeping the current walk.'),{name:'AbortError'});
+            await inspector.showPreview(preview,operation.generation);
+            operation.throwIfCancelled();return preview;
+          } finally {operation.signal.removeEventListener('abort',cancel);}
+        }},
         {id:'object-apply',serial:true,category:'scenario',requiresRestart:true,perform:async(input,operation)=>{
           const action=input.prepared || inspector.action(input.targetId,input.actionId);
-          if(action.prepared)await pluginPlayback.applyPrepared(action);else await pluginPlayback.applyControls(action.values);
-          operation.throwIfCancelled();await pluginPlayback.start();operation.throwIfCancelled();
+          const change={running:pluginPlayback.snapshot().phase==='running'};controlChange=change;
+          try {
+            if(action.prepared)await pluginPlayback.applyPrepared(action);else await pluginPlayback.applyControls(action.values);
+            operation.throwIfCancelled();await pluginPlayback.start({paused:true});operation.throwIfCancelled();
+            if(change.running)await pluginPlayback.resume();else pluginPlayback.pause();
+          } finally {if(controlChange===change)controlChange=null;}
           await renderPluginExperience({mission:null});await onParametersApplied?.();
         }},
         {id:'object-live',serial:true,category:'live',perform:async input=>{
@@ -159,7 +178,7 @@
         sunControls ||= hostRoot.SimulatteSunWalkerControls.create({host:elements.experienceReadouts,session});
         sunControls.update(platform.contributions.find(row=>row.pluginId===owner));
         if(!inspector)inspector=hostRoot.SimulatteObjectInteraction.create({host:elements.autonomyCanvas.parentElement,canvas:elements.autonomyCanvas,
-          getSession:()=>session,onPreviewChange:()=>renderPluginExperience({mission:null}),projectObjects:()=>getRenderer()?.projectObjects?.()||[],
+          getSession:()=>session,onPreviewChange:reason=>{if(reason==='dismissed')sunControls.dismissPreview();return renderPluginExperience({mission:null});},projectObjects:()=>getRenderer()?.projectObjects?.()||[],
           onInsets:panel=>{
             const rect=elements.autonomyCanvas.getBoundingClientRect(),viewport=`${rect.width}:${rect.height}`;
             inspectorInsets=hostRoot.SimulatteCameraFit.measureInsets(rect,[{edge:'bottom',rect:panel.getBoundingClientRect()}]);

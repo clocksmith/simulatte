@@ -21,20 +21,21 @@
     const observerCurrent=()=>measurements.matches(lastObserver?.identity,measurements.observerKey(view.getObserver()),configuration(getScene()));
     const mapObservation=()=>[measurements.focusKey(view.getFocus(),view.getObserver()),markers];
     const events=new AbortController(),on=(element,type,handler)=>element.addEventListener(type,handler,{signal:events.signal});
-    const cameraSelect=$('camera-mode'),cameraOptions=$('camera-options');
+    const cameraSelect=$('camera-mode'),cameraOptions=$('camera-options'),locationOptions=$('location-options');
     let cameraPreset=initialObservation?.cameraPreset??cameraSelect.value;
     const groups={Locations:document.createElement('fieldset'),Views:document.createElement('fieldset')};
     for(const [name,group] of Object.entries(groups)){const legend=document.createElement('legend');legend.textContent=name;group.append(legend);}
     Array.from(cameraSelect.options,option=>{
       const button=document.createElement('button');button.type='button';button.textContent=option.textContent;
       button.dataset.cameraMode=option.value;button.dataset.ready='';button.disabled=true;
-      on(button,'click',()=>{command('camera',option.value);$('motorcycle-camera-menu').open=false;});
-      groups[option.value.startsWith('area:')||option.value==='map'?'Locations':'Views'].append(button);
+      const location=option.value.startsWith('area:')||option.value==='map';
+      on(button,'click',()=>{command('camera',option.value);$(location?'motorcycle-location-menu':'motorcycle-camera-menu').open=false;});
+      groups[location?'Locations':'Views'].append(button);
     });
-    cameraOptions.replaceChildren(...Object.values(groups));
+    cameraOptions.replaceChildren(groups.Views);locationOptions.replaceChildren(groups.Locations);
     function showCamera(mode){
       cameraPreset=mode;cameraSelect.value=mode||'';
-      for(const button of cameraOptions.querySelectorAll('button'))button.setAttribute('aria-pressed',String(button.dataset.cameraMode===mode));
+      for(const button of [...cameraOptions.querySelectorAll('button'),...locationOptions.querySelectorAll('button')])button.setAttribute('aria-pressed',String(button.dataset.cameraMode===mode));
     }
     showCamera(cameraPreset);
     on($('city'),'camera-detached',()=>showCamera(null));

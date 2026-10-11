@@ -11,7 +11,7 @@ const arg=(name,fallback='')=>process.argv.includes(name)?process.argv[process.a
 const out=path.resolve(root,arg('--out','artifacts/sunwalker/20261005-routing'));
 await fs.mkdir(out,{recursive:true});
 const report={observedAt:new Date().toISOString(),sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),sourceHashes:{},runs:[]};
-for(const file of ['public/simulatte/app/city-plugin-session.js','public/simulatte/app/webgpu-renderer.js','public/simulatte/app/plugin-actor-motion.js','public/simulatte/app/plugin-presentation.js','public/simulatte/app/camera-controller.js','public/simulatte/app/sun-walker-controls.js','public/shared/plugins/sun-walker/plugin.json','public/shared/plugins/sun-walker/shade-router.js','public/shared/plugins/sun-walker/sun-route-simulation.js','public/simulatte/app/main.js','public/simulatte/world/simulation-task-worker.js','public/simulatte/world/simulation-task-operations.js','public/simulatte/platform/plugin-host/plugin-compute.js','public/world-tiers.css','public/shared/plugins/sun-walker/v4-contribution.js'])
+for(const file of ['public/simulatte/app/city-plugin-session.js','public/simulatte/app/object-interaction.js','public/simulatte/app/webgpu-renderer.js','public/simulatte/app/plugin-actor-motion.js','public/simulatte/app/plugin-presentation.js','public/simulatte/app/camera-controller.js','public/simulatte/app/sun-walker-controls.js','public/shared/plugins/sun-walker/plugin.json','public/shared/plugins/sun-walker/shade-router.js','public/shared/plugins/sun-walker/sun-route-simulation.js','public/simulatte/app/main.js','public/simulatte/world/simulation-task-worker.js','public/simulatte/world/simulation-task-operations.js','public/simulatte/platform/plugin-host/plugin-compute.js','public/world-tiers.css','public/shared/plugins/sun-walker/v4-contribution.js'])
   report.sourceHashes[file]=crypto.createHash('sha256').update(await fs.readFile(path.join(root,file))).digest('hex');
 
 try {
@@ -46,8 +46,13 @@ try {
       await capture('overview');
       const metrics=()=>evaluate(`(()=>{const c=globalThis.__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='sun-walker');return Object.fromEntries(c.inspections.find(i=>i.id==='sun-route-comparison').fields.map(f=>[f.id,f.value]))})()`);
       const preference=async value=>{
+        const controlsBefore=await evaluate(`JSON.stringify(__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='sun-walker').controls)`);
+        const previous=await evaluate(`document.querySelector('#autonomy-canvas').__simulattePreview()?.id || null`);
         await evaluate(`(()=>{const slider=document.querySelector('[aria-label="Time versus shade"]');slider.value=${value};slider.dispatchEvent(new Event('input',{bubbles:true}));slider.dispatchEvent(new Event('change',{bubbles:true}))})()`);
-        await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-walk-message]').hidden`);
+        await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('#autonomy-canvas').__simulattePreview()?.id && document.querySelector('#autonomy-canvas').__simulattePreview()?.id!==${JSON.stringify(previous)}`);
+        assert.equal(await evaluate(`JSON.stringify(__simulattePluginPlatformV4.contributions.find(c=>c.pluginId==='sun-walker').controls)`),controlsBefore,'Preview cannot replace accepted controls');
+        await click('[data-object-action=apply]');
+        await wait(`!document.querySelector('#autonomy-canvas').__simulattePreview() && SimulatteActiveSession.snapshot().pending.length===0`);
         return metrics();
       };
       await click('[data-show-route="fastest"]');
@@ -114,12 +119,12 @@ try {
       run.checks.push('controls stay usable during preparation; Cancel retains the accepted route');
       await preference(50);
       await evaluate(`(()=>{const select=document.querySelector('[name=destinationPlace]');select.value='Tompkins Square';select.dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('.sun-walk-endpoints').requestSubmit()})()`);
-      await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-walk-message]').hidden`);
+      await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-walk-message]').textContent.includes('restarted')`);
       run.changedCards=await evaluate(`document.querySelector('.sun-walk-routes').innerText`);
       assert.notEqual(run.changedCards,run.initial.cards);
       run.checks.push('changed destination recomputes both graph paths');
       await evaluate(`(()=>{const select=document.querySelector('[name=originPlace]');select.value='Union Square';select.dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('.sun-walk-endpoints').requestSubmit()})()`);
-      await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-walk-message]').hidden`);
+      await wait(`document.querySelector('.sun-walk-controls').getAttribute('aria-busy')==='false' && document.querySelector('[data-walk-message]').textContent.includes('restarted')`);
       run.changedOrigin=await evaluate(`document.querySelector('.sun-walk-routes').innerText`);
       assert.notEqual(run.changedOrigin,run.changedCards);run.checks.push('changed origin recomputes the route');
       await evaluate(`[...document.querySelectorAll('button')].find(e=>e.textContent.trim()==='Pause'&&!e.hidden).click()`);

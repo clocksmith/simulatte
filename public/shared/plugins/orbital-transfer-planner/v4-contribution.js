@@ -267,6 +267,8 @@
       variantScenarioId: result.scenarioId,
       synchronizedClock: true,
     }]);
+    const planContext = `Calculated plan: ${result.metrics.timeOfFlightDays.toFixed(0)} days to ${ephemerisData.bodies[result.targetBodyId]?.name || result.targetBodyId}; ${result.metrics.totalDeltaVKmS.toFixed(2)} km/s combined departure and arrival velocity change. Δv is not fuel mass. Playback presents search, selection, screening verification, then coast.`;
+    const planMeasurement = label => ({label,subject:'Calculated transfer plan',definition:'Prediction for the currently accepted screening calculation, not elapsed flight or a navigation guarantee.',timeBasis:'prediction',interval:{start:0,end:result.metrics.timeOfFlightDays*86400,unit:'second'},validity:'valid',freshness:'current',context:planContext});
     const progressiveState = builder.state({
       id: `${PLUGIN_ID}:state:${result.scenarioId}:${Number.isFinite(currentStep) ? currentStep : 'settled'}`,
       pluginId: PLUGIN_ID,
@@ -276,13 +278,13 @@
       status: playback?.status || 'settled',
       eventIds: events.map((row) => row.id),
       measures: [
+        builder.quantity('time-of-flight', result.metrics.timeOfFlightDays, 'day', null, planMeasurement('Planned flight time')),
+        builder.quantity('total-delta-v', result.metrics.totalDeltaVKmS, 'km/s', null, planMeasurement('Planned velocity change (Δv)')),
         ...(searchVisible ? [
           builder.quantity('solution-count', result.metrics.solutionCount, 'solutions'),
           builder.quantity('attempted-count', result.metrics.attemptedCount, 'candidates'),
         ] : []),
         ...(selectionVisible ? [
-          builder.quantity('time-of-flight', result.metrics.timeOfFlightDays, 'day'),
-          builder.quantity('total-delta-v', result.metrics.totalDeltaVKmS, 'km/s'),
           builder.quantity('modeled-flight-elapsed', Number.isFinite(flightFraction)
             ? result.metrics.timeOfFlightDays * flightFraction
             : 0, 'day'),
@@ -362,9 +364,9 @@
       objects: layers.filter(layer => layer.id === `body:${result.targetBodyId}` || layer.id === 'screening-spacecraft' || layer.id === 'transfer-trajectory').map(layer => ({
         id: layer.id, label: layer.id === 'transfer-trajectory' ? 'Accepted flight path' : layer.id === 'screening-spacecraft' ? 'Spacecraft' : layer.label,
         initiallySelected: layer.id === `body:${result.targetBodyId}`,
-        condition: `${result.metrics.timeOfFlightDays.toFixed(0)} days flying · ${result.metrics.totalDeltaVKmS.toFixed(2)} km/s velocity change (Δv)`,
+        condition: `${Number.isFinite(flightFraction) ? `${Math.round(flightFraction * result.metrics.timeOfFlightDays)} of ${result.metrics.timeOfFlightDays.toFixed(0)} flight days elapsed` : selectionVisible ? 'Plan selected; coast not started' : 'Searching departure windows'} · ${result.metrics.timeOfFlightDays.toFixed(0)} days flying · ${result.metrics.totalDeltaVKmS.toFixed(2)} km/s velocity change (Δv)`,
         relatedIds: ['transfer-trajectory', 'screening-spacecraft', `body:${result.targetBodyId}`].filter(id => id !== layer.id && layers.some(row => row.id === id)),
-        description: 'Compare a shorter flight with a smaller velocity change. Preview draws an alternative beside the accepted path; only applying replaces the flight. This is a screening model, not spacecraft navigation.',
+        description: `${verificationVisible ? result.verification?.accepted ? 'Independent propagation passed the screening tolerances.' : 'Independent propagation did not establish a verified screening path.' : 'Verification has not been presented yet.'} Violet: accepted path; faint paths: planetary references; amber: preview. Compare shorter travel with a smaller velocity change. Only applying replaces the flight. Δv is the combined departure and arrival velocity change, not fuel mass. This is a screening model, not spacecraft navigation.`,
         hit: { shape: layer.kind === 'path' ? 'path' : 'point', radiusPx: 14, priority: layer.kind === 'path' ? 30 : 90 },
         actions: [
           { id: 'preview', label: 'Preview shorter flight', targetId: layer.id, available: true, execution: 'preview', command: 'orbital.preview-transfer', values: { deltaVWeight: 1, timeWeight: 0.2 }, proposedChange: 'Prefer flight time in the supported departure-window search; show the actual time and velocity-change differences.' },

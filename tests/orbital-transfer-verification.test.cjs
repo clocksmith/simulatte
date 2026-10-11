@@ -254,6 +254,12 @@ test('launch-window playback exposes a bounded family of inspectable candidate p
   assert.ok(candidates.every((row) => row.geometry.coordinates.length === 24));
   assert.ok(candidates.every((row) => row.quantity.kind === 'candidate-objective'));
   assert.equal(contribution.presentation.layers.some((row) => row.id === 'transfer-trajectory'), false);
+  const planned=contribution.state.measures.find(row=>row.kind==='time-of-flight');
+  assert.equal(planned.measurement.timeBasis,'prediction');
+  assert.equal(planned.measurement.label,'Planned flight time');
+  const summary=require('../public/simulatte/app/experience-presentation.js').summarize({profile,contributions:[contribution],runState:'paused'});
+  assert.ok('Planned flight time' in summary.stats);
+  assert.ok(!('Feasible transfers' in summary.stats));
 });
 
 test('flight playback advances the ephemeris epoch and follows the moving spacecraft', async () => {

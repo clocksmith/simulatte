@@ -15,8 +15,8 @@
     const timing = exchange.breakdown(requestSchedule);
     const delivery = formatDuration(requestSchedule.totalLatencySeconds);
     const baseline = comparison ? `Direct classical baseline: ${formatDuration(comparison.baseline.latencyYears * 31557600)} to deliver the same packet; selected route: ${delivery}.` : 'Direct classical comparison is computed when the run finishes; no baseline result is available yet.';
-    const context = `${result.exchange ? 'Request delivered in' : 'Packet delivered in'} ${delivery}${result.exchange ? `; full reply returns after ${formatDuration(result.exchange.roundTripYears * 31557600)} from departure` : ''}.\n${formatDuration(timing.transmissionSeconds)} transmitting · ${formatDuration(timing.propagationSeconds)} traveling · ${formatDuration(timing.waitingSeconds)} acquiring, waiting, processing and retrying.\n${baseline} Same terminal, packet, departure epoch and operational profile. A new destination starts a new experiment; it cannot redirect a packet already traveling.`;
-    const measurement = label => ({label,subject:label==='Full-packet reply arrival'?'Request and full reply':'Selected request packet',definition:context,timeBasis:'prediction',interval:{start:0,end:label==='Full-packet reply arrival'?result.schedule.totalLatencySeconds:requestSchedule.totalLatencySeconds,unit:'second'},validity:'valid',freshness:'current',context});
+    const context = `${result.exchange ? 'Request arrives after' : 'Packet arrives after'} ${delivery}${result.exchange ? `; full reply returns after ${formatDuration(result.exchange.roundTripYears * 31557600)} from departure` : ''}.\n${formatDuration(timing.transmissionSeconds)} transmitting · ${formatDuration(timing.propagationSeconds)} traveling · ${formatDuration(timing.waitingSeconds)} acquiring, waiting, processing and retrying.\n${baseline}`;
+    const measurement = label => ({label,subject:label==='Full-packet reply arrival'?'Request and full reply':'Selected request packet',definition:context+' Same terminal, packet, departure epoch and operational profile. Arrival times are predictions, not elapsed playback time.',timeBasis:'prediction',interval:{start:0,end:label==='Full-packet reply arrival'?result.schedule.totalLatencySeconds:requestSchedule.totalLatencySeconds,unit:'second'},validity:'valid',freshness:'current',context});
     const settled = progressive.status === 'settled';
     const datasets = result.dataReceipts.filter((row) => row.sha256).map((row) => builder.datasetRecord(row.datasetId, row, {
       coverage: row.coverage,
@@ -267,8 +267,9 @@
       previousStateId: progressive.currentEventIndex > 0 ? `${PLUGIN_ID}:state:${progressive.currentEventIndex - 1}` : null,
       eventIds: events.slice(0, progressive.currentEventIndex + 1).map((row) => row.id),
       measures: [
+        builder.quantity('message-elapsed',progressive.elapsedSeconds / 31557600,'year',null,{label:'Time since departure',subject:'Current message journey',definition:'Elapsed modeled time on the current request/reply timeline, not wall-clock playback duration.',timeBasis:'instant',interval:{start:progressive.elapsedSeconds,end:progressive.elapsedSeconds,unit:'second'},validity:'valid',freshness:'current',context}),
         ...(started ? [
-          builder.quantity('latency', result.metrics.oneWayLatencyYears, 'year', null, measurement('Request delivery')),
+          builder.quantity('latency', requestSchedule.totalLatencySeconds / 31557600, 'year', null, measurement('Request arrives after')),
           builder.quantity('bottleneck-rate', result.metrics.bottleneckDataRateGbps, 'Gb/s'),
           builder.quantity('minimum-margin', result.metrics.minimumLinkMarginDb, 'dB'),
         ] : []),
@@ -293,7 +294,11 @@
         const values = Object.fromEntries(controls.controls.map(row => [row.id, row.value]));
         const target = layer.id.startsWith('star:') ? layer.id.slice(5) : null;
         const available = target && target !== values.sourceId && controls.controls.find(row => row.id === 'targetId').options.some(row => row.value === target);
-        return { id: layer.id, label: layer.label, inSelector: Boolean(target || layer.kind === 'actor'), initiallySelected: layer.id === result.packet.packetId, relatedIds: layer.kind === 'actor' ? result.schedule.hops.map((_,i)=>`relay-link:${i}`) : [], condition: progressive.messageLeg === 'response' ? 'Reply traveling after request delivery' : progressive.status, description: context,
+        const phase = progressive.status === 'failed' ? 'Delivery failed' : progressive.status === 'settled' ? (result.exchange ? 'Reply received at origin' : 'Message received at destination') : progressive.messageLeg === 'response' ? 'Reply journey; request already received' : 'Outbound message journey';
+        const location = stateById.get(progressive.packetLocationId)?.name || progressive.packetLocationId;
+        const hop = progressive.activeHopIndex === null ? null : result.schedule.hops[progressive.activeHopIndex];
+        const activity = hop ? `Signal traveling from ${stateById.get(hop.fromId)?.name || hop.fromId} to ${stateById.get(hop.toId)?.name || hop.toId}.` : `Packet at ${location}; ${currentEvent?.kind?.split('.').at(-1).replaceAll('-',' ') || 'ready to send'}.`;
+        return { id: layer.id, label: layer.label, inSelector: Boolean(target || layer.kind === 'actor'), initiallySelected: layer.id === result.packet.packetId, relatedIds: layer.kind === 'actor' ? [...new Set([`star:${progressive.packetLocationId}`,...(hop ? [`star:${hop.fromId}`,`star:${hop.toId}`] : []),...result.schedule.hops.map((_,i)=>`relay-link:${i}`)])] : [], condition: `${phase} · ${formatDuration(progressive.elapsedSeconds)} since departure`, description: `${activity}\n${context}\nSelect a star to start a new message there; an in-flight signal cannot be redirected.`,
           hit: { shape: layer.kind === 'path' ? 'path' : 'point', radiusPx: 12, priority: target ? 90 : 30 },
           actions: available ? [{ id: 'apply', label: 'Start new message here', targetId: layer.id, available: true, execution: 'restart', command: 'scenario.run',
             values: { ...values, targetId: target }, proposedChange: `Send from ${values.sourceId} to ${target} and replay its delivery events.` }] : layer.kind === 'actor' && !result.exchange ? [{id:'reply',label:'Compare request and reply',targetId:layer.id,available:true,execution:'restart',command:'scenario.run',values:{...values,messageMode:'request-reply'},proposedChange:'Start a new experiment: the destination creates a reply only after receiving the complete request.'}] : [] };

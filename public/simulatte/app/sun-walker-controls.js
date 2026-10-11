@@ -17,7 +17,7 @@
     host.before(panel);
     const form=panel.querySelector('form'),message=panel.querySelector('[data-walk-message]');
     const preference=panel.querySelector('input[type=range]');
-    let controls=[],dirty=false,preferenceDirty=false,busy=false,requestSequence=0,preferenceTimer=null,pendingEndpoints=false;
+    let controls=[],dirty=false,preferenceDirty=false,busy=false,requestSequence=0,preferenceTimer=null,pendingEndpoints=false,acceptedWeight=null;
     const on=(node,type,fn)=>node.addEventListener(type,fn,{signal:events.signal});
     function say(text){message.hidden=!text;message.textContent=text;}
     function setBusy(value){busy=value;panel.querySelector('[data-cancel-walk]').hidden=!value;panel.setAttribute('aria-busy',String(value));}
@@ -31,15 +31,21 @@
       const requestId=++requestSequence;
       const endpointsChanged=controls.some(row=>['originPlace','destinationPlace'].includes(row.id)&&row.value!==values[row.id]);
       values.directSunWeight=Math.min(100,Number(preference.value)/Math.max(1,100-Number(preference.value)));
-      setBusy(true);say('Calculating routes…');
+      setBusy(true);say(endpoints?'Calculating a replacement walk…':'Calculating an alternative; your current walk continues.');
       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
       if(requestId!==requestSequence)return;
-      try {await session.invoke('apply-controls',values);if(requestId!==requestSequence)return;if(endpoints)dirty=false;preferenceDirty=false;if(endpointsChanged)await session.invoke('camera','overview');say('Walk restarted at the chosen departure; the amber baseline shares those endpoints and departure.');}
-      catch(error){if(requestId===requestSequence&&error.name!=='AbortError')say(error.message);}
+      try {
+        await session.invoke(endpoints?'apply-controls':'preview-route',values);
+        if(requestId!==requestSequence)return;
+        if(endpoints){dirty=false;preferenceDirty=false;}
+        if(endpointsChanged)await session.invoke('camera','overview');
+        say(endpoints?'Walk restarted at the chosen departure; the amber baseline shares those endpoints and departure.':'Alternative ready. Compare it with the accepted green walk, then apply or dismiss it below. Current walk unchanged.');
+      }
+      catch(error){if(requestId===requestSequence)say(error.name==='AbortError'?'Keeping the current walk.':error.message);}
       finally{if(requestId===requestSequence){pendingEndpoints=false;setBusy(false);}}
     }
     on(form,'change',()=>{dirty=true;});on(form,'submit',event=>{event.preventDefault();void apply({endpoints:true});});
-    function showPreference(){const p=Number(preference.value);const weight=Math.min(100,p/Math.max(1,100-p));panel.querySelector('[data-preference-cost]').textContent=`Route search counts each minute in direct sun as ${weight.toFixed(2)} extra minutes of cost. The comparison below shows actual time and exposure.`;panel.querySelector('[data-walk-preference-label]').textContent=p===0?'Shortest walk':p===100?'Strongest shade preference':p===50?'Balanced':p<50?'Prefer time':'Prefer shade';}
+    function showPreference(){const p=Number(preference.value);const weight=Math.min(100,p/Math.max(1,100-p));panel.querySelector('[data-preference-cost]').textContent=`Each minute in direct sun costs ${weight.toFixed(2)} extra minutes in route search. Moving this slider previews; applying restarts from departure.`;panel.querySelector('[data-walk-preference-label]').textContent=p===0?'Shortest walk':p===100?'Strongest shade preference':p===50?'Balanced':p<50?'Prefer time':'Prefer shade';}
     on(preference,'input',()=>{requestSequence++;if(busy){session.cancel('Superseded route preference');setBusy(false);}preferenceDirty=true;showPreference();clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>void apply(),180);});
     on(preference,'change',()=>{clearTimeout(preferenceTimer);void apply();});
     on(panel.querySelector('[data-cancel-walk]'),'click',()=>{requestSequence+=1;clearTimeout(preferenceTimer);session.cancel('Route recalculation cancelled');pendingEndpoints=false;setBusy(false);say('Keeping the current walk.');});
@@ -72,12 +78,14 @@
         bar.setAttribute('aria-label',`${(sun/60).toFixed(1)} minutes sun, ${((seconds-sun-unknown-night)/60).toFixed(1)} minutes shade, ${(unknown/60).toFixed(1)} minutes unknown, ${(night/60).toFixed(1)} minutes night`);
       }
       const weight=controls.find(row=>row.id==='directSunWeight').value;
+      if(acceptedWeight!==null&&weight!==acceptedWeight){preferenceDirty=false;say('Walk updated and restarted from departure; both route bars now describe this accepted walk.');}
+      acceptedWeight=weight;
       if(!preferenceDirty){preference.value=weight>=100?100:Math.round(100*weight/(1+weight));showPreference();}
       const extra=(Number(value('chosen-time'))-Number(value('fastest-time')))/60;
       const saved=(Number(value('fastest-sun'))-Number(value('chosen-sun')))/60;
       panel.querySelector('[data-route-tradeoff]').textContent=value('same-route')?'Same path as the shortest-walk baseline; no time or exposure change.':`${extra.toFixed(1)} min longer · ${Math.abs(saved).toFixed(1)} min ${saved>=0?'less':'more'} in direct sun`;
     }
-    return {update,dispose(){requestSequence+=1;clearTimeout(preferenceTimer);events.abort();panel.remove();}};
+    return {update,dismissPreview(){preferenceDirty=false;preference.value=acceptedWeight>=100?100:Math.round(100*acceptedWeight/(1+acceptedWeight));showPreference();say('Alternative dismissed. Keeping the accepted walk.');},dispose(){requestSequence+=1;clearTimeout(preferenceTimer);events.abort();panel.remove();}};
   }
   root.SimulatteSunWalkerControls={create};
 })(globalThis);

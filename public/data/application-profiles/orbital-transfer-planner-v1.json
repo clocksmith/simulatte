@@ -13,7 +13,7 @@
   "experience": {
     "kind": "solver",
     "timelineLabel": "Solver stage",
-    "primaryMeasureKinds": ["total-delta-v", "time-of-flight", "solution-count"],
+    "primaryMeasureKinds": ["time-of-flight", "total-delta-v", "modeled-flight-elapsed"],
     "supportedViews": ["overview", "free", "compare"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",

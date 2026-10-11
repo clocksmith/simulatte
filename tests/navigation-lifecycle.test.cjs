@@ -156,6 +156,7 @@ test('side metrics replace the previous experience rows instead of retaining sta
     append(...children) { for(const child of children) child.parent=this; this.children.push(...children); },
     get lastElementChild() { return this.children.at(-1); },
     remove() { this.parent.children=this.parent.children.filter(child=>child!==this); },
+    insertBefore(child,before) { if(child.parent)child.remove(); const index=before?this.children.indexOf(before):this.children.length; this.children.splice(index,0,child);child.parent=this; },
     replaceChildren(...children) { this.children = children; },
   });
   const documentRef = { createElement: node };
@@ -187,6 +188,8 @@ test('side metrics replace the previous experience rows instead of retaining sta
   assert.ok(preserved.every(row=>row.children[1].textContent==='Pending'),'Earlier measurements cannot masquerade as the next run');
   mainView.renderExperienceSummary(elements, {experienceId:'grid-resilience-us-v1',stats:{'Unserved Load':'10 MW',Reserves:'5%'}});
   assert.deepEqual(elements.experienceSummaryStats.children,preserved);
+  mainView.renderExperienceSummary(elements,{experienceId:'grid-resilience-us-v1',stats:{Reserves:'5%','Unserved Load':'10 MW'}});
+  assert.deepEqual(elements.experienceSummaryStats.children,[preserved[1],preserved[0]],'Declared order changes without replacing measurement buttons');
   mainView.renderExperienceSummary(elements, {
     experienceId: 'asteroid-defense-v1',
     state: 'Ready',

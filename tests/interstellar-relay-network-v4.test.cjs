@@ -776,8 +776,14 @@ test('request and reply explanations and measurement intervals bind distinct sch
   const result=host.instance.capabilities['simulation.interstellar-relay.v4']().result;
   const contribution=host.instance.contributeV4();
   const context=contribution.objects.find(row=>row.initiallySelected).description;
-  assert.ok(context.includes(`Request delivered in ${v4.formatDuration(result.exchange.request.schedule.totalLatencySeconds)}`));
+  assert.ok(context.includes(`Request arrives after ${v4.formatDuration(result.exchange.request.schedule.totalLatencySeconds)}`));
   assert.ok(context.includes(`full reply returns after ${v4.formatDuration(result.schedule.totalLatencySeconds)}`));
+  const elapsed=contribution.state.measures.find(row=>row.kind==='message-elapsed');
+  assert.equal(elapsed.value,result.schedule.snapshots[1].elapsedSeconds / 31557600);
+  assert.match(contribution.objects.find(row=>row.initiallySelected).condition,/since departure/);
+  const format=require('../public/simulatte/app/experience-presentation.js').formatMeasure;
+  assert.equal(format({value:30 / 31557600,unit:'year'}),'30 seconds');
+  assert.equal(format({value:1,unit:'year'}),'1 year');
   const request=contribution.state.measures.find(row=>row.kind==='latency');
   const reply=contribution.state.measures.find(row=>row.kind==='round-trip-latency');
   assert.equal(request.measurement.interval.end,result.exchange.request.schedule.totalLatencySeconds);

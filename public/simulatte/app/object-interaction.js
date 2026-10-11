@@ -37,7 +37,7 @@
       onSelect: id => { void command('select-object', id).catch(() => {}); },
       onAction: async id => {
         if (id === 'focus') return command('focus-object', selectedId);
-        if (id === 'dismiss-preview') { preview = null; await onPreviewChange(); render(); return { message: 'Alternative dismissed.' }; }
+        if (id === 'dismiss-preview') { preview = null; await onPreviewChange('dismissed'); render(); return { message: 'Alternative dismissed.' }; }
         const action = actionFor(combined(), selectedId, id);
         if (!action?.available) throw new Error('This action is not currently available.');
         const revision = selectionRevision, generation = getSession().snapshot().generation;
@@ -46,9 +46,7 @@
         if (action.execution === 'preview') {
           const next = await command('object-preview', input);
           if (revision !== selectionRevision || generation !== getSession().snapshot().generation) throw Object.assign(new Error('Selection changed'), { name: 'AbortError' });
-          preview = { ...qualifyPreview(next), generation };
-          selectedId = next.objects[0].id;
-          await onPreviewChange(); render();
+          await showPreview(next, generation);
           return { message: 'Alternative drawn. The accepted run is unchanged.' };
         }
         await command(action.execution === 'restart' ? 'object-apply' : 'object-live', input);
@@ -61,6 +59,11 @@
         return { message: action.execution === 'restart' ? 'Applied and restarted.' : 'Applied to '+combined().objects.find(row=>row.id===input.targetId).label+'.' };
       },
     });
+    async function showPreview(next, generation = getSession().snapshot().generation) {
+      preview = { ...qualifyPreview(next), generation };
+      selectedId = next.objects[0].id;
+      await onPreviewChange(); render();
+    }
     function render() {
       const all = combined(), objects = objectsFor(all), object = objects.find(row => row.id === selectedId);
       const matching = all?.inspections.filter(row => row.targetIds.includes(selectedId)) || [];
@@ -101,6 +104,7 @@
     const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(() => onInsets(inspector.element)) : null;
     resize?.observe(inspector.element); resize?.observe(canvas);
     return Object.freeze({
+      showPreview,
       select(id) { openingSelection = false; selectionRevision++; userSelectionRevision++; selectedId = id; alternatives = null; render(); },
       update(next) {
         const nextKey = identity(next), generation = getSession()?.snapshot().generation ?? 0;
@@ -122,6 +126,7 @@
         ? root.SimulatteProvenanceRegistry.createContributionProvenanceReceipt(combined()) : receipt) : receipts,
       preview: () => preview,
       selected: () => selectedId,
+      selectionRevision: () => userSelectionRevision,
       dispose() { delete canvas.__simulattePreview; delete canvas.__simulatteObjectTargets; events.abort(); resize?.disconnect(); inspector.dispose(); },
     });
   }

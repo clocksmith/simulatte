@@ -54,6 +54,13 @@ explicit unknown exposure. It does not measure current shade or thermal comfort.
 
 Route replacement prepares in a cancellable worker. Controls stay usable, later requests supersede earlier work, and calculation refusal keeps the accepted walk.
 
+The time/shade slider prepares a preview beside the accepted walk. It does not
+change that walk's controls, progress, pause state, or accumulated exposure.
+The preview reports actual walking-time and direct-sun differences against the
+accepted route. Apply restarts the exact prepared walk from departure and retains
+pause; Dismiss keeps the accepted walk. Endpoint edits explicitly replace and
+restart the walk. The primary route bars always describe the accepted walk.
+
 ## What is real, derived, modeled, or simulated?
 
 | Item | Origin | Source | Time status | Uncertainty | Used for |

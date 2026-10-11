@@ -327,7 +327,17 @@ body[data-state="running"] .experience-status, body[data-state="paused"] .experi
 .fictional-event[open] { max-width: 24rem; padding: .5rem; background: var(--sim-surface, #fff); }
 #camera-tracking { font-size: .8rem; }
 
-.camera-control .camera-options { grid-template-columns:1fr 1fr; max-height:70dvh; overflow:auto; }
+.camera-control .camera-options { grid-template-columns:1fr; max-height:70dvh; overflow:auto; }
+#motorcycle-treatment-menu .placement-controls { min-width:220px; flex-direction:column; align-items:stretch; padding:8px; }
+@media(max-width:760px) {
+  .city-toolbar #motorcycle-location-menu { grid-column:1; grid-row:2; }
+  .city-toolbar #motorcycle-camera-menu { grid-column:2; grid-row:2; }
+  .city-toolbar #reset-view { grid-column:3; grid-row:2; }
+  .city-toolbar #pause { grid-column:1; grid-row:3; }
+  .city-toolbar #motorcycle-treatment-menu { grid-column:2; grid-row:3; }
+  .city-toolbar #header-advanced { grid-column:3; grid-row:3; }
+  #motorcycle-camera-menu .camera-options,#motorcycle-treatment-menu .camera-options { left:auto; right:0; width:min(280px,calc(100vw - 48px)); }
+}
 .city-toolbar .placement-controls { flex-wrap:wrap; }
 .city-toolbar .fictional-event { grid-column:1 / -1; position:relative; }
 .city-toolbar .fictional-event[open] { position:absolute; left:0; top:100%; z-index:9; }

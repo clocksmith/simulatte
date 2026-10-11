@@ -145,7 +145,11 @@
       previousStateId: boundedStep ? `${PLUGIN_ID}:state:${result.receipt.seed}:${boundedStep - 1}` : null,
       eventIds: events.map((event) => event.id),
       measures: [
-        ...(workload ? [builder.quantity('training-iterations',workload.iteration,'iterations'),builder.quantity('synchronization-wait-ms',workload.totalWaitMs,'rack-ms')] : []),
+        ...(workload ? [
+          builder.quantity('training-iterations',workload.iteration,'steps',null,measurement('Training steps completed','Complete iterations finished by every rack since the run started.')),
+          builder.quantity('synchronization-wait-ms',workload.totalWaitMs,'rack-ms'),
+          builder.quantity('extra-synchronization-wait-ms',executed.differences.synchronizationWaitingRackMs,'rack-ms',null,measurement('Waiting added by actions','Intervention minus no-live-actions baseline over the same elapsed interval. One rack waiting one millisecond is one rack-ms; simultaneous waits are summed, not elapsed wall time.')),
+        ] : []),
         builder.quantity('compute-efficiency', efficiency * 100, 'percent', [0, 100], measurement('Productive compute share', 'Sum of computing rack milliseconds weighted by (1 − slowdown), divided by rack count × elapsed simulation milliseconds since start. Communication and barrier waiting contribute zero. This is not hardware utilization.')),
         builder.quantity('executed-compute-tflops', throughput, 'TFLOP/s', null, measurement('Compute (PFLOP/s)', 'Modeled average since start: peak cluster compute × productive compute share × pipeline non-bubble fraction × thermal clock fraction.')),
         builder.quantity('facility-power-kw', thermals.totalFacilityPowerKw, 'kW', null, measurement('Power (steady-state)', 'Configured steady-state facility power estimate, including cooling. This does not measure live consumption or respond to live rack faults.', 'configured')),

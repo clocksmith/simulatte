@@ -215,6 +215,12 @@
       row.dataset.definition = definition; row.firstElementChild.firstElementChild?.setAttribute('aria-label', `${label}: ${definition}`);
       if (row.lastElementChild.textContent !== String(value)) row.lastElementChild.textContent = String(value);
     }
+    // Measures appear at different stages. Retain their nodes and focus while
+    // keeping the profile's declared comparison order as later measures arrive.
+    stats.forEach(([label],index)=>{
+      const row=[...container.children].find(node=>node.dataset.measureLabel===label);
+      if(container.children[index]!==row)container.insertBefore(row,container.children[index]||null);
+    });
     elements.experienceSummaryComparison.textContent = summary.comparison || '';
     elements.experienceSummaryComparison.hidden = !summary.comparison;
   }

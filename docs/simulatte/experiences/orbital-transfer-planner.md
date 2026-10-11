@@ -10,8 +10,8 @@ Owner contract: `public/shared/plugins/orbital-transfer-planner/index.js`.
 - Profile ID: `orbital-transfer-planner-v1`
 - Default scenario: `earth-mars-window`
 - Contract version: plugin v4 contribution
-- Last verified source: prior browser proof at commit `a5713c1c13ab`
-- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
+- Last verified source: World changes over `2fda1d6534a4`, bound by source hashes in `artifacts/five-experiences/after/report.json`.
+- Evidence: fresh five-experience browser audit, 10/10 desktop and touch-emulated mobile cases passing.
 
 ## What is it?
 
@@ -46,6 +46,7 @@ or proof that a mission is feasible.
 
 - Initial view: Solar System bodies and pinned reference paths in heliocentric coordinates.
 - During playback: A bounded family of candidate paths appears during search, the selected Lambert solution is verified, and a spacecraft follows the independently propagated trajectory to its endpoint residual.
+- Primary readouts show flight time, combined departure/arrival velocity change, and elapsed modeled flight. The inspector distinguishes search, selected plan, screening verification, and coast. Faint reference paths retain planetary context; the violet accepted path and amber alternative remain separate. Velocity change is not fuel mass, and screening verification is not navigation qualification.
 - Selection and inspection: Epochs, flight time, delta-v, branch, revolutions, iterations, residual, hashes, frame, and center.
 - Comparison view: Selected Lambert transfer and circular coplanar Hohmann screen remain explicitly distinct.
 - Final settlement: Convergence, fallback, endpoint position and velocity error, verifier status, and claim gate.
@@ -100,8 +101,8 @@ Cannot claim:
 - Unit tests: passing in `tests/orbital-transfer-verification.test.cjs`
 - Deterministic replay: verified against snapshots
 - Comparison execution: verified
-- Desktop browser: not rerun for the current worktree
-- Mobile browser: not rerun for the current worktree
+- Desktop browser: passing at 1440 × 1000 in the source-bound five-experience audit.
+- Mobile browser: passing at 390 × 844 with touch emulation; physical-device review remains separate.
 - Known unresolved failures: navigation covariance and operational mission constraints are absent
 
 ## Where is it implemented?
