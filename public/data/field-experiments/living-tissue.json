@@ -70,7 +70,7 @@
     {
       "id": "tissue-growth",
       "path": "../../shared/core/simulation/tissue-growth.js",
-      "sha256": "40dab921005f6ffc68ec6719f0ab3adb1121d837febfbf4ae2fac00330d40e36"
+      "sha256": "9312d2e25e5bc11ccd02de37788fce7f898064c2fb98b4567b133d0ef0d72a62"
     }
   ]
 }

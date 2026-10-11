@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { openBrowserAudit } from "./browser-session.mjs";
+const fourOnly=process.argv.includes("--four");
 const root = path.resolve(import.meta.dirname, "../.."),
   out = path.join(root, "artifacts/next-experiences");
 const publicRoot = path.join(
@@ -71,7 +72,7 @@ function compact(report) {
         },
       };
     }
-    if (row.receipt) {
+    if (row.receipt?.pluginRuntime) {
       const r = row.receipt;
       row.receipt = {
         identity: identity(r),
@@ -126,7 +127,7 @@ const files = execFileSync("rg", ["--files", "public"], {
 })
   .trim()
   .split("\n")
-  .filter((file) => /\.(js|json|css|html)$/.test(file));
+  .filter((file) => !file.startsWith("public/blank/") && /\.(js|json|css|html)$/.test(file));
 const sourceHashes = Object.fromEntries(
   await Promise.all(
     files.map(async (file) => [
@@ -252,7 +253,7 @@ for (const viewport of [
       deviceScaleFactor: 1,
       mobile: viewport.width < 500,
     });
-    for (const id of ["living-tissue", "river-formation", "crystal-foundry"]) {
+    for (const id of (fourOnly?["living-tissue"]:["living-tissue", "river-formation", "crystal-foundry"])) {
       const row = { id, viewport, status: "running" };
       report.routes.push(row);
       try {
@@ -268,6 +269,13 @@ for (const viewport of [
         await wait("!__fieldExperimentState.running");
         const before = await evaluate("__fieldExperimentSnapshot()");
         await click("#scene");
+        if(id==='living-tissue'){
+          assert.equal(await evaluate("document.querySelector('#signal').getAttribute('aria-pressed')"),'true');
+          assert.ok(await evaluate("document.querySelector('#preview-description').textContent.includes('dashed patch')"));
+          const stateHash=await evaluate('__fieldExperimentSnapshot().stateHash');await click('#signal');
+          assert.equal(await evaluate('__fieldExperimentSnapshot().stateHash'),stateHash);
+          row.signalTogglePreservesState=true;
+        }
         await click("#actions button");
         const changed = await wait(
           "__fieldExperimentState.actions===1 && __fieldExperimentSnapshot()",
@@ -280,6 +288,7 @@ for (const viewport of [
         await click("#pause");
         await wait("!__fieldExperimentState.running");
         const expected = await evaluate("__fieldExperimentSnapshot()");
+        await evaluate("document.querySelector('main > details').open=true");
         await click("#replay");
         await wait(
           `document.getElementById('status').textContent.startsWith('Replay verified')`,
@@ -295,6 +304,7 @@ for (const viewport of [
         });
         const filename = path.join(out, id + "-run.json");
         await fs.rm(filename, { force: true });
+        await evaluate("document.querySelector('main > details').open=true");
         await click("#export");
         let record = null;
         for (let i = 0; i < 100; i++) {
@@ -330,6 +340,7 @@ for (const viewport of [
           true,
         );
         row.result = expected;
+        await evaluate("document.querySelector('main > details').open=false");
         await evaluate("window.scrollTo(0,0)");
         const shot = await client.send("Page.captureScreenshot", {
           format: "png",
@@ -347,13 +358,13 @@ for (const viewport of [
         console.log("FAIL", id, viewport.width, error.message);
       }
     }
-    for (const route of ["interstellar", "solar-system/asteroid-defense-v1"]) {
+    for (const route of (fourOnly?["solar-system/asteroid-defense-v1"]:["interstellar", "solar-system/asteroid-defense-v1"])) {
       const row = { id: route, viewport, status: "running" };
       report.routes.push(row);
       try {
         await client.send("Page.navigate", { url: host.baseUrl + route });
         await wait(
-          `globalThis.SimulatteActiveSession?.snapshot().id==='${route === "interstellar" ? "interstellar-relay-network-v1" : "asteroid-defense-v1"}' && globalThis.SimulatteActiveSession?.snapshot().execution==='running'||globalThis.__simulatteLastFailError`,
+          `globalThis.SimulatteActiveSession?.snapshot().id==='${route === "interstellar" ? "interstellar-relay-network-v1" : "asteroid-defense-v1"}' && globalThis.globalThis.SimulatteActiveSession?.snapshot().execution==='running'||globalThis.__simulatteLastFailError`,
         );
         await click("#pause-button");
         await wait(`SimulatteActiveSession.snapshot().execution==='paused'`);
@@ -361,6 +372,11 @@ for (const viewport of [
           route === "interstellar"
             ? "interstellar-relay-network"
             : "asteroid-defense";
+        if(pluginId==='asteroid-defense'){
+          row.initialMeasures=await evaluate("__simulattePluginPlatformV4.contributions[0].state.measures.map(row=>({kind:row.kind,value:row.value}))");
+          assert.ok(row.initialMeasures.some(row=>row.kind==='decision-time-remaining'));
+          assert.ok(row.initialMeasures.some(row=>row.kind==='encounter-spread'));
+        }
         const selected = await evaluate(
           `__simulattePluginPlatformV4.contributions.find(row=>row.pluginId==='${pluginId}').objects.find(row=>row.actions.some(a=>a.id==='${route === "interstellar" ? "reply" : "observe"}')).id`,
         );
@@ -425,6 +441,55 @@ for (const viewport of [
         row.error = error.stack;
         console.log("FAIL", route, viewport.width, error.message);
       }
+    }
+    for(const route of ['subsea','simulatte/solar-drive/index.html']){
+      const row={id:route,viewport,status:'running'};report.routes.push(row);
+      try{
+        await client.send('Page.navigate',{url:host.baseUrl+route});
+        if(route==='subsea'){
+          await wait("globalThis.SimulatteActiveSession?.snapshot().execution==='running'");
+          await evaluate("SimulatteActiveSession.invoke('pause')");
+          await wait("SimulatteActiveSession.snapshot().execution==='paused'");
+          const c=await evaluate("__simulattePluginPlatformV4.contributions.find(row=>row.pluginId==='subsea-network-global')");
+          assert.ok(c.presentation.layers.some(row=>row.id.startsWith('flow:')));
+          const object=c.objects.find(row=>row.actions.some(action=>action.label==='Restore resource'));
+          assert.ok(object);row.initialMeasures=c.state.measures;
+          await evaluate(`(()=>{const select=document.querySelector('[aria-label="Inspect object"]');select.value=${JSON.stringify(object.id)};select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+          await wait("document.querySelector('[data-object-action=apply]')?.textContent.includes('Restore')");
+          row.selectedCondition=await evaluate("document.querySelector('.sim-object-inspector').textContent");
+          const camera=await evaluate("document.querySelector('#tier-canvas')?.__simulatteRenderReceipt?.().view||null");
+          await click('[data-object-action=apply]');
+          await wait("SimulatteActiveSession.snapshot().execution==='running'");
+          await evaluate("SimulatteActiveSession.invoke('pause')");
+          const after=await evaluate("__simulattePluginPlatformV4.contributions.find(row=>row.pluginId==='subsea-network-global')");
+          assert.ok(after.controls.controls.find(row=>row.id==='failedResourceIds').value.every(id=>object.id!==`corridor:${id}`));
+          assert.equal(after.objects.find(row=>row.id===object.id).actions[0].label,'Fail resource');
+          row.contribution=after;row.receipt=await evaluate('__simulatteTierRunReceipt');row.cameraBefore=camera;
+        }else{
+          await wait("globalThis.SimulatteSolarDrive?.getReceipt().evidence.renderer?.completedFrames>2");
+          await wait("SimulatteSolarDrive.getState().step>0");row.automaticExecution=true;
+          await click('#run');
+          assert.equal(await evaluate("document.querySelector('.controls-section').open"),false);
+          await click('[data-solar-action=solar]');
+          await evaluate('SimulatteSolarDrive.runSteps(400)');
+          const matched=await evaluate('SimulatteSolarDrive.getMatchedState()'),state=await evaluate('SimulatteSolarDrive.getState()');
+          assert.equal(matched.state.step,state.step);assert.ok(matched.state.flows.pvW>state.flows.pvW);
+          assert.ok(await evaluate("document.querySelector('#part-effect').textContent.includes('prior configuration')"));
+          const before=await evaluate('SimulatteSolarDrive.getState()');
+          await evaluate("document.querySelector('[data-component=motor]').click()");
+          assert.deepEqual(await evaluate('SimulatteSolarDrive.getState()'),before);
+          row.matchedComparison=matched;row.receipt=await evaluate('SimulatteSolarDrive.getReceipt()');
+          const replay=await evaluate('SimulatteSolarDrive.replay()');assert.equal(replay.status,'pass');
+          row.replay=replay;
+          await wait('SimulatteSolarDrive.isViewSettled()');
+        }
+        assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);
+        await evaluate('window.scrollTo(0,0)');
+        const shot=await client.send('Page.captureScreenshot',{format:'png'});
+        row.screenshot=`${route==='subsea'?'subsea-network-global':'solar-drive'}-${viewport.width}.png`;
+        await fs.writeFile(path.join(out,row.screenshot),Buffer.from(shot.data,'base64'));
+        row.status='passed';console.log('PASS',route,viewport.width);
+      }catch(error){row.status='failed';row.error=error.stack;console.log('FAIL',route,viewport.width,error.message);}
     }
   } finally {
     await browser.close();

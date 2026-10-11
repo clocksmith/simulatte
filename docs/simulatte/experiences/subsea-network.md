@@ -10,8 +10,8 @@ Owner contract: `public/shared/plugins/subsea-network-global/index.js`.
 - Profile ID: `subsea-network-global-v1`
 - Default scenario: `atlantic-single-cut`
 - Contract version: plugin v4 contribution
-- Last verified source: prior browser proof at commit `a5713c1c13ab`
-- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
+- Source identity: hashes in `artifacts/next-experiences/browser.json`
+- Evidence: cable restoration and healthy controls in the source-bound browser receipt
 
 ## What is it?
 
@@ -49,6 +49,9 @@ loses it, and why. It does not show current internet operations.
 - Initial view: Bundled global cable corridors, landing clusters, modeled demand, and selected failures.
 - During playback: Allocation, congestion, dropped demand, repair travel, queue, repair, and restoration.
 - Selection and inspection: Capacity class, competing demands, allocation rationale, utilization, fairness, and repair state.
+- Visual meaning: Red dashed unavailable cables, cyan admitted paths following actual allocated cable segments, and red unserved-demand markers. Selecting a cable highlights its related paths and destinations without changing the camera.
+- Opening measures: Delivered service, unserved demand, and change from the same demand and allocation policy with no failures. This last measure includes all accepted failures and does not attribute every loss to the selected cable.
+- Direct action: Fail or restore a cable and restart the accepted scenario. Restoring the final failure uses the explicit no-failures control and produces a valid healthy inspector.
 - Comparison view: Weighted-throughput and proportional-fair branches expose synchronized service-distribution differences.
 - Final settlement: Delivered and unmet Gbps, latency stretch, utilization, fairness, bottlenecks, and restored resources.
 
@@ -80,6 +83,7 @@ loses it, and why. It does not show current internet operations.
 - Shared inputs: Topology, demand realization, failures, exclusions, repairs, seed, and clock.
 - Clock and replay: Branches advance deterministically and restore from scenario, parameters, data hashes, and seed.
 - Invalid comparison: Different demand, topology, failures, hidden outcomes, metrics, or unsettled repairs blocks deltas.
+- The headline no-failures comparison is distinct from this Advanced policy comparison. Endpoint unserved demand is contextual; causal attribution to one cable requires a matched rerun.
 
 ## What can and cannot be claimed?
 
@@ -102,8 +106,8 @@ Cannot claim:
 - Unit tests: passing in `tests/subsea-network-global.test.cjs`
 - Deterministic replay: verified
 - Comparison execution: verified
-- Desktop browser: not rerun for the current worktree
-- Mobile browser: not rerun for the current worktree
+- Desktop and emulated mobile browser: see route results and source-freeze verdict in `artifacts/next-experiences/browser.json`
+- Unfamiliar-user and physical-phone observation: pending
 - Known unresolved failures: current traffic, capacity, and repair calibration are absent
 
 ## Where is it implemented?

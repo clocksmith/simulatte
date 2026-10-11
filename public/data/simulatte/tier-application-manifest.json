@@ -59,7 +59,7 @@
         {
           "id": "asteroid-defense-v1",
           "path": "../application-profiles/asteroid-defense-v1.json",
-          "sha256": "13bd9361d6d49549ee6776e0b066b6c9d5aedc61442df845b9009377adc9d99a",
+          "sha256": "8c80dfd3a52789ba1826ecd623e55f6e74d4b24f74259b13469c0ce9e6ba24bb",
           "world": {
             "id": "solar-system-ephemeris-v2",
             "path": "./worlds/solar-system-ephemeris-v2.json",
@@ -99,7 +99,7 @@
         {
           "id": "subsea-network-global-v1",
           "path": "../application-profiles/subsea-network-global-v1.json",
-          "sha256": "301db8cb5a10b83c554a00c7b249a9e7024db3684bd86fa02850b662287c4118",
+          "sha256": "d1ebc8505a1c77f560571959d0512bb972b2a6f83c1bc53aa7b8b3e625fb8624",
           "world": {
             "id": "earth-global-topology-v1",
             "path": "./worlds/earth-global-topology-v1.json",

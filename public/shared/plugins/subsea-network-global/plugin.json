@@ -86,7 +86,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSubseaNetworkGlobal",
-    "integrity": "sha384-984e060eff45f2f570cfbdcc834c859912261a1abc2bb0d73ba1609273bc1f29b06de7b4e27033ed0181aa555b61ebe3",
+    "integrity": "sha384-54f1f93665de70a8b4bd28136beb09a5762c56beb8b66572681059b1051145fae0b37aa6a96bb80b0f394e9779522a59",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -163,7 +163,7 @@
       "path": "./network-model.js"
     },
     {
-      "integrity": "sha384-260f74e1223f46cc6718a37df164fc02d69bab73da66e7ccddaf6fd5de0bd110db94edb9022d33d5ece2385c5c6547d1",
+      "integrity": "sha384-5738c4150c0780bd8476831a9b1fa40cdff24d9019143506df353b2cdb7151388c07f2a851b44ed0ed8e52b54d0c218f",
       "path": "./v4-contribution.js"
     },
     {

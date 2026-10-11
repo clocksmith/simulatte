@@ -13,7 +13,7 @@
   "experience": {
     "kind": "simulation",
     "timelineLabel": "Decision stage",
-    "primaryMeasureKinds": ["observation-count", "fit-residual", "baseline-screening-frequency", "intervention-screening-frequency", "intervention-median-distance"],
+    "primaryMeasureKinds": ["observation-count", "decision-time-remaining", "encounter-spread"],
     "supportedViews": ["overview", "follow", "free", "compare"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",

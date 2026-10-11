@@ -293,7 +293,7 @@ test('v4 contribution exposes semantic quantities and every accepted public cont
       'repairResourceCount',
     ].sort()
   );
-  assert.ok(contribution.presentation.layers.some((row) => row.quantity?.kind === 'utilization-ratio'));
+  assert.ok(contribution.presentation.layers.some((row) => row.quantity?.kind === 'network.cable-load'));
   assert.ok(contribution.presentation.layers.some((row) => row.quantity?.kind === 'dropped-demand'));
   assert.ok(contribution.provenanceRecords.length >= manifest.datasets.length);
   assert.ok(contribution.events.every((row) => row.provenance.axes.origin === 'simulated'));
@@ -385,4 +385,32 @@ test('nearest-first repair follows arrival distance and skips depleted resources
   ] });
   const midpoint = wrapped.events.find(row => row.transitProgressFraction === 0.5);
   assert.equal(Math.abs(midpoint.position[0]), 180);
+});
+
+test('subsea visual flow paths match admitted allocations and compare the same demand before failures',()=>{
+  const result=model.runScenario({datasets,config,scenario}),snapshot=result.snapshots[1];
+  const contribution=v4.createContribution({datasets,dataReceipts,config,result,snapshot});
+  assert.equal(contribution.objects.filter(row=>row.initiallySelected).length,1);
+  assert.ok(contribution.presentation.layers.some(row=>row.quantity?.kind==='network.cable-unavailable'));
+  for(const demand of snapshot.demands)for(const path of demand.pathAllocations.slice(0,2)){
+    const layer=contribution.presentation.layers.find(row=>row.id===`flow:${path.pathId}`);
+    assert.equal(layer.quantity.value,path.flowGbps);
+    const expected=path.edgeIds.flatMap((id,index)=>{const edge=snapshot.edges.find(row=>row.id===id);return edge.fromLandingId===path.nodeIds[index]?edge.coordinates:[...edge.coordinates].reverse();});
+    assert.deepEqual(layer.geometry.coordinates,expected);
+  }
+  assert.equal(contribution.state.measures.find(row=>row.kind==='service-change').value,snapshot.metrics.deliveredGbps-result.snapshots[0].metrics.deliveredGbps);
+  for(const object of contribution.objects)for(const id of object.relatedIds)assert.ok(contribution.presentation.layers.some(layer=>layer.id===id));
+});
+
+test('restoring the final failed cable uses the declared no-failures control value and runs a healthy scenario',async()=>{
+  const harness=createSdkHarness(),instance=await plugin.activate({sdk:harness.sdk,config,profile:null,scenario});
+  const c=instance.contributeV4(),restore=c.objects.flatMap(row=>row.actions).find(row=>row.label==='Restore resource');
+  assert.ok(restore);assert.deepEqual(restore.values.failedResourceIds,['none']);
+  await instance.handleAction('scenario.run',{scenario,values:{...restore.values,phase:'start'}});
+  const restored=instance.contributeV4();
+  assert.deepEqual(restored.controls.controls.find(row=>row.id==='failedResourceIds').value,['none']);
+  assert.ok(!restored.presentation.layers.some(row=>row.quantity?.kind==='network.cable-unavailable'));
+  const contracts=require('../public/simulatte/platform/contracts/plugin-contracts.js');
+  for(const view of instance.view())contracts.validateUiContribution('subsea-network-global',view);
+  assert.equal(instance.view()[0].rows.find(row=>row.label==='Disruption failures').value,'none');
 });

@@ -237,7 +237,7 @@
         const a = positions[from], b = positions[to];
         const control = [(a[0] + b[0]) / 2, Math.min(a[1], b[1]) - 0.16, (a[2] + b[2]) / 2 + 0.20];
         const curve = (t) => a.map((v, i) => (1 - t) ** 2 * v + 2 * (1 - t) * t * control[i] + t ** 2 * b[i]);
-        for (let j = 0; j < 16; j += 1) addInstance('cylinder', g.between(curve(j / 16), curve((j + 1) / 16), 0.004), M.dark, from);
+        for (let j = 0; j < 16; j += 1) addInstance('cylinder', g.between(curve(j / 16), curve((j + 1) / 16), view.selected === from || view.selected === to ? 0.006 : 0.003), view.flows && (view.selected === from || view.selected === to) ? material : M.dark, from);
         if (view.flows && Math.abs(watts) > 0.2) for (let j = 0; j < 5; j += 1) {
           const phase = ((state.timeS * (0.12 + Math.min(0.35, Math.abs(watts) / 4000)) + j / 5) % 1 + 1) % 1;
           addInstance('sphere', g.matrix(curve(watts > 0 ? phase : 1 - phase), [0.011, 0.011, 0.011]), material, from);
@@ -252,7 +252,7 @@
           for (let i = 0; i < 40; i += 1) addInstance('cylinder', g.between(point(i * TAU / 40), point((i + 1) * TAU / 40), 0.0014), M.field, id);
         }
       }
-      return { instances, anchors: positions, timeS: state.timeS };
+      return { instances, anchors: positions, timeS: state.timeS, flowLinks: flows.filter(([from]) => !(from === 'flywheel' && !p.flywheel || from === 'solar' && !p.panelArea)).map(([from,to,watts])=>({from,to,watts})) };
     }
     return Object.freeze({ frame, nodeCount: nodes.length });
   }

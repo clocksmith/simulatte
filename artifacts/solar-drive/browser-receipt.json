@@ -8,7 +8,7 @@
     {
       "name": "desktop-exploded",
       "path": "artifacts/solar-drive/desktop-exploded.png",
-      "sha256": "5415782c63538b957a39b275b0261f6350ba4f54c6dd5edddbffafe04b78d781",
+      "sha256": "16c94f16f5907d7b4ee9d263650f1aa8da8fe039f6f85d0321d4bb1ca401ea2f",
       "viewport": {
         "width": 1440,
         "height": 1080
@@ -17,7 +17,7 @@
         "visible": true,
         "opaqueFraction": 1,
         "darkFraction": 0.055501302083333336,
-        "brightFraction": 0.9195963541666666
+        "brightFraction": 0.9230143229166666
       },
       "run": {
         "schema": "simulatte.solarDriveRun.v1",
@@ -25,50 +25,50 @@
         "worldSpecHash": "fnv1a32:2efc6772",
         "revision": 0,
         "seed": 17,
-        "step": 1200,
-        "simulationTimeS": 60,
-        "stateHash": "fnv1a32:b156b00e",
-        "energyResidualJ": 2.5732151698321104e-7,
+        "step": 1300,
+        "simulationTimeS": 65,
+        "stateHash": "fnv1a32:ceba1ab6",
+        "energyResidualJ": 2.9722286853939295e-7,
         "state": {
-          "step": 1200,
-          "timeS": 60,
+          "step": 1300,
+          "timeS": 65,
           "speedMs": 6.9444444444366145,
-          "distanceM": 395.690204686382,
-          "elevationM": 10.177736102378322,
-          "batteryJ": 1109994.5903709878,
-          "flywheelJ": 60312.87347739448,
-          "motorC": 27.59737011047304,
-          "wheelAngle": 1163.7947196658351,
-          "rotorAngle": 435.97296995750025,
+          "distanceM": 430.41242690856507,
+          "elevationM": 10.037938790888507,
+          "batteryJ": 1110216.3225156323,
+          "flywheelJ": 60308.18976749759,
+          "motorC": 27.63289549871141,
+          "wheelAngle": 1265.918902672248,
+          "rotorAngle": 471.9265997846322,
           "ledger": {
-            "incidentJ": 67569.26861912162,
-            "panelLossJ": 53604.68308805389,
-            "mpptLossJ": 418.93756593197526,
-            "auxiliaryJ": 479.9999999999898,
-            "parasiticJ": 58.011938026523445,
-            "storageLossJ": 691.9422131621129,
-            "motorLossJ": 4603.458600276794,
-            "rollingJ": 2790.4286456059153,
-            "aeroJ": 6895.7952903106425,
+            "incidentJ": 73200.04100404859,
+            "panelLossJ": 58071.74001205817,
+            "mpptLossJ": 453.84902975964127,
+            "auxiliaryJ": 519.9999999999876,
+            "parasiticJ": 62.69564792337527,
+            "storageLossJ": 698.8761330206692,
+            "motorLossJ": 4761.5417380710705,
+            "rollingJ": 3035.3874074534288,
+            "aeroJ": 7517.267425457457,
             "frictionBrakeJ": 0,
             "curtailedJ": 0,
             "regenJ": 0,
-            "tractionJ": 24604.77136529872
+            "tractionJ": 25306.826160096076
           },
           "flows": {
             "pvW": 225.7607994188942,
-            "driveW": 185.23043396991866,
-            "batteryW": 7.677085593159241,
+            "driveW": 96.87840874935208,
+            "batteryW": -98.0793354838373,
             "flywheelW": 0,
             "regenW": 0,
             "auxiliaryW": 8,
             "curtailedW": 0,
-            "motorLossW": 40.207451042134785,
-            "reserveW": -8.851318315864773,
+            "motorLossW": 22.803055185704828,
+            "reserveW": 94.20026745181531,
             "unservedAuxW": 0
           },
           "status": "running",
-          "residualJ": 2.5732151698321104e-7,
+          "residualJ": 2.9722286853939295e-7,
           "initialJ": 1187200
         },
         "evidence": {
@@ -82,8 +82,8 @@
               "device": "",
               "description": ""
             },
-            "submittedFrames": 12,
-            "completedFrames": 11,
+            "submittedFrames": 10,
+            "completedFrames": 9,
             "width": 1121,
             "height": 530,
             "sampleCount": 4,
@@ -98,7 +98,7 @@
     {
       "name": "desktop-assembled",
       "path": "artifacts/solar-drive/desktop-assembled.png",
-      "sha256": "07bebaa5d10cf71624e1cfcb01ba5a2b89a0e62907c22bc2eb7348b6d2160bc6",
+      "sha256": "eb8f68469f013cc9e7208313d80493394dc3d5471fedf2962be70ee77fd3cd18",
       "viewport": {
         "width": 1440,
         "height": 1080
@@ -106,8 +106,8 @@
       "pixels": {
         "visible": true,
         "opaqueFraction": 1,
-        "darkFraction": 0.06103515625,
-        "brightFraction": 0.9251302083333334
+        "darkFraction": 0.060872395833333336,
+        "brightFraction": 0.9249674479166666
       },
       "run": {
         "schema": "simulatte.solarDriveRun.v1",
@@ -172,8 +172,8 @@
               "device": "",
               "description": ""
             },
-            "submittedFrames": 21,
-            "completedFrames": 20,
+            "submittedFrames": 16,
+            "completedFrames": 15,
             "width": 1121,
             "height": 530,
             "sampleCount": 4,
@@ -188,7 +188,7 @@
     {
       "name": "flywheel-detail",
       "path": "artifacts/solar-drive/flywheel-detail.png",
-      "sha256": "b435148b532aaa2ddbb50fffac92441433771cdf547f388ee48f1721cdc17000",
+      "sha256": "eb29ec9cf8292083eeb55ff505b45501ddbac57f916b29712993f085d483539c",
       "viewport": {
         "width": 1440,
         "height": 1080
@@ -196,8 +196,8 @@
       "pixels": {
         "visible": true,
         "opaqueFraction": 1,
-        "darkFraction": 0.15804036458333334,
-        "brightFraction": 0.80859375
+        "darkFraction": 0.15706380208333334,
+        "brightFraction": 0.8108723958333334
       },
       "run": {
         "schema": "simulatte.solarDriveRun.v1",
@@ -262,8 +262,8 @@
               "device": "",
               "description": ""
             },
-            "submittedFrames": 31,
-            "completedFrames": 30,
+            "submittedFrames": 23,
+            "completedFrames": 22,
             "width": 1121,
             "height": 530,
             "sampleCount": 4,
@@ -278,7 +278,7 @@
     {
       "name": "scooter-exploded",
       "path": "artifacts/solar-drive/scooter-exploded.png",
-      "sha256": "d5b8d8312c0e564b18b2ce4da6370d9f26662713a5a2a72bebceeb6070f3306c",
+      "sha256": "3a28192525d8c986032f60bae5a017ceae473861052d7df407424a5c8e2c89ac",
       "viewport": {
         "width": 1440,
         "height": 1080
@@ -286,8 +286,8 @@
       "pixels": {
         "visible": true,
         "opaqueFraction": 1,
-        "darkFraction": 0.056966145833333336,
-        "brightFraction": 0.9215494791666666
+        "darkFraction": 0.056803385416666664,
+        "brightFraction": 0.9226888020833334
       },
       "run": {
         "schema": "simulatte.solarDriveRun.v1",
@@ -352,8 +352,8 @@
               "device": "",
               "description": ""
             },
-            "submittedFrames": 42,
-            "completedFrames": 41,
+            "submittedFrames": 30,
+            "completedFrames": 29,
             "width": 1121,
             "height": 530,
             "sampleCount": 4,
@@ -368,7 +368,7 @@
     {
       "name": "car-exploded",
       "path": "artifacts/solar-drive/car-exploded.png",
-      "sha256": "17ce6ee2e3fcf1431916c05b8b66cf320239efc664bfc875c77a4b94183da78c",
+      "sha256": "991772319ab697072008e26bd826857ae98a6f6eb459c8d971e7aed520e4c0a1",
       "viewport": {
         "width": 1440,
         "height": 1080
@@ -376,8 +376,8 @@
       "pixels": {
         "visible": true,
         "opaqueFraction": 1,
-        "darkFraction": 0.119140625,
-        "brightFraction": 0.8623046875
+        "darkFraction": 0.11881510416666667,
+        "brightFraction": 0.86328125
       },
       "run": {
         "schema": "simulatte.solarDriveRun.v1",
@@ -442,8 +442,8 @@
               "device": "",
               "description": ""
             },
-            "submittedFrames": 52,
-            "completedFrames": 51,
+            "submittedFrames": 37,
+            "completedFrames": 36,
             "width": 1121,
             "height": 530,
             "sampleCount": 4,
@@ -458,7 +458,7 @@
     {
       "name": "mobile-exploded",
       "path": "artifacts/solar-drive/mobile-exploded.png",
-      "sha256": "aa5ac36e2f0b66ec0094a006f19bb566816daa74a0069315fe72ccf592526e4b",
+      "sha256": "58830b7c84c83625217bb09a06e530ccda50e4aa3ff3146f221fb3f5dfb1c596",
       "viewport": {
         "width": 390,
         "height": 844
@@ -466,8 +466,8 @@
       "pixels": {
         "visible": true,
         "opaqueFraction": 1,
-        "darkFraction": 0.05615234375,
-        "brightFraction": 0.9127604166666666
+        "darkFraction": 0.057779947916666664,
+        "brightFraction": 0.9158528645833334
       },
       "run": {
         "schema": "simulatte.solarDriveRun.v1",
@@ -475,50 +475,50 @@
         "worldSpecHash": "fnv1a32:2efc6772",
         "revision": 0,
         "seed": 17,
-        "step": 1200,
-        "simulationTimeS": 60,
-        "stateHash": "fnv1a32:b156b00e",
-        "energyResidualJ": 2.5732151698321104e-7,
+        "step": 1286,
+        "simulationTimeS": 64.3,
+        "stateHash": "fnv1a32:9a86adf2",
+        "energyResidualJ": 2.916640369221568e-7,
         "state": {
-          "step": 1200,
-          "timeS": 60,
+          "step": 1286,
+          "timeS": 64.3,
           "speedMs": 6.9444444444366145,
-          "distanceM": 395.690204686382,
-          "elevationM": 10.177736102378322,
-          "batteryJ": 1109994.5903709878,
-          "flywheelJ": 60312.87347739448,
-          "motorC": 27.59737011047304,
-          "wheelAngle": 1163.7947196658351,
-          "rotorAngle": 435.97296995750025,
+          "distanceM": 425.55131579745944,
+          "elevationM": 10.080065579065199,
+          "batteryJ": 1110154.3727002922,
+          "flywheelJ": 60308.84545403835,
+          "motorC": 27.63152213662724,
+          "wheelAngle": 1251.62151705135,
+          "rotorAngle": 466.8931756519094,
           "ledger": {
-            "incidentJ": 67569.26861912162,
-            "panelLossJ": 53604.68308805389,
-            "mpptLossJ": 418.93756593197526,
-            "auxiliaryJ": 479.9999999999898,
-            "parasiticJ": 58.011938026523445,
-            "storageLossJ": 691.9422131621129,
-            "motorLossJ": 4603.458600276794,
-            "rollingJ": 2790.4286456059153,
-            "aeroJ": 6895.7952903106425,
+            "incidentJ": 72411.73287015881,
+            "panelLossJ": 57446.352042697574,
+            "mpptLossJ": 448.961424823768,
+            "auxiliaryJ": 514.3999999999879,
+            "parasiticJ": 62.03996138261127,
+            "storageLossJ": 696.9601593503658,
+            "motorLossJ": 4744.741039913461,
+            "rollingJ": 3001.094026147936,
+            "aeroJ": 7430.261326536903,
             "frictionBrakeJ": 0,
             "curtailedJ": 0,
             "regenJ": 0,
-            "tractionJ": 24604.77136529872
+            "tractionJ": 25235.06008767058
           },
           "flows": {
             "pvW": 225.7607994188942,
-            "driveW": 185.23043396991866,
-            "batteryW": 7.677085593159241,
+            "driveW": 109.0542751056763,
+            "batteryW": -83.33010873832367,
             "flywheelW": 0,
             "regenW": 0,
             "auxiliaryW": 8,
             "curtailedW": 0,
-            "motorLossW": 40.207451042134785,
-            "reserveW": -8.851318315864773,
+            "motorLossW": 25.376415574894224,
+            "reserveW": 79.89350223229849,
             "unservedAuxW": 0
           },
           "status": "running",
-          "residualJ": 2.5732151698321104e-7,
+          "residualJ": 2.916640369221568e-7,
           "initialJ": 1187200
         },
         "evidence": {
@@ -532,8 +532,8 @@
               "device": "",
               "description": ""
             },
-            "submittedFrames": 13,
-            "completedFrames": 12,
+            "submittedFrames": 10,
+            "completedFrames": 9,
             "width": 390,
             "height": 470,
             "sampleCount": 4,
@@ -548,7 +548,7 @@
     {
       "name": "mobile-assembled",
       "path": "artifacts/solar-drive/mobile-assembled.png",
-      "sha256": "05f46831c127f655cf2090bc90455f491911e6d901089b49ffb5fcf057c9e7fa",
+      "sha256": "9f774dd23520eca7b5aa7e99258b51b6365f5cd9bb4c43dbbbb96b0be36a5cae",
       "viewport": {
         "width": 390,
         "height": 844
@@ -556,8 +556,8 @@
       "pixels": {
         "visible": true,
         "opaqueFraction": 1,
-        "darkFraction": 0.0625,
-        "brightFraction": 0.91455078125
+        "darkFraction": 0.0634765625,
+        "brightFraction": 0.9161783854166666
       },
       "run": {
         "schema": "simulatte.solarDriveRun.v1",
@@ -622,8 +622,8 @@
               "device": "",
               "description": ""
             },
-            "submittedFrames": 24,
-            "completedFrames": 23,
+            "submittedFrames": 18,
+            "completedFrames": 18,
             "width": 390,
             "height": 470,
             "sampleCount": 4,
@@ -638,7 +638,7 @@
     {
       "name": "mobile-controls",
       "path": "artifacts/solar-drive/mobile-controls.png",
-      "sha256": "f8efca0e46cea97749b9047aacfb657d1cde4a6632f8448d5e95925008a86982",
+      "sha256": "5a47529abf4593fe3f27f4748a77b62890295cfb4d5b9a361f5832d86608991e",
       "viewport": {
         "width": 390,
         "height": 844
@@ -709,8 +709,8 @@
               "device": "",
               "description": ""
             },
-            "submittedFrames": 28,
-            "completedFrames": 27,
+            "submittedFrames": 23,
+            "completedFrames": 22,
             "width": 390,
             "height": 470,
             "sampleCount": 4,
@@ -748,11 +748,11 @@
     "public/simulatte/solar-drive/program.js": "edd729c9edc6edfa34555debfc60b47ee8db8d86552dd12dc18aeaeb4629c7fe",
     "public/simulatte/solar-drive/geometry.js": "e2a7e51bedcebd6d3208709e4f926a8e8dafd6778bf63c6331b7cb24e155eeed",
     "public/simulatte/solar-drive/shaders.js": "ef4b68bdf27ed1ab89afe4dc32b4d88be62c20144acc390522fd8d67d1bc37ea",
-    "public/simulatte/solar-drive/scene.js": "1601dbebf14f2caf89b4b67c68789897e964a5823e603e1923e1648ebdc3c942",
+    "public/simulatte/solar-drive/scene.js": "f370171546db2486e555afa8c7cc19f340fcc1c43937dcfb0237774f9ac6e783",
     "public/simulatte/solar-drive/renderer.js": "86382daabf61c9a3f703ce1168b818ec818afa2d0d5d31d53bb155329fc78b7a",
-    "public/simulatte/solar-drive/app.js": "f1cc06ac05a08ad874db36e083a49517929368fd687f11c643a46c6f9589e146",
-    "public/simulatte/solar-drive/index.html": "bf5001c89bf582698b902978c68a88458d241cdf35f37c73b370354066aa1d19",
-    "public/simulatte/solar-drive/solar-drive.css": "fe7699cb6078e0e89f742ca942168843b1f7bf29a21ab251b1a54581c8f2d5b1"
+    "public/simulatte/solar-drive/app.js": "2a4ae779e3eac3924d1f75dc45831c11ea403600f9f1d1f96aaa702d253e2795",
+    "public/simulatte/solar-drive/index.html": "87b592a82dff7dbc8da83025f7943dec5a34d07e8d69e2c004371a0fcadb69d0",
+    "public/simulatte/solar-drive/solar-drive.css": "6fb200cda3380220351570c89ce65b359f65f3b2a8f565a9a8b213c9b99ee417"
   },
   "comparison": {
     "schema": "simulatte.solarDriveComparison.v1",

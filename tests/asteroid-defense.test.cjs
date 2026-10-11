@@ -433,3 +433,18 @@ test('station acquisition is chronological, fits exact acquired rows and preserv
   assert.equal(start.acceptedParameters.observationIds.length,5);
   assert.notEqual(instance.contributeV4().objects[0].description,oldIds);
 });
+
+test('asteroid headline spread is derived from fitted clones and observation action preserves evidence identities',async()=>{
+  const observationIds=require('../public/shared/plugins/asteroid-defense/observation-program.js').initial(datasets.campaigns.campaigns.find(row=>row.id===scenario.scenarioId),4);
+  const result=model.runScenario({datasets,config,scenario:{...scenario,observationBudget:4,observationIds,decisionCommitted:false}});
+  const c=require('../public/shared/plugins/asteroid-defense/v4-contribution.js').createContribution({datasets,config,result,snapshot:result.snapshots.at(-1)});
+  const spread=c.state.measures.find(row=>row.kind==='encounter-spread');
+  assert.ok(Number.isFinite(spread.value)&&spread.value>=0);assert.equal(spread.measurement.timeBasis,'prediction');
+  assert.match(spread.measurement.definition,/not a real impact probability/);
+  assert.equal(c.objects.filter(row=>row.initiallySelected).length,1);
+  const action=c.objects.find(row=>row.initiallySelected).actions.find(row=>row.id==='observe');
+  assert.ok(action);assert.match(action.label,/day/);
+  const acquired=c.controls.controls.find(row=>row.id==='observationIds').value;
+  assert.deepEqual(action.values.observationIds.slice(0,-1),acquired);
+  assert.ok(!c.presentation.layers.some(row=>row.id==='synthetic-truth-revealed'));
+});

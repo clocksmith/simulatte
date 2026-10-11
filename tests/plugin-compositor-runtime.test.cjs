@@ -924,3 +924,14 @@ test('a point actor never borrows a nearby route or drifts away from its model p
   assert.deepEqual(tier.actors[0].position, [12, 34, 0]);
   assert.equal(tier.actors[0].pathCoordinates, null);
 });
+
+test('connected selection emphasizes declared peers and dims unrelated geometry without changing identities',()=>{
+  const compositor=require('../public/simulatte/platform/render/semantic-compositor.js').createCompositor();
+  const presentation=semanticPresentation(),before=structuredClone(presentation);
+  const selected=compositor.compose(presentation,{selectedIds:['hub:0'],relatedIds:['flow'],viewport:{width:300,height:300}});
+  const flow=selected.primitives.find(row=>row.id==='flow');
+  assert.equal(flow.style.strokeOpacity,1);assert.ok(flow.style.widthPx>=3);
+  const unrelated=selected.primitives.find(row=>row.id==='pressure-field');assert.ok(unrelated.style.fillOpacity<=.15);
+  assert.deepEqual(presentation,before);
+  assert.deepEqual(flow.geometry,presentation.layers[0].geometry);
+});

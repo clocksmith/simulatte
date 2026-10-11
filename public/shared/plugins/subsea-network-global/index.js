@@ -246,7 +246,7 @@
         title: 'Subsea allocation experiment',
         rows: [
           { label: 'Disruption applied', value: parameters.demandScenarioId.replaceAll('-', ' ') },
-          { label: 'Disruption failures', value: parameters.failedResourceIds.join(', ') },
+          { label: 'Disruption failures', value: parameters.failedResourceIds.length ? parameters.failedResourceIds.join(', ') : 'none' },
           { label: 'Disruption exclusions', value: parameters.jurisdictionExclusions.length ? parameters.jurisdictionExclusions.join(', ') : 'none' },
           { label: 'Playback', value: `${state.playback.cursor} of ${state.result.snapshots.length - 1} · ${state.playback.status}` },
           { label: 'Network stage', value: snapshot.status.replaceAll('-', ' ') },
@@ -399,7 +399,7 @@
       values.failedResourceIds,
       selectedScenario.failedResourceIds || demandScenario.failedResourceIds || config.failureIds,
       'failedResourceIds', true
-    );
+    ).filter(row=>row!=='none');
     const validFailures = new Set([
       ...datasets.topology.edges.map((row) => row.id),
       ...datasets.landings.points.map((row) => `landing:${row.id}`),

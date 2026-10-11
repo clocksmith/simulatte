@@ -193,3 +193,25 @@ test("governed model identities and bounded parameters reject incompatible impor
     );
   }
 });
+
+test('tissue intervention preview and execution agree on footprint, preserve producer, and do not mutate inputs',()=>{
+  const {config,model}=cases[0],state=model.initial(config.params,config.seed),before=structuredClone(state);
+  const action={kind:'remove',x:state.source[0],y:state.source[1],atStep:0};
+  const region=model.actionRegion(state,action),next=model.apply(state,action,config.params);
+  assert.deepEqual(state,before);
+  assert.equal(region.radius,3);
+  assert.ok(region.affectedIds.length>0);
+  assert.equal(next.removed,region.affectedIds.length);
+  assert.ok(next.cells.some(cell=>cell.producer));
+  assert.ok(next.cells.every(cell=>!region.affectedIds.includes(cell.id)));
+  assert.equal(model.actionRegion(state,{kind:'boundary',x:2,y:16}).available,false);
+});
+test('tissue branches share a camera fit and region picking inverts the actual viewport transform',()=>{
+  const drawing=require('../public/simulatte/field-experiments/drawing.js');
+  const {config,model}=cases[0],state=model.initial(config.params,17);
+  const bounds=drawing.cellBounds([state,state],{id:'region',worldX:24,worldY:15});
+  assert.ok(bounds.span>=16);
+  const margin=20,scale=10,point={worldX:24,worldY:15};
+  const selected=drawing.pick({view:'cells',hits:[],extent:32,margin,scale,origin:bounds.origin},margin+(point.worldX-bounds.origin[0])*scale,margin+(point.worldY-bounds.origin[1])*scale);
+  assert.equal(selected.worldX,point.worldX);assert.equal(selected.worldY,point.worldY);
+});

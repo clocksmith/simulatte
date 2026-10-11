@@ -15,6 +15,14 @@
   });
   const QUANTITY_COLORS = Object.freeze({
     'data-rate': '#54c5ba',
+    'network.cable-unavailable':'#ff657a',
+    'network.cable-load':'#648fa8',
+    'network.service-flow':'#46d9ff',
+    'encounter.clone':'#77baff',
+    'encounter.screened-clone':'#ffbd66',
+    'encounter.representative':'#c39bff',
+    'orbit.earth-reference':'#58dfa0',
+    'observation.angular-uncertainty':'#ffd77c',
     'modeled-distribution-corridor': '#63f3ff',
     'modeled-handoff-destination': '#e8fff8',
     'route.shade-selected': '#56e6a2',
@@ -68,6 +76,7 @@
     function compose(presentation, {
       simulationTimeMs = 0,
       selectedIds = [],
+      relatedIds = [],
       project = identityProject,
       viewport = { width: 1, height: 1 },
       provenanceReceipt = null,
@@ -80,6 +89,8 @@
 
       const provenance = resolveProvenance(presentation, provenanceReceipt);
       const selected = new Set(selectedIds);
+      const related = new Set(relatedIds);
+      const connected=related.size>0;
       const temporal = presentation.layers.filter((layer) => isActive(layer, simulationTimeMs));
       const ordered = temporal.slice().sort((left, right) => compareLayers(left, right, selected));
       const visible = ordered.slice(0, maxVisibleLayers);
@@ -88,7 +99,7 @@
       const primitives = [];
       const pointLayers = [];
       visible.forEach((layer) => {
-        if (layer.kind === 'point' && layer.aggregationKey !== null && !selected.has(layer.id)) pointLayers.push(layer);
+        if (layer.kind === 'point' && layer.aggregationKey !== null && !selected.has(layer.id) && !related.has(layer.id)) pointLayers.push(layer);
         else primitives.push(primitiveFor(
           layer,
           selected.has(layer.id),
@@ -103,6 +114,10 @@
         provenance.bySubjectId,
         semanticDomains,
       ));
+      if(connected) for(const primitive of primitives){
+        const chosen=primitive.memberIds.some(id=>selected.has(id)),peer=primitive.memberIds.some(id=>related.has(id));
+        primitive.style={...primitive.style,strokeOpacity:chosen||peer?1:Math.min(.18,primitive.style.strokeOpacity),fillOpacity:chosen||peer?primitive.style.fillOpacity:Math.min(.15,primitive.style.fillOpacity),widthPx:peer && primitive.kind==='path'?Math.max(3,primitive.style.widthPx):primitive.style.widthPx};
+      }
       const labels = placeLabels(
         visible.filter((layer) => (
           layer.kind === 'label'
@@ -187,13 +202,16 @@
         ? (selected ? 1 : 0.9)
         : (layer.quantity?.kind === 'route-score' || layer.quantity?.kind === 'candidate-objective' || layer.aggregationKey === 'reference-orbits') && !selected ? 0.22
         : round(clamp(0.48 + roleWeight * 0.42 - (uncertain ? 0.1 : 0), 0.35, 1)),
-      dash: uncertaintyDash(layer.provenance.axes.uncertainty),
+      dash: layer.quantity?.kind === 'network.cable-unavailable' ? [7,5] : uncertaintyDash(layer.provenance.axes.uncertainty),
       emphasis: selected ? 'selected' : layer.role,
     });
   }
 
   function pathWidth(layer, normalized, roleWeight, selected) {
     const quantityKind = layer.quantity?.kind || '';
+    if(quantityKind==='network.cable-unavailable')return selected?6:4;
+    if(quantityKind==='network.service-flow')return selected?3.5:1.8;
+    if(quantityKind==='encounter.clone'||quantityKind==='encounter.screened-clone'||quantityKind==='orbit.earth-reference')return selected?2.5:1.2;
     if (quantityKind === 'route-score' || quantityKind === 'candidate-objective' || layer.aggregationKey === 'reference-orbits') return selected ? 3 : 1.2;
     if (quantityKind.startsWith('preview.')) return selected ? 4 : 3;
     if (quantityKind.startsWith('exposure.')) return selected ? 9 : 7;

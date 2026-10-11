@@ -318,7 +318,7 @@
       elements.startButton.title = pending ? 'Apply configuration or Reset draft before running' : '';
       ctx.setRuntimeStatus?.(elements, pending ? 'Unapplied controls' : 'Ready', 'ready');
     }
-    function renderPlugins(){
+    function renderPlugins({preserveCamera=false}={}){
       if(!runtime)return;
       const context={scenario:activeScenario,compositionSize:runtime.activePluginIds.length};
       const platform=runtime.platformV4(context);
@@ -358,7 +358,7 @@
       renderTierSummary(root.__simulatteTierRunState?.state||'idle');
       tierVisualizer.removeHud?.();
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
-      tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.pluginId===ownerContribution?.pluginId?objectInteraction?.presentation()||contribution.presentation:contribution.presentation})),{simulationTimeMs,provenanceReceipts:objectInteraction?.provenanceReceipts(platform.provenanceReceipts)||platform.provenanceReceipts});
+      tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.pluginId===ownerContribution?.pluginId?objectInteraction?.presentation()||contribution.presentation:contribution.presentation})),{simulationTimeMs,selectedIds:objectInteraction?.selected()?[objectInteraction.selected()]:[],relatedIds:ownerContribution?.objects?.find(row=>row.id===objectInteraction?.selected())?.relatedIds||[],provenanceReceipts:objectInteraction?.provenanceReceipts(platform.provenanceReceipts)||platform.provenanceReceipts});
       for (const [button, mode] of [[elements.cameraFollow, 'follow'], [elements.cameraCompare, 'compare']]) {
         const available = Boolean(preferredTierCameraTarget(tierVisualizer.pluginCameraTargets(), mode));
         button.disabled = !available;
@@ -375,7 +375,7 @@
       }));
       if(manualDecision)viewDirector.setManualOverride({mode:manualDecision.mode,targetIds:manualDecision.targetIds});
       const viewState=viewDirector.snapshot();
-      if(!viewState.manualOverride&&viewState.decision.source!=='core-fallback'){
+      if(!preserveCamera&&!viewState.manualOverride&&viewState.decision.source!=='core-fallback'){
         const sourceIntentId=viewState.decision.intentId?.slice(`${viewState.decision.source}:`.length)||null;
         const intentTargetId=sourceIntentId?`plugin:${viewState.decision.source}:${sourceIntentId}`:null;
         const subjectTargetIds=viewState.decision.targetIds.map((id)=>`plugin:${viewState.decision.source}:${id}`);
@@ -385,7 +385,7 @@
         tierVisualizer.setViewMode?.(viewState.decision.mode);
         candidates.some((id)=>tierVisualizer.focusPluginTarget?.(id));
         selectTierViewMode(viewState.decision.mode);
-      } else if (viewState.manualOverride && ['overview', 'compare'].includes(activeCameraMode)) {
+      } else if (!preserveCamera && viewState.manualOverride && ['overview', 'compare'].includes(activeCameraMode)) {
         // A chosen framing mode follows new evidence; a manually panned Free view stays put.
         applyTierCamera(activeCameraMode);
       }
@@ -527,7 +527,7 @@
           {id:'speed',category:'execution',perform:value=>runController.setPlaybackRate(value)},
           {id:'camera',category:'observation',perform:mode=>applyTierCamera(mode,true)},
           {id:'layout',category:'observation',perform:id=>{const p=lastPluginContributions.find(row=>row.pluginId===owner)?.presentation;if(!p?.layouts?.some(row=>row.id===id))throw Error('Unsupported layout');tierVisualizer.presentationLayout=id;renderPlugins();applyTierCamera('overview',true);}},
-          {id:'select-object',category:'observation',perform:id=>{objectInteraction.select(id);tierVisualizer.selectedRack=id?.startsWith('rack:')?id.slice(5):null;tierVisualizer.relatedRackIds=lastPluginContributions.find(row=>row.pluginId===owner)?.objects?.find(row=>row.id===id)?.relatedIds||[];}},
+          {id:'select-object',category:'observation',perform:id=>{objectInteraction.select(id);tierVisualizer.selectedRack=id?.startsWith('rack:')?id.slice(5):null;tierVisualizer.relatedRackIds=lastPluginContributions.find(row=>row.pluginId===owner)?.objects?.find(row=>row.id===id)?.relatedIds||[];renderPlugins({preserveCamera:true});}},
           {id:'focus-object',category:'observation',perform:id=>focusObject(owner,id)},
           {id:'preview-controls',category:'observation',perform:(values,operation)=>previewControls(owner,values,operation)},
           {id:'pause',category:'execution',perform:()=>runController.pause()},

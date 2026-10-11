@@ -10,8 +10,8 @@ Owner contract: `public/shared/plugins/asteroid-defense/index.js`.
 - Profile ID: `asteroid-defense-v1`
 - Default scenario: `short-arc-follow-up`
 - Contract version: plugin v4 contribution
-- Last verified source: prior browser proof at commit `a5713c1c13ab`
-- Evidence: current worktree browser proof not rerun; prior index contains 10/10 runs
+- Source identity: hashes in `artifacts/next-experiences/browser.json`
+- Evidence: observation acquisition, decision commitment, and hidden-truth reveal in the source-bound browser receipt
 
 ## What is it?
 
@@ -48,6 +48,8 @@ danger, or recommend observation, launch, or civil-defense action.
 - Initial view: A bounded 120-object projection from the governed JPL small-body context catalog, with the hypothetical threat visually and semantically separate.
 - During playback: Angular observation sightlines, fitted clone paths, policy decisions, intervention travel/effects, encounter screening, and settlement events.
 - Selection and inspection: Campaign identity, observation count, residuals, clone state, encounter quantities, and truth boundary.
+- Opening measures: Acquired observations, decision time remaining from the last acquired measurement, and spread of fitted closest approaches. Playback alone does not acquire evidence.
+- Visual meaning: Gold angular observations, blue alternative fits, amber screened fits, and a green Earth reference. Station selection highlights related evidence without moving the camera; Focus moves it explicitly. Station markers share the modeled Earth position, rather than invented station offsets.
 - Comparison view: No-intervention and selected-policy branches share hidden truth while displaying separate outcomes.
 - Final settlement: Baseline and intervention screening fractions, execution status, uncertainty, omissions, and policy result.
 
@@ -102,8 +104,8 @@ Cannot claim:
 - Unit tests: passing in `tests/asteroid-defense.test.cjs`
 - Deterministic replay: verified
 - Comparison execution: verified with policy blindness
-- Desktop browser: not rerun for the current worktree
-- Mobile browser: not rerun for the current worktree
+- Desktop and emulated mobile browser: see route results and source-freeze verdict in `artifacts/next-experiences/browser.json`
+- Unfamiliar-user and physical-phone observation: pending
 - Known unresolved failures: public risk assessment and operational calibration are excluded
 
 ## Where is it implemented?

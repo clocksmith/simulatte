@@ -44,6 +44,7 @@
     const composition = compositorApi.createCompositor(options.compositorPolicy).compose(value, {
       simulationTimeMs: Number(options.simulationTimeMs || 0),
       selectedIds: options.selectedIds || [],
+      relatedIds: options.relatedIds || [],
       viewport,
       provenanceReceipt: options.provenanceReceipt || null,
       project: (source) => {
@@ -598,7 +599,9 @@
     ctx.strokeStyle = color(actor.tone, actor.style?.strokeOpacity ?? 1, actor.style?.color);
     ctx.shadowBlur = 14;
     ctx.shadowColor = ctx.strokeStyle;
-    if (/actor\.car/.test(kind)) drawCarGlyph(ctx, radius);
+    if(kind==='actor.earth.reference') {
+      ctx.shadowBlur=0;const globe=ctx.createRadialGradient(-radius*.35,-radius*.4,1,0,0,radius*1.4);globe.addColorStop(0,'#91e5fa');globe.addColorStop(.5,'#267daf');globe.addColorStop(1,'#10293d');ctx.fillStyle=globe;ctx.beginPath();ctx.arc(0,0,radius*1.4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#a5efff';ctx.lineWidth=1;ctx.stroke();
+    } else if (/actor\.car/.test(kind)) drawCarGlyph(ctx, radius);
     else if (/actor\.(?:vessel|ship|repair-vessel)/.test(kind)) drawShipGlyph(ctx, radius);
     else if (/actor\.pedestrian/.test(kind)) drawWalkerGlyph(ctx, radius);
     else if (/actor\.spacecraft/.test(kind)) drawSpacecraftGlyph(ctx, radius);

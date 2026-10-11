@@ -126,7 +126,12 @@
   function formatMeasure(measure) {
     if (measure.measurement?.validity === 'not-sampled') return 'Not sampled';
     if (measure.measurement?.validity === 'unavailable') return 'Unavailable';
+    if(measure.unit==='km' && Math.abs(Number(measure.value))>=1e6)return `${(Number(measure.value)/1e6).toLocaleString('en-US',{maximumFractionDigits:1})} million km`;
+    if(measure.unit==='day')return `${Number(measure.value).toLocaleString('en-US',{maximumFractionDigits:1})} days`;
     const value = Number(measure.value);
+    if (Number.isFinite(value) && measure.unit === 'Gbps' && Math.abs(value) >= 1000) {
+      return `${(value / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })} Tbps`;
+    }
     if (Number.isFinite(value) && measure.unit === 'year') {
       const seconds=value*31557600;
       const [scale,unit]=seconds>=31557600?[31557600,'years']:seconds>=86400?[86400,'days']:seconds>=3600?[3600,'hours']:seconds>=60?[60,'minutes']:[1,'seconds'];

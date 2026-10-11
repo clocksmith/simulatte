@@ -159,7 +159,7 @@
         kind: 'path',
         label: 'Representative synthetic orbit clone',
         geometry: builder.geometry('polyline', 'heliocentric-ecliptic-au', representative.trajectory.map((row) => row.positionAu)),
-        quantity: builder.quantity('fit-residual', result.metrics.fitResidualRmsArcsec, 'arcsec', [0, Math.max(5, result.metrics.fitResidualRmsArcsec * 1.2)]),
+        quantity: builder.quantity('encounter.representative', result.metrics.fitResidualRmsArcsec, 'arcsec', [0, Math.max(5, result.metrics.fitResidualRmsArcsec * 1.2)]),
         role: 'primary',
         importance: 1,
         aggregationKey: 'asteroid-orbit-ensemble',
@@ -172,8 +172,9 @@
         geometry: builder.geometry('polyline', 'heliocentric-ecliptic-au', representative.trajectory.map(
           (row) => propagation.earthState(row.day, datasets.forceModels.models[0].gmSunAu3Day2).positionAu
         )),
+        quantity: builder.quantity('orbit.earth-reference',1,'state',[0,1]),
         role: 'context',
-        importance: 0.55,
+        importance: 0.35,
         aggregationKey: 'solar-reference',
         provenance: simulated,
       }),
@@ -346,7 +347,8 @@
       eventIds: snapshot.eventIds,
       measures: [
         builder.quantity('observation-count', acquiredIds.length, 'observations',null,{label:'Acquired observations',subject:'Synthetic campaign',definition:'Only acquired observation rows are used to refit.',timeBasis:'accumulated',interval:{start:0,end:decisionTime,unit:'day'},validity:'valid',freshness:'current',context:explanation}),
-        builder.quantity('decision-time-remaining',remaining,'day'),
+        builder.quantity('decision-time-remaining',remaining,'day',null,{label:'Decision time remaining',subject:'Synthetic campaign',definition:'Encounter day minus the last acquired observation day; playback animation is not an additional telescope observation.',timeBasis:'instant',interval:{start:decisionTime,end:decisionTime,unit:'day'},validity:'valid',freshness:'current',context:explanation}),
+        builder.quantity('encounter-spread',Math.max(...result.baselineEncounter.members.map(row=>row.minimumDistanceKm))-Math.min(...result.baselineEncounter.members.map(row=>row.minimumDistanceKm)),'km',null,{label:'Spread of possible closest approaches',subject:'Fitted orbit ensemble',definition:'Maximum minus minimum closest-approach distance over this fitted ensemble. A model spread, not a real impact probability.',timeBasis:'prediction',interval:{start:decisionTime,end:result.campaign.terminalDay,unit:'day'},validity:'valid',freshness:'current',context:'Gold rays: acquired observations. Blue paths: possible fitted trajectories. Violet: representative fit. Green: Earth reference. The hidden synthetic trajectory is revealed only after commitment and completion.'}),
         ...(snapshot.fitReceipt ? [builder.quantity('fit-residual', result.metrics.fitResidualRmsArcsec, 'arcsec')] : []),
         ...(snapshot.baselineEncounter ? [builder.quantity('baseline-screening-frequency', snapshot.baselineEncounter.modeledScreeningFraction, 'ratio')] : []),
         ...(snapshot.baselineEncounter ? [
@@ -409,11 +411,11 @@
       controls,
       state,
       inspections,
-      objects: datasets.stations.stations.map(station=> {
+      objects: [...datasets.stations.stations.map(station=> {
         const next = observationProgram.next(campaignSource,acquiredIds,station.id);
         const values = Object.fromEntries(controls.controls.map(row=>[row.id,row.value]));
-        return {id:`station:${station.id}`,label:station.label,inSelector:true,condition:result.configurationIdentity.decisionCommitted ? (result.interventionApplied ? 'Decision committed: intervention executed.' : 'Decision committed: the selected policy withheld intervention because its evidence or screening threshold was not met.') : next?`Next scheduled observation: day ${next.epochDayTdb.toFixed(2)}`:'No admissible later observation',description:explanation,relatedIds:layers.filter(row=>row.id.startsWith('asteroid-clone-path:')).map(row=>row.id),hit:{shape:'point',radiusPx:15,priority:100},actions:[...(next?[{id:'observe',label:'Acquire next observation',targetId:`station:${station.id}`,available:true,execution:'restart',command:'scenario.run',values:{...values,observationIds:[...acquiredIds,next.id]},proposedChange:`Acquire ${next.id}, refit the same synthetic campaign, and compare the resulting trajectories.`}]:[]),{id:'commit',label:'Act using current evidence',targetId:`station:${station.id}`,available:!result.configurationIdentity.decisionCommitted,execution:'restart',command:'scenario.run',values:{...values,decisionCommitted:true,decisionPolicyId:'act-at-threshold'},proposedChange:'Commit the selected intervention policy using only acquired evidence, then reveal the synthetic truth after the experiment.'}]};
-      }),
+        return {id:`station:${station.id}`,label:station.label,inSelector:true,initiallySelected:station.id===(datasets.stations.stations.find(row=>observationProgram.next(campaignSource,acquiredIds,row.id)) || datasets.stations.stations[0]).id,condition:result.configurationIdentity.decisionCommitted ? (result.interventionApplied ? 'Decision committed: intervention executed.' : 'Decision committed: the selected policy withheld intervention because its evidence or screening threshold was not met.') : next?`Next scheduled observation: day ${next.epochDayTdb.toFixed(2)}`:'No admissible later observation',description:explanation+' Stations share Earth’s heliocentric position in this view. Gold observation rays and blue alternative fits show the evidence and its consequences.',relatedIds:layers.filter(row=>row.id.startsWith('asteroid-clone-path:')||row.id.startsWith('asteroid-observation:')||row.id==='earth-encounter-target').map(row=>row.id),hit:{shape:'point',radiusPx:15,priority:100},actions:[...(next?[{id:'observe',label:`Observe again · day ${next.epochDayTdb.toFixed(2)}`, targetId:`station:${station.id}`,available:true,execution:'restart',command:'scenario.run',values:{...values,observationIds:[...acquiredIds,next.id]},proposedChange:`Acquire ${next.id}, refit the same synthetic campaign, and compare the resulting trajectories.`}]:[]),{id:'commit',label:'Act using current evidence',targetId:`station:${station.id}`,available:!result.configurationIdentity.decisionCommitted,execution:'restart',command:'scenario.run',values:{...values,decisionCommitted:true,decisionPolicyId:'act-at-threshold'},proposedChange:'Commit the selected intervention policy using only acquired evidence, then reveal the synthetic truth after the experiment.'}]};
+      }), ...layers.filter(row=>/^(asteroid-clone-path:|asteroid-observation:|earth-encounter-target$|asteroid-representative-trajectory$)/.test(row.id)).map(layer=>({id:layer.id,label:layer.label,description:layer.id.startsWith('asteroid-observation:')?'An acquired angular observation constrains the fit. Gold rays represent direction, not a measured range.':layer.id==='earth-encounter-target'?'Earth’s modeled position at the displayed orbit time. Marker size is exaggerated for visibility.':'One fit consistent with the acquired synthetic evidence. Blue paths are alternative fitted orbits, not known asteroid trajectories.',condition:layer.quantity?.unit==='km'?`Modeled closest approach: ${Math.round(layer.quantity.value).toLocaleString()} km`:'Bound to the acquired synthetic observations.',relatedIds:datasets.stations.stations.map(station=>`station:${station.id}`),hit:{shape:layer.kind==='path'?'path':'point',radiusPx:8,priority:layer.kind==='path'?20:40},actions:[],inSelector:false}))],
       provenanceRecords: [...records, ...models],
     });
   }

@@ -83,6 +83,7 @@
       },
       records: modelRecords,
     });
+    const healthy = result.snapshots[0];
     const pointById = new Map(datasets.landings.points.map((row) => [row.id, row]));
     const activeRepair = result.repairReceipt.events.find((row) => row.id === snapshot.activeRepairEventId) || null;
     const maximumCapacity = Math.max(...snapshot.edges.map((row) => row.capacityGbps), 1);
@@ -110,7 +111,7 @@
         kind: 'path',
         label: edge.failureState === 'failed' ? `${edge.id} unavailable` : `${edge.id} modeled load`,
         geometry: builder.geometry('polyline', 'wgs84', edge.coordinates),
-        quantity: builder.quantity('utilization-ratio', edge.utilizationRatio, 'ratio', [0, 1.000001]),
+        quantity: builder.quantity(edge.failureState==='failed'?'network.cable-unavailable':'network.cable-load', edge.failureState==='failed'?1:edge.utilizationRatio, 'ratio', [0, 1.000001]),
         role: edge.failureState === 'failed' ? 'event' : edge.utilizationRatio > 0.85 ? 'primary' : 'context',
         importance: edge.failureState === 'failed' ? 1 : Math.min(0.95, 0.35 + edge.capacityGbps / maximumCapacity * 0.45),
         aggregationKey: 'subsea-cable-corridors',
@@ -166,6 +167,13 @@
         provenance: simulated,
       })] : []),
     ];
+    for(const demand of snapshot.demands) for(const path of demand.pathAllocations.slice(0,2)) {
+      const coordinates=path.edgeIds.flatMap((id,index)=>{
+        const edge=snapshot.edges.find(row=>row.id===id);
+        return edge.fromLandingId===path.nodeIds[index]?edge.coordinates:[...edge.coordinates].reverse();
+      });
+      layers.push(builder.layer({id:`flow:${path.pathId}`,kind:'path',label:`${demand.categoryId}: ${path.flowGbps.toFixed(1)} Gbps admitted service`,geometry:builder.geometry('polyline','wgs84',coordinates),quantity:builder.quantity('network.service-flow',path.flowGbps,'Gbps',[0,maximumDemand]),role:'primary',importance:.72,aggregationKey:'subsea-admitted-service',provenance:simulated}));
+    }
     const events = result.events.map((row, sequence) => builder.event({
       id: row.id,
       pluginId: PLUGIN_ID,
@@ -204,7 +212,7 @@
     const controls = builder.controls([
       selectControl('demandScenarioId', 'Disruption: demand scenario', result.configurationIdentity.demandScenarioId,
         datasets.demands.scenarios.map((row) => option(row.id, row.id.replaceAll('-', ' '))), scenario),
-      multiSelectControl('failedResourceIds', 'Disruption: failed resources', result.failedResourceIds, failureOptions(datasets), scenario),
+      multiSelectControl('failedResourceIds', 'Disruption: failed resources', result.failedResourceIds.length?result.failedResourceIds:['none'], [option('none','No failed resources'),...failureOptions(datasets)], scenario),
       multiSelectControl(
         'jurisdictionExclusions',
         'Disruption: excluded landing regions',
@@ -246,8 +254,9 @@
       previousStateId: previousSnapshotId(result, snapshot),
       eventIds: snapshot.eventIds,
       measures: [
-        builder.quantity('delivered-service', snapshot.metrics.deliveredGbps, 'Gbps'),
-        builder.quantity('dropped-demand', snapshot.metrics.droppedGbps, 'Gbps'),
+        builder.quantity('delivered-service', snapshot.metrics.deliveredGbps, 'Gbps',null,{label:'Service delivered',subject:'All modeled recipients',definition:'Sum of delivered demand in this snapshot; requested demand equals delivered plus unserved demand.',timeBasis:'instant',interval:{start:snapshot.simulationTimeMs,end:snapshot.simulationTimeMs,unit:'ms'},validity:'valid',freshness:'current',context:'Red dashed cables are unavailable; cyan paths carry admitted traffic; red destination markers show unserved demand. Fail or restore a selected cable to recalculate this scenario. Advanced compares allocation policies under the same failures.'}),
+        builder.quantity('dropped-demand', snapshot.metrics.droppedGbps, 'Gbps',null,{label:'Service unserved',subject:'All modeled recipients',definition:'Requested demand not delivered by the current allocation. Not a current internet outage measurement.',timeBasis:'instant',interval:{start:snapshot.simulationTimeMs,end:snapshot.simulationTimeMs,unit:'ms'},validity:'valid',freshness:'current',context:'Compare recipients and admitted paths under the accepted modeled failures.'}),
+        builder.quantity('service-change',snapshot.metrics.deliveredGbps-healthy.metrics.deliveredGbps,'Gbps',null,{label:'Change from no failures',subject:'All modeled recipients',definition:'Delivered service minus the same demand and allocation policy before this scenario’s failures. Includes all accepted failures; not attribution to one selected cable.',timeBasis:'instant',interval:{start:snapshot.simulationTimeMs,end:snapshot.simulationTimeMs,unit:'ms'},validity:'valid',freshness:'current',context:'Baseline: the same demand and policy with no failed resources. Repair restores capacity against that baseline.'}),
         builder.quantity('service-fairness', snapshot.metrics.jainServiceFairness, 'ratio'),
         builder.quantity('maximum-utilization', snapshot.metrics.maximumUtilizationRatio, 'ratio'),
       ],
@@ -259,15 +268,27 @@
       events,
       controls,
       state: progressiveState,
-      objects: presentation.layers.filter(layer => /^(corridor:|landing:|repair-resource:)/.test(layer.id)).map(layer => {
+      objects: presentation.layers.filter(layer => /^(corridor:|landing:|repair-resource:|flow:|dropped:)/.test(layer.id)).map(layer => {
         const control = controls.controls.find(row => row.id === 'failedResourceIds');
         const resource = control?.options?.find(row => layer.id === `corridor:${row.value}` || layer.id === row.value);
         const failed = (control?.value || []).filter(id => id !== 'none'), restoring = resource && failed.includes(resource.value);
-        return { id: layer.id, label: layer.label, description: resource ? 'Failure removes this resource’s capacity; service is recalculated using the accepted allocation and repair policies.' : 'Repair resource from the accepted schedule. Its movement and assignments are calculated by the repair model.',
+        const nextFailures=resource ? (restoring?failed.filter(id=>id!==resource.value):[...failed,resource.value]) : failed;
+        const edge=snapshot.edges.find(row=>layer.id===`corridor:${row.id}`);
+        const landingId=layer.id.startsWith('landing:')?layer.id.slice(8):null;
+        const flowDemand=snapshot.demands.find(row=>row.pathAllocations.some(path=>layer.id===`flow:${path.pathId}`) || layer.id===`dropped:${row.id}`);
+        const recipients=snapshot.demands.filter(row=>flowDemand ? row.id===flowDemand.id : edge ? row.originLandingId===edge.fromLandingId || row.destinationLandingId===edge.toLandingId || row.pathAllocations.some(path=>path.edgeIds.includes(edge.id)) : landingId && (row.destinationLandingId===landingId || row.originLandingId===landingId));
+        const links=recipients.flatMap(row=>row.pathAllocations.map(path=>`flow:${path.pathId}`));
+        const destinationIds=recipients.map(row=>`landing:${row.destinationLandingId}`);
+        const lost=recipients.reduce((sum,row)=>sum+row.droppedGbps,0);
+        return { id: layer.id, label: edge?`${edge.id} · ${edge.failureState==='failed'?'unavailable':'carrying traffic'}`:layer.label,
+          initiallySelected:Boolean(edge && edge.id === (snapshot.edges.find(row=>row.failureState==='failed') || snapshot.edges[0])?.id), inSelector:true,
+          condition:edge?`${edge.loadGbps.toFixed(1)} / ${edge.availableGbps.toFixed(1)} Gbps on this cable; ${lost.toFixed(1)} Gbps unserved across connected endpoint and routed demands.`:landingId?`${recipients.reduce((sum,row)=>sum+row.deliveredGbps,0).toFixed(1)} Gbps delivered on demands to or from this landing.`:flowDemand?`${flowDemand.deliveredGbps.toFixed(1)} / ${flowDemand.requestedGbps.toFixed(1)} Gbps delivered; ${flowDemand.droppedGbps.toFixed(1)} Gbps unserved.`:'Following the accepted repair schedule.',
+          relatedIds:[...new Set([...links,...destinationIds,...recipients.filter(row=>row.droppedGbps>0).map(row=>`dropped:${row.id}`)])].filter(id=>id!==layer.id && layers.some(row=>row.id===id)),
+          description: resource ? 'Fail or restore this resource to restart the same modeled demand and policy scenario. Cyan traces are actual admitted allocation paths. Unserved demand at connected endpoints is contextual; a matched rerun is needed to attribute a change to this cable.' : landingId?'Select the cyan paths to see admitted service for this landing. Red markers show modeled unmet demand.':flowDemand?`${flowDemand.deliveredGbps.toFixed(1)} of ${flowDemand.requestedGbps.toFixed(1)} Gbps delivered; ${flowDemand.droppedGbps.toFixed(1)} Gbps unserved. Cyan traces follow the admitted cable paths.`:'Repair resource from the accepted schedule. Its movement and assignments are calculated by the repair model.',
           hit: { shape: layer.kind === 'path' ? 'path' : 'point', radiusPx: layer.kind === 'path' ? 8 : 14, priority: layer.kind === 'path' ? 30 : 80 },
           actions: resource ? [{ id: 'apply', label: restoring ? 'Restore resource' : 'Fail resource', targetId: layer.id, available: true,
             execution: 'restart', command: 'scenario.run', values: { ...Object.fromEntries(controls.controls.map(row => [row.id, row.value])),
-              failedResourceIds: restoring ? failed.filter(id => id !== resource.value) : [...failed, resource.value] },
+              failedResourceIds: nextFailures.length?nextFailures:['none'] },
             proposedChange: `${restoring ? 'Restore' : 'Fail'} ${resource.label}; recalculate affected service.` }] : [] };
       }),
       inspections: createInspections(snapshot, datasets, sourceProvenance, modeled, scenario, simulated),

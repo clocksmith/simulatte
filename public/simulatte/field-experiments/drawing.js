@@ -3,7 +3,15 @@
   if (typeof module === "object" && module.exports) module.exports = api;
   root.SimulatteFieldExperimentDrawing = api;
 })(globalThis, function () {
-  function draw(canvas, config, state, selection = null, yaw = 0.65) {
+  function cellBounds(states, selection = null) {
+    const cells = states.flatMap(state=>state.cells);
+    const xs=cells.map(c=>c.x), ys=cells.map(c=>c.y);
+    if(selection?.id === 'region'){xs.push(selection.worldX);ys.push(selection.worldY);}
+    const center=[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2];
+    const span=Math.max(16,Math.max(...xs)-Math.min(...xs)+8,Math.max(...ys)-Math.min(...ys)+8);
+    return { origin: center.map(v=>v-span/2), span };
+  }
+  function draw(canvas, config, state, selection = null, yaw = 0.65, options = {}) {
     const ratio = Math.min(2, globalThis.devicePixelRatio || 1),
       width = Math.max(1, canvas.clientWidth),
       height = width;
@@ -20,44 +28,42 @@
     ctx.fillRect(0, 0, width, height);
     const extent = config.params.size * config.params.spacing,
       margin = width * 0.06,
-      scale = (width - 2 * margin) / extent,
+      bounds = options.bounds || {origin:[0,0],span:extent},
+      scale = (width - 2 * margin) / bounds.span,
       hits = [];
     if (config.view === "cells") {
-      if (state.boundary !== null) {
-        ctx.strokeStyle = ink;
-        ctx.setLineDash([5, 4]);
-        ctx.beginPath();
-        ctx.moveTo(margin + state.boundary * scale, margin);
-        ctx.lineTo(margin + state.boundary * scale, height - margin);
-        ctx.stroke();
-        ctx.setLineDash([]);
+      const at=(x,y)=>[margin+(x-bounds.origin[0])*scale,margin+(y-bounds.origin[1])*scale];
+      // Signal lives on cells; arrows show exchange over the model's contact graph.
+      if(options.signal !== false) for(let i=0;i<state.cells.length;i++) for(let j=i+1;j<state.cells.length;j++) {
+        const a=state.cells[i],b=state.cells[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+        if(d>=3 || Math.abs(a.signal-b.signal)<0.005) continue;
+        const from=a.signal>b.signal?a:b,to=from===a?b:a, p=at(from.x,from.y),q=at(to.x,to.y);
+        ctx.strokeStyle='rgba(255,196,91,0.45)';ctx.lineWidth=1+Math.min(2,Math.abs(a.signal-b.signal)*4);
+        ctx.beginPath();ctx.moveTo(...p);ctx.lineTo(...q);ctx.stroke();
+        const t=(state.time*0.16+i*0.17+j*0.13)%1;
+        ctx.fillStyle='#ffd77c';ctx.beginPath();ctx.arc(p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t,2.3,0,Math.PI*2);ctx.fill();
       }
-      for (const cell of state.cells) {
-        const x = margin + cell.x * scale,
-          y = margin + cell.y * scale,
-          r = Math.sqrt(cell.area / Math.PI) * scale;
-        ctx.fillStyle = cell.producer
-          ? "hsl(34 78% 55%)"
-          : `hsl(${160 + Math.min(1, cell.signal) * 55} 55% ${35 + Math.min(1, cell.signal) * 25}%)`;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle =
-          cell.id === selection?.id || selection?.lineageId === cell.lineageId
-            ? accent
-            : paper;
-        ctx.lineWidth = cell.id === selection?.id ? 3 : 1;
-        ctx.stroke();
-        hits.push({
-          id: cell.id,
-          x,
-          y,
-          worldX: cell.x,
-          worldY: cell.y,
-          lineageId: cell.lineageId,
-          radius: r,
-        });
+      if(state.boundary!==null){const x=at(state.boundary,0)[0];ctx.fillStyle='rgba(255,124,156,0.08)';ctx.fillRect(x,margin,width-margin-x,height-2*margin);ctx.strokeStyle='#ff7c9c';ctx.lineWidth=2;ctx.setLineDash([7,5]);ctx.beginPath();ctx.moveTo(x,margin);ctx.lineTo(x,height-margin);ctx.stroke();ctx.setLineDash([]);}
+      for(const cell of state.cells){
+        const [x,y]=at(cell.x,cell.y),r=Math.sqrt(cell.area/Math.PI)*scale;
+        const hue=cell.producer?38:cell.growthRate>0?158:204;
+        const gradient=ctx.createRadialGradient(x-r*.3,y-r*.3,r*.08,x,y,r);
+        gradient.addColorStop(0,`hsl(${hue} 68% 65%)`);gradient.addColorStop(.6,`hsl(${hue} 52% 39%)`);gradient.addColorStop(1,`hsl(${hue} 50% 22%)`);
+        ctx.fillStyle=gradient;ctx.beginPath();ctx.arc(x,y,r*.94,0,Math.PI*2);ctx.fill();
+        const lineage=cell.id===selection?.id || selection?.lineageId===cell.lineageId;
+        ctx.strokeStyle=lineage?accent:'rgba(127,221,197,0.6)';ctx.lineWidth=lineage?2.5:1;ctx.stroke();
+        ctx.fillStyle=cell.producer?'#ffe2a3':'rgba(7,42,40,0.55)';ctx.beginPath();ctx.ellipse(x+r*.1,y+r*.05,r*.23,r*.28,-.3,0,Math.PI*2);ctx.fill();
+        if(options.signal!==false){ctx.strokeStyle='#ffd77c';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+3,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(1,cell.signal/(config.params.threshold*2)));ctx.stroke();}
+        if(cell.id===selection?.id){ctx.strokeStyle=accent;ctx.setLineDash([4,3]);ctx.beginPath();ctx.arc(x,y,r+7,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
+        hits.push({id:cell.id,x,y,worldX:cell.x,worldY:cell.y,lineageId:cell.lineageId,radius:r});
       }
+      if(selection && options.preview){
+        const [x,y]=at(selection.worldX,selection.worldY);ctx.strokeStyle='#ffbd66';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();
+        if(options.preview.kind==='boundary'){ctx.moveTo(x,margin);ctx.lineTo(x,height-margin);}
+        else ctx.arc(x,y,(options.preview.kind==='remove'?options.preview.radius:1)*scale,0,Math.PI*2);
+        ctx.stroke();ctx.setLineDash([]);
+      }
+      ctx.fillStyle=ink;ctx.font='11px sans-serif';ctx.fillText('Cell signal / growth / lineage',margin,height-12);
     } else if (config.view === "terrain") {
       const n = config.params.size,
         unit = (width * 0.58) / extent,
@@ -163,8 +169,8 @@
     } else throw Error("field_view_unsupported");
     if (config.view === "cells" && selection?.id === "region") {
       ctx.strokeStyle = accent;
-      const x = margin + selection.worldX * scale,
-        y = margin + selection.worldY * scale;
+      const x = margin + (selection.worldX-bounds.origin[0]) * scale,
+        y = margin + (selection.worldY-bounds.origin[1]) * scale;
       ctx.beginPath();
       ctx.moveTo(x - 6, y);
       ctx.lineTo(x + 6, y);
@@ -172,10 +178,10 @@
       ctx.lineTo(x, y + 6);
       ctx.stroke();
     }
-    return { hits, width, height, view: config.view, margin, scale, extent };
+    return { hits, width, height, view: config.view, margin, scale, extent, origin:bounds.origin };
   }
   function pick(frame, x, y) {
-    if (!frame.hits.length) return null;
+    if (!frame.hits.length) return frame.view==='cells' ? {id:'region',worldX:Math.max(0,Math.min(frame.extent,(x-frame.margin)/frame.scale+frame.origin[0])),worldY:Math.max(0,Math.min(frame.extent,(y-frame.margin)/frame.scale+frame.origin[1]))} : null;
     const nearest = frame.hits.reduce((best, row) =>
       Math.hypot(row.x - x, row.y - y) < Math.hypot(best.x - x, best.y - y)
         ? row
@@ -189,11 +195,11 @@
         id: "region",
         worldX: Math.max(
           0,
-          Math.min(frame.extent, (x - frame.margin) / frame.scale),
+          Math.min(frame.extent, (x - frame.margin) / frame.scale + frame.origin[0]),
         ),
         worldY: Math.max(
           0,
-          Math.min(frame.extent, (y - frame.margin) / frame.scale),
+          Math.min(frame.extent, (y - frame.margin) / frame.scale + frame.origin[1]),
         ),
       };
     return nearest;
@@ -219,5 +225,5 @@
       grain = state.seeds[state.grain[i]];
     return `Region ${i}: solid fraction ${state.phase[i].toFixed(3)} · undercooling ${state.temperature[i].toFixed(3)} · ${grain.id} orientation ${((grain.orientation * 180) / Math.PI).toFixed(1)}°. Solid growth releases heat into its surroundings.`;
   }
-  return Object.freeze({ draw, pick, inspect });
+  return Object.freeze({ draw, pick, inspect, cellBounds });
 });

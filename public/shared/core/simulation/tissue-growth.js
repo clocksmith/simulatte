@@ -195,13 +195,17 @@
     s.time = s.step * p.step;
     return s;
   }
+  function actionRegion(state, action) {
+    const radius = 3;
+    const affectedIds = action.kind === "remove" ? state.cells.filter(c => !c.producer && Math.hypot(c.x-action.x,c.y-action.y) <= radius).map(c=>c.id) : [];
+    return { radius, affectedIds, available: action.kind !== "boundary" || action.x >= radius };
+  }
   function apply(state, action, p) {
     const s = structuredClone(state);
     if (action.kind === "remove") {
       const count = s.cells.length;
-      s.cells = s.cells.filter(
-        (c) => c.producer || Math.hypot(c.x - action.x, c.y - action.y) > 3,
-      );
+      const removed = new Set(actionRegion(s, action).affectedIds);
+      s.cells = s.cells.filter(c => !removed.has(c.id));
       s.removed += count - s.cells.length;
     } else if (action.kind === "source") {
       const cell = s.cells.find((c) => c.producer);
@@ -226,5 +230,5 @@
         Math.max(1, s.cells.length),
     };
   }
-  return Object.freeze({ validate, growth, initial, step, apply, metrics });
+  return Object.freeze({ validate, growth, initial, step, apply, metrics, actionRegion });
 });

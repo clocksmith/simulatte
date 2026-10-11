@@ -16,7 +16,10 @@
     raf = 0,
     appliedThrough = -1,
     lastUi = 0,
-    lastSpecHash = null;
+    lastSpecHash = null,
+    previewAction = null,
+    showSignal = true,
+    lastAction = null;
   const listeners = new AbortController(),
     on = (node, type, fn) =>
       node.addEventListener(type, fn, { signal: listeners.signal });
@@ -40,8 +43,22 @@
     );
   }
   function render() {
-    frame = drawing.draw(el("scene"), config, pair.intervention, selected, yaw);
-    drawing.draw(el("baseline"), config, pair.baseline, null, yaw);
+    if(config.view === "cells" && selected?.id !== "region") {
+      const cell=pair.intervention.cells.find(c=>c.id===selected?.id);
+      if(cell) selected={...selected,worldX:cell.x,worldY:cell.y};
+    }
+    const bounds=config.view === "cells" ? drawing.cellBounds([pair.intervention,pair.baseline],selected) : null;
+    const region=config.view === "cells" && selected ? model.actionRegion(pair.intervention,{kind:previewAction?.kind || "remove",x:selected.worldX,y:selected.worldY}) : null;
+    const options={bounds,signal:showSignal,preview:region?{kind:previewAction?.kind || "remove",...region}:null};
+    frame = drawing.draw(el("scene"), config, pair.intervention, selected, yaw, options);
+    drawing.draw(el("baseline"), config, pair.baseline, null, yaw, {bounds,signal:showSignal});
+    for(const button of el("actions").querySelectorAll("button")) {
+      const kind=button.dataset.action;
+      const target=config.view === "cells" && selected ? model.actionRegion(pair.intervention,{kind,x:selected.worldX,y:selected.worldY}) : null;
+      button.disabled=!selected || pair.intervention.step>=config.durationSteps || (target && (!target.available || (kind === "remove" && !target.affectedIds.length)));
+    }
+    el("preview-description").textContent=region ? options.preview.kind==='remove'?`${region.affectedIds.length} cells in the dashed patch; the source stays intact.`:options.preview.kind==='boundary'?'Dashed line: the new growth boundary.':'Dashed circle: the signaling source’s new position.' : '';
+
     if (performance.now() - lastUi < 100 && running) return;
     lastUi = performance.now();
     const baseline = model.metrics(pair.baseline, spec.params.model),
@@ -50,7 +67,7 @@
       el("measures"),
       config.measures.map((row) => [
         row.label,
-        `${Number(current[row.id]).toFixed(3)} ${row.unit} · baseline ${Number(baseline[row.id]).toFixed(3)}`,
+        `${Number(current[row.id]).toLocaleString(undefined,{maximumFractionDigits:row.unit===row.id?0:2})} ${row.unit} · baseline ${Number(baseline[row.id]).toLocaleString(undefined,{maximumFractionDigits:2})} · ${current[row.id]-baseline[row.id]>0?"+":""}${Number(current[row.id]-baseline[row.id]).toFixed(row.unit===row.id?0:2)} difference`,
       ]),
     );
     rows(
@@ -61,7 +78,8 @@
     );
     el("clock").textContent =
       `${pair.intervention.time.toFixed(4)} ${config.timeUnit}`;
-    el("selection").textContent = selected?.id || "Select a region";
+    el("selection").textContent = selected?.id === "region" ? "Selected region" : selected?.id || "Select a region";
+    if(lastAction) el("consequence").textContent=`${lastAction}. ${current.cells !== undefined ? `${current.cells-baseline.cells} cells and ${(current.area-baseline.area).toFixed(2)} model area versus the untouched branch at the same time.` : "The baseline keeps the original inputs."}`;
     el("condition").textContent = drawing.inspect(
       config,
       pair.intervention,
@@ -107,11 +125,10 @@
       pair.intervention = next;
       appliedThrough = pair.intervention.step;
       lastUi = 0;
-      el("consequence").textContent =
-        `${description.label} at ${pair.intervention.time.toFixed(4)} ${config.timeUnit}. The baseline keeps the same original inputs and no interventions.`;
+      lastAction = `${description.label} at ${pair.intervention.time.toFixed(2)} ${config.timeUnit}`;
       render();
     } catch (error) {
-      fail(error);
+      el("status").textContent=error.message;
     }
   }
   function tick() {
@@ -186,6 +203,9 @@
     el("title").textContent = config.name;
     el("question").textContent = config.question;
     el("boundary").textContent = config.boundary;
+    el("signal").hidden=config.view!=="cells";
+    el("legend").hidden=config.view!=="cells";
+    document.body.dataset.experiment=config.id;
     for (const source of config.sources) {
       const link = document.createElement("a");
       link.href = source.url;
@@ -198,6 +218,7 @@
       button.textContent = description.label;
       button.dataset.action = description.kind;
       on(button, "click", () => action(description));
+      for(const type of ["pointerenter","focus"]) on(button,type,()=>{previewAction=description;lastUi=0;render();});
       el("actions").append(button);
     }
     on(el("pause"), "click", () => {
@@ -208,7 +229,7 @@
       spec = program.create(config);
       pair = program.execute(spec, config, model, 0);
       appliedThrough = -1;
-      selected = null;
+      selected = null; lastAction=null;
       el("consequence").textContent =
         "Original inputs restored in both branches.";
       running = true;
@@ -287,7 +308,7 @@
     on(el("scene"), "pointerup", (event) => {
       if (pointer && !pointer.moved)
         selected = drawing.pick(frame, event.offsetX, event.offsetY);
-      pointer = null;
+      pointer = null; lastUi=0;
       render();
     });
     on(el("scene"), "keydown", (event) => {
@@ -305,6 +326,7 @@
         frame.hits[(index + direction + frame.hits.length) % frame.hits.length];
       render();
     });
+    on(el("signal"),"click",()=>{showSignal=!showSignal;el("signal").setAttribute("aria-pressed",String(showSignal));render();});
     on(el("theme"), "click", () => {
       root.SimulatteTheme.cyclePreference();
       render();
@@ -326,6 +348,8 @@
     });
     render();
     selected = frame.hits[Math.floor(frame.hits.length / 2)];
+    previewAction=config.actions[0];
+    render();
     running = true;
     raf = requestAnimationFrame(tick);
   } catch (error) {

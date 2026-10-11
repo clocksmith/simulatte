@@ -33,7 +33,7 @@
       ],
       "output": {
         "path": "public/data/simulatte/tier-application-manifest.json",
-        "sha256": "b86e678f4be09aa9fc5a06401cad4115767af244fb6f02f5694a9c2a27cd65ae"
+        "sha256": "86fc62c3ce19ccd7dc7b1416ad2c04b1f5fd41587f65354037671b082f1c778f"
       },
       "contentVersion": "simulatte-tier-applications-v3",
       "activationState": "active",
@@ -123,7 +123,7 @@
       ],
       "output": {
         "path": "docs/simulatte/folder-contract.json",
-        "sha256": "6e4f28f8a81717fb6fb3406f08004b0f4dab6b0b03e804ba94f0cad553999338"
+        "sha256": "7ce285c617bc35be74a4ab55153574ffeba8bbb96f2dffbeab3642aba87d3101"
       },
       "contentVersion": "unpopulated",
       "activationState": "active-generated-mirror",
@@ -141,7 +141,7 @@
       ],
       "output": {
         "path": "public/data/field-experiments/living-tissue.json",
-        "sha256": "1790afbe52226c05806f8103db2196e426009a45049fbb279e06fa1ddb1a9239"
+        "sha256": "f30bec41d14a1ae57953d9c896ebff48beb0e3352309792c8f72533260f6da45"
       },
       "contentVersion": "living-tissue",
       "activationState": "active",

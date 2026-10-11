@@ -10,8 +10,9 @@
   let spec = program.validate(program.create('bicycle')), state = model.initial(spec.params);
   let scene = root.SimulatteSolarScene.create(spec.params), drawing = null, currentFrame = null;
   let running = false, disposed = false, raf = 0, generation = 0, accumulator = 0, lastTime = 0, lastUi = 0, lastSample = -1;
-  let history = [], selected = 'solar', timer = 0, cameraGoal = null;
-  const view = { explode: 0.88, targetExplode: 0.88, cutaway: true, fields: false, flows: true, labels: true };
+  let history = [], selected = 'solar', timer = 0, cameraGoal = null, matchedParams = null, matchedState = null, matchedSpec = null, interventionLabel = '';
+  const flowLabels = new Map();
+  const view = { explode: 0.88, targetExplode: 0.88, cutaway: true, fields: false, flows: true, labels: true, selected: 'solar' };
   const camera = { yaw: 0.40, pitch: 0.32, distance: 5.7, target: [0, 1.14, 0] };
   const labels = new Map(), partRows = new Map();
   function notify(message) {
@@ -30,7 +31,8 @@
   }
   function select(id, focus = false) {
     if (!program.COMPONENTS.some((row) => row.id === id)) return;
-    selected = id;
+    selected = id; view.selected=id;
+    updateActions();
     for (const [key, row] of partRows) row.setAttribute('aria-pressed', String(key === id));
     for (const [key, label] of labels) label.setAttribute('aria-pressed', String(key === id));
     if (focus && currentFrame) cameraGoal = { ...camera, focus: id, target: [...currentFrame.anchors[id]],
@@ -80,10 +82,21 @@
     const wasRunning = running;
     generation += 1; running = false; spec = next; state = model.initial(spec.params);
     scene = root.SimulatteSolarScene.create(spec.params); accumulator = 0; history = []; lastSample = -1;
-    el('comparison-result').textContent = ''; syncControls(); updateUi();
+    matchedParams=null;matchedState=null;matchedSpec=null;interventionLabel='';
+    el('comparison-result').textContent = ''; syncControls(); updateActions(); updateUi();
     if (wasRunning && drawing) running = true;
     if (message) notify(message);
     return structuredClone(spec);
+  }
+  function updateActions() {
+    const actions=selected==='solar'?[{label:spec.params.shade>0?'Restore full sunlight':'Shade the panel',values:{shade:spec.params.shade>0?0:0.65}}]
+      : ['motor','chassis'].includes(selected)?[{label:spec.params.targetKph>10?'Try a slower ride':'Try a faster ride',values:{targetKph:spec.params.targetKph>10?Math.max(5,spec.params.targetKph-5):20}}]
+      : selected==='flywheel'?[{label:spec.params.flywheel?'Try without the flywheel':'Fit the flywheel',values:{flywheel:!spec.params.flywheel}}]:[];
+    el('part-actions').replaceChildren(...actions.map(action=>{const button=document.createElement('button');button.textContent=action.label+' · Restart comparison';button.dataset.solarAction=selected;button.addEventListener('click',()=>{
+      const baseline=structuredClone(spec),wasRunning=running;
+      apply(program.edit(spec,action.values));matchedSpec=baseline;matchedParams=baseline.params;matchedState=model.initial(matchedParams);interventionLabel=action.label;
+      running=wasRunning;updateUi();notify('Both branches restarted from their declared reserves. Same drive cycle and simulated interval.');
+    },{signal:events.signal});return button;}));
   }
   function setParameters(changes) { return apply(program.edit(spec, changes), 'Parameters applied. Restarted from declared initial reserves.'); }
   function setVehicle(vehicle) { apply(program.create(vehicle)); resetCamera(); notify(`${vehicle[0].toUpperCase() + vehicle.slice(1)} preset loaded.`); }
@@ -136,6 +149,9 @@
     const netWh = (state.batteryJ + state.flywheelJ - state.initialJ) / 3600;
     el('reserve-copy').textContent = !state.step ? 'Run the model to see whether sunlight covers motion and system losses.'
       : `${positive ? 'Reserves are increasing at this operating point.' : 'Motion and losses currently exceed available solar power.'} Net reserve change: ${signed(netWh, 2)} Wh. Repeated cycles and adverse weather still determine autonomy.`;
+    if(matchedState){const bt=model.telemetry(matchedParams,matchedState);const used=s=>(s.initialJ-s.batteryJ-s.flywheelJ)/3600;
+      el('part-effect').textContent=`${interventionLabel}: solar ${signed(t.pvW-bt.pvW)} W; reserve use ${signed(used(state)-used(matchedState),2)} Wh; distance ${signed(state.distanceM-matchedState.distanceM,1)} m versus the prior configuration at ${nf(state.timeS)} s. Both branches count initial stored energy.`;
+    }else el('part-effect').textContent='';
     updateDetail(); updateChart();
   }
   function sample() {
@@ -165,25 +181,36 @@
       for (const prev of placed) if (Math.abs(prev.x - x) < 115 && Math.abs(prev.y - y) < 25) y += 27;
       y = Math.min(canvas.clientHeight - 50, y); placed.push({ x, y }); label.style.left = `${x}px`; label.style.top = `${y}px`;
     }
+    for(const node of flowLabels.values()) node.hidden=true;
+    for(const link of currentFrame.flowLinks){
+      const key=link.from+'-'+link.to;
+      if(!flowLabels.has(key)){const node=document.createElement('span');node.className='flow-label';el('flow-labels').append(node);flowLabels.set(key,node);}
+      const node=flowLabels.get(key),point=drawing.project(currentFrame.anchors[link.from].map((v,i)=>(v+currentFrame.anchors[link.to][i])/2));
+      node.hidden=!view.flows||!point||Math.abs(link.watts)<.2||![link.from,link.to].includes(selected);
+      if(node.hidden)continue;
+      node.textContent=`${nf(Math.abs(link.watts))} W ${link.watts>=0?'→':'←'}`;
+      node.style.left=`${Math.max(50,Math.min(canvas.clientWidth-50,point.x))}px`;node.style.top=`${Math.max(115,Math.min(canvas.clientHeight-70,point.y))}px`;
+    }
     const a = drawing.project([0, 0, 0]), b = drawing.project([1, 0, 0]);
     if (a && b) document.querySelector('.scene-scale>span').style.width = `${Math.hypot(b.x - a.x, b.y - a.y)}px`;
   }
   function advance(count) {
     if (!Number.isInteger(count) || count < 0 || count > 100000) throw new Error('solar_manual_step_budget_invalid');
-    for (let i = 0; i < count && state.status !== 'complete'; i += 1) { state = model.step(spec.params, state); sample(); }
+    for (let i = 0; i < count && state.status !== 'complete'; i += 1) { state = model.step(spec.params, state); if(matchedState) matchedState=model.step(matchedParams,matchedState); sample(); }
     if (state.status === 'complete') running = false;
     return state;
   }
   async function replay() {
     running = false; accumulator = 0;
     const epoch = ++generation, original = state, active = spec;
-    let candidate = model.initial(active.params); el('replay').disabled = true;
+    let candidate = model.initial(active.params), candidateBaseline=matchedParams?model.initial(matchedParams):null;
+    const recordedBaseline=matchedState;el('replay').disabled = true;
     try {
       for (let i = 0; i < original.step; i += 1) {
-        candidate = model.step(active.params, candidate);
+        candidate = model.step(active.params, candidate);if(candidateBaseline)candidateBaseline=model.step(matchedParams,candidateBaseline);
         if (i % 800 === 0) { await new Promise((resolve) => setTimeout(resolve, 0)); if (epoch !== generation) return { status: 'cancelled' }; }
       }
-      const pass = world.canonicalJson(candidate) === world.canonicalJson(original);
+      const pass = world.canonicalJson(candidate) === world.canonicalJson(original) && (!candidateBaseline || world.canonicalJson(candidateBaseline)===world.canonicalJson(recordedBaseline));
       document.body.dataset.replay = pass ? 'pass' : 'fail'; notify(pass ? `Replay matches every state field across ${original.step} fixed steps.` : 'Replay differs from the recorded state.');
       return { status: pass ? 'pass' : 'fail', stepCount: original.step, worldSpecHash: active.contentHash };
     } finally { el('replay').disabled = false; updateUi(); }
@@ -212,7 +239,7 @@
     const url = URL.createObjectURL(new Blob([typeof value === 'string' ? value : JSON.stringify(value, null, 2)], { type: 'application/json' }));
     const link = document.createElement('a'); link.href = url; link.download = name; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-  function exportData() { return { worldSpec: structuredClone(spec), run: program.receipt(spec, state, drawing?.receipt() || null), samples: structuredClone(history) }; }
+  function exportData() { return { worldSpec: structuredClone(spec), run: program.receipt(spec, state, drawing?.receipt() || null), samples: structuredClone(history), matchedComparison:matchedSpec?{schema:'simulatte.solarDriveIntervention.v1',baselineWorldSpec:structuredClone(matchedSpec),baselineRun:program.receipt(matchedSpec,matchedState,null),interventionWorldSpecHash:spec.contentHash,interval:{start:0,end:state.timeS,unit:'s'}}:null }; }
   function importSpec(text) {
     if (typeof text !== 'string' || text.length > 2000000) throw new Error('solar_import_size_invalid');
     const parsed = JSON.parse(text); return apply(program.validate(parsed.worldSpec || parsed), 'Imported WorldSpec; run from its initial state.');
@@ -238,7 +265,7 @@
     if (now - lastUi > 180) { updateUi(); lastUi = now; }
     raf = requestAnimationFrame(loop);
   }
-  buildComponents(); syncControls(); updateUi(); resetCamera();
+  buildComponents(); syncControls(); updateActions(); updateUi(); resetCamera();
   document.querySelectorAll('[data-vehicle]').forEach((button) => on(button, 'click', () => setVehicle(button.dataset.vehicle)));
   document.querySelectorAll('[data-param]').forEach((control) => {
     on(control, 'input', () => { const key = control.dataset.param; if (el(`${key}-value`)) el(`${key}-value`).textContent = formatParam(key, Number(control.value)); });
@@ -314,6 +341,7 @@
   root.SimulatteSolarDrive = Object.freeze({ getSpec: () => structuredClone(spec), getState: () => structuredClone(state),
     getReceipt: () => program.receipt(spec, state, drawing?.receipt() || null), exportData, importSpec,
     setParameters, setVehicle, setView, select, replay, compare,
+    getMatchedState:()=>matchedState?{params:structuredClone(matchedParams),state:structuredClone(matchedState)}:null,
     isViewSettled: () => Math.abs(view.explode - view.targetExplode) < 0.002 && (!cameraGoal ||
       ['yaw', 'pitch', 'distance'].every((key) => Math.abs(camera[key] - cameraGoal[key]) < 0.004)
       && camera.target.every((value, i) => Math.abs(value - cameraGoal.target[i]) < 0.004)),
@@ -321,6 +349,6 @@
   root.SimulatteSolarRenderer.create(canvas, failure).then((renderer) => {
     if (disposed) { renderer.dispose(); return; }
     drawing = renderer; el('gpu-message').hidden = true; el('gpu-status').dataset.state = 'ready';
-    el('gpu-status').innerHTML = '<i></i>WebGPU / live'; el('run').disabled = false; raf = requestAnimationFrame(loop);
+    el('gpu-status').innerHTML = '<i></i>WebGPU / live'; el('run').disabled = false; running=true;updateUi(); raf = requestAnimationFrame(loop);
   }).catch(failure);
 })(globalThis);
