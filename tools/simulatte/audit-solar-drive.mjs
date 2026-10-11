@@ -8,12 +8,12 @@ import { CdpClient } from './browser-harness.mjs';
 import { createStaticSiteServer } from './static-site-server.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const OUT = path.join(ROOT, 'artifacts/solar-drive');
+const OUT = process.env.SIMULATTE_SOLAR_AUDIT_OUT ? path.resolve(process.env.SIMULATTE_SOLAR_AUDIT_OUT) : path.join(ROOT, 'artifacts/solar-drive');
 const sha = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const check = (condition, message) => { if (!condition) throw new Error(message); };
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const profile = await fs.mkdtemp(path.join(os.tmpdir(), 'simulatte-solar-chrome-'));
-const displayRoot = path.join(OUT, 'browser-deps/root');
+const displayRoot = path.join(ROOT, 'artifacts/solar-drive/browser-deps/root');
 const displayBinary = process.env.SIMULATTE_XVFB || (await fs.access('/usr/bin/Xvfb').then(() => '/usr/bin/Xvfb', () => path.join(displayRoot, 'usr/bin/Xvfb')));
 const virtualDisplay = spawn(displayBinary, ['-displayfd', '3', '-screen', '0', '1600x1200x24', '-nolisten', 'tcp', '-ac', '-noreset'], {
   env: { ...process.env, LD_LIBRARY_PATH: path.join(displayRoot, 'usr/lib/x86_64-linux-gnu') + ':' + (process.env.LD_LIBRARY_PATH || '') },
@@ -29,7 +29,12 @@ const displayId = await new Promise((resolve, reject) => {
 });
 const server = createStaticSiteServer({ publicRoot: path.join(ROOT, 'public') });
 await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
-const url = `http://127.0.0.1:${server.address().port}/simulatte/solar-drive/`;
+const url = process.env.SIMULATTE_SOLAR_ORIGIN || `http://127.0.0.1:${server.address().port}/simulatte/solar-drive/`;
+const sourceFiles=['public/shared/core/simulation/solar-drive.js','public/shared/plugins/sun-walker/sun-exposure.js',
+  'public/shared/contracts/world-spec.js','public/shared/contracts/world-spec-authorship.js','public/shared/design/control-components.js','public/shared/design/components.css',
+  'public/simulatte/app/camera-fit.js','public/simulatte/platform/runtime/simulation-clock.js',
+  'public/data/solar-drive/union-square-route-v1.json','public/data/solar-drive/published-ride-reference-v1.json',
+  ...['program.js','geometry.js','shaders.js','scene.js','route.js','route-scene.js','renderer.js','app.js','index.html','solar-drive.css'].map(f=>`public/simulatte/solar-drive/${f}`)];
 const browser = spawn(process.env.SIMULATTE_BROWSER || '/usr/bin/google-chrome', [
   '--no-sandbox', '--disable-dev-shm-usage', '--no-first-run', '--no-default-browser-check',
   '--enable-unsafe-webgpu', '--enable-unsafe-swiftshader', '--use-angle=vulkan',
@@ -41,6 +46,7 @@ browser.stderr.on('data', (data) => { stderr = (stderr + data.toString()).slice(
 const receipt = { schema: 'simulatte.solarDriveBrowserAudit.v1', route: '/simulatte/solar-drive/', status: 'running',
   backendPolicy: 'Headed Chrome on an isolated Xvfb display, with explicit SwiftShader WebGPU; screenshots must pass pixel checks. Not hardware performance evidence.',
   humanVisualReview: 'pending', captures: [], checks: [], sourceHashes: {} };
+receipt.origin=url;receipt.deployedFiles=[];
 async function evaluate(expression) {
   const result = await client.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
   if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text);
@@ -87,6 +93,11 @@ async function capture(name, width, height) {
 }
 try {
   await fs.mkdir(OUT, { recursive: true });
+  for(const file of sourceFiles){const expected=await fs.readFile(path.join(ROOT,file));receipt.sourceHashes[file]=sha(expected);
+    if(process.env.SIMULATTE_SOLAR_ORIGIN){const target=new URL(file.replace(/^public\//,''),new URL('../../',url)),response=await fetch(target);
+      check(response.ok,`Solar hosted asset failed: ${target}`);const bytes=Buffer.from(await response.arrayBuffer());
+      check(sha(bytes)===sha(expected),`Solar hosted bytes differ: ${target}`);receipt.deployedFiles.push({url:target.href,sha256:sha(bytes),bytes:bytes.length});}
+  }
   const deadline = Date.now() + 30000;
   while (!stderr.includes('DevTools listening on') && Date.now() < deadline && browser.exitCode === null) await delay(100);
   const endpoint = stderr.match(/DevTools listening on (ws:\/\/[^\s]+)/)?.[1];
@@ -147,9 +158,7 @@ try {
   }
   const exceptions = client.diagnostics().filter((e) => e.method === 'Runtime.exceptionThrown' || e.method === 'Log.entryAdded' && e.params.entry?.level === 'error');
   check(exceptions.length === 0, JSON.stringify(exceptions));
-  for (const file of ['public/shared/core/simulation/solar-drive.js','public/shared/plugins/sun-walker/sun-exposure.js','public/data/solar-drive/union-square-route-v1.json','public/data/solar-drive/published-ride-reference-v1.json', ...['program.js', 'geometry.js', 'shaders.js', 'scene.js', 'route.js','route-scene.js','renderer.js', 'app.js', 'index.html', 'solar-drive.css'].map((f) => `public/simulatte/solar-drive/${f}`)]) {
-    receipt.sourceHashes[file] = sha(await fs.readFile(path.join(ROOT, file)));
-  }
+  for(const file of sourceFiles)check(sha(await fs.readFile(path.join(ROOT,file)))===receipt.sourceHashes[file],`Solar source changed during audit: ${file}`);
   receipt.status = 'pass';
   process.stdout.write(`Solar drive: desktop/mobile WebGPU, controls, replay, export/reimport, and energy balance passed. ${receipt.captures.length} screenshots in artifacts/solar-drive.\n`);
 } catch (error) {
