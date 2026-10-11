@@ -3,9 +3,9 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteActivityEditor = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function activityEditor() {
-  function connect(documentRoot, { revise }) {
+  function connect(documentRoot, { revise, objectChanges }) {
     const host = documentRoot.getElementById('create-activity-editor');
-    if (!host || typeof revise !== 'function') throw new Error('Activity editor requires a host and revision command');
+    if (!host || typeof revise !== 'function' || typeof objectChanges !== 'function') throw new Error('Activity editor requires a host and revision command');
     let snapshot = null, key = '', selectedId = '', lastSelectedId = '', disposed = false, pending = false;
     const element = (tag, text = '') => { const node = documentRoot.createElement(tag); node.textContent = text; return node; };
     const labelFor = id => snapshot.nodes.find(node => node.id === id)?.label || id;
@@ -53,23 +53,17 @@
         .map(action => `${action.action}${action.hand ? ` · ${action.hand} hand` : ''}`);
       section.append(element('p', roles.join(', ')));
       const form = element('form'); form.className = 'activity-edit-fields'; section.append(form);
-      const isSupport = ['seat', 'support'].includes(object.kind);
-      const x = isSupport ? number(form, 'Position X (m)', object.position[0]) : null;
-      const radius = number(form, 'Radius (m)', object.radius);
-      const seat = object.kind === 'seat' ? number(form, 'Seat height (m)', object.seatHeight) : null;
-      const support = object.kind === 'support' ? number(form, 'Surface height (m)', object.supportHeight) : null;
-      const fill = object.liquidContainer ? number(form, 'Cup fill (%)', object.liquidContainer.fillFraction * 100) : null;
-      if (fill) { fill.min = 0; fill.max = 100; }
-      radius.min = '0';
+      const properties = (object.authoringFields || []).map(descriptor => {
+        const input = number(form, descriptor.label, descriptor.value);
+        if (descriptor.min !== undefined) input.min = descriptor.min;
+        if (descriptor.max !== undefined) input.max = descriptor.max;
+        return { descriptor, input };
+      });
       form.append(button('Apply object changes', null, 'submit'));
       form.addEventListener('submit', event => {
         event.preventDefault();
-        const changes = { radius: Number(radius.value) };
-        if (x) changes.position = [Number(x.value), Number(seat?.value ?? support?.value ?? object.position[1])];
-        if (seat) changes.seatHeight = Number(seat.value);
-        if (support) changes.supportHeight = Number(support.value);
-        if (fill) changes.liquidFillFraction = Number(fill.value) / 100;
-        void apply({ objectId: object.id, changes });
+        const values = Object.fromEntries(properties.map(({ descriptor, input }) => [`${descriptor.key}:${descriptor.axis ?? ''}`, input.value]));
+        void apply({ objectId: object.id, changes: objectChanges(object, values) });
       });
       section.append(button('Remove object', () => void apply({ objectId: object.id, remove: true })));
     }
@@ -79,24 +73,23 @@
       section.append(button('Swap hands', () => void apply({ swapHands: true })));
       for (const action of program.actions) {
         const detail = element('details'); section.append(detail);
-        const participants = [action.objectId, action.supportObjectId].filter(Boolean).map(labelFor).join(' → ');
-        detail.append(element('summary', `${action.startSeconds}–${action.endSeconds}s · ${action.action}${participants ? ` · ${participants}` : ''}${action.hand ? ` · ${action.hand} hand` : ''}`));
+        const participantLabels = [action.objectId, action.supportObjectId].filter(Boolean).map(labelFor).join(' → ');
+        detail.append(element('summary', `${action.startSeconds}–${action.endSeconds}s · ${action.action}${participantLabels ? ` · ${participantLabels}` : ''}${action.hand ? ` · ${action.hand} hand` : ''}`));
         const form = element('form'); form.className = 'activity-edit-fields'; detail.append(form);
-        const hand = action.hand ? select(form, 'Hand', action.hand, [['left', 'Left'], ['right', 'Right']]) : null;
+        const parameters = (action.component.contract?.parameters || []).map(descriptor => ({ descriptor,
+          input: select(form, descriptor.label, action[descriptor.key], descriptor.values.map(value => [value, value])) }));
         const duration = number(form, 'Duration (s)', action.durationSeconds); duration.min = '0.001'; duration.max = 120;
         const after = select(form, 'Start', action.timing.after, [['', 'At the start'],
           ...program.actions.filter(row => row.id !== action.id).map(row => [row.id, `After ${row.action}${row.objectId ? ` · ${labelFor(row.objectId)}` : ''}`])]);
-        const object = action.objectId ? select(form, 'Uses object', action.objectId,
-          program.objects.map(row => [row.id, labelFor(row.id)])) : null;
-        const support = action.supportObjectId ? select(form, 'Place on', action.supportObjectId,
-          program.objects.map(row => [row.id, labelFor(row.id)])) : null;
+        const participants = (action.component.contract?.participants || []).filter(role => role.editable).map(role => ({ role,
+          input: select(form, role.label, action[role.slot], program.objects.filter(object =>
+            role.capabilities.every(capability => object.capabilities.includes(capability))).map(object => [object.id, labelFor(object.id)])) }));
         form.append(button('Apply action changes', null, 'submit'));
         form.addEventListener('submit', event => {
           event.preventDefault();
           const changes = { afterActionId: after.value || null, durationSeconds: Number(duration.value) };
-          if (hand) changes.hand = hand.value;
-          if (object) changes.objectId = object.value;
-          if (support) changes.supportObjectId = support.value;
+          for (const { descriptor, input } of parameters) changes[descriptor.key] = input.value;
+          for (const { role, input } of participants) changes[role.slot] = input.value;
           void apply({ actionId: action.id, changes });
         });
       }

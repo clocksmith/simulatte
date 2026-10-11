@@ -49,6 +49,7 @@
     view.SimulatteCreateSession = session;
     const activityEditor = view.SimulatteActivityEditor.connect(documentRoot, {
       revise: revision => session.invoke('revise-activity', revision),
+      objectChanges: view.SimulattePhysicsModel.activityObjectRevisionChanges,
     });
     const listeners = [];
     const on = (node, event, handler) => { node.addEventListener(event, handler); listeners.push(() => node.removeEventListener(event, handler)); };

@@ -7,7 +7,10 @@
   async function createAuthoredPhaseResources(inputSpec, configuration = { deterministicRuntime: true }, { recompile = false } = {}) {
     const contracts = scope.phaseContracts;
     const spec = contracts.immutableArtifact(inputSpec);
-    const options = contracts.immutableArtifact(configuration);
+    const inventory = spec.phaseArtifacts?.phase1?.artifact?.runtimeContext?.activityCapabilities;
+    const library = inventory?.componentLibrary ? { ...inventory.componentLibrary,
+      components: inventory.components.filter(component => !scope.activityCapabilityInventory().components.some(base => base.id === component.id)) } : null;
+    const options = contracts.immutableArtifact({ ...configuration, ...(library ? { activityComponentLibrary: library } : {}) });
     scope.worldSpec.validateWorldSpec(spec);
     scope.worldSpec.compilerBaselineContentHash(spec);
     if (!recompile) {

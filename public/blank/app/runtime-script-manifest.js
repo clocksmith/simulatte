@@ -217,10 +217,12 @@
   const physicsModel = group(
     'pipeline/phase-05-simulation/simulatte-physics-model-dependencies.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-contracts.js',
+    'pipeline/phase-01-runtime/simulatte-activity-contracts.js',
     'pipeline/phase-01-runtime/simulatte-activity-capabilities.js',
     'pipeline/phase-02-language/simulatte-activity-language.js',
     'pipeline/phase-03-retrieval/simulatte-activity-retrieval.js',
     'pipeline/phase-04-grounded-intent/simulatte-activity-grounding.js',
+    'pipeline/phase-05-simulation/simulatte-activity-composition.js',
     'pipeline/phase-05-simulation/simulatte-activity-program.js',
     'pipeline/phase-05-simulation/simulatte-activity-liquid.js',
     'pipeline/phase-05-simulation/simulatte-activity-dynamics.js',

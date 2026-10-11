@@ -1,11 +1,60 @@
-# Create activity programs
+# Create interaction composition
 
 Create now carries a versioned `activityProgram` inside its existing WorldSpec.
-Version 3 composes planar procedural walking, sitting, standing, holding, drinking and placing through
-declared joint channels, constrained-body reactions and conservative liquid state.
+The composition system consumes reusable contracts rather than recognizing complete scenes.
+Version 3 currently executes those contracts through six qualified planar procedural
+providers: walking, sitting, standing, holding, drinking and placing. Providers own
+joint trajectories, constrained-body reactions and conservative liquid state.
 Versions 1 and 2 remain executable through their original trajectories and declared numerical policies. Existing
 user `InteractionIR` remains responsible for selection, dragging, and controls.
 No COSMI model, diffusion inference, SMPL-X assets, or new world format is used.
+
+Each `simulatte.interactionContract.v1` declares participant slots and required
+capabilities, resource ownership, compatible shared requirements, entry conditions,
+exit relationship effects, and editable parameters. Phase 1 validates the component
+against its qualified provider. Language forms come from that admitted inventory;
+Phase 4 binds resources and checks overlap without a named-action exception.
+Phase 5 evaluates temporal facts such as hand occupancy, object ownership, posture
+and support. Facts persist between components, and acquisition requires release
+from the previous owner. Scene Proof independently derives relationships from
+executed participant state and checks the declared effects.
+
+An identified library can extend the inventory through
+`createSpecFromPrompt(prompt, { activityComponentLibrary: library })`. For example:
+
+```js
+const inventory = SimulattePhysicsModel.activityCapabilityInventory();
+const steady = structuredClone(inventory.components.find(row => row.id === 'hold'));
+steady.id = 'steady';
+steady.languageForms = ['steady', 'steadies', 'steadying'];
+steady.contract.requirements = [
+  { key: '{actorId}:attention', value: 'object:{objectId}' },
+];
+const library = {
+  schema: 'simulatte.activityComponentLibrary.v1',
+  id: 'attentive-grip.v1',
+  components: [steady],
+};
+const spec = SimulattePhysicsModel.createSpecFromPrompt(
+  'a person steadies a book in the left hand while walking',
+  { deterministicRuntime: true, activityComponentLibrary: library },
+);
+```
+
+This declaration composes the existing grip provider with a shared attention
+requirement. It does not create a new trajectory or claim a cognitive model.
+Different simultaneous attention targets can be refused even when hands are free.
+Provider-required participants, capabilities, channels, entry conditions and
+observable effects remain mandatory. Language forms must be unambiguous.
+The library is retained in compiler configuration and phase artifacts, so worker
+compilation, authored revisions, export and reimport use the same declarations.
+
+To add a genuinely different motion or consequence model, qualify its execution
+implementation and observations before admitting it as a provider. Current library
+extensions reuse available providers; they cannot invent teleportation, arbitrary
+articulated behavior, or three-dimensional rigs. Object profiles remain bounded
+language interpretation defaults. Explicit capability declarations can qualify
+unfamiliar object identities, but their geometry must still satisfy the provider.
 
 The fixed eight phases retain their authority:
 
@@ -27,9 +76,10 @@ an explicit rule. Conflicting simultaneous actions are refused together instead
 of being silently reordered. Default height, duration, hand, and object dimensions
 are recorded as assumptions; accepted node parameter edits recompile them.
 
-The Activity panel exposes the accepted action timeline, object roles, seat and
-surface geometry, container fill, hand selection, duration, and temporal
-predecessors. Swap hands revises all hand actions together, including placement.
+The Activity panel derives object fields from capability metadata, participant
+choices from capability requirements, and action controls from declared parameters.
+The current inventory supplies geometry, container fill, hand selection, duration
+and temporal predecessor edits. Swap hands revises all hand actions together.
 These controls author node parameters through the existing append-only WorldSpec
 edit path. `params.activityOverrides` on the actor maps stable action IDs to
 `hand`, `durationSeconds`, `afterActionId`, `objectId`, and `supportObjectId`.
@@ -164,4 +214,15 @@ Owners: `simulatte-activity-program.js`, `simulatte-activity-dynamics.js`,
 `simulatte-activity-dynamics-proof.js` in Phase 8. Capability profiles live in
 Phase 1; source-bound revision grounding lives in Phase 4. The application
 coordinates revisions through `activity-editor.js` and the existing managed
-WorldSpec compilation path.
+WorldSpec compilation path. Generic binding and compatibility live in
+`simulatte-activity-contracts.js`; temporal relationships and capability-derived
+authoring metadata live in `simulatte-activity-composition.js`.
+
+`tests/activity-composition.test.cjs` covers library extension, object and actor
+capabilities, shared requirements, resource-sharing limits, persistent ownership,
+observed relationship failures and retained compiler identity. Run
+`node tools/audit-activity-composition.mjs` for local desktop and emulated mobile
+WebGPU execution: two composition families, declared extension, hand and geometry
+edits, eight phases, sequence/pixel checks and exact-identity reimport. Its report
+under `artifacts/activity-composition/` binds the runtime source hashes. This is
+browser evidence, not deployment or unfamiliar-user observation.

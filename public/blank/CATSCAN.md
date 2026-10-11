@@ -25,11 +25,13 @@ Provide the workbench's optional brief compiler with inspectable phase artifacts
 
 - The phase order remains fixed.
 - Unsupported intent is surfaced instead of replaced with plausible pixels.
+- Interaction contracts compose entities, relationships and behavior; example scenes do not define compiler or editor authority.
 
 ## Acceptance
 
 - A prompt reaches phase proof through the declared runtime entrypoint.
 - Evidence: [physical compiler suite](../../tests/physical-compiler-render-proof.test.cjs).
+- Evidence: [interaction composition suite](../../tests/activity-composition.test.cjs).
 
 ## Non-goals
 

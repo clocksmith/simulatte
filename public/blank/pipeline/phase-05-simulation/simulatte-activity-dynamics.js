@@ -97,7 +97,7 @@
         const acceleration = scale(sub(object.velocity, before.velocity), 1 / dt);
         let outflow = zero(), angularOutflow = 0, consumed = 0;
         if (before.liquid) {
-          const action = program.actions.find(a => a.action === 'drink' && a.objectId === object.id && time >= a.startSeconds && time <= a.endSeconds);
+          const action = program.actions.find(a => scope.activityPrimitive(a) === 'drink' && a.objectId === object.id && time >= a.startSeconds && time <= a.endSeconds);
           const actor = action && frame.actors[action.actorId];
           const mouth = actor ? [actor.joints.head[0] + (action.hand === 'left' ? -1 : 1) * actor.height * p.mouthHorizontalHeightFraction,
             actor.joints.head[1] + actor.height * p.mouthVerticalHeightFraction] : null;

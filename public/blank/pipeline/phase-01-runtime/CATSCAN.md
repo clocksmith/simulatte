@@ -22,6 +22,7 @@ Prove required models, indexes, caches, schemas, and providers before compilatio
 ## Invariants
 
 - Declares procedural activities, planar rigs, force/liquid policies, units, limits and provenance without selecting actions. Requested unavailable motion providers fail closed; COSMI needs released and qualified artifacts.
+- Admits identified interaction libraries with declared language forms, participants, capabilities, resources, shared requirements, relationships and editable parameters. Extensions cannot weaken their qualified provider's obligations or claim new executable motion.
 
 - Missing required ML evidence blocks readiness.
 - Cache readiness never substitutes for provider readiness.
@@ -39,4 +40,3 @@ Prove required models, indexes, caches, schemas, and providers before compilatio
 
 Any implementation is permitted if it preserves these boundaries and passes the
 acceptance evidence.
-

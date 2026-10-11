@@ -26,7 +26,7 @@
       const node = nodes.find(row => row.id === id);
       const height = node?.params?.height ?? 1.7;
       if (!Number.isFinite(height) || height < 0.8 || height > 2.4) throw new Error('Unsupported actor height');
-      return { id, height, skeletonId: graph.capabilities.skeleton.id, origin: [i * 2.5, 0],
+      return { id, height, skeletonId: graph.capabilities.skeleton.id, capabilities: [graph.capabilities.skeleton.id], origin: [i * 2.5, 0],
         ...(policy ? { massKg: node?.params?.massKg ?? policy.defaultActorMassKg } : {}),
         units: 'm', frame: 'world', provenance: node.provenance || { spanId: node.spanId } };
     });
@@ -36,22 +36,22 @@
       const qualified = scope.resolveActivityObjectCapabilities(node, graph.capabilities);
       const { kind, capabilities, provenance } = qualified;
       const radius = node.params?.radius ?? (kind === 'seat' ? 0.25 : kind === 'support' ? 0.35 : kind === 'cup' ? 0.045 : 0.035);
-      const containsLiquid = actions.some(row => row.action === 'drink' && row.objectId === id);
+      const containsLiquid = actions.some(row => scope.activityPrimitive(row) === 'drink' && row.objectId === id);
       const first = actions.find(row => row.objectId === id || row.supportObjectId===id), actor = actors.find(row => row.id === first?.actorId);
-      const walkTime = actions.filter(row => row.actorId === actor?.id && row.action === 'walk' && row.startSeconds < first.startSeconds)
+      const walkTime = actions.filter(row => row.actorId === actor?.id && scope.activityPrimitive(row) === 'walk' && row.startSeconds < first.startSeconds)
         .reduce((s, row) => s + Math.min(row.endSeconds, first.startSeconds) - row.startSeconds, 0);
-      const priorSeat=actions.filter(row=>row.actorId===actor?.id&&row.action==='sit'&&row.startSeconds<first.startSeconds).at(-1);
+      const priorSeat=actions.filter(row=>row.actorId===actor?.id&&scope.activityPrimitive(row)==='sit'&&row.startSeconds<first.startSeconds).at(-1);
       const priorSeatNode=nodes.find(row=>row.id===priorSeat?.objectId);
       const seatX = action => {
         const seatNode = nodes.find(row => row.id === action?.objectId);
         if (!seatNode) return actor.origin[0] + actor.height * 0.2 * walkTime;
-        const walked = actions.filter(row => row.actorId === actor.id && row.action === 'walk' && row.startSeconds < action.startSeconds)
+        const walked = actions.filter(row => row.actorId === actor.id && scope.activityPrimitive(row) === 'walk' && row.startSeconds < action.startSeconds)
           .reduce((sum, row) => sum + Math.min(row.endSeconds, action.startSeconds) - row.startSeconds, 0);
         return seatNode.params?.position?.[0] ?? (action.startSeconds > 0 ? actor.origin[0] + actor.height * 0.2 * walked : 0.5 + objectIds.indexOf(seatNode.id) * 0.3);
       };
       const pendingPosition = policy && first?.hand && first.startSeconds > 0
         ? [seatX(priorSeat)+actor.height*(first.hand==='left'?-0.29:0.29), (priorSeat ? priorSeatNode.params?.seatHeight??0.45 : actor.height*0.5)+actor.height*0.05] : null;
-      const seated=actions.filter(row=>row.actorId===actor?.id&&row.action==='sit'&&row.startSeconds<first.startSeconds).at(-1);
+      const seated=actions.filter(row=>row.actorId===actor?.id&&scope.activityPrimitive(row)==='sit'&&row.startSeconds<first.startSeconds).at(-1);
       const supportHeight=node.params?.supportHeight ?? 0.75;
       const supportPosition=kind==='support' ? [seatX(seated)+(first.hand==='left'?-1:1)*actor.height*0.29,supportHeight] : null;
       const seatPosition=kind==='seat'&&first.startSeconds>0 ? [actor.origin[0]+actor.height*0.2*walkTime,node.params?.seatHeight??0.45] : null;
@@ -66,31 +66,14 @@
         radius,
         seatHeight: node.params?.seatHeight ?? 0.45, units: 'm', frame: 'world' };
     });
-    const accepted = [];
-    for (const action of actions) {
-      const object = objects.find(row => row.id === action.objectId);
-      const previous = accepted.filter(row => row.status === 'accepted' && row.actorId === action.actorId &&
-        row.endSeconds <= action.startSeconds && row.writes.some(channel => action.writes.includes(channel))).at(-1);
-      const node = nodes.find(row => row.id === action.objectId);
-      const repeatedReference = previous?.objectId !== action.objectId && object &&
-        action.sourceEvidence.text.toLowerCase().includes(`the ${String(node?.label || '').toLowerCase()}`) &&
-        objects.find(row => row.id === previous?.objectId)?.kind === object.kind;
-      const reason = action.timing.after && !accepted.some(row => row.id === action.timing.after) ? 'temporal predecessor is unresolved' :
-        action.action === 'sit' && !object?.capabilities.includes('seat-support') ? 'object has no qualified seat support' :
-        ['hold', 'drink', 'place'].includes(action.action) && !object?.capabilities.includes('graspable-object') ? 'object has no qualified graspable capability' :
-        action.action === 'drink' && !object?.capabilities.includes('liquid-container') ? 'object has no liquid-container affordance' :
-          action.action === 'place' && (!objects.some(row=>row.id===action.supportObjectId&&row.capabilities.includes('support-surface')) || !previous || previous.objectId!==action.objectId || previous.hand!==action.hand) ? 'placement requires ownership and a qualified support surface' :
-          repeatedReference ? 'repeated object reference lacks a committed identity binding' :
-          previous && action.action==='walk' && previous.action==='sit' ? 'walking from a seat requires an explicit stand transition' :
-          previous?.hand && previous.action!=='place' && previous.objectId !== action.objectId ? 'hand transition requires an explicit qualified release' : null;
-      if (reason) unsupported.push({ id: action.id, reason, evidence: action.sourceEvidence });
-      else accepted.push(action);
-    }
-    const program = { schema: policy ? 'simulatte.activityProgram.v3' : 'simulatte.activityProgram.v1', version: policy ? 3 : 1, actors, objects, identityBindings:acceptedGraph.activityIdentityBindings||[],
+    const composition = scope.compileActivityRelationships(actions, [...actors, ...objects], unsupported);
+    const accepted = composition.actions;
+    for (const object of objects) object.authoringFields = scope.activityObjectAuthoringFields(object, graph.capabilities);
+    const program = { schema: policy ? 'simulatte.activityProgram.v3' : 'simulatte.activityProgram.v1', version: policy ? 3 : 1, actors, objects, relationships: composition.relationships, identityBindings:acceptedGraph.activityIdentityBindings||[],
       actions: accepted.map(action => ({ ...action,
-        ...(action.action==='place'?{releaseSeconds:action.startSeconds+action.durationSeconds*0.8}:{}),
+        ...(scope.activityPrimitive(action)==='place'?{releaseSeconds:action.startSeconds+action.durationSeconds*0.8}:{}),
         joints: action.hand ? [`${action.hand}-shoulder`, `${action.hand}-elbow`, `${action.hand}-hand`] : ['pelvis', 'left-foot', 'right-foot'],
-        anchors: action.action === 'sit' ? ['pelvis', 'seat'] : action.hand ? [`${action.hand}-hand`, 'grip'] : ['left-foot', 'right-foot'],
+        anchors: scope.activityPrimitive(action) === 'sit' ? ['pelvis', 'seat'] : action.hand ? [`${action.hand}-hand`, 'grip'] : ['left-foot', 'right-foot'],
         startCondition: action.timing.after ? `complete:${action.timing.after}` : 'simulation-start',
         completionCondition: action.component.completion, cancellation: action.component.cancellation,
       })), unsupported, assumptions: [...graph.assumptions, { id: 'geometry-defaults',
@@ -110,7 +93,7 @@
     const requirements = program.unsupported.slice();
     for (const action of program.actions) {
       const object = program.objects.find(row => row.id === action.objectId);
-      if (action.action === 'drink' && !(object?.liquidContainer?.fillFraction > 0)) {
+      if (scope.activityPrimitive(action) === 'drink' && !(object?.liquidContainer?.fillFraction > 0)) {
         requirements.push({ id: action.id, reason: 'drinking requires liquid in the selected container' });
       }
       // This checks the prescribed path. Force, liquid, and drawing proof remain independent.
@@ -188,6 +171,10 @@
       ids.add(object.id);
     }
     for (const action of program.actions) {
+      if (action.component?.contract) {
+        scope.qualifyActivityComponent(action.component);
+        if (action.action !== action.component.id) throw new Error('Activity component identity mismatch');
+      }
       if (ids.has(action.id)) throw new Error('Duplicate activity action identity');
       ids.add(action.id);
       if (!program.actors.some(row => row.id === action.actorId) ||
@@ -195,9 +182,9 @@
           !Number.isFinite(action.startSeconds) || !Number.isFinite(action.endSeconds) ||
           action.startSeconds < 0 || action.endSeconds <= action.startSeconds || action.endSeconds > program.limits.maxDurationSeconds ||
           !Number.isFinite(action.durationSeconds) || Math.abs(action.durationSeconds - (action.endSeconds - action.startSeconds)) > 1e-9 ||
-          !['walk', 'sit', 'stand', 'hold', 'drink', 'place'].includes(action.action) ||
+          !['walk', 'sit', 'stand', 'hold', 'drink', 'place'].includes(scope.activityPrimitive(action)) ||
           action.hand && !['left', 'right'].includes(action.hand) ||
-          action.action==='place'&&(program.version<3||!program.objects.some(row=>row.id===action.supportObjectId&&row.kind==='support')||action.releaseSeconds!==action.startSeconds+action.durationSeconds*0.8)) throw new Error('Invalid activity action');
+          scope.activityPrimitive(action)==='place'&&(program.version<3||!program.objects.some(row=>row.id===action.supportObjectId&&row.kind==='support')||action.releaseSeconds!==action.startSeconds+action.durationSeconds*0.8)) throw new Error('Invalid activity action');
     }
     if(deeplyImmutable(program))validatedPrograms.add(program);
     return program;

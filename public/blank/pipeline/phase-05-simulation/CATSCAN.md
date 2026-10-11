@@ -3,12 +3,12 @@
 Parent: [Create compiler pipeline](../CATSCAN.md)
 ## Target
 
-Lower grounded intent into executable physics, solver, state, control, and render-addressable artifacts.
+Lower grounded intent into executable physics, state, controls, and render-addressable artifacts.
 
 ## Authority
 
-- Owns PhysicsIR, solver graph, renderIR, channels, controls, and readouts.
-- Does not own visual composition or GPU drawing.
+- Owns PhysicsIR, solvers, renderIR, channels, controls, and readouts.
+- Does not own visual composition or drawing.
 
 ## Scope
 
@@ -26,16 +26,17 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 
 ## Invariants
 
-- Activities remain separate from user InteractionIR. Version 3 adds support and placement/release transitions. Driven-body reactions and conservative liquid remain bounded. Legacy trajectories/policies persist. Active mutations reject; kinematics cannot qualify forces/liquids.
-- Completed activities settle idle manipulation-only worlds; independent solvers and new forces continue execution.
+- Activities exclude InteractionIR. Support/release transitions, reactions and liquid remain bounded. Legacy policies persist. Active mutations reject; kinematics cannot qualify forces/liquids.
+- Completed activities settle idle manipulation-only worlds; independent solvers and forces continue execution.
+- Composition consumes capability roles and relationships. Ownership persists until release. Qualified providers own motion/consequences; component identity survives dispatch, edits and replay.
 
-- Solver support cannot invent intent.
+- Solvers cannot invent intent.
 - Render rows retain source evidence.
-- Directed motion binds subject and target state channels using bounded planar steering, without cognition or collision physics.
-- Solver receipts identify execution and reject missing/nonfinite state.
+- Directed motion binds subject/target channels through bounded planar steering without cognition or collision physics.
+- Solver receipts identify execution; missing/nonfinite state rejects.
 - Create owns WorldSpec determinism, dependency, and safety defaults; shared validators cannot invent them.
-- Authored edits requalify runtime and recompile accepted sources; compatibility excludes stale bindings.
-- WorldSpec preserves authoring, channels, visuals and Phase 6 bindings; contradictions reject. Snapshots bind exact WorldSpec/Phase 6.
+- Edits requalify runtime and recompile accepted sources; compatibility excludes stale bindings.
+- WorldSpec preserves authoring, channels, visuals and bindings; contradictions reject. Snapshots bind WorldSpec/Phase 6.
 - Reproducibility compares two fresh fixed-step runs with typed receipts.
 - Commands retain program identity and recomputable transitions; no-ops prove nothing.
 - Safety runs at every fixed-step checkpoint in two fresh executions; missing, blocking, or divergent decisions reject.
@@ -45,6 +46,7 @@ Lower grounded intent into executable physics, solver, state, control, and rende
 - Evidence: [simulation compiler tests](../../../../tests/physical-compiler-simulation-visual.test.cjs).
 - Evidence: [WorldSpec replay tests](../../../../tests/world-spec.test.cjs).
 - Evidence: [WorldSpec projection tests](../../../../tests/world-spec-phase-projection.test.cjs).
+- Evidence: [interaction composition tests](../../../../tests/activity-composition.test.cjs).
 
 ## Non-goals
 

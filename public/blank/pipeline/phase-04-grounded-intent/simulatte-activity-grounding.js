@@ -1,6 +1,7 @@
 (function registerActivityGrounding(root) {
   const registry = typeof module === 'object' && module.exports
     ? require('../../app/runtime/phase-module-registry.js') : root.SimulattePhaseModuleRegistry;
+  const scope = registry.family('physicsModel');
   function bindActivityParticipantIdentities(retrieval, graph) {
     if(!retrieval||!graph)return;
     const bindings=[];
@@ -127,11 +128,14 @@
       const resolved = schedule(request.id);
       const start = resolved?.start;
       const duration = resolved?.duration;
-      const hand = ['hold', 'drink', 'place'].includes(request.action) ? request.hand ?? 'right' : null;
+      const parameter = row.component?.contract?.parameters.find(field => field.key === 'hand');
+      const hand = parameter ? request.hand ?? parameter.default : null;
+      const participants = { actorId: actor?.id, objectId: object?.id, supportObjectId: support?.id };
+      const missing = row.component?.contract?.participants.find(role => !participants[role.slot]);
       const reason = row.rejection || (!row.component ? 'missing activity component' :
-        !actor ? 'missing supported actor' : !['walk','stand'].includes(request.action) && !object ? 'missing supported object' : request.action==='place'&&!support ? 'missing supported placement surface' :
+        !actor ? 'missing supported actor' : missing ? `missing supported ${missing.slot === 'supportObjectId' ? 'placement surface' : 'object'}` :
           (actor.cardinality || 1) !== 1 || object && (object.cardinality || 1) !== 1 ? 'activity requires individually identified participants; exact count is retained as unsupported' :
-          hand && !['left', 'right'].includes(hand) ? 'unsupported hand' :
+          hand && !parameter.values.includes(hand) ? 'unsupported hand' :
           start == null ? 'missing temporal predecessor, invalid duration, or cyclic action order' :
             duration <= 0 || start + duration > retrieval.capabilities.limits.maxDurationSeconds ? 'unsupported duration' : null);
       if (reason) { unsupported.push({ id: request.id, reason, evidence: request.evidence }); continue; }
@@ -140,23 +144,23 @@
       const action = { ...request, actorId: actor.id, objectId: object?.id || null, supportObjectId:support?.id||null, hand,
         startSeconds: start, endSeconds: start + duration, durationSeconds: duration,
         component: row.component, sourceEvidence: request.evidence,
-        reads: row.component.reads, writes: row.component.writes.map(channel => `${actor.id}:${channel === 'hand' ? hand + '-hand' : channel}`),
+        reads: row.component.reads,
         status: 'accepted' };
+      const binding = scope.bindActivityResources(action);
+      action.resources = binding.resources; action.requirements = binding.requirements;
+      action.writes = action.resources.filter(row => row.kind === 'channel').map(row => row.key);
       actions.push(action);
     }
     for (let i = 0; i < actions.length; i++) for (let j = i + 1; j < actions.length; j++) {
       const a = actions[i], b = actions[j];
       if (Math.max(a.startSeconds, b.startSeconds) >= Math.min(a.endSeconds, b.endSeconds)) continue;
-      const shared = a.writes.filter(channel => b.writes.includes(channel));
-      const sameObject = a.objectId && a.objectId === b.objectId && ['hold', 'drink'].includes(a.action) && ['hold', 'drink'].includes(b.action);
-      const holdDrink = sameObject && a.hand === b.hand && a.actorId === b.actorId && a.action !== b.action;
-      if (holdDrink) { a.compositionRule = b.compositionRule = 'drink-controls-shared-hold'; continue; }
-      const ownershipConflict = a.objectId && a.objectId === b.objectId && ['hold', 'drink', 'place'].includes(a.action) && ['hold', 'drink', 'place'].includes(b.action);
-      if (!shared.length && !ownershipConflict) continue;
+      const conflict = scope.activityCompositionConflict(a, b);
+      if (!conflict) continue;
+      if (conflict.sharing) { a.compositionRule = b.compositionRule = conflict.sharing; continue; }
       for (const action of [a, b]) {
         action.status = 'unsupported';
-        unsupported.push({ id: action.id, reason: ownershipConflict ? 'conflicting object ownership' : 'conflicting channel writers',
-          conflictingActionIds: [a.id, b.id], channels: shared, evidence: action.sourceEvidence });
+        unsupported.push({ id: action.id, reason: conflict.reason, conflictingActionIds: [a.id, b.id],
+          channels: conflict.resources, requirements: conflict.requirements, evidence: action.sourceEvidence });
       }
     }
     if (actions.length > retrieval.capabilities.limits.maxActions) throw new Error('Activity action bound exceeded');

@@ -25,7 +25,7 @@
     }]));
     const violations = [], actionStates = {};
     for (const actor of program.actors) {
-      const h = actor.height, active = program.actions.filter(row => row.actorId === actor.id && time >= row.startSeconds);
+      const h = actor.height, active = program.actions.filter(row => row.actorId === actor.id && time >= row.startSeconds).map(scope.activityMotionAction);
       const rootActions=active.filter(row=>['walk','sit','stand'].includes(row.action));
       const rootPoseCache=new Map();
       function rootPose(at,limit=rootActions.length){
@@ -121,7 +121,7 @@
     }]));
     const violations = [], actionStates = {};
     for (const actor of program.actors) {
-      const h = actor.height, active = program.actions.filter(row => row.actorId === actor.id && time >= row.startSeconds);
+      const h = actor.height, active = program.actions.filter(row => row.actorId === actor.id && time >= row.startSeconds).map(scope.activityMotionAction);
       const walks = active.filter(row => row.action === 'walk');
       const walk = walks.at(-1), sit = active.find(row => row.action === 'sit');
       const walkTime = walks.reduce((sum, row) => sum + (program.dynamics

@@ -473,6 +473,7 @@
           schema: 'simulatte.worldSpecCompilerConfig.v1',
           deterministicRuntime,
           compilerLane: overrides.compilerLane || '',
+          activityComponentLibrary: overrides.activityComponentLibrary || null,
           simulationProof: overrides.simulationProof && typeof overrides.simulationProof === 'object'
             ? overrides.simulationProof
             : deterministicRuntime ? DEFAULT_SIMULATION_PROOF_POLICY : null,

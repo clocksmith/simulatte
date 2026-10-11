@@ -12,7 +12,7 @@ Produce the accepted semantic world graph with assumptions, refusals, and proven
 
 ## Scope
 
-- Applies to Phase 4 grounding and graph synthesis code.
+- Grounding and graph synthesis.
 
 ## Contracts
 
@@ -28,6 +28,7 @@ Produce the accepted semantic world graph with assumptions, refusals, and proven
 ## Invariants
 
 - Activity graphs bind participants and timing; writer/ownership conflicts refuse without serializing simultaneity.
+- Declared resource sharing cannot waive unrelated resource or shared-requirement conflicts.
 
 - Every accepted node has provenance.
 - WorldSpec authoring fields normalize before publication; controls require declared finite parameters within their bounds.
@@ -36,10 +37,10 @@ Produce the accepted semantic world graph with assumptions, refusals, and proven
 - Unresolved prompt nodes remain editable requirements; they do not acquire executable causal edges from rule or label matches.
 - User overrides replace the accepted graph only through explicit patch provenance.
 - Removing an accepted node also reconciles its dependent relations and execution obligations.
-- Every Phase 2 critical requirement remains accepted, explicitly refused, unresolved, or lost.
+- Phase 2 critical requirements remain accepted, refused, unresolved, or lost.
 - User-edited semantic fields bind append-only patch IDs instead of retaining false prompt authority.
 - Public authoring history remains an explicit projection beside the effective execution graph; replay preserves both.
-- Grounding evidence, unsupported rows, and unresolved rows remain compiler-owned when a user edits executable intent.
+- Grounding evidence and unsupported/unresolved rows remain compiler-owned through edits.
 
 ## Acceptance
 

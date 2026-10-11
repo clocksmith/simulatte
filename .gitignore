@@ -10,6 +10,7 @@ artifacts/profile-evidence-review/
 artifacts/folder-contract/
 artifacts/activity-program/
 artifacts/activity-revisions/
+artifacts/activity-composition/
 artifacts/samer-gold-*/
 tools/autonomy/data-sources/*/osm-api-tiles/
 tools/autonomy/data-sources/*/street-tiles/

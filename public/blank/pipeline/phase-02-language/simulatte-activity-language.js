@@ -1,14 +1,12 @@
 (function registerActivityLanguage(root) {
   const registry = typeof module === 'object' && module.exports
     ? require('../../app/runtime/phase-module-registry.js') : root.SimulattePhaseModuleRegistry;
-  const VERBS = { stand:'stand', stands:'stand', standing:'stand', walk: 'walk', walks: 'walk', walking: 'walk', sit: 'sit', sits: 'sit', sitting: 'sit',
-    hold: 'hold', holds: 'hold', holding: 'hold', carry: 'hold', carries: 'hold', carrying: 'hold',
-    drink: 'drink', drinks: 'drink', drinking: 'drink', place: 'place', places: 'place', placing: 'place' };
   function extractActivityLanguage(graph, capabilities) {
     const text = graph.sourceText;
-    const spans = graph.spans.map(row=>VERBS[row.text.toLowerCase()]&&/^stand/.test(row.text.toLowerCase()) ? {...row,kind:'process',semanticRole:null} : row);
+    const components = new Map(capabilities.components.flatMap(component => component.languageForms.map(form => [form, component])));
+    const spans = graph.spans.map(row => components.has(row.text.toLowerCase()) ? { ...row, kind: 'process', semanticRole: null } : row);
     const actors = spans.filter(row => row.semanticRole === 'agent' && row.visualArchetype === 'person');
-    const verbs = spans.filter(row => row.kind === 'process' && VERBS[row.text.toLowerCase()]);
+    const verbs = spans.filter(row => row.kind === 'process' && components.has(row.text.toLowerCase()));
     if (!actors.length || !verbs.length) return graph;
     const handSpans = new Set();
     const requests = [];
@@ -26,10 +24,10 @@
         const start = verb.end + hand.index, stop = start + hand[0].length;
         for (const span of spans) if (span.start >= start && span.end <= stop) handSpans.add(span.id);
       }
-      const action = VERBS[verb.text.toLowerCase()];
-      const object = ['walk','stand'].includes(action) ? null : spans.find(row => row.start >= verb.end && row.end <= end &&
+      const component = components.get(verb.text.toLowerCase()), action = component.id;
+      const object = !component.contract.participants.some(row => row.slot === 'objectId') ? null : spans.find(row => row.start >= verb.end && row.end <= end &&
         ['entity', 'term'].includes(row.kind) && !handSpans.has(row.id));
-      const support = action === 'place' ? spans.find(row => row.start >= (object?.end ?? end) && row.end <= end &&
+      const support = component.contract.participants.some(row => row.slot === 'supportObjectId') ? spans.find(row => row.start >= (object?.end ?? end) && row.end <= end &&
         ['entity', 'term'].includes(row.kind) && !handSpans.has(row.id) && /\b(?:on|onto)\b/i.test(text.slice(object.end, row.start))) : null;
       const definiteReference = object && /\bthe\s+$/i.test(text.slice(verb.end,object.start));
       const between = previous ? text.slice(previous.end, verb.start) : '';

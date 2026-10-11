@@ -34,6 +34,7 @@ Present editable ideas, Run, a separate preview, and optional inspection tools.
 - Workers reject undeclared resources; cancellation and failure cannot publish or poison replacements.
 - Authored replay admits phase sources; exchange preserves them without stale proof.
 - Edits record user authority; recompilation requires preserve or supersede decisions.
+- Activity forms consume declared properties, roles and parameters.
 - Compiler determinism compares independent compilation with the pre-edit baseline.
 - Exact replay compares a second bound execution under one identity.
 - Runs bind fixed-step simulation and safety comparisons before replay passes.
@@ -43,7 +44,7 @@ Present editable ideas, Run, a separate preview, and optional inspection tools.
 
 ## Acceptance
 
-- Evidence: [product UX browser audit](../../../tools/audit-product-ux.mjs) covers responsive authoring, execution, controls, and inspection.
+- Evidence: [product UX browser audit](../../../tools/audit-product-ux.mjs).
 
 - Evidence: [worker tests](../../../tests/pipeline-worker-phases.test.cjs).
 - Evidence: [WorldSpec editor tests](../../../tests/world-spec.test.cjs).

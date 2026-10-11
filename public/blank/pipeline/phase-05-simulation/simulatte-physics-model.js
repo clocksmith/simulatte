@@ -2,10 +2,12 @@
   if (typeof module === 'object' && module.exports) {
     require('./simulatte-physics-model-dependencies.js');
     require('./simulatte-physics-model-contracts.js');
+    require('../phase-01-runtime/simulatte-activity-contracts.js');
     require('../phase-01-runtime/simulatte-activity-capabilities.js');
     require('../phase-02-language/simulatte-activity-language.js');
     require('../phase-03-retrieval/simulatte-activity-retrieval.js');
     require('../phase-04-grounded-intent/simulatte-activity-grounding.js');
+    require('./simulatte-activity-composition.js');
     require('./simulatte-activity-program.js');
     require('./simulatte-activity-liquid.js');
     require('./simulatte-activity-dynamics.js');
@@ -152,6 +154,8 @@
     recordWorldSpecEdit: scope.recordWorldSpecEdit,
     prepareActivityRevision: scope.prepareActivityRevision,
     activityRevisionRequirements: scope.activityRevisionRequirements,
+    activityObjectRevisionChanges: scope.activityObjectRevisionChanges,
+    activityCapabilityInventory: scope.activityCapabilityInventory,
     restoreSolverCheckpoint: scope.restoreSolverCheckpoint,
     resolveIntentToSpec: scope.resolveIntentToSpec,
     serializeSpec: scope.serializeSpec,

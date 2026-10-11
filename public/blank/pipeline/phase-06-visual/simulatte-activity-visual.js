@@ -33,7 +33,7 @@
     const h = Math.max(1.7, ...program.actors.map(actor => actor.height));
     const minX = Math.min(-0.7, ...program.actors.map(actor => actor.origin[0] - actor.height * 0.4));
     const maxX = Math.max(0.7, ...program.actors.map(actor => actor.origin[0] + actor.height * 0.4 +
-      program.actions.filter(action => action.actorId === actor.id && action.action === 'walk')
+      program.actions.filter(action => action.actorId === actor.id && scope.activityPrimitive(action) === 'walk')
         .reduce((sum, action) => sum + action.durationSeconds * actor.height * 0.2, 0)),
       ...program.objects.map(object => object.position[0] + object.radius));
     const scale = Math.min(0.78 / (maxX - minX), 0.70 / h);
@@ -68,7 +68,7 @@
       entity.geometry.program = { ...source, parts, selectionRole: 'activity-skeleton',
         grammarId: source.grammarId, activityRigId: 'simulatte.planar-human.v1', source: 'phase5-declared-activity-skeleton',
         constructionGraph: null, constructionReceipt: null,
-        pose: program.actions.some(action => action.actorId === actor.id && action.action === 'sit') ? 'sitting' : 'standing' };
+        pose: program.actions.some(action => action.actorId === actor.id && scope.activityPrimitive(action) === 'sit') ? 'sitting' : 'standing' };
       entity.geometry.program.morphologyReceipt = visual.objectMorphologyReceipt(parts, source.identityType, entity.geometry.program);
       entity.animation = { ...entity.animation, kind: 'static-pose', speed: 0, amplitude: 0 };
       entity.renderCodes.animationCode = 0;
@@ -124,11 +124,11 @@
         const entry = [...(ledger.entries || []), ...(ledger.relations || [])].find(entry => entry.id === row.id);
         const spans = row.sourceSpanIds || entry?.sourceSpanIds || [];
         if (spans.includes(action.sourceEvidence.verbSpanId)) return true;
-        if (action.action === 'sit' && row.kind === 'relation' && entry?.spatialRelation === 'on' &&
+        if (scope.activityPrimitive(action) === 'sit' && row.kind === 'relation' && entry?.spatialRelation === 'on' &&
             spans.includes(action.actorSpanId) && spans.includes(action.objectSpanId)) return true;
         const pose = row.expectedPose || row.poseHint;
         return pose && (spans.includes(action.actorSpanId) || row.targetNodeId === action.actorId) &&
-          (pose === 'sitting' && action.action === 'sit' || pose === 'grasp-hold' && ['hold', 'drink'].includes(action.action));
+          (pose === 'sitting' && scope.activityPrimitive(action) === 'sit' || pose === 'grasp-hold' && ['hold', 'drink'].includes(scope.activityPrimitive(action)));
       });
       if (!action) return row;
       const actorBinding = { schema: 'simulatte.activityObligationBinding.v1', programHash: program.contentHash,

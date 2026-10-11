@@ -51,7 +51,7 @@
         const localX = Math.cos(angle) * dx + Math.sin(angle) * dy, localY = -Math.sin(angle) * dx + Math.cos(angle) * dy;
         const expectedX = (event.cellIndex + 0.5) * container.widthMeters / p.liquidCells - container.widthMeters / 2;
         if (Math.abs(localX - expectedX) > 1e-8 || Math.abs(localY - container.heightMeters / 2) > 1e-8) violations.push('liquid transfer did not exit the container opening');
-        const action = program.actions.find(a => a.id === event.actionId && a.action === 'drink' && a.objectId === event.objectId &&
+        const action = program.actions.find(a => a.id === event.actionId && scope.activityPrimitive(a) === 'drink' && a.objectId === event.objectId &&
           a.actorId === event.actorId && a.hand === event.hand && event.time >= a.startSeconds && event.time <= a.endSeconds);
         const actor = action && snapshot.actors[action.actorId];
         const mouth = actor ? [actor.joints.head[0] + (action.hand === 'left' ? -1 : 1) * actor.height * p.mouthHorizontalHeightFraction,
@@ -117,7 +117,7 @@
         if (!actor || !finiteVector(actor.velocity) || !finiteVector(actor.momentum) || !Number.isFinite(actor.massKg) ||
             !Number.isFinite(actor.angularMomentum) || !Number.isFinite(actor.consumedMassKg) || actor.consumedMassKg < 0) { violations.push('invalid actor load state'); continue; }
         const actorConsumed = program.objects.reduce((s, o) => {
-          const drink = program.actions.some(a => a.action === 'drink' && a.actorId === actor.id && a.objectId === o.id);
+          const drink = program.actions.some(a => scope.activityPrimitive(a) === 'drink' && a.actorId === actor.id && a.objectId === o.id);
           return s + (drink ? (frame.objects[o.id]?.liquid?.consumedVolumeCubicMeters || 0) * p.liquidDensityKgPerCubicMeter : 0);
         }, 0);
         massError = Math.max(massError, Math.abs(actorConsumed - actor.consumedMassKg), Math.abs(actor.massKg - definition.massKg - actorConsumed));
@@ -155,12 +155,12 @@
       consumed += (object.liquid?.consumedVolumeCubicMeters || 0) * p.liquidDensityKgPerCubicMeter;
       spilled += (object.liquid?.spilledVolumeCubicMeters || 0) * p.liquidDensityKgPerCubicMeter;
     }
-    for (const action of program.actions.filter(a => a.action === 'drink')) {
+    for (const action of program.actions.filter(a => scope.activityPrimitive(a) === 'drink')) {
       if (end?.time >= action.endSeconds && !(end.objects[action.objectId]?.liquid?.consumedVolumeCubicMeters > 0)) violations.push('requested drinking transferred no liquid to mouth');
     }
     const complete = frames.length >= 2 && frames[0].time === 0 && end?.time >= Math.max(0, ...program.actions.map(a => a.endSeconds)) - 1e-8;
     const pass = complete && !violations.length;
-    return { forcesValidated: pass, liquidTransferValidated: pass && program.actions.some(a => a.action === 'drink'),
+    return { forcesValidated: pass, liquidTransferValidated: pass && program.actions.some(a => scope.activityPrimitive(a) === 'drink'),
       model: { forces: 'driven lumped actor and constrained rigid objects; no articulated muscle/segment dynamics',
         liquid: '1D depth-averaged rectangular container; no 3D viscosity, wetting or swallowing physiology' },
       violations: [...new Set(violations)], metrics: { momentumErrorKgMetersPerSecond: momentumError,

@@ -14,15 +14,16 @@
         violations.push('invalid frame identity/order'); continue;
       }
       for (const issue of frame.violations) violations.push(issue.reason);
+      violations.push(...scope.activityRelationshipViolations(program, frame));
       if (program.actors.some(actor => !frame.actors[actor.id]) ||
           program.objects.some(object => !frame.objects[object.id]) ||
           Object.keys(frame.actors).length !== program.actors.length || Object.keys(frame.objects).length !== program.objects.length) {
         violations.push('participant count/identity changed');
       }
-      for (const action of program.actions) {
+      for (const action of program.actions.map(scope.activityMotionAction)) {
         const expected = frame.time < action.startSeconds ? 'pending' : frame.time >= action.endSeconds ? 'completed' : 'active';
         if (frame.actionStates[action.id] !== expected) violations.push('incorrect action timing/order');
-        if(action.action==='place'&&frame.time>=action.releaseSeconds&&!program.actions.some(later=>later.objectId===action.objectId&&later.startSeconds>=action.endSeconds&&later.startSeconds<=frame.time&&['hold','drink','place'].includes(later.action))){
+        if(action.action==='place'&&frame.time>=action.releaseSeconds&&!program.actions.some(later=>later.objectId===action.objectId&&later.startSeconds>=action.endSeconds&&later.startSeconds<=frame.time&&['hold','drink','place'].includes(scope.activityPrimitive(later)))){
           const object=frame.objects[action.objectId];
           if(object?.owner||object?.supportObjectId!==action.supportObjectId)violations.push('placement did not release onto committed support');
         }
@@ -87,7 +88,7 @@
     const end = Math.max(0, ...program.actions.map(row => row.endSeconds));
     const dynamics = scope.proveActivityDynamics(program, frames);
     violations.push(...dynamics.violations);
-    if (frames.length > 1) for (const action of program.actions) {
+    if (frames.length > 1) for (const action of program.actions.map(scope.activityMotionAction)) {
       const samples = frames.filter(frame => frame.time >= action.startSeconds && frame.time <= action.endSeconds);
       if (action.action === 'walk' && samples.length > 1 &&
           distance(samples[0].actors[action.actorId]?.joints.pelvis || [0, 0], samples.at(-1).actors[action.actorId]?.joints.pelvis || [0, 0]) < 0.01) {
