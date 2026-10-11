@@ -42,7 +42,7 @@ canvas {
   height: auto;
   aspect-ratio: 1;
   background: var(--sim-glass);
-  touch-action: none;
+  touch-action: pan-y pinch-zoom;
   border: 1px solid var(--sim-line);
 }
 button,

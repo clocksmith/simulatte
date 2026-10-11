@@ -62,7 +62,7 @@
         id: `route:${result.route.id}`,
         kind: 'path',
         label: 'Selected modeled voyage',
-        geometry: builder.geometry('point', 'wgs84', [snapshot.position]),
+        geometry: builder.geometry('polyline', 'wgs84', result.route.renderCoordinates),
         quantity: builder.quantity('cargo', result.parameters.cargoTeu, 'TEU', [0, 24000]),
         role: 'primary',
         importance: 1,

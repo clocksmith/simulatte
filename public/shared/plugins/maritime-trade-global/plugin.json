@@ -189,7 +189,7 @@
       "path": "./queue-engine.js"
     },
     {
-      "integrity": "sha384-66296a339379cd3d8e16c4dc36d62b34cccdc7ea755b5b63969869bac4d7f622002d67f043545f3142bdd0fc02758204",
+      "integrity": "sha384-9dbaab268488e0c920d710964197bcd3516b812aed2ef00e670b21e90cba482c05f49114cb08454b09e1d94021c46057",
       "path": "./v4-contribution.js"
     },
     {

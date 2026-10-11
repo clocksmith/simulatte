@@ -137,7 +137,7 @@
 
     setupEvents() {
       const c = this.canvas;
-      c.style.touchAction = 'none';
+      c.style.touchAction = 'pan-y pinch-zoom';
       this.on(c, 'keydown', (event) => {
         if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-'].includes(event.key)) return;
         event.preventDefault();
@@ -157,21 +157,22 @@
       this.on(c, 'pointerdown', (e) => {
         if (this.currentTier === 'city') return;
         if (e.isPrimary === false || this.activePointerId !== null) return;
-        e.preventDefault();
+        if (e.pointerType !== 'touch') e.preventDefault();
         this.pointerMoved = false;
         c.focus({ preventScroll: true });
         this.isDragging = true;
         this.activePointerId = e.pointerId;
-        c.setPointerCapture?.(e.pointerId);
+        if (e.pointerType !== 'touch') c.setPointerCapture?.(e.pointerId);
         this.dragStartX = e.clientX;
         this.dragStartY = e.clientY;
       });
 
       this.on(c, 'pointermove', (e) => {
         if (!this.isDragging || e.pointerId !== this.activePointerId) return;
-        e.preventDefault();
+        if (e.pointerType !== 'touch') e.preventDefault();
         const dx = e.clientX - this.dragStartX;
         const dy = e.clientY - this.dragStartY;
+        if (e.pointerType === 'touch' && Math.abs(dy) >= Math.abs(dx)) return;
         if (!this.pointerMoved) {
           if (Math.hypot(dx, dy) < 4) return;
           this.pointerMoved = true;
@@ -202,6 +203,7 @@
 
       this.on(c, 'wheel', (e) => {
         if (this.currentTier === 'city') return;
+        if (!e.ctrlKey && !e.metaKey) return;
         this.notifyManualView('zoom');
         e.preventDefault();
         const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
@@ -255,7 +257,7 @@
       }
     }
 
-    updateHudContent(title, desc, stats = {}, help = 'Drag to orbit/pan. Scroll to zoom.') {
+    updateHudContent(title, desc, stats = {}, help = 'Drag to orbit/pan. Ctrl+scroll or +/- to zoom.') {
       if (!this.hudElement) this.createHud();
       let html = `<h3>${title}</h3><p>${desc}</p>`;
       for (const [k, v] of Object.entries(stats)) {

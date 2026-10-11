@@ -3,20 +3,23 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteControlComponents = api;
 })(globalThis, function () {
+  const groups = new WeakMap();
   function decorateGroup(group) {
+    if (groups.has(group)) return groups.get(group);
     group.setAttribute('role', 'radiogroup');
-    const buttons = [...group.querySelectorAll('button')].filter(button => !button.hidden && button.getAttribute('role') !== 'switch');
+    const buttons = [...group.querySelectorAll('button')].filter(button => button.getAttribute('role') !== 'switch');
     if (!buttons.length) return { sync() {} };
     function sync(selected) {
+      if (selected === undefined) selected = buttons.find(button => button.getAttribute('aria-checked') === 'true');
+      const focusable = selected && !selected.disabled && !selected.hidden ? selected : buttons.find(button => !button.disabled && !button.hidden);
       for (const button of buttons) {
         const checked = button === selected;
         button.removeAttribute('aria-pressed'); button.setAttribute('role', 'radio'); button.setAttribute('aria-checked', String(checked));
-        button.tabIndex = checked ? 0 : -1;
+        button.tabIndex = button === focusable ? 0 : -1;
       }
     }
-    sync(buttons.find(button => button.getAttribute('aria-checked') === 'true' || button.getAttribute('aria-pressed') === 'true') || buttons[0]);
+    sync(buttons.find(button => button.getAttribute('aria-checked') === 'true' || button.getAttribute('aria-pressed') === 'true'));
     for (const button of buttons) {
-      button.addEventListener('click', () => sync(button));
       button.addEventListener('keydown', event => {
         if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
         event.preventDefault();
@@ -26,7 +29,17 @@
         next.focus(); next.click();
       });
     }
-    return { sync };
+    // Owners publish accepted state. A click only requests a command; it cannot
+    // claim acceptance before asynchronous execution, cancellation or rejection.
+    const observer = typeof MutationObserver === 'function' ? new MutationObserver(() => {
+      const selected = buttons.find(button => button.getAttribute('aria-checked') === 'true');
+      const focusable = selected && !selected.disabled && !selected.hidden ? selected : buttons.find(button => !button.disabled && !button.hidden);
+      for (const button of buttons) button.tabIndex = button === focusable ? 0 : -1;
+    }) : null;
+    observer?.observe(group, { subtree: true, attributes: true, attributeFilter: ['aria-checked', 'hidden', 'disabled'] });
+    const api = { sync, dispose() { observer?.disconnect(); } };
+    groups.set(group, api);
+    return api;
   }
   function create(document, control, value) {
     if (control.purpose === 'state') {

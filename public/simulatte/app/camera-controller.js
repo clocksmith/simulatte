@@ -187,7 +187,7 @@
       return true;
     }
     const targetDistance = state.targets.find((row) => row.id === state.focusId)?.distance || 0;
-    state.distance = clamp(state.distance * Math.exp(deltaY * 0.001), MIN_DISTANCE, Math.max(MAX_DISTANCE, targetDistance * 4));
+    state.distance = clamp(state.distance * Math.exp(deltaY * 0.001), Math.min(MIN_DISTANCE, Math.max(1, state.distance * 0.2)), Math.max(MAX_DISTANCE, targetDistance * 4));
     state.isManualFrame = true;
     cancelTransition(state);
     return true;
@@ -287,7 +287,7 @@
     const horizontal = distance * Math.cos(pitch);
     const eye = [
       state.orbitTarget[0] + Math.cos(state.yaw) * horizontal,
-      state.orbitTarget[1] + Math.max(80, distance * Math.sin(pitch)),
+      state.orbitTarget[1] + distance * Math.sin(pitch),
       state.orbitTarget[2] + Math.sin(state.yaw) * horizontal,
     ];
     return {

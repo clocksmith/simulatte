@@ -21,15 +21,40 @@
     lastAction = null,
     scheduler = null,
     replayEnd = null,
-    cameraBounds = null, cameraMode = "overview";
+    cameraBounds = null, cameraMode = "overview",
+    failure = null, accepted = null, recoveryRunning = false;
+  const buffers = [document.createElement("canvas"), document.createElement("canvas")];
   const listeners = new AbortController(),
     on = (node, type, fn) =>
-      node.addEventListener(type, fn, { signal: listeners.signal });
+      node.addEventListener(type, event => {
+        try { const result = fn(event); result?.catch?.(fail); } catch (error) { fail(error); }
+      }, { signal: listeners.signal });
   function fail(error) {
+    if (!failure) recoveryRunning = running;
+    failure = error;
     running = false;
+    if (accepted) { ({pair,spec,frame,selected,yaw,cameraBounds,cameraMode,showSignal,lastAction,replayEnd}=accepted); el("signal").checked=showSignal; }
     el("status").textContent = error.message;
-    el("pause").textContent = "Resume";
+    el("pause").textContent = accepted ? "Retry accepted run" : "Reload experience";
+    document.body.dataset.executionState = "failed";
+    root.__fieldExperimentState = { ...root.__fieldExperimentState, running: false, executionState: "failed" };
+    for (const button of el("actions").querySelectorAll("button")) button.disabled = true;
+    for (const id of ["replay","focus-selection","reset-view"]) el(id).disabled = true;
+    for (const button of el("camera-views").querySelectorAll("button")) button.disabled = true;
     root.__fieldExperimentError = error.message;
+  }
+  function recover(reset = false) {
+    if (!accepted) { location.reload(); return; }
+    const nextSpec = reset ? program.create(config) : accepted.spec;
+    pair = program.execute(nextSpec, config, model, reset ? 0 : accepted.pair.intervention.step);
+    spec = nextSpec; scheduler.reset(); lastUi = 0; running = recoveryRunning;
+    if (reset) { selected = null; lastAction = null; replayEnd = null; }
+    failure = null;
+    render();
+    root.__fieldExperimentError = null;
+    for (const id of ["replay","reset-view"]) el(id).disabled = false;
+    for (const button of el("camera-views").querySelectorAll("button")) button.disabled = false;
+    el("status").textContent = "Accepted run restored. No failed steps were retained.";
   }
   function rows(node, values) {
     node.replaceChildren(
@@ -45,6 +70,7 @@
     );
   }
   function render() {
+    if (failure) return;
     if(config.view === "cells" && selected?.id !== "region") {
       const cell=pair.intervention.cells.find(c=>c.id===selected?.id);
       if(cell) selected={...selected,worldX:cell.x,worldY:cell.y};
@@ -52,9 +78,23 @@
     const bounds=config.view === "cells" ? drawing.cellBounds([pair.intervention,pair.baseline]) : null;
     const region=config.view === "cells" && selected ? model.actionRegion(pair.intervention,{kind:previewAction?.kind || "remove",x:selected.worldX,y:selected.worldY}) : null;
     const viewBounds=cameraBounds || bounds;
-    const options={bounds:viewBounds,top:cameraMode==="top",signal:showSignal,preview:region?{kind:previewAction?.kind || "remove",...region}:null};
-    frame = drawing.draw(el("scene"), config, pair.intervention, selected, yaw, options);
-    drawing.draw(el("baseline"), config, pair.baseline, null, yaw, {bounds:viewBounds,top:cameraMode==="top",signal:showSignal});
+    const options={bounds:viewBounds,fitStates:[pair.intervention,pair.baseline],top:cameraMode==="top",signal:showSignal,preview:region?{kind:previewAction?.kind || "remove",...region}:null};
+    const canvases = [el("scene"), el("baseline")];
+    const frames = buffers.map((buffer, index) => drawing.draw(buffer, config,
+      index ? pair.baseline : pair.intervention, index ? null : selected, yaw,
+      { ...options, preview: index ? null : options.preview, width: canvases[index].clientWidth,
+        height: canvases[index].clientHeight, style: getComputedStyle(canvases[index]) }));
+    const baseline = model.metrics(pair.baseline, spec.params.model),
+      current = model.metrics(pair.intervention, spec.params.model);
+    if (![...Object.values(baseline),...Object.values(current)].every(value=>typeof value !== 'number' || Number.isFinite(value))) throw Error("Model produced a non-finite measurement");
+    // Publish both branches only after both drawings and measurements succeed. A renderer failure
+    // leaves the accepted numerical state and the visible canvases intact.
+    canvases.forEach((canvas, index) => {
+      canvas.width = buffers[index].width; canvas.height = buffers[index].height;
+      canvas.getContext("2d").drawImage(buffers[index], 0, 0);
+    });
+    frame = frames[0];
+    accepted = { pair, spec, frame, selected, yaw, cameraBounds, cameraMode, showSignal, lastAction, replayEnd };
     el("focus-selection").disabled=!selected;
     for(const button of el("camera-views").querySelectorAll("button")) {
       const checked=button.dataset.view===cameraMode;button.setAttribute("aria-checked",String(checked));button.tabIndex=checked?0:-1;
@@ -68,8 +108,6 @@
 
     if (performance.now() - lastUi < 100 && running) return;
     lastUi = performance.now();
-    const baseline = model.metrics(pair.baseline, spec.params.model),
-      current = model.metrics(pair.intervention, spec.params.model);
     rows(
       el("measures"),
       config.measures.map((row) => [
@@ -93,6 +131,7 @@
       selected,
     );
     const complete = pair.intervention.step >= (replayEnd ?? config.durationSteps);
+    document.body.dataset.executionState = complete ? "completed" : running ? "running" : "paused";
     el("pause").textContent = complete ? "Replay" : running ? "Pause" : "Resume";
     el("playback-rate").textContent = `${(config.stepsPerSecond * spec.params.model.step * Number(el("speed").value)).toFixed(2)} ${config.timeUnit} / real second`;
     el("playback-health").textContent = scheduler?.snapshot().slowerPlayback ? "Slower playback: computing every fixed step." : "";
@@ -112,8 +151,12 @@
       selectedId: selected?.id || null,
       camera: { yaw, bounds:viewBounds, mode:cameraMode },
       showSignal,
+      executionState: document.body.dataset.executionState,
+      view: { width: frame.width, height: frame.height, selected: frame.hits.find(row => row.id === selected?.id), bounds: frame.bounds },
+      replay: replayEnd === null ? null : { endStep: replayEnd, appliedActions: spec.params.actions.filter(row => row.atStep <= pair.intervention.step).length },
       playback: scheduler?.snapshot(),
     };
+    accepted = { pair, spec, frame, selected, yaw, cameraBounds, cameraMode, showSignal, lastAction, replayEnd };
   }
   function replay(target = pair.intervention.step) {
     pair = program.execute(spec, config, model, target);
@@ -137,10 +180,10 @@
       program.validateAction(input, config);
       const next = model.apply(pair.intervention, input, spec.params.model);
       spec = program.append(spec, input, config, model);
-      pair.intervention = next;
+      pair = { ...pair, intervention: next };
       lastUi = 0;
       lastAction = `${description.label} at ${pair.intervention.time.toFixed(2)} ${config.timeUnit}`;
-      render();
+      try { render(); } catch (error) { fail(error); }
     } catch (error) {
       el("status").textContent=error.message;
     }
@@ -155,6 +198,7 @@
     return true;
   }
   function beginReplay() {
+    if (failure) return;
     replayEnd = pair.intervention.step || config.durationSteps;
     pair = program.execute(spec, config, model, 0);
     scheduler.reset(); running = true; lastUi = 0;
@@ -162,6 +206,7 @@
     render();
   }
   function restart() {
+    if (failure) { recover(true); return; }
     if(config.view==="cells"&&!cameraBounds)cameraBounds=drawing.cellBounds([pair.intervention,pair.baseline]);
     spec = program.create(config); replayEnd = null;
     pair = program.execute(spec, config, model, 0);
@@ -172,11 +217,18 @@
   function tick(now) {
     if (disposed) return;
     try {
-      scheduler.frame(now, { running, speed: Number(el("speed").value), visible: !document.hidden, advance: advanceStep });
-      render();
+      if (!failure) {
+        scheduler.frame(now, { running, speed: Number(el("speed").value), visible: !document.hidden, advance: advanceStep });
+        render();
+      }
     } catch (error) { fail(error); }
     raf = requestAnimationFrame(tick);
   }
+  on(el("pause"), "click", () => {
+    if (failure) { recover(); return; }
+    if (pair.intervention.step >= (replayEnd ?? config.durationSteps)) { beginReplay(); return; }
+    running = !running; scheduler.rebase(); lastUi = 0; render();
+  });
   try {
     const route = root.SimulattePublicRoutes.forPath(location.pathname),
       id =
@@ -235,10 +287,6 @@
       for(const type of ["pointerenter","focus"]) on(button,type,()=>{previewAction=description;lastUi=0;render();});
       el("actions").append(button);
     }
-    on(el("pause"), "click", () => {
-      if (pair.intervention.step >= (replayEnd ?? config.durationSteps)) { beginReplay(); return; }
-      running = !running; scheduler.rebase(); lastUi = 0; render();
-    });
     on(el("restart"), "click", restart);
     on(el("replay"), "click", beginReplay);
     on(el("verify-replay"), "click", () => {
@@ -250,7 +298,7 @@
     on(el("export"), "click", () => {
       const record = {
         schema: "simulatte.fieldExperimentExport.v1",
-        worldSpec: spec,
+        worldSpec: structuredClone(spec),
         receipt: program.receipt(spec, config, model, pair),
       };
       const url = URL.createObjectURL(
@@ -286,9 +334,9 @@
         spec = imported;
         pair = restored;
           el("status").textContent = "Imported run verified.";
-        render();
+        try { render(); } catch (error) { fail(error); }
       } catch (error) {
-        fail(error);
+        el("status").textContent = error.message;
       }
     });
     on(el("reset-view"), "click", () => { yaw=0.65; cameraBounds=null; cameraMode="overview"; lastUi=0; render(); });
@@ -302,11 +350,14 @@
     });
     let pointer = null;
     on(el("scene"), "pointerdown", (event) => {
-      pointer = { x: event.offsetX, y: event.offsetY, yaw, moved: false };
-      el("scene").setPointerCapture(event.pointerId);
+      pointer = { id:event.pointerId, x: event.offsetX, y: event.offsetY, yaw, moved: false, touch:event.pointerType === "touch" };
+      if (!pointer.touch) el("scene").setPointerCapture(event.pointerId);
     });
     on(el("scene"), "pointermove", (event) => {
-      if (!pointer || config.view !== "terrain") return;
+      if (!pointer || pointer.id !== event.pointerId) return;
+      if (pointer.touch && Math.abs(event.offsetY - pointer.y) > 8) pointer.moved = true;
+      if (pointer.touch && Math.abs(event.offsetY - pointer.y) >= Math.abs(event.offsetX - pointer.x)) return;
+      if (config.view !== "terrain") return;
       const delta = event.offsetX - pointer.x;
       if (Math.abs(delta) > 8) {
         pointer.moved = true;
@@ -320,6 +371,7 @@
       pointer = null; lastUi=0;
       render();
     });
+    on(el("scene"), "pointercancel", () => { pointer = null; });
     on(el("scene"), "keydown", (event) => {
       if (
         !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
@@ -353,14 +405,13 @@
     root.__fieldExperimentSnapshot = () => ({
       ...root.__fieldExperimentState,
       stateHash: world.contentHash(pair),
-      worldSpec: spec,
+      worldSpec: structuredClone(spec),
       receipt: program.receipt(spec, config, model, pair),
     });
     render();
     selected = frame.hits[Math.floor(frame.hits.length / 2)];
     previewAction=config.actions[0];
-    render();
-    running = true;
+    running = true; lastUi = 0; render();
     raf = requestAnimationFrame(tick);
   } catch (error) {
     fail(error);

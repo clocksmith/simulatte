@@ -121,6 +121,7 @@
         if (!action?.available) throw new Error('Selected object action is unavailable.');
         return structuredClone({ ...action, ...(action.prepared ? { controls: preview.controls } : {}) });
       },
+      object: id => structuredClone(combined()?.objects?.find(row=>row.id===id)),
       presentation: () => combined()?.presentation,
       provenanceReceipts: receipts => preview ? receipts.map(receipt => receipt.pluginId === contribution.pluginId
         ? root.SimulatteProvenanceRegistry.createContributionProvenanceReceipt(combined()) : receipt) : receipts,

@@ -224,7 +224,12 @@ test('plugin supports progressive start/step and current-core terminal compatibi
     ensembleReplicates: 8,
   });
   assert.equal(configured.metrics.cargoTeu.value, 900);
-  const controls = progressive.contributeV4().controls.controls;
+  const openingContribution = progressive.contributeV4();
+  const openingRoute = openingContribution.presentation.layers.find(row=>row.id.startsWith('route:'));
+  assert.equal(openingRoute.geometry.kind,'polyline');
+  assert.ok(openingRoute.geometry.coordinates.length>1,'Focus requires the full route extent, not a single current position');
+  assert.notDeepEqual(openingRoute.geometry.coordinates[0],openingRoute.geometry.coordinates.at(-1));
+  const controls = openingContribution.controls.controls;
   assert.ok(controls.some((row) => row.id === 'vesselClassId' && row.value === 'feeder-2k'));
   assert.ok(controls.some((row) => row.id === 'speedPolicy' && row.value === 'slow'));
   let step = started;
@@ -232,6 +237,7 @@ test('plugin supports progressive start/step and current-core terminal compatibi
   assert.equal(step.status, 'settled');
   assert.ok(progressive.settle().obligationResults.every((row) => row.status === 'settled'));
   const settledContribution = progressive.contributeV4();
+  assert.deepEqual(settledContribution.presentation.layers.find(row=>row.id===openingRoute.id).geometry,openingRoute.geometry,'Advancing the vessel preserves the modeled route');
   const queueField = settledContribution.presentation.layers.find((row) => row.id.startsWith('queue-pressure:'));
   assert.equal(queueField.kind, 'field');
   assert.equal(queueField.quantity.kind, 'queue-wait');

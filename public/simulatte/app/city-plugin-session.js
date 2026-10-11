@@ -39,6 +39,8 @@
         }},
         {id:'camera-state',category:'observation',perform:()=>getRenderer()?.cameraState()},
         {id:'camera',category:'observation',perform:mode=>{
+          mode=mode==='bird'?'overview':mode;
+          if(!(profile.experience.supportedViews||['follow','pov','overview','top','free','compare']).includes(mode))throw Error('Unsupported camera view: '+mode);
           applyInspectorInsets();
           const renderer=getRenderer();
           const target=hostRoot.SimulatteCityInterface.preferredCameraTarget(renderer.cameraTargets(),mode);

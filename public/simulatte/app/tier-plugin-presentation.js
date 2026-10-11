@@ -359,6 +359,20 @@
           ? [{ pluginId: row.pluginId, ...row.compositorReceipt }]
           : []));
       },
+      objectBounds(pluginId, sourceId) {
+        const scene=presentations.find(row=>row.pluginId===pluginId);
+        if(!scene)return null;
+        const project=position=>projectPoint(position,scene.coordinateSystem,host.view());
+        const points=[];
+        for(const key of ['markers','actors'])for(const row of scene[key]) {
+          if(row.sourceId!==sourceId&&!row.sourceId.startsWith(sourceId+':point-'))continue;
+          const p=project(row.position),r=key==='markers'?markerRadius(row,p):actorRadius(row,p)*1.45;
+          points.push({x:p.x-r,y:p.y-r},{x:p.x+r,y:p.y+r});
+        }
+        if(!points.length)return null;
+        const left=Math.min(...points.map(p=>p.x)),right=Math.max(...points.map(p=>p.x)),top=Math.min(...points.map(p=>p.y)),bottom=Math.max(...points.map(p=>p.y));
+        return [{x:left,y:top},{x:right,y:top},{x:right,y:bottom},{x:left,y:bottom}];
+      },
       targets: () => cameraTargets,
     });
   }
@@ -574,12 +588,11 @@
     ctx.fill();
     ctx.stroke();
   }
+  function markerRadius(marker,point) { return Math.max(4,Math.min(12,Number(marker.radius||marker.radiusM||5))*Number(point.scale||1)); }
+  function actorRadius(actor,point) { return Math.max(4,Math.min(14,Number(actor.radius||5)*Number(point.scale||1))); }
   function drawMarker(ctx, point, marker, timeSeconds, options = {}) {
     if (options.drawMarker?.(ctx, point, marker)) return;
-    const radius = Math.max(
-      2,
-      Math.min(12, Number(marker.radius || marker.radiusM || 5)) * Number(point.scale || 1)
-    );
+    const radius = markerRadius(marker,point);
     ctx.beginPath(); ctx.arc(point.x, point.y, radius, 0, Math.PI*2); ctx.fillStyle=color(marker.tone,marker.style?.fillOpacity??0.95,marker.style?.color); ctx.shadowBlur=8; ctx.shadowColor=color(marker.tone,marker.style?.strokeOpacity??0.9,marker.style?.color); ctx.fill(); ctx.shadowBlur=0;
     if (consequentialPoint(marker.quantityKind)) {
       const pulse = (Math.sin(timeSeconds * 3 + hash(marker.id)) + 1) / 2;
@@ -591,7 +604,7 @@
     }
   }
   function drawActor(ctx, point, actor, timeSeconds) {
-    const radius = Math.max(4, Math.min(14, Number(actor.radius || 5) * Number(point.scale || 1)));
+    const radius = actorRadius(actor,point);
     const kind = String(actor.quantityKind || '');
     ctx.save();
     ctx.translate(point.x, point.y);

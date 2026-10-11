@@ -189,12 +189,12 @@
     function governedTierRoute(simulation=simulationRouteState()){return {tier,experience:data.applicationProfile.id,world:data.world.id,profile:data.applicationProfile.id,camera:activeCameraMode,simulation};}
     function tierRouteError(kind,requested,resolved){const error=new Error(`Requested ${kind} ${requested}; resolved ${resolved}`);error.code=`route_${kind}_resolution_mismatch`;return error;}
     function applyTierCamera(mode,navigate=false){
-      if(navigate)keepCameraFraming=false;
       const canonical=mode==='bird'?'overview':mode;
       const supported=new Set(data.applicationProfile.experience?.supportedViews||['overview','free']);
       if(!supported.has(canonical))throw tierRouteError('camera',canonical,[...supported].join(','));
       const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],canonical);
       if(['follow','pov','compare'].includes(canonical)&&!target)throw tierRouteError('camera',canonical,'target unavailable');
+      if(navigate)keepCameraFraming=false;
       const directorMode=['top','free'].includes(canonical)?'free':canonical;
       viewDirector?.setManualOverride({mode:directorMode,targetIds:target?[target.sourceId]:[]});
       tierVisualizer.setViewMode?.(canonical);
@@ -335,7 +335,9 @@
             const points=geometry.coordinates.filter(Array.isArray).map(point=>root.SimulatteTierPluginPresentation.projectPoint(point,contribution.presentation.coordinateSystem,{...tierVisualizer,bounds:tierVisualizer.data?.bounds,projectCountry:(x,y,bounds)=>tierVisualizer.projectCountryPoint(x,y,bounds)}));
             return {id:row.id,points,depth:-Math.max(...points.filter(Boolean).map(point=>point.depth||0)),bounds:row.hit.shape==='bounds'&&points[0]?(contribution.presentation.coordinateSystem === 'cluster-network-layout'
               ? root.SimulatteTierRenderers.networkRackBounds(row.layer.geometry.coordinates[0],point=>tierVisualizer.projectCoordinatePoint(point,'cluster-network-layout'))
-              : root.SimulatteTierRenderers.datacenterMarkerBounds(points[0],tierVisualizer.zoom)):null};
+              : contribution.presentation.coordinateSystem === 'datacenter-cartesian-meters'
+                ? root.SimulatteTierRenderers.datacenterMarkerBounds(points[0],tierVisualizer.zoom)
+                : points.length > 2 ? points : tierVisualizer.pluginLayer.objectBounds(source.pluginId,row.hit.layerId||row.id)):tierVisualizer.pluginLayer.objectBounds(source.pluginId,row.hit.layerId||row.id)};
           });},
           onInsets:panel=>{
             const insets=root.SimulatteCameraFit.measureInsets(elements.overlayCanvas.getBoundingClientRect(),[{edge:'bottom',rect:panel.getBoundingClientRect()}]);
@@ -495,11 +497,11 @@
     }
     function focusObject(owner,id){
       const presentation=tierVisualizer.presentationFor(objectInteraction?.presentation()||lastPluginContributions.find(row=>row.pluginId===owner)?.presentation);
-      const layer=presentation?.layers.find(row=>row.id===id);
+      const object=objectInteraction?.object(id);
+      const layer=presentation?.layers.find(row=>row.id===(object?.hit.layerId||id));
       if(!layer)return;
       viewDirector?.setManualOverride({mode:'free',targetIds:[id]});
       tierVisualizer.setViewMode('free');selectTierViewMode('free');
-      const contribution=lastPluginContributions.find(row=>row.pluginId===owner);
       tierVisualizer.fitPluginPresentationTarget({id,coordinates:layer.geometry.coordinates,center:layer.geometry.coordinates[0],bounds:{minX:Math.min(...layer.geometry.coordinates.map(p=>p[0])),maxX:Math.max(...layer.geometry.coordinates.map(p=>p[0])),minY:Math.min(...layer.geometry.coordinates.map(p=>p[1])),maxY:Math.max(...layer.geometry.coordinates.map(p=>p[1]))}},presentation.coordinateSystem);
     }
     async function previewControls(owner,values,operation){

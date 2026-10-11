@@ -212,6 +212,8 @@ test('selecting an object leaves its camera intact; top-view zoom and drag retai
   assert.equal(interactions.length, 0, 'a selection tap must not detach the camera');
   const distance = state.distance;
   listeners.get('wheel')(event({ deltaY: -120 }));
+  assert.equal(state.distance, distance, 'Unmodified wheel input belongs to document scrolling');
+  listeners.get('wheel')(event({ deltaY: -120, ctrlKey: true }));
   assert.equal(state.mode, 'top'); assert.ok(state.distance < distance);
   listeners.get('keydown')(event({ key: 'ArrowLeft' }));
   assert.equal(state.mode, 'top');

@@ -28,8 +28,7 @@
     title.textContent = 'The 3D view could not start'; detail.textContent = error.message || String(error);
     el('gpu-message').append(title, detail); el('run').disabled = true; document.body.dataset.runtimeError = detail.textContent;
   }
-  function fittedCamera(id = null) {
-    const frame = scene.frame(state, { ...view, explode: view.targetExplode });
+  function geometryPoints(id = null, frame = scene.frame(state, { ...view, explode: view.targetExplode })) {
     const points = [];
     for (const instance of frame.instances) {
       if (!instance.group || instance.group === 'ground' || (id && instance.group !== id)) continue;
@@ -38,7 +37,10 @@
       for (const x of [-radius, radius]) for (const y of [-radius, radius]) for (const z of [-radius, radius])
         points.push([m[0]*x+m[4]*y+m[8]*z+m[12], m[1]*x+m[5]*y+m[9]*z+m[13], m[2]*x+m[6]*y+m[10]*z+m[14]]);
     }
-    return root.SimulatteCameraFit.fitPerspective(points, { width: canvas.clientWidth, height: canvas.clientHeight,
+    return points;
+  }
+  function fittedCamera(id = null) {
+    return root.SimulatteCameraFit.fitPerspective(geometryPoints(id), { width: canvas.clientWidth, height: canvas.clientHeight,
       insets: { top: 90, bottom: 58 }, padding: 12 });
   }
   function resetCamera() { cameraGoal = fittedCamera(); }
@@ -323,13 +325,15 @@
   });
   const pointers = new Map(); let travel = 0, pinch = 0;
   on(canvas, 'pointerdown', (event) => {
-    canvas.setPointerCapture(event.pointerId); pointers.set(event.pointerId, [event.clientX, event.clientY]); travel = 0; cameraGoal = null;
+    if (event.pointerType !== 'touch') canvas.setPointerCapture(event.pointerId);
+    pointers.set(event.pointerId, [event.clientX, event.clientY]); travel = 0; cameraGoal = null;
     if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); }
   });
   on(canvas, 'pointermove', (event) => {
     if (!pointers.has(event.pointerId)) return;
     const before = pointers.get(event.pointerId), dx = event.clientX - before[0], dy = event.clientY - before[1];
     pointers.set(event.pointerId, [event.clientX, event.clientY]); travel += Math.abs(dx) + Math.abs(dy);
+    if (event.pointerType === 'touch' && pointers.size === 1 && Math.abs(dy) >= Math.abs(dx)) return;
     if (pointers.size === 2) {
       const [a, b] = [...pointers.values()], distance = Math.hypot(a[0] - b[0], a[1] - b[1]);
       if (pinch && distance) camera.distance = Math.max(0.65, Math.min(18, camera.distance * pinch / distance)); pinch = distance;
@@ -348,7 +352,7 @@
     if (picked) select(picked);
   });
   on(canvas, 'pointercancel', (event) => pointers.delete(event.pointerId));
-  on(canvas, 'wheel', (event) => { event.preventDefault(); cameraGoal = null; camera.distance = Math.max(0.65, Math.min(18, camera.distance * Math.exp(event.deltaY * 0.001))); }, { passive: false });
+  on(canvas, 'wheel', (event) => { if (!event.ctrlKey && !event.metaKey) return; event.preventDefault(); cameraGoal = null; camera.distance = Math.max(0.65, Math.min(18, camera.distance * Math.exp(event.deltaY * 0.001))); }, { passive: false });
   on(canvas, 'keydown', (event) => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '-', '=', 'Home'].includes(event.key)) return;
     event.preventDefault(); cameraGoal = null;
@@ -366,7 +370,8 @@
   root.SimulatteSolarDrive = Object.freeze({ getSpec: () => structuredClone(spec), getState: () => structuredClone(state),
     getReceipt: () => program.receipt(spec, state, drawing?.receipt() || null), exportData, importSpec,
     setParameters, setVehicle, setView, select, replay, verifyReplay, compare, focus: focusSelection, resetCamera,
-    snapshot: () => ({ camera: structuredClone(camera), selected, running, playback: scheduler.snapshot(), frame: currentFrame && {anchors:currentFrame.anchors} }),
+    snapshot: () => ({ camera: structuredClone(camera), selected, running, playback: scheduler.snapshot(), frame: currentFrame && {anchors:currentFrame.anchors},
+      view: {width:canvas.clientWidth,height:canvas.clientHeight,insets:{top:90,bottom:58},points:currentFrame&&drawing?geometryPoints(selected,currentFrame).map(point=>drawing.project(point)):[]} }),
     getMatchedState:()=>matchedState?{params:structuredClone(matchedParams),state:structuredClone(matchedState)}:null,
     isViewSettled: () => Math.abs(view.explode - view.targetExplode) < 0.002 && !cameraGoal,
     runSteps(count) { running = false; const result = advance(count); updateUi(); return structuredClone(result); }, dispose });

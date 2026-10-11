@@ -227,3 +227,73 @@ test('visible fixed-step replay applies zero-step and terminal-boundary actions 
   for(let i=0;i<4;i++)pair=program.advance(pair,spec,model);
   assert.deepEqual(pair,program.execute(spec,config,model,4));
 });
+
+test('terrain framing fits real elevation, every yaw and a non-square viewport', () => {
+  const drawing=require('../public/simulatte/field-experiments/drawing.js');
+  const {config,model}=cases[1],state=model.initial(config.params,config.seed);
+  const ctx=new Proxy({scale(){},get fillStyle(){return '';},set fillStyle(v){}},{get:(object,key)=>key in object?object[key]:()=>{}});
+  const canvas={clientWidth:390,clientHeight:260,getContext:()=>ctx};
+  const style={getPropertyValue:()=> '#222'};
+  for(const yaw of [-2.7,-1.3,0,.65,2.1])for(const top of [false,true]) {
+    const frame=drawing.draw(canvas,config,state,null,yaw,{top,style});
+    assert.ok(frame.bounds.left>=frame.margin-1e-8 && frame.bounds.right<=frame.width-frame.margin+1e-8);
+    assert.ok(frame.bounds.top>=frame.margin-1e-8 && frame.bounds.bottom<=frame.height-frame.margin+1e-8);
+    assert.ok(frame.bounds.right-frame.bounds.left>frame.width*.25,'Terrain occupies useful bounds');
+  }
+});
+test('empty tissue bounds remain finite after removal and include cell radii',()=>{
+  const drawing=require('../public/simulatte/field-experiments/drawing.js');
+  const empty=drawing.cellBounds([{cells:[]}]);assert.ok(empty.origin.every(Number.isFinite));
+  const bounds=drawing.cellBounds([{cells:[{x:0,y:0,area:Math.PI*100}]}]);
+  assert.ok(bounds.origin[0]<=-10&&bounds.origin[0]+bounds.span>=10);
+});
+
+test('field failures preserve both accepted branches and recover explicitly without retrying each frame',async()=>{
+  const vm=require('node:vm'),path=require('node:path'),{webcrypto}=require('node:crypto');
+  const config=cases[2].config,sourceModel=cases[2].model;
+  let numericalFailure=false,renderFailure=false,metricFailure=false,modelCalls=0,drawCalls=0,callback;
+  const ctx=new Proxy({createRadialGradient:()=>({addColorStop(){}})}, {get:(obj,key)=>key in obj?obj[key]:()=>{}});
+  class Node {
+    constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.listeners={};this.dataset={};this.attrs={};this.clientWidth=320;this.clientHeight=320;this.value='1';this.published=0;}
+    append(...nodes){this.children.push(...nodes);}
+    replaceChildren(...nodes){this.children=[...nodes];}
+    addEventListener(type,fn){(this.listeners[type]||=[]).push(fn);}
+    setAttribute(key,value){this.attrs[key]=value;}
+    querySelectorAll(){return this.children.filter(node=>node.tagName==='BUTTON');}
+    closest(){return this;}
+    getContext(){return new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?()=>this.published++:obj[key]});}
+    click(){for(const fn of this.listeners.click||[])fn({});}
+  }
+  const nodes=new Map(),el=id=>{if(!nodes.has(id))nodes.set(id,new Node(id==='scene'||id==='baseline'?'canvas':'div'));return nodes.get(id);};
+  for(const mode of ['overview','top']){const button=new Node('button');button.dataset.view=mode;el('camera-views').append(button);}
+  const model={...sourceModel,step(...args){modelCalls++;if(numericalFailure)throw Error('injected numerical failure');return sourceModel.step(...args);},metrics(...args){const values=sourceModel.metrics(...args);return metricFailure?{...values,solidArea:Infinity}:values;}};
+  const drawing=require('../public/simulatte/field-experiments/drawing.js');
+  const document={getElementById:el,createElement:tag=>new Node(tag),createTextNode:text=>({textContent:text}),body:{dataset:{}},baseURI:'http://localhost/simulatte/field-experiments/',addEventListener(){},hidden:false};
+  const context={document,location:{pathname:'/crystal-foundry'},performance:{now:()=>1000},AbortController,URL,URLSearchParams,structuredClone,crypto:webcrypto,
+    getComputedStyle:()=>({getPropertyValue:()=> '#222'}),requestAnimationFrame:fn=>{callback=fn;return 1;},cancelAnimationFrame(){},addEventListener(){},
+    SimulattePublicRoutes:{forPath:()=>({experimentId:config.id})},SimulatteFieldExperimentProgram:program,SimulatteWorldSpec:world,
+    SimulatteFieldExperimentDrawing:{...drawing,draw(...args){drawCalls++;if(renderFailure)throw Error('injected rendering failure');return drawing.draw(...args);}},
+    SimulatteSimulationClock:require('../public/simulatte/platform/runtime/simulation-clock.js'),[config.model]:model,
+    fetch:async url=>{if(String(url).endsWith(config.id+'.json'))return {ok:true,json:async()=>structuredClone(config)};
+      const file=path.join(__dirname,'../public',new URL(url).pathname);return {ok:true,arrayBuffer:async()=>{const b=fs.readFileSync(file);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength);}};}};
+  await vm.runInNewContext(fs.readFileSync(__dirname+'/../public/simulatte/field-experiments/app.js','utf8'),context);
+  callback(0);callback(100);
+  for(const type of ['numerical','renderer','metrics','action-renderer']) {
+    const previous=context.__fieldExperimentSnapshot(),visible=el('scene').published;
+    if(type==='numerical')numericalFailure=true;else if(type==='metrics')metricFailure=true;else renderFailure=true;
+    if(type==='action-renderer')el('actions').children[0].click();else callback(200);
+    assert.equal(context.document.body.dataset.executionState,'failed');
+    assert.equal(el('pause').textContent,'Retry accepted run');
+    assert.equal(context.__fieldExperimentSnapshot().stateHash,previous.stateHash);
+    assert.equal(context.__fieldExperimentSnapshot().specHash,previous.specHash);
+    assert.equal(el('scene').published,visible,'Failed drawing never replaces the visible scene');
+    const calls=[modelCalls,drawCalls];callback(250);callback(300);
+    assert.deepEqual([modelCalls,drawCalls],calls,'Failed execution is quiescent, not retried every animation frame');
+    numericalFailure=false;renderFailure=false;metricFailure=false;el('pause').click();
+    assert.equal(context.__fieldExperimentError,null);
+    assert.equal(context.__fieldExperimentSnapshot().stateHash,previous.stateHash);
+    assert.equal(context.__fieldExperimentSnapshot().specHash,previous.specHash);
+    assert.equal(context.__fieldExperimentState.running,true);
+    assert.equal(el('pause').textContent,'Pause');
+  }
+});

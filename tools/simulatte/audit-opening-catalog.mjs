@@ -13,7 +13,7 @@ const out=root+'artifacts/catalog-interactions'+(selected?'/'+selected:'');await
 const report={schema:'simulatte.catalogInteractionAudit.v1',sources:await sourceReceipt(root),cases:[],errors:[],
   boundary:'Desktop and emulated mobile in Chrome with explicit software WebGPU. Human observation and physical-device review remain separate.'};
 function compactRow(row){
-  for(const state of [row.opening,row.paused,row.focused,row.restarted,row.advanced,row.replaying])if(state?.targets){
+  for(const state of [row.opening,row.paused,row.focused,row.restarted,row.advanced,row.replaying,row.replayProgress,row.replayedActions])if(state?.targets){
     state.targetCount=state.targets.length;state.sampleTargetIds=state.targets.slice(0,8).map(target=>target.id);delete state.targets;
   }
 }
@@ -38,11 +38,14 @@ async function snap(){return ev(`(async()=>{const $=id=>document.getElementById(
   if('${kind}'==='solar')return solar&&{...solar.snapshot(),progress:solar.getState().step,complete:solar.getState().status==='complete',error:document.body.dataset.runtimeError};
   if('${kind}'==='motorcycle')return moto&&document.body.dataset.state==='running'||'${kind}'==='motorcycle'&&document.body.dataset.state==='paused'
     ?{...moto.snapshot(),progress:moto.snapshot().time,running:!moto.snapshot().paused,complete:moto.snapshot().time>=180}:null;
-  const targets=[...document.querySelectorAll('canvas')].flatMap(canvas=>canvas.__simulatteObjectTargets?.()||[]);
+  const canvas=[...document.querySelectorAll('canvas')].find(canvas=>visible(canvas)&&canvas.__simulatteObjectTargets);
+  const targets=canvas?.__simulatteObjectTargets?.()||[];
+  const rect=canvas?.getBoundingClientRect(),panel=document.querySelector('.sim-object-inspector');
+  const insets=rect&&visible(panel)?SimulatteCameraFit.measureInsets(rect,[{edge:'bottom',rect:panel.getBoundingClientRect()}]):{};
   const camera=globalThis.SimulatteActiveSession?.snapshot().operations.some(row=>row.id==='camera-state') ? await SimulatteActiveSession.invoke('camera-state') : null;
   return {camera,phase:document.body.dataset.journeyPhase,profile:$('application-profile')?.value,progress:Number($('playback-timeline')?.value),
     running:document.body.dataset.journeyPhase==='running',complete:document.body.dataset.journeyPhase==='completed',
-    ready:!!globalThis.SimulatteActiveSession&&targets.length>0,targets,
+    ready:!!globalThis.SimulatteActiveSession&&targets.length>0,targets,view:rect&&{width:rect.width,height:rect.height,insets},
     advanced:$('decisions-button')?.getAttribute('aria-expanded'),overflow:document.documentElement.scrollWidth>innerWidth+1,
     error:globalThis.__simulatteLastFailError?.message,measurements:$('show-measurements')?.checked};})()`);}
 async function until(predicate){const end=Date.now()+90000;let state;do{state=await snap();if(state?.error||state?.phase==='failed')throw Error(state.error||'Failed');if(state&&predicate(state))return state;await delay(150);}while(Date.now()<end);throw Error('State timed out: '+JSON.stringify(state));}
@@ -69,7 +72,9 @@ try{
     const errorStart=report.errors.length;
     try{
       await c.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<700});
+      await c.send('Emulation.setTouchEmulationEnabled',{enabled:width<700,maxTouchPoints:2});
       await c.send('Page.navigate',{url:b.host.baseUrl+page.path.slice(1)});
+      await c.send('Page.bringToFront');
       row.opening=await until(s=>(kind!=='profile'||s.profile===page.profile&&s.ready)&&(s.running||s.complete));
       if(kind==='profile'){assert.equal(row.opening.advanced,'false');assert.equal(row.opening.overflow,false);}
       if(row.opening.running)await command('pause');
@@ -82,7 +87,28 @@ try{
       assert.equal(after.progress,before.progress,'Selection must preserve logical time');
       row.selection={before:framing(before),after:framing(after)};
       if(kind==='profile')await ev(`SimulatteActiveSession.invoke('focus-object',${JSON.stringify(id)})`);else await command('focus');
-      await delay(700);row.focused=await snap();assert.equal(row.focused.progress,before.progress);
+      await delay(1200);row.focused=await snap();assert.equal(row.focused.progress,before.progress);
+      row.framing=await ev(`(()=>{
+        const field=globalThis.__fieldExperimentState,solar=globalThis.SimulatteSolarDrive,moto=globalThis.SimulatteMotorcycleController;
+        if('${kind}'==='field'){const v=field.view,h=v.selected;return {width:v.width,height:v.height,points:h?[{x:h.bounds?.left??h.x-(h.radius||4),y:h.bounds?.top??h.y-(h.radius||4)},{x:h.bounds?.right??h.x+(h.radius||4),y:h.bounds?.bottom??h.y+(h.radius||4)}]:[]};}
+        if('${kind}'==='solar')return solar.snapshot().view;
+        if('${kind}'==='motorcycle'){const c=document.getElementById('city'),t=moto.interactionTargets().find(t=>t.id===moto.snapshot().selected),r=c.getBoundingClientRect();const obstructions=[...document.querySelectorAll('.city-toolbar,.observer-readout,#inspection,#map-navigation')].filter(e=>e.checkVisibility()).map(e=>{const p=e.getBoundingClientRect();return {left:p.left-r.left,right:p.right-r.left,top:p.top-r.top,bottom:p.bottom-r.top};});return {width:r.width,height:r.height,obstructions,points:t?.points||[]};}
+        const c=[...document.querySelectorAll('canvas')].find(c=>c.checkVisibility()&&c.__simulatteObjectTargets),t=c.__simulatteObjectTargets().find(t=>t.id===${JSON.stringify(id)}),r=c.getBoundingClientRect(),p=document.querySelector('.sim-object-inspector'),insets=p?.checkVisibility()?SimulatteCameraFit.measureInsets(r,[{edge:'bottom',rect:p.getBoundingClientRect()}]):{};
+        return {width:r.width,height:r.height,insets,points:Array.isArray(t?.bounds)?t.bounds:t?.points.filter(Boolean)||[]};
+      })()`);
+      const fit=row.framing,points=fit.points.filter(Boolean);assert.ok(points.length,'Focused subject must be projected');
+      const usable={left:fit.insets?.left||0,right:fit.width-(fit.insets?.right||0),top:fit.insets?.top||0,bottom:fit.height-(fit.insets?.bottom||0)};
+      assert.ok(points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=usable.left-1&&p.x<=usable.right+1&&p.y>=usable.top-1&&p.y<=usable.bottom+1&&(p.z===undefined||p.z>=0&&p.z<=1)),'Focus must frame actual geometry without clipping or inspector obstruction');
+      if(fit.obstructions) {
+        const left=Math.min(...points.map(p=>p.x)),right=Math.max(...points.map(p=>p.x)),top=Math.min(...points.map(p=>p.y)),bottom=Math.max(...points.map(p=>p.y));
+        assert.ok(fit.obstructions.every(r=>right<r.left||left>r.right||bottom<r.top||top>r.bottom),'Focused geometry must not intersect a visible control or inspector');
+      }
+      assert.ok(Math.max(Math.max(...points.map(p=>p.x))-Math.min(...points.map(p=>p.x)),Math.max(...points.map(p=>p.y))-Math.min(...points.map(p=>p.y)))>=8,'Focus must show geometry at a useful visible size');
+      if(kind==='profile') {
+        row.acceptedCamera=await ev(`(async()=>{const before=[...document.querySelectorAll('.camera-modes [aria-checked="true"]')].map(b=>b.id);let rejected=false;try{await SimulatteActiveSession.invoke('camera','invalid-audit-mode');}catch{rejected=true;}const after=[...document.querySelectorAll('.camera-modes [aria-checked="true"]')].map(b=>b.id);return {before,after,rejected};})()`);
+        assert.equal(row.acceptedCamera.rejected,true);assert.deepEqual(row.acceptedCamera.before,row.acceptedCamera.after,'Rejected camera commands preserve accepted selection');
+        assert.equal(row.acceptedCamera.before.length,1,'Programmatic Focus publishes exactly one accepted camera mode');
+      }
       const switchId=kind==='profile'?'show-measurements':kind==='solar'?'flows':kind==='field'&&page.experimentId==='living-tissue'?'signal':kind==='motorcycle'?'live-overlay':null;
       if(switchId){
         const toggle=await ev(`(()=>{const e=document.getElementById('${switchId}');const label=e.textContent||e.closest('label')?.textContent;const before=e.getAttribute('role')==='switch'&&e.tagName==='BUTTON'?e.getAttribute('aria-checked'):e.checked;e.click();return {label,before,after:e.tagName==='BUTTON'?e.getAttribute('aria-checked'):e.checked,role:e.getAttribute('role'),nextLabel:e.textContent||e.closest('label')?.textContent};})()`);
@@ -97,9 +123,48 @@ try{
       assert.ok(row.restarted.progress<=before.progress,'Restart must return to the starting state');
       await command('resume');row.advanced=await until(s=>s.progress>row.restarted.progress||s.complete);
       if(row.advanced.running)await command('pause');
+      if(kind==='field'){await selectObject();await ev(`document.querySelector('#actions button:not(:disabled)').click()`);}
+      if(kind==='profile'&&page.profile==='gpu-supercluster-v1')await ev(`document.querySelector('[data-object-action="straggler"]').click()`);
+      await delay(200);
+      const recorded=await snap();
+      await ev(`(()=>{const e=document.getElementById('${speedId}');e.value=e.options[0].value;e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
       await command('replay');row.replaying=await until(s=>s.running||s.complete);
-      assert.ok(row.replaying.running||row.replaying.complete,'Replay visibly executes the recorded run');
-      if(row.replaying.running)await command('pause');
+      const firstReplay=row.replaying.progress;
+      assert.ok(firstReplay<recorded.progress||firstReplay===0,'Replay must visibly return to the beginning');
+      row.replayProgress=await until(s=>s.progress>firstReplay);
+      assert.ok(row.replayProgress.progress>firstReplay,'Replay must produce observed logical progression');
+      if(kind==='field'){
+        row.replayedActions=await until(s=>s.replay?.appliedActions===recorded.actions);
+        assert.equal(row.replayedActions.actions,recorded.actions,'Replay preserves recorded interventions');
+      }
+      if((await snap()).running)await command('pause');
+      if(kind==='field'){
+        await ev(`(()=>{globalThis.__auditAccepted={hash:__fieldExperimentSnapshot().stateHash,pixels:document.getElementById('scene').toDataURL()};globalThis.__auditFillRect=CanvasRenderingContext2D.prototype.fillRect;CanvasRenderingContext2D.prototype.fillRect=function(){throw Error('audit rendering failure');};})()`);
+        try {
+          for(let i=0;i<40&&!await ev(`globalThis.__fieldExperimentState.executionState==='failed'`);i++)await delay(50);
+          row.recovery=await ev(`({state:__fieldExperimentState.executionState,hash:__fieldExperimentSnapshot().stateHash===__auditAccepted.hash,pixels:document.getElementById('scene').toDataURL()===__auditAccepted.pixels,label:document.getElementById('pause').textContent})`);
+          assert.deepEqual(row.recovery,{state:'failed',hash:true,pixels:true,label:'Retry accepted run'});
+        }finally{await ev(`CanvasRenderingContext2D.prototype.fillRect=__auditFillRect`);}
+        await command('resume');await until(s=>!s.running&&s.executionState!=='failed');
+        assert.equal(await ev(`__fieldExperimentSnapshot().stateHash===__auditAccepted.hash`),true,'Recovery restores the accepted state');
+        await ev('delete globalThis.__auditFillRect;delete globalThis.__auditAccepted');
+      }
+      if(width<700){
+        await ev('scrollTo(0,0)');await delay(100);
+        await ev(`(()=>{const c=[...document.querySelectorAll('canvas')].find(c=>c.checkVisibility()&&('${kind}'!=='profile'||c.__simulatteObjectTargets));if(c.getBoundingClientRect().top>innerHeight-80)c.scrollIntoView({block:'center'});})()`);await delay(100);
+        const canvas=await ev(`(()=>{const c=[...document.querySelectorAll('canvas')].find(c=>c.checkVisibility()&&('${kind}'!=='profile'||c.__simulatteObjectTargets));const r=c.getBoundingClientRect();let point=null;
+          for(let y=Math.max(180,r.top+15);y<=Math.min(innerHeight-180,r.bottom-15)&&!point;y+=24)for(const x of [r.left+20,(r.left+r.right)/2,r.right-20])if(document.elementFromPoint(x,y)===c){point={x,y};break;}
+          return {...point,onCanvas:!!point,before:scrollY,direction:scrollY<document.scrollingElement.scrollHeight-innerHeight-50?-1:1};})()`);
+        assert.equal(canvas.onCanvas,true,'Touch scrolling must start on the actual simulation canvas');
+        await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:canvas.x,y:canvas.y}]});
+        for(let step=1;step<=8;step++){
+          await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:canvas.x,y:canvas.y+canvas.direction*step*18}]});await delay(30);
+        }
+        await c.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(400);
+        row.scroll={...await ev('({y:scrollY,height:document.scrollingElement.scrollHeight,viewport:innerHeight})'),before:canvas.before,onCanvas:canvas.onCanvas};
+        assert.ok(row.scroll.height<=row.scroll.viewport+1||(row.scroll.y-canvas.before)*-canvas.direction>0,'A vertical touch gesture on the canvas must scroll an overflowing document');
+        await ev('scrollTo(0,0)');
+      }
       assert.equal(await ev('document.documentElement.scrollWidth<=innerWidth+1'),true,'No horizontal overflow');
       const shot=await c.send('Page.captureScreenshot',{format:'png'});await fs.writeFile(out+`/${row.profile}-${width}.png`,Buffer.from(shot.data,'base64'));
       row.pass=report.errors.length===errorStart;

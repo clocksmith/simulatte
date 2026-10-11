@@ -22,7 +22,7 @@
           <div class="vehicle-switch" data-control-choice role="radiogroup" aria-label="Vehicle preset"><button data-vehicle="bicycle" aria-pressed="true">Bicycle</button><button data-vehicle="scooter" aria-pressed="false">Scooter</button><button data-vehicle="car" aria-pressed="false">Car</button></div>
         </div>
         <div class="viewport" id="viewport">
-          <canvas id="scene" aria-label="Interactive 3D solar vehicle assembly. Drag to orbit, scroll to zoom, or choose a component below." tabindex="0"></canvas>
+          <canvas id="scene" aria-label="Interactive 3D solar vehicle assembly. Drag horizontally to orbit, Ctrl+scroll to zoom, or choose a component below." tabindex="0"></canvas>
           <div id="flow-labels" class="flow-labels" aria-label="Measured energy transfers"></div>
           <div id="component-labels" class="component-labels" aria-label="3D component labels"></div>
           <div class="view-toolbar" data-control-choice role="radiogroup" aria-label="Assembly view"><button id="assembled" aria-pressed="false">Assembled</button><button id="exploded" aria-pressed="true">Exploded</button><button id="cutaway" role="switch" aria-checked="true">Cutaway</button></div>
@@ -30,7 +30,7 @@
 
           <button id="reset-camera" class="camera-reset" title="Reset camera" aria-label="Reset camera"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9V5h4M19 9V5h-4M5 15v4h4M19 15v4h-4M8 12h8M12 8v8"/></svg></button>
           <div class="scene-scale"><span></span>1 m <small>Representative engineering assembly</small></div>
-          <div class="orbit-hint">DRAG TO ORBIT <b>/</b> SCROLL TO ZOOM</div>
+          <div class="orbit-hint">DRAG TO ORBIT <b>/</b> CTRL + SCROLL TO ZOOM</div>
           <div id="gpu-message" class="gpu-message" role="status"><div class="loading-lattice"></div><strong>Preparing the assembly</strong><span>Geometry, materials, and WebGPU pipelines</span></div>
         </div>
         <div class="transport">

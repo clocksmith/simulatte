@@ -270,3 +270,72 @@ test('perspective camera fits actual geometry inside desktop and mobile overlay 
     }
   }
 });
+
+test('segmented groups project accepted state without claiming rejected or pending clicks', async () => {
+  const controls = require('../public/shared/design/control-components.js');
+  class Button {
+    constructor(checked) { this.attrs = new Map([['aria-checked', String(checked)]]); this.listeners = {}; this.hidden = false; this.disabled = false; }
+    setAttribute(key,value) { this.attrs.set(key,value); }
+    getAttribute(key) { return this.attrs.get(key); }
+    removeAttribute(key) { this.attrs.delete(key); }
+    addEventListener(key,fn) { (this.listeners[key] ||= []).push(fn); }
+    click() { for(const fn of this.listeners.click || []) fn(); }
+    focus() { this.focused = true; }
+  }
+  const buttons = [new Button(true),new Button(false)], group = {setAttribute(){},querySelectorAll:()=>buttons};
+  const widget = controls.decorateGroup(group);
+  assert.equal(controls.decorateGroup(group),widget,'Repeated mounting must not add competing listeners');
+  let release;
+  const pending = new Promise(resolve=>release=resolve);
+  buttons[1].addEventListener('click',()=>pending.then(()=>widget.sync(buttons[1])));
+  buttons[1].click();
+  assert.equal(buttons[0].getAttribute('aria-checked'),'true');
+  assert.equal(buttons[1].getAttribute('aria-checked'),'false','Pending choice is not accepted state');
+  release(); await pending; await Promise.resolve();
+  assert.equal(buttons[1].getAttribute('aria-checked'),'true');
+  // Programmatic restoration, then a rejected/cancelled request with no commit.
+  widget.sync(buttons[0]); buttons[0].click();
+  assert.equal(buttons[0].getAttribute('aria-checked'),'true');
+  buttons[1].listeners.click = [];
+  buttons[1].click();
+  assert.equal(buttons[1].getAttribute('aria-checked'),'false');
+  const event={key:'ArrowRight',preventDefault(){}};
+  buttons[0].listeners.keydown[0](event);
+  assert.equal(buttons[1].focused,true);
+  assert.equal(buttons[0].tabIndex,0,'Roving tab stop follows accepted state after refusal');
+  widget.sync(buttons[1]);
+  assert.equal(buttons[1].tabIndex,0);
+  assert.equal(buttons[0].tabIndex,-1);
+});
+
+
+test('World Focus bounds include the rendered marker height, not only its ground anchor', () => {
+  const sceneApi=require('../public/simulatte/app/world-render-scene.js');
+  const geometry=require('../public/simulatte/app/webgpu-geometry.js');
+  const fit=require('../public/simulatte/app/camera-fit.js');
+  const camera=require('../public/simulatte/app/camera-controller.js');
+  const scene={actors:[],paths:[],areas:[],markers:[{id:'plugin:test:tower',point:{x:400,y:200},heightM:30,radiusM:4,intensity:1,style:{tone:'cyan'}}]};
+  const points=sceneApi.objectBounds(geometry,scene,'tower',{state:{simulatedTimeSeconds:0}});
+  assert.equal(points.length,8);assert.ok(Math.max(...points.map(p=>p[1]))>=30);
+  assert.deepEqual(sceneApi.objectBounds(geometry,scene,'missing',{state:{}}),[]);
+  for(const [width,height,insets] of [[1375,754,{bottom:338}],[364,564,{bottom:314}]]) {
+    const state={mode:'top',yaw:-.72,pitch:.84};
+    assert.equal(sceneApi.fitObject(state,points,{width,height,insets},fit),true);
+    assert.ok(state.distance<140,'A small object must be framed independently of city-scale limits');
+    state.targets=[{id:'tower',target:state.orbitTarget,distance:state.distance}];state.focusId='tower';
+    const pose=camera.advanceCamera({...state,pose:null,transition:null,lastFrameAt:null},{state:{position:{x:0,y:0}}},{},width/height,0);
+    assert.ok(pose.eye[1]-pose.target[1]<80,'Fitted views must not inherit a city-scale minimum height');
+  }
+});
+
+test('tier picking bounds use the same visible marker radius as drawing', () => {
+  const presentation=require('../public/simulatte/app/tier-plugin-presentation.js');
+  const layer=presentation.createLayer({view:()=>({panX:100,panY:100,zoom:100,rotX:0,rotY:0}),width:()=>300,height:()=>300});
+  layer.set([{pluginId:'fixture',presentation:{schema:'simulatte.pluginPresentation.v3',coordinateSystem:'icrs-cartesian-pc',markers:[{id:'star',position:[0,0,0],radius:2,tone:'cyan'}]}}]);
+  const bounds=layer.objectBounds('fixture','star');
+  assert.equal(bounds.length,4);assert.equal(bounds[1].x-bounds[0].x,8);
+  const arcs=[];const ctx=new Proxy({arc(x,y,r){arcs.push({x,y,r});}},{get:(o,k)=>k in o?o[k]:()=>{}});
+  layer.render(ctx);
+  assert.ok(arcs.some(a=>a.x===(bounds[0].x+bounds[1].x)/2&&a.y===(bounds[0].y+bounds[2].y)/2&&a.r===4));
+  assert.equal(layer.objectBounds('fixture','missing'),null);
+});

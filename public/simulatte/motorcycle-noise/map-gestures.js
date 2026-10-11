@@ -54,6 +54,7 @@
     on(canvas,'touchcancel',()=>{single=null;previous=null;multiple=false;},{passive:true});
     on(canvas,'wheel',event=>{
       event.stopImmediatePropagation();
+      if(!event.ctrlKey&&!event.metaKey)return;
       event.preventDefault();zoom(Math.exp(Math.max(-.25,Math.min(.25,event.deltaY*(event.deltaMode===1?.04:.002)))));
     },{capture:true,passive:false});
     const directions={up:[0,1],down:[0,-1],left:[-1,0],right:[1,0]};

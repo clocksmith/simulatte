@@ -5,7 +5,9 @@
 })(globalThis, function () {
   function cellBounds(states, selection = null) {
     const cells = states.flatMap(state=>state.cells);
-    const xs=cells.map(c=>c.x), ys=cells.map(c=>c.y);
+    if (!cells.length) return { origin: [-8, -8], span: 16 };
+    const xs=cells.flatMap(c=>[c.x-Math.sqrt(c.area/Math.PI),c.x+Math.sqrt(c.area/Math.PI)]),
+      ys=cells.flatMap(c=>[c.y-Math.sqrt(c.area/Math.PI),c.y+Math.sqrt(c.area/Math.PI)]);
     if(selection?.id === 'region'){xs.push(selection.worldX);ys.push(selection.worldY);}
     const center=[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2];
     const span=Math.max(16,Math.max(...xs)-Math.min(...xs)+8,Math.max(...ys)-Math.min(...ys)+8);
@@ -13,26 +15,28 @@
   }
   function draw(canvas, config, state, selection = null, yaw = 0.65, options = {}) {
     const ratio = Math.min(2, globalThis.devicePixelRatio || 1),
-      width = Math.max(1, canvas.clientWidth),
-      height = width;
+      width = Math.max(1, options.width || canvas.clientWidth),
+      height = Math.max(1, options.height || canvas.clientHeight || width);
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     const ctx = canvas.getContext("2d");
     if (!ctx) throw Error("field_canvas_unavailable");
     ctx.scale(ratio, ratio);
-    const style = getComputedStyle(canvas),
+    const style = options.style || getComputedStyle(canvas),
       ink = style.getPropertyValue("--sim-ink").trim(),
       paper = style.getPropertyValue("--sim-glass").trim(),
       accent = style.getPropertyValue("--sim-accent").trim();
     ctx.fillStyle = paper;
     ctx.fillRect(0, 0, width, height);
     const extent = config.params.size * config.params.spacing,
-      margin = width * 0.06,
+      margin = Math.min(width, height) * 0.06,
       bounds = options.bounds || {origin:[0,0],span:extent},
-      scale = (width - 2 * margin) / bounds.span,
+      scale = (Math.min(width, height) - 2 * margin) / bounds.span,
+      offsetX = (width - bounds.span * scale) / 2,
+      offsetY = (height - bounds.span * scale) / 2,
       hits = [];
     if (config.view === "cells") {
-      const at=(x,y)=>[margin+(x-bounds.origin[0])*scale,margin+(y-bounds.origin[1])*scale];
+      const at=(x,y)=>[offsetX+(x-bounds.origin[0])*scale,offsetY+(y-bounds.origin[1])*scale];
       // Signal lives on cells; arrows show exchange over the model's contact graph.
       if(options.signal !== false) for(let i=0;i<state.cells.length;i++) for(let j=i+1;j<state.cells.length;j++) {
         const a=state.cells[i],b=state.cells[j],d=Math.hypot(a.x-b.x,a.y-b.y);
@@ -66,17 +70,20 @@
       ctx.fillStyle=ink;ctx.font='11px sans-serif';ctx.fillText('Cell signal / growth / lineage',margin,height-12);
     } else if (config.view === "terrain") {
       const n = config.params.size,
-        unit = (width * (options.top?0.88:0.58)) / bounds.span,
         c = Math.cos(options.top?0:yaw),
         s = Math.sin(options.top?0:yaw);
-      const project = (x, y, z) => {
-        const dx = x - bounds.origin[0] - bounds.span / 2,
-          dy = y - bounds.origin[1] - bounds.span / 2;
-        return [
-          width / 2 + (dx * c - dy * s) * unit,
-          height * (options.top?0.5:0.57) + (dx * s + dy * c) * unit * (options.top?1:0.45) - (options.top?0:z * unit * 1.8),
-        ];
-      };
+      const raw = (x,y,z) => [x*c-y*s, (x*s+y*c)*(options.top?1:0.45)-(options.top?0:z*1.8)];
+      const geometry=[];
+      for(let i=0;i<n*n;i++) {
+        const x=(i%n)*config.params.spacing,y=Math.floor(i/n)*config.params.spacing;
+        if(x+config.params.spacing<bounds.origin[0] || y+config.params.spacing<bounds.origin[1] || x>bounds.origin[0]+bounds.span || y>bounds.origin[1]+bounds.span) continue;
+        for(const branch of options.fitStates || [state]) for(const dx of [0,config.params.spacing]) for(const dy of [0,config.params.spacing]) geometry.push(raw(x+dx,y+dy,branch.height[i]));
+      }
+      if(!geometry.length) throw Error("field_camera_bounds_empty");
+      const minX=Math.min(...geometry.map(p=>p[0])),maxX=Math.max(...geometry.map(p=>p[0])),
+        minY=Math.min(...geometry.map(p=>p[1])),maxY=Math.max(...geometry.map(p=>p[1]));
+      const unit=Math.min((width-2*margin)/Math.max(.001,maxX-minX),(height-2*margin)/Math.max(.001,maxY-minY));
+      const project=(x,y,z)=>{const p=raw(x,y,z);return [width/2+(p[0]-(minX+maxX)/2)*unit,height/2+(p[1]-(minY+maxY)/2)*unit];};
       const cells = [];
       for (let i = 0; i < n * n; i++) {
         const x = (i % n) * config.params.spacing,
@@ -127,14 +134,15 @@
           y: cell.center[1],
           worldX: cell.x,
           worldY: cell.y,
+          bounds: { left:Math.min(...cell.points.map(p=>p[0])),right:Math.max(...cell.points.map(p=>p[0])),top:Math.min(...cell.points.map(p=>p[1])),bottom:Math.max(...cell.points.map(p=>p[1])) },
         });
       }
     } else if (config.view === "phase") {
       const n = config.params.size,
         cellSize = config.params.spacing * scale;
       for (let i = 0; i < n * n; i++) {
-        const x = margin + ((i % n) * config.params.spacing-bounds.origin[0])*scale,
-          y = margin + (Math.floor(i / n) * config.params.spacing-bounds.origin[1])*scale,
+        const x = offsetX + ((i % n) * config.params.spacing-bounds.origin[0])*scale,
+          y = offsetY + (Math.floor(i / n) * config.params.spacing-bounds.origin[1])*scale,
           phi = state.phase[i],
           temperature = state.temperature[i],
           grain = state.grain[i];
@@ -151,6 +159,7 @@
           y: y + cellSize / 2,
           worldX: ((i % n) + 0.5) * config.params.spacing,
           worldY: (Math.floor(i / n) + 0.5) * config.params.spacing,
+          bounds: {left:x,right:x+cellSize,top:y,bottom:y+cellSize},
         });
       }
       if (selection) {
@@ -169,8 +178,8 @@
     } else throw Error("field_view_unsupported");
     if (config.view === "cells" && selection?.id === "region") {
       ctx.strokeStyle = accent;
-      const x = margin + (selection.worldX-bounds.origin[0]) * scale,
-        y = margin + (selection.worldY-bounds.origin[1]) * scale;
+      const x = offsetX + (selection.worldX-bounds.origin[0]) * scale,
+        y = offsetY + (selection.worldY-bounds.origin[1]) * scale;
       ctx.beginPath();
       ctx.moveTo(x - 6, y);
       ctx.lineTo(x + 6, y);
@@ -178,10 +187,13 @@
       ctx.lineTo(x, y + 6);
       ctx.stroke();
     }
-    return { hits, width, height, view: config.view, margin, scale, extent, origin:bounds.origin };
+    const all = hits.flatMap(hit => hit.bounds ? [[hit.bounds.left,hit.bounds.top],[hit.bounds.right,hit.bounds.bottom]] : [[hit.x-(hit.radius||0),hit.y-(hit.radius||0)],[hit.x+(hit.radius||0),hit.y+(hit.radius||0)]]);
+    return { hits, width, height, view: config.view, margin, offsetX, offsetY, scale, extent, origin:bounds.origin,
+      bounds: all.length ? {left:Math.min(...all.map(p=>p[0])),right:Math.max(...all.map(p=>p[0])),top:Math.min(...all.map(p=>p[1])),bottom:Math.max(...all.map(p=>p[1]))} : null };
   }
   function pick(frame, x, y) {
-    if (!frame.hits.length) return frame.view==='cells' ? {id:'region',worldX:Math.max(0,Math.min(frame.extent,(x-frame.margin)/frame.scale+frame.origin[0])),worldY:Math.max(0,Math.min(frame.extent,(y-frame.margin)/frame.scale+frame.origin[1]))} : null;
+    const offsetX=frame.offsetX??frame.margin,offsetY=frame.offsetY??frame.margin;
+    if (!frame.hits.length) return frame.view==='cells' ? {id:'region',worldX:Math.max(0,Math.min(frame.extent,(x-offsetX)/frame.scale+frame.origin[0])),worldY:Math.max(0,Math.min(frame.extent,(y-offsetY)/frame.scale+frame.origin[1]))} : null;
     const nearest = frame.hits.reduce((best, row) =>
       Math.hypot(row.x - x, row.y - y) < Math.hypot(best.x - x, best.y - y)
         ? row
@@ -195,11 +207,11 @@
         id: "region",
         worldX: Math.max(
           0,
-          Math.min(frame.extent, (x - frame.margin) / frame.scale + frame.origin[0]),
+          Math.min(frame.extent, (x - offsetX) / frame.scale + frame.origin[0]),
         ),
         worldY: Math.max(
           0,
-          Math.min(frame.extent, (y - frame.margin) / frame.scale + frame.origin[1]),
+          Math.min(frame.extent, (y - offsetY) / frame.scale + frame.origin[1]),
         ),
       };
     return nearest;

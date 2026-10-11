@@ -563,8 +563,15 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.routeIdentity = null;
     }
 
+    function fitFocusedObject() {
+      const target = state.targets.find(row=>row.id===state.focusId);
+      const points = sceneSource.objectBounds(geometry,state.pluginScene,target?.sourceId || '',state.latestSnapshot);
+      sceneSource.fitObject(state,points,{width:canvas.clientWidth,height:canvas.clientHeight,insets:state.viewportInsets},cameraFit);
+    }
+
     function setCameraMode(mode) {
       cameraApi.setCameraMode(state, mode, performance.now());
+      fitFocusedObject();
       canvas.dataset.cameraMode = mode;
       if (state.latestSnapshot) drawFrame();
       return mode;
@@ -578,6 +585,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
     function focusCameraTarget(targetId) {
       const mode = cameraApi.focusCameraTarget(state, targetId, performance.now());
+      fitFocusedObject();
       canvas.dataset.cameraMode = mode;
       canvas.dataset.cameraFocus = targetId;
       if (state.latestSnapshot) drawFrame();
@@ -590,9 +598,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
     function projectObjects() {
       const viewport={width:canvas.clientWidth,height:canvas.clientHeight};
+      const focused=state.targets.find(row=>row.id===state.focusId)?.sourceId;
       return ['actors','markers','paths','areas'].flatMap(key=>(state.pluginScene[key]||[]).map(row=>({
         id:row.id.replace(/^plugin:[^:]+:/,''),
-        points:(row.points||[row.point||row.position].filter(Boolean)).map(point=>{
+        points:(row.id.endsWith(':'+focused) ? sceneSource.objectBounds(geometry,state.pluginScene,focused,state.latestSnapshot).map(p=>({x:p[0],heightM:p[1],y:-p[2]})) : row.points||[row.point||row.position].filter(Boolean)).map(point=>{
           const p=semanticLabels.project(point,state.displayCamera?.viewProjection,viewport);
           return p?{x:p[0],y:p[1],depth:math.transformPoint(state.displayCamera.viewProjection,[point.x,point.heightM??1.8,-point.y])[2]}:null;
         }),
@@ -835,15 +844,16 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     on('pointerdown', (event) => {
       canvas.focus({ preventScroll: true });
       if (pointer || event.isPrimary === false) return;
-      event.preventDefault();
+      if (event.pointerType !== 'touch') event.preventDefault();
       const action = state.mode === 'top' || event.shiftKey || event.button !== 0 ? 'pan' : 'orbit';
       pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, action, active: false };
-      canvas.setPointerCapture(event.pointerId);
+      if (event.pointerType !== 'touch') canvas.setPointerCapture(event.pointerId);
     });
     on('pointermove', (event) => {
       if (!pointer || pointer.id !== event.pointerId) return;
       const deltaX = event.clientX - pointer.x;
       const deltaY = event.clientY - pointer.y;
+      if (event.pointerType === 'touch' && Math.abs(deltaY) >= Math.abs(deltaX)) return;
       if (!pointer.active) {
         if (Math.hypot(deltaX, deltaY) <= 5) return;
         pointer.active = true;
@@ -876,6 +886,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       onInteraction?.({ control: 'keyboard', mode: state.mode, targetIds: [] });
     });
     on('wheel', (event) => {
+      if (!event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
       const trackedMode = ['follow', 'pov'].includes(state.mode);
       if (!trackedMode && state.mode !== 'top') camera.setCameraMode(state, 'free', performance.now());

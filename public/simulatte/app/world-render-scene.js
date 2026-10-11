@@ -51,5 +51,37 @@
       },
     });
   }
-  return Object.freeze({ create });
+  // Bounds come from the same vertex builders as the rendered object, including
+  // its height and width. Scene anchor points alone cannot prove useful framing.
+  function objectBounds(drawing, scene, sourceId, snapshot) {
+    const focused = { ...scene, sun: null };
+    let found = false;
+    for (const key of ['actors','markers','paths','areas','geoMarkers','geoPaths','geoAreas','choropleths']) {
+      focused[key] = (scene[key] || []).filter(row => row.id === sourceId || row.id.endsWith(':' + sourceId));
+      found ||= focused[key].length > 0;
+    }
+    if (!found) return [];
+    const vertices = [drawing.createPluginStaticGeometry(focused), drawing.createPluginOverlayGeometry(focused),
+      drawing.createPluginDynamicGeometry(focused, snapshot, null, 0)];
+    const min = [Infinity,Infinity,Infinity], max = [-Infinity,-Infinity,-Infinity];
+    for (const data of vertices) for (let i = 0; i < data.length; i += drawing.FLOATS_PER_VERTEX) {
+      for (let axis = 0; axis < 3; axis++) { min[axis] = Math.min(min[axis],data[i+axis]); max[axis] = Math.max(max[axis],data[i+axis]); }
+    }
+    if (!min.every(Number.isFinite) || !max.every(Number.isFinite)) return [];
+    return Array.from({length:8},(_,i)=>min.map((v,axis)=>i & (1<<axis) ? max[axis] : v));
+  }
+  function fitObject(state, points, viewport, fit) {
+    if (!points.length || ['follow','pov'].includes(state.mode)) return false;
+    const usable = fit.usableViewport({...viewport,padding:0});
+    if (!usable) return false;
+    // The renderer frames its projection inside the unobstructed viewport.
+    const padding = 24 * Math.max(viewport.width/(usable.right-usable.left),viewport.height/(usable.bottom-usable.top));
+    const pitch = state.mode === 'top' ? Math.PI/2-.025 : state.mode === 'compare' ? Math.max(state.pitch,1.02) : state.pitch;
+    const fov = (state.mode === 'top' ? 42 : state.mode === 'compare' ? 54 : 46)*Math.PI/180;
+    const pose = fit.fitPerspective(points,{width:viewport.width,height:viewport.height,yaw:Math.PI/2-state.yaw,pitch,fov,padding});
+    state.orbitTarget = pose.target; state.distance = pose.distance*Math.min(1,Math.max(.1,viewport.width/viewport.height))/(state.mode === 'compare' ? 1.16 : 1);
+    state.isManualFrame = true;
+    return true;
+  }
+  return Object.freeze({ create, objectBounds, fitObject });
 });
