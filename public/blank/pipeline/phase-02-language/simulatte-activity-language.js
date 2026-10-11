@@ -29,7 +29,8 @@
       const action = VERBS[verb.text.toLowerCase()];
       const object = ['walk','stand'].includes(action) ? null : spans.find(row => row.start >= verb.end && row.end <= end &&
         ['entity', 'term'].includes(row.kind) && !handSpans.has(row.id));
-      const support = action==='place' ? spans.find(row=>row.start>=(object?.end??end)&&row.end<=end&&['entity','term'].includes(row.kind)&&!handSpans.has(row.id)&&/table|shelf|surface|bench/i.test(row.text)) : null;
+      const support = action === 'place' ? spans.find(row => row.start >= (object?.end ?? end) && row.end <= end &&
+        ['entity', 'term'].includes(row.kind) && !handSpans.has(row.id) && /\b(?:on|onto)\b/i.test(text.slice(object.end, row.start))) : null;
       const definiteReference = object && /\bthe\s+$/i.test(text.slice(verb.end,object.start));
       const between = previous ? text.slice(previous.end, verb.start) : '';
       const sequential = /\b(?:then|afterward|afterwards|after that)\b/i.test(between);

@@ -19,6 +19,8 @@
       current.acceptedGraph || null
     );
     if (!acceptedGraph) throw new Error('WorldSpec user override requires an accepted universeGraph');
+    const activityGraph = scope.reconcileActivityGraph(current.activityGraph || current.acceptedGraph?.activityGraph, acceptedGraph);
+    if (activityGraph) acceptedGraph.activityGraph = activityGraph;
     const compositionLedger = acceptedGraph.compositionLedger ||
       current.compositionLedger ||
       phase4Output.artifact.compositionLedger || null;
@@ -46,9 +48,10 @@
       worldSpecAuthoring: { schema: 'simulatte.worldSpecAuthoringProjection.v1',
         ...Object.fromEntries(['source', 'authorship', 'determinism', 'dependencies', 'safety',
           'unsupportedRequirements', 'unresolvedAmbiguities', 'createdAt', 'remixOf', 'universeGraph']
-          .map(key => [key, worldSpec[key]])),
+          .map(key => [key, key === 'universeGraph' ? acceptedGraph : worldSpec[key]])),
       },
       acceptedGraph,
+      activityGraph,
       components: worldSpec.objects,
       params: worldSpec.params,
       controls: worldSpec.controls,

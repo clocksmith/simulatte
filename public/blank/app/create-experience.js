@@ -37,6 +37,8 @@
       capabilities: { selection: true, camera: false, pause: true, restart: true,
         replay: 'world-proof-when-settled', liveActions: true, authoring: true },
       operations: [
+        { id: 'revise-activity', category: 'authoring', requiresCompile: true,
+          available: () => Boolean(controller?.snapshot().activity), perform: (revision, operation) => controller.reviseActivity(revision, operation) },
         { id: 'pause', category: 'execution', available: () => Boolean(controller?.snapshot().visible), perform: () => controller.pause() },
         { id: 'resume', category: 'execution', available: () => Boolean(controller?.snapshot().visible), perform: () => controller.resume() },
         { id: 'restart', category: 'reproduction', available: () => Boolean(controller?.snapshot().visible), perform: () => controller.restart() },
@@ -45,6 +47,9 @@
       ],
     });
     view.SimulatteCreateSession = session;
+    const activityEditor = view.SimulatteActivityEditor.connect(documentRoot, {
+      revise: revision => session.invoke('revise-activity', revision),
+    });
     const listeners = [];
     const on = (node, event, handler) => { node.addEventListener(event, handler); listeners.push(() => node.removeEventListener(event, handler)); };
     const text = (id, value) => {
@@ -55,6 +60,7 @@
     function refresh() {
       const current = controller?.snapshot() || { visible: false, state: 'idle' };
       const visible = current.visible;
+      activityEditor.sync(current);
       const status = statusFor({ ...current, prompt: input.value });
       session.update({
         preparation: ['active', 'loading'].includes(current.state) ? 'preparing'
@@ -102,7 +108,7 @@
     on(view, 'create-controller-ready', connectController);
     connectController();
     refresh();
-    const dispose = () => { disconnect?.(); session.dispose(); statusView.dispose(); listeners.splice(0).forEach(remove => remove()); };
+    const dispose = () => { disconnect?.(); activityEditor.dispose(); session.dispose(); statusView.dispose(); listeners.splice(0).forEach(remove => remove()); };
     on(view, 'pagehide', dispose);
     return Object.freeze({ dispose });
   }

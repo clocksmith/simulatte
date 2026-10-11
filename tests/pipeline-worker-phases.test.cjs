@@ -48,6 +48,39 @@ const request = { request: { kind: 'prompt', text: 'two cats' },
 const call = () => ({ previous: contracts.createRequestEnvelope(request), invocation: {} });
 const resources = () => ({ 'compiler-options': { deterministicRuntime: true } });
 
+test('managed activity revisions reach eight phases and unresolved replacements stop before drawing', async () => {
+  const dispatch = require('../public/blank/app/prompt/prompt-controller-phase-dispatch.js');
+  const policy = require('../public/data/create-phase-run-policy.json');
+  const { client } = harness();
+  const producer = { id: 'activity-revision-test', buildDigest: await contracts.artifactDigest({ fixture: 'activity-revision' }) };
+  let draws = 0;
+  const instance = dispatch.create({ model, worker: client, configuration: { ...policy, producer },
+    renderer: { renderPhase: (previous, invocation) => {
+      draws++;
+      return model.runPhase7RenderExecution(previous, invocation.simulationSnapshot.state, null, {});
+    } },
+    invocationForProgram: program => {
+      const state = model.createSimulationState(program);
+      return model.createRenderInvocation(program, state, { index: 0, simulationTime: state.t }, { width: 640, height: 480 });
+    },
+  });
+  try {
+    const spec = model.createSpecFromPrompt('a person holds a cup in the right hand then places the cup on a table with the right hand', { deterministicRuntime: true });
+    const authored = model.recordWorldSpecEdit(spec, model.prepareActivityRevision(spec, { swapHands: true }), { rationale: 'Swap hands' });
+    const edited = await instance.executeProgram(authored, { recompile: true });
+    assert.equal(edited.authorship.revision, 1);
+    assert.ok(edited.activityProgram.actions.every(action => action.hand === 'left'));
+    assert.deepEqual(instance.getLatest().attempts[0].outputs.map(output => output.phase), [1, 2, 3, 4, 5, 6, 7, 8]);
+    assert.equal(draws, 1);
+    const support = edited.activityProgram.objects.find(row => row.kind === 'support');
+    const removed = model.recordWorldSpecEdit(edited, model.prepareActivityRevision(edited, { objectId: support.id, remove: true }), { rationale: 'Remove needed support' });
+    await assert.rejects(instance.executeProgram(removed, { recompile: true }), /placement surface/);
+    assert.equal(draws, 1);
+    assert.deepEqual(instance.getLatest().attempts[0].outputs.map(output => output.phase), [1, 2, 3, 4, 5, 6]);
+    assert.equal(instance.getLatest().status, 'failed');
+  } finally { instance.dispose(); client.cancel(); }
+});
+
 test('page dispatch executes and retains eight bound phases through the existing worker', async () => {
   const dispatch = require('../public/blank/app/prompt/prompt-controller-phase-dispatch.js');
   const policy = require('../public/data/create-phase-run-policy.json');

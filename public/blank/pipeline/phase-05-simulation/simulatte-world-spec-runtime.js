@@ -231,7 +231,7 @@
         ...edited.intent,
         prompt: edited.source.prompt,
         components: edited.objects,
-        universeGraph: edited.universeGraph,
+        universeGraph: userOverridePhase4.artifact.groundedIntent.acceptedGraph,
         phaseArtifacts: null,
         resolution: {
           ...(edited.intent.resolution || {}),
@@ -249,7 +249,7 @@
       params: edited.params,
       intent,
       contract: edited.contract,
-      universeGraph: edited.universeGraph,
+      universeGraph: userOverridePhase4.artifact.groundedIntent.acceptedGraph,
       phaseArtifacts: {
         phase1: compatiblePhases.phase1,
         phase2: compatiblePhases.phase2,

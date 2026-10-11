@@ -7,7 +7,7 @@
     ['sit', ['root', 'legs'], ['seat-support'], 'support'],
     ['stand', ['root', 'legs'], ['ground-support'], 'support-transition'],
     ['hold', ['hand'], ['graspable-object'], 'attachment'],
-    ['drink', ['hand'], ['cup'], 'attachment'],
+    ['drink', ['hand'], ['graspable-object', 'liquid-container'], 'attachment'],
     ['place', ['hand'], ['graspable-object', 'support-surface'], 'release'],
   ].map(([id, writes, preconditions, effect]) => ({
     schema: 'simulatte.activityComponent.v1', id, version: 3,
@@ -24,6 +24,14 @@
   function activityCapabilityInventory() {
     if(retainedInventory)return retainedInventory;
     const inventory = { schema: 'simulatte.activityCapabilities.v3', components,
+      objectProfiles: [
+        { archetypes: ['chair', 'seat', 'bench'], kind: 'seat', capabilities: ['seat-support'] },
+        { archetypes: ['cup', 'mug'], kind: 'cup', capabilities: ['graspable-object', 'liquid-container'] },
+        { archetypes: ['phone'], kind: 'phone', capabilities: ['graspable-object'] },
+        { archetypes: ['ball', 'sphere', 'cube', 'box', 'book'], kind: 'object', capabilities: ['graspable-object'] },
+        { archetypes: ['table', 'shelf', 'surface'], kind: 'support', capabilities: ['support-surface'] },
+      ],
+      objectCapabilityNames: ['graspable-object', 'seat-support', 'support-surface', 'liquid-container'],
       skeleton: { id: 'simulatte.planar-human.v1', units: 'm', height: 1.7,
         solver: 'analytic-two-bone-ik', motionProvider: 'procedural', dimensions: 2 },
       coverage: { contacts: 'holonomic-constraints', forces: true, liquidTransfer: true,

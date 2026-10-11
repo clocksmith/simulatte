@@ -130,6 +130,14 @@
                   percent: Math.round((phase - 1) * 100 / 8), message: contracts.PHASE_LABELS[phase - 1] });
                 if (phase !== 7) return {};
                 program = source && !source.recompile ? source.worldSpec : model.projectWorldSpec(Object.fromEntries(outputs.map(output => [`phase${output.phase}`, output])));
+                if (source?.recompile && program.activityProgram) {
+                  const requirements = model.activityRevisionRequirements(program.activityProgram);
+                  if (requirements.length) throw Object.assign(new Error(requirements.map(row => {
+                    const request = program.universeGraph.activityGraph?.sourceRequests?.find(action => action.id === row.id);
+                    return `${request?.action || 'Activity'}: ${row.reason}`;
+                  }).join('; ')),
+                    { code: 'ACTIVITY_REVISION_UNRESOLVED', requirements });
+                }
                 if (!source && (retryRequest?.retryPolicy.acceptedEdits === 'require-reconciliation' || requiresReconciliation(program))) {
                   replacement = program;
                   throw Object.assign(new Error('Reconciliation is required before drawing this candidate'), { code: 'SIMULATTE_AUTHORED_RESTART' });

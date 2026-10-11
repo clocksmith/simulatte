@@ -13,12 +13,13 @@
     const actions = graph.actions.filter(row => {
       if (row.status !== 'accepted') return false;
       if (!nodes.some(node => node.id === row.actorId && !node.unresolved) ||
-          row.objectId && !nodes.some(node => node.id === row.objectId && !node.unresolved)) {
+          row.objectId && !nodes.some(node => node.id === row.objectId && !node.unresolved) ||
+          row.supportObjectId && !nodes.some(node => node.id === row.supportObjectId && !node.unresolved)) {
         unsupported.push({ id: row.id, reason: 'authored edit removed an activity participant', evidence: row.sourceEvidence });
         return false;
       }
       return true;
-    });
+    }).sort((a, b) => a.startSeconds - b.startSeconds || a.sourceEvidence.start - b.sourceEvidence.start);
     const actorIds = [...new Set(actions.map(row => row.actorId))];
     if (actorIds.length > graph.capabilities.limits.maxActors) throw new Error('Activity actor bound exceeded');
     const actors = actorIds.map((id, i) => {
@@ -29,9 +30,11 @@
         ...(policy ? { massKg: node?.params?.massKg ?? policy.defaultActorMassKg } : {}),
         units: 'm', frame: 'world', provenance: node.provenance || { spanId: node.spanId } };
     });
-    const objects = [...new Set(actions.flatMap(row => [row.objectId,row.supportObjectId]).filter(Boolean))].map((id, i) => {
-      const node = nodes.find(row => row.id === id), label = String(node.label || '').toLowerCase();
-      const kind = /chair|seat|bench/.test(label) ? 'seat' : /cup|mug/.test(label) ? 'cup' : /phone/.test(label) ? 'phone' : /table|shelf|surface/.test(label) ? 'support' : 'object';
+    const objectIds = [...new Set(actions.flatMap(row => [row.objectId,row.supportObjectId]).filter(Boolean))];
+    const objects = objectIds.map((id, i) => {
+      const node = nodes.find(row => row.id === id);
+      const qualified = scope.resolveActivityObjectCapabilities(node, graph.capabilities);
+      const { kind, capabilities, provenance } = qualified;
       const radius = node.params?.radius ?? (kind === 'seat' ? 0.25 : kind === 'support' ? 0.35 : kind === 'cup' ? 0.045 : 0.035);
       const containsLiquid = actions.some(row => row.action === 'drink' && row.objectId === id);
       const first = actions.find(row => row.objectId === id || row.supportObjectId===id), actor = actors.find(row => row.id === first?.actorId);
@@ -39,14 +42,20 @@
         .reduce((s, row) => s + Math.min(row.endSeconds, first.startSeconds) - row.startSeconds, 0);
       const priorSeat=actions.filter(row=>row.actorId===actor?.id&&row.action==='sit'&&row.startSeconds<first.startSeconds).at(-1);
       const priorSeatNode=nodes.find(row=>row.id===priorSeat?.objectId);
+      const seatX = action => {
+        const seatNode = nodes.find(row => row.id === action?.objectId);
+        if (!seatNode) return actor.origin[0] + actor.height * 0.2 * walkTime;
+        const walked = actions.filter(row => row.actorId === actor.id && row.action === 'walk' && row.startSeconds < action.startSeconds)
+          .reduce((sum, row) => sum + Math.min(row.endSeconds, action.startSeconds) - row.startSeconds, 0);
+        return seatNode.params?.position?.[0] ?? (action.startSeconds > 0 ? actor.origin[0] + actor.height * 0.2 * walked : 0.5 + objectIds.indexOf(seatNode.id) * 0.3);
+      };
       const pendingPosition = policy && first?.hand && first.startSeconds > 0
-        ? [(priorSeatNode?.params?.position?.[0] ?? actor.origin[0]+actor.height*0.2*walkTime)+actor.height*(first.hand==='left'?-0.29:0.29), (priorSeat ? priorSeatNode.params?.seatHeight??0.45 : actor.height*0.5)+actor.height*0.05] : null;
+        ? [seatX(priorSeat)+actor.height*(first.hand==='left'?-0.29:0.29), (priorSeat ? priorSeatNode.params?.seatHeight??0.45 : actor.height*0.5)+actor.height*0.05] : null;
       const seated=actions.filter(row=>row.actorId===actor?.id&&row.action==='sit'&&row.startSeconds<first.startSeconds).at(-1);
-      const seatNode=nodes.find(row=>row.id===seated?.objectId);
       const supportHeight=node.params?.supportHeight ?? 0.75;
-      const supportPosition=kind==='support' ? [(seatNode?.params?.position?.[0] ?? actor.origin[0]+actor.height*0.2*walkTime)+(first.hand==='left'?-1:1)*actor.height*0.29,supportHeight] : null;
+      const supportPosition=kind==='support' ? [seatX(seated)+(first.hand==='left'?-1:1)*actor.height*0.29,supportHeight] : null;
       const seatPosition=kind==='seat'&&first.startSeconds>0 ? [actor.origin[0]+actor.height*0.2*walkTime,node.params?.seatHeight??0.45] : null;
-      return { id, kind, position: node.params?.position || supportPosition || seatPosition || pendingPosition || [0.5 + i * 0.3, kind === 'seat' ? 0.45 : 1],
+      return { id, kind, capabilities, capabilityProvenance: provenance, position: node.params?.position || supportPosition || seatPosition || pendingPosition || [0.5 + i * 0.3, kind === 'seat' ? 0.45 : 1],
         ...(policy ? {supportHeight} : {}),
         ...(policy ? { massKg: node.params?.massKg ?? policy.defaultObjectMassKg,
         gripForceLimitNewtons: node.params?.gripForceLimitNewtons ?? policy.defaultGripForceNewtons,
@@ -57,23 +66,26 @@
         radius,
         seatHeight: node.params?.seatHeight ?? 0.45, units: 'm', frame: 'world' };
     });
-    const accepted = actions.filter(action => {
+    const accepted = [];
+    for (const action of actions) {
       const object = objects.find(row => row.id === action.objectId);
-      const previous = actions.filter(row => row.status === 'accepted' && row.actorId === action.actorId &&
+      const previous = accepted.filter(row => row.status === 'accepted' && row.actorId === action.actorId &&
         row.endSeconds <= action.startSeconds && row.writes.some(channel => action.writes.includes(channel))).at(-1);
       const node = nodes.find(row => row.id === action.objectId);
       const repeatedReference = previous?.objectId !== action.objectId && object &&
         action.sourceEvidence.text.toLowerCase().includes(`the ${String(node?.label || '').toLowerCase()}`) &&
         objects.find(row => row.id === previous?.objectId)?.kind === object.kind;
-      const reason = action.action === 'sit' && object?.kind !== 'seat' ? 'object has no qualified seat support' :
-        action.action === 'drink' && object?.kind !== 'cup' ? 'object has no cup affordance' :
-          action.action === 'place' && (!objects.some(row=>row.id===action.supportObjectId&&row.kind==='support') || !previous || previous.objectId!==action.objectId || previous.hand!==action.hand) ? 'placement requires ownership and a qualified support surface' :
+      const reason = action.timing.after && !accepted.some(row => row.id === action.timing.after) ? 'temporal predecessor is unresolved' :
+        action.action === 'sit' && !object?.capabilities.includes('seat-support') ? 'object has no qualified seat support' :
+        ['hold', 'drink', 'place'].includes(action.action) && !object?.capabilities.includes('graspable-object') ? 'object has no qualified graspable capability' :
+        action.action === 'drink' && !object?.capabilities.includes('liquid-container') ? 'object has no liquid-container affordance' :
+          action.action === 'place' && (!objects.some(row=>row.id===action.supportObjectId&&row.capabilities.includes('support-surface')) || !previous || previous.objectId!==action.objectId || previous.hand!==action.hand) ? 'placement requires ownership and a qualified support surface' :
           repeatedReference ? 'repeated object reference lacks a committed identity binding' :
           previous && action.action==='walk' && previous.action==='sit' ? 'walking from a seat requires an explicit stand transition' :
           previous?.hand && previous.action!=='place' && previous.objectId !== action.objectId ? 'hand transition requires an explicit qualified release' : null;
       if (reason) unsupported.push({ id: action.id, reason, evidence: action.sourceEvidence });
-      return !reason;
-    });
+      else accepted.push(action);
+    }
     const program = { schema: policy ? 'simulatte.activityProgram.v3' : 'simulatte.activityProgram.v1', version: policy ? 3 : 1, actors, objects, identityBindings:acceptedGraph.activityIdentityBindings||[],
       actions: accepted.map(action => ({ ...action,
         ...(action.action==='place'?{releaseSeconds:action.startSeconds+action.durationSeconds*0.8}:{}),
@@ -92,6 +104,45 @@
     return scope.phaseContracts.immutableArtifact(program);
   }
   const validatedPrograms=new WeakSet();
+  function activityRevisionRequirements(program) {
+    if (!program) return [];
+    scope.validateActivityProgram(program);
+    const requirements = program.unsupported.slice();
+    for (const action of program.actions) {
+      const object = program.objects.find(row => row.id === action.objectId);
+      if (action.action === 'drink' && !(object?.liquidContainer?.fillFraction > 0)) {
+        requirements.push({ id: action.id, reason: 'drinking requires liquid in the selected container' });
+      }
+      // This checks the prescribed path. Force, liquid, and drawing proof remain independent.
+      for (let sample = 0; sample <= 32; sample++) {
+        const time = action.startSeconds + action.durationSeconds * sample / 32;
+        const frame = scope.evaluateActivityFrame(program, time);
+        for (const violation of frame.violations) {
+          if (!requirements.some(row => row.id === action.id && row.reason === violation.reason)) {
+            requirements.push({ id: action.id, ...violation, timeSeconds: time });
+          }
+        }
+        // The depth solver cannot represent loss of normal gravity during an
+        // unrotated lift. Match its backward-difference acceleration; rotating
+        // fluid, forces, and conservation still require execution proof.
+        const dt = program.dynamics?.maxStepSeconds;
+        if (object?.liquidContainer?.fillFraction > 0 && dt && time >= 2 * dt) {
+          const current = frame.objects[object.id];
+          const before = scope.evaluateActivityFrame(program, time - dt).objects[object.id];
+          const prior = scope.evaluateActivityFrame(program, time - 2 * dt).objects[object.id];
+          if ([current.rotation, before.rotation, prior.rotation].every(angle => Math.abs(angle) < 1e-9)) {
+            const acceleration = (current.position[1] - 2 * before.position[1] + prior.position[1]) / (dt * dt);
+            const reason = 'prescribed cup acceleration exceeds the liquid depth model: positive effective normal gravity required';
+            if (program.dynamics.gravityMetersPerSecondSquared + acceleration <= 0 &&
+                !requirements.some(row => row.id === action.id && row.reason === reason)) {
+              requirements.push({ id: action.id, reason, objectId: object.id, timeSeconds: time });
+            }
+          }
+        }
+      }
+    }
+    return requirements;
+  }
   function deeplyImmutable(value,seen=new WeakSet()) {
     if(value===null||typeof value!=='object')return typeof value!=='function';
     if(seen.has(value))return true;
@@ -125,7 +176,7 @@
     for (const object of program.objects) {
       if (ids.has(object.id) || !Array.isArray(object.position) || object.position.length !== 2 ||
           !object.position.every(Number.isFinite) || !Number.isFinite(object.radius) || object.radius <= 0 ||
-          !Number.isFinite(object.seatHeight) || object.kind==='support'&&(!Number.isFinite(object.supportHeight)||object.supportHeight<=0||object.supportHeight>2)) throw new Error('Invalid activity object geometry');
+          !Number.isFinite(object.seatHeight) || object.seatHeight <= 0 || object.seatHeight > 1.2 || object.kind==='support'&&(!Number.isFinite(object.supportHeight)||object.supportHeight<=0||object.supportHeight>2)) throw new Error('Invalid activity object geometry');
       if (program.dynamics) {
         for (const key of ['massKg', 'gripForceLimitNewtons', 'gripTorqueLimitNewtonMeters', 'supportCapacityNewtons']) {
           if (!Number.isFinite(object[key]) || object[key] <= 0 || object[key] > 100000) throw new Error('Invalid activity mass/load limit');
@@ -143,7 +194,7 @@
           action.objectId && !program.objects.some(row => row.id === action.objectId) ||
           !Number.isFinite(action.startSeconds) || !Number.isFinite(action.endSeconds) ||
           action.startSeconds < 0 || action.endSeconds <= action.startSeconds || action.endSeconds > program.limits.maxDurationSeconds ||
-          action.durationSeconds !== action.endSeconds - action.startSeconds ||
+          !Number.isFinite(action.durationSeconds) || Math.abs(action.durationSeconds - (action.endSeconds - action.startSeconds)) > 1e-9 ||
           !['walk', 'sit', 'stand', 'hold', 'drink', 'place'].includes(action.action) ||
           action.hand && !['left', 'right'].includes(action.hand) ||
           action.action==='place'&&(program.version<3||!program.objects.some(row=>row.id===action.supportObjectId&&row.kind==='support')||action.releaseSeconds!==action.startSeconds+action.durationSeconds*0.8)) throw new Error('Invalid activity action');
@@ -172,5 +223,5 @@
         policy.momentumToleranceKgMetersPerSecond > 1e-6 || policy.massToleranceKg > 1e-8) throw new Error('Dynamics accuracy/resource bounds exceeded');
     return policy;
   }
-  registry.define('physicsModel', 'simulatte-activity-program.js', { compileActivityProgram, validateActivityProgram, activityProgramHash });
+  registry.define('physicsModel', 'simulatte-activity-program.js', { compileActivityProgram, validateActivityProgram, activityProgramHash, activityRevisionRequirements });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

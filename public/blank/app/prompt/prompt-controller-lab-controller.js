@@ -73,7 +73,9 @@
         let simulationVisible = false;
         let runtimeState = 'idle', runtimeMessage = '';
         const stateListeners = new Set();
-        const sessionState = () => Object.freeze({ visible: simulationVisible, paused, state: runtimeState, message: runtimeMessage });
+        const sessionState = () => Object.freeze({ visible: simulationVisible, paused, state: runtimeState, message: runtimeMessage,
+          activity: spec?.activityProgram || null, nodes: spec?.universeGraph?.nodes || [],
+          worldSpecHash: spec?.contentHash || '', selectedObjectId: String(state?.interaction?.selectedTargetId || '').replace(/^target:/, '') });
         const emitState = () => stateListeners.forEach(listener => listener(sessionState()));
         const loadingCanvas = root.getElementById('loading-canvas');
         const loadingCanvasController = root.defaultView && root.defaultView.SimulatteLoadingCanvas
@@ -376,6 +378,8 @@
             const next = await phaseCompiler.executeProgram(authored, { recompile });
             if (signal.aborted || serial !== buildSerial) throw signal.reason || Object.assign(new Error('WorldSpec operation superseded'), { name: 'AbortError' });
             setSpec(next, { visible: true, phaseRun: phaseCompiler.getLatest(), editorSignal: signal });
+            publishRuntime({ state: 'ready', blocking: false, stage: 'authored-program', percent: 100,
+              message: 'Simulation loaded', canvasLoading: false });
             return next;
           } finally { signal.removeEventListener('abort', cancel); }
         }
@@ -496,6 +500,18 @@
           subscribe(listener) { stateListeners.add(listener); listener(sessionState()); return () => stateListeners.delete(listener); },
           pause: () => setPaused(true), resume: () => setPaused(false),
           restart: () => { setPaused(false); setSpec(spec); },
+          async reviseActivity(revision, operation) {
+            const candidate = model.prepareActivityRevision(spec, revision);
+            const signal = operation?.signal || new AbortController().signal;
+            try {
+              await executeEditorProgram(candidate, 'Revise activity in Create', signal, true);
+              operation?.throwIfCancelled();
+            } catch (error) {
+              if (!signal.aborted && error.name !== 'AbortError') publishRuntime({ state: 'error', stage: 'activity-revision', blocking: false,
+                message: error.message, canvasLoading: false });
+              throw error;
+            }
+          },
           async build(description, operation) {
             if (description !== undefined) promptInput.value = String(description);
             operation?.signal.addEventListener('abort', cancelBuild, { once: true });
@@ -775,9 +791,16 @@
           if (pendingInteractionCommands.length && typeof applyInteractionCommands === 'function') {
             const commands = pendingInteractionCommands.splice(0, pendingInteractionCommands.length);
             state = applyInteractionCommands(state, spec.interactionIR, commands);
+            emitState();
           }
           if (!paused && canvas.dataset.auditFreezeFrame !== 'true') {
-            state = playbackClock.advance(state, spec, dt);
+            try {
+              state = playbackClock.advance(state, spec, dt);
+            } catch (error) {
+              paused = true;
+              publishRuntime({ state: 'error', blocking: false, stage: 'simulation-error', percent: 0,
+                message: 'Simulation could not continue', detail: error.message, canvasLoading: false });
+            }
           }
           if (simulationVisible && webGpuRenderer) {
             const input = renderExecutionInput || refreshRenderExecutionInput();

@@ -150,6 +150,8 @@
     readoutValues: scope.readoutValues,
     remixSpec: scope.remixSpec,
     recordWorldSpecEdit: scope.recordWorldSpecEdit,
+    prepareActivityRevision: scope.prepareActivityRevision,
+    activityRevisionRequirements: scope.activityRevisionRequirements,
     restoreSolverCheckpoint: scope.restoreSolverCheckpoint,
     resolveIntentToSpec: scope.resolveIntentToSpec,
     serializeSpec: scope.serializeSpec,

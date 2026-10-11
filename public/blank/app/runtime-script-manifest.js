@@ -312,7 +312,7 @@
     prompt,
     simulation,
     review,
-    group('app/create-experience.js')
+    group('app/prompt/activity-editor.js', 'app/create-experience.js')
   );
   const pipelineWorker = join(
     runtimeFoundation,

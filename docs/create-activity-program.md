@@ -27,6 +27,36 @@ an explicit rule. Conflicting simultaneous actions are refused together instead
 of being silently reordered. Default height, duration, hand, and object dimensions
 are recorded as assumptions; accepted node parameter edits recompile them.
 
+The Activity panel exposes the accepted action timeline, object roles, seat and
+surface geometry, container fill, hand selection, duration, and temporal
+predecessors. Swap hands revises all hand actions together, including placement.
+These controls author node parameters through the existing append-only WorldSpec
+edit path. `params.activityOverrides` on the actor maps stable action IDs to
+`hand`, `durationSeconds`, `afterActionId`, `objectId`, and `supportObjectId`.
+Phase 4 resolves those edits against retained source requests, rebuilds schedules
+and owned channels, and refuses cycles, missing participants, and conflicting
+simultaneous writers. Phase 5 rebuilds attachments and consequences. Repeated
+edits retain previous overrides and node identities. Export and reimport retain
+the accepted program rather than generating new motion.
+
+Phase 1 declares bounded object profiles and capability names. Phase 5 checks
+`graspable-object`, `seat-support`, `liquid-container`, and `support-surface`
+instead of treating a familiar noun as sufficient interaction evidence. An
+authored `params.activityCapabilities` array replaces the interpreted profile;
+capability provenance records its user authority. Declaring a capability does
+not establish compatible drawing geometry or physical validity. The existing
+planar geometry, rig, support, and liquid restrictions still apply.
+
+An authored replacement with unresolved activity requirements stops before
+drawing and preserves the accepted world. Empty drinking containers and sampled
+unreachable joint targets also stop publication. The path check samples 33
+positions per action, including backward-difference acceleration during
+unrotated liquid-container motion. Loss of positive effective normal gravity
+refuses that prescribed trajectory. It is a bounded rejection check, not complete contact,
+force, liquid, or pixel proof. Scene Proof independently evaluates the executed
+sequence and drawing. Failed drafts remain editable in the panel; applied
+revisions restart execution from fresh state.
+
 Runtime uses bounded analytic two-bone IK. Foot stance anchors stay fixed until
 their gait cycle changes. Attachments publish object transforms from the declared
 hand. Repeated walking accumulates displacement. Participant mutation through user
@@ -55,6 +85,8 @@ Run qualification from the repository root:
 
 ```sh
 node --test tests/activity-program.test.cjs tests/activity-dynamics.test.cjs
+node --test tests/activity-revisions.test.cjs
+node tools/audit-activity-revisions.mjs
 npm run qualify:activity
 npm run qualify:activity:dynamics
 npm run audit:activity
@@ -77,6 +109,14 @@ The browser command uses ordinary Create prompts in the local retrieval lane at
 It exercises Pause, Restart, replayed motion, and browser serialization/reimport.
 Screenshots, state, pixel proofs, and summaries go under
 `artifacts/activity-program/`; these are local execution evidence, not deployment.
+
+The revision browser audit uses the five-action sit/hold/drink/place/stand
+composition at those same viewports. It revises hands, seat height, cup fill,
+table position, and duration through the Activity panel, checks the entire revised
+execution and pixels, and verifies that unsupported revisions retain the accepted
+world before rendering. It also checks export/reimport identities. Its source-bound
+report and screenshots go under `artifacts/activity-revisions/`; the mobile
+viewport is emulated.
 
 The body model is prescribed motion with lumped actor mass, constrained rigid
 objects, water momentum and bounded grip/support reactions. It does not solve
@@ -121,4 +161,7 @@ composition and simulation authority. Sources: [COSMI repository](https://github
 
 Owners: `simulatte-activity-program.js`, `simulatte-activity-dynamics.js`,
 `simulatte-activity-liquid.js` in Phase 5, and
-`simulatte-activity-dynamics-proof.js` in Phase 8.
+`simulatte-activity-dynamics-proof.js` in Phase 8. Capability profiles live in
+Phase 1; source-bound revision grounding lives in Phase 4. The application
+coordinates revisions through `activity-editor.js` and the existing managed
+WorldSpec compilation path.
