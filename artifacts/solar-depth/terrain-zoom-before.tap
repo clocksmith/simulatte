@@ -8,9 +8,9 @@ not ok 1 - terrain zoom out makes the rendered terrain smaller without changing 
   failureType: 'testCodeFailure'
   error: |-
     The expression evaluated to a falsy value:
-    
+
       assert.ok(wider.bounds.right-wider.bounds.left<(initial.bounds.right-initial.bounds.left)*.75)
-    
+
   code: 'ERR_ASSERTION'
   name: 'AssertionError'
   expected: true

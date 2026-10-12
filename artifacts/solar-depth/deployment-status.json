@@ -1,0 +1,14 @@
+{
+  "schema": "simulatte.deploymentAttempt.v1",
+  "sourceCommit": "fc039b561",
+  "site": "simulatte-world",
+  "preflight": "passed",
+  "packaging": "passed",
+  "deployment": "rejected",
+  "httpStatus": 429,
+  "reason": "Firebase Hosting project storage quota exceeded",
+  "servedBuild": "25613955535aa212a4ed6ae9c0ed2bfea9805ef1-0cfc58dfd95c",
+  "inventory": "hosting-versions.json",
+  "log": "deployment-attempt.log",
+  "cleanupAuthorization": "pending"
+}

@@ -1,0 +1,2133 @@
+{
+  "status": "success",
+  "result": {
+    "channels": [
+      {
+        "name": "projects/simulatte-world/sites/simulatte-world/channels/live",
+        "url": "https://simulatte-world.web.app",
+        "release": {
+          "name": "projects/simulatte-world/sites/simulatte-world/channels/live/releases/1791807523775000",
+          "version": {
+            "name": "projects/simulatte-world/sites/simulatte-world/versions/ea984a76e66741a9",
+            "status": "FINALIZED",
+            "config": {
+              "headers": [
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/index.html"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/simulatte/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/data/simulatte/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=300"
+                  },
+                  "glob": "/data/simulatte-embedder/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/vendor/doppler/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/simulatte/**/*.js"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/**/*.js"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/blank-core/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/motorcycle"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/sunwalker"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/datacenter"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/interstellar"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/orbital"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/grid"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/subsea"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/living-tissue"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/river-formation"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/crystal-foundry"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/data/field-experiments/**"
+                }
+              ],
+              "redirects": [
+                {
+                  "statusCode": 301,
+                  "location": "/living-tissue",
+                  "glob": "/living-tissue/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/river-formation",
+                  "glob": "/river-formation/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/crystal-foundry",
+                  "glob": "/crystal-foundry/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise/index.html"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle-noise"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle-noise/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/sunwalker/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/city/sun-walker-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/city/sun-walker-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/simulatte/city/sun-walker-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/simulatte/city/sun-walker-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/gpu-supercluster-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/gpu-supercluster-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/simulatte/datacenter/gpu-supercluster-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/simulatte/datacenter/gpu-supercluster-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/interstellar/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/star-chart/interstellar-relay-network-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/star-chart/interstellar-relay-network-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/simulatte/star-chart/interstellar-relay-network-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/simulatte/star-chart/interstellar-relay-network-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/orbital/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/solar-system/orbital-transfer-planner-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/solar-system/orbital-transfer-planner-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/simulatte/solar-system/orbital-transfer-planner-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/simulatte/solar-system/orbital-transfer-planner-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/grid/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/country/grid-resilience-us-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/country/grid-resilience-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/simulatte/country/grid-resilience-us-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/simulatte/country/grid-resilience-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/subsea/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/world/subsea-network-global-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/world/subsea-network-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/simulatte/world/subsea-network-global-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/simulatte/world/subsea-network-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://create.simulatte.world",
+                  "glob": "/blank{,/**}"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://m3t4.ai/mandate-2038/",
+                  "glob": "/mandate-2038"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://m3t4.ai/mandate-2038/:path*",
+                  "glob": "/mandate-2038/:path*"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/cable-trader-pickup-v1",
+                  "glob": "/city/cable-trader-pickup-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/neighborhood-bulk-pool-v1",
+                  "glob": "/city/neighborhood-bulk-pool-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/nyc-development-atlas-v1",
+                  "glob": "/city/nyc-development-atlas-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/country/food-recall-us-v1",
+                  "glob": "/country/food-recall-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/world/maritime-trade-global-v1",
+                  "glob": "/world/maritime-trade-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/solar-system/asteroid-defense-v1",
+                  "glob": "/solar-system/asteroid-defense-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/simulatte/solar-drive/index.html",
+                  "glob": "/simulatte/solar-drive/index.html/"
+                }
+              ],
+              "rewrites": [
+                {
+                  "glob": "/motorcycle",
+                  "path": "/simulatte/motorcycle-noise/index.html"
+                },
+                {
+                  "glob": "/sunwalker",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/datacenter",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/interstellar",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/orbital",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/grid",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/subsea",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/living-tissue",
+                  "path": "/simulatte/field-experiments/index.html"
+                },
+                {
+                  "glob": "/river-formation",
+                  "path": "/simulatte/field-experiments/index.html"
+                },
+                {
+                  "glob": "/crystal-foundry",
+                  "path": "/simulatte/field-experiments/index.html"
+                },
+                {
+                  "glob": "**",
+                  "path": "/index.html"
+                }
+              ]
+            },
+            "labels": {
+              "deployment-tool": "cli-firebase"
+            },
+            "createTime": "2026-10-12T12:18:35.179923Z",
+            "createUser": {
+              "email": "AnthonyRobledo@gmail.com"
+            },
+            "finalizeTime": "2026-10-12T12:18:43.714212Z",
+            "finalizeUser": {
+              "email": "AnthonyRobledo@gmail.com"
+            },
+            "fileCount": "2693",
+            "versionBytes": "43927807"
+          },
+          "type": "DEPLOY",
+          "releaseTime": "2026-10-12T12:18:43.775Z",
+          "releaseUser": {
+            "email": "AnthonyRobledo@gmail.com"
+          }
+        },
+        "createTime": "2022-01-09T23:05:49.562773587Z",
+        "updateTime": "2026-10-12T12:18:43.775Z",
+        "retainedReleaseCount": 2147483647
+      },
+      {
+        "name": "projects/simulatte-world/sites/simulatte-world/channels/experience-frame",
+        "url": "https://simulatte-world--experience-frame-nglc6k8d.web.app",
+        "release": {
+          "name": "projects/simulatte-world/sites/simulatte-world/channels/experience-frame/releases/1791778265489000",
+          "version": {
+            "name": "projects/simulatte-world/sites/simulatte-world/versions/4e1f70ee9a65712b",
+            "status": "FINALIZED",
+            "config": {
+              "headers": [
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/index.html"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/simulatte/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/data/simulatte/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=300"
+                  },
+                  "glob": "/data/simulatte-embedder/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/vendor/doppler/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/simulatte/**/*.js"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/**/*.js"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/blank-core/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/motorcycle"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/sunwalker"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/datacenter"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/interstellar"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/orbital"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/grid"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/subsea"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/living-tissue"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/river-formation"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/crystal-foundry"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/data/field-experiments/**"
+                }
+              ],
+              "redirects": [
+                {
+                  "statusCode": 301,
+                  "location": "/living-tissue",
+                  "glob": "/living-tissue/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/river-formation",
+                  "glob": "/river-formation/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/crystal-foundry",
+                  "glob": "/crystal-foundry/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise/index.html"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle-noise"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle-noise/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/sunwalker/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/city/sun-walker-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/city/sun-walker-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/simulatte/city/sun-walker-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/simulatte/city/sun-walker-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/gpu-supercluster-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/gpu-supercluster-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/simulatte/datacenter/gpu-supercluster-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/simulatte/datacenter/gpu-supercluster-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/interstellar/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/star-chart/interstellar-relay-network-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/star-chart/interstellar-relay-network-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/simulatte/star-chart/interstellar-relay-network-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/simulatte/star-chart/interstellar-relay-network-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/orbital/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/solar-system/orbital-transfer-planner-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/solar-system/orbital-transfer-planner-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/simulatte/solar-system/orbital-transfer-planner-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/simulatte/solar-system/orbital-transfer-planner-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/grid/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/country/grid-resilience-us-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/country/grid-resilience-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/simulatte/country/grid-resilience-us-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/simulatte/country/grid-resilience-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/subsea/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/world/subsea-network-global-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/world/subsea-network-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/simulatte/world/subsea-network-global-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/simulatte/world/subsea-network-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://create.simulatte.world",
+                  "glob": "/blank{,/**}"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://m3t4.ai/mandate-2038/",
+                  "glob": "/mandate-2038"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://m3t4.ai/mandate-2038/:path*",
+                  "glob": "/mandate-2038/:path*"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/cable-trader-pickup-v1",
+                  "glob": "/city/cable-trader-pickup-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/neighborhood-bulk-pool-v1",
+                  "glob": "/city/neighborhood-bulk-pool-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/nyc-development-atlas-v1",
+                  "glob": "/city/nyc-development-atlas-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/country/food-recall-us-v1",
+                  "glob": "/country/food-recall-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/world/maritime-trade-global-v1",
+                  "glob": "/world/maritime-trade-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/solar-system/asteroid-defense-v1",
+                  "glob": "/solar-system/asteroid-defense-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/simulatte/solar-drive/index.html",
+                  "glob": "/simulatte/solar-drive/index.html/"
+                }
+              ],
+              "rewrites": [
+                {
+                  "glob": "/motorcycle",
+                  "path": "/simulatte/motorcycle-noise/index.html"
+                },
+                {
+                  "glob": "/sunwalker",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/datacenter",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/interstellar",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/orbital",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/grid",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/subsea",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/living-tissue",
+                  "path": "/simulatte/field-experiments/index.html"
+                },
+                {
+                  "glob": "/river-formation",
+                  "path": "/simulatte/field-experiments/index.html"
+                },
+                {
+                  "glob": "/crystal-foundry",
+                  "path": "/simulatte/field-experiments/index.html"
+                },
+                {
+                  "glob": "**",
+                  "path": "/index.html"
+                }
+              ]
+            },
+            "labels": {
+              "deployment-tool": "cli-firebase"
+            },
+            "createTime": "2026-10-12T04:10:59.257381Z",
+            "createUser": {
+              "email": "AnthonyRobledo@gmail.com"
+            },
+            "finalizeTime": "2026-10-12T04:11:05.461216Z",
+            "finalizeUser": {
+              "email": "AnthonyRobledo@gmail.com"
+            },
+            "fileCount": "2693",
+            "versionBytes": "43928102"
+          },
+          "type": "DEPLOY",
+          "releaseTime": "2026-10-12T04:11:05.489Z",
+          "releaseUser": {
+            "email": "AnthonyRobledo@gmail.com"
+          }
+        },
+        "createTime": "2026-10-12T03:47:42.710773449Z",
+        "updateTime": "2026-10-12T04:11:05.489Z",
+        "retainedReleaseCount": 10,
+        "expireTime": "2026-10-19T04:10:09.389286535Z"
+      },
+      {
+        "name": "projects/simulatte-world/sites/simulatte-world/channels/sunwalker",
+        "url": "https://simulatte-world--sunwalker-gdl75moz.web.app",
+        "release": {
+          "name": "projects/simulatte-world/sites/simulatte-world/channels/sunwalker/releases/1791230881913000",
+          "version": {
+            "name": "projects/simulatte-world/sites/simulatte-world/versions/019c70f26a9e8060",
+            "status": "FINALIZED",
+            "config": {
+              "headers": [
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/index.html"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/simulatte/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/data/simulatte/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=300"
+                  },
+                  "glob": "/data/simulatte-embedder/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/vendor/doppler/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=31536000, immutable"
+                  },
+                  "glob": "/simulatte/**/*.js"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=31536000, immutable"
+                  },
+                  "glob": "/shared/**/*.js"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/blank-core/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/motorcycle"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/sunwalker"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/datacenter"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/interstellar"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/orbital"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/grid"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/subsea"
+                }
+              ],
+              "redirects": [
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise/index.html"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle-noise"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle-noise/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/sunwalker/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/city/sun-walker-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/city/sun-walker-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/simulatte/city/sun-walker-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/simulatte/city/sun-walker-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/gpu-supercluster-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/gpu-supercluster-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/simulatte/datacenter/gpu-supercluster-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/simulatte/datacenter/gpu-supercluster-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/interstellar/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/star-chart/interstellar-relay-network-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/star-chart/interstellar-relay-network-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/simulatte/star-chart/interstellar-relay-network-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/simulatte/star-chart/interstellar-relay-network-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/orbital/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/solar-system/orbital-transfer-planner-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/solar-system/orbital-transfer-planner-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/simulatte/solar-system/orbital-transfer-planner-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/simulatte/solar-system/orbital-transfer-planner-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/grid/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/country/grid-resilience-us-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/country/grid-resilience-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/simulatte/country/grid-resilience-us-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/simulatte/country/grid-resilience-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/subsea/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/world/subsea-network-global-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/world/subsea-network-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/simulatte/world/subsea-network-global-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/simulatte/world/subsea-network-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://create.simulatte.world",
+                  "glob": "/blank{,/**}"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://m3t4.ai/mandate-2038/",
+                  "glob": "/mandate-2038"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://m3t4.ai/mandate-2038/:path*",
+                  "glob": "/mandate-2038/:path*"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/cable-trader-pickup-v1",
+                  "glob": "/city/cable-trader-pickup-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/neighborhood-bulk-pool-v1",
+                  "glob": "/city/neighborhood-bulk-pool-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/nyc-development-atlas-v1",
+                  "glob": "/city/nyc-development-atlas-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/country/food-recall-us-v1",
+                  "glob": "/country/food-recall-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/world/maritime-trade-global-v1",
+                  "glob": "/world/maritime-trade-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/solar-system/asteroid-defense-v1",
+                  "glob": "/solar-system/asteroid-defense-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/simulatte/solar-drive/index.html",
+                  "glob": "/simulatte/solar-drive/index.html/"
+                }
+              ],
+              "rewrites": [
+                {
+                  "glob": "/motorcycle",
+                  "path": "/simulatte/motorcycle-noise/index.html"
+                },
+                {
+                  "glob": "/sunwalker",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/datacenter",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/interstellar",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/orbital",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/grid",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/subsea",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "**",
+                  "path": "/index.html"
+                }
+              ]
+            },
+            "labels": {
+              "deployment-tool": "cli-firebase"
+            },
+            "createTime": "2026-10-05T20:07:56.310549Z",
+            "createUser": {
+              "email": "AnthonyRobledo@gmail.com"
+            },
+            "finalizeTime": "2026-10-05T20:08:02.152360Z",
+            "finalizeUser": {
+              "email": "AnthonyRobledo@gmail.com"
+            },
+            "fileCount": "2653",
+            "versionBytes": "43392780"
+          },
+          "type": "DEPLOY",
+          "releaseTime": "2026-10-05T20:08:01.913Z",
+          "releaseUser": {
+            "email": "AnthonyRobledo@gmail.com"
+          }
+        },
+        "createTime": "2026-10-05T19:36:18.448762217Z",
+        "updateTime": "2026-10-05T20:08:01.913Z",
+        "retainedReleaseCount": 10,
+        "expireTime": "2026-10-12T20:07:08.212848635Z"
+      },
+      {
+        "name": "projects/simulatte-world/sites/simulatte-world/channels/misters",
+        "url": "https://simulatte-world--misters-wcgfo0az.web.app",
+        "release": {
+          "name": "projects/simulatte-world/sites/simulatte-world/channels/misters/releases/1791217256626000",
+          "version": {
+            "name": "projects/simulatte-world/sites/simulatte-world/versions/083b35fcf1ffdbcd",
+            "status": "FINALIZED",
+            "config": {
+              "headers": [
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/index.html"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/simulatte/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/data/simulatte/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=300"
+                  },
+                  "glob": "/data/simulatte-embedder/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/vendor/doppler/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=31536000, immutable"
+                  },
+                  "glob": "/simulatte/**/*.js"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=31536000, immutable"
+                  },
+                  "glob": "/shared/**/*.js"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/blank-core/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/motorcycle"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/sunwalker"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/datacenter"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/interstellar"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/orbital"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/grid"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/subsea"
+                }
+              ],
+              "redirects": [
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise/index.html"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle-noise"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle-noise/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/sunwalker/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/city/sun-walker-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/city/sun-walker-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/simulatte/city/sun-walker-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/simulatte/city/sun-walker-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/gpu-supercluster-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/gpu-supercluster-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/simulatte/datacenter/gpu-supercluster-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/simulatte/datacenter/gpu-supercluster-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/interstellar/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/star-chart/interstellar-relay-network-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/star-chart/interstellar-relay-network-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/simulatte/star-chart/interstellar-relay-network-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/simulatte/star-chart/interstellar-relay-network-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/orbital/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/solar-system/orbital-transfer-planner-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/solar-system/orbital-transfer-planner-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/simulatte/solar-system/orbital-transfer-planner-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/simulatte/solar-system/orbital-transfer-planner-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/grid/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/country/grid-resilience-us-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/country/grid-resilience-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/simulatte/country/grid-resilience-us-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/simulatte/country/grid-resilience-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/subsea/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/world/subsea-network-global-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/world/subsea-network-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/simulatte/world/subsea-network-global-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/simulatte/world/subsea-network-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://create.simulatte.world",
+                  "glob": "/blank{,/**}"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://m3t4.ai/mandate-2038/",
+                  "glob": "/mandate-2038"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://m3t4.ai/mandate-2038/:path*",
+                  "glob": "/mandate-2038/:path*"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/cable-trader-pickup-v1",
+                  "glob": "/city/cable-trader-pickup-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/neighborhood-bulk-pool-v1",
+                  "glob": "/city/neighborhood-bulk-pool-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/nyc-development-atlas-v1",
+                  "glob": "/city/nyc-development-atlas-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/country/food-recall-us-v1",
+                  "glob": "/country/food-recall-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/world/maritime-trade-global-v1",
+                  "glob": "/world/maritime-trade-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/solar-system/asteroid-defense-v1",
+                  "glob": "/solar-system/asteroid-defense-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/simulatte/solar-drive/index.html",
+                  "glob": "/simulatte/solar-drive/index.html/"
+                }
+              ],
+              "rewrites": [
+                {
+                  "glob": "/motorcycle",
+                  "path": "/simulatte/motorcycle-noise/index.html"
+                },
+                {
+                  "glob": "/sunwalker",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/datacenter",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/interstellar",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/orbital",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/grid",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/subsea",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "**",
+                  "path": "/index.html"
+                }
+              ]
+            },
+            "labels": {
+              "deployment-tool": "cli-firebase"
+            },
+            "createTime": "2026-10-05T16:20:51.890410Z",
+            "createUser": {
+              "email": "AnthonyRobledo@gmail.com"
+            },
+            "finalizeTime": "2026-10-05T16:20:56.901603Z",
+            "finalizeUser": {
+              "email": "AnthonyRobledo@gmail.com"
+            },
+            "fileCount": "2650",
+            "versionBytes": "43385037"
+          },
+          "type": "DEPLOY",
+          "releaseTime": "2026-10-05T16:20:56.626Z",
+          "releaseUser": {
+            "email": "AnthonyRobledo@gmail.com"
+          }
+        },
+        "createTime": "2026-10-05T16:20:17.919536635Z",
+        "updateTime": "2026-10-05T16:20:56.626Z",
+        "retainedReleaseCount": 10,
+        "expireTime": "2026-10-12T16:20:17.919536635Z"
+      },
+      {
+        "name": "projects/simulatte-world/sites/simulatte-world/channels/preview",
+        "url": "https://simulatte-world--preview-2pvzws80.web.app",
+        "release": {
+          "name": "projects/simulatte-world/sites/simulatte-world/channels/preview/releases/1791208165279000",
+          "version": {
+            "name": "projects/simulatte-world/sites/simulatte-world/versions/a4f6c85e2a1bcadd",
+            "status": "FINALIZED",
+            "config": {
+              "headers": [
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/index.html"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/simulatte/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/data/simulatte/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=300"
+                  },
+                  "glob": "/data/simulatte-embedder/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/vendor/doppler/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=31536000, immutable"
+                  },
+                  "glob": "/simulatte/**/*.js"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "public, max-age=31536000, immutable"
+                  },
+                  "glob": "/shared/**/*.js"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/shared/blank-core/**"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/motorcycle"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/sunwalker"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/datacenter"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/interstellar"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/orbital"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/grid"
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "no-cache"
+                  },
+                  "glob": "/subsea"
+                }
+              ],
+              "redirects": [
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/simulatte/motorcycle-noise/index.html"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle-noise"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/motorcycle",
+                  "glob": "/motorcycle-noise/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/sunwalker/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/city/sun-walker-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/city/sun-walker-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/simulatte/city/sun-walker-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/sunwalker",
+                  "glob": "/simulatte/city/sun-walker-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/gpu-supercluster-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/datacenter/gpu-supercluster-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/simulatte/datacenter/gpu-supercluster-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/datacenter",
+                  "glob": "/simulatte/datacenter/gpu-supercluster-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/interstellar/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/star-chart/interstellar-relay-network-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/star-chart/interstellar-relay-network-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/simulatte/star-chart/interstellar-relay-network-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/interstellar",
+                  "glob": "/simulatte/star-chart/interstellar-relay-network-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/orbital/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/solar-system/orbital-transfer-planner-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/solar-system/orbital-transfer-planner-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/simulatte/solar-system/orbital-transfer-planner-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/orbital",
+                  "glob": "/simulatte/solar-system/orbital-transfer-planner-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/grid/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/country/grid-resilience-us-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/country/grid-resilience-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/simulatte/country/grid-resilience-us-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/grid",
+                  "glob": "/simulatte/country/grid-resilience-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/subsea/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/world/subsea-network-global-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/world/subsea-network-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/simulatte/world/subsea-network-global-v1"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/subsea",
+                  "glob": "/simulatte/world/subsea-network-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://create.simulatte.world",
+                  "glob": "/blank{,/**}"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://m3t4.ai/mandate-2038/",
+                  "glob": "/mandate-2038"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "https://m3t4.ai/mandate-2038/:path*",
+                  "glob": "/mandate-2038/:path*"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/cable-trader-pickup-v1",
+                  "glob": "/city/cable-trader-pickup-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/neighborhood-bulk-pool-v1",
+                  "glob": "/city/neighborhood-bulk-pool-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/city/nyc-development-atlas-v1",
+                  "glob": "/city/nyc-development-atlas-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/country/food-recall-us-v1",
+                  "glob": "/country/food-recall-us-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/world/maritime-trade-global-v1",
+                  "glob": "/world/maritime-trade-global-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/solar-system/asteroid-defense-v1",
+                  "glob": "/solar-system/asteroid-defense-v1/"
+                },
+                {
+                  "statusCode": 301,
+                  "location": "/simulatte/solar-drive/index.html",
+                  "glob": "/simulatte/solar-drive/index.html/"
+                }
+              ],
+              "rewrites": [
+                {
+                  "glob": "/motorcycle",
+                  "path": "/simulatte/motorcycle-noise/index.html"
+                },
+                {
+                  "glob": "/sunwalker",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/datacenter",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/interstellar",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/orbital",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/grid",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "/subsea",
+                  "path": "/index.html"
+                },
+                {
+                  "glob": "**",
+                  "path": "/index.html"
+                }
+              ]
+            },
+            "labels": {
+              "deployment-tool": "cli-firebase"
+            },
+            "createTime": "2026-10-05T13:49:17.514726Z",
+            "createUser": {
+              "email": "AnthonyRobledo@gmail.com"
+            },
+            "finalizeTime": "2026-10-05T13:49:25.513258Z",
+            "finalizeUser": {
+              "email": "AnthonyRobledo@gmail.com"
+            },
+            "fileCount": "2650",
+            "versionBytes": "43384015"
+          },
+          "type": "DEPLOY",
+          "releaseTime": "2026-10-05T13:49:25.279Z",
+          "releaseUser": {
+            "email": "AnthonyRobledo@gmail.com"
+          }
+        },
+        "createTime": "2026-09-27T22:59:52.088446066Z",
+        "updateTime": "2026-10-05T13:49:25.279Z",
+        "retainedReleaseCount": 10,
+        "expireTime": "2026-10-12T13:47:50.247355318Z"
+      }
+    ]
+  }
+}
