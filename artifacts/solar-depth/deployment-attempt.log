@@ -200,5 +200,5 @@ simulatte-create: 2265 files, 65463806 bytes, d61a67185da6028117f8b46c8c1f9e3fc2
 ✔  hosting[world]: Finished running predeploy script.
 
 Error: Request to https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/simulatte-world/versions had HTTP Error: 429, You have exceeded the Hosting storage quota for your Firebase project, so you cannot deploy to your site right now. Visit the Firebase console to either manage your Hosting storage or upgrade to the Blaze plan.
- 
+
 Tip: Manage your Hosting storage by setting the number of releases to keep for each channel so that older releases are automatically deleted. Learn more: https://firebase.google.com/docs/hosting/manage-releases#release-storage-settings
