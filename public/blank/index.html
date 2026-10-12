@@ -50,18 +50,14 @@
   <main class="physics-stage" aria-label="Create a simulation" data-create-state="empty">
     <section id="create-editor" class="physics-panel prompt-dock" aria-label="Simulation editor">
       <div class="prompt-dock-head">
-        <p class="create-eyebrow">FROM IDEA TO SIMULATION</p>
         <h1>Make something move.</h1>
-        <p>Describe a scene. Run it, explore it, then make it yours.</p>
       </div>
 
       <div class="prompt-dock-core">
         <div class="builder-row">
           <label class="create-prompt-label" for="build-prompt">What do you want to simulate?</label>
-          <textarea id="build-prompt" class="sim-field" aria-label="Simulation request" placeholder="A red ball bouncing on the ground…" aria-describedby="create-prompt-help"></textarea>
-          <p id="create-prompt-help" class="create-help">Start with an object, then add motion or surroundings.</p>
+          <textarea id="build-prompt" class="sim-field" aria-label="Simulation request" placeholder="A red ball bouncing on the ground…"></textarea>
           <div class="create-examples" aria-label="Starting ideas">
-            <span>Try an idea</span>
             <button type="button" data-create-prompt="a red ball">A red ball</button>
             <button type="button" data-create-prompt="a blue cube">A blue cube</button>
             <button type="button" data-create-prompt="a pendulum">A pendulum</button>
@@ -177,8 +173,6 @@
       <div class="physics-canvas-wrap">
         <div class="create-empty" id="create-empty">
           <span class="create-empty-mark" aria-hidden="true">+</span>
-          <h2>Your simulation starts here.</h2>
-          <p>Describe a scene, then select Run simulation.</p>
         </div>
       <canvas id="physics-canvas" tabindex="0" aria-label="Interactive Simulatte physics canvas"
         aria-describedby="world-interaction-help" data-scene-visible="false"></canvas>
@@ -237,7 +231,7 @@
     })(typeof globalThis !== 'undefined' ? globalThis : window);
   </script>
   <!-- SIMULATTE_RUNTIME_SCRIPTS_START -->
-  <meta name="simulatte-runtime-source" content="sha256:d0b781d8cbc4cb557a132f796a121901f2f6ad184dfc27e6e337c8d3c5db20e3">
+  <meta name="simulatte-runtime-source" content="sha256:7076f7fe1826d9273d5da2541573f3d82deef41677f171612ef45725b680664c">
   <script defer src="./app/runtime-script-manifest.js?v=f5dedfb4269bfb7b3db7b43ff231e0aa9ad78e57-419e4eeddd78"></script>
   <script defer src="../neural-model-consent.js?v=f5dedfb4269bfb7b3db7b43ff231e0aa9ad78e57-419e4eeddd78"></script>
   <script defer src="../shared/design/program-editor.js?v=f5dedfb4269bfb7b3db7b43ff231e0aa9ad78e57-419e4eeddd78"></script>

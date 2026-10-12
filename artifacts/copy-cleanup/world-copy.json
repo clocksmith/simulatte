@@ -1,0 +1,256 @@
+{
+  "source": {
+    "head": "cbcd0de08faf7d91eba44997fd886c4f9c28a20a",
+    "capturedAt": "2026-10-12T12:05:26.211Z",
+    "modifiedSources": {
+      "public/blank/app/create-experience.js": {
+        "sha256": "da5a6713d0d3c1d5880324bfbdb402b9d850d5e5786b958a0d107a0102864684",
+        "modifiedAt": "2026-10-12T11:55:46.210Z"
+      },
+      "public/blank/index.html": {
+        "sha256": "c831efaf923adb775ebf69f22752ba6e3b55f4970c0ed0f4e4cc21f1749c98a3",
+        "modifiedAt": "2026-10-12T11:57:14.446Z"
+      },
+      "public/index.html": {
+        "sha256": "65aea9eade584b6fee49a7a71b90717c73acd51aec659539ac75f073a9f4ae9f",
+        "modifiedAt": "2026-10-12T11:56:07.155Z"
+      },
+      "public/simulation-routes.js": {
+        "sha256": "bfd8fdbeb66a6f49d0a62f016bb0bea7823c17a82a017cfdd4dde76dfbf28d19",
+        "modifiedAt": "2026-10-12T11:56:06.950Z"
+      },
+      "public/simulatte/app/city-interface.js": {
+        "sha256": "420407810894e869ce6a70812f21e0e28dd9f2d6886a00ada491b2b41479bb91",
+        "modifiedAt": "2026-10-12T12:04:25.896Z"
+      },
+      "public/simulatte/app/experience-frame-adapters.js": {
+        "sha256": "fdcf08647a63b6b973254278207f3a22d6143c2cc793af69b037e1631615b341",
+        "modifiedAt": "2026-10-12T11:55:46.207Z"
+      },
+      "public/simulatte/field-experiments/app.js": {
+        "sha256": "9b8ff4188e6519080dc4c9704528a7961616df57a126f846112592372e305615",
+        "modifiedAt": "2026-10-12T11:55:46.208Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "bf09b89f4686f3c6b9bab9d29a6b178d6464eb0f460af18f00c0a02a3f0f0b37",
+        "modifiedAt": "2026-10-12T11:55:46.207Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "3fbf5e4d8b0136fc16139d1f9017feec2ced2e024b9cf0878bffa0df504aefe9",
+        "modifiedAt": "2026-10-12T11:56:06.950Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-app.js": {
+        "sha256": "e11405919004f9eeccb86f393d727a459b22ab05cb37c41191928608f2ae6f74",
+        "modifiedAt": "2026-10-12T11:55:46.209Z"
+      },
+      "public/simulatte/solar-drive/app.js": {
+        "sha256": "b1b527bea47bfbaf8780d0e08e4e000bf22a7de6058cce3c0e4811945500e4ad",
+        "modifiedAt": "2026-10-12T11:56:06.950Z"
+      },
+      "public/simulatte/solar-drive/index.html": {
+        "sha256": "a7a6c8feab4b324b7874db13e7cf75b7ff4923ed9c346d822576179f09023888",
+        "modifiedAt": "2026-10-12T12:04:25.896Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Rendered UI with software WebGPU; touch-emulated mobile. No human or empirical qualification.",
+  "rows": [
+    {
+      "route": "/sunwalker",
+      "width": 1440,
+      "checks": {
+        "overflow": false,
+        "context": "Change starting point or destination\nTime versus shade\nBalanced\nShortest walk\nPrefer shade\n\nEach minute in direct sun costs 1.00 extra minutes in route search. Moving this slider previews; applying restarts from departure.\n\nShortest walk · amber baseline\n10.8 min · 48% shade · 52% sun\nYour route · green\n11.2 min · 55% shade · 45% sun\n\n0.4 min longer · 0.6 min less in direct sun\n\nBars share one time scale: yellow sun · blue shade · gray unknown · dark night. Predicted at arrival time; both routes share endpoints and departure.\n\nSun so far\nNot sampled\nShade so far\nNot sampled\nWalk completed\nNot sampled\n\nNow: In direct sun. Exposure so far: 0.0 s sampled · Unknown 0.0 s (0%) · Night 0.0 s (0%).\n\nShow measurements\n\nSelect an object…\nWalking destination\nShade-selected route\nFastest route baseline\nWalker\n×\nWalker\n\nIn direct sun\n\nPreview shortest walk\nFocus object\n\nYour green route takes 11.2 min with 5.1 min direct sun. The amber shortest path takes 10.8 min with 5.6 min direct sun. Both use the same endpoints, departure, and arrival-time shadow model.\n\nDetailed quantities",
+        "status": "Running",
+        "legacyStatusVisible": false,
+        "captionCount": 0,
+        "runStateVisible": false,
+        "partBadgeVisible": false,
+        "extraZoomVisible": false,
+        "advancedPrefixes": 0
+      },
+      "runtimeDetails": {
+        "hidden": false,
+        "inDrawer": true,
+        "open": true
+      },
+      "status": "pass"
+    },
+    {
+      "route": "/motorcycle",
+      "width": 1440,
+      "checks": {
+        "overflow": false,
+        "context": "Location\nSound\nTurn sound on for the full experience\nTry a treatment\nEstimated sound here\n-- dBA\nTraffic Not sampled\nBackground Not sampled\nPosition pending\nAwaiting sample\nEstimated dBA\n30\n80\n130+\nSound map\n↑\n←\n↓\n→",
+        "status": "Running",
+        "legacyStatusVisible": false,
+        "experienceStatusHidden": true,
+        "captionCount": 0,
+        "runStateVisible": false,
+        "partBadgeVisible": false,
+        "extraZoomVisible": false,
+        "advancedPrefixes": 0
+      },
+      "status": "pass"
+    },
+    {
+      "route": "/living-tissue",
+      "width": 1440,
+      "checks": {
+        "overflow": false,
+        "context": "ExperimentUntouched baseline\n\nHow can local cell behavior produce a coherent shape?\n\nShow signal field\n\nGreen: growing\nBlue: growth limited\nGold: source and signal exchange\nOutline: selected lineage\n\nLiving cells\n7 cells · baseline 7 · 0 difference\nDivisions\n0 divisions · baseline 0 · 0 difference\nTissue area\n31.42 model area · baseline 31.42 · 0.00 difference\ncell:3\n\ncell:3: shrinking or growth-limited · signal 0.500 · 0 neighbors · 1 living cells in this lineage.\n\nRemove this patch\nMove signaling source here\nPlace a boundary here\nFocus selection\n\n4 cells in the dashed patch; the source stays intact.\n\n0.0000 model time\n\n240.00 model time / real second",
+        "status": "Loading",
+        "legacyStatusVisible": false,
+        "captionCount": 0,
+        "runStateVisible": false,
+        "partBadgeVisible": false,
+        "extraZoomVisible": false,
+        "advancedPrefixes": 0
+      },
+      "status": "pass"
+    },
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "width": 1440,
+      "checks": {
+        "overflow": false,
+        "context": "Ride\nInspect\nUnion Square to Washington Square\n\nBROADWAY · 25 / 1,490 m · grade -0.1%\n\n0% direct panel exposure · 12:00:06 PM\nShade the panel\nSolar supplies 63 W. Battery supplies 573 W.\nSpeed\n23.9 km/h\n23.9 km/h actual / 25 target\nBattery remaining\n64.9 %\n701.1 / 1,080 Wh remaining\nSolar to bus\n63 W\n131 W/m2 on the collector\nFocus selection\nComponents\n01 / SOURCE\nSolar canopy\n\nDirect sunlight becomes DC electricity. Shade, incidence, and cell heating reduce available output.\n\nCollector area\n2.22 m2\nPlane irradiance\n131 W/m2\nCell temperature\n28.8 C\nAvailable bus power\n62.7 W\nView layers\n00:06\n8 simulated seconds / real second · Slower playback: computing every fixed step.",
+        "status": "Running",
+        "legacyStatusVisible": false,
+        "captionCount": 0,
+        "runStateVisible": false,
+        "partBadgeVisible": false,
+        "extraZoomVisible": false,
+        "advancedPrefixes": 0
+      },
+      "status": "pass"
+    },
+    {
+      "route": "/sunwalker",
+      "width": 390,
+      "checks": {
+        "overflow": false,
+        "context": "Change starting point or destination\nTime versus shade\nBalanced\nShortest walk\nPrefer shade\n\nEach minute in direct sun costs 1.00 extra minutes in route search. Moving this slider previews; applying restarts from departure.\n\nShortest walk · amber baseline\n10.8 min · 48% shade · 52% sun\nYour route · green\n11.2 min · 55% shade · 45% sun\n\n0.4 min longer · 0.6 min less in direct sun\n\nBars share one time scale: yellow sun · blue shade · gray unknown · dark night. Predicted at arrival time; both routes share endpoints and departure.\n\nSun so far\nNot sampled\nShade so far\nNot sampled\nWalk completed\nNot sampled\n\nNow: In direct sun. Exposure so far: 0.0 s sampled · Unknown 0.0 s (0%) · Night 0.0 s (0%).\n\nShow measurements\n\nSelect an object…\nWalking destination\nShade-selected route\nFastest route baseline\nWalker\n×\nWalker\n\nIn direct sun\n\nPreview shortest walk\nFocus object\n\nYour green route takes 11.2 min with 5.1 min direct sun. The amber shortest path takes 10.8 min with 5.6 min direct sun. Both use the same endpoints, departure, and arrival-time shadow model.\n\nDetailed quantities",
+        "status": "Running",
+        "legacyStatusVisible": false,
+        "captionCount": 0,
+        "runStateVisible": false,
+        "partBadgeVisible": false,
+        "extraZoomVisible": false,
+        "advancedPrefixes": 0
+      },
+      "runtimeDetails": {
+        "hidden": false,
+        "inDrawer": true,
+        "open": true
+      },
+      "status": "pass"
+    },
+    {
+      "route": "/motorcycle",
+      "width": 390,
+      "checks": {
+        "overflow": false,
+        "context": "Location\nSound\nTurn sound on for the full experience\nTry a treatment\nEstimated sound here\n-- dBA\nTraffic Not sampled\nBackground Not sampled\nPosition pending\nAwaiting sample\nEstimated dBA\n30\n80\n130+\nSound map\n↑\n←\n↓\n→",
+        "status": "Running",
+        "legacyStatusVisible": false,
+        "experienceStatusHidden": true,
+        "captionCount": 0,
+        "runStateVisible": false,
+        "partBadgeVisible": false,
+        "extraZoomVisible": false,
+        "advancedPrefixes": 0
+      },
+      "status": "pass"
+    },
+    {
+      "route": "/living-tissue",
+      "width": 390,
+      "checks": {
+        "overflow": false,
+        "context": "ExperimentUntouched baseline\n\nHow can local cell behavior produce a coherent shape?\n\nShow signal field\n\nGreen: growing\nBlue: growth limited\nGold: source and signal exchange\nOutline: selected lineage\n\nLiving cells\n7 cells · baseline 7 · 0 difference\nDivisions\n0 divisions · baseline 0 · 0 difference\nTissue area\n31.42 model area · baseline 31.42 · 0.00 difference\ncell:3\n\ncell:3: shrinking or growth-limited · signal 0.500 · 0 neighbors · 1 living cells in this lineage.\n\nRemove this patch\nMove signaling source here\nPlace a boundary here\nFocus selection\n\n3 cells in the dashed patch; the source stays intact.\n\n0.0000 model time\n\n240.00 model time / real second",
+        "status": "Loading",
+        "legacyStatusVisible": false,
+        "captionCount": 0,
+        "runStateVisible": false,
+        "partBadgeVisible": false,
+        "extraZoomVisible": false,
+        "advancedPrefixes": 0
+      },
+      "status": "pass"
+    },
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "width": 390,
+      "checks": {
+        "overflow": false,
+        "context": "Ride\nInspect\nUnion Square to Washington Square\n\nBROADWAY · 24 / 1,490 m · grade -0.1%\n\n0% direct panel exposure · 12:00:06 PM\nShade the panel\nSolar supplies 63 W. Battery supplies 648 W.\nSpeed\n23.6 km/h\n23.6 km/h actual / 25 target\nBattery remaining\n64.9 %\n701.1 / 1,080 Wh remaining\nSolar to bus\n63 W\n131 W/m2 on the collector\nFocus selection\nComponents\n01 / SOURCE\nSolar canopy\n\nDirect sunlight becomes DC electricity. Shade, incidence, and cell heating reduce available output.\n\nCollector area\n2.22 m2\nPlane irradiance\n131 W/m2\nCell temperature\n28.8 C\nAvailable bus power\n62.7 W\nView layers\n00:06\n8 simulated seconds / real second",
+        "status": "Running",
+        "legacyStatusVisible": false,
+        "captionCount": 0,
+        "runStateVisible": false,
+        "partBadgeVisible": false,
+        "extraZoomVisible": false,
+        "advancedPrefixes": 0
+      },
+      "status": "pass"
+    }
+  ],
+  "sourceAfter": {
+    "head": "cbcd0de08faf7d91eba44997fd886c4f9c28a20a",
+    "capturedAt": "2026-10-12T12:09:04.818Z",
+    "modifiedSources": {
+      "public/blank/app/create-experience.js": {
+        "sha256": "da5a6713d0d3c1d5880324bfbdb402b9d850d5e5786b958a0d107a0102864684",
+        "modifiedAt": "2026-10-12T11:55:46.210Z"
+      },
+      "public/blank/index.html": {
+        "sha256": "c831efaf923adb775ebf69f22752ba6e3b55f4970c0ed0f4e4cc21f1749c98a3",
+        "modifiedAt": "2026-10-12T11:57:14.446Z"
+      },
+      "public/index.html": {
+        "sha256": "65aea9eade584b6fee49a7a71b90717c73acd51aec659539ac75f073a9f4ae9f",
+        "modifiedAt": "2026-10-12T11:56:07.155Z"
+      },
+      "public/simulation-routes.js": {
+        "sha256": "bfd8fdbeb66a6f49d0a62f016bb0bea7823c17a82a017cfdd4dde76dfbf28d19",
+        "modifiedAt": "2026-10-12T11:56:06.950Z"
+      },
+      "public/simulatte/app/city-interface.js": {
+        "sha256": "420407810894e869ce6a70812f21e0e28dd9f2d6886a00ada491b2b41479bb91",
+        "modifiedAt": "2026-10-12T12:04:25.896Z"
+      },
+      "public/simulatte/app/experience-frame-adapters.js": {
+        "sha256": "fdcf08647a63b6b973254278207f3a22d6143c2cc793af69b037e1631615b341",
+        "modifiedAt": "2026-10-12T11:55:46.207Z"
+      },
+      "public/simulatte/field-experiments/app.js": {
+        "sha256": "9b8ff4188e6519080dc4c9704528a7961616df57a126f846112592372e305615",
+        "modifiedAt": "2026-10-12T11:55:46.208Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "bf09b89f4686f3c6b9bab9d29a6b178d6464eb0f460af18f00c0a02a3f0f0b37",
+        "modifiedAt": "2026-10-12T11:55:46.207Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "3fbf5e4d8b0136fc16139d1f9017feec2ced2e024b9cf0878bffa0df504aefe9",
+        "modifiedAt": "2026-10-12T11:56:06.950Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-app.js": {
+        "sha256": "e11405919004f9eeccb86f393d727a459b22ab05cb37c41191928608f2ae6f74",
+        "modifiedAt": "2026-10-12T11:55:46.209Z"
+      },
+      "public/simulatte/solar-drive/app.js": {
+        "sha256": "b1b527bea47bfbaf8780d0e08e4e000bf22a7de6058cce3c0e4811945500e4ad",
+        "modifiedAt": "2026-10-12T11:56:06.950Z"
+      },
+      "public/simulatte/solar-drive/index.html": {
+        "sha256": "a7a6c8feab4b324b7874db13e7cf75b7ff4923ed9c346d822576179f09023888",
+        "modifiedAt": "2026-10-12T12:04:25.896Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "pass": true
+}

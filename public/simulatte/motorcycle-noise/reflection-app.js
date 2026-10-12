@@ -347,6 +347,7 @@
       $('experience-message').textContent={loading:'Loading city',recovering:'Restoring the scene. Simulation paused.',failed:'The scene could not restart. Your simulation is preserved.'}[state.state]||state.state;
       $('experience-retry').hidden=state.state!=='failed';
       const usable=['running','paused'].includes(state.state);
+      $('experience-status').hidden=usable;
       for(const element of document.querySelectorAll('[data-ready]'))element.disabled=!usable;
       if(worker)$('run').disabled=true;
       root.motorcycleRuntimeReceipt={...state,time,scenarioSeed:scene?.config.seed,backend:view?.backend,backendFailures:view?.backendFailures||[]};

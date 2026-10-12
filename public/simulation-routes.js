@@ -235,7 +235,7 @@
     "readiness": "experimental",
     "featured": false,
     "previewAsset": "/simulation-previews/solar-drive.svg",
-    "limitations": "Starts with component inspection; run the idealized energy model explicitly. This is not a built-vehicle measurement.",
+    "limitations": "Idealized vehicle and energy model; no measured-hardware validation.",
     "evidence": [
       "artifacts/2026-10-04-catalog/qualification-verified/browser.json"
     ]

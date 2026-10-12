@@ -72,6 +72,7 @@
       stage.dataset.createState = status.state;
       text('create-status-title', status.title);
       text('create-status-message', status.message);
+      documentRoot.getElementById('create-status-title').closest('.create-run-status').hidden = ['empty', 'result'].includes(status.state);
       text('create-preview-title', visible ? 'Your simulation' : 'Preview');
       documentRoot.getElementById('create-empty').hidden = visible || status.state === 'running';
       documentRoot.getElementById('create-preview-actions').hidden = !visible;

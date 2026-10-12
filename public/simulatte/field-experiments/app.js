@@ -191,7 +191,7 @@
   function advanceStep() {
     if (pair.intervention.step >= (replayEnd ?? config.durationSteps)) {
       running = false;
-      el("status").textContent = "Run complete. Compare the result, replay, or restart.";
+      el("status").textContent = "";
       return false;
     }
     pair = program.advance(pair,spec,model);
@@ -202,7 +202,7 @@
     replayEnd = pair.intervention.step || config.durationSteps;
     pair = program.execute(spec, config, model, 0);
     scheduler.reset(); running = true; lastUi = 0;
-    el("status").textContent = "Replaying recorded actions from the beginning.";
+    el("status").textContent = "Replaying actions.";
     render();
   }
   function restart() {

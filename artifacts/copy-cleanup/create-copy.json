@@ -1,0 +1,39 @@
+{
+  "boundary": "Real local compilation plus injected failure to check UI presentation; emulated mobile, explicit software WebGPU.",
+  "rows": [
+    {
+      "width": 1440,
+      "initial": {
+        "statusHidden": true,
+        "text": "◐\n☼\n☾\nSYSTEM\nSimulatte\nCreate\nExplore simulations\nHide editor\nMake something move.\nWhat do you want to simulate?\nA red ball\nA blue cube\nA pendulum\n↵\nRun simulation\n⇄\nSurprise me\nNo neural model consent\n\nNo account needed. Your scene runs in this browser.\n\nTools & settings\nPreview\nWaiting for input\n+\n\nClick an object to select it. Drag to move or push it. Use arrow keys to nudge it, Space to apply an impulse, Enter to activate it, and Escape to clear the selection.",
+        "overflow": false
+      },
+      "result": {
+        "state": "ready",
+        "statusHidden": true,
+        "renderCount": "2"
+      },
+      "failedPresentation": {
+        "hidden": false,
+        "message": "Previous simulation remains visible. Copy audit failure"
+      }
+    },
+    {
+      "width": 390,
+      "initial": {
+        "statusHidden": true,
+        "text": "◐\n☼\n☾\nSYSTEM\nSimulatte\nCreate\nHide editor\nMake something move.\nWhat do you want to simulate?\nA red ball\nA blue cube\nA pendulum\n↵\nRun simulation\n⇄\nSurprise me\nNo neural model consent\n\nNo account needed. Your scene runs in this browser.\n\nTools & settings\nPreview\nWaiting for input\n+\n\nClick an object to select it. Drag to move or push it. Use arrow keys to nudge it, Space to apply an impulse, Enter to activate it, and Escape to clear the selection.",
+        "overflow": false
+      },
+      "result": {
+        "state": "ready",
+        "statusHidden": true,
+        "renderCount": "2"
+      },
+      "failedPresentation": {
+        "hidden": false,
+        "message": "Previous simulation remains visible. Copy audit failure"
+      }
+    }
+  ]
+}

@@ -25,16 +25,14 @@
       <div id="camera-views" data-control-choice role="radiogroup" aria-label="Camera view"><button data-view="overview" aria-checked="true">Overview</button><button data-view="top" aria-checked="false">Top</button></div>
       <p id="legend" class="legend"><span>Green: growing</span><span>Blue: growth limited</span><span>Gold: source and signal exchange</span><span>Outline: selected lineage</span></p>
       <div class="experiments">
-        <section>
-          <h2>Selected experiment</h2>
+        <section aria-label="Experiment">
           <canvas
             id="scene"
             tabindex="0"
             aria-label="Select an object in the simulation"
           ></canvas>
         </section>
-        <section>
-          <h2>Untouched baseline</h2>
+        <section aria-label="Untouched baseline">
           <canvas
             id="baseline"
             aria-label="Same initial conditions without interventions"
@@ -50,7 +48,7 @@
         <p id="consequence" aria-live="polite"></p>
       </aside>
       <details>
-        <summary>Advanced: replay, files and evidence</summary>
+        <summary>Files and evidence</summary>
         <div class="toolbar"><button id="verify-replay">Verify replay</button><button id="export">Export run</button><label class="import-button">Import run<input id="import" type="file" accept="application/json"></label></div>
         <p id="boundary"></p>
         <dl id="checks"></dl>

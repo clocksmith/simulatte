@@ -226,8 +226,8 @@
     const positive = t.reserveW >= 0;
     el('reserve-state').textContent = !state.step ? 'READY' : positive ? 'REPLENISHING' : 'DRAWING RESERVES'; el('reserve-state').dataset.positive = String(positive);
     const netWh = (state.batteryJ + state.flywheelJ - state.initialJ) / 3600;
-    el('reserve-copy').textContent = !state.step ? 'Run the model to see whether sunlight covers motion and system losses.'
-      : `${positive ? 'Reserves are increasing at this operating point.' : 'Motion and losses currently exceed available solar power.'} Net reserve change: ${signed(netWh, 2)} Wh. Repeated cycles and adverse weather still determine autonomy.`;
+    el('reserve-copy').textContent = !state.step ? ''
+      : `${positive ? 'Reserves are increasing at this operating point.' : 'Motion and losses currently exceed available solar power.'} Net change: ${signed(netWh, 2)} Wh.`;
     if(matchedState){const bt=program.telemetry(matchedSpec,matchedState);const used=s=>(s.initialJ-s.batteryJ-s.flywheelJ)/3600;
       el('part-effect').textContent=`${interventionLabel}: solar ${signed(t.busW-bt.busW)} W; reserve use ${signed(used(state)-used(matchedState),2)} Wh; distance ${signed(state.distanceM-matchedState.distanceM,1)} m versus the same ride without this change, from ${nf(comparisonStartS,1)} to ${nf(state.timeS,1)} s. Both branches count initial stored energy.`;
     }else el('part-effect').textContent='';

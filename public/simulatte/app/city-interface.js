@@ -73,6 +73,7 @@
 
     function closeTransientPopovers(except = null) {
       popovers.forEach(([button, panel]) => {
+        if (elements.decisionsDrawer.contains(panel)) { panel.hidden = false; return; }
         if (button !== except) setPopover(button, panel, false);
       });
     }
