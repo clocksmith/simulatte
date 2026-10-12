@@ -83,3 +83,11 @@ build; m3t4 owns hosting.
 ## Catalog interaction policy
 
 Every simulation autoplays an authored default with audio off. Pause freezes simulation time while inspection and navigation remain available. Restart restores accepted inputs and clears live interventions while preserving camera and running preference. Replay visibly executes recorded actions; Verify replay checks numerical reproduction separately. Completion retains its result and offers Replay. Speed schedules fixed model steps using each domain's declared normal playback mapping; work is retained when rendering falls behind. Selection never moves the camera; Focus does. Supported camera views fit the subject in the usable viewport. Controls communicate immediate display state, live actions, pending scenario edits and accepted values, with keyed identities and rejection rollback.
+
+## World presentation
+
+Every catalog simulation uses one World frame: identical responsive canvas bounds,
+header, camera menu, Reset view, playback, Restart, Replay, Speed and Advanced
+placement. Domain measurements and actions follow the canvas. Supported camera
+views remain truthful. Field comparison branches share the same viewport through
+a branch switch; neither branch changes the other. Keep Create separate.

@@ -9,6 +9,7 @@
   <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./solar-drive.css">
 <link rel="stylesheet" href="../../shared/design/components.css">
+<link rel="stylesheet" href="../app/experience-frame.css?v=frame-v1">
 </head>
 <body>
   <header class="masthead">
@@ -82,6 +83,8 @@
   </main>
   <footer><a href="../../">SIMULATTE</a><span>Solar drive / energy systems</span><span>Sunlight is the source. Storage is the buffer.</span></footer>
   <dialog id="program-dialog"><div class="dialog-heading"><div><p class="eyebrow">EDITABLE SIMULATION PROGRAM</p><h2>WorldSpec</h2></div><button id="close-program" aria-label="Close program editor">Close</button></div><p>Change the declared parameters, then apply to restart the simulation. Accepted edits retain their authorship.</p><textarea id="program-editor" spellcheck="false" aria-label="WorldSpec JSON editor"></textarea><div class="dialog-actions"><label class="import-button">Import WorldSpec<input id="import-program" type="file" accept=".json,application/json" hidden></label><button id="export-program">Export WorldSpec</button><button id="apply-program" class="run-button">Apply & restart</button></div><p id="editor-status" role="status"></p></dialog>
+  <script src="../../simulation-routes.js?v=frame-v1"></script>
+<script src="../../shared/design/theme-controller.js?v=frame-v1"></script>
   <script src="../../shared/contracts/world-spec-authorship.js?v=outdoor-v28"></script>
   <script src="../../shared/contracts/world-spec.js?v=outdoor-v28"></script>
   <script src="../../shared/core/simulation/solar-drive.js?v=outdoor-v28"></script>
@@ -98,5 +101,6 @@
   <script src="../platform/runtime/simulation-clock.js?v=outdoor-v28"></script><script src="../app/camera-fit.js?v=outdoor-v28"></script>
 <script src="./app.js?v=outdoor-v28"></script>
 <script defer src="../../shared/design/control-components.js?v=outdoor-v28"></script>
+<script defer src="../app/experience-frame.js?v=frame-v1"></script><script defer src="../app/experience-frame-adapters.js?v=frame-v1"></script>
 </body>
 </html>

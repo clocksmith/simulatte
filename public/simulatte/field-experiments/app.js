@@ -269,7 +269,7 @@
     el("question").textContent = config.question;
     el("boundary").textContent = config.boundary;
     el("signal").closest("label").hidden=config.view!=="cells";
-    el("camera-views").hidden=config.view!=="terrain";
+    el("camera-views").hidden=false;for(const button of el("camera-views").querySelectorAll("button"))button.hidden=button.dataset.view==="top"&&config.view!=="terrain";
     el("legend").hidden=config.view!=="cells";
     document.body.dataset.experiment=config.id;
     for (const source of config.sources) {
@@ -392,6 +392,7 @@
       root.SimulatteTheme.cyclePreference();
       render();
     });
+    on(root,"experience-appearance",()=>{lastUi=0;render();});
     on(document,"visibilitychange",()=>scheduler.rebase());
     root.addEventListener(
       "pagehide",
@@ -408,6 +409,11 @@
       worldSpec: structuredClone(spec),
       receipt: program.receipt(spec, config, model, pair),
     });
+    root.SimulatteFieldView={zoom(factor){
+      if(!Number.isFinite(factor)||factor<=0)throw Error('Invalid zoom factor');
+      const bounds=cameraBounds||viewBounds;const next=Math.max(4,Math.min(256,bounds.span*factor));
+      cameraBounds={origin:bounds.origin.map(v=>v+(bounds.span-next)/2),span:next};lastUi=0;render();
+    }};
     render();
     selected = frame.hits[Math.floor(frame.hits.length / 2)];
     previewAction=config.actions[0];

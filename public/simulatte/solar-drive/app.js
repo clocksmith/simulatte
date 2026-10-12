@@ -16,6 +16,7 @@
   let initialSpec = structuredClone(spec), liveActions = [], matchedInitialSpec = null, matchedActions = [], comparisonStartS = 0, replayActions = null, matchedReplayActions = null;
   let scene = root.SimulatteSolarScene.create(spec.params), drawing = null, currentFrame = null;
   let running = false, disposed = false, raf = 0, generation = 0, lastTime = 0, lastUi = 0, lastSample = -1;
+  let cameraMode = 'overview';
   let history = [], selected = 'solar', timer = 0, cameraGoal = null, matchedParams = null, matchedState = null, matchedSpec = null, interventionLabel = '';
   const flowLabels = new Map();
   const view = { mode:'ride', explode:0, targetExplode:0, cutaway:false, fields:false, flows:true, labels:false, selected:'solar' };
@@ -49,9 +50,14 @@
   }
   function fittedCamera(id = null) {
     return root.SimulatteCameraFit.fitPerspective(geometryPoints(id), { width: canvas.clientWidth, height: canvas.clientHeight,
-      insets: { top: 90, bottom: 58 }, padding: 12 });
+      insets: {}, padding: 24 });
   }
-  function resetCamera() { cameraGoal = fittedCamera(); }
+  function resetCamera() { cameraMode='overview'; cameraGoal = fittedCamera(); }
+  function setCameraView(mode) {
+    if(!['overview','top'].includes(mode))throw Error('Unsupported solar camera view');
+    cameraMode=mode;
+    cameraGoal=root.SimulatteCameraFit.fitPerspective(geometryPoints(),{width:canvas.clientWidth,height:canvas.clientHeight,padding:24,yaw:0.4,pitch:mode==='top'?Math.PI/2-.001:.32});
+  }
   function focusSelection() { cameraGoal = { ...fittedCamera(selected), focus: selected }; }
   function select(id) {
     if (!program.COMPONENTS.some((row) => row.id === id)) return;
@@ -399,7 +405,7 @@
   const pointers = new Map(); let travel = 0, pinch = 0;
   on(canvas, 'pointerdown', (event) => {
     if (event.pointerType !== 'touch') canvas.setPointerCapture(event.pointerId);
-    pointers.set(event.pointerId, [event.clientX, event.clientY]); travel = 0; cameraGoal = null;
+    pointers.set(event.pointerId, [event.clientX, event.clientY]); travel = 0; cameraGoal = null; cameraMode='manual';
     if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); }
   });
   on(canvas, 'pointermove', (event) => {
@@ -442,9 +448,9 @@
   on(root, 'pagehide', (event) => { if (!event.persisted) dispose(); });
   root.SimulatteSolarDrive = Object.freeze({ getSpec: () => structuredClone(spec), getState: () => structuredClone(state),
     getReceipt: () => program.receipt(spec, state, drawing?.receipt() || null), exportData, importSpec,
-    setParameters, setVehicle, setView, setMode, shadePanel, select, replay, verifyReplay, compare, focus: focusSelection, resetCamera,
+    setParameters, setVehicle, setView, setMode, shadePanel, select, replay, verifyReplay, compare, focus: focusSelection, resetCamera, setCameraView, cameraView:()=>cameraMode, controlState:()=>({running,complete:state.status==='complete',failed:Boolean(document.body.dataset.runtimeError)}),
     snapshot: () => ({ mode:view.mode, viewState:structuredClone(view), route:program.environment(spec,state), actions:structuredClone(liveActions), camera: structuredClone(camera), selected, running, playback: scheduler.snapshot(), frame: currentFrame && {anchors:currentFrame.anchors},
-      view: {width:canvas.clientWidth,height:canvas.clientHeight,insets:{top:90,bottom:58},points:currentFrame&&drawing?geometryPoints(selected,currentFrame).map(point=>drawing.project(point)):[]} }),
+      view: {width:canvas.clientWidth,height:canvas.clientHeight,insets:{},points:currentFrame&&drawing?geometryPoints(selected,currentFrame).map(point=>drawing.project(point)):[]} }),
     getMatchedState:()=>matchedState?{params:structuredClone(matchedParams),state:structuredClone(matchedState)}:null,
     isViewSettled: () => Math.abs(view.explode - view.targetExplode) < 0.002 && !cameraGoal,
     runSteps(count) { running = false; const result = advance(count); updateUi(); return structuredClone(result); }, dispose });

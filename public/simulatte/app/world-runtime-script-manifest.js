@@ -255,6 +255,8 @@
     'simulatte/app/homepage-effects.js',
     'simulatte/app/homepage-gallery.js',
     'simulatte/app/workbench-entry.js',
+    'simulatte/app/experience-frame.js',
+    'simulatte/app/experience-frame-adapters.js',
   ]);
   const PROFILE_PLUGINS = Object.freeze({
     'gpu-supercluster-v1': Object.freeze(['gpu-supercluster']),
@@ -302,6 +304,8 @@
     'simulatte/app/homepage-webgpu.js', 'simulatte/app/homepage-effects.js',
     'simulatte/app/homepage-gallery.js',
     'simulatte/app/workbench-entry.js',
+    'simulatte/app/experience-frame.js',
+    'simulatte/app/experience-frame-adapters.js',
   ]);
   const eager = Object.freeze(browser.filter((path) => workbenchPaths.has(path)));
   const profileRuntime = Object.freeze(browser.filter((path) => !workbenchPaths.has(path) && !pluginPath(path) && !optionalModelPath(path)));

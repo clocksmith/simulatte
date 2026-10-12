@@ -25,7 +25,7 @@ Run Living Tissue, River Formation, and Crystal Foundry as inspectable standalon
 - Elapsed wall time schedules bounded fixed steps at the declared normal rate; overdue steps are retained and slower playback is disclosed. Selection preserves framing; explicit Focus and Reset view change it.
 
 - Each experiment binds model, seed, fixed step, parameters and timestamped actions in WorldSpec.
-- Both branches start identically; baseline receives no perturbations.
+- Branches use one viewport with a display switch and identical starts; baseline receives no perturbations.
 - Drawing and selection cannot alter numerical state or logical time.
 - Reimport verifies identity and rejects unsupported contracts before execution.
 - Conservation, numerical convergence, empirical calibration and human understanding remain separate qualifications.
