@@ -143,3 +143,17 @@ test('field entrypoint build stamping is complete and content-idempotent', t => 
     assert.ok(html.includes('./app.css?v='+encodeURIComponent(first)));
   }
 });
+
+test('World changing renderer scripts revalidate and standalone entries escape old immutable URLs',()=>{
+  const world=readJson('firebase.json').hosting.find(h=>h.target==='world');
+  for(const source of ['/simulatte/**/*.js','/shared/**/*.js']){
+    const rule=world.headers.find(r=>r.source===source);
+    assert.equal(rule.headers.find(h=>h.key==='Cache-Control').value,'no-cache');
+  }
+  for(const entry of ['solar-drive','motorcycle-noise']){
+    const html=fs.readFileSync(path.join(root,'public/simulatte',entry,'index.html'),'utf8');
+    const scripts=[...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map(m=>new URL(m[1],'https://simulatte.world/'));
+    assert.ok(scripts.length>10);
+    for(const url of scripts)assert.ok(url.searchParams.has('v')&&!url.href.includes('surfaces-v27'),`Previously cached entry asset: ${url.pathname}`);
+  }
+});
