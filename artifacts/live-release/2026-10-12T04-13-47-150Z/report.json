@@ -1,0 +1,324 @@
+{
+  "schema": "simulatte.liveRelease.v2",
+  "recordedAt": "2026-10-12T04:13:47.152Z",
+  "expectedBuild": "f5dedfb4269bfb7b3db7b43ff231e0aa9ad78e57-419e4eeddd78",
+  "screenshots": true,
+  "scope": "HTTP identity, entry assets, browser startup, controls and one fixed Create execution",
+  "exclusions": [
+    "Simulation correctness",
+    "Model qualification",
+    "Physical GPU qualification",
+    "Human visual adjudication"
+  ],
+  "surfaces": [
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "f5dedfb4269bfb7b3db7b43ff231e0aa9ad78e57-419e4eeddd78",
+      "checks": {},
+      "assets": [],
+      "errors": [
+        "Live build differs: expected f5dedfb4269bfb7b3db7b43ff231e0aa9ad78e57-419e4eeddd78, received 3d7d35a9e3a0b576046511315b9b53ceab602ac5-21ef1e7efa48"
+      ],
+      "pass": false,
+      "observedBuild": "3d7d35a9e3a0b576046511315b9b53ceab602ac5-21ef1e7efa48"
+    }
+  ],
+  "browsers": [
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "f5dedfb4269bfb7b3db7b43ff231e0aa9ad78e57-419e4eeddd78",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": false,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/146.0.7680.177",
+      "observation": {
+        "checks": {
+          "build": false,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "catalogVisible": true,
+          "singleCatalog": true,
+          "simulationPreviews": true,
+          "catalogLimits": true,
+          "verticalSpotlights": true,
+          "noHorizontalScroller": true,
+          "scrollReachesLast": true,
+          "spotlightKeyboardHome": true,
+          "spotlightKeyboardNext": true,
+          "spotlightKeyboardPrevious": true,
+          "spotlightKeyboardEnd": true,
+          "homepageScroll": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Open Motorcycle Noise",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Sun Walker",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open GPU Cluster",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Interstellar Relay",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Orbital Transfer",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Grid Resilience",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Subsea Network",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Cable Trader",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Neighborhood Bulk Pool",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open NYC Development Atlas",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Food Recall",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Maritime Trade",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Asteroid Defense",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Solar Drive",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Living Tissue",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open River Formation",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          },
+          {
+            "name": "Open Crystal Foundry",
+            "reachable": true,
+            "width": 1240,
+            "height": 727.71875
+          }
+        ],
+        "pass": false,
+        "title": "Simulatte",
+        "url": "https://simulatte-world.web.app/"
+      },
+      "screenshot": {
+        "path": "world-1440x1000.png",
+        "sha256": "f10978400613e85943806751968b1f3ee0805bfc19c61caf268c49466adbcf24"
+      }
+    },
+    {
+      "surface": "world",
+      "baseUrl": "https://simulatte-world.web.app/",
+      "expectedBuild": "f5dedfb4269bfb7b3db7b43ff231e0aa9ad78e57-419e4eeddd78",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "errors": [],
+      "failedResources": [],
+      "browser": "Chrome/146.0.7680.177",
+      "observation": {
+        "checks": {
+          "build": true,
+          "horizontalFit": true,
+          "controlsReachable": true,
+          "featuredLinks": true,
+          "catalogVisible": true,
+          "singleCatalog": true,
+          "simulationPreviews": true,
+          "catalogLimits": true,
+          "verticalSpotlights": true,
+          "noHorizontalScroller": true,
+          "scrollReachesLast": true,
+          "spotlightKeyboardHome": true,
+          "spotlightKeyboardNext": true,
+          "spotlightKeyboardPrevious": true,
+          "spotlightKeyboardEnd": true,
+          "homepageScroll": true,
+          "secondaryInterfacesDormant": true,
+          "ready": true,
+          "keyboardFocus": true
+        },
+        "controls": [
+          {
+            "name": "Open Motorcycle Noise",
+            "reachable": true,
+            "width": 342,
+            "height": 517
+          },
+          {
+            "name": "Open Sun Walker",
+            "reachable": true,
+            "width": 342,
+            "height": 541
+          },
+          {
+            "name": "Open GPU Cluster",
+            "reachable": true,
+            "width": 342,
+            "height": 541
+          },
+          {
+            "name": "Open Interstellar Relay",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          },
+          {
+            "name": "Open Orbital Transfer",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          },
+          {
+            "name": "Open Grid Resilience",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          },
+          {
+            "name": "Open Subsea Network",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          },
+          {
+            "name": "Open Cable Trader",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          },
+          {
+            "name": "Open Neighborhood Bulk Pool",
+            "reachable": true,
+            "width": 342,
+            "height": 565
+          },
+          {
+            "name": "Open NYC Development Atlas",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          },
+          {
+            "name": "Open Food Recall",
+            "reachable": true,
+            "width": 342,
+            "height": 571
+          },
+          {
+            "name": "Open Maritime Trade",
+            "reachable": true,
+            "width": 342,
+            "height": 565
+          },
+          {
+            "name": "Open Asteroid Defense",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          },
+          {
+            "name": "Open Solar Drive",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          },
+          {
+            "name": "Open Living Tissue",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          },
+          {
+            "name": "Open River Formation",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          },
+          {
+            "name": "Open Crystal Foundry",
+            "reachable": true,
+            "width": 342,
+            "height": 589
+          }
+        ],
+        "pass": true,
+        "title": "Simulatte",
+        "url": "https://simulatte-world.web.app/"
+      },
+      "screenshot": {
+        "path": "world-390x844.png",
+        "sha256": "4b726ea810a658cc2c2b6f275ac3d993a741ed4ede20c5ab71168cc09515129f"
+      }
+    }
+  ],
+  "pass": false
+}
