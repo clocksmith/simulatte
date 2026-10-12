@@ -15,9 +15,13 @@ const display=spawn(displayBinary,['-displayfd','3','-screen','0','1600x1100x24'
 const displayId=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Display startup timed out')),15000);display.once('error',reject);display.stdio[3].once('data',d=>{clearTimeout(timer);resolve(':'+d.toString().trim());});});
 const previousDisplay=process.env.DISPLAY;process.env.DISPLAY=displayId;
 const catalog=await import('../../public/simulation-routes.js').then(m=>m.default);
-let report={frames:{},source:await sourceReceipt(root),boundary:'Headed Chrome using explicit software WebGPU; desktop and touch-emulated mobile. No measured weather, hardware performance, or physical-device claim.',cases:[]};
+const requestedRoutes=(process.env.SIMULATTE_FRAME_ROUTES||'').split(',').filter(Boolean);
+const pages=catalog.pages.filter(page=>!requestedRoutes.length||requestedRoutes.includes(page.path));
+assert.ok(pages.length,'No matching catalog routes');
+const reportPath=path.join(output,process.env.SIMULATTE_FRAME_REPORT||'report.json');
+let report={routes:pages.map(page=>page.path),frames:{},source:await sourceReceipt(root),boundary:'Headed Chrome using explicit software WebGPU; desktop and touch-emulated mobile. No measured weather, hardware performance, or physical-device claim.',cases:[]};
 if(process.env.SIMULATTE_FRAME_RESUME==='1'){
- const previous=JSON.parse(await fs.readFile(path.join(output,'report.json'),'utf8'));
+ const previous=JSON.parse(await fs.readFile(reportPath,'utf8'));
  assert.equal(previous.sourceAfter.head,report.source.head,'Resume source commit changed');
  assert.deepEqual(previous.sourceAfter.modifiedSources,report.source.modifiedSources,'Resume public sources changed');
  report={...previous,cases:previous.cases.filter(row=>row.status==='pass'),resumedAt:report.source.capturedAt};
@@ -25,7 +29,7 @@ if(process.env.SIMULATTE_FRAME_RESUME==='1'){
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 try{
 for(const viewport of [{width:1440,height:1000},{width:820,height:1000},{width:390,height:844}]){
- if(catalog.pages.every(page=>report.cases.some(row=>row.route===page.path&&row.viewport.width===viewport.width&&row.status==='pass')))continue;
+ if(pages.every(page=>report.cases.some(row=>row.route===page.path&&row.viewport.width===viewport.width&&row.status==='pass')))continue;
  const browser=await openBrowserAudit({url:process.env.SIMULATTE_FRAME_ORIGIN,publicRoot:path.join(root,'public'),viewport,webgpu:true,headed:true,args:['--no-sandbox','--enable-unsafe-swiftshader','--use-vulkan=swiftshader','--use-webgpu-adapter=swiftshader','--disable-vulkan-surface']});
  const c=browser.client;
  const evaluate=async expression=>{const r=await c.send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
@@ -33,7 +37,7 @@ for(const viewport of [{width:1440,height:1000},{width:820,height:1000},{width:3
  try{
   await c.send('Page.enable');await c.send('Runtime.enable');
   await c.send('Emulation.setDeviceMetricsOverride',{...viewport,deviceScaleFactor:1,mobile:viewport.width<900});await c.send('Emulation.setTouchEmulationEnabled',{enabled:viewport.width<900});
-  for(const page of catalog.pages){
+  for(const page of pages){
    const route=page.path;if(report.cases.some(row=>row.route===route&&row.viewport.width===viewport.width&&row.status==='pass'))continue;
    const row={route,viewport,status:'running'};report.cases.push(row);
    try{
@@ -65,6 +69,17 @@ for(const viewport of [{width:1440,height:1000},{width:820,height:1000},{width:3
       await evaluate("document.querySelector('[data-camera-view=top]').click()");await until('SimulatteSolarDrive.isViewSettled()');
       row.topView=await evaluate('SimulatteSolarDrive.snapshot().camera');assert.ok(row.topView.pitch>1.55,'Top must be overhead');
       assert.equal(await evaluate('JSON.stringify(SimulatteSolarDrive.getState())'),before,'Camera changes simulation state');
+      const point=await evaluate("(()=>{const r=document.querySelector('#scene').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");
+      await c.send('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1});
+      await c.send('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1});
+      assert.equal(await evaluate('SimulatteSolarDrive.cameraView()'),'top','Selection changes camera preset');
+      await evaluate('SimulatteSolarDrive.focus()');await until('SimulatteSolarDrive.isViewSettled()');
+      assert.equal(await evaluate('SimulatteSolarDrive.cameraView()'),'overview','Focus leaves an incorrect preset selected');
+      assert.ok(await evaluate('Math.abs(SimulatteSolarDrive.snapshot().camera.pitch-.32)<.001'));
+      await evaluate("document.querySelector('#scene').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}))");
+      assert.equal(await evaluate('SimulatteSolarDrive.cameraView()'),'manual','Keyboard camera navigation retains a preset');
+      row.cameraState={selectionPreserved:true,focusAccepted:'overview',keyboardAccepted:'manual'};
+      assert.equal(await evaluate('JSON.stringify(SimulatteSolarDrive.getState())'),before,'Inspection changes numerical state');
       await evaluate("document.querySelector('[data-frame-control=reset] button').click()");await until('SimulatteSolarDrive.isViewSettled()');
       assert.equal(await evaluate('SimulatteSolarDrive.cameraView()'),'overview');
       if(wasRunning)await evaluate("document.querySelector('[data-frame-control=play] button').click()");
@@ -77,7 +92,7 @@ for(const viewport of [{width:1440,height:1000},{width:820,height:1000},{width:3
       await evaluate("document.querySelector('[data-branch=intervention]').click()");
       assert.equal(await evaluate('JSON.stringify(__fieldExperimentSnapshot().stateHash)'),before,'Display switch changes numerical branches');row.branchSwitch=true;
     }
-    if(['motorcycle','sunwalker','datacenter','simulatte/solar-drive/index.html','living-tissue','river-formation','crystal-foundry'].some(id=>route==='/' + id)){
+    if(!requestedRoutes.length&&['motorcycle','sunwalker','datacenter','simulatte/solar-drive/index.html','living-tissue','river-formation','crystal-foundry'].some(id=>route==='/' + id)){
       row.capture=path.join(output,route.replace(/[^a-z0-9]+/gi,'-')+'-'+viewport.width+'.png');
       const png=await c.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});const bytes=Buffer.from(png.data,'base64');await fs.writeFile(row.capture,bytes);row.captureSha256=createHash('sha256').update(bytes).digest('hex');
     }
@@ -95,7 +110,7 @@ for(const viewport of [{width:1440,height:1000},{width:820,height:1000},{width:3
   }
  }finally{await browser.close();}
 }
-assert.equal(report.cases.length,catalog.pages.length*3,'Catalog coverage incomplete');
+assert.equal(report.cases.length,pages.length*3,'Catalog coverage incomplete');
 report.sourceAfter=await sourceReceipt(root);assert.deepEqual(report.sourceAfter.modifiedSources,report.source.modifiedSources,'Public sources changed during audit');report.status=report.cases.every(r=>r.status==='pass')?'pass':'fail';
-await fs.writeFile(path.join(output,'report.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,cases:report.cases.map(r=>({route:r.route,viewport:r.viewport.width,status:r.status,error:r.error})),output}));if(report.status!=='pass')process.exitCode=1;
+await fs.writeFile(reportPath,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,cases:report.cases.map(r=>({route:r.route,viewport:r.viewport.width,status:r.status,error:r.error})),output}));if(report.status!=='pass')process.exitCode=1;
 }finally{display.kill('SIGTERM');if(previousDisplay===undefined)delete process.env.DISPLAY;else process.env.DISPLAY=previousDisplay;}

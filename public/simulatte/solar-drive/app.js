@@ -52,13 +52,13 @@
     return root.SimulatteCameraFit.fitPerspective(geometryPoints(id), { width: canvas.clientWidth, height: canvas.clientHeight,
       insets: {}, padding: 24 });
   }
-  function resetCamera() { cameraMode='overview'; cameraGoal = fittedCamera(); }
+  function resetCamera() { const goal=fittedCamera();cameraMode='overview';cameraGoal=goal; }
   function setCameraView(mode) {
     if(!['overview','top'].includes(mode))throw Error('Unsupported solar camera view');
-    cameraMode=mode;
-    cameraGoal=root.SimulatteCameraFit.fitPerspective(geometryPoints(),{width:canvas.clientWidth,height:canvas.clientHeight,padding:24,yaw:0.4,pitch:mode==='top'?Math.PI/2-.001:.32});
+    const goal=root.SimulatteCameraFit.fitPerspective(geometryPoints(),{width:canvas.clientWidth,height:canvas.clientHeight,padding:24,yaw:0.4,pitch:mode==='top'?Math.PI/2-.001:.32});
+    cameraMode=mode;cameraGoal=goal;
   }
-  function focusSelection() { cameraGoal = { ...fittedCamera(selected), focus: selected }; }
+  function focusSelection() { const goal={...fittedCamera(selected),focus:selected};cameraMode='overview';cameraGoal=goal; }
   function select(id) {
     if (!program.COMPONENTS.some((row) => row.id === id)) return;
     selected = id; view.selected=id;
@@ -405,7 +405,7 @@
   const pointers = new Map(); let travel = 0, pinch = 0;
   on(canvas, 'pointerdown', (event) => {
     if (event.pointerType !== 'touch') canvas.setPointerCapture(event.pointerId);
-    pointers.set(event.pointerId, [event.clientX, event.clientY]); travel = 0; cameraGoal = null; cameraMode='manual';
+    pointers.set(event.pointerId, [event.clientX, event.clientY]); travel = 0;
     if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); }
   });
   on(canvas, 'pointermove', (event) => {
@@ -413,6 +413,7 @@
     const before = pointers.get(event.pointerId), dx = event.clientX - before[0], dy = event.clientY - before[1];
     pointers.set(event.pointerId, [event.clientX, event.clientY]); travel += Math.abs(dx) + Math.abs(dy);
     if (event.pointerType === 'touch' && pointers.size === 1 && Math.abs(dy) >= Math.abs(dx)) return;
+    if(!dx&&!dy)return;cameraGoal=null;cameraMode='manual';
     if (pointers.size === 2) {
       const [a, b] = [...pointers.values()], distance = Math.hypot(a[0] - b[0], a[1] - b[1]);
       if (pinch && distance) camera.distance = Math.max(0.65, Math.min(18, camera.distance * pinch / distance)); pinch = distance;
@@ -431,10 +432,10 @@
     if (picked) select(picked);
   });
   on(canvas, 'pointercancel', (event) => pointers.delete(event.pointerId));
-  on(canvas, 'wheel', (event) => { if (!event.ctrlKey && !event.metaKey) return; event.preventDefault(); cameraGoal = null; camera.distance = Math.max(0.65, Math.min(18, camera.distance * Math.exp(event.deltaY * 0.001))); }, { passive: false });
+  on(canvas, 'wheel', (event) => { if (!event.ctrlKey && !event.metaKey) return; event.preventDefault(); cameraGoal = null; cameraMode='manual'; camera.distance = Math.max(0.65, Math.min(18, camera.distance * Math.exp(event.deltaY * 0.001))); }, { passive: false });
   on(canvas, 'keydown', (event) => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '-', '=', 'Home'].includes(event.key)) return;
-    event.preventDefault(); cameraGoal = null;
+    event.preventDefault(); cameraGoal = null; cameraMode='manual';
     if (event.key === 'Home') resetCamera();
     if (event.key === 'ArrowLeft') camera.yaw -= 0.12;
     if (event.key === 'ArrowRight') camera.yaw += 0.12;

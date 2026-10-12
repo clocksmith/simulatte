@@ -19,3 +19,10 @@ World URL; `SIMULATTE_FRAME_OUT` chooses the evidence destination.
 `SIMULATTE_FRAME_RESUME=1` reuses passing cases only when the source commit and
 all modified public-file hashes and timestamps exactly match the recorded run.
 It reruns failed cases and requires complete catalog coverage before success.
+
+The Solar camera regression has separate before/after records in
+`solar-camera-state.before.json` and `solar-camera-state.json`. They check
+selection, focus, keyboard navigation, and unchanged numerical state at all
+three viewport sizes. `SIMULATTE_FRAME_ROUTES` filters catalog paths;
+`SIMULATTE_FRAME_REPORT` chooses a separate report name. Filtered checks retain
+the earlier layout captures instead of overwriting them.

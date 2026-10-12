@@ -1,0 +1,976 @@
+{
+  "routes": [
+    "/simulatte/solar-drive/index.html"
+  ],
+  "frames": {
+    "390": {
+      "x": 12,
+      "y": 236,
+      "width": 366,
+      "height": 600,
+      "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+      "fontSize": "14px",
+      "radius": "8px",
+      "background": "rgb(250, 251, 248)",
+      "border": "1px solid rgb(204, 210, 202)"
+    },
+    "820": {
+      "x": 12,
+      "y": 236,
+      "width": 796,
+      "height": 756,
+      "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+      "fontSize": "14px",
+      "radius": "8px",
+      "background": "rgb(250, 251, 248)",
+      "border": "1px solid rgb(204, 210, 202)"
+    },
+    "1440": {
+      "x": 24,
+      "y": 132,
+      "width": 1377,
+      "height": 828,
+      "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+      "fontSize": "14px",
+      "radius": "8px",
+      "background": "rgb(250, 251, 248)",
+      "border": "1px solid rgb(204, 210, 202)"
+    }
+  },
+  "source": {
+    "head": "3d7d35a9e3a0b576046511315b9b53ceab602ac5",
+    "capturedAt": "2026-10-12T04:04:54.726Z",
+    "modifiedSources": {
+      "public/data/generated-artifact-inventory.json": {
+        "sha256": "2b0fddefb4621c1275bb68a264f75ccfb03967bf5fea9e42fea440402fdc14a0",
+        "modifiedAt": "2026-10-12T04:04:54.625Z"
+      },
+      "public/simulatte/solar-drive/app.js": {
+        "sha256": "63407791e576ce8abad2b14db85c41cd1570a461d3b519615fe9a718b1e75152",
+        "modifiedAt": "2026-10-12T04:04:53.906Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Headed Chrome using explicit software WebGPU; desktop and touch-emulated mobile. No measured weather, hardware performance, or physical-device claim.",
+  "cases": [
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "chrome": {
+          "background": "rgb(240, 241, 237)",
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif"
+        },
+        "stage": {
+          "x": 24,
+          "y": 132,
+          "width": 1377,
+          "height": 828,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "8px",
+          "background": "rgb(250, 251, 248)",
+          "border": "1px solid rgb(204, 210, 202)"
+        },
+        "header": {
+          "x": 24,
+          "y": 16,
+          "width": 1377,
+          "height": 52,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px none rgb(32, 41, 36)"
+        },
+        "toolbar": {
+          "x": 24,
+          "y": 68,
+          "width": 1377,
+          "height": 64,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px none rgb(32, 41, 36)"
+        },
+        "controls": [
+          "camera",
+          "reset",
+          "play",
+          "restart",
+          "replay",
+          "speed",
+          "advanced"
+        ],
+        "slots": {
+          "camera": {
+            "x": 24,
+            "y": 76,
+            "width": 104,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "reset": {
+            "x": 136,
+            "y": 76,
+            "width": 104,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "play": {
+            "x": 248,
+            "y": 76,
+            "width": 104,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "restart": {
+            "x": 360,
+            "y": 76,
+            "width": 104,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "replay": {
+            "x": 472,
+            "y": 76,
+            "width": 104,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "speed": {
+            "x": 584,
+            "y": 76,
+            "width": 152,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "advanced": {
+            "x": 744,
+            "y": 76,
+            "width": 657,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          }
+        },
+        "reset": {
+          "x": 136,
+          "y": 76,
+          "width": 104,
+          "height": 44,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "6px",
+          "background": "rgb(250, 251, 248)",
+          "border": "1px solid rgb(147, 159, 149)"
+        },
+        "camera": {
+          "x": 24,
+          "y": 76,
+          "width": 104,
+          "height": 44,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "6px",
+          "background": "rgb(250, 251, 248)",
+          "border": "1px solid rgb(147, 159, 149)"
+        },
+        "overflow": false
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false,
+        "camera": "overview"
+      },
+      "topView": {
+        "yaw": 0.4,
+        "pitch": 1.5697963267948967,
+        "distance": 4.468992660652427,
+        "target": [
+          -0.0015884637832641602,
+          1.2368329763412476,
+          0
+        ]
+      },
+      "cameraState": {
+        "selectionPreserved": true,
+        "focusAccepted": "overview",
+        "keyboardAccepted": "manual"
+      }
+    },
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "viewport": {
+        "width": 820,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "chrome": {
+          "background": "rgb(240, 241, 237)",
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif"
+        },
+        "stage": {
+          "x": 12,
+          "y": 236,
+          "width": 796,
+          "height": 756,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "8px",
+          "background": "rgb(250, 251, 248)",
+          "border": "1px solid rgb(204, 210, 202)"
+        },
+        "header": {
+          "x": 12,
+          "y": 12,
+          "width": 796,
+          "height": 52,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px none rgb(32, 41, 36)"
+        },
+        "toolbar": {
+          "x": 12,
+          "y": 64,
+          "width": 796,
+          "height": 172,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px none rgb(32, 41, 36)"
+        },
+        "controls": [
+          "camera",
+          "reset",
+          "play",
+          "restart",
+          "replay",
+          "speed",
+          "advanced"
+        ],
+        "slots": {
+          "camera": {
+            "x": 12,
+            "y": 74,
+            "width": 260,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "reset": {
+            "x": 280,
+            "y": 74,
+            "width": 260,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "play": {
+            "x": 12,
+            "y": 126,
+            "width": 260,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "restart": {
+            "x": 280,
+            "y": 126,
+            "width": 260,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "replay": {
+            "x": 548,
+            "y": 126,
+            "width": 260,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "speed": {
+            "x": 12,
+            "y": 178,
+            "width": 796,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "advanced": {
+            "x": 548,
+            "y": 74,
+            "width": 260,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          }
+        },
+        "reset": {
+          "x": 280,
+          "y": 74,
+          "width": 260,
+          "height": 44,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "13px",
+          "radius": "6px",
+          "background": "rgb(250, 251, 248)",
+          "border": "1px solid rgb(147, 159, 149)"
+        },
+        "camera": {
+          "x": 12,
+          "y": 74,
+          "width": 260,
+          "height": 44,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "13px",
+          "radius": "6px",
+          "background": "rgb(250, 251, 248)",
+          "border": "1px solid rgb(147, 159, 149)"
+        },
+        "overflow": false
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false,
+        "camera": "overview"
+      },
+      "topView": {
+        "yaw": 0.4,
+        "pitch": 1.5697963267948967,
+        "distance": 4.472171332981725,
+        "target": [
+          0.00024640560150146484,
+          1.240488886833191,
+          0
+        ]
+      },
+      "cameraState": {
+        "selectionPreserved": true,
+        "focusAccepted": "overview",
+        "keyboardAccepted": "manual"
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "chrome": {
+          "background": "rgb(240, 241, 237)",
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif"
+        },
+        "stage": {
+          "x": 12,
+          "y": 236,
+          "width": 366,
+          "height": 600,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "8px",
+          "background": "rgb(250, 251, 248)",
+          "border": "1px solid rgb(204, 210, 202)"
+        },
+        "header": {
+          "x": 12,
+          "y": 12,
+          "width": 366,
+          "height": 52,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px none rgb(32, 41, 36)"
+        },
+        "toolbar": {
+          "x": 12,
+          "y": 64,
+          "width": 366,
+          "height": 172,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "14px",
+          "radius": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px none rgb(32, 41, 36)"
+        },
+        "controls": [
+          "camera",
+          "reset",
+          "play",
+          "restart",
+          "replay",
+          "speed",
+          "advanced"
+        ],
+        "slots": {
+          "camera": {
+            "x": 12,
+            "y": 74,
+            "width": 116.65625,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "reset": {
+            "x": 136.65625,
+            "y": 74,
+            "width": 116.671875,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "play": {
+            "x": 12,
+            "y": 126,
+            "width": 116.65625,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "restart": {
+            "x": 136.65625,
+            "y": 126,
+            "width": 116.671875,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "replay": {
+            "x": 261.328125,
+            "y": 126,
+            "width": 116.65625,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "speed": {
+            "x": 12,
+            "y": 178,
+            "width": 365.984375,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          },
+          "advanced": {
+            "x": 261.328125,
+            "y": 74,
+            "width": 116.65625,
+            "height": 44,
+            "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+            "fontSize": "14px",
+            "radius": "0px",
+            "background": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(32, 41, 36)"
+          }
+        },
+        "reset": {
+          "x": 136.65625,
+          "y": 74,
+          "width": 116.671875,
+          "height": 44,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "13px",
+          "radius": "6px",
+          "background": "rgb(250, 251, 248)",
+          "border": "1px solid rgb(147, 159, 149)"
+        },
+        "camera": {
+          "x": 12,
+          "y": 74,
+          "width": 116.65625,
+          "height": 44,
+          "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+          "fontSize": "13px",
+          "radius": "6px",
+          "background": "rgb(250, 251, 248)",
+          "border": "1px solid rgb(147, 159, 149)"
+        },
+        "overflow": false
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false,
+        "camera": "overview"
+      },
+      "topView": {
+        "yaw": 0.4,
+        "pitch": 1.5697963267948967,
+        "distance": 7.257512804490326,
+        "target": [
+          0.00024643540382385254,
+          1.240488886833191,
+          0
+        ]
+      },
+      "cameraState": {
+        "selectionPreserved": true,
+        "focusAccepted": "overview",
+        "keyboardAccepted": "manual"
+      },
+      "touchScroll": true
+    }
+  ],
+  "chrome": {
+    "390": {
+      "background": "rgb(240, 241, 237)",
+      "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif"
+    },
+    "820": {
+      "background": "rgb(240, 241, 237)",
+      "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif"
+    },
+    "1440": {
+      "background": "rgb(240, 241, 237)",
+      "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif"
+    }
+  },
+  "slots": {
+    "390": {
+      "camera": {
+        "x": 12,
+        "y": 74,
+        "width": 116.65625,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "reset": {
+        "x": 136.65625,
+        "y": 74,
+        "width": 116.671875,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "play": {
+        "x": 12,
+        "y": 126,
+        "width": 116.65625,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "restart": {
+        "x": 136.65625,
+        "y": 126,
+        "width": 116.671875,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "replay": {
+        "x": 261.328125,
+        "y": 126,
+        "width": 116.65625,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "speed": {
+        "x": 12,
+        "y": 178,
+        "width": 365.984375,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "advanced": {
+        "x": 261.328125,
+        "y": 74,
+        "width": 116.65625,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      }
+    },
+    "820": {
+      "camera": {
+        "x": 12,
+        "y": 74,
+        "width": 260,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "reset": {
+        "x": 280,
+        "y": 74,
+        "width": 260,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "play": {
+        "x": 12,
+        "y": 126,
+        "width": 260,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "restart": {
+        "x": 280,
+        "y": 126,
+        "width": 260,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "replay": {
+        "x": 548,
+        "y": 126,
+        "width": 260,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "speed": {
+        "x": 12,
+        "y": 178,
+        "width": 796,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "advanced": {
+        "x": 548,
+        "y": 74,
+        "width": 260,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      }
+    },
+    "1440": {
+      "camera": {
+        "x": 24,
+        "y": 76,
+        "width": 104,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "reset": {
+        "x": 136,
+        "y": 76,
+        "width": 104,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "play": {
+        "x": 248,
+        "y": 76,
+        "width": 104,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "restart": {
+        "x": 360,
+        "y": 76,
+        "width": 104,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "replay": {
+        "x": 472,
+        "y": 76,
+        "width": 104,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "speed": {
+        "x": 584,
+        "y": 76,
+        "width": 152,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      },
+      "advanced": {
+        "x": 744,
+        "y": 76,
+        "width": 657,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(32, 41, 36)"
+      }
+    }
+  },
+  "controls": {
+    "390": {
+      "reset": {
+        "x": 136.65625,
+        "y": 74,
+        "width": 116.671875,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "13px",
+        "radius": "6px",
+        "background": "rgb(250, 251, 248)",
+        "border": "1px solid rgb(147, 159, 149)"
+      },
+      "camera": {
+        "x": 12,
+        "y": 74,
+        "width": 116.65625,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "13px",
+        "radius": "6px",
+        "background": "rgb(250, 251, 248)",
+        "border": "1px solid rgb(147, 159, 149)"
+      }
+    },
+    "820": {
+      "reset": {
+        "x": 280,
+        "y": 74,
+        "width": 260,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "13px",
+        "radius": "6px",
+        "background": "rgb(250, 251, 248)",
+        "border": "1px solid rgb(147, 159, 149)"
+      },
+      "camera": {
+        "x": 12,
+        "y": 74,
+        "width": 260,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "13px",
+        "radius": "6px",
+        "background": "rgb(250, 251, 248)",
+        "border": "1px solid rgb(147, 159, 149)"
+      }
+    },
+    "1440": {
+      "reset": {
+        "x": 136,
+        "y": 76,
+        "width": 104,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "6px",
+        "background": "rgb(250, 251, 248)",
+        "border": "1px solid rgb(147, 159, 149)"
+      },
+      "camera": {
+        "x": 24,
+        "y": 76,
+        "width": 104,
+        "height": 44,
+        "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+        "fontSize": "14px",
+        "radius": "6px",
+        "background": "rgb(250, 251, 248)",
+        "border": "1px solid rgb(147, 159, 149)"
+      }
+    }
+  },
+  "sourceAfter": {
+    "head": "3d7d35a9e3a0b576046511315b9b53ceab602ac5",
+    "capturedAt": "2026-10-12T04:07:23.315Z",
+    "modifiedSources": {
+      "public/data/generated-artifact-inventory.json": {
+        "sha256": "2b0fddefb4621c1275bb68a264f75ccfb03967bf5fea9e42fea440402fdc14a0",
+        "modifiedAt": "2026-10-12T04:04:54.625Z"
+      },
+      "public/simulatte/solar-drive/app.js": {
+        "sha256": "63407791e576ce8abad2b14db85c41cd1570a461d3b519615fe9a718b1e75152",
+        "modifiedAt": "2026-10-12T04:04:53.906Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "status": "pass"
+}
