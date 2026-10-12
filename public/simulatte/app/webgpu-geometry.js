@@ -210,7 +210,8 @@
     (scene.choropleths || []).forEach((row) => addFlatPolygon(writer, row.points, 3, semanticColor(row, 'fill'), row.intensity));
     (scene.geoAreas || []).forEach((row) => addFlatPolygon(writer, row.points, row.heightM, semanticColor(row, 'fill'), row.intensity));
     (scene.geoMarkers || []).forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
-    if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
+    // The atmospheric background draws the solar disk at the accepted direction.
+    // A nearby emissive ball would duplicate it and imply a local light source.
   }
 
   function addPluginOverlayPresentation(writer, scene) {
@@ -824,10 +825,9 @@
   }
 
   function buildingColor(height, roof) {
-    const ratio = Math.min(1, height / 220);
-    return roof
-      ? [0.23 + ratio * 0.24, 0.4 + ratio * 0.2, 0.5 + ratio * 0.24, 1]
-      : [0.1 + ratio * 0.14, 0.23 + ratio * 0.14, 0.3 + ratio * 0.2, 1];
+    const palette = [[0.49,0.35,0.29],[0.54,0.53,0.48],[0.62,0.59,0.53],[0.43,0.47,0.48]];
+    const color = palette[Math.floor(height / 3) % palette.length];
+    return roof ? [0.41,0.44,0.44,1] : [...color,1];
   }
 
   function isMajorStreet(highway) {

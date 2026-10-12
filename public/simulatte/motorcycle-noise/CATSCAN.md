@@ -27,15 +27,16 @@ Babylon renders; Simulatte owns mathematics.
 - Do not steer passive returns toward a source's future position.
 - Separate source, panel, and powered accounting.
 - Do not equate a panel ledger with complete canyon energy conservation.
-- Never prescribe cancellation success or infer identity from a spectral peak.
+- Never prescribe cancellation or infer identity spectrally.
 - Distinguish geometry, synthetic demand, propagation, and measured evidence.
-- Session treatment edits validate atomically and support undo. Histories bind observer/configuration identity and simulation time.
+- Treatments validate atomically with undo; histories bind observer/configuration and simulation time.
 - Fictional stalls are opt-in, excluded from acoustic comparisons. Placing a mister enables them; cancellation changes nothing.
-- Fictional events bind traffic, RPM, and sound without water-physics claims.
-- Cameras cannot change traffic state. Comparisons retain traffic, time, and observer position.
+- Fictional events bind traffic/RPM/sound; no water-physics claims.
+- Actor shadows: nearest 64 within 120 m; simulation remains complete.
+- Cameras preserve traffic; comparisons retain traffic/time/observer.
 - Population counts represent simulated individuals.
 - Missing heights stay explicit; illustrative vegetation cannot shield sound.
-- Picking preserves identity. Measurements bind scenario, time, observer, and configuration.
+- Picking preserves identity; measurements bind scenario, time, observer and configuration.
 
 ## Acceptance
 - Evidence: [Legacy solver cases](../../../tests/motorcycle-noise.test.cjs).

@@ -17,23 +17,23 @@ fn sunVisibility(position: vec3<f32>) -> f32 {
   let uv = vec2<f32>(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
   if (any(uv < vec2<f32>(0.0)) || any(uv > vec2<f32>(1.0)) || ndc.z < 0.0 || ndc.z > 1.0) { return 1.0; }
   var visibility = 0.0;
-  for (var y = -1; y <= 1; y++) {
-    for (var x = -1; x <= 1; x++) {
+  for (var y = -2; y <= 2; y++) {
+    for (var x = -2; x <= 2; x++) {
       visibility += textureSampleCompareLevel(sunDepth, sunComparison,
         uv + vec2<f32>(f32(x), f32(y)) * sunShadow.settings.y, ndc.z - sunShadow.settings.z);
     }
   }
-  return visibility / 9.0;
+  return visibility / 25.0;
 }`;
 
   function projection(sun, center = [0, 0, 0], radius = 1200) {
     const direction = sun?.directionToSun;
     if (!Array.isArray(direction) || direction.length !== 3 || !direction.every(Number.isFinite) || direction[1] <= 0) return null;
     const towardSun = math.normalize(direction);
-    const requested = Math.max(120, Math.min(6000, Number.isFinite(radius) ? radius : 1200));
+    const requested = Math.max(60, Math.min(6000, Number.isFinite(radius) ? radius : 1200));
     // Keep a world-space texel grid while the camera pans and zooms. Continuous
     // light-frustum scaling makes stationary buildings cast swimming shadows.
-    const extent = Math.min(6000, 1200 * 2 ** Math.ceil(Math.log2(requested / 1200)));
+    const extent = Math.min(6000, 120 * 2 ** Math.ceil(Math.log2(requested / 120)));
     const target = center.map(value => Number.isFinite(value) ? value : 0);
     const eye = math.add(target, math.scale(towardSun, extent * 3));
     const up = Math.abs(towardSun[1]) > 0.98 ? [0, 0, 1] : [0, 1, 0];
@@ -90,7 +90,7 @@ fn sunVisibility(position: vec3<f32>) -> f32 {
         pass.end();
         receipt = { schema: 'simulatte.sunShadowRender.v1', enabled: Boolean(light), resolution: SIZE,
           casterVertices, extentM: light?.extent || 0, directionToSun: light?.towardSun || null,
-          method: 'three-dimensional-geometry-depth-map', filter: '3x3-comparison', reservedBytes: SIZE * SIZE * 4 + 80 };
+          method: 'three-dimensional-geometry-depth-map', filter: '5x5-comparison', reservedBytes: SIZE * SIZE * 4 + 80 };
         return receipt;
       },
       receipt: () => structuredClone(receipt),

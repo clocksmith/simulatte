@@ -13,7 +13,7 @@ struct Instance {
 @group(0) @binding(1) var<storage, read> instances: array<Instance>;
 struct Input { @location(0) position: vec3<f32>, @location(1) normal: vec3<f32>, @builtin(instance_index) index: u32 }
 `;
-  const main = common + /* wgsl */`
+  const main = root.SimulatteAtmosphericSky.WGSL + common + /* wgsl */`
 @group(0) @binding(2) var shadowTexture: texture_depth_2d;
 @group(0) @binding(3) var shadowSampler: sampler_comparison;
 struct Vertex {
@@ -36,14 +36,15 @@ fn shadow(position: vec3<f32>, n: vec3<f32>) -> f32 {
   let light = frame.lightProjection * vec4<f32>(position + n * 0.002, 1.0);
   let ndc = light.xyz / light.w;
   let uv = ndc.xy * vec2<f32>(0.5, -0.5) + 0.5;
+  if (any(uv < vec2<f32>(0.0)) || any(uv > vec2<f32>(1.0)) || ndc.z < 0.0 || ndc.z > 1.0) { return 1.0; }
   var value = 0.0;
-  for (var x = -1; x <= 1; x++) {
-    for (var y = -1; y <= 1; y++) {
+  for (var x = -2; x <= 2; x++) {
+    for (var y = -2; y <= 2; y++) {
       value += textureSampleCompareLevel(shadowTexture, shadowSampler,
         uv + vec2<f32>(f32(x), f32(y)) / 2048.0, ndc.z - 0.0005);
     }
   }
-  return mix(0.18, 1.0, value / 9.0);
+  return mix(0.18, 1.0, value / 25.0);
 }
 fn fresnel(cosine: f32, f0: vec3<f32>) -> vec3<f32> {
   return f0 + (vec3<f32>(1.0) - f0) * pow(1.0 - cosine, 5.0);
@@ -54,6 +55,7 @@ fn aces(x: vec3<f32>) -> vec3<f32> {
 @fragment fn fs(v: Vertex, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
   let item = instances[v.index];
   let gridWidth = max(fwidth(v.world.xz * 2.0), vec2<f32>(0.001));
+  let fingerScale = fwidth((v.local.x + 0.5) * 160.0);
   let n = normalize(v.normal);
   let view = normalize(frame.eyeTime.xyz - v.world);
   let light = normalize(frame.sun.xyz);
@@ -79,7 +81,7 @@ fn aces(x: vec3<f32>) -> vec3<f32> {
     let uv = v.local.xz + 0.5;
     let cell = abs(fract(uv * vec2<f32>(8.0, 6.0)) - 0.5);
     let seam = smoothstep(0.465, 0.493, max(cell.x, cell.y));
-    let finger = smoothstep(0.43, 0.495, abs(fract(uv.x * 160.0) - 0.5));
+    let finger = smoothstep(0.43, 0.495, abs(fract(uv.x * 160.0) - 0.5)) * (1.0 - smoothstep(0.25, 0.8, fingerScale));
     base = mix(base * (0.95 + 0.05 * sin(floor(uv.x * 8.0) * 9.0)), vec3<f32>(0.32, 0.40, 0.46), seam);
     base = mix(base, vec3<f32>(0.22, 0.26, 0.28), finger * 0.4);
   }
@@ -89,6 +91,13 @@ fn aces(x: vec3<f32>) -> vec3<f32> {
   }
   if (pattern == 6u) {
     base *= 0.94 + 0.06 * sin(v.world.y * 2400.0 + v.world.x * 150.0);
+  }
+  if (pattern == 7u) {
+    let wall = select(v.world.xy, v.world.zy, abs(n.x) > abs(n.z));
+    let panes = abs(fract(wall / vec2<f32>(2.4,3.2)) - 0.5);
+    let window = (1.0 - smoothstep(0.27,0.30,panes.x)) * (1.0 - smoothstep(0.28,0.31,panes.y));
+    base = mix(base, vec3<f32>(0.10,0.19,0.25), window * 0.78);
+    rough = mix(0.85,0.28,window);
   }
   let alpha = rough * rough;
   let a2 = alpha * alpha;
@@ -102,12 +111,12 @@ fn aces(x: vec3<f32>) -> vec3<f32> {
   let diffuse = (vec3<f32>(1.0) - f) * (1.0 - metal) * base / 3.14159265;
   let visibility = shadow(v.world, n);
   let reflection = reflect(-view, n);
-  let sky = mix(vec3<f32>(0.16, 0.19, 0.21), vec3<f32>(0.95, 0.98, 1.05), smoothstep(-0.4, 0.9, reflection.y));
+  let sky = atmosphericSky(reflection, light, frame.sun.w);
   let softbox = pow(max(dot(reflection, normalize(vec3<f32>(-0.8, 1.2, 0.5))), 0.0), 14.0 / (rough + 0.2));
   let strip = pow(max(dot(reflection, normalize(vec3<f32>(1.0, 0.3, -0.7))), 0.0), 32.0 / (rough + 0.2));
   var color = (diffuse + specular) * vec3<f32>(3.8, 3.55, 3.12) * nl * visibility;
   color += base * (1.0 - metal) * (0.25 + max(n.y, 0.0) * 0.3);
-  color += fresnel(nv, f0) * (sky * 0.5 + softbox * 2.5 + strip * 1.7) * (1.0 - rough * 0.45);
+  color += fresnel(nv, f0) * (sky * 0.5 + (softbox * 2.5 + strip * 1.7) * (1.0 - frame.selection.y)) * (1.0 - rough * 0.45);
   color += base * item.color.a * 2.5;
   if (pattern == 4u) {
     let grid = abs(fract(v.world.xz * 2.0 - 0.5) - 0.5) / gridWidth;

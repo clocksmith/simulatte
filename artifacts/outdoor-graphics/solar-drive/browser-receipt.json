@@ -1,0 +1,2502 @@
+{
+  "schema": "simulatte.solarDriveBrowserAudit.v1",
+  "route": "/simulatte/solar-drive/",
+  "status": "pass",
+  "backendPolicy": "Headed Chrome on an isolated Xvfb display, with explicit SwiftShader WebGPU; screenshots must pass pixel checks. Not hardware performance evidence.",
+  "humanVisualReview": "pending",
+  "captures": [
+    {
+      "name": "desktop-ride",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/desktop-ride.png",
+      "sha256": "7156ac7cac61bdf17a4d4f2388c1e7612c473ed3de0362681d2ece6169b91cd7",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.19840494791666666,
+        "brightFraction": 0.021647135416666668,
+        "luminanceStd": 27.63876526172951,
+        "colorBins": 101
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:9ea37af3",
+        "revision": 0,
+        "seed": 17,
+        "step": 1658,
+        "simulationTimeS": 82.9,
+        "stateHash": "fnv1a32:295971f2",
+        "energyResidualJ": 1.3782118912786245e-7,
+        "state": {
+          "step": 1658,
+          "timeS": 82.9,
+          "speedMs": 6.944444444436572,
+          "distanceM": 438.071864542492,
+          "elevationM": -1.2949357052676087,
+          "batteryJ": 2526248.763115215,
+          "flywheelJ": 0,
+          "motorC": 26.972251514156138,
+          "wheelAngle": 1288.4466604191011,
+          "rotorAngle": 0,
+          "ledger": {
+            "incidentJ": 97530.2321255584,
+            "panelLossJ": 77210.47062259707,
+            "mpptLossJ": 609.5928450888259,
+            "auxiliaryJ": 414.5,
+            "parasiticJ": 0,
+            "storageLossJ": 602.2014082128935,
+            "motorLossJ": 3801.713051232316,
+            "rollingJ": 3608.5916109332097,
+            "aeroJ": 7919.642423558659,
+            "frictionBrakeJ": 2656.5611806184406,
+            "curtailedJ": 0,
+            "regenJ": 348.20038708036014,
+            "tractionJ": 16362.090665984579,
+            "electricalLoadJ": 20407.40452154163
+          },
+          "flows": {
+            "pvW": 62.73852001097428,
+            "driveW": 123.41103088524918,
+            "batteryW": 94.00751586485563,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 5,
+            "curtailedW": 0,
+            "motorLossW": 28.33500499058074,
+            "reserveW": -96.91496481187642,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 1.3782118912786245e-7,
+          "initialJ": 2527200,
+          "routeStopIndex": 1,
+          "routeDwellS": 0
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": {
+            "schema": "simulatte.solarRideEnvironment.v1",
+            "routeId": "union-square-washington-square-v1",
+            "routeHash": "fnv1a32:55a2a902",
+            "timestamp": "2024-07-18T16:01:22.900Z",
+            "point": {
+              "x": -1183.02136372199,
+              "y": 557.7189436034516,
+              "elevationM": 11.586495619910918,
+              "latitude": 40.731045403868315,
+              "longitude": -73.99202306069496,
+              "grade": -0.7134488322489269,
+              "heading": -2.1445006894567387,
+              "street": "BROADWAY",
+              "distanceM": 438.071864542492
+            },
+            "sun": {
+              "schema": "simulatte.solarPosition.v1",
+              "model": "noaa_fractional_year_reference_v1",
+              "utcInstant": "2024-07-18T16:01:22.900Z",
+              "latitudeDegrees": 40.731045,
+              "longitudeDegrees": -73.992023,
+              "azimuthDegrees": 142.19722,
+              "elevationDegrees": 66.48974,
+              "equationOfTimeMinutes": -6.160716,
+              "azimuthFrame": "degrees_clockwise_from_true_north"
+            },
+            "samples": [
+              {
+                "x": -1183.0304074852,
+                "y": 558.4426777648863,
+                "heightM": 13.510846246054207,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1182.6941127062137,
+                "y": 558.2253616304936,
+                "heightM": 13.510846246054207,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1182.3578179272274,
+                "y": 558.0080454961009,
+                "heightM": 13.510846246054207,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1183.3650929788894,
+                "y": 557.9247549496072,
+                "heightM": 13.506446756889611,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1183.0287981999031,
+                "y": 557.7074388152145,
+                "heightM": 13.506446756889611,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1182.6925034209169,
+                "y": 557.4901226808217,
+                "heightM": 13.506446756889611,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1183.699778472579,
+                "y": 557.406832134328,
+                "heightM": 13.502047267725015,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1183.3634836935928,
+                "y": 557.1895159999353,
+                "heightM": 13.502047267725015,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1183.0271889146065,
+                "y": 556.9721998655426,
+                "heightM": 13.502047267725015,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              }
+            ],
+            "occluderIds": [
+              "building-341789-0"
+            ],
+            "incidence": 0.9179071890916857,
+            "skyFactor": 0.999987275254868,
+            "diffuseFraction": 0.15,
+            "directFraction": 0,
+            "grade": -0.7134488322489269,
+            "targetMs": 6.944444444444445,
+            "lengthM": 1490.3984722787895,
+            "remainingM": 1052.3266077362975,
+            "stop": null,
+            "dwellS": 0,
+            "sunDirection": [
+              0.13201992054348205,
+              0.9169886553748264,
+              -0.37643398690017404
+            ]
+          },
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 12.940167897169655,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 11,
+            "completedFrames": 11,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "desktop-exploded",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/desktop-exploded.png",
+      "sha256": "9b49ed3cdcee9de505b049b6364f60d63bcbecf98ca8c419554d08393a041ba4",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.029296875,
+        "brightFraction": 0.9532877604166666,
+        "luminanceStd": 20.340685565856553,
+        "colorBins": 65
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:9ea37af3",
+        "revision": 0,
+        "seed": 17,
+        "step": 1658,
+        "simulationTimeS": 82.9,
+        "stateHash": "fnv1a32:295971f2",
+        "energyResidualJ": 1.3782118912786245e-7,
+        "state": {
+          "step": 1658,
+          "timeS": 82.9,
+          "speedMs": 6.944444444436572,
+          "distanceM": 438.071864542492,
+          "elevationM": -1.2949357052676087,
+          "batteryJ": 2526248.763115215,
+          "flywheelJ": 0,
+          "motorC": 26.972251514156138,
+          "wheelAngle": 1288.4466604191011,
+          "rotorAngle": 0,
+          "ledger": {
+            "incidentJ": 97530.2321255584,
+            "panelLossJ": 77210.47062259707,
+            "mpptLossJ": 609.5928450888259,
+            "auxiliaryJ": 414.5,
+            "parasiticJ": 0,
+            "storageLossJ": 602.2014082128935,
+            "motorLossJ": 3801.713051232316,
+            "rollingJ": 3608.5916109332097,
+            "aeroJ": 7919.642423558659,
+            "frictionBrakeJ": 2656.5611806184406,
+            "curtailedJ": 0,
+            "regenJ": 348.20038708036014,
+            "tractionJ": 16362.090665984579,
+            "electricalLoadJ": 20407.40452154163
+          },
+          "flows": {
+            "pvW": 62.73852001097428,
+            "driveW": 123.41103088524918,
+            "batteryW": 94.00751586485563,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 5,
+            "curtailedW": 0,
+            "motorLossW": 28.33500499058074,
+            "reserveW": -96.91496481187642,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 1.3782118912786245e-7,
+          "initialJ": 2527200,
+          "routeStopIndex": 1,
+          "routeDwellS": 0
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": {
+            "schema": "simulatte.solarRideEnvironment.v1",
+            "routeId": "union-square-washington-square-v1",
+            "routeHash": "fnv1a32:55a2a902",
+            "timestamp": "2024-07-18T16:01:22.900Z",
+            "point": {
+              "x": -1183.02136372199,
+              "y": 557.7189436034516,
+              "elevationM": 11.586495619910918,
+              "latitude": 40.731045403868315,
+              "longitude": -73.99202306069496,
+              "grade": -0.7134488322489269,
+              "heading": -2.1445006894567387,
+              "street": "BROADWAY",
+              "distanceM": 438.071864542492
+            },
+            "sun": {
+              "schema": "simulatte.solarPosition.v1",
+              "model": "noaa_fractional_year_reference_v1",
+              "utcInstant": "2024-07-18T16:01:22.900Z",
+              "latitudeDegrees": 40.731045,
+              "longitudeDegrees": -73.992023,
+              "azimuthDegrees": 142.19722,
+              "elevationDegrees": 66.48974,
+              "equationOfTimeMinutes": -6.160716,
+              "azimuthFrame": "degrees_clockwise_from_true_north"
+            },
+            "samples": [
+              {
+                "x": -1183.0304074852,
+                "y": 558.4426777648863,
+                "heightM": 13.510846246054207,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1182.6941127062137,
+                "y": 558.2253616304936,
+                "heightM": 13.510846246054207,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1182.3578179272274,
+                "y": 558.0080454961009,
+                "heightM": 13.510846246054207,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1183.3650929788894,
+                "y": 557.9247549496072,
+                "heightM": 13.506446756889611,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1183.0287981999031,
+                "y": 557.7074388152145,
+                "heightM": 13.506446756889611,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1182.6925034209169,
+                "y": 557.4901226808217,
+                "heightM": 13.506446756889611,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1183.699778472579,
+                "y": 557.406832134328,
+                "heightM": 13.502047267725015,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1183.3634836935928,
+                "y": 557.1895159999353,
+                "heightM": 13.502047267725015,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              },
+              {
+                "x": -1183.0271889146065,
+                "y": 556.9721998655426,
+                "heightM": 13.502047267725015,
+                "state": "shade",
+                "occluderId": "building-341789-0"
+              }
+            ],
+            "occluderIds": [
+              "building-341789-0"
+            ],
+            "incidence": 0.9179071890916857,
+            "skyFactor": 0.999987275254868,
+            "diffuseFraction": 0.15,
+            "directFraction": 0,
+            "grade": -0.7134488322489269,
+            "targetMs": 6.944444444444445,
+            "lengthM": 1490.3984722787895,
+            "remainingM": 1052.3266077362975,
+            "stop": null,
+            "dwellS": 0,
+            "sunDirection": [
+              0.13201992054348205,
+              0.9169886553748264,
+              -0.37643398690017404
+            ]
+          },
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 12.940167897169655,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 17,
+            "completedFrames": 16,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "desktop-panel-cover",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/desktop-panel-cover.png",
+      "sha256": "2cac5a24a2f6974169330e3ceaa551b3566285e2965114764ee58ec13b79c0a9",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.17529296875,
+        "brightFraction": 0.37841796875,
+        "luminanceStd": 34.542772685025405,
+        "colorBins": 97
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:23ef773d",
+        "revision": 1,
+        "seed": 17,
+        "step": 1958,
+        "simulationTimeS": 97.9,
+        "stateHash": "fnv1a32:222e581b",
+        "energyResidualJ": 3.1635863706469536e-7,
+        "state": {
+          "step": 1958,
+          "timeS": 97.9,
+          "speedMs": 6.9444444444366145,
+          "distanceM": 542.2385312090412,
+          "elevationM": -1.370153435931984,
+          "batteryJ": 2523265.3035894646,
+          "flywheelJ": 0,
+          "motorC": 27.20050404482964,
+          "wheelAngle": 1594.8192094383394,
+          "rotorAngle": 0,
+          "ledger": {
+            "incidentJ": 100034.92216970431,
+            "panelLossJ": 79160.18056348739,
+            "mpptLossJ": 626.2422481865268,
+            "auxiliaryJ": 489.5,
+            "parasiticJ": 0,
+            "storageLossJ": 691.7051939841072,
+            "motorLossJ": 4390.801979446456,
+            "rollingJ": 4466.6492316718095,
+            "aeroJ": 9933.051068742867,
+            "frictionBrakeJ": 2656.5611806184406,
+            "curtailedJ": 0,
+            "regenJ": 348.20038708036014,
+            "tractionJ": 19130.288177864968,
+            "electricalLoadJ": 23839.690961636323
+          },
+          "flows": {
+            "pvW": 133.81652024869334,
+            "driveW": 267.825526728155,
+            "batteryW": 193.18083877012347,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 5,
+            "curtailedW": 0,
+            "motorLossW": 54.171832290661754,
+            "reserveW": -199.15550388395786,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 3.1635863706469536e-7,
+          "initialJ": 2527200,
+          "routeStopIndex": 1,
+          "routeDwellS": 0
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": {
+            "schema": "simulatte.solarRideEnvironment.v1",
+            "routeId": "union-square-washington-square-v1",
+            "routeHash": "fnv1a32:55a2a902",
+            "timestamp": "2024-07-18T16:01:37.900Z",
+            "point": {
+              "x": -1239.531526501781,
+              "y": 470.2164807068094,
+              "elevationM": 11.515685884158996,
+              "latitude": 40.73025381292479,
+              "longitude": -73.99269290949638,
+              "grade": 0.8012918678820328,
+              "heading": -2.143846629163799,
+              "street": "BROADWAY",
+              "distanceM": 542.2385312090412
+            },
+            "sun": {
+              "schema": "simulatte.solarPosition.v1",
+              "model": "noaa_fractional_year_reference_v1",
+              "utcInstant": "2024-07-18T16:01:37.900Z",
+              "latitudeDegrees": 40.730254,
+              "longitudeDegrees": -73.992693,
+              "azimuthDegrees": 142.321711,
+              "elevationDegrees": 66.519017,
+              "equationOfTimeMinutes": -6.160731,
+              "azimuthFrame": "degrees_clockwise_from_true_north"
+            },
+            "samples": [
+              {
+                "x": -1239.525277565818,
+                "y": 470.9646416818312,
+                "heightM": 13.43068310730904,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1239.1888407209199,
+                "y": 470.74754555096786,
+                "heightM": 13.43068310730904,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1238.8524038760218,
+                "y": 470.5304494201045,
+                "heightM": 13.43068310730904,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1239.8596220109316,
+                "y": 470.44650351982926,
+                "heightM": 13.43562424853593,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1239.5231851660335,
+                "y": 470.2294073889659,
+                "heightM": 13.43562424853593,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1239.1867483211354,
+                "y": 470.01231125810256,
+                "heightM": 13.43562424853593,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1240.1939664560455,
+                "y": 469.9283653578274,
+                "heightM": 13.44056538976282,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1239.8575296111474,
+                "y": 469.711269226964,
+                "heightM": 13.44056538976282,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1239.5210927662492,
+                "y": 469.49417309610067,
+                "heightM": 13.44056538976282,
+                "state": "direct",
+                "occluderId": null
+              }
+            ],
+            "occluderIds": [],
+            "incidence": 0.9160978283423622,
+            "skyFactor": 0.999983949056493,
+            "diffuseFraction": 0.15,
+            "directFraction": 1,
+            "grade": 0.8012918678820328,
+            "targetMs": 6.944444444444445,
+            "lengthM": 1490.3984722787895,
+            "remainingM": 948.1599410697484,
+            "stop": null,
+            "dwellS": 0,
+            "sunDirection": [
+              0.1329271725428595,
+              0.9171923723792303,
+              -0.37561751669633314
+            ]
+          },
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 12.212589104405376,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 23,
+            "completedFrames": 22,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "desktop-assembled",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/desktop-assembled.png",
+      "sha256": "65ceed8101d27d49b8e38504310d123432ec62447119d0e1531c5ff90a3a32dc",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.06966145833333333,
+        "brightFraction": 0.8263346354166666,
+        "luminanceStd": 26.93031318708068,
+        "colorBins": 98
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:ef3e2245",
+        "revision": 4,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:01dc2050",
+        "energyResidualJ": 1.1245720088481903e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 5.311901457106132,
+          "distanceM": 280.9065531248548,
+          "elevationM": 0.08788839646398984,
+          "batteryJ": 2526140.84556865,
+          "flywheelJ": 0,
+          "motorC": 26.664100622859916,
+          "wheelAngle": 826.1957444848749,
+          "rotorAngle": 0,
+          "ledger": {
+            "incidentJ": 73076.70476736983,
+            "panelLossJ": 57858.95815753879,
+            "mpptLossJ": 456.5323982949233,
+            "auxiliaryJ": 300,
+            "parasiticJ": 0,
+            "storageLossJ": 492.08904603238125,
+            "motorLossJ": 2993.549548449737,
+            "rollingJ": 2313.9791741763206,
+            "aeroJ": 4933.113821787874,
+            "frictionBrakeJ": 2656.5611806184406,
+            "curtailedJ": 0,
+            "regenJ": 348.20038708036014,
+            "tractionJ": 12553.829631175548,
+            "electricalLoadJ": 15676.479983950032
+          },
+          "flows": {
+            "pvW": 362.1563851634089,
+            "driveW": 750.0000000000001,
+            "batteryW": 544.2852699710281,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 5,
+            "curtailedW": 0,
+            "motorLossW": 151.44165513443696,
+            "reserveW": -561.1188350245357,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 1.1245720088481903e-7,
+          "initialJ": 2527200,
+          "routeStopIndex": 1,
+          "routeDwellS": 0
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": {
+            "schema": "simulatte.solarRideEnvironment.v1",
+            "routeId": "union-square-washington-square-v1",
+            "routeHash": "fnv1a32:55a2a902",
+            "timestamp": "2024-07-18T16:01:00.000Z",
+            "point": {
+              "x": -1122.7851571321207,
+              "y": 700.1096531675195,
+              "elevationM": 12.96881560183809,
+              "latitude": 40.73233354128069,
+              "longitude": -73.99130904486486,
+              "grade": -0.8784377258929649,
+              "heading": -1.761578006656609,
+              "street": "BROADWAY",
+              "distanceM": 280.9065531248548
+            },
+            "sun": {
+              "schema": "simulatte.solarPosition.v1",
+              "model": "noaa_fractional_year_reference_v1",
+              "utcInstant": "2024-07-18T16:01:00.000Z",
+              "latitudeDegrees": 40.732334,
+              "longitudeDegrees": -73.991309,
+              "azimuthDegrees": 142.014748,
+              "elevationDegrees": 66.446433,
+              "equationOfTimeMinutes": -6.160693,
+              "azimuthFrame": "degrees_clockwise_from_true_north"
+            },
+            "samples": [
+              {
+                "x": -1123.0645591086245,
+                "y": 700.774475017185,
+                "heightM": 14.894158351104238,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.6714234497963,
+                "y": 700.6985485106246,
+                "heightM": 14.894158351104238,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.278287790968,
+                "y": 700.6226220040643,
+                "heightM": 14.894158351104238,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1123.18149090809,
+                "y": 700.1690203202232,
+                "heightM": 14.888741527452567,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.7883552492617,
+                "y": 700.0930938136629,
+                "heightM": 14.888741527452567,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.3952195904335,
+                "y": 700.0171673071026,
+                "heightM": 14.888741527452567,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1123.2984227075553,
+                "y": 699.5635656232614,
+                "heightM": 14.883324703800895,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.9052870487271,
+                "y": 699.4876391167011,
+                "heightM": 14.883324703800895,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.512151389899,
+                "y": 699.4117126101407,
+                "heightM": 14.883324703800895,
+                "state": "direct",
+                "occluderId": null
+              }
+            ],
+            "occluderIds": [],
+            "incidence": 0.9189582493189071,
+            "skyFactor": 0.9999807097954366,
+            "diffuseFraction": 0.15,
+            "directFraction": 1,
+            "grade": -0.8784377258929649,
+            "targetMs": 6.944444444444445,
+            "lengthM": 1490.3984722787895,
+            "remainingM": 1209.4919191539348,
+            "stop": null,
+            "dwellS": 0,
+            "sunDirection": [
+              0.26260592434291297,
+              0.9166868749621525,
+              -0.3012030905753246
+            ]
+          },
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 15.501873220394295,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 30,
+            "completedFrames": 29,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "flywheel-detail",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/flywheel-detail.png",
+      "sha256": "a8de3188d90912f17b89b6e859f888c038b021da2f65f88438bc078f290fb1df",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.030436197916666668,
+        "brightFraction": 0.9557291666666666,
+        "luminanceStd": 20.90559278440695,
+        "colorBins": 81
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:c964a8bf",
+        "revision": 5,
+        "seed": 17,
+        "step": 0,
+        "simulationTimeS": 0,
+        "stateHash": "fnv1a32:4e563849",
+        "energyResidualJ": 0,
+        "state": {
+          "step": 0,
+          "timeS": 0,
+          "speedMs": 0,
+          "distanceM": 0,
+          "elevationM": 0,
+          "batteryJ": 2527200,
+          "flywheelJ": 64000.000000000015,
+          "motorC": 25,
+          "wheelAngle": 0,
+          "rotorAngle": 0,
+          "ledger": {
+            "incidentJ": 0,
+            "panelLossJ": 0,
+            "mpptLossJ": 0,
+            "auxiliaryJ": 0,
+            "parasiticJ": 0,
+            "storageLossJ": 0,
+            "motorLossJ": 0,
+            "rollingJ": 0,
+            "aeroJ": 0,
+            "frictionBrakeJ": 0,
+            "curtailedJ": 0,
+            "regenJ": 0,
+            "tractionJ": 0,
+            "electricalLoadJ": 0
+          },
+          "flows": {
+            "pvW": 0,
+            "driveW": 0,
+            "batteryW": 0,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 0,
+            "curtailedW": 0,
+            "motorLossW": 0,
+            "reserveW": 0,
+            "unservedAuxW": 0
+          },
+          "status": "ready",
+          "residualJ": 0,
+          "initialJ": 2591200
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": {
+            "schema": "simulatte.solarRideEnvironment.v1",
+            "routeId": "union-square-washington-square-v1",
+            "routeHash": "fnv1a32:55a2a902",
+            "timestamp": "2024-07-18T16:00:00.000Z",
+            "point": {
+              "x": -1075.957463,
+              "y": 977.080121,
+              "elevationM": 12.880003929,
+              "latitude": 40.73483915434232,
+              "longitude": -73.99075396816282,
+              "grade": -0.07247511262343521,
+              "heading": -1.738309944100537,
+              "street": "BROADWAY",
+              "distanceM": 0
+            },
+            "sun": {
+              "schema": "simulatte.solarPosition.v1",
+              "model": "noaa_fractional_year_reference_v1",
+              "utcInstant": "2024-07-18T16:00:00.000Z",
+              "latitudeDegrees": 40.734839,
+              "longitudeDegrees": -73.990754,
+              "azimuthDegrees": 141.515776,
+              "elevationDegrees": 66.327597,
+              "equationOfTimeMinutes": -6.160631,
+              "azimuthFrame": "degrees_clockwise_from_true_north"
+            },
+            "samples": [
+              {
+                "x": -1076.249673154354,
+                "y": 977.7535428669839,
+                "heightM": 14.800450354490373,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1075.854877409789,
+                "y": 977.6867835926164,
+                "heightM": 14.800450354490373,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1075.460081665224,
+                "y": 977.6200243182489,
+                "heightM": 14.800450354490373,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1076.352490754786,
+                "y": 977.1455082305749,
+                "heightM": 14.800003424746572,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1075.957695010221,
+                "y": 977.0787489562074,
+                "heightM": 14.800003424746572,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1075.562899265656,
+                "y": 977.0119896818399,
+                "heightM": 14.800003424746572,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1076.4553083552182,
+                "y": 976.537473594166,
+                "heightM": 14.799556495002772,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1076.0605126106532,
+                "y": 976.4707143197985,
+                "heightM": 14.799556495002772,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1075.6657168660881,
+                "y": 976.403955045431,
+                "heightM": 14.799556495002772,
+                "state": "direct",
+                "occluderId": null
+              }
+            ],
+            "occluderIds": [],
+            "incidence": 0.9160502501741743,
+            "skyFactor": 0.999999868684003,
+            "diffuseFraction": 0.15,
+            "directFraction": 1,
+            "grade": -0.07247511262343521,
+            "targetMs": 6.944444444444445,
+            "lengthM": 1490.3984722787895,
+            "remainingM": 1490.3984722787895,
+            "stop": "Broadway intersection",
+            "dwellS": 0,
+            "sunDirection": [
+              0.268232866546347,
+              0.9158560886862188,
+              -0.2987620359428396
+            ]
+          },
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": null,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 36,
+            "completedFrames": 36,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "scooter-exploded",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/scooter-exploded.png",
+      "sha256": "bc361615409ae8887a9fdbbd577a40d85171cc8991e7fae2d3081130f377cfb9",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.026204427083333332,
+        "brightFraction": 0.9602864583333334,
+        "luminanceStd": 20.901632612599816,
+        "colorBins": 77
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:67c9f591",
+        "revision": 0,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:d4db4819",
+        "energyResidualJ": 4.293397068977356e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 9.722222222211467,
+          "distanceM": 543.4859949953474,
+          "elevationM": 7.285458578929315,
+          "batteryJ": 3244851.0730911787,
+          "flywheelJ": 52771.30260730284,
+          "motorC": 26.817089769512137,
+          "wheelAngle": 2860.452605238718,
+          "rotorAngle": 415.6283525745111,
+          "ledger": {
+            "incidentJ": 86874.7739388673,
+            "panelLossJ": 68920.30682749671,
+            "mpptLossJ": 538.6340133410998,
+            "auxiliaryJ": 900,
+            "parasiticJ": 50.42326113519621,
+            "storageLossJ": 1877.0675473071822,
+            "motorLossJ": 8297.16956117665,
+            "rollingJ": 9445.198081093853,
+            "aeroJ": 21450.351831389093,
+            "frictionBrakeJ": 0,
+            "curtailedJ": 0,
+            "regenJ": 0,
+            "tractionJ": 48668.79703007895,
+            "electricalLoadJ": 57865.96659125556
+          },
+          "flows": {
+            "pvW": 290.2638849671497,
+            "driveW": 59.11093732773765,
+            "batteryW": -203.64368723037424,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 15,
+            "curtailedW": 0,
+            "motorLossW": 12.509260409037797,
+            "reserveW": 196.76767356999335,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 4.293397068977356e-7,
+          "initialJ": 3340000
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": null,
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 29.575517596952434,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 42,
+            "completedFrames": 41,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "car-exploded",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/car-exploded.png",
+      "sha256": "7fa25473411b6abec7c9ab568c52c2ce6248fa74e032cfde7952e3fffd014b14",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.05322265625,
+        "brightFraction": 0.93212890625,
+        "luminanceStd": 30.924802736507164,
+        "colorBins": 88
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:cc1cb806",
+        "revision": 0,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:3476378d",
+        "energyResidualJ": -0.000010800780728459358,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 16.666666666680975,
+          "distanceM": 883.8415772047553,
+          "elevationM": 1.0592764099263918,
+          "batteryJ": 69724693.27057754,
+          "flywheelJ": 173841.89105545412,
+          "motorC": 29.330331807839528,
+          "wheelAngle": 2851.10186195076,
+          "rotorAngle": 298.26563618892845,
+          "ledger": {
+            "incidentJ": 217186.93484717677,
+            "panelLossJ": 172300.76706874973,
+            "mpptLossJ": 1346.5850333527553,
+            "auxiliaryJ": 21719.999999999804,
+            "parasiticJ": 157.87474905317026,
+            "storageLossJ": 23859.98146889693,
+            "motorLossJ": 116444.62459960568,
+            "rollingJ": 124029.5019047285,
+            "aeroJ": 94435.97256190494,
+            "frictionBrakeJ": 5.542233338928781e-13,
+            "curtailedJ": 0,
+            "regenJ": 45222.21908491243,
+            "tractionJ": 494912.9951130043,
+            "electricalLoadJ": 622208.7839798531
+          },
+          "flows": {
+            "pvW": 725.6597124178742,
+            "driveW": 9917.77348400479,
+            "batteryW": 11646.009258302312,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 362,
+            "curtailedW": 0,
+            "motorLossW": 2091.8954867153943,
+            "reserveW": -12008.487203872064,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": -0.000010800780728459358,
+          "initialJ": 70456000
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": null,
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 195.55062557064676,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 48,
+            "completedFrames": 47,
+            "width": 1121,
+            "height": 530,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "mobile-ride",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/mobile-ride.png",
+      "sha256": "ad9a1da10030caad919c96d6504206491d33f374461660c2b158eb2dd8076549",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.185546875,
+        "brightFraction": 0.60400390625,
+        "luminanceStd": 36.584466390927815,
+        "colorBins": 111
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:9ea37af3",
+        "revision": 0,
+        "seed": 17,
+        "step": 1976,
+        "simulationTimeS": 98.80000000000001,
+        "stateHash": "fnv1a32:7025536a",
+        "energyResidualJ": 2.9581133276224136e-7,
+        "state": {
+          "step": 1976,
+          "timeS": 98.80000000000001,
+          "speedMs": 6.9444444444366145,
+          "distanceM": 548.4885312090341,
+          "elevationM": -1.3200743018757284,
+          "batteryJ": 2524260.5548902457,
+          "flywheelJ": 0,
+          "motorC": 27.222395063240516,
+          "wheelAngle": 1613.2015623794937,
+          "rotorAngle": 0,
+          "ledger": {
+            "incidentJ": 106309.84066356867,
+            "panelLossJ": 84114.69274607864,
+            "mpptLossJ": 665.854437524631,
+            "auxiliaryJ": 494,
+            "parasiticJ": 0,
+            "storageLossJ": 682.9503920500548,
+            "motorLossJ": 4439.556628508057,
+            "rollingJ": 4518.13249140891,
+            "aeroJ": 10053.855587453922,
+            "frictionBrakeJ": 2656.5611806184406,
+            "curtailedJ": 0,
+            "regenJ": 348.20038708036014,
+            "tractionJ": 19371.331151920276,
+            "electricalLoadJ": 24133.98858475323
+          },
+          "flows": {
+            "pvW": 361.3036943887858,
+            "driveW": 267.825526728155,
+            "batteryW": -34.306335369969005,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 5,
+            "curtailedW": 0,
+            "motorLossW": 54.171832290661754,
+            "reserveW": 33.27714530751109,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 2.9581133276224136e-7,
+          "initialJ": 2527200,
+          "routeStopIndex": 1,
+          "routeDwellS": 0
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": {
+            "schema": "simulatte.solarRideEnvironment.v1",
+            "routeId": "union-square-washington-square-v1",
+            "routeHash": "fnv1a32:55a2a902",
+            "timestamp": "2024-07-18T16:01:38.800Z",
+            "point": {
+              "x": -1242.920152634687,
+              "y": 464.96508041625543,
+              "elevationM": 11.565765018215254,
+              "latitude": 40.73020630613729,
+              "longitude": -73.99273307691128,
+              "grade": 0.8012918678820328,
+              "heading": -2.143846629163799,
+              "street": "BROADWAY",
+              "distanceM": 548.4885312090341
+            },
+            "sun": {
+              "schema": "simulatte.solarPosition.v1",
+              "model": "noaa_fractional_year_reference_v1",
+              "utcInstant": "2024-07-18T16:01:38.800Z",
+              "latitudeDegrees": 40.730206,
+              "longitudeDegrees": -73.992733,
+              "azimuthDegrees": 142.330036,
+              "elevationDegrees": 66.520964,
+              "equationOfTimeMinutes": -6.160732,
+              "azimuthFrame": "degrees_clockwise_from_true_north"
+            },
+            "samples": [
+              {
+                "x": -1242.913903698724,
+                "y": 465.7132413912772,
+                "heightM": 13.480762241365298,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1242.5774668538259,
+                "y": 465.49614526041387,
+                "heightM": 13.480762241365298,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1242.2410300089277,
+                "y": 465.2790491295505,
+                "heightM": 13.480762241365298,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1243.2482481438376,
+                "y": 465.1951032292753,
+                "heightM": 13.485703382592188,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1242.9118112989395,
+                "y": 464.9780070984119,
+                "heightM": 13.485703382592188,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1242.5753744540414,
+                "y": 464.76091096754857,
+                "heightM": 13.485703382592188,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1243.5825925889515,
+                "y": 464.6769650672734,
+                "heightM": 13.490644523819078,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1243.2461557440533,
+                "y": 464.45986893641003,
+                "heightM": 13.490644523819078,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1242.9097188991552,
+                "y": 464.2427728055467,
+                "heightM": 13.490644523819078,
+                "state": "direct",
+                "occluderId": null
+              }
+            ],
+            "occluderIds": [],
+            "incidence": 0.9161110132065727,
+            "skyFactor": 0.999983949056493,
+            "diffuseFraction": 0.15,
+            "directFraction": 1,
+            "grade": 0.8012918678820328,
+            "targetMs": 6.944444444444445,
+            "lengthM": 1490.3984722787895,
+            "remainingM": 941.9099410697554,
+            "stop": null,
+            "dwellS": 0,
+            "sunDirection": [
+              0.13297134552303047,
+              0.9172059116212115,
+              -0.3755688178708363
+            ]
+          },
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 12.222472005402961,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 9,
+            "completedFrames": 8,
+            "width": 390,
+            "height": 470,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "mobile-exploded",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/mobile-exploded.png",
+      "sha256": "7d72c9298d253e454160e8488f63d08d477e7637c21cf857975bafb864d0d6de",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.06266276041666667,
+        "brightFraction": 0.8933919270833334,
+        "luminanceStd": 28.44189800990002,
+        "colorBins": 83
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:9ea37af3",
+        "revision": 0,
+        "seed": 17,
+        "step": 1976,
+        "simulationTimeS": 98.80000000000001,
+        "stateHash": "fnv1a32:7025536a",
+        "energyResidualJ": 2.9581133276224136e-7,
+        "state": {
+          "step": 1976,
+          "timeS": 98.80000000000001,
+          "speedMs": 6.9444444444366145,
+          "distanceM": 548.4885312090341,
+          "elevationM": -1.3200743018757284,
+          "batteryJ": 2524260.5548902457,
+          "flywheelJ": 0,
+          "motorC": 27.222395063240516,
+          "wheelAngle": 1613.2015623794937,
+          "rotorAngle": 0,
+          "ledger": {
+            "incidentJ": 106309.84066356867,
+            "panelLossJ": 84114.69274607864,
+            "mpptLossJ": 665.854437524631,
+            "auxiliaryJ": 494,
+            "parasiticJ": 0,
+            "storageLossJ": 682.9503920500548,
+            "motorLossJ": 4439.556628508057,
+            "rollingJ": 4518.13249140891,
+            "aeroJ": 10053.855587453922,
+            "frictionBrakeJ": 2656.5611806184406,
+            "curtailedJ": 0,
+            "regenJ": 348.20038708036014,
+            "tractionJ": 19371.331151920276,
+            "electricalLoadJ": 24133.98858475323
+          },
+          "flows": {
+            "pvW": 361.3036943887858,
+            "driveW": 267.825526728155,
+            "batteryW": -34.306335369969005,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 5,
+            "curtailedW": 0,
+            "motorLossW": 54.171832290661754,
+            "reserveW": 33.27714530751109,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 2.9581133276224136e-7,
+          "initialJ": 2527200,
+          "routeStopIndex": 1,
+          "routeDwellS": 0
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": {
+            "schema": "simulatte.solarRideEnvironment.v1",
+            "routeId": "union-square-washington-square-v1",
+            "routeHash": "fnv1a32:55a2a902",
+            "timestamp": "2024-07-18T16:01:38.800Z",
+            "point": {
+              "x": -1242.920152634687,
+              "y": 464.96508041625543,
+              "elevationM": 11.565765018215254,
+              "latitude": 40.73020630613729,
+              "longitude": -73.99273307691128,
+              "grade": 0.8012918678820328,
+              "heading": -2.143846629163799,
+              "street": "BROADWAY",
+              "distanceM": 548.4885312090341
+            },
+            "sun": {
+              "schema": "simulatte.solarPosition.v1",
+              "model": "noaa_fractional_year_reference_v1",
+              "utcInstant": "2024-07-18T16:01:38.800Z",
+              "latitudeDegrees": 40.730206,
+              "longitudeDegrees": -73.992733,
+              "azimuthDegrees": 142.330036,
+              "elevationDegrees": 66.520964,
+              "equationOfTimeMinutes": -6.160732,
+              "azimuthFrame": "degrees_clockwise_from_true_north"
+            },
+            "samples": [
+              {
+                "x": -1242.913903698724,
+                "y": 465.7132413912772,
+                "heightM": 13.480762241365298,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1242.5774668538259,
+                "y": 465.49614526041387,
+                "heightM": 13.480762241365298,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1242.2410300089277,
+                "y": 465.2790491295505,
+                "heightM": 13.480762241365298,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1243.2482481438376,
+                "y": 465.1951032292753,
+                "heightM": 13.485703382592188,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1242.9118112989395,
+                "y": 464.9780070984119,
+                "heightM": 13.485703382592188,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1242.5753744540414,
+                "y": 464.76091096754857,
+                "heightM": 13.485703382592188,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1243.5825925889515,
+                "y": 464.6769650672734,
+                "heightM": 13.490644523819078,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1243.2461557440533,
+                "y": 464.45986893641003,
+                "heightM": 13.490644523819078,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1242.9097188991552,
+                "y": 464.2427728055467,
+                "heightM": 13.490644523819078,
+                "state": "direct",
+                "occluderId": null
+              }
+            ],
+            "occluderIds": [],
+            "incidence": 0.9161110132065727,
+            "skyFactor": 0.999983949056493,
+            "diffuseFraction": 0.15,
+            "directFraction": 1,
+            "grade": 0.8012918678820328,
+            "targetMs": 6.944444444444445,
+            "lengthM": 1490.3984722787895,
+            "remainingM": 941.9099410697554,
+            "stop": null,
+            "dwellS": 0,
+            "sunDirection": [
+              0.13297134552303047,
+              0.9172059116212115,
+              -0.3755688178708363
+            ]
+          },
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 12.222472005402961,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 15,
+            "completedFrames": 14,
+            "width": 390,
+            "height": 470,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "mobile-panel-cover",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/mobile-panel-cover.png",
+      "sha256": "f7b3c5b47c74456401ac6aff2cc882457766a632aedf33e77e6413b16b3b93b1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.2918294270833333,
+        "brightFraction": 0.009440104166666666,
+        "luminanceStd": 28.485320000460526,
+        "colorBins": 107
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:23ef773d",
+        "revision": 1,
+        "seed": 17,
+        "step": 2276,
+        "simulationTimeS": 113.80000000000001,
+        "stateHash": "fnv1a32:f67e8d0e",
+        "energyResidualJ": 3.9898441173136234e-7,
+        "state": {
+          "step": 2276,
+          "timeS": 113.80000000000001,
+          "speedMs": 6.9444444444366145,
+          "distanceM": 652.6551978755833,
+          "elevationM": -0.3822799358556395,
+          "batteryJ": 2519947.447966779,
+          "flywheelJ": 0,
+          "motorC": 27.58651683342609,
+          "wheelAngle": 1919.574111398732,
+          "rotorAngle": 0,
+          "ledger": {
+            "incidentJ": 110456.60174547315,
+            "panelLossJ": 87349.11844641567,
+            "mpptLossJ": 693.2244989717196,
+            "auxiliaryJ": 569,
+            "parasiticJ": 0,
+            "storageLossJ": 812.3435997549833,
+            "motorLossJ": 5274.253089875319,
+            "rollingJ": 5376.179463901663,
+            "aeroJ": 12067.264232638167,
+            "frictionBrakeJ": 2656.5611806184406,
+            "curtailedJ": 0,
+            "regenJ": 348.20038708036014,
+            "tractionJ": 23530.31372646798,
+            "electricalLoadJ": 29202.66762066814
+          },
+          "flows": {
+            "pvW": 22.15028012521781,
+            "driveW": 285.03624730437224,
+            "batteryW": 324.73598302764856,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 5,
+            "curtailedW": 0,
+            "motorLossW": 56.85001584849417,
+            "reserveW": -334.77936394512653,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 3.9898441173136234e-7,
+          "initialJ": 2527200,
+          "routeStopIndex": 1,
+          "routeDwellS": 0
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": {
+            "schema": "simulatte.solarRideEnvironment.v1",
+            "routeId": "union-square-washington-square-v1",
+            "routeHash": "fnv1a32:55a2a902",
+            "timestamp": "2024-07-18T16:01:53.800Z",
+            "point": {
+              "x": -1299.352149914128,
+              "y": 377.4137824480754,
+              "elevationM": 12.504037583996414,
+              "latitude": 40.72941427340734,
+              "longitude": -73.9934019991702,
+              "grade": 0.9818379316149801,
+              "heading": -2.145079100461581,
+              "street": "BROADWAY",
+              "distanceM": 652.6551978755833
+            },
+            "sun": {
+              "schema": "simulatte.solarPosition.v1",
+              "model": "noaa_fractional_year_reference_v1",
+              "utcInstant": "2024-07-18T16:01:53.800Z",
+              "latitudeDegrees": 40.729414,
+              "longitudeDegrees": -73.993402,
+              "azimuthDegrees": 142.45481,
+              "elevationDegrees": 66.550157,
+              "equationOfTimeMinutes": -6.160748,
+              "azimuthFrame": "degrees_clockwise_from_true_north"
+            },
+            "samples": [
+              {
+                "x": -1299.3431014052812,
+                "y": 378.1648368704648,
+                "heightM": 14.417890670708024,
+                "state": "shade",
+                "occluderId": "building-1051674-0"
+              },
+              {
+                "x": -1299.006932380587,
+                "y": 377.94732625583447,
+                "heightM": 14.417890670708024,
+                "state": "shade",
+                "occluderId": "building-1051674-0"
+              },
+              {
+                "x": -1298.6707633558926,
+                "y": 377.72981564120414,
+                "heightM": 14.417890670708024,
+                "state": "shade",
+                "occluderId": "building-1051674-0"
+              },
+              {
+                "x": -1299.6780787950217,
+                "y": 377.64711950483127,
+                "heightM": 14.423945046137387,
+                "state": "shade",
+                "occluderId": "building-1051674-0"
+              },
+              {
+                "x": -1299.3419097703274,
+                "y": 377.42960889020094,
+                "heightM": 14.423945046137387,
+                "state": "shade",
+                "occluderId": "building-1051674-0"
+              },
+              {
+                "x": -1299.0057407456331,
+                "y": 377.2120982755706,
+                "heightM": 14.423945046137387,
+                "state": "shade",
+                "occluderId": "building-1051674-0"
+              },
+              {
+                "x": -1300.0130561847623,
+                "y": 377.1294021391977,
+                "heightM": 14.42999942156675,
+                "state": "shade",
+                "occluderId": "building-1051674-0"
+              },
+              {
+                "x": -1299.676887160068,
+                "y": 376.91189152456735,
+                "heightM": 14.42999942156675,
+                "state": "shade",
+                "occluderId": "building-1051674-0"
+              },
+              {
+                "x": -1299.3407181353737,
+                "y": 376.694380909937,
+                "heightM": 14.42999942156675,
+                "state": "shade",
+                "occluderId": "building-1051674-0"
+              }
+            ],
+            "occluderIds": [
+              "building-1051674-0"
+            ],
+            "incidence": 0.9160571242021807,
+            "skyFactor": 0.9999759015992118,
+            "diffuseFraction": 0.15,
+            "directFraction": 0,
+            "grade": 0.9818379316149801,
+            "targetMs": 6.944444444444445,
+            "lengthM": 1490.3984722787895,
+            "remainingM": 837.7432744032062,
+            "stop": null,
+            "dwellS": 0,
+            "sunDirection": [
+              0.1331698851664651,
+              0.9174087897997216,
+              -0.37500252543544377
+            ]
+          },
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 12.42900101501779,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 21,
+            "completedFrames": 20,
+            "width": 390,
+            "height": 470,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "mobile-assembled",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/mobile-assembled.png",
+      "sha256": "a190ef6107258d3a49b4cf1b43097eb710c8c5154a04ba520a5f556af4c1f770",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pixels": {
+        "visible": true,
+        "opaqueFraction": 1,
+        "darkFraction": 0.09423828125,
+        "brightFraction": 0.7501627604166666,
+        "luminanceStd": 31.990799311182965,
+        "colorBins": 113
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:ef3e2245",
+        "revision": 4,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:01dc2050",
+        "energyResidualJ": 1.1245720088481903e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 5.311901457106132,
+          "distanceM": 280.9065531248548,
+          "elevationM": 0.08788839646398984,
+          "batteryJ": 2526140.84556865,
+          "flywheelJ": 0,
+          "motorC": 26.664100622859916,
+          "wheelAngle": 826.1957444848749,
+          "rotorAngle": 0,
+          "ledger": {
+            "incidentJ": 73076.70476736983,
+            "panelLossJ": 57858.95815753879,
+            "mpptLossJ": 456.5323982949233,
+            "auxiliaryJ": 300,
+            "parasiticJ": 0,
+            "storageLossJ": 492.08904603238125,
+            "motorLossJ": 2993.549548449737,
+            "rollingJ": 2313.9791741763206,
+            "aeroJ": 4933.113821787874,
+            "frictionBrakeJ": 2656.5611806184406,
+            "curtailedJ": 0,
+            "regenJ": 348.20038708036014,
+            "tractionJ": 12553.829631175548,
+            "electricalLoadJ": 15676.479983950032
+          },
+          "flows": {
+            "pvW": 362.1563851634089,
+            "driveW": 750.0000000000001,
+            "batteryW": 544.2852699710281,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 5,
+            "curtailedW": 0,
+            "motorLossW": 151.44165513443696,
+            "reserveW": -561.1188350245357,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 1.1245720088481903e-7,
+          "initialJ": 2527200,
+          "routeStopIndex": 1,
+          "routeDwellS": 0
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": {
+            "schema": "simulatte.solarRideEnvironment.v1",
+            "routeId": "union-square-washington-square-v1",
+            "routeHash": "fnv1a32:55a2a902",
+            "timestamp": "2024-07-18T16:01:00.000Z",
+            "point": {
+              "x": -1122.7851571321207,
+              "y": 700.1096531675195,
+              "elevationM": 12.96881560183809,
+              "latitude": 40.73233354128069,
+              "longitude": -73.99130904486486,
+              "grade": -0.8784377258929649,
+              "heading": -1.761578006656609,
+              "street": "BROADWAY",
+              "distanceM": 280.9065531248548
+            },
+            "sun": {
+              "schema": "simulatte.solarPosition.v1",
+              "model": "noaa_fractional_year_reference_v1",
+              "utcInstant": "2024-07-18T16:01:00.000Z",
+              "latitudeDegrees": 40.732334,
+              "longitudeDegrees": -73.991309,
+              "azimuthDegrees": 142.014748,
+              "elevationDegrees": 66.446433,
+              "equationOfTimeMinutes": -6.160693,
+              "azimuthFrame": "degrees_clockwise_from_true_north"
+            },
+            "samples": [
+              {
+                "x": -1123.0645591086245,
+                "y": 700.774475017185,
+                "heightM": 14.894158351104238,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.6714234497963,
+                "y": 700.6985485106246,
+                "heightM": 14.894158351104238,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.278287790968,
+                "y": 700.6226220040643,
+                "heightM": 14.894158351104238,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1123.18149090809,
+                "y": 700.1690203202232,
+                "heightM": 14.888741527452567,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.7883552492617,
+                "y": 700.0930938136629,
+                "heightM": 14.888741527452567,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.3952195904335,
+                "y": 700.0171673071026,
+                "heightM": 14.888741527452567,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1123.2984227075553,
+                "y": 699.5635656232614,
+                "heightM": 14.883324703800895,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.9052870487271,
+                "y": 699.4876391167011,
+                "heightM": 14.883324703800895,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.512151389899,
+                "y": 699.4117126101407,
+                "heightM": 14.883324703800895,
+                "state": "direct",
+                "occluderId": null
+              }
+            ],
+            "occluderIds": [],
+            "incidence": 0.9189582493189071,
+            "skyFactor": 0.9999807097954366,
+            "diffuseFraction": 0.15,
+            "directFraction": 1,
+            "grade": -0.8784377258929649,
+            "targetMs": 6.944444444444445,
+            "lengthM": 1490.3984722787895,
+            "remainingM": 1209.4919191539348,
+            "stop": null,
+            "dwellS": 0,
+            "sunDirection": [
+              0.26260592434291297,
+              0.9166868749621525,
+              -0.3012030905753246
+            ]
+          },
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 15.501873220394295,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 28,
+            "completedFrames": 27,
+            "width": 390,
+            "height": 470,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    },
+    {
+      "name": "mobile-controls",
+      "path": "../../../../tmp/simulatte-outdoor-solar-final/mobile-controls.png",
+      "sha256": "fdc6c53a8ff6b296cacd62f661b99a1bbc205ef85e4a2512bd8ea08c36f77ffa",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pixels": {
+        "visible": false
+      },
+      "run": {
+        "schema": "simulatte.solarDriveRun.v1",
+        "modelVersion": "solar-longitudinal-1.1.0",
+        "worldSpecHash": "fnv1a32:ef3e2245",
+        "revision": 4,
+        "seed": 17,
+        "step": 1200,
+        "simulationTimeS": 60,
+        "stateHash": "fnv1a32:01dc2050",
+        "energyResidualJ": 1.1245720088481903e-7,
+        "state": {
+          "step": 1200,
+          "timeS": 60,
+          "speedMs": 5.311901457106132,
+          "distanceM": 280.9065531248548,
+          "elevationM": 0.08788839646398984,
+          "batteryJ": 2526140.84556865,
+          "flywheelJ": 0,
+          "motorC": 26.664100622859916,
+          "wheelAngle": 826.1957444848749,
+          "rotorAngle": 0,
+          "ledger": {
+            "incidentJ": 73076.70476736983,
+            "panelLossJ": 57858.95815753879,
+            "mpptLossJ": 456.5323982949233,
+            "auxiliaryJ": 300,
+            "parasiticJ": 0,
+            "storageLossJ": 492.08904603238125,
+            "motorLossJ": 2993.549548449737,
+            "rollingJ": 2313.9791741763206,
+            "aeroJ": 4933.113821787874,
+            "frictionBrakeJ": 2656.5611806184406,
+            "curtailedJ": 0,
+            "regenJ": 348.20038708036014,
+            "tractionJ": 12553.829631175548,
+            "electricalLoadJ": 15676.479983950032
+          },
+          "flows": {
+            "pvW": 362.1563851634089,
+            "driveW": 750.0000000000001,
+            "batteryW": 544.2852699710281,
+            "flywheelW": 0,
+            "regenW": 0,
+            "auxiliaryW": 5,
+            "curtailedW": 0,
+            "motorLossW": 151.44165513443696,
+            "reserveW": -561.1188350245357,
+            "unservedAuxW": 0
+          },
+          "status": "running",
+          "residualJ": 1.1245720088481903e-7,
+          "initialJ": 2527200,
+          "routeStopIndex": 1,
+          "routeDwellS": 0
+        },
+        "evidence": {
+          "simulation": "energy-balance-within-tolerance",
+          "calibration": "not-performed",
+          "route": {
+            "schema": "simulatte.solarRideEnvironment.v1",
+            "routeId": "union-square-washington-square-v1",
+            "routeHash": "fnv1a32:55a2a902",
+            "timestamp": "2024-07-18T16:01:00.000Z",
+            "point": {
+              "x": -1122.7851571321207,
+              "y": 700.1096531675195,
+              "elevationM": 12.96881560183809,
+              "latitude": 40.73233354128069,
+              "longitude": -73.99130904486486,
+              "grade": -0.8784377258929649,
+              "heading": -1.761578006656609,
+              "street": "BROADWAY",
+              "distanceM": 280.9065531248548
+            },
+            "sun": {
+              "schema": "simulatte.solarPosition.v1",
+              "model": "noaa_fractional_year_reference_v1",
+              "utcInstant": "2024-07-18T16:01:00.000Z",
+              "latitudeDegrees": 40.732334,
+              "longitudeDegrees": -73.991309,
+              "azimuthDegrees": 142.014748,
+              "elevationDegrees": 66.446433,
+              "equationOfTimeMinutes": -6.160693,
+              "azimuthFrame": "degrees_clockwise_from_true_north"
+            },
+            "samples": [
+              {
+                "x": -1123.0645591086245,
+                "y": 700.774475017185,
+                "heightM": 14.894158351104238,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.6714234497963,
+                "y": 700.6985485106246,
+                "heightM": 14.894158351104238,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.278287790968,
+                "y": 700.6226220040643,
+                "heightM": 14.894158351104238,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1123.18149090809,
+                "y": 700.1690203202232,
+                "heightM": 14.888741527452567,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.7883552492617,
+                "y": 700.0930938136629,
+                "heightM": 14.888741527452567,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.3952195904335,
+                "y": 700.0171673071026,
+                "heightM": 14.888741527452567,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1123.2984227075553,
+                "y": 699.5635656232614,
+                "heightM": 14.883324703800895,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.9052870487271,
+                "y": 699.4876391167011,
+                "heightM": 14.883324703800895,
+                "state": "direct",
+                "occluderId": null
+              },
+              {
+                "x": -1122.512151389899,
+                "y": 699.4117126101407,
+                "heightM": 14.883324703800895,
+                "state": "direct",
+                "occluderId": null
+              }
+            ],
+            "occluderIds": [],
+            "incidence": 0.9189582493189071,
+            "skyFactor": 0.9999807097954366,
+            "diffuseFraction": 0.15,
+            "directFraction": 1,
+            "grade": -0.8784377258929649,
+            "targetMs": 6.944444444444445,
+            "lengthM": 1490.3984722787895,
+            "remainingM": 1209.4919191539348,
+            "stop": null,
+            "dwellS": 0,
+            "sunDirection": [
+              0.26260592434291297,
+              0.9166868749621525,
+              -0.3012030905753246
+            ]
+          },
+          "referenceComparison": {
+            "schema": "simulatte.solarRideReferenceComparison.v1",
+            "reference": {
+              "id": "sun-trip-stephane-bujadoux-2021",
+              "contentHash": "fnv1a32:8d6343dd"
+            },
+            "evaluationCount": 28,
+            "calibration": "not-performed",
+            "publishedMedianWhKm": 11.167959823241649,
+            "publishedRangeWhKm": [
+              6.23076923076923,
+              20.1185770750988
+            ],
+            "modeledElectricalWhKm": 15.501873220394295,
+            "source": "https://www.thesuntrip.com/les-donnees-du-tour-deurope-2021-de-stephane-bujadoux/",
+            "scope": "Consumption context from different routes and a different vehicle; not a matched accuracy test."
+          },
+          "renderer": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "submittedFrames": 31,
+            "completedFrames": 30,
+            "width": 390,
+            "height": 470,
+            "sampleCount": 4,
+            "shadowMapSize": 2048,
+            "instanceStrideBytes": 144,
+            "frameUniformBytes": 176
+          },
+          "humanVisualReview": "pending"
+        }
+      }
+    }
+  ],
+  "checks": [
+    {
+      "viewport": "desktop",
+      "gpu": "completed",
+      "energyBalance": "pass",
+      "replay": "pass",
+      "shadeEdit": "pass",
+      "exportReimport": "pass",
+      "overflow": "none"
+    },
+    {
+      "viewport": "mobile",
+      "gpu": "completed",
+      "energyBalance": "pass",
+      "replay": "pass",
+      "shadeEdit": "pass",
+      "exportReimport": "pass",
+      "overflow": "none"
+    }
+  ],
+  "sourceHashes": {
+    "public/shared/render/atmospheric-sky.js": "c6e567ce071ec8d4189d4635820099f81553d870cd931921ecaef3c74ea7d712",
+    "public/simulatte/motorcycle-noise/vendor/earcut.js": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3",
+    "public/shared/core/simulation/solar-drive.js": "44b11388e68514d8325d8e7ec07b93cb723a0dcd36bd6af96ebf5d02cef4646a",
+    "public/shared/plugins/sun-walker/sun-exposure.js": "53d88b1cc9ae585242951c233d456658a5809c79b24987ab5d7bac93e69af10e",
+    "public/shared/contracts/world-spec.js": "70c4a40553dcda9543186be4535a29823e657cd92d85b6bc6e1a53e82351fb2f",
+    "public/shared/contracts/world-spec-authorship.js": "59a0b4a5f26d83fa56e3e98f84b9ebe8452466020f94a6aa8d9ba2b1f69afe8f",
+    "public/shared/design/control-components.js": "384c786a29997c8e9f1640366eb5afacc0529521eca6b6bca43b9ac44bae0430",
+    "public/shared/design/components.css": "1abf0a7c11acc8f6b1cf85634f56017b99e46ee76dd23d52f08a0f340e58ae14",
+    "public/simulatte/app/camera-fit.js": "83e72bb1dcfee7b478fcabba7916ce6ace95378906d8cf02442006cb87e84b70",
+    "public/simulatte/platform/runtime/simulation-clock.js": "386eeb44903dcf49d0d248a23c77ff15c9b9448cb9911f178adf72b3ffbe4224",
+    "public/data/solar-drive/union-square-route-v1.json": "0e0a8ce0ad450dbaa251264e824213b77b8a6aade8f16ec48a5ebf3b5cce58ea",
+    "public/data/solar-drive/published-ride-reference-v1.json": "bb94712396b3ea821d2e8f29dc404a311ce809c54873a9619640d7eb12150634",
+    "public/simulatte/solar-drive/program.js": "a659e40b5f2b028a2c3b13aa07bd295a00c4a81972c1bb28fca8d3d1c7d4f8a6",
+    "public/simulatte/solar-drive/geometry.js": "fc5a370b8c3b883cf898f45f664a9bc93e16be201c714b6c2e5e14cf8178656a",
+    "public/simulatte/solar-drive/shaders.js": "c86923468860b22d2de607650c7d7f91c377e205b62bed245b9f802cf6a98cd1",
+    "public/simulatte/solar-drive/scene.js": "4edb0d5d2472d6ad75230af1f3590fac58e110dba4dc3a68a419a8311d336d87",
+    "public/simulatte/solar-drive/route.js": "13f2d6fc03c299d8c1b26015da1ef76aa6acaddec113321d0f2639e5ff150aff",
+    "public/simulatte/solar-drive/route-scene.js": "2ea272f6ceaa85682f8f2d41aded62f2a3aab9ed3e35e5d232e6ecc6e4185cb8",
+    "public/simulatte/solar-drive/renderer.js": "5cbfa9461b3e537c15a87c9c6909576ef27611cb71dc048115a6f3246494ea67",
+    "public/simulatte/solar-drive/app.js": "c3b85725dd0e2eb226ad254838dd3918d95de5f056daf2704c1aa401ff60df86",
+    "public/simulatte/solar-drive/index.html": "ce5a1b9949f45d2ec36a918ddf08729f170cc2c5ff8f45ecfb8406065986eaea",
+    "public/simulatte/solar-drive/solar-drive.css": "794b0e700e269a15c3dfd559d623b8ebd051ce7dd65d58663bddec7de7b488fb"
+  },
+  "origin": "http://127.0.0.1:40243/simulatte/solar-drive/",
+  "deployedFiles": [],
+  "comparison": {
+    "schema": "simulatte.solarDriveComparison.v1",
+    "worldSpecHash": "fnv1a32:cc1cb806",
+    "durationS": 300,
+    "hybrid": {
+      "storeUsedWh": 519.1911197147829,
+      "distanceM": 4883.841577207685,
+      "initialJ": 70456000
+    },
+    "batteryOnly": {
+      "storeUsedWh": 506.6966606714742,
+      "distanceM": 4883.841315406902,
+      "initialJ": 70200000
+    },
+    "interpretation": "Net store use counts each branch initial reserve; compare distance as well as energy. Negative consumption means charging."
+  }
+}

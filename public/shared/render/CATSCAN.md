@@ -9,6 +9,7 @@ Share drawing resources and explicit scene presentation across workbench consume
 
 - Owns bounded attachment allocation, compatible reuse, and disposal.
 - Consumes library-owned renderer session lifecycle, capability checks, and stale-output rejection through generated compatibility entrypoints.
+- Owns bounded atmospheric sky drawing from explicit camera, sun direction and cloud cover; it does not infer weather.
 - Owns bounded immutable triangle meshes and material declarations consumed by renderer adapters.
 - Owns the data-point scene view, aspect-preserving projection, picking, and resize lifecycle.
 - Does not own provider selection, scene compilation, cameras, or proof settlement.
@@ -20,6 +21,7 @@ Share drawing resources and explicit scene presentation across workbench consume
 ## Contracts
 
 - Input: explicit device, size, formats, sample count, and usage under the [drawing contract](../../blank/pipeline/phase-07-render/CATSCAN.md).
+- Output: [atmospheric sky](atmospheric-sky.js), shared by World and Solar renderers.
 - Output: [render targets](render-targets.js).
 - Output: [renderer sessions](renderer-session.js) and [mesh library](mesh-library.js).
 - Output: [point scene view](point-scene-view.js), explicitly using Canvas 2D rather than claiming WebGPU execution.

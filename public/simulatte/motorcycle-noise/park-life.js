@@ -18,7 +18,7 @@
     function own(mesh){mesh.isPickable=false;meshes.push(mesh);return mesh;}
     function prototype(kind,mat){
       const key=kind+mat.name;if(templates.has(key))return templates.get(key);
-      const mesh=kind==='sphere'?B.MeshBuilder.CreateSphere(key,{diameter:1,segments:6},scene):kind==='cylinder'?B.MeshBuilder.CreateCylinder(key,{height:1,diameter:1,tessellation:8},scene):B.MeshBuilder.CreateBox(key,{size:1},scene);
+      const mesh=kind==='sphere'?B.MeshBuilder.CreateSphere(key,{diameter:1,segments:6},scene):kind==='capsule'?B.MeshBuilder.CreateCapsule(key,{height:1,radius:.5,tessellation:12},scene):kind==='cylinder'?B.MeshBuilder.CreateCylinder(key,{height:1,diameter:1,tessellation:8},scene):B.MeshBuilder.CreateBox(key,{size:1},scene);
       mesh.material=mat;mesh.isVisible=false;own(mesh);templates.set(key,mesh);return mesh;
     }
     function part(kind,mat,parent,position,scale){const mesh=own(prototype(kind,mat).createInstance('park-part'));mesh.parent=parent;mesh.position.set(...position);mesh.scaling.set(...scale);return mesh;}
@@ -84,8 +84,11 @@
     }
     for(let i=0;i<64&&routes.length;i++){
       const route=routes[i%routes.length],node=new B.TransformNode('illustrative-park-visitor-'+i,scene),shirt=clothes[i%clothes.length],legs=[];meshes.push(node);
-      part('cylinder',shirt,node,[0,1.05,0],[.4,.65,.3]);part('sphere',skin,node,[0,1.58,0],[.28,.32,.28]);
-      for(const side of [-1,1]){legs.push(part('cylinder',rubber,node,[side*.12,.4,0],[.12,.7,.13]));part('cylinder',shirt,node,[side*.26,1.01,.05],[.11,.58,.11]);}
+      const figurePart=(kind,options,position,mat)=>{
+        const mesh=part(kind,mat,node,position,[1,1,1]);
+        return mesh;
+      };
+      legs.push(...root.MotorcycleTrafficFigures.person(figurePart,{person:shirt,skin,rubber,trousers:rubber,hair:trunk}).limbs);
       const kind=i%8===0?'stroller':i%4===0?'dog':'walker';
       if(kind==='stroller'){
         part('box',rubber,node,[0,.55,.95],[.58,.1,.72]);part('sphere',shirt,node,[0,.9,1.05],[.65,.55,.7]);
@@ -106,7 +109,7 @@
         const a=actor.route.points[j-1],b=actor.route.points[j],fraction=(distance-actor.route.lengths[j-1])/Math.max(.001,actor.route.lengths[j]-actor.route.lengths[j-1]);
         actor.node.position=vector({x:a.x+(b.x-a.x)*fraction,y:a.y+(b.y-a.y)*fraction,z:.27});
         actor.node.rotation.y=Math.atan2(b.x-a.x,-(b.y-a.y))+(reverse?Math.PI:0);
-        actor.legs.forEach((leg,i)=>{leg.rotation.x=Math.sin(time*actor.speed*7+actor.index+i*Math.PI)*.35;});
+        root.MotorcycleTrafficFigures.walk(actor.legs,time*actor.speed+actor.offset,actor.speed);
       }
     }
     const observer=scene.onBeforeRenderObservable.add(draw);

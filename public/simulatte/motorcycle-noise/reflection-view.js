@@ -37,7 +37,7 @@
     engine.setHardwareScalingLevel(Math.max(1,(root.devicePixelRatio||1)/1.5));
     try {
     const scene=new B.Scene(engine);cleanup.push(()=>scene.dispose());scene.clearColor=new B.Color4(.055,.08,.075,1);
-    scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.00018;scene.fogColor=new B.Color3(.13,.19,.19);
+    scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.00018;scene.fogColor=new B.Color3(.61,.73,.80);
     const origin=initial.center,vector=p=>new B.Vector3(p.x-origin.x,p.z||0,-(p.y-origin.y));
     const parkRows=(map.parks||[]).filter(row=>/mccarren/i.test(row.label||''));
     const area=ring=>Math.abs(ring.reduce((sum,p,i)=>{const q=ring[(i+1)%ring.length];return sum+p.x*q.y-q.x*p.y;},0));
@@ -65,11 +65,13 @@
     let followed=null,followClose=false,openingPending=true;
     let cameraMode='map',current=initial,lastTime=0,lastDrawState=null,lastSource=null,selectedId=null,riderId=null,savedRadius=openingRadius;
     const receiverMarkers=new Map();
-    new B.HemisphericLight('sky',new B.Vector3(0,1,0),scene).intensity=.65;
+    const ambient=new B.HemisphericLight('sky',new B.Vector3(0,1,0),scene);ambient.intensity=.65;ambient.diffuse=new B.Color3(.72,.83,1);ambient.groundColor=new B.Color3(.24,.22,.19);
+    canvas.dataset.sky='modeled-atmosphere';
+    const atmosphere=root.SimulatteAtmosphericSky.createBabylon(B,scene,[.4,1,-.3],0);cleanup.push(()=>atmosphere.dispose());
     const sunlight=new B.DirectionalLight('sun',new B.Vector3(-.4,-1,.3),scene);sunlight.intensity=.85;sunlight.position=new B.Vector3(90,180,-60);
     const material=(name,color,alpha=1)=>{const m=new B.StandardMaterial(name,scene);m.diffuseColor=B.Color3.FromHexString(color);m.specularColor=new B.Color3(.08,.08,.08);m.alpha=alpha;return m;};
     const ground=B.MeshBuilder.CreateGround('water-ground',{width:9000,height:9000},scene);ground.position.y=-.2;ground.material=material('water','#233b43');ground.metadata={ground:true};
-    const city=root.MotorcycleBabylonCity.create(B,scene,{...map,tracks:trackData.tracks,trees:trackData.trees||[]},origin,sunlight);cleanup.push(()=>city.dispose());city.setSources(initial.sources);
+    const city=root.MotorcycleBabylonCity.create(B,scene,{...map,tracks:trackData.tracks,trees:trackData.trees||[]},origin,sunlight);cleanup.push(()=>city.dispose());city.setSources(initial.sources);canvas.dataset.trafficGeometry='articulated-figures-detailed-motorcycles';
     const panel=B.MeshBuilder.CreateBox('redirecting-surface',{size:1},scene);panel.material=material('surface','#75c4be',.8);
     const emitter=B.MeshBuilder.CreateBox('secondary-emitter',{width:.6,height:1,depth:.5},scene);emitter.material=material('emitter','#c5afe6');
     const soundView=root.MotorcycleSoundView.create(B,scene,origin,initial,onPick),heatMeshes=[];cleanup.push(()=>soundView.dispose());
@@ -273,7 +275,7 @@
       if(tracked){lastSource=M.position(tracked,t);onboardRig.position.copyFrom(vector({...lastSource,z:0}));onboardRig.rotation.set(0,lastSource.heading+Math.PI/2,-(lastSource.lean||0)*.3);}
       for(const marker of receiverMarkers.values()){const scale=Math.max(1,B.Vector3.Distance(scene.activeCamera.globalPosition,marker.position)*.012);marker.scaling.setAll(scale);marker.metadata.badge.scaling.setAll(Math.min(45,scale));}
       treatmentView.draw(root.MotorcycleTreatments.states(s,t),t,treatmentSelection);
-      soundView.draw(state);engine.beginFrame();try{scene.render();}finally{engine.endFrame();}
+      soundView.draw(state);engine.beginFrame();try{city.updateShadows();scene.render();}finally{engine.endFrame();}
     }
     function focusBase(name){
       camera.targetScreenOffset.set(0,0);

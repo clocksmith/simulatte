@@ -89,6 +89,7 @@
     pipelines,
     sampleCount,
     clearValue,
+    background,
     geometry,
   }) {
     if (!encoder?.beginRenderPass || !pipelines?.opaque || !pipelines?.overlay) {
@@ -110,6 +111,7 @@
         depthStoreOp: 'discard',
       },
     });
+    background?.(pass);
     pass.setBindGroup(0, bindGroup);
     drawRows(pass, pipelines.opaque, [geometry.static]);
     drawRows(pass, pipelines.overlay, [geometry.groundOverlay, geometry.pluginOverlay, geometry.shadow]);

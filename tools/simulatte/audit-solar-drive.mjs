@@ -30,7 +30,7 @@ const displayId = await new Promise((resolve, reject) => {
 const server = createStaticSiteServer({ publicRoot: path.join(ROOT, 'public') });
 await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
 const url = process.env.SIMULATTE_SOLAR_ORIGIN || `http://127.0.0.1:${server.address().port}/simulatte/solar-drive/`;
-const sourceFiles=['public/shared/core/simulation/solar-drive.js','public/shared/plugins/sun-walker/sun-exposure.js',
+const sourceFiles=['public/shared/render/atmospheric-sky.js','public/simulatte/motorcycle-noise/vendor/earcut.js','public/shared/core/simulation/solar-drive.js','public/shared/plugins/sun-walker/sun-exposure.js',
   'public/shared/contracts/world-spec.js','public/shared/contracts/world-spec-authorship.js','public/shared/design/control-components.js','public/shared/design/components.css',
   'public/simulatte/app/camera-fit.js','public/simulatte/platform/runtime/simulation-clock.js',
   'public/data/solar-drive/union-square-route-v1.json','public/data/solar-drive/published-ride-reference-v1.json',
@@ -77,16 +77,17 @@ async function capture(name, width, height) {
     const image = new Image(); image.src = 'data:image/png;base64,${result.data}'; await image.decode();
     context.drawImage(image, bounds.left, bounds.top + 100, bounds.width, Math.max(1, bounds.height - 160), 0, 0, 96, 64);
     const bytes = context.getImageData(0, 0, 96, 64).data;
-    let opaque = 0, dark = 0, bright = 0;
+    let opaque = 0, dark = 0, bright = 0, sum = 0, squares = 0; const colors = new Set();
     for (let i = 0; i < bytes.length; i += 4) {
       if (bytes[i + 3] > 250) opaque++;
       const light = (bytes[i] + bytes[i + 1] + bytes[i + 2]) / 3;
+      sum += light; squares += light * light; colors.add((bytes[i] >> 4) * 256 + (bytes[i + 1] >> 4) * 16 + (bytes[i + 2] >> 4));
       if (bytes[i + 3] > 250 && light < 150) dark++;
       if (bytes[i + 3] > 250 && light > 190) bright++;
     }
-    return { visible: true, opaqueFraction: opaque / 6144, darkFraction: dark / 6144, brightFraction: bright / 6144 };
+    return { visible: true, opaqueFraction: opaque / 6144, darkFraction: dark / 6144, brightFraction: bright / 6144, luminanceStd: Math.sqrt(Math.max(0,squares / 6144 - (sum / 6144) ** 2)), colorBins: colors.size };
   })()`);
-  check(!pixels.visible || pixels.opaqueFraction > 0.98 && pixels.darkFraction > 0.015 && pixels.brightFraction > 0.1,
+  check(!pixels.visible || pixels.opaqueFraction > 0.98 && pixels.darkFraction > 0.015 && pixels.luminanceStd > 12 && pixels.colorBins > 25,
     `${name}: canvas pixel evidence failed: ${JSON.stringify(pixels)}`);
   const state = await evaluate('SimulatteSolarDrive.getReceipt()');
   receipt.captures.push({ name, path: path.relative(ROOT, file), sha256: sha(bytes), viewport: { width, height }, pixels, run: state });

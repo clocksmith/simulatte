@@ -1,0 +1,1656 @@
+{
+  "source": {
+    "head": "44e8e27ba36880b816627ab98433a794eb26ba24",
+    "capturedAt": "2026-10-12T00:47:12.645Z",
+    "modifiedSources": {
+      "public/data/generated-artifact-inventory.json": {
+        "sha256": "f2a66a37344f0645872aaa4b92bdd53fa10b73ef893e8932e78badfb5776e320",
+        "modifiedAt": "2026-10-12T00:32:51.016Z"
+      },
+      "public/shared/render/CATSCAN.md": {
+        "sha256": "79216ff44daa6a378ac34a7a43cececbbc501e4b2d736e9e69283b5bc17d588f",
+        "modifiedAt": "2026-10-12T00:26:26.841Z"
+      },
+      "public/shared/render/atmospheric-sky.js": {
+        "sha256": "c6e567ce071ec8d4189d4635820099f81553d870cd931921ecaef3c74ea7d712",
+        "modifiedAt": "2026-10-12T00:28:49.510Z"
+      },
+      "public/simulatte/app/webgpu-geometry.js": {
+        "sha256": "1609914ed68be839d8d383b50488861b85136b7511b597acbcb8774cc4419b90",
+        "modifiedAt": "2026-10-12T00:42:14.106Z"
+      },
+      "public/simulatte/app/webgpu-pass.js": {
+        "sha256": "8ca96a71fe539ae3807416c88ae08704716dad1897190ea3a143ac413fa204bc",
+        "modifiedAt": "2026-10-12T00:26:26.841Z"
+      },
+      "public/simulatte/app/webgpu-renderer.js": {
+        "sha256": "024e53ed7548a1dea99507a27a61e381b6fdd479609956cdb89467f55775a2d4",
+        "modifiedAt": "2026-10-12T00:42:14.106Z"
+      },
+      "public/simulatte/app/webgpu-sun-shadow.js": {
+        "sha256": "486df09301c461606d9bee7d08627363457abd0c377b9b21b520e52b7c6f4b13",
+        "modifiedAt": "2026-10-12T00:26:26.843Z"
+      },
+      "public/simulatte/app/world-runtime-script-manifest.js": {
+        "sha256": "152f84af77f961d3a809509e45d147064e1aacc7cdd465ab814d789f1ff0f3e3",
+        "modifiedAt": "2026-10-12T00:26:26.841Z"
+      },
+      "public/simulatte/motorcycle-noise/CATSCAN.md": {
+        "sha256": "c187a3250496eae7bcf5a39dc06266ab81dae60caac804de50a06f7e185f97c9",
+        "modifiedAt": "2026-10-12T00:46:05.453Z"
+      },
+      "public/simulatte/motorcycle-noise/babylon-actors.js": {
+        "sha256": "0d1ff43a461bbafd44247c271a8737599bd226f89be1e42fe593ccbf4eb9416b",
+        "modifiedAt": "2026-10-12T00:28:27.718Z"
+      },
+      "public/simulatte/motorcycle-noise/babylon-city.js": {
+        "sha256": "2ffd4057199fd35956c4fe41c8b1658d8330643d0e8457867f945b77d7b4ab15",
+        "modifiedAt": "2026-10-12T00:47:12.390Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "d65f59874431c1c21ba7f2f43b3bd8d9b734a030712396ecc54a9a99a8194ed9",
+        "modifiedAt": "2026-10-12T00:28:27.725Z"
+      },
+      "public/simulatte/motorcycle-noise/park-life.js": {
+        "sha256": "6489bbb60829cffe8821334cafe7fd3869e999fba693aadf6f2f42343f650719",
+        "modifiedAt": "2026-10-12T00:37:26.612Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-view.js": {
+        "sha256": "cc22d9e03b83cbcc8b2c4dc85e4b62836915b0cab8cd2a7455b0841c71652e5c",
+        "modifiedAt": "2026-10-12T00:43:21.244Z"
+      },
+      "public/simulatte/solar-drive/geometry.js": {
+        "sha256": "fc5a370b8c3b883cf898f45f664a9bc93e16be201c714b6c2e5e14cf8178656a",
+        "modifiedAt": "2026-10-12T00:27:33.206Z"
+      },
+      "public/simulatte/solar-drive/index.html": {
+        "sha256": "ce5a1b9949f45d2ec36a918ddf08729f170cc2c5ff8f45ecfb8406065986eaea",
+        "modifiedAt": "2026-10-12T00:27:33.206Z"
+      },
+      "public/simulatte/solar-drive/renderer.js": {
+        "sha256": "5cbfa9461b3e537c15a87c9c6909576ef27611cb71dc048115a6f3246494ea67",
+        "modifiedAt": "2026-10-12T00:26:26.848Z"
+      },
+      "public/simulatte/solar-drive/route-scene.js": {
+        "sha256": "2ea272f6ceaa85682f8f2d41aded62f2a3aab9ed3e35e5d232e6ecc6e4185cb8",
+        "modifiedAt": "2026-10-12T00:30:56.083Z"
+      },
+      "public/simulatte/solar-drive/shaders.js": {
+        "sha256": "c86923468860b22d2de607650c7d7f91c377e205b62bed245b9f802cf6a98cd1",
+        "modifiedAt": "2026-10-12T00:32:50.815Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Headed Chrome using explicit software WebGPU; desktop and touch-emulated mobile. No measured weather, hardware performance, or physical-device claim.",
+  "cases": [
+    {
+      "route": "motorcycle",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "geometry": {
+        "id": "motorcycle-1",
+        "parts": 62,
+        "vertices": 13799,
+        "sky": true
+      },
+      "runtime": {
+        "state": "paused",
+        "generation": 1,
+        "recoveries": 0,
+        "paused": true,
+        "failures": [],
+        "observation": {
+          "frameCount": 3,
+          "frameCpuMs": [
+            796.7000007629395,
+            326.8999996185303,
+            701.1999998092651
+          ],
+          "scope": "Main-thread frame call; excludes GPU completion and worker measurement latency"
+        },
+        "time": 12.916620000000002,
+        "scenarioSeed": 731,
+        "backend": "WebGPU",
+        "backendFailures": []
+      },
+      "diagnostics": [
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063968.859,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063969.287,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063969.619,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063969.923,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063970.191,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063970.371,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063970.57,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "layout": {
+        "overflow": false,
+        "canvas": [
+          {
+            "width": 1440,
+            "height": 1000
+          },
+          {
+            "width": 240,
+            "height": 48
+          },
+          {
+            "width": 640,
+            "height": 240
+          }
+        ]
+      },
+      "capture": "/home/clocksmith/deco/simulatte/artifacts/outdoor-graphics/motorcycle-1440.png",
+      "pixels": {
+        "std": 61.02861333026204,
+        "colors": 156
+      }
+    },
+    {
+      "route": "sunwalker",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "lighting": {
+        "azimuth": 140.719011,
+        "elevation": 67.1563,
+        "shadow": "depth-map",
+        "casters": 1090404
+      },
+      "diagnostics": [
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063968.859,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063969.287,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063969.619,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063969.923,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063970.191,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063970.371,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:47:43]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766063970.57,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:43779/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "layout": {
+        "overflow": false,
+        "canvas": [
+          {
+            "width": 1375,
+            "height": 588
+          },
+          {
+            "width": 1375,
+            "height": 588
+          },
+          {
+            "width": 800,
+            "height": 500
+          }
+        ]
+      },
+      "capture": "/home/clocksmith/deco/simulatte/artifacts/outdoor-graphics/sunwalker-1440.png",
+      "pixels": {
+        "std": 58.466671119732524,
+        "colors": 89
+      }
+    },
+    {
+      "route": "motorcycle",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "geometry": {
+        "id": "motorcycle-1",
+        "parts": 62,
+        "vertices": 13799,
+        "sky": true
+      },
+      "runtime": {
+        "state": "paused",
+        "generation": 1,
+        "recoveries": 0,
+        "paused": true,
+        "failures": [],
+        "observation": {
+          "frameCount": 3,
+          "frameCpuMs": [
+            607.3000001907349,
+            235.69999980926514,
+            287.8999996185303
+          ],
+          "scope": "Main-thread frame call; excludes GPU completion and worker measurement latency"
+        },
+        "time": 12.716606000000004,
+        "scenarioSeed": 731,
+        "backend": "WebGPU",
+        "backendFailures": []
+      },
+      "diagnostics": [
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165011.077,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165011.422,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165011.66,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165011.875,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165012.138,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165012.322,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165012.522,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "layout": {
+        "overflow": false,
+        "canvas": [
+          {
+            "width": 390,
+            "height": 844
+          },
+          {
+            "width": 240,
+            "height": 48
+          },
+          {
+            "width": 640,
+            "height": 240
+          }
+        ]
+      },
+      "capture": "/home/clocksmith/deco/simulatte/artifacts/outdoor-graphics/motorcycle-390.png",
+      "pixels": {
+        "std": 67.16711640999605,
+        "colors": 195
+      }
+    },
+    {
+      "route": "sunwalker",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "lighting": {
+        "azimuth": 140.719011,
+        "elevation": 67.1563,
+        "shadow": "depth-map",
+        "casters": 1090404
+      },
+      "diagnostics": [
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165011.077,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165011.422,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165011.66,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165011.875,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165012.138,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165012.322,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "Runtime.consoleAPICalled",
+          "params": {
+            "type": "warning",
+            "args": [
+              {
+                "type": "string",
+                "value": "BJS - [20:49:25]: Setting receiveShadows on an instanced mesh has no effect"
+              }
+            ],
+            "executionContextId": 2,
+            "timestamp": 1791766165012.522,
+            "stackTrace": {
+              "callFrames": [
+                {
+                  "functionName": "_LogEnabled",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 103040
+                },
+                {
+                  "functionName": "set receiveShadows",
+                  "scriptId": "14",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/vendor/babylon.js?v=surfaces-v27",
+                  "lineNumber": 0,
+                  "columnNumber": 967165
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "22",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/babylon-city.js?v=surfaces-v27",
+                  "lineNumber": 93,
+                  "columnNumber": 58
+                },
+                {
+                  "functionName": "create",
+                  "scriptId": "28",
+                  "url": "http://127.0.0.1:33461/simulatte/motorcycle-noise/reflection-view.js?v=surfaces-v27",
+                  "lineNumber": 73,
+                  "columnNumber": 42
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "layout": {
+        "overflow": false,
+        "canvas": [
+          {
+            "width": 364,
+            "height": 432
+          },
+          {
+            "width": 364,
+            "height": 432
+          },
+          {
+            "width": 800,
+            "height": 500
+          }
+        ]
+      },
+      "capture": "/home/clocksmith/deco/simulatte/artifacts/outdoor-graphics/sunwalker-390.png",
+      "pixels": {
+        "std": 81.02705525371717,
+        "colors": 84
+      }
+    }
+  ],
+  "sourceAfter": {
+    "head": "44e8e27ba36880b816627ab98433a794eb26ba24",
+    "capturedAt": "2026-10-12T00:50:14.237Z",
+    "modifiedSources": {
+      "public/data/generated-artifact-inventory.json": {
+        "sha256": "57c8b49237e68e5459b3b8534011a99f687fe84cab1571f022ff35350e3a1a65",
+        "modifiedAt": "2026-10-12T00:47:35.775Z"
+      },
+      "public/shared/render/CATSCAN.md": {
+        "sha256": "79216ff44daa6a378ac34a7a43cececbbc501e4b2d736e9e69283b5bc17d588f",
+        "modifiedAt": "2026-10-12T00:26:26.841Z"
+      },
+      "public/shared/render/atmospheric-sky.js": {
+        "sha256": "c6e567ce071ec8d4189d4635820099f81553d870cd931921ecaef3c74ea7d712",
+        "modifiedAt": "2026-10-12T00:28:49.510Z"
+      },
+      "public/simulatte/app/webgpu-geometry.js": {
+        "sha256": "1609914ed68be839d8d383b50488861b85136b7511b597acbcb8774cc4419b90",
+        "modifiedAt": "2026-10-12T00:42:14.106Z"
+      },
+      "public/simulatte/app/webgpu-pass.js": {
+        "sha256": "8ca96a71fe539ae3807416c88ae08704716dad1897190ea3a143ac413fa204bc",
+        "modifiedAt": "2026-10-12T00:26:26.841Z"
+      },
+      "public/simulatte/app/webgpu-renderer.js": {
+        "sha256": "0236154e6ce1d66df7159bd986ec0147e2ad23e4b3ead7a8115943edd27ef528",
+        "modifiedAt": "2026-10-12T00:49:50.309Z"
+      },
+      "public/simulatte/app/webgpu-sun-shadow.js": {
+        "sha256": "486df09301c461606d9bee7d08627363457abd0c377b9b21b520e52b7c6f4b13",
+        "modifiedAt": "2026-10-12T00:26:26.843Z"
+      },
+      "public/simulatte/app/webgpu-surface-shader.js": {
+        "sha256": "a639dbcf388f8740fa21fa6847d1b5276d856155551098c70378caa83047b5dc",
+        "modifiedAt": "2026-10-12T00:49:50.309Z"
+      },
+      "public/simulatte/app/world-runtime-script-manifest.js": {
+        "sha256": "144cac53b5be82215ed9584e2a1abd2c39257c1f5e3261147b468392e4076dfc",
+        "modifiedAt": "2026-10-12T00:49:50.309Z"
+      },
+      "public/simulatte/motorcycle-noise/CATSCAN.md": {
+        "sha256": "c187a3250496eae7bcf5a39dc06266ab81dae60caac804de50a06f7e185f97c9",
+        "modifiedAt": "2026-10-12T00:46:05.453Z"
+      },
+      "public/simulatte/motorcycle-noise/babylon-actors.js": {
+        "sha256": "0d1ff43a461bbafd44247c271a8737599bd226f89be1e42fe593ccbf4eb9416b",
+        "modifiedAt": "2026-10-12T00:28:27.718Z"
+      },
+      "public/simulatte/motorcycle-noise/babylon-city.js": {
+        "sha256": "2ffd4057199fd35956c4fe41c8b1658d8330643d0e8457867f945b77d7b4ab15",
+        "modifiedAt": "2026-10-12T00:47:12.390Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "d65f59874431c1c21ba7f2f43b3bd8d9b734a030712396ecc54a9a99a8194ed9",
+        "modifiedAt": "2026-10-12T00:28:27.725Z"
+      },
+      "public/simulatte/motorcycle-noise/park-life.js": {
+        "sha256": "6489bbb60829cffe8821334cafe7fd3869e999fba693aadf6f2f42343f650719",
+        "modifiedAt": "2026-10-12T00:37:26.612Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-view.js": {
+        "sha256": "cc22d9e03b83cbcc8b2c4dc85e4b62836915b0cab8cd2a7455b0841c71652e5c",
+        "modifiedAt": "2026-10-12T00:43:21.244Z"
+      },
+      "public/simulatte/solar-drive/geometry.js": {
+        "sha256": "fc5a370b8c3b883cf898f45f664a9bc93e16be201c714b6c2e5e14cf8178656a",
+        "modifiedAt": "2026-10-12T00:27:33.206Z"
+      },
+      "public/simulatte/solar-drive/index.html": {
+        "sha256": "ce5a1b9949f45d2ec36a918ddf08729f170cc2c5ff8f45ecfb8406065986eaea",
+        "modifiedAt": "2026-10-12T00:27:33.206Z"
+      },
+      "public/simulatte/solar-drive/renderer.js": {
+        "sha256": "5cbfa9461b3e537c15a87c9c6909576ef27611cb71dc048115a6f3246494ea67",
+        "modifiedAt": "2026-10-12T00:26:26.848Z"
+      },
+      "public/simulatte/solar-drive/route-scene.js": {
+        "sha256": "2ea272f6ceaa85682f8f2d41aded62f2a3aab9ed3e35e5d232e6ecc6e4185cb8",
+        "modifiedAt": "2026-10-12T00:30:56.083Z"
+      },
+      "public/simulatte/solar-drive/shaders.js": {
+        "sha256": "c86923468860b22d2de607650c7d7f91c377e205b62bed245b9f802cf6a98cd1",
+        "modifiedAt": "2026-10-12T00:32:50.815Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "status": "pass"
+}

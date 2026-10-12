@@ -11,6 +11,7 @@
     'shared/design/simulation-session-status.js',
     'shared/design/product-navigation.js',
     'shared/render/render-targets.js',
+    'shared/render/atmospheric-sky.js',
     'shared/render/renderer-session.js',
     'shared/render/mesh-library.js',
     'model-selection.js',
@@ -219,6 +220,7 @@
     'simulatte/app/world-render-scene.js',
     'simulatte/app/camera-fit.js',
     'simulatte/app/plugin-actor-motion.js',
+    'simulatte/app/webgpu-surface-shader.js',
     'simulatte/app/webgpu-renderer.js',
     'simulatte/app/trace-view.js',
     'simulatte/app/application-profile-select.js',
@@ -329,6 +331,7 @@
 
   const sharedRuntime = Object.freeze([
     'shared/render/render-targets.js',
+    'shared/render/atmospheric-sky.js',
     'shared/render/renderer-session.js',
     'shared/deterministic-values.js',
     'shared/contracts/world-spec-authorship.js',
@@ -439,6 +442,7 @@
     'simulatte/app/webgpu-sun-shadow.js',
     'simulatte/app/world-render-scene.js',
     'simulatte/app/plugin-actor-motion.js',
+    'simulatte/app/webgpu-surface-shader.js',
     'simulatte/app/webgpu-renderer.js',
     'simulatte/app/trace-view.js',
     'simulatte/app/experience-camera.js',

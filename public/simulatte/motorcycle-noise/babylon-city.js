@@ -1,4 +1,5 @@
 (function(root){
+  const ACTOR_SHADOW_RADIUS_M=120, ACTOR_SHADOW_LIMIT=64;
   function create(B,scene,map,origin,sunlight){
     const vector=p=>new B.Vector3(p.x-origin.x,p.z||0,-(p.y-origin.y));
     const material=(name,color)=>{const m=new B.StandardMaterial(name,scene);m.diffuseColor=B.Color3.FromHexString(color);m.specularColor=new B.Color3(.07,.07,.07);return m;};
@@ -8,9 +9,9 @@
     paint.fillStyle='#b7b8a6';paint.fillRect(0,0,64,128);paint.fillStyle='#5e706d';
     for(let y=12;y<128;y+=32)for(let x=10;x<64;x+=27){paint.fillRect(x,y,16,20);paint.fillStyle='#899c93';paint.fillRect(x+2,y+2,11,2);paint.fillStyle='#5e706d';}
     paint.fillStyle='#9c9e90';for(let y=0;y<128;y+=32)paint.fillRect(0,y,64,2);facadeTexture.update(false);wallMaterial.diffuseTexture=facadeTexture;
-    let shadow;try{shadow=new B.CascadedShadowGenerator(1024,sunlight);shadow.numCascades=3;shadow.shadowMaxZ=650;shadow.lambda=.65;shadow.usePercentageCloserFiltering=true;}
-    catch(error){shadow=new B.ShadowGenerator(1024,sunlight);shadow.useBlurExponentialShadowMap=true;shadow.blurKernel=16;}
-    shadow.bias=.001;shadow.normalBias=.03;shadow.setDarkness(.35);
+    let shadow;try{shadow=new B.CascadedShadowGenerator(2048,sunlight);shadow.numCascades=3;shadow.shadowMaxZ=650;shadow.lambda=.65;shadow.usePercentageCloserFiltering=true;}
+    catch(error){shadow=new B.ShadowGenerator(2048,sunlight);shadow.useBlurExponentialShadowMap=true;shadow.blurKernel=16;}
+    shadow.bias=.001;shadow.normalBias=.03;shadow.setDarkness(.22);
     function mesh(name,positions,indices,uvs,mat,colors=null){
       const out=new B.Mesh(name,scene),data=new B.VertexData(),normals=[];B.VertexData.ComputeNormals(positions,indices,normals);
       data.positions=positions;data.indices=indices;data.normals=normals;if(uvs)data.uvs=uvs;if(colors)data.colors=colors;data.applyToMesh(out);out.material=mat;out.receiveShadows=true;return out;
@@ -135,37 +136,66 @@
     for(const list of [asphalt,walkways])if(list.length){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);if(merged){merged.receiveShadows=true;merged.metadata={ground:true};}}
     if(laneLines.length){const lines=B.MeshBuilder.CreateLineSystem('lane-markings',{lines:laneLines},scene);lines.color=B.Color3.FromHexString('#c4c4a8');lines.alpha=.5;lines.isPickable=false;}
     if(curbLines.length){const curbs=B.MeshBuilder.CreateLineSystem('curb-edges',{lines:curbLines},scene);curbs.color=B.Color3.FromHexString('#c1c6b8');curbs.alpha=.7;curbs.isPickable=false;}
-    const mats={motorcycle:material('bike-enamel','#de8f58'),car:material('car-enamel','#b7c9c7'),person:material('jackets','#c6b486'),rubber:material('rubber','#202726'),metal:material('metal','#7e9799'),glass:material('glass','#334e59'),skin:material('skin','#b8997d'),lamp:material('lamps','#e4efcb')};
+    const mats={motorcycle:material('bike-enamel','#de8f58'),car:material('car-enamel','#b7c9c7'),person:material('jackets','#c6b486'),rubber:material('rubber','#202726'),metal:material('metal','#7e9799'),glass:material('glass','#334e59'),trousers:material('denim','#344655'),hair:material('hair','#302823'),helmet:material('helmet','#ece6da'),skin:material('skin','#b8997d'),lamp:material('lamps','#e4efcb')};
     mats.metal.specularColor=new B.Color3(.4,.4,.4);mats.lamp.emissiveColor=new B.Color3(.3,.35,.25);
+    const jackets=['#486e82','#8b5144','#526850','#b49057','#665d80'].map((color,i)=>material('jacket-'+i,color));
+    const skins=['#c69e7e','#986c50','#674934','#d6b79c'].map((color,i)=>material('skin-'+i,color));
     const bikePaints=new Map();
     function bikePaint(id){const color=root.MotorcycleSoundView.colorFor(id);if(!bikePaints.has(color))bikePaints.set(color,material(`paint-${color}`,color));return bikePaints.get(color);}
     const vehicles=new Map(),templates=new Map();
     function setSources(sources){
+      activeCasters.clear();
       for(const node of vehicles.values()){for(const child of node.getChildMeshes())shadow.removeShadowCaster(child);node.dispose();}vehicles.clear();
       for(const source of sources){
         const node=new B.TransformNode(source.id,scene),wheels=[],legs=[];
+        const seed=Array.from(source.id).reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,17);
+        const figureMats={...mats,person:jackets[seed%jackets.length],skin:skins[(seed>>>3)%skins.length]};
         const part=(kind,options,pos,mat)=>{
           const key=kind+JSON.stringify(options)+mat.name;
           if(!templates.has(key)){
-            const template=kind==='box'?B.MeshBuilder.CreateBox('prototype',options,scene):kind==='sphere'?B.MeshBuilder.CreateSphere('prototype',options,scene):kind==='capsule'?B.MeshBuilder.CreateCapsule('prototype',options,scene):B.MeshBuilder.CreateCylinder('prototype',options,scene);
+            const template=kind==='box'?B.MeshBuilder.CreateBox('prototype',options,scene):kind==='sphere'?B.MeshBuilder.CreateSphere('prototype',options,scene):kind==='capsule'?B.MeshBuilder.CreateCapsule('prototype',options,scene):kind==='torus'?B.MeshBuilder.CreateTorus('prototype',options,scene):B.MeshBuilder.CreateCylinder('prototype',options,scene);
             template.material=mat;template.isVisible=false;template.isPickable=false;templates.set(key,template);
           }
-          const obj=templates.get(key).createInstance(source.id+'-part');obj.isVisible=true;obj.isPickable=true;obj.parent=node;obj.position.set(...pos);obj.metadata={sourceId:source.id};shadow.addShadowCaster(obj);return obj;
+          const obj=templates.get(key).createInstance(source.id+'-part');obj.isVisible=true;obj.isPickable=true;obj.parent=node;obj.position.set(...pos);obj.metadata={sourceId:source.id};return obj;
         };
-        const wheel=(x,z,radius)=>{const tire=part('cylinder',{diameter:radius*2,height:.17,tessellation:12},[x,radius,z],mats.rubber);tire.rotation.z=Math.PI/2;wheels.push(tire);const hub=part('cylinder',{diameter:radius*1.12,height:.18,tessellation:8},[x,radius,z],mats.metal);hub.rotation.z=Math.PI/2;wheels.push(hub);};
+        const wheel=(x,z,radius)=>{
+          const group=new B.TransformNode(source.id+'-wheel',scene);group.parent=node;group.position.set(x,radius,z);
+          const local=(kind,options,pos,mat)=>{const m=part(kind,options,pos,mat);m.parent=group;return m;};
+          const tire=local('torus',{diameter:radius*2-.10,thickness:.11,tessellation:24},[0,0,0],mats.rubber);tire.rotation.z=Math.PI/2;
+          const rim=local('torus',{diameter:radius*1.35,thickness:.035,tessellation:20},[0,0,0],mats.metal);rim.rotation.z=Math.PI/2;
+          const hub=local('cylinder',{diameter:.09,height:.20,tessellation:12},[0,0,0],mats.metal);hub.rotation.z=Math.PI/2;
+          for(let i=0;i<6;i++){const angle=i*Math.PI/3,spoke=local('box',{width:.035,height:.025,depth:radius*.6},[0,Math.sin(angle)*radius*.3,Math.cos(angle)*radius*.3],mats.metal);spoke.rotation.x=-angle;}
+          wheels.push(group);
+        };
+        const tube=(a,b,radius,mat)=>{const direction=new B.Vector3(b[0]-a[0],b[1]-a[1],b[2]-a[2]),length=direction.length();
+          const m=part('cylinder',{diameter:radius*2,height:length,tessellation:12},a.map((v,i)=>(v+b[i])/2),mat);
+          m.rotationQuaternion=B.Quaternion.FromUnitVectorsToRef(new B.Vector3(0,1,0),direction.scale(1/length),new B.Quaternion());return m;};
         if(source.kind==='car'){
           part('box',{width:1.75,height:.65,depth:4.25},[0,.67,0],mats.car);part('box',{width:1.5,height:.62,depth:2.25},[0,1.2,-.25],mats.glass);
           part('box',{width:1.48,height:.1,depth:2.1},[0,1.55,-.25],mats.car);for(const x of [-.9,.9])for(const z of [-1.32,1.32])wheel(x,z,.33);
           for(const x of [-.55,.55])part('box',{width:.38,height:.12,depth:.05},[x,.82,2.14],mats.lamp);
         }else if(source.kind==='motorcycle'){
-          wheel(0,-.72,.31);wheel(0,.72,.31);part('box',{width:.23,height:.2,depth:1.2},[0,.57,0],mats.metal);
-          const tank=part('sphere',{diameter:.7,segments:12},[0,.85,.1],bikePaint(source.id));tank.scaling.set(.65,.7,1);
-          part('box',{width:.32,height:.12,depth:.55},[0,.89,-.37],mats.rubber);part('box',{width:.66,height:.06,depth:.08},[0,1.04,.61],mats.metal);
-          part('box',{width:.28,height:.18,depth:.3},[0,1.04,-.12],mats.metal);
-          part('sphere',{diameter:.12,segments:8},[0,1.19,.04],mats.lamp);
+          wheel(0,-.74,.32);wheel(0,.77,.32);
+          const paint=bikePaint(source.id);
+          for(const side of [-1,1]){
+            tube([side*.10,.34,-.74],[side*.10,.81,-.20],.027,mats.metal);
+            tube([side*.10,.81,-.20],[side*.10,.42,.17],.027,mats.metal);
+            tube([side*.10,.42,.17],[side*.10,1.05,.50],.027,mats.metal);
+            tube([side*.10,.32,.77],[side*.10,1.10,.51],.037,mats.metal);
+            tube([side*.17,.44,-.10],[side*.19,.40,-.73],.075,mats.metal);
+            part('box',{width:.17,height:.065,depth:.16},[side*.24,.34,-.18],mats.metal);
+          }
+          const engine=part('sphere',{diameter:1,segments:16},[0,.53,.02],mats.metal);engine.scaling.set(.37,.33,.36);
+          for(let j=0;j<5;j++)part('box',{width:.37,height:.018,depth:.30},[0,.45+j*.045,.05],mats.metal);
+          const tank=part('sphere',{diameter:1,segments:20},[0,.91,.22],paint);tank.scaling.set(.36,.28,.61);
+          const seat=part('capsule',{height:.55,radius:.17,tessellation:12},[0,.94,-.31],mats.rubber);seat.rotation.x=Math.PI/2;seat.scaling.y=1.2;
+          tube([-.33,1.18,.53],[.33,1.18,.53],.025,mats.metal);
+          for(const side of [-1,1]){tube([side*.28,1.18,.53],[side*.33,1.40,.58],.012,mats.metal);const mirror=part('sphere',{diameter:1,segments:12},[side*.33,1.41,.58],mats.glass);mirror.scaling.set(.14,.085,.04);}
+          const headlight=part('sphere',{diameter:1,segments:16},[0,1.06,.66],mats.lamp);headlight.scaling.set(.19,.19,.08);
+          part('box',{width:.15,height:.075,depth:.05},[0,.98,-.68],mats.lamp);
+          root.MotorcycleTrafficFigures.person(part,{...figureMats,helmet:paint},true);
         }else{
-          part('capsule',{height:.72,radius:.19,tessellation:8},[0,1.03,0],mats.person);part('sphere',{diameter:.29,segments:10},[0,1.58,0],mats.skin);
-          for(const x of [-.12,.12])legs.push(part('capsule',{height:.7,radius:.075,tessellation:6},[x,.38,0],mats.rubber));
+          const figure=root.MotorcycleTrafficFigures.person(part,figureMats);legs.push(...figure.limbs);
         }
         node.metadata={wheels,legs};vehicles.set(source.id,node);
       }
@@ -173,9 +203,18 @@
     function animate(node,state,kind){
       node.rotation.z=state.lean||0;
       for(const wheel of node.metadata.wheels)wheel.rotation.x=-(state.distance||0)/.32;
-      node.metadata.legs.forEach((leg,i)=>leg.rotation.x=Math.sin((state.distance||0)*5+i*Math.PI)*.45*Math.min(1,state.speed||0));
+      root.MotorcycleTrafficFigures.walk(node.metadata.legs,state.distance||0,state.speed||0);
     }
-    return {vehicles,setSources,animate,dispose(){shadow.dispose();}};
+    const activeCasters=new Set();
+    function updateShadows(){
+      const eye=scene.activeCamera.globalPosition||scene.activeCamera.position;
+      const candidates=[...vehicles.values()].map(node=>({node,distance:B.Vector3.DistanceSquared(node.position,eye)}))
+        .filter(row=>row.distance<ACTOR_SHADOW_RADIUS_M**2).sort((a,b)=>a.distance-b.distance||a.node.name.localeCompare(b.node.name)).slice(0,ACTOR_SHADOW_LIMIT);
+      const next=new Set(candidates.map(row=>row.node));
+      for(const node of activeCasters)if(!next.has(node)){for(const mesh of node.getChildMeshes())shadow.removeShadowCaster(mesh);activeCasters.delete(node);}
+      for(const node of next)if(!activeCasters.has(node)){for(const mesh of node.getChildMeshes())shadow.addShadowCaster(mesh);activeCasters.add(node);}
+    }
+    return {vehicles,setSources,animate,updateShadows,dispose(){shadow.dispose();}};
   }
   root.MotorcycleBabylonCity={create};
 })(globalThis);

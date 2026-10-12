@@ -65,6 +65,7 @@
       [[0, 0, 1], [1, 0, 0], [0, 1, 0]], [[0, 0, -1], [0, 1, 0], [1, 0, 0]],
     ]) quad([[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => n.map((x, i) => (x + a * u[i] + b * v[i]) / 2)), [n]);
     output.box = new Float32Array(data);
+    output.triangle = new Float32Array([0,0,0,0,1,0, 1,0,0,0,1,0, 0,0,1,0,1,0]);
     for (const shape of ['cylinder', 'ring']) {
       data = [];
       const inner = shape === 'ring' ? 0.74 : 0;

@@ -21,6 +21,7 @@
     context.configure({ device, format, alphaMode: 'opaque' });
     const uniform = device.createBuffer({ size: 176, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     const instances = device.createBuffer({ size: CAPACITY * INSTANCE_BYTES, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    const sky = root.SimulatteAtmosphericSky.create(device, format, SAMPLE_COUNT, 'depth24plus');
     const shadowTexture = device.createTexture({ size: [2048, 2048], format: 'depth32float', usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING });
     const sampler = device.createSampler({ compare: 'less-equal', magFilter: 'linear', minFilter: 'linear' });
     const bindLayout = device.createBindGroupLayout({ entries: [
@@ -119,7 +120,7 @@
       const sun = math.norm(scene.sunDirection||[-0.6, 1.2, 0.8]);
       const lightProjection = math.multiply(math.orthographic(scene.route?24:5.8,0.1,400), math.lookAt(sun.map((x) => x * 120), [0, 0.8, 0]));
       frame.set(viewProjection); frame.set(lightProjection, 16); frame.set([...eye, scene.timeS], 32);
-      frame.set([...sun, 1], 36); frame.set([selected, 0, 0, 0], 40);
+      frame.set([...sun, scene.cloudCover || 0], 36); frame.set([selected, scene.route ? 1 : 0, 0, 0], 40);
       device.queue.writeBuffer(uniform, 0, frame);
       device.queue.writeBuffer(instances, 0, packed.subarray(0, index * shaders.instanceFloats));
       const encoder = device.createCommandEncoder();
@@ -136,6 +137,7 @@
         view: color.createView(), resolveTarget: context.getCurrentTexture().createView(),
         clearValue: { r: 0.94, g: 0.935, b: 0.92, a: 1 }, loadOp: 'clear', storeOp: 'discard',
       }], depthStencilAttachment: { view: depth.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' } });
+      sky.draw(pass, {viewProjection,eye,sun,cover:scene.cloudCover || 0});
       pass.setPipeline(pipeline); pass.setBindGroup(0, bindings);
       for (const draw of draws) {
         pass.setVertexBuffer(0, draw.buffer); pass.draw(draw.count, draw.instances, 0, draw.start);
@@ -148,7 +150,7 @@
         device.queue.onSubmittedWorkDone().then(() => { completedFrames = submitted; pending = false; }, onFailure);
       }
       lastViewProjection = viewProjection;
-      canvas.dataset.backend = 'webgpu'; canvas.dataset.instanceCount = String(index);
+      canvas.dataset.sky = 'modeled-atmosphere'; canvas.dataset.backend = 'webgpu'; canvas.dataset.instanceCount = String(index);
       canvas.dataset.submittedFrames = String(frameCount); canvas.dataset.completedFrames = String(completedFrames);
     }
     function receipt() {
@@ -159,7 +161,7 @@
     }
     function dispose() {
       if (disposed) return;
-      disposed = true; depth?.destroy(); color?.destroy(); shadowTexture.destroy();
+      disposed = true; depth?.destroy(); color?.destroy(); shadowTexture.destroy(); sky.destroy();
       uniform.destroy(); instances.destroy(); Object.values(meshes).forEach((mesh) => mesh.buffer.destroy());
       context.unconfigure(); device.destroy();
     }
