@@ -1,0 +1,87 @@
+{
+  "schema": "simulatte.solarPanelPixelAudit.v1",
+  "passed": false,
+  "cases": [
+    {
+      "width": 900,
+      "height": 900,
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "phases": [
+        {
+          "name": "clear",
+          "mask": 0,
+          "light": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "file": "900-clear.png",
+          "sha256": "1bee24cdec8ed9d72f0e0ef0722373eb3e2ecd2ad03fce5078ed014a7aff162c"
+        },
+        {
+          "name": "partial",
+          "mask": 7,
+          "light": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "file": "900-partial.png",
+          "sha256": "1bee24cdec8ed9d72f0e0ef0722373eb3e2ecd2ad03fce5078ed014a7aff162c"
+        },
+        {
+          "name": "shaded",
+          "mask": 511,
+          "light": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "file": "900-shaded.png",
+          "sha256": "1bee24cdec8ed9d72f0e0ef0722373eb3e2ecd2ad03fce5078ed014a7aff162c"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "sources": {
+    "public/simulatte/solar-drive/shaders.js": "b4642f42b1b36fe9012f85f4b9061c7c83ab9b1c76b2652f4d84bb065a067e43",
+    "public/simulatte/solar-drive/renderer.js": "97f0bf8db29316b068db28022336987d30c025790bbade3a4dae40685338c8ae",
+    "public/simulatte/solar-drive/geometry.js": "fc5a370b8c3b883cf898f45f664a9bc93e16be201c714b6c2e5e14cf8178656a",
+    "public/simulatte/solar-drive/route-scene.js": "268288b75c6b0100cccf0d1823116def5f776e4532b1d3909f525a32acbc7c6d",
+    "tools/simulatte/audit-solar-shade.mjs": "7ea9bccc61a803ebc0012eb2fc3a3d3cb6bafb9d7621c666ae6cda574420c415"
+  },
+  "boundary": "Native Chrome WebGPU, controlled panel-exposure fixture, actual rendered pixels. Desktop and emulated mobile, not measured shade or human review.",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/136.0.7103.59",
+    "revision": "@d4b493843f5f23217df99a83aa28747602841382",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.0.0 Safari/537.36",
+    "jsVersion": "13.6.233.8"
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Measured direct-light pixels must darken in shade\n    at file:///home/clocksmith/deco/simulatte/tools/simulatte/audit-solar-shade.mjs:58:14"
+}

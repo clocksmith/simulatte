@@ -1,0 +1,71 @@
+TAP version 13
+# Subtest: calculated distant shadow casters remain in the rendered scene
+not ok 1 - calculated distant shadow casters remain in the rendered scene
+  ---
+  duration_ms: 4.982679
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/solar-route-scene.test.cjs:17:1'
+  failureType: 'testCodeFailure'
+  error: 'The building causing panel shade must be retained'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/solar-route-scene.test.cjs:20:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: panel shading carries sampled regions without changing the panel paint
+not ok 2 - panel shading carries sampled regions without changing the panel paint
+  ---
+  duration_ms: 2.034232
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/solar-route-scene.test.cjs:22:1'
+  failureType: 'testCodeFailure'
+  error: 'undefined is not iterable (cannot read property Symbol(Symbol.iterator))'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    Function.from (<anonymous>)
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/solar-route-scene.test.cjs:27:26)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: invalid panel samples cannot become plausible shading
+not ok 3 - invalid panel samples cannot become plausible shading
+  ---
+  duration_ms: 2.428102
+  type: 'test'
+  location: '/home/clocksmith/deco/simulatte/tests/solar-route-scene.test.cjs:34:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (/home/clocksmith/deco/simulatte/tests/solar-route-scene.test.cjs:36:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 0
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 90.560698

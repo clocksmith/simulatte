@@ -38,6 +38,7 @@
           getRenderer().setCameraMode('top');selectCamera('top');
         }},
         {id:'camera-state',category:'observation',perform:()=>getRenderer()?.cameraState()},
+        {id:'zoom',category:'observation',target:'camera',available:()=>Boolean(getRenderer()),perform:factor=>getRenderer().zoom(factor)},
         {id:'camera',category:'observation',perform:mode=>{
           mode=mode==='bird'?'overview':mode;
           if(!(profile.experience.supportedViews||['follow','pov','overview','top','free','compare']).includes(mode))throw Error('Unsupported camera view: '+mode);

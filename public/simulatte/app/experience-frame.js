@@ -46,7 +46,17 @@
   function speedControl(select){const previous=select.closest('label');if(previous)previous.dataset.frameRelocated='true';const label=document.createElement('label');label.textContent='Speed';label.append(select);return label;}
   function zoom(stage,act){
     const controls=document.createElement('div');controls.className='experience-frame__zoom';controls.setAttribute('aria-label','Zoom');
-    const out=button('−',()=>act(1.12)),inside=button('+',()=>act(1/1.12));out.setAttribute('aria-label','Zoom out');inside.setAttribute('aria-label','Zoom in');controls.append(out,inside);stage.append(controls);
+    let available=false,pending=false,canZoom=()=>true;
+    const error=document.createElement('span');error.setAttribute('role','status');
+    const update=()=>{out.disabled=!available||pending||!canZoom(1.12);inside.disabled=!available||pending||!canZoom(1/1.12);};
+    const apply=async factor=>{
+      if(!available||pending)return;
+      pending=true;update();
+      try{await act(factor);error.textContent='';}catch(failure){error.textContent=failure.message;}
+      finally{pending=false;update();}
+    };
+    const out=button('−',()=>void apply(1.12)),inside=button('+',()=>void apply(1/1.12));out.setAttribute('aria-label','Zoom out');inside.setAttribute('aria-label','Zoom in');controls.append(out,inside,error);stage.append(controls);update();
+    return Object.freeze({setAvailable:(value,predicate=()=>true)=>{available=Boolean(value);canZoom=predicate;update();}});
   }
   root.SimulatteExperienceFrame=Object.freeze({mount,button,cameraMenu,speedControl,advanced,zoom,q});
 })(globalThis);

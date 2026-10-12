@@ -135,6 +135,15 @@
       if (this.fittedTarget) this.fitPluginPresentationTarget(...this.fittedTarget);
     }
 
+    zoomBy(factor, point = {x:this.width/2,y:this.height/2}) {
+      if(!Number.isFinite(factor)||factor<=0)throw Error('tier_zoom_factor_invalid');
+      this.notifyManualView('zoom');
+      const next=Math.max(0.01,Math.min(this.currentTier==='star-chart'?4000:250,this.zoom/factor));
+      this.panX=point.x-(point.x-this.panX)*next/this.zoom;
+      this.panY=point.y-(point.y-this.panY)*next/this.zoom;
+      this.zoom=next;
+      return {zoom:this.zoom,panX:this.panX,panY:this.panY};
+    }
     setupEvents() {
       const c = this.canvas;
       c.style.touchAction = 'pan-y pinch-zoom';
@@ -147,11 +156,7 @@
         else if (event.key === 'ArrowUp') this.panY += 24;
         else if (event.key === 'ArrowDown') this.panY -= 24;
         else {
-          const factor = event.key === '-' ? 0.85 : 1.15;
-          const next = Math.max(0.01, Math.min(this.currentTier === 'star-chart' ? 4000 : 250, this.zoom * factor));
-          this.panX = this.width / 2 - (this.width / 2 - this.panX) * next / this.zoom;
-          this.panY = this.height / 2 - (this.height / 2 - this.panY) * next / this.zoom;
-          this.zoom = next;
+          this.zoomBy(event.key === '-' ? 1/0.85 : 1/1.15);
         }
       });
       this.on(c, 'pointerdown', (e) => {
@@ -204,19 +209,14 @@
       this.on(c, 'wheel', (e) => {
         if (this.currentTier === 'city') return;
         if (!e.ctrlKey && !e.metaKey) return;
-        this.notifyManualView('zoom');
         e.preventDefault();
-        const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
-        const nextZoom = Math.max(0.01, Math.min(this.currentTier === 'star-chart' ? 4000 : 250, this.zoom * zoomFactor));
 
         // Zoom relative to cursor point
         const rect = c.getBoundingClientRect();
         const cursorX = e.clientX - rect.left;
         const cursorY = e.clientY - rect.top;
 
-        this.panX = cursorX - (cursorX - this.panX) * (nextZoom / this.zoom);
-        this.panY = cursorY - (cursorY - this.panY) * (nextZoom / this.zoom);
-        this.zoom = nextZoom;
+        this.zoomBy(e.deltaY<0?1/1.15:1/0.85,{x:cursorX,y:cursorY});
       }, { passive: false });
     }
 

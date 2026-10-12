@@ -7,6 +7,7 @@
     const pair=touches=>{const a=local(touches[0]),b=local(touches[1]);return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,distance:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y))};};
     function stopInertia(camera){for(const key of ['inertialAlphaOffset','inertialBetaOffset','inertialRadiusOffset','inertialPanningX','inertialPanningY'])if(key in camera)camera[key]=0;}
     function zoom(factor){
+      if(!Number.isFinite(factor)||factor<=0)throw Error('motorcycle_zoom_factor_invalid');
       onInteract();const camera=getCamera();stopInertia(camera);
       if(Number.isFinite(camera.radius))camera.radius=Math.max(camera.lowerRadiusLimit||25,Math.min(camera.upperRadiusLimit||5000,camera.radius*factor));
       else{const direction=camera.getDirection(B.Axis.Z);camera.position.addInPlace(direction.scale((1-factor)*Math.max(8,camera.position.y)));camera.position.y=Math.max(1.7,camera.position.y);}
@@ -71,7 +72,7 @@
     },{capture:true});
     on(document.getElementById('map-zoom-in'),'click',()=>zoom(.8));
     on(document.getElementById('map-zoom-out'),'click',()=>zoom(1.25));
-    return {dispose(){events.abort();}};
+    return {zoom,dispose(){events.abort();}};
   }
   root.MotorcycleMapGestures={create};
 })(window);

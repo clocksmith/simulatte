@@ -534,6 +534,7 @@
           {id:'camera',category:'observation',perform:mode=>applyTierCamera(mode,true)},
           {id:'layout',category:'observation',perform:id=>{const p=lastPluginContributions.find(row=>row.pluginId===owner)?.presentation;if(!p?.layouts?.some(row=>row.id===id))throw Error('Unsupported layout');tierVisualizer.presentationLayout=id;renderPlugins();applyTierCamera('overview',true);}},
           {id:'camera-state',category:'observation',perform:()=>({mode:activeCameraMode,zoom:tierVisualizer.zoom,panX:tierVisualizer.panX,panY:tierVisualizer.panY,rotX:tierVisualizer.rotX,rotY:tierVisualizer.rotY})},
+          {id:'zoom',category:'observation',target:'camera',perform:factor=>tierVisualizer.zoomBy(factor)},
           {id:'select-object',category:'observation',perform:id=>{keepCameraFraming=true;objectInteraction.select(id);tierVisualizer.selectedRack=id?.startsWith('rack:')?id.slice(5):null;tierVisualizer.relatedRackIds=lastPluginContributions.find(row=>row.pluginId===owner)?.objects?.find(row=>row.id===id)?.relatedIds||[];renderPlugins({preserveCamera:true});}},
           {id:'focus-object',category:'observation',perform:id=>focusObject(owner,id)},
           {id:'preview-controls',category:'observation',perform:(values,operation)=>previewControls(owner,values,operation)},

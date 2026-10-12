@@ -248,6 +248,17 @@ test('empty tissue bounds remain finite after removal and include cell radii',()
   assert.ok(bounds.origin[0]<=-10&&bounds.origin[0]+bounds.span>=10);
 });
 
+test('terrain zoom out makes the rendered terrain smaller without changing model state',()=>{
+  const drawing=require('../public/simulatte/field-experiments/drawing.js');
+  const {config,model}=cases[1],state=model.initial(config.params,config.seed),before=structuredClone(state);
+  const ctx=new Proxy({}, {get:()=>()=>{}}),canvas={clientWidth:390,clientHeight:260,getContext:()=>ctx};
+  const span=config.params.size*config.params.spacing,style={getPropertyValue:()=> '#222'};
+  const initial=drawing.draw(canvas,config,state,null,.65,{style,bounds:{origin:[0,0],span}});
+  const wider=drawing.draw(canvas,config,state,null,.65,{style,bounds:{origin:[-span/2,-span/2],span:span*2}});
+  assert.ok(wider.bounds.right-wider.bounds.left<(initial.bounds.right-initial.bounds.left)*.75);
+  assert.deepEqual(state,before);
+});
+
 test('field failures preserve both accepted branches and recover explicitly without retrying each frame',async()=>{
   const vm=require('node:vm'),path=require('node:path'),{webcrypto}=require('node:crypto');
   const config=cases[2].config,sourceModel=cases[2].model;
@@ -277,6 +288,12 @@ test('field failures preserve both accepted branches and recover explicitly with
     fetch:async url=>{if(String(url).endsWith(config.id+'.json'))return {ok:true,json:async()=>structuredClone(config)};
       const file=path.join(__dirname,'../public',new URL(url).pathname);return {ok:true,arrayBuffer:async()=>{const b=fs.readFileSync(file);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength);}};}};
   await vm.runInNewContext(fs.readFileSync(__dirname+'/../public/simulatte/field-experiments/app.js','utf8'),context);
+  const beforeZoom=context.__fieldExperimentSnapshot();
+  assert.equal(context.SimulatteFieldView.canZoom(2),true);
+  context.SimulatteFieldView.zoom(2);
+  const afterZoom=context.__fieldExperimentSnapshot();
+  assert.equal(afterZoom.camera.bounds.span,beforeZoom.camera.bounds.span*2);
+  assert.equal(afterZoom.stateHash,beforeZoom.stateHash);
   callback(0);callback(100);
   for(const type of ['numerical','renderer','metrics','action-renderer']) {
     const previous=context.__fieldExperimentSnapshot(),visible=el('scene').published;

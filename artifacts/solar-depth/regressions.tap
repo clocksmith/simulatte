@@ -1,0 +1,358 @@
+TAP version 13
+# Subtest: governed inputs validate while keeping residents, routes, and inventory claims separate
+ok 1 - governed inputs validate while keeping residents, routes, and inventory claims separate
+  ---
+  duration_ms: 177.235902
+  type: 'test'
+  ...
+# Subtest: governed geography resolves scenario references and fails closed on misplaced data
+ok 2 - governed geography resolves scenario references and fails closed on misplaced data
+  ---
+  duration_ms: 37.214348
+  type: 'test'
+  ...
+# Subtest: catalog index searches a 25,000-row snapshot without changing the browser contract
+ok 3 - catalog index searches a 25,000-row snapshot without changing the browser contract
+  ---
+  duration_ms: 1431.715376
+  type: 'test'
+  ...
+# Subtest: governed compiler admits authorized full feeds and rejects unbound source bytes
+ok 4 - governed compiler admits authorized full feeds and rejects unbound source bytes
+  ---
+  duration_ms: 90.185536
+  type: 'test'
+  ...
+# Subtest: all policies replay deterministically and independently conserve demand, packages, and capacity
+ok 5 - all policies replay deterministically and independently conserve demand, packages, and capacity
+  ---
+  duration_ms: 415.949526
+  type: 'test'
+  ...
+# Subtest: unknown warehouse availability fails closed unless the explicit control admits it
+ok 6 - unknown warehouse availability fails closed unless the explicit control admits it
+  ---
+  duration_ms: 325.817581
+  type: 'test'
+  ...
+# Subtest: typed controls rebuild the run, step without recomputation, and replay exactly
+ok 7 - typed controls rebuild the run, step without recomputation, and replay exactly
+  ---
+  duration_ms: 408.652709
+  type: 'test'
+  ...
+# Subtest: same-scenario reset reuses the frozen deterministic result and receipts solver work
+ok 8 - same-scenario reset reuses the frozen deterministic result and receipts solver work
+  ---
+  duration_ms: 94.598057
+  type: 'test'
+  ...
+# Subtest: all declared comparisons share exogenous inputs and execute their intended policy pair
+ok 9 - all declared comparisons share exogenous inputs and execute their intended policy pair
+  ---
+  duration_ms: 116.648478
+  type: 'test'
+  ...
+# Subtest: v4 contribution renders semantic WGS84 evidence and every accepted control
+ok 10 - v4 contribution renders semantic WGS84 evidence and every accepted control
+  ---
+  duration_ms: 96.767736
+  type: 'test'
+  ...
+# Subtest: trip playback emits one active driver, moving packages, and a bird-eye camera target
+ok 11 - trip playback emits one active driver, moving packages, and a bird-eye camera target
+  ---
+  duration_ms: 912.628123
+  type: 'test'
+  ...
+# Subtest: settled playback keeps the modeled Costco network in the overview
+ok 12 - settled playback keeps the modeled Costco network in the overview
+  ---
+  duration_ms: 198.229802
+  type: 'test'
+  ...
+# Subtest: overview identity survives playback and restart while snapshot identity advances
+ok 13 - overview identity survives playback and restart while snapshot identity advances
+  ---
+  duration_ms: 303.416047
+  type: 'test'
+  ...
+# Subtest: catalog index calculates fractional shares accurately
+ok 14 - catalog index calculates fractional shares accurately
+  ---
+  duration_ms: 189.712092
+  type: 'test'
+  ...
+# Subtest: solver reconciles supported receipt line items without inventing tax or toll splits
+ok 15 - solver reconciles supported receipt line items without inventing tax or toll splits
+  ---
+  duration_ms: 246.036306
+  type: 'test'
+  ...
+# Subtest: solver deterministically heals a driver cancellation and regenerates causal playback
+ok 16 - solver deterministically heals a driver cancellation and regenerates causal playback
+  ---
+  duration_ms: 1090.096338
+  type: 'test'
+  ...
+# Subtest: plugin disruption action replaces active state and receipts before and after identities
+ok 17 - plugin disruption action replaces active state and receipts before and after identities
+  ---
+  duration_ms: 411.927578
+  type: 'test'
+  ...
+# Subtest: minimap follows the governed plugin actor and retains the core journey fallback
+ok 18 - minimap follows the governed plugin actor and retains the core journey fallback
+  ---
+  duration_ms: 8.824287
+  type: 'test'
+  ...
+# Subtest: plugin follow mode centers the camera on the moving plugin actor
+ok 19 - plugin follow mode centers the camera on the moving plugin actor
+  ---
+  duration_ms: 3.628107
+  type: 'test'
+  ...
+# Subtest: POV mode uses the plugin actor rather than the hidden City journey state
+ok 20 - POV mode uses the plugin actor rather than the hidden City journey state
+  ---
+  duration_ms: 0.435467
+  type: 'test'
+  ...
+# Subtest: pedestrian follow looks straight down at the walker rather than trailing street level
+ok 21 - pedestrian follow looks straight down at the walker rather than trailing street level
+  ---
+  duration_ms: 4.209161
+  type: 'test'
+  ...
+# Subtest: overview, free, and compare retain distinct camera modes and framing
+ok 22 - overview, free, and compare retain distinct camera modes and framing
+  ---
+  duration_ms: 0.492562
+  type: 'test'
+  ...
+# Subtest: wide plugin overviews expand the far plane to keep their evidence visible
+ok 23 - wide plugin overviews expand the far plane to keep their evidence visible
+  ---
+  duration_ms: 3.815449
+  type: 'test'
+  ...
+# Subtest: wide overview altitude reduces fog without changing the near-view ceiling
+ok 24 - wide overview altitude reduces fog without changing the near-view ceiling
+  ---
+  duration_ms: 0.317546
+  type: 'test'
+  ...
+# Subtest: City camera buttons send the exact advertised modes and select semantic targets
+ok 25 - City camera buttons send the exact advertised modes and select semantic targets
+  ---
+  duration_ms: 3.354084
+  type: 'test'
+  ...
+# Subtest: City plugin playback drives rendering from simulation time without mutating world state
+ok 26 - City plugin playback drives rendering from simulation time without mutating world state
+  ---
+  duration_ms: 0.721688
+  type: 'test'
+  ...
+# Subtest: plugin follow zoom changes the rendered camera distance as well as its control value
+ok 27 - plugin follow zoom changes the rendered camera distance as well as its control value
+  ---
+  duration_ms: 0.976672
+  type: 'test'
+  ...
+# Subtest: selecting an object leaves its camera intact; top-view zoom and drag retain their angle
+ok 28 - selecting an object leaves its camera intact; top-view zoom and drag retain their angle
+  ---
+  duration_ms: 3.581488
+  type: 'test'
+  ...
+# Subtest: replacing a route keeps follow and POV on the same actor when the automatic view intent changes
+ok 29 - replacing a route keeps follow and POV on the same actor when the automatic view intent changes
+  ---
+  duration_ms: 0.368961
+  type: 'test'
+  ...
+# Subtest: Tier drawing works without a controller, network, HUD, or animation loop
+ok 30 - Tier drawing works without a controller, network, HUD, or animation loop
+  ---
+  duration_ms: 27.698267
+  type: 'test'
+  ...
+# Subtest: Create session preserves the exact phase-6 input, phase-7 output, and pick coordinates
+ok 31 - Create session preserves the exact phase-6 input, phase-7 output, and pick coordinates
+  ---
+  duration_ms: 9.50265
+  type: 'test'
+  ...
+# Subtest: Create lifecycle destroys a device acquired after disposal
+ok 32 - Create lifecycle destroys a device acquired after disposal
+  ---
+  duration_ms: 54.983177
+  type: 'test'
+  ...
+# Subtest: session keeps preparation, execution, rendering, and measurement independent
+ok 33 - session keeps preparation, execution, rendering, and measurement independent
+  ---
+  duration_ms: 41.745005
+  type: 'test'
+  ...
+# Subtest: operations declare their consequences and unavailable actions cannot run
+ok 34 - operations declare their consequences and unavailable actions cannot run
+  ---
+  duration_ms: 26.490405
+  type: 'test'
+  ...
+# Subtest: superseded asynchronous commands cancel immediately and cannot commit stale state
+ok 35 - superseded asynchronous commands cancel immediately and cannot commit stale state
+  ---
+  duration_ms: 65.665939
+  type: 'test'
+  ...
+# Subtest: disposal cancels work even when a provider never resolves
+ok 36 - disposal cancels work even when a provider never resolves
+  ---
+  duration_ms: 0.890868
+  type: 'test'
+  ...
+# Subtest: cancelled non-abortable mutations drain before the next scenario, with observation available
+ok 37 - cancelled non-abortable mutations drain before the next scenario, with observation available
+  ---
+  duration_ms: 22.085508
+  type: 'test'
+  ...
+# Subtest: the original 5 kg ideal ring stores 100 kJ and exposes 75 kJ above half speed
+ok 38 - the original 5 kg ideal ring stores 100 kJ and exposes 75 kJ above half speed
+  ---
+  duration_ms: 30.65523
+  type: 'test'
+  ...
+# Subtest: all three presets preserve incident energy through storage, motion, height, and losses
+ok 39 - all three presets preserve incident energy through storage, motion, height, and losses
+  ---
+  duration_ms: 1062.873745
+  type: 'test'
+  ...
+# Subtest: magnets do not move an empty vehicle in darkness on a level road
+ok 40 - magnets do not move an empty vehicle in darkness on a level road
+  ---
+  duration_ms: 21.918254
+  type: 'test'
+  ...
+# Subtest: gravity is an explicit potential-energy exchange on a descent
+ok 41 - gravity is an explicit potential-energy exchange on a descent
+  ---
+  duration_ms: 35.03694
+  type: 'test'
+  ...
+# Subtest: braking feeds auxiliaries and charges a battery in darkness
+ok 42 - braking feeds auxiliaries and charges a battery in darkness
+  ---
+  duration_ms: 8.119364
+  type: 'test'
+  ...
+# Subtest: full stores reject excess energy and friction brakes remain available
+ok 43 - full stores reject excess energy and friction brakes remain available
+  ---
+  duration_ms: 3.144952
+  type: 'test'
+  ...
+# Subtest: sunlight and shade affect power while rotor removal removes mass and losses
+ok 44 - sunlight and shade affect power while rotor removal removes mass and losses
+  ---
+  duration_ms: 18.291336
+  type: 'test'
+  ...
+# Subtest: thermal cutoff prevents traction power and cooling permits recovery
+ok 45 - thermal cutoff prevents traction power and cooling permits recovery
+  ---
+  duration_ms: 0.908175
+  type: 'test'
+  ...
+# Subtest: halving the timestep converges on distance and stored energy
+ok 46 - halving the timestep converges on distance and stored energy
+  ---
+  duration_ms: 418.623224
+  type: 'test'
+  ...
+# Subtest: WorldSpec edits preserve authorship, exact replay, and verified export/reimport
+ok 47 - WorldSpec edits preserve authorship, exact replay, and verified export/reimport
+  ---
+  duration_ms: 269.497986
+  type: 'test'
+  ...
+# Subtest: bad parameters and attempts to reinterpret component geometry refuse explicitly
+ok 48 - bad parameters and attempts to reinterpret component geometry refuse explicitly
+  ---
+  duration_ms: 32.326074
+  type: 'test'
+  ...
+# Subtest: unsupported execution declarations refuse and receipts detach their state
+ok 49 - unsupported execution declarations refuse and receipts detach their state
+  ---
+  duration_ms: 97.810697
+  type: 'test'
+  ...
+# Subtest: identified ride binds published reference sizes and refuses missing or changed route evidence
+ok 50 - identified ride binds published reference sizes and refuses missing or changed route evidence
+  ---
+  duration_ms: 50.848049
+  type: 'test'
+  ...
+# Subtest: route handles a full ten-second stop, building shade and arrival while conserving energy
+ok 51 - route handles a full ten-second stop, building shade and arrival while conserving energy
+  ---
+  duration_ms: 4730.215148
+  type: 'test'
+  ...
+# Subtest: route timestep refinement preserves travel, battery use and stop duration
+ok 52 - route timestep refinement preserves travel, battery use and stop duration
+  ---
+  duration_ms: 4234.212426
+  type: 'test'
+  ...
+# Subtest: recorded mid-ride panel actions reproduce state, authored identity and counterfactual power
+ok 53 - recorded mid-ride panel actions reproduce state, authored identity and counterfactual power
+  ---
+  duration_ms: 2455.414622
+  type: 'test'
+  ...
+# Subtest: previous bench WorldSpecs retain their identity and numeric parameters
+ok 54 - previous bench WorldSpecs retain their identity and numeric parameters
+  ---
+  duration_ms: 12.952972
+  type: 'test'
+  ...
+# Subtest: panel receiver height changes occlusion without changing pedestrian ground results
+ok 55 - panel receiver height changes occlusion without changing pedestrian ground results
+  ---
+  duration_ms: 0.85174
+  type: 'test'
+  ...
+# Subtest: calculated distant shadow casters remain in the rendered scene
+ok 56 - calculated distant shadow casters remain in the rendered scene
+  ---
+  duration_ms: 22.074706
+  type: 'test'
+  ...
+# Subtest: panel shading carries sampled regions without changing the panel paint
+ok 57 - panel shading carries sampled regions without changing the panel paint
+  ---
+  duration_ms: 13.480536
+  type: 'test'
+  ...
+# Subtest: invalid panel samples cannot become plausible shading
+ok 58 - invalid panel samples cannot become plausible shading
+  ---
+  duration_ms: 14.122904
+  type: 'test'
+  ...
+1..58
+# tests 58
+# suites 0
+# pass 58
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15490.125385

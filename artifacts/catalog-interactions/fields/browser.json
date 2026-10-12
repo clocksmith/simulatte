@@ -1,0 +1,3666 @@
+{
+  "schema": "simulatte.catalogInteractionAudit.v1",
+  "sources": {
+    "head": "18bcce7cc8da1a45fb3ac5fd1e86df2eba8cc0cb",
+    "capturedAt": "2026-10-12T20:06:12.675Z",
+    "modifiedSources": {
+      "public/shared/plugins/neighborhood-bulk-pool/plugin.json": {
+        "sha256": "be205c31969e51296d40b1255a90f964db0835c23fb37179db8d63eb13eabf03",
+        "modifiedAt": "2026-10-12T19:45:39.059Z"
+      },
+      "public/shared/plugins/neighborhood-bulk-pool/v4-contribution.js": {
+        "sha256": "857ac8d6a5ff12e3a22e2b8d5597e38294363b330a3d10e1ecb9a7b8de7d7003",
+        "modifiedAt": "2026-10-12T19:45:35.718Z"
+      },
+      "public/simulatte/app/city-plugin-session.js": {
+        "sha256": "273e6d503fc8e4633ccd2dfb88eff9d7c7d2dc37cad4653c5b2fb6c1dc91c806",
+        "modifiedAt": "2026-10-12T19:04:03.973Z"
+      },
+      "public/simulatte/app/experience-frame-adapters.js": {
+        "sha256": "ce4bb39b28f4baec1385e6011816bc6d2e77478b616bf0ebffc6d1b1e6477997",
+        "modifiedAt": "2026-10-12T19:35:29.705Z"
+      },
+      "public/simulatte/app/experience-frame.js": {
+        "sha256": "08f7fccdc7c890eb337735fe75a8e7e9be3dde74f1ee2eab1599d13a7ed0233d",
+        "modifiedAt": "2026-10-12T19:35:29.691Z"
+      },
+      "public/simulatte/app/multi-tier-visualizer.js": {
+        "sha256": "57ee5cc155494813340d58ba01f871959b2f6dec5d8318f48f9225f681029109",
+        "modifiedAt": "2026-10-12T19:07:30.779Z"
+      },
+      "public/simulatte/app/webgpu-renderer.js": {
+        "sha256": "7c49ff7c45f602feecd3cb80065acc8544f21e7d49efbe62b770b65de317228b",
+        "modifiedAt": "2026-10-12T19:04:03.973Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "3d7dd07dad91bf5365eebd944c4662023f21c535f5f889f7f0ffb3fcc5562ef1",
+        "modifiedAt": "2026-10-12T19:04:03.974Z"
+      },
+      "public/simulatte/field-experiments/app.js": {
+        "sha256": "9e2ea46662e9d2d56936c35379b7d4faf749ae0cfbea8f37c2f01d2b6c66f6e0",
+        "modifiedAt": "2026-10-12T20:05:20.148Z"
+      },
+      "public/simulatte/field-experiments/drawing.js": {
+        "sha256": "fa7cf398d93f65bfdcbd6b378f5157b95fd0eb6425d7910506fccfd0bc25d79d",
+        "modifiedAt": "2026-10-12T20:02:50.300Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "988fc605ef13a3d8b439b28c1d86fb66c9b068bd35b4942263bc0f7cc2747f3e",
+        "modifiedAt": "2026-10-12T19:51:31.895Z"
+      },
+      "public/simulatte/motorcycle-noise/map-gestures.js": {
+        "sha256": "d794c1917734a905b7e5fccb63a67b9a5f09a308997b487a8df742f2e2d6c419",
+        "modifiedAt": "2026-10-12T19:04:03.972Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-app.js": {
+        "sha256": "beae047e34b3f2c322b20099d62877ca59ebb213577e5d4d3614e79b2d1fabfa",
+        "modifiedAt": "2026-10-12T19:04:03.972Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-view.js": {
+        "sha256": "f381d47f1ff70ef4ca21b00404d6cb42a9623e351c05bbf1254eebc34bbd15a9",
+        "modifiedAt": "2026-10-12T19:35:29.690Z"
+      },
+      "public/simulatte/platform/plugin-host/generated-plugin-registry.js": {
+        "sha256": "44a0fa57d1c03206159c4d4797d58f99b976f1bf9babb213487a5565029342ae",
+        "modifiedAt": "2026-10-12T19:45:39.253Z"
+      },
+      "public/simulatte/solar-drive/app.js": {
+        "sha256": "1d26fc655eb288c3865f07e68dc1a602409c5e2b98f77827433483fb6a343f42",
+        "modifiedAt": "2026-10-12T19:07:30.778Z"
+      },
+      "public/simulatte/solar-drive/renderer.js": {
+        "sha256": "97f0bf8db29316b068db28022336987d30c025790bbade3a4dae40685338c8ae",
+        "modifiedAt": "2026-10-12T19:18:27.085Z"
+      },
+      "public/simulatte/solar-drive/route-scene.js": {
+        "sha256": "268288b75c6b0100cccf0d1823116def5f776e4532b1d3909f525a32acbc7c6d",
+        "modifiedAt": "2026-10-12T19:02:11.958Z"
+      },
+      "public/simulatte/solar-drive/scene.js": {
+        "sha256": "c69374d9d67b3c79fd3fd333db2b262860c85168b6314e23a87d78b440b93c92",
+        "modifiedAt": "2026-10-12T19:02:11.954Z"
+      },
+      "public/simulatte/solar-drive/shaders.js": {
+        "sha256": "b4642f42b1b36fe9012f85f4b9061c7c83ab9b1c76b2652f4d84bb065a067e43",
+        "modifiedAt": "2026-10-12T19:02:11.958Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "cases": [
+    {
+      "profile": "living-tissue",
+      "route": "/living-tissue",
+      "width": 1440,
+      "height": 1000,
+      "kind": "field",
+      "opening": {
+        "id": "living-tissue",
+        "step": 0,
+        "specHash": "fnv1a32:631a2750",
+        "actions": 0,
+        "baseline": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "current": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "cell:3",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              8,
+              8
+            ],
+            "span": 16
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "cell:3",
+            "x": 614.812,
+            "y": 413,
+            "worldX": 14.4,
+            "worldY": 16,
+            "lineageId": "cell:3",
+            "radius": 55.640159507319886
+          },
+          "bounds": {
+            "left": 559.1718404926801,
+            "right": 815.82815950732,
+            "top": 294.4101859423969,
+            "bottom": 531.5898140576031
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "paused": {
+        "id": "living-tissue",
+        "step": 199,
+        "specHash": "fnv1a32:631a2750",
+        "actions": 0,
+        "baseline": {
+          "cells": 119,
+          "divisions": 112,
+          "removed": 0,
+          "area": 508.94755993408285,
+          "meanSignal": 0.13130499897997303
+        },
+        "current": {
+          "cells": 119,
+          "divisions": 112,
+          "removed": 0,
+          "area": 508.94755993408285,
+          "meanSignal": 0.13130499897997303
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "cell:3",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -2.5451889082492904,
+              -2.506773236191224
+            ],
+            "span": 36.657474393811995
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "cell:3",
+            "x": 424.00498860941667,
+            "y": 338.60042859763905,
+            "worldX": 2.495162815198216,
+            "worldY": 12.06989981863818,
+            "lineageId": "cell:3",
+            "radius": 20.195036691430843
+          },
+          "bounds": {
+            "left": 403.8099519179858,
+            "right": 971.1900480820143,
+            "top": 128.8758843613843,
+            "bottom": 697.1241156386158
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 136.98175999999978,
+          "completedSteps": 199,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 199
+      },
+      "zoom": {
+        "keys": 0,
+        "clicks": 0,
+        "error": ""
+      },
+      "selection": {
+        "before": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -4.745,
+              -4.706
+            ],
+            "span": 41.056
+          },
+          "mode": "overview"
+        },
+        "after": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -4.745,
+              -4.706
+            ],
+            "span": 41.056
+          },
+          "mode": "overview"
+        }
+      },
+      "focused": {
+        "id": "living-tissue",
+        "step": 199,
+        "specHash": "fnv1a32:631a2750",
+        "actions": 0,
+        "baseline": {
+          "cells": 119,
+          "divisions": 112,
+          "removed": 0,
+          "area": 508.94755993408285,
+          "meanSignal": 0.13130499897997303
+        },
+        "current": {
+          "cells": 119,
+          "divisions": 112,
+          "removed": 0,
+          "area": 508.94755993408285,
+          "meanSignal": 0.13130499897997303
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "cell:4",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              9.335568601525182,
+              5.415324023470216
+            ],
+            "span": 12
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "cell:4",
+            "x": 687.5,
+            "y": 413,
+            "worldX": 15.335568601525182,
+            "worldY": 11.415324023470216,
+            "lineageId": "cell:4",
+            "radius": 73.69370122257727
+          },
+          "bounds": {
+            "left": -151.97776653029706,
+            "right": 1581.2490123606574,
+            "top": -188.0145046752258,
+            "bottom": 1547.8642442726127
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 136.98175999999978,
+          "completedSteps": 199,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 199
+      },
+      "framing": {
+        "width": 1375,
+        "height": 826,
+        "points": [
+          {
+            "x": 613.8062987774227,
+            "y": 339.30629877742274
+          },
+          {
+            "x": 761.1937012225773,
+            "y": 486.69370122257726
+          }
+        ]
+      },
+      "displaySwitch": {
+        "label": "Show signal field",
+        "before": true,
+        "after": false,
+        "role": "switch",
+        "nextLabel": "Show signal field"
+      },
+      "restarted": {
+        "id": "living-tissue",
+        "step": 0,
+        "specHash": "fnv1a32:631a2750",
+        "actions": 0,
+        "baseline": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "current": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -2.5451889082492904,
+              -2.506773236191224
+            ],
+            "span": 36.657474393811995
+          },
+          "mode": "overview"
+        },
+        "showSignal": false,
+        "executionState": "paused",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "bounds": {
+            "left": 635.780230334255,
+            "right": 747.8037991191093,
+            "top": 364.7690125159179,
+            "bottom": 468.29153043613496
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "advanced": {
+        "id": "living-tissue",
+        "step": 128,
+        "specHash": "fnv1a32:631a2750",
+        "actions": 0,
+        "baseline": {
+          "cells": 77,
+          "divisions": 70,
+          "removed": 0,
+          "area": 325.8263707850741,
+          "meanSignal": 0.17068630941058027
+        },
+        "current": {
+          "cells": 77,
+          "divisions": 70,
+          "removed": 0,
+          "area": 325.8263707850741,
+          "meanSignal": 0.17068630941058027
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -2.5451889082492904,
+              -2.506773236191224
+            ],
+            "span": 36.657474393811995
+          },
+          "mode": "overview"
+        },
+        "showSignal": false,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "bounds": {
+            "left": 471.8475065541239,
+            "right": 929.4570518145483,
+            "top": 187.52755418039044,
+            "bottom": 646.606364707396
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 319.9359999999986,
+          "completedSteps": 128,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 128
+      },
+      "replaying": {
+        "id": "living-tissue",
+        "step": 0,
+        "specHash": "fnv1a32:065e76c8",
+        "actions": 1,
+        "baseline": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "current": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "cell:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -2.5451889082492904,
+              -2.506773236191224
+            ],
+            "span": 36.657474393811995
+          },
+          "mode": "overview"
+        },
+        "showSignal": false,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "cell:1",
+            "x": 707.6551915989589,
+            "y": 444.0060997882615,
+            "worldX": 16.8,
+            "worldY": 17.3856406460551,
+            "lineageId": "cell:1",
+            "radius": 24.285430647873454
+          },
+          "bounds": {
+            "left": 635.780230334255,
+            "right": 747.8037991191093,
+            "top": 364.7690125159179,
+            "bottom": 468.29153043613496
+          }
+        },
+        "replay": {
+          "endStep": 192,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "replayProgress": {
+        "id": "living-tissue",
+        "step": 32,
+        "specHash": "fnv1a32:065e76c8",
+        "actions": 1,
+        "baseline": {
+          "cells": 13,
+          "divisions": 6,
+          "removed": 0,
+          "area": 60.251750450849556,
+          "meanSignal": 0.5254413323714053
+        },
+        "current": {
+          "cells": 13,
+          "divisions": 6,
+          "removed": 0,
+          "area": 60.251750450849556,
+          "meanSignal": 0.5254413323714053
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "cell:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -2.5451889082492904,
+              -2.506773236191224
+            ],
+            "span": 36.657474393811995
+          },
+          "mode": "overview"
+        },
+        "showSignal": false,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "cell:1",
+            "x": 755.5617422563162,
+            "y": 477.34617492148135,
+            "worldX": 19.21598772014353,
+            "worldY": 19.067022649252017,
+            "lineageId": "cell:1",
+            "radius": 24.546639078734756
+          },
+          "bounds": {
+            "left": 592.5713122288228,
+            "right": 803.570477510195,
+            "top": 312.51271572729945,
+            "bottom": 511.84187471783815
+          }
+        },
+        "replay": {
+          "endStep": 192,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0.01600000000035351,
+          "completedSteps": 32,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 32
+      },
+      "replayedActions": {
+        "id": "living-tissue",
+        "step": 192,
+        "specHash": "fnv1a32:065e76c8",
+        "actions": 1,
+        "baseline": {
+          "cells": 115,
+          "divisions": 108,
+          "removed": 0,
+          "area": 496.68934882999326,
+          "meanSignal": 0.13266954715755722
+        },
+        "current": {
+          "cells": 109,
+          "divisions": 108,
+          "removed": 6,
+          "area": 469.97000800879346,
+          "meanSignal": 0.1334170975414288
+        },
+        "running": false,
+        "complete": true,
+        "selectedId": "cell:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -2.5451889082492904,
+              -2.506773236191224
+            ],
+            "span": 36.657474393811995
+          },
+          "mode": "overview"
+        },
+        "showSignal": false,
+        "executionState": "completed",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "bounds": {
+            "left": 408.7707523523001,
+            "right": 966.6634356390038,
+            "top": 134.30341187211948,
+            "bottom": 691.4094350121059
+          }
+        },
+        "replay": {
+          "endStep": 192,
+          "appliedActions": 1
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 192,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 192
+      },
+      "recovery": {
+        "state": "failed",
+        "hash": true,
+        "pixels": true,
+        "label": "Retry accepted run"
+      },
+      "pass": true
+    },
+    {
+      "profile": "living-tissue",
+      "route": "/living-tissue",
+      "width": 390,
+      "height": 844,
+      "kind": "field",
+      "opening": {
+        "id": "living-tissue",
+        "step": 0,
+        "specHash": "fnv1a32:631a2750",
+        "actions": 0,
+        "baseline": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "current": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "cell:3",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              8,
+              8
+            ],
+            "span": 16
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "cell:3",
+            "x": 149.96800000000002,
+            "y": 299,
+            "worldX": 14.4,
+            "worldY": 16,
+            "lineageId": "cell:3",
+            "radius": 24.51939232525961
+          },
+          "bounds": {
+            "left": 125.4486076747404,
+            "right": 238.55139232525966,
+            "top": 246.7400819407173,
+            "bottom": 351.2599180592827
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "paused": {
+        "id": "living-tissue",
+        "step": 63,
+        "specHash": "fnv1a32:631a2750",
+        "actions": 0,
+        "baseline": {
+          "cells": 25,
+          "divisions": 18,
+          "removed": 0,
+          "area": 110.32386211794497,
+          "meanSignal": 0.37005366564858455
+        },
+        "current": {
+          "cells": 25,
+          "divisions": 18,
+          "removed": 0,
+          "area": 110.32386211794497,
+          "meanSignal": 0.37005366564858455
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "cell:3",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              4.9193966473061295,
+              4.429550932145018
+            ],
+            "span": 22.868484747887926
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "cell:3",
+            "x": 107.17251687900963,
+            "y": 264.03296781997227,
+            "worldX": 11.011508787498814,
+            "worldY": 13.367405187682792,
+            "lineageId": "cell:3",
+            "radius": 17.30686910460141
+          },
+          "bounds": {
+            "left": 77.86819837542299,
+            "right": 286.131801624577,
+            "top": 201.73621986617343,
+            "bottom": 396.2637801338266
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0.9849600000000152,
+          "completedSteps": 63,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 63
+      },
+      "zoom": {
+        "keys": 0,
+        "clicks": 0,
+        "error": ""
+      },
+      "selection": {
+        "before": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              3.547,
+              3.057
+            ],
+            "span": 25.613
+          },
+          "mode": "overview"
+        },
+        "after": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              3.547,
+              3.057
+            ],
+            "span": 25.613
+          },
+          "mode": "overview"
+        }
+      },
+      "focused": {
+        "id": "living-tissue",
+        "step": 63,
+        "specHash": "fnv1a32:631a2750",
+        "actions": 0,
+        "baseline": {
+          "cells": 25,
+          "divisions": 18,
+          "removed": 0,
+          "area": 110.32386211794497,
+          "meanSignal": 0.37005366564858455
+        },
+        "current": {
+          "cells": 25,
+          "divisions": 18,
+          "removed": 0,
+          "area": 110.32386211794497,
+          "meanSignal": 0.37005366564858455
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "cell:4",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              9.581455435143722,
+              6.322847471091578
+            ],
+            "span": 12
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "cell:4",
+            "x": 182,
+            "y": 299,
+            "worldX": 15.581455435143722,
+            "worldY": 12.322847471091578,
+            "lineageId": "cell:4",
+            "radius": 29.500058117951607
+          },
+          "bounds": {
+            "left": 4.167444089988507,
+            "right": 401.05686362694354,
+            "top": 208.16337477950253,
+            "bottom": 578.8759201982255
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0.9849600000000152,
+          "completedSteps": 63,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 63
+      },
+      "framing": {
+        "width": 364,
+        "height": 598,
+        "points": [
+          {
+            "x": 152.4999418820484,
+            "y": 269.4999418820484
+          },
+          {
+            "x": 211.5000581179516,
+            "y": 328.5000581179516
+          }
+        ]
+      },
+      "displaySwitch": {
+        "label": "Show signal field",
+        "before": true,
+        "after": false,
+        "role": "switch",
+        "nextLabel": "Show signal field"
+      },
+      "restarted": {
+        "id": "living-tissue",
+        "step": 0,
+        "specHash": "fnv1a32:631a2750",
+        "actions": 0,
+        "baseline": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "current": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              4.9193966473061295,
+              4.429550932145018
+            ],
+            "span": 22.868484747887926
+          },
+          "mode": "overview"
+        },
+        "showSignal": false,
+        "executionState": "paused",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "bounds": {
+            "left": 137.48021918745567,
+            "right": 216.61290219459903,
+            "top": 264.3440545146682,
+            "bottom": 337.47165331858537
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "advanced": {
+        "id": "living-tissue",
+        "step": 95,
+        "specHash": "fnv1a32:631a2750",
+        "actions": 0,
+        "baseline": {
+          "cells": 46,
+          "divisions": 39,
+          "removed": 0,
+          "area": 201.1812186647609,
+          "meanSignal": 0.2424477276297486
+        },
+        "current": {
+          "cells": 46,
+          "divisions": 39,
+          "removed": 0,
+          "area": 201.1812186647609,
+          "meanSignal": 0.2424477276297486
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              4.9193966473061295,
+              4.429550932145018
+            ],
+            "span": 22.868484747887926
+          },
+          "mode": "overview"
+        },
+        "showSignal": false,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "bounds": {
+            "left": 52.35684383038506,
+            "right": 304.3240462622166,
+            "top": 164.3166611348404,
+            "bottom": 428.9265633608126
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 32.87199999999983,
+          "completedSteps": 95,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 95
+      },
+      "replaying": {
+        "id": "living-tissue",
+        "step": 0,
+        "specHash": "fnv1a32:a28dd260",
+        "actions": 1,
+        "baseline": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "current": {
+          "cells": 7,
+          "divisions": 0,
+          "removed": 0,
+          "area": 31.415926535897924,
+          "meanSignal": 0.7142857142857143
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "cell:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              4.9193966473061295,
+              4.429550932145018
+            ],
+            "span": 22.868484747887926
+          },
+          "mode": "overview"
+        },
+        "showSignal": false,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "cell:1",
+            "x": 188.25220036611196,
+            "y": 320.3165911651829,
+            "worldX": 16.8,
+            "worldY": 17.3856406460551,
+            "lineageId": "cell:1",
+            "radius": 17.15506215340247
+          },
+          "bounds": {
+            "left": 137.48021918745567,
+            "right": 216.61290219459903,
+            "top": 264.3440545146682,
+            "bottom": 337.47165331858537
+          }
+        },
+        "replay": {
+          "endStep": 159,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "replayProgress": {
+        "id": "living-tissue",
+        "step": 87,
+        "specHash": "fnv1a32:a28dd260",
+        "actions": 1,
+        "baseline": {
+          "cells": 44,
+          "divisions": 37,
+          "removed": 0,
+          "area": 174.66971577730249,
+          "meanSignal": 0.2666017741525372
+        },
+        "current": {
+          "cells": 44,
+          "divisions": 37,
+          "removed": 0,
+          "area": 174.66971577730249,
+          "meanSignal": 0.2666017741525372
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "cell:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              4.9193966473061295,
+              4.429550932145018
+            ],
+            "span": 22.868484747887926
+          },
+          "mode": "overview"
+        },
+        "showSignal": false,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "cell:1",
+            "x": 235.49884210955452,
+            "y": 389.1881871896385,
+            "worldX": 20.173061644913965,
+            "worldY": 22.302564482368666,
+            "lineageId": "cell:1",
+            "radius": 15.961491078574937
+          },
+          "bounds": {
+            "left": 55.12443282172555,
+            "right": 297.89223114559405,
+            "top": 171.78305676642333,
+            "bottom": 423.2084481699366
+          }
+        },
+        "replay": {
+          "endStep": 159,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0.9840000000000906,
+          "completedSteps": 87,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 87
+      },
+      "replayedActions": {
+        "id": "living-tissue",
+        "step": 159,
+        "specHash": "fnv1a32:a28dd260",
+        "actions": 1,
+        "baseline": {
+          "cells": 88,
+          "divisions": 81,
+          "removed": 0,
+          "area": 420.86052248120757,
+          "meanSignal": 0.14727375021043268
+        },
+        "current": {
+          "cells": 83,
+          "divisions": 81,
+          "removed": 5,
+          "area": 395.4563723614572,
+          "meanSignal": 0.1483528281387454
+        },
+        "running": false,
+        "complete": true,
+        "selectedId": "cell:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              4.9193966473061295,
+              4.429550932145018
+            ],
+            "span": 22.868484747887926
+          },
+          "mode": "overview"
+        },
+        "showSignal": false,
+        "executionState": "completed",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "bounds": {
+            "left": 1.931200398381641,
+            "right": 360.84167167294135,
+            "top": 118.5805897096356,
+            "bottom": 479.8012297263915
+          }
+        },
+        "replay": {
+          "endStep": 159,
+          "appliedActions": 1
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 159,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 159
+      },
+      "recovery": {
+        "state": "failed",
+        "hash": true,
+        "pixels": true,
+        "label": "Retry accepted run"
+      },
+      "scroll": {
+        "y": 129,
+        "height": 2046,
+        "viewport": 844,
+        "before": 0,
+        "onCanvas": true
+      },
+      "pass": true
+    },
+    {
+      "profile": "river-formation",
+      "route": "/river-formation",
+      "width": 1440,
+      "height": 1000,
+      "kind": "field",
+      "opening": {
+        "id": "river-formation",
+        "step": 0,
+        "specHash": "fnv1a32:6abd2a66",
+        "actions": 0,
+        "baseline": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "current": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:220",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:220",
+            "index": 220,
+            "x": 1134.2313410034203,
+            "y": 382.90504946450085,
+            "worldX": 28.5,
+            "worldY": 6.5,
+            "bounds": {
+              "left": 1114.2957160034202,
+              "right": 1154.1669660034202,
+              "top": 373.93401821450084,
+              "bottom": 391.87608071450086
+            }
+          },
+          "bounds": {
+            "left": 49.559999999999945,
+            "right": 1325.44,
+            "top": 78.71692687554639,
+            "bottom": 748.5272500063209
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "paused": {
+        "id": "river-formation",
+        "step": 175,
+        "specHash": "fnv1a32:6abd2a66",
+        "actions": 0,
+        "baseline": {
+          "water": 167.68225638037038,
+          "sediment": 0.9010044979382429,
+          "terrain": 3019.8185119887717,
+          "waterExport": 4.458386286022398,
+          "sedimentExport": 0.025271153866254906,
+          "waterResidual": -5.7980287238024175e-12,
+          "sedimentResidual": 7.73070496506989e-12
+        },
+        "current": {
+          "water": 167.68225638037038,
+          "sediment": 0.9010044979382429,
+          "terrain": 3019.8185119887717,
+          "waterExport": 4.458386286022398,
+          "sedimentExport": 0.025271153866254906,
+          "waterResidual": -5.7980287238024175e-12,
+          "sedimentResidual": 7.73070496506989e-12
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "site:220",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:220",
+            "index": 220,
+            "x": 1134.2313410034203,
+            "y": 382.9783950860103,
+            "worldX": 28.5,
+            "worldY": 6.5,
+            "bounds": {
+              "left": 1114.2957160034202,
+              "right": 1154.1669660034202,
+              "top": 374.0073638360103,
+              "bottom": 391.9494263360104
+            }
+          },
+          "bounds": {
+            "left": 49.559999999999945,
+            "right": 1325.44,
+            "top": 78.71568258496598,
+            "bottom": 748.5198364759588
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 496.97792000000004,
+          "completedSteps": 175,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 175
+      },
+      "zoom": {
+        "keys": 0,
+        "clicks": 0,
+        "error": ""
+      },
+      "selection": {
+        "before": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -1.92,
+              -1.92
+            ],
+            "span": 35.84
+          },
+          "mode": "overview"
+        },
+        "after": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -1.92,
+              -1.92
+            ],
+            "span": 35.84
+          },
+          "mode": "overview"
+        }
+      },
+      "focused": {
+        "id": "river-formation",
+        "step": 175,
+        "specHash": "fnv1a32:6abd2a66",
+        "actions": 0,
+        "baseline": {
+          "water": 167.68225638037038,
+          "sediment": 0.9010044979382429,
+          "terrain": 3019.8185119887717,
+          "waterExport": 4.458386286022398,
+          "sedimentExport": 0.025271153866254906,
+          "waterResidual": -5.7980287238024175e-12,
+          "sedimentResidual": 7.73070496506989e-12
+        },
+        "current": {
+          "water": 167.68225638037038,
+          "sediment": 0.9010044979382429,
+          "terrain": 3019.8185119887717,
+          "waterExport": 4.458386286022398,
+          "sedimentExport": 0.025271153866254906,
+          "waterResidual": -5.7980287238024175e-12,
+          "sedimentResidual": 7.73070496506989e-12
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "site:711",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -0.5,
+              14.5
+            ],
+            "span": 16
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:711",
+            "index": 711,
+            "x": 668.1684848484849,
+            "y": 404.8693501439743,
+            "worldX": 7.5,
+            "worldY": 22.5,
+            "bounds": {
+              "left": 629.5054545454545,
+              "right": 706.8315151515152,
+              "top": 387.47098650761063,
+              "bottom": 422.2677137803379
+            }
+          },
+          "bounds": {
+            "left": 21.431228772098734,
+            "right": 2495.8651681660385,
+            "top": -283.3607272244449,
+            "bottom": 1015.6533894126319
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 496.97792000000004,
+          "completedSteps": 175,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 175
+      },
+      "framing": {
+        "width": 1375,
+        "height": 826,
+        "points": [
+          {
+            "x": 629.5054545454545,
+            "y": 387.47098650761063
+          },
+          {
+            "x": 706.8315151515152,
+            "y": 422.2677137803379
+          }
+        ]
+      },
+      "restarted": {
+        "id": "river-formation",
+        "step": 0,
+        "specHash": "fnv1a32:6abd2a66",
+        "actions": 0,
+        "baseline": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "current": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "bounds": {
+            "left": 49.559999999999945,
+            "right": 1325.44,
+            "top": 78.71692687554639,
+            "bottom": 748.5272500063209
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "advanced": {
+        "id": "river-formation",
+        "step": 64,
+        "specHash": "fnv1a32:6abd2a66",
+        "actions": 0,
+        "baseline": {
+          "water": 62.70761215077735,
+          "sediment": 0.28582733072822597,
+          "terrain": 3020.4583031629527,
+          "waterExport": 0.24668002436060216,
+          "sedimentExport": 0.0006571468910225142,
+          "waterResidual": -7.815970093361102e-13,
+          "sedimentResidual": 3.637978807091713e-12
+        },
+        "current": {
+          "water": 62.70761215077735,
+          "sediment": 0.28582733072822597,
+          "terrain": 3020.4583031629527,
+          "waterExport": 0.24668002436060216,
+          "sedimentExport": 0.0006571468910225142,
+          "waterResidual": -7.815970093361102e-13,
+          "sedimentResidual": 3.637978807091713e-12
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "bounds": {
+            "left": 49.559999999999945,
+            "right": 1325.44,
+            "top": 78.71120254219937,
+            "bottom": 748.5205659577207
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 288.1279999999993,
+          "completedSteps": 64,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 64
+      },
+      "replaying": {
+        "id": "river-formation",
+        "step": 0,
+        "specHash": "fnv1a32:a2280f1d",
+        "actions": 1,
+        "baseline": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "current": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "x": 625.9597149657984,
+            "y": 94.2529806846672,
+            "worldX": 1.5,
+            "worldY": 0.5,
+            "bounds": {
+              "left": 606.0240899657985,
+              "right": 645.8953399657985,
+              "top": 85.28194943466724,
+              "bottom": 103.2240119346672
+            }
+          },
+          "bounds": {
+            "left": 49.559999999999945,
+            "right": 1325.44,
+            "top": 78.71692687554639,
+            "bottom": 748.5272500063209
+          }
+        },
+        "replay": {
+          "endStep": 128,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "replayProgress": {
+        "id": "river-formation",
+        "step": 55,
+        "specHash": "fnv1a32:a2280f1d",
+        "actions": 1,
+        "baseline": {
+          "water": 53.92135593702554,
+          "sediment": 0.23832485894666036,
+          "terrain": 3020.5060225937573,
+          "waterExport": 0.17998890098361964,
+          "sedimentExport": 0.0004401878647793178,
+          "waterResidual": -5.258016244624741e-13,
+          "sedimentResidual": 0
+        },
+        "current": {
+          "water": 53.92135593702554,
+          "sediment": 0.23832485894666036,
+          "terrain": 3020.5060225937573,
+          "waterExport": 0.17998890098361964,
+          "sedimentExport": 0.0004401878647793178,
+          "waterResidual": -5.258016244624741e-13,
+          "sedimentResidual": 0
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "x": 625.9597149657984,
+            "y": 94.2505977496125,
+            "worldX": 1.5,
+            "worldY": 0.5,
+            "bounds": {
+              "left": 606.0240899657985,
+              "right": 645.8953399657985,
+              "top": 85.27956649961249,
+              "bottom": 103.2216289996125
+            }
+          },
+          "bounds": {
+            "left": 49.559999999999945,
+            "right": 1325.44,
+            "top": 78.71140701500372,
+            "bottom": 748.5209246278864
+          }
+        },
+        "replay": {
+          "endStep": 128,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0.968000000000174,
+          "completedSteps": 55,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 55
+      },
+      "replayedActions": {
+        "id": "river-formation",
+        "step": 128,
+        "specHash": "fnv1a32:a2280f1d",
+        "actions": 1,
+        "baseline": {
+          "water": 124.43499461932822,
+          "sediment": 0.6437694898468405,
+          "terrain": 3020.095011037931,
+          "waterExport": 1.473589730947513,
+          "sedimentExport": 0.0060071127917049804,
+          "waterResidual": 6.963318810448982e-13,
+          "sedimentResidual": 9.094947017729282e-13
+        },
+        "current": {
+          "water": 124.43499461932822,
+          "sediment": 0.6437694898468405,
+          "terrain": 3015.8950110379315,
+          "waterExport": 1.473589730947513,
+          "sedimentExport": 0.0060071127917049804,
+          "waterResidual": 6.963318810448982e-13,
+          "sedimentResidual": 1.5472068071176182e-12
+        },
+        "running": false,
+        "complete": true,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "completed",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "x": 625.9597149657984,
+            "y": 112.18071250957661,
+            "worldX": 1.5,
+            "worldY": 0.5,
+            "bounds": {
+              "left": 606.0240899657985,
+              "right": 645.8953399657985,
+              "top": 103.20968125957654,
+              "bottom": 121.15174375957662
+            }
+          },
+          "bounds": {
+            "left": 49.559999999999945,
+            "right": 1325.44,
+            "top": 78.7118259319077,
+            "bottom": 748.5193693965475
+          }
+        },
+        "replay": {
+          "endStep": 128,
+          "appliedActions": 1
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 128,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 128
+      },
+      "recovery": {
+        "state": "failed",
+        "hash": true,
+        "pixels": true,
+        "label": "Retry accepted run"
+      },
+      "pass": true
+    },
+    {
+      "profile": "river-formation",
+      "route": "/river-formation",
+      "width": 390,
+      "height": 844,
+      "kind": "field",
+      "opening": {
+        "id": "river-formation",
+        "step": 0,
+        "specHash": "fnv1a32:6abd2a66",
+        "actions": 0,
+        "baseline": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "current": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:220",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:220",
+            "index": 220,
+            "x": 294.15551866179857,
+            "y": 291.4444191024774,
+            "worldX": 28.5,
+            "worldY": 6.5,
+            "bounds": {
+              "left": 289.1505186617985,
+              "right": 299.16051866179856,
+              "top": 289.1921691024774,
+              "bottom": 293.6966691024774
+            }
+          },
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 215.0755290597666,
+            "bottom": 383.2368316158453
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "paused": {
+        "id": "river-formation",
+        "step": 128,
+        "specHash": "fnv1a32:6abd2a66",
+        "actions": 0,
+        "baseline": {
+          "water": 124.43499461932822,
+          "sediment": 0.6437694898468405,
+          "terrain": 3020.095011037931,
+          "waterExport": 1.473589730947513,
+          "sedimentExport": 0.0060071127917049804,
+          "waterResidual": 6.963318810448982e-13,
+          "sedimentResidual": 9.094947017729282e-13
+        },
+        "current": {
+          "water": 124.43499461932822,
+          "sediment": 0.6437694898468405,
+          "terrain": 3020.095011037931,
+          "waterExport": 1.473589730947513,
+          "sedimentExport": 0.0060071127917049804,
+          "waterResidual": 6.963318810448982e-13,
+          "sedimentResidual": 9.094947017729282e-13
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "site:220",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:220",
+            "index": 220,
+            "x": 294.15551866179857,
+            "y": 291.45722342046014,
+            "worldX": 28.5,
+            "worldY": 6.5,
+            "bounds": {
+              "left": 289.1505186617985,
+              "right": 299.16051866179856,
+              "top": 289.2049734204601,
+              "bottom": 293.70947342046014
+            }
+          },
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 215.07424842658298,
+            "bottom": 383.23485312498207
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 391.98400000000004,
+          "completedSteps": 128,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 128
+      },
+      "zoom": {
+        "keys": 0,
+        "clicks": 0,
+        "error": ""
+      },
+      "selection": {
+        "before": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -1.92,
+              -1.92
+            ],
+            "span": 35.84
+          },
+          "mode": "overview"
+        },
+        "after": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -1.92,
+              -1.92
+            ],
+            "span": 35.84
+          },
+          "mode": "overview"
+        }
+      },
+      "focused": {
+        "id": "river-formation",
+        "step": 128,
+        "specHash": "fnv1a32:6abd2a66",
+        "actions": 0,
+        "baseline": {
+          "water": 124.43499461932822,
+          "sediment": 0.6437694898468405,
+          "terrain": 3020.095011037931,
+          "waterExport": 1.473589730947513,
+          "sedimentExport": 0.0060071127917049804,
+          "waterResidual": 6.963318810448982e-13,
+          "sedimentResidual": 9.094947017729282e-13
+        },
+        "current": {
+          "water": 124.43499461932822,
+          "sediment": 0.6437694898468405,
+          "terrain": 3020.095011037931,
+          "waterExport": 1.473589730947513,
+          "sedimentExport": 0.0060071127917049804,
+          "waterResidual": 6.963318810448982e-13,
+          "sedimentResidual": 9.094947017729282e-13
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "site:711",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -0.5,
+              14.5
+            ],
+            "span": 16
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:711",
+            "index": 711,
+            "x": 177.14666666666668,
+            "y": 296.9710749377792,
+            "worldX": 7.5,
+            "worldY": 22.5,
+            "bounds": {
+              "left": 167.44,
+              "right": 186.85333333333335,
+              "top": 292.6030749377792,
+              "bottom": 301.3390749377792
+            }
+          },
+          "bounds": {
+            "left": 14.778044330406232,
+            "right": 636.0047109970728,
+            "top": 124.1857374846326,
+            "bottom": 450.31539508152775
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 391.98400000000004,
+          "completedSteps": 128,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 128
+      },
+      "framing": {
+        "width": 364,
+        "height": 598,
+        "points": [
+          {
+            "x": 167.44,
+            "y": 292.6030749377792
+          },
+          {
+            "x": 186.85333333333335,
+            "y": 301.3390749377792
+          }
+        ]
+      },
+      "restarted": {
+        "id": "river-formation",
+        "step": 0,
+        "specHash": "fnv1a32:6abd2a66",
+        "actions": 0,
+        "baseline": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "current": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 215.0755290597666,
+            "bottom": 383.2368316158453
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "advanced": {
+        "id": "river-formation",
+        "step": 32,
+        "specHash": "fnv1a32:6abd2a66",
+        "actions": 0,
+        "baseline": {
+          "water": 31.41101924886515,
+          "sediment": 0.12465284974861457,
+          "terrain": 3020.6200223567457,
+          "waterExport": 0.06612683870379832,
+          "sedimentExport": 0.00011243408027179609,
+          "waterResidual": 2.3092638912203256e-13,
+          "sedimentResidual": 5.9117155615240335e-12
+        },
+        "current": {
+          "water": 31.41101924886515,
+          "sediment": 0.12465284974861457,
+          "terrain": 3020.6200223567457,
+          "waterExport": 0.06612683870379832,
+          "sedimentExport": 0.00011243408027179609,
+          "waterResidual": 2.3092638912203256e-13,
+          "sedimentResidual": 5.9117155615240335e-12
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 215.07443730363516,
+            "bottom": 383.23562364166315
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0.06400000000139983,
+          "completedSteps": 32,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 32
+      },
+      "replaying": {
+        "id": "river-formation",
+        "step": 0,
+        "specHash": "fnv1a32:add689e7",
+        "actions": 1,
+        "baseline": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "current": {
+          "water": 0,
+          "sediment": 0,
+          "terrain": 3020.7447876405686,
+          "waterExport": 0,
+          "sedimentExport": 0,
+          "waterResidual": 0,
+          "sedimentResidual": 0
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "x": 166.54981338201443,
+            "y": 218.97598110552138,
+            "worldX": 1.5,
+            "worldY": 0.5,
+            "bounds": {
+              "left": 161.5448133820144,
+              "right": 171.55481338201443,
+              "top": 216.72373110552138,
+              "bottom": 221.2282311055214
+            }
+          },
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 215.0755290597666,
+            "bottom": 383.2368316158453
+          }
+        },
+        "replay": {
+          "endStep": 96,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "replayProgress": {
+        "id": "river-formation",
+        "step": 31,
+        "specHash": "fnv1a32:add689e7",
+        "actions": 1,
+        "baseline": {
+          "water": 30.430817176720392,
+          "sediment": 0.12003518033821056,
+          "terrain": 3020.6246485643774,
+          "waterExport": 0.06266809561203208,
+          "sedimentExport": 0.00010389585471136518,
+          "waterResidual": 2.5224267119483557e-13,
+          "sedimentResidual": 1.8189894035458565e-12
+        },
+        "current": {
+          "water": 30.430817176720392,
+          "sediment": 0.12003518033821056,
+          "terrain": 3020.6246485643774,
+          "waterExport": 0.06266809561203208,
+          "sedimentExport": 0.00010389585471136518,
+          "waterResidual": 2.5224267119483557e-13,
+          "sedimentResidual": 1.8189894035458565e-12
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "x": 166.54981338201443,
+            "y": 218.97534772435492,
+            "worldX": 1.5,
+            "worldY": 0.5,
+            "bounds": {
+              "left": 161.5448133820144,
+              "right": 171.55481338201443,
+              "top": 216.72309772435491,
+              "bottom": 221.2275977243549
+            }
+          },
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 215.07445809752815,
+            "bottom": 383.2356479841088
+          }
+        },
+        "replay": {
+          "endStep": 96,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0.9679999999997371,
+          "completedSteps": 31,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 31
+      },
+      "replayedActions": {
+        "id": "river-formation",
+        "step": 96,
+        "specHash": "fnv1a32:add689e7",
+        "actions": 1,
+        "baseline": {
+          "water": 93.78951219049642,
+          "sediment": 0.46256056876836427,
+          "terrain": 3020.280085287487,
+          "waterExport": 0.6419260722102722,
+          "sedimentExport": 0.0021417843183862387,
+          "waterResidual": -1.9895196601282805e-13,
+          "sedimentResidual": 5.4569682106375694e-12
+        },
+        "current": {
+          "water": 93.78951219049642,
+          "sediment": 0.46256056876836427,
+          "terrain": 3016.0800852874872,
+          "waterExport": 0.6419260722102722,
+          "sedimentExport": 0.0021417843183862387,
+          "waterResidual": -1.9895196601282805e-13,
+          "sedimentResidual": 5.639932965095795e-12
+        },
+        "running": false,
+        "complete": true,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 32
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "completed",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "x": 166.54981338201443,
+            "y": 223.4762837735896,
+            "worldX": 1.5,
+            "worldY": 0.5,
+            "bounds": {
+              "left": 161.5448133820144,
+              "right": 171.55481338201443,
+              "top": 221.22403377358964,
+              "bottom": 225.72853377358962
+            }
+          },
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 215.07406596146038,
+            "bottom": 383.2349503163935
+          }
+        },
+        "replay": {
+          "endStep": 96,
+          "appliedActions": 1
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 96,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 96
+      },
+      "recovery": {
+        "state": "failed",
+        "hash": true,
+        "pixels": true,
+        "label": "Retry accepted run"
+      },
+      "scroll": {
+        "y": 129,
+        "height": 1856,
+        "viewport": 844,
+        "before": 0,
+        "onCanvas": true
+      },
+      "pass": true
+    },
+    {
+      "profile": "crystal-foundry",
+      "route": "/crystal-foundry",
+      "width": 1440,
+      "height": 1000,
+      "kind": "field",
+      "opening": {
+        "id": "crystal-foundry",
+        "step": 0,
+        "specHash": "fnv1a32:10ac986e",
+        "actions": 0,
+        "baseline": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "current": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:2048",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:2048",
+            "index": 2048,
+            "grainId": 0,
+            "x": 329.73875,
+            "y": 418.67875,
+            "worldX": 0.0125,
+            "worldY": 0.8125,
+            "bounds": {
+              "left": 324.06,
+              "right": 335.4175,
+              "top": 413,
+              "bottom": 424.3575
+            }
+          },
+          "bounds": {
+            "left": 324.06,
+            "right": 1050.94,
+            "top": 49.56,
+            "bottom": 776.4399999999999
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "paused": {
+        "id": "crystal-foundry",
+        "step": 104,
+        "specHash": "fnv1a32:10ac986e",
+        "actions": 0,
+        "baseline": {
+          "solidArea": 0.03971606324042501,
+          "solidFraction": 0.015514087203291015,
+          "meanTemperature": -0.4908335690467106,
+          "enthalpyResidual": -4.263256414560602e-15,
+          "limitedFluxes": 1605
+        },
+        "current": {
+          "solidArea": 0.03971606324042501,
+          "solidFraction": 0.015514087203291015,
+          "meanTemperature": -0.4908335690467106,
+          "enthalpyResidual": -4.263256414560602e-15,
+          "limitedFluxes": 1605
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "site:2048",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:2048",
+            "index": 2048,
+            "grainId": 0,
+            "x": 329.73875,
+            "y": 418.67875,
+            "worldX": 0.0125,
+            "worldY": 0.8125,
+            "bounds": {
+              "left": 324.06,
+              "right": 335.4175,
+              "top": 413,
+              "bottom": 424.3575
+            }
+          },
+          "bounds": {
+            "left": 324.06,
+            "right": 1050.94,
+            "top": 49.56,
+            "bottom": 776.4399999999999
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 431.95552000000004,
+          "completedSteps": 104,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 104
+      },
+      "zoom": {
+        "keys": 0,
+        "clicks": 0,
+        "error": ""
+      },
+      "selection": {
+        "before": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -0.096,
+              -0.096
+            ],
+            "span": 1.792
+          },
+          "mode": "overview"
+        },
+        "after": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -0.096,
+              -0.096
+            ],
+            "span": 1.792
+          },
+          "mode": "overview"
+        }
+      },
+      "focused": {
+        "id": "crystal-foundry",
+        "step": 104,
+        "specHash": "fnv1a32:10ac986e",
+        "actions": 0,
+        "baseline": {
+          "solidArea": 0.03971606324042501,
+          "solidFraction": 0.015514087203291015,
+          "meanTemperature": -0.4908335690467106,
+          "enthalpyResidual": -4.263256414560602e-15,
+          "limitedFluxes": 1605
+        },
+        "current": {
+          "solidArea": 0.03971606324042501,
+          "solidFraction": 0.015514087203291015,
+          "meanTemperature": -0.4908335690467106,
+          "enthalpyResidual": -4.263256414560602e-15,
+          "limitedFluxes": 1605
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "site:2049",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -0.36250000000000004,
+              0.4125
+            ],
+            "span": 0.8
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:2049",
+            "index": 2049,
+            "grainId": 0,
+            "x": 687.5,
+            "y": 413.00000000000006,
+            "worldX": 0.037500000000000006,
+            "worldY": 0.8125,
+            "bounds": {
+              "left": 676.1425,
+              "right": 698.8575000000001,
+              "top": 401.64250000000004,
+              "bottom": 424.3575
+            }
+          },
+          "bounds": {
+            "left": 653.4275,
+            "right": 2107.1875000000005,
+            "top": -325.23749999999995,
+            "bottom": 1128.5224999999998
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 431.95552000000004,
+          "completedSteps": 104,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 104
+      },
+      "framing": {
+        "width": 1375,
+        "height": 826,
+        "points": [
+          {
+            "x": 676.1425,
+            "y": 401.64250000000004
+          },
+          {
+            "x": 698.8575000000001,
+            "y": 424.3575
+          }
+        ]
+      },
+      "restarted": {
+        "id": "crystal-foundry",
+        "step": 0,
+        "specHash": "fnv1a32:10ac986e",
+        "actions": 0,
+        "baseline": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "current": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "bounds": {
+            "left": 324.06,
+            "right": 1050.94,
+            "top": 49.56,
+            "bottom": 776.4399999999999
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "advanced": {
+        "id": "crystal-foundry",
+        "step": 64,
+        "specHash": "fnv1a32:10ac986e",
+        "actions": 0,
+        "baseline": {
+          "solidArea": 0.027663952096625952,
+          "solidFraction": 0.01080623128774451,
+          "meanTemperature": -0.49554142496225495,
+          "enthalpyResidual": 1.4210854715202006e-15,
+          "limitedFluxes": 1605
+        },
+        "current": {
+          "solidArea": 0.027663952096625952,
+          "solidFraction": 0.01080623128774451,
+          "meanTemperature": -0.49554142496225495,
+          "enthalpyResidual": 1.4210854715202006e-15,
+          "limitedFluxes": 1605
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "bounds": {
+            "left": 324.06,
+            "right": 1050.94,
+            "top": 49.56,
+            "bottom": 776.4399999999999
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0.12800000000105172,
+          "completedSteps": 64,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 64
+      },
+      "replaying": {
+        "id": "crystal-foundry",
+        "step": 0,
+        "specHash": "fnv1a32:dc89b728",
+        "actions": 1,
+        "baseline": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "current": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "grainId": 0,
+            "x": 341.09625,
+            "y": 55.23875,
+            "worldX": 0.037500000000000006,
+            "worldY": 0.0125,
+            "bounds": {
+              "left": 335.4175,
+              "right": 346.77500000000003,
+              "top": 49.56,
+              "bottom": 60.917500000000004
+            }
+          },
+          "bounds": {
+            "left": 324.06,
+            "right": 1050.94,
+            "top": 49.56,
+            "bottom": 776.4399999999999
+          }
+        },
+        "replay": {
+          "endStep": 128,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "replayProgress": {
+        "id": "crystal-foundry",
+        "step": 39,
+        "specHash": "fnv1a32:dc89b728",
+        "actions": 1,
+        "baseline": {
+          "solidArea": 0.02195041852561101,
+          "solidFraction": 0.0085743822365668,
+          "meanTemperature": -0.49777327401343485,
+          "enthalpyResidual": -4.263256414560602e-15,
+          "limitedFluxes": 1605
+        },
+        "current": {
+          "solidArea": 0.02195041852561101,
+          "solidFraction": 0.0085743822365668,
+          "meanTemperature": -0.49777327401343485,
+          "enthalpyResidual": -4.263256414560602e-15,
+          "limitedFluxes": 1605
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "grainId": 0,
+            "x": 341.09625,
+            "y": 55.23875,
+            "worldX": 0.037500000000000006,
+            "worldY": 0.0125,
+            "bounds": {
+              "left": 335.4175,
+              "right": 346.77500000000003,
+              "top": 49.56,
+              "bottom": 60.917500000000004
+            }
+          },
+          "bounds": {
+            "left": 324.06,
+            "right": 1050.94,
+            "top": 49.56,
+            "bottom": 776.4399999999999
+          }
+        },
+        "replay": {
+          "endStep": 128,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0.9840000000005276,
+          "completedSteps": 39,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 39
+      },
+      "replayedActions": {
+        "id": "crystal-foundry",
+        "step": 128,
+        "specHash": "fnv1a32:dc89b728",
+        "actions": 1,
+        "baseline": {
+          "solidArea": 0.0488744534086824,
+          "solidFraction": 0.01909158336276656,
+          "meanTemperature": -0.48725607288723416,
+          "enthalpyResidual": -1.7053025658242408e-15,
+          "limitedFluxes": 1605
+        },
+        "current": {
+          "solidArea": 0.05494113662373368,
+          "solidFraction": 0.021461381493645963,
+          "meanTemperature": -0.48725607288723416,
+          "enthalpyResidual": -1.7053025658242408e-15,
+          "limitedFluxes": 1605
+        },
+        "running": false,
+        "complete": true,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "completed",
+        "view": {
+          "width": 1375,
+          "height": 826,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "grainId": 2,
+            "x": 341.09625,
+            "y": 55.23875,
+            "worldX": 0.037500000000000006,
+            "worldY": 0.0125,
+            "bounds": {
+              "left": 335.4175,
+              "right": 346.77500000000003,
+              "top": 49.56,
+              "bottom": 60.917500000000004
+            }
+          },
+          "bounds": {
+            "left": 324.06,
+            "right": 1050.94,
+            "top": 49.56,
+            "bottom": 776.4399999999999
+          }
+        },
+        "replay": {
+          "endStep": 128,
+          "appliedActions": 1
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 128,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 128
+      },
+      "recovery": {
+        "state": "failed",
+        "hash": true,
+        "pixels": true,
+        "label": "Retry accepted run"
+      },
+      "pass": true
+    },
+    {
+      "profile": "crystal-foundry",
+      "route": "/crystal-foundry",
+      "width": 390,
+      "height": 844,
+      "kind": "field",
+      "opening": {
+        "id": "crystal-foundry",
+        "step": 0,
+        "specHash": "fnv1a32:10ac986e",
+        "actions": 0,
+        "baseline": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "current": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:2048",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:2048",
+            "index": 2048,
+            "grainId": 0,
+            "x": 24.342500000000005,
+            "y": 301.5025,
+            "worldX": 0.0125,
+            "worldY": 0.8125,
+            "bounds": {
+              "left": 21.840000000000003,
+              "right": 26.845000000000002,
+              "top": 299,
+              "bottom": 304.005
+            }
+          },
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 138.84,
+            "bottom": 459.15999999999997
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "paused": {
+        "id": "crystal-foundry",
+        "step": 127,
+        "specHash": "fnv1a32:10ac986e",
+        "actions": 0,
+        "baseline": {
+          "solidArea": 0.04846267492058368,
+          "solidFraction": 0.018930732390852998,
+          "meanTemperature": -0.487416923859147,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 1605
+        },
+        "current": {
+          "solidArea": 0.04846267492058368,
+          "solidFraction": 0.018930732390852998,
+          "meanTemperature": -0.487416923859147,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 1605
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "site:2048",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:2048",
+            "index": 2048,
+            "grainId": 0,
+            "x": 24.342500000000005,
+            "y": 301.5025,
+            "worldX": 0.0125,
+            "worldY": 0.8125,
+            "bounds": {
+              "left": 21.840000000000003,
+              "right": 26.845000000000002,
+              "top": 299,
+              "bottom": 304.005
+            }
+          },
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 138.84,
+            "bottom": 459.15999999999997
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 592.9875199999999,
+          "completedSteps": 127,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 127
+      },
+      "zoom": {
+        "keys": 0,
+        "clicks": 0,
+        "error": ""
+      },
+      "selection": {
+        "before": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -0.096,
+              -0.096
+            ],
+            "span": 1.792
+          },
+          "mode": "overview"
+        },
+        "after": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -0.096,
+              -0.096
+            ],
+            "span": 1.792
+          },
+          "mode": "overview"
+        }
+      },
+      "focused": {
+        "id": "crystal-foundry",
+        "step": 127,
+        "specHash": "fnv1a32:10ac986e",
+        "actions": 0,
+        "baseline": {
+          "solidArea": 0.04846267492058368,
+          "solidFraction": 0.018930732390852998,
+          "meanTemperature": -0.487416923859147,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 1605
+        },
+        "current": {
+          "solidArea": 0.04846267492058368,
+          "solidFraction": 0.018930732390852998,
+          "meanTemperature": -0.487416923859147,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 1605
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": "site:2049",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              -0.36250000000000004,
+              0.4125
+            ],
+            "span": 0.8
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:2049",
+            "index": 2049,
+            "grainId": 0,
+            "x": 182.00000000000003,
+            "y": 299,
+            "worldX": 0.037500000000000006,
+            "worldY": 0.8125,
+            "bounds": {
+              "left": 176.99500000000003,
+              "right": 187.00500000000002,
+              "top": 293.995,
+              "bottom": 304.005
+            }
+          },
+          "bounds": {
+            "left": 166.985,
+            "right": 807.6250000000001,
+            "top": -26.32499999999999,
+            "bottom": 614.315
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 592.9875199999999,
+          "completedSteps": 127,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 127
+      },
+      "framing": {
+        "width": 364,
+        "height": 598,
+        "points": [
+          {
+            "x": 176.99500000000003,
+            "y": 293.995
+          },
+          {
+            "x": 187.00500000000002,
+            "y": 304.005
+          }
+        ]
+      },
+      "restarted": {
+        "id": "crystal-foundry",
+        "step": 0,
+        "specHash": "fnv1a32:10ac986e",
+        "actions": 0,
+        "baseline": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "current": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "running": false,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "paused",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 138.84,
+            "bottom": 459.15999999999997
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "advanced": {
+        "id": "crystal-foundry",
+        "step": 64,
+        "specHash": "fnv1a32:10ac986e",
+        "actions": 0,
+        "baseline": {
+          "solidArea": 0.027663952096625952,
+          "solidFraction": 0.01080623128774451,
+          "meanTemperature": -0.49554142496225495,
+          "enthalpyResidual": 1.4210854715202006e-15,
+          "limitedFluxes": 1605
+        },
+        "current": {
+          "solidArea": 0.027663952096625952,
+          "solidFraction": 0.01080623128774451,
+          "meanTemperature": -0.49554142496225495,
+          "enthalpyResidual": 1.4210854715202006e-15,
+          "limitedFluxes": 1605
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": null,
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 138.84,
+            "bottom": 459.15999999999997
+          }
+        },
+        "replay": null,
+        "playback": {
+          "pendingSteps": 64.25600000000034,
+          "completedSteps": 64,
+          "slowerPlayback": true,
+          "stepsPerSecond": 480
+        },
+        "progress": 64
+      },
+      "replaying": {
+        "id": "crystal-foundry",
+        "step": 0,
+        "specHash": "fnv1a32:dc89b728",
+        "actions": 1,
+        "baseline": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "current": {
+          "solidArea": 0.016250000000000004,
+          "solidFraction": 0.00634765625,
+          "meanTemperature": -0.5,
+          "enthalpyResidual": 0,
+          "limitedFluxes": 0
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "grainId": 0,
+            "x": 29.347500000000004,
+            "y": 141.3425,
+            "worldX": 0.037500000000000006,
+            "worldY": 0.0125,
+            "bounds": {
+              "left": 26.845000000000002,
+              "right": 31.85,
+              "top": 138.84,
+              "bottom": 143.845
+            }
+          },
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 138.84,
+            "bottom": 459.15999999999997
+          }
+        },
+        "replay": {
+          "endStep": 128,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 0,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 0
+      },
+      "replayProgress": {
+        "id": "crystal-foundry",
+        "step": 32,
+        "specHash": "fnv1a32:dc89b728",
+        "actions": 1,
+        "baseline": {
+          "solidArea": 0.020579924931966843,
+          "solidFraction": 0.008039033176549547,
+          "meanTemperature": -0.4983086230734506,
+          "enthalpyResidual": -2.8421709430404013e-16,
+          "limitedFluxes": 1554
+        },
+        "current": {
+          "solidArea": 0.020579924931966843,
+          "solidFraction": 0.008039033176549547,
+          "meanTemperature": -0.4983086230734506,
+          "enthalpyResidual": -2.8421709430404013e-16,
+          "limitedFluxes": 1554
+        },
+        "running": true,
+        "complete": false,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "running",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "grainId": 0,
+            "x": 29.347500000000004,
+            "y": 141.3425,
+            "worldX": 0.037500000000000006,
+            "worldY": 0.0125,
+            "bounds": {
+              "left": 26.845000000000002,
+              "right": 31.85,
+              "top": 138.84,
+              "bottom": 143.845
+            }
+          },
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 138.84,
+            "bottom": 459.15999999999997
+          }
+        },
+        "replay": {
+          "endStep": 128,
+          "appliedActions": 0
+        },
+        "playback": {
+          "pendingSteps": 0.01599999999947954,
+          "completedSteps": 32,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 32
+      },
+      "replayedActions": {
+        "id": "crystal-foundry",
+        "step": 128,
+        "specHash": "fnv1a32:dc89b728",
+        "actions": 1,
+        "baseline": {
+          "solidArea": 0.0488744534086824,
+          "solidFraction": 0.01909158336276656,
+          "meanTemperature": -0.48725607288723416,
+          "enthalpyResidual": -1.7053025658242408e-15,
+          "limitedFluxes": 1605
+        },
+        "current": {
+          "solidArea": 0.05494113662373368,
+          "solidFraction": 0.021461381493645963,
+          "meanTemperature": -0.48725607288723416,
+          "enthalpyResidual": -1.7053025658242408e-15,
+          "limitedFluxes": 1605
+        },
+        "running": false,
+        "complete": true,
+        "selectedId": "site:1",
+        "camera": {
+          "yaw": 0.65,
+          "bounds": {
+            "origin": [
+              0,
+              0
+            ],
+            "span": 1.6
+          },
+          "mode": "overview"
+        },
+        "showSignal": true,
+        "executionState": "completed",
+        "view": {
+          "width": 364,
+          "height": 598,
+          "selected": {
+            "id": "site:1",
+            "index": 1,
+            "grainId": 2,
+            "x": 29.347500000000004,
+            "y": 141.3425,
+            "worldX": 0.037500000000000006,
+            "worldY": 0.0125,
+            "bounds": {
+              "left": 26.845000000000002,
+              "right": 31.85,
+              "top": 138.84,
+              "bottom": 143.845
+            }
+          },
+          "bounds": {
+            "left": 21.840000000000003,
+            "right": 342.15999999999997,
+            "top": 138.84,
+            "bottom": 459.15999999999997
+          }
+        },
+        "replay": {
+          "endStep": 128,
+          "appliedActions": 1
+        },
+        "playback": {
+          "pendingSteps": 0,
+          "completedSteps": 128,
+          "slowerPlayback": false,
+          "stepsPerSecond": 480
+        },
+        "progress": 128
+      },
+      "recovery": {
+        "state": "failed",
+        "hash": true,
+        "pixels": true,
+        "label": "Retry accepted run"
+      },
+      "scroll": {
+        "y": 129,
+        "height": 1848,
+        "viewport": 844,
+        "before": 0,
+        "onCanvas": true
+      },
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "boundary": "Desktop and emulated mobile in Chrome; native GPU required. Human observation and physical-phone review remain separate.",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/136.0.7103.59",
+    "revision": "@d4b493843f5f23217df99a83aa28747602841382",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+    "jsVersion": "13.6.233.8"
+  },
+  "sourceFreeze": {
+    "passed": true,
+    "finishedAt": "2026-10-12T20:07:53.847Z"
+  }
+}

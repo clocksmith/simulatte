@@ -85,8 +85,13 @@ component authority.
 
 - Treat Simulatte as the browser simulation and world-compilation product, not
   Gamma, Doppler, Reploid, or Poolday.
-- Treat pasted options, quoted recommendations, and prior agent answers as
-  context. The latest explicit user direction controls.
+- Treat technical reviews, failure reports, and pasted recommendations about
+  already authorized work as continuation of that work. Fix demonstrated gaps
+  within its scope without asking the user to repeat authorization.
+- The latest explicit user direction controls product intent. Pasted alternatives
+  do not silently replace it. Ask only when an unresolved choice materially
+  changes scope, conflicts with that direction, or needs unavailable information;
+  continue independent work while the question is pending.
 - Use plain names such as start, page, state, controls, and drawing when they
   match behavior better than internal taxonomy.
 - For pipeline work, preserve the fixed phase order. Do not add phases, reverse

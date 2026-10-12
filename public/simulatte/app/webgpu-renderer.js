@@ -659,6 +659,7 @@
       focusCameraTarget,
       cameraTargets,
       cameraState,
+      zoom:factor=>{applyCameraZoom(canvas,state,cameraApi,factor,options.onCameraInteraction);return cameraState();},
       projectObjects,
       setViewportInsets: insets => { state.viewportInsets = { ...insets }; },
       setPluginPresentations,
@@ -779,6 +780,13 @@
     return Math.min(0.00013, 0.22 / altitude);
   }
 
+  function applyCameraZoom(canvas,state,camera,factor,onInteraction){
+    if(!Number.isFinite(factor)||factor<=0)throw rendererError('camera_zoom_factor_invalid','Zoom requires a finite positive scale');
+    if(state.isDestroyed)throw rendererError('renderer_disposed','Cannot zoom a disposed renderer');
+    camera.zoomCamera(state,Math.log(factor)*1000);
+    canvas.dataset.cameraInteraction='zoom';
+    onInteraction?.({control:'zoom',mode:state.mode,targetIds:[]});
+  }
   function installCameraControls(canvas, state, camera, onInteraction, signal) {
     const on = (type, listener, options) => canvas.addEventListener(type, listener, { ...options, signal });
     let pointer = null;
@@ -818,22 +826,18 @@
     on('keydown', (event) => {
       if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-'].includes(event.key)) return;
       event.preventDefault();
-      if (['+', '=', '-'].includes(event.key)) camera.zoomCamera(state, event.key === '-' ? 120 : -120);
+      if (['+', '=', '-'].includes(event.key)) applyCameraZoom(canvas,state,camera,Math.exp(event.key === '-' ? 0.12 : -0.12),onInteraction);
       else {
         if (state.mode !== 'top') camera.setCameraMode(state, 'free', performance.now());
         camera.panCamera(state, event.key === 'ArrowLeft' ? 24 : event.key === 'ArrowRight' ? -24 : 0,
           event.key === 'ArrowUp' ? 24 : event.key === 'ArrowDown' ? -24 : 0, canvas.clientHeight);
       }
-      onInteraction?.({ control: 'keyboard', mode: state.mode, targetIds: [] });
+      if(!['+', '=', '-'].includes(event.key))onInteraction?.({ control: 'keyboard', mode: state.mode, targetIds: [] });
     });
     on('wheel', (event) => {
       if (!event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
-      const trackedMode = ['follow', 'pov'].includes(state.mode);
-      if (!trackedMode && state.mode !== 'top') camera.setCameraMode(state, 'free', performance.now());
-      canvas.dataset.cameraInteraction = 'zoom';
-      onInteraction?.({ control: 'zoom', mode: state.mode, targetIds: [] });
-      camera.zoomCamera(state, event.deltaY);
+      applyCameraZoom(canvas,state,camera,Math.exp(event.deltaY*0.001),onInteraction);
     }, { passive: false });
   }
 

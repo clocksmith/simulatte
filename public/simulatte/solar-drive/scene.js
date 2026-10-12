@@ -124,7 +124,8 @@
       }
       node('box', 'solar', [0, -0.016, 0], [length + 0.035, 0.032, width + 0.035], M.aluminum);
       for (let i = 0; i < 4; i += 1) {
-        node('box', 'solar', [(i - 1.5) * length / 4, 0.009, 0], [length / 4 - 0.006, 0.016, width - 0.014], M.solar);
+        node('box', 'solar', [(i - 1.5) * length / 4, 0.009, 0], [length / 4 - 0.006, 0.016, width - 0.014], M.solar,
+          [0, 0, 0], { panelUv: [i / 4 + 0.003 / length, (length / 4 - 0.006) / length] });
         node('box', 'solar', [(i - 1.5) * length / 4, -0.048, 0], [0.13, 0.045, 0.09], M.dark);
       }
       for (const x of [-length / 2, length / 2]) for (const z of [-width / 2, width / 2]) {
@@ -225,6 +226,7 @@
           local = g.multiply(rotation, local);
         }
         addInstance(n.mesh, g.multiply(groupMatrices[n.group], local), n.material, n.group);
+        if (n.panelUv) instances[instances.length - 1].panelUv = n.panelUv;
       }
       const flows = [
         ['solar', 'controller', state.flows.pvW, M.photon],

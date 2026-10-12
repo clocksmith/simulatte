@@ -69,15 +69,18 @@
       }),
     );
   }
+  function currentViewBounds() {
+    return cameraBounds || (config.view === "cells" ? drawing.cellBounds([pair.intervention,pair.baseline])
+      : {origin:[0,0],span:config.params.size*config.params.spacing});
+  }
   function render() {
     if (failure) return;
     if(config.view === "cells" && selected?.id !== "region") {
       const cell=pair.intervention.cells.find(c=>c.id===selected?.id);
       if(cell) selected={...selected,worldX:cell.x,worldY:cell.y};
     }
-    const bounds=config.view === "cells" ? drawing.cellBounds([pair.intervention,pair.baseline]) : null;
     const region=config.view === "cells" && selected ? model.actionRegion(pair.intervention,{kind:previewAction?.kind || "remove",x:selected.worldX,y:selected.worldY}) : null;
-    const viewBounds=cameraBounds || bounds;
+    const viewBounds=currentViewBounds();
     const options={bounds:viewBounds,fitStates:[pair.intervention,pair.baseline],top:cameraMode==="top",signal:showSignal,preview:region?{kind:previewAction?.kind || "remove",...region}:null};
     const canvases = [el("scene"), el("baseline")];
     const frames = buffers.map((buffer, index) => drawing.draw(buffer, config,
@@ -409,9 +412,15 @@
       worldSpec: structuredClone(spec),
       receipt: program.receipt(spec, config, model, pair),
     });
-    root.SimulatteFieldView={zoom(factor){
+    function zoomBounds(factor) {
       if(!Number.isFinite(factor)||factor<=0)throw Error('Invalid zoom factor');
-      const bounds=cameraBounds||viewBounds;const next=Math.max(4,Math.min(256,bounds.span*factor));
+      const bounds=currentViewBounds(),normalSpan=config.view==='cells'?drawing.cellBounds([pair.intervention,pair.baseline]).span:config.params.size*config.params.spacing;
+      return {bounds,next:Math.max(normalSpan/4,Math.min(normalSpan*16,bounds.span*factor))};
+    }
+    root.SimulatteFieldView={canZoom(factor){
+      const {bounds,next}=zoomBounds(factor);return Math.abs(next-bounds.span)>1e-9;
+    },zoom(factor){
+      const {bounds,next}=zoomBounds(factor);
       cameraBounds={origin:bounds.origin.map(v=>v+(bounds.span-next)/2),span:next};lastUi=0;render();
     }};
     render();

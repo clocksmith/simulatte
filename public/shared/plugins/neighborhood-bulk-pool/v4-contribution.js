@@ -90,7 +90,7 @@
       layers,
       viewIntents: [
         builder.viewIntent({
-          id: `bulk-pool-view:${snapshot.id}`,
+          id: 'bulk-pool-view',
           mode: 'overview',
           targetIds: [...networkTargets, ...activeDriverIds],
           reasonEventId: activeEvent?.id || null,

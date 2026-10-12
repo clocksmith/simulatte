@@ -1,0 +1,368 @@
+{
+  "schema": "simulatte.catalogInteractionQualification.v1",
+  "pass": true,
+  "currentSources": {
+    "head": "18bcce7cc8da1a45fb3ac5fd1e86df2eba8cc0cb",
+    "capturedAt": "2026-10-12T20:08:33.053Z",
+    "modifiedSources": {
+      "public/shared/plugins/neighborhood-bulk-pool/plugin.json": {
+        "sha256": "be205c31969e51296d40b1255a90f964db0835c23fb37179db8d63eb13eabf03",
+        "modifiedAt": "2026-10-12T19:45:39.059Z"
+      },
+      "public/shared/plugins/neighborhood-bulk-pool/v4-contribution.js": {
+        "sha256": "857ac8d6a5ff12e3a22e2b8d5597e38294363b330a3d10e1ecb9a7b8de7d7003",
+        "modifiedAt": "2026-10-12T19:45:35.718Z"
+      },
+      "public/simulatte/app/city-plugin-session.js": {
+        "sha256": "273e6d503fc8e4633ccd2dfb88eff9d7c7d2dc37cad4653c5b2fb6c1dc91c806",
+        "modifiedAt": "2026-10-12T19:04:03.973Z"
+      },
+      "public/simulatte/app/experience-frame-adapters.js": {
+        "sha256": "ce4bb39b28f4baec1385e6011816bc6d2e77478b616bf0ebffc6d1b1e6477997",
+        "modifiedAt": "2026-10-12T19:35:29.705Z"
+      },
+      "public/simulatte/app/experience-frame.js": {
+        "sha256": "08f7fccdc7c890eb337735fe75a8e7e9be3dde74f1ee2eab1599d13a7ed0233d",
+        "modifiedAt": "2026-10-12T19:35:29.691Z"
+      },
+      "public/simulatte/app/multi-tier-visualizer.js": {
+        "sha256": "57ee5cc155494813340d58ba01f871959b2f6dec5d8318f48f9225f681029109",
+        "modifiedAt": "2026-10-12T19:07:30.779Z"
+      },
+      "public/simulatte/app/webgpu-renderer.js": {
+        "sha256": "7c49ff7c45f602feecd3cb80065acc8544f21e7d49efbe62b770b65de317228b",
+        "modifiedAt": "2026-10-12T19:04:03.973Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "3d7dd07dad91bf5365eebd944c4662023f21c535f5f889f7f0ffb3fcc5562ef1",
+        "modifiedAt": "2026-10-12T19:04:03.974Z"
+      },
+      "public/simulatte/field-experiments/app.js": {
+        "sha256": "9e2ea46662e9d2d56936c35379b7d4faf749ae0cfbea8f37c2f01d2b6c66f6e0",
+        "modifiedAt": "2026-10-12T20:05:20.148Z"
+      },
+      "public/simulatte/field-experiments/drawing.js": {
+        "sha256": "fa7cf398d93f65bfdcbd6b378f5157b95fd0eb6425d7910506fccfd0bc25d79d",
+        "modifiedAt": "2026-10-12T20:02:50.300Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "988fc605ef13a3d8b439b28c1d86fb66c9b068bd35b4942263bc0f7cc2747f3e",
+        "modifiedAt": "2026-10-12T19:51:31.895Z"
+      },
+      "public/simulatte/motorcycle-noise/map-gestures.js": {
+        "sha256": "d794c1917734a905b7e5fccb63a67b9a5f09a308997b487a8df742f2e2d6c419",
+        "modifiedAt": "2026-10-12T19:04:03.972Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-app.js": {
+        "sha256": "beae047e34b3f2c322b20099d62877ca59ebb213577e5d4d3614e79b2d1fabfa",
+        "modifiedAt": "2026-10-12T19:04:03.972Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection-view.js": {
+        "sha256": "f381d47f1ff70ef4ca21b00404d6cb42a9623e351c05bbf1254eebc34bbd15a9",
+        "modifiedAt": "2026-10-12T19:35:29.690Z"
+      },
+      "public/simulatte/platform/plugin-host/generated-plugin-registry.js": {
+        "sha256": "44a0fa57d1c03206159c4d4797d58f99b976f1bf9babb213487a5565029342ae",
+        "modifiedAt": "2026-10-12T19:45:39.253Z"
+      },
+      "public/simulatte/solar-drive/app.js": {
+        "sha256": "1d26fc655eb288c3865f07e68dc1a602409c5e2b98f77827433483fb6a343f42",
+        "modifiedAt": "2026-10-12T19:07:30.778Z"
+      },
+      "public/simulatte/solar-drive/renderer.js": {
+        "sha256": "97f0bf8db29316b068db28022336987d30c025790bbade3a4dae40685338c8ae",
+        "modifiedAt": "2026-10-12T19:18:27.085Z"
+      },
+      "public/simulatte/solar-drive/route-scene.js": {
+        "sha256": "268288b75c6b0100cccf0d1823116def5f776e4532b1d3909f525a32acbc7c6d",
+        "modifiedAt": "2026-10-12T19:02:11.958Z"
+      },
+      "public/simulatte/solar-drive/scene.js": {
+        "sha256": "c69374d9d67b3c79fd3fd333db2b262860c85168b6314e23a87d78b440b93c92",
+        "modifiedAt": "2026-10-12T19:02:11.954Z"
+      },
+      "public/simulatte/solar-drive/shaders.js": {
+        "sha256": "b4642f42b1b36fe9012f85f4b9061c7c83ab9b1c76b2652f4d84bb065a067e43",
+        "modifiedAt": "2026-10-12T19:02:11.958Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "sources": [
+    {
+      "file": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json",
+      "sha256": "da6caed780cf432bb58c946b5c860ed3a41c8af945b6825cd029900fa1f17a5e",
+      "selectedCases": 26,
+      "ignoredOwnerChanges": [
+        "public/simulatte/field-experiments/app.js",
+        "public/simulatte/field-experiments/drawing.js"
+      ],
+      "sourceFreeze": "Interrupted after completed non-field cases"
+    },
+    {
+      "file": "artifacts/catalog-interactions/solar-drive/browser.json",
+      "sha256": "14ffcfe9f449bff6ab63796e3c092de1e6ce0fdf02e74586e32b9cfe017c1107",
+      "selectedCases": 2,
+      "ignoredOwnerChanges": [
+        "public/simulatte/field-experiments/app.js",
+        "public/simulatte/field-experiments/drawing.js"
+      ],
+      "sourceFreeze": {
+        "passed": true,
+        "finishedAt": "2026-10-12T20:00:36.999Z"
+      }
+    },
+    {
+      "file": "artifacts/catalog-interactions/fields/browser.json",
+      "sha256": "cf81b704f91a341eefb5a34528cb96d0a9b72c4898690b50d40a365646490972",
+      "selectedCases": 6,
+      "ignoredOwnerChanges": [],
+      "sourceFreeze": {
+        "passed": true,
+        "finishedAt": "2026-10-12T20:07:53.847Z"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "route": "/motorcycle",
+      "profile": "motorcycle",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/motorcycle",
+      "profile": "motorcycle",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/sunwalker",
+      "profile": "sun-walker-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/sunwalker",
+      "profile": "sun-walker-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/datacenter",
+      "profile": "gpu-supercluster-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/datacenter",
+      "profile": "gpu-supercluster-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/interstellar",
+      "profile": "interstellar-relay-network-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/interstellar",
+      "profile": "interstellar-relay-network-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/orbital",
+      "profile": "orbital-transfer-planner-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/orbital",
+      "profile": "orbital-transfer-planner-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/grid",
+      "profile": "grid-resilience-us-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/grid",
+      "profile": "grid-resilience-us-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/subsea",
+      "profile": "subsea-network-global-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/subsea",
+      "profile": "subsea-network-global-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/city/cable-trader-pickup-v1",
+      "profile": "cable-trader-pickup-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/city/cable-trader-pickup-v1",
+      "profile": "cable-trader-pickup-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/city/neighborhood-bulk-pool-v1",
+      "profile": "neighborhood-bulk-pool-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/city/neighborhood-bulk-pool-v1",
+      "profile": "neighborhood-bulk-pool-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/city/nyc-development-atlas-v1",
+      "profile": "nyc-development-atlas-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/city/nyc-development-atlas-v1",
+      "profile": "nyc-development-atlas-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/country/food-recall-us-v1",
+      "profile": "food-recall-us-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/country/food-recall-us-v1",
+      "profile": "food-recall-us-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/world/maritime-trade-global-v1",
+      "profile": "maritime-trade-global-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/world/maritime-trade-global-v1",
+      "profile": "maritime-trade-global-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/solar-system/asteroid-defense-v1",
+      "profile": "asteroid-defense-v1",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/solar-system/asteroid-defense-v1",
+      "profile": "asteroid-defense-v1",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/solar-depth/catalog-transition-and-bounds-diagnostic.json"
+    },
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "profile": "solar-drive",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/catalog-interactions/solar-drive/browser.json"
+    },
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "profile": "solar-drive",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/catalog-interactions/solar-drive/browser.json"
+    },
+    {
+      "route": "/living-tissue",
+      "profile": "living-tissue",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/catalog-interactions/fields/browser.json"
+    },
+    {
+      "route": "/living-tissue",
+      "profile": "living-tissue",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/catalog-interactions/fields/browser.json"
+    },
+    {
+      "route": "/river-formation",
+      "profile": "river-formation",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/catalog-interactions/fields/browser.json"
+    },
+    {
+      "route": "/river-formation",
+      "profile": "river-formation",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/catalog-interactions/fields/browser.json"
+    },
+    {
+      "route": "/crystal-foundry",
+      "profile": "crystal-foundry",
+      "width": 1440,
+      "pass": true,
+      "evidence": "artifacts/catalog-interactions/fields/browser.json"
+    },
+    {
+      "route": "/crystal-foundry",
+      "profile": "crystal-foundry",
+      "width": 390,
+      "pass": true,
+      "evidence": "artifacts/catalog-interactions/fields/browser.json"
+    }
+  ],
+  "method": "Retain completed passing cases for unchanged owners; recheck Solar after waiting for its declared camera transition, and all field experiences after correcting bounds and zoom. Public source differences are restricted to the rechecked field owner.",
+  "boundary": "34 desktop/emulated-mobile cases on native desktop GPU. Physical-phone use, unfamiliar-user observation and matched empirical measurements remain unqualified."
+}

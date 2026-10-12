@@ -441,6 +441,21 @@ test('settled playback keeps the modeled Costco network in the overview', async 
   ));
 });
 
+test('overview identity survives playback and restart while snapshot identity advances', async () => {
+  const harness = createSdkHarness();
+  const instance = await plugin.activate({ sdk: harness.sdk, config, profile, scenario });
+  await instance.handleAction('scenario.run', { scenario, values: { ...scenario, phase: 'start' } });
+  const initial = instance.contributeV4();
+  await instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  const advanced = instance.contributeV4();
+  assert.notEqual(advanced.state.id, initial.state.id);
+  assert.equal(advanced.presentation.viewIntents[0].id, initial.presentation.viewIntents[0].id);
+  await instance.handleAction('scenario.run', { scenario, values: { ...scenario, phase: 'start' } });
+  const restarted = instance.contributeV4();
+  assert.equal(restarted.presentation.viewIntents[0].id, initial.presentation.viewIntents[0].id);
+  assert.equal(restarted.state.id, initial.state.id);
+});
+
 test('catalog index calculates fractional shares accurately', () => {
   const index = catalogApi.createCatalogIndex(datasets.catalog);
   const share = index.calculateFractionalShare(datasets.catalog.items[0].id, 3);

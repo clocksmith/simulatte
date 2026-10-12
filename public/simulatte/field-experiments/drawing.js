@@ -73,13 +73,21 @@
         c = Math.cos(options.top?0:yaw),
         s = Math.sin(options.top?0:yaw);
       const raw = (x,y,z) => [x*c-y*s, (x*s+y*c)*(options.top?1:0.45)-(options.top?0:z*1.8)];
-      const geometry=[];
+      const geometry=[],heights=[];
       for(let i=0;i<n*n;i++) {
         const x=(i%n)*config.params.spacing,y=Math.floor(i/n)*config.params.spacing;
         if(x+config.params.spacing<bounds.origin[0] || y+config.params.spacing<bounds.origin[1] || x>bounds.origin[0]+bounds.span || y>bounds.origin[1]+bounds.span) continue;
-        for(const branch of options.fitStates || [state]) for(const dx of [0,config.params.spacing]) for(const dy of [0,config.params.spacing]) geometry.push(raw(x+dx,y+dy,branch.height[i]));
+        for(const branch of options.fitStates || [state]) {
+          heights.push(branch.height[i]);
+          for(const dx of [0,config.params.spacing]) for(const dy of [0,config.params.spacing]) geometry.push(raw(x+dx,y+dy,branch.height[i]));
+        }
       }
       if(!geometry.length) throw Error("field_camera_bounds_empty");
+      // Fit the requested camera window, including empty space beyond the terrain.
+      // Refitting only occupied cells would cancel a user's zoom-out action.
+      for(const x of [bounds.origin[0],bounds.origin[0]+bounds.span])
+        for(const y of [bounds.origin[1],bounds.origin[1]+bounds.span])
+          for(const z of [Math.min(...heights),Math.max(...heights)]) geometry.push(raw(x,y,z));
       const minX=Math.min(...geometry.map(p=>p[0])),maxX=Math.max(...geometry.map(p=>p[0])),
         minY=Math.min(...geometry.map(p=>p[1])),maxY=Math.max(...geometry.map(p=>p[1]));
       const unit=Math.min((width-2*margin)/Math.max(.001,maxX-minX),(height-2*margin)/Math.max(.001,maxY-minY));

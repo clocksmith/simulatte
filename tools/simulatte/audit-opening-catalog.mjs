@@ -7,11 +7,13 @@ import {sourceReceipt} from './runtime-audit-sources.mjs';
 const require=createRequire(import.meta.url),root=fileURLToPath(new URL('../../',import.meta.url));
 const catalog=require('../../public/simulation-routes.js').pages;
 const selected=process.argv.includes('--profile')?process.argv[process.argv.indexOf('--profile')+1]:null;
-const pages=catalog.filter(page=>!selected||page.profile===selected||page.path===`/${selected}`);
+const hardware=process.argv.includes('--hardware');
+const pages=catalog.filter(page=>!selected||page.profile===selected||page.experimentId===selected||page.path===`/${selected}`
+  ||selected==='solar-drive'&&page.entry?.includes('/solar-drive/')||selected==='fields'&&page.experimentId);
 if(!pages.length)throw Error('Unknown catalog experience: '+selected);
 const out=root+'artifacts/catalog-interactions'+(selected?'/'+selected:'');await fs.mkdir(out,{recursive:true});
 const report={schema:'simulatte.catalogInteractionAudit.v1',sources:await sourceReceipt(root),cases:[],errors:[],
-  boundary:'Desktop and emulated mobile in Chrome with explicit software WebGPU. Human observation and physical-device review remain separate.'};
+  boundary:`Desktop and emulated mobile in Chrome; ${hardware?'native GPU required':'explicit software WebGPU'}. Human observation and physical-phone review remain separate.`};
 function compactRow(row){
   for(const state of [row.opening,row.paused,row.focused,row.restarted,row.advanced,row.replaying,row.replayProgress,row.replayedActions])if(state?.targets){
     state.targetCount=state.targets.length;state.sampleTargetIds=state.targets.slice(0,8).map(target=>target.id);delete state.targets;
@@ -23,7 +25,7 @@ if(process.argv.includes('--compact-existing')){
   await fs.writeFile(out+'/browser.json',JSON.stringify(existing,null,2));process.exit(0);
 }
 const b=await openBrowserAudit({publicRoot:root+'public',viewport:{width:1440,height:1000},headed:!!process.env.DISPLAY,
-  webgpu:true,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader','--use-vulkan=swiftshader','--use-webgpu-adapter=swiftshader','--disable-vulkan-surface']}),c=b.client;
+  webgpu:true,args:['--no-sandbox','--disable-dev-shm-usage',...(hardware?[]:['--enable-unsafe-swiftshader','--use-vulkan=swiftshader','--use-webgpu-adapter=swiftshader']),'--disable-vulkan-surface']}),c=b.client;
 await c.send('Page.enable');await c.send('Runtime.enable');
 c.on('Runtime.exceptionThrown',event=>report.errors.push(event.exceptionDetails));
 const ev=async expression=>{const result=await c.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
@@ -58,7 +60,7 @@ async function command(name){
 }
 function framing(state){const value=state.camera||state.targets.map(row=>({id:row.id,points:row.points,bounds:row.bounds})).sort((a,b)=>a.id.localeCompare(b.id));return JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='number'?Math.round(v*1e3)/1e3:v));}
 async function selectObject(){
-  if(kind==='solar')return ev(`document.querySelector('.component-row[data-component=flywheel]').click()`);
+  if(kind==='solar')return ev(`document.querySelector('.component-row[data-component=battery]').click()`);
   if(kind==='field')return ev(`document.getElementById('scene').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}))`);
   if(kind==='motorcycle')return ev(`SimulatteMotorcycleSession.invoke('select-object',{sourceId:SimulatteMotorcycleController.snapshot().motorcycles[0].id})`);
   const state=await snap(),id=state.targets[Math.min(1,state.targets.length-1)].id;
@@ -76,12 +78,25 @@ try{
       await c.send('Page.navigate',{url:b.host.baseUrl+page.path.slice(1)});
       await c.send('Page.bringToFront');
       row.opening=await until(s=>(kind!=='profile'||s.profile===page.profile&&s.ready)&&(s.running||s.complete));
+      row.adapter=await ev(`(async()=>{const a=await navigator.gpu?.requestAdapter();return a&&{vendor:a.info.vendor,architecture:a.info.architecture,description:a.info.description,isFallbackAdapter:a.isFallbackAdapter};})()`);
+      if(hardware)assert.equal(row.adapter?.isFallbackAdapter,false,'Native GPU qualification must not use fallback software');
       if(kind==='profile'){assert.equal(row.opening.advanced,'false');assert.equal(row.opening.overflow,false);}
       if(row.opening.running)await command('pause');
       row.paused=await until(s=>!s.running);await delay(350);
       assert.equal((await snap()).progress,row.paused.progress,'Pause must freeze simulation time');
       if(kind==='solar'){for(let i=0;i<100&&!await ev('SimulatteSolarDrive.isViewSettled()');i++)await delay(50);}
       await delay(200);
+      const zoomBefore=await snap();
+      await ev(`(()=>{globalThis.__auditZoomBridge={keys:0,clicks:0};document.addEventListener('keydown',e=>{if(!e.isTrusted&&['+','-','='].includes(e.key))__auditZoomBridge.keys++;},true);const click=HTMLElement.prototype.click;HTMLElement.prototype.click=function(){if(['map-zoom-in','map-zoom-out'].includes(this.id))__auditZoomBridge.clicks++;return click.call(this);};})()`);
+      for(let i=0;i<100&&!await ev(`!!document.querySelector('.experience-frame__zoom button:not(:disabled)')`);i++)await delay(100);
+      assert.equal(await ev(`!!document.querySelector('.experience-frame__zoom button:not(:disabled)')`),true,'Owner zoom must become available');
+      if(kind==='field')assert.equal(await ev(`document.querySelector('.experience-frame__zoom [aria-label="Zoom in"]').disabled===!SimulatteFieldView.canZoom(1/1.12)`),true,'Zoom limits must follow accepted field bounds');
+      await ev(`document.querySelector('.experience-frame__zoom button:not(:disabled)').click()`);
+      await delay(300);const zoomAfter=await snap();
+      assert.equal(zoomAfter.progress,zoomBefore.progress,'Zoom cannot advance paused simulation time');
+      assert.notDeepEqual(framing(zoomAfter),framing(zoomBefore),'Zoom must change the accepted view');
+      row.zoom=await ev(`({...__auditZoomBridge,error:document.querySelector('.experience-frame__zoom [role="status"]').textContent})`);
+      assert.deepEqual(row.zoom,{keys:0,clicks:0,error:''},'Shared zoom invokes owner commands, not synthetic input');
       const before=await snap(),id=await selectObject();await delay(350);const after=await snap();
       assert.deepEqual(framing(after),framing(before),'Selection must preserve camera framing');
       assert.equal(after.progress,before.progress,'Selection must preserve logical time');
@@ -117,7 +132,9 @@ try{
       const speedId=kind==='profile'?'playback-speed':kind==='solar'?'playback':kind==='field'?'speed':'playback';
       await ev(`(()=>{const e=document.getElementById('${speedId}');e.value=e.options[e.options.length-1].value;e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
       assert.equal((await snap()).progress,before.progress,'Speed changes cannot advance a paused model');
-      await command('reset');await delay(500);const reset=await snap();assert.equal(reset.progress,before.progress);
+      await command('reset');await delay(500);
+      if(kind==='solar'){for(let i=0;i<100&&!await ev('SimulatteSolarDrive.isViewSettled()');i++)await delay(50);assert.equal(await ev('SimulatteSolarDrive.isViewSettled()'),true,'Reset view must finish its declared transition');}
+      const reset=await until(s=>!s.camera?.transition||s.camera.transition==='settled');assert.equal(reset.progress,before.progress);
       const restartCamera=framing(reset);await command('restart');row.restarted=await until(s=>!s.running);
       assert.deepEqual(framing(row.restarted),restartCamera,'Restart must preserve the camera');
       assert.ok(row.restarted.progress<=before.progress,'Restart must return to the starting state');

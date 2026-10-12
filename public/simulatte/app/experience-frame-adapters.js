@@ -7,7 +7,11 @@
     const page=root.SimulattePublicRoutes?.forPath(path);
     const solar=Boolean(q('#viewport #scene')),field=Boolean(q('.experiments #baseline')),motorcycle=body.classList.contains('motorcycle-app');
     if(!solar&&!field&&!motorcycle&&!page)return;
-    const keyboardZoom=(canvas,factor)=>{canvas.focus({preventScroll:true});canvas.dispatchEvent(new KeyboardEvent('keydown',{key:factor<1?'+':'-',bubbles:true,cancelable:true}));};
+    const invoke=(session,id,value)=>{
+      if(!session)throw Error('Simulation controls are not ready');
+      return session.invoke(id,value);
+    };
+    const hasZoom=session=>Boolean(session?.snapshot().operations.some(op=>op.id==='zoom'&&op.available));
     let frame,refresh=()=>{};
     if(solar){
       const host=q('.visual-column'),stage=q('#viewport'),cameraButtons=document.createElement('div');cameraButtons.className='camera-modes';cameraButtons.setAttribute('role','radiogroup');cameraButtons.dataset.controlChoice='';cameraButtons.setAttribute('aria-label','Camera view');
@@ -20,8 +24,8 @@
       if(q('.masthead'))q('.masthead').hidden=true;
       if(q('.brand-bar'))q('.brand-bar').hidden=true;
       if(q('.brandbar'))q('.brandbar').hidden=true;
-      ui.zoom(stage,factor=>keyboardZoom(q('#scene'),factor));
-      refresh=()=>{const owner=root.SimulatteSolarDrive;if(owner){const state=owner.controlState();frame.status.textContent=state.failed?'Needs attention':state.complete?'Complete':state.running?'Running':'Paused';}for(const b of cameraButtons.children){b.disabled=!owner;b.setAttribute('aria-checked',String(owner?.cameraView()===b.dataset.cameraView));}};
+      const zoom=ui.zoom(stage,factor=>root.SimulatteSolarDrive.zoom(factor));
+      refresh=()=>{const owner=root.SimulatteSolarDrive,state=owner?.controlState();zoom.setAvailable(state?.ready&&!state.failed);if(owner){frame.status.textContent=state.failed?'Needs attention':state.complete?'Complete':state.running?'Running':'Paused';}for(const b of cameraButtons.children){b.disabled=!state?.ready||state.failed;b.setAttribute('aria-checked',String(owner?.cameraView()===b.dataset.cameraView));}};
     }else if(field){
       const host=q('main'),stage=q('.experiments'),views=q('#camera-views'),title=q('#title'),oldHeader=title.parentElement;
       const advancedDetails=q('main>details'),advanced=ui.advanced([advancedDetails]);advancedDetails.open=true;
@@ -30,8 +34,8 @@
       oldHeader.hidden=true;
       const branches=document.createElement('div');branches.className='camera-modes';branches.setAttribute('role','radiogroup');branches.dataset.controlChoice='';branches.setAttribute('aria-label','Comparison branch');
       for(const [id,label]of [['intervention','Experiment'],['baseline','Untouched baseline']]){const b=ui.button(label,()=>{stage.dataset.branch=id;for(const n of branches.children)n.setAttribute('aria-checked',String(n.dataset.branch===id));});b.dataset.branch=id;b.setAttribute('aria-checked',String(id==='intervention'));branches.append(b);}
-      root.SimulatteControlComponents.decorateGroup(branches);frame.notes.prepend(branches);ui.zoom(stage,factor=>root.SimulatteFieldView?.zoom(factor));
-      refresh=()=>{const state=root.__fieldExperimentState;frame.status.textContent=!state?'Loading':state.executionState==='failed'?'Needs attention':state.complete?'Complete':state.running?'Running':'Paused';const ready=Boolean(state);for(const b of views.querySelectorAll('button'))b.disabled=!ready||state.executionState==='failed';q('#pause').disabled=!ready&& !root.__fieldExperimentError;};
+      root.SimulatteControlComponents.decorateGroup(branches);frame.notes.prepend(branches);const zoom=ui.zoom(stage,factor=>root.SimulatteFieldView.zoom(factor));
+      refresh=()=>{const state=root.__fieldExperimentState;frame.status.textContent=!state?'Loading':state.executionState==='failed'?'Needs attention':state.complete?'Complete':state.running?'Running':'Paused';const ready=Boolean(state);zoom.setAvailable(ready&&state.executionState!=='failed',factor=>root.SimulatteFieldView.canZoom(factor));for(const b of views.querySelectorAll('button'))b.disabled=!ready||state.executionState==='failed';q('#pause').disabled=!ready&& !root.__fieldExperimentError;};
     }else if(motorcycle){
       const host=q('section.map'),stage=q('.canvas'),camera=q('#motorcycle-camera-menu'),oldToolbar=q('.city-toolbar');
       const layers=q('#live-overlay').closest('label');
@@ -40,21 +44,21 @@
       q('#advanced-sheet').classList.add('experience-advanced');
       const nav=q('#map-navigation');if(nav){nav.style.position='static';frame.notes.append(nav);for(const id of ['#map-zoom-in','#map-zoom-out'])frame.storage.append(q(id));}
       q('#map-touch-hint').hidden=true;
-      refresh=()=>{const state=root.motorcycleRuntimeReceipt;frame.status.textContent=({running:'Running',paused:'Paused',failed:'Needs attention',recovering:'Recovering',loading:'Preparing'})[state?.state]||'Loading';};
-      ui.zoom(stage,factor=>q(factor<1?'#map-zoom-in':'#map-zoom-out').click());
+      const zoom=ui.zoom(stage,factor=>invoke(root.SimulatteMotorcycleSession,'zoom',factor));
+      refresh=()=>{const state=root.motorcycleRuntimeReceipt;zoom.setAvailable(hasZoom(root.SimulatteMotorcycleSession)&&!['failed','recovering','loading'].includes(state?.state));frame.status.textContent=({running:'Running',paused:'Paused',failed:'Needs attention',recovering:'Recovering',loading:'Preparing'})[state?.state]||'Loading';};
     }else{
       const host=q('.simulation-stage'),stage=q('.canvas-shell'),menu=q('#camera-menu'),controls=q('.camera-modes');
       for(const id of ['camera-bird','camera-top','camera-follow','camera-pov','camera-free','camera-compare'])controls.append(q('#'+id));
       const play=document.createElement('div');play.append(q('#start-button'),q('#pause-button'),q('#resume-button'));play.className='experience-frame__play-source';
-      const invoke=id=>{const session=root.SimulatteActiveSession;if(session)return session.invoke(id).catch(e=>{error.textContent=e.message;});};
+      const command=id=>invoke(root.SimulatteActiveSession,id).catch(e=>{error.textContent=e.message;});
       const error=document.createElement('p');error.setAttribute('role','status');
-      const restart=ui.button('Restart',()=>invoke('restart')),replay=ui.button('Replay',()=>invoke('replay'));
+      const restart=ui.button('Restart',()=>command('restart')),replay=ui.button('Replay',()=>command('replay'));
       frame=ui.mount({host,stage,title:page.displayName,camera:menu,reset:q('#camera-reset'),play,restart,replay,speed:ui.speedControl(q('#playback-speed')),advanced:q('#decisions-button'),
         context:[q('#experience-readouts'),q('#show-measurements').closest('label'),error],legacy:[q('.simulation-toolbar'),q('.simulation-viewbar')]});
       const drawer=q('#decisions-drawer');drawer.classList.add('experience-advanced');
       if(q('#runtime-details')){const details=q('#runtime-details');details.hidden=false;details.style.position='static';details.style.transform='none';details.style.width='100%';drawer.append(details);frame.storage.append(q('#runtime-toggle'));q('#runtime-details-close').hidden=true;}
-      ui.zoom(stage,factor=>keyboardZoom(q('#overlay-canvas').hidden?q('#autonomy-canvas'):q('#overlay-canvas'),factor));
-      refresh=()=>{const s=root.SimulatteActiveSession?.snapshot();frame.status.textContent=s?.visibleStatus||'Loading';const ready=s&&s.preparation==='ready';for(const [b,id]of [[restart,'restart'],[replay,'replay']])b.disabled=!ready||!s.operations.some(op=>op.id===id&&op.available);const current=root.SimulattePublicRoutes.forPath(location.pathname);if(current&&frame.header.querySelector('h1').textContent!==current.displayName)frame.header.querySelector('h1').textContent=current.displayName;};
+      const zoom=ui.zoom(stage,factor=>invoke(root.SimulatteActiveSession,'zoom',factor));
+      refresh=()=>{const s=root.SimulatteActiveSession?.snapshot();frame.status.textContent=s?.visibleStatus||'Loading';const ready=s&&s.preparation==='ready';zoom.setAvailable(ready&&hasZoom(root.SimulatteActiveSession));for(const [b,id]of [[restart,'restart'],[replay,'replay']])b.disabled=!ready||!s.operations.some(op=>op.id===id&&op.available);const current=root.SimulattePublicRoutes.forPath(location.pathname);if(current&&frame.header.querySelector('h1').textContent!==current.displayName)frame.header.querySelector('h1').textContent=current.displayName;};
     }
     refresh();const timer=setInterval(refresh,200);
     root.addEventListener('pagehide',()=>{clearInterval(timer);},{once:true});

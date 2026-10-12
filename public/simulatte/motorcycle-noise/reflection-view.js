@@ -236,11 +236,13 @@
       const radius=B.Vector3.Distance(bounds.min,bounds.max)/2;
       const rect=canvas.getBoundingClientRect();
       const visible=selector=>[...document.querySelectorAll(selector)].filter(el=>el.checkVisibility()).map(el=>el.getBoundingClientRect());
-      const top=Math.max(0,...visible('.city-toolbar,.observer-readout').map(r=>r.bottom-rect.top));
       const inspector=visible('#inspection')[0];
       const narrow=inspector&&inspector.width<rect.width*.7;
-      const right=narrow?Math.max(0,rect.right-inspector.left):0;
-      const bottom=Math.max(0,...visible('#map-navigation').map(r=>rect.bottom-r.top),narrow||!inspector?0:rect.bottom-inspector.top);
+      const {top,right,bottom}=root.SimulatteCameraFit.measureInsets(rect,[
+        ...visible('.city-toolbar,.observer-readout').map(rect=>({edge:'top',rect})),
+        ...visible('#map-navigation').map(rect=>({edge:'bottom',rect})),
+        ...(inspector?[{edge:narrow?'right':'bottom',rect:inspector}]:[]),
+      ]);
       const available=Math.max(48,rect.height-top-bottom-32),availableWidth=Math.max(48,rect.width-right-32);
       const aspect=Math.min(1,rect.width/Math.max(1,rect.height));
       camera.setTarget(center);camera.radius=Math.max(camera.lowerRadiusLimit,radius/Math.sin(camera.fov/2)/aspect*Math.max(1,rect.height/available,rect.width/availableWidth)*(close?1.2:1.5));
@@ -301,7 +303,7 @@
       savedRadius=camera.radius;
     }
     const parkLife=await root.MotorcycleParkLife.create(B,scene,vector,map,()=>lastTime);cleanup.push(()=>parkLife.dispose());
-    return {backendFailures,
+    return {backendFailures,zoom:factor=>gestures.zoom(factor),
       interactionTargets(){
         const viewport=scene.activeCamera.viewport.toGlobal(engine.getRenderWidth(),engine.getRenderHeight()),rect=canvas.getBoundingClientRect();
         return [...city.vehicles].filter(([id])=>id.startsWith('motorcycle-')).flatMap(([id,mesh])=>{

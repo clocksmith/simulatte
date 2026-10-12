@@ -19,6 +19,7 @@
     operations:[
       {id:'select-object',category:'observation',perform:pick=>{if(explorer?.pick(pick))return;if(placement&&pick.point)setEquipment(pick.point);else if(pick.sourceId)selected=pick.sourceId;}},
       {id:'camera',category:'observation',perform:mode=>explorer?.setCamera(mode)},
+      {id:'zoom',category:'observation',target:'camera',available:()=>Boolean(view),perform:factor=>view.zoom(factor)},
       {id:'location',category:'observation',perform:location=>explorer?.setLocation(location)},
       {id:'follow',category:'observation',perform:()=>explorer?.follow()},
       {id:'onboard',category:'observation',perform:()=>explorer?.setCamera('rider')},

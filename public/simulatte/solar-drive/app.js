@@ -416,7 +416,7 @@
     if(!dx&&!dy)return;cameraGoal=null;cameraMode='manual';
     if (pointers.size === 2) {
       const [a, b] = [...pointers.values()], distance = Math.hypot(a[0] - b[0], a[1] - b[1]);
-      if (pinch && distance) camera.distance = Math.max(0.65, Math.min(18, camera.distance * pinch / distance)); pinch = distance;
+      if (pinch && distance) zoom(pinch / distance); pinch = distance;
     } else { camera.yaw -= dx * 0.007; camera.pitch = Math.max(-0.04, Math.min(1.42, camera.pitch + dy * 0.005)); }
   });
   on(canvas, 'pointerup', (event) => {
@@ -432,7 +432,13 @@
     if (picked) select(picked);
   });
   on(canvas, 'pointercancel', (event) => pointers.delete(event.pointerId));
-  on(canvas, 'wheel', (event) => { if (!event.ctrlKey && !event.metaKey) return; event.preventDefault(); cameraGoal = null; cameraMode='manual'; camera.distance = Math.max(0.65, Math.min(18, camera.distance * Math.exp(event.deltaY * 0.001))); }, { passive: false });
+  function zoom(factor) {
+    if(!Number.isFinite(factor)||factor<=0)throw Error('solar_zoom_factor_invalid');
+    if(disposed||!drawing)throw Error('solar_view_not_ready');
+    cameraGoal=null;cameraMode='manual';camera.distance=Math.max(0.65,Math.min(18,camera.distance*factor));
+    return structuredClone(camera);
+  }
+  on(canvas, 'wheel', (event) => { if (!event.ctrlKey && !event.metaKey) return; event.preventDefault(); zoom(Math.exp(event.deltaY * 0.001)); }, { passive: false });
   on(canvas, 'keydown', (event) => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '-', '=', 'Home'].includes(event.key)) return;
     event.preventDefault(); cameraGoal = null; cameraMode='manual';
@@ -441,15 +447,15 @@
     if (event.key === 'ArrowRight') camera.yaw += 0.12;
     if (event.key === 'ArrowUp') camera.pitch = Math.min(1.42, camera.pitch + 0.08);
     if (event.key === 'ArrowDown') camera.pitch = Math.max(-0.04, camera.pitch - 0.08);
-    if (event.key === '+' || event.key === '=') camera.distance = Math.max(0.65, camera.distance * 0.9);
-    if (event.key === '-') camera.distance = Math.min(18, camera.distance * 1.1);
+    if (event.key === '+' || event.key === '=') zoom(0.9);
+    if (event.key === '-') zoom(1.1);
   });
   on(document, 'visibilitychange', () => scheduler.rebase());
   function dispose() { if (disposed) return; disposed = true; generation += 1; running = false; cancelAnimationFrame(raf); clearTimeout(timer); events.abort(); drawing?.dispose(); }
   on(root, 'pagehide', (event) => { if (!event.persisted) dispose(); });
   root.SimulatteSolarDrive = Object.freeze({ getSpec: () => structuredClone(spec), getState: () => structuredClone(state),
     getReceipt: () => program.receipt(spec, state, drawing?.receipt() || null), exportData, importSpec,
-    setParameters, setVehicle, setView, setMode, shadePanel, select, replay, verifyReplay, compare, focus: focusSelection, resetCamera, setCameraView, cameraView:()=>cameraMode, controlState:()=>({running,complete:state.status==='complete',failed:Boolean(document.body.dataset.runtimeError)}),
+    setParameters, setVehicle, setView, setMode, shadePanel, select, replay, verifyReplay, compare, focus: focusSelection, resetCamera, setCameraView, zoom, cameraView:()=>cameraMode, controlState:()=>({ready:Boolean(drawing)&&!disposed,running,complete:state.status==='complete',failed:Boolean(document.body.dataset.runtimeError)}),
     snapshot: () => ({ mode:view.mode, viewState:structuredClone(view), route:program.environment(spec,state), actions:structuredClone(liveActions), camera: structuredClone(camera), selected, running, playback: scheduler.snapshot(), frame: currentFrame && {anchors:currentFrame.anchors},
       view: {width:canvas.clientWidth,height:canvas.clientHeight,insets:{},points:currentFrame&&drawing?geometryPoints(selected,currentFrame).map(point=>drawing.project(point)):[]} }),
     getMatchedState:()=>matchedState?{params:structuredClone(matchedParams),state:structuredClone(matchedState)}:null,

@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: zero-flux diffusion conserves total mass and converges to an independent cosine mode
+ok 1 - zero-flux diffusion conserves total mass and converges to an independent cosine mode
+  ---
+  duration_ms: 264.76132
+  type: 'test'
+  ...
+# Subtest: cell growth reproduces the independently integrated Hill-rate area law and daughters conserve area
+ok 2 - cell growth reproduces the independently integrated Hill-rate area law and daughters conserve area
+  ---
+  duration_ms: 8.605848
+  type: 'test'
+  ...
+# Subtest: water and sediment remain accounted after rainfall, terrain edits and export
+ok 3 - water and sediment remain accounted after rainfall, terrain edits and export
+  ---
+  duration_ms: 2771.339546
+  type: 'test'
+  ...
+# Subtest: phase-field latent heat conserves enthalpy, with thermal interventions accounted separately
+ok 4 - phase-field latent heat conserves enthalpy, with thermal interventions accounted separately
+  ---
+  duration_ms: 3430.48156
+  type: 'test'
+  ...
+# Subtest: phase-field timestep refinement converges for the same geometry and elapsed time
+ok 5 - phase-field timestep refinement converges for the same geometry and elapsed time
+  ---
+  duration_ms: 22816.013616
+  type: 'test'
+  ...
+# Subtest: living-tissue validates WorldSpec, replay, perturbation baseline and rejects altered model authority
+ok 6 - living-tissue validates WorldSpec, replay, perturbation baseline and rejects altered model authority
+  ---
+  duration_ms: 224.832023
+  type: 'test'
+  ...
+# Subtest: river-formation validates WorldSpec, replay, perturbation baseline and rejects altered model authority
+ok 7 - river-formation validates WorldSpec, replay, perturbation baseline and rejects altered model authority
+  ---
+  duration_ms: 3054.873718
+  type: 'test'
+  ...
+# Subtest: crystal-foundry validates WorldSpec, replay, perturbation baseline and rejects altered model authority
+ok 8 - crystal-foundry validates WorldSpec, replay, perturbation baseline and rejects altered model authority
+  ---
+  duration_ms: 9074.08538
+  type: 'test'
+  ...
+# Subtest: river routing and erosion refine at a common elapsed time
+ok 9 - river routing and erosion refine at a common elapsed time
+  ---
+  duration_ms: 7742.175336
+  type: 'test'
+  ...
+# Subtest: governed model identities and bounded parameters reject incompatible imports
+ok 10 - governed model identities and bounded parameters reject incompatible imports
+  ---
+  duration_ms: 91.020526
+  type: 'test'
+  ...
+# Subtest: tissue intervention preview and execution agree on footprint, preserve producer, and do not mutate inputs
+ok 11 - tissue intervention preview and execution agree on footprint, preserve producer, and do not mutate inputs
+  ---
+  duration_ms: 4.920242
+  type: 'test'
+  ...
+# Subtest: tissue branches share a camera fit and region picking inverts the actual viewport transform
+ok 12 - tissue branches share a camera fit and region picking inverts the actual viewport transform
+  ---
+  duration_ms: 22.507763
+  type: 'test'
+  ...
+# Subtest: visible fixed-step replay applies zero-step and terminal-boundary actions exactly once
+ok 13 - visible fixed-step replay applies zero-step and terminal-boundary actions exactly once
+  ---
+  duration_ms: 274.311381
+  type: 'test'
+  ...
+# Subtest: terrain framing fits real elevation, every yaw and a non-square viewport
+ok 14 - terrain framing fits real elevation, every yaw and a non-square viewport
+  ---
+  duration_ms: 698.774247
+  type: 'test'
+  ...
+# Subtest: empty tissue bounds remain finite after removal and include cell radii
+ok 15 - empty tissue bounds remain finite after removal and include cell radii
+  ---
+  duration_ms: 0.365055
+  type: 'test'
+  ...
+# Subtest: terrain zoom out makes the rendered terrain smaller without changing model state
+ok 16 - terrain zoom out makes the rendered terrain smaller without changing model state
+  ---
+  duration_ms: 230.253032
+  type: 'test'
+  ...
+# Subtest: field failures preserve both accepted branches and recover explicitly without retrying each frame
+ok 17 - field failures preserve both accepted branches and recover explicitly without retrying each frame
+  ---
+  duration_ms: 14091.659679
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 65220.965512

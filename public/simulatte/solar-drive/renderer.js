@@ -107,7 +107,11 @@
           for (let column = 0; column < 3; column += 1) {
             const c = column * 4;
             const divisor = item.matrix[c] ** 2 + item.matrix[c + 1] ** 2 + item.matrix[c + 2] ** 2 || 1;
-            packed.set([item.matrix[c] / divisor, item.matrix[c + 1] / divisor, item.matrix[c + 2] / divisor, 0], offset + 24 + c);
+            const exposure=item.panelExposure;
+            if(exposure&&(!Array.isArray(exposure)||exposure.length!==3||!exposure.every(Number.isFinite)
+              ||exposure[0]<1||exposure[0]>512||!Number.isInteger(exposure[0])||exposure[1]<0||exposure[2]<=0||exposure[1]+exposure[2]>1))throw Error('solar_panel_render_exposure_invalid');
+            // Reserved normal padding carries the sampled panel mask and UV span.
+            packed.set([item.matrix[c] / divisor, item.matrix[c + 1] / divisor, item.matrix[c + 2] / divisor, exposure?exposure[column]:0], offset + 24 + c);
           }
           index += 1;
         }
@@ -155,7 +159,7 @@
     }
     function receipt() {
       return { backend: 'webgpu', adapter: { vendor: adapter.info?.vendor || '', architecture: adapter.info?.architecture || '',
-        device: adapter.info?.device || '', description: adapter.info?.description || '' },
+        device: adapter.info?.device || '', description: adapter.info?.description || '',isFallbackAdapter:adapter.isFallbackAdapter },
       submittedFrames: frameCount, completedFrames, width, height, sampleCount: SAMPLE_COUNT,
       shadowMapSize: 2048, instanceStrideBytes: INSTANCE_BYTES, frameUniformBytes: 176 };
     }

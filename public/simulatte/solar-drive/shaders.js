@@ -52,6 +52,18 @@ fn fresnel(cosine: f32, f0: vec3<f32>) -> vec3<f32> {
 fn aces(x: vec3<f32>) -> vec3<f32> {
   return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), vec3<f32>(0.0), vec3<f32>(1.0));
 }
+fn panelSample(mask: u32, x: u32, z: u32) -> f32 {
+  return 1.0 - f32((mask >> (x * 3u + z)) & 1u);
+}
+fn panelDirect(item: Instance, local: vec3<f32>) -> f32 {
+  let mask = u32(item.normal0.w) - 1u;
+  let uv = vec2<f32>(item.normal1.w + (local.x + 0.5) * item.normal2.w, 0.5 - local.z);
+  let p = clamp(uv * 3.0 - 0.5, vec2<f32>(0.0), vec2<f32>(2.0));
+  let a = vec2<u32>(floor(p)); let b = min(a + vec2<u32>(1u), vec2<u32>(2u));
+  let t = fract(p);
+  return mix(mix(panelSample(mask,a.x,a.y),panelSample(mask,b.x,a.y),t.x),
+    mix(panelSample(mask,a.x,b.y),panelSample(mask,b.x,b.y),t.x),t.y);
+}
 @fragment fn fs(v: Vertex, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
   let item = instances[v.index];
   let gridWidth = max(fwidth(v.world.xz * 2.0), vec2<f32>(0.001));
@@ -109,7 +121,8 @@ fn aces(x: vec3<f32>) -> vec3<f32> {
   let f = fresnel(vh, f0);
   let specular = distribution * geometry * f / max(4.0 * nv * nl, 0.001);
   let diffuse = (vec3<f32>(1.0) - f) * (1.0 - metal) * base / 3.14159265;
-  let visibility = shadow(v.world, n);
+  var visibility = shadow(v.world, n);
+  if (pattern == 3u && item.normal0.w > 0.0) { visibility = mix(0.18,1.0,panelDirect(item,v.local)); }
   let reflection = reflect(-view, n);
   let sky = atmosphericSky(reflection, light, frame.sun.w);
   let softbox = pow(max(dot(reflection, normalize(vec3<f32>(-0.8, 1.2, 0.5))), 0.0), 14.0 / (rough + 0.2));
