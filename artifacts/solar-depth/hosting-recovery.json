@@ -1,0 +1,64 @@
+{
+  "schema": "simulatte.hostingQuotaRecovery.v1",
+  "recordedAt": "2026-10-13T01:07:51.837Z",
+  "project": "simulatte-world",
+  "site": "simulatte-world",
+  "channel": "projects/simulatte-world/sites/simulatte-world/channels/live",
+  "status": "deployment-verified",
+  "approval": "explicit user yes to retaining 20 releases",
+  "retainedReleaseCount": 20,
+  "liveUnchangedDuringRetention": true,
+  "newLiveVersion": "projects/simulatte-world/sites/simulatte-world/versions/501b1ca3802de428",
+  "newRelease": "projects/simulatte-world/sites/simulatte-world/channels/live/releases/1791853397601000",
+  "releaseTime": "2026-10-13T01:03:17.601Z",
+  "deployedBuild": "0e9b02b48b87c3ddc95ee51b7d2d7db3ef418f77-1c99f301f748",
+  "deployedSourceCommit": "0e9b02b48b87c3ddc95ee51b7d2d7db3ef418f77",
+  "supersedesStatus": "artifacts/solar-depth/deployment-status.json",
+  "attempts": [
+    {
+      "log": "artifacts/solar-depth/deployment-attempt.log",
+      "outcome": "429 storage quota rejected; original attempt"
+    },
+    {
+      "log": "artifacts/solar-depth/deployment-after-retention.log",
+      "outcome": "predeploy stopped: system Python lacks NumPy; no upload"
+    },
+    {
+      "log": "artifacts/solar-depth/deployment-retention-retry.log",
+      "outcome": "deploy completed after using the pinned classifier environment"
+    }
+  ],
+  "environment": {
+    "python": "/tmp/simulatte-validation-venv/bin/python3",
+    "numpy": "2.2.3",
+    "scipy": "1.15.2",
+    "scikitLearn": "1.9.0",
+    "requirements": "tools/samer/requirements-compact-classifiers.txt",
+    "requirementsSha256": "08f2f326b7df44b0c840867c2016a2140fa1ea731dfac87fc64e08cd57abd797"
+  },
+  "checks": {
+    "retention": "artifacts/solar-depth/hosting-retention-applied.json",
+    "liveChannel": "artifacts/solar-depth/hosting-after-deployment.json",
+    "httpAndStartup": "artifacts/solar-depth/live-after-retention/report.json",
+    "solarDrive": "artifacts/solar-depth/deployed-solar/browser-receipt.json",
+    "customDomain": {
+      "url": "https://simulatte.world/version.json",
+      "build": "0e9b02b48b87c3ddc95ee51b7d2d7db3ef418f77-1c99f301f748",
+      "matched": true
+    },
+    "charters": "43 valid recursive component charters",
+    "charterLog": "artifacts/solar-depth/retention-catscan-check.log",
+    "generatedChanges": "Entry-point edits normalize exactly to source 0e9b02b4 when build stamps and cache query versions are removed."
+  },
+  "handoff": {
+    "component": "World Hosting",
+    "intent": "preserved",
+    "acceptanceEvidence": "Firebase deploy completed; HTTP and desktop/mobile browser checks passed; deployed Solar Drive native WebGPU checks passed",
+    "boundaryEffects": "World live channel retains 20 releases; older rollback content scheduled for deletion; generated build stamps updated; only hosting:world deployed"
+  },
+  "claims": {
+    "simulationAccuracy": "No new empirical qualification claimed",
+    "humanVisualReview": "pending",
+    "browserDevices": "Desktop Chrome at desktop/mobile viewport sizes"
+  }
+}

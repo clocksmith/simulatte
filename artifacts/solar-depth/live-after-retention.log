@@ -1,0 +1,5 @@
+
+> verify:live
+> node tools/verify-hosting-release.mjs --surface=world --out=artifacts/solar-depth/live-after-retention
+
+{"pass":true,"expectedBuild":"0e9b02b48b87c3ddc95ee51b7d2d7db3ef418f77-1c99f301f748","scope":"HTTP identity, entry assets, browser startup, controls and one fixed Create execution","report":"/home/clocksmith/deco/simulatte/artifacts/solar-depth/live-after-retention/report.json"}

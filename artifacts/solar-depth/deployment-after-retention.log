@@ -1,0 +1,108 @@
+
+=== Deploying to 'simulatte-world'...
+
+i  deploying hosting
+Running command: npm run prepare:hosting
+
+> prepare:hosting
+> npm run check:doppler:development && npm run stamp:build && npm run check:deploy && npm run package:hosting
+
+
+> check:doppler:development
+> node tools/sync-doppler-development.mjs --check
+
+Doppler development source clean: lock #16 uses doppler-gpu@0.5.1 from source dd49cc11e4742cf40f7788bde2631d8179c161b3.
+
+> stamp:build
+> node tools/stamp-build.mjs
+
+Generated build stamp: 0e9b02b48b87c3ddc95ee51b7d2d7db3ef418f77-1c99f301f748
+Updated public/index.html to build content="0e9b02b48b87c3ddc95ee51b7d2d7db3ef418f77-1c99f301f748"
+Updated 23 deferred script URLs in public/index.html
+Updated 8 stylesheet URLs in public/index.html
+Updated public/blank/index.html to build content="0e9b02b48b87c3ddc95ee51b7d2d7db3ef418f77-1c99f301f748"
+Updated 240 deferred script URLs in public/blank/index.html
+Updated 4 stylesheet URLs in public/blank/index.html
+Updated public/simulatte/field-experiments/index.html to build content="0e9b02b48b87c3ddc95ee51b7d2d7db3ef418f77-1c99f301f748"
+Updated 15 deferred script URLs in public/simulatte/field-experiments/index.html
+Updated 5 stylesheet URLs in public/simulatte/field-experiments/index.html
+Wrote version.json at /home/clocksmith/deco/simulatte/public/version.json
+
+> check:deploy
+> npm run simulatte:tiers:check && npm run plugins:check && npm run check:field-models && npm run check:solar-drive-data && npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && npm run check:runtime-entrypoint && npm run check:world-entrypoint && npm run check:artifacts && npm run catalog:check && npm run check:hosting && node tools/check-deploy-surface.mjs && npm run check:simulatte
+
+
+> simulatte:tiers:check
+> node tools/simulatte/sync-tier-application-manifest.mjs && node tools/simulatte/sync-tier-dataset-references.mjs
+
+TIER-APPLICATION-MANIFEST status=verified changed=false
+TIER-DATASET-REFERENCES status=verified changed=0
+
+> plugins:check
+> node tools/simulatte/sync-model-source-hashes.mjs && npm run simulatte:tiers:data:check && node tools/plugins/sync-plugin-integrity.mjs && node tools/plugins/sync-plugin-registry.mjs && node tools/plugins/check-plugin-boundaries.mjs
+
+sun-walker model hashes match
+gpu-supercluster model hashes match
+orbital-transfer-planner model hashes match
+
+> simulatte:tiers:data:check
+> node tools/simulatte/sync-tier-dataset-references.mjs
+
+TIER-DATASET-REFERENCES status=verified changed=0
+PLUGIN-INTEGRITY verified
+PLUGIN-REGISTRY status=verified plugins=12 ids=asteroid-defense,cable-trader,food-recall-us,gpu-supercluster,grid-resilience-us,interstellar-relay-network,maritime-trade-global,neighborhood-bulk-pool,nyc-real-estate,orbital-transfer-planner,subsea-network-global,sun-walker
+PLUGIN-BOUNDARY status=verified files=118
+
+> check:field-models
+> node tools/simulatte/sync-field-models.mjs
+
+Field model integrity synchronized
+
+> check:solar-drive-data
+> node tools/simulatte/build-solar-route.mjs && python3 tools/simulatte/build-solar-reference.py
+
+Solar route: 21 elevation points, 3221 buildings, 1490.4 m, fnv1a32:55a2a902
+Published solar reference: 57 rides, median 11.0703125 Wh/km
+
+> check:model-lock
+> npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development
+
+
+> check:model-lock-references
+> node tools/sync-model-runtime-lock-references.mjs --check
+
+Model runtime lock references clean: 5 mirrors checked.
+Model runtime lock clean: simulatte-doppler-qwen-runtime-lock#16 pins doppler-gpu@0.5.1, qwen-3-embedding-0-6b-q4k-ehf16-af32, and qwen-3-reranker-0-6b-q4k-ehf16-af32.
+
+> check:doppler:development
+> node tools/sync-doppler-development.mjs --check
+
+Doppler development source clean: lock #16 uses doppler-gpu@0.5.1 from source dd49cc11e4742cf40f7788bde2631d8179c161b3.
+
+> check:model-candidates
+> node tools/samer/check-model-candidate-registry.mjs && npm run check:compact-classifiers && npm run pipeline:matrix:check
+
+{
+  "schema": "simulatte.modelCandidateRegistryCheck.v1",
+  "registryId": "simulatte-compact-model-candidates-v1",
+  "registrySha256": "06aac97bf84f8181975991cf76995ceecfc3cdbcc1391f9677ee08ec141bb720",
+  "runtimeSha256": "8dab2c2cc517d841b26c8b93bb576dfa34b472fc770f3d5a85211324db9a42f4",
+  "candidateCount": 19,
+  "retrievalCascadeCount": 2,
+  "taskCandidateCounts": {
+    "classification": 10,
+    "embedding-retrieval": 3,
+    "reranking": 4
+  },
+  "modelLockNumber": 16
+}
+
+> check:compact-classifiers
+> python3 tools/samer/build-browser-linear-classifiers.py --check
+
+Traceback (most recent call last):
+  File "/home/clocksmith/deco/simulatte/tools/samer/build-browser-linear-classifiers.py", line 7, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+
+Error: hosting[world] predeploy error: Command terminated with non-zero exit code 1

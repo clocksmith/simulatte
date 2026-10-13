@@ -1,0 +1,175 @@
+{
+  "schema": "simulatte.hostingRecoveryManifest.v1",
+  "artifacts": [
+    {
+      "path": "artifacts/solar-depth/deployed-solar.log",
+      "bytes": 186,
+      "sha256": "6bc903e488efc7b2c7dff66139e0e7b7571401cd616c01073dbed2cc4afdb991"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/1440-clear.png",
+      "bytes": 436863,
+      "sha256": "d42e5f441b259637ac82a198cbfb72c22343a1bcc0f0768bc78fdee6a1211569"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/1440-partial.png",
+      "bytes": 425706,
+      "sha256": "0096fe8e8c1e8d304f9fb31e9b430152fadd4ece4900a95fbf7987e93ff69631"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/1440-shaded.png",
+      "bytes": 340904,
+      "sha256": "9a79c31388247bb13758ac3e9e5bd711ee7423c87cfc1bb5036ed6e88b848821"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/390-clear.png",
+      "bytes": 73751,
+      "sha256": "51498dafed369bb2f0842559bf26100d6df66a41c8529677dcc86de58e058b9a"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/390-partial.png",
+      "bytes": 75076,
+      "sha256": "f8b16587507caa2608164b973fd5543d46c8395862c73f692047e8b01d69f9d6"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/390-shaded.png",
+      "bytes": 69949,
+      "sha256": "fdfd17acc2661fe5eb2970f4987a87cc76ccc6bce8e1d4b6eb918b6ab857c25c"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/browser-receipt.json",
+      "bytes": 98115,
+      "sha256": "c275f652dc4aaebcd50042e3be4a802cf1b355945e1d82d4e42a492b6a58fb61"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/car-exploded.png",
+      "bytes": 313840,
+      "sha256": "c1e5a5947e168ef2a70fd7f2b76c1b596d5e73f63133faa5ecdbb0467e1c25f9"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/desktop-assembled.png",
+      "bytes": 266273,
+      "sha256": "787ad38dfc63183b74bb0b3d15e1235e1a672632c9d57775f07ba599c0564551"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/desktop-exploded.png",
+      "bytes": 278752,
+      "sha256": "5080321bf7874b4c3e7a947b99d7f9d402edecadf184c21bec01fea56eb86f09"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/desktop-panel-cover.png",
+      "bytes": 221151,
+      "sha256": "9523415d7b78847aef338e6912396c9a5d53c969a06b4ed719ae1cdfed983a01"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/desktop-ride.png",
+      "bytes": 257248,
+      "sha256": "44563076c71e91192b523c9c86544f5184e332b5210dcdcc9118908d20068abf"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/flywheel-detail.png",
+      "bytes": 313528,
+      "sha256": "9e35faeaf0f1913fcdb57ab125b16e4b304546e3d634f1cc59e23918c7b86f65"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/mobile-assembled.png",
+      "bytes": 92762,
+      "sha256": "9c92a08705bd6f5061837d835d55af3507aae46a8727a642291f53041455d553"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/mobile-controls.png",
+      "bytes": 68173,
+      "sha256": "a539b46a8c7900d2a18f83f02e0243fc25707a94fec6280a6b30cc3803039432"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/mobile-exploded.png",
+      "bytes": 72809,
+      "sha256": "7a78bef3dbeffc8d8ae319d2d4e16919793870ee7cbf94dd468fc2fafe7fa419"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/mobile-panel-cover.png",
+      "bytes": 74112,
+      "sha256": "4707539de7124df86946aa2967e418735320164da350e163653e039221497caa"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/mobile-ride.png",
+      "bytes": 85679,
+      "sha256": "c6b105d16cd81a4fc459f4e0b2ba2d0b4ae16191bc0e4094548b75c86cf3918b"
+    },
+    {
+      "path": "artifacts/solar-depth/deployed-solar/scooter-exploded.png",
+      "bytes": 283035,
+      "sha256": "e71a075f75d9bbca72eb706f6e054fde456e9351f74f720a21279c164667e038"
+    },
+    {
+      "path": "artifacts/solar-depth/deployment-after-retention.log",
+      "bytes": 4907,
+      "sha256": "82522fc6c4d97126c7a47ddd116ac5961a2c0442b82db0848210803c9d5a083e"
+    },
+    {
+      "path": "artifacts/solar-depth/deployment-retention-retry.log",
+      "bytes": 9732,
+      "sha256": "db61c4d34a7533bbb836aa527e22f3146117c432beb671324f1f9a8e157e514c"
+    },
+    {
+      "path": "artifacts/solar-depth/hosting-after-deployment.json",
+      "bytes": 518,
+      "sha256": "db7cd97dec452efa9dbfb180fefe930eda8c7c330817ce2ca66ede87a02e530e"
+    },
+    {
+      "path": "artifacts/solar-depth/hosting-recovery.json",
+      "bytes": 3029,
+      "sha256": "d3c9aa6261c00471526a0ea9b8d442aa652fc0b96f9c04311284f4a558377287"
+    },
+    {
+      "path": "artifacts/solar-depth/hosting-retention-applied.json",
+      "bytes": 6359,
+      "sha256": "c0127a676806c43ba65ad96288e558260195990e889d6ecc453918644a7b74e6"
+    },
+    {
+      "path": "artifacts/solar-depth/live-after-retention.log",
+      "bytes": 401,
+      "sha256": "ceb1a4c449ea9bb08e9683a80374e2e5d8567fc6e5c16bf07b155d9819080b6d"
+    },
+    {
+      "path": "artifacts/solar-depth/live-after-retention/report.json",
+      "bytes": 20347,
+      "sha256": "213ad2de85b36d3ff88007a72d11412ced7748e00c22e741057fff81684d40b5"
+    },
+    {
+      "path": "artifacts/solar-depth/live-after-retention/world-1440x1000.png",
+      "bytes": 103517,
+      "sha256": "4c35dc57483e640a1db88b9516e7c27b3fc03ac6ad697cdd79053f001101f724"
+    },
+    {
+      "path": "artifacts/solar-depth/live-after-retention/world-390x844.png",
+      "bytes": 53841,
+      "sha256": "bafe9c059b1b1ac6a6ddefec39c6c02776dc101b53a817ae8f79eeb27ee9fa2f"
+    },
+    {
+      "path": "artifacts/solar-depth/retention-catscan-check.log",
+      "bytes": 120,
+      "sha256": "ac08ae510610b7b6e931dd371f9c5512ba7a0296081ed1364b5746281b443e8a"
+    },
+    {
+      "path": "public/blank/index.html",
+      "bytes": 50254,
+      "sha256": "e925774d21a5383510216f8507008c8029446424f46674f06f0243b8287bebb9"
+    },
+    {
+      "path": "public/index.html",
+      "bytes": 64120,
+      "sha256": "0b149961b991188f8df9752270b9fdbd601b8809133584f6333a51a418966667"
+    },
+    {
+      "path": "public/simulatte/field-experiments/index.html",
+      "bytes": 5313,
+      "sha256": "f058a98409bcf8d20590edbf5789579a89367da31f050367359eb10896210be3"
+    },
+    {
+      "path": "public/version.json",
+      "bytes": 70,
+      "sha256": "b376a71724d999dae84f5094ea97631eb55abf0dfebe6404ff51aebdffe58946"
+    }
+  ]
+}

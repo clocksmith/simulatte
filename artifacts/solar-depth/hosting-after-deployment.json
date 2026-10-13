@@ -1,0 +1,10 @@
+{
+  "schema": "simulatte.hostingDeploymentState.v1",
+  "recordedAt": "2026-10-13T01:03:55.985Z",
+  "channel": "projects/simulatte-world/sites/simulatte-world/channels/live",
+  "retainedReleaseCount": 20,
+  "release": "projects/simulatte-world/sites/simulatte-world/channels/live/releases/1791853397601000",
+  "version": "projects/simulatte-world/sites/simulatte-world/versions/501b1ca3802de428",
+  "releaseTime": "2026-10-13T01:03:17.601Z",
+  "expectedBuild": "0e9b02b48b87c3ddc95ee51b7d2d7db3ef418f77-1c99f301f748"
+}

@@ -1,0 +1,147 @@
+{
+  "schema": "simulatte.hostingRetentionApplication.v1",
+  "appliedAt": "2026-10-13T00:58:12.512Z",
+  "approval": "explicit user approval in this conversation",
+  "proposalPath": "artifacts/solar-depth/hosting-cleanup-plan.json",
+  "proposalSha256": "11da7ce987a12d71d42c45352e51e35343641fea9cee5288ff5e518d353ad181",
+  "channel": "projects/simulatte-world/sites/simulatte-world/channels/live",
+  "updateMask": "retainedReleaseCount",
+  "patch": {
+    "retainedReleaseCount": 20
+  },
+  "before": {
+    "retainedReleaseCount": 2147483647,
+    "version": "ea984a76e66741a9",
+    "releaseTime": "2026-10-12T12:18:43.775Z"
+  },
+  "after": {
+    "retainedReleaseCount": 20,
+    "version": "ea984a76e66741a9",
+    "releaseTime": "2026-10-12T12:18:43.775Z"
+  },
+  "currentLiveUnchanged": true,
+  "retainedReleaseCountVerified": true,
+  "retainedReleases": [
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791807523775000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/ea984a76e66741a9",
+      "releaseTime": "2026-10-12T12:18:43.775Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791778425865000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/574b0c4baaf5e663",
+      "releaseTime": "2026-10-12T04:13:45.865Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791777207561000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/27de843daa604b8e",
+      "releaseTime": "2026-10-12T03:53:27.561Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791766766100000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/4ae9106f3312e576",
+      "releaseTime": "2026-10-12T00:59:26.100Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791766471142000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/395d25cb0932fe60",
+      "releaseTime": "2026-10-12T00:54:31.142Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791763258997000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/e1f201f5b21ee55b",
+      "releaseTime": "2026-10-12T00:00:58.997Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791747284592000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/3d97a94dffef4421",
+      "releaseTime": "2026-10-11T19:34:44.592Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791742835162000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/eed5c9c8304444d3",
+      "releaseTime": "2026-10-11T18:20:35.162Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791726572087000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/8f85b41cb1465bc7",
+      "releaseTime": "2026-10-11T13:49:32.087Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791725832224000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/9c31844a0feb3372",
+      "releaseTime": "2026-10-11T13:37:12.224Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791716499164000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/b5127119e9d9a2ae",
+      "releaseTime": "2026-10-11T11:01:39.164Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791688107020000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/b6903e4d453ed20d",
+      "releaseTime": "2026-10-11T03:08:27.020Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791686222721000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/963e30536340fb03",
+      "releaseTime": "2026-10-11T02:37:02.721Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791678018380000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/0aeae55a4b89fda2",
+      "releaseTime": "2026-10-11T00:20:18.380Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791242212343000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/135210cf5a09e4f8",
+      "releaseTime": "2026-10-05T23:16:52.343Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791241428206000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/9d6422d8ba1f2ee5",
+      "releaseTime": "2026-10-05T23:03:48.206Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791240421778000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/f2a349101edb2034",
+      "releaseTime": "2026-10-05T22:47:01.778Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791232845545000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/994a22ee30f31ab1",
+      "releaseTime": "2026-10-05T20:40:45.545Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791231816063000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/96fe9ab2707f3742",
+      "releaseTime": "2026-10-05T20:23:36.063Z",
+      "type": "DEPLOY"
+    },
+    {
+      "name": "projects/72280513928/sites/simulatte-world/channels/live/releases/1791231307152000",
+      "version": "projects/72280513928/sites/simulatte-world/versions/891660cc750841be",
+      "releaseTime": "2026-10-05T20:15:07.152Z",
+      "type": "DEPLOY"
+    }
+  ],
+  "status": "passed"
+}
