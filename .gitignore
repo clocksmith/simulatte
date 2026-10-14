@@ -34,3 +34,9 @@ tools/samer/model-selection/sealed/
 
 # Packaged releases are local artifacts; tracked receipts retain their hashes.
 artifacts/next-experiences/*.tar.gz
+# Audit screenshots stay local; JSON reports are the committed evidence.
+artifacts/**/*.png
+artifacts/**/*.jpg
+artifacts/**/*.jpeg
+artifacts/**/*.webp
+artifacts/**/*.gif
