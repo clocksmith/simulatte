@@ -109,6 +109,24 @@ test('governing metric rejects stale builds and incomplete boundary evidence', a
   );
 });
 
+test('governing metric binds screenshots by receipt hash and rejects altered local copies', async () => {
+  const { compiler } = await modules();
+  const unhashed = loadArchivedEvidenceFixture(compiler);
+  unhashed.pointers.goldReports[0].pointer.value.results[0].screenshotHash = '';
+  assert.throws(() => compiler.buildGoverningMetricReport(unhashed), /page screenshot lacks a receipt hash/);
+
+  const altered = loadArchivedEvidenceFixture(compiler);
+  const goldReport = altered.pointers.goldReports[0];
+  const directory = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'governing-metric-'));
+  try {
+    goldReport.pointer.path = path.join(directory, 'report.json');
+    fs.writeFileSync(path.join(directory, goldReport.pointer.value.results[0].screenshot), 'altered');
+    assert.throws(() => compiler.buildGoverningMetricReport(altered), /bytes do not match the receipt hash/);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test('current editor evidence cannot downgrade its retained phase-source exchange contract', async () => {
   const { assertReceipt } = await import('../tools/audit-world-spec-editor.mjs');
   const input = loadArchivedEvidenceFixture();

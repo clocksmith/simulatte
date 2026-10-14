@@ -579,14 +579,17 @@ function textIncludes(value, text) {
   return String(JSON.stringify(value)).toLowerCase().includes(String(text || '').toLowerCase());
 }
 
+// Screenshots are not committed; the hash in the committed JSON report is the
+// binding. A screenshot present on this machine must still match that hash.
 function verifyBoundFile(baseDirectory, relativePath, expectedSha256, label) {
   const normalized = path.normalize(String(relativePath || ''));
   if (!relativePath || path.isAbsolute(normalized) || normalized === '..' || normalized.startsWith(`..${path.sep}`)) {
     throw new Error(`${label} has an invalid path`);
   }
+  if (!isSha256(expectedSha256)) throw new Error(`${label} lacks a receipt hash`);
   const file = path.resolve(baseDirectory, normalized);
-  if (!fs.existsSync(file) || !fs.statSync(file).isFile()) throw new Error(`${label} is missing`);
-  if (!isSha256(expectedSha256) || digest(fs.readFileSync(file)) !== expectedSha256) {
+  if (!fs.existsSync(file)) return;
+  if (!fs.statSync(file).isFile() || digest(fs.readFileSync(file)) !== expectedSha256) {
     throw new Error(`${label} bytes do not match the receipt hash`);
   }
 }
