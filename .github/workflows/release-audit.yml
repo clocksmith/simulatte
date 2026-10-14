@@ -9,21 +9,46 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    # The Doppler tools resolve the lock's doppler.development.workspacePath
+    # (../doppler) from the repository root, so Simulatte and Doppler are
+    # checked out side by side inside the workspace.
+    defaults:
+      run:
+        working-directory: simulatte
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          path: simulatte
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
           node-version: '22'
 
+      - name: Resolve pinned Doppler source
+        id: doppler-pin
+        run: |
+          node -e '
+            const { development } = require("./public/data/simulatte-embedder/model-runtime-lock.json").doppler;
+            if (development.workspacePath !== "../doppler") throw new Error(`CI checks Doppler out at ../doppler; the lock declares ${development.workspacePath}`);
+            console.log(`sha=${development.gitSha}`);
+          ' >> "$GITHUB_OUTPUT"
+
+      # restore:doppler:development and check:deploy archive this exact commit.
+      - name: Checkout pinned Doppler source
+        uses: actions/checkout@v7
+        with:
+          repository: clocksmith/doppler
+          ref: ${{ steps.doppler-pin.outputs.sha }}
+          path: doppler
+
       - name: Setup classifier generator Python
         uses: actions/setup-python@v7
         with:
           python-version: '3.13'
           cache: 'pip'
-          cache-dependency-path: tools/samer/requirements-compact-classifiers.txt
+          cache-dependency-path: simulatte/tools/samer/requirements-compact-classifiers.txt
 
       - name: Install pinned classifier generator
         run: python -m pip install -r tools/samer/requirements-compact-classifiers.txt

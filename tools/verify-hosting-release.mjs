@@ -23,8 +23,10 @@ export async function main(args = process.argv.slice(2)) {
   if (options['expected-source-sha'] && options['expected-source-sha'] !== expectedBuild.split('-')[0]) throw new Error('Expected source SHA differs from the exact release build');
   const outDir = path.resolve(options.out);
   await prepareAuditOutput(outDir, ['simulatte.liveRelease.v2']);
+  // Screenshots come only from the browser checks, which --http-only skips.
+  const screenshots = !options['http-only'] && options.screenshots !== false;
   const report = { schema: 'simulatte.liveRelease.v2', recordedAt: new Date().toISOString(), expectedBuild,
-    screenshots: options.screenshots !== false,
+    screenshots,
     scope: options['http-only'] ? 'HTTP identity and entry assets only' : 'HTTP identity, entry assets, browser startup, controls and one fixed Create execution',
     exclusions: ['Simulation correctness', 'Model qualification', 'Physical GPU qualification', 'Human visual adjudication'],
     surfaces: [], browsers: [], pass: false };
@@ -35,7 +37,7 @@ export async function main(args = process.argv.slice(2)) {
     report.surfaces.push(checked);
     if (!options['http-only']) {
       for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
-        report.browsers.push(await verifyHostingBrowser({ surface, baseUrl, expectedBuild, viewport, outDir, chromePath: options.chrome, screenshots: options.screenshots !== false }));
+        report.browsers.push(await verifyHostingBrowser({ surface, baseUrl, expectedBuild, viewport, outDir, chromePath: options.chrome, screenshots }));
       }
     }
   }

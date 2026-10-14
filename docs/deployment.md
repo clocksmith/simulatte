@@ -16,7 +16,7 @@ module and worker paths without duplicating source files in the repository.
 
 | Contract | Job |
 | --- | --- |
-| [`firebase.json`](../firebase.json) | Hosting targets, redirects, cache headers, predeploy gate, and build stamp. |
+| [`firebase.json`](../firebase.json) | Hosting targets, redirects, and cache headers. |
 | [`.firebaserc`](../.firebaserc) | Firebase project plus World and Create deploy-target bindings. |
 | [`package.json`](../package.json) | Account checks, packaging, previews, production deploys, and model-lock commands. |
 | [`tools/package-hosting-surfaces.mjs`](../tools/package-hosting-surfaces.mjs) | Builds isolated Hosting collections from canonical `public/` sources. |
@@ -78,10 +78,15 @@ each collection. Create receives only its compiler data: the classifier,
 construction substrate, language lexicon, model indexes, and universe indexes.
 World-only autonomy datasets are excluded.
 
-The predeploy hook runs `prepare:hosting`, which checks the pinned Doppler
-package, stamps the build, runs the deploy checks, and packages the stamped
-files. Restore the pinned dependency with `npm run restore:doppler:development`
-when required; do not replace its integrity pin to bypass a failed check.
+Every `deploy:hosting*` and `deploy:preview*` command runs `prepare:hosting`
+once before calling Firebase. It checks the pinned Doppler package, stamps the
+build, runs the deploy checks, and packages the stamped files. `firebase.json`
+declares no `predeploy` hook because Firebase runs a hook once per selected
+Hosting target, so an all-target deploy would prepare twice. A bare
+`firebase deploy` uploads whatever `.firebase-hosting/` already holds; use the
+package commands. Restore the pinned dependency with
+`npm run restore:doppler:development` when required; do not replace its
+integrity pin to bypass a failed check.
 The original Doppler archive is retained under `artifacts/pinned-packages/` so a
 fresh checkout does not depend on one operator's npm cache. Restoration still
 requires both pinned archive hashes and identical uncompressed tar bytes from
@@ -174,9 +179,10 @@ Screenshots and a report are retained under `artifacts/live-release/`. Set
 support inspection; this check does not certify simulation correctness, physical
 GPU behavior, model quality, or human visual acceptance.
 
-`--http-only` is a diagnostic lane explicitly labeled as excluding browser checks.
-Production commands do not use it. The existing broader simulation and compiler
-audits remain necessary for their respective capability claims.
+`verify:live`, which the production commands run, passes `--http-only`. Its
+report scope excludes browser checks and records `screenshots: false`; run
+`verify:live:visual` for browser evidence. The existing broader simulation and
+compiler audits remain necessary for their respective capability claims.
 
 ```bash
 curl -I https://simulatte.world/

@@ -3,7 +3,6 @@
     {
       "target": "world",
       "public": ".firebase-hosting/world",
-      "predeploy": "npm run prepare:hosting",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -497,7 +496,6 @@
     {
       "target": "create",
       "public": ".firebase-hosting/create",
-      "predeploy": "npm run prepare:hosting",
       "ignore": [
         "firebase.json",
         "**/.*",

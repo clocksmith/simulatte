@@ -64,3 +64,14 @@ test('production deployment commands require live verification and previews do n
   for (const surface of ['world', 'create']) assert.match(scripts['deploy:hosting:' + surface], new RegExp('&& npm run verify:live -- --surface=' + surface + '$'));
   for (const [name, command] of Object.entries(scripts)) if (name.startsWith('deploy:preview')) assert.doesNotMatch(command, /verify:live/);
 });
+
+test('an HTTP-only release check reports that it took no screenshots', async t => {
+  const { main } = await import('../tools/verify-hosting-release.mjs');
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'simulatte-release-http-only-'));
+  const { fetch: realFetch } = globalThis, { log } = console, exitCode = process.exitCode;
+  t.after(async () => { globalThis.fetch = realFetch; console.log = log; process.exitCode = exitCode; await fs.rm(directory, { recursive: true, force: true }); });
+  globalThis.fetch = async () => new Response('', { status: 404 }); console.log = () => {};
+  await main(['--http-only', '--surface=world', `--out=${path.join(directory, 'out')}`]);
+  const report = JSON.parse(await fs.readFile(path.join(directory, 'out', 'report.json'), 'utf8'));
+  assert.equal(report.screenshots, false); assert.deepEqual(report.browsers, []);
+});
