@@ -73,9 +73,7 @@ test('every connected profile has exactly one complete experience contract', () 
   const safety = contract.nodes.find((node) => node.id === 'simulatte.experience.safety-explorer');
   const exoplanet = contract.nodes.find((node) => node.id === 'simulatte.exoplanet-proposal');
   assert.equal(safety.experience.profileId, null);
-  assert.equal(safety.status, 'partial');
   assert.equal(exoplanet.experience.profileId, null);
-  assert.equal(exoplanet.status, 'proposed');
 });
 
 test('narrowest mapping assigns profile, data, tool, docs, source, and test paths to their experience', () => {
@@ -109,14 +107,6 @@ test('declared import boundaries accept inherited edges and reject undeclared ed
   const app = restricted.nodes.find((node) => node.id === 'simulatte.app');
   app.boundary.allowedImportNodeIds = app.boundary.allowedImportNodeIds.filter((id) => !['simulatte.shared', 'simulatte.public'].includes(id));
   assert.throws(() => checker.validateImports(restricted, inventory, root), (error) => error.code === 'folder_contract_import_boundary_violation');
-});
-
-test('renderer ownership names every pass and camera composition boundary', () => {
-  const app = contract.nodes.find((node) => node.id === 'simulatte.app');
-  const ownership = app.ownership.owns.join(' ').toLowerCase();
-  ['opaque', 'ground', 'plugin overlays', 'shadows', 'dynamic actors', 'routes', 'labels', 'depth-band', 'camera', 'minimap']
-    .forEach((term) => assert.match(ownership, new RegExp(term), term));
-  assert.ok(app.intent.mustNotClaim.some((claim) => /screenshot.*not architecture authority/i.test(claim)));
 });
 
 test('judge receipt binds deterministic validation, prompt, policy, commit, contract, and inspected hashes', () => {

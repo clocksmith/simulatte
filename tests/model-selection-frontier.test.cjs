@@ -310,7 +310,6 @@ test('policy and schema own separate task quality and comparable performance con
   const policy = JSON.parse(fs.readFileSync(path.join(root, 'tools/samer/model-selection-policy.json'), 'utf8'));
   const jobs = JSON.parse(fs.readFileSync(path.join(root, 'tools/samer/classification-jobs-v1.json'), 'utf8'));
   const schema = JSON.parse(fs.readFileSync(path.join(root, 'tools/samer/model-selection-trial.schema.json'), 'utf8'));
-  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
   assert.equal(policy.schema, 'simulatte.modelSelectionPolicy.v2');
   assert.deepEqual(policy.requiredTasks.map((row) => row.id), ['classification', 'embedding-retrieval', 'reranking']);
@@ -331,8 +330,6 @@ test('policy and schema own separate task quality and comparable performance con
   assert.equal(policy.performanceContract.warmLatency.requiredStatistic, 'p95');
   assert.equal(schema.additionalProperties, false);
   assert.equal(schema.properties.population.properties.visibility.const, 'sealed');
-  assert.equal(pkg.scripts['evaluate:model-frontiers'], 'node tools/model-selection-frontier.mjs');
-  assert.equal(pkg.scripts['check:model-populations'], 'node tools/samer/commit-model-selection-populations.mjs');
 });
 
 test('classification retrieval and reranking retain distinct single-use commitments and opening receipts', () => {

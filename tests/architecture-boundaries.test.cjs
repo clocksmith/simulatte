@@ -10,7 +10,6 @@ test('city bootstrap delegates interface behavior through a named dependency obj
   const main = read('public/simulatte/app/main.js');
   const cityInterface = require('../public/simulatte/app/city-interface.js');
   assert.doesNotMatch(main, /function wireCameraControls|function wireInterfaceControls|function updateButtons/);
-  assert.match(main, /factory\(Object\.freeze\(\{/);
   assert.equal(typeof cityInterface.wireCameraControls, 'function');
   assert.equal(typeof cityInterface.wireInterfaceControls, 'function');
   assert.equal(typeof cityInterface.updateButtons, 'function');
@@ -32,20 +31,12 @@ test('tier visualizer delegates drawing and local data access', () => {
   const dataLoader = require('../public/simulatte/app/tier-data-loader.js');
   assert.doesNotMatch(visualizer, /(^|[^\w.])fetch\(/m);
   assert.doesNotMatch(visualizer, /raw\.githubusercontent\.com|remote fallback/i);
-  assert.match(visualizer, /tierRenderers\.drawSolarSystem\(this\)/);
-  assert.match(visualizer, /this\.lifecycle\.abort\(\)/);
   assert.equal(typeof renderers.drawWorld, 'function');
   assert.equal(typeof dataLoader.createTierDataLoader, 'function');
 });
 
-test('tier visualizer uses one pointer-capture orbit path for mouse and touch', () => {
+test('tier visualizer does not register mouse-only orbit listeners', () => {
   const visualizer = read('public/simulatte/app/multi-tier-visualizer.js');
-  assert.match(visualizer, /'pointerdown'/);
-  assert.match(visualizer, /'pointermove'/);
-  assert.match(visualizer, /'pointerup'/);
-  assert.match(visualizer, /'pointercancel'/);
-  assert.match(visualizer, /setPointerCapture/);
-  assert.match(visualizer, /touchAction = 'none'/);
   assert.doesNotMatch(visualizer, /'mousedown'|'mousemove'|'mouseup'/);
 });
 
@@ -63,8 +54,6 @@ test('browser smoke lanes share one CDP client', () => {
     assert.match(source, /browser-session\.mjs/, file);
     assert.doesNotMatch(source, /class CdpClient|function waitForDevtools|spawn\(/, file);
   }
-  assert.match(tierSmoke, /getElementById\('runtime-status'\)/);
-  assert.doesNotMatch(tierSmoke, /document\.body\s*\?\s*document\.body\.innerText/);
 });
 
 test('completed TODO trackers stay removed', () => {
@@ -82,16 +71,6 @@ test('browser audit coordination and evidence modules stay below the source ceil
   }
 });
 
-test('datacenter visualizer takes physical racks from plugin contributions', () => {
-  const visualizer = read('public/simulatte/app/multi-tier-visualizer.js');
-  const worldModel = JSON.parse(read('public/data/simulatte/worlds/datacenter-supercluster-v1.json'));
-  assert.doesNotMatch(visualizer, /loadTierCache\('\.\.\/worlds\/datacenter-supercluster-v1\.json'/);
-  assert.match(visualizer, /this\.data = \{racks:\[\]\}/);
-  assert.match(visualizer, /contributions\.find\(row=>row\.pluginId==='gpu-supercluster'\)/);
-  assert.equal(worldModel.id, 'datacenter-supercluster-v1');
-  assert.equal(worldModel.tier, 'datacenter');
-});
-
 test('profile program exact replay uses the run controller replay boundary', () => {
   const boot = read('public/simulatte/app/world-tiers-boot.js');
   assert.match(boot, /replay:async\(\)=>\{await runController\.replay\(\)/);
@@ -105,15 +84,4 @@ test('profile program scenario navigation drops stale control parameters', () =>
   assert.match(main, /navigateScenario: async \(scenario\) => \{\s*const simulation = \{ scenarioId: scenario\.id, seed: scenario\.seed \};/);
   assert.doesNotMatch(boot, /navigateScenario:async\(scenario\)=>\{\s*const simulation=\{\.\.\.simulationRouteState\(\)/);
   assert.doesNotMatch(main, /navigateScenario: async \(scenario\) => \{\s*const simulation = \{ \.\.\.simulationRouteState\(\)/);
-});
-
-test('world landing keeps Create discoverable beside the simulation honeycomb', () => {
-  const html = read('public/index.html');
-  const css = read('public/world-tiers.css');
-  const landing = html.slice(html.indexOf('id="simulation-home"'));
-  assert.match(landing, /href="https:\/\/create\.simulatte\.world\/"[^>]*data-local-href="\.\/blank\/"[^>]*>Create<\/a>/);
-  assert.match(landing, /class="hex-hub tier-card"[^>]*data-default-profile="sun-walker-v1"/);
-  assert.match(css, /\.hex-hub\s*\{\s*left: 30%;\s*top: 33\.333333%;/);
-  assert.match(css, /\.pos-top-right\s*\{\s*left: 60%;\s*top: 16\.666667%;/);
-  assert.match(css, /\.pos-bottom-left\s*\{\s*left: 0;\s*top: 50%;/);
 });

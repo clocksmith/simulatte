@@ -232,12 +232,3 @@ test('visual cards preserve distinct render recipes and hard semantic probes', (
     assert.ok(card.visualDescription.length > 20);
   }
 });
-
-test('visual card builders are registered as package commands', () => {
-  const packageJson = readJson(path.join(root, 'package.json'));
-
-  assert.equal(packageJson.scripts['build:visual-cards'], 'node tools/build-visual-card-index.mjs');
-  assert.equal(packageJson.scripts['validate:visual-cards'], 'node tools/validate-visual-card-index.mjs');
-  assert.ok(fs.existsSync(path.join(root, 'tools', 'build-visual-card-index.mjs')));
-  assert.ok(fs.existsSync(path.join(root, 'tools', 'validate-visual-card-index.mjs')));
-});

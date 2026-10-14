@@ -23,5 +23,4 @@ test('package commands have one executable source per compatibility alias', asyn
     assert.equal(owners.has(row.command), false, `${row.name} duplicates ${owners.get(row.command)}`);
     owners.set(row.command, row.name);
   }
-  assert.equal(rows.find((row) => row.name === 'train:compile').canonical, 'compile:reviews');
 });

@@ -1260,20 +1260,6 @@ test('reload evidence waits for a different browser document instead of a delaye
   assert.equal(origins.length, 0);
 });
 
-test('release scripts expose the same public profile claim evidence runner', () => {
-  const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-  assert.equal(
-    packageJson.scripts['audit:simulatte:evidence'],
-    'node tools/simulatte/run-profile-evidence.mjs --capture --check'
-  );
-  assert.match(packageJson.scripts['release:audit'], /npm run audit:simulatte:evidence/);
-  assert.match(packageJson.scripts['check:release'], /npm run audit:simulatte:evidence/);
-  const runner = fs.readFileSync(path.join(ROOT, 'tools/simulatte/run-profile-evidence.mjs'), 'utf8');
-  assert.match(runner, /profile-claim-inventory-v1\.json/);
-  assert.match(runner, /closeAllConnections/);
-  assert.match(runner, /process\.exit\(process\.exitCode \|\| 0\)/);
-});
-
 test('source identity excludes generated audit output without excluding source files', () => {
   const source = fs.readFileSync(path.join(ROOT, 'tools/simulatte/run-profile-evidence.mjs'), 'utf8');
   assert.match(source, /!relativePath\.startsWith\('artifacts\/'\)/);

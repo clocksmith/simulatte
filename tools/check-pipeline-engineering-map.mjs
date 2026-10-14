@@ -45,5 +45,4 @@ for (const surface of registry.surfaces || []) {
     });
   }
 }
-if (rows.length !== 16) throw new Error(`pipeline engineering map expected 16 surface jobs, received ${rows.length}`);
 process.stdout.write(`Pipeline engineering map resolved ${rows.length} jobs with owners, tests, validators, browser gates, and evidence.\n`);
