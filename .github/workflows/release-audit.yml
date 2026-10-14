@@ -31,17 +31,20 @@ jobs:
       - name: Restore pinned browser runtime
         run: npm run restore:doppler:development
 
+      # The rest of check:fast runs below: its test files in `npm test`, and its
+      # entrypoint and artifact-inventory checks in `check:deploy`.
       - name: Run fast deterministic checks
-        run: npm run check:fast
-
-      - name: Verify plugin boundaries and generated registry
-        run: npm run plugins:check
+        run: npm run catscan:check && npm run folder-contracts:ci && npm run check:source-size && npm run check:pipeline-map
 
       - name: Run unit and contract test suite
         run: npm test
 
+      # check:deploy also runs plugins:check.
       - name: Run deploy surface checks
         run: npm run check:deploy
+
+      - name: Run place-resolution performance budget (Chrome with WebGPU)
+        run: npm run check:place-performance
 
       - name: Verify clean generated state and diff hygiene
         run: git diff --exit-code && git diff --check

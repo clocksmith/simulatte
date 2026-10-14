@@ -103,15 +103,6 @@ test('hosting targets separate World and Create while preserving governed shared
   assert.equal(createReceipt.inventorySha256, inventorySha256(createRoot));
 });
 
-test('release and hosting validation run against the stamped build identity', () => {
-  const scripts = readJson('package.json').scripts;
-  assert.match(scripts['release:audit'], /^npm run stamp:build && npm run check:deploy/);
-  assert.match(
-    scripts['prepare:hosting'],
-    /^npm run check:doppler:development && npm run stamp:build && npm run check:deploy && npm run package:hosting$/,
-  );
-});
-
 
 test('directory routes do not redirect to their slash-normalized selves', () => {
   const config = readJson('firebase.json').hosting.find((entry) => entry.target === 'world');

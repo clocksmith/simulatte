@@ -165,7 +165,7 @@ stylesheet, including content types and byte hashes. An HTML fallback with statu
 200 cannot satisfy a missing script. Use `--expected-build=SOURCE-CONTENT` to pin
 another prepared release. Matching a source SHA alone is insufficient.
 
-Chrome then checks startup, visible controls, basic interaction, uncaught errors,
+`npm run verify:live:visual` adds Chrome checks of startup, controls, interaction, uncaught errors,
 failed same-origin requests, and horizontal fit at desktop and mobile sizes.
 Create must compile the fixed prompt `a red ball`, complete its pipeline, and
 render a new frame. Clicking Run without reaching completion does not pass.
