@@ -38,11 +38,8 @@
     "coverage": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["trackedDirectories", "coveredDirectories", "classifiedDirectories", "uncoveredDirectories"],
+      "required": ["uncoveredDirectories"],
       "properties": {
-        "trackedDirectories": { "type": "integer", "minimum": 0 },
-        "coveredDirectories": { "type": "integer", "minimum": 0 },
-        "classifiedDirectories": { "type": "integer", "minimum": 0 },
         "uncoveredDirectories": { "type": "array", "items": { "type": "string" } },
         "inventoryCommand": { "type": "string", "minLength": 1 }
       }
