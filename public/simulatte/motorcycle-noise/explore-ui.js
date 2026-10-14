@@ -98,7 +98,7 @@
       if(initialObservation){({markers,nextId,selectedMarker,inspectedSource,inspectedLocation}=initialObservation);initialObservation=null;}
       else{markers=[{id:'receiver-1',name:'Observer 1',...view.getObserver()}];nextId=2;selectedMarker=null;inspectedSource=null;inspectedLocation=null;}
       $('inspection').hidden=!(selectedMarker||inspectedSource||inspectedLocation);renderMarkers();
-      observerWorker=new Worker('./observer-noise-worker.js?v=surfaces-v27');
+      observerWorker=new Worker('./observer-noise-worker.js?v=outdoor-v28');
       observerWorker.postMessage({type:'init',scene});
       observerWorker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==observerRequest)return;
@@ -111,7 +111,7 @@
         }
       };
       observerWorker.onerror=event=>{if(generation!==epoch)return;observerPending=false;setText('observer-time',event.message||'Audio measurement worker failed');$('observer-level').title='Measurement unavailable; showing the last completed reading';onMeasurement('unavailable');};
-      worker=new Worker('./live-noise-worker.js?v=surfaces-v27');worker.postMessage({type:'init',scene});
+      worker=new Worker('./live-noise-worker.js?v=outdoor-v28');worker.postMessage({type:'init',scene});
       worker.onmessage=({data})=>{
         if(generation!==epoch||data.id!==requestId)return;
         pending=false;

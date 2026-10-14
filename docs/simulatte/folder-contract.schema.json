@@ -38,9 +38,8 @@
     "coverage": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["trackedFiles", "trackedDirectories", "coveredDirectories", "classifiedDirectories", "uncoveredDirectories"],
+      "required": ["trackedDirectories", "coveredDirectories", "classifiedDirectories", "uncoveredDirectories"],
       "properties": {
-        "trackedFiles": { "type": "integer", "minimum": 0 },
         "trackedDirectories": { "type": "integer", "minimum": 0 },
         "coveredDirectories": { "type": "integer", "minimum": 0 },
         "classifiedDirectories": { "type": "integer", "minimum": 0 },

@@ -27,7 +27,8 @@ test('solar buildings use closed roof triangulation and solid walls instead of o
   const context={globalThis:null,earcut:require('../public/simulatte/motorcycle-noise/vendor/earcut.js')};context.globalThis=context;vm.createContext(context);
   for(const f of ['geometry.js','route-scene.js'])vm.runInContext(fs.readFileSync('public/simulatte/solar-drive/'+f,'utf8'),context);
   const data={points:[{x:-10,y:0,elevationM:0},{x:10,y:0,elevationM:0}],policy:{roadWidthM:6},buildings:[{id:'b',heightM:10,groundElevationM:2,footprint:[{x:1,y:1},{x:5,y:1},{x:5,y:5},{x:1,y:5},{x:1,y:1}],interiorRings:[]}]};
-  const machine={instances:[],anchors:{},timeS:0},env={point:{x:0,y:0,heading:0,elevationM:0},grade:0,occluderIds:[],directFraction:1,sunDirection:[1,1,0]};
+  const machine={instances:[],anchors:{},timeS:0},env={point:{x:0,y:0,heading:0,elevationM:0},grade:0,occluderIds:[],directFraction:1,sunDirection:[1,1,0],
+    samples:Array.from({length:9},()=>({state:'direct',occluderId:null}))};
   const frame=context.SimulatteSolarRideScene.create(data).frame(machine,env,{shade:0,cloud:.2});
   const roofs=frame.instances.filter(n=>n.mesh==='triangle'),walls=frame.instances.filter(n=>n.material[2]===7);
   assert.equal(roofs.length,2);assert.equal(walls.length,4);assert.equal(frame.cloudCover,.2);

@@ -57,6 +57,15 @@ test('a completed silent source measurement is not presented as still waiting',(
  data.observer.contributors.push({id:'bike',outward:60,facade:50,returned:null,pathTotal:61});
  assert.match(ui.sourceInspection(data,'bike',true),/combined paths 61.0 dBA/);
 });
+test('camera fitting loads before the view that frames with it',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const page=fs.readFileSync(path.resolve(__dirname,'../public/simulatte/motorcycle-noise/index.html'),'utf8');
+ const scripts=[...page.matchAll(/<script\b[^>]*src="([^"]+)"/g)].map(row=>new URL(row[1],'https://example.test/').pathname);
+ const order=file=>scripts.findIndex(pathname=>pathname.endsWith('/'+file));
+ assert.ok(order('camera-fit.js')>=0,'Motorcycle framing needs the shared camera fit');
+ assert.ok(order('camera-fit.js')<order('reflection-view.js'),'camera-fit.js must run before reflection-view.js');
+ assert.ok(order('camera-fit.js')<order('reflection-app.js'),'camera-fit.js must run before reflection-app.js');
+});
 test('measurement workers and inspector assets share the page cache version',()=>{
  const fs=require('node:fs'),path=require('node:path');
  const base=path.resolve(__dirname,'../public/simulatte/motorcycle-noise');

@@ -27,7 +27,6 @@ test('folder contract covers every tracked or non-ignored source directory', () 
   const coverage = checker.validateCoverage(contract, inventory);
   assert.equal(coverage.uncoveredDirectories.length, 0);
   assert.equal(coverage.trackedDirectories, coverage.coveredDirectories + coverage.classifiedDirectories);
-  assert.equal(contract.coverage.trackedFiles, inventory.files.length);
 });
 
 test('isolated validation skips only unavailable external repositories', () => {

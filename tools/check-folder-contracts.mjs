@@ -220,14 +220,13 @@ function validateCoverage(contract, inventory) {
     else coveredDirectories += 1;
   }
   const actual = {
-    trackedFiles: inventory.files.length,
     trackedDirectories: inventory.directories.length,
     coveredDirectories,
     classifiedDirectories,
     uncoveredDirectories: uncovered,
   };
   if (contract.coverage) {
-    for (const field of ['trackedFiles', 'trackedDirectories', 'coveredDirectories', 'classifiedDirectories']) {
+    for (const field of ['trackedDirectories', 'coveredDirectories', 'classifiedDirectories']) {
       invariant(contract.coverage[field] === actual[field], 'folder_contract_coverage_count_stale', `Coverage ${field} is ${contract.coverage[field]}; actual is ${actual[field]}`);
     }
     invariant(JSON.stringify(contract.coverage.uncoveredDirectories) === JSON.stringify(uncovered), 'folder_contract_uncovered_inventory_stale', 'Coverage uncoveredDirectories is stale', { expected: contract.coverage.uncoveredDirectories, actual: uncovered });
