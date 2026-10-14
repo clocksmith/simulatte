@@ -4,14 +4,12 @@
 
 ## Git workflow: direct to main
 
-- Work and commit directly on the owning repository's `main` branch, then push
-  directly to its existing `origin/main` remote branch.
-- Do not create feature/task branches, branch-backed worktrees, or GitHub pull
-  requests. Do not use a branch/PR workflow unless the user explicitly requests it.
-- If the checkout is on another branch, preserve its work and move the task to
-  `main` safely; never discard changes to switch branches.
-- Stage only task-related changes, run the applicable checks, and integrate remote
-  updates without overwriting unrelated work. Never force-push `main`.
+- Commit on the owning repo's `main` and push to `origin/main`. No feature
+  branches, branch-backed worktrees, or PRs unless the user asks for them.
+- On another branch, preserve its work and move the task to `main` safely;
+  never discard changes to switch. Never force-push `main`.
+- Stage only task-related changes; integrate remote updates without
+  overwriting unrelated work.
 - Report the pushed commit or the concrete blocker. A local commit is not a push.
 
 ## Development verification
@@ -23,6 +21,9 @@
   GPU/model campaigns, benchmarks, or full release qualification. Run them when
   explicitly requested or when a named correctness question cannot be answered by
   focused checks; state that reason before starting.
+- Config-contract, mirror, drift, and freshness checks run only when the change
+  edits what they check. Don't add tests that just restate another file or pin
+  config literals. Time-box long processes.
 - Once relevant checks pass, continue. Repeat or broaden verification only after
   another relevant change, a failure, or a concrete unresolved concern.
 - For documentation-only edits, inspect the diff and changed links. Do not run
@@ -36,36 +37,29 @@
 
 ## Purpose
 
-- Maintain the static browser surfaces under `public/`.
-- Preserve the product direction in [GOALS.md](GOALS.md).
-- Follow [STYLE_GUIDE.md](STYLE_GUIDE.md) for phase, runtime, receipt,
-  rendering, test, and documentation rules.
-- Preserve a direct static-hosting deployment path.
+- Maintain the static browser surfaces under `public/` and a direct
+  static-hosting deployment path; browser changes run from the hosted output.
+- Read [STYLE_GUIDE.md](STYLE_GUIDE.md) before non-trivial edits; it owns phase,
+  runtime, receipt, rendering, test, and documentation rules.
 
 ## Component Intent
 
 Before modifying a file, read the `CATSCAN.md` chain from the project root to
-the target directory, in order.
+the target directory, in order. Target, Authority, Invariants, Acceptance, and
+Non-goals are implementation constraints; a child charter may narrow its parent
+but not contradict it. CATSCAN constrains outcomes and authority, not internal
+algorithms, so novel implementations are welcome.
 
-Treat Target, Authority, Invariants, Acceptance, and Non-goals as implementation
-constraints. A child `CATSCAN.md` may narrow its parent but may not contradict
-it.
-
-If requested work changes a component boundary, identify the conflict and
-update the affected `CATSCAN.md` with the implementation. Do not silently work
-around it. Existing code does not overrule a charter because code may have
-drifted.
-
-Novel implementations are welcome. CATSCAN constrains outcomes and authority,
-not internal algorithms.
-
-Explicit user direction may change product intent. When it does, update
-`GOALS.md` or the affected charter in the same change. `AGENTS.md` enforces
-discovery and procedure; it does not duplicate component goals.
+If requested work changes a component boundary, name the conflict and update the
+affected `CATSCAN.md` with the implementation instead of silently working around
+it. Existing code does not overrule a charter; code may have drifted. When
+explicit user direction changes product intent, update `GOALS.md` or the
+affected charter in the same change. `AGENTS.md` enforces discovery and
+procedure; it does not duplicate component goals.
 
 ## Source precedence
 
-Use this order when sources disagree:
+When sources disagree:
 
 1. The user's latest explicit direction.
 2. [GOALS.md](GOALS.md) for durable repository purpose and strategy.
@@ -73,9 +67,6 @@ Use this order when sources disagree:
 4. [STYLE_GUIDE.md](STYLE_GUIDE.md) for engineering invariants.
 5. Runtime manifests, schemas, tests, and receipts for current executable state.
 6. README and design documents for usage, navigation, and mechanism history.
-
-Tests and receipts can prove current behavior. They do not silently redefine
-component authority.
 
 ## Routing rules
 
@@ -90,45 +81,40 @@ component authority.
 
 ## Guardrails
 
-- Read [STYLE_GUIDE.md](STYLE_GUIDE.md) before non-trivial edits.
-- Read the full applicable CATSCAN chain before any edit.
 - Read [docs/simulatte/bug-zapping-guide.md](docs/simulatte/bug-zapping-guide.md)
   before non-trivial defect investigation or repair.
-- Keep assets and links safe for static hosting.
-- Prefer relative paths for site resources.
-- Avoid server assumptions unless the feature explicitly requires them.
+- Keep assets and links safe for static hosting: prefer relative paths and avoid
+  server assumptions unless the feature explicitly requires them.
 - Regenerate machine-owned artifacts through their declared generator.
-- Run `npm run catscan:sync` after adding, moving, or changing a charter.
-- Run `npm run catscan:check` before handing off a component change.
+- After adding, moving, or changing a `CATSCAN.md` charter, run
+  `npm run catscan:sync`, then `npm run catscan:check`. Other edits need neither.
 
 ## Intent-first operations
 
-- Treat Simulatte as the browser simulation and world-compilation product, not
-  Gamma, Doppler, Reploid, or Poolday.
-- Treat technical reviews, failure reports, and pasted recommendations about
-  already authorized work as continuation of that work. Fix demonstrated gaps
-  within its scope without asking the user to repeat authorization.
-- The latest explicit user direction controls product intent. Pasted alternatives
-  do not silently replace it. Ask only when an unresolved choice materially
-  changes scope, conflicts with that direction, or needs unavailable information;
-  continue independent work while the question is pending.
-- Use plain names such as start, page, state, controls, and drawing when they
-  match behavior better than internal taxonomy.
-- For pipeline work, preserve the fixed phase order. Do not add phases, reverse
-  traversal, or create side-channel authority unless the user changes that
-  contract.
-- Phase N consumes the exact Phase N-1 output plus allowed runtime context.
+- Simulatte is the browser simulation and world-compilation product, not Gamma,
+  Doppler, Reploid, or Poolday.
+- Technical reviews, failure reports, and pasted recommendations about
+  authorized work continue that work; fix demonstrated gaps within its scope
+  without asking for re-authorization.
+- The latest explicit user direction controls product intent; pasted
+  alternatives don't replace it. Ask only when an unresolved choice materially
+  changes scope, conflicts with that direction, or needs unavailable
+  information; keep doing independent work meanwhile.
+- Prefer plain names (start, page, state, controls, drawing) when they match
+  behavior better than internal taxonomy.
+- Pipeline work keeps the fixed phase order: no added phases, reverse traversal,
+  or side-channel authority unless the user changes that contract. Phase N
+  consumes the exact Phase N-1 output plus allowed runtime context.
 - When output is wrong, inspect the named upstream artifact and downstream input
   before broad rewrites.
-- Training commands are operational commands. Start the requested workflow and
-  report the server URL or exact blocker.
+- Training commands are operational: start the requested workflow and report the
+  server URL or exact blocker.
 - Open-ended development and data-source selection follow these instructions and
-  the applicable CATSCAN/docs; they are not catch-all skills. Use repository skills
-  only for their named debug, local training UI, or review-compilation operations.
+  applicable CATSCAN/docs, not catch-all skills. Repository skills are only for
+  their named debug, local training UI, or review-compilation operations.
 
 ## Delivery expectations
 
-- Browser changes run directly from the hosted `public/` output.
 - Visible changes remain functional on desktop and mobile.
 - Runtime, browser, GPU, deployment, and human-review claims name the evidence
   layer that actually ran.
@@ -146,26 +132,28 @@ Boundary effects: <none or named components>
 
 ## Fictional satire and copy
 
-- Use fully fictional institutions and characters for satirical or critical
-  narrative copy unless the user explicitly requests real identities.
-- Fictionalize names, branding, slogans, biographies, titles, and distinctive
-  visual cues together.
+- Satirical or critical narrative copy uses fully fictional institutions and
+  characters unless the user explicitly requests real identities; fictionalize
+  names, branding, slogans, biographies, titles, and distinctive visual cues
+  together.
 - Make critique legible through incentives, authority, decisions, dependencies,
   and consequences.
-- Preserve canonical real names for governed facts, geography, provenance,
+- Keep canonical real names for governed facts, geography, provenance,
   citations, and source identities.
 
 ## No speculative engineering timelines
 
-- Do not predict delivery time for engineering work.
-- Describe concrete deltas, dependencies, risks, and validation instead.
-- For active processes, report only measured progress and grounded timing exposed
-  by the process.
+- Never predict how long engineering work will take ("1-2 weeks", "a quick
+  fix"). Describe concrete deltas, dependencies, risks, and validation instead.
+- For an already-running process, report measured elapsed time, progress, or a
+  grounded ETA only when the process exposes one; otherwise report its phase,
+  latest output, and whether it is still progressing.
 
 ## Pick the real fix
 
-- Fix correctness bugs instead of relabeling them.
-- Do not substitute a TODO, experimental label, or misleading prose change for
-  correct behavior.
-- If product scope must split, state the concrete alternatives and ask the user
-  rather than choosing a lesser fix silently.
+- Fix correctness bugs; don't relabel them. Effort or scope framing
+  ("non-trivial", "worth its own thread", "later") is no reason for a lesser fix.
+- "Mark experimental", "add a TODO", or "reword the misleading comment" does not
+  substitute for fixing wrong behavior.
+- If scope must be split, list the concrete deltas and ask the user which path
+  to take; don't pre-decide a smaller version.

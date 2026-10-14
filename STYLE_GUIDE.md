@@ -1,6 +1,6 @@
 # Simulatte Style Guide
 001. Purpose: World opens with SVG illustrations of every catalog simulation in the original motorcycle line-art style in one vertically scrolling spotlight catalog on desktop and mobile, with concise descriptions, readiness, and limitations. Preserve the hexagon chooser, data tools, and Create implementation.
-002. Source data, declared mappings, prompts, and accepted edits are authored inputs; every visible artifact must trace back to its actual authority.
+002. Source data, declared mappings, prompts, and accepted edits are authored inputs; every visible artifact traces to its actual authority.
 003. The compiled world model is the contract, not the visual template.
 004. The visible simulation is product truth and must preserve the declared program and source meaning.
 005. Do not hide unsupported prompt content behind plausible visuals.
@@ -10,37 +10,29 @@
 009. Fail closed when a required model, index, cache, schema, or provider is missing.
 010. Do not silently switch to prototype or local fallback in production paths.
 011. Use deterministic local rules only when their receipts say they are local rules.
-012. Keep browser-first deployment constraints in view for every edit.
-013. Static hosting is a product constraint, not an implementation detail.
-014. Do not add server assumptions unless the feature explicitly requires them.
-015. Prefer relative public asset paths.
+013. Static hosting and browser-first deployment constrain every edit: prefer relative public asset paths and add no server assumptions unless the feature explicitly requires them.
 016. Keep generated artifacts out of hand-authored contracts unless generation is documented.
-017. When metadata exists twice, define one canonical source and sync-check mirrors.
+017. When metadata exists twice, keep one canonical source and generate or remove the copy; do not hand-maintain sync-checked mirrors.
 018. Runtime-visible policy belongs in config, manifests, schemas, or indexed assets.
-019. Runtime code consumes resolved policy; it should not invent behavior-changing defaults.
+019. Runtime code consumes resolved policy; it must not invent behavior-changing defaults.
 020. `null` means explicitly disabled when a schema says so.
-021. `undefined` or absence means missing contract and should fail validation.
+021. `undefined` or absence means missing contract and fails validation.
 022. Literal fallbacks are acceptable only for presentation labels or test fixtures.
 023. Model identity, dimensions, indexes, and reranker policy come from manifests.
 024. Do not infer model family from URL strings, tensor names, or loose substrings.
 025. The runtime gate must prove providers before marking the app ready.
 026. Cache readiness is a receipt, not a substitute for provider readiness.
 027. OPFS, CacheStorage, RAM, and GPU cache behavior must be observable.
-028. First-load and reuse timing should be logged as structured runtime events.
-029. Do not add ad hoc console logging in runtime paths.
-030. Extend permanent trace, receipt, or dataset fields instead.
-031. Logs must be useful to compare first load, cache hit, cache miss, and model reuse.
-032. Use plain text status output in Simulatte docs and logs.
-033. Do not add emoji to source, docs, receipts, tests, or CLI output.
+028. Log first-load, cache hit, cache miss, and model-reuse timing as comparable structured runtime events.
+029. Do not add ad hoc console logging in runtime paths; extend permanent trace, receipt, or dataset fields instead.
+032. Use plain text status output; no emoji in source, docs, receipts, tests, logs, or CLI output.
 034. Use markdown checkboxes for task lists.
-035. Use terse, active, present-tense prose in docs.
-036. Avoid filler phrases, vague claims, and decorative language.
+035. Use terse, active, present-tense prose without filler, vague claims, or decorative language.
 037. Do not use em dashes in new documentation.
 038. Use tables for structured options, phase contracts, and evidence matrices.
 039. Use fenced code blocks for commands and schemas.
-040. Every non-trivial doc should name the owner contract or source file.
-041. JavaScript files are the browser runtime surface.
-042. Keep JavaScript plain and deployable without build steps.
+040. Every non-trivial doc names its owner contract or source file.
+041. JavaScript files are the browser runtime surface; keep them plain and deployable without build steps.
 043. Follow the surrounding module format before introducing new module style.
 044. Existing product scripts use browser globals plus CommonJS-compatible exports. Standalone libraries use side-effect-free ESM with explicit package exports; classic adapters alone own global compatibility.
 045. Do not add TypeScript, transpilation, bundlers, or runtime compilation steps.
@@ -54,14 +46,14 @@
 053. Use `kebab-case.js` for new JavaScript files.
 054. Use `kebab-case.json` for data files.
 055. Use `kebab-case.schema.json` for schemas.
-056. JSON keys should be `camelCase` unless preserving an existing wire contract.
-057. ID fields should end in `Id` when the property names a referenced thing.
-058. Boolean names should use `is`, `has`, `should`, or `requires` when ambiguous.
-059. Arrays should use plural names.
-060. Items in arrays should have stable `id` fields when they are addressable.
+056. JSON keys are `camelCase` unless preserving an existing wire contract.
+057. ID fields end in `Id` when the property names a referenced thing.
+058. Boolean names use `is`, `has`, `should`, or `requires` when ambiguous.
+059. Arrays use plural names.
+060. Addressable array items have stable `id` fields.
 061. Hand-authored JSON may use logical grouping.
-062. Generated JSON should use two-space indentation, sorted keys, and trailing newline.
-063. New schemas should include `$schema`, `title`, `type`, `required`, and `additionalProperties`.
+062. Generated JSON uses two-space indentation, sorted keys, and trailing newline.
+063. New schemas include `$schema`, `title`, `type`, `required`, and `additionalProperties`.
 064. Use restrictive schemas by default.
 065. If a schema allows extension, say why in the schema or nearby docs.
 066. Schema version and content version are separate concepts.
@@ -97,33 +89,30 @@
 096. Phase 5 inputs: grounded graph, assumptions, unsupported rows.
 097. Phase 5 outputs: PhysicsIR, solver graph, renderIR, channels, controls, readouts.
 098. Solver support artifacts must not masquerade as visual intent.
-099. Phase 5 should emit only render-addressable rows that have source evidence.
+099. Phase 5 emits only render-addressable rows that have source evidence.
 100. Phase 6 Visual Compile creates the renderable scene program.
 101. Phase 6 inputs: renderIR, solver graph, visual cards, operator atlas, state bindings.
 102. Phase 6 outputs: VisualIR, render instances, scene packet, camera, lights, passes.
 103. Render instances need transforms, geometry, material, animation, collider, draw order.
 104. Scene entities need semantic identity plus render class.
 105. Phase 6 owns spatial layout and motion intent.
-106. Phase 6 should not emit keyword-like rows as final render commands.
+106. Phase 6 must not emit keyword-like rows as final render commands.
 107. Phase 6 must preserve specific prompt objects such as dog, cat, water, robot, protein.
-108. Phase 6 should reject generic helper rows unless they are marked support-only.
+108. Phase 6 rejects generic helper rows unless they are marked support-only.
 109. Phase 7 Render Execution draws compiled visual artifacts.
 110. Phase 7 inputs: scene packet, render instances, state, canvas, WebGPU resources.
 111. Phase 7 outputs: pixels, frame status, render receipts, timing receipts.
-112. Phase 7 has no semantic authority.
-113. Phase 7 must not retrieve, rerank, parse, infer, or choose templates.
+112. Phase 7 has no semantic authority: it must not retrieve, rerank, parse, infer, or choose templates.
 114. Phase 7 may consume identity codes already compiled by Phase 6.
-115. WGSL consumes resolved uniforms, constants, and buffers only.
-116. WGSL must not make policy decisions.
+115. WGSL consumes resolved uniforms, constants, and buffers only and makes no policy decisions.
 117. Use override constants for compile-time shader parameters.
 118. Use uniforms for per-frame or per-dispatch state.
-119. Keep uniform layout and JavaScript packing in lockstep.
-120. Add tests for any uniform lane or WGSL struct change.
+119. Keep uniform layout and JavaScript packing in lockstep; a uniform lane or WGSL struct change needs a layout test.
 121. Do not use JS syntax inside WGSL strings.
 122. Shader failures found by browser audit require a regression check.
 123. Keep rendering branches tied to compiled scene data, not raw prompt text.
 124. If a renderer needs semantic shape, Phase 6 must compile it first.
-125. Canvas datasets are receipts and should name schemas, counts, hashes, and source contracts.
+125. Canvas datasets are receipts naming schemas, counts, hashes, and source contracts.
 126. Dataset receipts must not become the primary data path.
 127. Screenshots and canvas hashes are evidence, not proof by themselves.
 128. Visual audits must inspect scene kind, entities, packet identities, motion, and signal coverage.
@@ -135,67 +124,55 @@
 134. A retrieval change needs false-positive and false-negative probes.
 135. A visual diversity change needs close-prompt and broad-prompt probes.
 136. Do not weaken tests to match wrong behavior.
-137. Do not relabel broken behavior as experimental instead of fixing it.
-138. If repeated drift appears, create an inventory or audit check.
+138. For repeated drift, remove the duplicate source; add an inventory or audit check only when the duplication must stay.
 139. Prefer broad checkable tooling over one-off repairs for recurring classes.
 140. Keep test output deterministic.
 141. Seeded or hashed procedural behavior must remain stable for the same prompt.
 142. Randomness in product code must derive from explicit prompt/spec seeds.
 143. Do not use wall-clock time for deterministic compile artifacts.
 144. Frame time is allowed only in render execution and loading UX.
-145. Keep performance and fairness claims backed by raw data.
-146. Read raw timings and proof paths before claiming improvement.
-147. A speed claim is invalid if the compared paths did different work.
-148. Report cache mode, model reuse, backend, and readback path with timing claims.
-149. Errors should include what was expected, what was received, and which contract failed.
+145. Back performance and fairness claims with raw data; read raw timings and proof paths before claiming improvement.
+149. Errors state what was expected, what was received, and which contract failed.
 150. Prefer direct `Error` objects with stable fields when structured diagnostics need them.
-151. Catch only expected failures.
-152. Do not swallow provider, shader, cache, or manifest failures.
-153. Unsupported behavior should produce unsupported receipts.
-154. Missing required behavior should fail the run or block readiness.
+151. Catch only expected failures; never swallow provider, shader, cache, or manifest failures.
+153. Unsupported behavior produces unsupported receipts.
+154. Missing required behavior fails the run or blocks readiness.
 155. Keep modules focused around phase ownership or browser subsystem ownership.
-156. Avoid adding new high-fan-in utility hubs.
-157. If a file becomes a broad hub, split by cohesive functionality.
+156. Avoid new high-fan-in utility hubs; split a file that becomes a broad hub by cohesive functionality.
 158. Preserve compatibility facades only when callers are being migrated. Classic builds of native libraries are generated from canonical factories with tools/sync-blank-core-compat.mjs; never maintain a second algorithm in those projections.
-159. Do not grow root-level entry files with feature logic.
-160. New feature logic belongs in the owning phase module or a narrow helper module.
+159. Do not grow root-level entry files with feature logic; it belongs in the owning phase module or a narrow helper module.
 161. Shared types or schemas live with the subsystem that owns their semantics.
 162. Avoid import cycles and implicit upward dependencies.
 163. Keep dependency direction inward: UI and platform adapters depend on orchestration, which depends on domain contracts. Libraries never import product boot, browser globals, or host policy.
-164. The UI coordinator should orchestrate, not own pipeline semantics.
+164. The UI coordinator orchestrates; it does not own pipeline semantics.
 165. The catalog owns static primitive and layer data.
 166. The intent modules own language, retrieval, activation, and grounding receipts.
 167. The simulation modules own PhysicsIR, solver graph, renderIR, state, and readouts.
 168. The visual modules own VisualIR, graphics atoms, scene packets, and render instances.
 169. The renderer owns GPU resources, shader execution, frame state, and pixels.
-170. Comments explain why, not what.
-171. Do not add comments that restate function names or language features.
+170. Comments explain why, not what; do not restate function names or language features.
 172. Use short section headers only in large files.
 173. Prefer clearer names or smaller helpers before adding explanatory comments.
-174. Do not add TODO or FIXME inline as a substitute for tracked work.
-175. If a follow-up is required, put it in an explicit status, issue, or audit artifact.
+174. Do not add inline TODO or FIXME as a substitute for tracked work; record required follow-ups in an explicit status, issue, or audit artifact.
 176. Keep public UI text concise and domain-specific.
 177. Do not add in-app tutorial text to explain controls unless the product asks for it.
-178. Browser controls should be inspectable through receipts and debug surfaces.
-179. Keep mobile and desktop functional for any visible UI change.
+178. Browser controls are inspectable through receipts and debug surfaces.
 180. Do not add visible cards inside other cards.
 181. Do not use decorative visuals when the user needs to inspect the actual simulation.
-182. The prompt dock, runtime status, and canvas should not overlap incoherently.
+182. The prompt dock, runtime status, and canvas must not overlap incoherently.
 183. Text must fit its container on mobile and desktop.
 184. Prefer stable dimensions for canvases, toolbars, counters, boards, and fixed controls.
 185. Do not scale font size with viewport width.
 186. Keep color palettes tied to the simulation domain, not a one-note theme.
 186a. Shared chrome follows the system color scheme by default; explicit Light or Dark choices persist through `simulatte.theme.v1`, while canvas and simulation paint remain renderer-owned.
-187. Deployment changes must run directly from `public/`.
 188. Hosted behavior must match local browser behavior except for documented asset URLs.
-189. Build stamps and version receipts are deploy artifacts.
-190. Do not hand-edit generated stamps except through the stamping tool.
-191. Use `npm test` for full repository regression coverage.
-192. Use `npm run audit:pipeline` for phase-score proof.
-193. Use browser visual audits for WebGPU or scene-packet changes.
-194. Use deployed audits after hosting changes.
+189. Build stamps and version receipts are deploy artifacts; change them only through the stamping tool.
+191. `npm test` is the full repository regression suite, not a routine commit or deploy gate (see AGENTS.md Development verification).
+192. `npm run audit:pipeline` provides phase-score proof.
+193. Run browser visual audits when a WebGPU or scene-packet change cannot be proven without the browser, or a visual claim needs proof.
+194. `npm run deploy:hosting` runs its own deployed check (`verify:live`); run other deployed audits only for hosting-behavior claims.
 195. Keep artifact paths in receipts so reports can be compared later.
-196. Summaries should name changed files, contracts, and verification commands.
+196. Summaries name changed files, contracts, and verification commands.
 197. Do not claim deploy success without the hosting command completing.
 198. Do not leave local dev servers running after verification unless the user asked for one.
 199. Phase 8 Scene Proof settles every composition ledger obligation against render receipts.
@@ -216,7 +193,7 @@
 213. Batch independent embeddings when the provider supports batching and report requested, submitted, cached, and returned vector counts.
 214. Embed immutable index rows during index generation, not repeatedly during prompt execution.
 215. Embedding cache keys must include model identity, dtype, dimensions, index content identity, normalized input, and behavior-changing policy.
-216. Retrieval should maximize measured recall at a bounded top-k before precision-oriented reranking.
+216. Retrieval maximizes measured recall at a bounded top-k before precision-oriented reranking.
 217. Typed or lexical filters may remove impossible candidates; they must not silently remove candidates that the model lane could validly select.
 218. Rerank the smallest candidate set supported by recall and ranking evaluations, not an arbitrary convenient cutoff.
 219. Reranking receipts must report input count, output count, batch shape, token counts, prefix reuse, execution duration, model identity, and skip reason.
@@ -224,17 +201,17 @@
 221. Reuse tokenizer, model, index, prefix state, and device resources only when their full compatibility identity matches.
 222. Never use buffers, bind groups, pipelines, caches, or prefix state created by a different GPU device or incompatible model session.
 223. Choose serial, batched, or parallel model work from measured device memory, queue behavior, and end-to-end latency.
-224. Report cold load, warm cache, model reuse, embedding, retrieval, reranking, grounding, graph compile, VisualIR compile, first frame, and Phase 8 settlement separately.
+224. Report cold load, warm cache, model reuse, embedding, retrieval, reranking, grounding, graph compile, VisualIR compile, first frame, and Phase 8 settlement separately, with cache mode, backend, and readback path.
 225. Canonicalize one semantic node per prompt concept before graph composition and retain provenance for every merged row.
 226. Use typed prompt relations and explicit constraints; array adjacency is not evidence for a graph edge.
 227. Prefer indexed maps, sets, and precomputed ownership tables over repeated full scans when inputs have stable identities.
 228. Complexity-sensitive graph, lookup, constraint, and search code must name its input bounds and remain deterministic at those bounds.
 229. Construction search must be bounded, retain rejected-candidate evidence, and score candidates against prompt obligations rather than probe-family identity.
 230. Heuristics may break ties or prune proven-impossible work; they must not override exact prompt counts, typed relations, stronger evidence, or surfaced unsupported content.
-231. Lexicons, indexes, construction cards, manifests, schemas, and evaluation rows need canonical owners, content hashes, coverage audits, and synchronization checks.
+231. Lexicons, indexes, construction cards, manifests, schemas, and evaluation rows need canonical owners, content hashes, coverage audits, and synchronization checks that run when that data changes.
 232. Gold evaluations must bind each prompt to expected entities, counts, properties, relations, poses, environments, and a human-visible verdict.
 233. Human visual review receipts must bind the verdict to the prompt, build identity, scene packet identity, screenshot identity, and reviewer action.
 234. Optimization is complete only when the same required work passes correctness, semantic, visual, performance, and resource gates.
 235. Do not add `with (scope)` shards or RefactorScope globals; phase shards use the narrow `SimulattePhaseModuleRegistry` family named by their dependency root, and every cross-shard reference is statically visible as `scope.<name>`.
 236. Dependency gaps must throw during initialization; do not add silent missing-dependency returns.
-237. The refactor-scope guard in the focused `tests/js-shape-*.test.cjs` lanes requires zero implicit-scope files, zero silent missing-dependency guards, and zero RefactorScope globals.
+237. The refactor-scope guard in `tests/js-shape-*.test.cjs` enforces the two rules above with zero-count baselines.
