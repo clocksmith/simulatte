@@ -44,11 +44,20 @@
       panY: (top + bottom) / 2 - (minY + maxY) / 2 * zoom });
   }
 
+  // Far sky directions: Overview and Compare frame the whole ICRS sphere or torus,
+  // so the complete star catalog stays in view rather than only the relay path.
+  const ICRS_SKY_EXTENT = Object.freeze(Array.from({ length: 96 }, (_, index) => {
+    const z = 1 - (2 * index + 1) / 96, ring = Math.sqrt(1 - z * z), angle = index * Math.PI * (3 - Math.sqrt(5));
+    return Object.freeze([ring * Math.cos(angle) * 1e4, ring * Math.sin(angle) * 1e4, z * 1e4]);
+  }));
+
   function fit(options) {
     const { coordinates, coordinateSystem, rotX = 0, rotY = 0, viewMode = 'overview' } = options;
     if (!coordinates?.length) return null;
     const projectionMode = coordinateSystem === 'icrs-cartesian-pc' && viewMode === 'compare' ? 'torus' : 'sphere';
-    const points = coordinates.map(p => presentation.projectPoint(p, coordinateSystem,
+    const framed = coordinateSystem === 'icrs-cartesian-pc' && ['overview', 'compare'].includes(viewMode)
+      ? [...coordinates, ...ICRS_SKY_EXTENT] : coordinates;
+    const points = framed.map(p => presentation.projectPoint(p, coordinateSystem,
       { panX: 0, panY: 0, zoom: 1, rotX, rotY, projectionMode }));
     const result = fitPoints(points, options, coordinateSystem === 'icrs-cartesian-pc' ? 4000 : 250);
     return result && Object.freeze({ ...result, projectionMode });

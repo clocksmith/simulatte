@@ -188,7 +188,7 @@
     }));
   }
 
-  function projectPoint(position, system, view) {
+  function projectPoint(position, system, view, options = {}) {
     const x = Number(position?.[0] || 0);
     const y = Number(position?.[1] || 0);
     const z = Number(position?.[2] || 0);
@@ -198,7 +198,7 @@
     }
     if (system === 'heliocentric-ecliptic-au' || system === 'icrs-cartesian-pc') {
       const topology = system === 'icrs-cartesian-pc'
-        ? projectIcrsTopology([x, y, z], view.projectionMode || 'sphere')
+        ? projectIcrsTopology([x, y, z], view.projectionMode || 'sphere', options.icrsLayer)
         : { position: [x, y, z], distanceScale: 1 };
       const rotated = rotatePoint(topology.position, Number(view.rotX || 0), Number(view.rotY || 0));
       const baseScale = system === 'icrs-cartesian-pc' ? view.zoom / 5 : view.zoom;
@@ -231,29 +231,38 @@
     return { x: view.panX + x * view.zoom, y: view.panY - y * view.zoom, depth: z, scale: 1 };
   }
 
-  function projectIcrsTopology(position, mode) {
+  // Sky-direction display: the full star catalog sits on the sphere or torus
+  // surface, and simulation entities (relay stars, links, packets) sit slightly
+  // above it, higher for greater true distance. Sol, the observer, is the center.
+  const ICRS_SHELL_RADIUS = 4.35;
+  const ICRS_TORUS_MAJOR_RADIUS = 3.25;
+  const ICRS_TORUS_MINOR_RADIUS = 1.15;
+  function icrsLift(reach, layer) {
+    return layer === 'catalog' ? 0 : 0.05 + reach * 0.07;
+  }
+  function projectIcrsTopology(position, mode, layer = 'simulation') {
     const radius = Math.hypot(...position);
     if (radius < 1e-9) return { position: [0, 0, 0], distanceScale: 0.72 };
     const direction = position.map((value) => value / radius);
     const reach = 1 - Math.exp(-radius / 1.4);
     const distanceScale = 0.72 + reach * 0.28;
+    const lift = icrsLift(reach, layer);
     if (mode === 'torus') {
       const longitude = Math.atan2(direction[1], direction[0]);
       const latitude = Math.asin(clamp(direction[2], -1, 1));
       const minorAngle = latitude * 2;
-      const majorRadius = 3.25;
-      const minorRadius = 1.15;
-      const ringRadius = majorRadius + minorRadius * Math.cos(minorAngle);
+      const minorRadius = ICRS_TORUS_MINOR_RADIUS + lift * ICRS_SHELL_RADIUS;
+      const ringRadius = ICRS_TORUS_MAJOR_RADIUS + minorRadius * Math.cos(minorAngle);
       return {
         position: [
-          ringRadius * Math.cos(longitude) * reach,
-          minorRadius * Math.sin(minorAngle) * reach,
-          ringRadius * Math.sin(longitude) * reach,
+          ringRadius * Math.cos(longitude),
+          minorRadius * Math.sin(minorAngle),
+          ringRadius * Math.sin(longitude),
         ],
         distanceScale,
       };
     }
-    const shellRadius = 4.35 * reach;
+    const shellRadius = ICRS_SHELL_RADIUS * (1 + lift);
     return { position: direction.map((value) => value * shellRadius), distanceScale };
   }
 
@@ -348,7 +357,7 @@
         if (!presentations.length) return;
         const view = host.view();
         const animationElapsedSeconds = 0;
-        draw(ctx, presentations, (position, system) => projectPoint(position, system, view), {
+        draw(ctx, presentations, (position, system, options) => projectPoint(position, system, view, options), {
             timeSeconds: simulationTimeSeconds, drawMarker: host.drawMarker,
           animationElapsedSeconds,
             view,
@@ -385,7 +394,7 @@
     contributions.forEach((presentation) => {
       const projection = (position) => project(position, presentation.coordinateSystem);
       if (presentation.coordinateSystem === 'icrs-cartesian-pc' && !icrsGuideDrawn) {
-        drawIcrsProjectionGuide(ctx, projection, options.view?.projectionMode || 'sphere');
+        drawIcrsProjectionGuide(ctx, (position) => project(position, presentation.coordinateSystem, { icrsLayer: 'catalog' }), options.view?.projectionMode || 'sphere');
         icrsGuideDrawn = true;
       }
       if (presentation.coordinateSystem === 'wgs84' && canUseAffinePlanarPath(ctx, options.view)) {

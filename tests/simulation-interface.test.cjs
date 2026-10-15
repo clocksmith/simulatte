@@ -77,7 +77,9 @@ for (const system of ['wgs84', 'heliocentric-ecliptic-au', 'icrs-cartesian-pc', 
   for (const viewport of [{ width: 390, height: 360 }, { width: 1440, height: 600 }]) {
     test(`${system} framing is centered and bounded at ${viewport.width} pixels`, () => {
       const coordinates = system === 'wgs84' ? [[-100, 20, 0], [-20, 60, 0]] : [[20, 2, 0], [35, 12, 1]];
-      const view = tiers.coordinateEvidenceView({ coordinates, coordinateSystem: system, ...viewport });
+      // ICRS Overview frames the whole sky; Follow keeps the evidence-centered frame.
+      const viewMode = system === 'icrs-cartesian-pc' ? 'follow' : 'overview';
+      const view = tiers.coordinateEvidenceView({ coordinates, coordinateSystem: system, viewMode, ...viewport });
       const points = coordinates.map(point => presentation.projectPoint(point, system, { ...view, rotX: 0, rotY: 0 }));
       const centerX = (Math.min(...points.map(p => p.x)) + Math.max(...points.map(p => p.x))) / 2;
       const centerY = (Math.min(...points.map(p => p.y)) + Math.max(...points.map(p => p.y))) / 2;

@@ -661,8 +661,8 @@
       return [];
     }
 
-    projectCoordinatePoint(position, system) {
-      return tierPresentation.projectPoint(position, system, this);
+    projectCoordinatePoint(position, system, options) {
+      return tierPresentation.projectPoint(position, system, this, options);
     }
 
     projectCountryPoint(lon, lat, bounds) {
@@ -812,7 +812,7 @@
         timeSeconds: (this.pluginInputs?.[1]?.simulationTimeMs||0)/1000,
         nativeCoordinateSystems: this.nativeCoordinateSystems,
         projectCountryPoint: (x, y, bounds) => this.projectCountryPoint(x, y, bounds) };
-      view.projectCoordinatePoint = (position, system) => tierPresentation.projectPoint(position, system, view);
+      view.projectCoordinatePoint = (position, system, options) => tierPresentation.projectPoint(position, system, view, options);
       this.renderSession.setScene({
         tier: this.currentTier, data: this.data,
         view,

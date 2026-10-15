@@ -935,3 +935,23 @@ test('connected selection emphasizes declared peers and dims unrelated geometry 
   assert.deepEqual(presentation,before);
   assert.deepEqual(flow.geometry,presentation.layers[0].geometry);
 });
+
+test('interstellar simulation entities sit above the full-catalog sphere and torus surface', () => {
+  const view = { panX: 0, panY: 0, zoom: 5, rotX: 0, rotY: 0 };
+  const radius = (point) => Math.hypot(point.x, point.y);
+  for (const projectionMode of ['sphere', 'torus']) {
+    const at = (position, icrsLayer) => tierPresentation.projectPoint(position, 'icrs-cartesian-pc', { ...view, projectionMode }, { icrsLayer });
+    const near = [1.3, 0, 0], far = [80, 0, 0];
+    assert.ok(Math.abs(radius(at(near, 'catalog')) - radius(at(far, 'catalog'))) < 1e-9, `${projectionMode}: catalog shares one surface`);
+    assert.ok(radius(at(near)) > radius(at(far, 'catalog')), `${projectionMode}: relay star above the surface`);
+    assert.ok(radius(at(far)) > radius(at(near)), `${projectionMode}: farther relay star sits higher`);
+    assert.ok(radius(at(far)) < radius(at(far, 'catalog')) * 1.2, `${projectionMode}: lift stays slight`);
+  }
+  const fit = (viewMode) => multiTierVisualizer.coordinateEvidenceView({
+    coordinates: [[0, 0, 0], [-0.92, -0.9, -0.11]], coordinateSystem: 'icrs-cartesian-pc', width: 800, height: 600, viewMode });
+  const overview = fit('overview');
+  const sky = [[4e3, 0, 0], [-4e3, 0, 0], [0, 4e3, 0], [0, -4e3, 0], [0, 0, 4e3], [0, 0, -4e3]]
+    .map((position) => tierPresentation.projectPoint(position, 'icrs-cartesian-pc', { ...overview, rotX: 0, rotY: 0, projectionMode: 'sphere' }, { icrsLayer: 'catalog' }));
+  assert.ok(sky.every((point) => point.x >= 0 && point.x <= 800 && point.y >= 0 && point.y <= 600), 'overview frames the whole sky');
+  assert.ok(fit('follow').zoom > overview.zoom, 'follow keeps a tight relay frame');
+});

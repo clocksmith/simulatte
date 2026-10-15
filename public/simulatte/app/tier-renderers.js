@@ -80,8 +80,50 @@
     
   }
 
+  // Native ICRS scenes draw the whole catalog through the same sphere/torus
+  // projection as the simulation, on its surface; simulation entities sit above it.
+  function drawNativeStarCatalog(view) {
+      const { ctx, data } = view;
+      if (typeof view.projectCoordinatePoint !== 'function' || !Array.isArray(data)) return 0;
+      const projected = [];
+      for (const star of data) {
+        const distancePc = Number(star.distancePc);
+        if (!(distancePc > 0) || !Number.isFinite(star.ra) || !Number.isFinite(star.dec)) continue;
+        const ra = star.ra * 15 * Math.PI / 180;
+        const dec = star.dec * Math.PI / 180;
+        const position = [Math.cos(dec) * Math.cos(ra), Math.cos(dec) * Math.sin(ra), Math.sin(dec)].map((value) => value * distancePc);
+        projected.push({ star, point: view.projectCoordinatePoint(position, 'icrs-cartesian-pc', { icrsLayer: 'catalog' }) });
+      }
+      projected.sort((left, right) => left.point.depth - right.point.depth);
+      const depths = projected.map((row) => row.point.depth);
+      const nearest = Math.max(...depths), farthest = Math.min(...depths);
+      ctx.save();
+      for (const { star, point } of projected) {
+        const mag = Number(star.magnitude ?? 5);
+        const facing = nearest > farthest ? (point.depth - farthest) / (nearest - farthest) : 1;
+        const radius = Math.max(0.7, Math.min(3.2, (6.2 - mag) * 0.5)) * Number(point.scale || 1);
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = spectralRgba(star.spectralType, 0.22 + facing * 0.6);
+        ctx.fill();
+        if (mag < 0.6 && facing > 0.5 && star.properName && star.properName !== 'Sol') {
+          ctx.fillStyle = 'rgba(200, 215, 235, 0.42)';
+          ctx.font = '9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          ctx.fillText(star.properName, point.x + radius + 3, point.y + 3);
+        }
+      }
+      ctx.restore();
+      return projected.length;
+  }
+
+  function spectralRgba(spectralType, alpha) {
+      const rgb = { O: '160, 190, 255', B: '180, 205, 255', A: '225, 235, 255', F: '255, 250, 230',
+        G: '255, 236, 180', K: '255, 205, 150', M: '255, 170, 140' }[String(spectralType || 'G').charAt(0).toUpperCase()] || '225, 230, 240';
+      return `rgba(${rgb}, ${Math.max(0, Math.min(1, alpha)).toFixed(3)})`;
+  }
+
   function drawStarChart(view) {
-      if (view.nativeCoordinateSystems?.includes('icrs-cartesian-pc')) return;
+      if (view.nativeCoordinateSystems?.includes('icrs-cartesian-pc')) return drawNativeStarCatalog(view);
       const { ctx, data, zoom, panX, panY, rotX, rotY } = view;
 
       // Projection parameters
