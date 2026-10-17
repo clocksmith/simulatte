@@ -256,6 +256,7 @@
     'simulatte/app/homepage-gallery.js',
     'simulatte/app/workbench-entry.js',
     'simulatte/app/experience-frame.js',
+    'simulatte/app/gpu-scene.js',
     'simulatte/app/experience-frame-adapters.js',
   ]);
   const PROFILE_PLUGINS = Object.freeze({
@@ -305,6 +306,7 @@
     'simulatte/app/homepage-gallery.js',
     'simulatte/app/workbench-entry.js',
     'simulatte/app/experience-frame.js',
+    'simulatte/app/gpu-scene.js',
     'simulatte/app/experience-frame-adapters.js',
   ]);
   const eager = Object.freeze(browser.filter((path) => workbenchPaths.has(path)));

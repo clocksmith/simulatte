@@ -1,0 +1,342 @@
+{
+  "source": {
+    "head": "f5dcc09d565d68e3f6c32cfeb50633ade85c6f78",
+    "capturedAt": "2026-10-17T15:39:32.296Z",
+    "modifiedSources": {
+      "public/index.html": {
+        "sha256": "459696adf351d0ddb0b487e45219213c1aa69f76d0e1f4f805411317fc59ab41",
+        "modifiedAt": "2026-10-17T15:29:55.380Z"
+      },
+      "public/simulatte/app/CATSCAN.md": {
+        "sha256": "f1a6498cf9ebd72cdc85004ffe333dbb066c374b16c1dab516e9293861e900e8",
+        "modifiedAt": "2026-10-17T15:36:05.105Z"
+      },
+      "public/simulatte/app/experience-frame-adapters.js": {
+        "sha256": "e0938bf6c8a73f36949299b448533dc1a8df7dd5d4939aeaed6f347ebcef9775",
+        "modifiedAt": "2026-10-17T15:28:43.801Z"
+      },
+      "public/simulatte/app/gpu-scene.css": {
+        "sha256": "ef7a9903525b35fb94eb62edd19839b6b1283985a6ce3e5c3d90368ee2d534ad",
+        "modifiedAt": "2026-10-17T15:38:21.229Z"
+      },
+      "public/simulatte/app/gpu-scene.js": {
+        "sha256": "9e9a5a4924faed91bf55a164c20558a5193b89ed630f5dc556e13f064bdf2345",
+        "modifiedAt": "2026-10-17T15:37:09.366Z"
+      },
+      "public/simulatte/app/world-runtime-script-manifest.js": {
+        "sha256": "fbdd017d8c7d6eb271f1a87adef31f3187cb3ab374be0e11516b0d584d78c417",
+        "modifiedAt": "2026-10-17T15:29:54.892Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "2c487d4a70618d4000c160366bb8744be676c1d29f8e782f4a24e1f7e0fad758",
+        "modifiedAt": "2026-10-17T15:31:14.286Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Local Chrome desktop and touch-emulated mobile. Automated interaction and layout evidence, not unfamiliar-user comprehension or physical-device qualification.",
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "checks": [
+        "Autoplay, only Pause/Menu, no horizontal overflow",
+        "Pointer/touch rack selection preserves paused state and camera; inspector clears selected rack",
+        "Live slow/restore, dependent racks and measured wait, no restart",
+        "Expanded details remain accessible outside scene; closing returns canvas focus",
+        "Camera/Reset preserve paused execution; Speed and Appearance remain available in Menu",
+        "Drawer keyboard containment/Escape/return focus; non-spatial rack selector focuses action",
+        "Replay and Restart execute through existing session operations"
+      ],
+      "screenshots": [
+        {
+          "file": "desktop-light-opening.png",
+          "sha256": "d2dbe6e96da96dc16db75737fe4316b4f8fc50d575200f1bee2db529b7d5f27d"
+        },
+        {
+          "file": "desktop-light-slowed.png",
+          "sha256": "8a205280d34b0d5a325bfe26c1a2e39e84b9f4510d91150636768b1ddf48f132"
+        },
+        {
+          "file": "desktop-light-details.png",
+          "sha256": "05181a884445a9e667b503784ec642507836c28c59ed38b162379024e27a2226"
+        },
+        {
+          "file": "desktop-light-menu.png",
+          "sha256": "12bb0e7f6148b53ea23ee932aca7e7b792d9110a9744bfc68ed350333acfc457"
+        }
+      ],
+      "build": "c1f9bcb64da9af7a9ff83b26f27c0fb4f7bcbd27-b728dfbd3eb2",
+      "measurements": "Training steps completed\n1 steps\nWaiting added by actions\n532.481 rack-ms\nProductive compute share\n0.71%",
+      "dependentRacks": [
+        "rack:R1-2",
+        "rack:R1-3",
+        "rack:R1-4",
+        "rack:R1-5",
+        "rack:R1-6",
+        "rack:R1-7",
+        "rack:R1-8",
+        "rack:R2-1",
+        "rack:R2-2",
+        "rack:R2-3",
+        "rack:R2-4",
+        "rack:R2-5",
+        "rack:R2-6",
+        "rack:R2-7",
+        "rack:R2-8",
+        "rack:R3-1",
+        "rack:R3-2",
+        "rack:R3-3",
+        "rack:R3-4",
+        "rack:R3-5",
+        "rack:R3-6",
+        "rack:R3-7",
+        "rack:R3-8",
+        "rack:R4-1",
+        "rack:R4-2",
+        "rack:R4-3",
+        "rack:R4-4",
+        "rack:R4-5",
+        "rack:R4-6",
+        "rack:R4-7",
+        "rack:R4-8"
+      ],
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "dark",
+      "checks": [
+        "Autoplay, only Pause/Menu, no horizontal overflow",
+        "Pointer/touch rack selection preserves paused state and camera; inspector clears selected rack",
+        "Live slow/restore, dependent racks and measured wait, no restart",
+        "Expanded details remain accessible outside scene; closing returns canvas focus",
+        "Camera/Reset preserve paused execution; Speed and Appearance remain available in Menu",
+        "Drawer keyboard containment/Escape/return focus; non-spatial rack selector focuses action",
+        "Replay and Restart execute through existing session operations"
+      ],
+      "screenshots": [
+        {
+          "file": "desktop-dark-opening.png",
+          "sha256": "3023416edd355f4abd70de0c8acaf956a02a301269ae6f3ad2376655e1127e38"
+        },
+        {
+          "file": "desktop-dark-slowed.png",
+          "sha256": "24b0e8dcbb3116fc2d8c5b7683148614884e35cb2c18017cdb4b64acf61c734e"
+        },
+        {
+          "file": "desktop-dark-details.png",
+          "sha256": "9ada6ea07bd7b802764d29c73f6a91a554297d1ea15ec4603f58021c339157de"
+        },
+        {
+          "file": "desktop-dark-menu.png",
+          "sha256": "340e77453bfb690d6937dbb4555a3da0814e66c9ba6855b7f84f29872b5a2da3"
+        }
+      ],
+      "build": "c1f9bcb64da9af7a9ff83b26f27c0fb4f7bcbd27-b728dfbd3eb2",
+      "measurements": "Training steps completed\n1 steps\nWaiting added by actions\n532.481 rack-ms\nProductive compute share\n0.71%",
+      "dependentRacks": [
+        "rack:R1-2",
+        "rack:R1-3",
+        "rack:R1-4",
+        "rack:R1-5",
+        "rack:R1-6",
+        "rack:R1-7",
+        "rack:R1-8",
+        "rack:R2-1",
+        "rack:R2-2",
+        "rack:R2-3",
+        "rack:R2-4",
+        "rack:R2-5",
+        "rack:R2-6",
+        "rack:R2-7",
+        "rack:R2-8",
+        "rack:R3-1",
+        "rack:R3-2",
+        "rack:R3-3",
+        "rack:R3-4",
+        "rack:R3-5",
+        "rack:R3-6",
+        "rack:R3-7",
+        "rack:R3-8",
+        "rack:R4-1",
+        "rack:R4-2",
+        "rack:R4-3",
+        "rack:R4-4",
+        "rack:R4-5",
+        "rack:R4-6",
+        "rack:R4-7",
+        "rack:R4-8"
+      ],
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "route": "/datacenter",
+      "pass": true,
+      "checks": [
+        "Current seven-slot comparison frame retained"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "checks": [
+        "Autoplay, only Pause/Menu, no horizontal overflow",
+        "Pointer/touch rack selection preserves paused state and camera; inspector clears selected rack",
+        "Live slow/restore, dependent racks and measured wait, no restart",
+        "Expanded details remain accessible outside scene; closing returns canvas focus",
+        "Camera/Reset preserve paused execution; Speed and Appearance remain available in Menu",
+        "Drawer keyboard containment/Escape/return focus; non-spatial rack selector focuses action",
+        "Replay and Restart execute through existing session operations"
+      ],
+      "screenshots": [
+        {
+          "file": "mobile-light-opening.png",
+          "sha256": "216316bc3c586f045783a36c727bd3df6a9233e7b40930ac18998d8c24dfc1dc"
+        },
+        {
+          "file": "mobile-light-slowed.png",
+          "sha256": "ab2767eb766486bc8da63257a0ab529a57998805cf570e2ae8cbd2c233799001"
+        },
+        {
+          "file": "mobile-light-details.png",
+          "sha256": "9009b25a0645c0eedef108bd7ec1ee017aead427875222b35402a31bc4d75e57"
+        },
+        {
+          "file": "mobile-light-menu.png",
+          "sha256": "357bb411e5a120053e20d2b4cea3b1f155f9b2acf534408277af54b2b4878e6a"
+        }
+      ],
+      "build": "c1f9bcb64da9af7a9ff83b26f27c0fb4f7bcbd27-b728dfbd3eb2",
+      "measurements": "Training steps completed\n1 steps\nWaiting added by actions\n1,845.021 rack-ms\nProductive compute share\n0.69%",
+      "dependentRacks": [
+        "rack:R1-2",
+        "rack:R1-3",
+        "rack:R1-4",
+        "rack:R1-5",
+        "rack:R1-6",
+        "rack:R1-7",
+        "rack:R1-8",
+        "rack:R2-1",
+        "rack:R2-2",
+        "rack:R2-3",
+        "rack:R2-4",
+        "rack:R2-5",
+        "rack:R2-6",
+        "rack:R2-7",
+        "rack:R2-8",
+        "rack:R3-1",
+        "rack:R3-2",
+        "rack:R3-3",
+        "rack:R3-4",
+        "rack:R3-5",
+        "rack:R3-6",
+        "rack:R3-7",
+        "rack:R3-8",
+        "rack:R4-1",
+        "rack:R4-2",
+        "rack:R4-3",
+        "rack:R4-4",
+        "rack:R4-5",
+        "rack:R4-6",
+        "rack:R4-7",
+        "rack:R4-8"
+      ],
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "checks": [
+        "Autoplay, only Pause/Menu, no horizontal overflow",
+        "Pointer/touch rack selection preserves paused state and camera; inspector clears selected rack",
+        "Live slow/restore, dependent racks and measured wait, no restart",
+        "Expanded details remain accessible outside scene; closing returns canvas focus",
+        "Camera/Reset preserve paused execution; Speed and Appearance remain available in Menu",
+        "Drawer keyboard containment/Escape/return focus; non-spatial rack selector focuses action",
+        "Replay and Restart execute through existing session operations"
+      ],
+      "screenshots": [
+        {
+          "file": "mobile-dark-opening.png",
+          "sha256": "4c865b5d5ee92f4e2329e595fca293cd29b570e606960d8e5a552e809ca3c606"
+        },
+        {
+          "file": "mobile-dark-slowed.png",
+          "sha256": "f346e0d0049cbf9adb7594975a7263191ece15d17fa0e73bfb4f7b61ddb3da2a"
+        },
+        {
+          "file": "mobile-dark-details.png",
+          "sha256": "76ff9421f3690bebde9ed29c37a801e23f35663f8bb8503ab64fbaf874868b6c"
+        },
+        {
+          "file": "mobile-dark-menu.png",
+          "sha256": "0141f8eb65a0f2e9f274ad6349a9ca4ba96471a4469f240794e00526f2e8f778"
+        }
+      ],
+      "build": "c1f9bcb64da9af7a9ff83b26f27c0fb4f7bcbd27-b728dfbd3eb2",
+      "measurements": "Training steps completed\n1 steps\nWaiting added by actions\n1,188.751 rack-ms\nProductive compute share\n0.70%",
+      "dependentRacks": [
+        "rack:R1-2",
+        "rack:R1-3",
+        "rack:R1-4",
+        "rack:R1-5",
+        "rack:R1-6",
+        "rack:R1-7",
+        "rack:R1-8",
+        "rack:R2-1",
+        "rack:R2-2",
+        "rack:R2-3",
+        "rack:R2-4",
+        "rack:R2-5",
+        "rack:R2-6",
+        "rack:R2-7",
+        "rack:R2-8",
+        "rack:R3-1",
+        "rack:R3-2",
+        "rack:R3-3",
+        "rack:R3-4",
+        "rack:R3-5",
+        "rack:R3-6",
+        "rack:R3-7",
+        "rack:R3-8",
+        "rack:R4-1",
+        "rack:R4-2",
+        "rack:R4-3",
+        "rack:R4-4",
+        "rack:R4-5",
+        "rack:R4-6",
+        "rack:R4-7",
+        "rack:R4-8"
+      ],
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/datacenter",
+      "pass": true,
+      "checks": [
+        "Current seven-slot comparison frame retained"
+      ]
+    }
+  ]
+}

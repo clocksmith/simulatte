@@ -91,3 +91,12 @@ header, camera menu, Reset view, playback, Restart, Replay, Speed and Advanced
 placement. Domain measurements and actions follow the canvas. Supported camera
 views remain truthful. Field comparison branches share the same viewport through
 a branch switch; neither branch changes the other. Keep Create separate.
+
+GPU Cluster has an opt-in scene-first prototype at `/datacenter?frame=scene`.
+It opens running, keeps Pause and Menu visible, and places rack actions beside
+the selected rack, or below the scene when they cannot fit without covering it.
+Secondary controls share one accessible drawer. This scoped comparison retains
+the current frame at `/datacenter`: shared behavior and accessibility remain
+required, but identical placement is not required in this prototype. Compare
+unfamiliar-user comprehension and task completion before changing the shared
+frame or extending this composition to other simulations.

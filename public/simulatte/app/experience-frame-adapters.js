@@ -5,6 +5,9 @@
     if(body.dataset.experienceUi)return;
     const path=location.pathname.replace(/\/$/,'');
     const page=root.SimulattePublicRoutes?.forPath(path);
+    if(page?.profile==='gpu-supercluster-v1'&&new URLSearchParams(location.search).get('frame')==='scene'){
+      root.SimulatteGpuScene.mount();return;
+    }
     const solar=Boolean(q('#viewport #scene')),field=Boolean(q('.experiments #baseline')),motorcycle=body.classList.contains('motorcycle-app');
     if(!solar&&!field&&!motorcycle&&!page)return;
     const invoke=(session,id,value)=>{

@@ -3,16 +3,16 @@
 Parent: [World](../CATSCAN.md)
 ## Target
 
-Present catalog SVG spotlights and one consistent canvas/control frame across World.
+Present catalog spotlights, consistent World behavior, and GOALS' GPU comparison.
 
 ## Authority
 
-- Owns World page coordination, profile selection, controls, cameras, and visible lifecycle.
+- Owns World coordination, profiles, controls, cameras, and lifecycle.
 - Does not own plugin semantics, platform contracts, or evidence interpretation.
 
 ## Scope
 
-- Applies to browser application code under `public/simulatte/app/`.
+- Scope: `public/simulatte/app/`.
 
 ## Contracts
 
@@ -35,7 +35,7 @@ Present catalog SVG spotlights and one consistent canvas/control frame across Wo
 - Profile replay compares deterministic execution identity and retains unproven proof classes.
 - Imports remain local unless a URL is requested. Declared mappings and units enable automatic playback; unresolved semantics stay visible.
 - Data execution uses a declared adapter and backend, never inferred physics or a hidden prompt/model lane.
-- Catalog drives discovery; frame dimensions, control placement and camera-menu styling match across simulations.
+- Default frames share placement. The opt-in GPU prototype owns composition, preserving execution, camera, accessibility and failure semantics. Retain the default for unfamiliar-user comparison before rollout.
 - `data-world-launch="featured"` suspends dormant workflows; removing it restores them.
 
 ## Acceptance
