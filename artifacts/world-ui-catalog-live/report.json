@@ -1,0 +1,59 @@
+{
+  "source": {
+    "head": "c31fb704860d80cd79bff23c58458372b8bcc150",
+    "capturedAt": "2026-10-17T18:18:02.996Z",
+    "modifiedSources": {
+      "public/blank/index.html": {
+        "sha256": "b97f81bd451a6c9ff920786d398fe9476524841a25edfd025841755b17c34f05",
+        "modifiedAt": "2026-10-17T18:17:24.350Z"
+      },
+      "public/index.html": {
+        "sha256": "512edde0b635d458d272311865f93a876ffee4de0d99902ba533cbd0dd054781",
+        "modifiedAt": "2026-10-17T18:17:24.350Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "2d85e8419d0e289f6dd6c787e1b11470f0d781899f271649dbe3e8c3e832d527",
+        "modifiedAt": "2026-10-17T18:17:24.350Z"
+      },
+      "public/version.json": {
+        "sha256": "b40866ff4f77e0e7a058981d8c5019bb2f587cf3a25fd5b519a34e756ae3f1c4",
+        "modifiedAt": "2026-10-17T18:17:24.351Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "baseUrl": "https://simulatte.world/",
+  "boundary": "Deployed URL in Chrome: component behavior and emulated layouts; not physical devices or human comprehension.",
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "Both themes: 25 variant/state combinations, geometry, fonts, menu navigation/selection/Escape/focus return, sheet focus trap/return",
+        "Async duplicate suppression, pending recovery, rejected action feedback, stale inspector result isolation"
+      ],
+      "screenshot": {
+        "file": "1440.png",
+        "sha256": "47984a48109d06c1867a3a8e6b7824149bac3415093099a92279c7006e61b24a"
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "Both themes: 25 variant/state combinations, geometry, fonts, menu navigation/selection/Escape/focus return, sheet focus trap/return",
+        "Async duplicate suppression, pending recovery, rejected action feedback, stale inspector result isolation"
+      ],
+      "screenshot": {
+        "file": "390.png",
+        "sha256": "b02fe0f03989fa6cc7cd2d8f965c8a615ab3abc16af8725e1c9ac510f4ea0455"
+      },
+      "pass": true
+    }
+  ]
+}
