@@ -12,30 +12,36 @@ Start `npm run serve` in `simulatte/`. Compare these routes on the same build:
 - Current: <http://localhost:4173/datacenter>
 - Proposed: <http://localhost:4173/datacenter?frame=scene>
 
-The proposal borrows the catalog's restrained typography and 256one's spacing,
-with one button treatment, a single Pause/Menu row and contextual rack actions.
-It reuses the existing simulation, session operations and inspector. Camera,
-Restart, Replay, Speed, Appearance, configuration and evidence remain in Menu.
-On desktop the compact inspector sits beside the selected rack. If there is no
-room, including on mobile or with expanded details, it appears below the scene
-instead of covering the selected object. Inspection never changes the camera
-or pauses the run. Focus remains an explicit action.
+The prototype uses the shared World UI library in
+`public/shared/design/world-ui/`: restrained monochrome controls, Space Grotesk
+labels, IBM Plex Mono measurements and green for active states. GPU owns scene
+composition; the library owns geometry, typography, states and surfaces.
 
 ## Rendered-state contract
 
 - Open directly into a running workload; readiness and failures remain visible.
-- Keep only Pause (Resume when paused) and Menu as persistent execution controls.
+- Desktop: identity/status/Menu above the scene, playback/Speed/time dock at
+  bottom-left, Camera/Reset view dock at bottom-right.
+- Mobile: identity/Menu above the scene and one bottom dock for Pause, Camera and
+  the selected action. Speed remains in Menu and Reset view in Camera.
 - Selecting a rack exposes its actual condition and Slow rack / Restore rack.
-- Preserve the model's dependent-rack highlighting and executed measurements.
-  Productive compute share excludes communication, waiting and slowdown; it is
-  not a hardware-utilization measurement.
+  One primary action per inspector; focus remains an explicit secondary action.
+- Preserve dependent-rack highlighting and executed measurements. Productive
+  compute share excludes communication, waiting and slowdown; it is not a
+  hardware-utilization measurement. Metrics retain interval, freshness and validity.
 - Pointer, touch and Menu's non-spatial selector reach the same objects/actions.
-- Contextual details never overlap the selected rack. Expanded facts stay
-  reachable through document scrolling; do not shrink them into a tiny scroller.
-- Keep 44-pixel control targets, visible focus, drawer focus containment, Escape
-  and return focus, reduced-motion support, and no horizontal page overflow.
+- Desktop inspector anchors beside the rack without overlap when space permits;
+  otherwise it docks at the right edge. Mobile details use a bottom sheet above
+  the persistent action dock. Expanded facts scroll within that surface.
+- Keep 44-pixel targets, 4-pixel control radii, visible focus, menu keyboard
+  navigation, drawer containment, Escape/return focus, reduced-motion support,
+  and no horizontal overflow. Shared components own these rules.
 - Keep Restart, Replay, cancellation and configuration semantics in their
   existing owners. Preserve the original frame and its audit.
+- The component catalog exercises every primitive in both themes, including
+  selected, pending, disabled and error states. The CSS ownership check rejects
+  new native-control overrides and shared-internal selectors outside the library;
+  existing legacy selectors are frozen until their owners migrate.
 
 ## Unfamiliar-user procedure
 
@@ -90,8 +96,8 @@ a prettier screenshot alone does not justify promotion.
 ## Decision after observation
 
 Retain or revise the GPU prototype based on observed failures. Only then decide
-which behavioral components belong in the shared frame. Sun Walker and Motorcycle
-are subsequent candidates, not included in this change. Do not infer catalog-wide
+which behavioral components belong in the shared frame. Motorcycle, then Sun Walker,
+are subsequent migrations, not included in this change. Do not infer catalog-wide
 acceptance from this GPU-only comparison.
 
 ## Machine evidence
@@ -102,3 +108,7 @@ local. `node --test tests/gpu-scene.test.cjs` checks placement geometry. The bro
 journey covers running, selecting, pausing, live slow/restore, dependent racks,
 measurements, expanded details, Menu, non-spatial selection, Restart and Replay.
 These checks do not complete the human study above.
+
+Run `node tools/simulatte/audit-world-ui.mjs` for shared component states, keyboard
+behavior and asynchronous action regression checks. It writes
+`artifacts/world-ui-catalog/report.json` and local screenshots.

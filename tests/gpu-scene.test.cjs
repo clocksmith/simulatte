@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { placeInspector } = require('../public/simulatte/app/gpu-scene.js');
+const { placeInspector } = require('../public/shared/design/world-ui/components.js');
 
 test('inspector stays in the scene and clear of the selected rack at edges and center', () => {
   const scene = { width: 1000, height: 700 }, panel = { width: 300, height: 220 };

@@ -1,0 +1,130 @@
+{
+  "source": {
+    "head": "0b110cc1c5e7fc1abacea341b97721bd3a680378",
+    "capturedAt": "2026-10-17T18:16:04.775Z",
+    "modifiedSources": {
+      "public/index.html": {
+        "sha256": "277390a6b893f2f362239330ef5d1b3249a1f246efee361c0bbda462790025ab",
+        "modifiedAt": "2026-10-17T18:01:05.986Z"
+      },
+      "public/shared/design/world-ui/CATSCAN.md": {
+        "sha256": "ced318e947bb5aa2eaf640752e0f1b802da65f6234c1437cc1d117037c9850fa",
+        "modifiedAt": "2026-10-17T18:06:58.034Z"
+      },
+      "public/shared/design/world-ui/OFL.txt": {
+        "sha256": "564ce565c371c5e5bbf286006565a7c9aa55a9f56e7ca58d56e05d649dd61a72",
+        "modifiedAt": "2026-10-17T17:55:53.633Z"
+      },
+      "public/shared/design/world-ui/SpaceGrotesk.ttf": {
+        "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72",
+        "modifiedAt": "2026-10-17T17:55:53.534Z"
+      },
+      "public/shared/design/world-ui/button.css": {
+        "sha256": "c158fd3db57aa7ae740670767a9b10e68413ae932e5d81b4828040ceba558370",
+        "modifiedAt": "2026-10-17T18:15:03.818Z"
+      },
+      "public/shared/design/world-ui/catalog.css": {
+        "sha256": "21ade9d084166c10c2d8b4862b74116d4f20dda3800759f8dda4f1f4d34d4b58",
+        "modifiedAt": "2026-10-17T18:04:09.423Z"
+      },
+      "public/shared/design/world-ui/catalog.html": {
+        "sha256": "2903e067a9f18330761bd9c2348941e80b1bce4b277e3e75b19c6500659e9999",
+        "modifiedAt": "2026-10-17T18:04:09.422Z"
+      },
+      "public/shared/design/world-ui/catalog.js": {
+        "sha256": "98fc7ba4fdae2597d964c8a805d25561f2b1cfc6a33925b4097ac509d273cce3",
+        "modifiedAt": "2026-10-17T18:04:09.426Z"
+      },
+      "public/shared/design/world-ui/components.js": {
+        "sha256": "deb298ff0ee1675ecfba362c5e9b41bed1858bf978bb84ceab0a69e659d06b1d",
+        "modifiedAt": "2026-10-17T18:16:04.693Z"
+      },
+      "public/shared/design/world-ui/dock.css": {
+        "sha256": "0a4afff4bbab24e1aa430ddcbc3322fecfefd418a5905faf3e010ccd35ec8918",
+        "modifiedAt": "2026-10-17T17:57:43.552Z"
+      },
+      "public/shared/design/world-ui/inspector.css": {
+        "sha256": "92020558532cfaa4afdf0c196e87c05db6d616709910f4780ae70b5ac8d5cd92",
+        "modifiedAt": "2026-10-17T18:10:55.091Z"
+      },
+      "public/shared/design/world-ui/menu.css": {
+        "sha256": "7167d4e57a275d19e558b2d12f5c53a12f77234771fda6145a06cdb34fef890a",
+        "modifiedAt": "2026-10-17T17:57:43.551Z"
+      },
+      "public/shared/design/world-ui/metric.css": {
+        "sha256": "227f8b01ca2d2db4959b8cb2f8d43c7375302ad16a019ad52901fdd780547ba7",
+        "modifiedAt": "2026-10-17T18:16:04.693Z"
+      },
+      "public/shared/design/world-ui/sheet.css": {
+        "sha256": "6e39f1b70f2ab5b37e99bf7f480329e93767ccfdbcacebc474779af765f42715",
+        "modifiedAt": "2026-10-17T17:57:43.554Z"
+      },
+      "public/shared/design/world-ui/tokens.css": {
+        "sha256": "bfec51a46960027db701f827a28d53812111ea806758769d72e93e62aae68296",
+        "modifiedAt": "2026-10-17T18:16:04.693Z"
+      },
+      "public/shared/design/world-ui/tooltip.css": {
+        "sha256": "897a557483ecdef5b34ec13213f3c11eddb5d862aec316c1f30d5caf6c627124",
+        "modifiedAt": "2026-10-17T18:16:04.693Z"
+      },
+      "public/simulatte/app/city-interface.js": {
+        "sha256": "ae056f6bfb967b9d1e0019815bf734c39958a05225ccd7776d7dd035ff5e8f3a",
+        "modifiedAt": "2026-10-17T18:01:05.870Z"
+      },
+      "public/simulatte/app/gpu-scene.css": {
+        "sha256": "940ae2829825fa8f89568f3993cb59de347cada90a03791db152fc1fff65b33d",
+        "modifiedAt": "2026-10-17T18:10:55.091Z"
+      },
+      "public/simulatte/app/gpu-scene.js": {
+        "sha256": "462b60d29ba24418560f174c78697243b6ce77f0871644cfea618194a25b1bd0",
+        "modifiedAt": "2026-10-17T18:15:03.819Z"
+      },
+      "public/simulatte/app/world-runtime-script-manifest.js": {
+        "sha256": "eb48b429347967b0de2a2247d976ab3ed7c5d8558565dd24d581cbe90f6af017",
+        "modifiedAt": "2026-10-17T18:01:05.871Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "0188de05fbf2783d4123dce4f2f56f2f23cda05975837f0e40f7747a5a1183d6",
+        "modifiedAt": "2026-10-17T18:01:52.442Z"
+      },
+      "public/simulatte/platform/ui-host/declarative-ui-host.js": {
+        "sha256": "088abc4b84427d3971e2f5963113765641e09026e762afe2e1421fde6b1b0833",
+        "modifiedAt": "2026-10-17T18:15:03.819Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Local Chrome component behavior and emulated layouts; not physical devices or human comprehension.",
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": [
+        "Both themes: 25 variant/state combinations, geometry, fonts, menu navigation/selection/Escape/focus return, sheet focus trap/return",
+        "Async duplicate suppression, pending recovery, rejected action feedback, stale inspector result isolation"
+      ],
+      "screenshot": {
+        "file": "1440.png",
+        "sha256": "47984a48109d06c1867a3a8e6b7824149bac3415093099a92279c7006e61b24a"
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "Both themes: 25 variant/state combinations, geometry, fonts, menu navigation/selection/Escape/focus return, sheet focus trap/return",
+        "Async duplicate suppression, pending recovery, rejected action feedback, stale inspector result isolation"
+      ],
+      "screenshot": {
+        "file": "390.png",
+        "sha256": "b02fe0f03989fa6cc7cd2d8f965c8a615ab3abc16af8725e1c9ac510f4ea0455"
+      },
+      "pass": true
+    }
+  ]
+}

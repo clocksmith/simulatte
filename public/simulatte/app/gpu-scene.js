@@ -1,173 +1,87 @@
-(function attachGpuScene(root, factory) {
+(function attachGpuScene(root) {
   'use strict';
-  const api = factory(root);
-  if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SimulatteGpuScene = api;
-})(globalThis, function gpuScene(root) {
-  'use strict';
-
-  // Coordinates are CSS pixels relative to the scene. No placement may obscure
-  // the selected rack; a narrow or offscreen scene uses the adjacent document dock.
-  function placeInspector(scene, rack, panel, gap = 16) {
-    if (!rack || scene.width < 700 || panel.height > scene.height - gap * 2
-        || rack.right < 0 || rack.left > scene.width || rack.bottom < 0 || rack.top > scene.height) return null;
-    const clamp = (v, max) => Math.max(gap, Math.min(v, max - gap));
-    const x = clamp((rack.left + rack.right - panel.width) / 2, scene.width - panel.width);
-    const y = clamp((rack.top + rack.bottom - panel.height) / 2, scene.height - panel.height);
-    const candidates = [
-      { x: rack.right + gap, y }, { x: rack.left - panel.width - gap, y },
-      { x, y: rack.bottom + gap }, { x, y: rack.top - panel.height - gap },
-    ];
-    return candidates.find(p => p.x >= gap && p.y >= gap
-      && p.x + panel.width <= scene.width - gap && p.y + panel.height <= scene.height - gap
-      && (p.x >= rack.right + gap || p.x + panel.width <= rack.left - gap
-        || p.y >= rack.bottom + gap || p.y + panel.height <= rack.top - gap)) || null;
-  }
-
   function mount() {
-    const doc = root.document, q = s => doc.querySelector(s);
-    const host = q('.simulation-stage'), stage = q('.canvas-shell'), drawer = q('#decisions-drawer');
-    const canvas = q('#overlay-canvas'), menu = q('#decisions-button');
-    doc.body.dataset.experienceUi = 'gpu-scene';
-    doc.body.classList.add('sim-app');
-    const node = (tag, className, text) => {
-      const el = doc.createElement(tag); if (className) el.className = className;
-      if (text) el.textContent = text; return el;
+    const doc=root.document, ui=root.SimulatteWorldUI, q=s=>doc.querySelector(s);
+    if(!ui)throw Error('GPU scene requires shared World UI');
+    const host=q('.simulation-stage'),stage=q('.canvas-shell'),canvas=q('#overlay-canvas'),drawer=q('#decisions-drawer');
+    doc.body.dataset.experienceUi='gpu-scene';doc.body.dataset.worldUi='true';doc.body.classList.add('wui-root');
+    const node=(tag,cls,text)=>{const el=doc.createElement(tag);el.className=cls||'';if(text)el.textContent=text;return el;};
+    const error=node('p','wui-error');error.setAttribute('role','status');
+    const command=async(id,value)=>{try{if(!root.SimulatteActiveSession)throw Error('Simulation is preparing');const result=await root.SimulatteActiveSession.invoke(id,value);error.textContent='';return result;}catch(e){error.textContent=e.message;throw e;}};
+    const header=node('header','gpu-scene__header'),home=node('a','gpu-scene__home','Simulations'),title=node('h1','wui-title','GPU Cluster'),status=node('span','wui-status','Preparing');home.href='/';
+    ui.SimButton({element:home,variant:'quiet'});
+    const overflow=ui.SimButton({element:q('#decisions-button'),label:'•••',ariaLabel:'Menu: controls and evidence',variant:'icon'}).element;
+    header.append(home,title,status,overflow);
+    const playback=node('div','gpu-scene__playback');
+    for(const id of ['start-button','pause-button','resume-button'])playback.append(ui.SimButton({element:q('#'+id),variant:'quiet'}).element);
+    const speedSelect=q('#playback-speed'),speedMenu=ui.menuFromSelect(speedSelect,'Speed'),clock=node('output','wui-clock','00:00');clock.setAttribute('aria-label','Simulation time');
+    const playDock=ui.SimDock({children:[playback,speedMenu.element,clock],label:'Playback'});playDock.classList.add('gpu-scene__play-dock');
+    const camera=ui.SimMenu({element:q('#camera-menu'),label:'Camera'});
+    for(const group of camera.content.querySelectorAll('.camera-modes'))group.classList.add('wui-choice-group');
+    const reset=ui.SimButton({element:q('#camera-reset'),label:'Reset view',variant:'quiet'}).element;
+    const cameraDock=ui.SimDock({children:[camera.element,reset],label:'View'});cameraDock.classList.add('gpu-scene__camera-dock');
+    const selectedAction=ui.SimButton({label:'Inspect',variant:'quiet',onAction:()=>{const control=q('[data-wui="inspector"] [data-object-action]');if(control)control.click();else sheet.open();}}).element;
+    const mobileControls=node('div','gpu-scene__mobile-controls');mobileControls.append(selectedAction);playDock.append(mobileControls);
+    const mobileQuery=matchMedia('(max-width:700px)');
+    const metrics=node('section','wui-metrics');metrics.setAttribute('aria-label','Executed measurements');
+    const metricSlots=new Map();
+    const storage=node('div');storage.hidden=true;
+    const old=[...host.children];host.classList.add('gpu-scene');stage.classList.add('gpu-scene__stage');
+    stage.dataset.inspectorFields='task,work,waiting-for,blocking';
+    stage.presentInspection=input=>{
+      const object=input.objects.find(o=>o.id===input.selectedId);
+      return {...input,fields:input.fields.map(f=>f.id==='blocking'?{...f,label:'Blocking',value:object?.relatedIds?.length||0,unit:'racks'}:f.id==='work'?{...f,label:'Progress',unit:'%'}:f.id==='waiting-for'?{...f,label:'Waiting on'}:f)};
     };
-    const button = (text, action) => {
-      const el = node('button', 'sim-action', text); el.type = 'button';
-      el.addEventListener('click', action); return el;
-    };
-    const disclosure = (title, children) => {
-      const el = node('details', 'gpu-scene__section');
-      el.append(node('summary', '', title), ...children); return el;
-    };
-    const error = node('p', 'gpu-scene__error'); error.setAttribute('role', 'status');
-    async function command(id, value) {
-      try {
-        if (!root.SimulatteActiveSession) throw Error('Simulation controls are not ready.');
-        const result = await root.SimulatteActiveSession.invoke(id, value); error.textContent = ''; return result;
-      } catch (reason) { error.textContent = reason.message; }
-    }
-    const header = node('header', 'gpu-scene__header');
-    const home = node('a', 'gpu-scene__home', 'Simulations'); home.href = '/';
-    const heading = node('h1', '', 'GPU Cluster');
-    const playback = node('div', 'gpu-scene__playback');
-    playback.append(q('#start-button'), q('#pause-button'), q('#resume-button'));
-    for (const control of playback.children) control.classList.remove('sim-action-primary');
-    menu.textContent = 'Menu'; menu.setAttribute('aria-label', 'Menu: simulation controls');
-    header.append(home, heading, playback, menu);
-    const intro = node('div', 'gpu-scene__intro');
-    const status = node('span', 'gpu-scene__status', 'Preparing'); status.setAttribute('role', 'status');
-    intro.append(node('p', '', 'One training job. Every rack depends on the others.'), status);
-    const hint = node('p', 'gpu-scene__hint', 'Select a rack to slow it down and see who waits.');
-    const dock = node('div', 'gpu-scene__dock');
-    const readouts = q('#experience-readouts');
-    const storage = node('div'); storage.hidden = true;
-    const oldChildren = [...host.children];
-    host.classList.add('gpu-scene'); stage.classList.add('gpu-scene__stage');
-    host.replaceChildren(header, intro, stage, hint, dock, readouts, error, storage);
-    for (const child of oldChildren) if (!host.contains(child)) storage.append(child);
-
-    drawer.classList.add('gpu-scene__drawer');
-    q('#decisions-close').setAttribute('aria-label', 'Close menu');
-    const restart = button('Restart', () => command('restart'));
-    const replay = button('Replay', () => command('replay'));
-    restart.dataset.sceneCommand = 'restart'; replay.dataset.sceneCommand = 'replay';
-    const actions = node('div', 'gpu-scene__actions'); actions.append(restart, replay);
-    const speed = q('#playback-speed-control');
-    const appearance = button('Appearance', () => {
-      root.SimulatteTheme?.cyclePreference(); root.dispatchEvent(new Event('experience-appearance'));
-    });
-    const camera = q('#camera-menu');
-    camera.classList.add('gpu-scene__camera');
-    const rackLabel = node('label', 'gpu-scene__rack-label', 'Inspect a rack');
-    const rackHelp = node('p', 'gpu-scene__note', 'Choose here or select a rack in the scene. Inspection does not pause the job.');
-    const secondary = node('section', 'gpu-scene__secondary');
-    secondary.setAttribute('aria-label', 'Simulation controls');
-    secondary.append(actions, speed, rackLabel, rackHelp, camera, appearance);
-    drawer.querySelector('header').after(secondary);
-    const context = q('#experience-readouts-context');
-    const measurements = q('#show-measurements').closest('label');
-    drawer.append(disclosure('Measurements and legend', [context, measurements]));
-    const configuration = q('#plugin-inspector');
-    const configurationSection = disclosure('Configuration and evidence', [configuration]);
-    q('#scene-actions').before(configurationSection);
-    const runtime = q('#runtime-details');
-    runtime.hidden = false; q('#runtime-details-close').hidden = true;
-    drawer.append(disclosure('Runtime details', [runtime]));
-    storage.append(q('#runtime-toggle'));
-
-    let inspector, selector, opened = false, lastSelected = '', disposed = false, interacted = false;
-    stage.addEventListener('pointerdown', () => { interacted = true; }, { once: true });
-    function adoptInspector() {
-      const next = host.querySelector('.sim-object-inspector');
-      if (!next || next === inspector) return;
-      inspector = next; inspector.tabIndex = -1;
-      selector = inspector.querySelector('select'); selector.setAttribute('aria-label', 'Inspect a rack');
-      rackLabel.append(selector);
-      secondary.append(inspector.querySelector('[aria-pressed]'));
-      selector.addEventListener('change', () => {
-        q('#decisions-close').click();
-        requestAnimationFrame(() => {
-          (inspector.querySelector('[data-object-action="straggler"]') || inspector).focus({ preventScroll: true });
-          if (inspector.dataset.placement === 'dock') inspector.scrollIntoView({ block: 'nearest' });
-        });
-      });
-      const body = inspector.lastElementChild;
-      const paragraphs = body.querySelectorAll(':scope > p');
-      const detail = disclosure('Why it matters', [paragraphs[2], ...body.querySelectorAll(':scope > details')]);
-      body.append(detail);
-      inspector.querySelector('[aria-label="Close inspector"]').addEventListener('click', () => canvas.focus({ preventScroll: true }));
-      dock.append(inspector);
-    }
-    function positionInspector() {
-      if (!inspector) return;
-      const selected = selector.value;
-      inspector.hidden = !selected;
-      if (!selected) { lastSelected = ''; return; }
-      if (selected !== lastSelected) {
-        inspector.querySelector('.gpu-scene__section').open = false;
-        lastSelected = selected;
+    host.replaceChildren(header,stage,metrics,error,storage);
+    for(const el of old)if(!host.contains(el))storage.append(el);
+    stage.append(playDock,cameraDock);storage.append(speedSelect);
+    const close=ui.SimButton({element:q('#decisions-close'),variant:'icon',ariaLabel:'Close menu',label:'×'}).element;
+    drawer.querySelector('header').classList.add('wui-sheet-heading');
+    drawer.querySelector('strong').classList.add('wui-title');drawer.querySelector('strong').textContent='Controls and evidence';
+    const sheet=ui.SimSheet({element:drawer,trigger:overflow,closeButton:close,backdrop:q('#decisions-backdrop'),externalTrigger:true});
+    const restart=ui.SimButton({label:'Restart',variant:'secondary',onAction:()=>command('restart')}).element;
+    const replay=ui.SimButton({label:'Replay',variant:'secondary',onAction:()=>command('replay')}).element;
+    restart.dataset.sceneCommand='restart';replay.dataset.sceneCommand='replay';
+    const actions=node('div','wui-control-row');actions.append(restart,replay);
+    const selectLabel=node('label','wui-control-label','Inspect a rack');
+    const appearance=ui.SimButton({label:'Appearance',variant:'quiet',onAction:()=>root.SimulatteTheme.cyclePreference()}).element;
+    const secondary=node('section','gpu-scene__secondary');secondary.append(actions,selectLabel,appearance);drawer.querySelector('header').after(secondary);
+    const arrangeCamera=()=>{const active=doc.activeElement;if(mobileQuery.matches){mobileControls.prepend(camera.element);camera.content.append(reset);secondary.append(speedMenu.element);}else{cameraDock.prepend(camera.element);cameraDock.append(reset);playback.after(speedMenu.element);}if(active?.isConnected)active.focus({preventScroll:true});};
+    mobileQuery.addEventListener('change',arrangeCamera);arrangeCamera();
+    const context=q('#experience-readouts-context');drawer.append(ui.SimDisclosure({title:'Measurements and model limits',children:[context,q('#show-measurements').closest('label')]}));
+    const configuration=q('#plugin-inspector');q('#scene-actions').before(ui.SimDisclosure({title:'Configuration and evidence',children:[configuration]}));
+    const runtime=q('#runtime-details');runtime.hidden=false;runtime.className='wui-sheet-section';q('#runtime-details-close').hidden=true;drawer.append(ui.SimDisclosure({title:'Runtime details',children:[runtime]}));storage.append(q('#runtime-toggle'));
+    const disposeControls=ui.adoptTree(drawer),disposeCamera=ui.adoptTree(camera.content);
+    let inspector,opened=false,interacted=false,disposed=false;
+    stage.addEventListener('pointerdown',()=>{interacted=true;},{once:true});
+    function refresh(){
+      if(disposed)return;
+      const element=stage.querySelector('[data-wui="inspector"]');
+      if(element&&!inspector){
+        inspector=ui.getInspector(element);inspector.selector.setAttribute('aria-label','Inspect a rack');selectLabel.append(inspector.selector);
+        inspector.selector.addEventListener('change',()=>{sheet.close();requestAnimationFrame(()=>{(element.querySelector('[data-object-action]')||element).focus({preventScroll:true});});});
+        element.querySelector('[aria-label="Close inspector"]').addEventListener('click',()=>canvas.focus({preventScroll:true}));
       }
-      const target = canvas.__simulatteObjectTargets?.().find(item => item.id === selected);
-      const points = target?.bounds?.length ? target.bounds : target?.points;
-      const rack = points?.length ? {
-        left: Math.min(...points.map(p => p.x)), right: Math.max(...points.map(p => p.x)),
-        top: Math.min(...points.map(p => p.y)), bottom: Math.max(...points.map(p => p.y)),
-      } : null;
-      const rect = stage.getBoundingClientRect();
-      const panel = inspector.getBoundingClientRect();
-      const placement = placeInspector(rect, rack, { width: Math.min(300, rect.width - 24), height: panel.height });
-      const parent = placement ? stage : dock;
-      if (inspector.parentElement !== parent) {
-        const active = inspector.contains(doc.activeElement) ? doc.activeElement : null;
-        parent.append(inspector); active?.focus({ preventScroll: true });
+      const session=root.SimulatteActiveSession?.snapshot();
+      if(!opened&&inspector&&session?.preparation==='ready'){opened=true;if(!interacted)void command('select-object',null);}
+      status.textContent=session?.visibleStatus||'Preparing';status.dataset.live=String(session?.execution==='running');
+      for(const [button,id]of [[restart,'restart'],[replay,'replay']])button.disabled=!session?.operations.some(op=>op.id===id&&op.available);
+      const contribution=root.__simulattePluginPlatformV4?.contributions.find(c=>c.pluginId==='gpu-supercluster');
+      const time=contribution?.state?.simulationTimeMs;
+      if(Number.isFinite(time)){const seconds=Math.floor(time/1000);clock.textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;clock.title=`${time.toFixed(2)} ms of simulation time`;}
+      for(const row of q('#experience-summary-stats').children){
+        const subject=row.dataset.measureLabel;if(!subject)continue;
+        let metric=metricSlots.get(subject);if(!metric){metric=ui.SimMetric();metricSlots.set(subject,metric);metrics.append(metric.element);}
+        const raw=row.lastElementChild.textContent,match=/^([\d.,−-]+)\s*(.*)$/.exec(raw);
+        metric.update({subject,value:match?match[1]:raw,unit:match?match[2]:'',timeBasis:Number.isFinite(time)?`0–${time.toFixed(1)} ms`:'Interval pending',freshness:session?.execution==='failed'?'stale':Number.isFinite(time)?'current':'pending',validity:Number.isFinite(time)?'modeled':'unavailable',level:subject==='Productive compute share'?'governing':'supporting'});
+        metric.element.title=row.dataset.definition;
       }
-      inspector.dataset.placement = placement ? 'anchor' : 'dock';
-      inspector.style.left = placement ? `${placement.x}px` : '';
-      inspector.style.top = placement ? `${placement.y}px` : '';
+      const action=element?.querySelector('[data-object-action]');selectedAction.textContent=action?.textContent||'Inspect';selectedAction.disabled=Boolean(action?.disabled);speedMenu.sync();
     }
-    function refresh() {
-      if (disposed) return;
-      adoptInspector();
-      const state = root.SimulatteActiveSession?.snapshot();
-      if (!opened && inspector && state?.preparation === 'ready') {
-        opened = true; if (!interacted) void command('select-object', null);
-      }
-      const text = state?.visibleStatus || 'Preparing';
-      if (status.textContent !== text) status.textContent = text;
-      for (const [el, id] of [[restart, 'restart'], [replay, 'replay']]) {
-        el.disabled = !state?.operations.some(op => op.id === id && op.available);
-      }
-      positionInspector();
-    }
-    // Projection follows camera movement even when execution is paused.
-    let animation;
-    function frame() { positionInspector(); if (!disposed) animation = requestAnimationFrame(frame); }
-    const timer = setInterval(refresh, 200); refresh(); animation = requestAnimationFrame(frame);
-    root.addEventListener('pagehide', () => { disposed = true; clearInterval(timer); cancelAnimationFrame(animation); }, { once: true });
-    root.__simulatteGpuScene = { stage, header, drawer };
+    function position(){if(inspector&&!inspector.element.hidden)inspector.position(stage,canvas.__simulatteObjectTargets?.().find(t=>t.id===inspector.selector.value));}
+    let animation;function frame(){position();if(!disposed)animation=requestAnimationFrame(frame);}
+    const timer=setInterval(refresh,150);refresh();animation=requestAnimationFrame(frame);
+    root.addEventListener('pagehide',()=>{disposed=true;clearInterval(timer);cancelAnimationFrame(animation);mobileQuery.removeEventListener('change',arrangeCamera);disposeControls();disposeCamera();camera.dispose();speedMenu.dispose();sheet.dispose();},{once:true});
   }
-  return { mount, placeInspector };
-});
+  root.SimulatteGpuScene=Object.freeze({mount});
+})(globalThis);

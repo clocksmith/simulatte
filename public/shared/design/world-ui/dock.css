@@ -1,0 +1,5 @@
+.wui-dock { display: flex; align-items: center; width: max-content; max-width: 100%; gap: 0; padding: 4px; background: var(--wui-paper); border: 1px solid var(--wui-line); border-radius: var(--wui-radius); color: var(--wui-ink); }
+.wui-dock > * + * { border-left: 1px solid var(--wui-line); margin-left: 4px; padding-left: 4px; }
+.wui-clock { padding: 0 12px; font: 400 12px var(--wui-mono); color: var(--wui-muted); font-variant-numeric: tabular-nums; }
+.wui-control-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wui-control-label { display: grid; gap: 8px; margin: 12px 0; font: 400 13px/1.5 var(--wui-font); }

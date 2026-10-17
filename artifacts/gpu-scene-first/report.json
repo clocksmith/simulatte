@@ -1,8 +1,97 @@
 {
   "source": {
-    "head": "d322c40408a360a39f745649e0b0450f70901afe",
-    "capturedAt": "2026-10-17T15:41:50.694Z",
-    "modifiedSources": {},
+    "head": "0b110cc1c5e7fc1abacea341b97721bd3a680378",
+    "capturedAt": "2026-10-17T18:16:05.946Z",
+    "modifiedSources": {
+      "public/index.html": {
+        "sha256": "277390a6b893f2f362239330ef5d1b3249a1f246efee361c0bbda462790025ab",
+        "modifiedAt": "2026-10-17T18:01:05.986Z"
+      },
+      "public/shared/design/world-ui/CATSCAN.md": {
+        "sha256": "ced318e947bb5aa2eaf640752e0f1b802da65f6234c1437cc1d117037c9850fa",
+        "modifiedAt": "2026-10-17T18:06:58.034Z"
+      },
+      "public/shared/design/world-ui/OFL.txt": {
+        "sha256": "564ce565c371c5e5bbf286006565a7c9aa55a9f56e7ca58d56e05d649dd61a72",
+        "modifiedAt": "2026-10-17T17:55:53.633Z"
+      },
+      "public/shared/design/world-ui/SpaceGrotesk.ttf": {
+        "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72",
+        "modifiedAt": "2026-10-17T17:55:53.534Z"
+      },
+      "public/shared/design/world-ui/button.css": {
+        "sha256": "c158fd3db57aa7ae740670767a9b10e68413ae932e5d81b4828040ceba558370",
+        "modifiedAt": "2026-10-17T18:15:03.818Z"
+      },
+      "public/shared/design/world-ui/catalog.css": {
+        "sha256": "21ade9d084166c10c2d8b4862b74116d4f20dda3800759f8dda4f1f4d34d4b58",
+        "modifiedAt": "2026-10-17T18:04:09.423Z"
+      },
+      "public/shared/design/world-ui/catalog.html": {
+        "sha256": "2903e067a9f18330761bd9c2348941e80b1bce4b277e3e75b19c6500659e9999",
+        "modifiedAt": "2026-10-17T18:04:09.422Z"
+      },
+      "public/shared/design/world-ui/catalog.js": {
+        "sha256": "98fc7ba4fdae2597d964c8a805d25561f2b1cfc6a33925b4097ac509d273cce3",
+        "modifiedAt": "2026-10-17T18:04:09.426Z"
+      },
+      "public/shared/design/world-ui/components.js": {
+        "sha256": "deb298ff0ee1675ecfba362c5e9b41bed1858bf978bb84ceab0a69e659d06b1d",
+        "modifiedAt": "2026-10-17T18:16:04.693Z"
+      },
+      "public/shared/design/world-ui/dock.css": {
+        "sha256": "0a4afff4bbab24e1aa430ddcbc3322fecfefd418a5905faf3e010ccd35ec8918",
+        "modifiedAt": "2026-10-17T17:57:43.552Z"
+      },
+      "public/shared/design/world-ui/inspector.css": {
+        "sha256": "92020558532cfaa4afdf0c196e87c05db6d616709910f4780ae70b5ac8d5cd92",
+        "modifiedAt": "2026-10-17T18:10:55.091Z"
+      },
+      "public/shared/design/world-ui/menu.css": {
+        "sha256": "7167d4e57a275d19e558b2d12f5c53a12f77234771fda6145a06cdb34fef890a",
+        "modifiedAt": "2026-10-17T17:57:43.551Z"
+      },
+      "public/shared/design/world-ui/metric.css": {
+        "sha256": "227f8b01ca2d2db4959b8cb2f8d43c7375302ad16a019ad52901fdd780547ba7",
+        "modifiedAt": "2026-10-17T18:16:04.693Z"
+      },
+      "public/shared/design/world-ui/sheet.css": {
+        "sha256": "6e39f1b70f2ab5b37e99bf7f480329e93767ccfdbcacebc474779af765f42715",
+        "modifiedAt": "2026-10-17T17:57:43.554Z"
+      },
+      "public/shared/design/world-ui/tokens.css": {
+        "sha256": "bfec51a46960027db701f827a28d53812111ea806758769d72e93e62aae68296",
+        "modifiedAt": "2026-10-17T18:16:04.693Z"
+      },
+      "public/shared/design/world-ui/tooltip.css": {
+        "sha256": "897a557483ecdef5b34ec13213f3c11eddb5d862aec316c1f30d5caf6c627124",
+        "modifiedAt": "2026-10-17T18:16:04.693Z"
+      },
+      "public/simulatte/app/city-interface.js": {
+        "sha256": "ae056f6bfb967b9d1e0019815bf734c39958a05225ccd7776d7dd035ff5e8f3a",
+        "modifiedAt": "2026-10-17T18:01:05.870Z"
+      },
+      "public/simulatte/app/gpu-scene.css": {
+        "sha256": "940ae2829825fa8f89568f3993cb59de347cada90a03791db152fc1fff65b33d",
+        "modifiedAt": "2026-10-17T18:10:55.091Z"
+      },
+      "public/simulatte/app/gpu-scene.js": {
+        "sha256": "462b60d29ba24418560f174c78697243b6ce77f0871644cfea618194a25b1bd0",
+        "modifiedAt": "2026-10-17T18:15:03.819Z"
+      },
+      "public/simulatte/app/world-runtime-script-manifest.js": {
+        "sha256": "eb48b429347967b0de2a2247d976ab3ed7c5d8558565dd24d581cbe90f6af017",
+        "modifiedAt": "2026-10-17T18:01:05.871Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "0188de05fbf2783d4123dce4f2f56f2f23cda05975837f0e40f7747a5a1183d6",
+        "modifiedAt": "2026-10-17T18:01:52.442Z"
+      },
+      "public/simulatte/platform/ui-host/declarative-ui-host.js": {
+        "sha256": "088abc4b84427d3971e2f5963113765641e09026e762afe2e1421fde6b1b0833",
+        "modifiedAt": "2026-10-17T18:15:03.819Z"
+      }
+    },
     "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
   },
   "boundary": "Local Chrome desktop and touch-emulated mobile. Automated interaction and layout evidence, not unfamiliar-user comprehension or physical-device qualification.",
@@ -14,34 +103,34 @@
       },
       "theme": "light",
       "checks": [
-        "Autoplay, only Pause/Menu, no horizontal overflow",
+        "Autoplay, identity/Menu top bar, compact action docks, no horizontal overflow",
         "Pointer/touch rack selection preserves paused state and camera; inspector clears selected rack",
         "Live slow/restore, dependent racks and measured wait, no restart",
         "Expanded details remain accessible outside scene; closing returns canvas focus",
-        "Camera/Reset preserve paused execution; Speed and Appearance remain available in Menu",
+        "Camera/Reset preserve paused execution; Speed and Appearance remain accessible",
         "Drawer keyboard containment/Escape/return focus; non-spatial rack selector focuses action",
         "Replay and Restart execute through existing session operations"
       ],
       "screenshots": [
         {
           "file": "desktop-light-opening.png",
-          "sha256": "7ed2a8c4559e673133cdb29fbb820632593135e6bfca2a62dad2fc1d22985200"
+          "sha256": "28b2661bdde57b71d57c84f1dd113efccde2595dfe86348f3e4a8d0e743c8c9b"
         },
         {
           "file": "desktop-light-slowed.png",
-          "sha256": "05df8d79814983c60127907637936d30091594906a2f306963dd30e48b251b76"
+          "sha256": "47777bc77cfc8382368e56eab3cbd21a48b9a82e7772c64a992e717bbab3fda2"
         },
         {
           "file": "desktop-light-details.png",
-          "sha256": "05181a884445a9e667b503784ec642507836c28c59ed38b162379024e27a2226"
+          "sha256": "ac25db6bfdcf8243091a3e47051bb2b6b12b8f44bae7148d57f8c6ffe32573ac"
         },
         {
           "file": "desktop-light-menu.png",
-          "sha256": "4130a90d6fd3f2f0e8d12a7d60b20a713ada6034bf49f80b49ddf161bfea370f"
+          "sha256": "87ded5b08db56ac2c2965afb650ec26f9b38ec45f2dcd14eba2be5eb9195412b"
         }
       ],
-      "build": "c1f9bcb64da9af7a9ff83b26f27c0fb4f7bcbd27-b728dfbd3eb2",
-      "measurements": "Training steps completed\n1 steps\nWaiting added by actions\n532.481 rack-ms\nProductive compute share\n0.71%",
+      "build": "8a6d0978290e3bcdba5ed0bc00f1b5735edaf753-1139576580c0",
+      "measurements": "Training steps completed1 stepsWaiting added by actions1,188.751 rack-msProductive compute share0.70%",
       "dependentRacks": [
         "rack:R1-2",
         "rack:R1-3",
@@ -84,34 +173,34 @@
       },
       "theme": "dark",
       "checks": [
-        "Autoplay, only Pause/Menu, no horizontal overflow",
+        "Autoplay, identity/Menu top bar, compact action docks, no horizontal overflow",
         "Pointer/touch rack selection preserves paused state and camera; inspector clears selected rack",
         "Live slow/restore, dependent racks and measured wait, no restart",
         "Expanded details remain accessible outside scene; closing returns canvas focus",
-        "Camera/Reset preserve paused execution; Speed and Appearance remain available in Menu",
+        "Camera/Reset preserve paused execution; Speed and Appearance remain accessible",
         "Drawer keyboard containment/Escape/return focus; non-spatial rack selector focuses action",
         "Replay and Restart execute through existing session operations"
       ],
       "screenshots": [
         {
           "file": "desktop-dark-opening.png",
-          "sha256": "72886a4e719490252cd5123de1b721c54d3ba5f9fb0a07e94eeb81c05fc55cd8"
+          "sha256": "7f7abf7652b58de968218a2d6fe5a4e756693d78ced2974175dd9de0965bcb1c"
         },
         {
           "file": "desktop-dark-slowed.png",
-          "sha256": "7fa04cc8187fb0bb2862d8e8fe56c6a634f6032883021e7b6ed1c565ac09dfc3"
+          "sha256": "416c040d0699a1535bfad0529668a53a9e129d24ba4c11c58f41f6aa8b7ad212"
         },
         {
           "file": "desktop-dark-details.png",
-          "sha256": "9ada6ea07bd7b802764d29c73f6a91a554297d1ea15ec4603f58021c339157de"
+          "sha256": "0370ce5814ad2cfe8050f5f4a529036749c68b86b52d1ebd9a9aa195de10f1c7"
         },
         {
           "file": "desktop-dark-menu.png",
-          "sha256": "340e77453bfb690d6937dbb4555a3da0814e66c9ba6855b7f84f29872b5a2da3"
+          "sha256": "c6df40b9cbac4fe80f6ce708fe0334b58ccfad67078efed8862b1feaf7ae6e40"
         }
       ],
-      "build": "c1f9bcb64da9af7a9ff83b26f27c0fb4f7bcbd27-b728dfbd3eb2",
-      "measurements": "Training steps completed\n1 steps\nWaiting added by actions\n532.481 rack-ms\nProductive compute share\n0.71%",
+      "build": "8a6d0978290e3bcdba5ed0bc00f1b5735edaf753-1139576580c0",
+      "measurements": "Training steps completed1 stepsWaiting added by actions1,188.751 rack-msProductive compute share0.70%",
       "dependentRacks": [
         "rack:R1-2",
         "rack:R1-3",
@@ -165,34 +254,34 @@
       },
       "theme": "light",
       "checks": [
-        "Autoplay, only Pause/Menu, no horizontal overflow",
+        "Autoplay, identity/Menu top bar, compact action docks, no horizontal overflow",
         "Pointer/touch rack selection preserves paused state and camera; inspector clears selected rack",
         "Live slow/restore, dependent racks and measured wait, no restart",
         "Expanded details remain accessible outside scene; closing returns canvas focus",
-        "Camera/Reset preserve paused execution; Speed and Appearance remain available in Menu",
+        "Camera/Reset preserve paused execution; Speed and Appearance remain accessible",
         "Drawer keyboard containment/Escape/return focus; non-spatial rack selector focuses action",
         "Replay and Restart execute through existing session operations"
       ],
       "screenshots": [
         {
           "file": "mobile-light-opening.png",
-          "sha256": "1fe0625a2ffe3d76041a181bf19c8fc26ee7264f0f9f793464cc9aabf6da393d"
+          "sha256": "406fea6f024aa9a8dacb6e374c2b4d326e86c9a36c919f9c20d80a86abfe9a56"
         },
         {
           "file": "mobile-light-slowed.png",
-          "sha256": "9865a4cf0e966c944f1c15f4f9310c03ba2cdd15ee91a57e88f907b2f8fd4463"
+          "sha256": "fd51e8fcc3d3c93b6b4690b7608c77e92bdf9f9a5f17c2e9fa8353999e892adc"
         },
         {
           "file": "mobile-light-details.png",
-          "sha256": "a81ce7b70771b116ea4850ba70e424d3b910e79b68e5ef78cdc2a2aea9472571"
+          "sha256": "a925986cf8fc2e68da5bbb63086c6500916a4d7fa15ccfa46d434730d713d5e6"
         },
         {
           "file": "mobile-light-menu.png",
-          "sha256": "357bb411e5a120053e20d2b4cea3b1f155f9b2acf534408277af54b2b4878e6a"
+          "sha256": "78ec2e4bbfbe12e3ffee9fd15c1da4c4a38057504398968f2609422e71959558"
         }
       ],
-      "build": "c1f9bcb64da9af7a9ff83b26f27c0fb4f7bcbd27-b728dfbd3eb2",
-      "measurements": "Training steps completed\n1 steps\nWaiting added by actions\n1,188.751 rack-ms\nProductive compute share\n0.70%",
+      "build": "8a6d0978290e3bcdba5ed0bc00f1b5735edaf753-1139576580c0",
+      "measurements": "Training steps completed1 stepsWaiting added by actions1,188.751 rack-msProductive compute share0.70%",
       "dependentRacks": [
         "rack:R1-2",
         "rack:R1-3",
@@ -235,34 +324,34 @@
       },
       "theme": "dark",
       "checks": [
-        "Autoplay, only Pause/Menu, no horizontal overflow",
+        "Autoplay, identity/Menu top bar, compact action docks, no horizontal overflow",
         "Pointer/touch rack selection preserves paused state and camera; inspector clears selected rack",
         "Live slow/restore, dependent racks and measured wait, no restart",
         "Expanded details remain accessible outside scene; closing returns canvas focus",
-        "Camera/Reset preserve paused execution; Speed and Appearance remain available in Menu",
+        "Camera/Reset preserve paused execution; Speed and Appearance remain accessible",
         "Drawer keyboard containment/Escape/return focus; non-spatial rack selector focuses action",
         "Replay and Restart execute through existing session operations"
       ],
       "screenshots": [
         {
           "file": "mobile-dark-opening.png",
-          "sha256": "4c865b5d5ee92f4e2329e595fca293cd29b570e606960d8e5a552e809ca3c606"
+          "sha256": "fbbdd14857df47a25bcd03b0935b3b825cad6a821248b44ee5d4956e1104f36e"
         },
         {
           "file": "mobile-dark-slowed.png",
-          "sha256": "f346e0d0049cbf9adb7594975a7263191ece15d17fa0e73bfb4f7b61ddb3da2a"
+          "sha256": "37ba46c762c23f23e0586ff9deb17d57e874073cde6ca4d0efbd5ac441a471d5"
         },
         {
           "file": "mobile-dark-details.png",
-          "sha256": "76ff9421f3690bebde9ed29c37a801e23f35663f8bb8503ab64fbaf874868b6c"
+          "sha256": "311571cef9e3b5467926d5e75d9c57d2a97d4db4f9dbe43c48f43cfccd7e9c96"
         },
         {
           "file": "mobile-dark-menu.png",
-          "sha256": "0141f8eb65a0f2e9f274ad6349a9ca4ba96471a4469f240794e00526f2e8f778"
+          "sha256": "4d57e8316185da9675130757c99487049830b93ec27ba7dad583aa2a2013e657"
         }
       ],
-      "build": "c1f9bcb64da9af7a9ff83b26f27c0fb4f7bcbd27-b728dfbd3eb2",
-      "measurements": "Training steps completed\n1 steps\nWaiting added by actions\n1,188.751 rack-ms\nProductive compute share\n0.70%",
+      "build": "8a6d0978290e3bcdba5ed0bc00f1b5735edaf753-1139576580c0",
+      "measurements": "Training steps completed1 stepsWaiting added by actions1,188.751 rack-msProductive compute share0.70%",
       "dependentRacks": [
         "rack:R1-2",
         "rack:R1-3",

@@ -92,11 +92,22 @@ placement. Domain measurements and actions follow the canvas. Supported camera
 views remain truthful. Field comparison branches share the same viewport through
 a branch switch; neither branch changes the other. Keep Create separate.
 
-GPU Cluster has an opt-in scene-first prototype at `/datacenter?frame=scene`.
-It opens running, keeps Pause and Menu visible, and places rack actions beside
-the selected rack, or below the scene when they cannot fit without covering it.
-Secondary controls share one accessible drawer. This scoped comparison retains
-the current frame at `/datacenter`: shared behavior and accessibility remain
-required, but identical placement is not required in this prototype. Compare
-unfamiliar-user comprehension and task completion before changing the shared
-frame or extending this composition to other simulations.
+World controls use one shared library at `public/shared/design/world-ui/`.
+Its neutral palette, Space Grotesk labels, thin separators and 4px controls
+combine 256.one restraint with Simulatte technical drawings and IBM Plex Mono
+measurements. Green signals live, selected, active or consequential state.
+Pages own composition and domain content; the library owns control geometry,
+interaction states, menus, inspectors, metrics, sheets and accessibility.
+
+GPU Cluster remains the first prototype at `/datacenter?frame=scene`. Desktop
+uses a compact identity/status bar, playback and camera docks at the scene's
+bottom corners, and an anchored inspector or right-edge dock. Mobile uses one
+bottom dock and a selected-object bottom sheet. Advanced controls share one
+sheet. No three-row toolbar precedes the scene. Keep the original comparison
+route while unfamiliar-user testing remains pending.
+
+Migrate GPU first, Motorcycle second, Sun Walker third, then remaining catalog
+pages using the same primitives without adding page-specific variants. The
+component catalog exposes light/dark and interaction states. CI forbids new
+simulation-owned control geometry; unchanged legacy rules are frozen by hash
+until their owner migrates. GPU composition has no legacy exceptions.

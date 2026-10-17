@@ -1,99 +1,22 @@
-/* GPU-only comparison: editorial spacing, shared actions, scene-owned placement. */
-body[data-experience-ui="gpu-scene"] {
-  --sim-radius: 12px;
-  --sim-radius-small: 8px;
-  --sim-radius-large: 16px;
-}
-body[data-experience-ui="gpu-scene"] .gpu-scene {
-  display: block; width: 100%; max-width: 1600px; margin: auto;
-  padding: 16px 32px 32px; border: 0; background: transparent;
-}
-.gpu-scene__header { display: flex; align-items: center; gap: 12px; min-height: 56px; }
-.gpu-scene__header h1 { flex: 1; margin: 0; font: 600 22px/1.2 var(--sim-heading); letter-spacing: -.02em; }
-.gpu-scene__home { display: flex; align-items: center; min-height: 44px; margin-right: 16px; color: var(--sim-ink-soft); font-size: 13px; text-decoration: none; }
-.gpu-scene__header button { margin: 0; }
-body[data-experience-ui="gpu-scene"] #decisions-button { width: auto; min-width: 64px; flex: none; }
+/* Composition only. Shared World UI owns every control and surface. */
+body[data-experience-ui='gpu-scene'] .gpu-scene { display: block; max-width: 1800px; width: 100%; margin: auto; padding: 8px 24px 0; }
+.gpu-scene__header { display: flex; gap: 12px; align-items: center; min-height: 60px; }
+.gpu-scene__home { flex: none; }
+.gpu-scene__header > :nth-child(2) { flex: 1; }
+body[data-experience-ui='gpu-scene'].sim-app .simulation-stage.gpu-scene .canvas-shell.gpu-scene__stage { position: relative; width: 100%; height: calc(100svh - 184px); min-height: 360px; aspect-ratio: auto; margin: 0; padding: 0; overflow: visible; }
+.gpu-scene__stage > canvas { position: absolute; inset: 0; width: 100%; height: 100%; max-height: none; aspect-ratio: auto; }
+.gpu-scene__stage #follow-minimap { inset: 12px 12px auto auto; width: 120px; height: 90px; }
+.gpu-scene__play-dock { position: absolute; bottom: 16px; left: 16px; z-index: 25; }
+.gpu-scene__camera-dock { position: absolute; bottom: 16px; right: 16px; z-index: 25; }
 .gpu-scene__playback { display: flex; }
-.gpu-scene__intro { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0 20px; }
-.gpu-scene__intro p { margin: 0; color: var(--sim-ink-soft); font-size: 14px; }
-.gpu-scene__status { flex: none; color: var(--sim-ink-soft); font: 12px var(--sim-mono); }
-body[data-experience-ui="gpu-scene"].sim-app .simulation-stage.gpu-scene .canvas-shell.gpu-scene__stage {
-  position: relative; width: 100%; height: clamp(400px, calc(100svh - 270px), 820px);
-  min-height: 0; aspect-ratio: auto; overflow: hidden; border: 1px solid var(--sim-line);
-  border-radius: 14px; margin: 0; padding: 0;
-}
-.gpu-scene__stage > canvas { position: absolute; inset: 0; width: 100%; height: 100%; max-height: none; aspect-ratio: auto; border: 0; border-radius: 0; }
-.gpu-scene__stage #follow-minimap { inset: auto 12px 12px auto; width: 120px; height: 90px; }
-.gpu-scene__hint { margin: 12px 0; font-size: 13px; color: var(--sim-ink-soft); }
-.gpu-scene__error:empty { display: none; }
-body[data-experience-ui="gpu-scene"] :is(.gpu-scene, .gpu-scene__drawer) :is(button, select, summary) {
-  box-sizing: border-box; min-height: 44px; min-width: 44px; font: 500 14px/1.35 var(--sim-font);
-  letter-spacing: 0; text-transform: none; border-radius: 8px; box-shadow: none;
-}
-body[data-experience-ui="gpu-scene"] :is(.gpu-scene, .gpu-scene__drawer) :is(button, select) {
-  color: var(--sim-ink); background: var(--sim-glass); border: 1px solid var(--sim-line-strong); padding: 10px 14px;
-}
-body[data-experience-ui="gpu-scene"] :is(.gpu-scene, .gpu-scene__drawer) button:hover:not(:disabled) { background: var(--sim-accent-soft); border-color: var(--sim-accent); }
-body[data-experience-ui="gpu-scene"] :is(.gpu-scene, .gpu-scene__drawer) :focus-visible { outline: 2px solid var(--sim-accent); outline-offset: 3px; }
-body[data-experience-ui="gpu-scene"] :is(.gpu-scene, .gpu-scene__drawer) button:disabled { opacity: .45; cursor: default; }
-body[data-experience-ui="gpu-scene"] .gpu-scene #experience-readouts { padding: 8px 0 0; margin: 0; border: 0; background: none; box-shadow: none; }
-body[data-experience-ui="gpu-scene"] #experience-summary-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: none; margin: 0; padding: 0; }
-body[data-experience-ui="gpu-scene"] #experience-summary-stats > div { border: 0; border-top: 1px solid var(--sim-line); padding: 12px 0 0; background: none; }
-body[data-experience-ui="gpu-scene"] #experience-summary-stats dt { margin: 0; }
-body[data-experience-ui="gpu-scene"] #experience-summary-stats .measurement-definition { border: 0; background: none; padding: 0; text-align: left; font-size: 12px; color: var(--sim-ink-soft); }
-body[data-experience-ui="gpu-scene"] #experience-summary-stats dd { margin: 0; font: 500 22px/1.4 var(--sim-mono); }
-body[data-experience-ui="gpu-scene"] #experience-summary-stats [data-measure-definition] { font: 12px/1.5 var(--sim-font); }
-body[data-experience-ui="gpu-scene"] .sim-object-inspector {
-  position: relative; inset: auto; transform: none; width: 300px; max-width: 100%; max-height: none;
-  padding: 16px; margin: 0; border: 1px solid var(--sim-line-strong); border-radius: 12px;
-  background: var(--sim-paper); color: var(--sim-ink); box-shadow: var(--sim-shadow-small); z-index: 6;
-}
-body[data-experience-ui="gpu-scene"] .sim-object-inspector[data-placement="anchor"] { position: absolute; }
-body[data-experience-ui="gpu-scene"] .sim-object-inspector[data-placement="dock"] { margin: 8px 0 16px; box-shadow: none; }
-body[data-experience-ui="gpu-scene"] .sim-object-heading { position: absolute; top: 8px; right: 8px; display: flex; padding: 0; border: 0; width: auto; }
-body[data-experience-ui="gpu-scene"] .sim-object-heading button { background: transparent; border: 0; padding: 0; }
-body[data-experience-ui="gpu-scene"] .sim-object-inspector > div { max-height: none; overflow: visible; padding: 0; }
-body[data-experience-ui="gpu-scene"] .sim-object-inspector > div > strong { display: block; padding-right: 40px; min-height: 28px; font-size: 17px; }
-body[data-experience-ui="gpu-scene"] .sim-object-inspector p { font: 13px/1.5 var(--sim-font); margin: 8px 0; }
-body[data-experience-ui="gpu-scene"] .sim-object-inspector p:empty { display: none; }
-body[data-experience-ui="gpu-scene"] .sim-object-actions { display: flex; gap: 8px; margin: 16px 0 4px; background: none; padding: 0; }
-body[data-experience-ui="gpu-scene"] button[data-object-action="straggler"] { background: var(--sim-ink); color: var(--sim-paper); border-color: var(--sim-ink); flex: 1; }
-body[data-experience-ui="gpu-scene"] button[data-object-action="straggler"]:hover:not(:disabled) { background: var(--sim-accent); color: var(--sim-paper); }
-body[data-experience-ui="gpu-scene"] .sim-object-inspector details { margin: 0; border: 0; padding: 0; }
-.gpu-scene__section > summary { display: flex; align-items: center; cursor: pointer; color: var(--sim-ink-soft); }
-.gpu-scene__section > summary::after { content: '+'; margin-left: auto; }
-.gpu-scene__section[open] > summary::after { content: '−'; }
-body[data-experience-ui="gpu-scene"] .gpu-scene__drawer {
-  position: fixed; inset: 0 0 0 auto; width: min(440px, 100vw); height: 100svh; max-height: none; max-width: none;
-  padding: 24px; border: 0; border-left: 1px solid var(--sim-line); border-radius: 0; background: var(--sim-paper); overflow-y: auto;
-}
-.gpu-scene__drawer > header { margin-bottom: 24px; }
-.gpu-scene__secondary { display: grid; gap: 16px; padding-bottom: 24px; }
-.gpu-scene__actions { display: flex; gap: 8px; }
-.gpu-scene__actions > button { flex: 1; }
-.gpu-scene__rack-label, .gpu-scene__secondary #playback-speed-control { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 12px; margin: 0; font-size: 13px; }
-.gpu-scene__rack-label select { width: 100%; }
-.gpu-scene__note { margin: -8px 0 0; color: var(--sim-ink-soft); font-size: 12px; }
-body[data-experience-ui="gpu-scene"] .gpu-scene__camera { display: block; position: static; border: 0; padding: 0; margin: 0; width: 100%; }
-body[data-experience-ui="gpu-scene"] .gpu-scene__camera > summary { display: flex; align-items: center; padding: 0; }
-body[data-experience-ui="gpu-scene"] #camera-controls { position: static; width: 100%; min-width: 0; max-width: none; margin: 0; border: 0; box-shadow: none; padding: 8px 0; background: none; }
-body[data-experience-ui="gpu-scene"] .camera-modes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-body[data-experience-ui="gpu-scene"] #runtime-details { position: static; transform: none; width: 100%; border: 0; box-shadow: none; }
-.gpu-scene__drawer > details { border: 0; border-top: 1px solid var(--sim-line); border-radius: 0; padding: 8px 0; }
-.gpu-scene__drawer > details > summary { display: flex; align-items: center; padding: 0; }
-@media (max-width: 700px) {
-  body[data-experience-ui="gpu-scene"] .gpu-scene { padding: 8px 12px 24px; }
-  .gpu-scene__header { gap: 8px; flex-wrap: wrap; }
-  .gpu-scene__home { width: 100%; min-height: 44px; margin: 0; }
-  .gpu-scene__header h1 { font-size: 20px; }
-  .gpu-scene__intro { align-items: flex-start; gap: 8px; padding: 12px 0; }
-  .gpu-scene__intro p { font-size: 12px; max-width: 240px; }
-  body[data-experience-ui="gpu-scene"].sim-app .simulation-stage.gpu-scene .canvas-shell.gpu-scene__stage { height: clamp(320px, 52svh, 600px); border-radius: 10px; }
-  body[data-experience-ui="gpu-scene"] #experience-summary-stats { gap: 12px; }
-  body[data-experience-ui="gpu-scene"] #experience-summary-stats dd { font-size: 17px; }
-  body[data-experience-ui="gpu-scene"] #experience-summary-stats .measurement-definition { font-size: 11px; }
-  body[data-experience-ui="gpu-scene"] .sim-object-inspector[data-placement="dock"] { width: 100%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  body[data-experience-ui="gpu-scene"] *, body[data-experience-ui="gpu-scene"] *::before, body[data-experience-ui="gpu-scene"] *::after { scroll-behavior: auto; animation: none; transition: none; }
+.gpu-scene__mobile-controls { display: none; }
+.gpu-scene__secondary { display: grid; gap: 12px; margin-bottom: 24px; }
+@media(max-width:700px) {
+  body[data-experience-ui='gpu-scene'] .gpu-scene { padding: 4px 8px 72px; --wui-inspector-bottom: 64px; }
+  .gpu-scene__header { gap: 4px; }
+  .gpu-scene__header > :nth-child(3) { display: none; }
+  body[data-experience-ui='gpu-scene'].sim-app .simulation-stage.gpu-scene .canvas-shell.gpu-scene__stage { height: calc(100svh - 225px); min-height: 360px; }
+  .gpu-scene__play-dock { position: fixed; z-index: 70; left: 8px; right: 8px; bottom: 8px; width: auto; justify-content: space-between; }
+  .gpu-scene__play-dock > output, .gpu-scene__camera-dock { display: none; }
+  .gpu-scene__mobile-controls { display: flex; gap: 8px; }
 }

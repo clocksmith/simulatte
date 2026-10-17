@@ -624,6 +624,12 @@
   // Measurement updates patch keyed text nodes; inputs and focus retain their identity.
   function createObjectInspector({ host, onSelect, onAction, onError }) {
     const doc = host.ownerDocument;
+    if (doc.body?.dataset.worldUi === 'true') {
+      const ui = doc.defaultView.SimulatteWorldUI;
+      if (!ui) throw Error('World UI components must load before object inspection');
+      const inspector = ui.SimInspector({ host, onSelect, onAction, onError, returnFocus: host.querySelector('canvas'), prominentFields: (host.dataset.inspectorFields || '').split(',').filter(Boolean) });
+      return { ...inspector, render: input => inspector.render(host.presentInspection ? host.presentInspection(input) : input) };
+    }
     const root = doc.createElement('section'); root.className = 'sim-object-inspector sim-surface';
     root.setAttribute('aria-label', 'Object inspector');
     const select = doc.createElement('select'); select.className = 'sim-field'; select.setAttribute('aria-label', 'Inspect object');

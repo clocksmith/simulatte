@@ -80,6 +80,12 @@
 
     function openDecisions(sectionId = null) {
       closeTransientPopovers();
+      const shared = globalThis.SimulatteWorldUI?.getSheet(elements.decisionsDrawer);
+      if (shared) {
+        shared.open();
+        if (sectionId) { let section = document.getElementById(sectionId); while (section && section !== elements.decisionsDrawer) { if (section.tagName === 'DETAILS') section.open = true; section = section.parentElement; } }
+        return;
+      }
       lastDrawerTrigger = document.activeElement;
       elements.decisionsDrawer.classList.add('is-open');
       elements.decisionsDrawer.setAttribute('aria-hidden', 'false');
@@ -97,6 +103,8 @@
     }
 
     function closeDecisions({ restoreFocus = true } = {}) {
+      const shared = globalThis.SimulatteWorldUI?.getSheet(elements.decisionsDrawer);
+      if (shared) return shared.close({ restoreFocus });
       elements.decisionsDrawer.classList.remove('is-open');
       elements.decisionsDrawer.setAttribute('aria-hidden', 'true');
       elements.decisionsDrawer.inert = true;
@@ -132,6 +140,7 @@
     on(elements.decisionsClose, 'click', () => closeDecisions());
     on(elements.decisionsBackdrop, 'click', () => closeDecisions());
     on(document, 'keydown', (event) => {
+      if (globalThis.SimulatteWorldUI?.getSheet(elements.decisionsDrawer)) return;
       if (event.key === 'Tab' && elements.decisionsDrawer.classList.contains('is-open')) {
         const focusable = [...elements.decisionsDrawer.querySelectorAll('button, a[href], input, select, textarea, summary, [tabindex="0"]')]
           .filter((node) => !node.disabled && node.getClientRects().length > 0);

@@ -1,0 +1,7 @@
+.catalog { max-width: 1400px; margin: auto; padding: 24px; }
+.catalog-theme { background: var(--wui-paper); color: var(--wui-ink); padding: 24px; margin: 24px 0; border: 1px solid var(--wui-line); }
+.catalog-section { padding: 16px 0; border-top: 1px dashed var(--wui-line); }
+.catalog-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 8px 0; }
+.catalog-label { width: 90px; font: 400 12px var(--wui-mono); }
+.catalog-preview { position: relative; min-height: 150px; }
+@media(max-width:700px) { .catalog { padding: 12px; } .catalog-theme { padding: 12px; } .catalog-row { gap: 8px; } .catalog-label { width: 100%; } }

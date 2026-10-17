@@ -360,7 +360,7 @@
       }
       pluginUi.render(runtime.views(context),platform.contributions);
       const controlCount=platform.contributions.reduce((total,contribution)=>total+contribution.controls.controls.length,0);
-      elements.decisionsButton.textContent=document.body.dataset.experienceUi==='gpu-scene'?'Menu':'Advanced';
+      elements.decisionsButton.textContent=document.body.dataset.experienceUi==='gpu-scene'?'•••':'Advanced';
       renderTierSummary(root.__simulatteTierRunState?.state||'idle');
       tierVisualizer.removeHud?.();
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));

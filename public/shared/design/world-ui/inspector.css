@@ -1,0 +1,11 @@
+.wui-inspector[data-wui] { position: absolute; box-sizing: border-box; width: 300px; max-width: 100%; max-height: calc(100svh - 160px); overflow-y: auto; background: var(--wui-paper); color: var(--wui-ink); border: 1px solid var(--wui-line); border-radius: var(--wui-radius); padding: 16px; margin: 0; z-index: 20; font: 400 13px/1.5 var(--wui-font); }
+.wui-inspector-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.wui-inspector-title { font: 600 14px var(--wui-font); text-transform: uppercase; letter-spacing: .05em; margin: 0; }
+.wui-inspector-condition { margin: 0 0 12px; color: var(--wui-muted); }
+.wui-inspector-facts { margin: 12px 0; padding: 0; }
+.wui-inspector-fact { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 6px 0; border-top: 1px dashed var(--wui-line); }
+.wui-inspector-term { color: var(--wui-muted); font-size: 12px; }
+.wui-inspector-value { margin: 0; overflow-wrap: anywhere; font: 400 12px/1.5 var(--wui-mono); }
+.wui-inspector-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.wui-inspector[data-placement='edge'] { position: fixed; inset: 80px 16px auto auto !important; }
+@media(max-width:700px) { .wui-inspector[data-wui] { position: fixed !important; inset: auto 0 var(--wui-inspector-bottom,0px) !important; width: 100% !important; max-height: 52svh; border-radius: 4px 4px 0 0; z-index: 60; padding: 12px 16px max(12px,env(safe-area-inset-bottom)); } }

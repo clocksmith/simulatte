@@ -1,0 +1,10 @@
+.wui-metrics { display: flex; flex-wrap: wrap; gap: 24px; align-items: start; border-top: 1px solid var(--wui-line); padding: 12px 0; }
+.wui-metric { flex: 1 1 140px; padding: 0; margin: 0; border: 0; background: none; font-family: var(--wui-font); }
+.wui-metric-label { font: 400 11px/1.4 var(--wui-font); color: var(--wui-muted); }
+.wui-metric-value { margin: 4px 0; font: 400 20px/1.4 var(--wui-mono); font-variant-numeric: tabular-nums; }
+.wui-metric[data-level='governing'] .wui-metric-value { font-size: 24px; }
+.wui-metric[data-level='detail'] .wui-metric-value { font-size: 14px; }
+.wui-metric-basis { margin: 0; color: var(--wui-muted); font: 400 10px/1.4 var(--wui-mono); }
+.wui-metric[data-validity='invalid'] .wui-metric-value { color: var(--wui-danger); }
+.wui-metric[data-freshness='stale'] .wui-metric-value { opacity: .6; }
+@media(max-width:700px) { .wui-metrics { gap: 12px; } .wui-metric { flex-basis: 95px; } }
