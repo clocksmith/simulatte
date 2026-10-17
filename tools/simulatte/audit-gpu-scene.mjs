@@ -22,8 +22,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     if (result.exceptionDetails) throw Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text);
     return result.result.value;
   };
-  const until = async expression => {
-    const deadline = Date.now() + 20000;
+  const until = async (expression, timeoutMs = 20000) => {
+    const deadline = Date.now() + timeoutMs;
     while (!await evaluate(expression)) { if (Date.now() > deadline) throw Error('Timed out: ' + expression); await delay(100); }
   };
   const key = async (key, code = key) => {
@@ -57,8 +57,13 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       const row = { viewport, theme, checks: [], screenshots: [] }; report.cases.push(row);
       try {
         await client.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: theme }, { name: 'prefers-reduced-motion', value: 'reduce' }] });
+        const previousOrigin=await evaluate('performance.timeOrigin');
+        const navigationStarted=Date.now();
         await client.send('Page.navigate', { url: (liveBase||browser.host.baseUrl) + 'datacenter?frame=scene' });
-        await until("globalThis.SimulatteActiveSession?.snapshot().preparation==='ready' && document.querySelector('[aria-label=\"Inspect a rack\"]')?.value===''");
+        await until(`performance.timeOrigin!==${previousOrigin}`,liveBase?60000:20000);
+        await until("globalThis.SimulatteActiveSession?.snapshot().preparation==='ready' && document.querySelector('[aria-label=\"Inspect a rack\"]')?.value===''", liveBase ? 60000 : 20000);
+        row.navigationToReadyMs=Date.now()-navigationStarted;
+        assert.equal(await evaluate("new URLSearchParams(location.search).get('frame')"),'scene');
         await delay(250);
         row.build = await evaluate("document.querySelector('meta[name=simulatte-build]').content");
         if(process.env.WORLD_AUDIT_BUILD)assert.equal(row.build,process.env.WORLD_AUDIT_BUILD);
@@ -71,7 +76,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         row.checks.push('Autoplay, identity/Menu top bar, compact action docks, no horizontal overflow');
         await capture(row, 'opening');
 
-        await click('#pause-button'); await until("SimulatteActiveSession.snapshot().execution==='paused'");
+        await click('#pause-button'); await until("SimulatteActiveSession.snapshot().execution==='paused' && document.querySelector('.gpu-scene__header .wui-status').textContent==='Paused'");
         assert.equal(await evaluate("getComputedStyle(document.querySelector('#resume-button')).color===getComputedStyle(document.querySelector('#decisions-button')).color"), true);
         const before = await evaluate('JSON.stringify(__simulattePluginPlatformV4.contributions[0].state)');
         const camera = await evaluate('JSON.stringify(__simulattePluginPlatformV4.view)');
@@ -91,7 +96,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         const generation = await evaluate('SimulatteActiveSession.snapshot().generation');
         await click('#resume-button');
         await until(`__simulattePluginPlatformV4.contributions[0].objects.find(o=>o.id===${JSON.stringify(rack.id)}).relatedIds.length>0`);
-        await click('#pause-button'); await until("SimulatteActiveSession.snapshot().execution==='paused'");
+        await click('#pause-button'); await until("SimulatteActiveSession.snapshot().execution==='paused' && document.querySelector('.gpu-scene__header .wui-status').textContent==='Paused'");
         row.measurements = await evaluate("document.querySelector('#experience-summary-stats').innerText");
         row.dependentRacks = await evaluate(`__simulattePluginPlatformV4.contributions[0].objects.find(o=>o.id===${JSON.stringify(rack.id)}).relatedIds`);
         assert.match(row.measurements, /Productive compute share/);
@@ -152,14 +157,23 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         await until("SimulatteActiveSession.snapshot().lastOperation?.id==='restart' && !SimulatteActiveSession.snapshot().pending.length");
         assert.equal(await evaluate('SimulatteActiveSession.snapshot().lastOperation.status'), 'success');
         row.checks.push('Replay and Restart execute through existing session operations');
+        assert.equal(await evaluate("new URLSearchParams(location.search).get('frame')"),'scene');
+        if(theme==='light'){
+          const previous=await evaluate('performance.timeOrigin');await client.send('Page.reload');
+          await until(`performance.timeOrigin!==${previous} && globalThis.SimulatteActiveSession?.snapshot().preparation==='ready' && document.body.dataset.experienceUi==='gpu-scene'`,liveBase?60000:20000);
+          row.checks.push('Canonical URL and full reload preserve the scene prototype');
+        }
         row.pass = true;
-      } catch (error) { row.error = error.stack; row.pass = false; await capture(row, 'failure'); }
+      } catch (error) { row.error = error.stack; row.diagnostics=client.diagnostics(); row.pass = false; await capture(row, 'failure'); }
       console.log(`${mobile ? 'mobile' : 'desktop'} ${theme}: ${row.pass ? 'PASS' : row.error}`);
     }
-    await client.send('Page.navigate', { url: (liveBase||browser.host.baseUrl) + 'datacenter' });
-    await until("document.body?.dataset.experienceUi==='unified' && globalThis.SimulatteActiveSession?.snapshot().preparation==='ready'");
-    assert.equal(await evaluate("document.querySelectorAll('[data-frame-control]').length"), 7);
-    report.cases.push({ viewport, route: '/datacenter', pass: true, checks: ['Current seven-slot comparison frame retained'] });
+    const comparison={viewport,route:'/datacenter',checks:[]};report.cases.push(comparison);
+    try{
+      await client.send('Page.navigate', { url: (liveBase||browser.host.baseUrl) + 'datacenter' });
+      await until("document.body?.dataset.experienceUi==='unified' && globalThis.SimulatteActiveSession?.snapshot().preparation==='ready'",liveBase?60000:20000);
+      assert.equal(await evaluate("document.querySelectorAll('[data-frame-control]').length"), 7);
+      comparison.pass=true;comparison.checks.push('Current seven-slot comparison frame retained');
+    }catch(error){comparison.pass=false;comparison.error=error.stack;comparison.diagnostics=client.diagnostics();}
   } finally {
     await browser.close();
     // Chrome helpers can retain inherited pipes after the browser exits. Release

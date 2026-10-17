@@ -2,6 +2,22 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { placeInspector } = require('../public/shared/design/world-ui/components.js');
+const routerApi = require('../public/simulatte/app/router.js');
+
+test('canonical run updates preserve the GPU prototype across refresh without leaking to another route', () => {
+  const view = { location: new URL('https://simulatte.test/datacenter?frame=scene'),
+    history: { replaceState(_state, _title, href) { view.location = new URL(href, view.location); } } };
+  const router = routerApi.createRouter(view);
+  router.canonicalize({ ...router.currentRoute(), camera: 'top', simulation: { scenarioId: 'gpt4-3d-parallelism', seed: 'one' } });
+  assert.equal(view.location.searchParams.get('frame'), 'scene');
+  assert.equal(view.location.searchParams.get('camera'), 'top');
+  assert.equal(router.currentRoute().simulation.seed, 'one');
+  router.canonicalize(routerApi.parsePath('/subsea'));
+  assert.equal(view.location.searchParams.has('frame'), false);
+  view.location = new URL('https://simulatte.test/datacenter');
+  router.canonicalize({ ...router.currentRoute(), camera: 'top' });
+  assert.equal(view.location.searchParams.has('frame'), false);
+});
 
 test('inspector stays in the scene and clear of the selected rack at edges and center', () => {
   const scene = { width: 1000, height: 700 }, panel = { width: 300, height: 220 };

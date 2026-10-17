@@ -184,7 +184,16 @@
     }
 
     function canonicalize(route) {
-      const href = hrefFor(route);
+      let href = hrefFor(route);
+      // Presentation is not simulation state. Preserve the opt-in comparison
+      // while canonicalizing this GPU run, without carrying it to another world.
+      if ((route.profile || route.experience) === 'gpu-supercluster-v1'
+          && currentRoute().profile === 'gpu-supercluster-v1'
+          && new URLSearchParams(target.location.search).get('frame') === 'scene') {
+        const [path, search = ''] = href.split('?');
+        const query = new URLSearchParams(search); query.set('frame', 'scene');
+        href = `${path}?${query}`;
+      }
       if (href !== `${target.location.pathname}${target.location.search}`) target.history.replaceState({}, '', href);
     }
 
