@@ -150,6 +150,12 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await until("document.body?.dataset.experienceUi==='unified' && globalThis.SimulatteActiveSession?.snapshot().preparation==='ready'");
     assert.equal(await evaluate("document.querySelectorAll('[data-frame-control]').length"), 7);
     report.cases.push({ viewport, route: '/datacenter', pass: true, checks: ['Current seven-slot comparison frame retained'] });
-  } finally { await browser.close(); await fs.writeFile(output + '/report.json', JSON.stringify(report, null, 2) + '\n'); }
+  } finally {
+    await browser.close();
+    // Chrome helpers can retain inherited pipes after the browser exits. Release
+    // this audit's readers after browser/server cleanup has settled.
+    browser.child.stdout?.destroy(); browser.child.stderr?.destroy();
+    await fs.writeFile(output + '/report.json', JSON.stringify(report, null, 2) + '\n');
+  }
 }
 if (report.cases.some(row => !row.pass)) process.exitCode = 1;
