@@ -67,31 +67,6 @@ body {
   display: none !important;
 }
 
-button, input, select, textarea {
-  font: inherit;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
-  border: 1px solid var(--rule);
-  background: var(--paper);
-  padding: 7px 12px;
-  border-radius: 2px;
-  white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-button:hover {
-  background: #e7e8df;
-  border-color: #abb3a5;
-}
-
-button:focus-visible, input:focus-visible, select:focus-visible {
-  outline: 2px solid var(--acoustic);
-  outline-offset: 2px;
-}
-
 svg {
   display: block;
 }
@@ -203,13 +178,6 @@ svg {
   text-align: right;
 }
 
-.scenario-select-wrap select {
-  padding: 6px 10px;
-  background: var(--paper);
-  border: 1px solid var(--rule);
-  font-size: 12px;
-}
-
 /* Workspace layout */
 .workspace {
   display: grid;
@@ -293,14 +261,6 @@ svg {
   z-index: 2;
 }
 
-.viewport-tools button {
-  background: rgba(18, 22, 20, 0.78);
-  color: #d1d5db;
-  border-color: rgba(255, 255, 255, 0.15);
-  font-size: 10px;
-  padding: 5px 9px;
-}
-
 .viewport-legend {
   position: absolute;
   bottom: 12px;
@@ -378,11 +338,6 @@ svg {
   margin-left: auto;
 }
 
-.speed-wrap select {
-  padding: 4px 6px;
-  font-size: 11px;
-}
-
 /* Readouts */
 .readouts {
   display: grid;
@@ -451,21 +406,6 @@ svg {
   border-bottom: 1px solid var(--rule);
 }
 
-.control-section summary {
-  padding: 12px 18px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  user-select: none;
-}
-
-.control-section[open] summary {
-  background: var(--surface-alt);
-}
-
 .control-body {
   padding: 14px 18px 16px;
   display: flex;
@@ -505,12 +445,6 @@ svg {
   height: 20px;
 }
 
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
 .slider-round {
   position: absolute;
   cursor: pointer;
@@ -533,32 +467,6 @@ svg {
   background-color: white;
   transition: 0.2s;
   border-radius: 50%;
-}
-
-input:checked + .slider-round {
-  background-color: var(--ink);
-}
-
-input:checked + .slider-round.acoustic-toggle {
-  background-color: var(--acoustic);
-}
-
-input:checked + .slider-round.hydro-toggle {
-  background-color: var(--hydro);
-}
-
-input:checked + .slider-round.plate-toggle {
-  background-color: var(--plate);
-}
-
-input:checked + .slider-round:before {
-  transform: translateX(16px);
-}
-
-input[type=range] {
-  width: 100%;
-  accent-color: var(--ink);
-  margin: 3px 0;
 }
 
 .control-note {
@@ -710,13 +618,6 @@ table.violations-table tr:hover {
   margin-bottom: 12px;
 }
 
-.principles-section summary {
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 8px 0;
-}
-
 .principles-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -798,17 +699,6 @@ dialog::backdrop {
   font-size: 20px;
   font-weight: 600;
   margin: 0;
-}
-
-textarea.json-editor {
-  width: 100%;
-  height: 380px;
-  font-family: PlexMono, monospace;
-  font-size: 11px;
-  padding: 12px;
-  border: 1px solid var(--rule);
-  background: #f8f9f5;
-  resize: vertical;
 }
 
 .dialog-actions {

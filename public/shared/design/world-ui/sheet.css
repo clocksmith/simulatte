@@ -4,3 +4,6 @@
 .wui-sheet-heading > :first-child { flex: 1; }
 .wui-sheet-backdrop { position: fixed; inset: 0; z-index: 79; background: var(--wui-scrim); border: 0; backdrop-filter: none !important; }
 @media(max-width:700px) { .wui-sheet[data-wui] { inset: auto 0 0 !important; width: 100% !important; height: auto !important; max-height: 88svh !important; border: 0 !important; border-top: 1px solid var(--wui-line) !important; border-radius: 4px 4px 0 0 !important; padding: 16px 16px max(16px,env(safe-area-inset-bottom)) !important; } }
+
+.wui-sheet::backdrop { background: var(--wui-scrim); }
+.wui-sheet-section { position: static; width: 100%; max-width: none; border: 0; padding: 8px 0; background: transparent; box-shadow: none; transform: none; }

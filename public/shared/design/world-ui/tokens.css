@@ -25,3 +25,9 @@
 .wui-status[data-live='true'] { color: var(--wui-active); }
 .wui-root [hidden], [data-wui][hidden] { display: none !important; }
 @media(prefers-reduced-motion: reduce) { .wui-root[data-world-ui], .wui-root { scroll-behavior: auto; } [data-wui] { transition: none !important; animation: none !important; } }
+
+.wui-root[data-world-ui], .wui-root {
+  --paper: var(--wui-paper); --page: var(--wui-paper); --surface: var(--wui-paper); --field: var(--wui-paper); --panel: var(--wui-paper);
+  --ink: var(--wui-ink); --muted: var(--wui-muted); --line: var(--wui-line); --rule: var(--wui-line); --accent: var(--wui-active);
+  --font: var(--wui-font); --mono: var(--wui-mono);
+}

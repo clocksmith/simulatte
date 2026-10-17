@@ -6,3 +6,7 @@
 .wui-menu-content .wui-button { width: 100%; justify-content: flex-start; text-align: left; }
 .wui-menu-content .wui-choice-group { display: grid !important; grid-template-columns: 1fr !important; gap: 4px !important; border: 0 !important; margin: 0 !important; padding: 0 !important; }
 @media(max-width:700px) { .wui-menu-content[data-wui] { inset: auto 0 0 0 !important; width: 100% !important; max-height: 65svh; border-radius: 4px 4px 0 0 !important; padding: 12px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) !important; } }
+
+.wui-menu-group { display: grid; gap: 4px; }
+.wui-menu-content fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 4px; }
+.wui-menu-content legend { padding: 8px 4px; font: 400 11px var(--wui-font); color: var(--wui-muted); }

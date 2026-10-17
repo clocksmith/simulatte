@@ -33,12 +33,12 @@ and green for live or selected state.
 - Metrics retain subject, value, unit, time basis, freshness and validity;
   components do not invent missing measurement semantics.
 - Selection and inspection cannot change simulation state or camera framing.
-- Legacy CSS exceptions freeze existing rules, never permit new control designs.
+- Simulation CSS has no native-control or shared-component styling exceptions.
 
 ## Acceptance
 
 - Evidence: [ownership tests](../../../../tests/world-ui-ownership.test.cjs).
-- Browser catalog and GPU journeys verify interactions, states and responsive
+- Browser catalog and all simulation journeys verify interactions, states and responsive
   presentation. Human comprehension remains a separate study.
 
 ## Non-goals

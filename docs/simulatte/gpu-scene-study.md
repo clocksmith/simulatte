@@ -3,14 +3,11 @@
 Owner: [World application](../../public/simulatte/app/CATSCAN.md).
 Implementation: [GPU scene composition](../../public/simulatte/app/gpu-scene.js).
 
-Status: working prototype and study protocol. No unfamiliar-user observations
+Status: shared scene components are the default; this study remains a protocol. No unfamiliar-user observations
 have been collected by the implementation agent. Automated interaction checks
 are not evidence of comprehension.
 
-Start `npm run serve` in `simulatte/`. Compare these routes on the same build:
-
-- Current: <http://localhost:4173/datacenter>
-- Proposed: <http://localhost:4173/datacenter?frame=scene>
+Start `npm run serve` in `simulatte/`. `/datacenter` and `/datacenter?frame=scene` now serve the same shared scene composition. For a historical comparison, run the prior default frame from commit `0e1dcf27` separately; the old frame is not retained in the current application. Bind each study observation to its actual build.
 
 The prototype uses the shared World UI library in
 `public/shared/design/world-ui/`: restrained monochrome controls, Space Grotesk
@@ -37,11 +34,10 @@ composition; the library owns geometry, typography, states and surfaces.
   navigation, drawer containment, Escape/return focus, reduced-motion support,
   and no horizontal overflow. Shared components own these rules.
 - Keep Restart, Replay, cancellation and configuration semantics in their
-  existing owners. Preserve the original frame and its audit.
+  existing owners. The catalog audit preserves camera, reset, target size, focus and touch-scrolling checks while allowing scene-owned composition.
 - The component catalog exercises every primitive in both themes, including
   selected, pending, disabled and error states. The CSS ownership check rejects
-  new native-control overrides and shared-internal selectors outside the library;
-  existing legacy selectors are frozen until their owners migrate.
+  native-control overrides and shared-internal selectors outside the library, with no legacy exceptions.
 
 ## Unfamiliar-user procedure
 

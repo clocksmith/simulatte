@@ -57,6 +57,28 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
       if(host.querySelectorAll('[data-variant=primary]').length!==1)throw Error('Multiple primary actions');inspector.dispose();host.remove();return true;
     })()`),true);
     row.checks.push('Async duplicate suppression, pending recovery, rejected action feedback, stale inspector result isolation');
+    assert.equal(await evaluate(`(()=>{
+      const ui=SimulatteWorldUI,trigger=ui.SimButton({label:'Dialog fixture'}).element;
+      const parent=document.createElement('section'),child=document.createElement('dialog');
+      const openChild=ui.SimButton({label:'Open child'}).element,closeChild=ui.SimButton({label:'Close child'}).element;
+      document.body.append(trigger,parent,child);parent.append(openChild);child.append(closeChild);
+      const outer=ui.SimSheet({element:parent,trigger}),inner=ui.SimSheet({element:child,closeButton:closeChild});
+      trigger.focus();trigger.click();openChild.focus();child.showModal();
+      if(!child.open||document.activeElement!==closeChild)throw Error('Native sheet did not acquire focus');
+      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+      if(child.open||parent.hidden||document.activeElement!==openChild)throw Error('Nested dismissal closed parent or lost focus');
+      outer.close();if(document.activeElement!==trigger)throw Error('Outer focus lost');inner.dispose();outer.dispose();trigger.remove();parent.remove();child.remove();
+      const menuHost=document.createElement('details'),group=document.createElement('div');group.id='fixture-camera-choices';menuHost.append(group);document.body.append(menuHost);
+      const menu=ui.SimMenu({element:menuHost,label:'Camera'}),reset=ui.SimButton({label:'Reset view'}).element;menu.content.append(reset);
+      group.replaceChildren(ui.SimButton({label:'Late camera'}).element);
+      if(!reset.isConnected||!menu.content.contains(group))throw Error('Late advertisement removed menu utilities');menu.dispose();menuHost.remove();
+      const metricHost=document.createElement('div'),label=document.createElement('dt'),value=document.createElement('dd');label.textContent='Distance';value.textContent='12 m';metricHost.append(label,value);document.body.append(metricHost);
+      const metric=ui.SimMetric({element:metricHost,labelElement:label,valueElement:value,preserveContent:true});
+      metric.update({subject:'Distance',value:12,unit:'m',timeBasis:'At 2 s',freshness:'stale',validity:'modeled',level:'supporting'});
+      if(metricHost.lastElementChild!==value||value.textContent!=='12 m'||metricHost.dataset.freshness!=='stale')throw Error('Metric replaced owner value or validity');metricHost.remove();return true;
+    })()`),true);
+    row.checks.push('Native nested sheet dismissal/focus, late domain menu population preserves utilities, metric owner identity and freshness');
+
     await evaluate('scrollTo(0,0)');
     const bytes=Buffer.from((await c.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true})).data,'base64');
     const file=`${viewport.width}.png`;await fs.writeFile(output+'/'+file,bytes);row.screenshot={file,sha256:createHash('sha256').update(bytes).digest('hex')};row.pass=true;

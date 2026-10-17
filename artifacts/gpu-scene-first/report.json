@@ -1,27 +1,131 @@
 {
   "source": {
-    "head": "c31fb704860d80cd79bff23c58458372b8bcc150",
-    "capturedAt": "2026-10-17T18:24:43.809Z",
+    "head": "fef3ebfb70f4877eceecbd26036b69b5411b9b91",
+    "capturedAt": "2026-10-17T18:52:15.943Z",
     "modifiedSources": {
-      "public/blank/index.html": {
-        "sha256": "b97f81bd451a6c9ff920786d398fe9476524841a25edfd025841755b17c34f05",
-        "modifiedAt": "2026-10-17T18:17:24.350Z"
+      "public/shared/design/world-ui/CATSCAN.md": {
+        "sha256": "79c09242a79bb3e435362321426274ebde3fe699744ed6c96db4c001e4b77948",
+        "modifiedAt": "2026-10-17T18:43:45.203Z"
       },
-      "public/index.html": {
-        "sha256": "512edde0b635d458d272311865f93a876ffee4de0d99902ba533cbd0dd054781",
-        "modifiedAt": "2026-10-17T18:17:24.350Z"
+      "public/shared/design/world-ui/button.css": {
+        "sha256": "8cb327fd107ce28b130cfcafadb5fd7824650925d7cfa5ebba75c8b3a93de07f",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
       },
-      "public/simulatte/app/router.js": {
-        "sha256": "535ca58ef15d5eaea8baa65ebafc5d983d23bcc4b16e9d5d8f05e3041f06a061",
-        "modifiedAt": "2026-10-17T18:24:17.994Z"
+      "public/shared/design/world-ui/components.js": {
+        "sha256": "fd36a057bd0e06de599c9ebb1360a5ec68be149a81cffc98ea086a2cd1fcdbc1",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/shared/design/world-ui/dock.css": {
+        "sha256": "4388b694952882113002d93249b7339e8acef8ce676d254eec439603cf6c3317",
+        "modifiedAt": "2026-10-17T18:47:37.996Z"
+      },
+      "public/shared/design/world-ui/inspector.css": {
+        "sha256": "4d76ee8eb4ac7be254cdea142a1e3840f9753f8ffae9ec7a31225ffdba42d5fb",
+        "modifiedAt": "2026-10-17T18:34:48.334Z"
+      },
+      "public/shared/design/world-ui/menu.css": {
+        "sha256": "b4f781995ee66c83f745da3208bd6bd764932efd680ec9ca10f306700dd5c7bb",
+        "modifiedAt": "2026-10-17T18:45:09.829Z"
+      },
+      "public/shared/design/world-ui/metric.css": {
+        "sha256": "1418ec2da247fd8f412c7d90173fe1ad880004497cb0cf6fa285f5c2e5cbb4fe",
+        "modifiedAt": "2026-10-17T18:43:45.201Z"
+      },
+      "public/shared/design/world-ui/sheet.css": {
+        "sha256": "53045a992afdb6668fb917b35a84223c3d0661fc761aeabb7aa48e6259abbc88",
+        "modifiedAt": "2026-10-17T18:34:48.334Z"
+      },
+      "public/shared/design/world-ui/tokens.css": {
+        "sha256": "fbe8b19273eedaaf9dd65a315294dcbdc8cb6df2637b6aaf3215b9171db81e48",
+        "modifiedAt": "2026-10-17T18:47:37.995Z"
+      },
+      "public/simulatte/app/CATSCAN.md": {
+        "sha256": "b80b4cd26514f627976ad7ac02dd3d8c597bcfa2cf564957c2cfb5ddf38e9e02",
+        "modifiedAt": "2026-10-17T18:47:37.997Z"
+      },
+      "public/simulatte/app/city-plugin-session.js": {
+        "sha256": "dec23667a6372578c42bbf237e94de3d5d344b787c3629121ab1e202773fd99b",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/simulatte/app/experience-frame-adapters.js": {
+        "sha256": "d63f51a36c94da7ce480524f89929c779b81668c7e643f8050c15256eaf0eb4f",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/simulatte/app/experience-frame.css": {
+        "sha256": "f4339f1c8cd6167167593f8a7967fd53db2e6a08a9651ef0cf90290ac21621b1",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/simulatte/app/experience-frame.js": {
+        "sha256": "860dd8971e015fa9a01fb40c5f933dbeea44b540e2e8398117aa5fde3ca07315",
+        "modifiedAt": "2026-10-17T18:41:39.062Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "b678e84aa85d67e4c6ae6c1e0c6289dceb8d0feaa7d627673b8a22abea637b1e",
+        "modifiedAt": "2026-10-17T18:41:39.063Z"
+      },
+      "public/simulatte/field-experiments/experiment.css": {
+        "sha256": "0d0f0425f4a377778187562a344f1ad9cb14b4cd7327d5f5fe3a367827ff7081",
+        "modifiedAt": "2026-10-17T18:42:34.550Z"
       },
       "public/simulatte/field-experiments/index.html": {
-        "sha256": "2d85e8419d0e289f6dd6c787e1b11470f0d781899f271649dbe3e8c3e832d527",
-        "modifiedAt": "2026-10-17T18:17:24.350Z"
+        "sha256": "ebccf030888df85ecb9173b93bcfdc21fc6d1d22f0cee2cb3a729e2636089ddc",
+        "modifiedAt": "2026-10-17T18:36:21.243Z"
       },
-      "public/version.json": {
-        "sha256": "b40866ff4f77e0e7a058981d8c5019bb2f587cf3a25fd5b519a34e756ae3f1c4",
-        "modifiedAt": "2026-10-17T18:17:24.351Z"
+      "public/simulatte/motorcycle-mitigation/index.html": {
+        "sha256": "ecbf9618b7d85ff44e0d10458944b6a6ea90a5bdf8774afbe1a7eab6d7e48e58",
+        "modifiedAt": "2026-10-17T18:43:45.202Z"
+      },
+      "public/simulatte/motorcycle-mitigation/shared-controls.js": {
+        "sha256": "9b04e32c23fb8a71eafffc1fd9f7e63bc830bc3366565f5fe5d825fba08576ed",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/simulatte/motorcycle-mitigation/styles.css": {
+        "sha256": "661130f293aa7bf53502cfd9983237d0d1cd173e2159a1a59f696d22509fa187",
+        "modifiedAt": "2026-10-17T18:42:34.552Z"
+      },
+      "public/simulatte/motorcycle-noise/city-experience.css": {
+        "sha256": "fe43f3b69ee328d2a4659cc1de0f72d876ae4a261b26dab6325269c56cd8a0b8",
+        "modifiedAt": "2026-10-17T18:42:34.549Z"
+      },
+      "public/simulatte/motorcycle-noise/header-controls.js": {
+        "sha256": "cbdc3e8690ad0079d50e63bb6d7c4ccda197e1a76c169c62a38312cf14eaf6be",
+        "modifiedAt": "2026-10-17T18:36:58.349Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "43170412c815380168048d6137cea81d82754a4998467d8b574bc8dd34337ddf",
+        "modifiedAt": "2026-10-17T18:36:21.242Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection.css": {
+        "sha256": "45ba0a556d9db923246f020af9affeb6e163da6a6c7181ccda2959570a4c4522",
+        "modifiedAt": "2026-10-17T18:42:34.548Z"
+      },
+      "public/simulatte/motorcycle-noise/style.css": {
+        "sha256": "004d067555638aab13b99a92aea6e1f5a6d7c0679891168488b0f8829e052c1d",
+        "modifiedAt": "2026-10-17T18:42:34.548Z"
+      },
+      "public/simulatte/motorcycle-noise/traffic-audio.js": {
+        "sha256": "4e61f5dce541a944f6b74fc8239e866261cf9e3c3fcf1e4de93f5a442f13f949",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/simulatte/solar-drive/index.html": {
+        "sha256": "442df88bf0516494f54e633581fb43af7483baaaef5c66043eaa7ea6333dccf3",
+        "modifiedAt": "2026-10-17T18:36:21.243Z"
+      },
+      "public/simulatte/solar-drive/solar-drive.css": {
+        "sha256": "1dd41e30d81ff6f4d114016ce94e25d02e2f9f7b825b83021f73b0e6cfb4488c",
+        "modifiedAt": "2026-10-17T18:42:34.551Z"
+      },
+      "public/simulatte/world/recursive-reference.css": {
+        "sha256": "a39aace05f333fc92bd09d7ed0f36e8d32d845f387254618a4a4accfa3808e6a",
+        "modifiedAt": "2026-10-17T18:42:34.550Z"
+      },
+      "public/styles.css": {
+        "sha256": "a57b6effa012aeb6329945ecd84b0f966658782b67ebd54d023bd5ed2d3b3212",
+        "modifiedAt": "2026-10-17T18:42:34.554Z"
+      },
+      "public/world-tiers.css": {
+        "sha256": "4387fd431f902633b684c3efa6e9538ca6647147bcfe2368c2a7c2dcdbcbf4f3",
+        "modifiedAt": "2026-10-17T18:42:34.555Z"
       }
     },
     "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
@@ -48,23 +152,23 @@
       "screenshots": [
         {
           "file": "desktop-light-opening.png",
-          "sha256": "a6501dc85c4d066b5963d44c78e0b59ee7ddf2b921929cb02c29879687faac49"
+          "sha256": "5f0e7481a20c54d778b9094de8c89bfedfedb7da5500943aa3bbdde9860d1132"
         },
         {
           "file": "desktop-light-slowed.png",
-          "sha256": "7ea127bdaed246c0eb8049ab11b8cd33c46c66d9002e0a31a5c567e9d8d16e68"
+          "sha256": "973c00f459f56a35bf0431e1b1551d0c47d968225f01972912fc508ad2927f86"
         },
         {
           "file": "desktop-light-details.png",
-          "sha256": "ac25db6bfdcf8243091a3e47051bb2b6b12b8f44bae7148d57f8c6ffe32573ac"
+          "sha256": "b0c3dce2f0e896bb7d40e7178ff947a47d096db9b6956419902bb8426cb72bd2"
         },
         {
           "file": "desktop-light-menu.png",
-          "sha256": "87ded5b08db56ac2c2965afb650ec26f9b38ec45f2dcd14eba2be5eb9195412b"
+          "sha256": "f18a7097031d12bd26824223a4d949b4672845147992efc75d40fab704b28260"
         }
       ],
-      "navigationToReadyMs": 359,
-      "build": "c31fb704860d80cd79bff23c58458372b8bcc150-45c1ca0a8550",
+      "navigationToReadyMs": 384,
+      "build": "0e1dcf27f387b3cd48a1ffcd081a2175aea88f1b-2fbc051fede2",
       "measurements": "Training steps completed1 stepsWaiting added by actions1,188.751 rack-msProductive compute share0.70%",
       "dependentRacks": [
         "rack:R1-2",
@@ -119,24 +223,24 @@
       "screenshots": [
         {
           "file": "desktop-dark-opening.png",
-          "sha256": "7f7abf7652b58de968218a2d6fe5a4e756693d78ced2974175dd9de0965bcb1c"
+          "sha256": "ec00618a7f1a465d1987ec3524e4ccf0d96df2aa86a2d8b7379e83af0dc14f06"
         },
         {
           "file": "desktop-dark-slowed.png",
-          "sha256": "31b98d7eb7b8fa480619ce7b92c97afe0098a85922a90228fb9179690e869f0b"
+          "sha256": "34c77954a88dc15f4eb29bee4f6ea93c4d1cc6ab7b314493163e63ccc08c3f67"
         },
         {
           "file": "desktop-dark-details.png",
-          "sha256": "4891869c9877a246f466e3167c111310c52e7c16f191200e9cf8fc19703f24a5"
+          "sha256": "37b6c33aea25478d192a549afb8d436da13b4322e68bdce5e96012b62e694743"
         },
         {
           "file": "desktop-dark-menu.png",
-          "sha256": "f44b9f2c8fe333db9118030cd1fac37edcc0caa0233c4d7480497d0c8e95dc04"
+          "sha256": "e841956a8b54a4c290ecd939afec8fdcafe0687c50ab8f75a7dfa5dab3864c5f"
         }
       ],
-      "navigationToReadyMs": 261,
-      "build": "c31fb704860d80cd79bff23c58458372b8bcc150-45c1ca0a8550",
-      "measurements": "Training steps completed1 stepsWaiting added by actions532.481 rack-msProductive compute share0.71%",
+      "navigationToReadyMs": 279,
+      "build": "0e1dcf27f387b3cd48a1ffcd081a2175aea88f1b-2fbc051fede2",
+      "measurements": "Training steps completed1 stepsWaiting added by actions1,188.751 rack-msProductive compute share0.70%",
       "dependentRacks": [
         "rack:R1-2",
         "rack:R1-3",
@@ -179,7 +283,7 @@
       },
       "route": "/datacenter",
       "checks": [
-        "Current seven-slot comparison frame retained"
+        "Default route uses the same shared scene components"
       ],
       "pass": true
     },
@@ -202,23 +306,23 @@
       "screenshots": [
         {
           "file": "mobile-light-opening.png",
-          "sha256": "1298edc6daf9ae8ded45b71480f26c36ce2c21ce54521b28035e4b25950c9e15"
+          "sha256": "abd1590513278dbdd62d2cecff5a27d9e3b59f927e063b39c22c284226a16a74"
         },
         {
           "file": "mobile-light-slowed.png",
-          "sha256": "42ab6157a97da9cadde0e1c2c8cbe630b8a9a78492c0513c95ae32d1bc937641"
+          "sha256": "6bcd007dc1cf2e4cfb514a36c15d3da0eeaf07ad55d6fdcb96455bc9142413e6"
         },
         {
           "file": "mobile-light-details.png",
-          "sha256": "a925986cf8fc2e68da5bbb63086c6500916a4d7fa15ccfa46d434730d713d5e6"
+          "sha256": "1977e6a11805cff256791aa769fa90a7ddacd84c1bca97645b6aaca97ab1e76c"
         },
         {
           "file": "mobile-light-menu.png",
-          "sha256": "78ec2e4bbfbe12e3ffee9fd15c1da4c4a38057504398968f2609422e71959558"
+          "sha256": "11f202eb667bf8232a273a71ce9df87189df38b292c20b770da7538161507c39"
         }
       ],
-      "navigationToReadyMs": 322,
-      "build": "c31fb704860d80cd79bff23c58458372b8bcc150-45c1ca0a8550",
+      "navigationToReadyMs": 337,
+      "build": "0e1dcf27f387b3cd48a1ffcd081a2175aea88f1b-2fbc051fede2",
       "measurements": "Training steps completed1 stepsWaiting added by actions1,188.751 rack-msProductive compute share0.70%",
       "dependentRacks": [
         "rack:R1-2",
@@ -273,23 +377,23 @@
       "screenshots": [
         {
           "file": "mobile-dark-opening.png",
-          "sha256": "fbbdd14857df47a25bcd03b0935b3b825cad6a821248b44ee5d4956e1104f36e"
+          "sha256": "c5d69923b2fb0d5a364f814d6847d800d8d51a5684c0d21bb0def02e8fd712a5"
         },
         {
           "file": "mobile-dark-slowed.png",
-          "sha256": "94490a97bf1e14b8340d4ccf709eee1bb6d8aae47ff473a6a8ff413cf2b332bf"
+          "sha256": "f8e2a399aab8d04488297933e5290b94e1577f0e4a35426c42a671e3c4837e51"
         },
         {
           "file": "mobile-dark-details.png",
-          "sha256": "311571cef9e3b5467926d5e75d9c57d2a97d4db4f9dbe43c48f43cfccd7e9c96"
+          "sha256": "7c7493d22d1cc29c66e0b1cd8c58820ef83896ebdb2d1a411a0046eceb36c11f"
         },
         {
           "file": "mobile-dark-menu.png",
-          "sha256": "4d57e8316185da9675130757c99487049830b93ec27ba7dad583aa2a2013e657"
+          "sha256": "744eafcb4adcc91847c04568839f2d623f8b6e6dc81fd5d7e21b091e5bcf5a99"
         }
       ],
-      "navigationToReadyMs": 280,
-      "build": "c31fb704860d80cd79bff23c58458372b8bcc150-45c1ca0a8550",
+      "navigationToReadyMs": 292,
+      "build": "0e1dcf27f387b3cd48a1ffcd081a2175aea88f1b-2fbc051fede2",
       "measurements": "Training steps completed1 stepsWaiting added by actions1,188.751 rack-msProductive compute share0.70%",
       "dependentRacks": [
         "rack:R1-2",
@@ -333,7 +437,7 @@
       },
       "route": "/datacenter",
       "checks": [
-        "Current seven-slot comparison frame retained"
+        "Default route uses the same shared scene components"
       ],
       "pass": true
     }

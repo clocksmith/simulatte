@@ -614,9 +614,6 @@ body.sim-app > .sim-theme-control .sim-theme-control-label {
   left: 50%;
   transform: translate(-50%, 4px);
 }
-body.sim-app > .sim-theme-control button:is(:hover, :focus-visible) .sim-theme-control-label {
-  transform: translate(-50%, 0);
-}
 @media (max-width: 420px), (max-height: 480px) {
   body.sim-app #simulation-home :is(.hex-hub-inner, .hex-satellite-inner) { gap: 5px; padding: 8px 12px; }
   body.sim-app #simulation-home :is(.hex-hub-icon, .hex-icon) { width: 22px; height: 22px; }
@@ -688,18 +685,15 @@ html[data-world-launch="featured"] .sim-product-nav a[data-local-href="./blank/"
 .sun-walk-controls { display:grid; gap:10px; margin:0 0 12px; }
 .sun-walk-endpoints { display:flex; flex-wrap:wrap; align-items:end; gap:10px; }
 .sun-walk-endpoints label { display:grid; gap:4px; flex:1; min-width:130px; max-width:320px; font-size:12px; }
-.sun-walk-endpoints select { width:100%; min-height:44px; padding:8px; border:1px solid var(--sim-line); border-radius:var(--sim-radius-small); background:var(--sim-paper); color:var(--sim-ink); }
 .sun-walk-routes { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .sun-walk-route { display:grid; gap:3px; text-align:left; padding:10px 14px; border:1px solid var(--sim-line); background:var(--sim-paper); }
 .sun-walk-preference { display:grid; gap:8px; max-width:640px; width:100%; font-size:13px; }
 .sun-walk-preference output { float:right; color:var(--sim-ink-soft); }
-.sun-walk-preference input { width:100%; margin:0; accent-color:var(--sim-accent); }
 .sun-walk-preference > span { display:flex; justify-content:space-between; color:var(--sim-ink-soft); font-size:12px; }
 .sun-walk-routes span { font-size:12px; font-weight:400; }
 .sun-walk-note,.sun-walk-controls [role="status"] { margin:0; color:var(--sim-ink-soft); font-size:12px; }
 @media(max-width:600px) {
   .sun-walk-endpoints label { min-width:0; }
-  .sun-walk-endpoints > button { flex-basis:100%; }
   .sun-walk-routes { align-items:stretch; }
   .sun-walk-route { flex:1; min-width:0; padding:8px; }
   .sun-walk-routes span { font-size:11px; }

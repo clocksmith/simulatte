@@ -1,0 +1,497 @@
+{
+  "routes": [
+    "/living-tissue",
+    "/river-formation",
+    "/crystal-foundry"
+  ],
+  "frames": {},
+  "source": {
+    "head": "fef3ebfb70f4877eceecbd26036b69b5411b9b91",
+    "capturedAt": "2026-10-17T18:53:02.276Z",
+    "modifiedSources": {
+      "public/shared/design/world-ui/CATSCAN.md": {
+        "sha256": "79c09242a79bb3e435362321426274ebde3fe699744ed6c96db4c001e4b77948",
+        "modifiedAt": "2026-10-17T18:43:45.203Z"
+      },
+      "public/shared/design/world-ui/button.css": {
+        "sha256": "8cb327fd107ce28b130cfcafadb5fd7824650925d7cfa5ebba75c8b3a93de07f",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/shared/design/world-ui/components.js": {
+        "sha256": "fd36a057bd0e06de599c9ebb1360a5ec68be149a81cffc98ea086a2cd1fcdbc1",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/shared/design/world-ui/dock.css": {
+        "sha256": "4388b694952882113002d93249b7339e8acef8ce676d254eec439603cf6c3317",
+        "modifiedAt": "2026-10-17T18:47:37.996Z"
+      },
+      "public/shared/design/world-ui/inspector.css": {
+        "sha256": "4d76ee8eb4ac7be254cdea142a1e3840f9753f8ffae9ec7a31225ffdba42d5fb",
+        "modifiedAt": "2026-10-17T18:34:48.334Z"
+      },
+      "public/shared/design/world-ui/menu.css": {
+        "sha256": "b4f781995ee66c83f745da3208bd6bd764932efd680ec9ca10f306700dd5c7bb",
+        "modifiedAt": "2026-10-17T18:45:09.829Z"
+      },
+      "public/shared/design/world-ui/metric.css": {
+        "sha256": "1418ec2da247fd8f412c7d90173fe1ad880004497cb0cf6fa285f5c2e5cbb4fe",
+        "modifiedAt": "2026-10-17T18:43:45.201Z"
+      },
+      "public/shared/design/world-ui/sheet.css": {
+        "sha256": "53045a992afdb6668fb917b35a84223c3d0661fc761aeabb7aa48e6259abbc88",
+        "modifiedAt": "2026-10-17T18:34:48.334Z"
+      },
+      "public/shared/design/world-ui/tokens.css": {
+        "sha256": "fbe8b19273eedaaf9dd65a315294dcbdc8cb6df2637b6aaf3215b9171db81e48",
+        "modifiedAt": "2026-10-17T18:47:37.995Z"
+      },
+      "public/simulatte/app/CATSCAN.md": {
+        "sha256": "b80b4cd26514f627976ad7ac02dd3d8c597bcfa2cf564957c2cfb5ddf38e9e02",
+        "modifiedAt": "2026-10-17T18:47:37.997Z"
+      },
+      "public/simulatte/app/city-plugin-session.js": {
+        "sha256": "dec23667a6372578c42bbf237e94de3d5d344b787c3629121ab1e202773fd99b",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/simulatte/app/experience-frame-adapters.js": {
+        "sha256": "d63f51a36c94da7ce480524f89929c779b81668c7e643f8050c15256eaf0eb4f",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/simulatte/app/experience-frame.css": {
+        "sha256": "cb2c783f2eababb4cb1b6843b2cc188999364802ec729509d1b84efa2e6caa1f",
+        "modifiedAt": "2026-10-17T18:53:02.170Z"
+      },
+      "public/simulatte/app/experience-frame.js": {
+        "sha256": "860dd8971e015fa9a01fb40c5f933dbeea44b540e2e8398117aa5fde3ca07315",
+        "modifiedAt": "2026-10-17T18:41:39.062Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "b678e84aa85d67e4c6ae6c1e0c6289dceb8d0feaa7d627673b8a22abea637b1e",
+        "modifiedAt": "2026-10-17T18:41:39.063Z"
+      },
+      "public/simulatte/field-experiments/experiment.css": {
+        "sha256": "0d0f0425f4a377778187562a344f1ad9cb14b4cd7327d5f5fe3a367827ff7081",
+        "modifiedAt": "2026-10-17T18:42:34.550Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "ebccf030888df85ecb9173b93bcfdc21fc6d1d22f0cee2cb3a729e2636089ddc",
+        "modifiedAt": "2026-10-17T18:36:21.243Z"
+      },
+      "public/simulatte/motorcycle-mitigation/index.html": {
+        "sha256": "ecbf9618b7d85ff44e0d10458944b6a6ea90a5bdf8774afbe1a7eab6d7e48e58",
+        "modifiedAt": "2026-10-17T18:43:45.202Z"
+      },
+      "public/simulatte/motorcycle-mitigation/shared-controls.js": {
+        "sha256": "9b04e32c23fb8a71eafffc1fd9f7e63bc830bc3366565f5fe5d825fba08576ed",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/simulatte/motorcycle-mitigation/styles.css": {
+        "sha256": "661130f293aa7bf53502cfd9983237d0d1cd173e2159a1a59f696d22509fa187",
+        "modifiedAt": "2026-10-17T18:42:34.552Z"
+      },
+      "public/simulatte/motorcycle-noise/city-experience.css": {
+        "sha256": "fe43f3b69ee328d2a4659cc1de0f72d876ae4a261b26dab6325269c56cd8a0b8",
+        "modifiedAt": "2026-10-17T18:42:34.549Z"
+      },
+      "public/simulatte/motorcycle-noise/header-controls.js": {
+        "sha256": "cbdc3e8690ad0079d50e63bb6d7c4ccda197e1a76c169c62a38312cf14eaf6be",
+        "modifiedAt": "2026-10-17T18:36:58.349Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "43170412c815380168048d6137cea81d82754a4998467d8b574bc8dd34337ddf",
+        "modifiedAt": "2026-10-17T18:36:21.242Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection.css": {
+        "sha256": "45ba0a556d9db923246f020af9affeb6e163da6a6c7181ccda2959570a4c4522",
+        "modifiedAt": "2026-10-17T18:42:34.548Z"
+      },
+      "public/simulatte/motorcycle-noise/style.css": {
+        "sha256": "004d067555638aab13b99a92aea6e1f5a6d7c0679891168488b0f8829e052c1d",
+        "modifiedAt": "2026-10-17T18:42:34.548Z"
+      },
+      "public/simulatte/motorcycle-noise/traffic-audio.js": {
+        "sha256": "4e61f5dce541a944f6b74fc8239e866261cf9e3c3fcf1e4de93f5a442f13f949",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/simulatte/solar-drive/index.html": {
+        "sha256": "442df88bf0516494f54e633581fb43af7483baaaef5c66043eaa7ea6333dccf3",
+        "modifiedAt": "2026-10-17T18:36:21.243Z"
+      },
+      "public/simulatte/solar-drive/solar-drive.css": {
+        "sha256": "1dd41e30d81ff6f4d114016ce94e25d02e2f9f7b825b83021f73b0e6cfb4488c",
+        "modifiedAt": "2026-10-17T18:42:34.551Z"
+      },
+      "public/simulatte/world/recursive-reference.css": {
+        "sha256": "a39aace05f333fc92bd09d7ed0f36e8d32d845f387254618a4a4accfa3808e6a",
+        "modifiedAt": "2026-10-17T18:42:34.550Z"
+      },
+      "public/styles.css": {
+        "sha256": "a57b6effa012aeb6329945ecd84b0f966658782b67ebd54d023bd5ed2d3b3212",
+        "modifiedAt": "2026-10-17T18:42:34.554Z"
+      },
+      "public/world-tiers.css": {
+        "sha256": "4387fd431f902633b684c3efa6e9538ca6647147bcfe2368c2a7c2dcdbcbf4f3",
+        "modifiedAt": "2026-10-17T18:42:34.555Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Chrome with WebGPU; desktop and touch-emulated mobile. No measured weather, hardware performance, or physical-device claim.",
+  "cases": [
+    {
+      "route": "/living-tissue",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 24,
+          "y": 68,
+          "width": 1352,
+          "height": 816,
+          "top": 68,
+          "right": 1376,
+          "bottom": 884,
+          "left": 24
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-branches/-living-tissue-1440.png",
+      "captureSha256": "e0844c29a56cb50d0e99c32bab3ce60db7fa8bf76e5c5fd4644637c1f943aced"
+    },
+    {
+      "route": "/river-formation",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 24,
+          "y": 68,
+          "width": 1352,
+          "height": 816,
+          "top": 68,
+          "right": 1376,
+          "bottom": 884,
+          "left": 24
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-branches/-river-formation-1440.png",
+      "captureSha256": "5bb43985659bd19e72f7cff91cc17e039c2c43240442a292425d9f3a197a6a2e"
+    },
+    {
+      "route": "/crystal-foundry",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 24,
+          "y": 68,
+          "width": 1352,
+          "height": 816,
+          "top": 68,
+          "right": 1376,
+          "bottom": 884,
+          "left": 24
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-branches/-crystal-foundry-1440.png",
+      "captureSha256": "6960eda0e852c3694c87fc68f201e26310269945bd8af5d3b1ae2eedc7516a65"
+    },
+    {
+      "route": "/living-tissue",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "fail",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 8,
+          "y": 64,
+          "width": 374,
+          "height": 619,
+          "top": 64,
+          "right": 382,
+          "bottom": 683,
+          "left": 8
+        }
+      },
+      "error": "Content expands the mobile layout viewport\n\n393 !== 390\n"
+    },
+    {
+      "route": "/river-formation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 8,
+          "y": 64,
+          "width": 374,
+          "height": 619,
+          "top": 64,
+          "right": 382,
+          "bottom": 683,
+          "left": 8
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-branches/-river-formation-390.png",
+      "captureSha256": "79141d87b349e12d4e55be6e1875e60f41c0c5f68d7acc98ceef1fdecc7e1151",
+      "touchScroll": true
+    },
+    {
+      "route": "/crystal-foundry",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 8,
+          "y": 64,
+          "width": 374,
+          "height": 619,
+          "top": 64,
+          "right": 382,
+          "bottom": 683,
+          "left": 8
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-branches/-crystal-foundry-390.png",
+      "captureSha256": "93e32c10f81e1237b29a200cbd280d15105c522e466c21c868e1b118573654d5",
+      "touchScroll": true
+    }
+  ],
+  "sourceAfter": {
+    "head": "fef3ebfb70f4877eceecbd26036b69b5411b9b91",
+    "capturedAt": "2026-10-17T18:53:18.964Z",
+    "modifiedSources": {
+      "public/shared/design/world-ui/CATSCAN.md": {
+        "sha256": "79c09242a79bb3e435362321426274ebde3fe699744ed6c96db4c001e4b77948",
+        "modifiedAt": "2026-10-17T18:43:45.203Z"
+      },
+      "public/shared/design/world-ui/button.css": {
+        "sha256": "8cb327fd107ce28b130cfcafadb5fd7824650925d7cfa5ebba75c8b3a93de07f",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/shared/design/world-ui/components.js": {
+        "sha256": "fd36a057bd0e06de599c9ebb1360a5ec68be149a81cffc98ea086a2cd1fcdbc1",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/shared/design/world-ui/dock.css": {
+        "sha256": "4388b694952882113002d93249b7339e8acef8ce676d254eec439603cf6c3317",
+        "modifiedAt": "2026-10-17T18:47:37.996Z"
+      },
+      "public/shared/design/world-ui/inspector.css": {
+        "sha256": "4d76ee8eb4ac7be254cdea142a1e3840f9753f8ffae9ec7a31225ffdba42d5fb",
+        "modifiedAt": "2026-10-17T18:34:48.334Z"
+      },
+      "public/shared/design/world-ui/menu.css": {
+        "sha256": "b4f781995ee66c83f745da3208bd6bd764932efd680ec9ca10f306700dd5c7bb",
+        "modifiedAt": "2026-10-17T18:45:09.829Z"
+      },
+      "public/shared/design/world-ui/metric.css": {
+        "sha256": "1418ec2da247fd8f412c7d90173fe1ad880004497cb0cf6fa285f5c2e5cbb4fe",
+        "modifiedAt": "2026-10-17T18:43:45.201Z"
+      },
+      "public/shared/design/world-ui/sheet.css": {
+        "sha256": "53045a992afdb6668fb917b35a84223c3d0661fc761aeabb7aa48e6259abbc88",
+        "modifiedAt": "2026-10-17T18:34:48.334Z"
+      },
+      "public/shared/design/world-ui/tokens.css": {
+        "sha256": "fbe8b19273eedaaf9dd65a315294dcbdc8cb6df2637b6aaf3215b9171db81e48",
+        "modifiedAt": "2026-10-17T18:47:37.995Z"
+      },
+      "public/simulatte/app/CATSCAN.md": {
+        "sha256": "b80b4cd26514f627976ad7ac02dd3d8c597bcfa2cf564957c2cfb5ddf38e9e02",
+        "modifiedAt": "2026-10-17T18:47:37.997Z"
+      },
+      "public/simulatte/app/city-plugin-session.js": {
+        "sha256": "dec23667a6372578c42bbf237e94de3d5d344b787c3629121ab1e202773fd99b",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/simulatte/app/experience-frame-adapters.js": {
+        "sha256": "d63f51a36c94da7ce480524f89929c779b81668c7e643f8050c15256eaf0eb4f",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/simulatte/app/experience-frame.css": {
+        "sha256": "cb2c783f2eababb4cb1b6843b2cc188999364802ec729509d1b84efa2e6caa1f",
+        "modifiedAt": "2026-10-17T18:53:02.170Z"
+      },
+      "public/simulatte/app/experience-frame.js": {
+        "sha256": "860dd8971e015fa9a01fb40c5f933dbeea44b540e2e8398117aa5fde3ca07315",
+        "modifiedAt": "2026-10-17T18:41:39.062Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "b678e84aa85d67e4c6ae6c1e0c6289dceb8d0feaa7d627673b8a22abea637b1e",
+        "modifiedAt": "2026-10-17T18:41:39.063Z"
+      },
+      "public/simulatte/field-experiments/experiment.css": {
+        "sha256": "0d0f0425f4a377778187562a344f1ad9cb14b4cd7327d5f5fe3a367827ff7081",
+        "modifiedAt": "2026-10-17T18:42:34.550Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "ebccf030888df85ecb9173b93bcfdc21fc6d1d22f0cee2cb3a729e2636089ddc",
+        "modifiedAt": "2026-10-17T18:36:21.243Z"
+      },
+      "public/simulatte/motorcycle-mitigation/index.html": {
+        "sha256": "ecbf9618b7d85ff44e0d10458944b6a6ea90a5bdf8774afbe1a7eab6d7e48e58",
+        "modifiedAt": "2026-10-17T18:43:45.202Z"
+      },
+      "public/simulatte/motorcycle-mitigation/shared-controls.js": {
+        "sha256": "9b04e32c23fb8a71eafffc1fd9f7e63bc830bc3366565f5fe5d825fba08576ed",
+        "modifiedAt": "2026-10-17T18:50:42.257Z"
+      },
+      "public/simulatte/motorcycle-mitigation/styles.css": {
+        "sha256": "661130f293aa7bf53502cfd9983237d0d1cd173e2159a1a59f696d22509fa187",
+        "modifiedAt": "2026-10-17T18:42:34.552Z"
+      },
+      "public/simulatte/motorcycle-noise/city-experience.css": {
+        "sha256": "fe43f3b69ee328d2a4659cc1de0f72d876ae4a261b26dab6325269c56cd8a0b8",
+        "modifiedAt": "2026-10-17T18:42:34.549Z"
+      },
+      "public/simulatte/motorcycle-noise/header-controls.js": {
+        "sha256": "cbdc3e8690ad0079d50e63bb6d7c4ccda197e1a76c169c62a38312cf14eaf6be",
+        "modifiedAt": "2026-10-17T18:36:58.349Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "43170412c815380168048d6137cea81d82754a4998467d8b574bc8dd34337ddf",
+        "modifiedAt": "2026-10-17T18:36:21.242Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection.css": {
+        "sha256": "45ba0a556d9db923246f020af9affeb6e163da6a6c7181ccda2959570a4c4522",
+        "modifiedAt": "2026-10-17T18:42:34.548Z"
+      },
+      "public/simulatte/motorcycle-noise/style.css": {
+        "sha256": "004d067555638aab13b99a92aea6e1f5a6d7c0679891168488b0f8829e052c1d",
+        "modifiedAt": "2026-10-17T18:42:34.548Z"
+      },
+      "public/simulatte/motorcycle-noise/traffic-audio.js": {
+        "sha256": "4e61f5dce541a944f6b74fc8239e866261cf9e3c3fcf1e4de93f5a442f13f949",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/simulatte/solar-drive/index.html": {
+        "sha256": "442df88bf0516494f54e633581fb43af7483baaaef5c66043eaa7ea6333dccf3",
+        "modifiedAt": "2026-10-17T18:36:21.243Z"
+      },
+      "public/simulatte/solar-drive/solar-drive.css": {
+        "sha256": "1dd41e30d81ff6f4d114016ce94e25d02e2f9f7b825b83021f73b0e6cfb4488c",
+        "modifiedAt": "2026-10-17T18:42:34.551Z"
+      },
+      "public/simulatte/world/recursive-reference.css": {
+        "sha256": "a39aace05f333fc92bd09d7ed0f36e8d32d845f387254618a4a4accfa3808e6a",
+        "modifiedAt": "2026-10-17T18:42:34.550Z"
+      },
+      "public/styles.css": {
+        "sha256": "a57b6effa012aeb6329945ecd84b0f966658782b67ebd54d023bd5ed2d3b3212",
+        "modifiedAt": "2026-10-17T18:42:34.554Z"
+      },
+      "public/world-tiers.css": {
+        "sha256": "4387fd431f902633b684c3efa6e9538ca6647147bcfe2368c2a7c2dcdbcbf4f3",
+        "modifiedAt": "2026-10-17T18:42:34.555Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "status": "fail"
+}

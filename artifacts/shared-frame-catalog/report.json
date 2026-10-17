@@ -1,0 +1,1814 @@
+{
+  "routes": [
+    "/motorcycle",
+    "/sunwalker",
+    "/datacenter",
+    "/interstellar",
+    "/orbital",
+    "/grid",
+    "/subsea",
+    "/city/cable-trader-pickup-v1",
+    "/city/neighborhood-bulk-pool-v1",
+    "/city/nyc-development-atlas-v1",
+    "/country/food-recall-us-v1",
+    "/world/maritime-trade-global-v1",
+    "/solar-system/asteroid-defense-v1",
+    "/simulatte/solar-drive/index.html",
+    "/living-tissue",
+    "/river-formation",
+    "/crystal-foundry"
+  ],
+  "frames": {},
+  "source": {
+    "head": "fef3ebfb70f4877eceecbd26036b69b5411b9b91",
+    "capturedAt": "2026-10-17T18:45:10.215Z",
+    "modifiedSources": {
+      "public/shared/design/world-ui/CATSCAN.md": {
+        "sha256": "79c09242a79bb3e435362321426274ebde3fe699744ed6c96db4c001e4b77948",
+        "modifiedAt": "2026-10-17T18:43:45.203Z"
+      },
+      "public/shared/design/world-ui/button.css": {
+        "sha256": "8cb327fd107ce28b130cfcafadb5fd7824650925d7cfa5ebba75c8b3a93de07f",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/shared/design/world-ui/components.js": {
+        "sha256": "3e138927707b13e21ad43743a2207b24c91331f372585df5978903edec99ef35",
+        "modifiedAt": "2026-10-17T18:45:09.829Z"
+      },
+      "public/shared/design/world-ui/inspector.css": {
+        "sha256": "4d76ee8eb4ac7be254cdea142a1e3840f9753f8ffae9ec7a31225ffdba42d5fb",
+        "modifiedAt": "2026-10-17T18:34:48.334Z"
+      },
+      "public/shared/design/world-ui/menu.css": {
+        "sha256": "b4f781995ee66c83f745da3208bd6bd764932efd680ec9ca10f306700dd5c7bb",
+        "modifiedAt": "2026-10-17T18:45:09.829Z"
+      },
+      "public/shared/design/world-ui/metric.css": {
+        "sha256": "1418ec2da247fd8f412c7d90173fe1ad880004497cb0cf6fa285f5c2e5cbb4fe",
+        "modifiedAt": "2026-10-17T18:43:45.201Z"
+      },
+      "public/shared/design/world-ui/sheet.css": {
+        "sha256": "53045a992afdb6668fb917b35a84223c3d0661fc761aeabb7aa48e6259abbc88",
+        "modifiedAt": "2026-10-17T18:34:48.334Z"
+      },
+      "public/simulatte/app/CATSCAN.md": {
+        "sha256": "71484fb1bdcea33533b36969060ec742bb61048c23fcc7b933db4db852581aa1",
+        "modifiedAt": "2026-10-17T18:45:09.829Z"
+      },
+      "public/simulatte/app/experience-frame-adapters.js": {
+        "sha256": "021f81b882f4ae5bd650873341b8d24a0c46da1a9a4385dc37bd440197a791cc",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/simulatte/app/experience-frame.css": {
+        "sha256": "e50c991d26fc4a9d9b23b4c265d5fae711b41f98fffe907d00326790c314d5d0",
+        "modifiedAt": "2026-10-17T18:41:39.063Z"
+      },
+      "public/simulatte/app/experience-frame.js": {
+        "sha256": "860dd8971e015fa9a01fb40c5f933dbeea44b540e2e8398117aa5fde3ca07315",
+        "modifiedAt": "2026-10-17T18:41:39.062Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "b678e84aa85d67e4c6ae6c1e0c6289dceb8d0feaa7d627673b8a22abea637b1e",
+        "modifiedAt": "2026-10-17T18:41:39.063Z"
+      },
+      "public/simulatte/field-experiments/experiment.css": {
+        "sha256": "0d0f0425f4a377778187562a344f1ad9cb14b4cd7327d5f5fe3a367827ff7081",
+        "modifiedAt": "2026-10-17T18:42:34.550Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "ebccf030888df85ecb9173b93bcfdc21fc6d1d22f0cee2cb3a729e2636089ddc",
+        "modifiedAt": "2026-10-17T18:36:21.243Z"
+      },
+      "public/simulatte/motorcycle-mitigation/index.html": {
+        "sha256": "ecbf9618b7d85ff44e0d10458944b6a6ea90a5bdf8774afbe1a7eab6d7e48e58",
+        "modifiedAt": "2026-10-17T18:43:45.202Z"
+      },
+      "public/simulatte/motorcycle-mitigation/shared-controls.js": {
+        "sha256": "b6e9c1b3b3cae1f00825a3c47a5a9e437efd0bf2addbc9b2866828b0e57f30b8",
+        "modifiedAt": "2026-10-17T18:43:45.202Z"
+      },
+      "public/simulatte/motorcycle-mitigation/styles.css": {
+        "sha256": "661130f293aa7bf53502cfd9983237d0d1cd173e2159a1a59f696d22509fa187",
+        "modifiedAt": "2026-10-17T18:42:34.552Z"
+      },
+      "public/simulatte/motorcycle-noise/city-experience.css": {
+        "sha256": "fe43f3b69ee328d2a4659cc1de0f72d876ae4a261b26dab6325269c56cd8a0b8",
+        "modifiedAt": "2026-10-17T18:42:34.549Z"
+      },
+      "public/simulatte/motorcycle-noise/header-controls.js": {
+        "sha256": "cbdc3e8690ad0079d50e63bb6d7c4ccda197e1a76c169c62a38312cf14eaf6be",
+        "modifiedAt": "2026-10-17T18:36:58.349Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "43170412c815380168048d6137cea81d82754a4998467d8b574bc8dd34337ddf",
+        "modifiedAt": "2026-10-17T18:36:21.242Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection.css": {
+        "sha256": "45ba0a556d9db923246f020af9affeb6e163da6a6c7181ccda2959570a4c4522",
+        "modifiedAt": "2026-10-17T18:42:34.548Z"
+      },
+      "public/simulatte/motorcycle-noise/style.css": {
+        "sha256": "004d067555638aab13b99a92aea6e1f5a6d7c0679891168488b0f8829e052c1d",
+        "modifiedAt": "2026-10-17T18:42:34.548Z"
+      },
+      "public/simulatte/motorcycle-noise/traffic-audio.js": {
+        "sha256": "4e61f5dce541a944f6b74fc8239e866261cf9e3c3fcf1e4de93f5a442f13f949",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/simulatte/solar-drive/index.html": {
+        "sha256": "442df88bf0516494f54e633581fb43af7483baaaef5c66043eaa7ea6333dccf3",
+        "modifiedAt": "2026-10-17T18:36:21.243Z"
+      },
+      "public/simulatte/solar-drive/solar-drive.css": {
+        "sha256": "1dd41e30d81ff6f4d114016ce94e25d02e2f9f7b825b83021f73b0e6cfb4488c",
+        "modifiedAt": "2026-10-17T18:42:34.551Z"
+      },
+      "public/simulatte/world/recursive-reference.css": {
+        "sha256": "a39aace05f333fc92bd09d7ed0f36e8d32d845f387254618a4a4accfa3808e6a",
+        "modifiedAt": "2026-10-17T18:42:34.550Z"
+      },
+      "public/styles.css": {
+        "sha256": "a57b6effa012aeb6329945ecd84b0f966658782b67ebd54d023bd5ed2d3b3212",
+        "modifiedAt": "2026-10-17T18:42:34.554Z"
+      },
+      "public/world-tiers.css": {
+        "sha256": "4387fd431f902633b684c3efa6e9538ca6647147bcfe2368c2a7c2dcdbcbf4f3",
+        "modifiedAt": "2026-10-17T18:42:34.555Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Chrome with WebGPU; desktop and touch-emulated mobile. No measured weather, hardware performance, or physical-device claim.",
+  "cases": [
+    {
+      "route": "/motorcycle",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 24,
+          "y": 68,
+          "width": 1392,
+          "height": 816,
+          "top": 68,
+          "right": 1416,
+          "bottom": 884,
+          "left": 24
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Follow",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Sidewalk",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Rooftop",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Onboard",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "capture": "artifacts/shared-frame-catalog/-motorcycle-1440.png",
+      "captureSha256": "30759ec6457506cfda1d37cf655dd0720696c6f1ac087fc268734eab3bd6ad2a"
+    },
+    {
+      "route": "/sunwalker",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 590,
+          "top": 88,
+          "right": 1392,
+          "bottom": 678,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top view",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Follow",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "POV",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "capture": "artifacts/shared-frame-catalog/-sunwalker-1440.png",
+      "captureSha256": "c23793023d4b7730d5905da9934bf3a13f306f3d6c2927c010490ecd8c7d403e"
+    },
+    {
+      "route": "/datacenter",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 816,
+          "top": 88,
+          "right": 1392,
+          "bottom": 904,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top view",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Network layout",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Physical racks",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "capture": "artifacts/shared-frame-catalog/-datacenter-1440.png",
+      "captureSha256": "040969f45fe9b8e0b115d9618f3b0fbe6c52b4e92d344412e634419495a5726c"
+    },
+    {
+      "route": "/interstellar",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 756,
+          "top": 88,
+          "right": 1392,
+          "bottom": 844,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Sphere",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Follow",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Torus",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      }
+    },
+    {
+      "route": "/orbital",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 756,
+          "top": 88,
+          "right": 1392,
+          "bottom": 844,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Compare",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      }
+    },
+    {
+      "route": "/grid",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 756,
+          "top": 88,
+          "right": 1392,
+          "bottom": 844,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Compare",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      }
+    },
+    {
+      "route": "/subsea",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 756,
+          "top": 88,
+          "right": 1392,
+          "bottom": 844,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Compare",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      }
+    },
+    {
+      "route": "/city/cable-trader-pickup-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 756,
+          "top": 88,
+          "right": 1392,
+          "bottom": 844,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top view",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Follow",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      }
+    },
+    {
+      "route": "/city/neighborhood-bulk-pool-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 756,
+          "top": 88,
+          "right": 1392,
+          "bottom": 844,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top view",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      }
+    },
+    {
+      "route": "/city/nyc-development-atlas-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 756,
+          "top": 88,
+          "right": 1392,
+          "bottom": 844,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top view",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Follow",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Compare",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      }
+    },
+    {
+      "route": "/country/food-recall-us-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 756,
+          "top": 88,
+          "right": 1392,
+          "bottom": 844,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      }
+    },
+    {
+      "route": "/world/maritime-trade-global-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 756,
+          "top": 88,
+          "right": 1392,
+          "bottom": 844,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Compare",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      }
+    },
+    {
+      "route": "/solar-system/asteroid-defense-v1",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 48,
+          "y": 88,
+          "width": 1344,
+          "height": 756,
+          "top": 88,
+          "right": 1392,
+          "bottom": 844,
+          "left": 48
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Follow",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Compare",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      }
+    },
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 24,
+          "y": 68,
+          "width": 1392,
+          "height": 816,
+          "top": 68,
+          "right": 1416,
+          "bottom": 884,
+          "left": 24
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false,
+        "camera": "overview"
+      },
+      "topView": {
+        "yaw": 0.4,
+        "pitch": 1.5697963267948967,
+        "distance": 4.456287673486559,
+        "target": [
+          0.00024640560150146484,
+          1.240488886833191,
+          0
+        ]
+      },
+      "cameraState": {
+        "selectionPreserved": true,
+        "focusAccepted": "overview",
+        "keyboardAccepted": "manual"
+      },
+      "capture": "artifacts/shared-frame-catalog/-simulatte-solar-drive-index-html-1440.png",
+      "captureSha256": "56943a5d5c52800836d94d143b9131b2302bb91512d0759d782f9d286c6bb474"
+    },
+    {
+      "route": "/living-tissue",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 24,
+          "y": 68,
+          "width": 1352,
+          "height": 816,
+          "top": 68,
+          "right": 1376,
+          "bottom": 884,
+          "left": 24
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-catalog/-living-tissue-1440.png",
+      "captureSha256": "bcb0b61842ca3f13ce00ca1e6a38a720fb61240b93ec4f6044c9ec119f11cea8"
+    },
+    {
+      "route": "/river-formation",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 24,
+          "y": 68,
+          "width": 1352,
+          "height": 816,
+          "top": 68,
+          "right": 1376,
+          "bottom": 884,
+          "left": 24
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-catalog/-river-formation-1440.png",
+      "captureSha256": "667f43b2a7430e86128914d69bf17d4e3ade86e5f872537d02b56f76c8297e41"
+    },
+    {
+      "route": "/crystal-foundry",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 24,
+          "y": 68,
+          "width": 1352,
+          "height": 816,
+          "top": 68,
+          "right": 1376,
+          "bottom": 884,
+          "left": 24
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-catalog/-crystal-foundry-1440.png",
+      "captureSha256": "44d30ee489acd14203fa216b371dde75d977742004f888d012ed8b46801d2752"
+    },
+    {
+      "route": "/motorcycle",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 8,
+          "y": 64,
+          "width": 374,
+          "height": 619,
+          "top": 64,
+          "right": 382,
+          "bottom": 683,
+          "left": 8
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Follow",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Sidewalk",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Rooftop",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Onboard",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "capture": "artifacts/shared-frame-catalog/-motorcycle-390.png",
+      "captureSha256": "4f4d3f157423dbad12541aceb24fb65472a8c9e153623a191b045c636b989276",
+      "touchScroll": true
+    },
+    {
+      "route": "/sunwalker",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 434,
+          "top": 76,
+          "right": 370,
+          "bottom": 510,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top view",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Follow",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "POV",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "capture": "artifacts/shared-frame-catalog/-sunwalker-390.png",
+      "captureSha256": "a9712f5e9465b8528100bce03cafdaf783809ae4bbac133d87b37678d7a6eae0",
+      "touchScroll": true
+    },
+    {
+      "route": "/datacenter",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 619,
+          "top": 76,
+          "right": 370,
+          "bottom": 695,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top view",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Network layout",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Physical racks",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "capture": "artifacts/shared-frame-catalog/-datacenter-390.png",
+      "captureSha256": "a2770177cf7771963246e6307e77b9916e5a1a4dd81887e74098d1fff74ca824"
+    },
+    {
+      "route": "/interstellar",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 566,
+          "top": 76,
+          "right": 370,
+          "bottom": 642,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Sphere",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Follow",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Torus",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/orbital",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 566,
+          "top": 76,
+          "right": 370,
+          "bottom": 642,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Compare",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/grid",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 566,
+          "top": 76,
+          "right": 370,
+          "bottom": 642,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Compare",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/subsea",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 566,
+          "top": 76,
+          "right": 370,
+          "bottom": 642,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Compare",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/city/cable-trader-pickup-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 566,
+          "top": 76,
+          "right": 370,
+          "bottom": 642,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top view",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Follow",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/city/neighborhood-bulk-pool-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 566,
+          "top": 76,
+          "right": 370,
+          "bottom": 642,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top view",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/city/nyc-development-atlas-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 566,
+          "top": 76,
+          "right": 370,
+          "bottom": 642,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top view",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Follow",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Compare",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/country/food-recall-us-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 566,
+          "top": 76,
+          "right": 370,
+          "bottom": 642,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/world/maritime-trade-global-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 566,
+          "top": 76,
+          "right": 370,
+          "bottom": 642,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Compare",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/solar-system/asteroid-defense-v1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 20,
+          "y": 76,
+          "width": 350,
+          "height": 566,
+          "top": 76,
+          "right": 370,
+          "bottom": 642,
+          "left": 20
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Follow",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        },
+        {
+          "label": "Compare",
+          "disabled": true,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "touchScroll": true
+    },
+    {
+      "route": "/simulatte/solar-drive/index.html",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 8,
+          "y": 64,
+          "width": 374,
+          "height": 619,
+          "top": 64,
+          "right": 382,
+          "bottom": 683,
+          "left": 8
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false,
+        "camera": "overview"
+      },
+      "topView": {
+        "yaw": 0.4,
+        "pitch": 1.5697963267948967,
+        "distance": 7.279536743978148,
+        "target": [
+          0.00024640560150146484,
+          1.240488886833191,
+          0
+        ]
+      },
+      "cameraState": {
+        "selectionPreserved": true,
+        "focusAccepted": "overview",
+        "keyboardAccepted": "manual"
+      },
+      "capture": "artifacts/shared-frame-catalog/-simulatte-solar-drive-index-html-390.png",
+      "captureSha256": "ffe177c8629822596957585bf3feed2e56fa640413ef7f0aaa634e34ac619f59",
+      "touchScroll": true
+    },
+    {
+      "route": "/living-tissue",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 8,
+          "y": 64,
+          "width": 374,
+          "height": 619,
+          "top": 64,
+          "right": 382,
+          "bottom": 683,
+          "left": 8
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-catalog/-living-tissue-390.png",
+      "captureSha256": "898a9b21936b26134bf07b96ceda58c98305a4888fbbdcd769ea57a4a10763ae",
+      "touchScroll": true
+    },
+    {
+      "route": "/river-formation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 8,
+          "y": 64,
+          "width": 374,
+          "height": 619,
+          "top": 64,
+          "right": 382,
+          "bottom": 683,
+          "left": 8
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        },
+        {
+          "label": "Top",
+          "disabled": false,
+          "role": "radio",
+          "checked": "false"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-catalog/-river-formation-390.png",
+      "captureSha256": "bf4a784ce87481d346145c5e417b6210f4fc50d7756b318800cc9d8e115984fb",
+      "touchScroll": true
+    },
+    {
+      "route": "/crystal-foundry",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "pass",
+      "frame": {
+        "unowned": [],
+        "badButtons": [],
+        "overflow": false,
+        "stage": {
+          "x": 8,
+          "y": 64,
+          "width": 374,
+          "height": 619,
+          "top": 64,
+          "right": 382,
+          "bottom": 683,
+          "left": 8
+        }
+      },
+      "views": [
+        {
+          "label": "Overview",
+          "disabled": false,
+          "role": "radio",
+          "checked": "true"
+        }
+      ],
+      "afterReset": {
+        "failed": false
+      },
+      "branchSwitch": true,
+      "capture": "artifacts/shared-frame-catalog/-crystal-foundry-390.png",
+      "captureSha256": "bf6c3c67bd0a103d164eb00a369108e58eb2b232805fc373edf92130df148b6e",
+      "touchScroll": true
+    }
+  ],
+  "sourceAfter": {
+    "head": "fef3ebfb70f4877eceecbd26036b69b5411b9b91",
+    "capturedAt": "2026-10-17T18:47:13.338Z",
+    "modifiedSources": {
+      "public/shared/design/world-ui/CATSCAN.md": {
+        "sha256": "79c09242a79bb3e435362321426274ebde3fe699744ed6c96db4c001e4b77948",
+        "modifiedAt": "2026-10-17T18:43:45.203Z"
+      },
+      "public/shared/design/world-ui/button.css": {
+        "sha256": "8cb327fd107ce28b130cfcafadb5fd7824650925d7cfa5ebba75c8b3a93de07f",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/shared/design/world-ui/components.js": {
+        "sha256": "3e138927707b13e21ad43743a2207b24c91331f372585df5978903edec99ef35",
+        "modifiedAt": "2026-10-17T18:45:09.829Z"
+      },
+      "public/shared/design/world-ui/inspector.css": {
+        "sha256": "4d76ee8eb4ac7be254cdea142a1e3840f9753f8ffae9ec7a31225ffdba42d5fb",
+        "modifiedAt": "2026-10-17T18:34:48.334Z"
+      },
+      "public/shared/design/world-ui/menu.css": {
+        "sha256": "b4f781995ee66c83f745da3208bd6bd764932efd680ec9ca10f306700dd5c7bb",
+        "modifiedAt": "2026-10-17T18:45:09.829Z"
+      },
+      "public/shared/design/world-ui/metric.css": {
+        "sha256": "1418ec2da247fd8f412c7d90173fe1ad880004497cb0cf6fa285f5c2e5cbb4fe",
+        "modifiedAt": "2026-10-17T18:43:45.201Z"
+      },
+      "public/shared/design/world-ui/sheet.css": {
+        "sha256": "53045a992afdb6668fb917b35a84223c3d0661fc761aeabb7aa48e6259abbc88",
+        "modifiedAt": "2026-10-17T18:34:48.334Z"
+      },
+      "public/simulatte/app/CATSCAN.md": {
+        "sha256": "71484fb1bdcea33533b36969060ec742bb61048c23fcc7b933db4db852581aa1",
+        "modifiedAt": "2026-10-17T18:45:09.829Z"
+      },
+      "public/simulatte/app/experience-frame-adapters.js": {
+        "sha256": "021f81b882f4ae5bd650873341b8d24a0c46da1a9a4385dc37bd440197a791cc",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/simulatte/app/experience-frame.css": {
+        "sha256": "e50c991d26fc4a9d9b23b4c265d5fae711b41f98fffe907d00326790c314d5d0",
+        "modifiedAt": "2026-10-17T18:41:39.063Z"
+      },
+      "public/simulatte/app/experience-frame.js": {
+        "sha256": "860dd8971e015fa9a01fb40c5f933dbeea44b540e2e8398117aa5fde3ca07315",
+        "modifiedAt": "2026-10-17T18:41:39.062Z"
+      },
+      "public/simulatte/app/world-tiers-boot.js": {
+        "sha256": "b678e84aa85d67e4c6ae6c1e0c6289dceb8d0feaa7d627673b8a22abea637b1e",
+        "modifiedAt": "2026-10-17T18:41:39.063Z"
+      },
+      "public/simulatte/field-experiments/experiment.css": {
+        "sha256": "0d0f0425f4a377778187562a344f1ad9cb14b4cd7327d5f5fe3a367827ff7081",
+        "modifiedAt": "2026-10-17T18:42:34.550Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "ebccf030888df85ecb9173b93bcfdc21fc6d1d22f0cee2cb3a729e2636089ddc",
+        "modifiedAt": "2026-10-17T18:36:21.243Z"
+      },
+      "public/simulatte/motorcycle-mitigation/index.html": {
+        "sha256": "ecbf9618b7d85ff44e0d10458944b6a6ea90a5bdf8774afbe1a7eab6d7e48e58",
+        "modifiedAt": "2026-10-17T18:43:45.202Z"
+      },
+      "public/simulatte/motorcycle-mitigation/shared-controls.js": {
+        "sha256": "b6e9c1b3b3cae1f00825a3c47a5a9e437efd0bf2addbc9b2866828b0e57f30b8",
+        "modifiedAt": "2026-10-17T18:43:45.202Z"
+      },
+      "public/simulatte/motorcycle-mitigation/styles.css": {
+        "sha256": "661130f293aa7bf53502cfd9983237d0d1cd173e2159a1a59f696d22509fa187",
+        "modifiedAt": "2026-10-17T18:42:34.552Z"
+      },
+      "public/simulatte/motorcycle-noise/city-experience.css": {
+        "sha256": "fe43f3b69ee328d2a4659cc1de0f72d876ae4a261b26dab6325269c56cd8a0b8",
+        "modifiedAt": "2026-10-17T18:42:34.549Z"
+      },
+      "public/simulatte/motorcycle-noise/header-controls.js": {
+        "sha256": "cbdc3e8690ad0079d50e63bb6d7c4ccda197e1a76c169c62a38312cf14eaf6be",
+        "modifiedAt": "2026-10-17T18:36:58.349Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "43170412c815380168048d6137cea81d82754a4998467d8b574bc8dd34337ddf",
+        "modifiedAt": "2026-10-17T18:36:21.242Z"
+      },
+      "public/simulatte/motorcycle-noise/reflection.css": {
+        "sha256": "45ba0a556d9db923246f020af9affeb6e163da6a6c7181ccda2959570a4c4522",
+        "modifiedAt": "2026-10-17T18:42:34.548Z"
+      },
+      "public/simulatte/motorcycle-noise/style.css": {
+        "sha256": "004d067555638aab13b99a92aea6e1f5a6d7c0679891168488b0f8829e052c1d",
+        "modifiedAt": "2026-10-17T18:42:34.548Z"
+      },
+      "public/simulatte/motorcycle-noise/traffic-audio.js": {
+        "sha256": "4e61f5dce541a944f6b74fc8239e866261cf9e3c3fcf1e4de93f5a442f13f949",
+        "modifiedAt": "2026-10-17T18:43:09.610Z"
+      },
+      "public/simulatte/solar-drive/index.html": {
+        "sha256": "442df88bf0516494f54e633581fb43af7483baaaef5c66043eaa7ea6333dccf3",
+        "modifiedAt": "2026-10-17T18:36:21.243Z"
+      },
+      "public/simulatte/solar-drive/solar-drive.css": {
+        "sha256": "1dd41e30d81ff6f4d114016ce94e25d02e2f9f7b825b83021f73b0e6cfb4488c",
+        "modifiedAt": "2026-10-17T18:42:34.551Z"
+      },
+      "public/simulatte/world/recursive-reference.css": {
+        "sha256": "a39aace05f333fc92bd09d7ed0f36e8d32d845f387254618a4a4accfa3808e6a",
+        "modifiedAt": "2026-10-17T18:42:34.550Z"
+      },
+      "public/styles.css": {
+        "sha256": "a57b6effa012aeb6329945ecd84b0f966658782b67ebd54d023bd5ed2d3b3212",
+        "modifiedAt": "2026-10-17T18:42:34.554Z"
+      },
+      "public/world-tiers.css": {
+        "sha256": "4387fd431f902633b684c3efa6e9538ca6647147bcfe2368c2a7c2dcdbcbf4f3",
+        "modifiedAt": "2026-10-17T18:42:34.555Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "status": "pass"
+}

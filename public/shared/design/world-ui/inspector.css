@@ -9,3 +9,5 @@
 .wui-inspector-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 .wui-inspector[data-placement='edge'] { position: fixed; inset: 80px 16px auto auto !important; }
 @media(max-width:700px) { .wui-inspector[data-wui] { position: fixed !important; inset: auto 0 var(--wui-inspector-bottom,0px) !important; width: 100% !important; max-height: 52svh; border-radius: 4px 4px 0 0; z-index: 60; padding: 12px 16px max(12px,env(safe-area-inset-bottom)); } }
+
+.wui-inspector[data-placement='inline'] { position: relative !important; inset: auto !important; width: 100% !important; max-height: none; }

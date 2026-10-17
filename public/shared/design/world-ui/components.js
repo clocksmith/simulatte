@@ -47,15 +47,17 @@
     const el = node(doc, 'details', 'wui-disclosure'), summary = node(doc, 'summary', '', title);
     SimButton({ element: summary, variant: 'quiet' }); el.append(summary, ...children); return el;
   }
-  function SimDock({ children = [], label, document: doc = document }) {
-    const el = node(doc, 'div', 'wui-dock'); el.setAttribute('role', 'group'); el.setAttribute('aria-label', label);
+  function SimDock({ element, children = [], label, document: doc = document }) {
+    const el = element || node(doc, 'div');el.classList.add('wui-dock'); el.setAttribute('role', 'group'); el.setAttribute('aria-label', label);
     el.append(...children); return el;
   }
   function SimMenu(options = {}) {
     const doc = docFor(options), el = options.element || node(doc, 'details', '');
     if (menus.has(el)) return menus.get(el);
     const trigger = el.querySelector(':scope > summary') || node(doc, 'summary', '', options.label);
-    const content = options.content || el.querySelector(':scope > div') || node(doc, 'div');
+    const existing = el.querySelector(':scope > div');
+    const content = options.content || node(doc, 'div');
+    if(existing && existing!==content){existing.className='wui-menu-group';content.append(existing);}
     el.className = 'wui-menu'; content.className = 'wui-menu-content'; content.dataset.wui = 'menu';
     SimButton({ element: trigger, variant: 'quiet' }); trigger.classList.add('wui-menu-trigger');
     trigger.setAttribute('aria-haspopup', 'menu'); content.setAttribute('role', 'menu'); content.setAttribute('aria-label', options.label || trigger.textContent);
@@ -117,22 +119,28 @@
     el.setAttribute('aria-label', options.label || el.getAttribute('aria-label') || 'Details');
     const backdrop = options.backdrop || node(doc, 'div', 'wui-sheet-backdrop'); backdrop.className = 'wui-sheet-backdrop';
     if (!backdrop.isConnected) doc.body.append(backdrop);
+    const native = el.tagName === 'DIALOG';
+    const nativeOpen = native ? el.showModal.bind(el) : null, nativeClose = native ? el.close.bind(el) : null;
     let previous; const events = new AbortController();
     function close({ restoreFocus = true } = {}) {
+      if(native && el.open)nativeClose();
       el.hidden = true; el.inert = true; el.setAttribute('aria-hidden', 'true'); el.classList.remove('is-open'); backdrop.hidden = true;
       options.trigger?.setAttribute('aria-expanded', 'false'); if (restoreFocus && previous?.isConnected) previous.focus({ preventScroll: true });
     }
     function open() {
-      previous = doc.activeElement; el.hidden = false; el.inert = false; el.setAttribute('aria-hidden', 'false'); el.classList.add('is-open'); backdrop.hidden = false;
+      if(!el.hidden && (!native || el.open))return;
+      previous = doc.activeElement; el.hidden = false; el.inert = false; el.setAttribute('aria-hidden', 'false'); el.classList.add('is-open'); backdrop.hidden = native;
+      if(native && !el.open)nativeOpen();
       options.trigger?.setAttribute('aria-expanded', 'true'); (options.closeButton || focusable(el)[0] || el).focus({ preventScroll: true });
     }
+    if(native){el.showModal=open;el.close=()=>close();el.addEventListener('cancel',e=>{e.preventDefault();close();},{signal:events.signal});el.addEventListener('click',e=>{if(e.target!==el)return;const r=el.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)close();},{signal:events.signal});}
     backdrop.addEventListener('click', () => close(), { signal: events.signal });
     if (!options.externalTrigger) {
       options.trigger?.addEventListener('click', open, { signal: events.signal });
       options.closeButton?.addEventListener('click', () => close(), { signal: events.signal });
     }
     doc.addEventListener('keydown', e => {
-      if (el.hidden) return;
+      if (el.hidden || (native && !el.open) || [...doc.querySelectorAll('[data-wui=sheet]')].some(other=>other!==el&&!other.hidden&&(other.matches('dialog[open]')||other.contains(doc.activeElement)))) return;
       if (e.key === 'Escape' && !el.querySelector('.wui-menu[open]')) { e.preventDefault(); close(); }
       if (e.key !== 'Tab') return;
       const list = focusable(el), first = list[0], last = list.at(-1);
@@ -143,14 +151,16 @@
     const api = { element: el, open, close, dispose() { events.abort(); close({ restoreFocus: false }); } }; sheets.set(el, api); return api;
   }
   function SimMetric(options = {}) {
-    const doc = docFor(options), el = node(doc, 'section', 'wui-metric');
-    const label = node(doc, 'div', 'wui-metric-label'), value = node(doc, 'p', 'wui-metric-value'), basis = node(doc, 'p', 'wui-metric-basis');
-    el.append(label,value,basis);
+    const doc = docFor(options), el = options.element || node(doc, 'section', '');
+    el.classList.add('wui-metric');el.dataset.wui='metric';
+    const label = options.labelElement || node(doc, 'div', ''), value = options.valueElement || node(doc, 'p', ''), basis = node(doc, 'p', 'wui-metric-basis');
+    label.classList.add('wui-metric-label');value.classList.add('wui-metric-value');
+    if(options.preserveContent)el.insertBefore(basis,value);else el.append(label,value,basis);
     function update(data) {
       for (const key of ['subject','value','unit','timeBasis','freshness','validity']) if (data[key] == null) throw Error(`SimMetric requires ${key}`);
       if (!['governing','supporting','detail'].includes(data.level)) throw Error('Unknown metric level');
       el.dataset.level=data.level; el.dataset.freshness=data.freshness; el.dataset.validity=data.validity;
-      label.textContent=data.subject; value.textContent=`${data.value}${data.unit ? ' '+data.unit : ''}`;
+      if(!options.preserveContent){label.textContent=data.subject;value.textContent=`${data.value}${data.unit ? ' '+data.unit : ''}`;}
       basis.textContent=`${data.timeBasis} · ${data.freshness} · ${data.validity}`;
       el.setAttribute('aria-label', `${data.subject}: ${value.textContent}. ${basis.textContent}`);
     }
@@ -164,7 +174,22 @@
     for (const x of [rack.right+gap,rack.left-panel.width-gap]) if (x>=gap && x+panel.width<=scene.width-gap) return { x,y };
     return null;
   }
-  function SimInspector({ host, onSelect, onAction, onError, returnFocus, prominentFields = [] }) {
+  function SimInspector(options) {
+    const {host,onSelect,onAction,onError,returnFocus,prominentFields=[]}=options;
+    if(options.element){
+      const el=options.element,doc=el.ownerDocument;
+      el.className='wui-inspector';el.dataset.wui='inspector';el.dataset.placement=options.placement||'edge';el.tabIndex=-1;
+      const heading=options.heading||node(doc,'header','');heading.className='wui-inspector-heading';
+      if(options.title){options.title.className='wui-inspector-title';heading.prepend(options.title);}
+      const close=options.closeButton||(options.placement==='inline'?null:SimButton({document:doc,label:'×',variant:'icon',ariaLabel:'Close inspector',onAction:()=>{el.hidden=true;returnFocus?.focus();}}).element);
+      if(close){
+        SimButton({element:close,label:'×',variant:'icon',ariaLabel:'Close inspector'});heading.append(close);
+        close.addEventListener('click',()=>returnFocus?.focus({preventScroll:true}));
+        el.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();close.click();}});
+      }
+      el.prepend(heading);
+      const disposeControls=adoptTree(el),api={element:el,dispose:disposeControls};inspectors.set(el,api);return api;
+    }
     const doc=host.ownerDocument, el=node(doc,'section','wui-inspector'); el.dataset.wui='inspector'; el.setAttribute('aria-label','Object inspector'); el.tabIndex=-1;
     const heading=node(doc,'header','wui-inspector-heading'), title=node(doc,'h2','wui-inspector-title'), condition=node(doc,'p','wui-inspector-condition');
     const dismiss=async()=>{await onSelect(null);returnFocus?.focus({preventScroll:true});};
@@ -218,15 +243,20 @@
     const show=()=>{el.hidden=false;const r=target.getBoundingClientRect(),v=doc.defaultView;el.style.left=`${Math.max(12,Math.min(r.left,v.innerWidth-el.offsetWidth-12))}px`;el.style.top=`${r.bottom+el.offsetHeight+12<v.innerHeight?r.bottom+8:Math.max(12,r.top-el.offsetHeight-8)}px`;},hide=()=>{el.hidden=true;};target.addEventListener('focus',show);target.addEventListener('blur',hide);target.addEventListener('pointerenter',show);target.addEventListener('pointerleave',hide);target.addEventListener('keydown',e=>{if(e.key==='Escape')hide();});return el;
   }
   SimTooltip.counter=0;
+  function SimField({element:el}) {
+    el.classList.remove('sim-field');el.dataset.wui='field';
+    el.classList.add(['checkbox','radio','range','file'].includes(el.type)?'wui-input':'wui-field');
+    el.dataset.inputKind=el.type||'select';return {element:el};
+  }
   function adoptTree(host) {
     function adopt(el) {
       if(el.matches('button,summary')&&!el.dataset.wui)SimButton({element:el,variant:el.classList.contains('sim-action-primary')?'primary':el.tagName==='SUMMARY'?'quiet':'secondary'});
-      if(el.matches('select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea')&&!el.dataset.wui){el.classList.add('wui-field');el.dataset.wui='field';}
+      if(el.matches('select,input,textarea')&&!el.dataset.wui){SimField({element:el});if(el.type==='file'&&el.closest('label')){const label=el.closest('label');SimButton({element:label,variant:'secondary'});label.classList.add('wui-file-label');}}
       if(el.matches('details')&&!el.classList.contains('wui-menu'))el.classList.add('wui-disclosure');
     }
     host.querySelectorAll('button,summary,select,input,textarea,details').forEach(adopt);
     const observer=new MutationObserver(records=>{for(const record of records)for(const n of record.addedNodes)if(n.nodeType===1){adopt(n);n.querySelectorAll('button,summary,select,input,textarea,details').forEach(adopt);}});
     observer.observe(host,{subtree:true,childList:true});return()=>observer.disconnect();
   }
-  return Object.freeze({ SimButton, SimDock, SimMenu, SimSheet, SimInspector, SimMetric, SimTooltip, SimDisclosure, menuFromSelect, adoptTree, placeInspector, getSheet:el=>sheets.get(el), getInspector:el=>inspectors.get(el), VARIANTS });
+  return Object.freeze({ SimButton, SimDock, SimMenu, SimSheet, SimInspector, SimMetric, SimTooltip, SimDisclosure, SimField, menuFromSelect, adoptTree, placeInspector, getSheet:el=>sheets.get(el), getInspector:el=>inspectors.get(el), VARIANTS });
 });

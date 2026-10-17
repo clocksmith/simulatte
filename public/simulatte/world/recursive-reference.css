@@ -24,8 +24,6 @@ body {
   background-size: 48px 48px, 48px 48px, auto, auto;
 }
 
-button { font: inherit; }
-
 .world-shell { width: min(1480px, 100%); margin: 0 auto; padding: 24px; }
 
 .world-header, .causal-header, .measurement-row {
@@ -80,17 +78,6 @@ h2 { font-size: clamp(25px, 2.4vw, 38px); letter-spacing: -0.025em; }
   background: rgba(8, 12, 18, 0.82);
   backdrop-filter: blur(16px);
 }
-
-.scale-rail button {
-  border: 0;
-  border-radius: 999px;
-  padding: 8px 14px;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.scale-rail button.selected { background: var(--ink); color: #11151c; }
 
 .time-readout {
   position: absolute;

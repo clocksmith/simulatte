@@ -1,10 +1,14 @@
-.wui-metrics { display: flex; flex-wrap: wrap; gap: 24px; align-items: start; border-top: 1px solid var(--wui-line); padding: 12px 0; }
-.wui-metric { flex: 1 1 140px; padding: 0; margin: 0; border: 0; background: none; font-family: var(--wui-font); }
-.wui-metric-label { font: 400 11px/1.4 var(--wui-font); color: var(--wui-muted); }
-.wui-metric-value { margin: 4px 0; font: 400 20px/1.4 var(--wui-mono); font-variant-numeric: tabular-nums; }
-.wui-metric[data-level='governing'] .wui-metric-value { font-size: 24px; }
-.wui-metric[data-level='detail'] .wui-metric-value { font-size: 14px; }
+.wui-metrics { display: flex !important; flex-wrap: wrap; gap: 24px !important; align-items: start; border-top: 1px solid var(--wui-line); padding: 12px 0 !important; }
+.wui-metric[data-wui] { flex: 1 1 140px; display: flex !important; flex-direction: column; align-items: start; gap: 4px; min-width: 0; overflow-wrap: anywhere; padding: 0 !important; margin: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; font-family: var(--wui-font); }
+.wui-metric-label { font: 400 11px/1.4 var(--wui-font) !important; color: var(--wui-muted); }
+.wui-metric-value { margin: 4px 0; font: 400 20px/1.4 var(--wui-mono) !important; font-variant-numeric: tabular-nums; }
+.wui-metric[data-level='governing'] .wui-metric-value { font-size: 24px !important; }
+.wui-metric[data-level='detail'] .wui-metric-value { font-size: 14px !important; }
 .wui-metric-basis { margin: 0; color: var(--wui-muted); font: 400 10px/1.4 var(--wui-mono); }
 .wui-metric[data-validity='invalid'] .wui-metric-value { color: var(--wui-danger); }
 .wui-metric[data-freshness='stale'] .wui-metric-value { opacity: .6; }
-@media(max-width:700px) { .wui-metrics { gap: 12px; } .wui-metric { flex-basis: 95px; } }
+@media(max-width:700px) { .wui-metrics { gap: 12px !important; } .wui-metric[data-wui] { flex-basis: 95px; } }
+
+.wui-metric-label { display: block; }
+.wui-metric-value { display: block; order: 1; }
+.wui-metric-basis { order: 2; }

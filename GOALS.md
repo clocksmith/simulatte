@@ -86,28 +86,23 @@ Every simulation autoplays an authored default with audio off. Pause freezes sim
 
 ## World presentation
 
-Every catalog simulation uses one World frame: identical responsive canvas bounds,
-header, camera menu, Reset view, playback, Restart, Replay, Speed and Advanced
-placement. Domain measurements and actions follow the canvas. Supported camera
-views remain truthful. Field comparison branches share the same viewport through
-a branch switch; neither branch changes the other. Keep Create separate.
+Every simulation uses the same World UI components. Scenes own composition and
+contextual actions; they do not invent control geometry, menus or inspectors.
+Supported camera views remain truthful. Field comparison branches share one
+viewport through a display switch; neither branch changes the other. Keep Create
+separate.
 
-World controls use one shared library at `public/shared/design/world-ui/`.
-Its neutral palette, Space Grotesk labels, thin separators and 4px controls
-combine 256.one restraint with Simulatte technical drawings and IBM Plex Mono
-measurements. Green signals live, selected, active or consequential state.
-Pages own composition and domain content; the library owns control geometry,
-interaction states, menus, inspectors, metrics, sheets and accessibility.
+The library at `public/shared/design/world-ui/` combines 256.one restraint with
+Simulatte technical drawings: neutral colors, Space Grotesk labels, thin
+separators, 4px controls and IBM Plex Mono measurements. Green signals live,
+selected, active or consequential state. The library owns interaction states,
+menus, inspectors, metrics, sheets and accessibility.
 
-GPU Cluster remains the first prototype at `/datacenter?frame=scene`. Desktop
-uses a compact identity/status bar, playback and camera docks at the scene's
-bottom corners, and an anchored inspector or right-edge dock. Mobile uses one
-bottom dock and a selected-object bottom sheet. Advanced controls share one
-sheet. No three-row toolbar precedes the scene. Keep the original comparison
-route while unfamiliar-user testing remains pending.
-
-Migrate GPU first, Motorcycle second, Sun Walker third, then remaining catalog
-pages using the same primitives without adding page-specific variants. The
-component catalog exposes light/dark and interaction states. CI forbids new
-simulation-owned control geometry; unchanged legacy rules are frozen by hash
-until their owner migrates. GPU composition has no legacy exceptions.
+All catalog pages use compact playback and camera docks and one settings sheet.
+Mobile has one bottom dock, never a three-row toolbar before the scene. GPU's
+scene composition is the default at `/datacenter`; `?frame=scene` remains a
+compatible URL. Domain actions and measurement meanings stay with simulations.
+The component catalog exposes light/dark and interaction states. CI rejects
+simulation-owned native-control styling and shared-component overrides with no
+legacy exceptions. Browser checks cover every catalog route; unfamiliar-user
+comprehension remains a separate study and is not established by this migration.

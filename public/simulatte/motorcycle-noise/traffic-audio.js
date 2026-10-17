@@ -88,10 +88,10 @@
   function fail(error){mute();releaseContext();if(button){button.checked=false;button.title=error.message||String(error);button.setAttribute('aria-label','Retry sound: '+(error.message||String(error)));}if(soundLabel)soundLabel.textContent='Retry sound';status(error.message||String(error));}
   function install(){
     if(button)return;const toolbar=document.getElementById('sound-controls');if(!toolbar)return;
-    const soundControl=document.createElement('label');soundControl.className='sound-switch';
+    const soundControl=document.createElement('label');soundControl.className='wui-control-label';
     soundLabel=document.createElement('span');soundLabel.textContent='Sound';
     button=document.createElement('input');button.id='traffic-sound';button.type='checkbox';button.checked=false;button.setAttribute('role','switch');button.setAttribute('aria-label','Traffic sound');
-    const track=document.createElement('span');track.className='sound-switch-track';track.setAttribute('aria-hidden','true');soundControl.append(soundLabel,button,track);
+    soundControl.append(button,soundLabel);
     button.title='Continuous synthesized traffic at your viewpoint. Playback volume is independent of modeled dBA. The strongest 32 sources have individual voices; remaining traffic contributes to the ambient mix. No live phase-cancellation claim.';
     statusNode=document.createElement('span');statusNode.id='traffic-audio-status';statusNode.className='muted';statusNode.setAttribute('role','status');statusNode.style.fontSize='.75rem';
     toolbar.prepend(soundControl);document.getElementById('audio-status-slot').append(statusNode);

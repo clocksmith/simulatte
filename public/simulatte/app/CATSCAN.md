@@ -3,7 +3,7 @@
 Parent: [World](../CATSCAN.md)
 ## Target
 
-Present catalog spotlights, consistent World behavior, and GOALS' GPU comparison.
+Present catalog spotlights and scene-owned composition using shared World UI components.
 
 ## Authority
 
@@ -35,12 +35,12 @@ Present catalog spotlights, consistent World behavior, and GOALS' GPU comparison
 - Profile replay compares deterministic execution identity and retains unproven proof classes.
 - Imports remain local unless a URL is requested. Declared mappings and units enable automatic playback; unresolved semantics stay visible.
 - Data execution uses a declared adapter and backend, never inferred physics or a hidden prompt/model lane.
-- Default frames share placement. The opt-in GPU prototype owns composition, preserving execution, camera, accessibility and failure semantics. Retain the default for unfamiliar-user comparison before rollout.
+- All simulations use shared World UI components and compact docks. Scenes own composition, preserving execution, camera, accessibility and failure semantics. GPU scene composition is the default.
 - `data-world-launch="featured"` suspends dormant workflows; removing it restores them.
 
 ## Acceptance
 
-- The runtime loader mounts declared scripts in deterministic order.
+- Runtime scripts mount in deterministic order.
 - Evidence: [World runtime loader tests](../../../tests/world-runtime-loader.test.cjs).
 - Evidence: [profile program tests](../../../tests/profile-program.test.cjs).
 

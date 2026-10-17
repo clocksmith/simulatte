@@ -4,7 +4,7 @@
   height: auto !important; padding: 10px 14px !important; margin: 0 !important; border: 1px solid var(--wui-line) !important;
   border-radius: var(--wui-radius) !important; font: 500 13px/1.4 var(--wui-font) !important; letter-spacing: 0 !important;
   color: var(--wui-ink) !important; background: var(--wui-paper) !important; box-shadow: none !important; backdrop-filter: none !important;
-  text-transform: none !important; text-decoration: none !important; text-shadow: none !important; transform: none !important;
+  text-transform: none !important; text-decoration: none !important; text-shadow: none !important;
 }
 .wui-button[data-wui] { display: inline-flex; align-items: center; justify-content: center; gap: var(--wui-space); cursor: pointer; }
 .wui-button[data-variant='primary'] { color: var(--wui-paper) !important; background: var(--wui-ink) !important; border-color: var(--wui-ink) !important; }
@@ -29,3 +29,17 @@
 .wui-disclosure > .wui-button::after { content: '+'; margin-left: auto; }
 .wui-disclosure[open] > .wui-button::after { content: '−'; }
 .wui-disclosure > .wui-button::-webkit-details-marker { display: none; }
+
+.wui-input[data-wui] { accent-color: var(--wui-active); font: 400 13px var(--wui-font); color: var(--wui-ink); min-height: 44px; max-width: 100%; margin: 0; box-sizing: border-box; }
+.wui-input[data-input-kind='range'] { width: 100%; cursor: pointer; }
+.wui-input:is([data-input-kind='checkbox'],[data-input-kind='radio']) { width: 20px; min-width: 20px; vertical-align: middle; }
+.wui-input[data-wui]:focus-visible { outline: 2px solid var(--wui-active); outline-offset: 3px; }
+.wui-input[data-wui]:disabled { opacity: .45; }
+.wui-choice-group { display: flex; gap: 8px; flex-wrap: wrap; border: 0; padding: 0; }
+.wui-control-label:has(.wui-input[data-input-kind='checkbox']) { display: flex; align-items: center; gap: 8px; }
+.wui-button[data-wui] svg { width: 16px; height: 16px; flex: none; }
+
+.wui-input:is([data-input-kind='checkbox'],[data-input-kind='radio']) { appearance: auto !important; position: static !important; opacity: 1 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; }
+.wui-file-label { position: relative; }
+.wui-file-label .wui-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.wui-file-label:focus-within { outline: 2px solid var(--wui-active); outline-offset: 3px; }

@@ -5,7 +5,7 @@
     if(body.dataset.experienceUi)return;
     const path=location.pathname.replace(/\/$/,'');
     const page=root.SimulattePublicRoutes?.forPath(path);
-    if(page?.profile==='gpu-supercluster-v1'&&new URLSearchParams(location.search).get('frame')==='scene'){
+    if(page?.profile==='gpu-supercluster-v1'){
       root.SimulatteGpuScene.mount();return;
     }
     const solar=Boolean(q('#viewport #scene')),field=Boolean(q('.experiments #baseline')),motorcycle=body.classList.contains('motorcycle-app');
@@ -24,6 +24,7 @@
       const title=document.createElement('h1');title.textContent='Solar Drive';
       frame=ui.mount({host,stage,title,camera:ui.cameraMenu(cameraButtons),reset:q('#reset-camera'),play:q('#run'),restart:q('#reset'),replay:q('#replay'),speed:ui.speedControl(q('#playback')),advanced,
         context:[q('.experience-switch'),q('#ride-summary'),q('.ride-action'),q('.readouts'),inspector,q('#assembly-tools'),q('.view-options'),q('.simulation-clock'),q('#playback-health')],legacy:[q('.scene-heading'),q('.transport')]});
+      root.SimulatteWorldUI.SimInspector({element:inspector,title:q('#part-title'),placement:'inline',returnFocus:q('#scene')});
       if(q('.masthead'))q('.masthead').hidden=true;
       if(q('.brand-bar'))q('.brand-bar').hidden=true;
       if(q('.brandbar'))q('.brandbar').hidden=true;
@@ -35,6 +36,7 @@
       frame=ui.mount({host,stage,title,camera:ui.cameraMenu(views),reset:q('#reset-view'),play:q('#pause'),restart:q('#restart'),replay:q('#replay'),speed:ui.speedControl(q('#speed')),advanced,
         context:[q('#question'),q('#signal')?.closest('label'),q('#legend'),q('#measures'),q('main>aside'),q('#clock'),q('#playback-rate')?.parentElement,q('#status')],legacy:[q('.primary-toolbar')]});
       oldHeader.hidden=true;
+      root.SimulatteWorldUI.SimInspector({element:q('aside',frame.notes),title:q('#selection'),placement:'inline',returnFocus:q('#scene')});
       const branches=document.createElement('div');branches.className='camera-modes';branches.setAttribute('role','radiogroup');branches.dataset.controlChoice='';branches.setAttribute('aria-label','Comparison branch');
       for(const [id,label]of [['intervention','Experiment'],['baseline','Untouched baseline']]){const b=ui.button(label,()=>{stage.dataset.branch=id;for(const n of branches.children)n.setAttribute('aria-checked',String(n.dataset.branch===id));});b.dataset.branch=id;b.setAttribute('aria-checked',String(id==='intervention'));branches.append(b);}
       root.SimulatteControlComponents.decorateGroup(branches);frame.notes.prepend(branches);const zoom=ui.zoom(stage,factor=>root.SimulatteFieldView.zoom(factor));
@@ -42,13 +44,16 @@
     }else if(motorcycle){
       const host=q('section.map'),stage=q('.canvas'),camera=q('#motorcycle-camera-menu'),oldToolbar=q('.city-toolbar');
       const layers=q('#live-overlay').closest('label');
-      frame=ui.mount({host,stage,title:'Motorcycle Noise',camera,reset:q('#reset-view'),play:q('#pause'),restart:q('#reset'),replay:q('#replay-traffic'),speed:ui.speedControl(q('#playback')),advanced:q('#header-advanced'),
+      frame=ui.mount({host,stage,title:'Motorcycle Noise',camera,reset:q('#reset-view'),play:q('#pause'),restart:q('#reset'),replay:q('#replay-traffic'),speed:ui.speedControl(q('#playback')),advanced:q('#header-advanced'),sheetElement:q('#advanced-sheet'),closeButton:q('#advanced-close'),
         context:[q('#motorcycle-location-menu'),q('#sound-controls'),q('#motorcycle-treatment-menu'),q('.observer-readout'),q('#inspection'),q('.map-legend'),q('#experience-status'),layers,q('#placement-prompt'),q('#camera-tracking')],legacy:[oldToolbar]});
-      q('#advanced-sheet').classList.add('experience-advanced');
+      root.SimulatteWorldUI.SimInspector({element:q('#inspection'),heading:q('.inspection-heading'),title:q('#inspection-title'),closeButton:q('#inspection-close'),returnFocus:q('#city')});
+      stage.append(q('#inspection'));
+      const contextDock=root.SimulatteWorldUI.SimDock({children:[q('#motorcycle-location-menu'),q('#sound-controls'),q('#motorcycle-treatment-menu')],label:'Scene actions'});frame.notes.prepend(contextDock);q('.observer-readout').className='wui-metrics';
+      for(const id of ['motorcycle-location-menu','motorcycle-treatment-menu'])root.SimulatteWorldUI.SimMenu({element:q('#'+id)});
       const nav=q('#map-navigation');if(nav){nav.style.position='static';frame.notes.append(nav);for(const id of ['#map-zoom-in','#map-zoom-out'])frame.storage.append(q(id));}
       q('#map-touch-hint').hidden=true;
       const zoom=ui.zoom(stage,factor=>invoke(root.SimulatteMotorcycleSession,'zoom',factor));
-      refresh=()=>{const state=root.motorcycleRuntimeReceipt;zoom.setAvailable(hasZoom(root.SimulatteMotorcycleSession)&&!['failed','recovering','loading'].includes(state?.state));frame.status.textContent=({running:'Running',paused:'Paused',failed:'Needs attention',recovering:'Recovering',loading:'Preparing'})[state?.state]||'Loading';};
+      refresh=()=>{const invitation=q('#sound-invitation');if(invitation&&invitation.parentElement!==frame.secondary)frame.secondary.append(invitation);const state=root.motorcycleRuntimeReceipt;zoom.setAvailable(hasZoom(root.SimulatteMotorcycleSession)&&!['failed','recovering','loading'].includes(state?.state));frame.status.textContent=({running:'Running',paused:'Paused',failed:'Needs attention',recovering:'Recovering',loading:'Preparing'})[state?.state]||'Loading';};
     }else{
       const host=q('.simulation-stage'),stage=q('.canvas-shell'),menu=q('#camera-menu'),controls=q('.camera-modes');
       for(const id of ['camera-bird','camera-top','camera-follow','camera-pov','camera-free','camera-compare'])controls.append(q('#'+id));
@@ -56,14 +61,42 @@
       const command=id=>invoke(root.SimulatteActiveSession,id).catch(e=>{error.textContent=e.message;});
       const error=document.createElement('p');error.setAttribute('role','status');
       const restart=ui.button('Restart',()=>command('restart')),replay=ui.button('Replay',()=>command('replay'));
-      frame=ui.mount({host,stage,title:page.displayName,camera:menu,reset:q('#camera-reset'),play,restart,replay,speed:ui.speedControl(q('#playback-speed')),advanced:q('#decisions-button'),
+      frame=ui.mount({host,stage,title:page.displayName,camera:menu,reset:q('#camera-reset'),play,restart,replay,speed:ui.speedControl(q('#playback-speed')),advanced:q('#decisions-button'),sheetElement:q('#decisions-drawer'),closeButton:q('#decisions-close'),backdrop:q('#decisions-backdrop'),
         context:[q('#experience-readouts'),q('#show-measurements').closest('label'),error],legacy:[q('.simulation-toolbar'),q('.simulation-viewbar')]});
-      const drawer=q('#decisions-drawer');drawer.classList.add('experience-advanced');
-      if(q('#runtime-details')){const details=q('#runtime-details');details.hidden=false;details.style.position='static';details.style.transform='none';details.style.width='100%';drawer.append(details);frame.storage.append(q('#runtime-toggle'));q('#runtime-details-close').hidden=true;}
+      const drawer=q('#decisions-drawer');
+      if(q('#runtime-details')){const details=q('#runtime-details');details.hidden=false;details.className='wui-sheet-section';drawer.append(details);frame.storage.append(q('#runtime-toggle'));q('#runtime-details-close').hidden=true;}
       const zoom=ui.zoom(stage,factor=>invoke(root.SimulatteActiveSession,'zoom',factor));
       refresh=()=>{const s=root.SimulatteActiveSession?.snapshot();frame.status.textContent=s?.visibleStatus||'Loading';const ready=s&&s.preparation==='ready';zoom.setAvailable(ready&&hasZoom(root.SimulatteActiveSession));for(const [b,id]of [[restart,'restart'],[replay,'replay']])b.disabled=!ready||!s.operations.some(op=>op.id===id&&op.available);const current=root.SimulattePublicRoutes.forPath(location.pathname);if(current&&frame.header.querySelector('h1').textContent!==current.displayName)frame.header.querySelector('h1').textContent=current.displayName;};
     }
-    refresh();const timer=setInterval(refresh,200);
+    // Preserve domain-owned value nodes and definition actions. Metadata comes
+    // from each simulation's published state or its explicit measurement copy.
+    const metrics=new WeakMap();
+    function reflectMetric(element,label,value,metadata){
+      if(!element||!label||!value)return;
+      let metric=metrics.get(element);
+      if(!metric){metric=root.SimulatteWorldUI.SimMetric({element,labelElement:label,valueElement:value,preserveContent:true});metrics.set(element,metric);}
+      const raw=value.textContent,match=/^([\d.,−-]+)\s*(.*)$/.exec(raw);
+      metric.update({subject:label.textContent,value:match?match[1]:raw,unit:match?match[2]:'',level:'supporting',...metadata});
+    }
+    function reflect(){
+      refresh();
+      if(solar){
+        const state=root.SimulatteSolarDrive?.getState(),failed=root.SimulatteSolarDrive?.controlState().failed;
+        q('.readouts')?.classList.add('wui-metrics');
+        for(const value of document.querySelectorAll('#metric-speed,#metric-battery,#metric-solar'))reflectMetric(value.parentElement,value.parentElement.firstElementChild,value,{timeBasis:state?`At ${state.timeS.toFixed(2)} s`:'Time pending',freshness:failed?'stale':state?'current':'pending',validity:state?'modeled':'unavailable'});
+      }else if(field){
+        q('#measures').classList.add('wui-metrics');
+        for(const row of q('#measures').children)reflectMetric(row,row.querySelector('dt'),row.querySelector('dd'),{timeBasis:q('#clock').textContent||'Time pending',freshness:root.__fieldExperimentError?'stale':'current',validity:'modeled'});
+      }else if(motorcycle){
+        const value=q('#observer-level'),time=q('#observer-time').textContent;
+        reflectMetric(value.parentElement,q('.sound-definition'),value,{timeBasis:time,freshness:/stale|updating|behind/i.test(time)?'stale':/sample/i.test(time)?'current':'pending',validity:root.SimulatteMotorcycleSession?.snapshot().measurement==='unavailable'?'unavailable':'modeled'});
+      }else{
+        q('#experience-summary-stats').classList.add('wui-metrics');
+        const state=root.SimulatteActiveSession?.snapshot();
+        for(const row of q('#experience-summary-stats').children)reflectMetric(row,row.querySelector('dt'),row.querySelector('dd'),{timeBasis:row.dataset.definition||'See measurement definition',freshness:state?.measurement==='fresh'?'current':state?.measurement||'pending',validity:state?.measurement==='unavailable'?'unavailable':'modeled'});
+      }
+    }
+    reflect();const timer=setInterval(reflect,200);
     root.addEventListener('pagehide',()=>{clearInterval(timer);},{once:true});
     root.__simulatteExperienceFrame={schema:'simulatte.experienceFrame.v1',stage:frame.stage,toolbar:frame.toolbar};
   }

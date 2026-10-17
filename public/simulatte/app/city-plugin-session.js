@@ -186,7 +186,7 @@
           getSession:()=>session,onPreviewChange:reason=>{if(reason==='dismissed')sunControls?.dismissPreview();return renderPluginExperience({mission:null});},projectObjects:()=>getRenderer()?.projectObjects?.()||[],
           onInsets:panel=>{
             const rect=elements.autonomyCanvas.getBoundingClientRect(),viewport=`${rect.width}:${rect.height}`;
-            inspectorInsets=hostRoot.SimulatteCameraFit.measureInsets(rect,[{edge:'bottom',rect:panel.getBoundingClientRect()}]);
+            inspectorInsets=hostRoot.SimulatteCameraFit.measureInsets(rect,elements.decisionsButton.dataset?.wui==='button'?[]:[{edge:'bottom',rect:panel.getBoundingClientRect()}]);
             // Opening selection preserves framing; orientation and explicit Focus use the new usable area.
             if(inspectorViewport!==viewport){inspectorViewport=viewport;applyInspectorInsets();}
           }});
@@ -198,7 +198,7 @@
       if (applyRouteParameters()) pluginUi.render(extensions.views(pluginContext), platform.contributions);
       recordRenderWork(renderWork.phases.pluginUi, performance.now() - uiStartedAt);
       const controlCount = platform.contributions.reduce((total, contribution) => total + contribution.controls.controls.length, 0);
-      elements.decisionsButton.textContent = 'Advanced';
+      elements.decisionsButton.textContent = elements.decisionsButton.dataset?.wui==='button'?'•••':'Advanced';
       renderPluginSummary(pluginPlayback?.snapshot().phase || 'ready');
       const renderer = getRenderer();
       if (!renderer) return;

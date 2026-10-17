@@ -3,7 +3,6 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../',import.meta.url));
-const baselinePath=path.join(root,'tools/world-ui-legacy-css.json');
 export function forbiddenRules(css) {
   const clean=css.replace(/\/\*[\s\S]*?\*\//g,'');
   return [...clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)].flatMap(match=>{
@@ -20,12 +19,10 @@ export function inspect(){
   const paths=[...files(path.join(root,'public/simulatte')),path.join(root,'public/styles.css'),path.join(root,'public/world-tiers.css')];
   return paths.flatMap(file=>forbiddenRules(fs.readFileSync(file,'utf8')).map(rule=>({...rule,file:path.relative(root,file)})));
 }
-export function validate(rows,legacy){
-  return rows.filter(row=>row.shared||!legacy.some(old=>old.file===row.file&&old.hash===row.hash));
-}
+export function validate(rows){return rows;}
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  const legacy=JSON.parse(fs.readFileSync(baselinePath,'utf8')),rows=inspect(),failures=validate(rows,legacy.rules);
+  const rows=inspect(),failures=validate(rows);
   for(const row of failures)console.error(`${row.file}: shared World UI must own ${row.selector}`);
-  console.log(`World UI ownership: ${failures.length} violations; ${rows.length-failures.length} unchanged legacy rules pending ordered migration.`);
+  console.log(`World UI ownership: ${failures.length} violations; ${rows.length} page-owned control rules.`);
   if(failures.length)process.exitCode=1;
 }

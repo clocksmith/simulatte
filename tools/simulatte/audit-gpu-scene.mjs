@@ -170,9 +170,9 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     const comparison={viewport,route:'/datacenter',checks:[]};report.cases.push(comparison);
     try{
       await client.send('Page.navigate', { url: (liveBase||browser.host.baseUrl) + 'datacenter' });
-      await until("document.body?.dataset.experienceUi==='unified' && globalThis.SimulatteActiveSession?.snapshot().preparation==='ready'",liveBase?60000:20000);
-      assert.equal(await evaluate("document.querySelectorAll('[data-frame-control]').length"), 7);
-      comparison.pass=true;comparison.checks.push('Current seven-slot comparison frame retained');
+      await until("document.body?.dataset.experienceUi==='gpu-scene' && globalThis.SimulatteActiveSession?.snapshot().preparation==='ready'",liveBase?60000:20000);
+      assert.equal(await evaluate("document.querySelectorAll('.gpu-scene__play-dock').length"), 1);
+      comparison.pass=true;comparison.checks.push('Default route uses the same shared scene components');
     }catch(error){comparison.pass=false;comparison.error=error.stack;comparison.diagnostics=client.diagnostics();}
   } finally {
     await browser.close();
