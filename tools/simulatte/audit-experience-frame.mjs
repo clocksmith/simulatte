@@ -13,7 +13,7 @@ const requestedRoutes=(process.env.SIMULATTE_FRAME_ROUTES||'').split(',').filter
 const pages=catalog.pages.filter(page=>!requestedRoutes.length||requestedRoutes.includes(page.path));
 assert.ok(pages.length,'No matching catalog routes');
 const reportPath=path.join(output,process.env.SIMULATTE_FRAME_REPORT||'report.json');
-let report={routes:pages.map(page=>page.path),frames:{},source:await sourceReceipt(root),boundary:'Chrome with WebGPU; desktop and touch-emulated mobile. No measured weather, hardware performance, or physical-device claim.',cases:[]};
+let report={baseUrl:process.env.SIMULATTE_FRAME_ORIGIN||'local static server',deployedVersion:process.env.SIMULATTE_FRAME_ORIGIN?await fetch(new URL('version.json',process.env.SIMULATTE_FRAME_ORIGIN)).then(r=>r.json()):null,routes:pages.map(page=>page.path),frames:{},source:await sourceReceipt(root),boundary:'Chrome with WebGPU; desktop and touch-emulated mobile. No measured weather, hardware performance, or physical-device claim.',cases:[]};
 if(process.env.SIMULATTE_FRAME_RESUME==='1'){
  const previous=JSON.parse(await fs.readFile(reportPath,'utf8'));
  assert.equal(previous.sourceAfter.head,report.source.head,'Resume source commit changed');
