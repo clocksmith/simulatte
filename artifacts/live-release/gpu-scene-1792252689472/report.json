@@ -1,0 +1,43 @@
+{
+  "build": "8a6d0978290e3bcdba5ed0bc00f1b5735edaf753-1139576580c0",
+  "url": "https://simulatte.world/",
+  "scope": "Live GPU prototype and original comparison route; browser smoke only.",
+  "cases": [
+    {
+      "route": "datacenter?frame=scene",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "screenshot": "1440-prototype.png"
+    },
+    {
+      "route": "datacenter",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "screenshot": "1440-original.png"
+    },
+    {
+      "route": "datacenter?frame=scene",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "screenshot": "390-prototype.png"
+    },
+    {
+      "route": "datacenter",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "screenshot": "390-original.png"
+    }
+  ]
+}
