@@ -33,8 +33,9 @@
         const spans = extractSpans(prompt);
         const retrieval = retrieveSurfaceCards(prompt, spans, context);
         const nodes = buildNodes(prompt, retrieval);
-        const relations = buildRelations(prompt, nodes, retrieval);
-        const events = buildEvents(prompt, nodes, retrieval);
+        const unsupported = [];
+        const relations = buildRelations(prompt, nodes, retrieval, unsupported);
+        const events = buildEvents(prompt, nodes, retrieval, unsupported);
         const readouts = buildReadouts(retrieval);
         const environment = buildEnvironment(retrieval);
         const worldIntent = {
@@ -48,6 +49,7 @@
         };
         const synthGraph = {
           schema: SYNTH_GRAPH_SCHEMA,
+          unsupported,
           prompt,
           nodes,
           relations,
@@ -255,112 +257,79 @@
         return (embeddingOnlyUsed[nodeType] || 0) < 1;
       }
 
-    function buildRelations(prompt, nodes, retrieval) {
-        const relations = [];
-        const handledCardIds = new Set();
-        if (/\b(in|inside|within|contains|containment)\b/i.test(prompt)) {
-          const entities = nodes.filter((node) => node.nodeType === 'entity');
-          const assemblies = nodes.filter((node) => node.nodeType === 'assembly');
-          for (let i = 0; i < Math.min(entities.length, assemblies.length); i += 1) {
-            relations.push({
-              id: `containment_${i + 1}`,
-              type: 'inside',
-              participants: [entities[i].id, assemblies[i].id],
-              cardId: 'containment',
-              physics: ['surface-boundary', 'collision', 'constraint'],
-            });
-          }
-          handledCardIds.add('containment');
-          handledCardIds.add('inside');
+    // Bind each relation/event occurrence to source-local mentions. Retrieval
+    // scores and array order do not establish participant identity.
+    function sourceParticipants(prompt, nodes, occurrence, arity, coordinated) {
+        const boundary = /[.;!?\n]|\b(?:then|while)\b/gi;
+        const separators = [...prompt.matchAll(boundary)];
+        const start = separators.filter(row => row.index < occurrence.start).at(-1);
+        const end = separators.find(row => row.index >= occurrence.end);
+        const lower = start ? start.index + start[0].length : 0;
+        const upper = end ? end.index : prompt.length;
+        const local = nodes.filter(node => node.positionHint >= lower && node.positionHint < upper);
+        const left = local.filter(node => node.positionHint < occurrence.start);
+        const right = local.filter(node => node.positionHint >= occurrence.end);
+        const nearest = (rows, direction) => {
+          if (!rows.length) return null;
+          const position = direction === 'left' ? Math.max(...rows.map(row => row.positionHint)) : Math.min(...rows.map(row => row.positionHint));
+          const matches = rows.filter(row => row.positionHint === position);
+          return matches.length === 1 ? matches[0] : null;
+        };
+        const subject = nearest(left, 'left'), object = nearest(right, 'right');
+        if (arity === 1) return subject ? [subject.id] : object ? [object.id] : null;
+        if (subject && object) return [subject.id, object.id];
+        // Explicit coordination can name both collision participants before the
+        // verb. Require exactly two local mentions and a source conjunction.
+        if (coordinated && left.length === 2 && !right.length &&
+            /\band\b/i.test(prompt.slice(left[0].positionHint, left[1].positionHint))) {
+          return left.map(node => node.id);
         }
-        for (const match of retrieval.selected || []) {
-          if (match.cardId !== 'attached_to' && match.cardId !== 'through' && match.cardId !== 'pushes') continue;
-          const item = cardById(match.cardId);
-          if (!item) continue;
-          handledCardIds.add(item.id);
-          relations.push({
-            id: `${item.id}_${relations.length + 1}`,
-            type: item.id,
-            participants: nodes.slice(0, 2).map((node) => node.id),
-            cardId: item.id,
-            physics: array(item.grounding.primitiveIds),
-          });
-        }
-        for (const match of retrieval.selected || []) {
-          if (handledCardIds.has(match.cardId)) continue;
-          if (match.type !== 'relation') continue;
-          const item = cardById(match.cardId);
-          if (!item) continue;
-          relations.push({
-            id: `${item.id}_${relations.length + 1}`,
-            type: item.id,
-            participants: nodes.slice(0, 2).map((node) => node.id),
-            cardId: item.id,
-            physics: array(item.grounding.primitiveIds),
-          });
-          handledCardIds.add(item.id);
-        }
-        return uniqueRelations(relations);
+        return null;
       }
 
-    function uniqueRelations(relations) {
-        const seen = new Set();
-        return (relations || []).filter((relation) => {
-          const key = `${relation.type}:${(relation.participants || []).join('>')}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
+    function buildBoundRows(prompt, nodes, retrieval, kind, unsupported) {
+        const rows = [], seen = new Set();
+        for (const match of retrieval.selected || []) {
+          const item = cardById(match.cardId);
+          if (!item || item.type !== kind || seen.has(item.id)) continue;
+          seen.add(item.id);
+          const occurrences = rawOccurrencesForCard(prompt, item).filter((row, i, all) =>
+            all.findIndex(other => other.start === row.start) === i);
+          if (!occurrences.length) {
+            unsupported.push({ cardId: item.id, reason: 'retrieved relation or event has no source-bound participants' });
+          }
+          for (const occurrence of occurrences) {
+            const prefix = prompt.slice(Math.max(0, occurrence.start - 24), occurrence.start);
+            if (/\b(?:not|never|without|no)\s+(?:\w+\s+)?$/i.test(prefix)) {
+              unsupported.push({ cardId: item.id, reason: 'prohibited relation or event', evidence: occurrence });
+              continue;
+            }
+            const arity = kind === 'relation' || item.id === 'collision_event' || item.id === 'collision' ? 2 : 1;
+            const participants = sourceParticipants(prompt, nodes, occurrence, arity, kind === 'event' && arity === 2);
+            if (!participants) {
+              unsupported.push({ cardId: item.id, reason: 'missing or ambiguous source-bound participants', evidence: occurrence });
+              continue;
+            }
+            const type = item.id === 'containment' ? 'inside' : item.id.replace(/_event$/, '');
+            if (item.id === 'containment' && /^contains$/i.test(occurrence.label)) participants.reverse();
+            rows.push({ id: `${type}_${rows.length + 1}`, type, cardId: item.id,
+              participants, physics: array(item.grounding.primitiveIds), evidence: occurrence });
+          }
+        }
+        const keys = new Set();
+        return rows.filter(row => {
+          const key = `${row.type}:${row.participants.join('>')}`;
+          if (keys.has(key)) return false;
+          keys.add(key); return true;
         });
       }
 
-    function buildEvents(prompt, nodes, retrieval) {
-        const events = [];
-        const handledCardIds = new Set();
-        const wantsCollision = /\b(crash(?:es|ing|ed)?|collision|collid(?:e|es|ing|ed)|impact(?:s|ing|ed)?|hits?|hitting|smash(?:es|ing|ed)?)\b/i.test(prompt)
-          || retrieval.selected.some((match) => match.cardId === 'collision_event' || (
-            match.cardId === 'collision' && match.type === 'event'
-          ));
-        if (wantsCollision) {
-          const assemblies = nodes.filter((node) => node.nodeType === 'assembly');
-          const participants = assemblies.length >= 2 ? assemblies : nodes;
-          events.push({
-            id: 'collision_1',
-            type: 'collision',
-            cardId: 'collision_event',
-            participants: participants.slice(0, 2).map((node) => node.id),
-            physics: ['rigid-body', 'collision', 'friction', 'impulse_response', 'damping'],
-          });
-          handledCardIds.add('collision_event');
-          handledCardIds.add('collision');
-        }
-        for (const match of retrieval.selected || []) {
-          if (!['falling_event', 'break_event', 'flow_event', 'heat_event'].includes(match.cardId)) continue;
-          const item = cardById(match.cardId);
-          if (!item) continue;
-          handledCardIds.add(item.id);
-          events.push({
-            id: `${item.id}_${events.length + 1}`,
-            type: item.id.replace(/_event$/, ''),
-            cardId: item.id,
-            participants: nodes.slice(0, 2).map((node) => node.id),
-            physics: array(item.grounding.primitiveIds),
-          });
-        }
-        for (const match of retrieval.selected || []) {
-          if (handledCardIds.has(match.cardId)) continue;
-          if (match.type !== 'event') continue;
-          const item = cardById(match.cardId);
-          if (!item) continue;
-          events.push({
-            id: `${item.id}_${events.length + 1}`,
-            type: item.id,
-            cardId: item.id,
-            participants: nodes.slice(0, 2).map((node) => node.id),
-            physics: array(item.grounding.primitiveIds),
-          });
-          handledCardIds.add(item.id);
-        }
-        return events;
+    function buildRelations(prompt, nodes, retrieval, unsupported) {
+        return buildBoundRows(prompt, nodes, retrieval, 'relation', unsupported);
+      }
+
+    function buildEvents(prompt, nodes, retrieval, unsupported) {
+        return buildBoundRows(prompt, nodes, retrieval, 'event', unsupported);
       }
 
     function buildReadouts(retrieval) {
@@ -444,7 +413,7 @@
 
     function validateGroundedGraph(synthGraph, groundedGraph, catalog = {}) {
         const nodeIds = new Set((synthGraph.nodes || []).map((node) => node.id));
-        const errors = [];
+        const errors = (synthGraph.unsupported || []).map(row => `${row.cardId}: ${row.reason}`);
         const warnings = [];
         const repairs = [];
         if (!synthGraph.nodes.length) errors.push('no typed nodes synthesized');

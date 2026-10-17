@@ -123,3 +123,65 @@ test('an imported library requalifies at Runtime and survives authored revision 
   assert.equal(revised.activityProgram.actions[0].hand, 'right');
   assert.equal(model.deserializeSpec(model.serializeSpec(revised, { retainPhaseSources: true })).activityProgram.contentHash, revised.activityProgram.contentHash);
 });
+
+test('definite actor and object references preserve one owner through placement and replay', () => {
+  const spec = compile('a person holds a cup then the person places the cup on a table');
+  const program = spec.activityProgram;
+  assert.equal(program.unsupported.length, 0);
+  assert.equal(program.actors.length, 1);
+  const [hold, place] = program.actions;
+  assert.equal(hold.actorId, place.actorId);
+  assert.equal(hold.objectId, place.objectId);
+  assert.ok(program.identityBindings.some(row => row.targetNodeId === hold.actorId));
+  let state = model.createSimulationState(spec);
+  for (let frame = 0; frame < 480; frame++) state = model.stepSimulation(state, spec, 1 / 60);
+  assert.equal(state.activity.objects[hold.objectId].owner, null);
+  assert.equal(state.activity.objects[hold.objectId].supportObjectId, place.supportObjectId);
+  assert.equal(model.proveActivitySequence(program, state.activity).pass, true);
+  assert.equal(model.deserializeSpec(model.serializeSpec(spec, { retainPhaseSources: true })).activityProgram.contentHash, program.contentHash);
+});
+
+test('before and reversed after clauses preserve dependency order instead of creating overlap', () => {
+  for (const prompt of ['a person holds a cup before placing the cup on a table',
+    'a person places a cup on a table after holding the cup']) {
+    const program = compile(prompt).activityProgram;
+    assert.equal(program.unsupported.length, 0, prompt);
+    assert.deepEqual(program.actions.map(row => row.action), ['hold', 'place']);
+    const [hold, place] = program.actions;
+    assert.equal(place.timing.after, hold.id);
+    assert.equal(place.startSeconds, hold.endSeconds);
+    assert.equal(place.objectId, hold.objectId);
+    const frame = model.evaluateActivityFrame(program, place.endSeconds);
+    assert.equal(frame.objects[hold.objectId].supportObjectId, place.supportObjectId);
+  }
+});
+
+test('a definite object cannot bypass ownership by becoming a new object for another actor', () => {
+  const program = compile('a person holds a cup then a person holds the cup').activityProgram;
+  assert.equal(program.objects.length, 1);
+  assert.equal(program.actions.length, 1);
+  assert.match(program.unsupported[0].reason, /release from its previous owner/);
+});
+
+test('an explicit authored predecessor resolves a refused source ordering', () => {
+  const spec = compile('a person holds a cup');
+  const retrieval = structuredClone(spec.phaseArtifacts.phase3.artifact.retrievalRerankResult.activityRetrieval);
+  const graph = structuredClone(spec.universeGraph);
+  const request = retrieval.candidates[0].request;
+  request.temporalIssue = 'multiple temporal prerequisites need an explicit supported ordering';
+  assert.match(scope.groundActivityGraph(retrieval, graph).unsupported[0].reason, /multiple temporal/);
+  const actor = graph.nodes.find(node => node.spanId === request.actorSpanId);
+  actor.params = { ...actor.params, activityOverrides: { [request.id]: { afterActionId: null } } };
+  const resolved = scope.groundActivityGraph(retrieval, graph);
+  assert.equal(resolved.unsupported.length, 0);
+  assert.equal(resolved.actions[0].startSeconds, 0);
+  assert.equal(resolved.actions[0].authorship.authority, 'userOverride');
+});
+
+test('ambiguous actor and object references remain unsupported and explicit overlap stays simultaneous', () => {
+  const spec = compile('a person holds a cup while a person holds a cup then the person drinks the cup');
+  assert.equal(spec.activityProgram.actions.length, 2);
+  assert.ok(spec.activityProgram.actions.every(row => row.startSeconds === 0));
+  assert.ok(spec.activityProgram.unsupported.some(row => /ambiguous activity participant/.test(row.reason)));
+  assert.equal(spec.activityProgram.objects.length, 2);
+});

@@ -19,6 +19,19 @@ and support. Facts persist between components, and acquisition requires release
 from the previous owner. Scene Proof independently derives relationships from
 executed participant state and checks the declared effects.
 
+Definite references such as “the person” and “the cup” reuse a unique compatible
+prior identity across activity requests. Ambiguous references remain unsupported;
+a second actor cannot acquire the same cup by silently creating another object.
+Inline “before” and reversed “after” clauses establish temporal dependencies,
+while explicit overlap remains simultaneous. Ordering that requires unsupported
+multiple predecessors is refused; an explicit authored predecessor can resolve it.
+The separate typed-card synthesis helper binds relation/event occurrences to
+source-local participants and retains unresolved bindings instead of selecting
+the first two graph nodes. These are bounded language rules, not general semantic
+understanding. Focused activity tests check executed placement, ownership,
+ambiguity, temporal order, and export/reimport; they do not establish browser
+visual quality or unfamiliar-prompt coverage.
+
 An identified library can extend the inventory through
 `createSpecFromPrompt(prompt, { activityComponentLibrary: library })`. For example:
 

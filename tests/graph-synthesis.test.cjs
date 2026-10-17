@@ -55,3 +55,23 @@ test('graph synthesis browser layers reject missing dependencies', () => {
     );
   }
 });
+
+test('relations bind source-local participants rather than the first two retrieved nodes', () => {
+  const api = require(path.join(phaseDir, 'simulatte-graph-synthesis.js'));
+  const result = api.synthesizeWorldIntent('a cat. a mouse runs inside a hamster wheel');
+  const relation = result.synthGraph.relations.find(row => row.type === 'inside');
+  assert.ok(relation);
+  const participants = relation.participants.map(id => result.synthGraph.nodes.find(node => node.id === id).cardId);
+  assert.deepEqual(participants, ['mouse', 'hamster_wheel']);
+  assert.equal(result.prompt.slice(relation.evidence.start, relation.evidence.end), 'inside');
+});
+
+test('unbound relation retrieval cannot manufacture a causal edge', () => {
+  const api = require(path.join(phaseDir, 'simulatte-graph-synthesis.js'));
+  const result = api.synthesizeWorldIntent('a mouse and a hamster wheel attached to', {
+    cardMatches: [{ cardId: 'attached_to', score: 1 }]
+  });
+  assert.equal(result.synthGraph.relations.filter(row => row.type === 'attached_to').length, 0);
+  assert.ok(result.synthGraph.unsupported.some(row => row.cardId === 'attached_to'));
+  assert.equal(result.validation.valid, false);
+});

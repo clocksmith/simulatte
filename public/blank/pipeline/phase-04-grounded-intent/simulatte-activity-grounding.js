@@ -3,21 +3,41 @@
     ? require('../../app/runtime/phase-module-registry.js') : root.SimulattePhaseModuleRegistry;
   const scope = registry.family('physicsModel');
   function bindActivityParticipantIdentities(retrieval, graph) {
-    if(!retrieval||!graph)return;
-    const bindings=[];
-    for(const {request}of retrieval.candidates){
-      if(!request.definiteReference)continue;
-      const object=graph.nodes.find(node=>node.spanId===request.objectSpanId);
-      if(!object||(object.cardinality||1)!==1)continue;
-      const previous=retrieval.candidates.filter(row=>row.request.evidence.start<request.evidence.start&&row.request.actorSpanId===request.actorSpanId);
-      const matches=[...new Set(previous.map(row=>graph.nodes.find(node=>node.spanId===row.request.objectSpanId||node.sourceSpanIds?.includes(row.request.objectSpanId))).filter(node=>node&&node.id!==object.id&&node.label===object.label&&(node.cardinality||1)===1))];
-      if(matches.length!==1)continue;
-      const target=matches[0];target.sourceSpanIds=[...new Set([...(target.sourceSpanIds||[]),target.spanId,object.spanId])];
-      bindings.push({sourceSpanId:object.spanId,sourceNodeId:object.id,targetNodeId:target.id,evidence:request.evidence});
-      graph.nodes=graph.nodes.filter(node=>node!==object);
-      graph.edges=(graph.edges||[]).map(edge=>({...edge,from:edge.from===object.id?target.id:edge.from,to:edge.to===object.id?target.id:edge.to}));
+    if (!retrieval || !graph) return;
+    const bindings = [], ambiguities = [], previous = [];
+    const find = spanId => graph.nodes.find(node => node.spanId === spanId || node.sourceSpanIds?.includes(spanId));
+    // Bounded by the admitted action inventory. Resolve actors first, then
+    // objects and supports; later requests consume the canonical identities.
+    if (retrieval.candidates.length > retrieval.capabilities.limits.maxActions) throw new Error('Activity action bound exceeded');
+    for (const { request } of retrieval.candidates) {
+      for (const [slot, definite, priorSlots] of [
+        ['actorSpanId', request.definiteActorReference, ['actorSpanId']],
+        ['objectSpanId', request.definiteReference, ['objectSpanId', 'supportSpanId']],
+        ['supportSpanId', request.definiteSupportReference, ['objectSpanId', 'supportSpanId']],
+      ]) {
+        if (!definite) continue;
+        const object = find(request[slot]);
+        if (!object || (object.cardinality || 1) !== 1) continue;
+        const matches = [...new Set(previous.flatMap(prior => priorSlots.map(key => find(prior[key])))
+          .filter(node => node && node.id !== object.id && node.label === object.label))];
+        if (matches.length > 1 || matches.some(node => (node.cardinality || 1) !== 1)) {
+          ambiguities.push({ sourceSpanId: request[slot], actionId: request.id,
+            reason: `ambiguous activity participant: ${slot}`, evidence: request.evidence });
+          continue;
+        }
+        if (matches.length !== 1) continue;
+        const target = matches[0];
+        target.sourceSpanIds = [...new Set([...(target.sourceSpanIds || []), target.spanId,
+          object.spanId, ...(object.sourceSpanIds || [])])];
+        bindings.push({ sourceSpanId: object.spanId, sourceNodeId: object.id, targetNodeId: target.id, evidence: request.evidence });
+        graph.nodes = graph.nodes.filter(node => node !== object);
+        graph.edges = (graph.edges || []).map(edge => ({ ...edge,
+          from: edge.from === object.id ? target.id : edge.from, to: edge.to === object.id ? target.id : edge.to }));
+      }
+      previous.push(request);
     }
-    graph.activityIdentityBindings=bindings;
+    graph.activityIdentityBindings = bindings;
+    graph.activityIdentityAmbiguities = ambiguities;
   }
   const ACTION_EDIT_FIELDS = ['hand', 'afterActionId', 'durationSeconds', 'objectId', 'supportObjectId'];
   const OBJECT_EDIT_FIELDS = ['seatHeight', 'supportHeight', 'position', 'radius', 'liquidFillFraction', 'activityCapabilities'];
@@ -87,7 +107,7 @@
     if (!retrieval) return null;
     const nodes = acceptedGraph?.nodes || [], actions = [], unsupported = [], assumptions = [];
     const candidates = retrieval.candidates.map(row => {
-      const actor = nodes.find(node => node.spanId === row.request.actorSpanId && !node.unresolved);
+      const actor = nodes.find(node => (node.spanId === row.request.actorSpanId || node.sourceSpanIds?.includes(row.request.actorSpanId)) && !node.unresolved);
       const override = actor?.params?.activityOverrides?.[row.request.id];
       if (override && (typeof override !== 'object' || Array.isArray(override) ||
           Object.keys(override).some(key => !ACTION_EDIT_FIELDS.includes(key)))) throw new Error('Invalid activity action override');
@@ -98,6 +118,7 @@
         if (Object.hasOwn(override, 'afterActionId')) {
           request.timing.after = override.afterActionId;
           request.timing.simultaneous = override.afterActionId === null;
+          delete request.temporalIssue;
         }
         request.authoredParticipants = override;
         request.authorship = actor.authorship || { authority: 'userOverride', patchIds: [] };
@@ -118,13 +139,13 @@
     for (const row of candidates) {
       const request = row.request;
       const actor = request.actorSpanId
-        ? nodes.find(node => node.spanId === request.actorSpanId && !node.unresolved) : null;
+        ? nodes.find(node => (node.spanId === request.actorSpanId || node.sourceSpanIds?.includes(request.actorSpanId)) && !node.unresolved) : null;
       const object = Object.hasOwn(request.authoredParticipants || {}, 'objectId')
         ? nodes.find(node => node.id === request.authoredParticipants.objectId && !node.unresolved) : request.objectSpanId
         ? nodes.find(node => (node.spanId === request.objectSpanId || node.sourceSpanIds?.includes(request.objectSpanId)) && !node.unresolved) : null;
       const support = Object.hasOwn(request.authoredParticipants || {}, 'supportObjectId')
         ? nodes.find(node => node.id === request.authoredParticipants.supportObjectId && !node.unresolved)
-        : request.supportSpanId ? nodes.find(node=>node.spanId===request.supportSpanId&&!node.unresolved) : null;
+        : request.supportSpanId ? nodes.find(node=>(node.spanId===request.supportSpanId||node.sourceSpanIds?.includes(request.supportSpanId))&&!node.unresolved) : null;
       const resolved = schedule(request.id);
       const start = resolved?.start;
       const duration = resolved?.duration;
@@ -132,9 +153,13 @@
       const hand = parameter ? request.hand ?? parameter.default : null;
       const participants = { actorId: actor?.id, objectId: object?.id, supportObjectId: support?.id };
       const missing = row.component?.contract?.participants.find(role => !participants[role.slot]);
-      const reason = row.rejection || (!row.component ? 'missing activity component' :
+      const ambiguity = acceptedGraph.activityIdentityAmbiguities?.find(binding =>
+        [request.actorSpanId,
+          ...(Object.hasOwn(request.authoredParticipants || {}, 'objectId') ? [] : [request.objectSpanId]),
+          ...(Object.hasOwn(request.authoredParticipants || {}, 'supportObjectId') ? [] : [request.supportSpanId])].includes(binding.sourceSpanId));
+      const reason = request.temporalIssue || ambiguity?.reason || row.rejection || (!row.component ? 'missing activity component' :
         !actor ? 'missing supported actor' : missing ? `missing supported ${missing.slot === 'supportObjectId' ? 'placement surface' : 'object'}` :
-          (actor.cardinality || 1) !== 1 || object && (object.cardinality || 1) !== 1 ? 'activity requires individually identified participants; exact count is retained as unsupported' :
+          (actor.cardinality || 1) !== 1 || object && (object.cardinality || 1) !== 1 || support && (support.cardinality || 1) !== 1 ? 'activity requires individually identified participants; exact count is retained as unsupported' :
           hand && !parameter.values.includes(hand) ? 'unsupported hand' :
           start == null ? 'missing temporal predecessor, invalid duration, or cyclic action order' :
             duration <= 0 || start + duration > retrieval.capabilities.limits.maxDurationSeconds ? 'unsupported duration' : null);

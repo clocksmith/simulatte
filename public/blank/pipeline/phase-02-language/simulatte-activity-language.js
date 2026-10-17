@@ -8,6 +8,7 @@
     const actors = spans.filter(row => row.semanticRole === 'agent' && row.visualArchetype === 'person');
     const verbs = spans.filter(row => row.kind === 'process' && components.has(row.text.toLowerCase()));
     if (!actors.length || !verbs.length) return graph;
+    if (verbs.length > capabilities.limits.maxActions) throw new Error('Activity action bound exceeded');
     const handSpans = new Set();
     const requests = [];
     let actor = null, previous = null;
@@ -31,16 +32,29 @@
         ['entity', 'term'].includes(row.kind) && !handSpans.has(row.id) && /\b(?:on|onto)\b/i.test(text.slice(object.end, row.start))) : null;
       const definiteReference = object && /\bthe\s+$/i.test(text.slice(verb.end,object.start));
       const between = previous ? text.slice(previous.end, verb.start) : '';
-      const sequential = /\b(?:then|afterward|afterwards|after that)\b/i.test(between);
+      const connector = [...between.matchAll(/\b(after that|afterward|afterwards|then|before|after|while|simultaneously)\b/gi)].at(-1)?.[0].toLowerCase();
+      const sequential = ['then', 'afterward', 'afterwards', 'after that', 'before'].includes(connector);
+      const reverseOrder = connector === 'after';
       const duration = /\bfor\s+(\d+(?:\.\d+)?)\s+seconds?\b/i.exec(tail);
       requests.push({ id: `activity:${verb.id}`, action, actorSpanId: actor.id, objectSpanId: object?.id || null,
         supportSpanId:support?.id||null, definiteReference:Boolean(definiteReference),
+        definiteActorReference: /\bthe\s+$/i.test(text.slice(0, actor.start)),
+        definiteSupportReference: Boolean(support && /\bthe\s+$/i.test(text.slice(0, support.start))),
         hand: hand ? hand[1].toLowerCase() : null, negated: verb.negated === true,
         handEvidence: hand ? { start: verb.end + hand.index, end: verb.end + hand.index + hand[0].length } : null,
         timing: { after: sequential ? requests.at(-1)?.id || null : null,
-          simultaneous: !sequential && requests.length > 0, durationSeconds: duration ? Number(duration[1]) : null },
+          simultaneous: !sequential && !reverseOrder && requests.length > 0, durationSeconds: duration ? Number(duration[1]) : null },
         evidence: { source: 'phase2-language', verbSpanId: verb.id, sourceSpanIds: [actor.id, verb.id, object?.id, support?.id].filter(Boolean),
           start: verb.start, end, text: text.slice(verb.start, end) } });
+      if (reverseOrder && requests.length > 1) {
+        const current = requests.at(-1), prior = requests.at(-2);
+        if (prior.timing.after) {
+          prior.temporalIssue = 'multiple temporal prerequisites need an explicit supported ordering';
+        } else {
+          prior.timing.after = current.id;
+          prior.timing.simultaneous = false;
+        }
+      }
       previous = verb;
     }
     // A hand qualifier addresses an actor part; it is not an additional scene object.
