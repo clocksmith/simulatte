@@ -2,7 +2,7 @@
   "schema": "simulatte.systemDiagram.v1",
   "id": "rag-assistant",
   "name": "Synthetic RAG application",
-  "description": "Natural-language requests cross CPU/GPU stages and explicit embed/search/generate calls. GPU embedding and candidate DB are timing adapters, not real embeddings, ANN search or model quality.",
+  "description": "Synthetic RAG application with CPU/GPU stages, batched embedding, vector-index queries, reranking and structured model output. A document feed shares the same embedding/index services through a bounded chunker; no actual inference or semantic retrieval occurs.",
   "seed": 42,
   "run": {
     "horizonSec": 30
@@ -64,26 +64,32 @@
     },
     {
       "id": "embed-timing",
-      "classId": "gpu-worker",
-      "label": "Synthetic embed timing",
+      "classId": "embedder",
+      "label": "Embedding service",
       "x": 960,
       "y": -60,
       "params": {
-        "maxBatch": 4,
+        "workers": 2,
+        "maxBatch": 8,
+        "batchWindowMs": 5,
         "batchBaseMs": 5,
-        "perItemMs": 1,
-        "batchWindowMs": 5
+        "perKTokensMs": 1,
+        "dims": 128
       }
     },
     {
       "id": "candidates",
-      "classId": "database",
-      "label": "Synthetic candidate rows",
+      "classId": "vector-index",
+      "label": "Shared vector index",
       "x": 960,
       "y": 110,
       "params": {
-        "readMs": 3,
-        "serviceDist": "constant"
+        "vectors": 100,
+        "queryBaseMs": 2,
+        "queryLogMs": 0.1,
+        "upsertMs": 1,
+        "dims": 128,
+        "topK": 3
       }
     },
     {
@@ -110,6 +116,50 @@
         "validateMs": 1,
         "parseFailureRate": 0,
         "maxRepairs": 1
+      }
+    },
+    {
+      "id": "ranker",
+      "classId": "reranker",
+      "label": "Candidate reranker",
+      "x": 960,
+      "y": 440,
+      "params": {
+        "serviceMs": 2,
+        "serviceDist": "constant",
+        "perCandidateMs": 0.2
+      }
+    },
+    {
+      "id": "documents",
+      "classId": "unstructured-feed",
+      "label": "Document ingestion",
+      "x": 0,
+      "y": 440,
+      "params": {
+        "pattern": "constant",
+        "ratePerSec": 1,
+        "maxRequests": 3,
+        "stopSec": 3,
+        "requestKb": 4,
+        "tokensMean": 1200,
+        "timeoutMs": 10000,
+        "retries": 0
+      }
+    },
+    {
+      "id": "chunks",
+      "classId": "chunker",
+      "label": "Document chunks",
+      "x": 480,
+      "y": 440,
+      "params": {
+        "chunkTokens": 500,
+        "overlapTokens": 50,
+        "serviceMs": 2,
+        "perKbMs": 0.1,
+        "maxChunks": 16,
+        "callTimeoutMs": 5000
       }
     }
   ],
@@ -218,6 +268,68 @@
       "params": {
         "latencyMs": 2,
         "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "rerank",
+      "from": {
+        "nodeId": "rag",
+        "portId": "rerank"
+      },
+      "to": {
+        "nodeId": "ranker",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "ingest",
+      "from": {
+        "nodeId": "documents",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "chunks",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "embed-chunks",
+      "from": {
+        "nodeId": "chunks",
+        "portId": "chunks"
+      },
+      "to": {
+        "nodeId": "embed-timing",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "op": "write"
+      }
+    },
+    {
+      "id": "index-chunks",
+      "from": {
+        "nodeId": "chunks",
+        "portId": "chunks"
+      },
+      "to": {
+        "nodeId": "candidates",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "op": "write"
       }
     }
   ],

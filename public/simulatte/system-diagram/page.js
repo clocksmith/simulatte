@@ -19,7 +19,16 @@
   function message(text,error=false){$('editor-status').textContent=text;$('editor-status').dataset.error=String(error);}
   async function perform(action){if(busy){message('Wait for the current operation.',true);return;}busy=true;try{await action();}catch(e){running=false;message(e.message,true);}finally{busy=false;document.body.dataset.operationSequence=String(++operation);render();}}
   function button(host,label,action,variant='secondary',ariaLabel=label){const b=ui.SimButton({label,ariaLabel,variant,onAction:()=>perform(action),onError:e=>message(e.message,true)});(typeof host==='string'?$(host):host).append(b.element);return b;}
-  function apply(command){const result=model.apply(command);if(!result.ok)throw Error(result.error);const warnings=model.issues();message(warnings.length?warnings.map(w=>w.message).join(' · '):'Document updated. Semantic edits stay pending until Accept & run.',warnings.some(w=>w.kind==='payload-mismatch'));return result;}
+  function apply(command){
+    command=clone(command);
+    if(command.type==='deriveClass'){command.nodeId=command.id;delete command.id;}
+    if(command.type==='updateUserClass'&&command.patch?.defaults){const old=model.diagram.classes.find(c=>c.id===command.id)?.defaults||{};command.patch.defaults={...Object.fromEntries(Object.keys(old).filter(k=>!Object.hasOwn(command.patch.defaults,k)).map(k=>[k,null])),...command.patch.defaults};}
+    if(command.selection&&!command.ids){command.ids=Object.values(command.selection).flat();delete command.selection;}
+    if(command.replace&&['setNodeParams','setEdgeParams'].includes(command.type)){
+      const current=(command.type==='setNodeParams'?model.diagram.nodes:model.diagram.edges).find(n=>n.id===command.id)?.params||{};
+      command.params={...Object.fromEntries(Object.keys(current).filter(k=>!Object.hasOwn(command.params,k)).map(k=>[k,null])),...command.params};delete command.replace;
+    }
+    const result=model.apply(command);if(!result.ok)throw Error(result.error);const warnings=model.issues();message(warnings.length?warnings.map(w=>w.message).join(' · '):'Document updated. Semantic edits stay pending until Accept & run.',warnings.some(w=>w.kind==='payload-mismatch'));return result;}
   const canvas=globalThis.SimulatteSystemDiagramCanvas.create({host:$('diagram'),model,library,config,onMessage:message,onView:v=>{$('zoom-status').textContent=`${Math.round(v.zoom*100)}%`;}});
   function dirty(){return !runner||model.executionIdentity()!==acceptedIdentity;}
   function select(){return model.selection;}
@@ -31,7 +40,7 @@
     const ns=model.diagram.nodes.filter(n=>ids.includes(n.id));if(ns.some(n=>['source','cron'].includes(documents.resolveClass(n.classId,model.diagram,library,config).kernel)))throw Error('Sources do not consume shared worker slots');
     const x=Math.min(...ns.map(n=>n.x))-24,y=Math.min(...ns.map(n=>n.y))-40,w=Math.max(...ns.map(n=>n.x))-x+config.editor.nodeWidth+24,h=Math.max(...ns.map(n=>n.y))-y+120;
     const result=apply({type:'addGroup',label:'Resource cluster',kind:'resource',capacity:2,x,y,w,h,nodeIds:ids});
-    if(result.id){for(const id of ids)apply({type:'setNodeGroup',id,groupId:result.id});model.select({groups:[result.id]});}
+    if(result.id)model.select({groups:[result.id]});
   }
   buttons.undo=button('edit-actions','Undo',()=>{model.undo();message('Undid document edit.');});buttons.redo=button('edit-actions','Redo',()=>{model.redo();message('Redid document edit.');});
   const multiple=button('edit-actions','Select multiple',()=>{multiSelect=!multiSelect;canvas.setMultiSelect(multiSelect);multiple.setState({selected:multiSelect});multiple.element.setAttribute('aria-pressed',String(multiSelect));message(multiSelect?'Tap nodes to add or remove selection.':'Single selection enabled.');});multiple.element.setAttribute('aria-pressed','false');
@@ -58,7 +67,7 @@
     if(!v||v.schema!=='simulatte.systemDiagramEditorSession.v1'||Object.keys(v).sort().join(',')!=='accepted,checkpoint,diagram,schema')throw Error('Unsupported or undeclared editor session fields');
     return {...clone(v),diagram:documents.validate(v.diagram,library,config),accepted:v.accepted?documents.validate(v.accepted,library,config):null};
   }
-  function loadPending(v){const value=validateSession(v);model.replace(value.diagram);running=false;loadedReplay=value;canvas.render();message('Loaded as pending. Run accepts it; Restore loaded replay explicitly restores saved execution.');}
+  function loadPending(v){const value=validateSession(v);const loaded=model.replace(value.diagram);if(!loaded.ok)throw Error(loaded.error);running=false;loadedReplay=value;canvas.render();message('Loaded as pending. Run accepts it; Restore loaded replay explicitly restores saved execution.');}
   button('document-actions','Save',async()=>{localStorage.setItem(config.editor.autosaveKey,JSON.stringify(await sessionExport()));message('Saved this document and accepted replay in this browser.');});
   button('document-actions','Load',()=>{const text=localStorage.getItem(config.editor.autosaveKey);if(text)loadPending(JSON.parse(text));else $('load-file').click();});
   button('document-actions','Export',async()=>{const text=JSON.stringify(await sessionExport(),null,2);$('document').value=text;const url=URL.createObjectURL(new Blob([text],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='system-diagram.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),0);message('Exported classes, instances, named ports and accepted replay.');});
@@ -71,7 +80,7 @@
     const previous=runner;runner=next;accepted=value.accepted;acceptedIdentity=semantic(accepted);savedCheckpoint=value.checkpoint;running=false;loadedReplay=null;await previous?.dispose();message('Restored accepted replay; pending edits remain unchanged.');
   });
   $('load-file').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;if(f.size>5e6){message('File exceeds 5 MB',true);return;}try{const text=await f.text();await perform(()=>loadPending(JSON.parse(text)));}catch(err){message(err.message,true);}e.target.value='';});
-  $('preset').addEventListener('change',()=>perform(async()=>{const value=$('preset').value,doc=value==='blank'?documents.emptyDiagram(config):await json(config.examples.find(e=>e.id===value).path);model.replace(doc);running=false;canvas.render();canvas.fit({readable:true});message('Starter loaded as pending. Undo restores the previous document.');}));
+  $('preset').addEventListener('change',()=>perform(async()=>{const value=$('preset').value,doc=value==='blank'?documents.emptyDiagram(config):await json(config.examples.find(e=>e.id===value).path);const loaded=model.replace(doc);if(!loaded.ok)throw Error(loaded.error);running=false;canvas.render();canvas.fit({readable:true});message('Starter loaded as pending with a new edit history. Save or export before replacing a document.');}));
   document.addEventListener('keydown',e=>{if(e.target.closest('input,select,textarea')||!(e.ctrlKey||e.metaKey))return;if(e.key.toLowerCase()==='z'){e.preventDefault();perform(()=>{if(e.shiftKey)model.redo();else model.undo();});}if(e.key.toLowerCase()==='s'){e.preventDefault();perform(async()=>{localStorage.setItem(config.editor.autosaveKey,JSON.stringify(await sessionExport()));message('Saved locally.');});}});
   function el(tag,className,text){const e=document.createElement(tag);if(className)e.className=className;if(text!==undefined)e.textContent=text;return e;}
   function field(host,label,value,{id,choices,type='text',spec}={}){

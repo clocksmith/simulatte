@@ -2,145 +2,131 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const libraryApi = require('../public/simulatte/system-diagram/class-library.js');
-const library = libraryApi.loadSync(path.join(__dirname, '../public/data/system-diagram'));
-require('../public/simulatte/system-diagram/kernels-ai.js');
-require('../public/simulatte/system-diagram/kernels-storage.js');
-require('../public/simulatte/system-diagram/kernels-sources.js');
-const registry = require('../public/simulatte/system-diagram/kernel-registry.js');
-function fixture(id, overrides = {}, ports = {}) {
-  let seq = 0;
-  const kernel = registry.get(id), jobs = new Map(), effects = new Set(), holds = new Set(), counts = {};
-  const ctx = { t: 0, nodeId: id, p: { ...Object.fromEntries(Object.entries(library.kernels[id].params).map(([k, s]) => [k, s.default])), ...overrides }, fault: { slowFactor: 1, down: false }, calls: [], wakes: [], admissions: [], replies: [], costs: [], ended: [], begun: [],
-    rand: () => .5, poisson: n => Math.round(n), serviceMs: mean => mean,
-    edges: port => ports[port] || [], edge: id => ({ id, params: { mode: 'sync' } }),
-    getJob: id => { const j = jobs.get(id); return j && j.status !== 'finished' ? j : null; }, jobs: () => [...jobs.values()].filter(j => j.status !== 'finished'),
-    hold(job) { holds.add(job.id); return true; },
-    admit(job, ms) { holds.add(job.id); job.status = 'serving'; ctx.admissions.push({ job, ms }); return true; },
-    release(job) { holds.delete(job.id); job.status = 'waiting'; },
-    reply(job, result) { holds.delete(job.id); job.status = 'finished'; ctx.replies.push({ job, result }); },
-    call(job, edgeId, patch, options) { ctx.calls.push({ job, edgeId, patch, options }); },
-    wake(delay, payload) { ctx.wakes.push({ delay, payload }); },
-    count(key, n) { counts[key] = (counts[key] || 0) + n; }, latency() {}, log() {}, cost(value) { ctx.costs.push(value); },
-    effect(key, { idempotent }) { const duplicate = effects.has(key); effects.add(key); return { duplicate, suppressed: idempotent && duplicate }; },
-    message(fields) { return { id: `message-${++seq}`, trace: `trace-${seq}`, idem: `trace-${seq}`, ptype: 'text', kb: 1, tokens: 5, key: 1, op: 'read', fields: {}, ...fields }; },
-    derive: (msg, patch) => ({ ...msg, ...patch }),
-    newJob(msg) { const job = { id: `job-${++seq}`, msg, data: {}, status: 'new' }; jobs.set(job.id, job); return job; },
-    beginRequest(msg) { ctx.begun.push(msg); }, endRequest(msg, result) { ctx.ended.push({ msg, result }); }
-  };
-  ctx.k = kernel.init?.(ctx) || {};
-  return { ctx, kernel, holds, counts, job: patch => ctx.newJob(ctx.message(patch)), served: job => kernel.onServed(ctx, job), result: (job, slot, result) => kernel.onResult(ctx, job, slot, { msg: job.msg, ...result }) };
-}
-
-test('registered class kernels are execution capabilities; unimplemented AI metadata stays unregistered', () => {
-  for (const id of ['batchWorker','llm','retriever','structuredResponse','cron','crawler','replicatedDb','cache','objectStore']) assert.ok(registry.has(id), id);
-  for (const id of ['embedder','vectorIndex','reranker','chunker']) { assert.ok(library.kernels[id]); assert.equal(registry.has(id), false); }
-  assert.throws(() => fixture('replicatedDb', { replication: 'quorum' }), /not implemented/);
-  assert.throws(() => registry.get('replicatedDb').validateParams({ replication: 'sync' }), /not implemented/);
-  assert.throws(() => fixture('cache', { failOpen: true }), /not implemented/);
-});
-
-test('GPU batching groups work, retains each request memory and drains partial window without zero-time polling', () => {
-  const f = fixture('batchWorker', { maxBatch: 4, workers: 1, batchBaseMs: 10, perItemMs: 2 });
-  const jobs = Array.from({ length: 6 }, () => f.job()); jobs.forEach(j => f.kernel.onRequest(f.ctx, j));
-  assert.equal(f.ctx.admissions.length, 1); assert.equal(f.ctx.admissions[0].ms, 18); assert.equal(f.holds.size, 6);
-  f.kernel.onWake(f.ctx, f.ctx.wakes[0].payload);
-  f.served(jobs[0]); assert.equal(f.ctx.replies.length, 4); assert.equal(f.ctx.admissions.length, 2); assert.equal(f.ctx.admissions[1].ms, 14);
-  f.served(jobs[4]); assert.equal(f.ctx.replies.length, 6); assert.equal(f.holds.size, 0); assert.equal(f.ctx.k.running, 0);
-  assert.ok(f.ctx.wakes.filter(w => w.payload.kind === 'batch').length <= 1);
-});
-
-test('LLM synthetic timing, context window, quota, structured schema flags and costs use authored parameters', () => {
-  const f = fixture('llm', { ttftMs: 10, decodeMsPerToken: 2, outputTokensMean: 10, structuredOutput: true, schemaFailureRate: 1, tokensPerMinute: 30, contextWindow: 100 });
-  const a = f.job({ tokens: 5 }); f.kernel.onRequest(f.ctx, a); assert.ok(f.ctx.admissions[0].ms >= 30); f.served(a);
-  assert.equal(f.ctx.replies[0].result.ptype, 'json'); assert.equal(f.ctx.replies[0].result.fields.invalid, true); assert.ok(f.ctx.costs[0] > 0);
-  const b = f.job({ tokens: 20 }); f.kernel.onRequest(f.ctx, b); assert.equal(f.ctx.replies.at(-1).result.err, 'rate-limited');
-  const c = f.job({ tokens: 100 }); f.kernel.onRequest(f.ctx, c); assert.equal(f.ctx.replies.at(-1).result.err, 'invalid');
-});
-
-test('RAG orchestrates typed registered adapters in declared step order and propagates dependency errors', () => {
-  const f = fixture('retriever', {}, { embed: ['e'], search: ['s'], generate: ['g'] }), job = f.job();
-  f.kernel.onRequest(f.ctx, job); f.served(job); assert.equal(f.ctx.calls.at(-1).patch.ptype, 'text');
-  f.result(job, 'embed', { ok: true }); assert.equal(f.ctx.calls.at(-1).edgeId, 's'); assert.equal(f.ctx.calls.at(-1).patch.ptype, 'embedding');
-  f.result(job, 'search', { ok: true }); assert.equal(f.ctx.calls.at(-1).edgeId, 'g'); assert.equal(f.ctx.calls.at(-1).patch.tokens, 5 + 400 + 8*300);
-  f.result(job, 'generate', { ok: false, err: 'timeout' }); assert.equal(f.ctx.replies.at(-1).result.err, 'timeout');
-});
-
-test('structured response rejects invalid synthetic output after its finite repair budget', () => {
-  const f = fixture('structuredResponse', { maxRepairs: 2 }, { generate: ['g'] }), job = f.job();
-  f.kernel.onRequest(f.ctx, job); f.served(job);
-  for (let n = 0; n < 3; n++) f.result(job, 'generate', { ok: true, msg: { ...job.msg, fields: { invalid: true } } });
-  assert.equal(f.ctx.calls.length, 3); assert.equal(f.counts.repairs, 2); assert.equal(f.ctx.replies.at(-1).result.err, 'invalid');
-});
-
-test('asynchronous replicas show stale reads before lag and explicit election loss of unreplicated writes', () => {
-  const f = fixture('replicatedDb', { replicas: 3, readFrom: 'followers' });
-  const write = f.job({ op: 'write', key: 7 }); f.kernel.onRequest(f.ctx, write); f.served(write);
-  const read = f.job({ op: 'read', key: 7 }); f.kernel.onRequest(f.ctx, read); f.served(read); assert.equal(f.ctx.replies.at(-1).result.fields.stale, true);
-  f.kernel.onFault(f.ctx, { type: 'failLeader' }, true); const unavailable = f.job(); f.kernel.onRequest(f.ctx, unavailable); assert.equal(f.ctx.replies.at(-1).result.err, 'unavailable');
-  const election = f.ctx.wakes.find(w => w.payload.kind === 'elect'); f.kernel.onWake(f.ctx, election.payload); assert.equal(f.ctx.k.leader, 1); assert.equal(f.ctx.k.lostWrites, 1);
-  const oldCopy = f.ctx.wakes.find(w => w.payload.kind === 'replicate'); f.kernel.onWake(f.ctx, oldCopy.payload); assert.equal(Object.keys(f.ctx.k.replicas[1].values).length, 0, 'old leader copy fenced');
-});
-
-test('cache coalesces same-key misses and expires TTL entries; object-store size changes actual service time', () => {
-  const f = fixture('cache', { coalesceMisses: true, ttlSec: 1 }, { origin: ['origin'] });
-  const a = f.job(), b = f.job(); f.kernel.onRequest(f.ctx, a); f.served(a); f.kernel.onRequest(f.ctx, b); f.served(b);
-  assert.equal(f.ctx.calls.length, 1); f.result(a, 'origin', { ok: true, msg: { kb: 3, ptype: 'json' } }); assert.equal(f.ctx.replies.length, 2);
-  const hit = f.job(); f.kernel.onRequest(f.ctx, hit); f.served(hit); assert.equal(f.ctx.k.hits, 1);
-  f.ctx.t = 2; const miss = f.job(); f.kernel.onRequest(f.ctx, miss); f.served(miss); assert.equal(f.ctx.calls.length, 2);
-  const store = fixture('objectStore', { baseMs: 20, throughputMBps: 10 }); const j = store.job({ kb: 100, op: 'write' }); store.kernel.onRequest(store.ctx, j); assert.equal(store.ctx.admissions[0].ms, 30); store.served(j); assert.equal(store.ctx.replies[0].result.ptype, 'blob');
-});
-
-test('cron skips overlapping schedules and closes every logical job on final response', () => {
-  const f = fixture('cron', { overlap: 'skip', jobsPerFire: 1 }, { out: ['out'] }); f.kernel.start(f.ctx); f.kernel.onWake(f.ctx, { kind: 'cron' });
-  assert.equal(f.ctx.begun.length, 1); f.kernel.onWake(f.ctx, { kind: 'cron' }); assert.equal(f.ctx.k.skipped, 1);
-  const job = f.ctx.calls[0].job; f.result(job, 'job', { ok: true }); assert.equal(f.ctx.ended.length, 1); assert.equal(f.ctx.k.active, 0);
-});
-
-test('crawler uses per-domain budgets, bounded discovery and document provenance with no external access', () => {
-  const f = fixture('crawler', { seedUrls: 3, maxPages: 4, domains: 1, fetchConcurrency: 3, politenessMs: 100, linksPerPage: 1, duplicateRate: 1 }, { fetch: ['website'], documents: ['sink'] });
-  f.kernel.start(f.ctx); f.kernel.onWake(f.ctx, f.ctx.wakes[0].payload); assert.equal(f.ctx.calls.length, 1, 'domain delay prevents simultaneous same-domain fetches');
-  const job = f.ctx.calls[0].job; f.result(job, 'fetch', { ok: true }); assert.equal(f.ctx.k.duplicates, 1); assert.ok(f.ctx.k.discovered <= 4);
-  const document = f.ctx.calls.at(-1); assert.equal(document.patch.ptype, 'document'); assert.match(document.patch.fields.provenance, /synthetic-url/);
-  f.result(job, 'document', { ok: true }); assert.equal(f.ctx.ended.length, 1);
-});
-
 const documentApi = require('../public/simulatte/system-diagram/diagram.js');
-const engineApi = require('../public/simulatte/system-diagram/engine.js');
+const engine = require('../public/simulatte/system-diagram/engine.js');
+const kernels = require('../public/simulatte/system-diagram/kernels-all.js');
 const config = require('../public/data/system-diagram/config.json');
-require('../public/simulatte/system-diagram/kernels-core.js');
-function runExample(id, edit = () => {}) {
-  const diagram = structuredClone(require(`../public/data/system-diagram/examples/${id}.json`)); edit(diagram);
-  const compiled = documentApi.compile(diagram, library, config), deps = { library, config, kernels: registry };
-  return { diagram, compiled, deps, state: engineApi.initialize(compiled, deps) };
+const library = libraryApi.loadSync(path.join(__dirname, '../public/data/system-diagram'));
+const deps = { library, config, kernels };
+function example(id, edit = () => {}) {
+  const diagram = structuredClone(require(`../public/data/system-diagram/examples/${id}.json`));
+  edit(diagram); const compiled = documentApi.compile(diagram, library, config);
+  return { diagram, compiled, state: engine.initialize(compiled, deps) };
 }
-for (const id of ['web-service','rag-assistant','crawler-pipeline']) test(`canonical ${id} composition executes actual connected kernels and exact checkpoint continuation`, () => {
-  const a = runExample(id), b = runExample(id);
-  engineApi.advance(a.compiled, a.state, 30, a.deps);
-  engineApi.advance(b.compiled, b.state, 2.7, b.deps); const restored = JSON.parse(JSON.stringify(b.state));
-  engineApi.advance(b.compiled, restored, 30, b.deps); assert.deepEqual(restored, a.state, 'serialized event/RNG/resource state continues exactly');
-  const view = engineApi.observe(a.compiled, a.state, a.deps); assert.equal(view.error, null); assert.ok(view.global.offered > 0); assert.ok(view.global.completed > 0);
-  assert.equal(view.global.offered, view.global.completed + view.global.failed + view.global.inFlight);
-  assert.ok(view.attempts.length > view.global.offered);
-  assert.equal(view.global.memoryMiB, Object.values(a.state.nodes).reduce((sum,n) => sum + n.memoryMiB,0));
-  assert.ok(view.requests.every(r => r.attempts > 0));
-  if (id === 'rag-assistant') { for (const name of ['gpu','rag','embed-timing','candidates','generator','validation']) assert.ok(view.nodes[name].served > 0, name); assert.ok(view.global.cost > 0); assert.equal(view.global.memoryMiB,0); }
-  if (id === 'crawler-pipeline') { assert.ok(view.nodes.crawler.detail.fetchedPages > 0); assert.ok(view.nodes.schedule.detail.issued > 0); assert.ok(view.nodes.records.served > 0); assert.ok(view.nodes.archive.served > 0); assert.ok(view.attempts.some(a => a.msg.fields.provenance)); }
-  if (id === 'web-service') { assert.ok(view.nodes.queue.detail.Deliveries > 0); assert.ok(view.nodes.results.served > 0); assert.ok(view.nodes.cache.detail.hits > 0); }
-  const first = view.requests[0], info = engineApi.inspect(a.compiled, a.state, first.id, a.deps); assert.ok(info.history.length > 2); assert.ok(info.history.some(row => row.causes.length));
+function finish(run) { engine.advance(run.compiled, run.state, run.compiled.horizonSec, deps); return engine.observe(run.compiled, run.state, deps); }
+function terminal(run) { const view = finish(run); assert.equal(view.error, null); assert.equal(view.global.offered, view.global.completed + view.global.failed + view.global.inFlight); return view; }
+
+test('canonical kernel declarations all register actual behavior and every shipped class resolves', () => {
+  assert.deepEqual(kernels.ids(), Object.keys(library.kernels).sort());
+  assert.equal(kernels.ids().length, 24);
+  for (const classId of library.classOrder) {
+    const definition = library.classes[classId]; assert.ok(kernels.has(definition.kernel), classId);
+  }
 });
 
-test('removing a RAG executable dependency changes outcomes rather than leaving decorative topology', () => {
-  const full = runExample('rag-assistant'), missing = runExample('rag-assistant', d => { d.edges = d.edges.filter(e => e.id !== 'embedding'); });
-  engineApi.advance(full.compiled, full.state, 30, full.deps); engineApi.advance(missing.compiled, missing.state, 30, missing.deps);
-  const a = engineApi.observe(full.compiled, full.state, full.deps), b = engineApi.observe(missing.compiled, missing.state, missing.deps);
-  assert.ok(a.global.completed > 0); assert.equal(b.global.completed,0); assert.ok(b.global.failed > 0); assert.equal(b.nodes['embed-timing'].arrivals,0);
+for (const id of ['web-service', 'rag-assistant', 'crawler-pipeline']) test(`${id} executes its composed kernels and serialized continuation equals uninterrupted execution`, () => {
+  const a = example(id), b = example(id), view = terminal(a);
+  engine.advance(b.compiled, b.state, 2.7, deps); const restored = JSON.parse(JSON.stringify(b.state));
+  engine.advance(b.compiled, restored, b.compiled.horizonSec, deps);
+  assert.deepEqual(restored, a.state, 'event ordering, RNG and owned work survive JSON serialization');
+  assert.ok(view.global.offered > 0); assert.ok(view.global.completed > 0); assert.equal(view.global.inFlight, 0);
+  assert.ok(view.global.attempts > view.global.offered);
+  const allocated = Object.values(a.state.observability.allocations).reduce((sum, row) => sum + row.amount, 0);
+  assert.ok(Math.abs(allocated - view.global.memoryMiB) < 1e-6);
+  assert.ok(Math.abs(Object.values(view.nodes).reduce((sum, node) => sum + node.heldMiB, 0) - allocated) < 1e-6);
+  assert.equal(view.requests.length, view.global.offered);
+  const info = engine.inspect(a.compiled, a.state, view.requests[0].id, deps);
+  assert.ok(info.attempts.length > 0); assert.ok(info.history.length > 2); assert.ok(info.history.some(row => row.causes.length));
+  const historyIds = new Set(info.history.map(row => row.id));
+  for (const row of info.history) for (const cause of row.causes) assert.ok(historyIds.has(cause), `Missing causal ancestor ${cause}`);
+  if (id === 'web-service') {
+    for (const name of ['api','cache','replicas','queue','worker','results','deadletters']) assert.ok(view.nodes[name].arrivals > 0, name);
+    assert.ok(view.nodes.cache.detail.Hits > 0); assert.ok(view.nodes.queue.detail.redeliveries > 0);
+    assert.ok(view.nodes.deadletters.detail.retained > 0); assert.ok(view.global.effects > 0);
+  }
+  if (id === 'rag-assistant') {
+    for (const name of ['api','gpu','rag','embed-timing','candidates','generator','validation','ranker','chunks']) assert.ok(view.nodes[name].served > 0, name);
+    assert.ok(view.nodes['embed-timing'].detail.embedded > 0);
+    assert.ok(view.nodes.candidates.detail.upserts > 0); assert.ok(view.nodes.candidates.detail.queries > 0);
+    assert.ok(view.nodes.candidates.detail.vectors > 100); assert.ok(view.nodes.ranker.detail.reranked > 0);
+    assert.ok(view.nodes.chunks.detail.chunks > view.nodes.chunks.detail.documents);
+    assert.ok(view.global.cost > 0);
+    const jobs = view.requests.flatMap(request => engine.inspect(a.compiled, a.state, request.id, deps).jobs);
+    assert.ok(jobs.some(j => j.nodeId === 'candidates' && j.msg.ptype === 'embedding'));
+    assert.ok(jobs.some(j => j.nodeId === 'validation' && j.msg.ptype === 'text'));
+    assert.ok(jobs.some(j => j.nodeId === 'chunks' && j.msg.ptype === 'document'));
+    assert.equal(view.global.memoryMiB, 0);
+  }
+  if (id === 'crawler-pipeline') {
+    assert.ok(view.nodes.crawler.detail['pages fetched'] > 0); assert.ok(view.nodes.schedule.detail.jobs > 0);
+    for (const name of ['website','parser','validator','records','archive']) assert.ok(view.nodes[name].served > 0, name);
+    assert.ok(view.global.effects > 0);
+  }
 });
 
-test('a failed GPU batch releases every retained member and does not strand sibling requests', () => {
-  const a = runExample('rag-assistant', d => {
-    d.nodes.find(n => n.id === 'questions').params = { pattern:'burst',burstAtSec:0,burstCount:6,burstSpacingMs:0,maxRequests:6,payload:'text',timeoutMs:1000,retries:0,tokensMean:5 };
-    Object.assign(d.nodes.find(n => n.id === 'gpu').params, { maxBatch:4,batchWindowMs:5,batchBaseMs:20,perItemMs:1,errorRate:1 });
+test('rewiring RAG generation changes the executed graph and measured cost', () => {
+  const full = example('rag-assistant'), bypass = example('rag-assistant', d => { d.edges.find(e => e.id === 'generate').to.nodeId = 'candidates'; });
+  const a = terminal(full), b = terminal(bypass);
+  assert.ok(a.nodes.generator.arrivals > 0); assert.equal(b.nodes.generator.arrivals, 0);
+  assert.ok(a.global.cost > 0); assert.equal(b.global.cost, 0);
+  assert.notDeepEqual(engine.metrics(full.compiled, full.state, deps), engine.metrics(bypass.compiled, bypass.state, deps));
+});
+
+test('failed GPU work reaches terminal requests without stranding batch siblings', () => {
+  const run = example('rag-assistant', d => {
+    d.nodes = d.nodes.filter(n => !['documents','chunks'].includes(n.id));
+    d.edges = d.edges.filter(e => !['ingest','embed-chunks','index-chunks'].includes(e.id));
+    d.nodes.find(n => n.id === 'questions').params = { pattern:'burst', burstAtSec:0, burstCount:6, burstSpacingMs:0, maxRequests:6, payload:'text', timeoutMs:1000, retries:0, tokensMean:5 };
+    Object.assign(d.nodes.find(n => n.id === 'gpu').params, { maxBatch:4, batchWindowMs:5, batchBaseMs:20, perItemMs:1, errorRate:1 });
   });
-  engineApi.advance(a.compiled, a.state,30,a.deps); const view=engineApi.observe(a.compiled,a.state,a.deps);
-  assert.equal(view.error,null);assert.equal(view.global.completed,0);assert.equal(view.global.failed,6);assert.equal(view.global.memoryMiB,0);assert.equal(view.nodes.gpu.detail.activeBatches,0);assert.equal(view.nodes.gpu.detail.waiting,0);
+  const view = terminal(run);
+  assert.equal(view.global.offered, 6); assert.equal(view.global.completed, 0); assert.equal(view.global.failed, 6);
+  assert.equal(view.nodes.gpu.busy, 0); assert.equal(view.nodes.gpu.queue, 0); assert.equal(view.global.memoryMiB, 0);
+  assert.equal(view.requests.length, 6); assert.ok(view.requests.every(r => r.status !== 'in-flight'));
+});
+
+function sharedAccelerators(capacity, faults = []) {
+  const diagram = {
+    schema: documentApi.SCHEMA, id:'shared-accelerators', name:'Shared accelerator slots', seed:42, run:{horizonSec:1}, classes:[],
+    nodes:[
+      {id:'arrivals',classId:'nl-input',label:'Arrivals',x:0,y:0,params:{pattern:'burst',burstCount:2,burstAtSec:0,burstSpacingMs:0,maxRequests:2,retries:0,timeoutMs:1000,tokensMean:10}},
+      {id:'gpu-a',classId:'gpu-worker',label:'GPU A',x:240,y:0,params:{maxBatch:1,batchWindowMs:0,batchBaseMs:100,perItemMs:0},groupId:'shared'},
+      {id:'gpu-b',classId:'embedder',label:'Embedding GPU B',x:240,y:160,params:{workers:1,maxBatch:1,batchWindowMs:0,batchBaseMs:100,perKTokensMs:0},groupId:'shared'}
+    ],
+    edges:[['a','gpu-a'],['b','gpu-b']].map(([id,to])=>({id,from:{nodeId:'arrivals',portId:'out'},to:{nodeId:to,portId:'in'},params:{latencyMs:0,jitterMs:0}})),
+    groups:[{id:'shared',label:'Shared accelerator budget',kind:'resource',capacity,x:200,y:-50,w:250,h:300}],notes:[],faults,view:{x:0,y:0,zoom:1}
+  };
+  const compiled=documentApi.compile(diagram,library,config);return {compiled,state:engine.initialize(compiled,deps)};
+}
+
+test('GPU batch and embedding workers consume the same executable resource-group slots', () => {
+  const serial=sharedAccelerators(1),parallel=sharedAccelerators(2);
+  engine.advance(serial.compiled,serial.state,.15,deps);engine.advance(parallel.compiled,parallel.state,.15,deps);
+  const a=engine.observe(serial.compiled,serial.state,deps),b=engine.observe(parallel.compiled,parallel.state,deps);
+  assert.equal(a.error,null);assert.equal(b.error,null);assert.equal(a.global.completed,1);assert.equal(b.global.completed,2);
+  assert.equal(a.nodes['gpu-a'].busy+a.nodes['gpu-b'].busy,1);assert.equal(a.nodes['gpu-a'].queue+a.nodes['gpu-b'].queue,0);
+  engine.advance(serial.compiled,serial.state,.3,deps);const done=engine.observe(serial.compiled,serial.state,deps);
+  assert.equal(done.global.completed,2);assert.equal(done.nodes['gpu-a'].busy+done.nodes['gpu-b'].busy,0);
+  assert.equal(Object.values(serial.state.observability.slots).reduce((n,v)=>n+Object.keys(v).length,0),0);
+});
+
+test('accelerator crash releases its shared slot and deferred wake starts the waiting peer', () => {
+  const run=sharedAccelerators(1,[{id:'crash-a',atSec:.04,untilSec:.06,target:{kind:'node',id:'gpu-a'},type:'crash',params:{}}]);
+  engine.advance(run.compiled,run.state,.15,deps);const view=engine.observe(run.compiled,run.state,deps);
+  assert.equal(view.error,null);assert.equal(view.global.completed,1);assert.equal(view.global.failed,1);
+  assert.equal(view.nodes['gpu-b'].queue,0);assert.equal(view.nodes['gpu-b'].busy,0);
+});
+
+test('memory-rejected and unfinished requests remain visible with model-owned causal blockers', () => {
+  const rejected = sharedAccelerators(1);
+  engine.applyControl(rejected.compiled, rejected.state, { kind:'setParams', target:{kind:'node',id:'gpu-a'}, params:{memoryLimitMiB:.001,memoryPerRequestMiB:1} }, deps);
+  engine.advance(rejected.compiled,rejected.state,.3,deps);const a=engine.observe(rejected.compiled,rejected.state,deps);
+  assert.equal(a.requests.length,2);assert.ok(a.requests.some(r=>r.status==='rejected'));assert.equal(a.global.failedBy.rejected,1);
+  const request=a.requests.find(r=>r.status==='rejected'),info=engine.inspect(rejected.compiled,rejected.state,request.id,deps);
+  assert.ok(info.history.some(row=>row.kind==='memory-rejected'));assert.equal(a.global.memoryMiB,0);
+  const unfinished=sharedAccelerators(1);engine.advance(unfinished.compiled,unfinished.state,.02,deps);const b=engine.observe(unfinished.compiled,unfinished.state,deps);
+  assert.equal(b.requests.length,2);assert.equal(b.global.inFlight,2);assert.ok(b.global.memoryMiB>0);
+  assert.ok(b.requests.every(r=>r.blockers.length>0));
+  const allocations=Object.values(unfinished.state.observability.allocations).reduce((sum,row)=>sum+row.amount,0);
+  assert.ok(Math.abs(allocations-b.global.memoryMiB)<1e-6);
 });

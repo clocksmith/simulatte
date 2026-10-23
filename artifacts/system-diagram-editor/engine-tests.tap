@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: same diagram and seed reproduce the metrics hash; a different seed changes it
+ok 1 - same diagram and seed reproduce the metrics hash; a different seed changes it
+  ---
+  duration_ms: 892.209375
+  type: 'test'
+  ...
+# Subtest: advance composes: stepping through intermediate times, with JSON clones between, equals one step
+ok 2 - advance composes: stepping through intermediate times, with JSON clones between, equals one step
+  ---
+  duration_ms: 1258.429041
+  type: 'test'
+  ...
+# Subtest: an M/M/c station matches Erlang-C response time and utilization
+ok 3 - an M/M/c station matches Erlang-C response time and utilization
+  ---
+  duration_ms: 618.536208
+  type: 'test'
+  ...
+# Subtest: lease expiry redelivers to a still-running consumer, duplicates work and dead-letters after maxReceives
+ok 4 - lease expiry redelivers to a still-running consumer, duplicates work and dead-letters after maxReceives
+  ---
+  duration_ms: 1.836709
+  type: 'test'
+  ...
+# Subtest: dropped replies duplicate effects only when writes are not idempotent
+ok 5 - dropped replies duplicate effects only when writes are not idempotent
+  ---
+  duration_ms: 35.675709
+  type: 'test'
+  ...
+# Subtest: crash refuses with down and resets in-flight work; repair restores service
+ok 6 - crash refuses with down and resets in-flight work; repair restores service
+  ---
+  duration_ms: 32.815042
+  type: 'test'
+  ...
+# Subtest: a partitioned edge turns calls into timeouts and is visible on the edge
+ok 7 - a partitioned edge turns calls into timeouts and is visible on the edge
+  ---
+  duration_ms: 14.119541
+  type: 'test'
+  ...
+# Subtest: engine retries and kernel-declared retries count as attempts distinct from requests
+ok 8 - engine retries and kernel-declared retries count as attempts distinct from requests
+  ---
+  duration_ms: 33.743458
+  type: 'test'
+  ...
+# Subtest: live setParams changes station concurrency mid-run and calls onParams
+ok 9 - live setParams changes station concurrency mid-run and calls onParams
+  ---
+  duration_ms: 21.972458
+  type: 'test'
+  ...
+# Subtest: a declared down bypass forwards arrivals to a crashed node downstream and relays replies
+ok 10 - a declared down bypass forwards arrivals to a crashed node downstream and relays replies
+  ---
+  duration_ms: 38.246958
+  type: 'test'
+  ...
+# Subtest: exceeding maxInFlight stops the run with a visible error instead of dropping work
+ok 11 - exceeding maxInFlight stops the run with a visible error instead of dropping work
+  ---
+  duration_ms: 0.949958
+  type: 'test'
+  ...
+# Subtest: an unregistered kernel fails closed and names the kernel
+ok 12 - an unregistered kernel fails closed and names the kernel
+  ---
+  duration_ms: 0.362916
+  type: 'test'
+  ...
+# Subtest: runner display preview equals the coordinator, verify matches and the replay document round-trips
+ok 13 - runner display preview equals the coordinator, verify matches and the replay document round-trips
+  ---
+  duration_ms: 91008.554792
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 94056.925083

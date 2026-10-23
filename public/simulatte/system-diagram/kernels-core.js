@@ -5,105 +5,345 @@
   if (node) module.exports = registry;
 })(globalThis, function (registry) {
   'use strict';
-  if (!registry) throw Error('System Diagram kernel registry is required');
-  const station = Object.freeze({ concurrency: 'concurrency', queueCapacity: 'queueCapacity' });
-  function options(p, slot, timeout) { return { timeoutMs: timeout ?? p.callTimeoutMs, retries: p.retries || 0, backoffMs: p.retryBackoffMs || 0, multiplier: p.backoffMultiplier || 2, jitter: Boolean(p.retryJitter), slot }; }
-  function terminal(ctx, job, result = { ok: true }) { ctx.reply(job, { ...result, kb: result.msg?.kb ?? ctx.p.responseKb ?? job.msg.kb, ptype: result.msg?.ptype ?? job.msg.ptype, fields: result.msg?.fields || {} }); }
-  function launchFlow(ctx, job, portId, patch, settings = {}) {
-    const edges = ctx.edges(portId); job.data.flow = { edges, next: 0, waiting: 0, failed: null, last: null, patch, settings };
-    if (!edges.length) { terminal(ctx, job); return; }
-    if (ctx.p.blockingCalls === false) ctx.release(job);
-    const flow = job.data.flow;
-    if (settings.parallel ?? ctx.p.callMode === 'parallel') { for (const id of edges) { if (ctx.edge(id).params.mode !== 'async') flow.waiting++; ctx.call(job, id, patch, options(ctx.p, id, settings.timeout)); } if (!flow.waiting) terminal(ctx, job); }
-    else nextCall(ctx, job);
-  }
-  function nextCall(ctx, job) {
-    const flow = job.data.flow;
-    while (flow.next < flow.edges.length) { const id = flow.edges[flow.next++]; if (ctx.edge(id).params.mode === 'async') { ctx.call(job, id, flow.patch, options(ctx.p, id, flow.settings.timeout)); continue; }
-      flow.waiting = 1; ctx.call(job, id, flow.patch, options(ctx.p, id, flow.settings.timeout)); return;
+  // Core kernels: source, service, endpoint, queue, deadLetter, database. They use ctx only.
+  const MS = 1000;
+  const SOURCE_BACKOFF_MULTIPLIER = 2;
+  const SOURCE_IDLE_POLL_SEC = 1;
+  const DIURNAL_AMPLITUDE = 0.8;
+  const THINNING_MAX_DRAWS = 10000;
+  const QUEUE_PARTITION_POLL_SEC = 1;
+  const QUEUE_COMPACT_MIN = 64;
+  const ALL = 'all';
+  const STATION = Object.freeze({ concurrency: 'concurrency', queueCapacity: 'queueCapacity' });
+  const failed = (ctx, rate) => rate > 0 && ctx.rand() < rate;
+  const isCrash = (ctx, fault, active) => fault.type === 'crash' && active && ctx.fault.down;
+  const recovered = (ctx, active) => !active && !ctx.fault.down;
+
+  // ---- source ----
+  function rateAt(ctx, t) {
+    const p = ctx.p;
+    if (p.pattern === 'diurnal') return p.ratePerSec * (1 + DIURNAL_AMPLITUDE * Math.sin(2 * Math.PI * t / p.periodSec));
+    if (p.pattern === 'ramp') {
+      const end = p.stopSec > 0 ? p.stopSec : ctx.horizonSec, span = end - p.startSec;
+      const frac = span > 0 ? Math.min(1, Math.max(0, (t - p.startSec) / span)) : 1;
+      return p.ratePerSec + (p.rampToRate - p.ratePerSec) * frac;
     }
-    terminal(ctx, job, flow.failed || flow.last || { ok: true });
+    return p.ratePerSec;
   }
-  function flowResult(ctx, job, slot, result) {
-    const flow = job.data.flow; if (!flow) return; flow.waiting--; flow.last = result; if (!result.ok) flow.failed = result;
-    if (flow.settings.parallel ?? ctx.p.callMode === 'parallel') { if (flow.waiting === 0) terminal(ctx, job, flow.failed || flow.last); }
-    else if (!result.ok) terminal(ctx, job, result); else nextCall(ctx, job);
-    void slot;
-  }
-  function sourceAllowed(ctx) { return (!ctx.p.maxRequests || ctx.k.generated < ctx.p.maxRequests) && (!ctx.p.stopSec || ctx.t < ctx.p.stopSec) && !ctx.fault.down; }
-  function sourceEmit(ctx, user = null) {
-    if (!sourceAllowed(ctx)) return; ctx.k.generated++; ctx.k.active++;
-    const p = ctx.p, msg = ctx.message({ ptype: p.payload, kb: p.requestKb, tokens: Math.max(0, Math.round(p.tokensMean)), key: String(ctx.zipf(p.keySpace, p.zipfS)), op: ctx.rand() < p.readFraction ? 'read' : 'write',
-      deadline: p.deadlineMs > 0 ? ctx.t + p.deadlineMs / 1000 : null, fields: { idempotencyKeys: p.idempotencyKeys } });
-    ctx.beginRequest(msg); const job = ctx.newJob(msg); if (!job) return; job.data.user = user;
-    if (!ctx.hold(job)) return;
-    const edges = ctx.edges('out'); if (!edges.length) { ctx.endRequest(msg, { ok: false, err: 'unavailable' }); ctx.reply(job, { ok: false, err: 'unavailable' }); ctx.k.active--; return; }
-    job.data.pending = edges.filter(id => ctx.edge(id).params.mode !== 'async').length; job.data.failed = null;
-    for (const id of edges) ctx.call(job, id, {}, { timeoutMs: p.timeoutMs, retries: p.retries, backoffMs: p.retryBackoffMs, multiplier: 2, jitter: p.retryJitter, slot: id });
-    if (!job.data.pending) sourceDone(ctx, job, { ok: true });
-  }
-  function sourceDone(ctx, job, result) { ctx.endRequest(job.msg, result); ctx.reply(job, result); ctx.k.active = Math.max(0, ctx.k.active - 1); if (ctx.p.pattern === 'closed' && sourceAllowed(ctx)) ctx.wake(ctx.p.thinkMs / 1000, { kind: 'source', generation: ctx.k.generation, user: job.data.user }); }
-  function sourceNext(ctx) { const p = ctx.p; let rate = p.ratePerSec; if (p.pattern === 'diurnal') rate *= 0.55 + 0.45 * Math.sin(ctx.t / p.periodSec * Math.PI * 2); if (p.pattern === 'ramp') rate += (p.rampToRate - rate) * Math.min(1, ctx.t / p.periodSec); if (rate <= 0) return null; return p.pattern === 'poisson' ? ctx.exp(1 / rate) : 1 / rate; }
-  registry.register({ id: 'source', station: null,
-    init: () => ({ generated: 0, active: 0, generation: 0 }),
-    start(ctx) { const p = ctx.p; if (!['closed', 'burst'].includes(p.pattern) && p.ratePerSec <= 0) return; if (p.pattern === 'closed') for (let i = 0; i < p.users; i++) ctx.wake(p.startSec, { kind: 'source', generation: ctx.k.generation, user: i });
-      else ctx.wake(p.pattern === 'burst' ? p.burstAtSec : p.startSec, { kind: 'source', generation: ctx.k.generation, index: 0 }); },
-    onWake(ctx, data) { if (data.generation !== ctx.k.generation || !sourceAllowed(ctx)) return; if (!['closed', 'burst'].includes(ctx.p.pattern) && ctx.p.ratePerSec <= 0) return; sourceEmit(ctx, data.user ?? null);
-      if (ctx.p.pattern === 'closed') return;
-      if (ctx.p.pattern === 'burst') { const index = data.index + 1; if (index < ctx.p.burstCount && sourceAllowed(ctx)) ctx.wake(ctx.p.burstSpacingMs / 1000, { ...data, index }); }
-      else { const delay = sourceNext(ctx); if (delay !== null && sourceAllowed(ctx)) ctx.wake(delay, data); }
-    },
-    onResult(ctx, job, slot, result) { if (!result.ok) job.data.failed = result; job.data.pending--; if (job.data.pending === 0) sourceDone(ctx, job, job.data.failed || result); void slot; },
-    onFault(ctx, f, active) { if (f.type !== 'crash' && f.type !== 'outage') return; ctx.k.generation++; if (active) ctx.k.active = 0; else if (!ctx.fault.down) ctx.wake(0, { kind: 'source', generation: ctx.k.generation, index: 0 }); },
-    onControl(ctx, c) { if (c.kind !== 'setParams') return false; ctx.k.generation++; ctx.wake(0, { kind: 'source', generation: ctx.k.generation, index: 0 }); return true; },
-    observe: ctx => ({ detail: { Generated: ctx.k.generated, 'Waiting for replies': ctx.k.active } })
-  });
-  registry.register({ id: 'service', station, onServed(ctx, job) { const patch = ctx.p.outputPayload === 'inherit' ? {} : { ptype: ctx.p.outputPayload }; launchFlow(ctx, job, 'calls', patch); }, onResult: flowResult });
-  registry.register({ id: 'endpoint', station,
-    init: ctx => ({ tokens: ctx.p.rateBurst, updatedAt: 0 }),
-    onRequest(ctx, job) { if (ctx.p.rateLimitPerSec > 0) { ctx.k.tokens = Math.min(ctx.p.rateBurst, ctx.k.tokens + (ctx.t - ctx.k.updatedAt) * ctx.p.rateLimitPerSec); ctx.k.updatedAt = ctx.t;
-        if (ctx.k.tokens < 1) { ctx.count('Rate limited'); ctx.reply(job, { ok: false, err: 'rate-limited' }); return; } ctx.k.tokens--; } ctx.admit(job); },
-    onServed: (ctx, job) => terminal(ctx, job)
-  });
-  registry.register({ id: 'database', station: { concurrency: 'connections', queueCapacity: 'queueCapacity' },
-    onRequest(ctx, job) { const mean = (job.msg.op === 'write' ? ctx.p.writeMs : ctx.p.readMs) + ctx.p.perKbMs * job.msg.kb; ctx.admit(job, ctx.serviceMs(mean, ctx.p.serviceDist, ctx.p.serviceCv)); },
-    onServed(ctx, job) { if (job.msg.op === 'write') { const e = ctx.effect(job.msg.idem, { idempotent: ctx.p.idempotentWrites, windowSec: ctx.p.idempotencyWindowSec }); ctx.count(e.suppressed ? 'Deduplicated writes' : 'Writes'); } else ctx.count('Reads'); ctx.reply(job, { ok: true, kb: ctx.p.responseKb, ptype: 'rows' }); }
-  });
-  function queueDispatch(ctx) {
-    if (ctx.fault.down) return; const edges = ctx.edges('consumers'); if (!edges.length) return;
-    for (const item of ctx.k.items) {
-      if (item.status !== 'ready' || item.availableAt > ctx.t) continue;
-      const selected = item.subscriberEdgeId || edges[ctx.k.cursor++ % edges.length];
-      if (ctx.k.items.filter(other => other.status === 'leased' && other.edgeId === selected).length >= ctx.p.prefetch) continue;
-      if (item.receives >= ctx.p.maxReceives) { queueDeadLetter(ctx, item); continue; }
-      const holder = ctx.getJob(item.jobId); if (!holder || holder.status === 'finished') { item.status = 'done'; continue; }
-      item.edgeId = selected; item.status = 'leased'; item.receives++; item.generation++; holder.msg.delivery = item.receives;
-      ctx.count('Deliveries'); ctx.log('queue-delivery', `${item.id} receive ${item.receives}`, holder);
-      ctx.call(holder, selected, { delivery: item.receives }, { timeoutMs: ctx.p.visibilityTimeoutMs, retries: 0, backoffMs: 0, multiplier: 1, jitter: false, slot: { itemId: item.id, generation: item.generation } });
-      ctx.wake(ctx.p.visibilityTimeoutMs / 1000, { kind: 'lease', itemId: item.id, generation: item.generation });
+  // Non-homogeneous patterns use thinning against their peak rate.
+  function nextArrival(ctx, from) {
+    const p = ctx.p;
+    if (p.pattern === 'constant') return p.ratePerSec > 0 ? from + 1 / p.ratePerSec : null;
+    if (p.pattern === 'poisson') return p.ratePerSec > 0 ? from + ctx.exp(1 / p.ratePerSec) : null;
+    const peak = p.pattern === 'diurnal' ? p.ratePerSec * (1 + DIURNAL_AMPLITUDE) : Math.max(p.ratePerSec, p.rampToRate);
+    if (!(peak > 0)) return null;
+    let t = from;
+    for (let i = 0; i < THINNING_MAX_DRAWS; i++) {
+      t += ctx.exp(1 / peak);
+      if (t > ctx.horizonSec || ctx.rand() * peak <= rateAt(ctx, t)) return t;
     }
+    return t;
   }
-  function queueDeadLetter(ctx, item) { const holder = ctx.getJob(item.jobId); item.status = 'dead-letter'; ctx.count('Dead letters'); ctx.log('dead-letter', `${item.id} exhausted receives`, holder);
-    const edge = ctx.edges('dlq')[0]; if (edge && holder) { ctx.send(edge, holder.msg); ctx.reply(holder, { ok: true }); } else if (holder) { holder.status = 'dead-letter'; } }
-  function queueRequeue(ctx, item) { if (item.status !== 'leased') return; item.status = 'ready'; item.availableAt = ctx.t + ctx.p.retryDelayMs / 1000; item.generation++; if (item.receives >= ctx.p.maxReceives) queueDeadLetter(ctx, item); else ctx.wake(ctx.p.retryDelayMs / 1000, { kind: 'dispatch' }); }
-  registry.register({ id: 'queue', station: null,
-    init: () => ({ items: [], next: 0, cursor: 0 }),
-    onRequest(ctx, job) { const edges = ctx.edges('consumers'), targets = ctx.p.mode === 'topic' && edges.length ? edges : [null]; if (ctx.k.items.filter(i => !['done', 'dead-letter'].includes(i.status)).length + targets.length > ctx.p.capacity) { ctx.count('Rejected'); ctx.reply(job, { ok: false, err: 'rejected' }); return; }
-      for (const edgeId of targets) { const holder = ctx.newJob(ctx.derive(job.msg, {})); if (!holder || !ctx.hold(holder)) continue; holder.status = 'queue-retained';
-        ctx.k.items.push({ id: `item-${++ctx.k.next}`, jobId: holder.id, edgeId, subscriberEdgeId: edgeId, receives: 0, status: 'ready', availableAt: ctx.t + ctx.p.enqueueMs / 1000, generation: 0 }); }
-      ctx.reply(job, { ok: true, kb: 0 }); ctx.wake(ctx.p.enqueueMs / 1000, { kind: 'dispatch' });
+  function scheduleNext(ctx, from) {
+    const at = nextArrival(ctx, from);
+    if (at === null) ctx.wake(SOURCE_IDLE_POLL_SEC, { kind: 'poll' });
+    else ctx.wake(Math.max(0, at - ctx.t), { kind: 'next' });
+  }
+  function sourceActive(ctx) {
+    const p = ctx.p, k = ctx.k;
+    if (k.stopped) return false;
+    if ((p.stopSec > 0 && ctx.t >= p.stopSec) || (p.maxRequests > 0 && k.generated >= p.maxRequests)) { k.stopped = true; return false; }
+    return true;
+  }
+  function think(ctx, user) { ctx.wake(ctx.exp(ctx.p.thinkMs) / MS, { kind: 'user', user }); }
+  function emit(ctx, user) {
+    const p = ctx.p, k = ctx.k, edges = ctx.edges('out');
+    k.generated++;
+    const msg = ctx.message({
+      ptype: p.payload, kb: p.requestKb, tokens: p.tokensMean > 0 ? Math.max(1, Math.round(ctx.exp(p.tokensMean))) : 0,
+      op: ctx.rand() < p.readFraction ? 'read' : 'write', key: ctx.zipf(p.keySpace, p.zipfS), deadline: p.deadlineMs > 0 ? ctx.t + p.deadlineMs / MS : null,
+    });
+    ctx.beginRequest(msg);
+    if (!edges.length) { ctx.endRequest(msg, { ok: false, err: 'unavailable' }); if (user !== null) think(ctx, user); return; }
+    const edge = edges[k.rr % edges.length];
+    k.rr = (k.rr + 1) % edges.length;
+    const job = ctx.newJob(msg);
+    const callId = ctx.call(job, edge.id, {}, { timeoutMs: p.timeoutMs, retries: p.retries, backoffMs: p.retryBackoffMs, multiplier: SOURCE_BACKOFF_MULTIPLIER, jitter: p.retryJitter, idemPerAttempt: !p.idempotencyKeys });
+    if (callId === null) {
+      ctx.endRequest(job.msg, { ok: true });
+      ctx.reply(job, { ok: true });
+      if (user !== null) think(ctx, user);
+      return;
+    }
+    if (user !== null) k.users[job.id] = user;
+  }
+  registry.register({
+    id: 'source', station: null,
+    init: () => ({ generated: 0, rr: 0, stopped: false, users: {}, restart: [] }),
+    start(ctx) {
+      const p = ctx.p;
+      if (p.pattern === 'closed') for (let u = 0; u < p.users; u++) ctx.wake(p.startSec + ctx.rand() * p.thinkMs / MS, { kind: 'user', user: u });
+      else if (p.pattern === 'burst') ctx.wake(p.burstAtSec, { kind: 'burst', i: 0 });
+      else if (p.pattern === 'constant') ctx.wake(p.startSec, { kind: 'next' });
+      else scheduleNext(ctx, p.startSec);
     },
-    onWake(ctx, data) { if (data.kind === 'lease') { const item = ctx.k.items.find(i => i.id === data.itemId); if (item && item.generation === data.generation && item.status === 'leased') { ctx.count('Lease expiries'); queueRequeue(ctx, item); } } queueDispatch(ctx); },
-    onResult(ctx, job, slot, result) { const item = ctx.k.items.find(i => i.id === slot.itemId); if (!item || item.generation !== slot.generation || item.status !== 'leased') return;
-      if (result.ok) { item.status = 'done'; item.generation++; ctx.count('Acknowledged'); ctx.reply(job, { ok: true }); } else { ctx.count('Failed acknowledgements'); if (result.err === 'timeout') ctx.count('Lease expiries'); queueRequeue(ctx, item); } queueDispatch(ctx);
+    onWake(ctx, w) {
+      if (w.kind === 'poll') { if (sourceActive(ctx)) scheduleNext(ctx, ctx.t); return; }
+      if (!sourceActive(ctx)) return;
+      if (w.kind === 'next') { emit(ctx, null); scheduleNext(ctx, ctx.t); }
+      else if (w.kind === 'burst') { emit(ctx, null); if (w.i + 1 < ctx.p.burstCount) ctx.wake(ctx.p.burstSpacingMs / MS, { kind: 'burst', i: w.i + 1 }); }
+      else if (w.kind === 'user') emit(ctx, w.user);
     },
-    onFault(ctx, f, active) { if (f.type !== 'crash' && f.type !== 'outage') return; if (active) { for (const item of ctx.k.items) if (!['done', 'dead-letter'].includes(item.status)) item.status = 'done'; } else if (!ctx.fault.down) queueDispatch(ctx); },
-    observe: ctx => ({ detail: { Queued: ctx.k.items.filter(i => i.status === 'ready').length, Leased: ctx.k.items.filter(i => i.status === 'leased').length, 'Dead letters retained': ctx.k.items.filter(i => i.status === 'dead-letter').length } })
+    onResult(ctx, job, slot, result) {
+      const k = ctx.k;
+      ctx.endRequest(job.msg, { ok: result.ok, err: result.err });
+      ctx.reply(job, result.ok ? { ok: true } : { ok: false, err: result.err });
+      if (Object.hasOwn(k.users, job.id)) { const user = k.users[job.id]; delete k.users[job.id]; think(ctx, user); }
+    },
+    // The engine ends a crashed source's open requests; closed-loop users waiting on them restart on repair.
+    onFault(ctx, fault, active) {
+      const k = ctx.k;
+      if (isCrash(ctx, fault, active)) { k.restart.push(...Object.values(k.users)); k.users = {}; }
+      else if (recovered(ctx, active) && k.restart.length) { for (const user of k.restart) think(ctx, user); k.restart = []; }
+    },
+    observe(ctx) { return { detail: { generated: ctx.k.generated, stopped: ctx.k.stopped } }; },
   });
-  registry.register({ id: 'deadLetter', station: null,
-    init: () => ({ items: [] }),
-    onRequest(ctx, job) { if (ctx.k.items.length >= ctx.p.capacity) { ctx.reply(job, { ok: false, err: 'rejected' }); return; } const holder = ctx.newJob(ctx.derive(job.msg, {})); if (holder && ctx.hold(holder)) { holder.status = 'dead-letter'; ctx.k.items.push({ jobId: holder.id, msg: holder.msg }); ctx.log('dead-letter-retained', holder.msg.trace, holder); } ctx.reply(job, { ok: true, kb: 0 }); },
-    onControl(ctx, c) { if (c.kind !== 'redrive') return false; const edge = ctx.edges('redrive')[0]; if (!edge) throw Error('Connect a redrive output first'); for (const item of ctx.k.items) { const holder = ctx.getJob(item.jobId); if (!holder || holder.status === 'finished') continue; ctx.send(edge, ctx.derive(item.msg, { delivery: 0 })); ctx.reply(holder, { ok: true }); } ctx.k.items = []; return true; },
-    observe: ctx => ({ detail: { Retained: ctx.k.items.length } })
+
+  // ---- service ----
+  function callOptions(p, slot) { return { timeoutMs: p.callTimeoutMs, retries: p.retries, backoffMs: p.retryBackoffMs, multiplier: p.backoffMultiplier, jitter: p.retryJitter, slot }; }
+  function forwardPatch(p) { return p.outputPayload === 'inherit' ? {} : { ptype: p.outputPayload }; }
+  function finishService(ctx, job, rec) {
+    delete ctx.k.jobs[job.id];
+    ctx.reply(job, rec.err ? { ok: false, err: rec.err } : { ok: true, kb: ctx.p.responseKb });
+  }
+  function nextSequential(ctx, job, rec) {
+    const p = ctx.p;
+    while (rec.i < rec.plan.length) {
+      const step = rec.plan[rec.i];
+      if (step.a) { ctx.call(job, step.e, forwardPatch(p), { async: true }); rec.i++; continue; }
+      if (ctx.call(job, step.e, forwardPatch(p), callOptions(p, rec.i)) !== null) return;
+      rec.i++;
+    }
+    finishService(ctx, job, rec);
+  }
+  registry.register({
+    id: 'service', station: STATION,
+    init: () => ({ jobs: {} }),
+    onServed(ctx, job) {
+      const p = ctx.p;
+      if (failed(ctx, p.errorRate)) { ctx.reply(job, { ok: false, err: 'error' }); return; }
+      const plan = [];
+      for (const edge of ctx.edges('calls')) {
+        if (edge.params.probability < 1 && ctx.rand() >= edge.params.probability) continue;
+        for (let i = 0; i < edge.params.callsPerRequest; i++) plan.push({ e: edge.id, a: edge.params.mode === 'async' });
+      }
+      if (!plan.length) { ctx.reply(job, { ok: true, kb: p.responseKb }); return; }
+      if (!p.blockingCalls) ctx.release(job);
+      const rec = { plan, i: 0, pending: 0, err: null, parallel: p.callMode === 'parallel' };
+      ctx.k.jobs[job.id] = rec;
+      if (!rec.parallel) { nextSequential(ctx, job, rec); return; }
+      plan.forEach((step, i) => {
+        if (step.a) ctx.call(job, step.e, forwardPatch(p), { async: true });
+        else if (ctx.call(job, step.e, forwardPatch(p), callOptions(p, i)) !== null) rec.pending++;
+      });
+      if (!rec.pending) finishService(ctx, job, rec);
+    },
+    onResult(ctx, job, slot, result) {
+      const rec = ctx.k.jobs[job.id];
+      if (!rec) return;
+      if (!result.ok && !rec.err) rec.err = result.err;
+      if (rec.parallel) { rec.pending--; if (!rec.pending) finishService(ctx, job, rec); return; }
+      if (!result.ok) { finishService(ctx, job, rec); return; }
+      rec.i++;
+      nextSequential(ctx, job, rec);
+    },
+    onFault(ctx, fault, active) { if (isCrash(ctx, fault, active)) ctx.k.jobs = {}; },
+    observe(ctx) { return { detail: { 'awaiting calls': Object.keys(ctx.k.jobs).length } }; },
+  });
+
+  // ---- endpoint ----
+  registry.register({
+    id: 'endpoint', station: STATION,
+    init: () => ({ tokens: null, last: 0, limited: 0 }),
+    onRequest(ctx, job) {
+      const p = ctx.p, k = ctx.k;
+      if (p.rateLimitPerSec > 0) {
+        k.tokens = Math.min(p.rateBurst, (k.tokens === null ? p.rateBurst : k.tokens) + (ctx.t - k.last) * p.rateLimitPerSec);
+        k.last = ctx.t;
+        if (k.tokens < 1) { k.limited++; ctx.reply(job, { ok: false, err: 'rate-limited', kb: 0 }); return; }
+        k.tokens -= 1;
+      } else { k.tokens = null; k.last = ctx.t; }
+      ctx.admit(job);
+    },
+    onServed(ctx, job) {
+      if (failed(ctx, ctx.p.errorRate)) { ctx.reply(job, { ok: false, err: 'error' }); return; }
+      ctx.reply(job, { ok: true, kb: ctx.p.responseKb });
+    },
+    observe(ctx) { return { detail: ctx.p.rateLimitPerSec > 0 ? { 'rate limited': ctx.k.limited } : {} }; },
+  });
+
+  // ---- queue: at-least-once leases with visibility timeout, redelivery and dead letters ----
+  function subscriptions(ctx) { return ctx.p.mode === 'topic' ? ctx.edges('consumers').map(edge => edge.id) : [ALL]; }
+  function makeReady(k, qid) {
+    const rec = k.msgs[qid];
+    rec.st = 'ready';
+    (k.ready[rec.sub] || (k.ready[rec.sub] = [])).push(qid);
+  }
+  function popReady(k, sub) {
+    const list = k.ready[sub];
+    if (!list) return null;
+    let head = k.heads[sub] || 0, found = null;
+    while (head < list.length && found === null) {
+      const qid = list[head++], rec = k.msgs[qid];
+      if (rec && rec.st === 'ready') found = qid;
+    }
+    if (head >= QUEUE_COMPACT_MIN && head * 2 >= list.length) { k.ready[sub] = list.slice(head); head = 0; }
+    k.heads[sub] = head;
+    return found;
+  }
+  function hasReady(k, sub) {
+    const list = k.ready[sub];
+    if (!list) return false;
+    for (let i = k.heads[sub] || 0; i < list.length; i++) { const rec = k.msgs[list[i]]; if (rec && rec.st === 'ready') return true; }
+    return false;
+  }
+  function deliver(ctx, qid, edge) {
+    const k = ctx.k, rec = k.msgs[qid];
+    rec.st = 'lease'; rec.d++; rec.e = edge.id;
+    k.infl[edge.id] = (k.infl[edge.id] || 0) + 1;
+    k.stats.delivered++;
+    if (rec.d > 1) k.stats.redeliveries++;
+    const callId = ctx.call(null, edge.id, { ...rec.m, delivery: rec.d }, { timeoutMs: ctx.p.visibilityTimeoutMs, retries: 0, slot: qid });
+    if (callId === null) { k.infl[edge.id]--; delete k.msgs[qid]; k.size--; k.stats.acked++; }
+  }
+  function dispatchQueue(ctx) {
+    const k = ctx.k, p = ctx.p, all = ctx.edges('consumers');
+    const usable = all.filter(edge => ctx.edgeUsable(edge.id));
+    const room = edge => (k.infl[edge.id] || 0) < p.prefetch;
+    if (p.mode === 'topic') {
+      for (const edge of usable) { let qid; while (room(edge) && (qid = popReady(k, edge.id)) !== null) deliver(ctx, qid, edge); }
+    } else if (usable.length) {
+      for (;;) {
+        let pick = -1;
+        for (let n = 0; n < usable.length && pick < 0; n++) if (room(usable[(k.rr + n) % usable.length])) pick = (k.rr + n) % usable.length;
+        if (pick < 0) break;
+        const qid = popReady(k, ALL);
+        if (qid === null) break;
+        deliver(ctx, qid, usable[pick]);
+        k.rr = (pick + 1) % usable.length;
+      }
+    }
+    const blocked = usable.length < all.length && (p.mode === 'topic' ? all.some(edge => !usable.includes(edge) && hasReady(k, edge.id)) : hasReady(k, ALL));
+    if (blocked && !k.poll) { k.poll = true; ctx.wake(QUEUE_PARTITION_POLL_SEC, { kind: 'poll' }); }
+  }
+  function failedDelivery(ctx, qid, rec, delayMs) {
+    const k = ctx.k, p = ctx.p;
+    rec.r++;
+    if (rec.r >= p.maxReceives) { deadLetter(ctx, qid, rec); return; }
+    if (delayMs > 0) { rec.st = 'wait'; ctx.wake(delayMs / MS, { kind: 'vis', q: qid }); }
+    else makeReady(k, qid);
+  }
+  function deadLetter(ctx, qid, rec) {
+    const k = ctx.k, dlq = ctx.edges('dlq')[0];
+    delete k.msgs[qid]; k.size--;
+    if (dlq) { ctx.send(dlq.id, { ...rec.m, delivery: rec.d, fields: { ...rec.m.fields, reason: 'max-receives' } }); k.stats.deadLettered++; ctx.log('dead-letter', `message ${rec.m.trace} dead-lettered after ${rec.r} failed deliveries`); }
+    else { k.stats.dropped++; ctx.log('dropped', `message ${rec.m.trace} dropped after ${rec.r} failed deliveries (no dead-letter edge)`); }
+  }
+  registry.register({
+    id: 'queue', station: null,
+    init: () => ({ seq: 0, size: 0, pending: 0, msgs: {}, ready: {}, heads: {}, infl: {}, rr: 0, poll: false, stats: { enqueued: 0, acked: 0, delivered: 0, redeliveries: 0, expired: 0, deadLettered: 0, dropped: 0, rejected: 0 } }),
+    onRequest(ctx, job) {
+      const k = ctx.k;
+      if (k.size + k.pending >= ctx.p.capacity) { k.stats.rejected++; ctx.reply(job, { ok: false, err: 'rejected', kb: 0 }); return; }
+      k.pending++;
+      ctx.wake(ctx.p.enqueueMs * ctx.fault.slowFactor / MS, { kind: 'enq', job: job.id });
+    },
+    onWake(ctx, w) {
+      const k = ctx.k;
+      if (w.kind === 'enq') {
+        k.pending--;
+        const job = ctx.job(w.job);
+        if (!job) return;
+        for (const sub of subscriptions(ctx)) { const qid = `q${++k.seq}`; k.msgs[qid] = { m: { ...job.msg, fields: { ...job.msg.fields } }, sub, r: 0, d: 0, st: 'ready', at: ctx.t, e: null }; k.size++; makeReady(k, qid); }
+        k.stats.enqueued++;
+        ctx.reply(job, { ok: true, kb: 0 });
+      } else if (w.kind === 'vis') {
+        const rec = k.msgs[w.q];
+        if (rec && rec.st === 'wait') makeReady(k, w.q);
+      } else if (w.kind === 'poll') k.poll = false;
+      dispatchQueue(ctx);
+    },
+    onResult(ctx, job, qid, result) {
+      const k = ctx.k, rec = k.msgs[qid];
+      if (!rec || rec.st !== 'lease') return;
+      k.infl[rec.e]--;
+      if (result.ok) { delete k.msgs[qid]; k.size--; k.stats.acked++; }
+      else if (result.err === 'timeout') { k.stats.expired++; failedDelivery(ctx, qid, rec, 0); }
+      else failedDelivery(ctx, qid, rec, ctx.p.retryDelayMs);
+      dispatchQueue(ctx);
+    },
+    // Messages are durable across a crash; leases die with the crashed node and become visible again.
+    onFault(ctx, fault, active) {
+      const k = ctx.k;
+      if (isCrash(ctx, fault, active)) {
+        for (const qid of Object.keys(k.msgs)) if (k.msgs[qid].st === 'lease') makeReady(k, qid);
+        k.infl = {};
+      } else if (recovered(ctx, active)) dispatchQueue(ctx);
+    },
+    observe(ctx) {
+      const k = ctx.k;
+      let depth = 0, leased = 0, oldest = 0;
+      for (const qid of Object.keys(k.msgs)) {
+        const rec = k.msgs[qid];
+        if (rec.st === 'lease') leased++;
+        else { depth++; oldest = Math.max(oldest, ctx.t - rec.at); }
+      }
+      return { queue: depth, queueCapacity: ctx.p.capacity, detail: { depth, 'in flight': leased, 'oldest age s': oldest, redeliveries: k.stats.redeliveries, 'lease expiries': k.stats.expired, 'dead-lettered': k.stats.deadLettered, dropped: k.stats.dropped, rejected: k.stats.rejected } };
+    },
+  });
+
+  // ---- deadLetter ----
+  registry.register({
+    id: 'deadLetter', station: null,
+    init: () => ({ kept: [], count: 0, overflow: 0, redriven: 0 }),
+    onRequest(ctx, job) {
+      const k = ctx.k;
+      k.count++;
+      if (k.kept.length < ctx.p.capacity) k.kept.push({ id: job.msg.id, reason: typeof job.msg.fields.reason === 'string' ? job.msg.fields.reason : 'dead-letter', m: job.msg });
+      else k.overflow++;
+      ctx.reply(job, { ok: true, kb: 0 });
+    },
+    onControl(ctx, control) {
+      if (control.kind !== 'redrive') return false;
+      const k = ctx.k, edge = ctx.edges('redrive')[0];
+      if (!edge) return false;
+      for (const row of k.kept) ctx.send(edge.id, { ...row.m, delivery: 0, fields: { ...row.m.fields, redriven: true } });
+      k.redriven += k.kept.length;
+      k.kept = [];
+      return true;
+    },
+    observe(ctx) { const k = ctx.k; return { queue: k.kept.length, queueCapacity: ctx.p.capacity, detail: { retained: k.kept.length, 'dead letters': k.count, redriven: k.redriven, overflow: k.overflow } }; },
+  });
+
+  // ---- database ----
+  registry.register({
+    id: 'database', station: { concurrency: 'connections', queueCapacity: 'queueCapacity' },
+    init: () => ({ reads: 0, writes: 0, effects: 0, duplicates: 0, suppressed: 0, errors: 0 }),
+    onRequest(ctx, job) {
+      const p = ctx.p, mean = (job.msg.op === 'write' ? p.writeMs : p.readMs) + p.perKbMs * (Number.isFinite(job.msg.kb) ? job.msg.kb : 0);
+      ctx.admit(job, ctx.serviceMs(mean, p.serviceDist, p.serviceCv));
+    },
+    onServed(ctx, job) {
+      const p = ctx.p, k = ctx.k;
+      if (failed(ctx, p.errorRate)) { k.errors++; ctx.reply(job, { ok: false, err: 'error' }); return; }
+      if (job.msg.op === 'write') {
+        k.writes++;
+        const result = ctx.effect(job.msg.idem, { idempotent: p.idempotentWrites, windowSec: p.idempotencyWindowSec });
+        if (result.suppressed) k.suppressed++;
+        else { k.effects++; if (result.duplicate) k.duplicates++; }
+      } else k.reads++;
+      ctx.reply(job, { ok: true, kb: p.responseKb });
+    },
+    observe(ctx) { const k = ctx.k; return { detail: { reads: k.reads, writes: k.writes, effects: k.effects, 'duplicate effects': k.duplicates, 'suppressed duplicates': k.suppressed } }; },
   });
 });

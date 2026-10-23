@@ -1,334 +1,695 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
-  const api = factory(node ? require('./diagram.js') : root.SimulatteSystemDiagramDocument);
+  const api = factory(node ? require('./diagram.js') : root.SimulatteSystemDiagramDocument, node ? require('./editor-canvas-render.js') : root.SimulatteSystemDiagramCanvasRender);
   if (node) module.exports = api; else root.SimulatteSystemDiagramCanvas = api;
-})(globalThis, function (documents) {
+})(globalThis, function (D, R) {
   'use strict';
-  const NS = 'http://www.w3.org/2000/svg', PORT_TOP = 52, PORT_GAP = 22, READABLE_ZOOM = .85;
-  let instance = 0;
-  function el(tag, attrs = {}, text) {
-    const node = document.createElementNS(NS, tag);
-    for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
-    if (text !== undefined) node.textContent = String(text);
-    return node;
-  }
+  const DRAG_THRESHOLD = Object.freeze({ mouse: 4, pen: 6, touch: 9 });
+  const LONG_PRESS_MS = 450;
+  const DOUBLE_TAP_MS = 350;
+  const GROUP_MIN_GRID_STEPS = 6;
+  const FIT_PADDING = 48;
+  const FIT_MAX_ZOOM = 1.25;
+  const GRID_STEPS = 4;
+  const GRID_MIN_PX = 10;
+  const ZOOM_STEP = 1.2;
+  const WHEEL_ZOOM = Object.freeze({ pinch: 0.01, wheel: 0.0025, line: 16 });
+  const KEY_PAN_PX = 48;
+  const NUDGE_LARGE_STEPS = 4;
+  const EAGER_CANDIDATE_LIMIT = 240;
+  const HINT_MS = 2600;
+  const ARROW = 10;
+  let instances = 0;
+  const { el, STATUS_HEIGHT, PORT_DOT } = R;
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const rectsIntersect = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  const contains = (outer, inner) => inner.x >= outer.x && inner.y >= outer.y && inner.x + inner.w <= outer.x + outer.w && inner.y + inner.h <= outer.y + outer.h;
+  const friendly = reason => String(reason || '').replace(/^system-diagram diagram\.edges\[\d+\][^:]*: /, '');
+
   function create({ host, model, library, config, onMessage = () => {}, onView = () => {} }) {
-    if (!host || !model || !library || !config) throw Error('System Diagram canvas requires host, editor model, library and configuration');
-    const id = `sd-canvas-${++instance}`, width = config.editor.nodeWidth;
-    const svg = el('svg', { class: 'sd-canvas', tabindex: 0, role: 'group', 'aria-label': 'System architecture canvas. Drag nodes, connect ports, or use keyboard selection and arrow keys.' });
-    const defs = el('defs'), pattern = el('pattern', { id: `${id}-grid`, width: config.editor.grid * 3, height: config.editor.grid * 3, patternUnits: 'userSpaceOnUse' });
-    pattern.append(el('circle', { cx: 1, cy: 1, r: .7, class: 'sd-grid-dot' }));
-    const marker = el('marker', { id: `${id}-arrow`, viewBox: '0 0 8 8', refX: 7, refY: 4, markerWidth: 6, markerHeight: 6, orient: 'auto' });
-    marker.append(el('path', { d: 'M1 1 L7 4 L1 7', class: 'sd-arrow' })); defs.append(pattern, marker);
-    const background = el('rect', { width: '100%', height: '100%', fill: `url(#${id}-grid)`, 'data-background': 'true' }), scene = el('g', { class: 'sd-scene' });
-    const layers = Object.freeze(Object.fromEntries(['groups', 'edges', 'nodes', 'overlay', 'interaction'].map(name => [name, el('g', { class: `sd-layer-${name}` })])));
-    scene.append(...Object.values(layers)); svg.append(defs, background, scene); host.classList.add('sd-canvas-host'); host.replaceChildren(svg);
-    let view = { ...model.diagram.view }, diagram = model.diagram, selection = model.selection;
-    let gesture = null, connection = null, wirePoint = null, disposed = false, space = false, multiSelect = false, runState = null, pending = false;
-    const pointers = new Map(), nodeElements = new Map(), edgeElements = new Map(), portElements = new Map();
-    const touch = Boolean(globalThis.matchMedia?.('(pointer: coarse)').matches || globalThis.navigator?.maxTouchPoints > 0);
-    const emptySelection = () => ({ nodes: [], edges: [], groups: [], notes: [] });
-    const short = (s, n = 21) => String(s).length > n ? `${String(s).slice(0, n - 1)}…` : String(s);
-    function send(command) {
-      const result = model.apply(command);
-      if (!result.ok) onMessage(result.error || 'Diagram change rejected', true);
-      return result;
+    const doc = host.ownerDocument, win = doc.defaultView;
+    const E = config.editor, W = E.nodeWidth, H = E.nodeHeight, GRID = E.grid;
+    const uid = ++instances;
+    const touches = new Map();
+    let view = { ...model.diagram.view }, gesture = null, pending = null, editing = null;
+    let explicitMultiSelect = false, overlay = null, runView = null, runPending = false;
+    const reconnectHandles = new Map();
+    let frame = 0, queuedPositions = null, viewDirty = false, ownViewChange = false, hintTimer = 0, gestureCount = 0, lastTap = null;
+    const events = new AbortController(), on = (target, type, fn, opts = {}) => target.addEventListener(type, fn, { signal: events.signal, ...opts });
+
+    host.classList.add('sd-canvas');
+    host.tabIndex = 0;
+    host.setAttribute('role', 'application');
+    host.setAttribute('aria-roledescription', 'diagram editor');
+    host.setAttribute('aria-label', 'System diagram canvas. Tab to nodes; Delete removes, arrows move, C connects, F2 renames.');
+    const svg = el(doc, 'svg', { class: 'sd-canvas-svg', width: '100%', height: '100%' });
+    const defs = el(doc, 'defs');
+    const marker = (id, cls) => {
+      const m = el(doc, 'marker', { id, viewBox: `0 0 ${ARROW} ${ARROW}`, refX: ARROW + PORT_DOT, refY: ARROW / 2, markerWidth: ARROW, markerHeight: ARROW, markerUnits: 'userSpaceOnUse', orient: 'auto' });
+      m.append(el(doc, 'path', { d: `M0 1L${ARROW} ${ARROW / 2}L0 ${ARROW - 1}z`, class: cls }));
+      return m;
+    };
+    const arrowId = `sd-arrow-${uid}`, arrowSelectedId = `sd-arrow-selected-${uid}`, gridId = `sd-grid-${uid}`;
+    const pattern = el(doc, 'pattern', { id: gridId, width: GRID * GRID_STEPS, height: GRID * GRID_STEPS, patternUnits: 'userSpaceOnUse' });
+    pattern.append(el(doc, 'circle', { cx: 0.75, cy: 0.75, r: 0.75, class: 'sd-grid-dot' }));
+    defs.append(marker(arrowId, 'sd-arrow'), marker(arrowSelectedId, 'sd-arrow is-selected'), pattern);
+    const background = el(doc, 'rect', { class: 'sd-canvas-grid', width: '100%', height: '100%', fill: `url(#${gridId})` });
+    const world = el(doc, 'g', { class: 'sd-world' });
+    const layers = Object.freeze({
+      groups: el(doc, 'g', { class: 'sd-layer-groups' }), edges: el(doc, 'g', { class: 'sd-layer-edges' }), nodes: el(doc, 'g', { class: 'sd-layer-nodes' }),
+      overlay: el(doc, 'g', { class: 'sd-layer-overlay' }), interaction: el(doc, 'g', { class: 'sd-layer-interaction' }),
+    });
+    world.append(layers.groups, layers.edges, layers.nodes, layers.overlay, layers.interaction);
+    layers.overlay.setAttribute('pointer-events', 'none'); layers.interaction.setAttribute('pointer-events', 'none');
+    svg.append(defs, background, world);
+    const hint = doc.createElement('div');
+    hint.className = 'sd-canvas-hint'; hint.setAttribute('role', 'status'); hint.setAttribute('aria-live', 'polite');
+    host.append(svg, hint);
+
+    // ---- geometry and rendering (editor-canvas-render.js) -----------------------------------
+    const renderer = R.create({ doc, model, library, config, layers, arrowId, arrowSelectedId });
+    const { items, classInfo, findNode, portPosition, nodeBox, noteBox, curve } = renderer;
+    function render() {
+      const hadFocus = host.contains(doc.activeElement);
+      renderer.render();
+      renderReconnectHandles();
+      paintState();
+      if (hadFocus && !host.contains(doc.activeElement) && !editing) host.focus({ preventScroll: true });
     }
-    function select(kind, itemId, additive = false) {
-      if (additive && selection[kind].includes(itemId)) {
-        const value = model.selection; value[kind] = value[kind].filter(id => id !== itemId); model.select(value); return;
+    function rect() { return svg.getBoundingClientRect(); }
+    function screenToWorld(p) { const r = rect(); return { x: (p.x - r.left) / view.zoom + view.x, y: (p.y - r.top) / view.zoom + view.y }; }
+    function worldToScreen(p) { const r = rect(); return { x: (p.x - view.x) * view.zoom + r.left, y: (p.y - view.y) * view.zoom + r.top }; }
+    function viewportCenter() { const r = rect(); return screenToWorld({ x: r.left + r.width / 2, y: r.top + r.height / 2 }); }
+    const snap = v => Math.round(v / GRID) * GRID;
+    function groupAt(point, exclude = []) {
+      const hits = model.diagram.groups.filter(g => !exclude.includes(g.id) && point.x >= g.x && point.x <= g.x + g.w && point.y >= g.y && point.y <= g.y + g.h);
+      hits.sort((a, b) => a.w * a.h - b.w * b.h);
+      return hits[0]?.id || null;
+    }
+
+    // ---- camera ---------------------------------------------------------------------------
+    function clampView(v) {
+      return { x: clamp(v.x, -1e6, 1e6), y: clamp(v.y, -1e6, 1e6), zoom: clamp(v.zoom, E.minZoom, E.maxZoom) };
+    }
+    function paintView() {
+      world.setAttribute('transform', `translate(${-view.x * view.zoom} ${-view.y * view.zoom}) scale(${view.zoom})`);
+      pattern.setAttribute('patternTransform', `translate(${-view.x * view.zoom} ${-view.y * view.zoom}) scale(${view.zoom})`);
+      background.style.opacity = GRID * GRID_STEPS * view.zoom < GRID_MIN_PX ? '0' : '';
+      host.style.setProperty('--sd-zoom', String(view.zoom));
+      onView({ ...view });
+      if (typeof renderer !== 'undefined') renderReconnectHandles();
+    }
+    function setView(next, { commit = true } = {}) {
+      view = clampView({ ...view, ...next });
+      paintView();
+      if (commit) { viewDirty = true; schedule(); }
+      return { ...view };
+    }
+    function zoomAt(client, factor) {
+      const before = screenToWorld(client), zoom = clamp(view.zoom * factor, E.minZoom, E.maxZoom), r = rect();
+      setView({ zoom, x: before.x - (client.x - r.left) / zoom, y: before.y - (client.y - r.top) / zoom });
+    }
+    function zoomBy(factor) { const r = rect(); zoomAt({ x: r.left + r.width / 2, y: r.top + r.height / 2 }, factor); return { ...view }; }
+    function contentBounds() {
+      const d = model.diagram, boxes = [...d.nodes.map(n => ({ x: n.x, y: n.y, w: W, h: H })), ...d.groups, ...d.notes.map(noteBox)];
+      if (!boxes.length) return null;
+      const x0 = Math.min(...boxes.map(b => b.x)), y0 = Math.min(...boxes.map(b => b.y));
+      return { x: x0, y: y0, w: Math.max(...boxes.map(b => b.x + b.w)) - x0, h: Math.max(...boxes.map(b => b.y + b.h)) - y0 };
+    }
+    function fit(options = {}) {
+      const r = rect(), b = contentBounds();
+      if (!r.width || !r.height) return { ...view };
+      if (!b) return setView({ x: -r.width / 2, y: -r.height / 2, zoom: 1 });
+      const zoom = clamp(Math.min((r.width - 2 * FIT_PADDING) / b.w, (r.height - 2 * FIT_PADDING) / b.h, FIT_MAX_ZOOM), E.minZoom, E.maxZoom);
+      if (options.readable && r.width < 600 && zoom < .85) {
+        const source = model.diagram.nodes.find(n => { const ports = classInfo(n.classId).ports; return ports.some(p => p.direction === 'out') && !ports.some(p => p.direction === 'in'); }) || model.diagram.nodes[0];
+        if (source) { const readable = clamp(.85, E.minZoom, E.maxZoom); return setView({ zoom: readable, x: source.x - 24 / readable, y: source.y + H / 2 - r.height / 2 / readable }); }
       }
-      const value = emptySelection(); value[kind] = [itemId]; model.select(value, { additive });
+      return setView({ zoom, x: b.x + b.w / 2 - r.width / 2 / zoom, y: b.y + b.h / 2 - r.height / 2 / zoom });
     }
-    function ports(node) { return library.kernels[documents.resolveClass(node.classId, diagram, library, config).kernel].ports; }
-    function nodeBox(nodeOrId) {
-      const node = typeof nodeOrId === 'string' ? diagram.nodes.find(n => n.id === nodeOrId) : nodeOrId;
-      if (!node) return null;
-      const specs = ports(node), count = Math.max(specs.filter(p => p.direction === 'in').length, specs.filter(p => p.direction === 'out').length, 1);
-      const h = Math.max(config.editor.nodeHeight, PORT_TOP + (count - 1) * PORT_GAP + 20), p = gesture?.positions?.get(node.id) || node;
-      return { x: p.x, y: p.y, w: width, h, width, height: h };
-    }
-    function portPosition(nodeId, portId) {
-      const node = diagram.nodes.find(n => n.id === nodeId); if (!node) return null;
-      const specs = ports(node), port = specs.find(p => p.id === portId); if (!port) return null;
-      const row = specs.filter(p => p.direction === port.direction).findIndex(p => p.id === portId), box = nodeBox(node);
-      return { x: box.x + (port.direction === 'out' ? box.w : 0), y: box.y + PORT_TOP + row * PORT_GAP, direction: port.direction };
-    }
-    function screenToWorld(point, y) {
-      const p = typeof point === 'number' ? { x: point, y } : point, rect = svg.getBoundingClientRect();
-      return { x: (p.x - rect.left - view.x) / view.zoom, y: (p.y - rect.top - view.y) / view.zoom };
-    }
-    function curve(a, b) {
-      const bend = Math.max(50, Math.abs(b.x - a.x) * .45);
-      return `M${a.x} ${a.y} C${a.x + bend} ${a.y},${b.x - bend} ${b.y},${b.x} ${b.y}`;
-    }
-    function currentItem(item) { return gesture?.positions?.has(item.id) ? { ...item, ...gesture.positions.get(item.id) } : item; }
-    function renderGroups() {
-      for (const source of diagram.groups) {
-        const group = currentItem(source), selected = selection.groups.includes(group.id);
-        const g = el('g', { 'data-group-id': group.id, class: 'sd-group', 'data-kind': group.kind, 'data-selected': selected, tabindex: 0, role: 'button', 'aria-label': `${group.label}, ${group.kind}`, 'aria-pressed': selected });
-        const meaning = group.kind === 'resource' ? `${group.capacity} shared slots` : ['zone', 'region'].includes(group.kind) ? 'failure domain' : 'visual boundary';
-        g.append(el('rect', { x: group.x, y: group.y, width: group.w, height: group.h, rx: 10, class: 'sd-group-body' }), el('text', { x: group.x + 12, y: group.y + 21, class: 'sd-group-label' }, `${group.label} · ${meaning}`));
-        layers.groups.append(g);
+
+    // Pointer moves are batched per animation frame; drags commit through one coalesced history entry.
+    function schedule() { if (!frame) frame = win.requestAnimationFrame(flush); }
+    function flush() {
+      frame = 0;
+      if (queuedPositions) {
+        const { positions, key } = queuedPositions; queuedPositions = null;
+        model.apply({ type: 'setPositions', positions, coalesce: key });
       }
-      for (const source of diagram.notes) {
-        const note = currentItem(source), g = el('g', { 'data-note-id': note.id, class: 'sd-note', tabindex: 0, role: 'button', 'aria-label': `Note: ${note.text}` });
-        g.append(el('rect', { x: note.x, y: note.y, width: note.w || 200, height: 48, rx: 4, class: 'sd-note-body', 'data-selected': selection.notes.includes(note.id) }), el('text', { x: note.x + 10, y: note.y + 27, class: 'sd-note-label' }, short(note.text, 30)));
-        layers.groups.append(g);
+      if (viewDirty) {
+        viewDirty = false; ownViewChange = true;
+        model.apply({ type: 'setView', view: { ...view } });
+        ownViewChange = false;
       }
     }
-    function renderEdges() {
-      for (const edge of diagram.edges) {
-        const a = portPosition(edge.from.nodeId, edge.from.portId), b = portPosition(edge.to.nodeId, edge.to.portId); if (!a || !b) continue;
-        const params = documents.resolveEdgeParams(edge, library).values, isSelected = selection.edges.includes(edge.id), d = curve(a, b);
-        const g = el('g', { 'data-edge-id': edge.id, class: 'sd-edge', tabindex: 0, role: 'button', 'aria-label': `${edge.id}: ${edge.from.nodeId}.${edge.from.portId} to ${edge.to.nodeId}.${edge.to.portId}`, 'aria-pressed': isSelected });
-        const path = el('path', { d, class: 'sd-edge-line', 'data-selected': isSelected, 'marker-end': `url(#${id}-arrow)` });
-        g.append(el('title', {}, `${params.bandwidthMbps} Mbit/s · ${params.latencyMs} ms · ${params.mode}`), el('path', { d, class: 'sd-edge-hit' }), path);
-        edgeElements.set(edge.id, path); layers.edges.append(g);
-        if (isSelected) {
-          const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2 - 12;
-          layers.interaction.append(el('rect', { x: x - 66, y: y - 14, width: 132, height: 23, rx: 4, class: 'sd-edge-label-bg' }), el('text', { x, y: y + 1, 'text-anchor': 'middle', class: 'sd-edge-label' }, `${params.bandwidthMbps} Mbit/s · ${params.latencyMs} ms`));
-          for (const [side, p] of [['from', a], ['to', b]]) {
-            const x = p.x + (side === 'from' ? 1 : -1) * (touch ? 36 / view.zoom : 18);
-            const handle = el('g', { 'data-reconnect': edge.id, 'data-side': side, class: 'sd-reconnect-target', tabindex: 0, role: 'button', 'aria-label': `Reconnect ${side} endpoint of ${edge.id}` });
-            handle.append(el('circle', { cx: x, cy: p.y, r: touch ? 22 / view.zoom : 11, class: 'sd-port-hit' }), el('circle', { cx: x, cy: p.y, r: 8, class: 'sd-reconnect' })); layers.interaction.append(handle);
-          }
+    function flushNow() { if (frame) { win.cancelAnimationFrame(frame); frame = 0; } flush(); }
+
+    // ---- hint -----------------------------------------------------------------------------
+    function showHint(text, tone = 'info', sticky = false) {
+      win.clearTimeout(hintTimer);
+      hint.textContent = text || ''; hint.dataset.tone = tone;
+      if (text) onMessage(text, tone === 'error' || tone === 'warning');
+      if (text && !sticky) hintTimer = win.setTimeout(() => { hint.textContent = ''; }, HINT_MS);
+    }
+
+    // ---- hit testing ----------------------------------------------------------------------
+    function classify(target) {
+      const t = target?.closest ? target : null;
+      if (!t || !svg.contains(t)) return { type: 'empty' };
+      const reconnect = t.closest('.sd-reconnect');
+      if (reconnect) return { type: 'reconnect', id: reconnect.dataset.reconnect, side: reconnect.dataset.side };
+      const port = t.closest('.sd-port'), nodeEl = t.closest('.sd-node');
+      if (port && nodeEl) return { type: 'port', id: nodeEl.dataset.id, portId: port.dataset.port, dir: port.dataset.direction };
+      if (nodeEl) return { type: 'node', id: nodeEl.dataset.id };
+      const groupEl = t.closest('.sd-group');
+      if (groupEl && t.closest('.sd-group-handle')) return { type: 'groupHandle', id: groupEl.dataset.id };
+      if (groupEl && t.closest('.sd-group-tab, .sd-group-hit')) return { type: 'group', id: groupEl.dataset.id };
+      const noteEl = t.closest('.sd-note');
+      if (noteEl) return { type: 'note', id: noteEl.dataset.id };
+      const edgeEl = t.closest('.sd-edge');
+      if (edgeEl) return { type: 'edge', id: edgeEl.dataset.id };
+      return { type: 'empty' };
+    }
+    const hitAt = client => classify(doc.elementFromPoint(client.x, client.y));
+    const selectionKey = { node: 'nodes', group: 'groups', note: 'notes', edge: 'edges' };
+    const isSelected = hit => model.selection[selectionKey[hit.type]]?.includes(hit.id);
+
+    function reconnectSource(hit) {
+      const edge = model.diagram.edges.find(e => e.id === hit.id); if (!edge) return null;
+      const fixed = hit.side === 'from' ? edge.to : edge.from;
+      return { ...fixed, dir: hit.side === 'from' ? 'in' : 'out', reconnectId: edge.id };
+    }
+    function renderReconnectHandles() {
+      const used = new Set(), touch = win.matchMedia?.('(pointer: coarse)').matches;
+      for (const edge of model.diagram.edges) if (model.selection.edges.includes(edge.id)) for (const side of ['from', 'to']) {
+        const key = `${edge.id}:${side}`, end = edge[side], p = portPosition(end.nodeId, end.portId); if (!p) continue;
+        used.add(key); let item = reconnectHandles.get(key);
+        if (!item) {
+          const g = el(doc, 'g', { class: 'sd-reconnect', 'data-reconnect': edge.id, 'data-side': side, tabindex: 0, role: 'button', 'pointer-events': 'all', 'aria-label': `Reconnect ${side} endpoint of ${edge.id}` });
+          item = { el: g, hit: el(doc, 'circle', { class: 'sd-reconnect-hit' }), dot: el(doc, 'circle', { class: 'sd-reconnect-dot', r: 6 }) };
+          g.append(item.hit, item.dot); layers.interaction.append(g); reconnectHandles.set(key, item);
         }
+        const offset = touch ? 36 / view.zoom : 16, x = p.x + (side === 'from' ? offset : -offset);
+        item.el.setAttribute('transform', `translate(${x} ${p.y})`); item.hit.setAttribute('r', touch ? 22 / view.zoom : 10);
       }
+      for (const [key, item] of reconnectHandles) if (!used.has(key)) { item.el.remove(); reconnectHandles.delete(key); }
     }
-    function renderNodes() {
-      for (const node of diagram.nodes) {
-        const box = nodeBox(node), klass = documents.resolveClass(node.classId, diagram, library, config), selected = selection.nodes.includes(node.id);
-        const g = el('g', { transform: `translate(${box.x},${box.y})`, class: 'sd-node', 'data-node-id': node.id, 'data-category': klass.category, 'data-selected': selected, tabindex: 0, role: 'button', 'aria-label': `${node.label}, class ${klass.label}`, 'aria-pressed': selected });
-        g.append(el('title', {}, `${node.label} · ${klass.label}`), el('rect', { width: box.w, height: box.h, rx: 8, class: 'sd-node-body' }), el('rect', { x: 11, y: 10, width: 25, height: 25, rx: 6, class: 'sd-node-icon-bg' }));
-        g.append(el('text', { x: 23, y: 27, 'text-anchor': 'middle', class: 'sd-node-icon' }, short(klass.kernel.toUpperCase(), 3)));
-        g.append(el('text', { x: 44, y: 21, class: 'sd-node-label' }, short(node.label, 16)), el('text', { x: 44, y: 35, class: 'sd-node-class' }, short(klass.label, 23)));
-        for (const port of ports(node)) {
-          const p = portPosition(node.id, port.id), x = p.x - box.x, y = p.y - box.y, armed = connection?.nodeId === node.id && connection?.portId === port.id;
-          const payloads = port.accepts || port.emits;
-          const target = el('g', { class: 'sd-port-target', 'data-port-id': port.id, 'data-port': port.direction, 'data-node-id': node.id, 'data-armed': armed, tabindex: 0, role: 'button', 'aria-label': `${node.label} ${port.label}, ${port.direction}, ${payloads.join(', ')}` });
-          target.append(el('title', {}, `${port.label}: ${payloads.join(', ')}`), el('circle', { cx: x, cy: y, r: touch ? 22 / view.zoom : Math.max(10, 7 / view.zoom), class: 'sd-port-hit' }), el('circle', { cx: x, cy: y, r: 6, class: 'sd-port' }));
-          g.append(el('text', { x: port.direction === 'in' ? 11 : box.w - 11, y: y + 3, 'text-anchor': port.direction === 'in' ? 'start' : 'end', class: 'sd-port-label' }, short(port.label, 13)), target);
-          portElements.set(`${node.id}\0${port.id}`, target);
+    function paintState() {
+      if (!runView || runPending) {
+        overlay?.clear();
+        for (const item of items.nodes.values()) {
+          const stale = item.status.querySelector('.sd-pending-label'); stale?.remove();
+          if (runPending) item.status.append(el(doc, 'text', { x: 8, y: 11, class: 'sd-pending-label' }, 'Pending revision'));
         }
-        g.append(el('g', { class: 'sd-node-status', transform: `translate(11,${box.h - 7})` }));
-        nodeElements.set(node.id, g); layers.nodes.append(g);
+        return;
       }
+      if (!overlay) {
+        const api = globalThis.SimulatteSystemDiagramOverlay;
+        if (!api?.create) throw Error('System Diagram overlay script is required for execution state');
+        overlay = api.create({ canvas: { host, layers, nodeElement: id => items.nodes.get(id)?.el || null, edgeElement: id => items.edges.get(id)?.path || null, nodeBox, portPosition }, library, config });
+      }
+      for (const item of items.nodes.values()) item.status.querySelector('.sd-pending-label')?.remove();
+      overlay.render(runView);
     }
-    function renderState() {
-      if (!runState) return;
-      for (const [nodeId, g] of nodeElements) {
-        const state = runState.nodes?.[nodeId], status = g.querySelector('.sd-node-status');
-        if (!status) continue;
-        if (pending) status.append(el('text', { class: 'sd-state-label' }, 'Pending revision'));
-        else if (state) {
-          const text = state.health === 'down' ? 'Down' : `${state.busy} busy · ${state.queue} queued`;
-          status.append(el('circle', { cx: 3, cy: -3, r: 2.5, class: 'sd-health', 'data-health': state.health }), el('text', { x: 10, class: 'sd-state-label' }, text));
+
+    // ---- connecting -----------------------------------------------------------------------
+    function ends(source, nodeId, portId) {
+      const other = { nodeId, portId }, self = { nodeId: source.nodeId, portId: source.portId };
+      return source.dir === 'out' ? { from: self, to: other } : { from: other, to: self };
+    }
+    function beginConnect(source) {
+      const candidates = new Map(), d = model.diagram;
+      const keys = [];
+      for (const n of d.nodes) {
+        if (n.id === source.nodeId) continue;
+        for (const port of classInfo(n.classId).ports) if (port.direction !== source.dir) keys.push([n.id, port.id]);
+      }
+      const evaluate = (nodeId, portId) => {
+        const key = `${nodeId}.${portId}`;
+        if (!candidates.has(key)) { const e = ends(source, nodeId, portId); const trial = source.reconnectId ? { ...model.diagram, edges: model.diagram.edges.filter(edge => edge.id !== source.reconnectId) } : model.diagram; candidates.set(key, D.canConnect(trial, library, config, e.from, e.to)); }
+        return candidates.get(key);
+      };
+      host.classList.add('is-connecting');
+      items.nodes.get(source.nodeId)?.portEls.get(source.portId)?.classList.add('is-source');
+      if (keys.length <= EAGER_CANDIDATE_LIMIT) {
+        for (const [nodeId, portId] of keys) {
+          const result = evaluate(nodeId, portId), portEl = items.nodes.get(nodeId)?.portEls.get(portId);
+          portEl?.classList.add(result.ok ? 'is-valid' : 'is-invalid');
+          if (result.ok && result.warning) portEl?.classList.add('is-warning');
         }
-      }
+      } else for (const [nodeId, portId] of keys) items.nodes.get(nodeId)?.portEls.get(portId)?.classList.add('is-candidate');
+      return { source, evaluate, keys };
     }
-    function focusIdentity() {
-      const focused = document.activeElement;
-      if (!focused || !svg.contains(focused)) return null;
-      for (const attr of ['data-reconnect', 'data-port-id', 'data-node-id', 'data-edge-id', 'data-group-id', 'data-note-id']) if (focused.hasAttribute(attr)) return { attr, id: focused.getAttribute(attr), nodeId: focused.getAttribute('data-node-id'), side: focused.getAttribute('data-side') };
+    function endConnect() {
+      host.classList.remove('is-connecting');
+      for (const item of items.nodes.values()) for (const portEl of item.portEls.values()) portEl.classList.remove('is-source', 'is-valid', 'is-invalid', 'is-warning', 'is-candidate', 'is-target');
+      layers.interaction.querySelector('.sd-connect-preview')?.remove();
+    }
+    // A target is a port, or a node body whose first compatible port is chosen (large touch target).
+    function resolveTarget(connect, hit) {
+      if (hit.type === 'port' && hit.id !== connect.source.nodeId) {
+        if (hit.dir === connect.source.dir) return { nodeId: hit.id, portId: hit.portId, result: { ok: false, reason: `both ports are ${hit.dir} ports` } };
+        return { nodeId: hit.id, portId: hit.portId, result: connect.evaluate(hit.id, hit.portId) };
+      }
+      if ((hit.type === 'node' || hit.type === 'port') && hit.id !== connect.source.nodeId) {
+        const options = connect.keys.filter(([nodeId]) => nodeId === hit.id);
+        if (!options.length) return { nodeId: hit.id, portId: null, result: { ok: false, reason: `${findNode(hit.id)?.label || hit.id} has no ${connect.source.dir === 'out' ? 'input' : 'output'} port` } };
+        const best = options.find(([n, p]) => connect.evaluate(n, p).ok) || options[0];
+        return { nodeId: best[0], portId: best[1], result: connect.evaluate(best[0], best[1]) };
+      }
       return null;
     }
-    function render() {
-      if (disposed) return;
-      diagram = model.diagram; selection = model.selection;
-      const focused = focusIdentity(); nodeElements.clear(); edgeElements.clear(); portElements.clear();
-      for (const name of ['groups', 'edges', 'nodes', 'interaction']) layers[name].replaceChildren();
-      scene.setAttribute('transform', `translate(${view.x},${view.y}) scale(${view.zoom})`); svg.dataset.zoom = view.zoom.toFixed(3); svg.dataset.multiSelect = String(multiSelect);
-      renderGroups(); renderEdges(); renderNodes(); renderState();
-      if (connection && wirePoint) {
-        const fixed = portPosition(connection.nodeId, connection.portId);
-        if (fixed) layers.interaction.append(el('path', { d: fixed.direction === 'out' ? curve(fixed, wirePoint) : curve(wirePoint, fixed), class: 'sd-wire-preview' }));
-      }
-      if (gesture?.kind === 'marquee') {
-        const a = gesture.start, b = gesture.end;
-        layers.interaction.append(el('rect', { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.abs(a.x - b.x), height: Math.abs(a.y - b.y), class: 'sd-marquee' }));
-      }
-      if (focused && !gesture) {
-        let selector = `[${focused.attr}="${CSS.escape(focused.id)}"]`;
-        if (focused.attr === 'data-port-id') selector += `[data-node-id="${CSS.escape(focused.nodeId)}"]`;
-        if (focused.side) selector += `[data-side="${focused.side}"]`;
-        svg.querySelector(selector)?.focus({ preventScroll: true });
-      }
+    function describeTarget(target) {
+      if (!target) return;
+      if (!target.result.ok) showHint(`Cannot connect: ${friendly(target.result.reason)}`, 'error', true);
+      else showHint(target.result.warning ? `Connect (payload warning): ${target.result.warning}` : `Connect to ${findNode(target.nodeId)?.label || target.nodeId}`, target.result.warning ? 'warning' : 'info', true);
     }
-    function updateView(next, persist = true) {
-      view = { x: next.x, y: next.y, zoom: Math.max(config.editor.minZoom, Math.min(config.editor.maxZoom, next.zoom)) };
-      if (persist) send({ type: 'setView', view });
-      render(); onView({ ...view });
+    function markTarget(target) {
+      for (const item of items.nodes.values()) for (const portEl of item.portEls.values()) portEl.classList.remove('is-target');
+      if (target?.portId) items.nodes.get(target.nodeId)?.portEls.get(target.portId)?.classList.add('is-target');
     }
-    function zoomAt(factor, x, y) {
-      const p = screenToWorld({ x, y }), rect = svg.getBoundingClientRect(), zoom = Math.max(config.editor.minZoom, Math.min(config.editor.maxZoom, view.zoom * factor));
-      updateView({ x: x - rect.left - p.x * zoom, y: y - rect.top - p.y * zoom, zoom });
+    function finishConnect(connect, target) {
+      endConnect();
+      if (!target) { showHint(''); return false; }
+      if (!target.result.ok) { showHint(`Cannot connect: ${friendly(target.result.reason)}`, 'error'); return false; }
+      const e = ends(connect.source, target.nodeId, target.portId);
+      const result = model.apply(connect.source.reconnectId ? { type: 'reconnect', id: connect.source.reconnectId, from: e.from, to: e.to } : { type: 'connect', from: e.from, to: e.to });
+      if (!result.ok) showHint(`Cannot connect: ${friendly(result.error)}`, 'error');
+      else showHint(result.warning ? `Connected with payload warning: ${result.warning}` : 'Connected', result.warning ? 'warning' : 'info');
+      return result.ok;
     }
-    function zoomBy(factor) { const r = svg.getBoundingClientRect(); zoomAt(factor, r.left + r.width / 2, r.top + r.height / 2); }
-    function fit(options = {}) {
-      const boxes = diagram.nodes.map(nodeBox); if (!boxes.length) return updateView({ x: 40, y: 40, zoom: 1 });
-      const rect = svg.getBoundingClientRect(), minX = Math.min(...boxes.map(b => b.x)) - 32, minY = Math.min(...boxes.map(b => b.y)) - 44;
-      const maxX = Math.max(...boxes.map(b => b.x + b.w)) + 32, maxY = Math.max(...boxes.map(b => b.y + b.h)) + 32;
-      const zoom = Math.max(config.editor.minZoom, Math.min(1.15, (rect.width - 40) / (maxX - minX), (rect.height - 40) / (maxY - minY)));
-      if (options.readable && rect.width < 600 && zoom < READABLE_ZOOM) {
-        const first = diagram.nodes.find(node => { const specs = ports(node); return specs.some(p => p.direction === 'out') && !specs.some(p => p.direction === 'in'); }) || diagram.nodes[0];
-        const box = nodeBox(first), readableZoom = Math.min(config.editor.maxZoom, READABLE_ZOOM);
-        updateView({ x: 24 - box.x * readableZoom, y: (rect.height - box.h * readableZoom) / 2 - box.y * readableZoom, zoom: readableZoom }); return;
-      }
-      updateView({ x: (rect.width - (maxX - minX) * zoom) / 2 - minX * zoom, y: (rect.height - (maxY - minY) * zoom) / 2 - minY * zoom, zoom });
+    function previewLine(from, to) {
+      let line = layers.interaction.querySelector('.sd-connect-preview');
+      if (!line) { line = el(doc, 'path', { class: 'sd-connect-preview' }); layers.interaction.append(line); }
+      line.setAttribute('d', from.dir === 'out' ? curve(from, to) : curve(to, from));
     }
-    function dropClassAt(classId, x, y) { const p = screenToWorld(typeof x === 'object' ? x : { x, y }); return send({ type: 'addNode', classId, x: Math.round(p.x - width / 2), y: Math.round(p.y - config.editor.nodeHeight / 2) }); }
-    function portAt(x, y) {
-      const p = screenToWorld({ x, y });
-      let nearest = null, distance = touch ? 22 : 12;
-      for (const target of portElements.values()) {
-        const position = portPosition(target.dataset.nodeId, target.dataset.portId), d = Math.hypot(p.x - position.x, p.y - position.y) * view.zoom;
-        if (d < distance) { nearest = target; distance = d; }
-      }
-      return nearest;
+    function startPending(source) {
+      cancelPending();
+      pending = beginConnect(source);
+      const label = findNode(source.nodeId)?.label || source.nodeId;
+      const port = classInfo(findNode(source.nodeId).classId).ports.find(p => p.id === source.portId);
+      showHint(`Connecting from ${label} · ${port?.label || source.portId}. Choose a target; Escape cancels.`, 'info', true);
     }
-    function nodeAt(x, y) {
-      const p = screenToWorld({ x, y });
-      return [...diagram.nodes].reverse().find(node => { const b = nodeBox(node); return p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h; }) || null;
+    function cancelPending() { if (pending) { pending = null; endConnect(); showHint(''); } }
+
+    // ---- selection helpers ----------------------------------------------------------------
+    function selectHit(hit, mode) {
+      const key = selectionKey[hit.type];
+      if (!key) return;
+      model.select({ [key]: [hit.id] }, mode === 'toggle' ? { toggle: true } : mode === 'add' ? { additive: true } : {});
     }
-    function choosePort(nodeId, portId, reconnectId = null, side = null) {
-      const p = portPosition(nodeId, portId); if (!p) return;
-      if (connection && !reconnectId) {
-        const origin = portPosition(connection.nodeId, connection.portId);
-        if (origin.direction === p.direction) { connection = { nodeId, portId }; wirePoint = p; render(); return; }
-        const first = { nodeId: connection.nodeId, portId: connection.portId }, second = { nodeId, portId }, from = p.direction === 'out' ? second : first, to = p.direction === 'in' ? second : first;
-        const command = connection.reconnectId ? { type: 'reconnect', id: connection.reconnectId, from, to } : { type: 'connect', from, to };
-        connection = null; wirePoint = null;
-        const result = send(command);
-        if (result.ok) {
-          const warning = model.issues().find(issue => issue.kind === 'payload-mismatch' && issue.edgeId === (result.id || command.id));
-          if (warning) onMessage(warning.message, true);
+    function movableSelection() {
+      const s = model.selection, d = model.diagram;
+      const groupIds = new Set(s.groups), ids = new Set([...s.nodes, ...s.groups, ...s.notes]);
+      for (const n of d.nodes) if (n.groupId && groupIds.has(n.groupId)) ids.add(n.id);
+      return ids;
+    }
+    function positionOf(id) {
+      const d = model.diagram;
+      return d.nodes.find(n => n.id === id) || d.groups.find(g => g.id === id) || d.notes.find(n => n.id === id);
+    }
+
+    // ---- gestures -------------------------------------------------------------------------
+    function beginMove(hit, startWorld) {
+      const ids = movableSelection();
+      if (!ids.size) return null;
+      const starts = new Map([...ids].map(id => [id, { x: positionOf(id).x, y: positionOf(id).y }]));
+      host.classList.add('is-dragging');
+      return { type: 'move', grabbed: starts.has(hit.id) ? hit.id : [...ids][0], starts, free: freeNodes(), startWorld, key: `drag-${uid}-${++gestureCount}`, dropGroup: undefined };
+    }
+    function updateMove(g, world) {
+      const start = g.starts.get(g.grabbed);
+      const dx = snap(start.x + world.x - g.startWorld.x) - start.x, dy = snap(start.y + world.y - g.startWorld.y) - start.y;
+      const positions = {};
+      for (const [id, p] of g.starts) positions[id] = { x: p.x + dx, y: p.y + dy };
+      queuedPositions = { positions, key: g.key };
+      schedule();
+      if (g.free.length) {
+        const first = positions[g.free[0]] || { x: 0, y: 0 };
+        const target = groupAt({ x: first.x + W / 2, y: first.y + H / 2 }, model.selection.groups);
+        if (target !== g.dropGroup) {
+          items.groups.get(g.dropGroup)?.el.classList.remove('is-drop-target');
+          g.dropGroup = target;
+          items.groups.get(target)?.el.classList.add('is-drop-target');
         }
-        render(); return;
       }
-      connection = { nodeId, portId, reconnectId, side }; wirePoint = p;
-      onMessage(`Choose an ${p.direction === 'out' ? 'input' : 'output'} port${reconnectId ? ' to reconnect' : ' to connect'}.`); render();
     }
-    function beginReconnect(target) {
-      const edge = diagram.edges.find(e => e.id === target.dataset.reconnect), side = target.dataset.side;
-      connection = null; const fixed = side === 'from' ? edge.to : edge.from; choosePort(fixed.nodeId, fixed.portId, edge.id, side);
-    }
-    function selectedItems() {
-      const ids = new Set([...selection.nodes, ...selection.groups, ...selection.notes]);
-      for (const node of diagram.nodes) if (selection.groups.includes(node.groupId)) ids.add(node.id);
-      return [...diagram.nodes, ...diagram.groups, ...diagram.notes].filter(item => ids.has(item.id));
-    }
-    function pointerDown(e) {
-      if (e.button !== 0 && e.pointerType !== 'touch') return;
-      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      svg.setPointerCapture(e.pointerId);
-      if (pointers.size === 2) {
-        const points = [...pointers.values()]; connection = null; wirePoint = null;
-        gesture = { kind: 'pinch', distance: Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y), zoom: view.zoom }; render(); svg.setPointerCapture(e.pointerId); e.preventDefault(); return;
+    // Dropping a node inside a group joins it; dragging it out leaves. Same history entry as the move.
+    function updateMembership(free, key) {
+      const byGroup = new Map();
+      for (const id of free) {
+        const n = findNode(id);
+        if (!n) continue;
+        const target = groupAt({ x: n.x + W / 2, y: n.y + H / 2 }, model.selection.groups);
+        if ((n.groupId || null) !== target) byGroup.set(target, [...(byGroup.get(target) || []), id]);
       }
-      const body = nodeAt(e.clientX, e.clientY);
-      let reconnect = e.target.closest('[data-reconnect]'), port = portAt(e.clientX, e.clientY) || e.target.closest('[data-port-id]');
-      if (body && port) {
-        const p = screenToWorld({ x: e.clientX, y: e.clientY }), position = portPosition(port.dataset.nodeId, port.dataset.portId);
-        // Expanded port targets remain useful outside a node without stealing its draggable interior.
-        if (Math.hypot(p.x - position.x, p.y - position.y) * view.zoom > Math.max(6, 6 * view.zoom + 2)) port = null;
-      }
-      if (body && reconnect) {
-        const edge = diagram.edges.find(row => row.id === reconnect.dataset.reconnect), side = reconnect.dataset.side, end = edge[side], p = portPosition(end.nodeId, end.portId);
-        const point = screenToWorld({ x: e.clientX, y: e.clientY }), x = p.x + (side === 'from' ? 1 : -1) * (touch ? 36 / view.zoom : 18);
-        if (Math.hypot(point.x - x, point.y - p.y) * view.zoom > Math.max(8, 8 * view.zoom + 2)) reconnect = null;
-      }
-      if (reconnect) { beginReconnect(reconnect); gesture = { kind: 'wire', x: e.clientX, y: e.clientY }; svg.setPointerCapture(e.pointerId); e.preventDefault(); return; }
-      if (port) {
-        const previous = connection; choosePort(port.dataset.nodeId, port.dataset.portId);
-        if (!previous || connection) gesture = { kind: 'wire', x: e.clientX, y: e.clientY };
-        svg.setPointerCapture(e.pointerId); e.preventDefault(); return;
-      }
-      const node = body ? nodeElements.get(body.id) : e.target.closest('.sd-node'), edge = e.target.closest('[data-edge-id]'), group = e.target.closest('[data-group-id]'), note = e.target.closest('[data-note-id]');
-      if (!space && (node || group || note)) {
-        const kind = node ? 'nodes' : group ? 'groups' : 'notes', itemId = node?.dataset.nodeId || group?.dataset.groupId || note.dataset.noteId;
-        if (!selection[kind].includes(itemId) || e.shiftKey || multiSelect) select(kind, itemId, e.shiftKey || multiSelect);
-        if (!selection[kind].includes(itemId)) { e.preventDefault(); return; }
-        const origins = new Map(selectedItems().map(item => [item.id, { x: item.x, y: item.y }]));
-        gesture = { kind: 'items', start: screenToWorld({ x: e.clientX, y: e.clientY }), origins, positions: new Map(origins), moved: false };
-      } else if (!space && edge) { select('edges', edge.dataset.edgeId, e.shiftKey || multiSelect); e.preventDefault(); return; }
-      else if (e.shiftKey || multiSelect) { const p = screenToWorld({ x: e.clientX, y: e.clientY }); gesture = { kind: 'marquee', start: p, end: p, additive: e.shiftKey || multiSelect }; }
-      else {
-        connection = null; wirePoint = null; if (!space) model.select(emptySelection());
-        gesture = { kind: 'pan', x: e.clientX, y: e.clientY, original: { ...view } }; svg.classList.add('is-panning');
-      }
-      svg.setPointerCapture(e.pointerId); e.preventDefault();
+      for (const [groupId, ids] of byGroup) report(model.apply({ type: 'setNodeGroup', ids, groupId, coalesce: key }));
     }
-    function pointerMove(e) {
-      if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (gesture?.kind === 'pinch' && pointers.size === 2) {
-        const ps = [...pointers.values()], distance = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
-        zoomAt(gesture.zoom * distance / Math.max(gesture.distance, 1) / view.zoom, (ps[0].x + ps[1].x) / 2, (ps[0].y + ps[1].y) / 2); e.preventDefault(); return;
+    function freeNodes() { const groupIds = new Set(model.selection.groups); return model.selection.nodes.filter(id => !groupIds.has(findNode(id)?.groupId)); }
+    function endMove(g) {
+      flushNow();
+      host.classList.remove('is-dragging');
+      items.groups.get(g.dropGroup)?.el.classList.remove('is-drop-target');
+      updateMembership(g.free, g.key);
+    }
+    function startGesture(g, e) {
+      const world = screenToWorld({ x: g.client.x, y: g.client.y });
+      const hit = g.hit;
+      if (hit.type === 'reconnect') {
+        const source = reconnectSource(hit); if (!source) return null;
+        const connect = beginConnect(source), from = portPosition(source.nodeId, source.portId);
+        return { type: 'connect', connect, from: { ...from, dir: source.dir }, target: null };
       }
-      if (gesture?.kind === 'items') {
-        const p = screenToWorld({ x: e.clientX, y: e.clientY }), dx = p.x - gesture.start.x, dy = p.y - gesture.start.y;
-        gesture.moved ||= Math.hypot(dx, dy) > 2;
-        for (const [itemId, origin] of gesture.origins) gesture.positions.set(itemId, { x: Math.round(origin.x + dx), y: Math.round(origin.y + dy) });
-        render(); e.preventDefault();
-      } else if (gesture?.kind === 'pan') {
-        updateView({ ...view, x: gesture.original.x + e.clientX - gesture.x, y: gesture.original.y + e.clientY - gesture.y }, false); e.preventDefault();
-      } else if (gesture?.kind === 'marquee') { gesture.end = screenToWorld({ x: e.clientX, y: e.clientY }); render(); e.preventDefault(); }
-      else if (connection) { wirePoint = screenToWorld({ x: e.clientX, y: e.clientY }); render(); }
-    }
-    function pointerUp(e) {
-      pointers.delete(e.pointerId); const ended = gesture; gesture = null; svg.classList.remove('is-panning');
-      if (svg.hasPointerCapture(e.pointerId)) svg.releasePointerCapture(e.pointerId);
-      if (ended?.kind === 'items' && ended.moved) send({ type: 'setPositions', positions: [...ended.positions].map(([itemId, p]) => ({ id: itemId, ...p })) });
-      else if (ended?.kind === 'pan' || ended?.kind === 'pinch') updateView(view);
-      else if (ended?.kind === 'marquee') {
-        const a = ended.start, b = ended.end, left = Math.min(a.x, b.x), top = Math.min(a.y, b.y), right = Math.max(a.x, b.x), bottom = Math.max(a.y, b.y);
-        const hits = diagram.nodes.filter(n => { const box = nodeBox(n); return box.x >= left && box.y >= top && box.x + box.w <= right && box.y + box.h <= bottom; }).map(n => n.id);
-        model.select({ ...emptySelection(), nodes: hits }, { additive: ended.additive });
-      } else if (ended?.kind === 'wire' && Math.hypot(e.clientX - ended.x, e.clientY - ended.y) > 5) {
-        const target = portAt(e.clientX, e.clientY);
-        if (target && connection && portPosition(target.dataset.nodeId, target.dataset.portId).direction !== portPosition(connection.nodeId, connection.portId).direction) choosePort(target.dataset.nodeId, target.dataset.portId);
-        else { connection = null; wirePoint = null; onMessage('Connect an output to a compatible input port. No edge changed.', true); }
+      if (hit.type === 'port') {
+        const connect = beginConnect({ nodeId: hit.id, portId: hit.portId, dir: hit.dir });
+        const from = portPosition(hit.id, hit.portId);
+        return { type: 'connect', connect, from: { ...from, dir: hit.dir }, target: null };
       }
-      render();
+      if (hit.type === 'node' || hit.type === 'note' || hit.type === 'group') return beginMove(hit, world);
+      if (hit.type === 'groupHandle') {
+        const group = model.diagram.groups.find(x => x.id === hit.id);
+        return { type: 'resize', id: hit.id, start: { w: group.w, h: group.h }, startWorld: world, key: `resize-${uid}-${++gestureCount}` };
+      }
+      if (hit.type === 'empty' && (e.shiftKey || g.longPressed || explicitMultiSelect)) {
+        const box = el(doc, 'rect', { class: 'sd-marquee' });
+        layers.interaction.append(box);
+        return { type: 'marquee', startWorld: world, box, additive: e.shiftKey || g.longPressed || explicitMultiSelect };
+      }
+      if (hit.type === 'empty' || hit.type === 'edge') { host.classList.add('is-panning'); return { type: 'pan', startClient: g.client, startView: { ...view } }; }
+      return null;
     }
-    function pointerCancel(e) {
-      pointers.delete(e.pointerId); gesture = null; connection = null; wirePoint = null; svg.classList.remove('is-panning');
-      if (svg.hasPointerCapture(e.pointerId)) svg.releasePointerCapture(e.pointerId); render();
+    function moveGesture(g, e) {
+      const client = { x: e.clientX, y: e.clientY }, world = screenToWorld(client);
+      if (g.type === 'move') updateMove(g, world);
+      else if (g.type === 'pan') setView({ x: g.startView.x - (client.x - g.startClient.x) / view.zoom, y: g.startView.y - (client.y - g.startClient.y) / view.zoom });
+      else if (g.type === 'resize') {
+        const min = GRID * GROUP_MIN_GRID_STEPS;
+        queuedPositions = { positions: { [g.id]: { w: Math.max(min, snap(g.start.w + world.x - g.startWorld.x)), h: Math.max(min, snap(g.start.h + world.y - g.startWorld.y)) } }, key: g.key };
+        schedule();
+      } else if (g.type === 'marquee') {
+        const x = Math.min(world.x, g.startWorld.x), y = Math.min(world.y, g.startWorld.y);
+        g.rect = { x, y, w: Math.abs(world.x - g.startWorld.x), h: Math.abs(world.y - g.startWorld.y) };
+        for (const [k, v] of Object.entries(g.rect)) g.box.setAttribute(k === 'w' ? 'width' : k === 'h' ? 'height' : k, v);
+      } else if (g.type === 'connect') {
+        const target = resolveTarget(g.connect, hitAt(client));
+        g.target = target;
+        markTarget(target);
+        previewLine(g.from, target?.portId && target.result.ok ? { ...portPosition(target.nodeId, target.portId) } : world);
+        if (target) describeTarget(target); else showHint('Drag to a highlighted port', 'info', true);
+      }
     }
-    function keyDown(e) {
-      if (e.key === ' ') { space = true; e.preventDefault(); }
-      const port = e.target.closest('[data-port-id]'), reconnect = e.target.closest('[data-reconnect]');
-      if (['Enter', ' '].includes(e.key) && port) { e.preventDefault(); choosePort(port.dataset.nodeId, port.dataset.portId); return; }
-      if (['Enter', ' '].includes(e.key) && reconnect) { e.preventDefault(); beginReconnect(reconnect); return; }
-      const node = e.target.closest('.sd-node'), edge = e.target.closest('[data-edge-id]'), group = e.target.closest('[data-group-id]'), note = e.target.closest('[data-note-id]');
-      if (['Enter', ' '].includes(e.key) && (node || edge || group || note)) { e.preventDefault(); select(node ? 'nodes' : edge ? 'edges' : group ? 'groups' : 'notes', node?.dataset.nodeId || edge?.dataset.edgeId || group?.dataset.groupId || note.dataset.noteId, e.shiftKey || multiSelect); return; }
-      if (['Delete', 'Backspace'].includes(e.key)) { e.preventDefault(); send({ type: 'deleteItems' }); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); send({ type: 'duplicate' }); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); model.select({ ...emptySelection(), nodes: diagram.nodes.map(n => n.id) }); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) model.redo(); else model.undo(); return; }
-      const delta = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-      if (delta) { e.preventDefault(); const step = config.editor.grid * (e.shiftKey ? 5 : 1); send({ type: 'moveItems', dx: delta[0] * step, dy: delta[1] * step }); return; }
-      if (e.key === 'Escape') { gesture = null; connection = null; wirePoint = null; model.select(emptySelection()); render(); }
-      if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomBy(1.2); }
-      if (e.key === '-') { e.preventDefault(); zoomBy(1 / 1.2); }
-      if (e.key.toLowerCase() === 'f' && !(e.ctrlKey || e.metaKey)) { e.preventDefault(); fit(); }
+    function endGesture(g) {
+      if (g.type === 'move') endMove(g);
+      else if (g.type === 'resize') flushNow();
+      else if (g.type === 'pan') { host.classList.remove('is-panning'); flushNow(); }
+      else if (g.type === 'connect') finishConnect(g.connect, g.target);
+      else if (g.type === 'marquee') {
+        g.box.remove();
+        if (!g.rect) return;
+        const d = model.diagram, r = g.rect;
+        const nodes = d.nodes.filter(n => rectsIntersect(r, { x: n.x, y: n.y, w: W, h: H })).map(n => n.id), picked = new Set(nodes);
+        model.select({
+          nodes, notes: d.notes.filter(n => rectsIntersect(r, noteBox(n))).map(n => n.id), groups: d.groups.filter(gr => contains(r, gr)).map(gr => gr.id),
+          edges: d.edges.filter(e => picked.has(e.from.nodeId) && picked.has(e.to.nodeId)).map(e => e.id),
+        }, { additive: g.additive });
+      }
     }
-    const handlers = {
-      pointerdown: pointerDown, pointermove: pointerMove, pointerup: pointerUp, pointercancel: pointerCancel, keydown: keyDown, keyup: e => { if (e.key === ' ') space = false; },
-      wheel: e => { if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault(); zoomAt(Math.exp(-e.deltaY * .002), e.clientX, e.clientY); },
-      dragover: e => { if ([...e.dataTransfer.types].includes('application/x-simulatte-class')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } },
-      drop: e => { const classId = e.dataTransfer.getData('application/x-simulatte-class'); if (classId) { e.preventDefault(); dropClassAt(classId, e.clientX, e.clientY); } }
-    };
-    for (const [name, handler] of Object.entries(handlers)) svg.addEventListener(name, handler, name === 'wheel' ? { passive: false } : undefined);
-    const unsubscribe = model.subscribe(event => { if (event.kind === 'view' || event.kind === 'load') view = { ...event.diagram.view }; render(); });
-    render();
-    return Object.freeze({
-      nodeBox, portPosition, edgeElement: edgeId => edgeElements.get(edgeId) || null, nodeElement: nodeId => nodeElements.get(nodeId) || null,
-      fit, zoomBy, getView: () => ({ ...view }), setView: value => updateView(value), screenToWorld, layers, render, dropClassAt,
-      setMultiSelect: enabled => { multiSelect = Boolean(enabled); svg.dataset.multiSelect = String(multiSelect); },
-      setState: (value, options = {}) => { runState = value; pending = Boolean(options.pending); render(); },
-      dispose: () => { disposed = true; unsubscribe?.(); for (const [name, handler] of Object.entries(handlers)) svg.removeEventListener(name, handler); svg.remove(); }
+    function cancelGesture() {
+      if (!gesture) return;
+      const g = gesture.active;
+      win.clearTimeout(gesture.timer);
+      if (g?.type === 'connect') { endConnect(); showHint(''); }
+      if (g?.type === 'marquee') g.box.remove();
+      if (g?.type === 'resize') { queuedPositions = null; model.apply({ type: 'setPositions', positions: { [g.id]: { w: g.start.w, h: g.start.h } }, coalesce: g.key }); }
+      if (g?.type === 'move') { queuedPositions = null; const positions = {}; for (const [id, p] of g.starts) if (positionOf(id)) positions[id] = p; model.apply({ type: 'setPositions', positions, coalesce: g.key }); host.classList.remove('is-dragging'); items.groups.get(g.dropGroup)?.el.classList.remove('is-drop-target'); }
+      host.classList.remove('is-panning');
+      gesture = null;
+    }
+
+    function tap(hit, e) {
+      const now = e.timeStamp, modifier = e.shiftKey || e.ctrlKey || e.metaKey || explicitMultiSelect;
+      const double = lastTap && lastTap.id === hit.id && lastTap.type === hit.type && now - lastTap.at < DOUBLE_TAP_MS;
+      lastTap = { id: hit.id, type: hit.type, at: now };
+      if (pending) {
+        if (hit.type === 'port' && hit.id === pending.source.nodeId) { cancelPending(); return; }
+        const target = resolveTarget(pending, hit), connect = pending;
+        pending = null;
+        if (target) finishConnect(connect, target); else { endConnect(); showHint(''); }
+        return;
+      }
+      if (hit.type === 'reconnect') { const source = reconnectSource(hit); if (source) startPending(source); return; }
+      if (hit.type === 'port') { startPending({ nodeId: hit.id, portId: hit.portId, dir: hit.dir }); return; }
+      if (hit.type === 'empty') { if (!modifier) model.select(null); return; }
+      if (gesture?.longPressed) return;
+      if (modifier) { if (gesture?.wasSelected) selectHit(hit, 'toggle'); }
+      else selectHit(hit, 'only');
+      if (double && !modifier) beginEdit(hit.type === 'group' ? { type: 'group', id: hit.id } : hit);
+    }
+
+    on(svg, 'pointerdown', e => {
+      if (editing) commitEdit();
+      if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1) return;
+      if (e.pointerType === 'touch') {
+        touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (touches.size === 2) { beginPinch(); e.preventDefault(); return; }
+        if (touches.size > 2) return;
+      }
+      const hit = e.button === 1 ? { type: 'empty' } : classify(e.target);
+      const focusTarget = hit.type === 'node' || hit.type === 'port' ? items.nodes.get(hit.id)?.el : hit.type === 'note' ? items.notes.get(hit.id)?.el : hit.type === 'group' ? items.groups.get(hit.id)?.tab : host;
+      (focusTarget || host).focus({ preventScroll: true });
+      const g = { pointerId: e.pointerId, pointerType: e.pointerType, client: { x: e.clientX, y: e.clientY }, hit, active: null, timer: 0, wasSelected: false, longPressed: false, before: model.selection };
+      if (['node', 'note', 'group', 'edge'].includes(hit.type) && !pending) {
+        g.wasSelected = isSelected(hit);
+        const modifier = e.shiftKey || e.ctrlKey || e.metaKey || explicitMultiSelect;
+        if (!g.wasSelected) selectHit(hit, modifier ? 'add' : 'only');
+      }
+      if (!explicitMultiSelect && e.pointerType === 'touch' && (hit.type === 'empty' || hit.type === 'node')) {
+        g.timer = win.setTimeout(() => {
+          if (gesture !== g || g.active) return;
+          g.longPressed = true;
+          if (hit.type === 'node') {
+            if (g.wasSelected) selectHit(hit, 'toggle');
+            else { model.select(g.before); selectHit(hit, 'add'); }
+            showHint(isSelected(hit) ? 'Added to selection; long-press more nodes or drag to move' : 'Removed from selection', 'info');
+          }
+          else showHint('Drag to select an area', 'info');
+        }, LONG_PRESS_MS);
+      }
+      if (e.button === 1) g.active = startGesture(g, e);
+      gesture = g;
+      try { svg.setPointerCapture(e.pointerId); } catch { /* capture is best effort for synthetic events */ }
+      e.preventDefault();
     });
+    on(svg, 'pointermove', e => {
+      if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (gesture?.type === 'pinch') { updatePinch(); return; }
+      if (!gesture || gesture.pointerId !== e.pointerId) {
+        if (pending && e.pointerType === 'mouse') { const target = resolveTarget(pending, classify(e.target)); markTarget(target); if (target) describeTarget(target); }
+        return;
+      }
+      const g = gesture;
+      if (!g.active) {
+        const distance = Math.hypot(e.clientX - g.client.x, e.clientY - g.client.y);
+        if (distance < (DRAG_THRESHOLD[g.pointerType] || DRAG_THRESHOLD.mouse)) return;
+        win.clearTimeout(g.timer);
+        if (pending && g.hit.type !== 'empty') return;
+        g.active = startGesture(g, e);
+        if (!g.active) return;
+      }
+      moveGesture(g.active, e);
+    });
+    function release(e) {
+      if (touches.has(e.pointerId)) touches.delete(e.pointerId);
+      if (gesture?.type === 'pinch') { if (touches.size < 2) { flushNow(); gesture = null; } return; }
+      if (!gesture || gesture.pointerId !== e.pointerId) return;
+      const g = gesture;
+      win.clearTimeout(g.timer);
+      if (e.type === 'pointercancel') { cancelGesture(); return; }
+      if (g.active) endGesture(g.active);
+      else tap(g.hit, e);
+      gesture = null;
+    }
+    on(svg, 'pointerup', release);
+    on(svg, 'pointercancel', release);
+    on(svg, 'lostpointercapture', e => { if (gesture && gesture.pointerId === e.pointerId && gesture.active && gesture.type !== 'pinch') cancelGesture(); });
+
+    function beginPinch() {
+      cancelGesture(); cancelPending();
+      host.classList.remove('is-panning');
+      const [a, b] = [...touches.values()];
+      const r = rect(), mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      gesture = { type: 'pinch', startDist: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), startZoom: view.zoom, anchor: screenToWorld(mid), r };
+    }
+    function updatePinch() {
+      const [a, b] = [...touches.values()];
+      if (!a || !b) return;
+      const g = gesture, r = rect(), mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      const zoom = clamp(g.startZoom * Math.hypot(a.x - b.x, a.y - b.y) / g.startDist, E.minZoom, E.maxZoom);
+      setView({ zoom, x: g.anchor.x - (mid.x - r.left) / zoom, y: g.anchor.y - (mid.y - r.top) / zoom });
+    }
+
+    on(svg, 'wheel', e => {
+      e.preventDefault();
+      const scale = e.deltaMode === 1 ? WHEEL_ZOOM.line : 1;
+      if (e.ctrlKey || e.metaKey) {
+        const k = Math.abs(e.deltaY * scale) < 50 ? WHEEL_ZOOM.pinch : WHEEL_ZOOM.wheel;
+        zoomAt({ x: e.clientX, y: e.clientY }, Math.exp(-e.deltaY * scale * k));
+      } else setView({ x: view.x + (e.deltaX * scale) / view.zoom, y: view.y + (e.deltaY * scale) / view.zoom });
+    }, { passive: false });
+    on(host, 'scroll', () => { host.scrollTop = 0; host.scrollLeft = 0; });
+    on(svg, 'contextmenu', e => { if (gesture) e.preventDefault(); });
+
+    // ---- keyboard -------------------------------------------------------------------------
+    function focusedHit() {
+      const a = doc.activeElement;
+      if (!a || !host.contains(a)) return null;
+      const reconnect = a.closest?.('.sd-reconnect');
+      if (reconnect) return { type: 'reconnect', id: reconnect.dataset.reconnect, side: reconnect.dataset.side };
+      const port = a.closest?.('.sd-port'), nodeEl = a.closest?.('.sd-node');
+      if (port && nodeEl) return { type: 'port', id: nodeEl.dataset.id, portId: port.dataset.port, dir: port.dataset.direction };
+      if (nodeEl) return { type: 'node', id: nodeEl.dataset.id };
+      const noteEl = a.closest?.('.sd-note');
+      if (noteEl) return { type: 'note', id: noteEl.dataset.id };
+      const groupEl = a.closest?.('.sd-group');
+      if (groupEl) return { type: 'group', id: groupEl.dataset.id };
+      const edgeEl = a.closest?.('.sd-edge');
+      if (edgeEl) return { type: 'edge', id: edgeEl.dataset.id };
+      return null;
+    }
+    function keyboardConnect(hit) {
+      const n = findNode(hit.id), ports = classInfo(n.classId).ports;
+      const order = [...ports.filter(p => p.direction === 'out'), ...ports.filter(p => p.direction === 'in')];
+      if (!order.length) return;
+      const current = pending && pending.source.nodeId === hit.id ? order.findIndex(p => p.id === pending.source.portId) : -1;
+      const port = order[(current + 1) % order.length];
+      startPending({ nodeId: hit.id, portId: port.id, dir: port.direction });
+    }
+    function selectAll() {
+      const d = model.diagram;
+      model.select({ nodes: d.nodes.map(n => n.id), edges: d.edges.map(e => e.id), groups: d.groups.map(g => g.id), notes: d.notes.map(n => n.id) });
+    }
+    on(host, 'keydown', e => {
+      if (editing || e.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
+      const mod = e.ctrlKey || e.metaKey, key = e.key, focused = focusedHit(), selected = model.selectedIds();
+      let handled = true;
+      if (mod && key.toLowerCase() === 'z') e.shiftKey ? model.redo() : model.undo();
+      else if (mod && key.toLowerCase() === 'y') model.redo();
+      else if (mod && key.toLowerCase() === 'a') selectAll();
+      else if (mod && key.toLowerCase() === 'd') { if (selected.length) report(model.apply({ type: 'duplicate' })); }
+      else if (mod) handled = false;
+      else if (key === 'Delete' || key === 'Backspace') { if (selected.length) report(model.apply({ type: 'deleteItems', ids: selected })); }
+      else if (key === 'Escape') { if (gesture) cancelGesture(); else if (pending) cancelPending(); else model.select(null); }
+      else if (key.startsWith('Arrow')) {
+        const step = e.shiftKey ? GRID * NUDGE_LARGE_STEPS : GRID;
+        const dx = key === 'ArrowLeft' ? -step : key === 'ArrowRight' ? step : 0, dy = key === 'ArrowUp' ? -step : key === 'ArrowDown' ? step : 0;
+        if (focused && focused.type !== 'edge' && !isSelected(focused)) selectHit(focused, 'only');
+        const ids = [...new Set([...model.selection.nodes, ...model.selection.groups, ...model.selection.notes])];
+        const nudgeKey = `nudge-${uid}:${ids.join(',')}`;
+        if (ids.length && report(model.apply({ type: 'moveItems', ids, dx, dy, coalesce: nudgeKey })).ok) updateMembership(freeNodes(), nudgeKey);
+        else setView({ x: view.x + Math.sign(dx) * KEY_PAN_PX / view.zoom, y: view.y + Math.sign(dy) * KEY_PAN_PX / view.zoom });
+      } else if (key === '+' || key === '=') zoomBy(ZOOM_STEP);
+      else if (key === '-' || key === '_') zoomBy(1 / ZOOM_STEP);
+      else if (key === '!' || (e.shiftKey && e.code === 'Digit1')) fit();
+      else if ((key === 'Enter' || key === ' ') && focused?.type === 'reconnect') { const source = reconnectSource(focused); if (source) startPending(source); }
+      else if ((key === 'Enter' || key === ' ') && focused?.type === 'port') {
+        if (pending) { const connect = pending; pending = null; finishConnect(connect, resolveTarget(connect, focused)); }
+        else startPending({ nodeId: focused.id, portId: focused.portId, dir: focused.dir });
+      }
+      else if ((key === 'Enter' || key === ' ') && focused) {
+        if (pending && focused.type === 'node') { const target = resolveTarget(pending, focused), connect = pending; pending = null; if (target) finishConnect(connect, target); else endConnect(); }
+        else selectHit(focused, e.shiftKey ? 'toggle' : 'only');
+      } else if (key === 'F2' && (focused || selected.length === 1)) beginEdit(focused || { type: model.itemType(selected[0]).slice(0, -1), id: selected[0] });
+      else if ((key === 'c' || key === 'C') && focused?.type === 'node') keyboardConnect(focused);
+      else handled = false;
+      if (handled) { e.preventDefault(); e.stopPropagation(); }
+    });
+    function report(result) { if (result && !result.ok) showHint(result.error, 'error'); return result; }
+
+    // ---- inline editing -------------------------------------------------------------------
+    function beginEdit(hit) {
+      if (!hit || !['node', 'note', 'group'].includes(hit.type)) return;
+      const d = model.diagram;
+      const row = hit.type === 'node' ? d.nodes.find(n => n.id === hit.id) : hit.type === 'note' ? d.notes.find(n => n.id === hit.id) : d.groups.find(g => g.id === hit.id);
+      if (!row) return;
+      const multiline = hit.type === 'note';
+      const input = doc.createElement(multiline ? 'textarea' : 'input');
+      input.className = 'sd-inline-edit';
+      input.value = multiline ? row.text : row.label;
+      input.setAttribute('aria-label', hit.type === 'note' ? 'Note text' : `${hit.type === 'node' ? 'Node' : 'Group'} label`);
+      input.maxLength = multiline ? config.bounds.maxNoteLength : config.bounds.maxLabelLength;
+      globalThis.SimulatteWorldUI?.SimField({ element: input });
+      const r = host.getBoundingClientRect(), topLeft = worldToScreen({ x: row.x, y: row.y });
+      const width = (hit.type === 'note' ? noteBox(row).w : hit.type === 'group' ? Math.min(row.w, 260) : W) * view.zoom;
+      Object.assign(input.style, { left: `${topLeft.x - r.left}px`, top: `${topLeft.y - r.top}px`, width: `${Math.max(160, width)}px` });
+      host.append(input);
+      editing = { hit, input, original: input.value };
+      on(input, 'keydown', e => {
+        e.stopPropagation();
+        if (e.key === 'Escape') { e.preventDefault(); cancelEdit(); }
+        else if (e.key === 'Enter' && (!multiline || e.ctrlKey || e.metaKey)) { e.preventDefault(); commitEdit(); }
+      });
+      on(input, 'blur', () => { if (editing?.input === input) commitEdit(); });
+      input.focus({ preventScroll: true }); input.select();
+    }
+    function closeEdit() {
+      const { hit, input } = editing;
+      editing = null; input.remove();
+      const target = hit.type === 'node' ? items.nodes.get(hit.id)?.el : hit.type === 'note' ? items.notes.get(hit.id)?.el : items.groups.get(hit.id)?.tab;
+      (target || host).focus({ preventScroll: true });
+    }
+    function commitEdit() {
+      if (!editing) return;
+      const { hit, input, original } = editing, value = input.value;
+      closeEdit();
+      if (value === original) return;
+      if (hit.type === 'node') report(model.apply({ type: 'setNodeLabel', id: hit.id, label: value }));
+      else if (hit.type === 'note') report(model.apply({ type: 'updateNote', id: hit.id, patch: { text: value } }));
+      else report(model.apply({ type: 'updateGroup', id: hit.id, patch: { label: value } }));
+    }
+    function cancelEdit() { if (editing) closeEdit(); }
+
+    // ---- lifecycle ------------------------------------------------------------------------
+    const unsubscribe = model.subscribe(event => {
+      if (event.kind === 'view') { if (!ownViewChange) { view = { ...event.diagram.view }; paintView(); } return; }
+      if (event.kind === 'load') { cancelGesture(); cancelPending(); view = { ...event.diagram.view }; paintView(); }
+      if (event.kind !== 'selection' && pending && !findNode(pending.source.nodeId)) cancelPending();
+      render();
+    });
+    const resize = typeof win.ResizeObserver === 'function' ? new win.ResizeObserver(() => paintView()) : null;
+    resize?.observe(host);
+    doc.fonts?.ready?.then(() => { if (!events.signal.aborted) { renderer.invalidateText(); render(); } });
+    paintView();
+    render();
+
+    return {
+      host, layers, svg,
+      metrics: Object.freeze({ nodeWidth: W, nodeHeight: H, statusHeight: STATUS_HEIGHT, grid: GRID }),
+      nodeBox, portPosition,
+      edgeElement: id => items.edges.get(id)?.path || null,
+      nodeElement: id => items.nodes.get(id)?.el || null,
+      dropClassAt(classId, clientX, clientY) {
+        const p = screenToWorld({ x: clientX, y: clientY });
+        return report(model.apply({ type: 'addNode', classId, x: snap(p.x - W / 2), y: snap(p.y - H / 2) }));
+      },
+      setMultiSelect(value) { explicitMultiSelect = Boolean(value); host.dataset.multiSelect = String(explicitMultiSelect); },
+      setState(value, options = {}) { runView = value; runPending = Boolean(options.pending); paintState(); },
+      fit, zoomBy, getView: () => ({ ...view }), setView: v => setView(v),
+      screenToWorld, worldToScreen, viewportCenter, groupAt, snap,
+      startConnect: (nodeId, portId) => { const n = findNode(nodeId), port = n && classInfo(n.classId).ports.find(p => p.id === portId); if (port) startPending({ nodeId, portId, dir: port.direction }); },
+      cancelConnect: cancelPending,
+      editLabel: id => beginEdit({ type: model.itemType(id)?.slice(0, -1), id }),
+      showHint,
+      render,
+      dispose() {
+        cancelGesture(); cancelPending(); cancelEdit();
+        if (frame) win.cancelAnimationFrame(frame);
+        win.clearTimeout(hintTimer);
+        overlay?.dispose(); events.abort(); unsubscribe(); resize?.disconnect();
+        svg.remove(); hint.remove();
+        host.classList.remove('sd-canvas', 'is-connecting', 'is-dragging', 'is-panning');
+      },
+    };
   }
+
   return Object.freeze({ create });
 });

@@ -19,7 +19,7 @@ with CommonJS exports, matching the rest of World. No file exceeds 999 lines.
 | File | Role |
 | --- | --- |
 | `class-library.js`, `diagram.js` | Governed class packs, parameters, named ports, document validation and compilation |
-| `kernel-registry.js`, `kernels-*.js` | Explicit behavior registration and capability checks; routing kernels remain unregistered metadata |
+| `kernel-registry.js`, `kernels-*.js` | Explicit behavior registration and capability checks for the 24 synthetic kernels |
 | `engine-core.js`, `engine.js` | Ordered events, per-node RNG, calls, resources, faults, causal records and observation |
 | `runner.js` | WorldSpec and shared coordinator binding, exact display state, controls, checkpoints and replay |
 | `editor-model.js` | Atomic commands, selection, semantic identity and undo/redo |
@@ -332,53 +332,58 @@ hardware, and replay hashes do not establish physical validity.
 
 ## Executable capability status
 
-The class library currently contains 24 kernel declarations and 50 built-in class
-presets. Metadata is not execution support. The runtime registry's `ids()` is the
-implemented-kernel inventory; a class is runnable only when its kernel is
-registered and its resolved parameters pass the kernel's `validateParams`, where
-present. Unsupported presets must remain visibly unavailable instead of drawing
-fake activity. User classes inherit the same execution limits as their kernel.
+The canonical class library declares 24 kernels and 50 built-in class presets.
+All 24 kernels now have registered synthetic implementations. The runtime
+registry's `ids()` remains the executable-kernel inventory; metadata alone does
+not establish support. User classes inherit their base kernel, ports, parameter
+validation and model limitations. Registration and passing synthetic tests do not
+establish production fidelity or human usability.
 
-The current AI, storage and source implementations cover these bounded semantics:
-
-| Registered kernel | Executable synthetic behavior | Explicit boundary |
+| Kernel family | Executable synthetic behavior | Explicit boundary |
 | --- | --- | --- |
-| `batchWorker` | FIFO collection to batch size/window, concurrent batches, base plus per-item service, memory admission and per-request downstream calls | No device kernels, physical VRAM prediction, transfer overlap or measured batching speedup |
-| `llm` | Authored TTFT/prefill/decode timing, admission-time sequence slowdown, context limit, fixed-minute token quota, token cost, typed output, synthetic invalid-schema flags and bounded tool-call rounds | No actual inference, semantic quality, dynamic KV-cache accounting or continuously recomputed decode contention |
-| `retriever` | Explicit typed embed, search, optional rerank and generate calls, with dependency errors and finite retry budgets | Does not implement embedding vectors, ANN recall or retrieval relevance; each connected provider must itself be runnable |
-| `structuredResponse` | Service/validation delay, declared validity flag, finite generator repair attempts, JSON payload label | No real JSON parsing, schema validation or document extraction |
-| `replicatedDb` | Asynchronous per-key version copies, lag, stale follower reads, failed leader/follower availability, timed synthetic election and visible lost unreplicated versions | `sync` and `quorum` parameters refuse execution. Election is an approximation, not consensus; acknowledged-effect counts do not prove durability |
-| `cache` | Keyed TTL, deterministic exact LRU, miss coalescing, origin calls and write invalidation/forwarding | `failOpen=true` refuses execution; generic crashes fail closed. Expired entries are removed on access; no real heap, GC or cache coherence model |
-| `objectStore` | Base latency plus object size/per-request throughput, station limits and idempotent synthetic writes | No shared storage bandwidth contention, durable bytes or object-store consistency proof |
-| `cron` | Interval schedule, jobs per fire, bounded observation horizon, overlap skip/allow and downstream retry budgets | No host cron daemon, calendar/time-zone interpretation or external execution |
-| `crawler` | Autonomous synthetic URL frontier, bounded discovery, duplicate suppression, per-domain start budget, fetch concurrency, retries and document provenance | No input port or live scraping. Fetch edges require replies; asynchronous fetch edges refuse the request |
+| Source, service, endpoint | Configured arrivals, FCFS concurrency, downstream calls, retry/timeout outcomes and bounded admission | No actual clients, RPC execution or measured service capacity |
+| Queue, dead letter | Leases, redelivery, receive budget, retained failed work and redrive | No durable broker protocol proof |
+| Routing/recovery | Load balancing/ejection, rate budgets, circuit breaking, retries and fallback/failback | Configured policies, not vendor implementation equivalence |
+| `batchWorker`, `embedder` | Batch size/window, concurrent batch workers, remaining-time slowdown updates, synthetic vector dimensions and payload sizes | No device kernels, actual embedding vectors, transfer overlap or physical VRAM prediction |
+| `llm` | Synthetic TTFT/prefill/decode work, processor sharing with recomputed completions, context/quota limits, token cost, typed output and tool-call rounds | No inference, semantic quality, KV-cache realism or provider pricing assurance |
+| `vectorIndex`, `reranker`, `retriever` | Synthetic index growth/query time, candidate scoring time and explicit embed/search/rerank/generate calls | No actual ANN algorithm, embeddings, learned relevance, measured recall or retrieval quality |
+| `chunker`, `structuredResponse` | Bounded token chunks/overlap, downstream fan-out, synthetic validity flags and finite repair calls | No real tokenizer, JSON parser, schema validator or semantic extraction |
+| `database`, `replicatedDb` | Synthetic writes/effects, async/sync/quorum wait sets, replica lag, stale reads, leader/follower failure, election and lost unreplicated versions | Not a consensus implementation, real durability guarantee, transaction isolation model or proof for arbitrary quorum configurations |
+| `cache` | Keyed TTL, sampled LRU, coalesced misses, write policies, cold restart and declared fail-open origin bypass | No heap/GC, real cache coherence or realistic cache capacity calibration |
+| `objectStore` | Base latency plus object size/per-request throughput, bounded station and write effects | No durable bytes, shared disk bandwidth/IOPS or storage consistency proof |
+| `cron` | Interval scheduling, nominal starts, overlap handling, missed runs and retry budgets | No host cron daemon, calendar/time-zone scheduling or external jobs |
+| `crawler` | Bounded synthetic per-domain frontier, duplicate sampling, fetch concurrency, politeness, throttle backoff and document emission | No live scraping, actual URLs, content semantics, access-policy evaluation or complete source provenance |
 
-`embedder`, `vectorIndex`, `reranker` and `chunker` remain metadata-only and
-unregistered. Their descriptions and parameters do not establish working
-implementations. A diagram containing them fails closed at execution preflight.
-RAG examples use explicitly named synthetic GPU timing and candidate-row adapters;
-they do not smuggle these four unavailable behaviors into the runnable palette.
+Resource groups share a declared count of executable worker/batch slots. Station
+kernels and the `batchWorker`/`embedder` resource hooks acquire these slots; batch
+completion or crash releases them and wakes waiting peers through a deferred
+logical event. A resource group containing unsupported custom kernels such as
+`llm`, `crawler` or `cron` must refuse execution instead of implying contention
+that those kernels do not model. Boundary groups remain visual; zone/region groups
+retain only their declared outage semantics. A group is not physical VRAM sharing,
+network placement or arbitrary protocol realism.
 
-The three shipped example documents compose actual registered kernels:
+The three shipped example documents compose the same kernels:
 
-- `web-service`: client → CPU API → TTL cache → asynchronous replica store, plus
+- `web-service`: clients → CPU API → TTL cache → asynchronous replica store, plus
   leased queue → CPU worker → idempotent results and a dead-letter destination.
-- `rag-assistant`: natural-language source → CPU API → GPU batch → typed RAG
-  orchestration, with synthetic embedding timing, candidate rows and a generator
-  through the structured-response stage.
+- `rag-assistant`: natural-language source → CPU API → GPU batch → RAG orchestration
+  with actual registered synthetic embedding, vector-index, reranking and generation
+  kernels. Document ingestion shares the embedder/index through a chunker. These
+  stages execute timing, typed payload and count models; they do not process real
+  vectors or language.
 - `crawler-pipeline`: autonomous crawler → synthetic website fetch and document
   parsing; cron injects scheduled work into the same CPU parser, structured
   validator, database and asynchronous object archive.
 
-These examples are composable diagrams, not separate engines. The crawler is a
-source, so cron cannot connect to a nonexistent crawler input; the example shares
-its downstream ingestion path instead. Every example uses finite sources or
-explicit stop times and the declared run horizon.
+The crawler is a source with no input port. Cron therefore shares its downstream
+ingestion path instead of connecting to a nonexistent crawler input. Example
+sources have explicit request/stop bounds and a declared observation horizon.
 
-[Kernel semantic tests](../../tests/system-diagram-kernels.test.cjs) separately
-exercise batch grouping/memory release, quota/context rejection, typed RAG call
-order, repair budgets, stale replica reads/election loss, cache coalescing/TTL,
-object transfer time, scheduler overlap and crawler domain budgets/provenance.
-Engine integration, replay, checkpoints, browser interaction, visual review and
-production calibration remain separate evidence layers. Do not infer a successful
-browser journey or production validation from these kernel tests.
+[Canonical routing/storage tests](../../tests/system-diagram-kernels-c1.test.cjs)
+and [AI/source tests](../../tests/system-diagram-kernels-c2.test.cjs) exercise
+synthetic policy behavior. [Composition tests](../../tests/system-diagram-kernels.test.cjs)
+check the shipped diagrams, topology-dependent execution, deterministic replay and
+serialized continuation. Engine checkpoints, resource ledgers and causal inspection
+have separate assertions. Browser interaction and visual review remain additional
+evidence layers; no kernel test proves a successful user journey or calibration.

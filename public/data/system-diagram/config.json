@@ -10,15 +10,15 @@
     "histogram": {
       "minMs": 0.01,
       "maxMs": 3600000,
-      "bins": 96
+      "bins": 400
     },
     "seriesBucketSec": 1,
     "seriesWindowSec": 120,
     "logCapacity": 200,
     "transitRenderLimit": 600,
-    "maxEventsPerAdvance": 100000,
+    "maxEventsPerAdvance": 1000000,
     "maxSameTimeEvents": 10000,
-    "maxRecords": 200000
+    "maxRecords": 2000000
   },
   "bounds": {
     "maxNodes": 250,

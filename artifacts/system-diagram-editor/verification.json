@@ -1,55 +1,58 @@
 {
-  "capturedAt": "2026-10-23T22:14:57.946173+00:00",
-  "status": "local coherent implementation verified; publication paused for new concurrent editor overlap",
-  "baseCommit": "792e8d5e58e1e53a03b7039af1a28784314e6e7c",
-  "remoteMain": "cd8632632b92f544845b9ce25948027c504b765f",
+  "capturedAt": "2026-10-23T22:29:12.637076+00:00",
+  "status": "canonical convergence qualified for non-force main publication; no production deployment",
+  "mergeParents": [
+    "700a5be6cb8879c124aad8e96a35d9315bd0e657",
+    "973b4cb88c6e45ff0fe66184ef669ae0958d4c04"
+  ],
   "route": "/system-diagram",
   "entry": "/simulatte/system-diagram/index.html",
   "component": "World System Diagram Simulator",
   "model": "system-diagram/v1",
   "checks": {
     "regressionTests": {
-      "passed": 86,
+      "passed": 135,
       "failed": 0,
       "evidence": "tests.tap"
     },
+    "engineTests": {
+      "passed": 13,
+      "failed": 0,
+      "evidence": "engine-tests.tap",
+      "durationMs": 94056.925083
+    },
     "browser": {
-      "desktop": 32,
-      "touch": 32,
+      "desktop": 33,
+      "touch": 33,
       "allPassed": true,
       "evidence": "browser.json"
     },
     "runtimeSourceHashesMatch": true,
     "worldUiOwnershipViolations": 0,
-    "chartersValid": 46,
     "hostingPackaging": "passed; hosting-check.log",
-    "productionDeployment": false
+    "productionDeployment": false,
+    "totalTestsPassed": 148
   },
   "screenshots": {
-    "1440-editor.png": "67e9315b32ee7f8cce4908e0bd1b533ec97d3e39b88ef6344c7843660e01bfd7",
-    "1440-properties.png": "aab85fdbb8ab63160439450c81ba432d4608033e723418975f95505263102ae5",
-    "1440-causal.png": "1645c734a240c3cd8e51383020f1176315b3b3904cd3570f1697dc47b006679d",
-    "1440-final.png": "78f4ee2956cb8c23031c62d7b2d4bc4bd10e69920d851599777dba24465ee0d0",
-    "390-editor.png": "8f93c2b70b09f2c58f794e4808854b3ab818800a11eb894b72d44f6915667815",
+    "1440-editor.png": "6c5e4984b50658af3f74842d7f4bc55cf1d162c74e6df2417dde42f7d9c5106b",
+    "1440-properties.png": "8a46741caadb1aa0e7b459196d7d0242527b2a6a7e8733c04da97ca33f27c9ac",
+    "1440-causal.png": "7d0d084ee5a723164a1b3883b02e2f6580352832e5e932427aee97254448daa3",
+    "1440-final.png": "47d9d9edc794d8180d67905157c6701f67b9777745fdbee5d1dab8c13c359839",
+    "390-editor.png": "2e90c6e305a70aedebbb5f6f85c84e7b2a4692a30739a58ad8f782dfc8f3748a",
     "390-properties.png": "9ccd951f4cb85aca494894569297e74cf3143c662e2b6355369e15f536bdfa3b",
-    "390-causal.png": "c953f609214f3e7090d9e8e77d8d9b2c507ff962d932deb43a3f39e1fb6b3f47",
-    "390-final.png": "5f85bd5e070e3c0058b6c2e72e6a7e1a6922bf39bc021798baa2822b2a7ff2c1"
+    "390-causal.png": "1f26d2965b69abe6b5322837ddd5bd58126ee6fa8706e152a1ac43295932cae4",
+    "390-final.png": "c4e8a1ceb42ff3dd9aaaf0da25c2c12810830635b8d8cf6ffbef34afc8483db3"
   },
   "limits": [
-    "15 registered kernels; metadata-only classes are not execution capabilities.",
-    "Asynchronous replication approximation only; sync/quorum refuse.",
-    "Synthetic data, RAG and model timing; no inference, scraping or physical capacity proof."
+    "24 registered synthetic kernels and 50 built-in presets; all modeled behavior remains synthetic.",
+    "Resource clusters constrain only kernels implementing station or explicit resource hooks; failure domains are separate.",
+    "No actual inference, scraping, clinical/financial actions, infrastructure execution or physical capacity proof.",
+    "Lossless causal retention is bounded; large traces consume memory and verification time.",
+    "Touch evidence uses Chrome touch emulation; physical-device and human usability review remain separate."
   ],
-  "integrationConflict": {
-    "remoteCommits": [
-      "7803d383",
-      "cd863263"
-    ],
-    "overlap": [
-      "editor-model.js",
-      "editor-canvas.js",
-      "editor.css"
-    ],
-    "recommendation": "Preserve newer remote editor components. Adapt page/command boundaries and port tested resource/touch/lifecycle fixes before merging. Do not overwrite or duplicate these components."
+  "integration": {
+    "canonicalOwner": "public/simulatte/system-diagram",
+    "strategy": "Retained newer remote model/keyed canvas/24-kernel engine; ported command adapters, resource/touch/lifecycle and causal/checkpoint behavior. No duplicate state or engine.",
+    "originalCheckoutPreserved": "729dd1fd3678c3bf646b83587eecea9584f4276b"
   }
 }

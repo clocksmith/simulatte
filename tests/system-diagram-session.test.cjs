@@ -28,17 +28,17 @@ test('rejected commands and replacements leave document, selection and history a
     { type: 'setNodeParams', id: 'api', params: { concurrency: -1 } },
     { type: 'connect', from: { nodeId: 'client', portId: 'out' }, to: { nodeId: 'api', portId: 'in' } },
     { type: 'reconnect', id: 'api-db', to: { nodeId: 'missing', portId: 'in' } },
-    { type: 'setPositions', positions: [{ id: 'api', x: Infinity }] },
+    { type: 'setPositions', positions: { api: { x: Infinity } } },
     { type: 'unsupported-command' }
   ]) { assert.equal(m.apply(command).ok, false); assert.deepEqual(m.diagram, before); assert.deepEqual(m.selection, selection); assert.equal(m.canRedo(), true); }
   assert.equal(m.replace({ ...before, undeclared: true }).ok, false); assert.deepEqual(m.diagram, before); assert.equal(m.canRedo(), true);
-  assert.equal(m.redo(), true); assert.equal(m.diagram.nodes[1].label, 'Renamed API');
+  assert.equal(m.redo().ok, true); assert.equal(m.diagram.nodes[1].label, 'Renamed API');
   const external = m.diagram; external.nodes[0].x = -100; assert.notEqual(m.diagram.nodes[0].x, -100, 'getter does not leak mutable document ownership');
 });
 
 test('class derivation preserves effective parameters and class edits respect instance overrides', () => {
   const m = model(); const before = documents.resolveNodeParams(m.diagram.nodes[1], m.diagram, library, config).values;
-  const derived = apply(m, { type: 'deriveClass', id: 'api', label: 'Reusable API' });
+  const derived = apply(m, { type: 'deriveClass', nodeId: 'api', label: 'Reusable API' });
   assert.match(derived.id, /^user\./); assert.deepEqual(m.diagram.nodes[1].params, {});
   assert.deepEqual(documents.resolveNodeParams(m.diagram.nodes[1], m.diagram, library, config).values, before);
   apply(m, { type: 'updateUserClass', id: derived.id, patch: { defaults: { concurrency: 6 } } });
@@ -46,7 +46,7 @@ test('class derivation preserves effective parameters and class edits respect in
   apply(m, { type: 'setNodeParams', id: 'api', params: { concurrency: 3 } });
   apply(m, { type: 'updateUserClass', id: derived.id, patch: { defaults: { concurrency: 8 } } });
   assert.equal(documents.resolveNodeParams(m.diagram.nodes[1], m.diagram, library, config).values.concurrency, 3);
-  apply(m, { type: 'setNodeParams', id: 'api', params: {}, reset: ['concurrency'] });
+  apply(m, { type: 'setNodeParams', id: 'api', params: { concurrency: null } });
   assert.equal(documents.resolveNodeParams(m.diagram.nodes[1], m.diagram, library, config).values.concurrency, 8);
   assert.equal(m.apply({ type: 'deleteUserClass', id: derived.id }).ok, false);
   apply(m, { type: 'setNodeClass', id: 'api', classId: 'task-queue' });
@@ -79,31 +79,32 @@ test('resource groups compile shared slots separately from failure domains and r
 test('duplicate keeps classes reusable, copies internal edges, and group movement moves each member once', () => {
   const m = model(); const { id: groupId } = apply(m, { type: 'addGroup', kind: 'resource', nodeIds: ['api', 'db'], capacity: 2 });
   const start = m.diagram; m.select({ groups: [groupId], nodes: ['api'] });
-  apply(m, { type: 'moveItems', dx: 30, dy: -10 });
+  apply(m, { type: 'moveItems', ids: [groupId, 'api'], dx: 30, dy: -10 });
   assert.equal(m.diagram.nodes.find(n => n.id === 'api').x, start.nodes.find(n => n.id === 'api').x + 30);
   assert.equal(m.diagram.nodes.find(n => n.id === 'db').x, start.nodes.find(n => n.id === 'db').x + 30);
   assert.equal(m.diagram.groups[0].x, start.groups[0].x + 30);
-  const duplicated = apply(m, { type: 'duplicate', selection: { groups: [groupId] }, dx: 80, dy: 50 });
+  const duplicated = apply(m, { type: 'duplicate', ids: [groupId], dx: 80, dy: 50 });
   assert.equal(m.diagram.nodes.length, 5); assert.equal(m.diagram.edges.length, 3); assert.equal(m.diagram.groups.length, 2);
-  assert.equal(duplicated.ids.nodes.length, 2); assert.equal(duplicated.ids.edges.length, 1);
-  const copy = m.diagram.nodes.find(n => n.id === duplicated.ids.nodes[0]); assert.equal(copy.classId, 'web-server'); assert.notEqual(copy.groupId, groupId);
+  const copiedNodes = m.diagram.nodes.filter(n => duplicated.created.includes(n.id));
+  assert.equal(copiedNodes.length, 2); assert.equal(m.diagram.edges.filter(e => duplicated.created.includes(e.id)).length, 1);
+  const copy = copiedNodes[0]; assert.equal(copy.classId, 'web-server'); assert.notEqual(copy.groupId, groupId);
   assert.equal(new Set([...m.diagram.nodes, ...m.diagram.edges, ...m.diagram.groups].map(n => n.id)).size, 10);
-  apply(m, { type: 'deleteItems', selection: { groups: [copy.groupId] } });
+  apply(m, { type: 'deleteItems', ids: [copy.groupId] });
   assert.equal(m.diagram.nodes.length, 5, 'removing a group ungroups nodes, rather than silently deleting them');
-  assert.ok(m.diagram.nodes.filter(n => duplicated.ids.nodes.includes(n.id)).every(n => !n.groupId));
+  assert.ok(m.diagram.nodes.filter(n => copiedNodes.some(copy => copy.id === n.id)).every(n => !n.groupId));
 });
 
 test('node deletion removes incident edges and faults and undo restores causal configuration', () => {
   const m = model(); apply(m, { type: 'addFault', fault: { atSec: 2, untilSec: 3, target: { kind: 'node', id: 'api' }, type: 'crash', params: {} } });
-  const original = m.diagram; m.select({ nodes: ['api'] }); apply(m, { type: 'deleteItems' });
+  const original = m.diagram; m.select({ nodes: ['api'] }); apply(m, { type: 'deleteItems', ids: ['api'] });
   assert.equal(m.diagram.nodes.length, 2); assert.equal(m.diagram.edges.length, 0); assert.equal(m.diagram.faults.length, 0);
-  m.undo(); assert.deepEqual(m.diagram, original); assert.deepEqual(m.selection.nodes, ['api']);
+  m.undo(); assert.deepEqual(m.diagram, original); assert.deepEqual(m.selection.nodes, [], 'undo preserves the current pruned selection');
   m.redo(); assert.equal(m.diagram.nodes.length, 2);
 });
 
 test('semantic identity excludes labels/layout/notes/view while retaining executable changes', () => {
   const m = model(), semantic = m.executionIdentity();
-  apply(m, { type: 'setPositions', positions: [{ id: 'api', x: 310, y: 240 }] });
+  apply(m, { type: 'setPositions', positions: { api: { x: 310, y: 240 } } });
   apply(m, { type: 'setNodeLabel', id: 'api', label: 'Readable label' });
   apply(m, { type: 'addNote', text: 'Local design annotation', x: 0, y: 0 });
   apply(m, { type: 'setMeta', patch: { name: 'Different title', description: 'A description' } });
@@ -119,7 +120,31 @@ test('view and selection are outside bounded history and rejected edits do not n
   m.select({ nodes: ['api', 'missing'] }); m.select({ nodes: ['db'] }, { additive: true }); assert.deepEqual(m.selection.nodes, ['api', 'db']); assert.equal(m.canUndo(), false);
   apply(m, { type: 'setView', view: { x: 1, y: 1, zoom: 1 } }); assert.equal(m.canUndo(), false);
   apply(m, { type: 'setNodeLabel', id: 'api', label: 'One' }); apply(m, { type: 'setNodeLabel', id: 'api', label: 'Two' }); apply(m, { type: 'setNodeLabel', id: 'api', label: 'Three' });
-  assert.equal(m.undo(), true); assert.equal(m.undo(), true); assert.equal(m.undo(), false); assert.equal(m.diagram.nodes[1].label, 'One');
+  assert.equal(m.undo().ok, true); assert.equal(m.undo().ok, true); assert.equal(m.undo().ok, false); assert.equal(m.diagram.nodes[1].label, 'One');
   const n = events.length; assert.equal(m.apply({ type: 'setNodeParams', id: 'api', params: { bogus: true } }).ok, false); assert.equal(events.length, n);
   off(); apply(m, { type: 'setNodeLabel', id: 'api', label: 'No notification' }); assert.equal(events.length, n);
+});
+
+
+test('reconnection preserves edge identity and patches parameters atomically with null reset', () => {
+  const m = model(), original = m.diagram;
+  const changed = apply(m, { type: 'reconnect', id: 'client-api', to: { nodeId: 'db', portId: 'in' }, params: { latencyMs: 80, bandwidthMbps: 25 } });
+  assert.equal(changed.id, 'client-api'); assert.equal(m.diagram.edges.length, original.edges.length);
+  assert.equal(m.diagram.edges[0].to.nodeId, 'db'); assert.deepEqual(m.diagram.edges[0].params, { latencyMs: 80, bandwidthMbps: 25 });
+  const before = m.diagram; const selected = m.selection;
+  assert.equal(m.apply({ type: 'reconnect', id: 'client-api', to: { nodeId: 'db', portId: 'in' }, params: { bandwidthMbps: -1 } }).ok, false);
+  assert.equal(m.diagram, before); assert.equal(m.selection, selected);
+  apply(m, { type: 'reconnect', id: 'client-api', params: { latencyMs: null } });
+  assert.deepEqual(m.diagram.edges[0].params, { bandwidthMbps: 25 });
+  m.undo(); assert.deepEqual(m.diagram.edges[0].params, { latencyMs: 80, bandwidthMbps: 25 });
+  m.undo(); assert.deepEqual(m.diagram, original);
+});
+
+test('frozen accepted snapshot stays detached from pending edits and replace clears history by contract', () => {
+  const m = model(), accepted = structuredClone(m.diagram), identity = m.executionIdentity();
+  apply(m, { type: 'setNodeParams', id: 'api', params: { serviceMs: 40 } });
+  assert.notEqual(m.executionIdentity(), identity);
+  assert.deepEqual(accepted.nodes.find(n => n.id === 'api').params, { concurrency: 4 });
+  assert.ok(Object.isFrozen(m.diagram)); assert.ok(Object.isFrozen(m.diagram.nodes[0].params));
+  assert.equal(m.replace(accepted).ok, true); assert.equal(m.executionIdentity(), identity); assert.equal(m.canUndo(), false); assert.equal(m.canRedo(), false);
 });
