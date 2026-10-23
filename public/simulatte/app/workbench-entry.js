@@ -2,7 +2,7 @@
   if (typeof module === 'object' && module.exports) return;
   const launch = document.documentElement?.dataset?.worldLaunch;
   if (launch && !root.SimulattePublicRoutes) throw new Error('workbench_catalog_dependency_missing');
-  const featuredRoute = () => Boolean(root.SimulattePublicRoutes?.forPath(location.pathname)?.profile);
+  const featuredRoute = () => { const page = root.SimulattePublicRoutes?.forPath(location.pathname); return Boolean(page?.profile && !page.entry); };
   if (launch && (launch !== 'featured' || !featuredRoute())) {
     document.body.dataset.journeyPhase = 'ready';
     return;

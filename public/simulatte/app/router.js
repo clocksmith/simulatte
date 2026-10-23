@@ -20,8 +20,8 @@
   // segment is the full application-profile id. Query fields are:
   //   ?world=<world id>&profile=<profile id>&camera=<mode>&scenario=<seed id>
   //     &seed=<declared seed>&mission=<text>&param.<plugin>.<control>=<JSON>
-  // Navigation is still in-place; changing a URL state tears down and remounts
-  // the owning experience through the app shell rather than reloading the page.
+  // Hosted profile navigation remounts through the app shell. Standalone
+  // catalog entries navigate to their own document and lifecycle.
   if (!tierRegistry) throw new Error('simulatte_router_tier_registry_missing');
   const TIERS = tierRegistry.TIER_IDS;
   const TIER_SET = new Set(TIERS);
@@ -179,6 +179,8 @@
     function navigate(route, { replace = false } = {}) {
       const href = hrefFor(route);
       if (href === `${target.location.pathname}${target.location.search}`) return Promise.resolve();
+      const page = publicRoutes?.forSelection(route?.tier, route?.experience || route?.profile);
+      if (page?.entry) { target.location[replace ? 'replace' : 'assign'](href); return Promise.resolve(); }
       target.history[replace ? 'replaceState' : 'pushState']({}, '', href);
       return Promise.resolve(dispatch({ viaPopstate: false }));
     }

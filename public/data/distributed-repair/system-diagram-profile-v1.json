@@ -1,0 +1,14 @@
+{
+  "schema": "simulatte.systemDiagramProfile.v1",
+  "id": "system-diagram-v1",
+  "version": "1.0.0",
+  "name": "System Diagram Simulator",
+  "route": "/system-diagram",
+  "entry": "/simulatte/distributed-repair/index.html",
+  "model": "distributed-repair/v1",
+  "configPath": "/data/distributed-repair/config.json",
+  "defaultSeed": 42,
+  "defaultPolicy": "baseline",
+  "capabilities": ["node-authoring", "typed-task-links", "shared-gpu-clusters", "capacity-latency", "seeded-replay", "checkpoint-restore", "causal-request-inspection"],
+  "limitations": "Bounded CPU/GPU task DAGs with one source and result store. Synthetic resource estimates; no production capacity, replication/consensus, real VRAM/GC/OOM or broad workload-pack claims."
+}

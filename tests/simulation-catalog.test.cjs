@@ -8,10 +8,10 @@ const root = path.resolve(__dirname, '..');
 
 test('the discovery catalog covers each registered profile and standalone experiences once', () => {
   const inventory = JSON.parse(fs.readFileSync(path.join(root, 'public/data/application-profiles/profile-claim-inventory-v1.json')));
-  assert.deepEqual(catalog.pages.filter(page => page.profile).map(page => page.profile).sort(), inventory.profileIds);
-  assert.equal(catalog.pages.length, 17);
-  assert.equal(new Set(catalog.pages.map(page => page.path)).size, 17);
-  assert.equal(catalog.pages.filter(page => page.entry).length, 5);
+  assert.deepEqual(catalog.pages.filter(page => page.profile && !page.entry).map(page => page.profile).sort(), inventory.profileIds);
+  assert.equal(catalog.pages.length, 18);
+  assert.equal(new Set(catalog.pages.map(page => page.path)).size, 18);
+  assert.equal(catalog.pages.filter(page => page.entry).length, 6);
   for (const page of catalog.pages) {
     assert.ok(page.displayName && page.description);
     assert.ok(['available', 'experimental', 'in-development'].includes(page.readiness));
@@ -51,4 +51,35 @@ test('every catalog entry has safe SVG line art and appears in the gallery', asy
   }
   assert.match(gallery, /class="launch-bike" transform="translate\(295 310\)"/);
   assert.match(gallery, /<ellipse rx="300" ry="210"/);
+});
+
+test('System Diagram Simulator is a declared executable catalog/profile route with retained deep links', async () => {
+  const page = catalog.forPath('/system-diagram');
+  assert.equal(page.displayName, 'System Diagram Simulator');
+  assert.equal(page.entry, '/simulatte/distributed-repair/index.html');
+  assert.equal(page.profile, 'system-diagram-v1');
+  const profile = JSON.parse(fs.readFileSync(path.join(root, 'public', page.profilePath), 'utf8'));
+  const validator = require('../public/simulatte/distributed-repair/profile.js');
+  const model = require('../public/simulatte/distributed-repair/model.js');
+  assert.deepEqual(validator.validate(profile, { route: page, model: model.MODEL }), profile);
+  assert.throws(() => validator.validate({ ...profile, model: 'unsupported-model' }, { route: page, model: model.MODEL }), /route\/model/);
+  assert.throws(() => validator.validate({ ...profile, capabilities: ['arbitrary-consensus'] }, { route: page, model: model.MODEL }), /Unsupported/);
+  for (const legacy of page.legacy) assert.equal(catalog.redirectFor(legacy), page.path);
+  assert.equal(catalog.forSelection(page.tier, page.profile), page);
+  const router = require('../public/simulatte/app/router.js');
+  const selection = router.parsePath(page.path, '?seed=73');
+  assert.equal(selection.profile, profile.id); assert.equal(selection.simulation.seed, '73');
+  assert.equal(router.hrefFor(selection), '/system-diagram?seed=73');
+  const navigations = [];
+  const navigation = router.createRouter({ location: { pathname: '/datacenter', search: '', assign: href => navigations.push(href), replace: href => navigations.push(href) }, history: { pushState() { throw Error('Standalone route cannot use hosted-profile dispatch'); } } });
+  await navigation.navigate(selection); assert.deepEqual(navigations, ['/system-diagram?seed=73']);
+  assert.throws(() => router.parsePath(page.path, '?profile=gpu-supercluster-v1'), /does not match/);
+  const runner = await require('../public/simulatte/distributed-repair/runner.js').create(profile.defaultPolicy, profile.defaultSeed, undefined, undefined, profile.id);
+  assert.equal(runner.program().params.profileId, profile.id);
+  await runner.dispose();
+  const html = fs.readFileSync(path.join(root, 'public', page.entry), 'utf8');
+  assert.match(html, /<base href="\/simulatte\/distributed-repair\/">/);
+  const home = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
+  assert.equal((home.match(/aria-label="Open System Diagram Simulator"/g) || []).length, 1);
+  assert.doesNotMatch(home, /aria-label="World workbench"/);
 });

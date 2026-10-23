@@ -1,0 +1,45 @@
+{
+  "capturedAt": "2026-10-23T17:43:23.039094+00:00",
+  "baseCommit": "99d0f303420b4f87d0f1916a67d397c0a066604e",
+  "component": "World catalog, routing and System Diagram Simulator",
+  "intent": "Deliberately expose the user-authorized bounded executable workbench as a distinct catalog simulation.",
+  "route": "/system-diagram",
+  "profile": "system-diagram-v1",
+  "catalogEntries": 18,
+  "validation": {
+    "targetedTests": {
+      "passed": 48,
+      "failed": 0,
+      "evidence": "tests.tap"
+    },
+    "deploymentQualification": {
+      "exitCode": 0,
+      "evidence": "deploy-qualification.log",
+      "productionDeployment": false
+    },
+    "browser": {
+      "cases": 2,
+      "checksPerCase": 17,
+      "allPassed": true,
+      "evidence": "browser.json"
+    },
+    "runtimeSourceHashesMatchBrowserReceipt": true
+  },
+  "screenshots": {
+    "1440-authoring.png": "c006cbaf466002dceeaf5b03ce6dc154012681dbfae0bcf6e52838157a1142d3",
+    "1440-catalog.png": "7d53a6a5b7855eb6fd1f6e508e3e33da4634b184aa1b72ace6ba2047386e4b24",
+    "1440-fault.png": "e45ba73e9c36e66298d44bd57177e51d78fda34bd3f8b71b15f6163343d852d1",
+    "1440-request.png": "b24e6c2848176e8afd682365346554e23b92a83aca4994bce142a980faf1c859",
+    "1440-world.png": "2610c5564fe5cc15dc4a301911db64067e6e9777bf611bae0e4a642a5fd20862",
+    "390-authoring.png": "3fb5481e31e7580615388f5a24f81883f2cc2cb5207f768a7dbf89aaaad0b51e",
+    "390-catalog.png": "5a8e963d5a40dd8516ed9ce0f2bc4224e2fa9a17f839dd762c96502e13eb173a",
+    "390-fault.png": "07371d59d904836db890ae5390803c49f1534493787d0438d183675924403999",
+    "390-request.png": "73abc832f66c7ef6f9e863c714d272d792be0964189d029f52c59c66eefc61a0",
+    "390-world.png": "6f613d20c594d6459a814043dfe60d280320f8c7e44951e7f7954911a8d1ce6c"
+  },
+  "limits": [
+    "Synthetic bounded CPU/GPU task DAG model; no production proof.",
+    "Broader workload packs and protocols remain planned.",
+    "Existing parent-owned local review server was not restarted; its cached route registry may be stale."
+  ]
+}

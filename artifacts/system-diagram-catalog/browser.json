@@ -1,0 +1,182 @@
+{
+  "source": {
+    "head": "99d0f303420b4f87d0f1916a67d397c0a066604e",
+    "capturedAt": "2026-10-23T17:38:32.726Z",
+    "modifiedSources": {
+      "public/data/distributed-repair/system-diagram-profile-v1.json": {
+        "sha256": "0880b94f5fd91c215404c147a4a3f1a3bc2f6630a7c1d346c74f992c7272e97f",
+        "modifiedAt": "2026-10-23T17:29:29.655Z"
+      },
+      "public/data/distributed-repair/system-diagram-profile.schema.json": {
+        "sha256": "631765179f75cc6140a23787489cd3a56102c619acc28f6673f1f26ad7909c74",
+        "modifiedAt": "2026-10-23T17:29:29.719Z"
+      },
+      "public/index.html": {
+        "sha256": "8adaf32f95a458a7e024d84d67ad193ee047d3e5af65a79860521388d14dc29b",
+        "modifiedAt": "2026-10-23T17:29:29.772Z"
+      },
+      "public/simulation-previews/system-diagram.svg": {
+        "sha256": "3267a65aeac008bd21d95b85b1a851d66f2720d561e3d6acf90115d8fe1be0be",
+        "modifiedAt": "2026-10-23T17:29:29.746Z"
+      },
+      "public/simulation-routes.js": {
+        "sha256": "68f4808cdd48c5e0a11f8418645f584f25d395d3e9d61f0c10f3eae3a344ce3e",
+        "modifiedAt": "2026-10-23T17:33:17.926Z"
+      },
+      "public/simulatte/app/CATSCAN.md": {
+        "sha256": "821a4e24fe36b76dddaf4fcff0de7066fb62019cdb3d8511b73ce97e12c11263",
+        "modifiedAt": "2026-10-23T17:33:39.815Z"
+      },
+      "public/simulatte/app/router.js": {
+        "sha256": "7581aa7d8e03c869ba2747d5e23a546ed1da99c55863651a6b8cca523e856f5f",
+        "modifiedAt": "2026-10-23T17:38:28.771Z"
+      },
+      "public/simulatte/app/workbench-entry.js": {
+        "sha256": "d78999a5c4c123ed554a2ae686ebd4edf78297d53d26f4dedb28aa76ccf316b9",
+        "modifiedAt": "2026-10-23T17:29:29.721Z"
+      },
+      "public/simulatte/distributed-repair/CATSCAN.md": {
+        "sha256": "c5a94ea0a4042e81dc1220206f413f5798c4cee82131ba1959fca8b1563f91e5",
+        "modifiedAt": "2026-10-23T17:34:18.840Z"
+      },
+      "public/simulatte/distributed-repair/index.html": {
+        "sha256": "a6f4682c097ec108c806b5015dc203c16a8fb0ed66021a62b5035603f42f42e6",
+        "modifiedAt": "2026-10-23T17:31:40.135Z"
+      },
+      "public/simulatte/distributed-repair/page.js": {
+        "sha256": "9603c13f42b22b0399f052d18ae72f86234bf112c08452cfa8ef77dda5add38e",
+        "modifiedAt": "2026-10-23T17:31:40.135Z"
+      },
+      "public/simulatte/distributed-repair/profile.js": {
+        "sha256": "b0661f12f8c4116ee6de7243702edf018a372a73687a71d73f6f8b9c62f9356c",
+        "modifiedAt": "2026-10-23T17:29:29.657Z"
+      },
+      "public/simulatte/distributed-repair/runner.js": {
+        "sha256": "eb99d8cb5115b7c785c2c558a2f80e9c85ca1e497204fefad1d18e4f393a5b1e",
+        "modifiedAt": "2026-10-23T17:33:17.926Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Local browser controls on desktop and touch-emulated mobile; synthetic model, HTTP(S) restricted to the temporary loopback host, no deployment, production or human qualification.",
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": {
+        "worldCatalogEntry": true,
+        "checkpointControls": true,
+        "failedStoreVisible": true,
+        "replayControl": true,
+        "pairedComparison": true,
+        "keyboardRequestInspection": true,
+        "causalHistory": true,
+        "pendingPreservesRun": true,
+        "invalidConnections": true,
+        "connectGroupAccept": true,
+        "exportReimport": true,
+        "removeAccept": true,
+        "repairReplay": true,
+        "reducedMotion": true,
+        "noHorizontalPageOverflow": true,
+        "legacyDeepLink": true,
+        "mismatchedProfileRefused": true
+      },
+      "errors": [],
+      "networkFailures": [],
+      "navigationCancellations": [],
+      "blockedExternal": [
+        "https://www.googletagmanager.com/gtag/js"
+      ],
+      "screenshots": [
+        "1440-catalog.png",
+        "1440-fault.png",
+        "1440-request.png",
+        "1440-authoring.png"
+      ],
+      "lastAction": {
+        "label": "Compare policies",
+        "point": {
+          "x": 431.4375,
+          "y": 312.5
+        },
+        "hit": "Compare policies",
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000,
+          "visual": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          }
+        }
+      },
+      "comparison": "40 s paired result\tBaseline\tBounded\nCompleted\t0\t4\nRejected\t0\t14\nUnfinished\t18\t0\nDead-letter\t0\t0\nDeadline misses\t18\t4\nPeak MiB\t664\t80\nDuplicate GPU work\t2\t3.9\nCommitted effects\t0\t4",
+      "screenshot": "1440-world.png",
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": {
+        "worldCatalogEntry": true,
+        "checkpointControls": true,
+        "failedStoreVisible": true,
+        "replayControl": true,
+        "pairedComparison": true,
+        "keyboardRequestInspection": true,
+        "causalHistory": true,
+        "pendingPreservesRun": true,
+        "invalidConnections": true,
+        "connectGroupAccept": true,
+        "exportReimport": true,
+        "removeAccept": true,
+        "repairReplay": true,
+        "reducedMotion": true,
+        "noHorizontalPageOverflow": true,
+        "legacyDeepLink": true,
+        "mismatchedProfileRefused": true
+      },
+      "errors": [],
+      "networkFailures": [],
+      "navigationCancellations": [],
+      "blockedExternal": [
+        "https://www.googletagmanager.com/gtag/js"
+      ],
+      "screenshots": [
+        "390-catalog.png",
+        "390-fault.png",
+        "390-request.png",
+        "390-authoring.png"
+      ],
+      "lastAction": {
+        "label": "Compare policies",
+        "point": {
+          "x": 84.71875,
+          "y": 421.5
+        },
+        "hit": "Compare policies",
+        "viewport": {
+          "x": 0,
+          "y": 2,
+          "width": 390,
+          "height": 844,
+          "visual": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          }
+        }
+      },
+      "comparison": "40 s paired result\tBaseline\tBounded\nCompleted\t0\t4\nRejected\t0\t14\nUnfinished\t18\t0\nDead-letter\t0\t0\nDeadline misses\t18\t4\nPeak MiB\t664\t80\nDuplicate GPU work\t2\t3.9\nCommitted effects\t0\t4",
+      "screenshot": "390-world.png",
+      "pass": true
+    }
+  ]
+}

@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {sourceReceipt} from './runtime-audit-sources.mjs';
 import {openBrowserAudit} from './browser-session.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const output = root + 'artifacts/distributed-repair';
+const output = root + 'artifacts/system-diagram-catalog';
 await fs.mkdir(output, {recursive:true});
 const report = {source:await sourceReceipt(root),boundary:'Local browser controls on desktop and touch-emulated mobile; synthetic model, HTTP(S) restricted to the temporary loopback host, no deployment, production or human qualification.', cases:[]};
 for (const viewport of [{width:1440,height:1000},{width:390,height:844}]) {
@@ -33,12 +33,15 @@ for (const viewport of [{width:1440,height:1000},{width:390,height:844}]) {
     await client.send('Emulation.setDeviceMetricsOverride',{...viewport,deviceScaleFactor:1,mobile:viewport.width<700});
     await client.send('Emulation.setTouchEmulationEnabled',{enabled:viewport.width<700});
     await client.send('Page.navigate',{url:browser.host.baseUrl});
-    await until(`Boolean(document.querySelector('[aria-label="World workbench"] a')?.getClientRects().length)`);
+    await until(`Boolean(document.querySelector('#featured-simulations a[href="./system-diagram"]')?.getClientRects().length)`);
     await until(`document.readyState==='complete'`); await evaluate(`document.fonts.ready.then(()=>true)`);
-    const entry = await evaluate(`(async()=>{const a=document.querySelector('[aria-label="World workbench"] a');a.scrollIntoView({block:'center'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const b=a.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2};})()`);
+    const entry = await evaluate(`(async()=>{const a=document.querySelector('#featured-simulations a[href="./system-diagram"]');a.scrollIntoView({block:'center'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const b=a.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2};})()`);
+    {const shot=await client.send('Page.captureScreenshot',{format:'png'});const file=`${viewport.width}-catalog.png`;await fs.writeFile(output+'/'+file,Buffer.from(shot.data,'base64'));row.screenshots.push(file);}
     if(viewport.width<700)await client.send('Input.synthesizeTapGesture',{...entry,duration:50,gestureSourceType:'touch'});
     else { await client.send('Input.dispatchMouseEvent',{type:'mousePressed',...entry,button:'left',clickCount:1}); await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',...entry,button:'left',clickCount:1}); }
-    row.checks.worldEntry=true;
+    await until(`location.pathname==='/system-diagram' && document.body.dataset.simulationProfile==='system-diagram-v1'`);
+    assert.match(await evaluate(`document.title`),/System Diagram Simulator/);
+    row.checks.worldCatalogEntry=true;
     await until(`document.getElementById('status')?.textContent.includes('running')`);
     await evaluate(`(()=>{globalThis.auditInputs=[];for(const type of ['touchstart','touchend','pointerdown','pointerup','click'])document.addEventListener(type,e=>auditInputs.push({type,target:e.target.textContent.slice(0,70),x:e.clientX,y:e.clientY,time:performance.now()}),true)})()`);
     await click('Pause'); await click('Step 1 s'); await click('Save checkpoint');
@@ -80,7 +83,7 @@ for (const viewport of [{width:1440,height:1000},{width:390,height:844}]) {
     await click('Accept & restart'); assert.match(await evaluate(`document.getElementById('revision').textContent`),/Accepted r2$/); row.checks.connectGroupAccept=true;
     await click('Step 1 s'); await click('Export replay');
     const exported = await evaluate(`document.getElementById('document').value`); const parsed=JSON.parse(exported);
-    assert.equal(parsed.architecture.nodes.length,5); assert.ok(parsed.architecture.links.some(l=>l.capacity===25&&l.latency===0.2));
+    assert.equal(parsed.worldSpec.params.profileId,'system-diagram-v1'); assert.equal(parsed.architecture.nodes.length,5); assert.ok(parsed.architecture.links.some(l=>l.capacity===25&&l.latency===0.2));
     await click('Import as pending'); await click('Accept imported replay'); await click('Verify replay');
     assert.match(await evaluate(`document.getElementById('editor-status').textContent`),/Exact coordinator replay matched/); row.checks.exportReimport=true;
     await value('selected','gpu-10'); await click('Remove selected'); await click('Accept & restart'); row.checks.removeAccept=true;
@@ -92,6 +95,13 @@ for (const viewport of [{width:1440,height:1000},{width:390,height:844}]) {
     await evaluate(`scrollTo(0,0)`);
     const shot=await client.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
     const filename=`${viewport.width}-world.png`;await fs.writeFile(output+'/'+filename,Buffer.from(shot.data,'base64'));row.screenshot=filename;
+    await client.send('Page.navigate',{url:browser.host.baseUrl+'simulatte/distributed-repair/index.html?seed=73'});
+    await until(`location.pathname==='/system-diagram' && document.body.dataset.simulationProfile==='system-diagram-v1' && document.getElementById('status')?.textContent.includes('seed 73')`);
+    row.checks.legacyDeepLink=true;
+    await client.send('Page.navigate',{url:browser.host.baseUrl+'system-diagram?profile=gpu-supercluster-v1'});
+    await until(`document.getElementById('status')?.getAttribute('role')==='alert'`);
+    assert.match(await evaluate(`document.getElementById('status').textContent`),/does not match/);
+    row.checks.mismatchedProfileRefused=true;
     assert.deepEqual(errors,[]);assert.deepEqual(networkFailures,[]);row.pass=true;
   } catch(error) {row.pass=false;row.error=error.stack;row.pageStatus=await evaluate(`({inputs:globalThis.auditInputs?.slice(-12),status:document.getElementById('status')?.textContent,editor:document.getElementById('editor-status')?.textContent})`);const shot=await client.send('Page.captureScreenshot',{format:'png'});await fs.writeFile(output+`/${viewport.width}-failure.png`,Buffer.from(shot.data,'base64'));throw error;}
   finally {await fs.writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n');await browser.close();}

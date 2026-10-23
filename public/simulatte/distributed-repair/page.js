@@ -3,11 +3,22 @@
   const ui = globalThis.SimulatteWorldUI, architecture = globalThis.SimulatteRepairArchitecture;
   const model = globalThis.SimulatteDistributedRepair, runners = globalThis.SimulatteDistributedRepairRunner;
   const $ = id => document.getElementById(id), clone = value => structuredClone(value);
-  const response = await fetch('../../data/distributed-repair/config.json');
+  const route = globalThis.SimulattePublicRoutes.forPath(location.pathname);
+  if (!route?.profilePath) throw Error('System Diagram route/profile is not registered');
+  const routeState = globalThis.SimulatteRouter.parsePath(location.pathname, location.search);
+  const profileResponse = await fetch(route.profilePath);
+  if (!profileResponse.ok) throw Error('System Diagram profile unavailable');
+  const profile = globalThis.SimulatteSystemDiagramProfile.validate(await profileResponse.json(), { route, model: model.MODEL });
+  if (routeState.profile !== profile.id) throw Error('URL profile does not match System Diagram Simulator');
+  if (routeState.simulation?.scenarioId || routeState.simulation?.mission || Object.keys(routeState.simulation?.parameters || {}).length) throw Error('This profile accepts a seed in the URL; use replay import for authored architectures');
+  const initialSeed = routeState.simulation?.seed === null || routeState.simulation?.seed === undefined ? profile.defaultSeed : Number(routeState.simulation.seed);
+  if (!Number.isInteger(initialSeed) || initialSeed < 0 || initialSeed > 4294967295) throw Error('Invalid simulation seed');
+  document.body.dataset.simulationProfile = profile.id; document.title = `${profile.name} · Simulatte World`;
+  const response = await fetch(profile.configPath);
   if (!response.ok) throw Error('Model configuration unavailable');
   let config = model.validateConfig(await response.json());
-  let accepted = architecture.initial(), draft = clone(accepted), dirty = false, policy = 'baseline', seed = 42;
-  let runner = await runners.create(policy, seed, accepted, config), running = true, busy = false, selectedRequest = 'request-1', saved = null;
+  let accepted = architecture.initial(), draft = clone(accepted), dirty = false, policy = profile.defaultPolicy, seed = initialSeed;
+  let runner = await runners.create(policy, seed, accepted, config, profile.id), running = true, busy = false, selectedRequest = 'request-1', saved = null;
   let comparison = null, interventions = [], replayArtifact = null;
   const requestButtons = new Map();
   const inspector = ui.SimInspector({ host: $('inspector'), placement: 'inline', onSelect: id => { selectedRequest = id; render(); }, onAction: () => {}, prominentFields: ['status', 'blocker', 'attempts', 'effects'] });
@@ -16,7 +27,7 @@
   function message(text, error = false) { $('editor-status').textContent = text; $('editor-status').dataset.error = String(error); }
   function edit(action) { action(); dirty = true; comparison = null; message('Pending changes. Running revision is unchanged until Accept & restart.'); editor(); render(); }
   async function reset(nextPolicy = policy) {
-    running = false; await runner.dispose(); policy = nextPolicy; runner = await runners.create(policy, seed, accepted, config);
+    running = false; await runner.dispose(); policy = nextPolicy; runner = await runners.create(policy, seed, accepted, config, profile.id);
     saved = null; interventions = []; comparison = null; selectedRequest = 'request-1'; message(`Accepted revision restarted with seed ${seed}.`);
   }
   const play = button('playback', 'Pause', () => { running = !running; });
@@ -26,7 +37,7 @@
   button('playback', 'Compare policies', async () => {
     running = false;
     const rows = [];
-    for (const name of ['baseline', 'bounded']) { const other = await runners.create(name, seed, accepted, config); for (const time of interventions) { await other.runUntil(time); await other.repair(); } await other.runUntil(40); rows.push({ policy: name, ...other.snapshot().metrics }); await other.dispose(); }
+    for (const name of ['baseline', 'bounded']) { const other = await runners.create(name, seed, accepted, config, profile.id); for (const time of interventions) { await other.runUntil(time); await other.repair(); } await other.runUntil(40); rows.push({ policy: name, ...other.snapshot().metrics }); await other.dispose(); }
     comparison = rows; message('Same architecture, seed, arrivals, scheduled faults and user repair times; 0–40 seconds. Rejected requests remain in the denominator.');
   }, 'primary');
   const togglePolicy = button('playback', 'Use bounded policy', async () => { await reset(policy === 'baseline' ? 'bounded' : 'baseline'); });
@@ -54,7 +65,8 @@
     if (Object.keys(value).sort().join(',') !== 'architecture,config,interventions,policy,schema,seed,until,worldSpec' || value.interventions?.length > 128 || value.schema !== 'simulatte.distributedRepairReplay.v1' || !value.config?.policies?.[value.policy] || !Number.isInteger(value.seed) || !Array.isArray(value.interventions) || value.interventions.some((t, i) => !Number.isFinite(t) || t < 0 || t > 40 || (i && t < value.interventions[i - 1])) || !Number.isFinite(value.until) || value.until < 0 || value.until > 40 || value.interventions.some(t => t > value.until)) throw Error('Invalid bounded replay input');
     architecture.validate(value.architecture); model.validateConfig(value.config);
     globalThis.SimulatteWorldSpec.validateWorldSpec(value.worldSpec);
-    if (value.worldSpec.contentHash !== runners.program(value.policy, value.seed, value.architecture, value.config).contentHash) throw Error('WorldSpec does not match replay inputs'); replayArtifact = clone(value); edit(() => { draft = clone(value.architecture); }); message('Valid import pending. Use Accept imported replay to replace the current run explicitly.');
+    if (value.worldSpec.params.profileId && value.worldSpec.params.profileId !== profile.id) throw Error('Replay belongs to another simulation profile');
+    if (value.worldSpec.contentHash !== runners.program(value.policy, value.seed, value.architecture, value.config, value.worldSpec.params.profileId || null).contentHash) throw Error('WorldSpec does not match replay inputs'); replayArtifact = clone(value); edit(() => { draft = clone(value.architecture); }); message('Valid import pending. Use Accept imported replay to replace the current run explicitly.');
   });
   button('import-export', 'Accept imported replay', async () => {
     if (!replayArtifact) throw Error('Import a valid replay first');

@@ -28,7 +28,7 @@ Present catalog spotlights and scene-owned composition using shared World UI com
 
 - Restart clears live interventions and preserves accepted configuration, camera, and running preference. Replay visibly executes recorded actions; Verify replay checks reproduction separately.
 
-- URL identity and resolved profile identity must match.
+- URL and profile identities match; standalone entries own loading.
 - Scene preparation owns World-specific geometry, route, and presentation decisions. Rendering sessions consume prepared inputs and do not acquire tier data or manage HUD elements.
 - UI completion follows settled runtime state.
 - Inspectors dispatch plugin actions through sessions. Selection preserves framing; Focus moves cameras. Previews remain separate.

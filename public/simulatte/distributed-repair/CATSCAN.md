@@ -1,17 +1,16 @@
-# CATSCAN: World distributed repair experiment
+# CATSCAN: World System Diagram Simulator
 
 Parent: [World](../CATSCAN.md)
 
 ## Target
 
-Author an executable bounded task architecture, then inspect and reproduce result-store failure, lease redelivery, duplicate computation and repair under paired delivery policies.
+Expose `/system-diagram` as a distinct catalog simulation for executable node, cluster and link authoring, with bounded failure, redelivery and repair experiments.
 
 ## Authority
 
-- Owns this World experiment's architecture editor, task/resource model, request causal records and session orchestration.
-- Uses the shared multirate coordinator for logical scheduling, checkpointing and replay.
-- Uses shared World UI for controls and inspection; does not own control styling.
-- Does not own Create compilation, broader workload-pack qualification or live infrastructure.
+- Owns architecture editing, task/resource semantics, request causation and orchestration.
+- Shared coordinator owns logical scheduling, checkpoints and replay; World UI owns controls and inspection styling.
+- Does not own Create compilation, broader pack qualification or live infrastructure.
 
 ## Scope
 
@@ -19,33 +18,28 @@ Author an executable bounded task architecture, then inspect and reproduce resul
 
 ## Contracts
 
-- Input: [goals](../../../GOALS.md), including the explicitly authorized bounded milestone.
-- Input: [architecture schema](../../data/distributed-repair/architecture.schema.json) and [model configuration](../../data/distributed-repair/config.json).
-- Input: [WorldSpec](../../shared/contracts/world-spec.js) binds accepted architecture, policy, seed and configuration.
-- Input: [coordinator](../../shared/core/simulation/multirate-coordinator.js).
-- Output: [World page](index.html), [model](model.js) and [runner](runner.js).
-- Output: [design and pack roadmap](../../../docs/simulatte/distributed-workload-workbench.md).
+- Input: [goals](../../../GOALS.md), [catalog](../../simulation-routes.js), [profile](../../data/distributed-repair/system-diagram-profile-v1.json) and [validator](profile.js).
+- Input: [architecture](../../data/distributed-repair/architecture.schema.json), [configuration](../../data/distributed-repair/config.json), [WorldSpec](../../shared/contracts/world-spec.js) and [coordinator](../../shared/core/simulation/multirate-coordinator.js).
+- Output: [page](index.html), [model](model.js), [runner](runner.js) and [roadmap](../../../docs/simulatte/distributed-workload-workbench.md).
 
 ## Invariants
 
-- Pending architecture edits cannot mutate an accepted running revision.
-- Graph connections and resource groups change execution, not just drawing.
-- Logical requests, delivery attempts, resource ownership and committed effects are separate records.
-- Remaining work is integrated before capacity or contention changes; stale completion generations cannot finish new work.
-- Checkpoints retain pending deliveries/events, RNG, leases, retry counts and resource state.
-- Rejected, unfinished and dead-letter requests remain inspectable; inspectors derive blockers and causation from model state.
-- Synthetic results never establish production throughput, empirical hardware capacity or proprietary platform behavior.
+- Canonical/legacy URLs resolve one declared profile; catalog owns homepage navigation.
+- Pending edits cannot mutate accepted execution. Connections and groups affect computation, not only drawing.
+- Requests, attempts, ownership, resources and effects remain separate records.
+- Integrate remaining work before capacity/contention changes; fence stale completions by generation.
+- Checkpoints retain pending events/deliveries, RNG, leases, retries, ownership and resource state.
+- Rejected, unfinished and dead-letter requests stay visible. Inspectors consume model blockers and causation.
+- Synthetic results cannot establish production capacity or physical validity.
 
 ## Acceptance
 
-- Evidence: [model and authoring tests](../../../tests/distributed-repair.test.cjs).
-- Evidence: [coordinator tests](../../../tests/multirate-coordinator.test.cjs).
-- Evidence: [desktop/mobile browser journey](../../../tools/simulatte/audit-distributed-repair.mjs).
-- Exact replay, checkpoint equivalence, task/memory/GPU-work conservation, invalid edits and request causation are checked separately from human comprehension.
+- Evidence: [model/authoring tests](../../../tests/distributed-repair.test.cjs), [catalog/profile tests](../../../tests/simulation-catalog.test.cjs), [coordinator tests](../../../tests/multirate-coordinator.test.cjs), and [browser journey](../../../tools/simulatte/audit-distributed-repair.mjs).
+- Verify replay, checkpoint equivalence, conservation and navigation separately from human comprehension.
 
 ## Non-goals
 
-General replication/consensus, real mesh outages, scraping, clinical decisions, financial transactions, deployment, or a universal simulator.
+General consensus/replication, real outages, scraping, clinical decisions, financial transactions, deployment or universal simulation.
 
 ## Freedom
 

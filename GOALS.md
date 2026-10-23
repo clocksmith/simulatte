@@ -40,15 +40,17 @@ Keep the three established featured experiences understandable through interacti
 
 ## Authorized bounded World workbench milestone
 
-User direction authorizes one local World failure-and-repair experiment while the
-catalog priorities above remain in effect. Author CPU/GPU task nodes, shared
+User direction authorizes System Diagram Simulator as a distinct World catalog
+experience at `/system-diagram`, with a declared standalone simulation profile and
+node/cluster/link authoring. Its first executable coverage remains the bounded
+failure-and-repair experiment; the other catalog priorities remain in effect. Author CPU/GPU task nodes, shared
 compute clusters and typed task links; accept a validated architecture revision
 explicitly before restarting execution. Reproduce result-store failure after GPU
 computation, failed acknowledgement, lease expiry and redelivery. Compare identical
 arrivals and fault timing under bounded admission, backpressure, retry budgets and
 idempotent result commits. Require exact replay, checkpoint equivalence, reconciled
 resources and visible rejected/unfinished requests with causal inspection. This is
-a narrow workbench milestone, not general catalog expansion or a production claim.
+a narrow registered simulation milestone, not general catalog expansion or a production claim.
 
 Develop future challenging workloads as composable packs of typed nodes, ports,
 resource policies and synthetic/deidentified traces. Streaming/CDN, multi-agent

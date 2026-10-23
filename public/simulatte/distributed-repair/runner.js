@@ -8,11 +8,11 @@
 })(globalThis, function (model, coordinator, architecture, worldSpec) {
   'use strict';
   const HORIZON = 40;
-  function program(policy, seed, graph, config) {
+  function program(policy, seed, graph, config, profileId = null) {
     architecture.validate(graph); model.validateConfig(config);
-    return worldSpec.finalizeWorldSpec({ id: 'world:distributed-repair', templateId: 'distributed-repair/v1', name: 'Distributed repair',
+    return worldSpec.finalizeWorldSpec({ id: profileId ? `world:${profileId}` : 'world:distributed-repair', templateId: profileId || 'distributed-repair/v1', name: profileId ? 'System Diagram Simulator' : 'Distributed repair',
       kind: 'distributed-task-experiment', description: config.claimBoundary, modules: ['distributed-repair'], objects: structuredClone(graph.nodes), controls: [],
-      params: { architecture: structuredClone(graph), config: structuredClone(config), policy, seed },
+      params: { architecture: structuredClone(graph), config: structuredClone(config), policy, seed, ...(profileId ? { profileId } : {}) },
       source: { schema: 'simulatte.worldSpecSource.v1', prompt: '', compilerConfig: { lane: 'declared-task-architecture/v1', model: model.MODEL } },
       authorship: { schema: 'simulatte.worldSpecAuthoring.v2', revision: 0, sources: [{ id: 'source:architecture', authority: 'userOverride', label: 'Accepted task architecture' }], fieldProvenance: [{ path: '/params/architecture', authority: 'userOverride', sourceId: 'source:architecture' }], patches: [], reconciliations: [] },
       determinism: { schema: 'simulatte.worldSpecDeterminism.v1', requiredClasses: ['simulation-reproducible', 'replay-identified'], seed, simulationTolerance: 1e-9, pixelPolicy: null },
@@ -20,10 +20,10 @@
       safety: { schema: 'simulatte.worldSpecSafety.v1', rules: [], status: 'not-declared' },
       unsupportedRequirements: [{ id: 'production-fidelity', reason: config.claimBoundary }], unresolvedAmbiguities: [] });
   }
-  async function create(policy = 'baseline', seed = 42, graph, config = typeof module === 'object' && module.exports ? require('../../data/distributed-repair/config.json') : null) {
+  async function create(policy = 'baseline', seed = 42, graph, config = typeof module === 'object' && module.exports ? require('../../data/distributed-repair/config.json') : null, profileId = null) {
     model.validateConfig(config);
     graph = structuredClone(architecture.validate(graph || architecture.initial()));
-    const spec = program(policy, seed, graph, config);
+    const spec = program(policy, seed, graph, config, profileId);
     const engine = coordinator.createCoordinator({ id: 'repair-experiment', worldSpecContentHash: spec.contentHash,
       modules: [model.moduleRecord(policy, seed, graph, config)], ports: [], couplingPlan: { schema: 'simulatte.couplingPlan.v1', id: 'repair-coupling', edges: [], coupledSolvers: [] } });
     await engine.initialize();

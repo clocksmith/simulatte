@@ -5,8 +5,10 @@ Logical-time authority: [multirate coordinator](../../public/shared/core/simulat
 
 ## Current bounded implementation
 
-The local World entry is `/simulatte/distributed-repair/index.html`. It is not a
-featured catalog addition and does not replace GPU Cluster or Create. Use
+System Diagram Simulator is a distinct, experimental World catalog card at
+`/system-diagram`, backed by `public/data/distributed-repair/system-diagram-profile-v1.json`.
+The old `/simulatte/distributed-repair/index.html` deep link redirects to it. It is
+not featured and does not replace GPU Cluster or Create. Use
 `node tools/serve-local.mjs` for local review. Nothing in this milestone deploys
 services, injects real outages, scrapes websites or uses production records.
 
@@ -15,6 +17,11 @@ The runner finalizes and validates a public WorldSpec binding architecture, seed
 policy, configuration and model identity; its hash binds coordinator checkpoints.
 Export/reimport validates that WorldSpec against the supplied replay inputs. This
 is declared architecture execution, not evidence of Create compiler generality.
+The declared standalone profile binds the catalog identity, model, configuration,
+default seed/policy and supported claims. It uses the existing standalone World
+entry mechanism; it does not claim plugin-host profile proof. The catalog is the
+only homepage navigation authority.
+
 The current adapter supports one source and one result store, any bounded acyclic
 sequence of CPU/GPU stages, and parallel paths chosen by deterministic active
 resource load. Supported edges are source-to-compute, compute-to-compute and

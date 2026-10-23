@@ -4,6 +4,27 @@
   root.SimulattePublicRoutes=api;
 })(typeof globalThis!=='undefined'?globalThis:window,function(){
   const pages=Object.freeze([
+{
+  "path": "/system-diagram",
+  "tier": "datacenter",
+  "profile": "system-diagram-v1",
+  "profilePath": "/data/distributed-repair/system-diagram-profile-v1.json",
+  "entry": "/simulatte/distributed-repair/index.html",
+  "legacy": [
+    "/simulatte/distributed-repair/index.html",
+    "/simulatte/distributed-repair"
+  ],
+  "displayName": "System Diagram Simulator",
+  "description": "Create nodes, connect CPU/GPU workloads and inspect failures between them.",
+  "readiness": "experimental",
+  "featured": false,
+  "previewAsset": "/simulation-previews/system-diagram.svg",
+  "limitations": "Bounded CPU/GPU task DAGs with one source and result store. Synthetic resource estimates; no production capacity, replication/consensus, real VRAM/GC/OOM or broad workload-pack claims.",
+  "evidence": [
+    "tests/distributed-repair.test.cjs",
+    "artifacts/system-diagram-catalog/browser.json"
+  ]
+},
   {
     "path": "/motorcycle",
     "entry": "/simulatte/motorcycle-noise/index.html",

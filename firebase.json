@@ -10,6 +10,21 @@
       ],
       "redirects": [
         {
+          "source": "/system-diagram/",
+          "destination": "/system-diagram",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/distributed-repair/index.html",
+          "destination": "/system-diagram",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/distributed-repair",
+          "destination": "/system-diagram",
+          "type": 301
+        },
+        {
           "source": "/living-tissue/",
           "destination": "/living-tissue",
           "type": 301
@@ -256,6 +271,10 @@
         }
       ],
       "rewrites": [
+        {
+          "source": "/system-diagram",
+          "destination": "/simulatte/distributed-repair/index.html"
+        },
         {
           "source": "/motorcycle",
           "destination": "/simulatte/motorcycle-noise/index.html"
