@@ -1,0 +1,115 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "routing",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "loadBalancer",
+      "label": "Load balancer",
+      "description": "Routes each request to one healthy backend, ejects backends after consecutive errors and optionally rate limits.",
+      "paramSets": [],
+      "params": {
+        "strategy": { "type": "enum", "label": "Strategy", "options": ["round-robin", "random", "least-outstanding", "hash"], "default": "round-robin", "group": "basic" },
+        "serviceMs": { "type": "number", "label": "Routing time", "unit": "ms", "min": 0, "max": 60000, "default": 0.2, "group": "advanced" },
+        "concurrency": { "type": "integer", "label": "Connections", "min": 1, "max": 1000000, "default": 10000, "group": "advanced" },
+        "healthChecks": { "type": "boolean", "label": "Eject failing backends", "default": true, "group": "basic" },
+        "ejectAfterErrors": { "type": "integer", "label": "Eject after errors", "min": 1, "max": 1000, "default": 5, "group": "advanced" },
+        "ejectSec": { "type": "number", "label": "Ejection time", "unit": "s", "min": 0, "max": 3600, "default": 10, "group": "advanced" },
+        "callTimeoutMs": { "type": "number", "label": "Backend timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 1000, "group": "basic" },
+        "retries": { "type": "integer", "label": "Retry on another backend", "min": 0, "max": 20, "default": 1, "group": "basic" },
+        "rateLimitPerSec": { "type": "number", "label": "Rate limit (0 = off)", "unit": "req/s", "min": 0, "max": 1000000, "default": 0, "group": "basic" },
+        "rateBurst": { "type": "integer", "label": "Rate burst", "unit": "requests", "min": 1, "max": 1000000, "default": 100, "group": "advanced" }
+      },
+      "ports": [
+        { "id": "in", "direction": "in", "label": "Requests", "accepts": ["any"], "multiple": true, "required": true },
+        { "id": "backends", "direction": "out", "label": "Backends", "emits": ["inherit"], "multiple": true, "required": true }
+      ],
+      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+    },
+    {
+      "id": "rateLimiter",
+      "label": "Rate limiter",
+      "description": "Token bucket in front of a dependency; overflow is rejected or queued.",
+      "paramSets": [],
+      "params": {
+        "ratePerSec": { "type": "number", "label": "Rate", "unit": "req/s", "min": 0.001, "max": 1000000, "default": 100, "group": "basic" },
+        "burst": { "type": "integer", "label": "Burst", "unit": "requests", "min": 1, "max": 1000000, "default": 50, "group": "basic" },
+        "overflow": { "type": "enum", "label": "Overflow", "options": ["reject", "queue"], "default": "reject", "group": "basic" },
+        "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "requests", "min": 0, "max": 100000, "default": 100, "group": "advanced" },
+        "callTimeoutMs": { "type": "number", "label": "Call timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 5000, "group": "advanced" }
+      },
+      "ports": [
+        { "id": "in", "direction": "in", "label": "Requests", "accepts": ["any"], "multiple": true, "required": true },
+        { "id": "out", "direction": "out", "label": "Admitted", "emits": ["inherit"], "multiple": false, "required": true }
+      ],
+      "faults": ["crash", "blackhole"]
+    },
+    {
+      "id": "circuitBreaker",
+      "label": "Circuit breaker",
+      "description": "Counts failures in a rolling window, opens to fail fast or use a fallback, then probes in half-open state.",
+      "paramSets": [],
+      "params": {
+        "failureThreshold": { "type": "number", "label": "Failure threshold", "unit": "fraction", "min": 0.01, "max": 1, "default": 0.5, "group": "basic" },
+        "minRequests": { "type": "integer", "label": "Minimum requests", "min": 1, "max": 100000, "default": 20, "group": "basic" },
+        "windowSec": { "type": "number", "label": "Window", "unit": "s", "min": 0.1, "max": 3600, "default": 10, "group": "basic" },
+        "openSec": { "type": "number", "label": "Open time", "unit": "s", "min": 0.1, "max": 3600, "default": 5, "group": "basic" },
+        "halfOpenProbes": { "type": "integer", "label": "Half-open probes", "min": 1, "max": 100, "default": 3, "group": "advanced" },
+        "callTimeoutMs": { "type": "number", "label": "Call timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 1000, "group": "basic" }
+      },
+      "ports": [
+        { "id": "in", "direction": "in", "label": "Requests", "accepts": ["any"], "multiple": true, "required": true },
+        { "id": "protected", "direction": "out", "label": "Protected", "emits": ["inherit"], "multiple": false, "required": true },
+        { "id": "fallback", "direction": "out", "label": "When open", "emits": ["inherit"], "multiple": false, "required": false }
+      ],
+      "faults": ["crash", "blackhole"]
+    },
+    {
+      "id": "retry",
+      "label": "Retry policy",
+      "description": "Retries failed or timed-out calls with exponential backoff, jitter and a retry budget that limits retry storms.",
+      "paramSets": [],
+      "params": {
+        "maxAttempts": { "type": "integer", "label": "Max attempts", "min": 1, "max": 20, "default": 3, "group": "basic" },
+        "attemptTimeoutMs": { "type": "number", "label": "Attempt timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 500, "group": "basic" },
+        "backoffMs": { "type": "number", "label": "Backoff", "unit": "ms", "min": 0, "max": 600000, "default": 100, "group": "basic" },
+        "backoffMultiplier": { "type": "number", "label": "Backoff multiplier", "min": 1, "max": 10, "default": 2, "group": "advanced" },
+        "retryJitter": { "type": "boolean", "label": "Jitter", "default": true, "group": "advanced" },
+        "retryBudget": { "type": "number", "label": "Retry budget", "unit": "retries/request", "min": 0, "max": 20, "default": 0.2, "group": "basic" }
+      },
+      "ports": [
+        { "id": "in", "direction": "in", "label": "Requests", "accepts": ["any"], "multiple": true, "required": true },
+        { "id": "target", "direction": "out", "label": "Target", "emits": ["inherit"], "multiple": false, "required": true }
+      ],
+      "faults": ["crash", "blackhole"]
+    },
+    {
+      "id": "fallback",
+      "label": "Fallback",
+      "description": "Calls the primary and, on failure, the fallback; sticky failover switches after repeated failures and fails back later.",
+      "paramSets": [],
+      "params": {
+        "mode": { "type": "enum", "label": "Mode", "options": ["per-request", "sticky-failover"], "default": "per-request", "group": "basic" },
+        "primaryTimeoutMs": { "type": "number", "label": "Primary timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 1000, "group": "basic" },
+        "fallbackTimeoutMs": { "type": "number", "label": "Fallback timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 1000, "group": "advanced" },
+        "detectAfterFailures": { "type": "integer", "label": "Failover after failures", "min": 1, "max": 1000, "default": 3, "group": "advanced" },
+        "failbackSec": { "type": "number", "label": "Fail back after", "unit": "s", "min": 0, "max": 86400, "default": 30, "group": "advanced" }
+      },
+      "ports": [
+        { "id": "in", "direction": "in", "label": "Requests", "accepts": ["any"], "multiple": true, "required": true },
+        { "id": "primary", "direction": "out", "label": "Primary", "emits": ["inherit"], "multiple": false, "required": true },
+        { "id": "fallback", "direction": "out", "label": "Fallback", "emits": ["inherit"], "multiple": false, "required": true }
+      ],
+      "faults": ["crash", "blackhole"]
+    }
+  ],
+  "classes": [
+    { "id": "load-balancer", "label": "Load balancer", "category": "edge", "kernel": "loadBalancer", "glyph": "balancer", "description": "Spreads requests across healthy backends.", "defaults": {} },
+    { "id": "api-gateway", "label": "API gateway", "category": "edge", "kernel": "loadBalancer", "glyph": "gateway", "description": "Front door with routing, quotas and backend ejection.", "defaults": { "serviceMs": 1, "rateLimitPerSec": 500, "rateBurst": 200 } },
+    { "id": "rate-limiter", "label": "Rate limiter", "category": "edge", "kernel": "rateLimiter", "glyph": "limiter", "description": "Token bucket protecting a dependency.", "defaults": {} },
+    { "id": "circuit-breaker", "label": "Circuit breaker", "category": "recovery", "kernel": "circuitBreaker", "glyph": "breaker", "description": "Stops calling a failing dependency for a while.", "defaults": {} },
+    { "id": "retry-policy", "label": "Retry policy", "category": "recovery", "kernel": "retry", "glyph": "retry", "description": "Retries failed RPCs with backoff and a budget.", "defaults": {} },
+    { "id": "fallback", "label": "Fallback", "category": "recovery", "kernel": "fallback", "glyph": "fallback", "description": "Serves a degraded answer when the primary fails.", "defaults": {} },
+    { "id": "failover-switch", "label": "Failover switch", "category": "recovery", "kernel": "fallback", "glyph": "switch", "description": "Active-passive failover with delayed failback.", "defaults": { "mode": "sticky-failover" } }
+  ]
+}

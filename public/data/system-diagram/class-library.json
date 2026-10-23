@@ -1,0 +1,105 @@
+{
+  "schema": "simulatte.systemDiagramClassLibrary.v1",
+  "version": "1.0.0",
+  "payloadTypes": [
+    { "id": "http", "label": "HTTP request" },
+    { "id": "task", "label": "Task" },
+    { "id": "event", "label": "Event" },
+    { "id": "text", "label": "Natural language" },
+    { "id": "json", "label": "Structured JSON" },
+    { "id": "document", "label": "Unstructured document" },
+    { "id": "embedding", "label": "Embedding vector" },
+    { "id": "query", "label": "Query" },
+    { "id": "rows", "label": "Rows" },
+    { "id": "blob", "label": "Binary object" }
+  ],
+  "categories": [
+    { "id": "clients", "label": "Clients and sources" },
+    { "id": "edge", "label": "Edge and routing" },
+    { "id": "compute", "label": "Compute" },
+    { "id": "messaging", "label": "Queues and messaging" },
+    { "id": "recovery", "label": "Resilience and recovery" },
+    { "id": "storage", "label": "Storage and databases" },
+    { "id": "ai", "label": "AI and RAG" },
+    { "id": "data", "label": "Data and crawling" },
+    { "id": "external", "label": "External" }
+  ],
+  "paramSets": {
+    "station": {
+      "concurrency": { "type": "integer", "label": "Concurrency", "unit": "workers", "min": 1, "max": 100000, "default": 8, "group": "basic" },
+      "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "requests", "min": 0, "max": 100000, "default": 1000, "group": "basic" },
+      "serviceMs": { "type": "number", "label": "Service time", "unit": "ms", "min": 0, "max": 3600000, "default": 10, "group": "basic" },
+      "serviceDist": { "type": "enum", "label": "Service distribution", "options": ["constant", "exponential", "lognormal"], "default": "exponential", "group": "advanced" },
+      "serviceCv": { "type": "number", "label": "Lognormal variation", "unit": "cv", "min": 0, "max": 10, "default": 1, "group": "advanced" },
+      "perKbMs": { "type": "number", "label": "Cost per KB", "unit": "ms/KB", "min": 0, "max": 10000, "default": 0, "group": "advanced" },
+      "errorRate": { "type": "number", "label": "Error rate", "unit": "fraction", "min": 0, "max": 1, "default": 0, "group": "basic" },
+      "responseKb": { "type": "number", "label": "Response size", "unit": "KB", "min": 0, "max": 1000000, "default": 1, "group": "advanced" }
+    },
+    "calls": {
+      "callMode": { "type": "enum", "label": "Downstream calls", "options": ["sequential", "parallel"], "default": "sequential", "group": "basic" },
+      "blockingCalls": { "type": "boolean", "label": "Hold worker while calling", "default": true, "group": "advanced" },
+      "callTimeoutMs": { "type": "number", "label": "Call timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 1000, "group": "basic" },
+      "retries": { "type": "integer", "label": "Retries per call", "min": 0, "max": 20, "default": 0, "group": "basic" },
+      "retryBackoffMs": { "type": "number", "label": "Retry backoff", "unit": "ms", "min": 0, "max": 600000, "default": 100, "group": "advanced" },
+      "backoffMultiplier": { "type": "number", "label": "Backoff multiplier", "min": 1, "max": 10, "default": 2, "group": "advanced" },
+      "retryJitter": { "type": "boolean", "label": "Jitter retries", "default": true, "group": "advanced" }
+    },
+    "source": {
+      "pattern": { "type": "enum", "label": "Arrival pattern", "options": ["constant", "poisson", "burst", "diurnal", "ramp", "closed"], "default": "poisson", "group": "basic" },
+      "ratePerSec": { "type": "number", "label": "Rate", "unit": "req/s", "min": 0, "max": 5000, "default": 10, "group": "basic" },
+      "burstCount": { "type": "integer", "label": "Burst size", "unit": "requests", "min": 1, "max": 100000, "default": 10, "group": "basic" },
+      "burstAtSec": { "type": "number", "label": "Burst start", "unit": "s", "min": 0, "max": 3600, "default": 5, "group": "basic" },
+      "burstSpacingMs": { "type": "number", "label": "Burst spacing", "unit": "ms", "min": 0, "max": 600000, "default": 50, "group": "advanced" },
+      "periodSec": { "type": "number", "label": "Diurnal period", "unit": "s", "min": 1, "max": 86400, "default": 60, "group": "advanced" },
+      "rampToRate": { "type": "number", "label": "Ramp end rate", "unit": "req/s", "min": 0, "max": 5000, "default": 50, "group": "advanced" },
+      "users": { "type": "integer", "label": "Closed-loop users", "min": 1, "max": 10000, "default": 20, "group": "advanced" },
+      "thinkMs": { "type": "number", "label": "Think time", "unit": "ms", "min": 0, "max": 600000, "default": 1000, "group": "advanced" },
+      "startSec": { "type": "number", "label": "Start", "unit": "s", "min": 0, "max": 3600, "default": 0, "group": "advanced" },
+      "stopSec": { "type": "number", "label": "Stop (0 = never)", "unit": "s", "min": 0, "max": 3600, "default": 0, "group": "advanced" },
+      "maxRequests": { "type": "integer", "label": "Request limit (0 = none)", "min": 0, "max": 10000000, "default": 0, "group": "advanced" },
+      "payload": { "type": "enum", "label": "Payload", "options": ["http", "task", "event", "text", "json", "document", "embedding", "query", "rows", "blob"], "default": "http", "group": "basic" },
+      "requestKb": { "type": "number", "label": "Request size", "unit": "KB", "min": 0, "max": 1000000, "default": 2, "group": "advanced" },
+      "tokensMean": { "type": "number", "label": "Mean tokens", "unit": "tokens", "min": 0, "max": 1000000, "default": 0, "group": "advanced" },
+      "readFraction": { "type": "number", "label": "Read fraction", "unit": "fraction", "min": 0, "max": 1, "default": 0.8, "group": "basic" },
+      "keySpace": { "type": "integer", "label": "Key space", "unit": "keys", "min": 1, "max": 1000000, "default": 1000, "group": "advanced" },
+      "zipfS": { "type": "number", "label": "Key skew (Zipf s)", "min": 0, "max": 3, "default": 1, "group": "advanced" },
+      "timeoutMs": { "type": "number", "label": "Client timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 2000, "group": "basic" },
+      "retries": { "type": "integer", "label": "Client retries", "min": 0, "max": 20, "default": 1, "group": "basic" },
+      "retryBackoffMs": { "type": "number", "label": "Retry backoff", "unit": "ms", "min": 0, "max": 600000, "default": 200, "group": "advanced" },
+      "retryJitter": { "type": "boolean", "label": "Jitter retries", "default": true, "group": "advanced" },
+      "deadlineMs": { "type": "number", "label": "Deadline (0 = none)", "unit": "ms", "min": 0, "max": 3600000, "default": 0, "group": "advanced" },
+      "idempotencyKeys": { "type": "boolean", "label": "Retries reuse idempotency key", "default": true, "group": "advanced" }
+    }
+  },
+  "edgeParams": {
+    "latencyMs": { "type": "number", "label": "Latency", "unit": "ms", "min": 0, "max": 60000, "default": 1, "group": "basic" },
+    "jitterMs": { "type": "number", "label": "Jitter", "unit": "ms", "min": 0, "max": 60000, "default": 0, "group": "advanced" },
+    "bandwidthMbps": { "type": "number", "label": "Bandwidth", "unit": "Mbit/s", "min": 0.001, "max": 1000000, "default": 1000, "group": "basic" },
+    "lossRate": { "type": "number", "label": "Message loss", "unit": "fraction", "min": 0, "max": 1, "default": 0, "group": "advanced" },
+    "mode": { "type": "enum", "label": "Call mode", "options": ["sync", "async"], "default": "sync", "group": "basic" },
+    "probability": { "type": "number", "label": "Call probability", "unit": "fraction", "min": 0, "max": 1, "default": 1, "group": "basic" },
+    "callsPerRequest": { "type": "integer", "label": "Calls per request", "min": 1, "max": 100, "default": 1, "group": "advanced" },
+    "order": { "type": "integer", "label": "Call order", "min": 0, "max": 1000, "default": 0, "group": "advanced" },
+    "op": { "type": "enum", "label": "Operation", "options": ["inherit", "read", "write"], "default": "inherit", "group": "advanced" }
+  },
+  "faultTypes": [
+    { "id": "crash", "label": "Crash", "targets": ["node"], "params": {} },
+    { "id": "slow", "label": "Slow down", "targets": ["node"], "params": { "factor": { "type": "number", "label": "Slowdown", "unit": "x", "min": 1, "max": 1000, "default": 5, "group": "basic" } } },
+    { "id": "errors", "label": "Error burst", "targets": ["node"], "params": { "rate": { "type": "number", "label": "Error rate", "unit": "fraction", "min": 0, "max": 1, "default": 0.5, "group": "basic" } } },
+    { "id": "blackhole", "label": "Black hole", "targets": ["node"], "params": {} },
+    { "id": "dropReplies", "label": "Lose replies", "targets": ["node"], "params": {} },
+    { "id": "failLeader", "label": "Fail leader", "targets": ["node"], "kernels": ["replicatedDb"], "params": {} },
+    { "id": "failReplica", "label": "Fail follower", "targets": ["node"], "kernels": ["replicatedDb"], "params": { "index": { "type": "integer", "label": "Follower", "min": 1, "max": 8, "default": 1, "group": "basic" } } },
+    { "id": "partition", "label": "Partition link", "targets": ["edge"], "params": {} },
+    { "id": "degrade", "label": "Degrade link", "targets": ["edge"], "params": { "addLatencyMs": { "type": "number", "label": "Added latency", "unit": "ms", "min": 0, "max": 60000, "default": 200, "group": "basic" }, "lossRate": { "type": "number", "label": "Loss", "unit": "fraction", "min": 0, "max": 1, "default": 0.05, "group": "basic" } } },
+    { "id": "outage", "label": "Zone outage", "targets": ["group"], "params": {} }
+  ],
+  "errorCodes": ["rejected", "down", "timeout", "error", "unavailable", "invalid", "rate-limited", "dropped", "hop-limit", "circuit-open"],
+  "packs": [
+    "classes/core.json",
+    "classes/routing.json",
+    "classes/storage.json",
+    "classes/ai.json",
+    "classes/sources.json"
+  ]
+}
