@@ -43,6 +43,7 @@ Provide deterministic simulation primitives and pipeline lifecycle.
 - `simulation/multirate-coordinator.js` owns logical time, stable ordering, typed-port exchange, checkpoints, branches, cancellation, and replay.
 - `simulation/simulation-residency-manager.js` owns scope residency, causal suspension guards, checkpoints, and qualified fidelity branches.
 - `simulation/worker-task-pool.js` owns task dispatch, stale-reply rejection, cancellation, crashes, and worker lifecycle, not commit authority.
+- The coordinator distinguishes latest-value ports from queued-event ports, wakes on cadence, module events, deliveries and controls, and bounds same-time rounds. Checkpoint v3 retains both cadence and event calendars; null encodes no scheduled wakeup.
 - Modules retain numerical methods and private state behind declared lifecycle and port contracts.
 - Rendering, workers, GPU dispatch, cameras, and Promise order cannot alter logical commit order.
 

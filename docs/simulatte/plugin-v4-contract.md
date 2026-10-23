@@ -200,3 +200,26 @@ but it is not connected to the public profile or plugin registries.
 Quantities may declare `measurement` with `label`, `subject`, `definition`, `timeBasis` (`instant`, `accumulated`, `prediction`, `configured`), `interval` (`start`, `end`, `unit`), `validity` (`valid`, `not-sampled`, `unavailable`), `freshness` (`current`, `pending`, `stale`), and concise `context`. Optional `detail` supplies a domain-owned companion value, such as accumulated seconds beside a percentage. The owning plugin supplies these fields; shared readouts format them and disclose definitions on selection. Numeric placeholders with `not-sampled` validity display as “Not sampled”. Existing quantities without descriptors remain supported.
 
 Presentation `layouts` optionally declares `{id, label, coordinateSystem, geometries}` alternatives. Every geometry entry `{id, geometry}` resolves exactly one existing layer; alternatives preserve the complete layer identity set. Layout selection is an observation command, never a model configuration change. Objects may declare `condition`, `selectionGroup`, and `relatedIds` for current condition, secondary selector wording, and selected-only dependency emphasis.
+
+## Co-simulation event delivery
+
+Owner: `public/shared/core/simulation/multirate-coordinator.js` and
+`public/shared/contracts/multiscale-contracts.js`. A port may explicitly declare
+`deliverySemantics: "latest-value" | "queued-event"`. Legacy v1 omission means
+latest-value. Queued-event requires event kind, returns an ordered array of port
+records to `advance`, and consumes that batch only on accepted commit. Multiple
+outputs on a queued-event port are preserved. Sampled-state behavior is unchanged.
+
+Modules may implement `nextEventTime({state, logicalTime})`, returning the next
+absolute logical time or null. The coordinator selects the earliest independent
+cadence, module event, pending delivery or control. Modules at one time execute
+in stable ID order with prior committed inputs; zero-delay delivery becomes a
+subsequent same-time round. `maxRoundsAtSameTime` defaults to 1024 and rejects
+unbounded zero-time work. Queued transport is lossless in this contract; modeling
+finite queues, rejection, retries and application backpressure remains domain-owned.
+
+Checkpoint v3 includes separate cadence/event calendars and event input batches.
+Null serializes an unscheduled wakeup. Legacy v2 checkpoints remain restorable for modules without next-event callbacks
+and without queued-event ports. V2 checkpoints reject newly declared event
+semantics rather than silently assuming missing state. Module checkpoints must retain private resource,
+retry, event and RNG state. Playback delay never supplies simulation time.

@@ -276,3 +276,55 @@ test('declared zero-delay coupled cycles execute only through their named serial
   assert.ok(calls.includes('solver:1'));
   assert.equal(calls.some((row) => row.includes(':advance:')), false);
 });
+
+test('queued events wake at delivery time, preserve multiplicity and restore across a pending delivery', async () => {
+  const output = { ...port({ id: 'source.events', moduleId: 'source', direction: 'output', intervalSeconds: 1 }),
+    kind: 'event', cadence: { kind: 'event', intervalSeconds: null }, timestampSemantics: 'event-time', interpolationPolicy: 'none', deliverySemantics: 'queued-event' };
+  const input = { ...output, id: 'sink.events', moduleInstanceId: 'sink', direction: 'input' };
+  const source = moduleRecord({ id: 'source', eventClock: true }), sink = moduleRecord({ id: 'sink', eventClock: true });
+  source.lifecycle.nextEventTime = ({ state }) => state.value < 2 ? state.value : null;
+  source.lifecycle.emit = ({ state, logicalTime }) => [2, 3].map(value => ({ portId: output.id, value: value * state.value, timestamp: logicalTime }));
+  sink.lifecycle.advance = ({ state, inputs, toTime }) => ({ state: { received: [...(state.received || []), ...inputs[input.id].map(row => row.value)], value: state.value + inputs[input.id].reduce((sum, row) => sum + row.value, 0), logicalTime: toTime }, events: [], diagnostics: [] });
+  const config = { id: 'queued-events', worldSpecContentHash: 'queued-world', modules: [sink, source], ports: [input, output], couplingPlan: {
+    schema: contracts.SCHEMAS.coupling, id: 'event-plan', coupledSolvers: [], edges: [{ id: 'delivery', sourcePortId: output.id, destinationPortId: input.id,
+      adapterId: null, communicationCadence: { kind: 'every-source-event', intervalSeconds: null }, delaySeconds: 0.5,
+      initializationRule: 'empty event queue', samplingPolicy: 'exact', errorPolicy: 'stop', convergencePolicyId: null, proofObligationIds: [] }] } };
+  const coordinator = coordinatorApi.createCoordinator(config);
+  await coordinator.runUntil(0.25); const cp = JSON.parse(JSON.stringify(await coordinator.checkpoint()));
+  assert.equal(cp.pendingDeliveries.length, 2);
+  await coordinator.runUntil(1.5); const final = await coordinator.checkpoint();
+  assert.equal(final.states.sink.value, 15); assert.deepEqual(final.states.sink.received, [2, 3, 4, 6]); assert.equal(final.states.sink.logicalTime, 1.5);
+  assert.deepEqual(final.inputBuffers[input.id], []);
+  assert.ok(coordinator.getLedger().some(r => r.logicalTime === 0.5));
+  const resumed = coordinatorApi.createCoordinator(config); await resumed.restore(cp); await resumed.runUntil(1.5);
+  assert.deepEqual(await resumed.checkpoint(), final);
+  assert.equal((await coordinator.replay()).status, 'match');
+});
+
+test('module event wakeups retain independent fixed cadence and zero-time work has a strict bound', async () => {
+  const mixed = moduleRecord({ id: 'mixed', intervalSeconds: 1 });
+  mixed.lifecycle.nextEventTime = ({ state }) => state.value === 0 ? 0.5 : null;
+  const configuration = { id: 'mixed-clock', worldSpecContentHash: 'mixed-world', modules: [mixed], ports: [],
+    couplingPlan: { schema: contracts.SCHEMAS.coupling, id: 'empty', edges: [], coupledSolvers: [] } };
+  const coordinator = coordinatorApi.createCoordinator(configuration); await coordinator.runUntil(2);
+  assert.deepEqual(coordinator.getLedger().map(row => row.logicalTime), [0.5, 1, 2]);
+  const looping = moduleRecord({ id: 'loop', eventClock: true }); looping.lifecycle.nextEventTime = () => 0;
+  const loop = coordinatorApi.createCoordinator({ ...configuration, id: 'loop', modules: [looping], maxRoundsAtSameTime: 3 });
+  await assert.rejects(loop.runUntil(1), { code: 'multirate_zero_time_limit' });
+  assert.equal(loop.getLedger().length, 3);
+});
+
+test('legacy v2 checkpoints restore fixed-cadence callers without inventing missing event state', async () => {
+  const value = fixture(), source = coordinatorApi.createCoordinator(value.configuration);
+  await source.runUntil(2); const legacy = JSON.parse(JSON.stringify(await source.checkpoint()));
+  legacy.schema = 'simulatte.multirate-coordinator-checkpoint/v2'; delete legacy.nextEventTimes; delete legacy.contentHash;
+  const canonical = require('../public/shared/contracts/contract-validation-primitives.js').canonicalJson(legacy);
+  let hash = 0x811c9dc5; for (const ch of canonical) { hash ^= ch.charCodeAt(0); hash = Math.imul(hash, 0x01000193); }
+  legacy.contentHash = `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`;
+  const resumed = coordinatorApi.createCoordinator(value.configuration); await resumed.restore(legacy);
+  await source.runUntil(4); await resumed.runUntil(4);
+  assert.deepEqual(await resumed.checkpoint(), await source.checkpoint());
+  const changed = fixture(); changed.configuration.modules[0].lifecycle.nextEventTime = () => null;
+  const incompatible = coordinatorApi.createCoordinator(changed.configuration);
+  await assert.rejects(incompatible.restore(legacy), { code: 'multirate_checkpoint_event_state_missing' });
+});

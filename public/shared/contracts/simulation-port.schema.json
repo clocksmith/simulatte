@@ -11,6 +11,7 @@
     "moduleInstanceId": { "$ref": "#/$defs/id" },
     "direction": { "enum": ["input", "output"] },
     "kind": { "enum": ["event", "sampled-state"] },
+    "deliverySemantics": { "enum": ["latest-value", "queued-event"], "description": "Omitted on legacy v1 ports means latest-value. Queued-event requires event kind." },
     "quantity": { "$ref": "#/$defs/id" },
     "dataSchemaId": { "$ref": "#/$defs/id" },
     "shape": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
@@ -52,5 +53,6 @@
     "missingDataBehavior": { "enum": ["reject", "hold-last", "use-declared-default", "emit-unknown"] },
     "backpressurePolicy": { "enum": ["block", "drop-oldest", "drop-newest", "coalesce", "reject"] }
   },
+  "allOf": [{ "if": { "required": ["deliverySemantics"], "properties": { "deliverySemantics": { "const": "queued-event" } } }, "then": { "properties": { "kind": { "const": "event" } } } }],
   "$defs": { "id": { "type": "string", "minLength": 1 } }
 }

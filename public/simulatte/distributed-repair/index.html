@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>World · Distributed repair</title><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="stylesheet" href="../../shared/design/world-ui/tokens.css"><link rel="stylesheet" href="./style.css">
+<script defer src="../../shared/design/world-ui/components.js"></script>
+<script defer src="../../shared/contracts/world-spec-authorship.js"></script><script defer src="../../shared/contracts/world-spec.js"></script>
+<script defer src="../../shared/contracts/contract-validation-primitives.js"></script><script defer src="../../shared/contracts/multiscale-contracts.js"></script>
+<script defer src="../../shared/core/simulation/multirate-coordinator.js"></script><script defer src="./architecture.js"></script><script defer src="./model.js"></script><script defer src="./runner.js"></script><script defer src="./page.js"></script>
+</head><body class="wui-root" data-world-ui><main>
+<header><a href="/">Simulatte World</a><p class="wui-status">Failure &amp; repair experiment</p><h1>When the result never arrives.</h1><p class="intro">Compute finishes. The store goes down. A missing acknowledgement turns one request into repeated work.</p></header>
+<div id="playback" class="toolbar" aria-label="Playback controls"></div><p id="status" role="status" class="wui-caption"></p>
+<section class="workspace"><div><div class="section-title"><h2 class="wui-title">Executable architecture</h2><span id="revision" class="wui-status"></span></div>
+<div id="diagram" aria-label="Architecture diagram"></div><p class="wui-caption">Links serialize 1 MiB per transfer with shared bandwidth and propagation delay. GPU clusters share a compute budget. No replication or consensus protocol is modeled.</p>
+<div id="metrics" class="metrics"></div><div id="comparison"></div></div><aside><h2 class="wui-title">Build</h2>
+<label>Node type<select id="node-type" class="wui-field"><option value="cpu">CPU worker</option><option value="gpu">GPU worker</option></select></label><div id="add-node"></div>
+<label>From<select id="from" class="wui-field"></select></label><label>To<select id="to" class="wui-field"></select></label>
+<div class="pair"><label>Capacity · MiB/s<input id="link-capacity" class="wui-field" type="number" min="0.01" value="100"></label><label>Latency · seconds<input id="link-latency" class="wui-field" type="number" min="0" value="0" step="0.01"></label></div><div id="connect"></div>
+<label>Selected object<select id="selected" class="wui-field"></select></label><div id="remove"></div>
+<label>GPU cluster members<select id="group-members" class="wui-field" multiple aria-describedby="group-help"></select></label><p id="group-help" class="wui-caption">Select GPUs. Groups share a compute budget; they do not imply a failure domain.</p>
+<label>Shared GPU work/s<input id="cluster-capacity" class="wui-field" type="number" min="0.01" value="1"></label><div id="group"></div>
+<label>Selected capacity<input id="object-capacity" class="wui-field" type="number" min="0.01" value="1"></label><div id="update"></div>
+<div id="author-actions" class="toolbar"></div><label>Architecture and replay JSON<textarea id="document" class="wui-field" rows="3" spellcheck="false"></textarea></label><div id="import-export" class="toolbar"></div><p id="editor-status" role="status" class="wui-caption"></p>
+</aside></section>
+<section><div class="section-title"><h2 class="wui-title">Every request stays visible</h2><p class="wui-caption">Including rejected, dead-letter and unfinished work</p></div><div id="requests" class="requests"></div><div id="inspector"></div><ol id="history" aria-label="Request causal history"></ol></section>
+<footer class="wui-caption">Synthetic, seeded simulation. Units and effects are model assumptions, not production measurements. This bounded experiment models CPU/GPU service, link sharing, leases, retries and result commits. It does not predict real hardware performance, GC, OOM, consensus, TCP, or cloud cost.</footer>
+</main></body></html>

@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Distributed repair configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "version",
+    "horizonSeconds",
+    "policies",
+    "workload",
+    "resources",
+    "faults",
+    "claimBoundary"
+  ],
+  "properties": {
+    "schema": {
+      "const": "simulatte.distributedRepairConfig.v1"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "horizonSeconds": {
+      "const": 40
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline",
+        "bounded"
+      ],
+      "properties": {
+        "baseline": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "admission",
+            "retryBudget",
+            "backpressure",
+            "idempotent"
+          ],
+          "properties": {
+            "admission": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 128
+            },
+            "retryBudget": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            },
+            "backpressure": {
+              "type": "boolean"
+            },
+            "idempotent": {
+              "type": "boolean"
+            }
+          }
+        },
+        "bounded": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "admission",
+            "retryBudget",
+            "backpressure",
+            "idempotent"
+          ],
+          "properties": {
+            "admission": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 128
+            },
+            "retryBudget": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            },
+            "backpressure": {
+              "type": "boolean"
+            },
+            "idempotent": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "count",
+        "burstStartSeconds",
+        "arrivalIntervalSeconds",
+        "cpuWork",
+        "firstGpuWork",
+        "gpuWorkBase",
+        "gpuWorkJitter",
+        "requestMiB",
+        "deadlineSeconds"
+      ],
+      "properties": {
+        "count": {
+          "type": "integer",
+          "minimum": 1e-06,
+          "maximum": 32
+        },
+        "burstStartSeconds": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "arrivalIntervalSeconds": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "cpuWork": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "firstGpuWork": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "gpuWorkBase": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "gpuWorkJitter": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "requestMiB": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "deadlineSeconds": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attemptMiB",
+        "resultMiB",
+        "transferMiB",
+        "leaseSeconds",
+        "commitSeconds",
+        "ackSeconds",
+        "retryDelaySeconds",
+        "boundedConcurrency"
+      ],
+      "properties": {
+        "attemptMiB": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "resultMiB": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "transferMiB": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "leaseSeconds": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "commitSeconds": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "ackSeconds": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "retryDelaySeconds": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1000
+        },
+        "boundedConcurrency": {
+          "type": "integer",
+          "minimum": 1e-06,
+          "maximum": 128
+        }
+      }
+    },
+    "faults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "storeDownSeconds",
+        "storeUpSeconds",
+        "gpuThrottleSeconds",
+        "gpuRestoreSeconds",
+        "gpuThrottleFraction",
+        "loseFirstSuccessfulAck"
+      ],
+      "properties": {
+        "storeDownSeconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "storeUpSeconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "gpuThrottleSeconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "gpuRestoreSeconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "gpuThrottleFraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "loseFirstSuccessfulAck": {
+          "type": "boolean"
+        }
+      }
+    },
+    "claimBoundary": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

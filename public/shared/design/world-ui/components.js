@@ -190,7 +190,7 @@
       el.prepend(heading);
       const disposeControls=adoptTree(el),api={element:el,dispose:disposeControls};inspectors.set(el,api);return api;
     }
-    const doc=host.ownerDocument, el=node(doc,'section','wui-inspector'); el.dataset.wui='inspector'; el.setAttribute('aria-label','Object inspector'); el.tabIndex=-1;
+    const doc=host.ownerDocument, el=node(doc,'section','wui-inspector'); el.dataset.wui='inspector'; el.dataset.placement=options.placement||'floating'; el.setAttribute('aria-label','Object inspector'); el.tabIndex=-1;
     const heading=node(doc,'header','wui-inspector-heading'), title=node(doc,'h2','wui-inspector-title'), condition=node(doc,'p','wui-inspector-condition');
     const dismiss=async()=>{await onSelect(null);returnFocus?.focus({preventScroll:true});};
     const close=SimButton({document:doc,label:'×',ariaLabel:'Close inspector',variant:'icon',onAction:dismiss}).element;

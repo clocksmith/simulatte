@@ -1,0 +1,13 @@
+{
+  "schema": "simulatte.distributedRepairConfig.v1",
+  "version": "1.0.0",
+  "horizonSeconds": 40,
+  "policies": {
+    "baseline": { "admission": 128, "retryBudget": 12, "backpressure": false, "idempotent": false },
+    "bounded": { "admission": 4, "retryBudget": 3, "backpressure": true, "idempotent": true }
+  },
+  "workload": { "count": 18, "burstStartSeconds": 4, "arrivalIntervalSeconds": 0.7, "cpuWork": 1, "firstGpuWork": 2, "gpuWorkBase": 1.6, "gpuWorkJitter": 0.1, "requestMiB": 8, "deadlineSeconds": 12 },
+  "resources": { "attemptMiB": 8, "resultMiB": 16, "transferMiB": 1, "leaseSeconds": 8, "commitSeconds": 0.1, "ackSeconds": 0.1, "retryDelaySeconds": 0.2, "boundedConcurrency": 2 },
+  "faults": { "storeDownSeconds": 3.05, "storeUpSeconds": 18, "gpuThrottleSeconds": 9, "gpuRestoreSeconds": 14, "gpuThrottleFraction": 0.5, "loseFirstSuccessfulAck": true },
+  "claimBoundary": "Synthetic task-service and shared-resource model. No measured hardware, physical memory, production traffic or proprietary platform internals."
+}

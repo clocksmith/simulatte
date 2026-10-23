@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Composable workload architecture",
+  "description": "Bounded typed task DAG. Any supported sequence of CPU/GPU stages and parallel paths may be composed; the current adapter accepts one source and result store. Cross-node validity is enforced by architecture.js.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "revision",
+    "nextId",
+    "nodes",
+    "clusters",
+    "links"
+  ],
+  "properties": {
+    "schema": {
+      "const": "simulatte.workloadArchitecture.v1"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "nextId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "nodes": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "capacity",
+          "clusterId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z]+-[0-9]+$"
+          },
+          "type": {
+            "enum": [
+              "source",
+              "cpu",
+              "gpu",
+              "store"
+            ]
+          },
+          "capacity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 10000
+          },
+          "clusterId": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z]+-[0-9]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "clusters": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "capacity"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z]+-[0-9]+$"
+          },
+          "capacity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 10000
+          }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "from",
+          "to",
+          "capacity",
+          "latency"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z]+-[0-9]+$"
+          },
+          "from": {
+            "type": "string",
+            "pattern": "^[a-z]+-[0-9]+$"
+          },
+          "to": {
+            "type": "string",
+            "pattern": "^[a-z]+-[0-9]+$"
+          },
+          "capacity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 10000
+          },
+          "latency": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 60
+          }
+        }
+      }
+    }
+  }
+}

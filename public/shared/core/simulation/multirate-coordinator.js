@@ -9,7 +9,8 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteMultirateCoordinator = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createMultirateCoordinatorApi(primitives, contracts) {
-  const CHECKPOINT_SCHEMA = 'simulatte.multirate-coordinator-checkpoint/v2';
+  const CHECKPOINT_SCHEMA = 'simulatte.multirate-coordinator-checkpoint/v3';
+  const LEGACY_CHECKPOINT_SCHEMA = 'simulatte.multirate-coordinator-checkpoint/v2';
   const PORT_OBSERVATION_SCHEMA = 'simulatte.multirate-port-observation/v1';
   const REQUIRED_LIFECYCLE = Object.freeze([
     'initialize',
@@ -132,10 +133,12 @@
       initialPortValues = {},
       inputDefaults = {},
       startTime = 0,
+      maxRoundsAtSameTime = 1024,
       branchId = 'main',
       parentCheckpointId = null,
       executionAdapter = null,
     } = configuration || {};
+    if (!Number.isInteger(maxRoundsAtSameTime) || maxRoundsAtSameTime < 1) fail('multirate_round_bound_invalid', 'Positive round bound required');
     requireString(id, 'id');
     requireString(worldSpecContentHash, 'worldSpecContentHash');
     requireFinite(startTime, 'startTime');
@@ -147,6 +150,7 @@
       module.id,
       module.clock.kind === 'fixed' ? startTime + module.clock.intervalSeconds : Infinity,
     ]));
+    const nextEventTimes = new Map(plan.modules.map(module => [module.id, Infinity]));
     const inputBuffers = new Map();
     const outputBuffers = new Map();
     const moduleActive = new Map(plan.modules.map((module) => [module.id, true]));
@@ -166,7 +170,11 @@
     Object.entries(initialPortValues).sort(([left], [right]) => left.localeCompare(right)).forEach(([portId, row]) => {
       const port = plan.portById.get(portId);
       if (!port || port.direction !== 'input') fail('multirate_initial_port_unknown', `Initial value references unknown input port ${portId}`);
-      inputBuffers.set(portId, validatePortRecord(port, normalizePortRecord(row, startTime), 'initial'));
+      if (queued(port)) {
+        requireArray(row, `Initial queued records for ${portId}`);
+        inputBuffers.set(portId, row.map(record => validatePortRecord(port, normalizePortRecord(record, startTime), 'initial')));
+        if (row.length) nextEventTimes.set(port.moduleInstanceId, startTime);
+      } else inputBuffers.set(portId, validatePortRecord(port, normalizePortRecord(row, startTime), 'initial'));
     });
 
     async function initialize() {
@@ -180,6 +188,7 @@
           branchId,
         }));
         states.set(module.id, clone(state));
+        if (module.lifecycle.nextEventTime) nextEventTimes.set(module.id, Math.min(nextEventTimes.get(module.id), eventTime(module, state, logicalTime)));
         stateHashes.set(module.id, contentHash(state));
       }
       initialized = true;
@@ -216,9 +225,13 @@
       runActive = true;
       try {
         if (!initialized) await initialize();
+        let lastRoundTime = null, sameTimeRounds = 0;
         while (!cancelled) {
           const nextTime = nextCommunicationTime();
           if (!Number.isFinite(nextTime) || nextTime > targetTime) break;
+          if (nextTime === lastRoundTime) sameTimeRounds += 1;
+          else { lastRoundTime = nextTime; sameTimeRounds = 1; }
+          if (sameTimeRounds > maxRoundsAtSameTime) fail('multirate_zero_time_limit', 'Same-time event work exceeded its declared bound');
           await executeRound(nextTime);
         }
         return snapshot();
@@ -228,11 +241,13 @@
     }
 
     async function executeRound(nextTime) {
-      applyPendingDeliveries(nextTime);
+      const deliveredModules = applyPendingDeliveries(nextTime);
       const controls = pendingControls.filter((row) => row.logicalTime === nextTime);
       pendingControls = pendingControls.filter((row) => row.logicalTime !== nextTime);
-      const due = new Set(plan.modules.filter((module) => nextTimes.get(module.id) === nextTime).map((module) => module.id));
+      const due = new Set(plan.modules.filter((module) => (nextTimes.get(module.id) === nextTime || (moduleActive.get(module.id) && nextEventTimes.get(module.id) === nextTime))).map((module) => module.id));
       controls.forEach((control) => control.targetModuleIds.forEach((moduleId) => due.add(moduleId)));
+      deliveredModules.forEach(moduleId => due.add(moduleId));
+      if (!due.size) { logicalTime = nextTime; return; }
       expandCoupledGroups(due);
       const moduleIds = [...due].sort();
       const latchedInputs = Object.fromEntries(moduleIds.map((moduleId) => [moduleId, latchInputs(moduleId)]));
@@ -278,6 +293,11 @@
         result.outputs.forEach((output) => outputBuffers.set(output.portId, output));
         lastTimes.set(moduleId, nextTime);
         const module = plan.moduleById.get(moduleId);
+        for (const port of plan.inputPortsByModule.get(moduleId) || []) {
+          if (queued(port)) inputBuffers.set(port.id, []);
+        }
+        if (module.lifecycle.nextEventTime) nextEventTimes.set(moduleId, result.nextEventTime);
+        else nextEventTimes.set(moduleId, Infinity);
         if (module.clock.kind === 'fixed' && nextTimes.get(moduleId) === nextTime) {
           nextTimes.set(moduleId, nextTime + module.clock.intervalSeconds);
         }
@@ -340,13 +360,14 @@
         requireRecord(row, `${moduleId}.output`);
         const port = allowedPorts.get(row.portId);
         if (!port) fail('multirate_output_port_invalid', `Module ${moduleId} emitted undeclared port ${row.portId}`);
-        if (seen.has(row.portId)) fail('multirate_output_duplicate', `Module ${moduleId} emitted ${row.portId} more than once`);
+        if (seen.has(row.portId) && !queued(port)) fail('multirate_output_duplicate', `Module ${moduleId} emitted ${row.portId} more than once`);
         seen.add(row.portId);
         return validatePortRecord(port, normalizePortRecord(row, toTime), 'output');
       }).sort((left, right) => left.portId.localeCompare(right.portId));
       return freeze({
         state: clone(result.state),
         stateHash: contentHash(result.state),
+        nextEventTime: plan.moduleById.get(moduleId).lifecycle.nextEventTime ? eventTime(plan.moduleById.get(moduleId), result.state, toTime) : null,
         outputs,
         events: clone(result.events || []),
         diagnostics: clone(result.diagnostics || []),
@@ -356,6 +377,7 @@
     function latchInputs(moduleId) {
       const rows = {};
       (plan.inputPortsByModule.get(moduleId) || []).forEach((port) => {
+        if (queued(port)) { rows[port.id] = clone(inputBuffers.get(port.id) || []); return; }
         let record = inputBuffers.get(port.id);
         if (!record && port.missingDataBehavior === 'use-declared-default') {
           if (!Object.prototype.hasOwnProperty.call(inputDefaults, port.id)) {
@@ -375,7 +397,7 @@
     function createDeliveries(results, nextTime, roundId) {
       const rows = [];
       [...results.entries()].sort(([left], [right]) => left.localeCompare(right)).forEach(([, result]) => {
-        result.outputs.forEach((output) => {
+        result.outputs.forEach((output, outputIndex) => {
           (plan.outgoingEdgesByPort.get(output.portId) || []).forEach((edge) => {
             const destination = plan.portById.get(edge.destinationPortId);
             const adapter = edge.adapterId === null ? null : adapters[edge.adapterId];
@@ -392,7 +414,7 @@
               provenance: output.provenance,
             }, 'coupling');
             rows.push(freeze({
-              id: `${roundId}:${edge.id}`,
+              id: queued(plan.portById.get(output.portId)) ? `${roundId}:${edge.id}:${String(outputIndex).padStart(8, '0')}` : `${roundId}:${edge.id}`,
               edgeId: edge.id,
               adapterId: edge.adapterId,
               sourcePortId: output.portId,
@@ -409,13 +431,23 @@
     function applyPendingDeliveries(time) {
       const ready = pendingDeliveries.filter((row) => row.availableAt <= time);
       pendingDeliveries = pendingDeliveries.filter((row) => row.availableAt > time);
-      ready.sort(byDelivery).forEach((row) => inputBuffers.set(row.destinationPortId, row.record));
+      const due = new Set();
+      ready.sort(byDelivery).forEach((row) => {
+        const port = plan.portById.get(row.destinationPortId);
+        if (queued(port)) {
+          const records = inputBuffers.get(port.id) || [];
+          inputBuffers.set(port.id, [...records, row.record]);
+          if (moduleActive.get(port.moduleInstanceId)) due.add(port.moduleInstanceId);
+        } else inputBuffers.set(port.id, row.record);
+      });
+      return due;
     }
 
     function nextCommunicationTime() {
       const fixed = Math.min(...nextTimes.values());
+      const event = Math.min(...[...nextEventTimes].filter(([id]) => moduleActive.get(id)).map(([, time]) => time));
       const control = pendingControls.length ? pendingControls[0].logicalTime : Infinity;
-      return Math.min(fixed, control);
+      return Math.min(fixed, event, control, pendingDeliveries[0]?.availableAt ?? Infinity);
     }
 
     function expandCoupledGroups(due) {
@@ -487,9 +519,10 @@
         states: Object.fromEntries([...states.entries()].map(([key, value]) => [key, clone(value)])),
         stateHashes: Object.fromEntries(stateHashes),
         lastTimes: Object.fromEntries(lastTimes),
-        nextTimes: Object.fromEntries(nextTimes),
+        nextTimes: Object.fromEntries([...nextTimes].map(([id, time]) => [id, Number.isFinite(time) ? time : null])),
+        nextEventTimes: Object.fromEntries([...nextEventTimes].map(([id, time]) => [id, Number.isFinite(time) ? time : null])),
         moduleActive: Object.fromEntries(moduleActive),
-        suspendedNextTimes: Object.fromEntries(suspendedNextTimes),
+        suspendedNextTimes: Object.fromEntries([...suspendedNextTimes].map(([id, time]) => [id, Number.isFinite(time) ? time : null])),
         inputBuffers: Object.fromEntries(inputBuffers),
         outputBuffers: Object.fromEntries(outputBuffers),
         pendingDeliveries: clone(pendingDeliveries),
@@ -505,7 +538,9 @@
     async function restore(checkpointValue) {
       assertUsable();
       assertSafeBoundary();
-      validateCheckpoint(checkpointValue, id, worldSpecContentHash, plan.contentHash);
+      const legacy = checkpointValue?.schema === LEGACY_CHECKPOINT_SCHEMA;
+      if (legacy && (plan.modules.some(module => module.lifecycle.nextEventTime) || [...plan.portById.values()].some(queued))) fail('multirate_checkpoint_event_state_missing', 'A v2 checkpoint cannot restore newly declared event semantics');
+      validateCheckpoint(checkpointValue, id, worldSpecContentHash, plan.contentHash, legacy ? LEGACY_CHECKPOINT_SCHEMA : CHECKPOINT_SCHEMA);
       for (const module of plan.modules) {
         const state = await module.lifecycle.restore(freeze({
           moduleId: module.id,
@@ -521,9 +556,10 @@
         stateHashes.set(module.id, checkpointValue.stateHashes[module.id]);
       }
       replaceMap(lastTimes, checkpointValue.lastTimes);
-      replaceMap(nextTimes, checkpointValue.nextTimes);
+      restoreTimes(nextTimes, checkpointValue.nextTimes);
+      restoreTimes(nextEventTimes, legacy ? Object.fromEntries(plan.modules.map(module => [module.id, null])) : checkpointValue.nextEventTimes);
       replaceMap(moduleActive, checkpointValue.moduleActive);
-      replaceMap(suspendedNextTimes, checkpointValue.suspendedNextTimes);
+      restoreTimes(suspendedNextTimes, checkpointValue.suspendedNextTimes);
       replaceMap(inputBuffers, checkpointValue.inputBuffers);
       replaceMap(outputBuffers, checkpointValue.outputBuffers);
       pendingDeliveries = clone(checkpointValue.pendingDeliveries);
@@ -607,6 +643,8 @@
           const prior = suspendedNextTimes.get(moduleId);
           nextTimes.set(moduleId, Number.isFinite(prior) && prior > logicalTime ? prior : logicalTime + interval);
           suspendedNextTimes.delete(moduleId);
+          if (module.lifecycle.nextEventTime) nextEventTimes.set(moduleId, eventTime(module, states.get(moduleId), logicalTime));
+          if ((plan.inputPortsByModule.get(moduleId) || []).some(port => queued(port) && inputBuffers.get(port.id)?.length)) nextEventTimes.set(moduleId, logicalTime);
         }
         moduleActive.set(moduleId, active);
       });
@@ -758,12 +796,22 @@
     });
   }
 
-  function validateCheckpoint(value, coordinatorId, worldSpecContentHash, executionPlanHash) {
+  function queued(port) { return port.deliverySemantics === 'queued-event'; }
+
+  function eventTime(module, state, now) {
+    const time = module.lifecycle.nextEventTime({ state: clone(state), logicalTime: now });
+    if (time === null) return Infinity;
+    if (!Number.isFinite(time) || time < now) fail('multirate_next_event_invalid', module.id);
+    return time;
+  }
+
+  function validateCheckpoint(value, coordinatorId, worldSpecContentHash, executionPlanHash, expectedSchema = CHECKPOINT_SCHEMA) {
     requireRecord(value, 'checkpoint');
-    if (value.schema !== CHECKPOINT_SCHEMA) fail('multirate_checkpoint_schema_invalid', `Expected ${CHECKPOINT_SCHEMA}`);
+    if (value.schema !== expectedSchema) fail('multirate_checkpoint_schema_invalid', `Expected ${expectedSchema}`);
     if (value.coordinatorId !== coordinatorId) fail('multirate_checkpoint_coordinator_mismatch', `Checkpoint belongs to ${value.coordinatorId}`);
     if (value.worldSpecContentHash !== worldSpecContentHash) fail('multirate_checkpoint_world_mismatch', 'Checkpoint WorldSpec identity differs');
     if (value.executionPlanHash !== executionPlanHash) fail('multirate_checkpoint_plan_mismatch', 'Checkpoint execution plan differs');
+    if (expectedSchema === CHECKPOINT_SCHEMA) requireRecord(value.nextEventTimes, 'checkpoint.nextEventTimes');
     requireRecord(value.moduleActive, 'checkpoint.moduleActive');
     requireRecord(value.suspendedNextTimes, 'checkpoint.suspendedNextTimes');
     requireRecord(value.outputBuffers, 'checkpoint.outputBuffers');
@@ -847,6 +895,11 @@
       code: error?.code || 'multirate_module_failure',
       message: error?.message || String(error),
     });
+  }
+
+  function restoreTimes(target, value) {
+    target.clear();
+    Object.entries(value).forEach(([id, time]) => target.set(id, time === null ? Infinity : time));
   }
 
   function replaceMap(target, value) {

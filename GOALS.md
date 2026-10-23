@@ -38,6 +38,25 @@ matched empirical validation and human observation remain separate qualification
 
 Keep the three established featured experiences understandable through interaction while developing the next experiences below. Their unfamiliar-user qualification remains required. Motorcycle highlights the sound paths changed at the observer; Sun Walker displays the accepted route and its actual time/exposure tradeoff against the shortest path; GPU shows how a slow rack holds up dependent racks. Each intervention connects affected objects, a measured change, and an identified comparison baseline. Preserve the numerical qualifications underneath. Observe unfamiliar people exploring without instructions, record whether they identify the activity, discover an action, and explain its consequence, and fix observed barriers. Automated browser checks do not substitute for these observations.
 
+## Authorized bounded World workbench milestone
+
+User direction authorizes one local World failure-and-repair experiment while the
+catalog priorities above remain in effect. Author CPU/GPU task nodes, shared
+compute clusters and typed task links; accept a validated architecture revision
+explicitly before restarting execution. Reproduce result-store failure after GPU
+computation, failed acknowledgement, lease expiry and redelivery. Compare identical
+arrivals and fault timing under bounded admission, backpressure, retry budgets and
+idempotent result commits. Require exact replay, checkpoint equivalence, reconciled
+resources and visible rejected/unfinished requests with causal inspection. This is
+a narrow workbench milestone, not general catalog expansion or a production claim.
+
+Develop future challenging workloads as composable packs of typed nodes, ports,
+resource policies and synthetic/deidentified traces. Streaming/CDN, multi-agent
+collection, healthcare, finance, operational data graphs and lakehouse jobs are
+representative patterns, not proprietary implementation claims. The staged
+[workbench plan](docs/simulatte/distributed-workload-workbench.md) identifies shared
+primitives, unsupported semantics and acceptance before additional packs execute.
+
 ## Next experience development
 
 Develop Interstellar Relay's delayed-message and return-message interaction, then Asteroid Defense's observation-versus-action experiment. Build Living Tissue first among the three new standalone experiences, followed by River Formation and Crystal Foundry. Each uses the same interaction milestone: active opening, selected-object actions, affected objects, a changed measurement, a named baseline, and reproducible inputs. Keep numerical validation separate from empirical calibration and unfamiliar-user qualification. Retain the existing featured experiences while qualifying additions. Remove superseded paths as consumers migrate; put behavior-changing policy in governed configuration, derive host capabilities from plugin contracts, and reuse bounded numerical and interaction components rather than duplicating controllers or adding a universal simulation engine.

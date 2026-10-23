@@ -277,8 +277,12 @@
   }
 
   function validateSimulationPort(port, context = {}) {
-    object(port, '$', ['schema', 'id', 'moduleInstanceId', 'direction', 'kind', 'quantity', 'dataSchemaId', 'shape', 'unit', 'dimension', 'coordinateFrameId', 'cadence', 'timestampSemantics', 'latencySeconds', 'interpolationPolicy', 'aggregationPolicy', 'uncertainty', 'provenanceRequired', 'determinismClass', 'authority', 'validRange', 'missingDataBehavior', 'backpressurePolicy']);
+    object(port, '$', ['schema', 'id', 'moduleInstanceId', 'direction', 'kind', 'quantity', 'dataSchemaId', 'shape', 'unit', 'dimension', 'coordinateFrameId', 'cadence', 'timestampSemantics', 'latencySeconds', 'interpolationPolicy', 'aggregationPolicy', 'uncertainty', 'provenanceRequired', 'determinismClass', 'authority', 'validRange', 'missingDataBehavior', 'backpressurePolicy'], ['deliverySemantics']);
     exactSchema(port, SCHEMAS.port);
+    if (port.deliverySemantics !== undefined) {
+      oneOf(port.deliverySemantics, ['latest-value', 'queued-event'], '$.deliverySemantics');
+      if (port.deliverySemantics === 'queued-event' && port.kind !== 'event') fail('$.deliverySemantics', 'event port for queued delivery', port.kind);
+    }
     ['id', 'moduleInstanceId', 'quantity', 'dataSchemaId', 'unit', 'dimension', 'authority'].forEach((key) => string(port[key], `$.${key}`));
     oneOf(port.direction, ['input', 'output'], '$.direction');
     oneOf(port.kind, ['event', 'sampled-state'], '$.kind');
@@ -368,6 +372,7 @@
       .filter((key) => source[key] !== destination[key]);
     if (primitives.canonicalJson(source.shape) !== primitives.canonicalJson(destination.shape)) mismatches.push('shape');
     if (source.kind !== destination.kind) mismatches.push('kind');
+    if ((source.deliverySemantics || 'latest-value') !== (destination.deliverySemantics || 'latest-value')) mismatches.push('deliverySemantics');
     if (mismatches.length && edge.adapterId === null) fail(`${path}.adapterId`, `named adapter for ${mismatches.join(', ')}`, null);
   }
 

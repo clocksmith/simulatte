@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Distributed repair replay inputs",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "architecture",
+    "config",
+    "seed",
+    "policy",
+    "interventions",
+    "until",
+    "worldSpec"
+  ],
+  "properties": {
+    "schema": {
+      "const": "simulatte.distributedRepairReplay.v1"
+    },
+    "architecture": {
+      "$ref": "./architecture.schema.json"
+    },
+    "config": {
+      "$ref": "./config.schema.json"
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "policy": {
+      "enum": [
+        "baseline",
+        "bounded"
+      ]
+    },
+    "interventions": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 40
+      }
+    },
+    "until": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 40
+    },
+    "worldSpec": {
+      "$ref": "../../shared/contracts/world-spec.schema.json"
+    }
+  }
+}

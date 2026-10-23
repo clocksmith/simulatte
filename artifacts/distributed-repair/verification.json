@@ -1,0 +1,276 @@
+{
+  "schema": "simulatte.distributedRepairLocalVerification.v1",
+  "capturedAt": "2026-10-23T16:38:52.217Z",
+  "source": {
+    "head": "f93405a079648173da1d63be9ca1992171f81fda",
+    "capturedAt": "2026-10-23T16:38:52.281Z",
+    "modifiedSources": {
+      "public/data/distributed-repair/architecture.schema.json": {
+        "sha256": "ee81b0c927789200ce1764093df85da22727abc7030db15ea849d41fd3c277b8",
+        "modifiedAt": "2026-10-23T16:15:42.380Z"
+      },
+      "public/data/distributed-repair/config.json": {
+        "sha256": "5b5f51c62385095993ef7462405577ea587549c15aed4006a8c557f82377b8d4",
+        "modifiedAt": "2026-10-23T16:14:17.037Z"
+      },
+      "public/data/distributed-repair/config.schema.json": {
+        "sha256": "f70957e477ffc8861b85be26a72976a893bed36b553b9c0ca22972581dbe74ba",
+        "modifiedAt": "2026-10-23T16:15:42.380Z"
+      },
+      "public/data/distributed-repair/replay.schema.json": {
+        "sha256": "810159148e39dd01c9be03b37382e3edc2e11a0ca3a2c915172f6a430dcab77c",
+        "modifiedAt": "2026-10-23T16:29:18.285Z"
+      },
+      "public/index.html": {
+        "sha256": "6a0c4daaa460391bc21362b861e40aed03bbc4e5cfd01b5ce6fa7b05956e62e4",
+        "modifiedAt": "2026-10-23T16:32:13.688Z"
+      },
+      "public/shared/contracts/multiscale-contracts.js": {
+        "sha256": "8b4b7067b1e337ecde74d48a703ef56600299fbb644ef19c7a2fb0910c5d8c8f",
+        "modifiedAt": "2026-10-23T16:01:25.205Z"
+      },
+      "public/shared/contracts/simulation-port.schema.json": {
+        "sha256": "f4149f93ab378ec96e9b2e26a409ff0ee5ff53b561adcd7685039a02425e3289",
+        "modifiedAt": "2026-10-23T16:18:06.250Z"
+      },
+      "public/shared/core/CATSCAN.md": {
+        "sha256": "962b1bc0684aae1c3d29089482db758a43a23ad5916e4514e9e9547a2aa92f7a",
+        "modifiedAt": "2026-10-23T16:15:42.406Z"
+      },
+      "public/shared/core/simulation/multirate-coordinator.js": {
+        "sha256": "c1fe71142e2db45b87a4676094ef5200efcacafae4de495bcf550fbce3ac2539",
+        "modifiedAt": "2026-10-23T16:33:47.686Z"
+      },
+      "public/shared/design/world-ui/components.js": {
+        "sha256": "e5a5f94c0cdaf1d4fe970866ae48a2ff59d14c8e4161fdd9cf3c496bf45a3713",
+        "modifiedAt": "2026-10-23T16:08:51.551Z"
+      },
+      "public/simulatte/distributed-repair/CATSCAN.md": {
+        "sha256": "2891f71f24888fda6b92b1617e0402376d57bd9936f8531b59fb283ccadeda00",
+        "modifiedAt": "2026-10-23T16:30:22.939Z"
+      },
+      "public/simulatte/distributed-repair/architecture.js": {
+        "sha256": "45170632fb6341467a94deb28468a4e90c08717c0c4a64cc1598cd97adbddea1",
+        "modifiedAt": "2026-10-23T16:17:24.036Z"
+      },
+      "public/simulatte/distributed-repair/index.html": {
+        "sha256": "463e1776ef8e68f8ef6f6a99b840ac19a5e79e0a73f035932929b5002e9c1d5f",
+        "modifiedAt": "2026-10-23T16:32:13.662Z"
+      },
+      "public/simulatte/distributed-repair/model.js": {
+        "sha256": "2f775a6fbc8fb1f4abfcbe47078c21a58a3bcfae07e5f090aec3e7eade9efbfd",
+        "modifiedAt": "2026-10-23T16:21:16.911Z"
+      },
+      "public/simulatte/distributed-repair/page.js": {
+        "sha256": "51aa34167305b502ed18552e13f3c307e2dea37528c7cf7717608f7e570d336e",
+        "modifiedAt": "2026-10-23T16:29:18.276Z"
+      },
+      "public/simulatte/distributed-repair/runner.js": {
+        "sha256": "c9533c673253615a012283ea678b5cd058a7e0538cedb51f263351987ca3d832",
+        "modifiedAt": "2026-10-23T16:29:18.275Z"
+      },
+      "public/simulatte/distributed-repair/style.css": {
+        "sha256": "7c1da82d8ff8525beaa87e0c19a064e3f60311d6e6877634779699143c690793",
+        "modifiedAt": "2026-10-23T16:34:51.520Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Synthetic numerical and local automated browser evidence. No production validity, physical-device or unaided-human qualification. Nothing pushed or deployed.",
+  "targetedTests": {
+    "command": [
+      "node",
+      "--test",
+      "tests/distributed-repair.test.cjs",
+      "tests/multirate-coordinator.test.cjs",
+      "tests/multiscale-contracts.test.cjs",
+      "tests/gpu-workload.test.cjs",
+      "tests/gpu-supercluster.test.cjs",
+      "tests/subsea-network-global.test.cjs",
+      "tests/interstellar-relay-network-v4.test.cjs",
+      "tests/world-ui-ownership.test.cjs",
+      "tests/simulation-session.test.cjs",
+      "tests/recursive-spatial-residency.test.cjs",
+      "tests/design-system.test.cjs",
+      "tests/catscan.test.cjs",
+      "tests/plugin-v4-platform.test.cjs",
+      "tests/comparison-execution.test.cjs",
+      "tests/simulation-catalog.test.cjs",
+      "tests/world-spec.test.cjs"
+    ],
+    "total": 170,
+    "passed": 170,
+    "failed": 0,
+    "log": "tests.tap",
+    "sha256": "0c0090ea14e948fd8650fa3e90c7f1e59b6febb1d937b642e7dfe376242c195a"
+  },
+  "guards": {
+    "catscan": "45 charters valid with synchronized index",
+    "worldUiOwnership": "0 violations",
+    "diffCheck": "pass"
+  },
+  "browser": {
+    "report": "browser.json",
+    "cases": [
+      {
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "pass": true,
+        "checks": {
+          "worldEntry": true,
+          "checkpointControls": true,
+          "failedStoreVisible": true,
+          "replayControl": true,
+          "pairedComparison": true,
+          "keyboardRequestInspection": true,
+          "causalHistory": true,
+          "pendingPreservesRun": true,
+          "invalidConnections": true,
+          "connectGroupAccept": true,
+          "exportReimport": true,
+          "removeAccept": true,
+          "repairReplay": true,
+          "reducedMotion": true,
+          "noHorizontalPageOverflow": true
+        },
+        "errors": [],
+        "networkFailures": [],
+        "blockedExternal": [
+          "https://www.googletagmanager.com/gtag/js"
+        ]
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "pass": true,
+        "checks": {
+          "worldEntry": true,
+          "checkpointControls": true,
+          "failedStoreVisible": true,
+          "replayControl": true,
+          "pairedComparison": true,
+          "keyboardRequestInspection": true,
+          "causalHistory": true,
+          "pendingPreservesRun": true,
+          "invalidConnections": true,
+          "connectGroupAccept": true,
+          "exportReimport": true,
+          "removeAccept": true,
+          "repairReplay": true,
+          "reducedMotion": true,
+          "noHorizontalPageOverflow": true
+        },
+        "errors": [],
+        "networkFailures": [],
+        "blockedExternal": [
+          "https://www.googletagmanager.com/gtag/js"
+        ]
+      }
+    ],
+    "runtimeHashesMatch": [
+      "public/data/distributed-repair/architecture.schema.json",
+      "public/data/distributed-repair/config.json",
+      "public/data/distributed-repair/config.schema.json",
+      "public/data/distributed-repair/replay.schema.json",
+      "public/index.html",
+      "public/shared/contracts/multiscale-contracts.js",
+      "public/shared/contracts/simulation-port.schema.json",
+      "public/shared/core/CATSCAN.md",
+      "public/shared/core/simulation/multirate-coordinator.js",
+      "public/shared/design/world-ui/components.js",
+      "public/simulatte/distributed-repair/CATSCAN.md",
+      "public/simulatte/distributed-repair/architecture.js",
+      "public/simulatte/distributed-repair/index.html",
+      "public/simulatte/distributed-repair/model.js",
+      "public/simulatte/distributed-repair/page.js",
+      "public/simulatte/distributed-repair/runner.js",
+      "public/simulatte/distributed-repair/style.css"
+    ],
+    "screenshots": {
+      "1440-world.png": {
+        "sha256": "200e194997544c8250163bfa876b89e4c825a0b604ef8035be1ffcb866710108"
+      },
+      "1440-fault.png": {
+        "sha256": "73ef8dfe5da2643c0fb59052a901f4c814c63f5687aad00c32d393036aa53e54"
+      },
+      "1440-request.png": {
+        "sha256": "66a2824fe0bdcb748dbeb060954d164aa97783b8926e23af9d0a77c3c07498f1"
+      },
+      "1440-authoring.png": {
+        "sha256": "4fbcc0d8556864ec031828f94e960ae89663b6d1fd2097a21a1ce2c234ad23dd"
+      },
+      "390-world.png": {
+        "sha256": "01984bb5b621b8829e0328ae61a7bde9128bb9e453ee7e32c38064f51ada9930"
+      },
+      "390-fault.png": {
+        "sha256": "384c801c6cdc3cb67756bcbf0e3eaa0ec9289c8a80fb00ab9929072aed356d09"
+      },
+      "390-request.png": {
+        "sha256": "cd9966a26bfbb9b2d652fb40cf25f220f04774d16fab09c857a6e426ddcc1ad6"
+      },
+      "390-authoring.png": {
+        "sha256": "895357bdf88579e76fb6849b2b18c6d00cdc1907cb274dcf0ae90f63afdc4d54"
+      }
+    }
+  },
+  "scenarios": {
+    "baseline": {
+      "offered": 18,
+      "completed": 0,
+      "rejected": 0,
+      "deadLetter": 0,
+      "unfinished": 18,
+      "backlog": 0,
+      "attempts": 78,
+      "duplicateCompute": 1.9999999999999996,
+      "deadlineMisses": 18,
+      "effects": 0,
+      "memory": 664,
+      "peakMemory": 664,
+      "retained": 664,
+      "allocated": 976,
+      "released": 312,
+      "gpuWork": 25.87013973536163
+    },
+    "bounded": {
+      "offered": 18,
+      "completed": 4,
+      "rejected": 14,
+      "deadLetter": 0,
+      "unfinished": 0,
+      "backlog": 0,
+      "attempts": 6,
+      "duplicateCompute": 3.8999999999999986,
+      "deadlineMisses": 4,
+      "effects": 4,
+      "memory": 0,
+      "peakMemory": 80,
+      "retained": 0,
+      "allocated": 176,
+      "released": 176,
+      "gpuWork": 11.599999999999998
+    }
+  },
+  "knownCheckFailure": {
+    "command": [
+      "node",
+      "--test",
+      "tests/hosting-surfaces.test.cjs"
+    ],
+    "passed": 3,
+    "failed": 1,
+    "log": "hosting-tests.tap",
+    "reason": "Existing solar-drive and motorcycle-noise entries have an unversioned shared/design/world-ui/components.js URL. Confirmed in original base f93405a079648173da1d63be9ca1992171f81fda. Entries were not modified.",
+    "isolatedCheckoutNote": "The ignored vendor directory was copied from the existing local checkout to run packaging; no install or network acquisition. Packaging test then passed."
+  },
+  "remainingCoverage": [
+    "General workload-pack loading/composition beyond bounded CPU/GPU task DAGs",
+    "Replication/consensus, real GPU/VRAM/GC/OOM fidelity, TCP/loss, empirical calibration and cost models",
+    "Production load/failure testing and human comprehension studies"
+  ],
+  "permissionHistory": "Initial read-only-era browser rejection was resolved by explicit subsequent user approval; final loopback/browser audit completed successfully."
+}

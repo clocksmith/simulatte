@@ -1,0 +1,1030 @@
+TAP version 13
+# Subtest: recursive CATSCAN validation accepts unique components and nearest parents
+ok 1 - recursive CATSCAN validation accepts unique components and nearest parents
+  ---
+  duration_ms: 7.709458
+  type: 'test'
+  ...
+# Subtest: recursive CATSCAN validation rejects a skipped nearest parent
+ok 2 - recursive CATSCAN validation rejects a skipped nearest parent
+  ---
+  duration_ms: 1.946959
+  type: 'test'
+  ...
+# Subtest: recursive CATSCAN validation rejects missing evidence links
+ok 3 - recursive CATSCAN validation rejects missing evidence links
+  ---
+  duration_ms: 1.239542
+  type: 'test'
+  ...
+# Subtest: recursive CATSCAN validation rejects duplicate component names
+ok 4 - recursive CATSCAN validation rejects duplicate component names
+  ---
+  duration_ms: 2.703542
+  type: 'test'
+  ...
+# Subtest: generated component index is deterministic and rejects drift
+ok 5 - generated component index is deterministic and rejects drift
+  ---
+  duration_ms: 1.669667
+  type: 'test'
+  ...
+# Subtest: lockstep comparison executes isolated branches and settles compatible metric deltas
+ok 6 - lockstep comparison executes isolated branches and settles compatible metric deltas
+  ---
+  duration_ms: 4.719375
+  type: 'test'
+  ...
+# Subtest: comparison clones driver transitions once and retains frozen owned history
+ok 7 - comparison clones driver transitions once and retains frozen owned history
+  ---
+  duration_ms: 1.14225
+  type: 'test'
+  ...
+# Subtest: playback pauses, resumes, seeks, scrubs, replays, and reloads from receipts
+ok 8 - playback pauses, resumes, seeks, scrubs, replays, and reloads from receipts
+  ---
+  duration_ms: 8.072916
+  type: 'test'
+  ...
+# Subtest: event-time comparison advances only branches at the next causal time
+ok 9 - event-time comparison advances only branches at the next causal time
+  ---
+  duration_ms: 1.7305
+  type: 'test'
+  ...
+# Subtest: policy boundary rejects hidden-truth fields from observations
+ok 10 - policy boundary rejects hidden-truth fields from observations
+  ---
+  duration_ms: 0.933708
+  type: 'test'
+  ...
+# Subtest: lockstep drift fails the execution before it can present a comparison
+ok 11 - lockstep drift fails the execution before it can present a comparison
+  ---
+  duration_ms: 0.692208
+  type: 'test'
+  ...
+# Subtest: branch identity mismatch fails before any policy executes
+ok 12 - branch identity mismatch fails before any policy executes
+  ---
+  duration_ms: 0.662792
+  type: 'test'
+  ...
+# Subtest: settlement fails closed on nonterminal, incompatible, cancelled, and unclosed runs
+ok 13 - settlement fails closed on nonterminal, incompatible, cancelled, and unclosed runs
+  ---
+  duration_ms: 1.774666
+  type: 'test'
+  ...
+# Subtest: reload rejects receipts from a different governed starting identity
+ok 14 - reload rejects receipts from a different governed starting identity
+  ---
+  duration_ms: 0.753333
+  type: 'test'
+  ...
+# Subtest: public stylesheet resolves the owned design layers without duplicate loading
+ok 15 - public stylesheet resolves the owned design layers without duplicate loading
+  ---
+  duration_ms: 2.652333
+  type: 'test'
+  ...
+# Subtest: literal paint values belong to tokens, not component and page rules
+ok 16 - literal paint values belong to tokens, not component and page rules
+  ---
+  duration_ms: 3.8665
+  type: 'test'
+  ...
+# Subtest: page entries use stylesheets instead of inline stylesheet forks
+ok 17 - page entries use stylesheets instead of inline stylesheet forks
+  ---
+  duration_ms: 0.868792
+  type: 'test'
+  ...
+# Subtest: paint extraction preserves property names including white-space
+ok 18 - paint extraction preserves property names including white-space
+  ---
+  duration_ms: 4.6325
+  type: 'test'
+  ...
+# Subtest: page compositions consume the shared theme without reviving retired theme forks
+ok 19 - page compositions consume the shared theme without reviving retired theme forks
+  ---
+  duration_ms: 5.579083
+  type: 'test'
+  ...
+# Subtest: empty plugin map slots cannot hide governed scene labels
+ok 20 - empty plugin map slots cannot hide governed scene labels
+  ---
+  duration_ms: 0.395292
+  type: 'test'
+  ...
+# Subtest: Create shares the World typography and monochrome theme rather than forking its palette
+ok 21 - Create shares the World typography and monochrome theme rather than forking its palette
+  ---
+  duration_ms: 0.474875
+  type: 'test'
+  ...
+# Subtest: first GPU completion, failed commit, lease expiry and duplicate delivery are causal model records
+ok 22 - first GPU completion, failed commit, lease expiry and duplicate delivery are causal model records
+  ---
+  duration_ms: 8.376958
+  type: 'test'
+  ...
+# Subtest: paired policies keep the same arrivals and faults; rejected/unfinished/deadlines stay visible
+ok 23 - paired policies keep the same arrivals and faults; rejected/unfinished/deadlines stay visible
+  ---
+  duration_ms: 94.935375
+  type: 'test'
+  ...
+# Subtest: exact JSON checkpoint restoration and replay include pending resource work, leases, retries and RNG
+ok 24 - exact JSON checkpoint restoration and replay include pending resource work, leases, retries and RNG
+  ---
+  duration_ms: 1521.884292
+  type: 'test'
+  ...
+# Subtest: capacity changes recompute outstanding work and stale generation completions cannot finish it
+ok 25 - capacity changes recompute outstanding work and stale generation completions cannot finish it
+  ---
+  duration_ms: 0.598791
+  type: 'test'
+  ...
+# Subtest: authoring parallel routes and shared clusters changes execution; unsupported/disconnected connections reject
+ok 26 - authoring parallel routes and shared clusters changes execution; unsupported/disconnected connections reject
+  ---
+  duration_ms: 10.48925
+  type: 'test'
+  ...
+# Subtest: runner checkpoint restore, repair control replay and immutable accepted architecture
+ok 27 - runner checkpoint restore, repair control replay and immutable accepted architecture
+  ---
+  duration_ms: 74.800083
+  type: 'test'
+  ...
+# Subtest: stage chains are executable beyond one inference layout and invalid model parameters fail closed
+ok 28 - stage chains are executable beyond one inference layout and invalid model parameters fail closed
+  ---
+  duration_ms: 0.566708
+  type: 'test'
+  ...
+# Subtest: observation frequency does not change the event trace or resource trajectory
+ok 29 - observation frequency does not change the event trace or resource trajectory
+  ---
+  duration_ms: 20.785375
+  type: 'test'
+  ...
+# Subtest: accepted runs bind a validated WorldSpec and checkpoints reject a different architecture
+ok 30 - accepted runs bind a validated WorldSpec and checkpoints reject a different architecture
+  ---
+  duration_ms: 3.074459
+  type: 'test'
+  ...
+# Subtest: retry exhaustion is a visible dead-letter outcome with reconciled retained resources
+ok 31 - retry exhaustion is a visible dead-letter outcome with reconciled retained resources
+  ---
+  duration_ms: 0.596417
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster topology generates 256 GPUs across 32 liquid-cooled racks
+ok 32 - gpu-supercluster topology generates 256 GPUs across 32 liquid-cooled racks
+  ---
+  duration_ms: 2.861792
+  type: 'test'
+  ...
+# Subtest: collective solver calculates step times, MFU, and bandwidth bottlenecks for Ring and Tree AllReduce
+ok 33 - collective solver calculates step times, MFU, and bandwidth bottlenecks for Ring and Tree AllReduce
+  ---
+  duration_ms: 97.093667
+  type: 'test'
+  ...
+# Subtest: straggler node fault injection degrades MFU and increases barrier step time
+ok 34 - straggler node fault injection degrades MFU and increases barrier step time
+  ---
+  duration_ms: 55.146583
+  type: 'test'
+  ...
+# Subtest: packet loss affects collective state and coolant controls use the declared 1000 L/min bound
+ok 35 - packet loss affects collective state and coolant controls use the declared 1000 L/min bound
+  ---
+  duration_ms: 109.858417
+  type: 'test'
+  ...
+# Subtest: thermal model solves coolant delta-T, PUE, and triggers thermal throttling under reduced flow
+ok 36 - thermal model solves coolant delta-T, PUE, and triggers thermal throttling under reduced flow
+  ---
+  duration_ms: 1.255166
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster plugin produces deterministic simulation and valid receipts
+ok 37 - gpu-supercluster plugin produces deterministic simulation and valid receipts
+  ---
+  duration_ms: 70.930417
+  type: 'test'
+  ...
+# Subtest: gpu-supercluster activates as a native v4 plugin with deterministic playback and comparison
+ok 38 - gpu-supercluster activates as a native v4 plugin with deterministic playback and comparison
+  ---
+  duration_ms: 284.221709
+  type: 'test'
+  ...
+# Subtest: GPU controls preserve zero faults, clamp physical bounds, and refuse malformed input
+ok 39 - GPU controls preserve zero faults, clamp physical bounds, and refuse malformed input
+  ---
+  duration_ms: 0.416125
+  type: 'test'
+  ...
+# Subtest: pipeline time includes the full bubble share and throughput reconciles to work over time
+ok 40 - pipeline time includes the full bubble share and throughput reconciles to work over time
+  ---
+  duration_ms: 19.247334
+  type: 'test'
+  ...
+# Subtest: default NVLink uses directional bits per second without changing explicit configured units
+ok 41 - default NVLink uses directional bits per second without changing explicit configured units
+  ---
+  duration_ms: 32.683583
+  type: 'test'
+  ...
+# Subtest: coolant flow changes die temperature and thermal caps slow computation and conserve modeled heat
+ok 42 - coolant flow changes die temperature and thermal caps slow computation and conserve modeled heat
+  ---
+  duration_ms: 89.797458
+  type: 'test'
+  ...
+# Subtest: rack populations cannot silently drop GPUs or contradict the declared nodes
+ok 43 - rack populations cannot silently drop GPUs or contradict the declared nodes
+  ---
+  duration_ms: 0.158959
+  type: 'test'
+  ...
+# Subtest: rack visuals retain exact model temperatures and PUE remains a ratio
+ok 44 - rack visuals retain exact model temperatures and PUE remains a ratio
+  ---
+  duration_ms: 78.34475
+  type: 'test'
+  ...
+# Subtest: GPU model provenance binds the source bytes used by the simulation
+ok 45 - GPU model provenance binds the source bytes used by the simulation
+  ---
+  duration_ms: 24.5315
+  type: 'test'
+  ...
+# Subtest: rack glyph drawing uses model values unchanged across render calls
+ok 46 - rack glyph drawing uses model values unchanged across render calls
+  ---
+  duration_ms: 1.282333
+  type: 'test'
+  ...
+# Subtest: datacenter projection provides one isometric meter mapping for facility and plugin layers
+ok 47 - datacenter projection provides one isometric meter mapping for facility and plugin layers
+  ---
+  duration_ms: 1.534709
+  type: 'test'
+  ...
+# Subtest: datacenter overview fits the model coordinates inside the exposed canvas at both widths
+ok 48 - datacenter overview fits the model coordinates inside the exposed canvas at both widths
+  ---
+  duration_ms: 3.225042
+  type: 'test'
+  ...
+# Subtest: training explanation stays on operating dependencies during playback
+ok 49 - training explanation stays on operating dependencies during playback
+  ---
+  duration_ms: 31.546042
+  type: 'test'
+  ...
+# Subtest: host refreshes cached GPU contributions after private control and playback mutations
+ok 50 - host refreshes cached GPU contributions after private control and playback mutations
+  ---
+  duration_ms: 141.145958
+  type: 'test'
+  ...
+# Subtest: network rack drawing, picking and fit use the same rotating 3D geometry
+ok 51 - network rack drawing, picking and fit use the same rotating 3D geometry
+  ---
+  duration_ms: 24.470667
+  type: 'test'
+  ...
+# Subtest: the primary training readout separates executed consequences from configured power
+ok 52 - the primary training readout separates executed consequences from configured power
+  ---
+  duration_ms: 24.37225
+  type: 'test'
+  ...
+# Subtest: event integration converges without discarded substep work or shifted interventions
+ok 53 - event integration converges without discarded substep work or shifted interventions
+  ---
+  duration_ms: 1.510958
+  type: 'test'
+  ...
+# Subtest: a live straggler blocks the collective, accumulates waits, and removal releases dependent racks
+ok 54 - a live straggler blocks the collective, accumulates waits, and removal releases dependent racks
+  ---
+  duration_ms: 20.819667
+  type: 'test'
+  ...
+# Subtest: rack inspector names the actual blocked racks and clears them when compute releases
+ok 55 - rack inspector names the actual blocked racks and clears them when compute releases
+  ---
+  duration_ms: 62.23725
+  type: 'test'
+  ...
+# Subtest: live actions survive controller seek, replay, settlement, and persisted reload
+ok 56 - live actions survive controller seek, replay, settlement, and persisted reload
+  ---
+  duration_ms: 793.203
+  type: 'test'
+  ...
+# Subtest: configured straggler node resolves to the same canonical rack shown by the scenario
+ok 57 - configured straggler node resolves to the same canonical rack shown by the scenario
+  ---
+  duration_ms: 18.760625
+  type: 'test'
+  ...
+# Subtest: playback exposes physical transfers during both tensor and data communication
+ok 58 - playback exposes physical transfers during both tensor and data communication
+  ---
+  duration_ms: 0.315
+  type: 'test'
+  ...
+# Subtest: tensor transfers across nodes become native contribution actors on the executed links
+ok 59 - tensor transfers across nodes become native contribution actors on the executed links
+  ---
+  duration_ms: 1.168458
+  type: 'test'
+  ...
+# Subtest: compute accounting integrates productive rack time independently of sampling and live faults
+ok 60 - compute accounting integrates productive rack time independently of sampling and live faults
+  ---
+  duration_ms: 28.712833
+  type: 'test'
+  ...
+# Subtest: torus layout preserves physical links and stable rack identities across transfer phases
+ok 61 - torus layout preserves physical links and stable rack identities across transfer phases
+  ---
+  duration_ms: 15.908833
+  type: 'test'
+  ...
+# Subtest: measurements disclose their subject, interval and validity; physical layouts retain every entity
+ok 62 - measurements disclose their subject, interval and validity; physical layouts retain every entity
+  ---
+  duration_ms: 16.372875
+  type: 'test'
+  ...
+# Subtest: rack intervals partition elapsed time and reconcile productive compute across timesteps
+ok 63 - rack intervals partition elapsed time and reconcile productive compute across timesteps
+  ---
+  duration_ms: 0.643416
+  type: 'test'
+  ...
+# Subtest: selected rack throughput contributions sum to the cluster over their declared interval
+ok 64 - selected rack throughput contributions sum to the cluster over their declared interval
+  ---
+  duration_ms: 7.325542
+  type: 'test'
+  ...
+# Subtest: executed-run comparison replays live actions over the identical interval and preserves configured power
+ok 65 - executed-run comparison replays live actions over the identical interval and preserves configured power
+  ---
+  duration_ms: 61.491583
+  type: 'test'
+  ...
+# Subtest: visual dependency arrows bind a slowed rack to actual waiters and disappear after release
+ok 66 - visual dependency arrows bind a slowed rack to actual waiters and disappear after release
+  ---
+  duration_ms: 26.17875
+  type: 'test'
+  ...
+# Subtest: every starting preset compiles finite links and reaches an honest terminal outcome
+ok 67 - every starting preset compiles finite links and reaches an honest terminal outcome
+  ---
+  duration_ms: 180.636625
+  type: 'test'
+  ...
+# Subtest: governed relay inputs preserve Gaia row identity, hashes, licenses, and independent truth axes
+ok 68 - governed relay inputs preserve Gaia row identity, hashes, licenses, and independent truth axes
+  ---
+  duration_ms: 2.945667
+  type: 'test'
+  ...
+# Subtest: runtime receipts distinguish newly modeled effects from remaining limitations
+ok 69 - runtime receipts distinguish newly modeled effects from remaining limitations
+  ---
+  duration_ms: 15.922333
+  type: 'test'
+  ...
+# Subtest: stellar propagation carries source rows, transformations, and missing radial-velocity uncertainty
+ok 70 - stellar propagation carries source rows, transformations, and missing radial-velocity uncertainty
+  ---
+  duration_ms: 0.312542
+  type: 'test'
+  ...
+# Subtest: moving-target light time solves a future intercept instead of freezing the target
+ok 71 - moving-target light time solves a future intercept instead of freezing the target
+  ---
+  duration_ms: 0.148125
+  type: 'test'
+  ...
+# Subtest: moving-target light time back-propagates reference-epoch states to transmission time
+ok 72 - moving-target light time back-propagates reference-epoch states to transmission time
+  ---
+  duration_ms: 0.064833
+  type: 'test'
+  ...
+# Subtest: optical model is inverse-square monotonic and exposes modeled rate uncertainty
+ok 73 - optical model is inverse-square monotonic and exposes modeled rate uncertainty
+  ---
+  duration_ms: 0.135458
+  type: 'test'
+  ...
+# Subtest: plugin advances one chronological causal event at a time and settles with receipts
+ok 74 - plugin advances one chronological causal event at a time and settles with receipts
+  ---
+  duration_ms: 59.465083
+  type: 'test'
+  ...
+# Subtest: semantic presentation carries quantities and evidence while v3 compatibility remains valid
+ok 75 - semantic presentation carries quantities and evidence while v3 compatibility remains valid
+  ---
+  duration_ms: 43.560375
+  type: 'test'
+  ...
+# Subtest: comparison reuses seed and epoch while reporting latency, rate, energy, and reliability
+ok 76 - comparison reuses seed and epoch while reporting latency, rate, energy, and reliability
+  ---
+  duration_ms: 27.371875
+  type: 'test'
+  ...
+# Subtest: native v4 contribution preserves true 3D evidence, moving packet depth, and omission inspections
+ok 77 - native v4 contribution preserves true 3D evidence, moving packet depth, and omission inspections
+  ---
+  duration_ms: 16.990708
+  type: 'test'
+  ...
+# Subtest: users can choose arbitrary endpoints and direct, automatic, or manual routing
+ok 78 - users can choose arbitrary endpoints and direct, automatic, or manual routing
+  ---
+  duration_ms: 29.374042
+  type: 'test'
+  ...
+# Subtest: every visible HYG star is selectable with source-specific uncertainty and receipts
+ok 79 - every visible HYG star is selectable with source-specific uncertainty and receipts
+  ---
+  duration_ms: 29.053833
+  type: 'test'
+  ...
+# Subtest: advanced physics lanes expose distinct causality and constructibility receipts
+ok 80 - advanced physics lanes expose distinct causality and constructibility receipts
+  ---
+  duration_ms: 66.301541
+  type: 'test'
+  ...
+# Subtest: operational profiles deterministically change delays, attenuation, and event traces
+ok 81 - operational profiles deterministically change delays, attenuation, and event traces
+  ---
+  duration_ms: 54.199
+  type: 'test'
+  ...
+# Subtest: plugin manifest locks every browser resource with a matching SHA-384 digest
+ok 82 - plugin manifest locks every browser resource with a matching SHA-384 digest
+  ---
+  duration_ms: 1.774083
+  type: 'test'
+  ...
+# Subtest: routing rejects nonfinite link results and impossible success probabilities
+ok 83 - routing rejects nonfinite link results and impossible success probabilities
+  ---
+  duration_ms: 0.462083
+  type: 'test'
+  ...
+# Subtest: request and reply retain causal delivery, moving endpoints, distinct packets and a common terminal baseline
+ok 84 - request and reply retain causal delivery, moving endpoints, distinct packets and a common terminal baseline
+  ---
+  duration_ms: 306.578291
+  type: 'test'
+  ...
+# Subtest: a new destination creates a new request without mutating a prior in-flight schedule
+ok 85 - a new destination creates a new request without mutating a prior in-flight schedule
+  ---
+  duration_ms: 10.439916
+  type: 'test'
+  ...
+# Subtest: communication durations retain seconds instead of rounding small waits to zero years
+ok 86 - communication durations retain seconds instead of rounding small waits to zero years
+  ---
+  duration_ms: 0.210333
+  type: 'test'
+  ...
+# Subtest: request and reply explanations and measurement intervals bind distinct schedules
+ok 87 - request and reply explanations and measurement intervals bind distinct schedules
+  ---
+  duration_ms: 48.383959
+  type: 'test'
+  ...
+# Subtest: multirate coordinator is independent of module and port registration order
+ok 88 - multirate coordinator is independent of module and port registration order
+  ---
+  duration_ms: 13.145
+  type: 'test'
+  ...
+# Subtest: multirate coordinator latches prior committed input before same-time output
+ok 89 - multirate coordinator latches prior committed input before same-time output
+  ---
+  duration_ms: 0.901875
+  type: 'test'
+  ...
+# Subtest: published output observations are read-only, hashed, and restored with checkpoints
+ok 90 - published output observations are read-only, hashed, and restored with checkpoints
+  ---
+  duration_ms: 8.514
+  type: 'test'
+  ...
+# Subtest: multirate coordinator rejects invalid output before publication and retains the failure
+ok 91 - multirate coordinator rejects invalid output before publication and retains the failure
+  ---
+  duration_ms: 0.405459
+  type: 'test'
+  ...
+# Subtest: checkpoint restore and branching reproduce retained state without sharing future execution
+ok 92 - checkpoint restore and branching reproduce retained state without sharing future execution
+  ---
+  duration_ms: 1.54525
+  type: 'test'
+  ...
+# Subtest: authorized controls are ordered canonically and cancellation preserves completed rounds
+ok 93 - authorized controls are ordered canonically and cancellation preserves completed rounds
+  ---
+  duration_ms: 0.468792
+  type: 'test'
+  ...
+# Subtest: replay reports exact match and earliest divergence
+ok 94 - replay reports exact match and earliest divergence
+  ---
+  duration_ms: 1.757792
+  type: 'test'
+  ...
+# Subtest: aggregate, refine, and dispose invoke declared lifecycle operations
+ok 95 - aggregate, refine, and dispose invoke declared lifecycle operations
+  ---
+  duration_ms: 0.487125
+  type: 'test'
+  ...
+# Subtest: declared zero-delay coupled cycles execute only through their named serial solver
+ok 96 - declared zero-delay coupled cycles execute only through their named serial solver
+  ---
+  duration_ms: 0.787375
+  type: 'test'
+  ...
+# Subtest: queued events wake at delivery time, preserve multiplicity and restore across a pending delivery
+ok 97 - queued events wake at delivery time, preserve multiplicity and restore across a pending delivery
+  ---
+  duration_ms: 6.02925
+  type: 'test'
+  ...
+# Subtest: module event wakeups retain independent fixed cadence and zero-time work has a strict bound
+ok 98 - module event wakeups retain independent fixed cadence and zero-time work has a strict bound
+  ---
+  duration_ms: 0.452833
+  type: 'test'
+  ...
+# Subtest: legacy v2 checkpoints restore fixed-cadence callers without inventing missing event state
+ok 99 - legacy v2 checkpoints restore fixed-cadence callers without inventing missing event state
+  ---
+  duration_ms: 2.263333
+  type: 'test'
+  ...
+# Subtest: six canonical multiscale schemas are strict versioned public contracts
+ok 100 - six canonical multiscale schemas are strict versioned public contracts
+  ---
+  duration_ms: 7.831833
+  type: 'test'
+  ...
+# Subtest: one Earth scope can contain one datacenter through explicit frames, ports, and coupling
+ok 101 - one Earth scope can contain one datacenter through explicit frames, ports, and coupling
+  ---
+  duration_ms: 1.08175
+  type: 'test'
+  ...
+# Subtest: WGS84 coordinates round trip through an explicit bidirectional ECEF adapter
+ok 102 - WGS84 coordinates round trip through an explicit bidirectional ECEF adapter
+  ---
+  duration_ms: 0.306708
+  type: 'test'
+  ...
+# Subtest: unit mismatch requires a named adapter
+ok 103 - unit mismatch requires a named adapter
+  ---
+  duration_ms: 0.409916
+  type: 'test'
+  ...
+# Subtest: missing coordinate frames and frame cycles fail closed
+ok 104 - missing coordinate frames and frame cycles fail closed
+  ---
+  duration_ms: 0.24725
+  type: 'test'
+  ...
+# Subtest: sampled state cannot hide an ambiguous event clock
+ok 105 - sampled state cannot hide an ambiguous event clock
+  ---
+  duration_ms: 0.06125
+  type: 'test'
+  ...
+# Subtest: zero-delay feedback requires a named coupled solver covering the cycle
+ok 106 - zero-delay feedback requires a named coupled solver covering the cycle
+  ---
+  duration_ms: 3.265833
+  type: 'test'
+  ...
+# Subtest: checkpoint requires reconstructible state and unique module identities
+ok 107 - checkpoint requires reconstructible state and unique module identities
+  ---
+  duration_ms: 0.663792
+  type: 'test'
+  ...
+# Subtest: fidelity transitions cannot claim exact continuity after discarding information
+ok 108 - fidelity transitions cannot claim exact continuity after discarding information
+  ---
+  duration_ms: 0.750709
+  type: 'test'
+  ...
+# Subtest: v4 truth axes preserve origin, time, and uncertainty independently
+ok 109 - v4 truth axes preserve origin, time, and uncertainty independently
+  ---
+  duration_ms: 0.725333
+  type: 'test'
+  ...
+# Subtest: provenance registry exposes source records through render-object bindings
+ok 110 - provenance registry exposes source records through render-object bindings
+  ---
+  duration_ms: 0.821458
+  type: 'test'
+  ...
+# Subtest: v1-v3 adapter removes final visual styling authority from plugins
+ok 111 - v1-v3 adapter removes final visual styling authority from plugins
+  ---
+  duration_ms: 0.343
+  type: 'test'
+  ...
+# Subtest: v4 contribution closes every rendered and simulated claim over provenance records
+ok 112 - v4 contribution closes every rendered and simulated claim over provenance records
+  ---
+  duration_ms: 1.259334
+  type: 'test'
+  ...
+# Subtest: timeline orders causal events, branches from replay state, and rejects missing causes
+ok 113 - timeline orders causal events, branches from replay state, and rejects missing causes
+  ---
+  duration_ms: 0.63375
+  type: 'test'
+  ...
+# Subtest: shared clock owns rate, playback, seeking, replay, and event delivery
+ok 114 - shared clock owns rate, playback, seeking, replay, and event delivery
+  ---
+  duration_ms: 1.965458
+  type: 'test'
+  ...
+# Subtest: semantic compositor bounds widths and clusters dense points without losing provenance
+ok 115 - semantic compositor bounds widths and clusters dense points without losing provenance
+  ---
+  duration_ms: 7.286125
+  type: 'test'
+  ...
+# Subtest: semantic compositor gives consequential quantities distinct domain colors
+ok 116 - semantic compositor gives consequential quantities distinct domain colors
+  ---
+  duration_ms: 0.157125
+  type: 'test'
+  ...
+# Subtest: semantic compositor maps governed neighborhood prices onto a shared heat scale
+ok 117 - semantic compositor maps governed neighborhood prices onto a shared heat scale
+  ---
+  duration_ms: 0.359166
+  type: 'test'
+  ...
+# Subtest: View Director arbitrates intents while manual navigation remains authoritative
+ok 118 - View Director arbitrates intents while manual navigation remains authoritative
+  ---
+  duration_ms: 0.643958
+  type: 'test'
+  ...
+# Subtest: Safety v4 exposes observed rows separately from the derived route estimate
+ok 119 - Safety v4 exposes observed rows separately from the derived route estimate
+  ---
+  duration_ms: 12.36475
+  type: 'test'
+  ...
+# Subtest: Food v4 carries simulated lineage, source rows, controls, and uncertainty together
+ok 120 - Food v4 carries simulated lineage, source rows, controls, and uncertainty together
+  ---
+  duration_ms: 4.216125
+  type: 'test'
+  ...
+# Subtest: Orbital v4 separates pinned state vectors from forecast transfer modeling
+ok 121 - Orbital v4 separates pinned state vectors from forecast transfer modeling
+  ---
+  duration_ms: 61.396375
+  type: 'test'
+  ...
+# Subtest: the twelve connected experiences each load one native v4 contribution and City is only the substrate
+ok 122 - the twelve connected experiences each load one native v4 contribution and City is only the substrate
+  ---
+  duration_ms: 8.682208
+  type: 'test'
+  ...
+# Subtest: City WGS84 plugin geometry uses the world local origin instead of the country fallback
+ok 123 - City WGS84 plugin geometry uses the world local origin instead of the country fallback
+  ---
+  duration_ms: 420.018583
+  type: 'test'
+  ...
+# Subtest: ranked select groups require a complete unique shared option set
+ok 124 - ranked select groups require a complete unique shared option set
+  ---
+  duration_ms: 0.522083
+  type: 'test'
+  ...
+# Subtest: fixed-step playback is identical at 30, 60 and 144 Hz and speed changes only scheduling
+ok 125 - fixed-step playback is identical at 30, 60 and 144 Hz and speed changes only scheduling
+  ---
+  duration_ms: 0.641208
+  type: 'test'
+  ...
+# Subtest: fixed-step playback retains overdue work and freezes it while paused
+ok 126 - fixed-step playback retains overdue work and freezes it while paused
+  ---
+  duration_ms: 0.072125
+  type: 'test'
+  ...
+# Subtest: child representations atomically replace a pinned parent within final-state budgets
+ok 127 - child representations atomically replace a pinned parent within final-state budgets
+  ---
+  duration_ms: 210.662166
+  type: 'test'
+  ...
+# Subtest: failed child staging preserves the active parent representation
+ok 128 - failed child staging preserves the active parent representation
+  ---
+  duration_ms: 96.350625
+  type: 'test'
+  ...
+# Subtest: predictive prefetch uses stable priority order and respects pins during eviction
+ok 129 - predictive prefetch uses stable priority order and respects pins during eviction
+  ---
+  duration_ms: 39.085667
+  type: 'test'
+  ...
+# Subtest: spatial loading and eviction cannot alter causal simulation execution
+ok 130 - spatial loading and eviction cannot alter causal simulation execution
+  ---
+  duration_ms: 181.699875
+  type: 'test'
+  ...
+# Subtest: the discovery catalog covers each registered profile and standalone experiences once
+ok 131 - the discovery catalog covers each registered profile and standalone experiences once
+  ---
+  duration_ms: 1.934792
+  type: 'test'
+  ...
+# Subtest: every catalog entry has safe SVG line art and appears in the gallery
+ok 132 - every catalog entry has safe SVG line art and appears in the gallery
+  ---
+  duration_ms: 166.716583
+  type: 'test'
+  ...
+# Subtest: session keeps preparation, execution, rendering, and measurement independent
+ok 133 - session keeps preparation, execution, rendering, and measurement independent
+  ---
+  duration_ms: 0.5635
+  type: 'test'
+  ...
+# Subtest: operations declare their consequences and unavailable actions cannot run
+ok 134 - operations declare their consequences and unavailable actions cannot run
+  ---
+  duration_ms: 1.053375
+  type: 'test'
+  ...
+# Subtest: superseded asynchronous commands cancel immediately and cannot commit stale state
+ok 135 - superseded asynchronous commands cancel immediately and cannot commit stale state
+  ---
+  duration_ms: 3.093958
+  type: 'test'
+  ...
+# Subtest: disposal cancels work even when a provider never resolves
+ok 136 - disposal cancels work even when a provider never resolves
+  ---
+  duration_ms: 0.26725
+  type: 'test'
+  ...
+# Subtest: cancelled non-abortable mutations drain before the next scenario, with observation available
+ok 137 - cancelled non-abortable mutations drain before the next scenario, with observation available
+  ---
+  duration_ms: 1.757
+  type: 'test'
+  ...
+# Subtest: governed datasets validate and preserve the observed/scenario boundary
+ok 138 - governed datasets validate and preserve the observed/scenario boundary
+  ---
+  duration_ms: 5.19075
+  type: 'test'
+  ...
+# Subtest: allocation is deterministic and independently conserves demand and edge capacity
+ok 139 - allocation is deterministic and independently conserves demand and edge capacity
+  ---
+  duration_ms: 91.014584
+  type: 'test'
+  ...
+# Subtest: allocation policies execute distinct feasible allocations on identical exogenous inputs
+ok 140 - allocation policies execute distinct feasible allocations on identical exogenous inputs
+  ---
+  duration_ms: 24.261792
+  type: 'test'
+  ...
+# Subtest: every failed target gets a progressive repair voyage and causally ranked burden
+ok 141 - every failed target gets a progressive repair voyage and causally ranked burden
+  ---
+  duration_ms: 100.23725
+  type: 'test'
+  ...
+# Subtest: solver fails closed for unavailable-path flow and invalid policy inputs
+ok 142 - solver fails closed for unavailable-path flow and invalid policy inputs
+  ---
+  duration_ms: 46.233333
+  type: 'test'
+  ...
+# Subtest: comparison executes synchronized policy-blind branches and settles compatible metrics
+ok 143 - comparison executes synchronized policy-blind branches and settles compatible metrics
+  ---
+  duration_ms: 19.71125
+  type: 'test'
+  ...
+# Subtest: comparison uses the explicit selected and comparison policies and refuses identical branches
+ok 144 - comparison uses the explicit selected and comparison policies and refuses identical branches
+  ---
+  duration_ms: 52.554125
+  type: 'test'
+  ...
+# Subtest: comparison reuses only an exact selected branch and preserves the independent receipt
+ok 145 - comparison reuses only an exact selected branch and preserves the independent receipt
+  ---
+  duration_ms: 47.16575
+  type: 'test'
+  ...
+# Subtest: plugin comparison publishes one full proof and returns only its settled identity
+ok 146 - plugin comparison publishes one full proof and returns only its settled identity
+  ---
+  duration_ms: 70.717708
+  type: 'test'
+  ...
+# Subtest: typed controls rebuild on start, step without recomputation, and replay deterministically
+ok 147 - typed controls rebuild on start, step without recomputation, and replay deterministically
+  ---
+  duration_ms: 62.614916
+  type: 'test'
+  ...
+# Subtest: v4 contribution exposes semantic quantities and every accepted public control
+ok 148 - v4 contribution exposes semantic quantities and every accepted public control
+  ---
+  duration_ms: 33.987834
+  type: 'test'
+  ...
+# Subtest: nearest-first repair follows arrival distance and skips depleted resources
+ok 149 - nearest-first repair follows arrival distance and skips depleted resources
+  ---
+  duration_ms: 0.373084
+  type: 'test'
+  ...
+# Subtest: subsea visual flow paths match admitted allocations and compare the same demand before failures
+ok 150 - subsea visual flow paths match admitted allocations and compare the same demand before failures
+  ---
+  duration_ms: 11.186041
+  type: 'test'
+  ...
+# Subtest: restoring the final failed cable uses the declared no-failures control value and runs a healthy scenario
+ok 151 - restoring the final failed cable uses the declared no-failures control value and runs a healthy scenario
+  ---
+  duration_ms: 56.392084
+  type: 'test'
+  ...
+# Subtest: canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys
+ok 152 - canonical WorldSpec and correction-record bytes preserve ordering, Unicode, sparse arrays and prototype keys
+  ---
+  duration_ms: 0.704
+  type: 'test'
+  ...
+# Subtest: compiled Create worlds are canonical public WorldSpec artifacts
+ok 153 - compiled Create worlds are canonical public WorldSpec artifacts
+  ---
+  duration_ms: 686.245959
+  type: 'test'
+  ...
+# Subtest: deterministic compiler lanes declare compiler determinism as a required class
+ok 154 - deterministic compiler lanes declare compiler determinism as a required class
+  ---
+  duration_ms: 353.050375
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+ok 155 - WorldSpec rejects unknown, duplicate, and unconfigured pixel determinism classes
+  ---
+  duration_ms: 420.103125
+  type: 'test'
+  ...
+# Subtest: WorldSpec safety rules are typed, bounded, and internally consistent
+ok 156 - WorldSpec safety rules are typed, bounded, and internally consistent
+  ---
+  duration_ms: 401.587125
+  type: 'test'
+  ...
+# Subtest: a user safety edit becomes authored executable WorldSpec intent
+ok 157 - a user safety edit becomes authored executable WorldSpec intent
+  ---
+  duration_ms: 535.805375
+  type: 'test'
+  ...
+# Subtest: WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+ok 158 - WorldSpec export omits compiler evidence and import reconstructs an executable proof chain
+  ---
+  duration_ms: 443.052208
+  type: 'test'
+  ...
+# Subtest: edited WorldSpec import retains user authority and rejects incompatible execution bindings
+ok 159 - edited WorldSpec import retains user authority and rejects incompatible execution bindings
+  ---
+  duration_ms: 571.989166
+  type: 'test'
+  ...
+# Subtest: WorldSpec import rejects content tampering instead of silently minting a new identity
+ok 160 - WorldSpec import rejects content tampering instead of silently minting a new identity
+  ---
+  duration_ms: 383.189
+  type: 'test'
+  ...
+# Subtest: WorldSpec rejects forged authorship references and incoherent patch history
+ok 161 - WorldSpec rejects forged authorship references and incoherent patch history
+  ---
+  duration_ms: 554.508125
+  type: 'test'
+  ...
+# Subtest: legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+ok 162 - legacy simulation specs migrate to WorldSpec instead of remaining a second public identity
+  ---
+  duration_ms: 0.384542
+  type: 'test'
+  ...
+# Subtest: WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+ok 163 - WorldSpec 1.0 exports migrate without inventing compiler baselines or reconciliations
+  ---
+  duration_ms: 537.116709
+  type: 'test'
+  ...
+# Subtest: user edits append provenance, reject immutable evidence, and change execution identity
+ok 164 - user edits append provenance, reject immutable evidence, and change execution identity
+  ---
+  duration_ms: 493.917834
+  type: 'test'
+  ...
+# Subtest: user edits cannot forge grounding evidence or rewrite compiler refusals
+ok 165 - user edits cannot forge grounding evidence or rewrite compiler refusals
+  ---
+  duration_ms: 1162.576834
+  type: 'test'
+  ...
+# Subtest: compiler baseline reverses append-only user patches and rejects a false patch chain
+ok 166 - compiler baseline reverses append-only user patches and rejects a false patch chain
+  ---
+  duration_ms: 558.338083
+  type: 'test'
+  ...
+# Subtest: semantic WorldSpec edits replace Phase 4 input and reach visual execution
+ok 167 - semantic WorldSpec edits replace Phase 4 input and reach visual execution
+  ---
+  duration_ms: 480.130084
+  type: 'test'
+  ...
+# Subtest: Create exposes editor, import, export, and replay controls in runtime order
+ok 168 - Create exposes editor, import, export, and replay controls in runtime order
+  ---
+  duration_ms: 0.481625
+  type: 'test'
+  ...
+# Subtest: a user may explicitly refuse an unsupported node without retaining stale execution obligations
+ok 169 - a user may explicitly refuse an unsupported node without retaining stale execution obligations
+  ---
+  duration_ms: 454.802
+  type: 'test'
+  ...
+# Subtest: page CSS cannot introduce native controls or target component internals
+ok 170 - page CSS cannot introduce native controls or target component internals
+  ---
+  duration_ms: 5.72025
+  type: 'test'
+  ...
+1..170
+# tests 170
+# suites 0
+# pass 170
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8951.049291
