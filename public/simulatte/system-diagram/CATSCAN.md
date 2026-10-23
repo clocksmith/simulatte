@@ -32,7 +32,7 @@ Expose `/system-diagram` as a system diagram editor whose drawn architecture run
 
 ## Acceptance
 
-- Evidence: [document tests](../../../tests/system-diagram-document.test.cjs).
+- Evidence: [document tests](../../../tests/system-diagram-document.test.cjs), [session tests](../../../tests/system-diagram-session.test.cjs), [engine tests](../../../tests/system-diagram-engine.test.cjs), [kernel tests](../../../tests/system-diagram-kernels.test.cjs) and [browser journey](../../../tools/simulatte/audit-system-diagram-editor.mjs).
 - Browser journeys cover drawing, connecting, configuring, running, faulting and replay on desktop and a narrow viewport, separately from human comprehension.
 
 ## Non-goals

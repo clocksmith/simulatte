@@ -1,0 +1,247 @@
+{
+  "schema": "simulatte.systemDiagram.v1",
+  "id": "web-service",
+  "name": "Web service, cache and background tasks",
+  "description": "Synthetic requests call an API, a TTL cache with asynchronous replica origin, and a leased task queue with an idempotent result store. Cache/replica timing is an authored approximation.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 30
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "clients",
+      "classId": "web-client",
+      "label": "Web clients",
+      "x": 0,
+      "y": 110,
+      "params": {
+        "pattern": "constant",
+        "ratePerSec": 2,
+        "maxRequests": 12,
+        "stopSec": 6,
+        "retries": 1,
+        "timeoutMs": 3000,
+        "keySpace": 4
+      }
+    },
+    {
+      "id": "api",
+      "classId": "web-server",
+      "label": "CPU API",
+      "x": 240,
+      "y": 110,
+      "params": {
+        "serviceMs": 5,
+        "serviceDist": "constant",
+        "callTimeoutMs": 2000
+      }
+    },
+    {
+      "id": "cache",
+      "classId": "cache",
+      "label": "TTL cache",
+      "x": 480,
+      "y": 0,
+      "params": {
+        "capacityKeys": 8,
+        "ttlSec": 2,
+        "coalesceMisses": true,
+        "failOpen": false
+      }
+    },
+    {
+      "id": "replicas",
+      "classId": "replicated-db",
+      "label": "Async replica store",
+      "x": 720,
+      "y": 0,
+      "params": {
+        "replicas": 3,
+        "replication": "async",
+        "readFrom": "followers",
+        "replicationLagMs": 60,
+        "readMs": 2,
+        "writeMs": 4,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "queue",
+      "classId": "task-queue",
+      "label": "Task queue",
+      "x": 480,
+      "y": 240,
+      "params": {
+        "capacity": 20,
+        "prefetch": 2,
+        "visibilityTimeoutMs": 1000,
+        "maxReceives": 3,
+        "retryDelayMs": 100
+      }
+    },
+    {
+      "id": "worker",
+      "classId": "worker",
+      "label": "CPU worker",
+      "x": 720,
+      "y": 240,
+      "params": {
+        "serviceMs": 30,
+        "serviceDist": "constant",
+        "outputPayload": "json",
+        "retries": 1
+      }
+    },
+    {
+      "id": "results",
+      "classId": "idempotent-store",
+      "label": "Idempotent results",
+      "x": 960,
+      "y": 240,
+      "params": {
+        "writeMs": 3,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "deadletters",
+      "classId": "dead-letter-queue",
+      "label": "Failed deliveries",
+      "x": 480,
+      "y": 420,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "requests",
+      "from": {
+        "nodeId": "clients",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "api",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "lookup",
+      "from": {
+        "nodeId": "api",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "cache",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "origin",
+      "from": {
+        "nodeId": "cache",
+        "portId": "origin"
+      },
+      "to": {
+        "nodeId": "replicas",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "enqueue",
+      "from": {
+        "nodeId": "api",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "queue",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "op": "write",
+        "order": 1
+      }
+    },
+    {
+      "id": "consume",
+      "from": {
+        "nodeId": "queue",
+        "portId": "consumers"
+      },
+      "to": {
+        "nodeId": "worker",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "op": "write"
+      }
+    },
+    {
+      "id": "commit",
+      "from": {
+        "nodeId": "worker",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "results",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "op": "write"
+      }
+    },
+    {
+      "id": "dead",
+      "from": {
+        "nodeId": "queue",
+        "portId": "dlq"
+      },
+      "to": {
+        "nodeId": "deadletters",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [
+    {
+      "id": "result-outage",
+      "atSec": 2,
+      "untilSec": 3,
+      "target": {
+        "kind": "node",
+        "id": "results"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

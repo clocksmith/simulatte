@@ -9,27 +9,174 @@
       "description": "Leader with followers. Async, sync or quorum replication; replication lag produces stale follower reads, leader failure triggers an election and unreplicated async writes are lost.",
       "paramSets": [],
       "params": {
-        "replicas": { "type": "integer", "label": "Replicas", "min": 1, "max": 9, "default": 3, "group": "basic" },
-        "replication": { "type": "enum", "label": "Replication", "options": ["async", "sync", "quorum"], "default": "async", "group": "basic" },
-        "writeQuorum": { "type": "integer", "label": "Write quorum (W)", "min": 1, "max": 9, "default": 2, "group": "basic" },
-        "readQuorum": { "type": "integer", "label": "Read quorum (R)", "min": 1, "max": 9, "default": 1, "group": "basic" },
-        "readFrom": { "type": "enum", "label": "Read from", "options": ["leader", "followers", "any"], "default": "leader", "group": "basic" },
-        "replicationLagMs": { "type": "number", "label": "Replication lag", "unit": "ms", "min": 0, "max": 3600000, "default": 50, "group": "basic" },
-        "interReplicaMs": { "type": "number", "label": "Replica round trip", "unit": "ms", "min": 0, "max": 60000, "default": 1, "group": "advanced" },
-        "electionMs": { "type": "number", "label": "Failover time", "unit": "ms", "min": 0, "max": 3600000, "default": 5000, "group": "basic" },
-        "readMs": { "type": "number", "label": "Read time", "unit": "ms", "min": 0, "max": 3600000, "default": 2, "group": "basic" },
-        "writeMs": { "type": "number", "label": "Write time", "unit": "ms", "min": 0, "max": 3600000, "default": 5, "group": "basic" },
-        "serviceDist": { "type": "enum", "label": "Service distribution", "options": ["constant", "exponential", "lognormal"], "default": "exponential", "group": "advanced" },
-        "serviceCv": { "type": "number", "label": "Lognormal variation", "unit": "cv", "min": 0, "max": 10, "default": 1, "group": "advanced" },
-        "connections": { "type": "integer", "label": "Connections per replica", "min": 1, "max": 100000, "default": 50, "group": "basic" },
-        "queueCapacity": { "type": "integer", "label": "Wait queue", "unit": "requests", "min": 0, "max": 100000, "default": 1000, "group": "advanced" },
-        "errorRate": { "type": "number", "label": "Error rate", "unit": "fraction", "min": 0, "max": 1, "default": 0, "group": "advanced" },
-        "responseKb": { "type": "number", "label": "Response size", "unit": "KB", "min": 0, "max": 1000000, "default": 1, "group": "advanced" }
+        "replicas": {
+          "type": "integer",
+          "label": "Replicas",
+          "min": 1,
+          "max": 9,
+          "default": 3,
+          "group": "basic"
+        },
+        "replication": {
+          "type": "enum",
+          "label": "Replication",
+          "options": [
+            "async",
+            "sync",
+            "quorum"
+          ],
+          "default": "async",
+          "group": "basic"
+        },
+        "writeQuorum": {
+          "type": "integer",
+          "label": "Write quorum (W)",
+          "min": 1,
+          "max": 9,
+          "default": 2,
+          "group": "basic"
+        },
+        "readQuorum": {
+          "type": "integer",
+          "label": "Read quorum (R)",
+          "min": 1,
+          "max": 9,
+          "default": 1,
+          "group": "basic"
+        },
+        "readFrom": {
+          "type": "enum",
+          "label": "Read from",
+          "options": [
+            "leader",
+            "followers",
+            "any"
+          ],
+          "default": "leader",
+          "group": "basic"
+        },
+        "replicationLagMs": {
+          "type": "number",
+          "label": "Replication lag",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 50,
+          "group": "basic"
+        },
+        "interReplicaMs": {
+          "type": "number",
+          "label": "Replica round trip",
+          "unit": "ms",
+          "min": 0,
+          "max": 60000,
+          "default": 1,
+          "group": "advanced"
+        },
+        "electionMs": {
+          "type": "number",
+          "label": "Failover time",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 5000,
+          "group": "basic"
+        },
+        "readMs": {
+          "type": "number",
+          "label": "Read time",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 2,
+          "group": "basic"
+        },
+        "writeMs": {
+          "type": "number",
+          "label": "Write time",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 5,
+          "group": "basic"
+        },
+        "serviceDist": {
+          "type": "enum",
+          "label": "Service distribution",
+          "options": [
+            "constant",
+            "exponential",
+            "lognormal"
+          ],
+          "default": "exponential",
+          "group": "advanced"
+        },
+        "serviceCv": {
+          "type": "number",
+          "label": "Lognormal variation",
+          "unit": "cv",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "advanced"
+        },
+        "connections": {
+          "type": "integer",
+          "label": "Connections per replica",
+          "min": 1,
+          "max": 100000,
+          "default": 50,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Wait queue",
+          "unit": "requests",
+          "min": 0,
+          "max": 100000,
+          "default": 1000,
+          "group": "advanced"
+        },
+        "errorRate": {
+          "type": "number",
+          "label": "Error rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "advanced"
+        },
+        "responseKb": {
+          "type": "number",
+          "label": "Response size",
+          "unit": "KB",
+          "min": 0,
+          "max": 1000000,
+          "default": 1,
+          "group": "advanced"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Queries", "accepts": ["any"], "multiple": true, "required": true }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Queries",
+          "accepts": [
+            "any"
+          ],
+          "multiple": true,
+          "required": true
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies", "failLeader", "failReplica"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies",
+        "failLeader",
+        "failReplica"
+      ]
     },
     {
       "id": "cache",
@@ -37,20 +184,103 @@
       "description": "Keyed cache with capacity, TTL and sampled LRU eviction. Misses call the origin; optional miss coalescing limits stampedes; a crashed cache can fail open to the origin.",
       "paramSets": [],
       "params": {
-        "capacityKeys": { "type": "integer", "label": "Capacity", "unit": "keys", "min": 1, "max": 1000000, "default": 10000, "group": "basic" },
-        "ttlSec": { "type": "number", "label": "TTL (0 = none)", "unit": "s", "min": 0, "max": 86400, "default": 60, "group": "basic" },
-        "hitMs": { "type": "number", "label": "Hit time", "unit": "ms", "min": 0, "max": 60000, "default": 0.5, "group": "basic" },
-        "concurrency": { "type": "integer", "label": "Concurrency", "min": 1, "max": 1000000, "default": 10000, "group": "advanced" },
-        "coalesceMisses": { "type": "boolean", "label": "Coalesce misses", "default": false, "group": "basic" },
-        "writePolicy": { "type": "enum", "label": "Writes", "options": ["invalidate", "write-through", "write-around"], "default": "invalidate", "group": "advanced" },
-        "failOpen": { "type": "boolean", "label": "Bypass to origin when down", "default": true, "group": "basic" },
-        "callTimeoutMs": { "type": "number", "label": "Origin timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 1000, "group": "basic" }
+        "capacityKeys": {
+          "type": "integer",
+          "label": "Capacity",
+          "unit": "keys",
+          "min": 1,
+          "max": 1000000,
+          "default": 10000,
+          "group": "basic"
+        },
+        "ttlSec": {
+          "type": "number",
+          "label": "TTL (0 = none)",
+          "unit": "s",
+          "min": 0,
+          "max": 86400,
+          "default": 60,
+          "group": "basic"
+        },
+        "hitMs": {
+          "type": "number",
+          "label": "Hit time",
+          "unit": "ms",
+          "min": 0,
+          "max": 60000,
+          "default": 0.5,
+          "group": "basic"
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "min": 1,
+          "max": 1000000,
+          "default": 10000,
+          "group": "advanced"
+        },
+        "coalesceMisses": {
+          "type": "boolean",
+          "label": "Coalesce misses",
+          "default": false,
+          "group": "basic"
+        },
+        "writePolicy": {
+          "type": "enum",
+          "label": "Writes",
+          "options": [
+            "invalidate",
+            "write-through",
+            "write-around"
+          ],
+          "default": "invalidate",
+          "group": "advanced"
+        },
+        "failOpen": {
+          "type": "boolean",
+          "label": "Bypass to origin when down",
+          "default": false,
+          "group": "basic"
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Origin timeout",
+          "unit": "ms",
+          "min": 1,
+          "max": 3600000,
+          "default": 1000,
+          "group": "basic"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Lookups", "accepts": ["any"], "multiple": true, "required": true },
-        { "id": "origin", "direction": "out", "label": "Origin", "emits": ["inherit"], "multiple": false, "required": false }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Lookups",
+          "accepts": [
+            "any"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "origin",
+          "direction": "out",
+          "label": "Origin",
+          "emits": [
+            "inherit"
+          ],
+          "multiple": false,
+          "required": false
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     },
     {
       "id": "objectStore",
@@ -58,26 +288,159 @@
       "description": "Blob storage whose latency is a base time plus object size over per-request throughput.",
       "paramSets": [],
       "params": {
-        "baseMs": { "type": "number", "label": "First-byte time", "unit": "ms", "min": 0, "max": 3600000, "default": 20, "group": "basic" },
-        "throughputMBps": { "type": "number", "label": "Per-request throughput", "unit": "MB/s", "min": 0.001, "max": 100000, "default": 100, "group": "basic" },
-        "serviceDist": { "type": "enum", "label": "Service distribution", "options": ["constant", "exponential", "lognormal"], "default": "lognormal", "group": "advanced" },
-        "serviceCv": { "type": "number", "label": "Lognormal variation", "unit": "cv", "min": 0, "max": 10, "default": 0.5, "group": "advanced" },
-        "concurrency": { "type": "integer", "label": "Concurrency", "min": 1, "max": 1000000, "default": 1000, "group": "advanced" },
-        "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "requests", "min": 0, "max": 1000000, "default": 10000, "group": "advanced" },
-        "errorRate": { "type": "number", "label": "Error rate", "unit": "fraction", "min": 0, "max": 1, "default": 0, "group": "basic" }
+        "baseMs": {
+          "type": "number",
+          "label": "First-byte time",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 20,
+          "group": "basic"
+        },
+        "throughputMBps": {
+          "type": "number",
+          "label": "Per-request throughput",
+          "unit": "MB/s",
+          "min": 0.001,
+          "max": 100000,
+          "default": 100,
+          "group": "basic"
+        },
+        "serviceDist": {
+          "type": "enum",
+          "label": "Service distribution",
+          "options": [
+            "constant",
+            "exponential",
+            "lognormal"
+          ],
+          "default": "lognormal",
+          "group": "advanced"
+        },
+        "serviceCv": {
+          "type": "number",
+          "label": "Lognormal variation",
+          "unit": "cv",
+          "min": 0,
+          "max": 10,
+          "default": 0.5,
+          "group": "advanced"
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "min": 1,
+          "max": 1000000,
+          "default": 1000,
+          "group": "advanced"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "requests",
+          "min": 0,
+          "max": 1000000,
+          "default": 10000,
+          "group": "advanced"
+        },
+        "errorRate": {
+          "type": "number",
+          "label": "Error rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "basic"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Objects", "accepts": ["any"], "multiple": true, "required": true }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Objects",
+          "accepts": [
+            "any"
+          ],
+          "multiple": true,
+          "required": true
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     }
   ],
   "classes": [
-    { "id": "replicated-db", "label": "Replicated database", "category": "storage", "kernel": "replicatedDb", "glyph": "replicas", "description": "Leader and followers with asynchronous replication.", "defaults": {} },
-    { "id": "quorum-db", "label": "Quorum database", "category": "storage", "kernel": "replicatedDb", "glyph": "replicas", "description": "Three replicas with W=2, R=2 quorum reads and writes.", "defaults": { "replication": "quorum", "writeQuorum": 2, "readQuorum": 2, "readFrom": "any" } },
-    { "id": "cache", "label": "In-memory cache", "category": "storage", "kernel": "cache", "glyph": "cache", "description": "Key-value cache in front of a slower origin.", "defaults": {} },
-    { "id": "cdn-edge", "label": "CDN edge", "category": "edge", "kernel": "cache", "glyph": "globe", "description": "Edge cache serving popular content near users.", "defaults": { "capacityKeys": 50000, "ttlSec": 300, "hitMs": 1, "coalesceMisses": true } },
-    { "id": "object-store", "label": "Object storage", "category": "storage", "kernel": "objectStore", "glyph": "bucket", "description": "Durable blob storage.", "defaults": {} },
-    { "id": "document-lake", "label": "Document lake", "category": "data", "kernel": "objectStore", "glyph": "lake", "description": "Raw unstructured documents awaiting processing.", "defaults": { "baseMs": 40, "throughputMBps": 50 } }
+    {
+      "id": "replicated-db",
+      "label": "Replicated database",
+      "category": "storage",
+      "kernel": "replicatedDb",
+      "glyph": "replicas",
+      "description": "Leader and followers with asynchronous replication.",
+      "defaults": {}
+    },
+    {
+      "id": "quorum-db",
+      "label": "Quorum database",
+      "category": "storage",
+      "kernel": "replicatedDb",
+      "glyph": "replicas",
+      "description": "Three replicas with W=2, R=2 quorum reads and writes.",
+      "defaults": {
+        "replication": "quorum",
+        "writeQuorum": 2,
+        "readQuorum": 2,
+        "readFrom": "any"
+      }
+    },
+    {
+      "id": "cache",
+      "label": "In-memory cache",
+      "category": "storage",
+      "kernel": "cache",
+      "glyph": "cache",
+      "description": "Key-value cache in front of a slower origin.",
+      "defaults": {}
+    },
+    {
+      "id": "cdn-edge",
+      "label": "CDN edge",
+      "category": "edge",
+      "kernel": "cache",
+      "glyph": "globe",
+      "description": "Edge cache serving popular content near users.",
+      "defaults": {
+        "capacityKeys": 50000,
+        "ttlSec": 300,
+        "hitMs": 1,
+        "coalesceMisses": true
+      }
+    },
+    {
+      "id": "object-store",
+      "label": "Object storage",
+      "category": "storage",
+      "kernel": "objectStore",
+      "glyph": "bucket",
+      "description": "Durable blob storage.",
+      "defaults": {}
+    },
+    {
+      "id": "document-lake",
+      "label": "Document lake",
+      "category": "data",
+      "kernel": "objectStore",
+      "glyph": "lake",
+      "description": "Raw unstructured documents awaiting processing.",
+      "defaults": {
+        "baseMs": 40,
+        "throughputMBps": 50
+      }
+    }
   ]
 }

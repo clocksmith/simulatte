@@ -8,8 +8,8 @@
   "path": "/system-diagram",
   "tier": "datacenter",
   "profile": "system-diagram-v1",
-  "profilePath": "/data/distributed-repair/system-diagram-profile-v1.json",
-  "entry": "/simulatte/distributed-repair/index.html",
+  "profilePath": "/data/system-diagram/profile.json",
+  "entry": "/simulatte/system-diagram/index.html",
   "legacy": [
     "/simulatte/distributed-repair/index.html",
     "/simulatte/distributed-repair"
@@ -21,8 +21,8 @@
   "previewAsset": "/simulation-previews/system-diagram.svg",
   "limitations": "Synthetic typed DAGs with authored service times, FIFO queues, finite retries, memory admission and asynchronous replica effects. No real AI, scraping, consensus, hardware calibration or production capacity proof.",
   "evidence": [
-    "tests/system-diagram-model.test.cjs",
-    "tests/system-diagram-editor.test.cjs"
+    "tests/system-diagram-engine.test.cjs",
+    "tests/system-diagram-session.test.cjs"
   ]
 },
   {

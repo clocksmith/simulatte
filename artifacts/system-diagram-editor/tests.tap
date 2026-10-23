@@ -2,417 +2,525 @@ TAP version 13
 # Subtest: recursive CATSCAN validation accepts unique components and nearest parents
 ok 1 - recursive CATSCAN validation accepts unique components and nearest parents
   ---
-  duration_ms: 6.971041
+  duration_ms: 10.081542
   type: 'test'
   ...
 # Subtest: recursive CATSCAN validation rejects a skipped nearest parent
 ok 2 - recursive CATSCAN validation rejects a skipped nearest parent
   ---
-  duration_ms: 4.634042
+  duration_ms: 3.133583
   type: 'test'
   ...
 # Subtest: recursive CATSCAN validation rejects missing evidence links
 ok 3 - recursive CATSCAN validation rejects missing evidence links
   ---
-  duration_ms: 2.922041
+  duration_ms: 1.401417
   type: 'test'
   ...
 # Subtest: recursive CATSCAN validation rejects duplicate component names
 ok 4 - recursive CATSCAN validation rejects duplicate component names
   ---
-  duration_ms: 1.811167
+  duration_ms: 2.161833
   type: 'test'
   ...
 # Subtest: generated component index is deterministic and rejects drift
 ok 5 - generated component index is deterministic and rejects drift
   ---
-  duration_ms: 1.415417
+  duration_ms: 1.559791
   type: 'test'
   ...
 # Subtest: first GPU completion, failed commit, lease expiry and duplicate delivery are causal model records
 ok 6 - first GPU completion, failed commit, lease expiry and duplicate delivery are causal model records
   ---
-  duration_ms: 12.493458
+  duration_ms: 9.206375
   type: 'test'
   ...
 # Subtest: paired policies keep the same arrivals and faults; rejected/unfinished/deadlines stay visible
 ok 7 - paired policies keep the same arrivals and faults; rejected/unfinished/deadlines stay visible
   ---
-  duration_ms: 73.227375
+  duration_ms: 77.966833
   type: 'test'
   ...
 # Subtest: exact JSON checkpoint restoration and replay include pending resource work, leases, retries and RNG
 ok 8 - exact JSON checkpoint restoration and replay include pending resource work, leases, retries and RNG
   ---
-  duration_ms: 1101.945041
+  duration_ms: 1159.670458
   type: 'test'
   ...
 # Subtest: capacity changes recompute outstanding work and stale generation completions cannot finish it
 ok 9 - capacity changes recompute outstanding work and stale generation completions cannot finish it
   ---
-  duration_ms: 0.57075
+  duration_ms: 1.736958
   type: 'test'
   ...
 # Subtest: authoring parallel routes and shared clusters changes execution; unsupported/disconnected connections reject
 ok 10 - authoring parallel routes and shared clusters changes execution; unsupported/disconnected connections reject
   ---
-  duration_ms: 10.209
+  duration_ms: 14.981042
   type: 'test'
   ...
 # Subtest: runner checkpoint restore, repair control replay and immutable accepted architecture
 ok 11 - runner checkpoint restore, repair control replay and immutable accepted architecture
   ---
-  duration_ms: 75.815834
+  duration_ms: 110.936083
   type: 'test'
   ...
 # Subtest: stage chains are executable beyond one inference layout and invalid model parameters fail closed
 ok 12 - stage chains are executable beyond one inference layout and invalid model parameters fail closed
   ---
-  duration_ms: 0.495708
+  duration_ms: 1.018791
   type: 'test'
   ...
 # Subtest: observation frequency does not change the event trace or resource trajectory
 ok 13 - observation frequency does not change the event trace or resource trajectory
   ---
-  duration_ms: 20.477667
+  duration_ms: 34.11675
   type: 'test'
   ...
 # Subtest: accepted runs bind a validated WorldSpec and checkpoints reject a different architecture
 ok 14 - accepted runs bind a validated WorldSpec and checkpoints reject a different architecture
   ---
-  duration_ms: 3.072417
+  duration_ms: 3.459083
   type: 'test'
   ...
 # Subtest: retry exhaustion is a visible dead-letter outcome with reconciled retained resources
 ok 15 - retry exhaustion is a visible dead-letter outcome with reconciled retained resources
   ---
-  duration_ms: 0.6735
+  duration_ms: 0.871417
   type: 'test'
   ...
 # Subtest: binds world entrypoint, base URL, assets and package to the exact build
 ok 16 - binds world entrypoint, base URL, assets and package to the exact build
   ---
-  duration_ms: 58.380042
+  duration_ms: 68.020958
   type: 'test'
   ...
 # Subtest: binds create entrypoint, base URL, assets and package to the exact build
 ok 17 - binds create entrypoint, base URL, assets and package to the exact build
   ---
-  duration_ms: 31.939417
+  duration_ms: 13.782958
   type: 'test'
   ...
 # Subtest: rejects the wrong content build even when its source SHA matches
 ok 18 - rejects the wrong content build even when its source SHA matches
   ---
-  duration_ms: 8.466625
+  duration_ms: 10.080417
   type: 'test'
   ...
 # Subtest: rejects successful HTML fallback responses for missing scripts
 ok 19 - rejects successful HTML fallback responses for missing scripts
   ---
-  duration_ms: 31.896542
+  duration_ms: 13.533333
   type: 'test'
   ...
 # Subtest: rejects stale bytes behind a correctly stamped script URL
 ok 20 - rejects stale bytes behind a correctly stamped script URL
   ---
-  duration_ms: 14.229041
+  duration_ms: 11.925542
   type: 'test'
   ...
 # Subtest: rejects a deferred script missing its build stamp
 ok 21 - rejects a deferred script missing its build stamp
   ---
-  duration_ms: 12.631542
+  duration_ms: 18.106833
   type: 'test'
   ...
 # Subtest: rejects the wrong surface and an old package inventory
 ok 22 - rejects the wrong surface and an old package inventory
   ---
-  duration_ms: 8.301917
+  duration_ms: 26.400041
   type: 'test'
   ...
 # Subtest: does not accept missing styles or a packaged build different from the release
 ok 23 - does not accept missing styles or a packaged build different from the release
   ---
-  duration_ms: 13.645083
+  duration_ms: 23.211625
   type: 'test'
   ...
 # Subtest: production deployment commands require live verification and previews do not probe production
 ok 24 - production deployment commands require live verification and previews do not probe production
   ---
-  duration_ms: 1.761042
+  duration_ms: 1.743125
   type: 'test'
   ...
 # Subtest: an HTTP-only release check reports that it took no screenshots
 ok 25 - an HTTP-only release check reports that it took no screenshots
   ---
-  duration_ms: 14.481458
+  duration_ms: 15.246167
   type: 'test'
   ...
 # Subtest: hosting targets separate World and Create while preserving governed shared assets
 ok 26 - hosting targets separate World and Create while preserving governed shared assets
   ---
-  duration_ms: 2751.955958
+  duration_ms: 2800.599333
   type: 'test'
   ...
 # Subtest: directory routes do not redirect to their slash-normalized selves
 ok 27 - directory routes do not redirect to their slash-normalized selves
   ---
-  duration_ms: 0.220125
+  duration_ms: 0.227875
   type: 'test'
   ...
 # Subtest: field entrypoint build stamping is complete and content-idempotent
 ok 28 - field entrypoint build stamping is complete and content-idempotent
   ---
-  duration_ms: 91.841542
+  duration_ms: 95.163375
   type: 'test'
   ...
 # Subtest: World changing renderer scripts revalidate and standalone entries escape old immutable URLs
 ok 29 - World changing renderer scripts revalidate and standalone entries escape old immutable URLs
   ---
-  duration_ms: 0.780416
+  duration_ms: 0.838959
   type: 'test'
   ...
 # Subtest: multirate coordinator is independent of module and port registration order
 ok 30 - multirate coordinator is independent of module and port registration order
   ---
-  duration_ms: 14.318709
+  duration_ms: 20.262333
   type: 'test'
   ...
 # Subtest: multirate coordinator latches prior committed input before same-time output
 ok 31 - multirate coordinator latches prior committed input before same-time output
   ---
-  duration_ms: 2.279
+  duration_ms: 0.903666
   type: 'test'
   ...
 # Subtest: published output observations are read-only, hashed, and restored with checkpoints
 ok 32 - published output observations are read-only, hashed, and restored with checkpoints
   ---
-  duration_ms: 4.235041
+  duration_ms: 2.637709
   type: 'test'
   ...
 # Subtest: multirate coordinator rejects invalid output before publication and retains the failure
 ok 33 - multirate coordinator rejects invalid output before publication and retains the failure
   ---
-  duration_ms: 1.16725
+  duration_ms: 0.422875
   type: 'test'
   ...
 # Subtest: checkpoint restore and branching reproduce retained state without sharing future execution
 ok 34 - checkpoint restore and branching reproduce retained state without sharing future execution
   ---
-  duration_ms: 2.997833
+  duration_ms: 1.640167
   type: 'test'
   ...
 # Subtest: authorized controls are ordered canonically and cancellation preserves completed rounds
 ok 35 - authorized controls are ordered canonically and cancellation preserves completed rounds
   ---
-  duration_ms: 0.536292
+  duration_ms: 0.495
   type: 'test'
   ...
 # Subtest: replay reports exact match and earliest divergence
 ok 36 - replay reports exact match and earliest divergence
   ---
-  duration_ms: 1.259375
+  duration_ms: 3.802959
   type: 'test'
   ...
 # Subtest: aggregate, refine, and dispose invoke declared lifecycle operations
 ok 37 - aggregate, refine, and dispose invoke declared lifecycle operations
   ---
-  duration_ms: 0.457542
+  duration_ms: 1.217125
   type: 'test'
   ...
 # Subtest: declared zero-delay coupled cycles execute only through their named serial solver
 ok 38 - declared zero-delay coupled cycles execute only through their named serial solver
   ---
-  duration_ms: 0.71
+  duration_ms: 1.7265
   type: 'test'
   ...
 # Subtest: queued events wake at delivery time, preserve multiplicity and restore across a pending delivery
 ok 39 - queued events wake at delivery time, preserve multiplicity and restore across a pending delivery
   ---
-  duration_ms: 3.704167
+  duration_ms: 5.654917
   type: 'test'
   ...
 # Subtest: module event wakeups retain independent fixed cadence and zero-time work has a strict bound
 ok 40 - module event wakeups retain independent fixed cadence and zero-time work has a strict bound
   ---
-  duration_ms: 1.0875
+  duration_ms: 1.510417
   type: 'test'
   ...
 # Subtest: legacy v2 checkpoints restore fixed-cadence callers without inventing missing event state
 ok 41 - legacy v2 checkpoints restore fixed-cadence callers without inventing missing event state
   ---
-  duration_ms: 4.426958
+  duration_ms: 4.4445
+  type: 'test'
+  ...
+# Subtest: replay preserves separately committed same-time controls across checkpoint restoration
+ok 42 - replay preserves separately committed same-time controls across checkpoint restoration
+  ---
+  duration_ms: 1.067667
   type: 'test'
   ...
 # Subtest: the discovery catalog covers each registered profile and standalone experiences once
-ok 42 - the discovery catalog covers each registered profile and standalone experiences once
+ok 43 - the discovery catalog covers each registered profile and standalone experiences once
   ---
-  duration_ms: 1.735959
+  duration_ms: 2.84675
   type: 'test'
   ...
 # Subtest: every catalog entry has safe SVG line art and appears in the gallery
-ok 43 - every catalog entry has safe SVG line art and appears in the gallery
+ok 44 - every catalog entry has safe SVG line art and appears in the gallery
   ---
-  duration_ms: 106.694625
+  duration_ms: 102.486
   type: 'test'
   ...
 # Subtest: System Diagram Simulator is a declared executable catalog/profile route with retained deep links
-ok 44 - System Diagram Simulator is a declared executable catalog/profile route with retained deep links
+ok 45 - System Diagram Simulator is a declared executable catalog/profile route with retained deep links
   ---
-  duration_ms: 13.862958
+  duration_ms: 3.728042
   type: 'test'
   ...
-# Subtest: pending document edits and undo history never mutate accepted execution
-ok 45 - pending document edits and undo history never mutate accepted execution
+# Subtest: class library packs load with every kernel parameter defaulted and every class valid
+ok 46 - class library packs load with every kernel parameter defaulted and every class valid
   ---
-  duration_ms: 19.250667
+  duration_ms: 7.029542
   type: 'test'
   ...
-# Subtest: invalid connection and invalid class changes are atomic, preserving undo and run
-ok 46 - invalid connection and invalid class changes are atomic, preserving undo and run
+# Subtest: instance overrides win over user class defaults, built-in defaults and kernel defaults
+ok 47 - instance overrides win over user class defaults, built-in defaults and kernel defaults
   ---
-  duration_ms: 2.839959
+  duration_ms: 2.35975
   type: 'test'
   ...
-# Subtest: save/load preserves class definitions, instance overrides and separately accepted replay
-ok 47 - save/load preserves class definitions, instance overrides and separately accepted replay
+# Subtest: deriving a class moves instance overrides into the new class and keeps resolved values
+ok 48 - deriving a class moves instance overrides into the new class and keeps resolved values
   ---
-  duration_ms: 33.887125
+  duration_ms: 2.207042
   type: 'test'
   ...
-# Subtest: blank authoring remains editable and execution fails with concrete missing source
-ok 48 - blank authoring remains editable and execution fails with concrete missing source
+# Subtest: validation rejects undeclared fields, bad ports, single-port overuse, cycles in classes and bad faults
+ok 49 - validation rejects undeclared fields, bad ports, single-port overuse, cycles in classes and bad faults
   ---
-  duration_ms: 1.092416
+  duration_ms: 1.42425
   type: 'test'
   ...
-# Subtest: session import rejects undeclared fields and impossible replay times
-ok 49 - session import rejects undeclared fields and impossible replay times
+# Subtest: canonical core kernels execute source, service and database with immutable typed topology
+ok 50 - canonical core kernels execute source, service and database with immutable typed topology
   ---
-  duration_ms: 1.940916
+  duration_ms: 12.331875
   type: 'test'
   ...
-# Subtest: restoring a separately accepted document preserves its exact revision and pending layout
-ok 50 - restoring a separately accepted document preserves its exact revision and pending layout
+# Subtest: pure segmented advance and JSON checkpoint clone preserve exact RNG, queued deliveries and effects
+ok 51 - pure segmented advance and JSON checkpoint clone preserve exact RNG, queued deliveries and effects
   ---
-  duration_ms: 5.293667
+  duration_ms: 12.374875
   type: 'test'
   ...
-# Subtest: RAG and collection presets execute every declared component with typed payload transformations
-ok 51 - RAG and collection presets execute every declared component with typed payload transformations
+# Subtest: slow faults recompute remaining service work and fence stale completions
+ok 52 - slow faults recompute remaining service work and fence stale completions
   ---
-  duration_ms: 57.261542
+  duration_ms: 3.786541
   type: 'test'
   ...
-# Subtest: classes remain reusable defaults, while instance overrides survive class edits and duplication
-ok 52 - classes remain reusable defaults, while instance overrides survive class edits and duplication
+# Subtest: lost acknowledgements retry duplicate work, suppress duplicate commits and preserve late outcomes
+ok 53 - lost acknowledgements retry duplicate work, suppress duplicate commits and preserve late outcomes
   ---
-  duration_ms: 5.564417
+  duration_ms: 6.004125
   type: 'test'
   ...
-# Subtest: blank drafts are editable; dangling, cyclic and incompatible execution refuses with a reason
-ok 53 - blank drafts are editable; dangling, cyclic and incompatible execution refuses with a reason
+# Subtest: queue visibility leases redeliver and dead-letter messages without hiding producer completion
+ok 54 - queue visibility leases redeliver and dead-letter messages without hiding producer completion
   ---
-  duration_ms: 0.849166
+  duration_ms: 2.732791
   type: 'test'
   ...
-# Subtest: checkpoint restoration exactly matches uninterrupted execution including RNG, retries and ownership
-ok 54 - checkpoint restoration exactly matches uninterrupted execution including RNG, retries and ownership
+# Subtest: rejected and unfinished requests remain visible; memory and shared slot resources reconcile
+ok 55 - rejected and unfinished requests remain visible; memory and shared slot resources reconcile
   ---
-  duration_ms: 33.150875
+  duration_ms: 4.184292
   type: 'test'
   ...
-# Subtest: outage interrupts attempts, stale completions are fenced and recovery causation is inspectable
-ok 55 - outage interrupts attempts, stale completions are fenced and recovery causation is inspectable
+# Subtest: cycles stop at declared hop bound, and zero-time wake loops refuse visibly
+ok 56 - cycles stop at declared hop bound, and zero-time wake loops refuse visibly
   ---
-  duration_ms: 1.776625
+  duration_ms: 17.274584
   type: 'test'
   ...
-# Subtest: admission memory and retry budgets keep rejected and unfinished work visible and resources reconcile
-ok 56 - admission memory and retry budgets keep rejected and unfinished work visible and resources reconcile
+# Subtest: independent node RNG streams and layout-independent compilation preserve simulation output
+ok 57 - independent node RNG streams and layout-independent compilation preserve simulation output
   ---
-  duration_ms: 1.325541
+  duration_ms: 6.894125
   type: 'test'
   ...
-# Subtest: cluster concurrency slots are shared across instances and affect actual completion times
-ok 57 - cluster concurrency slots are shared across instances and affect actual completion times
+# Subtest: coordinator runner verifies exact preview, records live controls, restores and replays program-bound state
+ok 58 - coordinator runner verifies exact preview, records live controls, restores and replays program-bound state
   ---
-  duration_ms: 2.77775
+  duration_ms: 173.437166
   type: 'test'
   ...
-# Subtest: links serialize synthetic payloads and changing executable topology changes effects
-ok 58 - links serialize synthetic payloads and changing executable topology changes effects
+# Subtest: repeated verification and a new live control at the restored timestamp preserve coordinator round boundaries
+ok 59 - repeated verification and a new live control at the restored timestamp preserve coordinator round boundaries
   ---
-  duration_ms: 2.458458
+  duration_ms: 64.710875
   type: 'test'
   ...
-# Subtest: crawler spawns actual bounded tasks, database deduplicates logical request effects
-ok 59 - crawler spawns actual bounded tasks, database deduplicates logical request effects
+# Subtest: edge call multiplicity and optional probability change actual work and effects
+ok 60 - edge call multiplicity and optional probability change actual work and effects
   ---
-  duration_ms: 1.550417
+  duration_ms: 1.0445
   type: 'test'
   ...
-# Subtest: seeded runs reproduce exactly, while a different seed changes declared service jitter
-ok 60 - seeded runs reproduce exactly, while a different seed changes declared service jitter
+# Subtest: full causal history remains inspectable beyond the capped notable-event log
+ok 61 - full causal history remains inspectable beyond the capped notable-event log
   ---
-  duration_ms: 6.568792
+  duration_ms: 3.387458
   type: 'test'
   ...
-# Subtest: checkpoint import refuses forged causal state without changing the current run
-ok 61 - checkpoint import refuses forged causal state without changing the current run
+# Subtest: registered class kernels are execution capabilities; unimplemented AI metadata stays unregistered
+ok 62 - registered class kernels are execution capabilities; unimplemented AI metadata stays unregistered
   ---
-  duration_ms: 14.459166
+  duration_ms: 0.815083
   type: 'test'
   ...
-# Subtest: partial branch rejection preserves committed effects and visible causal request history
-ok 62 - partial branch rejection preserves committed effects and visible causal request history
+# Subtest: GPU batching groups work, retains each request memory and drains partial window without zero-time polling
+ok 63 - GPU batching groups work, retains each request memory and drains partial window without zero-time polling
   ---
-  duration_ms: 1.080417
+  duration_ms: 1.222708
   type: 'test'
   ...
-# Subtest: execution validates payload provenance through preserve stages and uses actual records for blockers
-ok 63 - execution validates payload provenance through preserve stages and uses actual records for blockers
+# Subtest: LLM synthetic timing, context window, quota, structured schema flags and costs use authored parameters
+ok 64 - LLM synthetic timing, context window, quota, structured schema flags and costs use authored parameters
   ---
-  duration_ms: 2.142333
+  duration_ms: 0.607042
   type: 'test'
   ...
-# Subtest: domain execution binds a deterministic WorldSpec to accepted document, model, seed and assumptions
-ok 64 - domain execution binds a deterministic WorldSpec to accepted document, model, seed and assumptions
+# Subtest: RAG orchestrates typed registered adapters in declared step order and propagates dependency errors
+ok 65 - RAG orchestrates typed registered adapters in declared step order and propagates dependency errors
   ---
-  duration_ms: 5.343167
+  duration_ms: 0.282375
+  type: 'test'
+  ...
+# Subtest: structured response rejects invalid synthetic output after its finite repair budget
+ok 66 - structured response rejects invalid synthetic output after its finite repair budget
+  ---
+  duration_ms: 0.190291
+  type: 'test'
+  ...
+# Subtest: asynchronous replicas show stale reads before lag and explicit election loss of unreplicated writes
+ok 67 - asynchronous replicas show stale reads before lag and explicit election loss of unreplicated writes
+  ---
+  duration_ms: 0.321625
+  type: 'test'
+  ...
+# Subtest: cache coalesces same-key misses and expires TTL entries; object-store size changes actual service time
+ok 68 - cache coalesces same-key misses and expires TTL entries; object-store size changes actual service time
+  ---
+  duration_ms: 0.309083
+  type: 'test'
+  ...
+# Subtest: cron skips overlapping schedules and closes every logical job on final response
+ok 69 - cron skips overlapping schedules and closes every logical job on final response
+  ---
+  duration_ms: 0.47975
+  type: 'test'
+  ...
+# Subtest: crawler uses per-domain budgets, bounded discovery and document provenance with no external access
+ok 70 - crawler uses per-domain budgets, bounded discovery and document provenance with no external access
+  ---
+  duration_ms: 0.555125
+  type: 'test'
+  ...
+# Subtest: canonical web-service composition executes actual connected kernels and exact checkpoint continuation
+ok 71 - canonical web-service composition executes actual connected kernels and exact checkpoint continuation
+  ---
+  duration_ms: 46.907292
+  type: 'test'
+  ...
+# Subtest: canonical rag-assistant composition executes actual connected kernels and exact checkpoint continuation
+ok 72 - canonical rag-assistant composition executes actual connected kernels and exact checkpoint continuation
+  ---
+  duration_ms: 24.239208
+  type: 'test'
+  ...
+# Subtest: canonical crawler-pipeline composition executes actual connected kernels and exact checkpoint continuation
+ok 73 - canonical crawler-pipeline composition executes actual connected kernels and exact checkpoint continuation
+  ---
+  duration_ms: 18.549666
+  type: 'test'
+  ...
+# Subtest: removing a RAG executable dependency changes outcomes rather than leaving decorative topology
+ok 74 - removing a RAG executable dependency changes outcomes rather than leaving decorative topology
+  ---
+  duration_ms: 10.441666
+  type: 'test'
+  ...
+# Subtest: a failed GPU batch releases every retained member and does not strand sibling requests
+ok 75 - a failed GPU batch releases every retained member and does not strand sibling requests
+  ---
+  duration_ms: 4.221875
+  type: 'test'
+  ...
+# Subtest: rejected commands and replacements leave document, selection and history atomic
+ok 76 - rejected commands and replacements leave document, selection and history atomic
+  ---
+  duration_ms: 5.209541
+  type: 'test'
+  ...
+# Subtest: class derivation preserves effective parameters and class edits respect instance overrides
+ok 77 - class derivation preserves effective parameters and class edits respect instance overrides
+  ---
+  duration_ms: 12.377292
+  type: 'test'
+  ...
+# Subtest: resource groups compile shared slots separately from failure domains and retain legacy group shape
+ok 78 - resource groups compile shared slots separately from failure domains and retain legacy group shape
+  ---
+  duration_ms: 3.985791
+  type: 'test'
+  ...
+# Subtest: duplicate keeps classes reusable, copies internal edges, and group movement moves each member once
+ok 79 - duplicate keeps classes reusable, copies internal edges, and group movement moves each member once
+  ---
+  duration_ms: 2.169625
+  type: 'test'
+  ...
+# Subtest: node deletion removes incident edges and faults and undo restores causal configuration
+ok 80 - node deletion removes incident edges and faults and undo restores causal configuration
+  ---
+  duration_ms: 0.369625
+  type: 'test'
+  ...
+# Subtest: semantic identity excludes labels/layout/notes/view while retaining executable changes
+ok 81 - semantic identity excludes labels/layout/notes/view while retaining executable changes
+  ---
+  duration_ms: 1.640125
+  type: 'test'
+  ...
+# Subtest: view and selection are outside bounded history and rejected edits do not notify subscribers
+ok 82 - view and selection are outside bounded history and rejected edits do not notify subscribers
+  ---
+  duration_ms: 0.625125
   type: 'test'
   ...
 # Subtest: World runtime selections load only the chosen profile plugin bundle
-ok 65 - World runtime selections load only the chosen profile plugin bundle
+ok 83 - World runtime selections load only the chosen profile plugin bundle
   ---
-  duration_ms: 2.03925
+  duration_ms: 3.843125
   type: 'test'
   ...
 # Subtest: World optional model scripts remain outside every pre-consent selection
-ok 66 - World optional model scripts remain outside every pre-consent selection
+ok 84 - World optional model scripts remain outside every pre-consent selection
   ---
-  duration_ms: 1.6235
+  duration_ms: 1.932208
   type: 'test'
   ...
 # Subtest: World dynamic runtime loader loads selected runtime scripts
-ok 67 - World dynamic runtime loader loads selected runtime scripts
+ok 85 - World dynamic runtime loader loads selected runtime scripts
   ---
-  duration_ms: 1.102459
+  duration_ms: 2.054333
   type: 'test'
   ...
 # Subtest: page CSS cannot introduce native controls or target component internals
-ok 68 - page CSS cannot introduce native controls or target component internals
+ok 86 - page CSS cannot introduce native controls or target component internals
   ---
-  duration_ms: 6.6255
+  duration_ms: 5.07975
   type: 'test'
   ...
-1..68
-# tests 68
+1..86
+# tests 86
 # suites 0
-# pass 68
+# pass 86
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 2903.120083
+# duration_ms 2952.011833

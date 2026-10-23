@@ -1,11 +1,169 @@
 {
   "source": {
-    "head": "a84aea1be854f6c7222aa23e3c9474c77b800d25",
-    "capturedAt": "2026-10-23T21:51:58.683Z",
-    "modifiedSources": {},
+    "head": "792e8d5e58e1e53a03b7039af1a28784314e6e7c",
+    "capturedAt": "2026-10-23T22:12:35.941Z",
+    "modifiedSources": {
+      "public/data/distributed-repair/legacy-profile.json": {
+        "sha256": "8c4738e2c94071af37edc72b76046b0594b7a19460bf9c9cf7c96a37fcbe7cd4",
+        "modifiedAt": "2026-10-23T22:01:21.546Z"
+      },
+      "public/data/distributed-repair/system-diagram-profile-v1.json": {
+        "deleted": true
+      },
+      "public/data/distributed-repair/system-diagram-profile.schema.json": {
+        "deleted": true
+      },
+      "public/data/distributed-repair/system-diagram.schema.json": {
+        "deleted": true
+      },
+      "public/data/system-diagram/class-library.json": {
+        "sha256": "2600152e422ec55334a34e1c783f2f5e2e907242fc9a13015f51d76f4e55bdd9",
+        "modifiedAt": "2026-10-23T21:57:32.072Z"
+      },
+      "public/data/system-diagram/classes/ai.json": {
+        "sha256": "a177624c79b5e79100c1da3a7b0eb62aae37e74bc556ddf329d18d29bbee6e73",
+        "modifiedAt": "2026-10-23T21:57:32.073Z"
+      },
+      "public/data/system-diagram/classes/storage.json": {
+        "sha256": "66f5cbb037cd25bd4ceb121af2ef6a1af04c1c0d9177bbe9d3685b868af6e46e",
+        "modifiedAt": "2026-10-23T21:59:44.431Z"
+      },
+      "public/data/system-diagram/config.json": {
+        "sha256": "c3a0a2b6b84316e8b8c11d11a9dd68961d258fae41c098143f9594895c8851dd",
+        "modifiedAt": "2026-10-23T21:57:32.073Z"
+      },
+      "public/data/system-diagram/examples/crawler-pipeline.json": {
+        "sha256": "e5e50cb84f2d75613ebf881c1a907333b19a0cb4404055ea79033162b8eb73ad",
+        "modifiedAt": "2026-10-23T22:00:27.539Z"
+      },
+      "public/data/system-diagram/examples/rag-assistant.json": {
+        "sha256": "74ad47fac97ca7936303f0b0714b20c14b668e28ba43caa0db16a52062c10867",
+        "modifiedAt": "2026-10-23T22:00:27.539Z"
+      },
+      "public/data/system-diagram/examples/web-service.json": {
+        "sha256": "ab3afe03dd641b524d28750d0a53a2d97c089150f6f0d3f87682adfa2a8bf675",
+        "modifiedAt": "2026-10-23T22:00:27.538Z"
+      },
+      "public/data/system-diagram/profile.json": {
+        "sha256": "e2b63f54166ef815f3783e372b3407d163f21caa91575588f2c656dad031b61d",
+        "modifiedAt": "2026-10-23T21:59:07.242Z"
+      },
+      "public/shared/core/simulation/multirate-coordinator.js": {
+        "sha256": "bb42aa41731c45cd2dffd59ee5bc6a16d7040e11ff3ca74780b669cfeff2c553",
+        "modifiedAt": "2026-10-23T22:08:29.483Z"
+      },
+      "public/simulation-routes.js": {
+        "sha256": "351f3cceae65b0a090a6656d5cf987ff82bd6461a5be3262296fab3c78a14a5c",
+        "modifiedAt": "2026-10-23T22:01:21.545Z"
+      },
+      "public/simulatte/distributed-repair/editor-page.js": {
+        "deleted": true
+      },
+      "public/simulatte/distributed-repair/editor-session.js": {
+        "deleted": true
+      },
+      "public/simulatte/distributed-repair/graph-canvas.css": {
+        "deleted": true
+      },
+      "public/simulatte/distributed-repair/graph-canvas.js": {
+        "deleted": true
+      },
+      "public/simulatte/distributed-repair/graph-document.js": {
+        "deleted": true
+      },
+      "public/simulatte/distributed-repair/graph-runtime.js": {
+        "deleted": true
+      },
+      "public/simulatte/distributed-repair/index.html": {
+        "sha256": "517431e29fdb53cf1b8ffcc2ce694a1060e4cbb2b38b07ce1efdfb0afe84c8e4",
+        "modifiedAt": "2026-10-23T22:01:21.546Z"
+      },
+      "public/simulatte/distributed-repair/page.js": {
+        "sha256": "7c131d2172bae09afd28a7fb7aeb749caf53d978a333de7675d2ea048f4a68a6",
+        "modifiedAt": "2026-10-23T22:01:21.547Z"
+      },
+      "public/simulatte/distributed-repair/profile.js": {
+        "deleted": true
+      },
+      "public/simulatte/distributed-repair/repair.html": {
+        "sha256": "6df3e49ee5f7a42aab99bee64efba5218a4759e58f3868254d82e376e49bcedc",
+        "modifiedAt": "2026-10-23T22:05:58.427Z"
+      },
+      "public/simulatte/distributed-repair/style.css": {
+        "deleted": true
+      },
+      "public/simulatte/system-diagram/CATSCAN.md": {
+        "sha256": "9af6267434b98dc757ae34fbefa26b130dc3319168db39b17f715238db381db0",
+        "modifiedAt": "2026-10-23T22:11:17.970Z"
+      },
+      "public/simulatte/system-diagram/diagram.js": {
+        "sha256": "840a16c5fde43af2eb15ac19d6ab4e1c2370844d420322776a66ef185fb02327",
+        "modifiedAt": "2026-10-23T21:57:58.910Z"
+      },
+      "public/simulatte/system-diagram/editor-canvas.js": {
+        "sha256": "5ca19504ae5fbc38d64d1044ce5418f7aa1a0c3000d286fad415695afdd1e6c7",
+        "modifiedAt": "2026-10-23T22:10:19.142Z"
+      },
+      "public/simulatte/system-diagram/editor-model.js": {
+        "sha256": "d712407b0e374e57470c17b74280ebe2d305c79dee0fe422092bb004eacaed66",
+        "modifiedAt": "2026-10-23T22:02:12.963Z"
+      },
+      "public/simulatte/system-diagram/editor.css": {
+        "sha256": "3be3d2214fe3389be1fbfc018b0fecb91013391dff06259364d69c2132c033f5",
+        "modifiedAt": "2026-10-23T22:08:06.242Z"
+      },
+      "public/simulatte/system-diagram/engine-core.js": {
+        "sha256": "f04ede942ff5f6750e900d52e74d65107217c3c9c64b38baa741c58953d46880",
+        "modifiedAt": "2026-10-23T22:10:18.374Z"
+      },
+      "public/simulatte/system-diagram/engine.js": {
+        "sha256": "a7329baad9b59e5f11018e7f963a383851fe352bbbf48ca5b822e3dedb94adbc",
+        "modifiedAt": "2026-10-23T22:10:18.374Z"
+      },
+      "public/simulatte/system-diagram/index.html": {
+        "sha256": "3c5f8da83e133ed92eeb952dddd4357b2f238c0361820c889c8305ac715e3eac",
+        "modifiedAt": "2026-10-23T22:05:58.427Z"
+      },
+      "public/simulatte/system-diagram/kernel-registry.js": {
+        "sha256": "2805be8bae551d98e59434c110cf2ed65653c94460fc541ec637829c80546a39",
+        "modifiedAt": "2026-10-23T22:00:48.468Z"
+      },
+      "public/simulatte/system-diagram/kernels-ai.js": {
+        "sha256": "3ca17063ba113d80a63ef8e419a5066f787253be7f25bbac9f039b6b18e14528",
+        "modifiedAt": "2026-10-23T22:04:33.319Z"
+      },
+      "public/simulatte/system-diagram/kernels-core.js": {
+        "sha256": "f59def7455c829acb900330731a1576aadf6a1801daf61c360cdd6c95b11526a",
+        "modifiedAt": "2026-10-23T22:09:33.075Z"
+      },
+      "public/simulatte/system-diagram/kernels-sources.js": {
+        "sha256": "d027787fe2c8aabbca64ef4ce75f6b7ff07a79d74d86fad37667b26c4e53eb64",
+        "modifiedAt": "2026-10-23T22:04:33.319Z"
+      },
+      "public/simulatte/system-diagram/kernels-storage.js": {
+        "sha256": "a9be906a7c79b03df70d3ac9c38e1411e8ff27e135664f117375fd68a050a599",
+        "modifiedAt": "2026-10-23T22:04:33.319Z"
+      },
+      "public/simulatte/system-diagram/page.js": {
+        "sha256": "74bd75eb22c889ce170503f899e15c6747ccca531024df1edc87fe4f22ff981f",
+        "modifiedAt": "2026-10-23T22:12:35.851Z"
+      },
+      "public/simulatte/system-diagram/profile.js": {
+        "sha256": "24439cac3782f52a0b99063fc758b63608cdcb5838465d8698cb4e8c69318395",
+        "modifiedAt": "2026-10-23T22:02:39.162Z"
+      },
+      "public/simulatte/system-diagram/runner.js": {
+        "sha256": "dc01d1a066a978a9834d2786ca114476f07977c98d9f6020152fcc750ba93204",
+        "modifiedAt": "2026-10-23T22:07:46.579Z"
+      },
+      "public/simulatte/system-diagram/style.css": {
+        "sha256": "b285dbcc3531104b27638ffc1376d590e92b862491cc0bc3548cd24e487bf3bd",
+        "modifiedAt": "2026-10-23T21:57:32.079Z"
+      }
+    },
     "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
   },
-  "boundary": "Local isolated Chrome desktop and touch-emulated mobile interaction evidence. Synthetic model only; no deployment, external workloads, physical hardware or human acceptance proof.",
+  "boundary": "Local isolated Chrome desktop and touch-emulated mobile interaction evidence for the canonical v1 diagram, named-port library and coordinator runner. Synthetic model only; no deployment, external workloads, physical hardware or human acceptance proof.",
   "cases": [
     {
       "viewport": {
@@ -14,6 +172,7 @@
       },
       "checks": {
         "catalogNavigation": true,
+        "canonicalDocument": true,
         "noPageOverflow": true,
         "paletteDrag": true,
         "nodeDrag": true,
@@ -21,12 +180,29 @@
         "duplicate": true,
         "delete": true,
         "undoRedo": true,
-        "classVsInstance": true,
         "reusableClass": true,
+        "classVsInstance": true,
+        "resetOverride": true,
         "fitBounds": true,
-        "invalidConnection": true,
+        "invalidDirection": true,
         "keyboardPortValidation": true,
-        "portConnection": true
+        "classChange": true,
+        "payloadWarningBlocksRun": true,
+        "namedPortConnection": true,
+        "endpointReconnect": true,
+        "linkProperties": true,
+        "resourceCluster": true,
+        "runPause": true,
+        "pendingPreservesRun": true,
+        "checkpointRestore": true,
+        "replay": true,
+        "saveLoadPending": true,
+        "loadedReplay": true,
+        "jsonRoundTrip": true,
+        "causalInspection": true,
+        "reset": true,
+        "zoom": true,
+        "pan": true
       },
       "errors": [],
       "networkFailures": [],
@@ -36,532 +212,138 @@
       "screenshots": [
         "1440-editor.png",
         "1440-properties.png",
-        "1440-failure.png"
+        "1440-causal.png",
+        "1440-final.png"
       ],
+      "lastAction": {
+        "button": "Fit"
+      },
       "nodeFit": [
         {
-          "id": "node-1",
+          "id": "clients",
           "inside": true
         },
         {
-          "id": "node-2",
+          "id": "api",
           "inside": true
         },
         {
-          "id": "node-4",
+          "id": "cache",
           "inside": true
         },
         {
-          "id": "node-6",
+          "id": "replicas",
           "inside": true
         },
         {
-          "id": "node-8",
+          "id": "queue",
           "inside": true
         },
         {
-          "id": "node-10",
+          "id": "worker",
           "inside": true
         },
         {
-          "id": "node-12",
+          "id": "results",
           "inside": true
         },
         {
-          "id": "node-14",
+          "id": "deadletters",
           "inside": true
         }
       ],
-      "wireViewport": {
-        "x": 45.383211678832104,
-        "y": -13.321167883211679,
-        "zoom": 0.958029197080292
+      "edgeSelectionMethod": "verified-path-hit",
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
       },
-      "pass": false,
-      "error": "Error: Error: Missing: [data-reconnect=\"link-16\"][data-side=\"to\"]\n    at <anonymous>:1:105\n    at <anonymous>:1:379\n    at evaluate (file:///Users/xyz/Documents/Codex/2026-10-23/task-4/simulatte/tools/simulatte/audit-system-diagram-editor.mjs:17:160)\n    at async file:///Users/xyz/Documents/Codex/2026-10-23/task-4/simulatte/tools/simulatte/audit-system-diagram-editor.mjs:81:97",
-      "status": {
-        "status": "Paused. Run accepts the current architecture explicitly.",
-        "message": "Architecture updated. Run accepts and restarts it; the current run stays unchanged.",
-        "selection": [
-          "node-2"
-        ],
-        "document": {
-          "schema": "simulatte.systemDiagram.v2",
-          "revision": 2,
-          "nextId": 17,
-          "classes": [
-            {
-              "id": "class-client",
-              "type": "client",
-              "label": "Client",
-              "defaults": {
-                "serviceTime": 0,
-                "concurrency": 2,
-                "queueCapacity": 16,
-                "memoryMiB": 1,
-                "memoryLimitMiB": 1024,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": null,
-                "recoveryAt": null,
-                "outputType": "preserve",
-                "spawnCount": 1
-              },
-              "ports": {
-                "in": [],
-                "out": [
-                  "natural-language",
-                  "structured",
-                  "unstructured"
-                ]
-              }
-            },
-            {
-              "id": "class-cpu",
-              "type": "cpu",
-              "label": "CPU worker",
-              "defaults": {
-                "serviceTime": 0.3,
-                "concurrency": 2,
-                "queueCapacity": 16,
-                "memoryMiB": 1,
-                "memoryLimitMiB": 1024,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": null,
-                "recoveryAt": null,
-                "outputType": "preserve",
-                "spawnCount": 1
-              },
-              "ports": {
-                "in": [
-                  "natural-language",
-                  "structured",
-                  "unstructured"
-                ],
-                "out": [
-                  "natural-language",
-                  "structured",
-                  "unstructured"
-                ]
-              }
-            },
-            {
-              "id": "class-gpu",
-              "type": "gpu",
-              "label": "GPU worker",
-              "defaults": {
-                "serviceTime": 0.8,
-                "concurrency": 1,
-                "queueCapacity": 16,
-                "memoryMiB": 64,
-                "memoryLimitMiB": 512,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": null,
-                "recoveryAt": null,
-                "outputType": "preserve",
-                "spawnCount": 1
-              },
-              "ports": {
-                "in": [
-                  "natural-language",
-                  "structured",
-                  "unstructured"
-                ],
-                "out": [
-                  "natural-language",
-                  "structured",
-                  "unstructured"
-                ]
-              }
-            },
-            {
-              "id": "class-queue",
-              "type": "queue",
-              "label": "Task queue",
-              "defaults": {
-                "serviceTime": 0.05,
-                "concurrency": 1,
-                "queueCapacity": 8,
-                "memoryMiB": 1,
-                "memoryLimitMiB": 1024,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": null,
-                "recoveryAt": null,
-                "outputType": "preserve",
-                "spawnCount": 1
-              },
-              "ports": {
-                "in": [
-                  "natural-language",
-                  "structured",
-                  "unstructured"
-                ],
-                "out": [
-                  "natural-language",
-                  "structured",
-                  "unstructured"
-                ]
-              }
-            },
-            {
-              "id": "class-rpc",
-              "type": "rpc",
-              "label": "RPC service",
-              "defaults": {
-                "serviceTime": 0.4,
-                "concurrency": 2,
-                "queueCapacity": 16,
-                "memoryMiB": 1,
-                "memoryLimitMiB": 1024,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": 2,
-                "recoveryAt": 4,
-                "outputType": "preserve",
-                "spawnCount": 1
-              },
-              "ports": {
-                "in": [
-                  "natural-language",
-                  "structured",
-                  "unstructured"
-                ],
-                "out": [
-                  "natural-language",
-                  "structured",
-                  "unstructured"
-                ]
-              }
-            },
-            {
-              "id": "class-database",
-              "type": "database",
-              "label": "Database",
-              "defaults": {
-                "serviceTime": 0.2,
-                "concurrency": 2,
-                "queueCapacity": 16,
-                "memoryMiB": 1,
-                "memoryLimitMiB": 1024,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": null,
-                "recoveryAt": null,
-                "outputType": "structured",
-                "spawnCount": 1
-              },
-              "ports": {
-                "in": [
-                  "natural-language",
-                  "structured",
-                  "unstructured"
-                ],
-                "out": [
-                  "structured"
-                ]
-              }
-            },
-            {
-              "id": "class-replica",
-              "type": "replica",
-              "label": "Database replica",
-              "defaults": {
-                "serviceTime": 0.35,
-                "concurrency": 2,
-                "queueCapacity": 16,
-                "memoryMiB": 1,
-                "memoryLimitMiB": 1024,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": null,
-                "recoveryAt": null,
-                "outputType": "structured",
-                "spawnCount": 1
-              },
-              "ports": {
-                "in": [
-                  "structured"
-                ],
-                "out": [
-                  "structured"
-                ]
-              }
-            },
-            {
-              "id": "class-scheduler",
-              "type": "scheduler",
-              "label": "Cron scheduler",
-              "defaults": {
-                "serviceTime": 0,
-                "concurrency": 2,
-                "queueCapacity": 16,
-                "memoryMiB": 1,
-                "memoryLimitMiB": 1024,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": null,
-                "recoveryAt": null,
-                "outputType": "structured",
-                "spawnCount": 1
-              },
-              "ports": {
-                "in": [],
-                "out": [
-                  "structured"
-                ]
-              }
-            },
-            {
-              "id": "class-crawler",
-              "type": "crawler",
-              "label": "Crawler",
-              "defaults": {
-                "serviceTime": 0.6,
-                "concurrency": 1,
-                "queueCapacity": 16,
-                "memoryMiB": 1,
-                "memoryLimitMiB": 1024,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": null,
-                "recoveryAt": null,
-                "outputType": "unstructured",
-                "spawnCount": 2
-              },
-              "ports": {
-                "in": [
-                  "structured"
-                ],
-                "out": [
-                  "unstructured"
-                ]
-              }
-            },
-            {
-              "id": "class-rag",
-              "type": "rag",
-              "label": "RAG retrieval",
-              "defaults": {
-                "serviceTime": 0.45,
-                "concurrency": 2,
-                "queueCapacity": 16,
-                "memoryMiB": 1,
-                "memoryLimitMiB": 1024,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": null,
-                "recoveryAt": null,
-                "outputType": "structured",
-                "spawnCount": 1
-              },
-              "ports": {
-                "in": [
-                  "natural-language",
-                  "unstructured"
-                ],
-                "out": [
-                  "structured"
-                ]
-              }
-            },
-            {
-              "id": "class-model",
-              "type": "model",
-              "label": "Model stage",
-              "defaults": {
-                "serviceTime": 0.7,
-                "concurrency": 2,
-                "queueCapacity": 16,
-                "memoryMiB": 32,
-                "memoryLimitMiB": 1024,
-                "retries": 3,
-                "retryDelay": 0.5,
-                "failureAt": null,
-                "recoveryAt": null,
-                "outputType": "natural-language",
-                "spawnCount": 1
-              },
-              "ports": {
-                "in": [
-                  "natural-language",
-                  "structured"
-                ],
-                "out": [
-                  "natural-language",
-                  "structured"
-                ]
-              }
-            }
-          ],
-          "nodes": [
-            {
-              "id": "node-1",
-              "classId": "class-client",
-              "label": "Client",
-              "x": 90,
-              "y": 90,
-              "overrides": {},
-              "clusterId": null
-            },
-            {
-              "id": "node-2",
-              "classId": "class-queue",
-              "label": "Task queue",
-              "x": 350,
-              "y": 90,
-              "overrides": {},
-              "clusterId": null
-            },
-            {
-              "id": "node-4",
-              "classId": "class-rpc",
-              "label": "RPC service",
-              "x": 610,
-              "y": 90,
-              "overrides": {},
-              "clusterId": null
-            },
-            {
-              "id": "node-6",
-              "classId": "class-rag",
-              "label": "RAG retrieval",
-              "x": 90,
-              "y": 280,
-              "overrides": {},
-              "clusterId": null
-            },
-            {
-              "id": "node-8",
-              "classId": "class-gpu",
-              "label": "GPU worker",
-              "x": 350,
-              "y": 280,
-              "overrides": {},
-              "clusterId": null
-            },
-            {
-              "id": "node-10",
-              "classId": "class-model",
-              "label": "Model stage",
-              "x": 610,
-              "y": 280,
-              "overrides": {},
-              "clusterId": null
-            },
-            {
-              "id": "node-12",
-              "classId": "class-database",
-              "label": "Database",
-              "x": 90,
-              "y": 470,
-              "overrides": {},
-              "clusterId": null
-            },
-            {
-              "id": "node-14",
-              "classId": "class-replica",
-              "label": "Database replica",
-              "x": 350,
-              "y": 470,
-              "overrides": {},
-              "clusterId": null
-            }
-          ],
-          "links": [
-            {
-              "id": "link-3",
-              "from": "node-1",
-              "to": "node-2",
-              "fromPort": "out",
-              "toPort": "in",
-              "capacity": 100,
-              "latency": 0.02
-            },
-            {
-              "id": "link-5",
-              "from": "node-2",
-              "to": "node-4",
-              "fromPort": "out",
-              "toPort": "in",
-              "capacity": 100,
-              "latency": 0.02
-            },
-            {
-              "id": "link-7",
-              "from": "node-4",
-              "to": "node-6",
-              "fromPort": "out",
-              "toPort": "in",
-              "capacity": 100,
-              "latency": 0.02
-            },
-            {
-              "id": "link-9",
-              "from": "node-6",
-              "to": "node-8",
-              "fromPort": "out",
-              "toPort": "in",
-              "capacity": 100,
-              "latency": 0.02
-            },
-            {
-              "id": "link-11",
-              "from": "node-8",
-              "to": "node-10",
-              "fromPort": "out",
-              "toPort": "in",
-              "capacity": 100,
-              "latency": 0.02
-            },
-            {
-              "id": "link-13",
-              "from": "node-10",
-              "to": "node-12",
-              "fromPort": "out",
-              "toPort": "in",
-              "capacity": 100,
-              "latency": 0.02
-            },
-            {
-              "id": "link-15",
-              "from": "node-12",
-              "to": "node-14",
-              "fromPort": "out",
-              "toPort": "in",
-              "capacity": 100,
-              "latency": 0.02
-            },
-            {
-              "id": "link-16",
-              "from": "node-1",
-              "to": "node-4",
-              "fromPort": "out",
-              "toPort": "in",
-              "capacity": 100,
-              "latency": 0.02
-            }
-          ],
-          "clusters": [],
-          "workload": {
-            "seed": 42,
-            "count": 12,
-            "interval": 0.5,
-            "deadline": 10,
-            "payloadType": "natural-language",
-            "payloadMiB": 1
-          },
-          "assumptions": [
-            "Synthetic discrete events, seeded service jitter, bounded DAGs and FIFO queues; no external requests or model inference.",
-            "Links serialize payloads FIFO at capacity MiB/s plus fixed latency; no TCP, packet loss or congestion control.",
-            "Classes define service time, concurrency, admission memory and finite retries. Clusters share concurrency slots, not arbitrary failure domains.",
-            "Database and replica effects are idempotent per logical request and node. Replication is asynchronous fan-out, not consensus or quorum.",
-            "Crawler fan-out produces bounded synthetic collection items; RAG/model stages transform declared payload types without semantic AI quality claims."
-          ]
+      "checks": {
+        "catalogNavigation": true,
+        "canonicalDocument": true,
+        "noPageOverflow": true,
+        "paletteDrag": true,
+        "nodeDrag": true,
+        "keyboardMove": true,
+        "duplicate": true,
+        "delete": true,
+        "undoRedo": true,
+        "reusableClass": true,
+        "classVsInstance": true,
+        "resetOverride": true,
+        "fitBounds": true,
+        "invalidDirection": true,
+        "keyboardPortValidation": true,
+        "classChange": true,
+        "payloadWarningBlocksRun": true,
+        "namedPortConnection": true,
+        "endpointReconnect": true,
+        "linkProperties": true,
+        "resourceCluster": true,
+        "runPause": true,
+        "pendingPreservesRun": true,
+        "checkpointRestore": true,
+        "replay": true,
+        "saveLoadPending": true,
+        "loadedReplay": true,
+        "jsonRoundTrip": true,
+        "causalInspection": true,
+        "reset": true,
+        "zoom": true,
+        "pan": true
+      },
+      "errors": [],
+      "networkFailures": [],
+      "blockedExternal": [
+        "https://www.googletagmanager.com"
+      ],
+      "screenshots": [
+        "390-editor.png",
+        "390-properties.png",
+        "390-causal.png",
+        "390-final.png"
+      ],
+      "lastAction": {
+        "button": "Fit"
+      },
+      "nodeFit": [
+        {
+          "id": "clients",
+          "inside": true
+        },
+        {
+          "id": "api",
+          "inside": true
+        },
+        {
+          "id": "cache",
+          "inside": true
+        },
+        {
+          "id": "replicas",
+          "inside": true
+        },
+        {
+          "id": "queue",
+          "inside": true
+        },
+        {
+          "id": "worker",
+          "inside": true
+        },
+        {
+          "id": "results",
+          "inside": true
+        },
+        {
+          "id": "deadletters",
+          "inside": true
         }
-      }
+      ],
+      "edgeSelectionMethod": "verified-path-hit",
+      "pass": true
     }
   ]
 }

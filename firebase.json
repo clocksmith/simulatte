@@ -273,7 +273,7 @@
       "rewrites": [
         {
           "source": "/system-diagram",
-          "destination": "/simulatte/distributed-repair/index.html"
+          "destination": "/simulatte/system-diagram/index.html"
         },
         {
           "source": "/motorcycle",

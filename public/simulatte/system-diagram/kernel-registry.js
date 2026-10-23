@@ -4,7 +4,7 @@
   else root.SimulatteSystemDiagramKernels = api;
 })(globalThis, function () {
   'use strict';
-  const HOOKS = Object.freeze(['init', 'start', 'onRequest', 'onServed', 'onResult', 'onWake', 'onFault', 'onControl', 'observe']);
+  const HOOKS = Object.freeze(['validateParams', 'init', 'start', 'onRequest', 'onServed', 'onResult', 'onWake', 'onFault', 'onControl', 'observe']);
   const kernels = new Map();
   // A kernel implements behaviour for one class-library kernel id through the engine ctx API only.
   function register(kernel) {

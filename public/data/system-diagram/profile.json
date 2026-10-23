@@ -1,0 +1,13 @@
+{
+  "schema": "simulatte.systemDiagramProfile.v3",
+  "id": "system-diagram-v1",
+  "version": "3.0.0",
+  "name": "System Diagram Simulator",
+  "route": "/system-diagram",
+  "entry": "/simulatte/system-diagram/index.html",
+  "model": "system-diagram/v1",
+  "configPath": "/data/system-diagram/config.json",
+  "defaultSeed": 42,
+  "capabilities": ["diagram-authoring", "class-instance-overrides", "named-ports", "registered-kernels", "seeded-replay", "checkpoints", "causal-inspection"],
+  "limitations": "Synthetic typed workloads with declared executable kernels. Class metadata alone is not implementation. No live AI, scraping, production calibration or consensus proof."
+}

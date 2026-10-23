@@ -7,22 +7,129 @@
       "id": "batchWorker",
       "label": "Batching worker",
       "description": "Collects requests into batches up to a size or window, serves each batch on one of its workers, then calls downstream edges per request.",
-      "paramSets": ["calls"],
+      "paramSets": [
+        "calls"
+      ],
       "params": {
-        "workers": { "type": "integer", "label": "Concurrent batches", "min": 1, "max": 1024, "default": 1, "group": "basic" },
-        "maxBatch": { "type": "integer", "label": "Max batch", "unit": "requests", "min": 1, "max": 4096, "default": 16, "group": "basic" },
-        "batchWindowMs": { "type": "number", "label": "Batch window", "unit": "ms", "min": 0, "max": 60000, "default": 10, "group": "basic" },
-        "batchBaseMs": { "type": "number", "label": "Batch base time", "unit": "ms", "min": 0, "max": 3600000, "default": 20, "group": "basic" },
-        "perItemMs": { "type": "number", "label": "Per-item time", "unit": "ms", "min": 0, "max": 3600000, "default": 2, "group": "basic" },
-        "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "requests", "min": 0, "max": 100000, "default": 1000, "group": "advanced" },
-        "errorRate": { "type": "number", "label": "Error rate", "unit": "fraction", "min": 0, "max": 1, "default": 0, "group": "advanced" },
-        "responseKb": { "type": "number", "label": "Response size", "unit": "KB", "min": 0, "max": 1000000, "default": 1, "group": "advanced" }
+        "workers": {
+          "type": "integer",
+          "label": "Concurrent batches",
+          "min": 1,
+          "max": 1024,
+          "default": 1,
+          "group": "basic"
+        },
+        "maxBatch": {
+          "type": "integer",
+          "label": "Max batch",
+          "unit": "requests",
+          "min": 1,
+          "max": 4096,
+          "default": 16,
+          "group": "basic"
+        },
+        "batchWindowMs": {
+          "type": "number",
+          "label": "Batch window",
+          "unit": "ms",
+          "min": 0,
+          "max": 60000,
+          "default": 10,
+          "group": "basic"
+        },
+        "batchBaseMs": {
+          "type": "number",
+          "label": "Batch base time",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 20,
+          "group": "basic"
+        },
+        "perItemMs": {
+          "type": "number",
+          "label": "Per-item time",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 2,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "requests",
+          "min": 0,
+          "max": 100000,
+          "default": 1000,
+          "group": "advanced"
+        },
+        "errorRate": {
+          "type": "number",
+          "label": "Error rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "advanced"
+        },
+        "responseKb": {
+          "type": "number",
+          "label": "Response size",
+          "unit": "KB",
+          "min": 0,
+          "max": 1000000,
+          "default": 1,
+          "group": "advanced"
+        },
+        "memoryPerRequestMiB": {
+          "type": "number",
+          "label": "Retained memory per admitted request",
+          "unit": "MiB",
+          "min": 0,
+          "max": 1048576,
+          "default": 1,
+          "group": "advanced"
+        },
+        "memoryLimitMiB": {
+          "type": "number",
+          "label": "Admission memory budget",
+          "unit": "MiB",
+          "min": 0,
+          "max": 1048576,
+          "default": 1024,
+          "group": "advanced"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Requests", "accepts": ["any"], "multiple": true, "required": true },
-        { "id": "calls", "direction": "out", "label": "Calls", "emits": ["inherit"], "multiple": true, "required": false }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Requests",
+          "accepts": [
+            "any"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "calls",
+          "direction": "out",
+          "label": "Calls",
+          "emits": [
+            "inherit"
+          ],
+          "multiple": true,
+          "required": false
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     },
     {
       "id": "llm",
@@ -30,28 +137,179 @@
       "description": "Token-priced generation with continuous batching: time to first token plus prefill and decode, slowed by active batch size. Optional structured output, tool-call rounds and a tokens-per-minute quota.",
       "paramSets": [],
       "params": {
-        "ttftMs": { "type": "number", "label": "Time to first token", "unit": "ms", "min": 0, "max": 600000, "default": 200, "group": "basic" },
-        "prefillMsPer1kTokens": { "type": "number", "label": "Prefill per 1k tokens", "unit": "ms", "min": 0, "max": 600000, "default": 20, "group": "advanced" },
-        "decodeMsPerToken": { "type": "number", "label": "Decode per token", "unit": "ms", "min": 0, "max": 60000, "default": 20, "group": "basic" },
-        "outputTokensMean": { "type": "number", "label": "Mean output tokens", "unit": "tokens", "min": 1, "max": 1000000, "default": 300, "group": "basic" },
-        "maxBatch": { "type": "integer", "label": "Max concurrent sequences", "min": 1, "max": 4096, "default": 16, "group": "basic" },
-        "batchSlowdown": { "type": "number", "label": "Slowdown per extra sequence", "unit": "fraction", "min": 0, "max": 1, "default": 0.05, "group": "advanced" },
-        "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "requests", "min": 0, "max": 100000, "default": 500, "group": "advanced" },
-        "contextWindow": { "type": "integer", "label": "Context window", "unit": "tokens", "min": 1, "max": 10000000, "default": 128000, "group": "advanced" },
-        "structuredOutput": { "type": "boolean", "label": "Structured (JSON) output", "default": false, "group": "basic" },
-        "schemaFailureRate": { "type": "number", "label": "Schema failure rate", "unit": "fraction", "min": 0, "max": 1, "default": 0.05, "group": "basic" },
-        "tokensPerMinute": { "type": "number", "label": "Token quota (0 = none)", "unit": "tokens/min", "min": 0, "max": 1000000000, "default": 0, "group": "advanced" },
-        "errorRate": { "type": "number", "label": "Error rate", "unit": "fraction", "min": 0, "max": 1, "default": 0, "group": "advanced" },
-        "costPer1kInput": { "type": "number", "label": "Cost per 1k input tokens", "unit": "USD", "min": 0, "max": 1000, "default": 0.003, "group": "advanced" },
-        "costPer1kOutput": { "type": "number", "label": "Cost per 1k output tokens", "unit": "USD", "min": 0, "max": 1000, "default": 0.015, "group": "advanced" },
-        "toolRounds": { "type": "integer", "label": "Tool-call rounds", "min": 0, "max": 10, "default": 0, "group": "basic" },
-        "toolTimeoutMs": { "type": "number", "label": "Tool timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 5000, "group": "advanced" }
+        "ttftMs": {
+          "type": "number",
+          "label": "Time to first token",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 200,
+          "group": "basic"
+        },
+        "prefillMsPer1kTokens": {
+          "type": "number",
+          "label": "Prefill per 1k tokens",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 20,
+          "group": "advanced"
+        },
+        "decodeMsPerToken": {
+          "type": "number",
+          "label": "Decode per token",
+          "unit": "ms",
+          "min": 0,
+          "max": 60000,
+          "default": 20,
+          "group": "basic"
+        },
+        "outputTokensMean": {
+          "type": "number",
+          "label": "Mean output tokens",
+          "unit": "tokens",
+          "min": 1,
+          "max": 1000000,
+          "default": 300,
+          "group": "basic"
+        },
+        "maxBatch": {
+          "type": "integer",
+          "label": "Max concurrent sequences",
+          "min": 1,
+          "max": 4096,
+          "default": 16,
+          "group": "basic"
+        },
+        "batchSlowdown": {
+          "type": "number",
+          "label": "Slowdown per extra sequence",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0.05,
+          "group": "advanced"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "requests",
+          "min": 0,
+          "max": 100000,
+          "default": 500,
+          "group": "advanced"
+        },
+        "contextWindow": {
+          "type": "integer",
+          "label": "Context window",
+          "unit": "tokens",
+          "min": 1,
+          "max": 10000000,
+          "default": 128000,
+          "group": "advanced"
+        },
+        "structuredOutput": {
+          "type": "boolean",
+          "label": "Structured (JSON) output",
+          "default": false,
+          "group": "basic"
+        },
+        "schemaFailureRate": {
+          "type": "number",
+          "label": "Schema failure rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0.05,
+          "group": "basic"
+        },
+        "tokensPerMinute": {
+          "type": "number",
+          "label": "Token quota (0 = none)",
+          "unit": "tokens/min",
+          "min": 0,
+          "max": 1000000000,
+          "default": 0,
+          "group": "advanced"
+        },
+        "errorRate": {
+          "type": "number",
+          "label": "Error rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "advanced"
+        },
+        "costPer1kInput": {
+          "type": "number",
+          "label": "Cost per 1k input tokens",
+          "unit": "USD",
+          "min": 0,
+          "max": 1000,
+          "default": 0.003,
+          "group": "advanced"
+        },
+        "costPer1kOutput": {
+          "type": "number",
+          "label": "Cost per 1k output tokens",
+          "unit": "USD",
+          "min": 0,
+          "max": 1000,
+          "default": 0.015,
+          "group": "advanced"
+        },
+        "toolRounds": {
+          "type": "integer",
+          "label": "Tool-call rounds",
+          "min": 0,
+          "max": 10,
+          "default": 0,
+          "group": "basic"
+        },
+        "toolTimeoutMs": {
+          "type": "number",
+          "label": "Tool timeout",
+          "unit": "ms",
+          "min": 1,
+          "max": 3600000,
+          "default": 5000,
+          "group": "advanced"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Prompts", "accepts": ["text", "json", "query", "document", "http"], "multiple": true, "required": true },
-        { "id": "tools", "direction": "out", "label": "Tools", "emits": ["json"], "multiple": true, "required": false }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Prompts",
+          "accepts": [
+            "text",
+            "json",
+            "query",
+            "document",
+            "http"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "tools",
+          "direction": "out",
+          "label": "Tools",
+          "emits": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     },
     {
       "id": "embedder",
@@ -59,19 +317,99 @@
       "description": "Batches text into embedding vectors; time grows with batch tokens.",
       "paramSets": [],
       "params": {
-        "workers": { "type": "integer", "label": "Concurrent batches", "min": 1, "max": 1024, "default": 2, "group": "basic" },
-        "maxBatch": { "type": "integer", "label": "Max batch", "unit": "inputs", "min": 1, "max": 4096, "default": 64, "group": "basic" },
-        "batchWindowMs": { "type": "number", "label": "Batch window", "unit": "ms", "min": 0, "max": 60000, "default": 5, "group": "basic" },
-        "batchBaseMs": { "type": "number", "label": "Batch base time", "unit": "ms", "min": 0, "max": 600000, "default": 10, "group": "advanced" },
-        "perKTokensMs": { "type": "number", "label": "Per 1k tokens", "unit": "ms", "min": 0, "max": 600000, "default": 5, "group": "basic" },
-        "dims": { "type": "integer", "label": "Dimensions", "min": 1, "max": 65536, "default": 1024, "group": "advanced" },
-        "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "inputs", "min": 0, "max": 1000000, "default": 5000, "group": "advanced" },
-        "errorRate": { "type": "number", "label": "Error rate", "unit": "fraction", "min": 0, "max": 1, "default": 0, "group": "advanced" }
+        "workers": {
+          "type": "integer",
+          "label": "Concurrent batches",
+          "min": 1,
+          "max": 1024,
+          "default": 2,
+          "group": "basic"
+        },
+        "maxBatch": {
+          "type": "integer",
+          "label": "Max batch",
+          "unit": "inputs",
+          "min": 1,
+          "max": 4096,
+          "default": 64,
+          "group": "basic"
+        },
+        "batchWindowMs": {
+          "type": "number",
+          "label": "Batch window",
+          "unit": "ms",
+          "min": 0,
+          "max": 60000,
+          "default": 5,
+          "group": "basic"
+        },
+        "batchBaseMs": {
+          "type": "number",
+          "label": "Batch base time",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 10,
+          "group": "advanced"
+        },
+        "perKTokensMs": {
+          "type": "number",
+          "label": "Per 1k tokens",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 5,
+          "group": "basic"
+        },
+        "dims": {
+          "type": "integer",
+          "label": "Dimensions",
+          "min": 1,
+          "max": 65536,
+          "default": 1024,
+          "group": "advanced"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "inputs",
+          "min": 0,
+          "max": 1000000,
+          "default": 5000,
+          "group": "advanced"
+        },
+        "errorRate": {
+          "type": "number",
+          "label": "Error rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "advanced"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Text", "accepts": ["text", "query", "document", "json"], "multiple": true, "required": true }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Text",
+          "accepts": [
+            "text",
+            "query",
+            "document",
+            "json"
+          ],
+          "multiple": true,
+          "required": true
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     },
     {
       "id": "vectorIndex",
@@ -79,21 +417,115 @@
       "description": "Approximate nearest-neighbour search whose query time grows with log index size; writes upsert vectors and grow the index.",
       "paramSets": [],
       "params": {
-        "vectors": { "type": "integer", "label": "Initial vectors", "min": 0, "max": 10000000000, "default": 100000, "group": "basic" },
-        "queryBaseMs": { "type": "number", "label": "Query base time", "unit": "ms", "min": 0, "max": 600000, "default": 2, "group": "basic" },
-        "queryLogMs": { "type": "number", "label": "Query time per log2(N)", "unit": "ms", "min": 0, "max": 60000, "default": 0.5, "group": "advanced" },
-        "upsertMs": { "type": "number", "label": "Upsert time", "unit": "ms", "min": 0, "max": 600000, "default": 1, "group": "basic" },
-        "topK": { "type": "integer", "label": "Top K", "min": 1, "max": 1000, "default": 10, "group": "basic" },
-        "recall": { "type": "number", "label": "Recall at K", "unit": "fraction", "min": 0, "max": 1, "default": 0.95, "group": "basic" },
-        "dims": { "type": "integer", "label": "Dimensions", "min": 1, "max": 65536, "default": 1024, "group": "advanced" },
-        "concurrency": { "type": "integer", "label": "Concurrency", "min": 1, "max": 100000, "default": 64, "group": "advanced" },
-        "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "requests", "min": 0, "max": 1000000, "default": 5000, "group": "advanced" },
-        "errorRate": { "type": "number", "label": "Error rate", "unit": "fraction", "min": 0, "max": 1, "default": 0, "group": "advanced" }
+        "vectors": {
+          "type": "integer",
+          "label": "Initial vectors",
+          "min": 0,
+          "max": 10000000000,
+          "default": 100000,
+          "group": "basic"
+        },
+        "queryBaseMs": {
+          "type": "number",
+          "label": "Query base time",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 2,
+          "group": "basic"
+        },
+        "queryLogMs": {
+          "type": "number",
+          "label": "Query time per log2(N)",
+          "unit": "ms",
+          "min": 0,
+          "max": 60000,
+          "default": 0.5,
+          "group": "advanced"
+        },
+        "upsertMs": {
+          "type": "number",
+          "label": "Upsert time",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 1,
+          "group": "basic"
+        },
+        "topK": {
+          "type": "integer",
+          "label": "Top K",
+          "min": 1,
+          "max": 1000,
+          "default": 10,
+          "group": "basic"
+        },
+        "recall": {
+          "type": "number",
+          "label": "Recall at K",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0.95,
+          "group": "basic"
+        },
+        "dims": {
+          "type": "integer",
+          "label": "Dimensions",
+          "min": 1,
+          "max": 65536,
+          "default": 1024,
+          "group": "advanced"
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "min": 1,
+          "max": 100000,
+          "default": 64,
+          "group": "advanced"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "requests",
+          "min": 0,
+          "max": 1000000,
+          "default": 5000,
+          "group": "advanced"
+        },
+        "errorRate": {
+          "type": "number",
+          "label": "Error rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "advanced"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Queries and upserts", "accepts": ["embedding", "query", "text", "json"], "multiple": true, "required": true }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Queries and upserts",
+          "accepts": [
+            "embedding",
+            "query",
+            "text",
+            "json"
+          ],
+          "multiple": true,
+          "required": true
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     },
     {
       "id": "retriever",
@@ -101,37 +533,187 @@
       "description": "For each question: embed, search the index, optionally rerank, then generate with the retrieved context. Each step is a call on its own port.",
       "paramSets": [],
       "params": {
-        "topK": { "type": "integer", "label": "Top K", "min": 1, "max": 1000, "default": 8, "group": "basic" },
-        "chunkTokens": { "type": "integer", "label": "Tokens per chunk", "unit": "tokens", "min": 1, "max": 100000, "default": 300, "group": "basic" },
-        "promptTokens": { "type": "integer", "label": "Prompt overhead", "unit": "tokens", "min": 0, "max": 1000000, "default": 400, "group": "advanced" },
-        "serviceMs": { "type": "number", "label": "Orchestration time", "unit": "ms", "min": 0, "max": 600000, "default": 2, "group": "advanced" },
-        "concurrency": { "type": "integer", "label": "Concurrency", "min": 1, "max": 100000, "default": 256, "group": "advanced" },
-        "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "requests", "min": 0, "max": 100000, "default": 1000, "group": "advanced" },
-        "callTimeoutMs": { "type": "number", "label": "Step timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 30000, "group": "basic" },
-        "retries": { "type": "integer", "label": "Retries per step", "min": 0, "max": 20, "default": 1, "group": "basic" },
-        "retryBackoffMs": { "type": "number", "label": "Retry backoff", "unit": "ms", "min": 0, "max": 600000, "default": 200, "group": "advanced" }
+        "topK": {
+          "type": "integer",
+          "label": "Top K",
+          "min": 1,
+          "max": 1000,
+          "default": 8,
+          "group": "basic"
+        },
+        "chunkTokens": {
+          "type": "integer",
+          "label": "Tokens per chunk",
+          "unit": "tokens",
+          "min": 1,
+          "max": 100000,
+          "default": 300,
+          "group": "basic"
+        },
+        "promptTokens": {
+          "type": "integer",
+          "label": "Prompt overhead",
+          "unit": "tokens",
+          "min": 0,
+          "max": 1000000,
+          "default": 400,
+          "group": "advanced"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Orchestration time",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 2,
+          "group": "advanced"
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "min": 1,
+          "max": 100000,
+          "default": 256,
+          "group": "advanced"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "requests",
+          "min": 0,
+          "max": 100000,
+          "default": 1000,
+          "group": "advanced"
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Step timeout",
+          "unit": "ms",
+          "min": 1,
+          "max": 3600000,
+          "default": 30000,
+          "group": "basic"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Retries per step",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 200,
+          "group": "advanced"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Questions", "accepts": ["text", "query", "json", "http"], "multiple": true, "required": true },
-        { "id": "embed", "direction": "out", "label": "Embed", "emits": ["text"], "multiple": false, "required": true },
-        { "id": "search", "direction": "out", "label": "Search", "emits": ["embedding"], "multiple": false, "required": true },
-        { "id": "rerank", "direction": "out", "label": "Rerank", "emits": ["json"], "multiple": false, "required": false },
-        { "id": "generate", "direction": "out", "label": "Generate", "emits": ["text"], "multiple": false, "required": true }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Questions",
+          "accepts": [
+            "text",
+            "query",
+            "json",
+            "http"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "embed",
+          "direction": "out",
+          "label": "Embed",
+          "emits": [
+            "text"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "search",
+          "direction": "out",
+          "label": "Search",
+          "emits": [
+            "embedding"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "rerank",
+          "direction": "out",
+          "label": "Rerank",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": false
+        },
+        {
+          "id": "generate",
+          "direction": "out",
+          "label": "Generate",
+          "emits": [
+            "text"
+          ],
+          "multiple": false,
+          "required": true
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     },
     {
       "id": "reranker",
       "label": "Reranker",
       "description": "Scores retrieved candidates; time grows with the number of candidates in the request.",
-      "paramSets": ["station"],
+      "paramSets": [
+        "station"
+      ],
       "params": {
-        "perCandidateMs": { "type": "number", "label": "Per candidate", "unit": "ms", "min": 0, "max": 60000, "default": 1, "group": "basic" }
+        "perCandidateMs": {
+          "type": "number",
+          "label": "Per candidate",
+          "unit": "ms",
+          "min": 0,
+          "max": 60000,
+          "default": 1,
+          "group": "basic"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Candidates", "accepts": ["json", "text", "query"], "multiple": true, "required": true }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Candidates",
+          "accepts": [
+            "json",
+            "text",
+            "query"
+          ],
+          "multiple": true,
+          "required": true
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     },
     {
       "id": "chunker",
@@ -139,21 +721,116 @@
       "description": "Splits each document into token chunks and forwards every chunk downstream; sync edges wait for all chunk replies.",
       "paramSets": [],
       "params": {
-        "chunkTokens": { "type": "integer", "label": "Chunk size", "unit": "tokens", "min": 1, "max": 1000000, "default": 500, "group": "basic" },
-        "overlapTokens": { "type": "integer", "label": "Overlap", "unit": "tokens", "min": 0, "max": 100000, "default": 50, "group": "advanced" },
-        "tokensPerKb": { "type": "number", "label": "Tokens per KB", "min": 0.01, "max": 10000, "default": 250, "group": "advanced" },
-        "serviceMs": { "type": "number", "label": "Parse time", "unit": "ms", "min": 0, "max": 600000, "default": 2, "group": "basic" },
-        "perKbMs": { "type": "number", "label": "Parse time per KB", "unit": "ms/KB", "min": 0, "max": 60000, "default": 0.2, "group": "advanced" },
-        "concurrency": { "type": "integer", "label": "Concurrency", "min": 1, "max": 100000, "default": 8, "group": "basic" },
-        "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "documents", "min": 0, "max": 1000000, "default": 10000, "group": "advanced" },
-        "callTimeoutMs": { "type": "number", "label": "Chunk call timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 30000, "group": "advanced" },
-        "maxChunks": { "type": "integer", "label": "Chunk limit per document", "min": 1, "max": 100000, "default": 512, "group": "advanced" }
+        "chunkTokens": {
+          "type": "integer",
+          "label": "Chunk size",
+          "unit": "tokens",
+          "min": 1,
+          "max": 1000000,
+          "default": 500,
+          "group": "basic"
+        },
+        "overlapTokens": {
+          "type": "integer",
+          "label": "Overlap",
+          "unit": "tokens",
+          "min": 0,
+          "max": 100000,
+          "default": 50,
+          "group": "advanced"
+        },
+        "tokensPerKb": {
+          "type": "number",
+          "label": "Tokens per KB",
+          "min": 0.01,
+          "max": 10000,
+          "default": 250,
+          "group": "advanced"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Parse time",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 2,
+          "group": "basic"
+        },
+        "perKbMs": {
+          "type": "number",
+          "label": "Parse time per KB",
+          "unit": "ms/KB",
+          "min": 0,
+          "max": 60000,
+          "default": 0.2,
+          "group": "advanced"
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "min": 1,
+          "max": 100000,
+          "default": 8,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "documents",
+          "min": 0,
+          "max": 1000000,
+          "default": 10000,
+          "group": "advanced"
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Chunk call timeout",
+          "unit": "ms",
+          "min": 1,
+          "max": 3600000,
+          "default": 30000,
+          "group": "advanced"
+        },
+        "maxChunks": {
+          "type": "integer",
+          "label": "Chunk limit per document",
+          "min": 1,
+          "max": 100000,
+          "default": 512,
+          "group": "advanced"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Documents", "accepts": ["document", "text", "blob"], "multiple": true, "required": true },
-        { "id": "chunks", "direction": "out", "label": "Chunks", "emits": ["text"], "multiple": true, "required": true }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Documents",
+          "accepts": [
+            "document",
+            "text",
+            "blob"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "chunks",
+          "direction": "out",
+          "label": "Chunks",
+          "emits": [
+            "text"
+          ],
+          "multiple": true,
+          "required": true
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     },
     {
       "id": "structuredResponse",
@@ -161,33 +838,235 @@
       "description": "Turns natural language or unstructured input into validated JSON. With a generator connected it asks for output and repairs invalid JSON; without one it parses the input directly.",
       "paramSets": [],
       "params": {
-        "validateMs": { "type": "number", "label": "Validation time", "unit": "ms", "min": 0, "max": 600000, "default": 1, "group": "basic" },
-        "maxRepairs": { "type": "integer", "label": "Repair attempts", "min": 0, "max": 10, "default": 2, "group": "basic" },
-        "parseFailureRate": { "type": "number", "label": "Direct parse failure rate", "unit": "fraction", "min": 0, "max": 1, "default": 0.02, "group": "basic" },
-        "concurrency": { "type": "integer", "label": "Concurrency", "min": 1, "max": 100000, "default": 64, "group": "advanced" },
-        "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "requests", "min": 0, "max": 100000, "default": 1000, "group": "advanced" },
-        "callTimeoutMs": { "type": "number", "label": "Generator timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 30000, "group": "advanced" },
-        "responseKb": { "type": "number", "label": "JSON size", "unit": "KB", "min": 0, "max": 1000000, "default": 2, "group": "advanced" }
+        "validateMs": {
+          "type": "number",
+          "label": "Validation time",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 1,
+          "group": "basic"
+        },
+        "maxRepairs": {
+          "type": "integer",
+          "label": "Repair attempts",
+          "min": 0,
+          "max": 10,
+          "default": 2,
+          "group": "basic"
+        },
+        "parseFailureRate": {
+          "type": "number",
+          "label": "Direct parse failure rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0.02,
+          "group": "basic"
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "min": 1,
+          "max": 100000,
+          "default": 64,
+          "group": "advanced"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "requests",
+          "min": 0,
+          "max": 100000,
+          "default": 1000,
+          "group": "advanced"
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Generator timeout",
+          "unit": "ms",
+          "min": 1,
+          "max": 3600000,
+          "default": 30000,
+          "group": "advanced"
+        },
+        "responseKb": {
+          "type": "number",
+          "label": "JSON size",
+          "unit": "KB",
+          "min": 0,
+          "max": 1000000,
+          "default": 2,
+          "group": "advanced"
+        }
       },
       "ports": [
-        { "id": "in", "direction": "in", "label": "Input", "accepts": ["text", "document", "json", "query", "http"], "multiple": true, "required": true },
-        { "id": "generate", "direction": "out", "label": "Generator", "emits": ["text"], "multiple": false, "required": false }
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Input",
+          "accepts": [
+            "text",
+            "document",
+            "json",
+            "query",
+            "http"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "generate",
+          "direction": "out",
+          "label": "Generator",
+          "emits": [
+            "text"
+          ],
+          "multiple": false,
+          "required": false
+        }
       ],
-      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     }
   ],
   "classes": [
-    { "id": "gpu-worker", "label": "GPU inference worker", "category": "compute", "kernel": "batchWorker", "glyph": "gpu", "description": "Batched accelerator inference.", "defaults": { "maxBatch": 32, "batchWindowMs": 15, "batchBaseMs": 40, "perItemMs": 3 } },
-    { "id": "llm", "label": "LLM generator", "category": "ai", "kernel": "llm", "glyph": "sparkle", "description": "Self-hosted language model with continuous batching.", "defaults": {} },
-    { "id": "hosted-llm-api", "label": "Hosted LLM API", "category": "ai", "kernel": "llm", "glyph": "sparkle", "description": "Provider API with a tokens-per-minute quota.", "defaults": { "maxBatch": 256, "batchSlowdown": 0, "tokensPerMinute": 200000, "ttftMs": 400 } },
-    { "id": "structured-llm", "label": "Structured-output LLM", "category": "ai", "kernel": "llm", "glyph": "braces", "description": "Generates JSON that must match a schema.", "defaults": { "structuredOutput": true, "outputTokensMean": 150 } },
-    { "id": "agent-llm", "label": "Tool-using agent", "category": "ai", "kernel": "llm", "glyph": "sparkle", "description": "Generates, calls tools, then generates again.", "defaults": { "toolRounds": 2, "outputTokensMean": 200 } },
-    { "id": "embedder", "label": "Embedding model", "category": "ai", "kernel": "embedder", "glyph": "vector", "description": "Text to vectors.", "defaults": {} },
-    { "id": "vector-index", "label": "Vector index", "category": "ai", "kernel": "vectorIndex", "glyph": "vector-db", "description": "Approximate nearest-neighbour store.", "defaults": {} },
-    { "id": "rag-retriever", "label": "RAG orchestrator", "category": "ai", "kernel": "retriever", "glyph": "magnifier", "description": "Retrieve then generate.", "defaults": {} },
-    { "id": "reranker", "label": "Reranker", "category": "ai", "kernel": "reranker", "glyph": "rank", "description": "Cross-encoder scoring of candidates.", "defaults": { "concurrency": 8, "serviceMs": 5, "serviceDist": "constant" } },
-    { "id": "chunker", "label": "Document chunker", "category": "data", "kernel": "chunker", "glyph": "scissors", "description": "Splits documents for indexing.", "defaults": {} },
-    { "id": "structured-response", "label": "Structured response", "category": "ai", "kernel": "structuredResponse", "glyph": "braces", "description": "Natural language in, validated JSON out.", "defaults": {} },
-    { "id": "doc-parser", "label": "Unstructured parser", "category": "data", "kernel": "structuredResponse", "glyph": "document", "description": "Extracts fields from unstructured documents.", "defaults": { "validateMs": 15, "parseFailureRate": 0.05, "maxRepairs": 0 } }
+    {
+      "id": "gpu-worker",
+      "label": "GPU inference worker",
+      "category": "compute",
+      "kernel": "batchWorker",
+      "glyph": "gpu",
+      "description": "Batched accelerator inference.",
+      "defaults": {
+        "maxBatch": 32,
+        "batchWindowMs": 15,
+        "batchBaseMs": 40,
+        "perItemMs": 3
+      }
+    },
+    {
+      "id": "llm",
+      "label": "LLM generator",
+      "category": "ai",
+      "kernel": "llm",
+      "glyph": "sparkle",
+      "description": "Self-hosted language model with continuous batching.",
+      "defaults": {}
+    },
+    {
+      "id": "hosted-llm-api",
+      "label": "Hosted LLM API",
+      "category": "ai",
+      "kernel": "llm",
+      "glyph": "sparkle",
+      "description": "Provider API with a tokens-per-minute quota.",
+      "defaults": {
+        "maxBatch": 256,
+        "batchSlowdown": 0,
+        "tokensPerMinute": 200000,
+        "ttftMs": 400
+      }
+    },
+    {
+      "id": "structured-llm",
+      "label": "Structured-output LLM",
+      "category": "ai",
+      "kernel": "llm",
+      "glyph": "braces",
+      "description": "Generates JSON that must match a schema.",
+      "defaults": {
+        "structuredOutput": true,
+        "outputTokensMean": 150
+      }
+    },
+    {
+      "id": "agent-llm",
+      "label": "Tool-using agent",
+      "category": "ai",
+      "kernel": "llm",
+      "glyph": "sparkle",
+      "description": "Generates, calls tools, then generates again.",
+      "defaults": {
+        "toolRounds": 2,
+        "outputTokensMean": 200
+      }
+    },
+    {
+      "id": "embedder",
+      "label": "Embedding model",
+      "category": "ai",
+      "kernel": "embedder",
+      "glyph": "vector",
+      "description": "Text to vectors.",
+      "defaults": {}
+    },
+    {
+      "id": "vector-index",
+      "label": "Vector index",
+      "category": "ai",
+      "kernel": "vectorIndex",
+      "glyph": "vector-db",
+      "description": "Approximate nearest-neighbour store.",
+      "defaults": {}
+    },
+    {
+      "id": "rag-retriever",
+      "label": "RAG orchestrator",
+      "category": "ai",
+      "kernel": "retriever",
+      "glyph": "magnifier",
+      "description": "Retrieve then generate.",
+      "defaults": {}
+    },
+    {
+      "id": "reranker",
+      "label": "Reranker",
+      "category": "ai",
+      "kernel": "reranker",
+      "glyph": "rank",
+      "description": "Cross-encoder scoring of candidates.",
+      "defaults": {
+        "concurrency": 8,
+        "serviceMs": 5,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "chunker",
+      "label": "Document chunker",
+      "category": "data",
+      "kernel": "chunker",
+      "glyph": "scissors",
+      "description": "Splits documents for indexing.",
+      "defaults": {}
+    },
+    {
+      "id": "structured-response",
+      "label": "Structured response",
+      "category": "ai",
+      "kernel": "structuredResponse",
+      "glyph": "braces",
+      "description": "Natural language in, validated JSON out.",
+      "defaults": {}
+    },
+    {
+      "id": "doc-parser",
+      "label": "Unstructured parser",
+      "category": "data",
+      "kernel": "structuredResponse",
+      "glyph": "document",
+      "description": "Extracts fields from unstructured documents.",
+      "defaults": {
+        "validateMs": 15,
+        "parseFailureRate": 0.05,
+        "maxRepairs": 0
+      }
+    }
   ]
 }

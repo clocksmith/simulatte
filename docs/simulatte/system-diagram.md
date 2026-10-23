@@ -16,31 +16,15 @@ retries, timeouts, replication and recovery.
 All browser files live in `public/simulatte/system-diagram/` and are classic scripts
 with CommonJS exports, matching the rest of World. No file exceeds 999 lines.
 
-| File | Owner | Global | Role |
-| --- | --- | --- | --- |
-| `class-library.js` | contracts | `SimulatteSystemDiagramLibrary` | Load and validate the class library manifest and packs |
-| `diagram.js` | contracts | `SimulatteSystemDiagramDocument` | Validate, resolve, derive and compile diagram documents |
-| `kernel-registry.js` | contracts | `SimulatteSystemDiagramKernels` | Kernel behaviour registry |
-| `engine-core.js` | engine | `SimulatteSystemDiagramEngineCore` | Event heap, RNG streams, network, stations, calls, faults, metrics, `ctx` |
-| `engine.js` | engine | `SimulatteSystemDiagramEngine` | Pure `initialize/advance/applyControl/observe/metrics` |
-| `runner.js` | engine | `SimulatteSystemDiagramRunner` | Coordinator binding, display state, controls, checkpoints, replay |
-| `kernels-core.js` | engine | registers | `source`, `service`, `endpoint`, `queue`, `deadLetter`, `database` |
-| `kernels-routing.js` | classes | registers | `loadBalancer`, `rateLimiter`, `circuitBreaker`, `retry`, `fallback` |
-| `kernels-storage.js` | classes | registers | `replicatedDb`, `cache`, `objectStore` |
-| `kernels-ai.js` | classes | registers | `batchWorker`, `llm`, `embedder`, `vectorIndex`, `retriever`, `reranker`, `chunker`, `structuredResponse` |
-| `kernels-sources.js` | classes | registers | `cron`, `crawler` |
-| `editor-model.js` | editor | `SimulatteSystemDiagramEditorModel` | Commands, selection, undo/redo over the document |
-| `editor-canvas.js` | editor | `SimulatteSystemDiagramCanvas` | SVG canvas: render, pan, zoom, drag, connect, marquee |
-| `glyphs.js` | editor | `SimulatteSystemDiagramGlyphs` | Line glyphs for classes |
-| `palette.js` | editor | `SimulatteSystemDiagramPalette` | Class palette with search and drag-to-canvas |
-| `file-io.js` | editor | `SimulatteSystemDiagramFiles` | Export, import, autosave |
-| `editor.css` | editor | | Canvas and palette styling |
-| `run-controls.js` | run UI | `SimulatteSystemDiagramRunControls` | Playback dock |
-| `inspector.js` | run UI | `SimulatteSystemDiagramInspector` | Instance, class, edge, group and diagram inspection and editing; fault injection |
-| `overlay.js` | run UI | `SimulatteSystemDiagramOverlay` | Flow animation, queue and health overlays on the canvas |
-| `metrics-panel.js` | run UI | `SimulatteSystemDiagramMetrics` | Throughput, latency percentiles, errors, utilization |
-| `run.css` | run UI | | Inspector, overlay and metrics styling |
-| `index.html`, `page.js`, `style.css`, `profile.js` | integration | | Page layout, wiring, lifecycle, profile validation |
+| File | Role |
+| --- | --- |
+| `class-library.js`, `diagram.js` | Governed class packs, parameters, named ports, document validation and compilation |
+| `kernel-registry.js`, `kernels-*.js` | Explicit behavior registration and capability checks; routing kernels remain unregistered metadata |
+| `engine-core.js`, `engine.js` | Ordered events, per-node RNG, calls, resources, faults, causal records and observation |
+| `runner.js` | WorldSpec and shared coordinator binding, exact display state, controls, checkpoints and replay |
+| `editor-model.js` | Atomic commands, selection, semantic identity and undo/redo |
+| `editor-canvas.js`, `editor.css` | SVG authoring, named-port wiring, reconnect, pan/zoom and actual-state rendering |
+| `page.js`, `index.html`, `style.css`, `profile.js` | Palette, contextual class/instance fields, accepted/pending lifecycle, save/load, controls, metrics and request inspection |
 
 Data lives in `public/data/system-diagram/`: `class-library.json` (manifest),
 `classes/*.json` (packs), `config.json` (engine bounds, playback, editor, examples)
@@ -115,7 +99,8 @@ warnings from `issues()`; they never block drawing.
 - Node `x, y` is the top-left corner in world units; node size is
   `config.editor.nodeWidth` by `nodeHeight`. Layout never affects simulation.
 - `groupId` is explicit membership. Groups of kind `zone` or `region` are failure
-  domains (`outage` fault); `boundary` is visual only.
+  domains (`outage` fault); `boundary` is visual only. A `resource` group requires
+  integer `capacity` in 1–64 and shares concurrent worker slots. It is not an outage target.
 - Edges connect an `out` port to an `in` port of a different node. Ports with
   `multiple: false` take one edge. Duplicate edges between the same ports are
   rejected. Cycles are allowed; messages carry a hop count bounded by
@@ -218,6 +203,7 @@ View returned by `observe`:
 ## Kernel API
 
 Kernel files call `SimulatteSystemDiagramKernels.register({ id, station, ...hooks })`
+and may supply pure `validateParams(params)` to reject unsupported configurations
 and use only the `ctx` object; they never touch engine internals.
 
 `station` is `null` or `{ concurrency: '<param>', queueCapacity: '<param>' }`
@@ -314,19 +300,85 @@ for run overlays, `fit()`, `zoomBy(f)`, `getView()`, `setView(v)`,
 dragging from a port connects, empty-canvas drag pans, shift-drag selects,
 Ctrl or pinch zooms; touch and keyboard paths exist for each.
 
-## Run UI API
+## Page lifecycle and inspection
 
-- `SimulatteSystemDiagramRunControls.create({ host, config, onPlay, onPause, onStep,
-  onRestart, onReplay, onVerify, onSpeed })` returns `{ update({ running, time,
-  horizon, speed, done, busy }) }`.
-- `SimulatteSystemDiagramOverlay.create({ canvas, library, config })` returns
-  `{ render(view), clear() }`.
-- `SimulatteSystemDiagramInspector.create({ host, model, library, config, onInject,
-  getView })` returns `{ render(view) }`.
-- `SimulatteSystemDiagramMetrics.create({ host, config })` returns `{ render(view) }`.
+`page.js` composes shared World UI controls and the canonical command model. It keeps
+an immutable accepted diagram and runner separate from the pending editor. Semantic
+changes require explicit Accept & run; layout, labels and view changes do not change
+the accepted numerical model. Save/load stores the pending diagram and separately
+accepted checkpoint. Restore loaded replay validates the complete causal checkpoint
+before replacing execution.
+
+The runnable palette checks both kernel registration and `validateParams` against
+resolved class defaults. Metadata-only or unsupported class configurations are not
+listed as executable. JSON imports still validate and fail closed at execution.
+
+`runner.inspect(requestId)` returns the logical request, attempts, effects, retained
+jobs, blockers and causal history. This history is independent of the short notable
+log ring. Request pagination keeps every retained model request reachable. A producer
+may be acknowledged while its leased background jobs or dead letters retain memory;
+the UI reports logical requests and jobs separately.
+
+The canvas consumes actual `view()` records through `setState(view,{pending})`.
+Pending semantic edits show no invented running state. Touch starts at a readable
+view; Fit explicitly requests a full-graph overview. Keyboard and touch multi-select
+remain available for cluster authoring.
 
 ## Claims
 
 Results are synthetic. Service times, latencies, failure rates, batching and token
 costs are user assumptions; nothing here measures real systems, providers or
 hardware, and replay hashes do not establish physical validity.
+
+## Executable capability status
+
+The class library currently contains 24 kernel declarations and 50 built-in class
+presets. Metadata is not execution support. The runtime registry's `ids()` is the
+implemented-kernel inventory; a class is runnable only when its kernel is
+registered and its resolved parameters pass the kernel's `validateParams`, where
+present. Unsupported presets must remain visibly unavailable instead of drawing
+fake activity. User classes inherit the same execution limits as their kernel.
+
+The current AI, storage and source implementations cover these bounded semantics:
+
+| Registered kernel | Executable synthetic behavior | Explicit boundary |
+| --- | --- | --- |
+| `batchWorker` | FIFO collection to batch size/window, concurrent batches, base plus per-item service, memory admission and per-request downstream calls | No device kernels, physical VRAM prediction, transfer overlap or measured batching speedup |
+| `llm` | Authored TTFT/prefill/decode timing, admission-time sequence slowdown, context limit, fixed-minute token quota, token cost, typed output, synthetic invalid-schema flags and bounded tool-call rounds | No actual inference, semantic quality, dynamic KV-cache accounting or continuously recomputed decode contention |
+| `retriever` | Explicit typed embed, search, optional rerank and generate calls, with dependency errors and finite retry budgets | Does not implement embedding vectors, ANN recall or retrieval relevance; each connected provider must itself be runnable |
+| `structuredResponse` | Service/validation delay, declared validity flag, finite generator repair attempts, JSON payload label | No real JSON parsing, schema validation or document extraction |
+| `replicatedDb` | Asynchronous per-key version copies, lag, stale follower reads, failed leader/follower availability, timed synthetic election and visible lost unreplicated versions | `sync` and `quorum` parameters refuse execution. Election is an approximation, not consensus; acknowledged-effect counts do not prove durability |
+| `cache` | Keyed TTL, deterministic exact LRU, miss coalescing, origin calls and write invalidation/forwarding | `failOpen=true` refuses execution; generic crashes fail closed. Expired entries are removed on access; no real heap, GC or cache coherence model |
+| `objectStore` | Base latency plus object size/per-request throughput, station limits and idempotent synthetic writes | No shared storage bandwidth contention, durable bytes or object-store consistency proof |
+| `cron` | Interval schedule, jobs per fire, bounded observation horizon, overlap skip/allow and downstream retry budgets | No host cron daemon, calendar/time-zone interpretation or external execution |
+| `crawler` | Autonomous synthetic URL frontier, bounded discovery, duplicate suppression, per-domain start budget, fetch concurrency, retries and document provenance | No input port or live scraping. Fetch edges require replies; asynchronous fetch edges refuse the request |
+
+`embedder`, `vectorIndex`, `reranker` and `chunker` remain metadata-only and
+unregistered. Their descriptions and parameters do not establish working
+implementations. A diagram containing them fails closed at execution preflight.
+RAG examples use explicitly named synthetic GPU timing and candidate-row adapters;
+they do not smuggle these four unavailable behaviors into the runnable palette.
+
+The three shipped example documents compose actual registered kernels:
+
+- `web-service`: client → CPU API → TTL cache → asynchronous replica store, plus
+  leased queue → CPU worker → idempotent results and a dead-letter destination.
+- `rag-assistant`: natural-language source → CPU API → GPU batch → typed RAG
+  orchestration, with synthetic embedding timing, candidate rows and a generator
+  through the structured-response stage.
+- `crawler-pipeline`: autonomous crawler → synthetic website fetch and document
+  parsing; cron injects scheduled work into the same CPU parser, structured
+  validator, database and asynchronous object archive.
+
+These examples are composable diagrams, not separate engines. The crawler is a
+source, so cron cannot connect to a nonexistent crawler input; the example shares
+its downstream ingestion path instead. Every example uses finite sources or
+explicit stop times and the declared run horizon.
+
+[Kernel semantic tests](../../tests/system-diagram-kernels.test.cjs) separately
+exercise batch grouping/memory release, quota/context rejection, typed RAG call
+order, repair budgets, stale replica reads/election loss, cache coalescing/TTL,
+object transfer time, scheduler overlap and crawler domain budgets/provenance.
+Engine integration, replay, checkpoints, browser interaction, visual review and
+production calibration remain separate evidence layers. Do not infer a successful
+browser journey or production validation from these kernel tests.

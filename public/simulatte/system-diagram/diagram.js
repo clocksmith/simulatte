@@ -9,7 +9,7 @@
   const C = 'system-diagram';
   const NODE_ID = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
   const USER_CLASS_ID = /^user\.[a-z0-9][a-z0-9-]{0,47}$/;
-  const GROUP_KINDS = Object.freeze(['zone', 'region', 'boundary']);
+  const GROUP_KINDS = Object.freeze(['zone', 'region', 'boundary', 'resource']);
   const FAILURE_DOMAIN_KINDS = Object.freeze(['zone', 'region']);
   const COORD = 1e6;
   const { ContractError, checkParamValue, isRecord, exactKeys } = libraryApi;
@@ -127,7 +127,8 @@
     const seen = new Set(), nodes = new Map(), groups = new Map();
     doc.groups.forEach((group, i) => {
       const path = `diagram.groups[${i}]`;
-      exactKeys(C, path, group, ['id', 'label', 'kind', 'x', 'y', 'w', 'h']);
+      exactKeys(C, path, group, ['id', 'label', 'kind', 'x', 'y', 'w', 'h'], group.kind === 'resource' ? ['capacity'] : []);
+      if (group.kind === 'resource' && (!Number.isInteger(group.capacity) || group.capacity < 1 || group.capacity > 64)) fail(`${path}.capacity`, 'shared resource capacity integer in [1, 64]', group.capacity);
       id(`${path}.id`, group.id, seen); label(`${path}.label`, group.label, b.maxLabelLength);
       if (!GROUP_KINDS.includes(group.kind)) fail(`${path}.kind`, GROUP_KINDS.join('|'), group.kind);
       coord(`${path}.x`, group.x); coord(`${path}.y`, group.y); size(`${path}.w`, group.w); size(`${path}.h`, group.h);
@@ -284,7 +285,7 @@
       }
       return { id: n.id, label: n.label || klass.label, classId: klass.id, kernel: klass.kernel, params: values, groupId: n.groupId ?? null, out, in: inp };
     });
-    const groups = doc.groups.map(group => ({ id: group.id, kind: group.kind, label: group.label, nodeIds: doc.nodes.filter(n => n.groupId === group.id).map(n => n.id) }));
+    const groups = doc.groups.map(group => ({ id: group.id, kind: group.kind, label: group.label, ...(group.kind === 'resource' ? { capacity: group.capacity } : {}), nodeIds: doc.nodes.filter(n => n.groupId === group.id).map(n => n.id) }));
     const faults = doc.faults.map(f => ({ id: f.id, atSec: f.atSec, untilSec: f.untilSec, target: { ...f.target }, type: f.type, params: { ...Object.fromEntries(Object.entries(library.faultTypes.find(t => t.id === f.type).params).map(([k, s]) => [k, s.default])), ...f.params } }))
       .sort((a, b) => a.atSec - b.atSec || a.id.localeCompare(b.id));
     return deepFreeze({ schema: COMPILED_SCHEMA, diagramId: doc.id, name: doc.name, seed: doc.seed, horizonSec: doc.run.horizonSec, libraryVersion: library.version, nodes, edges, groups, faults });

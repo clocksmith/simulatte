@@ -328,3 +328,22 @@ test('legacy v2 checkpoints restore fixed-cadence callers without inventing miss
   const incompatible = coordinatorApi.createCoordinator(changed.configuration);
   await assert.rejects(incompatible.restore(legacy), { code: 'multirate_checkpoint_event_state_missing' });
 });
+
+test('replay preserves separately committed same-time controls across checkpoint restoration', async () => {
+  const worker = moduleRecord({ id: 'worker', intervalSeconds: 1 });
+  const configuration = { id: 'same-time-controls', worldSpecContentHash: 'same-time-world', modules: [worker], ports: [], couplingPlan: { schema: contracts.SCHEMAS.coupling, id: 'same-time-plan', edges: [], coupledSolvers: [] } };
+  const coordinator = coordinatorApi.createCoordinator(configuration);
+  await coordinator.runUntil(1);
+  const control = (id, adjustment) => ({ id, logicalTime: 1, authority: 'user', targetModuleIds: ['worker'], payload: { adjustment } });
+  coordinator.enqueueControl(control('first', 10)); await coordinator.runUntil(1);
+  const checkpoint = JSON.parse(JSON.stringify(await coordinator.checkpoint()));
+  coordinator.enqueueControl(control('second', 100)); await coordinator.runUntil(1);
+  coordinator.enqueueControl(control('third', 1000)); await coordinator.runUntil(1);
+  assert.deepEqual(coordinator.getLedger().map(row => row.controlIds), [[], ['first'], ['second'], ['third']]);
+  assert.equal((await coordinator.replay()).status, 'match');
+  const restored = coordinatorApi.createCoordinator(configuration); await restored.restore(checkpoint);
+  restored.enqueueControl(control('second', 100)); await restored.runUntil(1);
+  restored.enqueueControl(control('third', 1000)); await restored.runUntil(1);
+  assert.deepEqual(await restored.checkpoint(), await coordinator.checkpoint());
+  assert.equal((await restored.replay()).status, 'match');
+});

@@ -670,9 +670,15 @@
       const reference = expectedLedger.map(clone);
       const replayCoordinator = createCoordinator(configuration);
       await replayCoordinator.initialize();
-      controlHistory.forEach((control) => replayCoordinator.enqueueControl(control));
       const terminalTime = reference.reduce((maximum, row) => Math.max(maximum, row.logicalTime), startTime);
-      await replayCoordinator.runUntil(terminalTime);
+      const controlsById = new Map(controlHistory.map(control => [control.id, control])), enqueued = new Set();
+      // Human controls can create separate rounds at one logical time. Preserve their original commit boundaries.
+      for (const row of reference) {
+        for (const controlId of row.controlIds || []) if (controlsById.has(controlId) && !enqueued.has(controlId)) {
+          replayCoordinator.enqueueControl(controlsById.get(controlId)); enqueued.add(controlId);
+        }
+        await replayCoordinator.runUntil(row.logicalTime);
+      }
       const actual = replayCoordinator.getLedger();
       const count = Math.max(reference.length, actual.length);
       for (let index = 0; index < count; index += 1) {

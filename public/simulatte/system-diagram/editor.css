@@ -1,0 +1,48 @@
+.sd-canvas-host { position: relative; min-width: 0; overflow: hidden; background: var(--wui-paper); }
+.sd-canvas { display: block; width: 100%; height: 100%; min-height: 0; outline: none; touch-action: none; user-select: none; -webkit-user-select: none; }
+.sd-canvas:focus-visible { outline: 2px solid var(--wui-active); outline-offset: -3px; }
+.sd-grid-dot { fill: var(--wui-line); opacity: .65; }
+.sd-node { cursor: grab; outline: none; --sd-tone: #477969; }
+.sd-node[data-category='compute'], .sd-node[data-category='ai'] { --sd-tone: #7963a4; }
+.sd-node[data-category='storage'] { --sd-tone: #5276a4; }
+.sd-node[data-category='messaging'], .sd-node[data-category='recovery'], .sd-node[data-category='edge'] { --sd-tone: #aa7938; }
+.sd-node-body { fill: var(--wui-paper); stroke: var(--wui-line); stroke-width: 1.3; filter: drop-shadow(0 2px 3px #00000008); }
+.sd-node[data-selected='true'] .sd-node-body, .sd-node:focus-visible .sd-node-body { stroke: var(--wui-active); stroke-width: 2.2; }
+.sd-node-icon-bg { fill: var(--sd-tone); fill-opacity: .12; }
+.sd-node-icon { fill: var(--sd-tone); font: 600 7px var(--wui-mono); pointer-events: none; }
+.sd-node-label { fill: var(--wui-ink); font: 600 14px var(--wui-font); pointer-events: none; }
+.sd-node-class { fill: var(--wui-muted); font: 400 10px var(--wui-font); pointer-events: none; }
+.sd-state-label { fill: var(--wui-muted); font: 400 9px var(--wui-mono); pointer-events: none; }
+.sd-health { fill: var(--wui-active); }
+.sd-health[data-health='down'] { fill: var(--wui-danger); }
+.sd-health[data-health='degraded'], .sd-health[data-health='open'], .sd-health[data-health='electing'] { fill: #b58135; }
+.sd-port-label { fill: var(--wui-muted); font: 400 10px var(--wui-font); pointer-events: none; }
+.sd-port-target, .sd-reconnect-target { outline: none; cursor: crosshair; }
+.sd-port-hit { fill: transparent; stroke: none; }
+.sd-port { fill: var(--wui-paper); stroke: var(--sd-tone); stroke-width: 2; pointer-events: none; }
+.sd-port-target:hover .sd-port, .sd-port-target:focus-visible .sd-port, .sd-port-target[data-armed='true'] .sd-port { fill: var(--sd-tone); stroke-width: 3; }
+.sd-port-target:focus-visible .sd-port { stroke: var(--wui-active); }
+.sd-edge-line { fill: none; stroke: var(--wui-muted); stroke-opacity: .6; stroke-width: 1.5; pointer-events: none; }
+.sd-edge-line[data-selected='true'] { stroke: var(--wui-active); stroke-opacity: 1; stroke-width: 2; }
+.sd-edge-hit { fill: none; stroke: transparent; stroke-width: 18; cursor: pointer; }
+.sd-edge { outline: none; }
+.sd-edge:focus-visible .sd-edge-line { stroke: var(--wui-active); stroke-width: 3; stroke-opacity: 1; }
+.sd-arrow { fill: none; stroke: var(--wui-muted); stroke-width: 1.3; }
+.sd-edge-label-bg { fill: var(--wui-paper); stroke: var(--wui-line); pointer-events: none; }
+.sd-edge-label { fill: var(--wui-active); font: 400 9px var(--wui-mono); pointer-events: none; }
+.sd-wire-preview { fill: none; stroke: var(--wui-active); stroke-width: 2; stroke-dasharray: 5 5; pointer-events: none; }
+.sd-reconnect { fill: var(--wui-active-bg); stroke: var(--wui-active); stroke-width: 2; pointer-events: none; }
+.sd-reconnect-target:focus-visible .sd-reconnect { stroke-width: 4; }
+.sd-group { outline: none; cursor: grab; }
+.sd-group-body { fill: var(--wui-active); fill-opacity: .035; stroke: var(--wui-active); stroke-opacity: .3; stroke-dasharray: 5 4; }
+.sd-group[data-kind='zone'] .sd-group-body, .sd-group[data-kind='region'] .sd-group-body { fill: #b58135; stroke: #b58135; }
+.sd-group[data-kind='boundary'] .sd-group-body { fill: none; stroke: var(--wui-muted); }
+.sd-group[data-selected='true'] .sd-group-body, .sd-group:focus-visible .sd-group-body { stroke-opacity: 1; stroke-width: 2; }
+.sd-group-label { fill: var(--wui-muted); font: 400 10px var(--wui-mono); pointer-events: none; }
+.sd-note { cursor: grab; outline: none; }
+.sd-note-body { fill: var(--wui-paper); stroke: var(--wui-line); stroke-dasharray: 3 3; }
+.sd-note-body[data-selected='true'], .sd-note:focus-visible .sd-note-body { stroke: var(--wui-active); stroke-width: 2; }
+.sd-note-label { fill: var(--wui-muted); font: 400 11px var(--wui-font); pointer-events: none; }
+.sd-marquee { fill: var(--wui-active); fill-opacity: .07; stroke: var(--wui-active); stroke-width: 1; pointer-events: none; }
+.sd-canvas.is-panning { cursor: grabbing; }
+@media (prefers-color-scheme: dark) { .sd-node { --sd-tone: #8dbca9; } .sd-node[data-category='compute'], .sd-node[data-category='ai'] { --sd-tone: #b29ad9; } .sd-node[data-category='storage'] { --sd-tone: #92b1d9; } .sd-node[data-category='messaging'], .sd-node[data-category='recovery'], .sd-node[data-category='edge'] { --sd-tone: #d7ad6d; } }

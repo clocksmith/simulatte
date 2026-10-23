@@ -1,0 +1,214 @@
+{
+  "schema": "simulatte.systemDiagram.v1",
+  "id": "crawler-pipeline",
+  "name": "Synthetic collection and scheduled ingestion",
+  "description": "An autonomous bounded crawler models per-origin delay, deduplication and provenance. Cron adds scheduled tasks to a shared CPU parser and database; no real scraping or content extraction occurs.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 30
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "crawler",
+      "classId": "crawler",
+      "label": "Synthetic crawler",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "seedUrls": 3,
+        "domains": 2,
+        "fetchConcurrency": 2,
+        "politenessMs": 100,
+        "linksPerPage": 1,
+        "duplicateRate": 0.5,
+        "maxPages": 8,
+        "pageKbMean": 2,
+        "timeoutMs": 3000,
+        "retries": 1,
+        "stopSec": 10
+      }
+    },
+    {
+      "id": "website",
+      "classId": "website",
+      "label": "Synthetic website",
+      "x": 240,
+      "y": -120,
+      "params": {
+        "serviceMs": 20,
+        "serviceDist": "constant",
+        "rateLimitPerSec": 20,
+        "responseKb": 2
+      }
+    },
+    {
+      "id": "schedule",
+      "classId": "cron-scheduler",
+      "label": "Scheduled documents",
+      "x": 0,
+      "y": 260,
+      "params": {
+        "everySec": 1,
+        "stopSec": 3,
+        "jobsPerFire": 1,
+        "payload": "document",
+        "timeoutMs": 3000
+      }
+    },
+    {
+      "id": "parser",
+      "classId": "worker",
+      "label": "CPU synthetic parser",
+      "x": 480,
+      "y": 80,
+      "params": {
+        "serviceMs": 5,
+        "serviceDist": "constant",
+        "outputPayload": "json",
+        "callMode": "sequential",
+        "callTimeoutMs": 2000
+      }
+    },
+    {
+      "id": "validator",
+      "classId": "structured-response",
+      "label": "Structured validator",
+      "x": 720,
+      "y": 0,
+      "params": {
+        "validateMs": 1,
+        "parseFailureRate": 0,
+        "maxRepairs": 0
+      }
+    },
+    {
+      "id": "records",
+      "classId": "idempotent-store",
+      "label": "Structured records",
+      "x": 720,
+      "y": 220,
+      "params": {
+        "writeMs": 3,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "archive",
+      "classId": "object-store",
+      "label": "Synthetic object archive",
+      "x": 960,
+      "y": 220,
+      "params": {
+        "baseMs": 5,
+        "throughputMBps": 10,
+        "serviceDist": "constant"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "fetch",
+      "from": {
+        "nodeId": "crawler",
+        "portId": "fetch"
+      },
+      "to": {
+        "nodeId": "website",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "documents",
+      "from": {
+        "nodeId": "crawler",
+        "portId": "documents"
+      },
+      "to": {
+        "nodeId": "parser",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "scheduled",
+      "from": {
+        "nodeId": "schedule",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "parser",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "validate",
+      "from": {
+        "nodeId": "parser",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "validator",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "persist",
+      "from": {
+        "nodeId": "parser",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "records",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "op": "write",
+        "order": 1
+      }
+    },
+    {
+      "id": "archive-copy",
+      "from": {
+        "nodeId": "parser",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "archive",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "op": "write",
+        "mode": "async",
+        "order": 2
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

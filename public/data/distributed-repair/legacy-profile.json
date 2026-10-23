@@ -1,0 +1,8 @@
+{
+  "id": "distributed-repair-v1",
+  "name": "Distributed repair compatibility experiment",
+  "model": "distributed-repair/v1",
+  "defaultSeed": 42,
+  "defaultPolicy": "baseline",
+  "configPath": "/data/distributed-repair/config.json"
+}

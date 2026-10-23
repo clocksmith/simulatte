@@ -1,41 +1,55 @@
 {
-  "capturedAt": "2026-10-23T21:48:53.353674+00:00",
-  "baseCommit": "729dd1fd3678c3bf646b83587eecea9584f4276b",
-  "component": "World System Diagram Simulator",
-  "status": "local implementation preserved; integration blocked by concurrent canonical ownership and final browser review",
+  "capturedAt": "2026-10-23T22:14:57.946173+00:00",
+  "status": "local coherent implementation verified; publication paused for new concurrent editor overlap",
+  "baseCommit": "792e8d5e58e1e53a03b7039af1a28784314e6e7c",
+  "remoteMain": "cd8632632b92f544845b9ce25948027c504b765f",
   "route": "/system-diagram",
-  "model": "system-diagram/v2",
+  "entry": "/simulatte/system-diagram/index.html",
+  "component": "World System Diagram Simulator",
+  "model": "system-diagram/v1",
   "checks": {
-    "regressionLog": "tests.tap",
-    "desktopBrowser": "Nine checks passed on a prior source delta; then failed. See browser.json.",
-    "freshDesktopAndTouch": "blocked; see browser-blocker.json",
-    "deployment": "not performed",
-    "tests": {
-      "passed": 68,
-      "failed": 0
-    }
-  },
-  "proofBoundary": "Unit/regression evidence proves synthetic domain and authoring-session behavior. Partial browser screenshots do not prove current source visual/interaction completion. No production capacity or human usability qualification.",
-  "sources": {
-    "public/simulatte/distributed-repair/architecture.js": "45170632fb6341467a94deb28468a4e90c08717c0c4a64cc1598cd97adbddea1",
-    "public/simulatte/distributed-repair/editor-page.js": "4c492a4f3b3c9b1615ea0beba05661eb702569a9da5a8baddda063554091f427",
-    "public/simulatte/distributed-repair/editor-session.js": "687eebb95ff38e23edc285c3658a193cd775725d7ae22979364de89f2beeeac6",
-    "public/simulatte/distributed-repair/graph-canvas.js": "006056c9641e02f5e338294ddfe1cbf8726a30331d11b4015967b5080eb7bab3",
-    "public/simulatte/distributed-repair/graph-document.js": "faf2b09d895660585d5be9c3b827889d60c4fcda0499baf173242c3341cdea7c",
-    "public/simulatte/distributed-repair/graph-runtime.js": "a3b5a318452d089efb04fe1a45a8a0acd3682599075dc1be20adbb4875aabb76",
-    "public/simulatte/distributed-repair/model.js": "2f775a6fbc8fb1f4abfcbe47078c21a58a3bcfae07e5f090aec3e7eade9efbfd",
-    "public/simulatte/distributed-repair/page.js": "bf4f76837741f074994d4fe2bf5b8f780c2f675270ae69913b2b6403f2d39ebc",
-    "public/simulatte/distributed-repair/profile.js": "a6b537407c49a33a4b25728ea9021f1ee099a261e7f562e4980dd23ac5b3ceca",
-    "public/simulatte/distributed-repair/runner.js": "eb99d8cb5115b7c785c2c558a2f80e9c85ca1e497204fefad1d18e4f393a5b1e"
+    "regressionTests": {
+      "passed": 86,
+      "failed": 0,
+      "evidence": "tests.tap"
+    },
+    "browser": {
+      "desktop": 32,
+      "touch": 32,
+      "allPassed": true,
+      "evidence": "browser.json"
+    },
+    "runtimeSourceHashesMatch": true,
+    "worldUiOwnershipViolations": 0,
+    "chartersValid": 46,
+    "hostingPackaging": "passed; hosting-check.log",
+    "productionDeployment": false
   },
   "screenshots": {
-    "1440-editor.png": "ea7f24a6190763ca8263e104b62319d930f9d7728bd421fd81c348046f4fd5d4",
-    "1440-failure.png": "b34791f9b88088e648a217f3a16957fea29fd2eec0a3e11a6bf9c1aa02058df5",
-    "1440-properties.png": "bf7b90b4e5df1ff90cbf60d75dea83c301cc988f36f6f2c1e3609a0987473eb9"
+    "1440-editor.png": "67e9315b32ee7f8cce4908e0bd1b533ec97d3e39b88ef6344c7843660e01bfd7",
+    "1440-properties.png": "aab85fdbb8ab63160439450c81ba432d4608033e723418975f95505263102ae5",
+    "1440-causal.png": "1645c734a240c3cd8e51383020f1176315b3b3904cd3570f1697dc47b006679d",
+    "1440-final.png": "78f4ee2956cb8c23031c62d7b2d4bc4bd10e69920d851599777dba24465ee0d0",
+    "390-editor.png": "8f93c2b70b09f2c58f794e4808854b3ab818800a11eb894b72d44f6915667815",
+    "390-properties.png": "9ccd951f4cb85aca494894569297e74cf3143c662e2b6355369e15f536bdfa3b",
+    "390-causal.png": "c953f609214f3e7090d9e8e77d8d9b2c507ff962d932deb43a3f39e1fb6b3f47",
+    "390-final.png": "5f85bd5e070e3c0058b6c2e72e6a7e1a6922bf39bc021798baa2822b2a7ff2c1"
   },
-  "concurrentMain": {
-    "commit": "329a756781daa364e27c705bf5abff8436ffea86",
-    "conflict": "Introduces public/simulatte/system-diagram/ with different document/class/kernel contracts and marks distributed-repair superseded. Publishing this delta unchanged would create competing architecture owners.",
-    "publication": "not attempted; preserve concurrent main"
+  "limits": [
+    "15 registered kernels; metadata-only classes are not execution capabilities.",
+    "Asynchronous replication approximation only; sync/quorum refuse.",
+    "Synthetic data, RAG and model timing; no inference, scraping or physical capacity proof."
+  ],
+  "integrationConflict": {
+    "remoteCommits": [
+      "7803d383",
+      "cd863263"
+    ],
+    "overlap": [
+      "editor-model.js",
+      "editor-canvas.js",
+      "editor.css"
+    ],
+    "recommendation": "Preserve newer remote editor components. Adapt page/command boundaries and port tested resource/touch/lifecycle fixes before merging. Do not overwrite or duplicate these components."
   }
 }

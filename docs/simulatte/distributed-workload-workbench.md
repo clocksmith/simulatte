@@ -11,7 +11,9 @@ or imply that all future pack semantics execute.
 ## Historical bounded implementation
 
 System Diagram Simulator is a distinct, experimental World catalog card at
-`/system-diagram`, backed by `public/data/distributed-repair/system-diagram-profile-v1.json`.
+`/system-diagram`, now backed by `public/data/system-diagram/profile.json`.
+The bounded implementation described below remains separately available at
+`/simulatte/distributed-repair/repair.html`; the canonical editor uses its own document and class contracts.
 The old `/simulatte/distributed-repair/index.html` deep link redirects to it. It is
 not featured and does not replace GPU Cluster or Create. Use
 `node tools/serve-local.mjs` for local review. Nothing in this milestone deploys
