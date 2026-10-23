@@ -1,0 +1,129 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "core",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "source",
+      "label": "Request source",
+      "description": "Generates logical requests from an arrival pattern, waits for replies, retries and records end-to-end latency.",
+      "paramSets": ["source"],
+      "params": {},
+      "ports": [
+        { "id": "out", "direction": "out", "label": "Requests", "emits": ["param:payload"], "multiple": true, "required": true }
+      ],
+      "faults": ["crash"]
+    },
+    {
+      "id": "service",
+      "label": "Service",
+      "description": "Queues requests, serves them with bounded workers, then calls downstream edges sequentially or in parallel before replying.",
+      "paramSets": ["station", "calls"],
+      "params": {
+        "outputPayload": { "type": "enum", "label": "Forwarded payload", "options": ["inherit", "http", "task", "event", "text", "json", "document", "embedding", "query", "rows", "blob"], "default": "inherit", "group": "advanced" }
+      },
+      "ports": [
+        { "id": "in", "direction": "in", "label": "Requests", "accepts": ["any"], "multiple": true, "required": true },
+        { "id": "calls", "direction": "out", "label": "Calls", "emits": ["param:outputPayload"], "multiple": true, "required": false }
+      ],
+      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+    },
+    {
+      "id": "endpoint",
+      "label": "Terminal endpoint",
+      "description": "Serves requests with bounded workers and replies. Optional token-bucket rate limiting answers excess requests with rate-limited errors.",
+      "paramSets": ["station"],
+      "params": {
+        "rateLimitPerSec": { "type": "number", "label": "Rate limit (0 = off)", "unit": "req/s", "min": 0, "max": 1000000, "default": 0, "group": "basic" },
+        "rateBurst": { "type": "integer", "label": "Rate burst", "unit": "requests", "min": 1, "max": 1000000, "default": 10, "group": "advanced" }
+      },
+      "ports": [
+        { "id": "in", "direction": "in", "label": "Requests", "accepts": ["any"], "multiple": true, "required": true }
+      ],
+      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+    },
+    {
+      "id": "queue",
+      "label": "Task queue",
+      "description": "Acknowledges producers, leases messages to competing consumers with a visibility timeout, redelivers on failure or lease expiry and dead-letters after the receive limit.",
+      "paramSets": [],
+      "params": {
+        "capacity": { "type": "integer", "label": "Capacity", "unit": "messages", "min": 0, "max": 10000000, "default": 10000, "group": "basic" },
+        "mode": { "type": "enum", "label": "Delivery", "options": ["queue", "topic"], "default": "queue", "group": "basic" },
+        "visibilityTimeoutMs": { "type": "number", "label": "Visibility timeout (lease)", "unit": "ms", "min": 1, "max": 43200000, "default": 30000, "group": "basic" },
+        "maxReceives": { "type": "integer", "label": "Receive limit", "min": 1, "max": 1000, "default": 5, "group": "basic" },
+        "prefetch": { "type": "integer", "label": "In-flight per consumer", "min": 1, "max": 10000, "default": 1, "group": "basic" },
+        "retryDelayMs": { "type": "number", "label": "Redelivery delay", "unit": "ms", "min": 0, "max": 43200000, "default": 1000, "group": "advanced" },
+        "enqueueMs": { "type": "number", "label": "Enqueue time", "unit": "ms", "min": 0, "max": 60000, "default": 1, "group": "advanced" }
+      },
+      "ports": [
+        { "id": "in", "direction": "in", "label": "Producers", "accepts": ["any"], "multiple": true, "required": true },
+        { "id": "consumers", "direction": "out", "label": "Consumers", "emits": ["inherit"], "multiple": true, "required": true },
+        { "id": "dlq", "direction": "out", "label": "Dead letters", "emits": ["inherit"], "multiple": false, "required": false }
+      ],
+      "faults": ["crash", "slow", "blackhole", "dropReplies"]
+    },
+    {
+      "id": "deadLetter",
+      "label": "Dead-letter queue",
+      "description": "Retains messages that exhausted delivery attempts so they remain visible; a redrive control resends them.",
+      "paramSets": [],
+      "params": {
+        "capacity": { "type": "integer", "label": "Capacity", "unit": "messages", "min": 0, "max": 1000000, "default": 100000, "group": "basic" }
+      },
+      "ports": [
+        { "id": "in", "direction": "in", "label": "Dead letters", "accepts": ["any"], "multiple": true, "required": true },
+        { "id": "redrive", "direction": "out", "label": "Redrive", "emits": ["inherit"], "multiple": false, "required": false }
+      ],
+      "faults": ["crash"]
+    },
+    {
+      "id": "database",
+      "label": "Database",
+      "description": "Single-node database with a connection pool, read and write service times and committed write effects; optional idempotency keys suppress duplicate effects inside a window.",
+      "paramSets": [],
+      "params": {
+        "readMs": { "type": "number", "label": "Read time", "unit": "ms", "min": 0, "max": 3600000, "default": 2, "group": "basic" },
+        "writeMs": { "type": "number", "label": "Write time", "unit": "ms", "min": 0, "max": 3600000, "default": 5, "group": "basic" },
+        "serviceDist": { "type": "enum", "label": "Service distribution", "options": ["constant", "exponential", "lognormal"], "default": "exponential", "group": "advanced" },
+        "serviceCv": { "type": "number", "label": "Lognormal variation", "unit": "cv", "min": 0, "max": 10, "default": 1, "group": "advanced" },
+        "connections": { "type": "integer", "label": "Connections", "min": 1, "max": 100000, "default": 50, "group": "basic" },
+        "queueCapacity": { "type": "integer", "label": "Wait queue", "unit": "requests", "min": 0, "max": 100000, "default": 1000, "group": "basic" },
+        "perKbMs": { "type": "number", "label": "Cost per KB", "unit": "ms/KB", "min": 0, "max": 10000, "default": 0, "group": "advanced" },
+        "errorRate": { "type": "number", "label": "Error rate", "unit": "fraction", "min": 0, "max": 1, "default": 0, "group": "basic" },
+        "responseKb": { "type": "number", "label": "Response size", "unit": "KB", "min": 0, "max": 1000000, "default": 1, "group": "advanced" },
+        "idempotentWrites": { "type": "boolean", "label": "Idempotent writes", "default": false, "group": "basic" },
+        "idempotencyWindowSec": { "type": "number", "label": "Idempotency window", "unit": "s", "min": 0, "max": 86400, "default": 300, "group": "advanced" }
+      },
+      "ports": [
+        { "id": "in", "direction": "in", "label": "Queries", "accepts": ["any"], "multiple": true, "required": true }
+      ],
+      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+    }
+  ],
+  "classes": [
+    { "id": "web-client", "label": "Web users", "category": "clients", "kernel": "source", "glyph": "users", "description": "Browser users sending HTTP requests.", "defaults": { "ratePerSec": 20 } },
+    { "id": "mobile-client", "label": "Mobile app", "category": "clients", "kernel": "source", "glyph": "phone", "description": "Mobile clients with longer timeouts and retries.", "defaults": { "ratePerSec": 10, "timeoutMs": 5000, "retries": 2 } },
+    { "id": "api-consumer", "label": "API consumer", "category": "clients", "kernel": "source", "glyph": "api", "description": "Partner or service sending JSON requests.", "defaults": { "payload": "json", "ratePerSec": 15, "readFraction": 0.6 } },
+    { "id": "closed-loop-users", "label": "Closed-loop users", "category": "clients", "kernel": "source", "glyph": "users", "description": "A fixed population that waits for each reply and thinks before the next request.", "defaults": { "pattern": "closed", "users": 30, "thinkMs": 1000 } },
+    { "id": "burst-producer", "label": "Burst producer", "category": "clients", "kernel": "source", "glyph": "burst", "description": "Emits a bounded burst of tasks.", "defaults": { "pattern": "burst", "payload": "task", "burstCount": 20, "readFraction": 0, "timeoutMs": 60000, "retries": 0 } },
+    { "id": "nl-input", "label": "Natural-language input", "category": "clients", "kernel": "source", "glyph": "text", "description": "People asking questions in natural language.", "defaults": { "payload": "text", "ratePerSec": 2, "tokensMean": 120, "readFraction": 1, "timeoutMs": 30000, "retries": 0, "requestKb": 1 } },
+    { "id": "unstructured-feed", "label": "Unstructured data feed", "category": "data", "kernel": "source", "glyph": "document", "description": "Arriving documents, pages and files of uneven size.", "defaults": { "payload": "document", "ratePerSec": 2, "requestKb": 80, "tokensMean": 20000, "readFraction": 0, "timeoutMs": 120000, "retries": 1 } },
+    { "id": "web-server", "label": "Web server", "category": "compute", "kernel": "service", "glyph": "server", "description": "Thread-pool HTTP server.", "defaults": { "concurrency": 64, "serviceMs": 5 } },
+    { "id": "microservice", "label": "Microservice", "category": "compute", "kernel": "service", "glyph": "cube", "description": "Internal service with its own dependencies.", "defaults": { "concurrency": 16, "serviceMs": 8 } },
+    { "id": "auth-service", "label": "Auth service", "category": "compute", "kernel": "service", "glyph": "lock", "description": "Token validation on the request path.", "defaults": { "concurrency": 32, "serviceMs": 3 } },
+    { "id": "worker", "label": "Worker", "category": "compute", "kernel": "service", "glyph": "cog", "description": "Background worker consuming tasks.", "defaults": { "concurrency": 4, "serviceMs": 50, "callTimeoutMs": 5000 } },
+    { "id": "scatter-gather", "label": "Scatter-gather", "category": "compute", "kernel": "service", "glyph": "fanout", "description": "Calls every downstream edge in parallel and waits for all replies.", "defaults": { "concurrency": 32, "serviceMs": 1, "callMode": "parallel" } },
+    { "id": "bulkhead", "label": "Bulkhead", "category": "recovery", "kernel": "service", "glyph": "bulkhead", "description": "Bounds concurrent downstream work and rejects overflow instead of queueing.", "defaults": { "concurrency": 10, "queueCapacity": 0, "serviceMs": 0, "serviceDist": "constant" } },
+    { "id": "human-review", "label": "Human review step", "category": "compute", "kernel": "service", "glyph": "person", "description": "People approving work in a review queue.", "defaults": { "concurrency": 3, "serviceMs": 120000, "serviceDist": "lognormal", "serviceCv": 0.6, "queueCapacity": 10000 } },
+    { "id": "task-queue", "label": "Task queue", "category": "messaging", "kernel": "queue", "glyph": "queue", "description": "At-least-once work queue with leases and redelivery.", "defaults": {} },
+    { "id": "pubsub-topic", "label": "Pub/sub topic", "category": "messaging", "kernel": "queue", "glyph": "topic", "description": "Delivers a copy of every message to each subscriber.", "defaults": { "mode": "topic" } },
+    { "id": "event-stream", "label": "Event stream", "category": "messaging", "kernel": "queue", "glyph": "stream", "description": "High-throughput log consumed with deep prefetch.", "defaults": { "prefetch": 64, "capacity": 1000000, "enqueueMs": 2 } },
+    { "id": "dead-letter-queue", "label": "Dead-letter queue", "category": "recovery", "kernel": "deadLetter", "glyph": "dlq", "description": "Keeps failed messages visible for inspection and redrive.", "defaults": {} },
+    { "id": "database", "label": "SQL database", "category": "storage", "kernel": "database", "glyph": "database", "description": "Single primary relational database.", "defaults": {} },
+    { "id": "idempotent-store", "label": "Idempotent result store", "category": "storage", "kernel": "database", "glyph": "database", "description": "Commits each logical request once using idempotency keys.", "defaults": { "idempotentWrites": true } },
+    { "id": "data-warehouse", "label": "Data warehouse", "category": "storage", "kernel": "endpoint", "glyph": "warehouse", "description": "Analytical sink with slow bulk writes.", "defaults": { "concurrency": 4, "serviceMs": 200, "serviceDist": "lognormal", "serviceCv": 0.5, "queueCapacity": 10000 } },
+    { "id": "website", "label": "Website", "category": "external", "kernel": "endpoint", "glyph": "globe", "description": "Third-party site that throttles aggressive clients.", "defaults": { "concurrency": 16, "serviceMs": 300, "serviceDist": "lognormal", "serviceCv": 0.8, "rateLimitPerSec": 5, "rateBurst": 5, "responseKb": 60 } },
+    { "id": "third-party-api", "label": "Third-party API", "category": "external", "kernel": "endpoint", "glyph": "plug", "description": "External dependency with variable latency and quotas.", "defaults": { "concurrency": 64, "serviceMs": 120, "serviceDist": "lognormal", "serviceCv": 0.7, "rateLimitPerSec": 50, "rateBurst": 20 } }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "sources",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "cron",
+      "label": "Cron scheduler",
+      "description": "Fires a batch of jobs on a fixed schedule; overlap can be allowed or skipped while the previous run is still active.",
+      "paramSets": [],
+      "params": {
+        "everySec": { "type": "number", "label": "Every", "unit": "s", "min": 0.001, "max": 86400, "default": 10, "group": "basic" },
+        "offsetSec": { "type": "number", "label": "First run", "unit": "s", "min": 0, "max": 86400, "default": 0, "group": "basic" },
+        "jobsPerFire": { "type": "integer", "label": "Jobs per run", "min": 1, "max": 100000, "default": 1, "group": "basic" },
+        "jitterMs": { "type": "number", "label": "Start jitter", "unit": "ms", "min": 0, "max": 3600000, "default": 0, "group": "advanced" },
+        "overlap": { "type": "enum", "label": "When still running", "options": ["allow", "skip"], "default": "allow", "group": "basic" },
+        "payload": { "type": "enum", "label": "Payload", "options": ["http", "task", "event", "text", "json", "document", "embedding", "query", "rows", "blob"], "default": "task", "group": "advanced" },
+        "requestKb": { "type": "number", "label": "Job size", "unit": "KB", "min": 0, "max": 1000000, "default": 1, "group": "advanced" },
+        "timeoutMs": { "type": "number", "label": "Job timeout", "unit": "ms", "min": 1, "max": 86400000, "default": 60000, "group": "basic" },
+        "retries": { "type": "integer", "label": "Retries", "min": 0, "max": 20, "default": 0, "group": "basic" },
+        "retryBackoffMs": { "type": "number", "label": "Retry backoff", "unit": "ms", "min": 0, "max": 3600000, "default": 1000, "group": "advanced" },
+        "stopSec": { "type": "number", "label": "Stop (0 = never)", "unit": "s", "min": 0, "max": 86400, "default": 0, "group": "advanced" }
+      },
+      "ports": [
+        { "id": "out", "direction": "out", "label": "Jobs", "emits": ["param:payload"], "multiple": true, "required": true }
+      ],
+      "faults": ["crash"]
+    },
+    {
+      "id": "crawler",
+      "label": "Crawler",
+      "description": "Keeps a URL frontier across domains, fetches pages with per-domain politeness and bounded concurrency, discovers links with deduplication and emits fetched documents.",
+      "paramSets": [],
+      "params": {
+        "seedUrls": { "type": "integer", "label": "Seed URLs", "min": 1, "max": 1000000, "default": 20, "group": "basic" },
+        "domains": { "type": "integer", "label": "Domains", "min": 1, "max": 10000, "default": 10, "group": "basic" },
+        "fetchConcurrency": { "type": "integer", "label": "Concurrent fetches", "min": 1, "max": 10000, "default": 8, "group": "basic" },
+        "politenessMs": { "type": "number", "label": "Per-domain delay", "unit": "ms", "min": 0, "max": 600000, "default": 1000, "group": "basic" },
+        "linksPerPage": { "type": "number", "label": "Links per page", "min": 0, "max": 1000, "default": 8, "group": "basic" },
+        "duplicateRate": { "type": "number", "label": "Already-seen links", "unit": "fraction", "min": 0, "max": 1, "default": 0.7, "group": "basic" },
+        "maxPages": { "type": "integer", "label": "Page limit", "min": 1, "max": 10000000, "default": 2000, "group": "basic" },
+        "pageKbMean": { "type": "number", "label": "Mean page size", "unit": "KB", "min": 0.1, "max": 100000, "default": 60, "group": "advanced" },
+        "timeoutMs": { "type": "number", "label": "Fetch timeout", "unit": "ms", "min": 1, "max": 3600000, "default": 10000, "group": "basic" },
+        "retries": { "type": "integer", "label": "Fetch retries", "min": 0, "max": 20, "default": 2, "group": "advanced" },
+        "retryBackoffMs": { "type": "number", "label": "Retry backoff", "unit": "ms", "min": 0, "max": 3600000, "default": 2000, "group": "advanced" },
+        "stopSec": { "type": "number", "label": "Stop (0 = never)", "unit": "s", "min": 0, "max": 86400, "default": 0, "group": "advanced" }
+      },
+      "ports": [
+        { "id": "fetch", "direction": "out", "label": "Fetch", "emits": ["http"], "multiple": true, "required": true },
+        { "id": "documents", "direction": "out", "label": "Documents", "emits": ["document"], "multiple": true, "required": false }
+      ],
+      "faults": ["crash", "slow"]
+    }
+  ],
+  "classes": [
+    { "id": "cron-scheduler", "label": "Cron scheduler", "category": "clients", "kernel": "cron", "glyph": "clock", "description": "Scheduled batch jobs.", "defaults": {} },
+    { "id": "crawler", "label": "Web crawler", "category": "data", "kernel": "crawler", "glyph": "spider", "description": "Polite multi-domain crawler.", "defaults": {} }
+  ]
+}

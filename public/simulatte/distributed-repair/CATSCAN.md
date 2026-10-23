@@ -1,4 +1,4 @@
-# CATSCAN: World System Diagram Simulator
+# CATSCAN: World distributed repair workbench (superseded)
 
 Parent: [World](../CATSCAN.md)
 

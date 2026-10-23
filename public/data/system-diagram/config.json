@@ -1,0 +1,55 @@
+{
+  "schema": "simulatte.systemDiagramConfig.v1",
+  "version": "1.0.0",
+  "model": "system-diagram/v1",
+  "classLibraryPath": "/data/system-diagram/class-library.json",
+  "engine": {
+    "authoritativeCadenceSec": 0.5,
+    "maxInFlight": 50000,
+    "maxHops": 64,
+    "histogram": { "minMs": 0.01, "maxMs": 3600000, "bins": 96 },
+    "seriesBucketSec": 1,
+    "seriesWindowSec": 120,
+    "logCapacity": 200,
+    "transitRenderLimit": 600
+  },
+  "bounds": {
+    "maxNodes": 250,
+    "maxEdges": 1000,
+    "maxGroups": 50,
+    "maxNotes": 200,
+    "maxUserClasses": 100,
+    "maxClassDepth": 8,
+    "maxFaults": 200,
+    "maxControls": 2000,
+    "maxHorizonSec": 3600,
+    "maxLabelLength": 80,
+    "maxNoteLength": 2000
+  },
+  "playback": {
+    "normalSimSecondsPerSecond": 1,
+    "speeds": [0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 20],
+    "defaultSpeed": 0.5,
+    "maxSimSecondsPerFrame": 1
+  },
+  "editor": {
+    "historyLimit": 200,
+    "autosaveKey": "simulatte.systemDiagram.draft.v1",
+    "grid": 8,
+    "nodeWidth": 176,
+    "nodeHeight": 72,
+    "minZoom": 0.2,
+    "maxZoom": 3
+  },
+  "defaultExampleId": "web-service",
+  "examples": [
+    { "id": "web-service", "label": "Web service with cache and replicas", "path": "/data/system-diagram/examples/web-service.json" },
+    { "id": "rag-assistant", "label": "RAG assistant with ingestion", "path": "/data/system-diagram/examples/rag-assistant.json" },
+    { "id": "crawler-pipeline", "label": "Crawler to structured data", "path": "/data/system-diagram/examples/crawler-pipeline.json" },
+    { "id": "retry-storm", "label": "Retry storm and circuit breaker", "path": "/data/system-diagram/examples/retry-storm.json" },
+    { "id": "replicated-failover", "label": "Replicated database failover", "path": "/data/system-diagram/examples/replicated-failover.json" },
+    { "id": "failure-repair-baseline", "label": "Failure and repair: baseline", "path": "/data/system-diagram/examples/failure-repair-baseline.json" },
+    { "id": "failure-repair-bounded", "label": "Failure and repair: bounded", "path": "/data/system-diagram/examples/failure-repair-bounded.json" }
+  ],
+  "claimBoundary": "Synthetic discrete-event model of the drawn architecture. Service times, latencies, failure rates and token costs are user assumptions, not measurements of real systems, providers or hardware."
+}
