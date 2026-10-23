@@ -1,0 +1,88 @@
+{
+  "schema": "simulatte.distributedRepairDeploymentQualification.v1",
+  "capturedAt": "2026-10-23T16:47:10.501Z",
+  "source": {
+    "head": "5c2d33a7e34b3df8190758121c8263e6de7fc3dd",
+    "capturedAt": "2026-10-23T16:47:10.552Z",
+    "modifiedSources": {
+      "public/blank/index.html": {
+        "sha256": "8c3994b933c53a3ed02bedd1a51427ffdf976adc049594756e0454b4224cad72",
+        "modifiedAt": "2026-10-23T16:44:02.213Z"
+      },
+      "public/simulatte/motorcycle-noise/index.html": {
+        "sha256": "d210c9724d8cd6b506b965daec51b09d7e049bb12155693bfa5be828d7256b71",
+        "modifiedAt": "2026-10-23T16:44:02.055Z"
+      },
+      "public/simulatte/solar-drive/index.html": {
+        "sha256": "ea13af9a025738796b80e877490c301bbf17c24733fad3b26cc68bf703ce228b",
+        "modifiedAt": "2026-10-23T16:44:02.054Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "reviewedPublishedCommit": "5c2d33a7e34b3df8190758121c8263e6de7fc3dd",
+  "canonicalRepository": "git@github.com:clocksmith/simulatte.git",
+  "branch": "distributed-repair-milestone",
+  "qualification": {
+    "checkDeploy": {
+      "command": "npm_config_cache=/tmp/simulatte-qualification-npm-cache npm run check:deploy",
+      "exitCode": 0,
+      "evidence": "deploy-qualification.tap"
+    },
+    "hostingRegression": {
+      "command": "node --test tests/hosting-surfaces.test.cjs tests/hosting-release.test.cjs tests/world-runtime-loader.test.cjs",
+      "passed": 17,
+      "failed": 0,
+      "evidence": "hosting-regression.tap"
+    },
+    "packaging": {
+      "command": "npm run package:hosting",
+      "exitCode": 0,
+      "worldTarget": "world",
+      "createTarget": "create",
+      "experimentBytesMatch": true,
+      "evidence": "packaging-qualification.log"
+    },
+    "firebaseAccess": {
+      "action": "hosting:sites:list --project simulatte-world --non-interactive --json",
+      "status": "success",
+      "sites": [
+        "simulatte-world",
+        "simulatte-create"
+      ]
+    }
+  },
+  "changes": [
+    "Version shared UI script URL by its content hash in Solar Drive and Motorcycle Noise entries",
+    "Regenerate Create runtime-source digest with its declared generator"
+  ],
+  "environment": {
+    "isolatedCheckout": true,
+    "originalCheckoutModified": false,
+    "dopplerSource": "Read-only workspace-local symlink to existing /Users/xyz/deco/doppler; pinned archive and vendor bytes verified against dd49cc11e4742cf40f7788bde2631d8179c161b3",
+    "npmCache": "task-specific temporary cache"
+  },
+  "deployment": {
+    "performed": false,
+    "mainMerged": false,
+    "previewUrl": null,
+    "liveUrl": null,
+    "reason": "This approval covers branch publication and deployment qualification; target/promotion and actual deployment remain a distinct consequential choice. Packaging qualification did not claim a newly stamped production release."
+  },
+  "priorEvidence": {
+    "tests": "verification.json",
+    "browser": "browser.json",
+    "note": "Prior hosting cache failure is resolved by this qualification follow-up. Existing workbench runtime and screenshots are unchanged."
+  },
+  "evidence": {
+    "deploy-qualification.tap": {
+      "sha256": "9ef4ced8a1b24238ef2206bab51b421e58bd9d64a7bb347f8b80c872a96729c4"
+    },
+    "hosting-regression.tap": {
+      "sha256": "28affdd4a5b1c7e88753b4524f5298f67fb14c1555aaa106ab1711b3bfce482b"
+    },
+    "packaging-qualification.log": {
+      "sha256": "1b0ef4e89d915d79b8e27e54acb1088d7832774ee10f7c88ce9067023cdc9fc9"
+    }
+  }
+}

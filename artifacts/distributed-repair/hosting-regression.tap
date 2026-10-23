@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: binds world entrypoint, base URL, assets and package to the exact build
+ok 1 - binds world entrypoint, base URL, assets and package to the exact build
+  ---
+  duration_ms: 25.366667
+  type: 'test'
+  ...
+# Subtest: binds create entrypoint, base URL, assets and package to the exact build
+ok 2 - binds create entrypoint, base URL, assets and package to the exact build
+  ---
+  duration_ms: 5.185292
+  type: 'test'
+  ...
+# Subtest: rejects the wrong content build even when its source SHA matches
+ok 3 - rejects the wrong content build even when its source SHA matches
+  ---
+  duration_ms: 2.03875
+  type: 'test'
+  ...
+# Subtest: rejects successful HTML fallback responses for missing scripts
+ok 4 - rejects successful HTML fallback responses for missing scripts
+  ---
+  duration_ms: 2.397542
+  type: 'test'
+  ...
+# Subtest: rejects stale bytes behind a correctly stamped script URL
+ok 5 - rejects stale bytes behind a correctly stamped script URL
+  ---
+  duration_ms: 2.895
+  type: 'test'
+  ...
+# Subtest: rejects a deferred script missing its build stamp
+ok 6 - rejects a deferred script missing its build stamp
+  ---
+  duration_ms: 3.18
+  type: 'test'
+  ...
+# Subtest: rejects the wrong surface and an old package inventory
+ok 7 - rejects the wrong surface and an old package inventory
+  ---
+  duration_ms: 2.650583
+  type: 'test'
+  ...
+# Subtest: does not accept missing styles or a packaged build different from the release
+ok 8 - does not accept missing styles or a packaged build different from the release
+  ---
+  duration_ms: 2.76225
+  type: 'test'
+  ...
+# Subtest: production deployment commands require live verification and previews do not probe production
+ok 9 - production deployment commands require live verification and previews do not probe production
+  ---
+  duration_ms: 0.596292
+  type: 'test'
+  ...
+# Subtest: an HTTP-only release check reports that it took no screenshots
+ok 10 - an HTTP-only release check reports that it took no screenshots
+  ---
+  duration_ms: 8.801834
+  type: 'test'
+  ...
+# Subtest: hosting targets separate World and Create while preserving governed shared assets
+ok 11 - hosting targets separate World and Create while preserving governed shared assets
+  ---
+  duration_ms: 2325.065875
+  type: 'test'
+  ...
+# Subtest: directory routes do not redirect to their slash-normalized selves
+ok 12 - directory routes do not redirect to their slash-normalized selves
+  ---
+  duration_ms: 0.21625
+  type: 'test'
+  ...
+# Subtest: field entrypoint build stamping is complete and content-idempotent
+ok 13 - field entrypoint build stamping is complete and content-idempotent
+  ---
+  duration_ms: 99.054125
+  type: 'test'
+  ...
+# Subtest: World changing renderer scripts revalidate and standalone entries escape old immutable URLs
+ok 14 - World changing renderer scripts revalidate and standalone entries escape old immutable URLs
+  ---
+  duration_ms: 0.763917
+  type: 'test'
+  ...
+# Subtest: World runtime selections load only the chosen profile plugin bundle
+ok 15 - World runtime selections load only the chosen profile plugin bundle
+  ---
+  duration_ms: 2.1525
+  type: 'test'
+  ...
+# Subtest: World optional model scripts remain outside every pre-consent selection
+ok 16 - World optional model scripts remain outside every pre-consent selection
+  ---
+  duration_ms: 1.204583
+  type: 'test'
+  ...
+# Subtest: World dynamic runtime loader loads selected runtime scripts
+ok 17 - World dynamic runtime loader loads selected runtime scripts
+  ---
+  duration_ms: 1.066083
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2463.555584

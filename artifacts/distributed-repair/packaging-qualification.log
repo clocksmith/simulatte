@@ -1,0 +1,6 @@
+
+> package:hosting
+> node tools/package-hosting-surfaces.mjs
+
+simulatte-world: 2720 files, 282175212 bytes, 73a23776da609618560bba43c7118a0104b8f13f085c4fe7cb30df2b6a11aa0c
+simulatte-create: 2280 files, 65657351 bytes, c7592b849367d3442f95eff6c93e7fdd9b9f26c8bcbaaed0e6c6b1eef1287c4f
