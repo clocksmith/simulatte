@@ -60,7 +60,7 @@ test('System Diagram Simulator is a declared executable catalog/profile route wi
   assert.equal(page.profile, 'system-diagram-v1');
   const profile = JSON.parse(fs.readFileSync(path.join(root, 'public', page.profilePath), 'utf8'));
   const validator = require('../public/simulatte/distributed-repair/profile.js');
-  const model = require('../public/simulatte/distributed-repair/model.js');
+  const model = require('../public/simulatte/distributed-repair/graph-runtime.js');
   assert.deepEqual(validator.validate(profile, { route: page, model: model.MODEL }), profile);
   assert.throws(() => validator.validate({ ...profile, model: 'unsupported-model' }, { route: page, model: model.MODEL }), /route\/model/);
   assert.throws(() => validator.validate({ ...profile, capabilities: ['arbitrary-consensus'] }, { route: page, model: model.MODEL }), /Unsupported/);
@@ -74,9 +74,9 @@ test('System Diagram Simulator is a declared executable catalog/profile route wi
   const navigation = router.createRouter({ location: { pathname: '/datacenter', search: '', assign: href => navigations.push(href), replace: href => navigations.push(href) }, history: { pushState() { throw Error('Standalone route cannot use hosted-profile dispatch'); } } });
   await navigation.navigate(selection); assert.deepEqual(navigations, ['/system-diagram?seed=73']);
   assert.throws(() => router.parsePath(page.path, '?profile=gpu-supercluster-v1'), /does not match/);
-  const runner = await require('../public/simulatte/distributed-repair/runner.js').create(profile.defaultPolicy, profile.defaultSeed, undefined, undefined, profile.id);
-  assert.equal(runner.program().params.profileId, profile.id);
-  await runner.dispose();
+  const document = require('../public/simulatte/distributed-repair/graph-document.js').create();
+  const runner = model.create(document);
+  assert.equal(runner.snapshot().model, profile.model);
   const html = fs.readFileSync(path.join(root, 'public', page.entry), 'utf8');
   assert.match(html, /<base href="\/simulatte\/distributed-repair\/">/);
   const home = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');

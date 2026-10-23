@@ -15,14 +15,14 @@
     "/simulatte/distributed-repair"
   ],
   "displayName": "System Diagram Simulator",
-  "description": "Create nodes, connect CPU/GPU workloads and inspect failures between them.",
+  "description": "Draw system architectures with reusable components, typed connections and executable workloads.",
   "readiness": "experimental",
   "featured": false,
   "previewAsset": "/simulation-previews/system-diagram.svg",
-  "limitations": "Bounded CPU/GPU task DAGs with one source and result store. Synthetic resource estimates; no production capacity, replication/consensus, real VRAM/GC/OOM or broad workload-pack claims.",
+  "limitations": "Synthetic typed DAGs with authored service times, FIFO queues, finite retries, memory admission and asynchronous replica effects. No real AI, scraping, consensus, hardware calibration or production capacity proof.",
   "evidence": [
-    "tests/distributed-repair.test.cjs",
-    "artifacts/system-diagram-catalog/browser.json"
+    "tests/system-diagram-model.test.cjs",
+    "tests/system-diagram-editor.test.cjs"
   ]
 },
   {

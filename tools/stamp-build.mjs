@@ -17,7 +17,7 @@ function getGitHash() {
   }
 }
 
-const ENTRYPOINTS = Object.freeze(['index.html', 'blank/index.html', 'simulatte/field-experiments/index.html', 'simulatte/distributed-repair/index.html']);
+const ENTRYPOINTS = Object.freeze(['index.html', 'blank/index.html', 'simulatte/field-experiments/index.html', 'simulatte/distributed-repair/index.html', 'simulatte/distributed-repair/repair.html']);
 
 function publicFiles(dir, baseDir = dir) {
   const files = [];

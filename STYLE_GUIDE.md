@@ -215,3 +215,5 @@
 235. Do not add `with (scope)` shards or RefactorScope globals; phase shards use the narrow `SimulattePhaseModuleRegistry` family named by their dependency root, and every cross-shard reference is statically visible as `scope.<name>`.
 236. Dependency gaps must throw during initialization; do not add silent missing-dependency returns.
 237. The refactor-scope guard in `tests/js-shape-*.test.cjs` enforces the two rules above with zero-count baselines.
+
+238. System Diagram Simulator is a canvas-first architecture editor: palette, typed ports, reusable classes, instance overrides and contextual properties precede scenario comparisons. Connections execute supported topology; accepted execution stays separate from pending edits. Animate only model state and show unsupported semantics explicitly.

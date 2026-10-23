@@ -1,0 +1,488 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Executable System Diagram document v2",
+  "description": "Canonical authored graph shape for graph-document.js. That runtime validator additionally enforces cross references, unique IDs across collections, DAG and typed links, source/processing ports, compatible output transforms, recovery windows, and execution reachability. Incomplete disconnected documents remain editable; execution validation is stricter.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "revision",
+    "nextId",
+    "classes",
+    "nodes",
+    "links",
+    "clusters",
+    "workload",
+    "assumptions"
+  ],
+  "properties": {
+    "schema": {
+      "const": "simulatte.systemDiagram.v2"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000000
+    },
+    "nextId": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000000
+    },
+    "classes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/componentClass"
+      },
+      "maxItems": 64,
+      "minItems": 0
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      },
+      "maxItems": 64,
+      "minItems": 0
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/link"
+      },
+      "maxItems": 128,
+      "minItems": 0
+    },
+    "clusters": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/cluster"
+      },
+      "maxItems": 16,
+      "minItems": 0
+    },
+    "workload": {
+      "$ref": "#/$defs/workload"
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 1000
+      },
+      "maxItems": 32,
+      "minItems": 0
+    }
+  },
+  "$defs": {
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "serviceTime",
+        "concurrency",
+        "queueCapacity",
+        "memoryMiB",
+        "memoryLimitMiB",
+        "retries",
+        "retryDelay",
+        "failureAt",
+        "recoveryAt",
+        "outputType",
+        "spawnCount"
+      ],
+      "properties": {
+        "serviceTime": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "memoryMiB": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 65536
+        },
+        "memoryLimitMiB": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 1048576
+        },
+        "retries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16
+        },
+        "retryDelay": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 60
+        },
+        "failureAt": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 60
+            }
+          ]
+        },
+        "recoveryAt": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 60
+            }
+          ]
+        },
+        "outputType": {
+          "enum": [
+            "preserve",
+            "natural-language",
+            "structured",
+            "unstructured"
+          ]
+        },
+        "spawnCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        }
+      }
+    },
+    "overrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "serviceTime": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "memoryMiB": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 65536
+        },
+        "memoryLimitMiB": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 1048576
+        },
+        "retries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16
+        },
+        "retryDelay": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 60
+        },
+        "failureAt": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 60
+            }
+          ]
+        },
+        "recoveryAt": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 60
+            }
+          ]
+        },
+        "outputType": {
+          "enum": [
+            "preserve",
+            "natural-language",
+            "structured",
+            "unstructured"
+          ]
+        },
+        "spawnCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        }
+      }
+    },
+    "componentClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "label",
+        "defaults",
+        "ports"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "type": {
+          "enum": [
+            "client",
+            "cpu",
+            "gpu",
+            "queue",
+            "rpc",
+            "database",
+            "replica",
+            "scheduler",
+            "crawler",
+            "rag",
+            "model"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "defaults": {
+          "$ref": "#/$defs/defaults"
+        },
+        "ports": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "in",
+            "out"
+          ],
+          "properties": {
+            "in": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "natural-language",
+                  "structured",
+                  "unstructured"
+                ]
+              },
+              "maxItems": 3,
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "out": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "natural-language",
+                  "structured",
+                  "unstructured"
+                ]
+              },
+              "maxItems": 3,
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "classId",
+        "label",
+        "x",
+        "y",
+        "overrides",
+        "clusterId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "classId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "x": {
+          "type": "number",
+          "minimum": -10000,
+          "maximum": 10000
+        },
+        "y": {
+          "type": "number",
+          "minimum": -10000,
+          "maximum": 10000
+        },
+        "overrides": {
+          "$ref": "#/$defs/overrides"
+        },
+        "clusterId": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,63}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "from",
+        "to",
+        "fromPort",
+        "toPort",
+        "capacity",
+        "latency"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "from": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "to": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "fromPort": {
+          "const": "out"
+        },
+        "toPort": {
+          "const": "in"
+        },
+        "capacity": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 100000
+        },
+        "latency": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60
+        }
+      }
+    },
+    "cluster": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "capacity"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "capacity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seed",
+        "count",
+        "interval",
+        "deadline",
+        "payloadType",
+        "payloadMiB"
+      ],
+      "properties": {
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128
+        },
+        "interval": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 60
+        },
+        "deadline": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 60
+        },
+        "payloadType": {
+          "enum": [
+            "natural-language",
+            "structured",
+            "unstructured"
+          ]
+        },
+        "payloadMiB": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 1024
+        }
+      }
+    }
+  }
+}

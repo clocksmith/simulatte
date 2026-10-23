@@ -38,26 +38,34 @@ matched empirical validation and human observation remain separate qualification
 
 Keep the three established featured experiences understandable through interaction while developing the next experiences below. Their unfamiliar-user qualification remains required. Motorcycle highlights the sound paths changed at the observer; Sun Walker displays the accepted route and its actual time/exposure tradeoff against the shortest path; GPU shows how a slow rack holds up dependent racks. Each intervention connects affected objects, a measured change, and an identified comparison baseline. Preserve the numerical qualifications underneath. Observe unfamiliar people exploring without instructions, record whether they identify the activity, discover an action, and explain its consequence, and fix observed barriers. Automated browser checks do not substitute for these observations.
 
-## Authorized bounded World workbench milestone
+## Authorized World system diagram editor
 
-User direction authorizes System Diagram Simulator as a distinct World catalog
-experience at `/system-diagram`, with a declared standalone simulation profile and
-node/cluster/link authoring. Its first executable coverage remains the bounded
-failure-and-repair experiment; the other catalog priorities remain in effect. Author CPU/GPU task nodes, shared
-compute clusters and typed task links; accept a validated architecture revision
-explicitly before restarting execution. Reproduce result-store failure after GPU
-computation, failed acknowledgement, lease expiry and redelivery. Compare identical
-arrivals and fault timing under bounded admission, backpressure, retry budgets and
-idempotent result commits. Require exact replay, checkpoint equivalence, reconciled
-resources and visible rejected/unfinished requests with causal inspection. This is
-a narrow registered simulation milestone, not general catalog expansion or a production claim.
+System Diagram Simulator at `/system-diagram` is primarily a system architecture
+creator whose connections execute a synthetic distributed workload. Center a
+readable canvas, draggable component palette, typed ports and a contextual property
+inspector. Support moving, selecting, deleting, duplicating, connecting and
+reconnecting nodes; grouping, pan/zoom, undo/redo and save/load. Reusable node
+classes own defaults; individual instances hold explicit overrides. Keep accepted
+execution immutable until edited architecture validates and restarts explicitly.
 
-Develop future challenging workloads as composable packs of typed nodes, ports,
-resource policies and synthetic/deidentified traces. Streaming/CDN, multi-agent
-collection, healthcare, finance, operational data graphs and lakehouse jobs are
-representative patterns, not proprietary implementation claims. The staged
-[workbench plan](docs/simulatte/distributed-workload-workbench.md) identifies shared
-primitives, unsupported semantics and acceptance before additional packs execute.
+Execute representative compositions of clients, CPU/GPU workers, task queues,
+RPC services with retries and recovery, databases and replica deliveries,
+schedulers, crawlers and RAG/model stages. Declare natural-language, structured
+and unstructured payload contracts. Simulation means bounded synthetic event,
+resource and timing models, not actual scraping, AI calls, durable database
+protocols or production predictions. Inspect actual request, attempt, queue,
+resource and causal records. Require seeded replay, checkpoint equivalence and
+visible rejected/unfinished work. Preserve the earlier lease/redelivery experiment
+as a compatibility path rather than the primary product interface.
+
+Develop challenging workloads as composable packs of typed nodes, ports, resource
+policies and synthetic/deidentified traces. Streaming/CDN, multi-agent collection,
+healthcare, finance, operational data graphs and lakehouse jobs are representative
+patterns, not proprietary implementation claims or completed packs. The
+[editor contract](docs/simulatte/system-diagram-editor.md) and staged
+[workbench plan](docs/simulatte/distributed-workload-workbench.md) distinguish
+executable coverage from unsupported semantics. This user-authorized correction
+does not reopen unrelated catalog expansion or replace existing priorities.
 
 ## Next experience development
 

@@ -1,9 +1,14 @@
 # Distributed workload workbench
 
 Owner: [World experiment charter](../../public/simulatte/distributed-repair/CATSCAN.md).
-Logical-time authority: [multirate coordinator](../../public/shared/core/simulation/multirate-coordinator.js).
+Legacy repair logical-time authority: [multirate coordinator](../../public/shared/core/simulation/multirate-coordinator.js).
 
-## Current bounded implementation
+The current product is the [canvas-first system diagram editor](system-diagram-editor.md).
+The implementation record below describes its earlier bounded repair slice, whose
+model remains compatibility code. It does not define the primary editor interface
+or imply that all future pack semantics execute.
+
+## Historical bounded implementation
 
 System Diagram Simulator is a distinct, experimental World catalog card at
 `/system-diagram`, backed by `public/data/distributed-repair/system-diagram-profile-v1.json`.

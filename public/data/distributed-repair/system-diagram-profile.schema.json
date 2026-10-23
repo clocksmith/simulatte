@@ -11,15 +11,15 @@
     "route",
     "entry",
     "model",
-    "configPath",
+    "documentSchemaPath",
     "defaultSeed",
-    "defaultPolicy",
+    "defaultPreset",
     "capabilities",
     "limitations"
   ],
   "properties": {
     "schema": {
-      "const": "simulatte.systemDiagramProfile.v1"
+      "const": "simulatte.systemDiagramProfile.v2"
     },
     "id": {
       "const": "system-diagram-v1"
@@ -39,21 +39,12 @@
       "const": "/simulatte/distributed-repair/index.html"
     },
     "model": {
-      "const": "distributed-repair/v1"
-    },
-    "configPath": {
-      "const": "/data/distributed-repair/config.json"
+      "const": "system-diagram/v2"
     },
     "defaultSeed": {
       "type": "integer",
       "minimum": 0,
       "maximum": 4294967295
-    },
-    "defaultPolicy": {
-      "enum": [
-        "baseline",
-        "bounded"
-      ]
     },
     "capabilities": {
       "type": "array",
@@ -67,13 +58,26 @@
           "capacity-latency",
           "seeded-replay",
           "checkpoint-restore",
-          "causal-request-inspection"
+          "causal-request-inspection",
+          "drag-drop-canvas",
+          "class-instance-authoring",
+          "synthetic-dataflows"
         ]
       }
     },
     "limitations": {
       "type": "string",
       "minLength": 1
+    },
+    "documentSchemaPath": {
+      "const": "/data/distributed-repair/system-diagram.schema.json"
+    },
+    "defaultPreset": {
+      "enum": [
+        "pipeline",
+        "collection",
+        "blank"
+      ]
     }
   }
 }

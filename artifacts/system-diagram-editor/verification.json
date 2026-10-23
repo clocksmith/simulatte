@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-10-23T21:48:53.353674+00:00",
+  "baseCommit": "729dd1fd3678c3bf646b83587eecea9584f4276b",
+  "component": "World System Diagram Simulator",
+  "status": "local implementation preserved; integration blocked by concurrent canonical ownership and final browser review",
+  "route": "/system-diagram",
+  "model": "system-diagram/v2",
+  "checks": {
+    "regressionLog": "tests.tap",
+    "desktopBrowser": "Nine checks passed on a prior source delta; then failed. See browser.json.",
+    "freshDesktopAndTouch": "blocked; see browser-blocker.json",
+    "deployment": "not performed",
+    "tests": {
+      "passed": 68,
+      "failed": 0
+    }
+  },
+  "proofBoundary": "Unit/regression evidence proves synthetic domain and authoring-session behavior. Partial browser screenshots do not prove current source visual/interaction completion. No production capacity or human usability qualification.",
+  "sources": {
+    "public/simulatte/distributed-repair/architecture.js": "45170632fb6341467a94deb28468a4e90c08717c0c4a64cc1598cd97adbddea1",
+    "public/simulatte/distributed-repair/editor-page.js": "4c492a4f3b3c9b1615ea0beba05661eb702569a9da5a8baddda063554091f427",
+    "public/simulatte/distributed-repair/editor-session.js": "687eebb95ff38e23edc285c3658a193cd775725d7ae22979364de89f2beeeac6",
+    "public/simulatte/distributed-repair/graph-canvas.js": "006056c9641e02f5e338294ddfe1cbf8726a30331d11b4015967b5080eb7bab3",
+    "public/simulatte/distributed-repair/graph-document.js": "faf2b09d895660585d5be9c3b827889d60c4fcda0499baf173242c3341cdea7c",
+    "public/simulatte/distributed-repair/graph-runtime.js": "a3b5a318452d089efb04fe1a45a8a0acd3682599075dc1be20adbb4875aabb76",
+    "public/simulatte/distributed-repair/model.js": "2f775a6fbc8fb1f4abfcbe47078c21a58a3bcfae07e5f090aec3e7eade9efbfd",
+    "public/simulatte/distributed-repair/page.js": "bf4f76837741f074994d4fe2bf5b8f780c2f675270ae69913b2b6403f2d39ebc",
+    "public/simulatte/distributed-repair/profile.js": "a6b537407c49a33a4b25728ea9021f1ee099a261e7f562e4980dd23ac5b3ceca",
+    "public/simulatte/distributed-repair/runner.js": "eb99d8cb5115b7c785c2c558a2f80e9c85ca1e497204fefad1d18e4f393a5b1e"
+  },
+  "screenshots": {
+    "1440-editor.png": "ea7f24a6190763ca8263e104b62319d930f9d7728bd421fd81c348046f4fd5d4",
+    "1440-failure.png": "b34791f9b88088e648a217f3a16957fea29fd2eec0a3e11a6bf9c1aa02058df5",
+    "1440-properties.png": "bf7b90b4e5df1ff90cbf60d75dea83c301cc988f36f6f2c1e3609a0987473eb9"
+  },
+  "concurrentMain": {
+    "commit": "329a756781daa364e27c705bf5abff8436ffea86",
+    "conflict": "Introduces public/simulatte/system-diagram/ with different document/class/kernel contracts and marks distributed-repair superseded. Publishing this delta unchanged would create competing architecture owners.",
+    "publication": "not attempted; preserve concurrent main"
+  }
+}
