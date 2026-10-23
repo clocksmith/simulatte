@@ -7,7 +7,7 @@
     "authoritativeCadenceSec": 0.5,
     "maxInFlight": 50000,
     "maxHops": 64,
-    "histogram": { "minMs": 0.01, "maxMs": 3600000, "bins": 96 },
+    "histogram": { "minMs": 0.01, "maxMs": 3600000, "bins": 400 },
     "seriesBucketSec": 1,
     "seriesWindowSec": 120,
     "logCapacity": 200,

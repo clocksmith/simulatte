@@ -4,13 +4,13 @@
   else root.SimulatteSystemDiagramKernels = api;
 })(globalThis, function () {
   'use strict';
-  const HOOKS = Object.freeze(['init', 'start', 'onRequest', 'onServed', 'onResult', 'onWake', 'onFault', 'onControl', 'observe']);
+  const HOOKS = Object.freeze(['init', 'start', 'onRequest', 'onServed', 'onResult', 'onWake', 'onFault', 'onControl', 'onParams', 'observe']);
   const kernels = new Map();
   // A kernel implements behaviour for one class-library kernel id through the engine ctx API only.
   function register(kernel) {
     if (!kernel || typeof kernel.id !== 'string' || !kernel.id) throw Error('Kernel registration requires an id');
     if (kernels.has(kernel.id)) throw Error(`Kernel ${kernel.id} is already registered`);
-    for (const key of Object.keys(kernel)) if (key !== 'id' && key !== 'station' && !HOOKS.includes(key)) throw Error(`Kernel ${kernel.id} declares unknown hook ${key}`);
+    for (const key of Object.keys(kernel)) if (key !== 'id' && key !== 'station' && key !== 'bypass' && !HOOKS.includes(key)) throw Error(`Kernel ${kernel.id} declares unknown hook ${key}`);
     for (const hook of HOOKS) if (kernel[hook] !== undefined && typeof kernel[hook] !== 'function') throw Error(`Kernel ${kernel.id}.${hook} must be a function`);
     if (kernel.station !== undefined && kernel.station !== null && (typeof kernel.station !== 'object' || typeof kernel.station.concurrency !== 'string' || typeof kernel.station.queueCapacity !== 'string')) throw Error(`Kernel ${kernel.id}.station must name concurrency and queueCapacity parameters`);
     kernels.set(kernel.id, Object.freeze({ ...kernel }));

@@ -21,7 +21,7 @@
         "writeMs": { "type": "number", "label": "Write time", "unit": "ms", "min": 0, "max": 3600000, "default": 5, "group": "basic" },
         "serviceDist": { "type": "enum", "label": "Service distribution", "options": ["constant", "exponential", "lognormal"], "default": "exponential", "group": "advanced" },
         "serviceCv": { "type": "number", "label": "Lognormal variation", "unit": "cv", "min": 0, "max": 10, "default": 1, "group": "advanced" },
-        "connections": { "type": "integer", "label": "Connections per replica", "min": 1, "max": 100000, "default": 50, "group": "basic" },
+        "connections": { "type": "integer", "label": "Connections (cluster)", "min": 1, "max": 100000, "default": 50, "group": "basic" },
         "queueCapacity": { "type": "integer", "label": "Wait queue", "unit": "requests", "min": 0, "max": 100000, "default": 1000, "group": "advanced" },
         "errorRate": { "type": "number", "label": "Error rate", "unit": "fraction", "min": 0, "max": 1, "default": 0, "group": "advanced" },
         "responseKb": { "type": "number", "label": "Response size", "unit": "KB", "min": 0, "max": 1000000, "default": 1, "group": "advanced" }
@@ -41,6 +41,7 @@
         "ttlSec": { "type": "number", "label": "TTL (0 = none)", "unit": "s", "min": 0, "max": 86400, "default": 60, "group": "basic" },
         "hitMs": { "type": "number", "label": "Hit time", "unit": "ms", "min": 0, "max": 60000, "default": 0.5, "group": "basic" },
         "concurrency": { "type": "integer", "label": "Concurrency", "min": 1, "max": 1000000, "default": 10000, "group": "advanced" },
+        "queueCapacity": { "type": "integer", "label": "Queue capacity", "unit": "requests", "min": 0, "max": 1000000, "default": 1000, "group": "advanced" },
         "coalesceMisses": { "type": "boolean", "label": "Coalesce misses", "default": false, "group": "basic" },
         "writePolicy": { "type": "enum", "label": "Writes", "options": ["invalidate", "write-through", "write-around"], "default": "invalidate", "group": "advanced" },
         "failOpen": { "type": "boolean", "label": "Bypass to origin when down", "default": true, "group": "basic" },
