@@ -1,0 +1,203 @@
+{
+  "schema": "simulatte.systemDiagram.v1",
+  "id": "healthcare-ingestion",
+  "name": "Synthetic ingestion, identity and approval",
+  "description": "Deidentified synthetic event records exercise schema quarantine, delayed authored approval, entity ordering, deduplication and idempotent commits. No patient records, clinical rules or clinical decisions are modeled.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 30
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "intake",
+      "classId": "event-source",
+      "label": "Intake",
+      "x": 0,
+      "y": 90,
+      "params": {
+        "count": 12,
+        "intervalMs": 100,
+        "invalidEvery": 4,
+        "duplicateEvery": 6,
+        "outOfOrderEvery": 7,
+        "evolveAfter": 8,
+        "newSchemaVersion": 2,
+        "callTimeoutMs": 15000,
+        "deadlineMs": 20000,
+        "retries": 0
+      }
+    },
+    {
+      "id": "schema",
+      "classId": "schema-validator",
+      "label": "Schema",
+      "x": 240,
+      "y": 90,
+      "params": {
+        "minSchemaVersion": 1,
+        "maxSchemaVersion": 1
+      }
+    },
+    {
+      "id": "approval",
+      "classId": "approval-gate",
+      "label": "Approval",
+      "x": 480,
+      "y": 90,
+      "params": {
+        "approvalMs": 300,
+        "policy": "synthetic",
+        "denyEvery": 3
+      }
+    },
+    {
+      "id": "identity-ledger",
+      "classId": "event-ledger",
+      "label": "Identity Ledger",
+      "x": 720,
+      "y": 90,
+      "params": {
+        "mode": "ordered",
+        "ordering": "monotonic"
+      }
+    },
+    {
+      "id": "approved-store",
+      "classId": "idempotent-store",
+      "label": "Approved Store",
+      "x": 960,
+      "y": 90,
+      "params": {
+        "serviceDist": "constant",
+        "writeMs": 3
+      }
+    },
+    {
+      "id": "quarantine",
+      "classId": "event-quarantine",
+      "label": "Quarantine",
+      "x": 480,
+      "y": 320,
+      "params": {
+        "maxRecords": 100
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "intake-schema",
+      "from": {
+        "nodeId": "intake",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "schema",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "schema-approval",
+      "from": {
+        "nodeId": "schema",
+        "portId": "accepted"
+      },
+      "to": {
+        "nodeId": "approval",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "schema-quarantine",
+      "from": {
+        "nodeId": "schema",
+        "portId": "quarantine"
+      },
+      "to": {
+        "nodeId": "quarantine",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "approval-ledger",
+      "from": {
+        "nodeId": "approval",
+        "portId": "accepted"
+      },
+      "to": {
+        "nodeId": "identity-ledger",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "denied-quarantine",
+      "from": {
+        "nodeId": "approval",
+        "portId": "quarantine"
+      },
+      "to": {
+        "nodeId": "quarantine",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "ledger-store",
+      "from": {
+        "nodeId": "identity-ledger",
+        "portId": "accepted"
+      },
+      "to": {
+        "nodeId": "approved-store",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "order-quarantine",
+      "from": {
+        "nodeId": "identity-ledger",
+        "portId": "quarantine"
+      },
+      "to": {
+        "nodeId": "quarantine",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "assumptions",
+      "text": "Synthetic flags and scalar identifiers only. Schema v2 is quarantined until explicitly supported; approval is a delayed authored policy, not a clinician. Duplicate events and failed requests remain inspectable.",
+      "x": 20,
+      "y": -80,
+      "w": 900
+    }
+  ],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

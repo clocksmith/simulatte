@@ -1,0 +1,95 @@
+{
+  "schema": "simulatte.systemDiagramJourneyVerification.v1",
+  "capturedAt": "2026-10-24T00:36:00.230765+00:00",
+  "baseCommit": "fdbb180755094f065b4cf589ba51ac6f4a149418",
+  "status": "six requested synthetic journey families implemented and locally qualified for main publication",
+  "route": "/system-diagram",
+  "entry": "/simulatte/system-diagram/index.html",
+  "checks": {
+    "modelAndContractTests": 162,
+    "analyticalEngineTests": 13,
+    "testsFailed": 0,
+    "blankAndWorkloadBrowser": [
+      {
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "checks": 20,
+        "passed": true,
+        "workloads": [
+          "streaming-burst",
+          "replica-recovery",
+          "agent-recovery",
+          "healthcare-ingestion",
+          "finance-reconciliation",
+          "lakehouse-late-data"
+        ]
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "checks": 20,
+        "passed": true,
+        "workloads": [
+          "streaming-burst",
+          "replica-recovery",
+          "agent-recovery",
+          "healthcare-ingestion",
+          "finance-reconciliation",
+          "lakehouse-late-data"
+        ]
+      }
+    ],
+    "editorRegressionBrowser": [
+      {
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "checks": 33,
+        "passed": true
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "checks": 33,
+        "passed": true
+      }
+    ],
+    "runtimeSourceHashesMatch": true,
+    "worldUiOwnershipViolations": 0,
+    "hostingContracts": "pass",
+    "sourceSize": "pass; all JavaScript <=999 lines"
+  },
+  "coverage": "docs/simulatte/system-diagram-coverage.md",
+  "scope": [
+    "One canonical editor and engine, reusable classes/instances and typed executable topology",
+    "Streaming backpressure, replica recovery, lost acknowledgements and repair comparison",
+    "Shared network capacity, bounded modeled memory, pressure/GC/OOM and resource conservation",
+    "Agent/RAG dependency failures, stale indexes and bounded repair/throttle budgets",
+    "Reusable event schemas, lineage, approval, reconciliation, late windows and shuffle/spill"
+  ],
+  "screenshots": {
+    "1440-faults.png": "1a147d9a7384906b39812a370404a4aa970bddceb0206a3bd7d56d4cff348608",
+    "1440-comparison.png": "8c81ece8da01027ef26ee95f1c45dd33dd4ff41b99c7e7fd0c2ffba11964fc30",
+    "1440-causal.png": "94ab013d92eece59ab3fb8c8e630cd1c63aaba197209441c95213b8bd56b73d9",
+    "1440-event-pipeline.png": "53a25d308e99567de3316f9390ae5da528e5cae68fd1d909293b8e6f6a308d95",
+    "390-faults.png": "934954e020e46971949ae88e18d8bacdc83cd0c6c2f12e4c8ae19dcae0f6cce8",
+    "390-comparison.png": "a014a47fdb40fbb349212294b64193efe338f377aa268994fd90ee278a3e7754",
+    "390-causal.png": "bb36e98b56ede355be82d405d820334f805bd71b193991a5f3dde8daa626acd0",
+    "390-event-pipeline.png": "2a47af5a79aa73ddd1b55b40f83f28651b19bf2ac1c0261c7423c1a1ef0ad381"
+  },
+  "limits": [
+    "Synthetic authored assumptions, not production-calibrated predictions or regulatory guarantees.",
+    "Replica slots do not implement consensus or arbitrary isolation; no split-brain proof.",
+    "Real parsing, semantic model quality, actual URL collection and physical OS/GPU/disk/TCP behavior remain unsupported.",
+    "Comparisons refuse unequal realized inputs; one seed is not a confidence interval.",
+    "Chrome touch emulation and browser machine checks are distinct from physical-device or human acceptance."
+  ],
+  "productionDeployment": false
+}

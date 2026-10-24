@@ -4,4 +4,5 @@ require('./kernels-routing.js');
 require('./kernels-storage.js');
 require('./kernels-ai.js');
 require('./kernels-sources.js');
+require('./kernels-pipeline.js');
 module.exports = require('./kernel-registry.js');

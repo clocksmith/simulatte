@@ -156,24 +156,6 @@
         "max": 1000000,
         "default": 1,
         "group": "advanced"
-      },
-      "memoryPerRequestMiB": {
-        "type": "number",
-        "label": "Retained memory per admitted request",
-        "unit": "MiB",
-        "min": 0,
-        "max": 1048576,
-        "default": 1,
-        "group": "advanced"
-      },
-      "memoryLimitMiB": {
-        "type": "number",
-        "label": "Admission memory budget",
-        "unit": "MiB",
-        "min": 0,
-        "max": 1048576,
-        "default": 1024,
-        "group": "advanced"
       }
     },
     "calls": {
@@ -455,6 +437,84 @@
         "default": true,
         "group": "advanced"
       }
+    },
+    "memory": {
+      "memoryPerRequestMiB": {
+        "type": "number",
+        "label": "Retained memory per admitted request",
+        "unit": "MiB",
+        "min": 0,
+        "max": 1048576,
+        "default": 1,
+        "group": "advanced"
+      },
+      "memoryLimitMiB": {
+        "type": "number",
+        "label": "Admission memory budget",
+        "unit": "MiB",
+        "min": 0,
+        "max": 1048576,
+        "default": 1024,
+        "group": "advanced"
+      },
+      "memoryPressureThreshold": {
+        "type": "number",
+        "label": "Memory pressure threshold",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.8,
+        "group": "advanced"
+      },
+      "memoryThrashFactor": {
+        "type": "number",
+        "label": "Pressure slowdown factor",
+        "min": 1,
+        "max": 1000,
+        "default": 1,
+        "group": "advanced"
+      },
+      "memoryGarbageFraction": {
+        "type": "number",
+        "label": "Completed allocation retained until GC",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "group": "advanced"
+      },
+      "memoryGcPauseMs": {
+        "type": "number",
+        "label": "GC pause",
+        "min": 0,
+        "max": 60000,
+        "default": 0,
+        "group": "advanced"
+      },
+      "memoryGcCooldownMs": {
+        "type": "number",
+        "label": "Minimum GC interval",
+        "min": 1,
+        "max": 60000,
+        "default": 1000,
+        "group": "advanced"
+      },
+      "memoryOomRecoveryMs": {
+        "type": "number",
+        "label": "OOM recovery delay (0 = manual)",
+        "min": 0,
+        "max": 60000,
+        "default": 1000,
+        "group": "advanced"
+      },
+      "memoryOomPolicy": {
+        "type": "enum",
+        "label": "Memory admission failure",
+        "options": [
+          "reject",
+          "crash"
+        ],
+        "default": "reject",
+        "group": "advanced"
+      }
     }
   },
   "edgeParams": {
@@ -538,6 +598,26 @@
         "write"
       ],
       "default": "inherit",
+      "group": "advanced"
+    },
+    "bandwidthSharing": {
+      "type": "enum",
+      "label": "Bandwidth scheduling",
+      "options": [
+        "fifo",
+        "fair"
+      ],
+      "default": "fifo",
+      "group": "advanced"
+    },
+    "duplex": {
+      "type": "enum",
+      "label": "Link directions",
+      "options": [
+        "full",
+        "shared"
+      ],
+      "default": "full",
       "group": "advanced"
     }
   },
@@ -694,6 +774,8 @@
     "classes/routing.json",
     "classes/storage.json",
     "classes/ai.json",
-    "classes/sources.json"
+    "classes/sources.json",
+    "classes/streaming.json",
+    "classes/pipeline.json"
   ]
 }

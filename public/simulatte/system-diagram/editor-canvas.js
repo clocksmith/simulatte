@@ -32,7 +32,7 @@
     const uid = ++instances;
     const touches = new Map();
     let view = { ...model.diagram.view }, gesture = null, pending = null, editing = null;
-    let explicitMultiSelect = false, overlay = null, runView = null, runPending = false;
+    let explicitMultiSelect = false, overlay = null, runView = null, runPending = false, inputReceipt = null;
     const reconnectHandles = new Map();
     let frame = 0, queuedPositions = null, viewDirty = false, ownViewChange = false, hintTimer = 0, gestureCount = 0, lastTap = null;
     const events = new AbortController(), on = (target, type, fn, opts = {}) => target.addEventListener(type, fn, { signal: events.signal, ...opts });
@@ -170,7 +170,36 @@
       if (edgeEl) return { type: 'edge', id: edgeEl.dataset.id };
       return { type: 'empty' };
     }
-    const hitAt = client => classify(doc.elementFromPoint(client.x, client.y));
+    function hitAt(client, connecting = false, eventTarget = null) {
+      const atPoint = classify(doc.elementFromPoint(client.x, client.y)), native = eventTarget ? classify(eventTarget) : null;
+      // A visible wire or reconnect handle must not be stolen by expanded nearby port targets.
+      if (atPoint.type === 'reconnect' || !connecting && atPoint.type === 'edge') return atPoint;
+      const physical = native?.type === 'port' ? native : atPoint;
+      if (physical.type === 'reconnect') return physical;
+      const world = screenToWorld(client), touch = win.matchMedia?.('(pointer: coarse)').matches;
+      let nearest = null, distance = touch ? 22 : 12;
+      for (const node of model.diagram.nodes) for (const port of classInfo(node.classId).ports) {
+        const p = portPosition(node.id, port.id), d = Math.hypot(p.x - world.x, p.y - world.y) * view.zoom;
+        if (d < distance) { distance = d; nearest = { type: 'port', id: node.id, portId: port.id, dir: port.direction }; }
+      }
+      if (!connecting && physical.type !== 'port') {
+        const body = [...model.diagram.nodes].reverse().find(node => world.x >= node.x && world.x <= node.x + W && world.y >= node.y && world.y <= node.y + H);
+        if (body && (!nearest || distance > Math.max(6, PORT_DOT * view.zoom + 2))) return { type: 'node', id: body.id };
+      }
+      return nearest || physical;
+    }
+    function dropPosition(point) {
+      const desired = { x: snap(point.x - W / 2), y: snap(point.y - H / 2) }, nodes = model.diagram.nodes;
+      const gap = Math.max(GRID * 3, 24 / view.zoom);
+      const clear = p => !nodes.some(n => p.x < n.x + W + gap && p.x + W + gap > n.x && p.y < n.y + H + gap && p.y + H + gap > n.y);
+      if (clear(desired)) return desired;
+      // At most 4N+1 candidates over the bounded document keep new ports clear without moving existing nodes.
+      const candidates = [desired];
+      for (const n of nodes) candidates.push({ x: snap(n.x + W + gap), y: desired.y }, { x: snap(n.x - W - gap), y: desired.y }, { x: desired.x, y: snap(n.y + H + gap) }, { x: desired.x, y: snap(n.y - H - gap) });
+      const score = p => (p.x - desired.x) ** 2 + (p.y - desired.y) ** 2;
+      const result = candidates.filter(clear).sort((a, b) => score(a) - score(b) || a.x - b.x || a.y - b.y)[0];
+      return result || { x: Math.ceil((Math.max(...nodes.map(n => n.x)) + W + gap) / GRID) * GRID, y: desired.y };
+    }
     const selectionKey = { node: 'nodes', group: 'groups', note: 'notes', edge: 'edges' };
     const isSelected = hit => model.selection[selectionKey[hit.type]]?.includes(hit.id);
 
@@ -391,7 +420,7 @@
         g.rect = { x, y, w: Math.abs(world.x - g.startWorld.x), h: Math.abs(world.y - g.startWorld.y) };
         for (const [k, v] of Object.entries(g.rect)) g.box.setAttribute(k === 'w' ? 'width' : k === 'h' ? 'height' : k, v);
       } else if (g.type === 'connect') {
-        const target = resolveTarget(g.connect, hitAt(client));
+        const target = resolveTarget(g.connect, hitAt(client, true));
         g.target = target;
         markTarget(target);
         previewLine(g.from, target?.portId && target.result.ok ? { ...portPosition(target.nodeId, target.portId) } : world);
@@ -454,7 +483,12 @@
         if (touches.size === 2) { beginPinch(); e.preventDefault(); return; }
         if (touches.size > 2) return;
       }
-      const hit = e.button === 1 ? { type: 'empty' } : classify(e.target);
+      const hit = e.button === 1 ? { type: 'empty' } : hitAt({ x: e.clientX, y: e.clientY }, Boolean(pending), e.target);
+      if (hit.type === 'reconnect') cancelPending();
+      const worldPoint = screenToWorld({ x: e.clientX, y: e.clientY });
+      const nearPorts = model.diagram.nodes.flatMap(node => classInfo(node.classId).ports.map(port => { const p = portPosition(node.id, port.id); return { nodeId: node.id, portId: port.id, ...p, distancePx: Math.hypot(p.x - worldPoint.x, p.y - worldPoint.y) * view.zoom }; })).sort((a, b) => a.distancePx - b.distancePx).slice(0, 8);
+      inputReceipt = { schema: 'simulatte.diagramPointerReceipt.v1', phase: 'down', pointerType: e.pointerType, client: { x: e.clientX, y: e.clientY }, world: worldPoint, hit, nativeHit: classify(e.target), view: { ...view }, ports: nearPorts };
+      host.dataset.inputReceipt = JSON.stringify(inputReceipt);
       const focusTarget = hit.type === 'node' || hit.type === 'port' ? items.nodes.get(hit.id)?.el : hit.type === 'note' ? items.notes.get(hit.id)?.el : hit.type === 'group' ? items.groups.get(hit.id)?.tab : host;
       (focusTarget || host).focus({ preventScroll: true });
       const g = { pointerId: e.pointerId, pointerType: e.pointerType, client: { x: e.clientX, y: e.clientY }, hit, active: null, timer: 0, wasSelected: false, longPressed: false, before: model.selection };
@@ -484,7 +518,7 @@
       if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (gesture?.type === 'pinch') { updatePinch(); return; }
       if (!gesture || gesture.pointerId !== e.pointerId) {
-        if (pending && e.pointerType === 'mouse') { const target = resolveTarget(pending, classify(e.target)); markTarget(target); if (target) describeTarget(target); }
+        if (pending && e.pointerType === 'mouse') { const target = resolveTarget(pending, hitAt({ x: e.clientX, y: e.clientY }, true)); markTarget(target); if (target) describeTarget(target); }
         return;
       }
       const g = gesture;
@@ -505,6 +539,11 @@
       const g = gesture;
       win.clearTimeout(g.timer);
       if (e.type === 'pointercancel') { cancelGesture(); return; }
+      const releaseHit = hitAt({ x: e.clientX, y: e.clientY }, true);
+      if (!g.active && !pending && ['port', 'reconnect'].includes(g.hit.type) && Math.hypot(e.clientX - g.client.x, e.clientY - g.client.y) > 2) g.active = startGesture(g, e);
+      if (g.active?.type === 'connect') g.active.target = resolveTarget(g.active.connect, releaseHit);
+      inputReceipt = { ...inputReceipt, phase: 'up', release: { x: e.clientX, y: e.clientY }, releaseHit, gesture: g.active?.type || 'tap' };
+      host.dataset.inputReceipt = JSON.stringify(inputReceipt);
       if (g.active) endGesture(g.active);
       else tap(g.hit, e);
       gesture = null;
@@ -668,8 +707,8 @@
       edgeElement: id => items.edges.get(id)?.path || null,
       nodeElement: id => items.nodes.get(id)?.el || null,
       dropClassAt(classId, clientX, clientY) {
-        const p = screenToWorld({ x: clientX, y: clientY });
-        return report(model.apply({ type: 'addNode', classId, x: snap(p.x - W / 2), y: snap(p.y - H / 2) }));
+        const p = dropPosition(screenToWorld({ x: clientX, y: clientY }));
+        return report(model.apply({ type: 'addNode', classId, x: p.x, y: p.y }));
       },
       setMultiSelect(value) { explicitMultiSelect = Boolean(value); host.dataset.multiSelect = String(explicitMultiSelect); },
       setState(value, options = {}) { runView = value; runPending = Boolean(options.pending); paintState(); },

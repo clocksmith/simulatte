@@ -1,0 +1,105 @@
+{
+  "schema": "simulatte.systemDiagram.v1",
+  "id": "replica-recovery",
+  "name": "Replica lag, partition and leader recovery",
+  "description": "Three modeled replica slots with quorum acknowledgements, catch-up delay and a single authoritative simulated leader. Client link partition and leader failure are scheduled; no split-brain or consensus proof.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 5
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "clients",
+      "classId": "web-client",
+      "label": "Clients",
+      "x": 0,
+      "y": 100,
+      "params": {
+        "pattern": "constant",
+        "ratePerSec": 8,
+        "maxRequests": 24,
+        "readFraction": 0.3,
+        "keySpace": 2,
+        "retries": 1,
+        "retryJitter": false,
+        "timeoutMs": 500
+      }
+    },
+    {
+      "id": "db",
+      "classId": "quorum-db",
+      "label": "Db",
+      "x": 300,
+      "y": 100,
+      "params": {
+        "replicas": 3,
+        "readQuorum": 2,
+        "readFrom": "any",
+        "writeQuorum": 2,
+        "interReplicaMs": 5,
+        "replicationLagMs": 150,
+        "electionMs": 200,
+        "serviceDist": "constant"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "database-link",
+      "from": {
+        "nodeId": "clients",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "db",
+        "portId": "in"
+      },
+      "params": {}
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [
+    {
+      "id": "follower-offline",
+      "atSec": 0.3,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "db"
+      },
+      "type": "failReplica",
+      "params": {
+        "index": 1
+      }
+    },
+    {
+      "id": "network-partition",
+      "atSec": 1.1,
+      "untilSec": 1.3,
+      "target": {
+        "kind": "edge",
+        "id": "database-link"
+      },
+      "type": "partition",
+      "params": {}
+    },
+    {
+      "id": "leader-failure",
+      "atSec": 1.5,
+      "untilSec": 2,
+      "target": {
+        "kind": "node",
+        "id": "db"
+      },
+      "type": "failLeader",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

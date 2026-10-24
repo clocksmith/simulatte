@@ -72,10 +72,10 @@
     return at !== null && at !== undefined && at <= t;
   }
   function dbPrune(ctx) {
-    const k = ctx.k, up = dbUpSlots(ctx);
+    const k = ctx.k, replicas = Array.from({ length: ctx.p.replicas }, (_, r) => r);
     while (k.log.length) {
       const entry = k.log[0];
-      if (!up.every(r => entry.applied[r] !== null && entry.applied[r] !== undefined && entry.applied[r] <= ctx.t)) break;
+      if (!replicas.every(r => entry.applied[r] !== null && entry.applied[r] !== undefined && entry.applied[r] <= ctx.t)) break;
       k.log.shift();
       if (k.latest[entry.key] === entry.seq) delete k.latest[entry.key];
     }
@@ -208,6 +208,9 @@
     replica.faults += 1;
     if (!replica.up) return true;
     replica.up = false;
+    // A scheduled application is not a durable copy when its target goes down.
+    // Retain the log row until recovery actually catches this replica up.
+    for (const e of k.log) if (e.applied[slot] !== null && e.applied[slot] > ctx.t) e.applied[slot] = null;
     if (slot === k.leader && !k.electing) {
       // Replication from the failed leader stops: entries not yet applied on a follower never arrive.
       for (const e of k.log) for (let r = 0; r < e.applied.length; r += 1) if (r !== slot && e.applied[r] !== null && e.applied[r] > ctx.t) e.applied[r] = null;

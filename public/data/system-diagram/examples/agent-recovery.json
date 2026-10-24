@@ -1,0 +1,431 @@
+{
+  "schema": "simulatte.systemDiagram.v1",
+  "id": "agent-recovery",
+  "name": "Agent tools, stale retrieval and repair",
+  "description": "Synthetic natural-language requests retrieve changing documents and invoke a fallible tool. Inspect delayed index publication, malformed model outputs, finite repair/tool retries, per-origin crawler budgets and recorded recovery. No live scraping, reasoning or API calls.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 20
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "questions",
+      "classId": "nl-input",
+      "label": "Natural-language questions",
+      "x": 0,
+      "y": 80,
+      "params": {
+        "pattern": "constant",
+        "ratePerSec": 2,
+        "startSec": 0.1,
+        "stopSec": 4.1,
+        "maxRequests": 8,
+        "tokensMean": 20,
+        "retries": 0,
+        "timeoutMs": 5000
+      }
+    },
+    {
+      "id": "rag",
+      "classId": "rag-retriever",
+      "label": "Fresh-context RAG",
+      "x": 240,
+      "y": 80,
+      "params": {
+        "topK": 3,
+        "chunkTokens": 20,
+        "promptTokens": 10,
+        "rejectStaleResults": true,
+        "retries": 0,
+        "callTimeoutMs": 3000
+      }
+    },
+    {
+      "id": "embed",
+      "classId": "embedder",
+      "label": "Shared embedding model",
+      "x": 480,
+      "y": -80,
+      "params": {
+        "maxBatch": 8,
+        "batchWindowMs": 5,
+        "batchBaseMs": 5,
+        "perKTokensMs": 1,
+        "dims": 128
+      }
+    },
+    {
+      "id": "index",
+      "classId": "vector-index",
+      "label": "Delayed-publication index",
+      "x": 720,
+      "y": -80,
+      "params": {
+        "vectors": 3,
+        "dims": 128,
+        "topK": 3,
+        "visibilityDelayMs": 400,
+        "maxAgeSec": 2,
+        "maxPendingUpserts": 32
+      }
+    },
+    {
+      "id": "rank",
+      "classId": "reranker",
+      "label": "Candidate reranker",
+      "x": 480,
+      "y": 80,
+      "params": {
+        "serviceMs": 2,
+        "serviceDist": "constant",
+        "perCandidateMs": 0.2
+      }
+    },
+    {
+      "id": "shape",
+      "classId": "structured-response",
+      "label": "Bounded output repair",
+      "x": 480,
+      "y": 240,
+      "params": {
+        "maxRepairs": 2,
+        "validateMs": 2,
+        "callTimeoutMs": 2000
+      }
+    },
+    {
+      "id": "agent",
+      "classId": "agent-llm",
+      "label": "Synthetic tool-using model",
+      "x": 720,
+      "y": 240,
+      "params": {
+        "toolRounds": 1,
+        "toolRetries": 2,
+        "toolRetryBackoffMs": 100,
+        "toolTimeoutMs": 300,
+        "structuredOutput": true,
+        "schemaFailureRate": 0.35,
+        "ttftMs": 20,
+        "decodeMsPerToken": 2,
+        "outputTokensMean": 20,
+        "contextWindow": 10000,
+        "tokensPerMinute": 5000
+      }
+    },
+    {
+      "id": "api",
+      "classId": "third-party-api",
+      "label": "Fallible rate-limited tool",
+      "x": 960,
+      "y": 240,
+      "params": {
+        "serviceMs": 20,
+        "serviceDist": "constant",
+        "rateLimitPerSec": 8,
+        "rateBurst": 2
+      }
+    },
+    {
+      "id": "crawl",
+      "classId": "crawler",
+      "label": "Bounded synthetic collection",
+      "x": 0,
+      "y": 480,
+      "params": {
+        "seedUrls": 3,
+        "domains": 2,
+        "fetchConcurrency": 2,
+        "politenessMs": 100,
+        "linksPerPage": 1,
+        "duplicateRate": 0.5,
+        "maxPages": 6,
+        "retries": 1,
+        "maxThrottleRetries": 2,
+        "retryBackoffMs": 100,
+        "pageKbMean": 1,
+        "stopSec": 5
+      }
+    },
+    {
+      "id": "site",
+      "classId": "website",
+      "label": "Synthetic origin",
+      "x": 240,
+      "y": 480,
+      "params": {
+        "serviceMs": 10,
+        "serviceDist": "constant",
+        "rateLimitPerSec": 4,
+        "rateBurst": 2
+      }
+    },
+    {
+      "id": "chunk",
+      "classId": "chunker",
+      "label": "Document chunks",
+      "x": 480,
+      "y": 480,
+      "params": {
+        "chunkTokens": 200,
+        "overlapTokens": 20,
+        "maxChunks": 8,
+        "serviceMs": 2,
+        "perKbMs": 0.1,
+        "callTimeoutMs": 1000
+      }
+    },
+    {
+      "id": "schedule",
+      "classId": "cron-scheduler",
+      "label": "Scheduled index refresh",
+      "x": 720,
+      "y": 480,
+      "params": {
+        "everySec": 1,
+        "stopSec": 4,
+        "payload": "embedding",
+        "jobsPerFire": 1,
+        "timeoutMs": 1000,
+        "retries": 1,
+        "retryBackoffMs": 100
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "ask",
+      "from": {
+        "nodeId": "questions",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "rag",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "rag-embed",
+      "from": {
+        "nodeId": "rag",
+        "portId": "embed"
+      },
+      "to": {
+        "nodeId": "embed",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "rag-search",
+      "from": {
+        "nodeId": "rag",
+        "portId": "search"
+      },
+      "to": {
+        "nodeId": "index",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "rag-rank",
+      "from": {
+        "nodeId": "rag",
+        "portId": "rerank"
+      },
+      "to": {
+        "nodeId": "rank",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "rag-generate",
+      "from": {
+        "nodeId": "rag",
+        "portId": "generate"
+      },
+      "to": {
+        "nodeId": "shape",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "shape-generate",
+      "from": {
+        "nodeId": "shape",
+        "portId": "generate"
+      },
+      "to": {
+        "nodeId": "agent",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "agent-tools",
+      "from": {
+        "nodeId": "agent",
+        "portId": "tools"
+      },
+      "to": {
+        "nodeId": "api",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "fetch",
+      "from": {
+        "nodeId": "crawl",
+        "portId": "fetch"
+      },
+      "to": {
+        "nodeId": "site",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "fetched-docs",
+      "from": {
+        "nodeId": "crawl",
+        "portId": "documents"
+      },
+      "to": {
+        "nodeId": "chunk",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "chunk-embed",
+      "from": {
+        "nodeId": "chunk",
+        "portId": "chunks"
+      },
+      "to": {
+        "nodeId": "embed",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000,
+        "op": "write"
+      }
+    },
+    {
+      "id": "chunk-index",
+      "from": {
+        "nodeId": "chunk",
+        "portId": "chunks"
+      },
+      "to": {
+        "nodeId": "index",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000,
+        "op": "write"
+      }
+    },
+    {
+      "id": "scheduled-index",
+      "from": {
+        "nodeId": "schedule",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "index",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "jitterMs": 0,
+        "bandwidthMbps": 1000,
+        "op": "write"
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "assumptions",
+      "text": "Synthetic timing, sampled deduplication and validity flags. Tool retries: 2; output repairs: 2; RAG retries: 0. Index writes publish after 400 ms.",
+      "x": 0,
+      "y": 680
+    }
+  ],
+  "faults": [
+    {
+      "id": "tool-outage",
+      "atSec": 1,
+      "untilSec": 1.6,
+      "target": {
+        "kind": "node",
+        "id": "api"
+      },
+      "type": "crash",
+      "params": {}
+    },
+    {
+      "id": "index-outage",
+      "atSec": 2,
+      "untilSec": 2.5,
+      "target": {
+        "kind": "node",
+        "id": "index"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "schema": "simulatte.systemDiagram.v1",
+  "id": "streaming-burst",
+  "name": "Streaming burst with a slow subscriber",
+  "description": "Finite synthetic video chunks: GPU batching, bounded acknowledged fan-out, coalescing CDN cache and a slow consumer. Backpressure is held acknowledgement slots and bounded waiting; rejects stay visible. No codec or player model.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 8
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "uploads",
+      "classId": "burst-producer",
+      "label": "Uploads",
+      "x": 0,
+      "y": 150,
+      "params": {
+        "pattern": "burst",
+        "burstAtSec": 0,
+        "burstCount": 24,
+        "burstSpacingMs": 10,
+        "payload": "blob",
+        "requestKb": 32,
+        "readFraction": 1,
+        "keySpace": 1,
+        "retries": 0,
+        "timeoutMs": 7000,
+        "deadlineMs": 2500
+      }
+    },
+    {
+      "id": "transcode",
+      "classId": "gpu-worker",
+      "label": "Transcode",
+      "x": 240,
+      "y": 150,
+      "params": {
+        "maxBatch": 4,
+        "batchWindowMs": 20,
+        "batchBaseMs": 30,
+        "perItemMs": 5,
+        "queueCapacity": 24,
+        "callTimeoutMs": 6000,
+        "retries": 0
+      }
+    },
+    {
+      "id": "fanout",
+      "classId": "stream-fanout",
+      "label": "Fanout",
+      "x": 480,
+      "y": 150,
+      "params": {}
+    },
+    {
+      "id": "cdn",
+      "classId": "cdn-edge",
+      "label": "Cdn",
+      "x": 720,
+      "y": 0,
+      "params": {
+        "capacityKeys": 2,
+        "ttlSec": 5,
+        "coalesceMisses": true,
+        "failOpen": false
+      }
+    },
+    {
+      "id": "origin",
+      "classId": "object-store",
+      "label": "Origin",
+      "x": 960,
+      "y": 0,
+      "params": {
+        "baseMs": 20,
+        "serviceDist": "constant",
+        "throughputMBps": 10
+      }
+    },
+    {
+      "id": "subscriber",
+      "classId": "stream-consumer",
+      "label": "Subscriber",
+      "x": 720,
+      "y": 300,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "upload",
+      "from": {
+        "nodeId": "uploads",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "transcode",
+        "portId": "in"
+      },
+      "params": {
+        "bandwidthMbps": 10
+      }
+    },
+    {
+      "id": "publish",
+      "from": {
+        "nodeId": "transcode",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "fanout",
+        "portId": "in"
+      },
+      "params": {}
+    },
+    {
+      "id": "cache-fetch",
+      "from": {
+        "nodeId": "fanout",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "cdn",
+        "portId": "in"
+      },
+      "params": {}
+    },
+    {
+      "id": "deliver",
+      "from": {
+        "nodeId": "fanout",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "subscriber",
+        "portId": "in"
+      },
+      "params": {
+        "bandwidthMbps": 2,
+        "order": 1
+      }
+    },
+    {
+      "id": "origin-fetch",
+      "from": {
+        "nodeId": "cdn",
+        "portId": "origin"
+      },
+      "to": {
+        "nodeId": "origin",
+        "portId": "in"
+      },
+      "params": {}
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

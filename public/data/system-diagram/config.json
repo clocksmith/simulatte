@@ -74,6 +74,36 @@
       "id": "crawler-pipeline",
       "label": "Crawler to structured data",
       "path": "/data/system-diagram/examples/crawler-pipeline.json"
+    },
+    {
+      "id": "streaming-burst",
+      "label": "Streaming burst with a slow subscriber",
+      "path": "/data/system-diagram/examples/streaming-burst.json"
+    },
+    {
+      "id": "replica-recovery",
+      "label": "Replica lag, partition and leader recovery",
+      "path": "/data/system-diagram/examples/replica-recovery.json"
+    },
+    {
+      "id": "agent-recovery",
+      "label": "Agent tools, RAG and collection recovery",
+      "path": "/data/system-diagram/examples/agent-recovery.json"
+    },
+    {
+      "id": "healthcare-ingestion",
+      "label": "Synthetic ingestion, identity and approval",
+      "path": "/data/system-diagram/examples/healthcare-ingestion.json"
+    },
+    {
+      "id": "finance-reconciliation",
+      "label": "Synthetic paired-record reconciliation",
+      "path": "/data/system-diagram/examples/finance-reconciliation.json"
+    },
+    {
+      "id": "lakehouse-late-data",
+      "label": "Event-time windows, schema evolution and spill",
+      "path": "/data/system-diagram/examples/lakehouse-late-data.json"
     }
   ],
   "claimBoundary": "Synthetic discrete-event model of the drawn architecture. Service times, latencies, failure rates and token costs are user assumptions, not measurements of real systems, providers or hardware."

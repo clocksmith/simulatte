@@ -7,7 +7,9 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 const output=root+'artifacts/system-diagram-editor';
 await fs.mkdir(output,{recursive:true});
 const report={source:await sourceReceipt(root),boundary:'Local isolated Chrome desktop and touch-emulated mobile interaction evidence for the canonical v1 diagram, named-port library and coordinator runner. Synthetic model only; no deployment, external workloads, physical hardware or human acceptance proof.',cases:[]};
-for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
+const viewports=[{width:1440,height:1000},{width:390,height:844}],requestedWidth=process.env.SIMULATTE_AUDIT_WIDTH?Number(process.env.SIMULATTE_AUDIT_WIDTH):null;
+if(requestedWidth!==null&&!viewports.some(v=>v.width===requestedWidth))throw Error('Unsupported audit viewport');
+for(const viewport of viewports.filter(v=>requestedWidth===null||v.width===requestedWidth)){
  const browser=await openBrowserAudit({publicRoot:root+'public',viewport});
  const client=browser.client,errors=[],networkFailures=[],blockedExternal=[];
  const row={viewport,checks:{},errors,networkFailures,blockedExternal,screenshots:[]};report.cases.push(row);
@@ -21,7 +23,9 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
  const snapshot=()=>evaluate('SimulatteSystemDiagramEditor.snapshot()');
  async function point(selector,{ratioX=.5,ratioY=.5,scroll=true}={}){return evaluate(`(async()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Missing: '+${JSON.stringify(selector)});${scroll?"e.scrollIntoView({block:'center',inline:'center'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));":''}const b=e.getBoundingClientRect();return{x:b.x+b.width*${ratioX},y:b.y+b.height*${ratioY}};})()`);}
  async function key(key,code,windowsVirtualKeyCode){await client.send('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode});await client.send('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode});await delay(60);}
- async function tapAt(p,modifiers=0){assert.ok(p.x>=0&&p.y>=0&&p.x<viewport.width&&p.y<viewport.height,`Point outside viewport ${JSON.stringify(p)}`);if(viewport.width<700&&!modifiers)await client.send('Input.synthesizeTapGesture',{...p,duration:30,gestureSourceType:'touch'});else{await client.send('Input.dispatchMouseEvent',{type:'mousePressed',...p,button:'left',clickCount:1,modifiers});await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',...p,button:'left',clickCount:1,modifiers});}await delay(60);}
+ async function inputPoint(p){const v=await evaluate('({x:visualViewport.offsetLeft,y:visualViewport.offsetTop})');return{x:p.x-v.x,y:p.y-v.y};}
+ // DOM rectangles use layout coordinates; CDP injects in the visual viewport.
+ async function tapAt(p,modifiers=0){p=await inputPoint(p);assert.ok(p.x>=0&&p.y>=0&&p.x<viewport.width&&p.y<viewport.height,`Point outside viewport ${JSON.stringify(p)}`);if(viewport.width<700&&!modifiers)await client.send('Input.synthesizeTapGesture',{...p,duration:30,gestureSourceType:'touch'});else{await client.send('Input.dispatchMouseEvent',{type:'mousePressed',...p,button:'left',clickCount:1,modifiers});await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',...p,button:'left',clickCount:1,modifiers});}await delay(60);}
  async function click(selector,options){await tapAt(await point(selector,options));}
  async function button(label){
   const before=await evaluate('Number(document.body.dataset.operationSequence||0)');
@@ -30,6 +34,7 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
  }
  async function set(id,value,{operation=false}={}){const before=await evaluate('Number(document.body.dataset.operationSequence||0)');await evaluate(`(()=>{const e=document.getElementById(${JSON.stringify(id)});if(!e)throw Error('Missing field '+${JSON.stringify(id)});e.value=${JSON.stringify(String(value))};e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));})()`);if(operation)await until(`Number(document.body.dataset.operationSequence||0)>${before}`);await delay(30);}
  async function drag(a,b,{touch=viewport.width<700}={}){
+  a=await inputPoint(a);b=await inputPoint(b);
   row.lastAction={drag:{from:a,to:b,touch}};
   if(touch){await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...a,id:1}]});for(let i=1;i<=10;i++){await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:a.x+(b.x-a.x)*i/10,y:a.y+(b.y-a.y)*i/10,id:1}]});await delay(25);}await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
   else{await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',...a});await client.send('Input.dispatchMouseEvent',{type:'mousePressed',...a,button:'left',clickCount:1});for(let i=1;i<=10;i++){await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:a.x+(b.x-a.x)*i/10,y:a.y+(b.y-a.y)*i/10,button:'left',buttons:1});await delay(25);}await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',...b,button:'left',clickCount:1});}await delay(120);
@@ -99,7 +104,7 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
   const beforeZoom=await evaluate('SimulatteSystemDiagramEditor.viewport()');await button('+');const afterZoom=await evaluate('SimulatteSystemDiagramEditor.viewport()');assert.ok(afterZoom.zoom>beforeZoom.zoom);row.checks.zoom=true;
   const blank=await point('#diagram',{ratioX:.03,ratioY:.03}),panBefore=await evaluate('SimulatteSystemDiagramEditor.viewport()');await drag(blank,{x:blank.x+26,y:blank.y+24});const panAfter=await evaluate('SimulatteSystemDiagramEditor.viewport()');assert.ok(panAfter.x!==panBefore.x||panAfter.y!==panBefore.y);row.checks.pan=true;
   await fit();await evaluate('scrollTo(0,0)');await shot('final');assert.equal(await evaluate('document.documentElement.scrollWidth>innerWidth'),false);assert.deepEqual(errors,[]);assert.deepEqual(networkFailures,[]);row.pass=true;console.log(`${viewport.width}: ${Object.keys(row.checks).length} interaction checks passed`);
- }catch(error){row.pass=false;row.error=error.stack;row.status=await evaluate(`({status:document.getElementById('status')?.textContent,message:document.getElementById('editor-status')?.textContent,selection:globalThis.SimulatteSystemDiagramEditor?.selection(),view:globalThis.SimulatteSystemDiagramEditor?.viewport(),document:globalThis.SimulatteSystemDiagramEditor?.document()})`);await shot('failure');throw error;}
+ }catch(error){row.pass=false;row.error=error.stack;row.status=await evaluate(`({status:document.getElementById('status')?.textContent,message:document.getElementById('editor-status')?.textContent,inputReceipt:document.getElementById('diagram')?.dataset.inputReceipt,selection:globalThis.SimulatteSystemDiagramEditor?.selection(),view:globalThis.SimulatteSystemDiagramEditor?.viewport(),document:globalThis.SimulatteSystemDiagramEditor?.document()})`);await shot('failure');throw error;}
  finally{await fs.writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n');await browser.close();}
 }
 console.log(JSON.stringify(report,null,2));

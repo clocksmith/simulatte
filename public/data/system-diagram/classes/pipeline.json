@@ -1,0 +1,930 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "pipeline",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "eventSource",
+      "label": "Synthetic event trace",
+      "description": "Emits finite typed records with event identity, entity sequence, schema version, event time, lineage and authored invalid/duplicate/late patterns. Amounts are scalar test data, not financial or clinical actions.",
+      "paramSets": [],
+      "params": {
+        "count": {
+          "type": "integer",
+          "label": "Finite synthetic event count",
+          "min": 1,
+          "max": 5000,
+          "default": 24,
+          "group": "basic"
+        },
+        "intervalMs": {
+          "type": "number",
+          "label": "Event arrival interval",
+          "min": 1,
+          "max": 600000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "startSec": {
+          "type": "number",
+          "label": "Start at",
+          "min": 0,
+          "max": 3600,
+          "default": 0,
+          "group": "basic",
+          "unit": "s"
+        },
+        "entities": {
+          "type": "integer",
+          "label": "Entity keys",
+          "min": 1,
+          "max": 1000,
+          "default": 1,
+          "group": "basic"
+        },
+        "payloadKb": {
+          "type": "number",
+          "label": "Payload size",
+          "min": 0.001,
+          "max": 1048576,
+          "default": 1,
+          "group": "basic",
+          "unit": "KB"
+        },
+        "duplicateEvery": {
+          "type": "integer",
+          "label": "Repeat previous event every N (0 = off)",
+          "min": 0,
+          "max": 5000,
+          "default": 0,
+          "group": "basic"
+        },
+        "invalidEvery": {
+          "type": "integer",
+          "label": "Invalid flag every N (0 = off)",
+          "min": 0,
+          "max": 5000,
+          "default": 0,
+          "group": "basic"
+        },
+        "outOfOrderEvery": {
+          "type": "integer",
+          "label": "Older sequence every N (0 = off)",
+          "min": 0,
+          "max": 5000,
+          "default": 0,
+          "group": "basic"
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "label": "Initial schema version",
+          "min": 1,
+          "max": 1000,
+          "default": 1,
+          "group": "basic"
+        },
+        "evolveAfter": {
+          "type": "integer",
+          "label": "Change schema after N (0 = off)",
+          "min": 0,
+          "max": 5000,
+          "default": 0,
+          "group": "basic"
+        },
+        "newSchemaVersion": {
+          "type": "integer",
+          "label": "Evolved schema version",
+          "min": 1,
+          "max": 1000,
+          "default": 2,
+          "group": "basic"
+        },
+        "lateEvery": {
+          "type": "integer",
+          "label": "Late event every N (0 = off)",
+          "min": 0,
+          "max": 5000,
+          "default": 0,
+          "group": "basic"
+        },
+        "lateByMs": {
+          "type": "number",
+          "label": "Late-event timestamp displacement",
+          "min": 0,
+          "max": 3600000,
+          "default": 5000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "approved": {
+          "type": "boolean",
+          "label": "Input approval flag",
+          "default": false,
+          "group": "basic"
+        },
+        "paired": {
+          "type": "boolean",
+          "label": "Emit left/right record pairs",
+          "default": false,
+          "group": "basic"
+        },
+        "amount": {
+          "type": "number",
+          "label": "Synthetic scalar amount",
+          "min": -1000000000.0,
+          "max": 1000000000.0,
+          "default": 100,
+          "group": "basic",
+          "unit": "scalar"
+        },
+        "mismatchEvery": {
+          "type": "integer",
+          "label": "Mismatched pair every N (0 = off)",
+          "min": 0,
+          "max": 5000,
+          "default": 0,
+          "group": "basic"
+        },
+        "mismatchDelta": {
+          "type": "number",
+          "label": "Right-side mismatch scalar",
+          "min": -1000000000.0,
+          "max": 1000000000.0,
+          "default": 1,
+          "group": "basic",
+          "unit": "scalar"
+        },
+        "maxOutstanding": {
+          "type": "integer",
+          "label": "Maximum open logical requests",
+          "min": 1,
+          "max": 1000,
+          "default": 32,
+          "group": "basic"
+        },
+        "deadlineMs": {
+          "type": "number",
+          "label": "Event deadline (0 = none)",
+          "min": 0,
+          "max": 3600000,
+          "default": 10000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Downstream timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 5000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Downstream retry budget",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 60000,
+          "default": 100,
+          "group": "advanced",
+          "unit": "ms"
+        }
+      },
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "label": "Events",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash"
+      ]
+    },
+    {
+      "id": "eventValidator",
+      "label": "Event schema validation",
+      "description": "Validates the bounded fields.event envelope, declared validity and accepted schema range; invalid records route to quarantine and fail their ingestion request.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Downstream timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 5000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Downstream retry budget",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 60000,
+          "default": 100,
+          "group": "advanced",
+          "unit": "ms"
+        },
+        "minSchemaVersion": {
+          "type": "integer",
+          "label": "Minimum schema version",
+          "min": 1,
+          "max": 1000,
+          "default": 1,
+          "group": "basic"
+        },
+        "maxSchemaVersion": {
+          "type": "integer",
+          "label": "Maximum schema version",
+          "min": 1,
+          "max": 1000,
+          "default": 1,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Events",
+          "accepts": [
+            "event"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "accepted",
+          "direction": "out",
+          "label": "Accepted events",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "quarantine",
+          "direction": "out",
+          "label": "Quarantine",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "approvalGate",
+      "label": "Synthetic approval gate",
+      "description": "Releases the worker while retaining a pending job for the configured approval delay, then evaluates an authored flag or deterministic scalar policy. This is not a human decision or clinical rule.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Downstream timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 5000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Downstream retry budget",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 60000,
+          "default": 100,
+          "group": "advanced",
+          "unit": "ms"
+        },
+        "approvalMs": {
+          "type": "number",
+          "label": "Approval delay",
+          "min": 0,
+          "max": 3600000,
+          "default": 250,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "policy": {
+          "type": "enum",
+          "label": "Decision policy",
+          "default": "synthetic",
+          "options": [
+            "synthetic",
+            "flag"
+          ],
+          "group": "basic"
+        },
+        "denyEvery": {
+          "type": "integer",
+          "label": "Deny each Nth sequence (0 = none)",
+          "min": 0,
+          "max": 5000,
+          "default": 0,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Events",
+          "accepts": [
+            "event"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "accepted",
+          "direction": "out",
+          "label": "Accepted events",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "quarantine",
+          "direction": "out",
+          "label": "Quarantine",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "eventLedger",
+      "label": "Idempotent ordered event ledger",
+      "description": "Deduplicates event identities and effects, enforces per-entity sequences or reconciles explicit left/right scalar records. Matching pairs commit once; retries re-forward accepted records with stable idempotency keys so an earlier downstream failure is not silently acknowledged. Mismatches are quarantined. No transaction isolation or financial accounting proof.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Downstream timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 5000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Downstream retry budget",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 60000,
+          "default": 100,
+          "group": "advanced",
+          "unit": "ms"
+        },
+        "mode": {
+          "type": "enum",
+          "label": "Ledger behavior",
+          "default": "idempotent",
+          "options": [
+            "idempotent",
+            "ordered",
+            "reconcile"
+          ],
+          "group": "basic"
+        },
+        "ordering": {
+          "type": "enum",
+          "label": "Sequence policy",
+          "default": "monotonic",
+          "options": [
+            "monotonic",
+            "strict"
+          ],
+          "group": "basic"
+        },
+        "tolerance": {
+          "type": "number",
+          "label": "Scalar reconciliation tolerance",
+          "min": 0,
+          "max": 1000000000.0,
+          "default": 0,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Identity state capacity",
+          "min": 1,
+          "max": 100000,
+          "default": 10000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Events",
+          "accepts": [
+            "event"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "accepted",
+          "direction": "out",
+          "label": "Accepted events",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "quarantine",
+          "direction": "out",
+          "label": "Quarantine",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "pending",
+          "direction": "out",
+          "label": "Awaiting counterpart",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "eventWindow",
+      "label": "Event-time window",
+      "description": "Maintains bounded tumbling sums/counts by entity, advances a max-seen-time watermark, rejects events beyond allowed lateness and exposes late revisions. Schema version support is authored; no automatic semantic migration.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Downstream timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 5000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Downstream retry budget",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 60000,
+          "default": 100,
+          "group": "advanced",
+          "unit": "ms"
+        },
+        "windowSec": {
+          "type": "number",
+          "label": "Tumbling window width",
+          "min": 0.001,
+          "max": 3600,
+          "default": 1,
+          "group": "basic",
+          "unit": "s"
+        },
+        "watermarkLagSec": {
+          "type": "number",
+          "label": "Watermark lag",
+          "min": 0,
+          "max": 3600,
+          "default": 0.2,
+          "group": "basic",
+          "unit": "s"
+        },
+        "allowedLateSec": {
+          "type": "number",
+          "label": "Allowed lateness",
+          "min": 0,
+          "max": 3600,
+          "default": 0.5,
+          "group": "basic",
+          "unit": "s"
+        },
+        "maxSchemaVersion": {
+          "type": "integer",
+          "label": "Supported schema version",
+          "min": 1,
+          "max": 1000,
+          "default": 2,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Deduplication identity capacity",
+          "min": 1,
+          "max": 100000,
+          "default": 10000,
+          "group": "basic"
+        },
+        "maxWindows": {
+          "type": "integer",
+          "label": "Retained window capacity",
+          "min": 1,
+          "max": 100000,
+          "default": 1000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Events",
+          "accepts": [
+            "event"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "accepted",
+          "direction": "out",
+          "label": "Accepted events",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "quarantine",
+          "direction": "out",
+          "label": "Quarantine",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "shuffleSpill",
+      "label": "Partition shuffle and spill",
+      "description": "Hashes entity keys to FIFO partition transfers; a bounded resident payload buffer spills excess synthetic bytes with authored write/read delay. Engine memory resize accounts resident payload; first arrival still needs admission memory. Logical checkpoint offsets are not durable filesystem checkpoints.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Downstream timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 5000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Downstream retry budget",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 60000,
+          "default": 100,
+          "group": "advanced",
+          "unit": "ms"
+        },
+        "bufferMiB": {
+          "type": "number",
+          "label": "Resident payload buffer budget",
+          "min": 0,
+          "max": 1048576,
+          "default": 1,
+          "group": "basic",
+          "unit": "MiB"
+        },
+        "partitions": {
+          "type": "integer",
+          "label": "Shuffle partitions",
+          "min": 1,
+          "max": 128,
+          "default": 4,
+          "group": "basic"
+        },
+        "shuffleMiBps": {
+          "type": "number",
+          "label": "Partition transfer rate",
+          "min": 0.001,
+          "max": 1000000,
+          "default": 100,
+          "group": "basic",
+          "unit": "MiB/s"
+        },
+        "spillMiBps": {
+          "type": "number",
+          "label": "Spill write/read rate",
+          "min": 0.001,
+          "max": 1000000,
+          "default": 50,
+          "group": "basic",
+          "unit": "MiB/s"
+        },
+        "checkpointEvery": {
+          "type": "integer",
+          "label": "Snapshot after N completed items (0 = off)",
+          "min": 0,
+          "max": 100000,
+          "default": 5,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Events",
+          "accepts": [
+            "event"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "accepted",
+          "direction": "out",
+          "label": "Accepted events",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "quarantine",
+          "direction": "out",
+          "label": "Quarantine",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "eventQuarantine",
+      "label": "Retained event quarantine",
+      "description": "Retains bounded synthetic records and reasons for causal inspection, acknowledges quarantine storage and refuses overflow. Upstream validation failures remain failures; no automatic approval, redrive or production durability claim.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Downstream timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 5000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Downstream retry budget",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 60000,
+          "default": 100,
+          "group": "advanced",
+          "unit": "ms"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Quarantine record capacity",
+          "min": 1,
+          "max": 100000,
+          "default": 10000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Quarantined events",
+          "accepts": [
+            "event"
+          ],
+          "multiple": true,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "event-source",
+      "kernel": "eventSource",
+      "label": "Synthetic event trace",
+      "category": "clients",
+      "glyph": "stream",
+      "description": "Emits finite typed records with event identity, entity sequence, schema version, event time, lineage and authored invalid/duplicate/late patterns. Amounts are scalar test data, not financial or clinical actions.",
+      "defaults": {}
+    },
+    {
+      "id": "schema-validator",
+      "kernel": "eventValidator",
+      "label": "Schema validator",
+      "category": "data",
+      "glyph": "braces",
+      "description": "Validates the bounded fields.event envelope, declared validity and accepted schema range; invalid records route to quarantine and fail their ingestion request.",
+      "defaults": {
+        "serviceMs": 2,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "approval-gate",
+      "kernel": "approvalGate",
+      "label": "Approval gate",
+      "category": "data",
+      "glyph": "lock",
+      "description": "Releases the worker while retaining a pending job for the configured approval delay, then evaluates an authored flag or deterministic scalar policy. This is not a human decision or clinical rule.",
+      "defaults": {
+        "serviceMs": 1,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "event-ledger",
+      "kernel": "eventLedger",
+      "label": "Event ledger",
+      "category": "storage",
+      "glyph": "database",
+      "description": "Deduplicates event identities and effects, enforces per-entity sequences or reconciles explicit left/right scalar records. Matching pairs commit once; retries re-forward accepted records with stable idempotency keys so an earlier downstream failure is not silently acknowledged. Mismatches are quarantined. No transaction isolation or financial accounting proof.",
+      "defaults": {
+        "serviceMs": 2,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "event-window",
+      "kernel": "eventWindow",
+      "label": "Event-time window",
+      "category": "data",
+      "glyph": "clock",
+      "description": "Maintains bounded tumbling sums/counts by entity, advances a max-seen-time watermark, rejects events beyond allowed lateness and exposes late revisions. Schema version support is authored; no automatic semantic migration.",
+      "defaults": {
+        "serviceMs": 2,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "shuffle-spill",
+      "kernel": "shuffleSpill",
+      "label": "Shuffle and spill",
+      "category": "compute",
+      "glyph": "fanout",
+      "description": "Hashes entity keys to FIFO partition transfers; a bounded resident payload buffer spills excess synthetic bytes with authored write/read delay. Engine memory resize accounts resident payload; first arrival still needs admission memory. Logical checkpoint offsets are not durable filesystem checkpoints.",
+      "defaults": {
+        "serviceMs": 2,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "event-quarantine",
+      "kernel": "eventQuarantine",
+      "label": "Event quarantine",
+      "category": "recovery",
+      "glyph": "dlq",
+      "description": "Retains bounded synthetic records and reasons for causal inspection, acknowledges quarantine storage and refuses overflow. Upstream validation failures remain failures; no automatic approval, redrive or production durability claim.",
+      "defaults": {
+        "serviceMs": 1,
+        "serviceDist": "constant"
+      }
+    }
+  ]
+}

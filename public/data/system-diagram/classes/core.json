@@ -18,7 +18,7 @@
       "id": "service",
       "label": "Service",
       "description": "Queues requests, serves them with bounded workers, then calls downstream edges sequentially or in parallel before replying.",
-      "paramSets": ["station", "calls"],
+      "paramSets": ["station", "calls", "memory"],
       "params": {
         "outputPayload": { "type": "enum", "label": "Forwarded payload", "options": ["inherit", "http", "task", "event", "text", "json", "document", "embedding", "query", "rows", "blob"], "default": "inherit", "group": "advanced" }
       },
@@ -32,7 +32,7 @@
       "id": "endpoint",
       "label": "Terminal endpoint",
       "description": "Serves requests with bounded workers and replies. Optional token-bucket rate limiting answers excess requests with rate-limited errors.",
-      "paramSets": ["station"],
+      "paramSets": ["station", "memory"],
       "params": {
         "rateLimitPerSec": { "type": "number", "label": "Rate limit (0 = off)", "unit": "req/s", "min": 0, "max": 1000000, "default": 0, "group": "basic" },
         "rateBurst": { "type": "integer", "label": "Rate burst", "unit": "requests", "min": 1, "max": 1000000, "default": 10, "group": "advanced" }

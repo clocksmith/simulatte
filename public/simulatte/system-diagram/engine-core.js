@@ -1,8 +1,9 @@
 (function (root, factory) {
-  const api = factory(typeof module === 'object' && module.exports ? require('./engine-observability.js') : root.SimulatteSystemDiagramObservability);
+  const node = typeof module === 'object' && module.exports;
+  const api = factory(node ? require('./engine-observability.js') : root.SimulatteSystemDiagramObservability, node ? require('./engine-network.js') : root.SimulatteSystemDiagramNetwork);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SimulatteSystemDiagramEngineCore = api;
-})(globalThis, function (observability) {
+})(globalThis, function (observability, network) {
   'use strict';
   // Event heap, RNG streams, network, stations, calls, faults, metrics and the kernel ctx.
   // State is plain JSON: records reference each other by id, never by object identity,
@@ -84,7 +85,7 @@
     return (h >>> 0) || ZERO_SEED;
   }
   function rand(R, id) {
-    let x = R.s.rng[id];
+    let x = R.s.rng[id]; if (x === undefined) x = seedFor(R.c.seed, id);
     x ^= x << 13; x ^= x >>> 17; x ^= x << 5; x >>>= 0;
     R.s.rng[id] = x;
     return x / UINT32;
@@ -143,6 +144,7 @@
   function runtime(compiled, state, deps, readonly = false) {
     const h = deps.config.engine.histogram;
     return {
+      resourceOps: { schedule: (t, ev) => schedule(runtime(compiled, state, deps), t, ev), params: id => ({ ...compiled.nodes.find(n => n.id === id).params, ...state.ov[id] }), down: id => nodeFault(runtime(compiled, state, deps), id).down },
       c: compiled, s: state, deps, x: staticIndex(compiled), eng: deps.config.engine, readonly,
       hist: { min: h.minMs, bins: h.bins, lr: Math.log(h.maxMs / h.minMs) / h.bins },
       errorCodes: new Set(deps.library.errorCodes),
@@ -250,7 +252,7 @@
     const nodes = affectedNodes(R, fault.target);
     const prior = nodes.map(id => nodeFault(R, id));
     R.s.faults.push(fault); observability.fault(R, fault, true);
-    invalidateFaults(R);
+    invalidateFaults(R); if (fault.target.kind === 'edge') network.update(R, fault.target.id, networkOps(R));
     log(R, 'fault', `${fault.type} on ${fault.target.kind} ${fault.target.id}`, refFor(fault.target));
     nodes.forEach((id, i) => {
       const now = nodeFault(R, id);
@@ -265,7 +267,7 @@
     const fault = R.s.faults[index], nodes = affectedNodes(R, fault.target);
     const prior = nodes.map(id => nodeFault(R, id));
     R.s.faults.splice(index, 1); observability.fault(R, fault, false);
-    invalidateFaults(R);
+    invalidateFaults(R); if (fault.target.kind === 'edge') network.update(R, fault.target.id, networkOps(R));
     log(R, 'repair', `${fault.type} on ${fault.target.kind} ${fault.target.id} cleared (${reason})`, refFor(fault.target));
     nodes.forEach((id, i) => {
       const now = nodeFault(R, id);
@@ -293,7 +295,7 @@
     const st = s.st[id];
     if (st) { touch(R, id); st.busy = []; st.q = []; st.qh = 0; }
     for (const callId of Object.keys(s.calls)) if (s.calls[callId].nodeId === id) delete s.calls[callId];
-    for (const trace of Object.keys(s.open)) if (s.open[trace].nodeId === id) endOpen(R, trace, false, 'down');
+    for (const trace of Object.keys(s.open)) if (s.open[trace].nodeId === id) endOpen(R, trace, false, 'down'); observability.crashMemory(R, id);
   }
   function unpark(R, id) {
     const keep = [], due = [];
@@ -444,21 +446,8 @@
     return code;
   }
   // ---- Network: per-direction FIFO serialization, latency plus jitter, then loss ----
-  function transmit(R, edgeId, dir, ev, kb) {
-    const s = R.s, es = s.edges[edgeId], ep = edgeParams(R, edgeId), ef = edgeFault(R, edgeId);
-    if (ef.partition) { es.dropped++; return false; }
-    const start = Math.max(s.t, es[dir]);
-    const end = start + (kb > 0 ? kb * KBIT_PER_KB / (ep.bandwidthMbps * KBIT_PER_MBIT) : 0);
-    es[dir] = end;
-    let delayMs = ep.latencyMs + ef.addLatencyMs;
-    if (ep.jitterMs > 0) delayMs += rand(R, edgeId) * ep.jitterMs;
-    const loss = 1 - (1 - ep.lossRate) * (1 - ef.lossRate);
-    if (loss > 0 && rand(R, edgeId) < loss) { es.lost++; return false; }
-    ev.e = edgeId; ev.t0 = s.t;
-    s.live.transit++;
-    schedule(R, end + delayMs / MS_PER_SEC, ev);
-    return true;
-  }
+  function networkOps(R) { return { schedule: (t, ev) => schedule(R, t, ev), params: id => edgeParams(R, id), fault: id => edgeFault(R, id), rand: id => rand(R, id), error: es => bumpWindow(es.win, R.s.t, 1, 1) }; }
+  function transmit(R, edgeId, dir, ev, kb) { return network.transmit(R, edgeId, dir, ev, kb, networkOps(R)); }
   function sendRequest(R, edgeId, msg, callId, attempt) {
     const s = R.s, es = s.edges[edgeId];
     es.sent++; bumpWindow(es.win, s.t, 0, 1); observability.attempt(R, callId ? s.calls[callId] : null, msg, edgeId, attempt, callId === null);
@@ -559,7 +548,7 @@
     observability.attemptEnded(R, call.id, call.attempt, false, err, msg || call.msg);
     if (call.attempt <= call.retries && !NON_RETRIABLE.includes(err)) {
       let delayMs = call.backoffMs * call.multiplier ** (call.attempt - 1);
-      if (call.jitter && delayMs > 0) delayMs = rand(R, call.nodeId) * delayMs;
+      if (call.jitter && delayMs > 0) delayMs = rand(R, `${call.nodeId}:retry`) * delayMs;
       call.waiting = true;
       staleTimer(R);
       schedule(R, R.s.t + delayMs / MS_PER_SEC, { k: 'rty', c: call.id });
@@ -624,7 +613,7 @@
   // Workers share speed when live capacity drops below the jobs already holding workers.
   function serviceRate(R, id) {
     const st = R.s.st[id];
-    return (st.busy.length > st.cap ? st.cap / st.busy.length : 1) / nodeFault(R, id).slowFactor;
+    return (st.busy.length > st.cap ? st.cap / st.busy.length : 1) / (nodeFault(R, id).slowFactor * observability.memoryFactor(R, id));
   }
   function startService(R, id, rec) {
     const s = R.s, st = s.st[id];
@@ -633,7 +622,7 @@
     rec.phase = 'service'; rec.gen++;
     const r = serviceRate(R, id);
     rec.svc = { w: rec.work, r, ts: s.t, g: rec.gen };
-    schedule(R, s.t + rec.work / r / MS_PER_SEC, { k: 'done', n: id, j: rec.id, g: rec.gen });
+    if (r > 0) schedule(R, s.t + rec.work / r / MS_PER_SEC, { k: 'done', n: id, j: rec.id, g: rec.gen });
   }
   function restation(R, id) {
     const s = R.s, st = s.st[id];
@@ -644,7 +633,7 @@
       if (!rec || !rec.svc || rec.svc.r === r) continue;
       rec.svc.w = Math.max(0, rec.svc.w - (s.t - rec.svc.ts) * MS_PER_SEC * rec.svc.r);
       rec.svc.ts = s.t; rec.svc.r = r; rec.gen++; rec.svc.g = rec.gen;
-      schedule(R, s.t + rec.svc.w / r / MS_PER_SEC, { k: 'done', n: id, j: rec.id, g: rec.gen });
+      if (r > 0) schedule(R, s.t + rec.svc.w / r / MS_PER_SEC, { k: 'done', n: id, j: rec.id, g: rec.gen });
     }
   }
   function fill(R, id) {
@@ -813,6 +802,10 @@
       edge(edgeId) { return edgeView(R, edgeId); },
       edgeUsable(edgeId) { return !edgeFault(R, edgeId).partition; },
       newJob(msg) { guard('newJob'); const rec = newJob(R, id, derive(R, msg, null), null); if (rec.memoryRejected) { endOpen(R, rec.msg.trace, false, 'rejected'); finishJob(R, rec, false, 'rejected'); } return jobView(rec); },
+      retain(key, msg, details) { guard('retain'); return observability.retain(R, id, key, msg, details); },
+      releaseRetained(key) { guard('releaseRetained'); return observability.releaseRetained(R, id, key); },
+      memoryFactor() { return observability.memoryFactor(R, id); },
+      resizeMemory(job, residentMiB) { guard('resizeMemory'); const rec = live(job, 'resizeMemory'); return rec ? observability.resizeMemory(R, rec, residentMiB) : false; },
       resourceAvailable() { return observability.available(R, id); },
       acquireResource(key) { guard('acquireResource'); return observability.acquire(R, id, String(key)); },
       releaseResource(key) { guard('releaseResource'); observability.releaseSlot(R, id, String(key)); schedule(R, R.s.t, { k: 'rsrc', n: id }); },
@@ -872,6 +865,8 @@
   function dispatch(R, ev) {
     const s = R.s;
     switch (ev.k) {
+      case 'net': network.process(R, ev, networkOps(R)); break;
+      case 'mem': { const p = nodeParams(R, ev.n); if (ev.action === 'oom') { const fault = { id: `oom-${++s.ids.f}`, type: 'crash', params: {}, target: { kind: 'node', id: ev.n }, origin: 'memory' }; injectFault(R, fault); if (p.memoryOomRecoveryMs > 0) schedule(R, s.t + p.memoryOomRecoveryMs / 1000, { k: 'mem', n: ev.n, action: 'recover', f: fault.id }); } else if (ev.action === 'recover') clearFault(R, ev.f, 'OOM recovery policy'); else observability.memoryEvent(R, ev); restation(R, ev.n); callHook(R, ev.n, 'onResources'); break; }
       case 'rsrc': { const group = observability.group(R, ev.n); for (const id of group?.nodeIds || []) if (!nodeFault(R, id).down) { if (s.st[id]) fill(R, id); callHook(R, id, 'onResources'); } break; }
       case 'arr': arrive(R, ev); break;
       case 'rep': replyArrive(R, ev); break;
@@ -915,13 +910,13 @@
       rng[edge.id] = seedFor(compiled.seed, edge.id);
       edges[edge.id] = { f: 0, b: 0, sent: 0, replies: 0, lost: 0, dropped: 0, errors: 0, win: newWindow(2) };
     }
-    return observability.initialize({
+    return network.initialize(observability.initialize({
       schema: STATE_SCHEMA, t: 0, seq: 0, stale: 0, ids: { m: 0, j: 0, c: 0, r: 0, f: 0 }, heap: [], rng, kernel: {}, ov: {}, st,
       jobs: {}, calls: {}, open: {}, faults: [], parked: [], nodes, edges, effects: {},
       g: { offered: 0, completed: 0, failed: 0, failedBy: {}, attempts: 0, retries: 0, effects: 0, duplicateEffects: 0, wastedWork: 0, cost: 0, deadlineMisses: 0, lat: newHist() },
       series: { b0: 0, offered: [0], completed: [0], failed: [0], p95: [null], lw: [] },
       log: [], logSeq: 0, throttle: {}, live: { jobs: 0, transit: 0 }, error: null,
-    });
+    }));
   }
   function createStation(R, id) {
     const cap = stationCapacity(R, id), qcap = stationQueueCapacity(R, id), spec = stationSpec(R, id);
@@ -932,6 +927,7 @@
   return Object.freeze({
     STATE_SCHEMA, CONTRACT, EngineError, RATE_WINDOW_SEC, LATENCY_WINDOW_SEC, MAX_EFFECT_KEYS, NON_RETRIABLE,
     createState, createStation, runtime, kernelOf, nodeParams, edgeParams, invalidateParams, nodeFault, edgeFault, faultTypesOn,
+    networkView: network.view, networkReconcile: network.reconcile, updateNetwork: (R, id) => network.update(R, id, networkOps(R)),
     injectFault, clearFault, repairTarget, invalidateFaults, resize, callHook, ctxOf, processUntil, schedule, log,
     windowSum, windowSpan, windowStart, percentile, histMerge, newHist, binValue, utilization, queueLength, seriesIndex, latencyBuckets, seriesSize, isRecord, fail,
   });

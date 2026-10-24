@@ -67,6 +67,13 @@ patterns, not proprietary implementation claims or completed packs. The
 executable coverage from unsupported semantics. This user-authorized correction
 does not reopen unrelated catalog expansion or replace existing priorities.
 
+Qualify the creator through editable end-to-end streaming, replica recovery,
+lost acknowledgement, resource contention, agent/RAG and technical event-workflow
+journeys. Repairs must compare actual seeded demand and scheduled fault timing,
+with causal request inspection and serialized continuation. Track concrete
+behavior and independent expectations in the [coverage matrix](docs/simulatte/system-diagram-coverage.md);
+node labels, preset counts and passing schema checks alone do not establish coverage.
+
 ## Next experience development
 
 Develop Interstellar Relay's delayed-message and return-message interaction, then Asteroid Defense's observation-versus-action experiment. Build Living Tissue first among the three new standalone experiences, followed by River Formation and Crystal Foundry. Each uses the same interaction milestone: active opening, selected-object actions, affected objects, a changed measurement, a named baseline, and reproducible inputs. Keep numerical validation separate from empirical calibration and unfamiliar-user qualification. Retain the existing featured experiences while qualifying additions. Remove superseded paths as consumers migrate; put behavior-changing policy in governed configuration, derive host capabilities from plugin contracts, and reuse bounded numerical and interaction components rather than duplicating controllers or adding a universal simulation engine.

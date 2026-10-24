@@ -1,7 +1,8 @@
 (async function(){
   'use strict';
   const ui=globalThis.SimulatteWorldUI, documents=globalThis.SimulatteSystemDiagramDocument, libraryApi=globalThis.SimulatteSystemDiagramLibrary;
-  const runners=globalThis.SimulatteSystemDiagramRunner,kernels=globalThis.SimulatteSystemDiagramKernels;
+  const runners=globalThis.SimulatteSystemDiagramRunner,kernels=globalThis.SimulatteSystemDiagramKernels,journeys=globalThis.SimulatteSystemDiagramJourneys;
+  if(!journeys)throw Error('System Diagram journey contracts are required');
   const $=id=>document.getElementById(id),clone=value=>structuredClone(value);
   const route=globalThis.SimulattePublicRoutes.forPath(location.pathname),routeState=globalThis.SimulatteRouter.parsePath(location.pathname,location.search);
   async function json(path){const r=await fetch(path);if(!r.ok)throw Error(`Required asset unavailable: ${path}`);return r.json();}
@@ -15,6 +16,7 @@
   const initial=await json(config.examples.find(e=>e.id===config.defaultExampleId).path);initial.seed=seed;
   const model=globalThis.SimulatteSystemDiagramEditorModel.create({diagram:initial,library,config});
   let runner=null,accepted=null,acceptedIdentity=null,running=false,busy=false,savedCheckpoint=null,loadedReplay=null,selectedRequest=null,multiSelect=false,scope='instance',operation=0;
+  let comparisonBaseline=null,comparisonControls=[],comparisonRecord=null;
   const requestButtons=new Map(),buttons={};let requestPage=0;const REQUESTS_PER_PAGE=50;
   function message(text,error=false){$('editor-status').textContent=text;$('editor-status').dataset.error=String(error);}
   async function perform(action){if(busy){message('Wait for the current operation.',true);return;}busy=true;try{await action();}catch(e){running=false;message(e.message,true);}finally{busy=false;document.body.dataset.operationSequence=String(++operation);render();}}
@@ -36,10 +38,10 @@
   function erase(){apply({type:'deleteItems',selection:select()});}
   function duplicate(){apply({type:'duplicate',selection:select()});}
   function cluster(){
-    const ids=select().nodes;if(ids.length<2)throw Error('Select at least two nodes. Use Select multiple on touch.');
-    const ns=model.diagram.nodes.filter(n=>ids.includes(n.id));if(ns.some(n=>['source','cron'].includes(documents.resolveClass(n.classId,model.diagram,library,config).kernel)))throw Error('Sources do not consume shared worker slots');
-    const x=Math.min(...ns.map(n=>n.x))-24,y=Math.min(...ns.map(n=>n.y))-40,w=Math.max(...ns.map(n=>n.x))-x+config.editor.nodeWidth+24,h=Math.max(...ns.map(n=>n.y))-y+120;
-    const result=apply({type:'addGroup',label:'Resource cluster',kind:'resource',capacity:2,x,y,w,h,nodeIds:ids});
+    const ids=select().nodes,ns=model.diagram.nodes.filter(n=>ids.includes(n.id));
+    const shared=ns.length>0&&ns.every(n=>{const k=kernels.get(documents.resolveClass(n.classId,model.diagram,library,config).kernel);return k.station||k.resourceSlots;});
+    const center=canvas.viewportCenter(),x=ns.length?Math.min(...ns.map(n=>n.x))-24:center.x-160,y=ns.length?Math.min(...ns.map(n=>n.y))-40:center.y-120,w=ns.length?Math.max(...ns.map(n=>n.x))-x+config.editor.nodeWidth+24:320,h=ns.length?Math.max(...ns.map(n=>n.y))-y+120:240;
+    const result=apply({type:'addGroup',label:shared?'Resource cluster':'Architecture boundary',kind:shared?'resource':'boundary',...(shared?{capacity:2}:{}),x,y,w,h,nodeIds:ids});
     if(result.id)model.select({groups:[result.id]});
   }
   buttons.undo=button('edit-actions','Undo',()=>{model.undo();message('Undid document edit.');});buttons.redo=button('edit-actions','Redo',()=>{model.redo();message('Redid document edit.');});
@@ -120,7 +122,7 @@
     const node=doc.nodes.find(n=>n.id===id),edge=doc.edges.find(e=>e.id===id),group=doc.groups.find(g=>g.id===id);
     if(node){
       const resolved=documents.resolveNodeParams(node,doc,library,config),cls=resolved.klass,kernel=library.kernels[cls.kernel],user=doc.classes.find(c=>c.id===node.classId);
-      $('selection-kind').textContent=cls.kernel;const actual=el('p','properties-note');actual.id='node-state';host.append(actual,el('div','wui-status',node.id));
+      $('selection-kind').textContent=cls.kernel;const actual=el('p','properties-note');actual.id='node-state';host.append(actual,el('div','wui-status',node.id));const stateDetails=el('details','node-resource-details');stateDetails.append(el('summary','','Accepted node state'));const stateRows=el('dl');stateRows.id='node-detail';stateDetails.append(stateRows);host.append(stateDetails);
       const name=field(host,'Instance name',node.label,{id:'instance-name'});name.addEventListener('change',()=>perform(()=>apply({type:'setNodeLabel',id,label:name.value})));
       const choose=field(host,'Node class',node.classId,{id:'instance-class',choices:[...library.classOrder,...doc.classes.map(c=>c.id)].map(cid=>({id:cid,label:documents.resolveClass(cid,doc,library,config).label}))});choose.addEventListener('change',()=>perform(()=>apply({type:'setNodeClass',id,classId:choose.value})));
       const tabs=el('div','scope-switch');host.append(tabs);for(const [v,label]of[['instance','Instance overrides'],['class','Class defaults']]){const b=button(tabs,label,()=>{scope=v;properties();renderState();},'quiet');b.setState({selected:scope===v});b.element.setAttribute('aria-pressed',String(scope===v));}
@@ -162,6 +164,55 @@
     if(id){const a=el('div','properties-actions');host.append(a);button(a,'Delete selected',erase,'danger');}
     ui.adoptTree(host);
   }
+  // Faults are authored document inputs; live interventions remain explicit accepted-run controls.
+  const faultPanel=el('details','journey-panel');faultPanel.id='fault-panel';
+  faultPanel.append(el('summary','','Faults and recovery'));document.querySelector('.notice-line').after(faultPanel);
+  const faultBody=el('div','journey-body'),faultForm=el('div','fault-form'),faultList=el('div','fault-list');faultPanel.append(faultBody);faultBody.append(faultForm,faultList);
+  const targetField=field(faultForm,'Target','',{id:'fault-target',choices:[]}),faultType=field(faultForm,'Failure type','',{id:'fault-type',choices:[]});
+  const atField=field(faultForm,'Start · seconds',1,{id:'fault-at',type:'number'}),untilField=field(faultForm,'Recover · seconds (empty = permanent)',3,{id:'fault-until',type:'number'});
+  const faultParamsHost=el('div','fault-parameters');faultParamsHost.id='fault-parameters';faultForm.append(faultParamsHost);
+  const faultActions=el('div','properties-actions');faultForm.append(faultActions);
+  let faultFields={},faultTargetSignature='',faultListSignature='';
+  function setChoices(input,choices,preferred){const previous=preferred??input.value;input.replaceChildren(...choices.map(c=>{const o=el('option','',c.label);o.value=c.id;return o;}));if(choices.some(c=>c.id===previous))input.value=previous;}
+  function targetRecord(){const split=targetField.value.indexOf('|');return {kind:targetField.value.slice(0,split),id:targetField.value.slice(split+1)};}
+  function supportedFaults(target){
+    let kernel=null;if(target.kind==='node'){const n=model.diagram.nodes.find(n=>n.id===target.id);if(n)kernel=documents.resolveClass(n.classId,model.diagram,library,config).kernel;}
+    return library.faultTypes.filter(f=>f.targets.includes(target.kind)&&(!f.kernels||f.kernels.includes(kernel))&&(!kernel||library.kernels[kernel].faults.includes(f.id)));
+  }
+  function faultParams(){faultParamsHost.replaceChildren();faultFields={};const spec=library.faultTypes.find(f=>f.id===faultType.value);for(const[key,value]of Object.entries(spec?.params||{})){faultFields[key]=field(faultParamsHost,`${value.label}${value.unit?' · '+value.unit:''}`,value.default,{id:'fault-param-'+key,choices:value.type==='enum'?value.options:value.type==='boolean'?[{id:'true',label:'Yes'},{id:'false',label:'No'}]:null,type:['number','integer'].includes(value.type)?'number':'text',spec:value});}ui.adoptTree(faultParamsHost);}
+  function faultTypes(){setChoices(faultType,supportedFaults(targetRecord()).map(f=>({id:f.id,label:f.label})));faultParams();}
+  targetField.addEventListener('change',faultTypes);faultType.addEventListener('change',faultParams);
+  function faultInput(){const spec=library.faultTypes.find(f=>f.id===faultType.value);if(!spec)throw Error('Choose a supported fault target and type');return {target:targetRecord(),type:spec.id,params:readParams(faultFields,spec.params)};}
+  button(faultActions,'Schedule fault',()=>{const input=faultInput(),atSec=Number(atField.value),untilSec=untilField.value===''?null:Number(untilField.value);apply({type:'addFault',fault:{...input,atSec,untilSec}});message('Scheduled fault is pending. Run explicitly accepts its timing.');},'primary');
+  button(faultActions,'Inject now',()=>{if(!runner)throw Error('Run an architecture before injecting a live fault');running=false;runner.inject({kind:'fault',...faultInput()});message('Injected a recorded fault into the accepted run. Scheduled draft faults are unchanged.');},'danger');
+  button(faultActions,'Repair target',()=>{if(!runner)throw Error('Run first');running=false;runner.inject({kind:'repair',target:targetRecord()});message('Recorded repair at the accepted run time.');});
+  function faultAuthoring(contextChanged=false){
+    const d=model.diagram,choices=[...d.nodes.map(n=>({id:'node|'+n.id,label:'Node · '+n.label})),...d.edges.map(e=>({id:'edge|'+e.id,label:`Link · ${e.from.nodeId}.${e.from.portId} → ${e.to.nodeId}.${e.to.portId}`})),...d.groups.filter(g=>['zone','region'].includes(g.kind)).map(g=>({id:'group|'+g.id,label:'Domain · '+g.label}))];
+    const signature=JSON.stringify(choices),selected=select(),preferred=contextChanged?(selected.nodes[0]?'node|'+selected.nodes[0]:selected.edges[0]?'edge|'+selected.edges[0]:selected.groups[0]?'group|'+selected.groups[0]:undefined):undefined;
+    if(signature!==faultTargetSignature||preferred&&choices.some(c=>c.id===preferred)&&preferred!==targetField.value){faultTargetSignature=signature;setChoices(targetField,choices,preferred);faultTypes();}
+    const listSignature=JSON.stringify(d.faults);if(listSignature===faultListSignature)return;faultListSignature=listSignature;faultList.replaceChildren(el('h3','','Scheduled fault timeline'));
+    if(!d.faults.length)faultList.append(el('p','wui-caption','No scheduled faults. Faults affect the accepted run only after Run.'));
+    for(const f of d.faults){const row=el('div','scheduled-fault');row.dataset.faultId=f.id;row.append(el('span','',`${f.atSec}s → ${f.untilSec===null?'permanent':f.untilSec+'s'} · ${f.type} · ${f.target.kind}:${f.target.id}${Object.keys(f.params).length?' · '+JSON.stringify(f.params):''}`));button(row,'Remove '+f.id,()=>apply({type:'removeFault',id:f.id}),'quiet');faultList.append(row);}ui.adoptTree(faultPanel);
+  }
+  const comparePanel=el('section','comparison-panel');comparePanel.id='comparison-panel';comparePanel.setAttribute('aria-label','Paired failure and repair experiment');
+  const compareHeading=el('div','simulation-heading'),compareIntro=el('div');compareIntro.append(el('h3','','Compare a repair'),el('p','wui-caption','Capture a baseline, edit downstream policies, then compare with the same sources, seed and faults.'));
+  const compareActions=el('div','toolbar'),compareResult=el('div','comparison-result');compareResult.id='comparison-result';compareHeading.append(compareIntro,compareActions);comparePanel.append(compareHeading,compareResult);$('metrics').after(comparePanel);
+  button(compareActions,'Capture baseline',()=>{comparisonBaseline=clone(model.diagram);comparisonControls=runner&&!dirty()?clone(runner.controls()):[];comparisonRecord=null;message('Captured this authored baseline. Keep its sources, seed, horizon and fault timeline unchanged while editing the repair.');renderComparison();});
+  button(compareActions,'Compare repair',async()=>{
+    if(!comparisonBaseline)throw Error('Capture a baseline first');
+    const candidate=clone(model.diagram);journeys.pairInputs(comparisonBaseline,candidate,library,config);
+    const original=runner?{diagram:clone(accepted)}:null;running=false;
+    try{comparisonRecord=await journeys.withSuspendedRun({current:runner,onSuspend:()=>{runner=null;},createReplacement:()=>runners.create({diagram:original.diagram,library,config,kernels,profileId:profile.id}),onRestore:restored=>{runner=restored;accepted=original.diagram;acceptedIdentity=semantic(accepted);},action:()=>journeys.compare({baseline:comparisonBaseline,repaired:candidate,library,config,kernels,profileId:profile.id,createRunner:runners.create,controls:comparisonControls})});message('Paired comparison complete. Actual source arrivals match and both runs replay exactly.');}
+    finally{renderComparison();}
+  },'primary');
+  button(compareActions,'Export comparison',()=>{if(!comparisonRecord)throw Error('Compare a repair first');$('document').value=JSON.stringify(comparisonRecord,null,2);$('document-panel').open=true;message('Showing immutable comparison evidence and model assumptions.');});
+  function renderComparison(){
+    compareResult.replaceChildren();if(!comparisonRecord){compareResult.append(el('p','wui-caption',comparisonBaseline?`Baseline captured · seed ${comparisonBaseline.seed} · ${comparisonBaseline.faults.length} scheduled faults`:'No baseline captured.'));return;}
+    const c=comparisonRecord;compareResult.append(el('p','wui-caption',`Saved experiment · seed ${c.seed} · ${c.untilSec}s · demand ${c.demandHash} · actual arrivals ${c.arrivalHash}`));
+    const table=el('table','comparison-table'),head=el('tr');for(const label of['Outcome','Baseline','Repair'])head.append(el('th','',label));table.append(head);
+    const rows=[['offered','Offered'],['completed','Completed'],['failed','Failed'],['inFlight','Unfinished'],['deadlineMisses','Request deadline misses'],['backgroundDeadlineMisses','Background work deadline misses'],['peakMemoryMiB','Peak retained MiB'],['retries','Retries'],['unknownEffects','Unknown commit outcomes'],['effects','Committed effects']];
+    for(const[key,label]of rows){const tr=el('tr');tr.append(el('th','',label));for(const variant of[c.baseline,c.repair])tr.append(el('td','',variant.metrics[key]===undefined?'Not reported':Number(variant.metrics[key].toFixed?.(3)??variant.metrics[key])));table.append(tr);}compareResult.append(table,el('p','wui-caption',c.boundary));
+  }
   const previousPage=button('request-pages','Previous requests',()=>{requestPage=Math.max(0,requestPage-1);});
   const nextPage=button('request-pages','Next requests',()=>{requestPage++;});
   const requestCount=el('span','wui-caption');$('request-pages').append(requestCount);
@@ -169,8 +220,11 @@
   function view(){return runner?.view()||null;}
   function renderState(){
     const v=view(),m=v?.global||{};const actual=$('node-state'),n=v?.nodes?.[select().nodes[0]];
+    const detail=$('node-detail');if(detail)detail.replaceChildren(...Object.entries(n?.detail||{}).flatMap(([key,value])=>[el('dt','',key),el('dd','',typeof value==='object'?JSON.stringify(value):String(value))]));
     if(actual)actual.textContent=n?`Accepted run: ${n.health} · ${n.busy} busy · ${n.queue} queued · ${n.heldMiB??'unreported'} MiB retained`:'Not present in an accepted run.';
-    const values=[['Completed / offered',`${m.completed||0} / ${m.offered||0}`],['Failed',m.failed||0],['In-flight requests / jobs',`${m.inFlight||0} / ${m.activeJobs||0}`],['Deadline misses',m.deadlineMisses||0],['Retained MiB',m.memoryMiB??0],['Committed effects',m.effects||0]];
+    const metric=(key)=>!v?'Not running':m[key]===undefined?'Not reported':m[key];
+    const queue=v?Object.values(v.nodes||{}).reduce((sum,n)=>sum+(Number(n.queue)||0),0):'Not running',p95=!v?'Not running':m.completed>0&&Number.isFinite(m.latency?.p95)?`${Number(m.latency.p95.toFixed(2))} ms`:'No samples';
+    const values=[['Completed / offered',v?`${m.completed} / ${m.offered}`:'Not running'],['Failed',metric('failed')],['In-flight requests',metric('inFlight')],['Request deadline misses',metric('deadlineMisses')],['Background work deadline misses',metric('backgroundDeadlineMisses')],['Retained / peak MiB',v?`${metric('memoryMiB')} / ${metric('peakMemoryMiB')}`:'Not running'],['Committed effects',metric('effects')],['Queued',queue],['p95 latency',p95],['Throughput · req/s',v?(Number.isFinite(m.throughput)?Number(m.throughput.toFixed(3)):'Not reported'):'Not running'],['Retries',metric('retries')],['Unknown commit outcomes',metric('unknownEffects')],['Wasted work',metric('wastedWork')]];
     $('metrics').replaceChildren(...values.map(([subject,value])=>ui.SimMetric({data:{subject,value,unit:'',timeBasis:`${(v?.t||0).toFixed(2)} s`,freshness:'fresh',validity:'synthetic-model',level:'supporting'}}).element));
     $('status').textContent=v?`${v.t.toFixed(2)} / ${v.horizonSec} s · ${running?'running':'paused'} · seed ${accepted.seed}${dirty()?' · pending semantic edits excluded':''}${v.error?' · '+v.error:''}`:'Paused. Run accepts the current architecture explicitly.';
     const requests=v?.requests||[];requestPage=Math.min(requestPage,Math.max(0,Math.ceil(requests.length/REQUESTS_PER_PAGE)-1));const pageRequests=requests.slice(requestPage*REQUESTS_PER_PAGE,(requestPage+1)*REQUESTS_PER_PAGE);
@@ -180,15 +234,15 @@
     for(const r of pageRequests){let b=requestButtons.get(r.id);if(!b){b=ui.SimButton({label:r.id,variant:'quiet',onAction:()=>{selectedRequest=r.id;renderState();}});requestButtons.set(r.id,b);$('requests').append(b.element);}b.element.textContent=`${r.id} · ${r.status}${r.backgroundPending?` · ${r.backgroundPending} background`:``}`;b.setState({selected:r.id===selectedRequest});}
     const info=runner&&selectedRequest?runner.inspect(selectedRequest):null;
     inspector.render({selectedId:info?selectedRequest:null,prompt:'Run the architecture, then inspect a request.',objects:pageRequests.map(r=>({id:r.id,label:r.id,condition:r.status})),label:selectedRequest||'Request inspection',description:'Request, attempt and effect records come from the model.',fields:info?[
-      {id:'status',label:'Status',value:info.request.status},{id:'blocker',label:'Blocked by',value:info.blocker?JSON.stringify(info.blocker):'None'},{id:'attempts',label:'Attempts',value:info.attempts.length},{id:'effects',label:'Committed effects',value:info.effects.length}
+      {id:'status',label:'Status',value:info.request.status},{id:'blocker',label:'Blocked by',value:info.blocker?JSON.stringify(info.blocker):'None'},{id:'attempts',label:'Attempts',value:info.attempts.length},{id:'effects',label:'Committed effects',value:info.effects.length},{id:'retained',label:'Retained MiB',value:info.request.retainedMiB??'Not reported'},{id:'deadline',label:'Request deadline missed',value:info.request.deadlineMissed===undefined?'Not reported':String(info.request.deadlineMissed)},{id:'background-deadline',label:'Background deadline missed',value:info.request.backgroundDeadlineMissed===undefined?'Not reported':String(info.request.backgroundDeadlineMissed)},{id:'blockers',label:'All blockers',value:JSON.stringify(info.blockers||[])},{id:'acknowledgements',label:'Commit acknowledgements',value:info.effects.length?info.effects.map(e=>`${e.id}: ${e.acknowledgement??'Not reported'}`).join(' · '):'No committed effects'}
     ]:[],actions:[]});
     $('history').replaceChildren(...(info?.history||[]).map(e=>el('li','',`${Number(e.time??e.t).toFixed(3)} s · ${e.kind} · ${e.nodeId||''}${(e.detail||e.message)?' · '+(typeof(e.detail||e.message)==='string'?(e.detail||e.message):JSON.stringify(e.detail||e.message)):''}${e.causes?.length?' ← '+e.causes.join(', '):''}`)));
     canvas.setState?.(v,{pending:dirty()&&!!runner});
   }
   function render(){palette();buttons.undo.setState({disabled:!model.canUndo()});buttons.redo.setState({disabled:!model.canRedo()});buttons.pause.element.textContent=running?'Pause':'Resume';buttons.pause.setState({disabled:!runner});buttons.run.element.textContent=runner?(dirty()?'Accept & run':'Restart'):'Run';$('revision').textContent=runner?(dirty()?'Accepted run · edits pending':'Accepted architecture'):'Not running';$('revision').dataset.pending=String(!!runner&&dirty());document.body.dataset.pending=String(dirty());document.body.dataset.running=String(running);document.body.dataset.graphNodes=String(model.diagram.nodes.length);renderState();}
-  model.subscribe(event=>{if(event.kind!=='view'){properties();render();}if(!['selection','view'].includes(event.kind)){const issues=model.issues();if(issues.length)message(issues.map(i=>i.message).join(' · '),issues.some(i=>i.kind==='payload-mismatch'));}});
-  ui.adoptTree(document.body);properties();render();canvas.fit({readable:true});$('assumptions').replaceChildren(el('li','',config.claimBoundary));
-  globalThis.SimulatteSystemDiagramEditor=Object.freeze({document:()=>clone(model.diagram),accepted:()=>clone(accepted),snapshot:()=>clone(view()),selection:()=>clone(select()),viewport:()=>canvas.getView(),program:()=>runner?.program()||null});
+  model.subscribe(event=>{if(event.kind!=='view'){properties();faultAuthoring(event.kind==='selection');render();}if(!['selection','view'].includes(event.kind)){const issues=model.issues();if(issues.length)message(issues.map(i=>i.message).join(' · '),issues.some(i=>i.kind==='payload-mismatch'));}});
+  ui.adoptTree(document.body);properties();faultAuthoring();renderComparison();render();canvas.fit({readable:true});$('assumptions').replaceChildren(el('li','',config.claimBoundary));
+  globalThis.SimulatteSystemDiagramEditor=Object.freeze({document:()=>clone(model.diagram),accepted:()=>clone(accepted),snapshot:()=>clone(view()),selection:()=>clone(select()),viewport:()=>canvas.getView(),program:()=>runner?.program()||null,comparison:()=>clone(comparisonRecord),baseline:()=>clone(comparisonBaseline)});
   document.body.dataset.simulationProfile=profile.id;document.body.dataset.editorReady='true';message('Draw the architecture, configure class defaults and instance overrides, then Run.');
   setInterval(()=>{if(!running||busy||!runner)return;try{runner.advanceTo(Math.min(runner.horizon,runner.time()+.25));const v=view();if(v.done||v.error||runner.time()>=runner.horizon)running=false;render();}catch(e){running=false;message(e.message,true);render();}},180);
 })().catch(e=>{const s=document.getElementById('status');s.textContent=`Unable to open editor: ${e.message}`;s.setAttribute('role','alert');});

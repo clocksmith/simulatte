@@ -7,7 +7,7 @@
       "id": "replicatedDb",
       "label": "Replicated database",
       "description": "Leader with followers. Async, sync or quorum replication; replication lag produces stale follower reads, leader failure triggers an election and unreplicated async writes are lost.",
-      "paramSets": [],
+      "paramSets": ["memory"],
       "params": {
         "replicas": { "type": "integer", "label": "Replicas", "min": 1, "max": 9, "default": 3, "group": "basic" },
         "replication": { "type": "enum", "label": "Replication", "options": ["async", "sync", "quorum"], "default": "async", "group": "basic" },
@@ -35,7 +35,7 @@
       "id": "cache",
       "label": "Cache",
       "description": "Keyed cache with capacity, TTL and sampled LRU eviction. Misses call the origin; optional miss coalescing limits stampedes; a crashed cache can fail open to the origin.",
-      "paramSets": [],
+      "paramSets": ["memory"],
       "params": {
         "capacityKeys": { "type": "integer", "label": "Capacity", "unit": "keys", "min": 1, "max": 1000000, "default": 10000, "group": "basic" },
         "ttlSec": { "type": "number", "label": "TTL (0 = none)", "unit": "s", "min": 0, "max": 86400, "default": 60, "group": "basic" },
@@ -57,7 +57,7 @@
       "id": "objectStore",
       "label": "Object storage",
       "description": "Blob storage whose latency is a base time plus object size over per-request throughput.",
-      "paramSets": [],
+      "paramSets": ["memory"],
       "params": {
         "baseMs": { "type": "number", "label": "First-byte time", "unit": "ms", "min": 0, "max": 3600000, "default": 20, "group": "basic" },
         "throughputMBps": { "type": "number", "label": "Per-request throughput", "unit": "MB/s", "min": 0.001, "max": 100000, "default": 100, "group": "basic" },

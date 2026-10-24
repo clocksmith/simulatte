@@ -1,0 +1,160 @@
+{
+  "schema": "simulatte.systemDiagram.v1",
+  "id": "finance-reconciliation",
+  "name": "Synthetic paired-record reconciliation",
+  "description": "Two explicit left/right scalar records share an entity key. Matching pairs commit once, duplicates are suppressed, mismatched or missing counterparts remain visible. This is an event-pipeline pattern, not real transactions, settlement, accounting or compliance.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 30
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "record-pairs",
+      "classId": "event-source",
+      "label": "Record Pairs",
+      "x": 0,
+      "y": 90,
+      "params": {
+        "count": 12,
+        "intervalMs": 100,
+        "paired": true,
+        "amount": 100,
+        "mismatchEvery": 3,
+        "mismatchDelta": 1,
+        "callTimeoutMs": 15000,
+        "deadlineMs": 20000,
+        "retries": 0
+      }
+    },
+    {
+      "id": "schema",
+      "classId": "schema-validator",
+      "label": "Schema",
+      "x": 240,
+      "y": 90,
+      "params": {}
+    },
+    {
+      "id": "reconciliation",
+      "classId": "event-ledger",
+      "label": "Reconciliation",
+      "x": 480,
+      "y": 90,
+      "params": {
+        "mode": "reconcile",
+        "tolerance": 0,
+        "maxRecords": 100
+      }
+    },
+    {
+      "id": "matched-store",
+      "classId": "idempotent-store",
+      "label": "Matched Store",
+      "x": 720,
+      "y": 90,
+      "params": {
+        "serviceDist": "constant",
+        "writeMs": 3
+      }
+    },
+    {
+      "id": "exceptions",
+      "classId": "event-quarantine",
+      "label": "Exceptions",
+      "x": 480,
+      "y": 310,
+      "params": {
+        "maxRecords": 100
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "pairs-schema",
+      "from": {
+        "nodeId": "record-pairs",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "schema",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "schema-ledger",
+      "from": {
+        "nodeId": "schema",
+        "portId": "accepted"
+      },
+      "to": {
+        "nodeId": "reconciliation",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "schema-exceptions",
+      "from": {
+        "nodeId": "schema",
+        "portId": "quarantine"
+      },
+      "to": {
+        "nodeId": "exceptions",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "matches-store",
+      "from": {
+        "nodeId": "reconciliation",
+        "portId": "accepted"
+      },
+      "to": {
+        "nodeId": "matched-store",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "mismatch-exceptions",
+      "from": {
+        "nodeId": "reconciliation",
+        "portId": "quarantine"
+      },
+      "to": {
+        "nodeId": "exceptions",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "assumptions",
+      "text": "Scalar equality with authored tolerance only. No live financial actions, money movement or accounting proof. Unmatched pairs retain their input records; repaired counterpart events can resolve an exception.",
+      "x": 20,
+      "y": -80,
+      "w": 900
+    }
+  ],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

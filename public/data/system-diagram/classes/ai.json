@@ -8,7 +8,8 @@
       "label": "Batching worker",
       "description": "Collects requests into batches up to a size or window, serves each batch on one of its workers, then calls downstream edges per request.",
       "paramSets": [
-        "calls"
+        "calls",
+        "memory"
       ],
       "params": {
         "workers": {
@@ -81,24 +82,6 @@
           "max": 1000000,
           "default": 1,
           "group": "advanced"
-        },
-        "memoryPerRequestMiB": {
-          "type": "number",
-          "label": "Retained memory per admitted request",
-          "unit": "MiB",
-          "min": 0,
-          "max": 1048576,
-          "default": 1,
-          "group": "advanced"
-        },
-        "memoryLimitMiB": {
-          "type": "number",
-          "label": "Admission memory budget",
-          "unit": "MiB",
-          "min": 0,
-          "max": 1048576,
-          "default": 1024,
-          "group": "advanced"
         }
       },
       "ports": [
@@ -135,7 +118,9 @@
       "id": "llm",
       "label": "LLM generator",
       "description": "Token-priced generation with continuous batching: time to first token plus prefill and decode, slowed by active batch size. Optional structured output, tool-call rounds and a tokens-per-minute quota.",
-      "paramSets": [],
+      "paramSets": [
+        "memory"
+      ],
       "params": {
         "ttftMs": {
           "type": "number",
@@ -275,6 +260,23 @@
           "max": 3600000,
           "default": 5000,
           "group": "advanced"
+        },
+        "toolRetries": {
+          "type": "integer",
+          "label": "Retries per tool call",
+          "min": 0,
+          "max": 20,
+          "default": 0,
+          "group": "basic"
+        },
+        "toolRetryBackoffMs": {
+          "type": "number",
+          "label": "Tool retry backoff",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 100,
+          "group": "advanced"
         }
       },
       "ports": [
@@ -315,7 +317,9 @@
       "id": "embedder",
       "label": "Embedding model",
       "description": "Batches text into embedding vectors; time grows with batch tokens.",
-      "paramSets": [],
+      "paramSets": [
+        "memory"
+      ],
       "params": {
         "workers": {
           "type": "integer",
@@ -414,8 +418,10 @@
     {
       "id": "vectorIndex",
       "label": "Vector index",
-      "description": "Approximate nearest-neighbour search whose query time grows with log index size; writes upsert vectors and grow the index.",
-      "paramSets": [],
+      "description": "Synthetic vector-index query time, bounded delayed publication of upserts, freshness flags and visible candidate counts; no real vectors or ANN algorithm.",
+      "paramSets": [
+        "memory"
+      ],
       "params": {
         "vectors": {
           "type": "integer",
@@ -502,6 +508,34 @@
           "max": 1,
           "default": 0,
           "group": "advanced"
+        },
+        "visibilityDelayMs": {
+          "type": "number",
+          "label": "Index publish delay",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 0,
+          "group": "basic",
+          "help": "Acknowledged upserts become query-visible after this synthetic delay."
+        },
+        "maxAgeSec": {
+          "type": "number",
+          "label": "Freshness age limit (0 = off)",
+          "unit": "s",
+          "min": 0,
+          "max": 86400,
+          "default": 0,
+          "group": "advanced",
+          "help": "Queries mark results stale after this age since last publish, or while writes await publication."
+        },
+        "maxPendingUpserts": {
+          "type": "integer",
+          "label": "Pending index publication capacity",
+          "min": 1,
+          "max": 100000,
+          "default": 10000,
+          "group": "advanced"
         }
       },
       "ports": [
@@ -531,7 +565,9 @@
       "id": "retriever",
       "label": "RAG orchestrator",
       "description": "For each question: embed, search the index, optionally rerank, then generate with the retrieved context. Each step is a call on its own port.",
-      "paramSets": [],
+      "paramSets": [
+        "memory"
+      ],
       "params": {
         "topK": {
           "type": "integer",
@@ -610,6 +646,13 @@
           "max": 600000,
           "default": 200,
           "group": "advanced"
+        },
+        "rejectStaleResults": {
+          "type": "boolean",
+          "label": "Reject stale index results",
+          "default": false,
+          "group": "basic",
+          "help": "Fail retrieval with unavailable when the search reply declares stale=true."
         }
       },
       "ports": [
@@ -680,7 +723,8 @@
       "label": "Reranker",
       "description": "Scores retrieved candidates; time grows with the number of candidates in the request.",
       "paramSets": [
-        "station"
+        "station",
+        "memory"
       ],
       "params": {
         "perCandidateMs": {
@@ -719,7 +763,9 @@
       "id": "chunker",
       "label": "Document chunker",
       "description": "Splits each document into token chunks and forwards every chunk downstream; sync edges wait for all chunk replies.",
-      "paramSets": [],
+      "paramSets": [
+        "memory"
+      ],
       "params": {
         "chunkTokens": {
           "type": "integer",
@@ -836,7 +882,9 @@
       "id": "structuredResponse",
       "label": "Structured response",
       "description": "Turns natural language or unstructured input into validated JSON. With a generator connected it asks for output and repairs invalid JSON; without one it parses the input directly.",
-      "paramSets": [],
+      "paramSets": [
+        "memory"
+      ],
       "params": {
         "validateMs": {
           "type": "number",

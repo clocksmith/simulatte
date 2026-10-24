@@ -1,58 +1,6 @@
 {
-  "capturedAt": "2026-10-23T22:29:12.637076+00:00",
-  "status": "canonical convergence qualified for non-force main publication; no production deployment",
-  "mergeParents": [
-    "700a5be6cb8879c124aad8e96a35d9315bd0e657",
-    "973b4cb88c6e45ff0fe66184ef669ae0958d4c04"
-  ],
-  "route": "/system-diagram",
-  "entry": "/simulatte/system-diagram/index.html",
-  "component": "World System Diagram Simulator",
-  "model": "system-diagram/v1",
-  "checks": {
-    "regressionTests": {
-      "passed": 135,
-      "failed": 0,
-      "evidence": "tests.tap"
-    },
-    "engineTests": {
-      "passed": 13,
-      "failed": 0,
-      "evidence": "engine-tests.tap",
-      "durationMs": 94056.925083
-    },
-    "browser": {
-      "desktop": 33,
-      "touch": 33,
-      "allPassed": true,
-      "evidence": "browser.json"
-    },
-    "runtimeSourceHashesMatch": true,
-    "worldUiOwnershipViolations": 0,
-    "hostingPackaging": "passed; hosting-check.log",
-    "productionDeployment": false,
-    "totalTestsPassed": 148
-  },
-  "screenshots": {
-    "1440-editor.png": "6c5e4984b50658af3f74842d7f4bc55cf1d162c74e6df2417dde42f7d9c5106b",
-    "1440-properties.png": "8a46741caadb1aa0e7b459196d7d0242527b2a6a7e8733c04da97ca33f27c9ac",
-    "1440-causal.png": "7d0d084ee5a723164a1b3883b02e2f6580352832e5e932427aee97254448daa3",
-    "1440-final.png": "47d9d9edc794d8180d67905157c6701f67b9777745fdbee5d1dab8c13c359839",
-    "390-editor.png": "2e90c6e305a70aedebbb5f6f85c84e7b2a4692a30739a58ad8f782dfc8f3748a",
-    "390-properties.png": "9ccd951f4cb85aca494894569297e74cf3143c662e2b6355369e15f536bdfa3b",
-    "390-causal.png": "1f26d2965b69abe6b5322837ddd5bd58126ee6fa8706e152a1ac43295932cae4",
-    "390-final.png": "c4e8a1ceb42ff3dd9aaaf0da25c2c12810830635b8d8cf6ffbef34afc8483db3"
-  },
-  "limits": [
-    "24 registered synthetic kernels and 50 built-in presets; all modeled behavior remains synthetic.",
-    "Resource clusters constrain only kernels implementing station or explicit resource hooks; failure domains are separate.",
-    "No actual inference, scraping, clinical/financial actions, infrastructure execution or physical capacity proof.",
-    "Lossless causal retention is bounded; large traces consume memory and verification time.",
-    "Touch evidence uses Chrome touch emulation; physical-device and human usability review remain separate."
-  ],
-  "integration": {
-    "canonicalOwner": "public/simulatte/system-diagram",
-    "strategy": "Retained newer remote model/keyed canvas/24-kernel engine; ported command adapters, resource/touch/lifecycle and causal/checkpoint behavior. No duplicate state or engine.",
-    "originalCheckoutPreserved": "729dd1fd3678c3bf646b83587eecea9584f4276b"
-  }
+  "status": "Current combined qualification is owned by the journey verification report",
+  "verification": "../system-diagram-journeys/verification.json",
+  "editorRegression": "browser.json",
+  "previousImplementationCommit": "369026bc6fa820b38f3dba11c0e1ba1ca0b032c7"
 }

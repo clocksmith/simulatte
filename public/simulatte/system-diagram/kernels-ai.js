@@ -105,11 +105,12 @@
       const id = `b${k.nextBatch}`;
       if (!ctx.acquireResource(id)) { resourceBlocked = true; break; }
       const ids = k.queue.splice(0, p.maxBatch).map(item => item.id);
-      const wallMs = ctx.serviceMs(spec.batchMs(ctx, ids.map(id => ctx.job(id)).filter(Boolean)), 'constant', 0);
+      const baseMs = spec.batchMs(ctx, ids.map(id => ctx.job(id)).filter(Boolean)), factor = ctx.fault.slowFactor * ctx.memoryFactor();
+      const wallMs = Number.isFinite(factor) ? baseMs * factor : null;
       k.nextBatch += 1;
       k.busy += 1;
-      k.batches[id] = { ids, end: ctx.t + ms(wallMs), slow: ctx.fault.slowFactor, gen: 0 };
-      ctx.wake(ms(wallMs), { kind: 'batch', id, gen: 0, epoch: k.epoch });
+      k.batches[id] = { ids, remainingMs: baseMs, lastT: ctx.t, factor: Number.isFinite(factor) ? factor : null, end: wallMs === null ? null : ctx.t + ms(wallMs), gen: 0 };
+      if (wallMs !== null) ctx.wake(ms(wallMs), { kind: 'batch', id, gen: 0, epoch: k.epoch });
     }
     const deadline = k.queue.length ? k.queue[0].at + ms(p.batchWindowMs) : null;
     if (!resourceBlocked && deadline !== null && k.busy < p.workers && deadline !== k.windowAt) {
@@ -139,6 +140,19 @@
     batchPump(ctx, spec);
   }
 
+  function batchRefresh(ctx) {
+    const factor = ctx.fault.slowFactor * ctx.memoryFactor(), next = Number.isFinite(factor) ? factor : null;
+    for (const id of Object.keys(ctx.k.batches)) {
+      const batch = ctx.k.batches[id];
+      if (batch.factor !== null) batch.remainingMs = Math.max(0, batch.remainingMs - (ctx.t - batch.lastT) * MS_PER_SEC / batch.factor);
+      batch.lastT = ctx.t;
+      if (batch.factor === next) continue;
+      batch.factor = next; batch.gen++;
+      batch.end = next === null ? null : ctx.t + ms(batch.remainingMs * next);
+      if (batch.end !== null) ctx.wake(batch.end - ctx.t, { kind: 'batch', id, gen: batch.gen, epoch: ctx.k.epoch });
+    }
+  }
+
   function batchFault(ctx, fault, active, spec) {
     const k = ctx.k;
     if (isCrash(ctx, fault, active)) {
@@ -146,16 +160,7 @@
       k.queue = []; k.batches = {}; k.busy = 0; k.calls = {}; k.windowAt = null;
       return;
     }
-    const slow = ctx.fault.slowFactor;
-    for (const id of Object.keys(k.batches)) {
-      const batch = k.batches[id];
-      if (batch.slow === slow) continue;
-      batch.end = ctx.t + Math.max(0, batch.end - ctx.t) * slow / batch.slow;
-      batch.slow = slow;
-      batch.gen += 1;
-      ctx.wake(batch.end - ctx.t, { kind: 'batch', id, gen: batch.gen, epoch: k.epoch });
-    }
-    batchPump(ctx, spec);
+    batchRefresh(ctx); batchPump(ctx, spec);
   }
 
   function batchObserve(ctx, extra) {
@@ -175,12 +180,12 @@
   };
 
   registry.register({
-    id: 'batchWorker',
+    id: 'batchWorker', resourceSlots: true,
     station: null,
     init: () => batchState(),
     onRequest: (ctx, job) => batchArrive(ctx, job, BATCH_WORKER),
     onWake: (ctx, payload) => batchWake(ctx, payload, BATCH_WORKER),
-    onResources: ctx => batchPump(ctx, BATCH_WORKER),
+    onResources(ctx) { batchRefresh(ctx); batchPump(ctx, BATCH_WORKER); },
     onResult: (ctx, job, slot, result) => downstreamResult(ctx, job, result),
     onFault: (ctx, fault, active) => batchFault(ctx, fault, active, BATCH_WORKER),
     observe: ctx => batchObserve(ctx, { 'awaiting calls': Object.keys(ctx.k.calls).length }),
@@ -196,12 +201,12 @@
   };
 
   registry.register({
-    id: 'embedder',
+    id: 'embedder', resourceSlots: true,
     station: null,
     init: () => ({ ...batchState(), embedded: 0 }),
     onRequest: (ctx, job) => batchArrive(ctx, job, EMBEDDER),
     onWake: (ctx, payload) => batchWake(ctx, payload, EMBEDDER),
-    onResources: ctx => batchPump(ctx, EMBEDDER),
+    onResources(ctx) { batchRefresh(ctx); batchPump(ctx, EMBEDDER); },
     onFault: (ctx, fault, active) => batchFault(ctx, fault, active, EMBEDDER),
     observe: ctx => batchObserve(ctx, { embedded: ctx.k.embedded }),
   });
@@ -224,7 +229,7 @@
 
   function llmRate(ctx) {
     const n = ctx.k.active.length;
-    return n ? 1 / ((1 + ctx.p.batchSlowdown * (n - 1)) * ctx.fault.slowFactor) : 0;
+    return n ? 1 / ((1 + ctx.p.batchSlowdown * (n - 1)) * ctx.fault.slowFactor * ctx.memoryFactor()) : 0;
   }
 
   function llmSettle(ctx) {
@@ -238,7 +243,7 @@
     while (k.active.length < ctx.p.maxBatch && k.queue.length) k.active.push(k.queue.shift());
     k.rate = llmRate(ctx);
     k.gen += 1;
-    if (!k.active.length) return;
+    if (!k.active.length || k.rate <= 0) return;
     const minWork = Math.min(...k.active.map(id => k.seqs[id].work));
     ctx.wake(ms(Math.max(0, minWork) / k.rate), { kind: 'ps', gen: k.gen, epoch: k.epoch });
   }
@@ -263,7 +268,7 @@
   // Prepares the sequence's next generation; returns false after failing the request.
   function llmPrepare(ctx, seq, job) {
     const p = ctx.p;
-    if (seq.input > p.contextWindow) { llmFail(ctx, seq, job, 'invalid'); return false; }
+    if (seq.input >= p.contextWindow) { llmFail(ctx, seq, job, 'invalid'); return false; }
     const sampled = Math.max(1, Math.round(ctx.lognormal(p.outputTokensMean, OUTPUT_TOKENS_CV)));
     seq.output = Math.max(1, Math.min(sampled, p.contextWindow - seq.input));
     if (!llmTakeQuota(ctx, seq.input + seq.output)) { llmFail(ctx, seq, job, 'rate-limited'); return false; }
@@ -299,7 +304,7 @@
     const patch = { ptype: 'json', tokens: seq.output, kb: seq.output * KB_PER_TOKEN };
     tools.forEach((edge, i) => {
       ctx.k.toolCalls += 1;
-      const callId = ctx.call(job, edge.id, patch, { timeoutMs: ctx.p.toolTimeoutMs, retries: 0, slot: `tool:${seq.round}:${i}` });
+      const callId = ctx.call(job, edge.id, patch, { timeoutMs: ctx.p.toolTimeoutMs, retries: ctx.p.toolRetries, backoffMs: ctx.p.toolRetryBackoffMs, multiplier: STEP_BACKOFF_MULTIPLIER, jitter: false, slot: `tool:${seq.round}:${i}` });
       if (callId !== null) seq.pending += 1;
     });
     if (!seq.pending) llmToolsDone(ctx, seq, job);
@@ -318,6 +323,8 @@
     init: () => llmState(),
     onRequest(ctx, job) {
       const k = ctx.k, p = ctx.p;
+      if (p.toolRounds > 0 && !ctx.edges('tools').length) { ctx.reply(job, { ok: false, err: 'unavailable' }); return; }
+      if (p.toolRounds > 0 && ctx.edges('tools').some(isAsync)) { ctx.reply(job, { ok: false, err: 'invalid' }); return; }
       if (k.active.length >= p.maxBatch && k.queue.length >= p.queueCapacity) { ctx.reply(job, { ok: false, err: 'rejected' }); return; }
       const seq = { id: job.id, input: tokensOf(job.msg), output: 0, work: 0, round: 0, pending: 0, toolErr: null, toolTokens: 0 };
       k.seqs[job.id] = seq;
@@ -340,6 +347,7 @@
       if (result.ok) seq.toolTokens += tokensOf(result.msg);
       if (seq.pending === 0) llmToolsDone(ctx, seq, job);
     },
+    onResources(ctx) { llmSettle(ctx); llmSchedule(ctx); },
     onFault(ctx, fault, active) {
       const k = ctx.k;
       llmSettle(ctx);
@@ -366,7 +374,7 @@
   registry.register({
     id: 'vectorIndex',
     station: { concurrency: 'concurrency', queueCapacity: 'queueCapacity' },
-    init: ctx => ({ vectors: ctx.p.vectors, queries: 0, upserts: 0 }),
+    init: ctx => ({ vectors: ctx.p.vectors, queries: 0, upserts: 0, pending: {}, pendingCount: 0, nextPublish: 0, lastPublish: 0, staleQueries: 0 }),
     onRequest(ctx, job) {
       const p = ctx.p;
       const timeMs = job.msg.op === 'write' ? p.upsertMs : p.queryBaseMs + p.queryLogMs * Math.log2(Math.max(2, ctx.k.vectors));
@@ -376,18 +384,22 @@
       const p = ctx.p, k = ctx.k, fields = fieldsOf(job.msg);
       if (failed(ctx, p.errorRate)) { ctx.reply(job, { ok: false, err: 'error' }); return; }
       if (job.msg.op === 'write') {
+        if (p.visibilityDelayMs > 0 && k.pendingCount >= p.maxPendingUpserts) { ctx.reply(job, { ok: false, err: 'rejected' }); return; }
         const added = Number.isInteger(fields.vectors) && fields.vectors > 0 ? fields.vectors : 1;
         ctx.effect(job.msg.idem, { idempotent: false });
-        k.vectors += added;
         k.upserts += 1;
+        if (p.visibilityDelayMs > 0) { const seq = ++k.nextPublish; k.pending[seq] = added; k.pendingCount++; ctx.wake(ms(p.visibilityDelayMs), { kind: 'index-publish', seq }); }
+        else { k.vectors += added; k.lastPublish = ctx.t; }
         ctx.reply(job, { ok: true, ptype: 'json', kb: HIT_KB, fields: { ...fields, vectors: added } });
         return;
       }
       k.queries += 1;
-      const topK = Math.min(p.topK, k.vectors);
-      ctx.reply(job, { ok: true, ptype: 'json', kb: topK * HIT_KB, fields: { ...fields, candidates: topK, recall: p.recall } });
+      const topK = Math.min(p.topK, k.vectors), indexAgeSec = Math.max(0, ctx.t - k.lastPublish), pending = k.pendingCount;
+      const stale = pending > 0 || (p.maxAgeSec > 0 && indexAgeSec > p.maxAgeSec); if (stale) k.staleQueries++;
+      ctx.reply(job, { ok: true, ptype: 'json', kb: topK * HIT_KB, fields: { ...fields, candidates: topK, recall: p.recall, stale, indexAgeSec, pendingUpserts: pending } });
     },
-    observe: ctx => ({ detail: { vectors: ctx.k.vectors, queries: ctx.k.queries, upserts: ctx.k.upserts } }),
+    onWake(ctx, payload) { if (payload.kind !== 'index-publish' || !Object.hasOwn(ctx.k.pending, payload.seq)) return; ctx.k.vectors += ctx.k.pending[payload.seq]; delete ctx.k.pending[payload.seq]; ctx.k.pendingCount--; ctx.k.lastPublish = ctx.t; },
+    observe: ctx => ({ detail: { vectors: ctx.k.vectors, queries: ctx.k.queries, upserts: ctx.k.upserts, 'pending upserts': ctx.k.pendingCount, 'stale queries': ctx.k.staleQueries, 'last publish s': ctx.k.lastPublish } }),
   });
 
   // ---- Reranker ----
@@ -429,9 +441,9 @@
     const p = ctx.p, last = rec.last || {};
     if (step === 'embed') return { ptype: 'text', op: 'read', tokens: tokensOf(msg) };
     if (step === 'search') return { ptype: 'embedding', op: 'read', kb: last.kb || 0, fields: { topK: p.topK } };
-    if (step === 'rerank') return { ptype: 'json', op: 'read', kb: last.kb || 0, fields: { candidates: Number.isFinite(last.candidates) ? last.candidates : p.topK } };
-    const tokens = p.promptTokens + p.topK * p.chunkTokens + tokensOf(msg);
-    return { ptype: 'text', op: 'read', tokens, kb: tokens * KB_PER_TOKEN };
+    if (step === 'rerank') return { ptype: 'json', op: 'read', kb: last.kb || 0, fields: { candidates: rec.candidates, stale: rec.stale } };
+    const tokens = p.promptTokens + rec.candidates * p.chunkTokens + tokensOf(msg);
+    return { ptype: 'text', op: 'read', tokens, kb: tokens * KB_PER_TOKEN, fields: { stale: rec.stale, contextCandidates: rec.candidates } };
   }
 
   function ragNext(ctx, job, rec) {
@@ -440,8 +452,10 @@
       const step = RAG_STEPS[rec.step], edge = ctx.edges(step)[0];
       rec.at = ctx.t;
       const opts = { timeoutMs: p.callTimeoutMs, retries: p.retries, backoffMs: p.retryBackoffMs, multiplier: STEP_BACKOFF_MULTIPLIER, jitter: true, slot: step };
-      if (edge && ctx.call(job, edge.id, ragPatch(ctx, rec, job.msg, step), opts) !== null) return;
-      rec.step += 1;
+      if (!edge && step === 'rerank') { rec.step++; continue; }
+      if (!edge || isAsync(edge)) { delete ctx.k.jobs[job.id]; ctx.reply(job, { ok: false, err: edge ? 'invalid' : 'unavailable' }); return; }
+      if (ctx.call(job, edge.id, ragPatch(ctx, rec, job.msg, step), opts) !== null) return;
+      delete ctx.k.jobs[job.id]; ctx.reply(job, { ok: false, err: 'unavailable' }); return;
     }
     delete ctx.k.jobs[job.id];
     const last = rec.last || {};
@@ -455,7 +469,7 @@
     init: () => ({ jobs: {}, steps: Object.fromEntries(RAG_STEPS.map(s => [s, { n: 0, sumMs: 0, failed: 0 }])), answered: 0 }),
     onRequest: (ctx, job) => { ctx.admit(job, ctx.serviceMs(ctx.p.serviceMs, 'constant', 0)); },
     onServed(ctx, job) {
-      const rec = { step: 0, at: ctx.t, last: null };
+      const rec = { step: 0, at: ctx.t, last: null, candidates: 0, stale: false };
       ctx.k.jobs[job.id] = rec;
       ragNext(ctx, job, rec);
     },
@@ -472,6 +486,8 @@
         return;
       }
       const msg = result.msg || {};
+      if (slot === 'search') { rec.candidates = Math.max(0, Number.isFinite(fieldsOf(msg).candidates) ? fieldsOf(msg).candidates : 0); rec.stale = fieldsOf(msg).stale === true;
+        if (rec.stale && ctx.p.rejectStaleResults) { delete k.jobs[job.id]; ctx.reply(job, { ok: false, err: 'unavailable' }); return; } }
       rec.last = { ptype: msg.ptype, kb: msg.kb, tokens: msg.tokens, fields: fieldsOf(msg), candidates: fieldsOf(msg).candidates };
       rec.step += 1;
       ragNext(ctx, job, rec);
@@ -571,11 +587,11 @@
     init: () => ({ jobs: {}, repairs: 0, invalid: 0, valid: 0, epoch: 0 }),
     onRequest(ctx, job) { ctx.admit(job, ctx.edges('generate').length ? 0 : ctx.serviceMs(ctx.p.validateMs, 'constant', 0)); },
     onServed(ctx, job) {
-      if (!ctx.edges('generate').length) { structuredFinish(ctx, job, failed(ctx, ctx.p.parseFailureRate), 0); return; }
+      if (!ctx.edges('generate').length) { structuredFinish(ctx, job, fieldsOf(job.msg).invalid === true || failed(ctx, ctx.p.parseFailureRate), 0); return; }
+      if (isAsync(ctx.edges('generate')[0])) { ctx.reply(job, { ok: false, err: 'invalid' }); return; }
       const rec = { repairs: 0, lastTokens: 0, invalid: false };
       ctx.k.jobs[job.id] = rec;
-      // An async generator edge returns nothing to validate, so the input is parsed directly.
-      if (!structuredCall(ctx, job, rec)) { delete ctx.k.jobs[job.id]; structuredFinish(ctx, job, failed(ctx, ctx.p.parseFailureRate), 0); }
+      if (!structuredCall(ctx, job, rec)) { delete ctx.k.jobs[job.id]; ctx.reply(job, { ok: false, err: 'unavailable' }); }
     },
     onResult(ctx, job, slot, result) {
       const k = ctx.k, rec = k.jobs[job.id];

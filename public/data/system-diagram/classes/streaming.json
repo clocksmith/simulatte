@@ -1,0 +1,42 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "streaming",
+  "version": "1.0.0",
+  "kernels": [],
+  "classes": [
+    {
+      "id": "stream-fanout",
+      "label": "Acknowledged stream fan-out",
+      "category": "messaging",
+      "kernel": "service",
+      "glyph": "queue",
+      "description": "Finite chunks share a bounded concurrent acknowledgement window and waiting buffer. A slow required consumer holds its upstream slot; excess chunks are rejected visibly.",
+      "defaults": {
+        "concurrency": 2,
+        "queueCapacity": 8,
+        "serviceMs": 1,
+        "serviceDist": "constant",
+        "callMode": "parallel",
+        "blockingCalls": true,
+        "callTimeoutMs": 4000,
+        "retries": 0,
+        "outputPayload": "blob"
+      }
+    },
+    {
+      "id": "stream-consumer",
+      "label": "Bounded stream consumer",
+      "category": "compute",
+      "kernel": "endpoint",
+      "glyph": "server",
+      "description": "A synthetic finite-chunk consumer with bounded workers and buffer; acknowledgement follows processing. It does not model media codecs or player playback.",
+      "defaults": {
+        "concurrency": 1,
+        "queueCapacity": 2,
+        "serviceMs": 600,
+        "serviceDist": "constant",
+        "responseKb": 0.1
+      }
+    }
+  ]
+}

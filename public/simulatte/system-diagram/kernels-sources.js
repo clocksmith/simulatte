@@ -139,7 +139,7 @@
     const known = Math.min(p.seedUrls, p.maxPages);
     for (let i = 0; i < known; i += 1) frontier[i % p.domains] += 1;
     return { frontier, nextAllowed: new Array(p.domains).fill(0), throttle: new Array(p.domains).fill(0), busy: new Array(p.domains).fill(false),
-      known, inFlight: 0, fetches: {}, docs: {}, cursor: 0, rr: 0, wakeAt: null, wakeGen: 0, epoch: 0,
+      known, fetchSequence: 0, throttleRetries: new Array(p.domains).fill(0), throttleExhausted: 0, inFlight: 0, fetches: {}, docs: {}, cursor: 0, rr: 0, wakeAt: null, wakeGen: 0, epoch: 0,
       fetched: 0, duplicates: 0, discovered: 0, throttled: 0, failed: 0, documents: 0, documentFailures: 0, stopped: false };
   }
 
@@ -169,7 +169,8 @@
     k.frontier[d] -= 1;
     k.busy[d] = true;
     k.inFlight += 1;
-    const msg = ctx.message({ ptype: 'http', kb: FETCH_REQUEST_KB, op: 'read', key: `domain-${d}` });
+    const fetchId = `${ctx.nodeId}:synthetic-fetch-${++k.fetchSequence}`;
+    const msg = ctx.message({ ptype: 'http', kb: FETCH_REQUEST_KB, op: 'read', key: `domain-${d}`, fields: { synthetic: true, originId: `domain-${d}`, fetchId, provenance: [{ sourceNodeId: ctx.nodeId, originId: `domain-${d}`, fetchId }] } });
     ctx.beginRequest(msg);
     const job = ctx.newJob(msg);
     k.fetches[job.id] = d;
@@ -195,7 +196,7 @@
   function crawlerEmit(ctx, job) {
     const k = ctx.k, p = ctx.p;
     const kb = Math.max(FETCH_REQUEST_KB, ctx.exp(p.pageKbMean));
-    const patch = { ptype: 'document', op: 'write', kb, tokens: Math.round(kb * TOKENS_PER_KB) };
+    const patch = { ptype: 'document', op: 'write', kb, tokens: Math.round(kb * TOKENS_PER_KB), fields: { ...job.msg.fields, fetchedAtSec: ctx.t } };
     let pending = 0;
     ctx.edges('documents').forEach((edge, i) => {
       k.documents += 1;
@@ -211,7 +212,7 @@
     k.busy[d] = false;
     if (result.ok) {
       k.fetched += 1;
-      k.throttle[d] = 0;
+      k.throttle[d] = 0; k.throttleRetries[d] = 0;
       k.nextAllowed[d] = ctx.t + ms(p.politenessMs) * ctx.fault.slowFactor;
       crawlerDiscover(ctx);
       crawlerEmit(ctx, job);
@@ -220,7 +221,7 @@
     if (result.err === 'rate-limited') {
       const base = Math.max(p.politenessMs, THROTTLE_MIN_MS);
       k.throttled += 1;
-      k.frontier[d] += 1;
+      if (k.throttleRetries[d] < p.maxThrottleRetries) { k.frontier[d] += 1; k.throttleRetries[d]++; } else { k.throttleExhausted++; k.failed++; ctx.log('crawler-retry-exhausted', `Rate-limit redrive budget exhausted for domain-${d}`); }
       k.throttle[d] = Math.min(base * THROTTLE_MAX_FACTOR, (k.throttle[d] || base) * THROTTLE_BACKOFF_FACTOR);
       k.nextAllowed[d] = ctx.t + ms(k.throttle[d]) * ctx.fault.slowFactor;
     } else {
@@ -273,6 +274,7 @@
       const frontier = k.frontier.reduce((a, b) => a + b, 0);
       const detail = { frontier, 'pages fetched': k.fetched, 'in flight': `${k.inFlight}/${ctx.p.fetchConcurrency}`, 'duplicates skipped': k.duplicates, throttled: k.throttled, documents: k.documents };
       if (k.failed) detail['failed fetches'] = k.failed;
+      if (k.throttleExhausted) detail['rate-limit budget exhausted'] = k.throttleExhausted;
       if (k.documentFailures) detail['failed documents'] = k.documentFailures;
       if (k.stopped) detail.state = 'stopped';
       else if (!frontier && !k.inFlight) detail.state = 'done';

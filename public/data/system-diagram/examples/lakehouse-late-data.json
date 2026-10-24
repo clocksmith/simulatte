@@ -1,0 +1,216 @@
+{
+  "schema": "simulatte.systemDiagram.v1",
+  "id": "lakehouse-late-data",
+  "name": "Event-time windows, schema evolution and spill",
+  "description": "Finite synthetic events include late timestamps and a declared schema-version transition. The graph validates both versions, maintains tumbling sums/counts with a watermark, quarantines excessively late records and models partition FIFO transfer, bounded buffers and spill I/O delay.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 30
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "events",
+      "classId": "event-source",
+      "label": "Events",
+      "x": 0,
+      "y": 90,
+      "params": {
+        "count": 20,
+        "intervalMs": 100,
+        "entities": 2,
+        "payloadKb": 1024,
+        "lateEvery": 4,
+        "lateByMs": 5000,
+        "evolveAfter": 10,
+        "newSchemaVersion": 2,
+        "callTimeoutMs": 25000,
+        "deadlineMs": 28000,
+        "retries": 0
+      }
+    },
+    {
+      "id": "evolving-schema",
+      "classId": "schema-validator",
+      "label": "Evolving Schema",
+      "x": 240,
+      "y": 90,
+      "params": {
+        "maxSchemaVersion": 2,
+        "callTimeoutMs": 25000,
+        "retries": 0
+      }
+    },
+    {
+      "id": "event-time",
+      "classId": "event-window",
+      "label": "Event Time",
+      "x": 480,
+      "y": 90,
+      "params": {
+        "windowSec": 0.5,
+        "watermarkLagSec": 0.1,
+        "allowedLateSec": 0.2,
+        "maxSchemaVersion": 2,
+        "maxWindows": 100,
+        "callTimeoutMs": 25000,
+        "retries": 0
+      }
+    },
+    {
+      "id": "shuffle",
+      "classId": "shuffle-spill",
+      "label": "Shuffle",
+      "x": 720,
+      "y": 90,
+      "params": {
+        "partitions": 3,
+        "bufferMiB": 0.5,
+        "shuffleMiBps": 2,
+        "spillMiBps": 2,
+        "checkpointEvery": 3,
+        "concurrency": 4,
+        "memoryLimitMiB": 64,
+        "callTimeoutMs": 25000,
+        "retries": 0
+      }
+    },
+    {
+      "id": "lake-store",
+      "classId": "idempotent-store",
+      "label": "Lake Store",
+      "x": 960,
+      "y": 90,
+      "params": {
+        "serviceDist": "constant",
+        "writeMs": 3
+      }
+    },
+    {
+      "id": "late-data",
+      "classId": "event-quarantine",
+      "label": "Late Data",
+      "x": 480,
+      "y": 320,
+      "params": {
+        "maxRecords": 100
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "events-schema",
+      "from": {
+        "nodeId": "events",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "evolving-schema",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "schema-windows",
+      "from": {
+        "nodeId": "evolving-schema",
+        "portId": "accepted"
+      },
+      "to": {
+        "nodeId": "event-time",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "invalid-events",
+      "from": {
+        "nodeId": "evolving-schema",
+        "portId": "quarantine"
+      },
+      "to": {
+        "nodeId": "late-data",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "windows-shuffle",
+      "from": {
+        "nodeId": "event-time",
+        "portId": "accepted"
+      },
+      "to": {
+        "nodeId": "shuffle",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "too-late",
+      "from": {
+        "nodeId": "event-time",
+        "portId": "quarantine"
+      },
+      "to": {
+        "nodeId": "late-data",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "shuffle-store",
+      "from": {
+        "nodeId": "shuffle",
+        "portId": "accepted"
+      },
+      "to": {
+        "nodeId": "lake-store",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    },
+    {
+      "id": "shuffle-rejected",
+      "from": {
+        "nodeId": "shuffle",
+        "portId": "quarantine"
+      },
+      "to": {
+        "nodeId": "late-data",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "assumptions",
+      "text": "Synthetic event-time aggregation and scalar schema-version compatibility. Spill is modeled payload transfer plus write/read delay, not OS paging. Logical partition snapshots are checkpoint metadata; full exact restoration uses the coordinator checkpoint.",
+      "x": 20,
+      "y": -80,
+      "w": 900
+    }
+  ],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

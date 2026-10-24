@@ -19,8 +19,8 @@ with CommonJS exports, matching the rest of World. No file exceeds 999 lines.
 | File | Role |
 | --- | --- |
 | `class-library.js`, `diagram.js` | Governed class packs, parameters, named ports, document validation and compilation |
-| `kernel-registry.js`, `kernels-*.js` | Explicit behavior registration and capability checks for the 24 synthetic kernels |
-| `engine-core.js`, `engine.js` | Ordered events, per-node RNG, calls, resources, faults, causal records and observation |
+| `kernel-registry.js`, `kernels-*.js` | Explicit behavior registration and capability checks for declared synthetic kernels |
+| `engine-core.js`, `engine.js`, `engine-network.js`, `engine-observability.js` | Ordered events, per-node RNG, calls, resources, faults, causal records and observation |
 | `runner.js` | WorldSpec and shared coordinator binding, exact display state, controls, checkpoints and replay |
 | `editor-model.js` | Atomic commands, selection, semantic identity and undo/redo |
 | `editor-canvas.js`, `editor.css` | SVG authoring, named-port wiring, reconnect, pan/zoom and actual-state rendering |
@@ -332,8 +332,8 @@ hardware, and replay hashes do not establish physical validity.
 
 ## Executable capability status
 
-The canonical class library declares 24 kernels and 50 built-in class presets.
-All 24 kernels now have registered synthetic implementations. The runtime
+The canonical class library declares 31 kernels, including reusable event-processing
+primitives. All declared kernels have registered synthetic implementations. The runtime
 registry's `ids()` remains the executable-kernel inventory; metadata alone does
 not establish support. User classes inherit their base kernel, ports, parameter
 validation and model limitations. Registration and passing synthetic tests do not
@@ -349,13 +349,14 @@ establish production fidelity or human usability.
 | `vectorIndex`, `reranker`, `retriever` | Synthetic index growth/query time, candidate scoring time and explicit embed/search/rerank/generate calls | No actual ANN algorithm, embeddings, learned relevance, measured recall or retrieval quality |
 | `chunker`, `structuredResponse` | Bounded token chunks/overlap, downstream fan-out, synthetic validity flags and finite repair calls | No real tokenizer, JSON parser, schema validator or semantic extraction |
 | `database`, `replicatedDb` | Synthetic writes/effects, async/sync/quorum wait sets, replica lag, stale reads, leader/follower failure, election and lost unreplicated versions | Not a consensus implementation, real durability guarantee, transaction isolation model or proof for arbitrary quorum configurations |
-| `cache` | Keyed TTL, sampled LRU, coalesced misses, write policies, cold restart and declared fail-open origin bypass | No heap/GC, real cache coherence or realistic cache capacity calibration |
+| `cache` | Keyed TTL, sampled LRU, coalesced misses, write policies, cold restart and declared fail-open origin bypass | No real heap/GC, cache coherence or cache capacity calibration |
 | `objectStore` | Base latency plus object size/per-request throughput, bounded station and write effects | No durable bytes, shared disk bandwidth/IOPS or storage consistency proof |
+| Event processing | Explicit event identity/schema/version/time/lineage, validation/quarantine, approval, ordered/idempotent reconciliation, late-event windows and partitioned shuffle/spill | Synthetic flags and scalar records, not arbitrary schema transformation, clinical decisions, financial settlement or real disk checkpoints |
 | `cron` | Interval scheduling, nominal starts, overlap handling, missed runs and retry budgets | No host cron daemon, calendar/time-zone scheduling or external jobs |
 | `crawler` | Bounded synthetic per-domain frontier, duplicate sampling, fetch concurrency, politeness, throttle backoff and document emission | No live scraping, actual URLs, content semantics, access-policy evaluation or complete source provenance |
 
 Resource groups share a declared count of executable worker/batch slots. Station
-kernels and the `batchWorker`/`embedder` resource hooks acquire these slots; batch
+kernels and explicitly declared `batchWorker`/`embedder` slot owners acquire these slots; batch
 completion or crash releases them and wakes waiting peers through a deferred
 logical event. A resource group containing unsupported custom kernels such as
 `llm`, `crawler` or `cron` must refuse execution instead of implying contention
@@ -363,7 +364,7 @@ that those kernels do not model. Boundary groups remain visual; zone/region grou
 retain only their declared outage semantics. A group is not physical VRAM sharing,
 network placement or arbitrary protocol realism.
 
-The three shipped example documents compose the same kernels:
+The shipped example documents compose the same kernels:
 
 - `web-service`: clients → CPU API → TTL cache → asynchronous replica store, plus
   leased queue → CPU worker → idempotent results and a dead-letter destination.
@@ -387,3 +388,38 @@ check the shipped diagrams, topology-dependent execution, deterministic replay a
 serialized continuation. Engine checkpoints, resource ledgers and causal inspection
 have separate assertions. Browser interaction and visual review remain additional
 evidence layers; no kernel test proves a successful user journey or calibration.
+
+## Authoring and qualified repair journeys
+
+The [coverage matrix](system-diagram-coverage.md) names the six requested workload
+journeys, concrete gaps and independent acceptance tests. Streaming, replica recovery,
+agent recovery and healthcare/finance/lakehouse examples are editable compositions,
+not separate engines. Every component remains available from a blank canvas.
+
+Contextual fault authoring lists applicable node, link and failure-domain faults,
+validated parameters and logical start/end times. Scheduled faults belong to pending
+architecture; injected controls belong to the accepted run. Resource clusters do not
+imply failure-domain semantics.
+
+Capture baseline retains immutable authored demand, fault timing and controls. Compare
+repair executes baseline and edited architecture sequentially, verifies both replays,
+checks actual source IDs/times and complete input payload descriptors, then restores
+the prior accepted checkpoint. Response-coupled demand that differs is refused as a
+paired experiment. Exported evidence contains both executable replay documents.
+
+Network transfers retain remaining serialization and propagation work. Authored FIFO
+or fair bandwidth sharing and full or shared duplex links invalidate stale completion
+estimates when contention, capacity or faults change. Node memory policies model
+pressure slowdown, retained garbage, GC pauses and bounded admission or synthetic
+OOM crash/recovery. The memory and transfer ledgers reconcile their modeled totals.
+These are explicit discrete-event policies, not calibrated hardware predictions.
+
+A locally committed effect with a failed or missing caller acknowledgement remains an
+unknown caller outcome until an acknowledged idempotent retry confirms that exact
+effect. The original failed attempt remains visible. Request, attempt, effect, retained payload and resource-cause
+records remain inspectable. Reconciliation waits and quarantine retain modeled memory
+and blockers after the initiating logical request finishes.
+
+Request deadlines and background work deadlines are separate readouts. A queue can
+acknowledge ingestion before a retained or executing task exceeds its deadline;
+that work remains visible rather than inheriting the producer's completed status.

@@ -18,7 +18,7 @@ function terminal(run) { const view = finish(run); assert.equal(view.error, null
 
 test('canonical kernel declarations all register actual behavior and every shipped class resolves', () => {
   assert.deepEqual(kernels.ids(), Object.keys(library.kernels).sort());
-  assert.equal(kernels.ids().length, 24);
+  assert.deepEqual(kernels.ids().sort(), Object.keys(library.kernels).sort(), 'every declared kernel has executable behavior and every behavior has an authoring declaration');
   for (const classId of library.classOrder) {
     const definition = library.classes[classId]; assert.ok(kernels.has(definition.kernel), classId);
   }

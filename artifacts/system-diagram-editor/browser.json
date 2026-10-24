@@ -1,119 +1,123 @@
 {
   "source": {
-    "head": "700a5be6cb8879c124aad8e96a35d9315bd0e657",
-    "capturedAt": "2026-10-23T22:27:33.906Z",
+    "head": "fdbb180755094f065b4cf589ba51ac6f4a149418",
+    "capturedAt": "2026-10-24T00:34:09.599Z",
     "modifiedSources": {
-      "public/data/system-diagram/classes/routing.json": {
-        "sha256": "a3235d5aedb2844e289d9eff94d35ee7388f09d2fcafd9b6b0b8161aa0002212",
-        "modifiedAt": "2026-10-23T22:17:47.804Z"
+      "public/data/system-diagram/class-library.json": {
+        "sha256": "c5d8175b9cca5e9bf2049279c7a2e780dbc9a9f4ffd6b114c213a3bd49dd0cc8",
+        "modifiedAt": "2026-10-24T00:11:25.106Z"
+      },
+      "public/data/system-diagram/classes/ai.json": {
+        "sha256": "65afa589568eca1ed6886c6ee01213b5945cf663c11336cf2dde7a527ba8f5d8",
+        "modifiedAt": "2026-10-24T00:11:25.859Z"
+      },
+      "public/data/system-diagram/classes/core.json": {
+        "sha256": "8c724a97c9c29d9ad4471c9b1ec4a3b273e187f7c8476dd59d74f3b410ecbeb6",
+        "modifiedAt": "2026-10-24T00:11:04.499Z"
+      },
+      "public/data/system-diagram/classes/pipeline.json": {
+        "sha256": "7133547fc24f0e74f93468992de3f476433c1c9f277cbcbed7c69d55738cd4b5",
+        "modifiedAt": "2026-10-24T00:16:14.386Z"
+      },
+      "public/data/system-diagram/classes/sources.json": {
+        "sha256": "637266ef8c6475ac7463776d238ee6975b8ed9428987d8e48254f7a49857037b",
+        "modifiedAt": "2026-10-24T00:07:39.433Z"
       },
       "public/data/system-diagram/classes/storage.json": {
-        "sha256": "1b89c9f502888442fdc29333f7df48a1e5262dcbf37dbe121f7d9499705a0f47",
-        "modifiedAt": "2026-10-23T22:18:02.100Z"
+        "sha256": "7780c04f75fcfb9ae34cbe6463c04d8423c7cde0754e019ff619e0a615157c69",
+        "modifiedAt": "2026-10-24T00:11:04.523Z"
+      },
+      "public/data/system-diagram/classes/streaming.json": {
+        "sha256": "b95b59700203e3b7dee870f6a6fcf94c6d51e56f5a262c7cf132bd28ea652a56",
+        "modifiedAt": "2026-10-24T00:07:50.789Z"
       },
       "public/data/system-diagram/config.json": {
-        "sha256": "508cba82f5836d2223b66075825ed3e7796a9535d13144163ea016adec28219b",
-        "modifiedAt": "2026-10-23T22:20:05.309Z"
+        "sha256": "15e147913bbe9d41c5e00c6eb1a174833fb1e5bdcbdb4b52d4f54410ec56a357",
+        "modifiedAt": "2026-10-24T00:14:05.535Z"
       },
-      "public/data/system-diagram/examples/rag-assistant.json": {
-        "sha256": "0d4e23df283c70dc85725a544dd1b56980e0cbb6504c98632f1348450fd7d2a1",
-        "modifiedAt": "2026-10-23T22:20:21.536Z"
+      "public/data/system-diagram/examples/agent-recovery.json": {
+        "sha256": "e492eaba33b272b8e2634641cca281d12e38efcf20b12a49e39075eeaf3afd9f",
+        "modifiedAt": "2026-10-24T00:09:46.860Z"
       },
-      "public/simulatte/system-diagram/editor-canvas-render.js": {
-        "sha256": "147c074107984b1072f669fb2a58669afc3102be7fe7244e2914d6e67623742c",
-        "modifiedAt": "2026-10-23T22:23:29.504Z"
+      "public/data/system-diagram/examples/finance-reconciliation.json": {
+        "sha256": "3261cd5e5cae0cc8498605dfbdf881c3dbbe986d5b2eb262fced3a4c2c530c4f",
+        "modifiedAt": "2026-10-24T00:12:56.536Z"
+      },
+      "public/data/system-diagram/examples/healthcare-ingestion.json": {
+        "sha256": "22f5156f325593c051c3cb850a1252bfb685515fbd7f9e0e5de816c0174ecd8d",
+        "modifiedAt": "2026-10-24T00:12:56.536Z"
+      },
+      "public/data/system-diagram/examples/lakehouse-late-data.json": {
+        "sha256": "583682c4b5743d49294317ea36bd6113125dc77171bd10c829ae7212630a9146",
+        "modifiedAt": "2026-10-24T00:16:14.385Z"
+      },
+      "public/data/system-diagram/examples/replica-recovery.json": {
+        "sha256": "0a73bb4c95f6c0c97ffc3a7bffb1769160dae60e747db348ad6a9571dbffb85f",
+        "modifiedAt": "2026-10-24T00:07:50.789Z"
+      },
+      "public/data/system-diagram/examples/streaming-burst.json": {
+        "sha256": "bd4725987405e491f7a47ebba873667605b19a89aa329d129ed8d44ff896ecc8",
+        "modifiedAt": "2026-10-24T00:08:15.887Z"
       },
       "public/simulatte/system-diagram/editor-canvas.js": {
-        "sha256": "896b5715d3db30e99e1d29e3c5402ce42db8303f784cfee42c1fc6b3b96bc527",
-        "modifiedAt": "2026-10-23T22:22:45.547Z"
-      },
-      "public/simulatte/system-diagram/editor-model.js": {
-        "sha256": "4dc2ecd4b12df08d963a6dca2a49fc2785450acb8927c3e2aabff2518db17842",
-        "modifiedAt": "2026-10-23T22:19:53.156Z"
-      },
-      "public/simulatte/system-diagram/editor.css": {
-        "sha256": "9f7d722cf561ca8895500b55310b5442f00215e9f8a939a0175af474aad5ef1c",
-        "modifiedAt": "2026-10-23T22:23:29.504Z"
+        "sha256": "91d9893dd18ff16986e72fb6f9e6a99cdc22999426891cafeea8660a679d1662",
+        "modifiedAt": "2026-10-24T00:32:17.895Z"
       },
       "public/simulatte/system-diagram/engine-core.js": {
-        "sha256": "70ab08face3778f6bba7b651e2de66f177d012d22a84514d7607970a87988cc6",
-        "modifiedAt": "2026-10-23T22:23:56.481Z"
+        "sha256": "c4438be89f9edb5b71dd2c4c5f0dc21d981fe75e4659e78cf99d972c1be60868",
+        "modifiedAt": "2026-10-24T00:12:47.226Z"
+      },
+      "public/simulatte/system-diagram/engine-network.js": {
+        "sha256": "0ae7fe4f05ceef8a869f1468c211228c2c67be105e6ce2818ff4ec438de43cad",
+        "modifiedAt": "2026-10-24T00:15:17.161Z"
       },
       "public/simulatte/system-diagram/engine-observability.js": {
-        "sha256": "d5a0ebb27dbd3e773cefd78a6fe8f68a9484f5711cdf3769ca57ea3f5f665ba3",
-        "modifiedAt": "2026-10-23T22:25:10.186Z"
+        "sha256": "fb0586a562a388032d0b10045f300d5dcad7941edeeb2151b55061ced24f0d63",
+        "modifiedAt": "2026-10-24T00:25:09.751Z"
       },
       "public/simulatte/system-diagram/engine.js": {
-        "sha256": "1ddea6b0a639074c66c59649855687e8b82a2c847af4abd6eb4d5c35b3fe4193",
-        "modifiedAt": "2026-10-23T22:23:56.481Z"
-      },
-      "public/simulatte/system-diagram/file-io.js": {
-        "sha256": "711b70912c307a232970c6e6f87472e8f247a184b4bd0dc610e7b48be12a5023",
-        "modifiedAt": "2026-10-23T22:17:47.807Z"
-      },
-      "public/simulatte/system-diagram/glyphs.js": {
-        "sha256": "b2aa3d3dc865ed62e4271fa4cfa385a0e2b266c396e96bfddabffe39df36b294",
-        "modifiedAt": "2026-10-23T22:17:47.807Z"
+        "sha256": "ec525b3026e49d0f2f4a1cbc99a3fcd15e7824e21e1108cf232e998b5286c8c8",
+        "modifiedAt": "2026-10-24T00:25:20.876Z"
       },
       "public/simulatte/system-diagram/index.html": {
-        "sha256": "071ce1d9f9093708211d2f6892881396800d262a4b7728eccaf3f42fbf94c89f",
-        "modifiedAt": "2026-10-23T22:20:05.310Z"
-      },
-      "public/simulatte/system-diagram/inspector.js": {
-        "sha256": "21e7037dcd57dd32f1ff2db7dc9d0cd7328f3bfac9aeb1e25cdbf8e00f8e75b1",
-        "modifiedAt": "2026-10-23T22:17:47.807Z"
+        "sha256": "0623031b6d96bd1b449f3382608dd39e8c3646dfa3b7f9436e90b2e5dece22d9",
+        "modifiedAt": "2026-10-24T00:18:46.670Z"
       },
       "public/simulatte/system-diagram/kernel-registry.js": {
-        "sha256": "6ddc7fa61b050e75406c37ccf7bd704382d22cfef00e66e71c4a4cad04490d94",
-        "modifiedAt": "2026-10-23T22:22:10.189Z"
+        "sha256": "11d9f02f332b785dbbca2eaa6018b73ab1943be91a5df9c561476b149e090dec",
+        "modifiedAt": "2026-10-24T00:16:41.468Z"
       },
       "public/simulatte/system-diagram/kernels-ai.js": {
-        "sha256": "885e7794939089385cae0210c445ecdffadf359226c869f0e65a0aa286b655f7",
-        "modifiedAt": "2026-10-23T22:22:10.189Z"
+        "sha256": "11b5e80679ab2e12ff4a7da3a31ee0733a1676c485c923c4ee715b86bd42277e",
+        "modifiedAt": "2026-10-24T00:16:42.152Z"
       },
-      "public/simulatte/system-diagram/kernels-core.js": {
-        "sha256": "bc76975666d9f503acb996f65bf13c68d64c11da69c5162cf3004c870a25e056",
-        "modifiedAt": "2026-10-23T22:18:02.333Z"
+      "public/simulatte/system-diagram/kernels-all.js": {
+        "sha256": "fdbee0c622a1a5618bc959d61f22484f41be89d19ee46a62a3d380e99b6892d3",
+        "modifiedAt": "2026-10-24T00:06:36.057Z"
       },
-      "public/simulatte/system-diagram/kernels-routing.js": {
-        "sha256": "2d38db6bcf014763e959e930248b68ee735efd151fbb41d882fc5a7334625782",
-        "modifiedAt": "2026-10-23T22:17:47.808Z"
+      "public/simulatte/system-diagram/kernels-pipeline.js": {
+        "sha256": "a297e4b04f57745604e0ac7a3a61437ec5e2cdc31f37f9f39398328522627c60",
+        "modifiedAt": "2026-10-24T00:16:14.382Z"
       },
       "public/simulatte/system-diagram/kernels-sources.js": {
-        "sha256": "1904ea221e85a592a42ca5cb310f3df611d6bdf511f16c4440a907987f042f71",
-        "modifiedAt": "2026-10-23T22:18:02.359Z"
+        "sha256": "32dcd87a6544d150436cdb2317a17eb8dcb7a05c1551ea4e272ab291f3d8255a",
+        "modifiedAt": "2026-10-24T00:08:31.300Z"
       },
       "public/simulatte/system-diagram/kernels-storage.js": {
-        "sha256": "c3a74f4de1af46bff7cc26ccc67748e7fcfdc1f9bdb034e798c21792575e0035",
-        "modifiedAt": "2026-10-23T22:18:02.384Z"
+        "sha256": "bcd10be6edf4609301b32b6b9154faf5a864148942808f85b969db747013045d",
+        "modifiedAt": "2026-10-24T00:06:28.065Z"
       },
-      "public/simulatte/system-diagram/metrics-panel.js": {
-        "sha256": "41775acde148a18e5344067724d9eada377a8419e22b1beec9cde2cf6d03e7f3",
-        "modifiedAt": "2026-10-23T22:17:47.809Z"
-      },
-      "public/simulatte/system-diagram/overlay.js": {
-        "sha256": "fdedb6f74a7b419b63ebfbdcbf35a24661648d3f77449bba4246751b94fb62a3",
-        "modifiedAt": "2026-10-23T22:17:47.809Z"
+      "public/simulatte/system-diagram/page-journeys.js": {
+        "sha256": "6d69bd812e271d9b1c2805bba851fc00aefb32145514a832ab2a8ae27bea33fb",
+        "modifiedAt": "2026-10-24T00:16:28.909Z"
       },
       "public/simulatte/system-diagram/page.js": {
-        "sha256": "1a78661202ef4bc4ca534c8506e22df25dcf674de65f72efffc9719b5b371460",
-        "modifiedAt": "2026-10-23T22:23:38.766Z"
+        "sha256": "aed89e59fd9c6feebea6ec2f6244c8cff846a7d646d2ccdc20c61feb9b05af16",
+        "modifiedAt": "2026-10-24T00:26:29.954Z"
       },
-      "public/simulatte/system-diagram/palette.js": {
-        "sha256": "a6bd4bfef912c4dfbfa5f8c9dfdd90b3b3409bd34519a97c9e0a2fe555241264",
-        "modifiedAt": "2026-10-23T22:17:47.809Z"
-      },
-      "public/simulatte/system-diagram/run-controls.js": {
-        "sha256": "43ec66437e770b27218b78147801cd1310c282bf5d0e59d9be3aba654858393b",
-        "modifiedAt": "2026-10-23T22:17:47.809Z"
-      },
-      "public/simulatte/system-diagram/run.css": {
-        "sha256": "a728cf0869b62645e66290a2a9ee55d111d21ce94a070e6ee62c2c0facb19417",
-        "modifiedAt": "2026-10-23T22:17:47.810Z"
-      },
-      "public/simulatte/system-diagram/runner.js": {
-        "sha256": "d6f17e949ece04269afb1e778248b081b68b2fac110c5dfa1421b8c82018fc51",
-        "modifiedAt": "2026-10-23T22:25:38.508Z"
+      "public/simulatte/system-diagram/style.css": {
+        "sha256": "8e49cf567977ff3af45e9bb14c06a8b190e74ff9297b79adcc0230193fcb645a",
+        "modifiedAt": "2026-10-24T00:14:07.802Z"
       }
     },
     "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."

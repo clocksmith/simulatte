@@ -47,7 +47,7 @@
       if (kernel.station) core.createStation(R, node.id);
       if (kernel.bypass !== undefined) checkBypass(deps.library.kernels[node.kernel], kernel.bypass);
     }
-    for (const group of compiled.groups.filter(g => g.kind === 'resource')) for (const id of group.nodeIds) { const kernel = core.kernelOf(R, id); if (!kernel.station && !kernel.onResources) fail(`resource group ${group.id}`, 'members with station or explicit resource hooks', id); }
+    for (const group of compiled.groups.filter(g => g.kind === 'resource')) for (const id of group.nodeIds) { const kernel = core.kernelOf(R, id); if (!kernel.station && !kernel.resourceSlots) fail(`resource group ${group.id}`, 'members with station or explicit resource slot ownership', id); }
     compiled.faults.forEach((fault, i) => {
       core.schedule(R, fault.atSec, { k: 'flt', i, on: true });
       if (fault.untilSec !== null) core.schedule(R, fault.untilSec, { k: 'flt', i, on: false });
@@ -129,7 +129,7 @@
       core.log(R, 'control', handled ? `redrive on ${label}` : `redrive on ${label}: not handled by kernel ${core.kernelOf(R, c.target.id).id}`, refOf(c.target));
     } else {
       state.ov[c.target.id] = { ...(state.ov[c.target.id] || {}), ...c.params };
-      core.invalidateParams(R, c.target.id);
+      core.invalidateParams(R, c.target.id); if (c.target.kind === 'edge') core.updateNetwork(R, c.target.id); else observability.memoryChanged(R, c.target.id, core.nodeParams(R, c.target.id));
       if (c.target.kind === 'node') {
         const station = core.kernelOf(R, c.target.id).station;
         if (station && (Object.hasOwn(c.params, station.concurrency) || Object.hasOwn(c.params, station.queueCapacity))) core.resize(R, c.target.id);
@@ -187,7 +187,7 @@
     if (f.down) health = 'down';
     else if (health === null) health = f.blackhole || f.dropReplies || f.slowFactor > 1 || f.errorRate > 0 ? 'degraded' : queue > 0 || (capacity > 0 && busy >= capacity) ? 'busy' : 'ok';
     const faults = core.faultTypesOn(R, 'node', node.id);
-    const heldMiB = s.observability.nodeMemory[node.id] || 0, peakMemoryMiB = s.observability.nodePeak[node.id] || 0; Object.assign(detail, { 'Held MiB': heldMiB, 'Peak MiB': peakMemoryMiB });
+    const memoryPolicy = s.observability.memoryPolicy[node.id] || {}, heldMiB = s.observability.nodeMemory[node.id] || 0, peakMemoryMiB = s.observability.nodePeak[node.id] || 0; Object.assign(detail, { 'Held MiB': heldMiB, 'Peak MiB': peakMemoryMiB, 'Memory slowdown': memoryPolicy.factor || 1, 'GC paused': memoryPolicy.gcUntil !== null && memoryPolicy.gcUntil !== undefined && s.t < memoryPolicy.gcUntil, 'GC cycles': memoryPolicy.gcs || 0, 'OOM admissions': memoryPolicy.ooms || 0 });
     return {
       health, faults, heldMiB, peakMemoryMiB, queue, queueCapacity: pick('queueCapacity', st ? core.nodeParams(R, node.id)[kernel.station.queueCapacity] : 0), busy, capacity,
       utilization: st ? core.utilization(R, node.id) : 0,
@@ -203,25 +203,19 @@
     const completedWindow = windowCounts(R, 'completed'), failedWindow = windowCounts(R, 'failed');
     const latencyWindow = core.newHist(), fromBucket = core.seriesIndex(R, s.t) - core.latencyBuckets(R) + 1;
     for (const row of s.series.lw) if (row.i >= fromBucket) core.histMerge(latencyWindow, row);
-    const transitCount = {}, transit = [];
-    for (const ev of s.heap) {
-      if (ev.k !== 'arr' && ev.k !== 'rep') continue;
-      transitCount[ev.e] = (transitCount[ev.e] || 0) + 1;
-      transit.push(ev);
-    }
-    transit.sort((a, b) => a.t - b.t || a.s - b.s);
+    const networkRows = core.networkView(s), transitCount = new Map(); for (const row of networkRows) transitCount.set(row.edgeId, (transitCount.get(row.edgeId) || 0) + 1);
     const nodes = {}, edges = {};
     for (const node of compiled.nodes) nodes[node.id] = nodeView(R, node);
     for (const edge of compiled.edges) {
       const es = s.edges[edge.id], sent = core.windowSum(es.win, s.t, 0), errs = core.windowSum(es.win, s.t, 1);
-      edges[edge.id] = { rate: sent / core.windowSpan(s.t), errorRate: sent ? Math.min(1, errs / sent) : 0, inTransit: transitCount[edge.id] || 0, faults: core.faultTypesOn(R, 'edge', edge.id) };
+      edges[edge.id] = { rate: sent / core.windowSpan(s.t), errorRate: sent ? Math.min(1, errs / sent) : 0, inTransit: transitCount.get(edge.id) || 0, faults: core.faultTypesOn(R, 'edge', edge.id) };
     }
     const failedBy = {}, observed = observability.view(s);
     for (const key of Object.keys(g.failedBy).sort()) failedBy[key] = g.failedBy[key];
     return {
       t: s.t, horizonSec: compiled.horizonSec, done: s.t >= compiled.horizonSec || s.error !== null, error: s.error,
       global: {
-        memoryMiB: observed.memoryMiB, peakMemoryMiB: observed.peakMemoryMiB, offered: g.offered, completed: g.completed, failed: g.failed, failedBy, inFlight: g.offered - g.completed - g.failed,
+        unknownEffects: observed.unknownEffects, backgroundDeadlineMisses: observed.backgroundDeadlineMisses, memoryMiB: observed.memoryMiB, peakMemoryMiB: observed.peakMemoryMiB, offered: g.offered, completed: g.completed, failed: g.failed, failedBy, inFlight: g.offered - g.completed - g.failed,
         attempts: g.attempts, retries: g.retries, effects: g.effects, duplicateEffects: g.duplicateEffects, wastedWork: g.wastedWork, cost: g.cost,
         deadlineMisses: g.deadlineMisses,
         throughput: completedWindow / core.windowSpan(s.t, R.eng.seriesBucketSec), errorRate: completedWindow + failedWindow ? failedWindow / (completedWindow + failedWindow) : 0,
@@ -230,7 +224,7 @@
       },
       series: seriesView(R),
       nodes, edges,
-      transit: transit.slice(0, R.eng.transitRenderLimit).map(ev => ({ id: ev.m.id, edgeId: ev.e, kind: ev.k === 'arr' ? 'req' : 'res', t0: ev.t0, t1: ev.t, ptype: ev.m.ptype, ok: ev.k === 'arr' ? true : ev.ok })),
+      transit: networkRows.slice(0, R.eng.transitRenderLimit),
       log: s.log.map(row => ({ ...row })), requests: observed.requests, attempts: observed.attempts, effects: observed.effects,
     };
   }
