@@ -1,0 +1,165 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "replication",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "linkedReplica",
+      "label": "Linked replica database",
+      "description": "Fixed designated leader and explicit follower nodes exchange bounded retry messages on authored replica links. Write acknowledgements require the configured replica count. No election or consensus is modeled.",
+      "paramSets": [
+        "memory"
+      ],
+      "params": {
+        "role": {
+          "type": "enum",
+          "label": "Replica role",
+          "options": [
+            "leader",
+            "follower"
+          ],
+          "default": "leader",
+          "group": "basic"
+        },
+        "writeQuorum": {
+          "type": "integer",
+          "label": "Write acknowledgement count",
+          "min": 1,
+          "max": 64,
+          "default": 1,
+          "group": "basic"
+        },
+        "applyMs": {
+          "type": "number",
+          "label": "Local apply time",
+          "min": 0,
+          "max": 60000,
+          "default": 10,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "recoveryMs": {
+          "type": "number",
+          "label": "Recovery time",
+          "min": 0,
+          "max": 60000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "timeoutMs": {
+          "type": "number",
+          "label": "Replication attempt timeout",
+          "min": 1,
+          "max": 60000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retryIntervalMs": {
+          "type": "number",
+          "label": "Replication retry interval",
+          "min": 1,
+          "max": 60000,
+          "default": 200,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "label": "Maximum replication attempts",
+          "min": 1,
+          "max": 100,
+          "default": 5,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Retained record capacity",
+          "min": 1,
+          "max": 50000,
+          "default": 1000,
+          "group": "basic"
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Apply concurrency",
+          "min": 1,
+          "max": 100000,
+          "default": 1,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Apply waiting slots",
+          "min": 0,
+          "max": 100000,
+          "default": 100,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Client requests",
+          "accepts": [
+            "any"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "replicate",
+          "direction": "out",
+          "label": "Replication messages",
+          "emits": [
+            "rows"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "replica",
+          "direction": "in",
+          "label": "Replica writes",
+          "accepts": [
+            "rows"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "database-leader",
+      "label": "Linked database leader",
+      "category": "storage",
+      "kernel": "linkedReplica",
+      "glyph": "database",
+      "description": "Fixed leader commits locally and replicates over the drawn network.",
+      "defaults": {
+        "role": "leader"
+      }
+    },
+    {
+      "id": "database-replica",
+      "label": "Linked database follower",
+      "category": "storage",
+      "kernel": "linkedReplica",
+      "glyph": "replicas",
+      "description": "Explicit follower applies row messages after actual authored link transfer. No leader election.",
+      "defaults": {
+        "role": "follower"
+      }
+    }
+  ]
+}

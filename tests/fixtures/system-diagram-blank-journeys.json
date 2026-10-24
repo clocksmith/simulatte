@@ -1,0 +1,952 @@
+{
+  "schema": "simulatte.blankJourneyPlans.v1",
+  "families": [
+    {
+      "seed": 42,
+      "horizonSec": 3,
+      "faults": [],
+      "id": "streaming",
+      "label": "Streaming slow consumer",
+      "nodes": [
+        {
+          "id": "source",
+          "classId": "burst-producer",
+          "params": {
+            "pattern": "burst",
+            "burstCount": 4,
+            "burstAtSec": 0,
+            "burstSpacingMs": 0,
+            "maxRequests": 4,
+            "payload": "blob",
+            "requestKb": 0,
+            "retries": 0,
+            "timeoutMs": 2000
+          }
+        },
+        {
+          "id": "fanout",
+          "classId": "stream-fanout",
+          "params": {
+            "concurrency": 1,
+            "queueCapacity": 1,
+            "serviceMs": 0,
+            "serviceDist": "constant",
+            "retries": 0,
+            "callTimeoutMs": 1000
+          }
+        },
+        {
+          "id": "consumer",
+          "classId": "stream-consumer",
+          "params": {
+            "concurrency": 1,
+            "queueCapacity": 4,
+            "serviceMs": 100,
+            "serviceDist": "constant",
+            "responseKb": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "to-fanout",
+          "from": "source",
+          "fromPort": "out",
+          "to": "fanout",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "to-consumer",
+          "from": "fanout",
+          "fromPort": "calls",
+          "to": "consumer",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        }
+      ],
+      "repair": {
+        "nodes": {
+          "fanout": {
+            "queueCapacity": 3
+          }
+        }
+      },
+      "expected": {
+        "baseline": {
+          "offered": 4,
+          "completed": 2,
+          "failed": 2,
+          "effects": 0,
+          "duplicateEffects": 0,
+          "nodes": {
+            "fanout": {
+              "rejected": 2
+            },
+            "consumer": {
+              "served": 2
+            }
+          }
+        },
+        "repair": {
+          "offered": 4,
+          "completed": 4,
+          "failed": 0,
+          "effects": 0,
+          "duplicateEffects": 0,
+          "nodes": {
+            "fanout": {
+              "rejected": 0
+            },
+            "consumer": {
+              "served": 4
+            }
+          }
+        }
+      },
+      "derivation": "Four simultaneous chunks; one acknowledgement slot plus one waiting slot admits two. Three waiting slots admit all four. Consumer service is 100 ms; horizon exceeds 400 ms."
+    },
+    {
+      "id": "replica",
+      "label": "Explicit replica link partition and finite retry",
+      "seed": 42,
+      "horizonSec": 3,
+      "nodes": [
+        {
+          "id": "source",
+          "classId": "burst-producer",
+          "params": {
+            "pattern": "constant",
+            "burstCount": 1,
+            "burstAtSec": 0,
+            "burstSpacingMs": 0,
+            "maxRequests": 3,
+            "payload": "json",
+            "requestKb": 0,
+            "readFraction": 0,
+            "retries": 0,
+            "timeoutMs": 1000,
+            "ratePerSec": 2.5,
+            "startSec": 0,
+            "stopSec": 1,
+            "keySpace": 1
+          }
+        },
+        {
+          "id": "leader",
+          "classId": "database-leader",
+          "params": {
+            "writeQuorum": 2,
+            "applyMs": 1,
+            "timeoutMs": 20,
+            "retryIntervalMs": 100,
+            "maxAttempts": 1,
+            "recoveryMs": 100
+          }
+        },
+        {
+          "id": "follower",
+          "classId": "database-replica",
+          "params": {
+            "applyMs": 1
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "client-write",
+          "from": "source",
+          "fromPort": "out",
+          "to": "leader",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "replication-link",
+          "from": "leader",
+          "fromPort": "replicate",
+          "to": "follower",
+          "toPort": "replica",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        }
+      ],
+      "faults": [
+        {
+          "target": {
+            "kind": "edge",
+            "id": "replication-link"
+          },
+          "type": "partition",
+          "atSec": 0,
+          "untilSec": 0.05,
+          "params": {}
+        },
+        {
+          "target": {
+            "kind": "node",
+            "id": "leader"
+          },
+          "type": "crash",
+          "atSec": 0.35,
+          "untilSec": 0.6,
+          "params": {}
+        }
+      ],
+      "repair": {
+        "nodes": {
+          "leader": {
+            "maxAttempts": 2
+          }
+        }
+      },
+      "expected": {
+        "baseline": {
+          "offered": 3,
+          "completed": 1,
+          "failed": 2,
+          "effects": 2,
+          "duplicateEffects": 0,
+          "nodes": {
+            "leader": {
+              "health": "degraded",
+              "detail": {
+                "Local writes": 2,
+                "Pending replication": 1,
+                "Exhausted outbox": 1
+              }
+            },
+            "follower": {
+              "detail": {
+                "Applied copies": 1
+              }
+            }
+          }
+        },
+        "repair": {
+          "offered": 3,
+          "completed": 2,
+          "failed": 1,
+          "effects": 2,
+          "duplicateEffects": 0,
+          "nodes": {
+            "leader": {
+              "health": "ok",
+              "detail": {
+                "Local writes": 2,
+                "Pending replication": 0,
+                "Exhausted outbox": 0
+              }
+            },
+            "follower": {
+              "detail": {
+                "Applied copies": 2
+              }
+            }
+          }
+        }
+      },
+      "derivation": "Three writes arrive at 0,0.4,0.8s. First replication crosses a partition until0.05s and fails with one attempt, but a100ms second-attempt policy repairs it. The fixed leader crashes0.35\u20130.6s then recovers for100ms, so the second write fails in both designs and the third succeeds after0.7s. Baseline completes1/fails2; repair completes2/fails1. Both commit2localwrites; follower applies1versus2. No election or consensus.",
+      "checkpointAtSec": 0.01
+    },
+    {
+      "seed": 42,
+      "horizonSec": 3,
+      "faults": [
+        {
+          "target": {
+            "kind": "node",
+            "id": "tool"
+          },
+          "type": "crash",
+          "atSec": 0,
+          "untilSec": 0.05,
+          "params": {}
+        }
+      ],
+      "id": "agent",
+      "label": "Agent tool outage and finite retry",
+      "nodes": [
+        {
+          "id": "source",
+          "classId": "nl-input",
+          "params": {
+            "pattern": "burst",
+            "burstCount": 1,
+            "burstAtSec": 0,
+            "burstSpacingMs": 0,
+            "maxRequests": 1,
+            "tokensMean": 0,
+            "requestKb": 0,
+            "retries": 0,
+            "timeoutMs": 1000
+          }
+        },
+        {
+          "id": "agent",
+          "classId": "agent-llm",
+          "params": {
+            "toolRounds": 1,
+            "toolRetries": 0,
+            "toolRetryBackoffMs": 100,
+            "toolTimeoutMs": 100,
+            "ttftMs": 1,
+            "decodeMsPerToken": 0,
+            "prefillMsPer1kTokens": 0,
+            "outputTokensMean": 1,
+            "contextWindow": 1000
+          }
+        },
+        {
+          "id": "tool",
+          "classId": "third-party-api",
+          "params": {
+            "serviceMs": 1,
+            "serviceDist": "constant",
+            "rateLimitPerSec": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "ask",
+          "from": "source",
+          "fromPort": "out",
+          "to": "agent",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "invoke-tool",
+          "from": "agent",
+          "fromPort": "tools",
+          "to": "tool",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        }
+      ],
+      "repair": {
+        "nodes": {
+          "agent": {
+            "toolRetries": 1
+          }
+        }
+      },
+      "expected": {
+        "baseline": {
+          "offered": 1,
+          "completed": 0,
+          "failed": 1,
+          "effects": 0,
+          "duplicateEffects": 0,
+          "nodes": {
+            "tool": {
+              "arrivals": 1
+            },
+            "agent": {
+              "detail": {
+                "tool calls": 1
+              }
+            }
+          }
+        },
+        "repair": {
+          "offered": 1,
+          "completed": 1,
+          "failed": 0,
+          "effects": 0,
+          "duplicateEffects": 0,
+          "nodes": {
+            "tool": {
+              "arrivals": 2
+            },
+            "agent": {
+              "detail": {
+                "tool calls": 1
+              }
+            }
+          }
+        }
+      },
+      "derivation": "First tool call follows a 1 ms generation and hits the outage ending at 50 ms. Exactly one retry after 100 ms reaches the repaired tool. Source retries remain zero."
+    },
+    {
+      "seed": 42,
+      "horizonSec": 3,
+      "faults": [],
+      "id": "healthcare",
+      "label": "Synthetic schema evolution and approval",
+      "nodes": [
+        {
+          "id": "source",
+          "classId": "event-source",
+          "params": {
+            "count": 4,
+            "intervalMs": 100,
+            "schemaVersion": 1,
+            "evolveAfter": 2,
+            "newSchemaVersion": 2,
+            "approved": true,
+            "retries": 0,
+            "callTimeoutMs": 2000
+          }
+        },
+        {
+          "id": "schema",
+          "classId": "schema-validator",
+          "params": {
+            "serviceMs": 0,
+            "serviceDist": "constant",
+            "retries": 0,
+            "callTimeoutMs": 1000,
+            "maxSchemaVersion": 1
+          }
+        },
+        {
+          "id": "approval",
+          "classId": "approval-gate",
+          "params": {
+            "serviceMs": 0,
+            "serviceDist": "constant",
+            "retries": 0,
+            "callTimeoutMs": 1000,
+            "policy": "flag",
+            "approvalMs": 0
+          }
+        },
+        {
+          "id": "identity",
+          "classId": "event-ledger",
+          "params": {
+            "serviceMs": 0,
+            "serviceDist": "constant",
+            "retries": 0,
+            "callTimeoutMs": 1000,
+            "mode": "ordered",
+            "ordering": "strict"
+          }
+        },
+        {
+          "id": "store",
+          "classId": "idempotent-store",
+          "params": {
+            "writeMs": 1,
+            "serviceDist": "constant"
+          }
+        },
+        {
+          "id": "quarantine",
+          "classId": "event-quarantine",
+          "params": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "to-schema",
+          "from": "source",
+          "fromPort": "out",
+          "to": "schema",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "schema-accepted",
+          "from": "schema",
+          "fromPort": "accepted",
+          "to": "approval",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "approval-accepted",
+          "from": "approval",
+          "fromPort": "accepted",
+          "to": "identity",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "identity-accepted",
+          "from": "identity",
+          "fromPort": "accepted",
+          "to": "store",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "schema-failed",
+          "from": "schema",
+          "fromPort": "quarantine",
+          "to": "quarantine",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "approval-failed",
+          "from": "approval",
+          "fromPort": "quarantine",
+          "to": "quarantine",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "identity-failed",
+          "from": "identity",
+          "fromPort": "quarantine",
+          "to": "quarantine",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        }
+      ],
+      "repair": {
+        "nodes": {
+          "schema": {
+            "maxSchemaVersion": 2
+          }
+        }
+      },
+      "expected": {
+        "baseline": {
+          "offered": 4,
+          "completed": 2,
+          "failed": 2,
+          "effects": 4,
+          "duplicateEffects": 0,
+          "nodes": {
+            "schema": {
+              "detail": {
+                "accepted": 2,
+                "quarantined": 2
+              }
+            },
+            "approval": {
+              "detail": {
+                "approved": 2
+              }
+            },
+            "identity": {
+              "detail": {
+                "committed": 2
+              }
+            },
+            "quarantine": {
+              "detail": {
+                "quarantined": 2
+              }
+            }
+          }
+        },
+        "repair": {
+          "offered": 4,
+          "completed": 4,
+          "failed": 0,
+          "effects": 8,
+          "duplicateEffects": 0,
+          "nodes": {
+            "schema": {
+              "detail": {
+                "accepted": 4,
+                "quarantined": 0
+              }
+            },
+            "approval": {
+              "detail": {
+                "approved": 4
+              }
+            },
+            "identity": {
+              "detail": {
+                "committed": 4
+              }
+            },
+            "quarantine": {
+              "detail": {
+                "quarantined": 0
+              }
+            }
+          }
+        }
+      },
+      "derivation": "First two records use version 1, final two version 2. All carry approved=true and strictly consecutive sequence numbers. Accepting version 2 admits two more ledger+sink commits; no source changes."
+    },
+    {
+      "seed": 42,
+      "horizonSec": 3,
+      "faults": [],
+      "id": "finance",
+      "label": "Synthetic paired-record tolerance",
+      "nodes": [
+        {
+          "id": "source",
+          "classId": "event-source",
+          "params": {
+            "count": 4,
+            "intervalMs": 100,
+            "paired": true,
+            "amount": 100,
+            "mismatchEvery": 2,
+            "mismatchDelta": 1,
+            "retries": 0,
+            "callTimeoutMs": 2000
+          }
+        },
+        {
+          "id": "ledger",
+          "classId": "event-ledger",
+          "params": {
+            "serviceMs": 0,
+            "serviceDist": "constant",
+            "retries": 0,
+            "callTimeoutMs": 1000,
+            "mode": "reconcile",
+            "tolerance": 0
+          }
+        },
+        {
+          "id": "store",
+          "classId": "idempotent-store",
+          "params": {
+            "writeMs": 1,
+            "serviceDist": "constant"
+          }
+        },
+        {
+          "id": "quarantine",
+          "classId": "event-quarantine",
+          "params": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "to-ledger",
+          "from": "source",
+          "fromPort": "out",
+          "to": "ledger",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "ledger-accepted",
+          "from": "ledger",
+          "fromPort": "accepted",
+          "to": "store",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "ledger-failed",
+          "from": "ledger",
+          "fromPort": "quarantine",
+          "to": "quarantine",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        }
+      ],
+      "repair": {
+        "nodes": {
+          "ledger": {
+            "tolerance": 1
+          }
+        }
+      },
+      "expected": {
+        "baseline": {
+          "offered": 4,
+          "completed": 3,
+          "failed": 1,
+          "effects": 2,
+          "duplicateEffects": 0,
+          "nodes": {
+            "ledger": {
+              "detail": {
+                "reconciled": 1,
+                "mismatches": 1,
+                "pending pairs": 1
+              }
+            },
+            "quarantine": {
+              "detail": {
+                "quarantined": 1
+              }
+            }
+          }
+        },
+        "repair": {
+          "offered": 4,
+          "completed": 4,
+          "failed": 0,
+          "effects": 4,
+          "duplicateEffects": 0,
+          "nodes": {
+            "ledger": {
+              "detail": {
+                "reconciled": 2,
+                "mismatches": 0,
+                "pending pairs": 0
+              }
+            },
+            "quarantine": {
+              "detail": {
+                "quarantined": 0
+              }
+            }
+          }
+        }
+      },
+      "derivation": "Two left/right pairs; amounts 100/100 and 100/101. Zero tolerance reconciles one pair and retains the mismatch. Tolerance 1 deliberately accepts the second scalar difference. This changes acceptance policy, not financial correctness."
+    },
+    {
+      "seed": 42,
+      "horizonSec": 3,
+      "faults": [],
+      "id": "lakehouse",
+      "label": "Late-data allowance with spill and checkpoints",
+      "nodes": [
+        {
+          "id": "source",
+          "classId": "event-source",
+          "params": {
+            "count": 4,
+            "intervalMs": 100,
+            "lateEvery": 2,
+            "lateByMs": 500,
+            "evolveAfter": 2,
+            "newSchemaVersion": 2,
+            "retries": 0,
+            "callTimeoutMs": 2000
+          }
+        },
+        {
+          "id": "window",
+          "classId": "event-window",
+          "params": {
+            "serviceMs": 0,
+            "serviceDist": "constant",
+            "retries": 0,
+            "callTimeoutMs": 1000,
+            "windowSec": 1,
+            "watermarkLagSec": 0,
+            "allowedLateSec": 0,
+            "maxSchemaVersion": 2
+          }
+        },
+        {
+          "id": "shuffle",
+          "classId": "shuffle-spill",
+          "params": {
+            "serviceMs": 0,
+            "serviceDist": "constant",
+            "retries": 0,
+            "callTimeoutMs": 1000,
+            "bufferMiB": 0.0001,
+            "shuffleMiBps": 100,
+            "spillMiBps": 1,
+            "checkpointEvery": 2
+          }
+        },
+        {
+          "id": "store",
+          "classId": "idempotent-store",
+          "params": {
+            "writeMs": 1,
+            "serviceDist": "constant"
+          }
+        },
+        {
+          "id": "quarantine",
+          "classId": "event-quarantine",
+          "params": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "to-window",
+          "from": "source",
+          "fromPort": "out",
+          "to": "window",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "window-accepted",
+          "from": "window",
+          "fromPort": "accepted",
+          "to": "shuffle",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "window-failed",
+          "from": "window",
+          "fromPort": "quarantine",
+          "to": "quarantine",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "shuffle-accepted",
+          "from": "shuffle",
+          "fromPort": "accepted",
+          "to": "store",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "shuffle-failed",
+          "from": "shuffle",
+          "fromPort": "quarantine",
+          "to": "quarantine",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        }
+      ],
+      "repair": {
+        "nodes": {
+          "window": {
+            "allowedLateSec": 0.5
+          }
+        }
+      },
+      "expected": {
+        "baseline": {
+          "offered": 4,
+          "completed": 2,
+          "failed": 2,
+          "effects": 2,
+          "duplicateEffects": 0,
+          "nodes": {
+            "window": {
+              "detail": {
+                "accepted": 2,
+                "late": 2
+              }
+            },
+            "shuffle": {
+              "detail": {
+                "completed": 2,
+                "checkpoints": 1,
+                "spills": 2
+              }
+            },
+            "quarantine": {
+              "detail": {
+                "quarantined": 2
+              }
+            }
+          }
+        },
+        "repair": {
+          "offered": 4,
+          "completed": 4,
+          "failed": 0,
+          "effects": 4,
+          "duplicateEffects": 0,
+          "nodes": {
+            "window": {
+              "detail": {
+                "accepted": 4,
+                "late": 0
+              }
+            },
+            "shuffle": {
+              "detail": {
+                "completed": 4,
+                "checkpoints": 2,
+                "spills": 4
+              }
+            },
+            "quarantine": {
+              "detail": {
+                "quarantined": 0
+              }
+            }
+          }
+        }
+      },
+      "derivation": "Event times are 0,-0.4,0.2,-0.2 s. Zero lateness drops events 2 and 4; a 0.5 s allowance accepts both. Four amounts of 100 sum to 400 versus 200 accepted baseline; 1 KB payloads exceed 0.1024 KB resident shuffle budget."
+    }
+  ]
+}

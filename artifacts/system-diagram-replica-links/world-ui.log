@@ -1,0 +1,5 @@
+
+> check:world-ui
+> node tools/check-world-ui-ownership.mjs
+
+World UI ownership: 0 violations; 0 page-owned control rules.

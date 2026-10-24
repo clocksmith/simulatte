@@ -202,15 +202,18 @@ View returned by `observe`:
 
 ## Kernel API
 
-Kernel files call `SimulatteSystemDiagramKernels.register({ id, station, ...hooks })`
-and may supply pure `validateParams(params)` to reject unsupported configurations
-and use only the `ctx` object; they never touch engine internals.
+Kernel files call `SimulatteSystemDiagramKernels.register({ id, station, ...hooks })`.
+Stateful hooks use only the `ctx` object; they never touch engine internals.
+An optional stateless `validateTopology(node, compiled)` hook checks resolved
+peer and link contracts before initialization or a live parameter mutation.
+Rejected live edits leave the accepted state unchanged.
 
 `station` is `null` or `{ concurrency: '<param>', queueCapacity: '<param>' }`
 naming the kernel parameters that size its FCFS station.
 
 | Hook | Called |
 | --- | --- |
+| `validateTopology(node, compiled)` | Before initialization and live parameter changes; validates the complete resolved topology without changing it |
 | `init(ctx)` | Once; returns kernel state stored as `ctx.k` (JSON-safe) |
 | `start(ctx)` | Once at `t = 0` after every node initialized; sources schedule first work |
 | `onRequest(ctx, job)` | A request arrived at an up node. Default: `ctx.admit(job)` |
@@ -309,9 +312,10 @@ the accepted numerical model. Save/load stores the pending diagram and separatel
 accepted checkpoint. Restore loaded replay validates the complete causal checkpoint
 before replacing execution.
 
-The runnable palette checks both kernel registration and `validateParams` against
-resolved class defaults. Metadata-only or unsupported class configurations are not
-listed as executable. JSON imports still validate and fail closed at execution.
+The runnable palette checks kernel registration; the class library validates
+resolved parameter defaults. A registered class is not a guarantee that every
+wiring is supported. Imports validate their document and the engine checks
+kernel topology contracts before accepting a run.
 
 `runner.inspect(requestId)` returns the logical request, attempts, effects, retained
 jobs, blockers and causal history. This history is independent of the short notable
@@ -332,8 +336,8 @@ hardware, and replay hashes do not establish physical validity.
 
 ## Executable capability status
 
-The canonical class library declares 31 kernels, including reusable event-processing
-primitives. All declared kernels have registered synthetic implementations. The runtime
+The canonical class library declares reusable event-processing and replica
+primitives. Declared executable kernels have registered synthetic implementations. The runtime
 registry's `ids()` remains the executable-kernel inventory; metadata alone does
 not establish support. User classes inherit their base kernel, ports, parameter
 validation and model limitations. Registration and passing synthetic tests do not
@@ -401,6 +405,11 @@ validated parameters and logical start/end times. Scheduled faults belong to pen
 architecture; injected controls belong to the accepted run. Resource clusters do not
 imply failure-domain semantics.
 
+Advance accepts a positive fractional duration, separate from the one-second step.
+It pauses the accepted execution at that logical observation time, so a checkpoint
+can retain short-lived service, network, acknowledgement and retry states. It does
+not accept pending diagram edits.
+
 Capture baseline retains immutable authored demand, fault timing and controls. Compare
 repair executes baseline and edited architecture sequentially, verifies both replays,
 checks actual source IDs/times and complete input payload descriptors, then restores
@@ -423,3 +432,49 @@ and blockers after the initiating logical request finishes.
 Request deadlines and background work deadlines are separate readouts. A queue can
 acknowledge ingestion before a retained or executing task exceeds its deadline;
 that work remains visible rather than inheriting the producer's completed status.
+
+## Individually authored replica nodes
+
+Owner: [System Diagram charter](../../public/simulatte/system-diagram/CATSCAN.md).
+Executable authority: [linked replica kernel](../../public/simulatte/system-diagram/kernels-replication.js),
+[replication classes](../../public/data/system-diagram/classes/replication.json) and
+[protocol tests](../../tests/system-diagram-linked-replication.test.cjs).
+
+`database-leader` and `database-replica` are separate nodes using the `linkedReplica`
+kernel. Connect a client's `out` to the leader's `in`, then each leader `replicate`
+port to a follower's `replica` port. These links carry real simulated request and
+acknowledgement transfers through the shared network model. Link bandwidth,
+latency, loss and partition faults affect replication and its receipts.
+
+| Contract | Modeled behavior |
+| --- | --- |
+| Designated role | A fixed leader accepts client writes; followers accept replication and local reads. Roles cannot change during a run. |
+| Acknowledgement | `writeQuorum` counts the leader plus distinct follower nodes with received acknowledgements. One permits local acknowledgement; a majority or all-copy count must be configured explicitly. |
+| Retry budget | Each target gets at most `maxAttempts` calls, separated after failure by `retryIntervalMs`, with `timeoutMs` per call. No unbounded retry loop runs. |
+| Retained ownership | The leader retains one payload plus declared base memory per unfinished outbox row. Exhausted, unacknowledged rows remain visible in causal inspection and memory totals. |
+| Deduplication | A repeated leader idempotency key reuses its existing local write. Reusing that key with different key/type/size/token/op/serialized-field content rejects before another version or outbox is created. Followers apply a newer per-key version once and acknowledge duplicate or reordered versions without another application effect. |
+| Recovery | Crash and failure-domain outage preserve modeled stored versions and outbox records. Repair waits `recoveryMs`, then the same designated role resumes remaining budget. Generation fences reject stale callbacks. |
+| Bounded storage | `maxRecords` bounds retained leader idempotency summaries and follower key/version metadata. New records reject visibly at the bound. |
+
+A leader's local application effect is distinct from follower copy applications;
+the latter appear as `Applied copies`, not extra logical application effects.
+A lost follower acknowledgement can cause a duplicate delivery without a second
+copy application. Successful quorum acknowledgement confirms modeled receipts,
+not production durability or a linearizability proof. Reads expose only the local
+stored version; follower reads can be stale.
+
+Topology validation rejects duplicate follower destinations, multiple designated
+leaders for one follower, replication cycles, wrong roles/ports, asynchronous
+replication edges and unreachable configured quorum counts. Invalid live edits
+leave the accepted run unchanged. Exhausted outbox records resume when an accepted increase to `maxAttempts`
+leaves unused attempts for a pending target. Attempt counts never reset. A live
+quorum reduction immediately re-evaluates existing waiters. Changes to timeout
+and retry interval govern future calls and wakes; they do not rewrite already
+scheduled deadlines. There is no separate unbounded redrive action.
+
+This protocol does not implement leader promotion, voting, Raft/Paxos, split-brain
+safety, read quorums, transactions, full database contents, disk capacity/IO or
+anti-entropy after log loss. Epoch/version fencing is a local receipt rule, not
+an election protocol. The older `replicatedDb` kernel remains available as a
+separate internally grouped replica-slot model; it does not replace authored
+replication links.

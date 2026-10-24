@@ -1,0 +1,701 @@
+{
+  "schema": "simulatte.blankJourneyPlans.v1",
+  "families": [
+    {
+      "id": "streaming",
+      "label": "GPU stream fan-out, cache outage and slow acknowledgement",
+      "seed": 42,
+      "horizonSec": 3,
+      "nodes": [
+        {
+          "id": "source",
+          "classId": "burst-producer",
+          "params": {
+            "pattern": "burst",
+            "burstCount": 4,
+            "burstAtSec": 0,
+            "burstSpacingMs": 0,
+            "maxRequests": 4,
+            "payload": "blob",
+            "requestKb": 1,
+            "keySpace": 1,
+            "readFraction": 1,
+            "retries": 0,
+            "timeoutMs": 2000
+          }
+        },
+        {
+          "id": "gpu",
+          "classId": "gpu-worker",
+          "params": {
+            "maxBatch": 4,
+            "batchWindowMs": 10,
+            "batchBaseMs": 10,
+            "perItemMs": 0,
+            "workers": 1,
+            "callTimeoutMs": 1000,
+            "retries": 0
+          }
+        },
+        {
+          "id": "fanout",
+          "classId": "stream-fanout",
+          "params": {
+            "concurrency": 1,
+            "queueCapacity": 1,
+            "serviceMs": 0,
+            "serviceDist": "constant",
+            "callTimeoutMs": 1000,
+            "callMode": "parallel",
+            "retries": 0
+          }
+        },
+        {
+          "id": "consumer",
+          "classId": "stream-consumer",
+          "params": {
+            "concurrency": 1,
+            "queueCapacity": 4,
+            "serviceMs": 100,
+            "serviceDist": "constant",
+            "responseKb": 0
+          }
+        },
+        {
+          "id": "cdn",
+          "classId": "cdn-edge",
+          "params": {
+            "capacityKeys": 8,
+            "ttlSec": 10,
+            "hitMs": 0,
+            "failOpen": false,
+            "callTimeoutMs": 1000
+          }
+        },
+        {
+          "id": "origin",
+          "classId": "object-store",
+          "params": {
+            "baseMs": 1,
+            "serviceDist": "constant",
+            "throughputMBps": 1000
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "to-gpu",
+          "from": "source",
+          "fromPort": "out",
+          "to": "gpu",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "to-fanout",
+          "from": "gpu",
+          "fromPort": "calls",
+          "to": "fanout",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "to-consumer",
+          "from": "fanout",
+          "fromPort": "calls",
+          "to": "consumer",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "to-cdn",
+          "from": "fanout",
+          "fromPort": "calls",
+          "to": "cdn",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "origin-link",
+          "from": "cdn",
+          "fromPort": "origin",
+          "to": "origin",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        }
+      ],
+      "faults": [
+        {
+          "target": {
+            "kind": "node",
+            "id": "cdn"
+          },
+          "type": "crash",
+          "atSec": 0.05,
+          "untilSec": 0.15,
+          "params": {}
+        }
+      ],
+      "repair": {
+        "nodes": {
+          "fanout": {
+            "queueCapacity": 3
+          },
+          "cdn": {
+            "failOpen": true
+          }
+        }
+      },
+      "expected": {
+        "baseline": {
+          "offered": 4,
+          "completed": 1,
+          "failed": 3,
+          "effects": 0,
+          "duplicateEffects": 0,
+          "nodes": {
+            "gpu": {
+              "arrivals": 4,
+              "detail": {
+                "batches": 1,
+                "mean batch": 4
+              }
+            },
+            "fanout": {
+              "rejected": 2
+            },
+            "consumer": {
+              "served": 2
+            },
+            "cdn": {
+              "health": "ok",
+              "detail": {
+                "Flushes": 1,
+                "Misses": 1,
+                "Hits": 0
+              }
+            },
+            "origin": {
+              "arrivals": 1
+            }
+          }
+        },
+        "repair": {
+          "offered": 4,
+          "completed": 4,
+          "failed": 0,
+          "effects": 0,
+          "duplicateEffects": 0,
+          "nodes": {
+            "gpu": {
+              "arrivals": 4,
+              "detail": {
+                "batches": 1,
+                "mean batch": 4
+              }
+            },
+            "fanout": {
+              "rejected": 0
+            },
+            "consumer": {
+              "served": 4
+            },
+            "cdn": {
+              "health": "ok",
+              "detail": {
+                "Flushes": 1,
+                "Misses": 2,
+                "Hits": 1,
+                "bypassed": 1
+              }
+            },
+            "origin": {
+              "arrivals": 3
+            }
+          }
+        }
+      },
+      "derivation": "GPU batch releases four chunks before the first 100 ms consumer acknowledgement. Baseline has one active plus one waiting slot, rejecting two; the remaining second chunk sees a cache outage. Repair admits all four and bypasses the crashed cache to its real origin edge. Repaired cache restarts cold and later fills/hits. Inputs and cache outage are unchanged.",
+      "checkpointAtSec": 0.06
+    },
+    {
+      "id": "agent",
+      "label": "Collected-document RAG, structured tool calls and outage recovery",
+      "seed": 42,
+      "horizonSec": 3,
+      "checkpointAtSec": 0.11,
+      "nodes": [
+        {
+          "id": "source",
+          "classId": "nl-input",
+          "params": {
+            "pattern": "constant",
+            "ratePerSec": 5,
+            "startSec": 0.1,
+            "stopSec": 0.31,
+            "maxRequests": 2,
+            "tokensMean": 0,
+            "requestKb": 0,
+            "retries": 0,
+            "timeoutMs": 1000
+          }
+        },
+        {
+          "id": "rag",
+          "classId": "rag-retriever",
+          "params": {
+            "topK": 1,
+            "chunkTokens": 1,
+            "promptTokens": 1,
+            "serviceMs": 0,
+            "concurrency": 2,
+            "callTimeoutMs": 1000,
+            "retries": 0,
+            "rejectStaleResults": true
+          }
+        },
+        {
+          "id": "embed",
+          "classId": "embedder",
+          "params": {
+            "workers": 2,
+            "maxBatch": 1,
+            "batchWindowMs": 0,
+            "batchBaseMs": 1,
+            "perKTokensMs": 0,
+            "dims": 8
+          }
+        },
+        {
+          "id": "index",
+          "classId": "vector-index",
+          "params": {
+            "vectors": 0,
+            "topK": 1,
+            "queryBaseMs": 1,
+            "queryLogMs": 0,
+            "upsertMs": 1,
+            "visibilityDelayMs": 20,
+            "dims": 8
+          }
+        },
+        {
+          "id": "shape",
+          "classId": "structured-response",
+          "params": {
+            "validateMs": 1,
+            "maxRepairs": 2,
+            "callTimeoutMs": 1000
+          }
+        },
+        {
+          "id": "agent",
+          "classId": "agent-llm",
+          "params": {
+            "toolRounds": 1,
+            "toolRetries": 0,
+            "toolRetryBackoffMs": 100,
+            "toolTimeoutMs": 100,
+            "structuredOutput": true,
+            "schemaFailureRate": 0,
+            "ttftMs": 1,
+            "decodeMsPerToken": 0,
+            "prefillMsPer1kTokens": 0,
+            "outputTokensMean": 1,
+            "contextWindow": 1000
+          }
+        },
+        {
+          "id": "tool",
+          "classId": "third-party-api",
+          "params": {
+            "serviceMs": 1,
+            "serviceDist": "constant",
+            "rateLimitPerSec": 0
+          }
+        },
+        {
+          "id": "crawler",
+          "classId": "crawler",
+          "params": {
+            "seedUrls": 1,
+            "domains": 1,
+            "fetchConcurrency": 1,
+            "politenessMs": 10,
+            "linksPerPage": 0,
+            "maxPages": 1,
+            "pageKbMean": 1,
+            "timeoutMs": 1000,
+            "retries": 0,
+            "maxThrottleRetries": 0,
+            "stopSec": 1
+          }
+        },
+        {
+          "id": "website",
+          "classId": "website",
+          "params": {
+            "serviceMs": 1,
+            "serviceDist": "constant",
+            "responseKb": 1,
+            "rateLimitPerSec": 0
+          }
+        },
+        {
+          "id": "chunks",
+          "classId": "chunker",
+          "params": {
+            "chunkTokens": 100000,
+            "maxChunks": 1,
+            "serviceMs": 1,
+            "perKbMs": 0,
+            "callTimeoutMs": 1000
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "ask",
+          "from": "source",
+          "fromPort": "out",
+          "to": "rag",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "embed-query",
+          "from": "rag",
+          "fromPort": "embed",
+          "to": "embed",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "search-index",
+          "from": "rag",
+          "fromPort": "search",
+          "to": "index",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "generate-answer",
+          "from": "rag",
+          "fromPort": "generate",
+          "to": "shape",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "shape-generate",
+          "from": "shape",
+          "fromPort": "generate",
+          "to": "agent",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "tool-invoke",
+          "from": "agent",
+          "fromPort": "tools",
+          "to": "tool",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "fetch",
+          "from": "crawler",
+          "fromPort": "fetch",
+          "to": "website",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "fetched-doc",
+          "from": "crawler",
+          "fromPort": "documents",
+          "to": "chunks",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000
+          }
+        },
+        {
+          "id": "embed-doc",
+          "from": "chunks",
+          "fromPort": "chunks",
+          "to": "embed",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000,
+            "op": "write"
+          }
+        },
+        {
+          "id": "index-doc",
+          "from": "chunks",
+          "fromPort": "chunks",
+          "to": "index",
+          "toPort": "in",
+          "params": {
+            "latencyMs": 0,
+            "jitterMs": 0,
+            "bandwidthMbps": 1000000,
+            "op": "write"
+          }
+        }
+      ],
+      "faults": [
+        {
+          "target": {
+            "kind": "node",
+            "id": "tool"
+          },
+          "type": "crash",
+          "atSec": 0,
+          "untilSec": 0.15,
+          "params": {}
+        }
+      ],
+      "repair": {
+        "nodes": {
+          "agent": {
+            "toolRetries": 1
+          }
+        }
+      },
+      "expected": {
+        "baseline": {
+          "offered": 3,
+          "completed": 2,
+          "failed": 1,
+          "effects": 1,
+          "duplicateEffects": 0,
+          "nodes": {
+            "crawler": {
+              "detail": {
+                "pages fetched": 1,
+                "documents": 1,
+                "frontier": 0
+              }
+            },
+            "chunks": {
+              "detail": {
+                "documents": 1,
+                "chunks": 1
+              }
+            },
+            "embed": {
+              "detail": {
+                "embedded": 3
+              }
+            },
+            "index": {
+              "detail": {
+                "vectors": 1,
+                "queries": 2,
+                "upserts": 1,
+                "pending upserts": 0
+              }
+            },
+            "rag": {
+              "detail": {
+                "answered": 1
+              }
+            },
+            "shape": {
+              "detail": {
+                "valid": 1,
+                "invalid": 0
+              }
+            },
+            "tool": {
+              "arrivals": 2,
+              "served": 1
+            }
+          }
+        },
+        "repair": {
+          "offered": 3,
+          "completed": 3,
+          "failed": 0,
+          "effects": 1,
+          "duplicateEffects": 0,
+          "nodes": {
+            "crawler": {
+              "detail": {
+                "pages fetched": 1,
+                "documents": 1,
+                "frontier": 0
+              }
+            },
+            "chunks": {
+              "detail": {
+                "documents": 1,
+                "chunks": 1
+              }
+            },
+            "embed": {
+              "detail": {
+                "embedded": 3
+              }
+            },
+            "index": {
+              "detail": {
+                "vectors": 1,
+                "queries": 2,
+                "upserts": 1,
+                "pending upserts": 0
+              }
+            },
+            "rag": {
+              "detail": {
+                "answered": 2
+              }
+            },
+            "shape": {
+              "detail": {
+                "valid": 2,
+                "invalid": 0
+              }
+            },
+            "tool": {
+              "arrivals": 3,
+              "served": 2
+            }
+          }
+        }
+      },
+      "derivation": "One bounded synthetic crawler fetch produces exactly one capped chunk and one index upsert, published before questions at 0.1/0.3 s. First question reaches a tool during outage until0.15 s and fails without retries; second succeeds. A single100ms retry repairs first question. Typed embed/search/generate and structured validation all execute; provider output is configured valid, while malformed-output repair is independently tested elsewhere.",
+      "malformedProbe": {
+        "nodes": {
+          "agent": {
+            "schemaFailureRate": 1
+          },
+          "shape": {
+            "maxRepairs": 1
+          }
+        },
+        "expected": {
+          "offered": 3,
+          "completed": 1,
+          "failed": 2,
+          "effects": 1,
+          "duplicateEffects": 0,
+          "nodes": {
+            "shape": {
+              "detail": {
+                "repairs": 2,
+                "invalid": 2,
+                "valid": 0
+              }
+            },
+            "agent": {
+              "arrivals": 4
+            },
+            "crawler": {
+              "detail": {
+                "pages fetched": 1
+              }
+            }
+          }
+        },
+        "derivation": "Starting from repaired tool-retry policy, force every synthetic structured output invalid. Two questions each consume one extra repair call, so four agent arrivals and two terminal invalid requests. The one independent crawler ingestion still completes."
+      },
+      "staleProbe": {
+        "nodes": {
+          "index": {
+            "visibilityDelayMs": 4000
+          }
+        },
+        "expected": {
+          "offered": 3,
+          "completed": 1,
+          "failed": 2,
+          "effects": 1,
+          "duplicateEffects": 0,
+          "nodes": {
+            "index": {
+              "detail": {
+                "vectors": 0,
+                "queries": 2,
+                "upserts": 1,
+                "pending upserts": 1,
+                "stale queries": 2
+              }
+            },
+            "rag": {
+              "detail": {
+                "answered": 0
+              }
+            },
+            "shape": {
+              "arrivals": 0
+            },
+            "agent": {
+              "arrivals": 0
+            },
+            "crawler": {
+              "detail": {
+                "pages fetched": 1
+              }
+            }
+          }
+        },
+        "derivation": "The single crawled-document upsert acknowledges around3ms but a4s publication delay lies beyond the3s horizon. Questions at0.1/0.3s both see zero visible candidates and stale=true. rejectStaleResults=true refuses both before generation; crawler ingestion acknowledgement remains complete and the index pending-publication count remains1."
+      }
+    }
+  ]
+}

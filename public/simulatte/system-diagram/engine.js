@@ -39,11 +39,22 @@
     if (!spec.ports.some(port => port.id === bypass.port && port.direction === 'out')) fail(`${path}.port`, `out port of kernel ${spec.id}`, bypass.port);
     if (!spec.params[bypass.param] || spec.params[bypass.param].type !== 'boolean') fail(`${path}.param`, `boolean parameter of kernel ${spec.id}`, bypass.param);
   }
+  // Stateless kernel contracts can inspect resolved peers before any run state changes.
+  // Live parameter changes are checked against all accepted overrides together.
+  function checkTopology(compiled, deps, overrides = null) {
+    const projected = overrides ? { ...compiled,
+      nodes: compiled.nodes.map(n => ({ ...n, params: { ...n.params, ...overrides[n.id] } })),
+      edges: compiled.edges.map(e => ({ ...e, params: { ...e.params, ...overrides[e.id] } })),
+    } : compiled;
+    for (const node of projected.nodes) deps.kernels.get(node.kernel).validateTopology?.(node, projected);
+  }
   function initialize(compiled, deps) {
     checkDeps(deps); checkCompiled(compiled);
+    checkTopology(compiled, deps);
     const state = core.createState(compiled, deps), R = core.runtime(compiled, state, deps);
     for (const node of compiled.nodes) {
       const kernel = core.kernelOf(R, node.id);
+      for (const key of kernel.immutableParams || []) if (!Object.hasOwn(deps.library.kernels[node.kernel].params, key)) fail(`kernel ${node.kernel}.immutableParams`, 'declared parameter', key);
       if (kernel.station) core.createStation(R, node.id);
       if (kernel.bypass !== undefined) checkBypass(deps.library.kernels[node.kernel], kernel.bypass);
     }
@@ -128,6 +139,10 @@
       const handled = core.callHook(R, c.target.id, 'onControl', c);
       core.log(R, 'control', handled ? `redrive on ${label}` : `redrive on ${label}: not handled by kernel ${core.kernelOf(R, c.target.id).id}`, refOf(c.target));
     } else {
+      if (c.target.kind === 'node') for (const key of core.kernelOf(R, c.target.id).immutableParams || []) {
+        if (Object.hasOwn(c.params, key) && c.params[key] !== core.nodeParams(R, c.target.id)[key]) fail(`control.params.${key}`, 'accepted-run immutable parameter; edit the draft and restart explicitly', c.params[key]);
+      }
+      checkTopology(compiled, deps, { ...state.ov, [c.target.id]: { ...state.ov[c.target.id], ...c.params } });
       state.ov[c.target.id] = { ...(state.ov[c.target.id] || {}), ...c.params };
       core.invalidateParams(R, c.target.id); if (c.target.kind === 'edge') core.updateNetwork(R, c.target.id); else observability.memoryChanged(R, c.target.id, core.nodeParams(R, c.target.id));
       if (c.target.kind === 'node') {

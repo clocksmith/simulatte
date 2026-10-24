@@ -59,6 +59,13 @@
   function semantic(diagram){const m=globalThis.SimulatteSystemDiagramEditorModel.create({diagram,library,config});return m.executionIdentity();}
   buttons.run=button('playback','Run',start,'primary');buttons.pause=button('playback','Resume',()=>{if(!runner)throw Error('Run an architecture first');running=!running;});
   button('playback','Step 1 s',async()=>{if(!runner)await start();running=false;runner.advanceTo(Math.min(runner.horizon,runner.time()+1));});
+  const advanceDuration=field($('playback'),'Advance · seconds',.01,{id:'advance-duration',type:'number',spec:{min:0,max:config.bounds.maxHorizonSec}});
+  advanceDuration.parentElement.classList.add('inline-label');
+  button('playback','Advance',async()=>{
+    const duration=Number(advanceDuration.value);
+    if(!advanceDuration.value.trim()||!Number.isFinite(duration)||duration<=0||duration>config.bounds.maxHorizonSec)throw Error(`Advance duration must be greater than zero and at most ${config.bounds.maxHorizonSec} seconds.`);
+    if(!runner)await start();running=false;runner.advanceTo(Math.min(runner.horizon,runner.time()+duration));
+  });
   button('playback','Reset',async()=>{if(!runner)return;running=false;const next=await runners.create({diagram:accepted,library,config,kernels,profileId:profile.id});await runner.dispose();runner=next;savedCheckpoint=null;message('Reset accepted execution. Pending edits remain separate.');});
   button('playback','Replay',async()=>{if(!runner)throw Error('Run an architecture first');running=false;const proof=await runner.verify();if(proof.status!=='match')throw Error('Replay diverged');message(`Exact replay matched ${proof.rounds??proof.events??0} rounds/events.`);});
   button('playback','Checkpoint',async()=>{if(!runner)throw Error('Run an architecture first');running=false;savedCheckpoint=await runner.checkpoint();message('Checkpoint saved with pending events, controls, resources and RNG state.');});

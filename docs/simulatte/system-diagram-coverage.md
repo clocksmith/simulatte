@@ -15,12 +15,45 @@ This matrix tracks executable technical behavior and independent expectations, n
 
 ## Evidence status
 
-All six rows have passing independent model assertions, serialized continuation and replay coverage. The integrated model/contract lane passes 162 tests, and the analytical engine/runner lane passes 13 tests. The source-bound browser reports in `artifacts/system-diagram-journeys/` and `artifacts/system-diagram-editor/` qualify the actual desktop/touch authoring controls separately. Browser assertions exercise the same palette, ports, property fields, faults and run controls as the user. Tests of a preset alone do not establish blank-canvas authoring.
+At commit `11a03203`, all six rows have independent model assertions, serialized continuation and replay coverage. The integrated model/contract lane passes 162 tests, and the analytical engine/runner lane passes 13 tests. These are model checks, not completed browser journeys for all six families.
+
+The browser reports at that commit build two architectures from blank: a client/queue/CPU/GPU/database failure-and-repair graph and a source/validator/ledger graph. They load the six named examples separately and check startup and causal records at 0 to 0.25 simulated seconds. They do not build those six examples from blank or observe their complete failure/recovery outcomes. The continuation acceptance requires actual palette/port/property authoring, a bounded failure/recovery observation, independent outcome assertions, identical-demand repair comparison and interrupted checkpoint/save/load/replay for each family on desktop and touch. Pending evidence must not count as passing acceptance.
+
+## Continuation acceptance status
+
+The new authoring plans in `tests/fixtures/system-diagram-blank-journeys.json`
+and `system-diagram-rich-journeys.json` have independently derived numerical
+expectations. The browser audit consumes them as palette, port, property and fault
+inputs, never as a document injected into the editor. The following table is
+model-qualified; its new desktop/touch browser execution is **pending** because
+automatic approval review denied the browser/server audit before execution.
+
+| Family | Architecture and failure/repair | Independently expected completed/failed baseline → repair | New desktop/touch browser status |
+| --- | --- | --- | --- |
+| Streaming | GPU batch → bounded fan-out → slow consumer and CDN/origin; cache outage; increase queue budget and enable declared origin bypass | 1/3 → 4/0; batch of four, cache flush/fill/hit and origin-call counts asserted | Pending / pending |
+| Replication | Client → designated leader → separately authored follower link; link partition and leader crash/recovery; increase finite replication attempts | 1/2 → 2/1; first partitioned write repaired, request during leader outage still fails, post-recovery request succeeds | Pending / pending |
+| Agents/RAG/collection | Crawler → chunker → shared embedding/index; natural-language requests → RAG → structured output → agent/tool; dependency outage; bounded tool retry | 2/1 → 3/0; separate malformed-output and stale-publication probes assert bounded invalid/unavailable failures | Pending / pending |
+| Healthcare ingestion | Event source → version validator → approval gate → identity ledger → store; quarantine unsupported version; admit declared version 2 | 2/2 → 4/0; schema/quarantine/approval/commit counts asserted | Pending / pending |
+| Finance reconciliation | Paired synthetic events → reconciliation ledger → store/quarantine; scalar mismatch; change explicit acceptance tolerance | 3/1 → 4/0; reconciled pairs 1 → 2 and retained pending pair 1 → 0; tolerance is policy, not financial correctness | Pending / pending |
+| Lakehouse | Event source → event-time window → shuffle/spill → store/quarantine; late events; increase lateness allowance | 2/2 → 4/0; accepted sum 200 → 400, spill and logical checkpoint counts asserted | Pending / pending |
+
+Each planned browser journey authors its graph from blank, configures fault or
+invalid-workload inputs, takes a fractional interrupted checkpoint, executes to
+its declared horizon, inspects a failed/retained causal request, restores and
+save/loads accepted execution, compares identical demand/faults, and executes
+the repair. These are audit assertions awaiting execution, not completed evidence.
+
+The continuation adds individually authored replica nodes using the existing
+network and event engine. A stateless topology hook rejects unsupported replica
+wiring before execution; fixed roles cannot mutate inside an accepted run.
+Focused protocol tests cover distinct-node quorum acknowledgements, lost replies,
+idempotency conflicts, retained outbox memory, crash/recovery, exact continuation,
+and stale-version fencing. No automatic election or consensus is implemented.
 
 ## Model boundaries
 
 - Streaming means finite synthetic chunks and required-consumer acknowledgements. Codec quality, real media playback, adaptive bitrate control and measured CDN performance are not inferred.
-- Replication uses replica slots within one database component and a single simulated authoritative leader. It does not implement consensus, split-brain resolution, transaction isolation or physical durability.
+- The existing database component models internal replica slots. The explicit replica-node model adds authored leader/follower network links and local or distinct-node acknowledgement counts, with a fixed designated leader and bounded outbox retries. Neither model implements consensus, split-brain resolution, transaction isolation or physical durability.
 - Technical event workflows use synthetic/deidentified records. Approval is an authored technical gate, reconciliation checks declared identifiers/amounts/sequences, and schema checks use explicit versions/flags. No clinical judgement, financial transaction or regulatory certification occurs.
 - CPU/GPU/network/memory values are authored model assumptions. Virtual GC, pressure, spill and OOM are simulated policies, not measurements of an operating system or device.
 - Crawler/model/tool calls are synthetic. No live scraping, paid calls, semantic model quality, real embeddings or proprietary system internals are claimed.

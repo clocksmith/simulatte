@@ -1,0 +1,1090 @@
+TAP version 13
+# Subtest: bounded tool retry repairs a dependency outage and preserves exactly two call attempts
+ok 1 - bounded tool retry repairs a dependency outage and preserves exactly two call attempts
+  ---
+  duration_ms: 17.528334
+  type: 'test'
+  ...
+# Subtest: a tool token bucket admits one simultaneous agent call and exposes two rate-limited requests
+ok 2 - a tool token bucket admits one simultaneous agent call and exposes two rate-limited requests
+  ---
+  duration_ms: 7.095042
+  type: 'test'
+  ...
+# Subtest: missing or asynchronous tool results cannot masquerade as successful agent reasoning
+ok 3 - missing or asynchronous tool results cannot masquerade as successful agent reasoning
+  ---
+  duration_ms: 8.96875
+  type: 'test'
+  ...
+# Subtest: malformed structured generation consumes exactly the configured repair budget then remains invalid
+ok 4 - malformed structured generation consumes exactly the configured repair budget then remains invalid
+  ---
+  duration_ms: 3.572583
+  type: 'test'
+  ...
+# Subtest: an asynchronous structured generator is rejected rather than parsing an unrelated fallback
+ok 5 - an asynchronous structured generator is rejected rather than parsing an unrelated fallback
+  ---
+  duration_ms: 1.927542
+  type: 'test'
+  ...
+# Subtest: acknowledged but unpublished index writes cause stale rejection, then recovery after publication
+ok 6 - acknowledged but unpublished index writes cause stale rejection, then recovery after publication
+  ---
+  duration_ms: 4.737958
+  type: 'test'
+  ...
+# Subtest: empty retrieval contributes zero invented context candidates
+ok 7 - empty retrieval contributes zero invented context candidates
+  ---
+  duration_ms: 4.141708
+  type: 'test'
+  ...
+# Subtest: missing required RAG stages fail closed while optional reranking can be absent
+ok 8 - missing required RAG stages fail closed while optional reranking can be absent
+  ---
+  duration_ms: 2.357833
+  type: 'test'
+  ...
+# Subtest: context budget with no space for an output token rejects the request
+ok 9 - context budget with no space for an output token rejects the request
+  ---
+  duration_ms: 0.587458
+  type: 'test'
+  ...
+# Subtest: crawler bounds rate-limit redrives and preserves synthetic fetch provenance through document delivery
+ok 10 - crawler bounds rate-limit redrives and preserves synthetic fetch provenance through document delivery
+  ---
+  duration_ms: 10.389708
+  type: 'test'
+  ...
+# Subtest: GPU pressure slows remaining synthetic work by the configured factor without changing completed work
+ok 11 - GPU pressure slows remaining synthetic work by the configured factor without changing completed work
+  ---
+  duration_ms: 3.437333
+  type: 'test'
+  ...
+# Subtest: GPU collection pause freezes in-service work and resumes under fenced event estimates
+ok 12 - GPU collection pause freezes in-service work and resumes under fenced event estimates
+  ---
+  duration_ms: 1.040375
+  type: 'test'
+  ...
+# Subtest: index publication backlog rejects before committing an effect beyond its configured bound
+ok 13 - index publication backlog rejects before committing an effect beyond its configured bound
+  ---
+  duration_ms: 1.583375
+  type: 'test'
+  ...
+# Subtest: a permanent tool outage exhausts exactly the finite tool retry budget
+ok 14 - a permanent tool outage exhausts exactly the finite tool retry budget
+  ---
+  duration_ms: 1.951584
+  type: 'test'
+  ...
+# Subtest: agent recovery preset reproduces coordinator replay and checkpoint restoration through faults and delayed publication
+ok 15 - agent recovery preset reproduces coordinator replay and checkpoint restoration through faults and delayed publication
+  ---
+  duration_ms: 941.241875
+  type: 'test'
+  ...
+# Subtest: six blank authoring plans have explicit independent numerical derivations and no preset document imports
+ok 16 - six blank authoring plans have explicit independent numerical derivations and no preset document imports
+  ---
+  duration_ms: 1.680042
+  type: 'test'
+  ...
+# Subtest: streaming: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 17 - streaming: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 21.907125
+  type: 'test'
+  ...
+# Subtest: replica: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 18 - replica: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 27.065208
+  type: 'test'
+  ...
+# Subtest: agent: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 19 - agent: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 10.935041
+  type: 'test'
+  ...
+# Subtest: healthcare: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 20 - healthcare: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 34.708792
+  type: 'test'
+  ...
+# Subtest: finance: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 21 - finance: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 10.439542
+  type: 'test'
+  ...
+# Subtest: lakehouse: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 22 - lakehouse: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 29.90375
+  type: 'test'
+  ...
+# Subtest: class library packs load with every kernel parameter defaulted and every class valid
+ok 23 - class library packs load with every kernel parameter defaulted and every class valid
+  ---
+  duration_ms: 10.971542
+  type: 'test'
+  ...
+# Subtest: instance overrides win over user class defaults, built-in defaults and kernel defaults
+ok 24 - instance overrides win over user class defaults, built-in defaults and kernel defaults
+  ---
+  duration_ms: 3.150042
+  type: 'test'
+  ...
+# Subtest: deriving a class moves instance overrides into the new class and keeps resolved values
+ok 25 - deriving a class moves instance overrides into the new class and keeps resolved values
+  ---
+  duration_ms: 2.138083
+  type: 'test'
+  ...
+# Subtest: validation rejects undeclared fields, bad ports, single-port overuse, cycles in classes and bad faults
+ok 26 - validation rejects undeclared fields, bad ports, single-port overuse, cycles in classes and bad faults
+  ---
+  duration_ms: 3.276833
+  type: 'test'
+  ...
+# Subtest: every command reports its change kind and notifies subscribers
+ok 27 - every command reports its change kind and notifies subscribers
+  ---
+  duration_ms: 8.104375
+  type: 'test'
+  ...
+# Subtest: view and selection changes notify without entering history
+ok 28 - view and selection changes notify without entering history
+  ---
+  duration_ms: 0.946417
+  type: 'test'
+  ...
+# Subtest: invalid commands leave document, selection and history unchanged
+ok 29 - invalid commands leave document, selection and history unchanged
+  ---
+  duration_ms: 2.306333
+  type: 'test'
+  ...
+# Subtest: the document is frozen so callers cannot bypass commands
+ok 30 - the document is frozen so callers cannot bypass commands
+  ---
+  duration_ms: 0.338375
+  type: 'test'
+  ...
+# Subtest: deleting a node cascades its edges and faults and reports what was removed
+ok 31 - deleting a node cascades its edges and faults and reports what was removed
+  ---
+  duration_ms: 0.368542
+  type: 'test'
+  ...
+# Subtest: deleting a group keeps its member nodes and clears their membership
+ok 32 - deleting a group keeps its member nodes and clears their membership
+  ---
+  duration_ms: 0.758875
+  type: 'test'
+  ...
+# Subtest: moving a group moves its member nodes once even when they are also selected
+ok 33 - moving a group moves its member nodes once even when they are also selected
+  ---
+  duration_ms: 0.668375
+  type: 'test'
+  ...
+# Subtest: setNodeParams patches overrides and null resets an override to the class default
+ok 34 - setNodeParams patches overrides and null resets an override to the class default
+  ---
+  duration_ms: 0.517291
+  type: 'test'
+  ...
+# Subtest: connect returns the new edge id, selects it and reports payload warnings
+ok 35 - connect returns the new edge id, selects it and reports payload warnings
+  ---
+  duration_ms: 1.248708
+  type: 'test'
+  ...
+# Subtest: addNode allocates class-based ids, default labels and selects the node
+ok 36 - addNode allocates class-based ids, default labels and selects the node
+  ---
+  duration_ms: 0.689458
+  type: 'test'
+  ...
+# Subtest: setNodeClass keeps valid overrides and drops edges the new kernel cannot serve
+ok 37 - setNodeClass keeps valid overrides and drops edges the new kernel cannot serve
+  ---
+  duration_ms: 0.364
+  type: 'test'
+  ...
+# Subtest: undo and redo restore documents, keep the camera and bound history
+ok 38 - undo and redo restore documents, keep the camera and bound history
+  ---
+  duration_ms: 2.242167
+  type: 'test'
+  ...
+# Subtest: continuous drags coalesce into one history entry keyed by gesture
+ok 39 - continuous drags coalesce into one history entry keyed by gesture
+  ---
+  duration_ms: 4.700375
+  type: 'test'
+  ...
+# Subtest: commands that change nothing do not add history or notify
+ok 40 - commands that change nothing do not add history or notify
+  ---
+  duration_ms: 0.232708
+  type: 'test'
+  ...
+# Subtest: user classes cannot be deleted while referenced, and editing defaults reaches instances
+ok 41 - user classes cannot be deleted while referenced, and editing defaults reaches instances
+  ---
+  duration_ms: 2.109292
+  type: 'test'
+  ...
+# Subtest: deriveClass moves instance overrides into a new user class without changing resolved values
+ok 42 - deriveClass moves instance overrides into a new user class without changing resolved values
+  ---
+  duration_ms: 0.407292
+  type: 'test'
+  ...
+# Subtest: duplicate copies nodes, internal edges and whole groups and selects the copies
+ok 43 - duplicate copies nodes, internal edges and whole groups and selects the copies
+  ---
+  duration_ms: 0.609709
+  type: 'test'
+  ...
+# Subtest: replace loads a new document, clears history and selection, and rejects invalid input
+ok 44 - replace loads a new document, clears history and selection, and rejects invalid input
+  ---
+  duration_ms: 0.722958
+  type: 'test'
+  ...
+# Subtest: issues() reports unconnected required ports of the current document
+ok 45 - issues() reports unconnected required ports of the current document
+  ---
+  duration_ms: 0.548292
+  type: 'test'
+  ...
+# Subtest: autosave survives missing or throwing storage and round-trips documents
+ok 46 - autosave survives missing or throwing storage and round-trips documents
+  ---
+  duration_ms: 0.404334
+  type: 'test'
+  ...
+# Subtest: every glyph id used by the class library has a drawn glyph
+ok 47 - every glyph id used by the class library has a drawn glyph
+  ---
+  duration_ms: 0.075084
+  type: 'test'
+  ...
+# Subtest: same diagram and seed reproduce the metrics hash; a different seed changes it
+ok 48 - same diagram and seed reproduce the metrics hash; a different seed changes it
+  ---
+  duration_ms: 1934.821167
+  type: 'test'
+  ...
+# Subtest: advance composes: stepping through intermediate times, with JSON clones between, equals one step
+ok 49 - advance composes: stepping through intermediate times, with JSON clones between, equals one step
+  ---
+  duration_ms: 2147.219167
+  type: 'test'
+  ...
+# Subtest: an M/M/c station matches Erlang-C response time and utilization
+ok 50 - an M/M/c station matches Erlang-C response time and utilization
+  ---
+  duration_ms: 1127.002042
+  type: 'test'
+  ...
+# Subtest: lease expiry redelivers to a still-running consumer, duplicates work and dead-letters after maxReceives
+ok 51 - lease expiry redelivers to a still-running consumer, duplicates work and dead-letters after maxReceives
+  ---
+  duration_ms: 2.171291
+  type: 'test'
+  ...
+# Subtest: dropped replies duplicate effects only when writes are not idempotent
+ok 52 - dropped replies duplicate effects only when writes are not idempotent
+  ---
+  duration_ms: 49.733334
+  type: 'test'
+  ...
+# Subtest: crash refuses with down and resets in-flight work; repair restores service
+ok 53 - crash refuses with down and resets in-flight work; repair restores service
+  ---
+  duration_ms: 49.289209
+  type: 'test'
+  ...
+# Subtest: a partitioned edge turns calls into timeouts and is visible on the edge
+ok 54 - a partitioned edge turns calls into timeouts and is visible on the edge
+  ---
+  duration_ms: 19.039917
+  type: 'test'
+  ...
+# Subtest: engine retries and kernel-declared retries count as attempts distinct from requests
+ok 55 - engine retries and kernel-declared retries count as attempts distinct from requests
+  ---
+  duration_ms: 58.442541
+  type: 'test'
+  ...
+# Subtest: live setParams changes station concurrency mid-run and calls onParams
+ok 56 - live setParams changes station concurrency mid-run and calls onParams
+  ---
+  duration_ms: 50.391041
+  type: 'test'
+  ...
+# Subtest: a declared down bypass forwards arrivals to a crashed node downstream and relays replies
+ok 57 - a declared down bypass forwards arrivals to a crashed node downstream and relays replies
+  ---
+  duration_ms: 57.73575
+  type: 'test'
+  ...
+# Subtest: exceeding maxInFlight stops the run with a visible error instead of dropping work
+ok 58 - exceeding maxInFlight stops the run with a visible error instead of dropping work
+  ---
+  duration_ms: 1.244
+  type: 'test'
+  ...
+# Subtest: an unregistered kernel fails closed and names the kernel
+ok 59 - an unregistered kernel fails closed and names the kernel
+  ---
+  duration_ms: 0.375958
+  type: 'test'
+  ...
+# Subtest: runner display preview equals the coordinator, verify matches and the replay document round-trips
+ok 60 - runner display preview equals the coordinator, verify matches and the replay document round-trips
+  ---
+  duration_ms: 144777.073166
+  type: 'test'
+  ...
+# Subtest: load balancer spreads load evenly and ejects a crashed backend
+ok 61 - load balancer spreads load evenly and ejects a crashed backend
+  ---
+  duration_ms: 704.5815
+  type: 'test'
+  ...
+# Subtest: circuit breaker opens under a failing dependency, fails fast and closes after repair
+ok 62 - circuit breaker opens under a failing dependency, fails fast and closes after repair
+  ---
+  duration_ms: 178.294125
+  type: 'test'
+  ...
+# Subtest: retry budget limits a retry storm against a failing dependency
+ok 63 - retry budget limits a retry storm against a failing dependency
+  ---
+  duration_ms: 785.391208
+  type: 'test'
+  ...
+# Subtest: sticky failover switches after repeated primary failures and fails back later
+ok 64 - sticky failover switches after repeated primary failures and fails back later
+  ---
+  duration_ms: 120.176333
+  type: 'test'
+  ...
+# Subtest: async replication produces stale follower reads; leader failure elects and loses unreplicated writes
+ok 65 - async replication produces stale follower reads; leader failure elects and loses unreplicated writes
+  ---
+  duration_ms: 348.98625
+  type: 'test'
+  ...
+# Subtest: quorum replication does not lose acknowledged writes on leader failure
+ok 66 - quorum replication does not lose acknowledged writes on leader failure
+  ---
+  duration_ms: 239.061958
+  type: 'test'
+  ...
+# Subtest: cache hit ratio rises with key skew and a cache crash sends load to the origin
+ok 67 - cache hit ratio rises with key skew and a cache crash sends load to the origin
+  ---
+  duration_ms: 1258.643
+  type: 'test'
+  ...
+# Subtest: rate limiter queues overflow and releases it at the token rate
+ok 68 - rate limiter queues overflow and releases it at the token rate
+  ---
+  duration_ms: 85.722334
+  type: 'test'
+  ...
+# Subtest: quorum writes are unavailable when the write quorum cannot be met
+ok 69 - quorum writes are unavailable when the write quorum cannot be met
+  ---
+  duration_ms: 263.097458
+  type: 'test'
+  ...
+# Subtest: same seed reproduces metrics exactly, a JSON clone of mid-run state continues identically, and a different seed differs
+ok 70 - same seed reproduces metrics exactly, a JSON clone of mid-run state continues identically, and a different seed differs
+  ---
+  duration_ms: 5932.099917
+  type: 'test'
+  ...
+# Subtest: batching raises batch worker throughput over one-item batches
+ok 71 - batching raises batch worker throughput over one-item batches
+  ---
+  duration_ms: 3304.26625
+  type: 'test'
+  ...
+# Subtest: LLM latency grows with concurrent sequences (processor sharing)
+ok 72 - LLM latency grows with concurrent sequences (processor sharing)
+  ---
+  duration_ms: 120.82775
+  type: 'test'
+  ...
+# Subtest: LLM token quota answers excess prompts with rate-limited errors and cost accrues
+ok 73 - LLM token quota answers excess prompts with rate-limited errors and cost accrues
+  ---
+  duration_ms: 7.738791
+  type: 'test'
+  ...
+# Subtest: LLM context overflow fails with invalid
+ok 74 - LLM context overflow fails with invalid
+  ---
+  duration_ms: 1.334291
+  type: 'test'
+  ...
+# Subtest: RAG chain embeds, searches, reranks and generates with plausible latency
+ok 75 - RAG chain embeds, searches, reranks and generates with plausible latency
+  ---
+  duration_ms: 27.33925
+  type: 'test'
+  ...
+# Subtest: RAG step failures fail the request with that step error
+ok 76 - RAG step failures fail the request with that step error
+  ---
+  duration_ms: 5.159708
+  type: 'test'
+  ...
+# Subtest: structured response repairs invalid generator output
+ok 77 - structured response repairs invalid generator output
+  ---
+  duration_ms: 10.413
+  type: 'test'
+  ...
+# Subtest: structured response fails with invalid after maxRepairs
+ok 78 - structured response fails with invalid after maxRepairs
+  ---
+  duration_ms: 11.408875
+  type: 'test'
+  ...
+# Subtest: structured response without a generator parses directly
+ok 79 - structured response without a generator parses directly
+  ---
+  duration_ms: 23.233417
+  type: 'test'
+  ...
+# Subtest: chunker fans documents out into an embedder and vector index that grows by every chunk
+ok 80 - chunker fans documents out into an embedder and vector index that grows by every chunk
+  ---
+  duration_ms: 3.6225
+  type: 'test'
+  ...
+# Subtest: cron with overlap skip skips runs while the previous run is active
+ok 81 - cron with overlap skip skips runs while the previous run is active
+  ---
+  duration_ms: 3.586375
+  type: 'test'
+  ...
+# Subtest: crawler keeps per-domain politeness and backs off a rate-limited website
+ok 82 - crawler keeps per-domain politeness and backs off a rate-limited website
+  ---
+  duration_ms: 21.819708
+  type: 'test'
+  ...
+# Subtest: AI and source kernels replay deterministically through faults, steps and JSON clones
+ok 83 - AI and source kernels replay deterministically through faults, steps and JSON clones
+  ---
+  duration_ms: 5066.020208
+  type: 'test'
+  ...
+# Subtest: canonical kernel declarations all register actual behavior and every shipped class resolves
+ok 84 - canonical kernel declarations all register actual behavior and every shipped class resolves
+  ---
+  duration_ms: 0.838417
+  type: 'test'
+  ...
+# Subtest: web-service executes its composed kernels and serialized continuation equals uninterrupted execution
+ok 85 - web-service executes its composed kernels and serialized continuation equals uninterrupted execution
+  ---
+  duration_ms: 67.459209
+  type: 'test'
+  ...
+# Subtest: rag-assistant executes its composed kernels and serialized continuation equals uninterrupted execution
+ok 86 - rag-assistant executes its composed kernels and serialized continuation equals uninterrupted execution
+  ---
+  duration_ms: 51.866792
+  type: 'test'
+  ...
+# Subtest: crawler-pipeline executes its composed kernels and serialized continuation equals uninterrupted execution
+ok 87 - crawler-pipeline executes its composed kernels and serialized continuation equals uninterrupted execution
+  ---
+  duration_ms: 8.252916
+  type: 'test'
+  ...
+# Subtest: rewiring RAG generation changes the executed graph and measured cost
+ok 88 - rewiring RAG generation changes the executed graph and measured cost
+  ---
+  duration_ms: 46.354417
+  type: 'test'
+  ...
+# Subtest: failed GPU work reaches terminal requests without stranding batch siblings
+ok 89 - failed GPU work reaches terminal requests without stranding batch siblings
+  ---
+  duration_ms: 2.6555
+  type: 'test'
+  ...
+# Subtest: GPU batch and embedding workers consume the same executable resource-group slots
+ok 90 - GPU batch and embedding workers consume the same executable resource-group slots
+  ---
+  duration_ms: 22.058666
+  type: 'test'
+  ...
+# Subtest: accelerator crash releases its shared slot and deferred wake starts the waiting peer
+ok 91 - accelerator crash releases its shared slot and deferred wake starts the waiting peer
+  ---
+  duration_ms: 1.32725
+  type: 'test'
+  ...
+# Subtest: memory-rejected and unfinished requests remain visible with model-owned causal blockers
+ok 92 - memory-rejected and unfinished requests remain visible with model-owned causal blockers
+  ---
+  duration_ms: 3.875792
+  type: 'test'
+  ...
+# Subtest: authored replica links carry real network work and acknowledgements independently of local commits
+ok 93 - authored replica links carry real network work and acknowledgements independently of local commits
+  ---
+  duration_ms: 9.332333
+  type: 'test'
+  ...
+# Subtest: partition blocks the authored follower receipt; bounded retries repair the same write without changing demand
+ok 94 - partition blocks the authored follower receipt; bounded retries repair the same write without changing demand
+  ---
+  duration_ms: 6.865667
+  type: 'test'
+  ...
+# Subtest: lost follower acknowledgements redeliver without a second follower apply or local application effect
+ok 95 - lost follower acknowledgements redeliver without a second follower apply or local application effect
+  ---
+  duration_ms: 7.850042
+  type: 'test'
+  ...
+# Subtest: local acknowledgement remains available during follower outage while unfinished replication remains visible
+ok 96 - local acknowledgement remains available during follower outage while unfinished replication remains visible
+  ---
+  duration_ms: 4.199708
+  type: 'test'
+  ...
+# Subtest: fixed leader recovery fences stale callbacks and resumes durable outbox under the same designated role
+ok 97 - fixed leader recovery fences stale callbacks and resumes durable outbox under the same designated role
+  ---
+  duration_ms: 1.654333
+  type: 'test'
+  ...
+# Subtest: unsupported replica topology fails closed and invalid live role changes preserve the accepted run
+ok 98 - unsupported replica topology fails closed and invalid live role changes preserve the accepted run
+  ---
+  duration_ms: 3.463708
+  type: 'test'
+  ...
+# Subtest: follower version fencing rejects old epochs and acknowledges duplicate or reordered versions without reapplying
+ok 99 - follower version fencing rejects old epochs and acknowledges duplicate or reordered versions without reapplying
+  ---
+  duration_ms: 0.7515
+  type: 'test'
+  ...
+# Subtest: majority acknowledgements count distinct follower nodes while all-copy policy waits for the unavailable node
+ok 100 - majority acknowledgements count distinct follower nodes while all-copy policy waits for the unavailable node
+  ---
+  duration_ms: 9.453583
+  type: 'test'
+  ...
+# Subtest: unacknowledged replication owns retained payload bytes and survives restoration exactly
+ok 101 - unacknowledged replication owns retained payload bytes and survives restoration exactly
+  ---
+  duration_ms: 1.913875
+  type: 'test'
+  ...
+# Subtest: replica service honors modeled slowdown and isolated roles remain immutable during a run
+ok 102 - replica service honors modeled slowdown and isolated roles remain immutable during a run
+  ---
+  duration_ms: 1.138209
+  type: 'test'
+  ...
+# Subtest: reusing an idempotency key with conflicting key or payload rejects before another local version or outbox exists
+ok 103 - reusing an idempotency key with conflicting key or payload rejects before another local version or outbox exists
+  ---
+  duration_ms: 3.312666
+  type: 'test'
+  ...
+# Subtest: lowering live write quorum acknowledges an already committed waiter immediately without hiding the retained copy
+ok 104 - lowering live write quorum acknowledges an already committed waiter immediately without hiding the retained copy
+  ---
+  duration_ms: 1.326708
+  type: 'test'
+  ...
+# Subtest: client payload cannot inject a replication envelope through the ordinary follower client port
+ok 105 - client payload cannot inject a replication envelope through the ordinary follower client port
+  ---
+  duration_ms: 0.560209
+  type: 'test'
+  ...
+# Subtest: accepted retry budget increases resume exhausted outbox using only newly available attempts
+ok 106 - accepted retry budget increases resume exhausted outbox using only newly available attempts
+  ---
+  duration_ms: 0.953458
+  type: 'test'
+  ...
+# Subtest: request, attempt and committed effect records survive beyond the notable log ring
+ok 107 - request, attempt and committed effect records survive beyond the notable log ring
+  ---
+  duration_ms: 54.010959
+  type: 'test'
+  ...
+# Subtest: memory admission rejects visibly and the ledger reconciles every active allocation
+ok 108 - memory admission rejects visibly and the ledger reconciles every active allocation
+  ---
+  duration_ms: 5.051917
+  type: 'test'
+  ...
+# Subtest: durable queue and dead-letter payloads retain accounted memory after producer acknowledgement
+ok 109 - durable queue and dead-letter payloads retain accounted memory after producer acknowledgement
+  ---
+  duration_ms: 7.070833
+  type: 'test'
+  ...
+# Subtest: coordinator preview and strict checkpoint restoration reproduce full state and repeated same-time controls
+ok 110 - coordinator preview and strict checkpoint restoration reproduce full state and repeated same-time controls
+  ---
+  duration_ms: 87.7415
+  type: 'test'
+  ...
+# Subtest: pair input contracts allow repair policy edits and reject changed demand or fault timing
+ok 111 - pair input contracts allow repair policy edits and reject changed demand or fault timing
+  ---
+  duration_ms: 8.448625
+  type: 'test'
+  ...
+# Subtest: sequential comparison freezes inputs, proofs, arrivals and immutable records
+ok 112 - sequential comparison freezes inputs, proofs, arrivals and immutable records
+  ---
+  duration_ms: 2.79725
+  type: 'test'
+  ...
+# Subtest: changed actual request IDs cannot masquerade as identical arrivals
+ok 113 - changed actual request IDs cannot masquerade as identical arrivals
+  ---
+  duration_ms: 1.917292
+  type: 'test'
+  ...
+# Subtest: matching IDs and arrival times cannot hide changed workload content
+ok 114 - matching IDs and arrival times cannot hide changed workload content
+  ---
+  duration_ms: 0.53475
+  type: 'test'
+  ...
+# Subtest: divergence, stopped runs and invalid control timing refuse with no leaked runner
+ok 115 - divergence, stopped runs and invalid control timing refuse with no leaked runner
+  ---
+  duration_ms: 2.872666
+  type: 'test'
+  ...
+# Subtest: accepted checkpoint is taken before suspension and restored even when comparison refuses
+ok 116 - accepted checkpoint is taken before suspension and restored even when comparison refuses
+  ---
+  duration_ms: 0.303458
+  type: 'test'
+  ...
+# Subtest: failed restoration releases replacement and never publishes a false restored state
+ok 117 - failed restoration releases replacement and never publishes a false restored state
+  ---
+  duration_ms: 0.168833
+  type: 'test'
+  ...
+# Subtest: real coordinator runs pair a queued CPU/GPU store repair without changing arrivals
+ok 118 - real coordinator runs pair a queued CPU/GPU store repair without changing arrivals
+  ---
+  duration_ms: 430.108417
+  type: 'test'
+  ...
+# Subtest: synthetic healthcare ingestion distinguishes schema, approval, ordering, duplicates and retained exceptions
+ok 119 - synthetic healthcare ingestion distinguishes schema, approval, ordering, duplicates and retained exceptions
+  ---
+  duration_ms: 23.100083
+  type: 'test'
+  ...
+# Subtest: paired-record reconciliation commits matching scalar pairs once and retains both mismatched inputs
+ok 120 - paired-record reconciliation commits matching scalar pairs once and retains both mismatched inputs
+  ---
+  duration_ms: 13.433291
+  type: 'test'
+  ...
+# Subtest: lakehouse pattern models schema evolution, late-data rejection, aggregation, spill and logical checkpoint offsets
+ok 121 - lakehouse pattern models schema evolution, late-data rejection, aggregation, spill and logical checkpoint offsets
+  ---
+  duration_ms: 29.15325
+  type: 'test'
+  ...
+# Subtest: distinct logical duplicate deliveries keep stable event identity and produce one effect per event at each sink
+ok 122 - distinct logical duplicate deliveries keep stable event identity and produce one effect per event at each sink
+  ---
+  duration_ms: 4.813375
+  type: 'test'
+  ...
+# Subtest: event-ledger re-forwards after lost sink acknowledgements without committing or aggregating twice
+ok 123 - event-ledger re-forwards after lost sink acknowledgements without committing or aggregating twice
+  ---
+  duration_ms: 1.755583
+  type: 'test'
+  ...
+# Subtest: event-window re-forwards after lost sink acknowledgements without committing or aggregating twice
+ok 124 - event-window re-forwards after lost sink acknowledgements without committing or aggregating twice
+  ---
+  duration_ms: 0.790333
+  type: 'test'
+  ...
+# Subtest: explicit sequence ordering quarantines a gap while later expected records can still commit
+ok 125 - explicit sequence ordering quarantines a gap while later expected records can still commit
+  ---
+  duration_ms: 1.034833
+  type: 'test'
+  ...
+# Subtest: watermark allows an explicit late revision but quarantines records beyond allowed lateness
+ok 126 - watermark allows an explicit late revision but quarantines records beyond allowed lateness
+  ---
+  duration_ms: 2.4575
+  type: 'test'
+  ...
+# Subtest: malformed records are explicitly quarantined rather than acquiring plausible defaults
+ok 127 - malformed records are explicitly quarantined rather than acquiring plausible defaults
+  ---
+  duration_ms: 2.114167
+  type: 'test'
+  ...
+# Subtest: a committed pair is immutable; a conflicting later side is quarantined without altering historical amounts
+ok 128 - a committed pair is immutable; a conflicting later side is quarantined without altering historical amounts
+  ---
+  duration_ms: 2.774375
+  type: 'test'
+  ...
+# Subtest: a corrected unmatched counterpart releases pending payloads and commits once while preserving the prior exception
+ok 129 - a corrected unmatched counterpart releases pending payloads and commits once while preserving the prior exception
+  ---
+  duration_ms: 2.000917
+  type: 'test'
+  ...
+# Subtest: shuffle station rejection releases every reserved resident buffer and a crash fences pending completions
+ok 130 - shuffle station rejection releases every reserved resident buffer and a crash fences pending completions
+  ---
+  duration_ms: 4.487292
+  type: 'test'
+  ...
+# Subtest: quarantine capacity and volatile crash loss remain visible instead of leaking retained payloads
+ok 131 - quarantine capacity and volatile crash loss remain visible instead of leaking retained payloads
+  ---
+  duration_ms: 3.140916
+  type: 'test'
+  ...
+# Subtest: healthcare-ingestion exact JSON checkpoint restoration equals uninterrupted state and causal records
+ok 132 - healthcare-ingestion exact JSON checkpoint restoration equals uninterrupted state and causal records
+  ---
+  duration_ms: 17.914875
+  type: 'test'
+  ...
+# Subtest: finance-reconciliation exact JSON checkpoint restoration equals uninterrupted state and causal records
+ok 133 - finance-reconciliation exact JSON checkpoint restoration equals uninterrupted state and causal records
+  ---
+  duration_ms: 10.495458
+  type: 'test'
+  ...
+# Subtest: lakehouse-late-data exact JSON checkpoint restoration equals uninterrupted state and causal records
+ok 134 - lakehouse-late-data exact JSON checkpoint restoration equals uninterrupted state and causal records
+  ---
+  duration_ms: 27.709916
+  type: 'test'
+  ...
+# Subtest: coordinator checkpoint retains unmatched records, causal blockers and seeded replay exactly
+ok 135 - coordinator checkpoint retains unmatched records, causal blockers and seeded replay exactly
+  ---
+  duration_ms: 772.529333
+  type: 'test'
+  ...
+# Subtest: event source crash accounts interrupted requests and resumes one fenced schedule after recovery
+ok 136 - event source crash accounts interrupted requests and resumes one fenced schedule after recovery
+  ---
+  duration_ms: 1.280292
+  type: 'test'
+  ...
+# Subtest: FIFO and fair bandwidth sharing consume the same finite link capacity with independently expected completion times
+ok 137 - FIFO and fair bandwidth sharing consume the same finite link capacity with independently expected completion times
+  ---
+  duration_ms: 17.285792
+  type: 'test'
+  ...
+# Subtest: live bandwidth and latency edits integrate remaining transfer work and fence old completion estimates
+ok 138 - live bandwidth and latency edits integrate remaining transfer work and fence old completion estimates
+  ---
+  duration_ms: 2.662209
+  type: 'test'
+  ...
+# Subtest: shared half-duplex request/reply traffic contends for the same physical link budget
+ok 139 - shared half-duplex request/reply traffic contends for the same physical link budget
+  ---
+  duration_ms: 2.27025
+  type: 'test'
+  ...
+# Subtest: partitions drop in-progress transfers, and loss changes before completion affect actual outcomes
+ok 140 - partitions drop in-progress transfers, and loss changes before completion affect actual outcomes
+  ---
+  duration_ms: 1.042167
+  type: 'test'
+  ...
+# Subtest: memory pressure slows actual station work and stale estimates cannot complete it early
+ok 141 - memory pressure slows actual station work and stale estimates cannot complete it early
+  ---
+  duration_ms: 1.643459
+  type: 'test'
+  ...
+# Subtest: GC pauses remaining work, reclaims only recorded garbage, and preserves bounded memory ownership
+ok 142 - GC pauses remaining work, reclaims only recorded garbage, and preserves bounded memory ownership
+  ---
+  duration_ms: 1.032625
+  type: 'test'
+  ...
+# Subtest: OOM crash policy fails owned work, frees resources and recovers only on its declared timer
+ok 143 - OOM crash policy fails owned work, frees resources and recovers only on its declared timer
+  ---
+  duration_ms: 0.976542
+  type: 'test'
+  ...
+# Subtest: resource checkpoints preserve transfers, pressure, RNG, generations and exact continuation
+ok 144 - resource checkpoints preserve transfers, pressure, RNG, generations and exact continuation
+  ---
+  duration_ms: 1.540792
+  type: 'test'
+  ...
+# Subtest: retry policies leave open-loop arrival and payload demand identical for the same seed
+ok 145 - retry policies leave open-loop arrival and payload demand identical for the same seed
+  ---
+  duration_ms: 6.169708
+  type: 'test'
+  ...
+# Subtest: a modeled local commit with a failed acknowledgement stays explicitly unknown to its caller
+ok 146 - a modeled local commit with a failed acknowledgement stays explicitly unknown to its caller
+  ---
+  duration_ms: 1.176167
+  type: 'test'
+  ...
+# Subtest: generic pending records own real memory and remain inspectable after ingestion completes and through checkpoint continuation
+ok 147 - generic pending records own real memory and remain inspectable after ingestion completes and through checkpoint continuation
+  ---
+  duration_ms: 0.979542
+  type: 'test'
+  ...
+# Subtest: a successful idempotent retry confirms the original effect while preserving its lost acknowledgement history
+ok 148 - a successful idempotent retry confirms the original effect while preserving its lost acknowledgement history
+  ---
+  duration_ms: 1.472958
+  type: 'test'
+  ...
+# Subtest: acknowledged ingestion can independently miss its retained background deadline
+ok 149 - acknowledged ingestion can independently miss its retained background deadline
+  ---
+  duration_ms: 0.6305
+  type: 'test'
+  ...
+# Subtest: streaming: rich blank-authored flow executes all declared stages, outage recovery and exact pending-work restoration
+ok 150 - streaming: rich blank-authored flow executes all declared stages, outage recovery and exact pending-work restoration
+  ---
+  duration_ms: 45.779584
+  type: 'test'
+  ...
+# Subtest: agent: rich blank-authored flow executes all declared stages, outage recovery and exact pending-work restoration
+ok 151 - agent: rich blank-authored flow executes all declared stages, outage recovery and exact pending-work restoration
+  ---
+  duration_ms: 43.559208
+  type: 'test'
+  ...
+# Subtest: clock text keeps a fixed width for a horizon and clamps to it
+ok 152 - clock text keeps a fixed width for a horizon and clamps to it
+  ---
+  duration_ms: 0.600542
+  type: 'test'
+  ...
+# Subtest: speed labels and nearest speed follow config.playback.speeds
+ok 153 - speed labels and nearest speed follow config.playback.speeds
+  ---
+  duration_ms: 0.265334
+  type: 'test'
+  ...
+# Subtest: space toggles play only outside text entry and other controls
+ok 154 - space toggles play only outside text entry and other controls
+  ---
+  duration_ms: 0.153375
+  type: 'test'
+  ...
+# Subtest: transit position runs requests forward and replies backward, clamped
+ok 155 - transit position runs requests forward and replies backward, clamped
+  ---
+  duration_ms: 0.06475
+  type: 'test'
+  ...
+# Subtest: every library payload type maps to one of the declared transit families
+ok 156 - every library payload type maps to one of the declared transit families
+  ---
+  duration_ms: 0.094917
+  type: 'test'
+  ...
+# Subtest: edge activity distinguishes idle, flowing, error and faulted links
+ok 157 - edge activity distinguishes idle, flowing, error and faulted links
+  ---
+  duration_ms: 0.133125
+  type: 'test'
+  ...
+# Subtest: node counters show throughput and only meaningful latency, queue and errors
+ok 158 - node counters show throughput and only meaningful latency, queue and errors
+  ---
+  duration_ms: 0.116375
+  type: 'test'
+  ...
+# Subtest: metric tiles carry every SimMetric field with synthetic validity
+ok 159 - metric tiles carry every SimMetric field with synthetic validity
+  ---
+  duration_ms: 24.613709
+  type: 'test'
+  ...
+# Subtest: metric tiles report missing latency samples, cost, completion and stopped runs honestly
+ok 160 - metric tiles report missing latency samples, cost, completion and stopped runs honestly
+  ---
+  duration_ms: 1.00475
+  type: 'test'
+  ...
+# Subtest: series rows drop the partial trailing bucket and convert counts to rates
+ok 161 - series rows drop the partial trailing bucket and convert counts to rates
+  ---
+  duration_ms: 0.390792
+  type: 'test'
+  ...
+# Subtest: chart scale and failure breakdown are readable
+ok 162 - chart scale and failure breakdown are readable
+  ---
+  duration_ms: 0.165333
+  type: 'test'
+  ...
+# Subtest: node table sorts by utilization by default direction and breaks ties by id
+ok 163 - node table sorts by utilization by default direction and breaks ties by id
+  ---
+  duration_ms: 0.622625
+  type: 'test'
+  ...
+# Subtest: parameter parsing rejects out-of-range and malformed values instead of clamping
+ok 164 - parameter parsing rejects out-of-range and malformed values instead of clamping
+  ---
+  duration_ms: 0.205542
+  type: 'test'
+  ...
+# Subtest: parameter rows group basic and advanced specs and label value sources
+ok 165 - parameter rows group basic and advanced specs and label value sources
+  ---
+  duration_ms: 0.228166
+  type: 'test'
+  ...
+# Subtest: fault actions follow kernel fault lists and kernel restrictions
+ok 166 - fault actions follow kernel fault lists and kernel restrictions
+  ---
+  duration_ms: 0.15025
+  type: 'test'
+  ...
+# Subtest: selection mode and fault summaries describe what the inspector shows
+ok 167 - selection mode and fault summaries describe what the inspector shows
+  ---
+  duration_ms: 0.143666
+  type: 'test'
+  ...
+# Subtest: rejected commands and replacements leave document, selection and history atomic
+ok 168 - rejected commands and replacements leave document, selection and history atomic
+  ---
+  duration_ms: 6.273834
+  type: 'test'
+  ...
+# Subtest: class derivation preserves effective parameters and class edits respect instance overrides
+ok 169 - class derivation preserves effective parameters and class edits respect instance overrides
+  ---
+  duration_ms: 3.268667
+  type: 'test'
+  ...
+# Subtest: resource groups compile shared slots separately from failure domains and retain legacy group shape
+ok 170 - resource groups compile shared slots separately from failure domains and retain legacy group shape
+  ---
+  duration_ms: 8.829583
+  type: 'test'
+  ...
+# Subtest: duplicate keeps classes reusable, copies internal edges, and group movement moves each member once
+ok 171 - duplicate keeps classes reusable, copies internal edges, and group movement moves each member once
+  ---
+  duration_ms: 3.167833
+  type: 'test'
+  ...
+# Subtest: node deletion removes incident edges and faults and undo restores causal configuration
+ok 172 - node deletion removes incident edges and faults and undo restores causal configuration
+  ---
+  duration_ms: 1.002083
+  type: 'test'
+  ...
+# Subtest: semantic identity excludes labels/layout/notes/view while retaining executable changes
+ok 173 - semantic identity excludes labels/layout/notes/view while retaining executable changes
+  ---
+  duration_ms: 13.030625
+  type: 'test'
+  ...
+# Subtest: view and selection are outside bounded history and rejected edits do not notify subscribers
+ok 174 - view and selection are outside bounded history and rejected edits do not notify subscribers
+  ---
+  duration_ms: 1.426084
+  type: 'test'
+  ...
+# Subtest: reconnection preserves edge identity and patches parameters atomically with null reset
+ok 175 - reconnection preserves edge identity and patches parameters atomically with null reset
+  ---
+  duration_ms: 6.043458
+  type: 'test'
+  ...
+# Subtest: frozen accepted snapshot stays detached from pending edits and replace clears history by contract
+ok 176 - frozen accepted snapshot stays detached from pending edits and replace clears history by contract
+  ---
+  duration_ms: 1.971791
+  type: 'test'
+  ...
+# Subtest: finite streaming burst exposes bounded slow-consumer backpressure, cache reuse and a faster repair under identical demand
+ok 177 - finite streaming burst exposes bounded slow-consumer backpressure, cache reuse and a faster repair under identical demand
+  ---
+  duration_ms: 76.699167
+  type: 'test'
+  ...
+# Subtest: replica recovery preserves missing writes until the failed follower actually catches up
+ok 178 - replica recovery preserves missing writes until the failed follower actually catches up
+  ---
+  duration_ms: 4.043375
+  type: 'test'
+  ...
+# Subtest: declared quorum journey exposes partition failures, elects once and recovers with no acknowledged-write loss
+ok 179 - declared quorum journey exposes partition failures, elects once and recovers with no acknowledged-write loss
+  ---
+  duration_ms: 15.180959
+  type: 'test'
+  ...
+# Subtest: a memory-change notification hook does not imply ownership of shared worker slots
+ok 180 - a memory-change notification hook does not imply ownership of shared worker slots
+  ---
+  duration_ms: 0.795709
+  type: 'test'
+  ...
+1..180
+# tests 180
+# suites 0
+# pass 180
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 150434.242083

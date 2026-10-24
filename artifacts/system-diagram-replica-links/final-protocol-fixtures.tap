@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: six blank authoring plans have explicit independent numerical derivations and no preset document imports
+ok 1 - six blank authoring plans have explicit independent numerical derivations and no preset document imports
+  ---
+  duration_ms: 0.690584
+  type: 'test'
+  ...
+# Subtest: streaming: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 2 - streaming: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 14.491042
+  type: 'test'
+  ...
+# Subtest: replica: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 3 - replica: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 8.649375
+  type: 'test'
+  ...
+# Subtest: agent: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 4 - agent: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 4.2975
+  type: 'test'
+  ...
+# Subtest: healthcare: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 5 - healthcare: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 13.610667
+  type: 'test'
+  ...
+# Subtest: finance: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 6 - finance: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 10.64
+  type: 'test'
+  ...
+# Subtest: lakehouse: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+ok 7 - lakehouse: independently expected blank baseline/repair outcomes survive ID allocation and exact checkpoints
+  ---
+  duration_ms: 9.030708
+  type: 'test'
+  ...
+# Subtest: authored replica links carry real network work and acknowledgements independently of local commits
+ok 8 - authored replica links carry real network work and acknowledgements independently of local commits
+  ---
+  duration_ms: 7.00175
+  type: 'test'
+  ...
+# Subtest: partition blocks the authored follower receipt; bounded retries repair the same write without changing demand
+ok 9 - partition blocks the authored follower receipt; bounded retries repair the same write without changing demand
+  ---
+  duration_ms: 5.671083
+  type: 'test'
+  ...
+# Subtest: lost follower acknowledgements redeliver without a second follower apply or local application effect
+ok 10 - lost follower acknowledgements redeliver without a second follower apply or local application effect
+  ---
+  duration_ms: 4.816417
+  type: 'test'
+  ...
+# Subtest: local acknowledgement remains available during follower outage while unfinished replication remains visible
+ok 11 - local acknowledgement remains available during follower outage while unfinished replication remains visible
+  ---
+  duration_ms: 2.445791
+  type: 'test'
+  ...
+# Subtest: fixed leader recovery fences stale callbacks and resumes durable outbox under the same designated role
+ok 12 - fixed leader recovery fences stale callbacks and resumes durable outbox under the same designated role
+  ---
+  duration_ms: 2.83175
+  type: 'test'
+  ...
+# Subtest: unsupported replica topology fails closed and invalid live role changes preserve the accepted run
+ok 13 - unsupported replica topology fails closed and invalid live role changes preserve the accepted run
+  ---
+  duration_ms: 2.932458
+  type: 'test'
+  ...
+# Subtest: follower version fencing rejects old epochs and acknowledges duplicate or reordered versions without reapplying
+ok 14 - follower version fencing rejects old epochs and acknowledges duplicate or reordered versions without reapplying
+  ---
+  duration_ms: 0.240834
+  type: 'test'
+  ...
+# Subtest: majority acknowledgements count distinct follower nodes while all-copy policy waits for the unavailable node
+ok 15 - majority acknowledgements count distinct follower nodes while all-copy policy waits for the unavailable node
+  ---
+  duration_ms: 8.813958
+  type: 'test'
+  ...
+# Subtest: unacknowledged replication owns retained payload bytes and survives restoration exactly
+ok 16 - unacknowledged replication owns retained payload bytes and survives restoration exactly
+  ---
+  duration_ms: 2.080625
+  type: 'test'
+  ...
+# Subtest: replica service honors modeled slowdown and isolated roles remain immutable during a run
+ok 17 - replica service honors modeled slowdown and isolated roles remain immutable during a run
+  ---
+  duration_ms: 1.136834
+  type: 'test'
+  ...
+# Subtest: reusing an idempotency key with conflicting key or payload rejects before another local version or outbox exists
+ok 18 - reusing an idempotency key with conflicting key or payload rejects before another local version or outbox exists
+  ---
+  duration_ms: 1.244542
+  type: 'test'
+  ...
+# Subtest: lowering live write quorum acknowledges an already committed waiter immediately without hiding the retained copy
+ok 19 - lowering live write quorum acknowledges an already committed waiter immediately without hiding the retained copy
+  ---
+  duration_ms: 0.839542
+  type: 'test'
+  ...
+# Subtest: client payload cannot inject a replication envelope through the ordinary follower client port
+ok 20 - client payload cannot inject a replication envelope through the ordinary follower client port
+  ---
+  duration_ms: 0.92375
+  type: 'test'
+  ...
+# Subtest: accepted retry budget increases resume exhausted outbox using only newly available attempts
+ok 21 - accepted retry budget increases resume exhausted outbox using only newly available attempts
+  ---
+  duration_ms: 1.816709
+  type: 'test'
+  ...
+# Subtest: unrelated live parameter edits preserve the already scheduled replication retry backoff
+ok 22 - unrelated live parameter edits preserve the already scheduled replication retry backoff
+  ---
+  duration_ms: 2.000875
+  type: 'test'
+  ...
+# Subtest: streaming: rich blank-authored flow executes all declared stages, outage recovery and exact pending-work restoration
+ok 23 - streaming: rich blank-authored flow executes all declared stages, outage recovery and exact pending-work restoration
+  ---
+  duration_ms: 29.004417
+  type: 'test'
+  ...
+# Subtest: agent: rich blank-authored flow executes all declared stages, outage recovery and exact pending-work restoration
+ok 24 - agent: rich blank-authored flow executes all declared stages, outage recovery and exact pending-work restoration
+  ---
+  duration_ms: 23.590375
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 117.791834

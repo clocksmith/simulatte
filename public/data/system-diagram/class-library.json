@@ -776,6 +776,7 @@
     "classes/ai.json",
     "classes/sources.json",
     "classes/streaming.json",
-    "classes/pipeline.json"
+    "classes/pipeline.json",
+    "classes/replication.json"
   ]
 }

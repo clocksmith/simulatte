@@ -1,0 +1,63 @@
+{
+  "schema": "simulatte.systemDiagramIncrementQualification.v1",
+  "baseCommit": "11a032036f53b0d459bfc51e332dfdb2823bb581",
+  "sourceSha256": {
+    "public/simulatte/system-diagram/engine.js": "79e8cb7034964deef0722bae9bbf85c88a5ededb4e97aaa7b27281695e4451c2",
+    "public/simulatte/system-diagram/kernel-registry.js": "c87120af117a6fe4d2575c7ec7578eebca2409d68969890855a9e6ee9dd4eff0",
+    "public/simulatte/system-diagram/kernels-replication.js": "a7db77c67cafee52db10115c501483c5351b79cc3e8d834c595277f700fa7e9a",
+    "public/simulatte/system-diagram/kernels-all.js": "7564114e2784f60089853acae6758f5d2420d779bf5bce528c2d4ad5e7df32cc",
+    "public/simulatte/system-diagram/index.html": "0f40b617bb1d7a25cff5211242d835000e1f123e9a3cec8ccfd78786165fdcd0",
+    "public/simulatte/system-diagram/page.js": "2ba6c86be6d3c0bc20fe0aeca5f1e2df6adb7c8e345c18145f8f48ae685b968e",
+    "public/data/system-diagram/class-library.json": "9a94169deca0feb1ce0f37d190a9406818dbc6bef4a1a85d422a6490d8269a6d",
+    "public/data/system-diagram/classes/replication.json": "0a713347114c4c5347f79f6d6fb6ea7e3d8700ce3a8ff05a1f9492c6e7529fe3",
+    "tests/fixtures/system-diagram-blank-journeys.json": "5bf3b0f594603cce6f9329b9facc36d296e955fc309577baf4a41c49b2a569a2",
+    "tests/fixtures/system-diagram-rich-journeys.json": "47996a28a864da61eddc8682daf60ad2fad61a27cca62cf6b3c42e8a236ecbf5",
+    "tools/simulatte/audit-system-diagram-journeys.mjs": "81469aa60fd288f255617da7df0c9eba93e852d3f6b9b7cabff41ecb28ee0dbf",
+    "tools/simulatte/system-diagram-family-journeys.mjs": "a22b5cf815bfdfb2323ac5045c1b8c69dfb29151055ce970927bf8d632ffd8b6"
+  },
+  "checks": {
+    "simulatorRegressionLane": {
+      "status": "passed",
+      "tests": 180,
+      "evidence": "tests.tap",
+      "boundary": "Run preceded the final retry-backoff fix; affected protocol and fixture files were requalified below."
+    },
+    "finalProtocolAndFixtureLane": {
+      "status": "passed",
+      "tests": 24,
+      "evidence": "final-protocol-fixtures.tap",
+      "boundary": "15 replica protocol assertions plus seven blank-plan and two rich-plan fixtures; overlaps the regression lane."
+    },
+    "worldUiOwnership": {
+      "status": "passed",
+      "violations": 0,
+      "evidence": "world-ui.log"
+    },
+    "sourceSize": {
+      "status": "passed",
+      "maximumLines": 999,
+      "evidence": "source-size.log"
+    },
+    "hostingSurfaceContracts": {
+      "status": "passed",
+      "tests": 4
+    },
+    "auditAndPageSyntax": {
+      "status": "passed"
+    },
+    "newSixFamilyDesktopAndTouch": {
+      "status": "denied-before-execution",
+      "evidence": "../system-diagram-journeys/six-family-browser-blocker.json"
+    }
+  },
+  "repositoryWideCi": {
+    "status": "pre-existing-red",
+    "commit": "11a032036f53b0d459bfc51e332dfdb2823bb581",
+    "run": "https://github.com/clocksmith/simulatte/actions/runs/40045849406",
+    "boundary": "Six Create/physics assertions also fail at predecessor fdbb1807. No unrelated repairs or CI bypass. User authorizes simulator publication independently."
+  },
+  "productionDeployment": {
+    "status": "not-authorized-not-attempted"
+  },
+  "boundary": "Synthetic model verification and prepared UI audit only; no new desktop/touch proof, production calibration or consensus guarantee."
+}

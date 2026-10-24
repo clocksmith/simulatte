@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {sourceReceipt} from './runtime-audit-sources.mjs';
 import {openBrowserAudit} from './browser-session.mjs';
+import {authorFamilyJourneys} from './system-diagram-family-journeys.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const output=root+'artifacts/system-diagram-journeys';
 await fs.mkdir(output,{recursive:true});
@@ -101,15 +102,7 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
   await click('#document-panel>summary');await button('Restore loaded replay');assert.deepEqual(await snapshot(),checkpoint);await click('#document-panel>summary');row.checks.authoredAcceptedReplayReload=true;
   assert.ok((await snapshot()).requests.length);await click('#requests button');assert.ok(await evaluate('document.querySelectorAll("#history li").length>0'));row.checks.causalInspection=true;await point('#inspector');await shot('causal');
   assert.match(await evaluate('document.getElementById("metrics").textContent'),/p95 latency/);assert.match(await evaluate('document.getElementById("metrics").textContent'),/Unknown commit outcomes/);row.checks.modelReadouts=true;
-  row.examples=[];
-  for(const exampleId of ['streaming-burst','replica-recovery','agent-recovery','healthcare-ingestion','finance-reconciliation','lakehouse-late-data']){
-    await set('preset',exampleId,{operation:true});await button('Accept & run');await button('Pause');
-    for(let i=0;i<6&&!(await snapshot()).requests.length;i++)await button('Step 1 s');
-    const example=await snapshot();assert.equal(example.error,null,`${exampleId}: ${example.error}`);assert.ok(example.requests.length,`${exampleId} must expose causal requests`);
-    await click('#requests button');assert.ok(await evaluate('document.querySelectorAll("#history li").length>0'));
-    row.examples.push({id:exampleId,time:example.t,requests:example.requests.length,offered:example.global.offered,completed:example.global.completed});
-  }
-  row.checks.composablePackJourneys=true;
+  await authorFamilyJourneys({root,row,viewport,evaluate,until,doc,snapshot,point,tapAt,click,button,set,drag,shot,key,selectNode,selectEdge,port});
   await set('preset','blank',{operation:true});const eventIds={};
   for(const[classId,label,x,y]of[['event-source','Synthetic event',.24,.2],['schema-validator','Schema validator',.76,.2],['event-ledger','Event ledger',.5,.7]]){
     await set('palette-search',label);const selector=`.palette-item[data-class-id="${classId}"]`;await until(`Boolean(document.querySelector(${JSON.stringify(selector)}))`);
