@@ -1,0 +1,8 @@
+
+> check:hosting
+> node tools/package-hosting-surfaces.mjs --check && node tools/run-test-files.mjs --fail-fast tests/hosting-surfaces.test.cjs
+
+Hosting surface contracts are valid.
+START hosting-surfaces.test.cjs
+PASSED hosting-surfaces.test.cjs tests=4
+TEST-RUN files=1/1 tests=4 passed=1 failed=0

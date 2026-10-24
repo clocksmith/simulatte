@@ -6,7 +6,7 @@
     "public/simulatte/system-diagram/kernel-registry.js": "c87120af117a6fe4d2575c7ec7578eebca2409d68969890855a9e6ee9dd4eff0",
     "public/simulatte/system-diagram/kernels-replication.js": "a7db77c67cafee52db10115c501483c5351b79cc3e8d834c595277f700fa7e9a",
     "public/simulatte/system-diagram/kernels-all.js": "7564114e2784f60089853acae6758f5d2420d779bf5bce528c2d4ad5e7df32cc",
-    "public/simulatte/system-diagram/index.html": "0f40b617bb1d7a25cff5211242d835000e1f123e9a3cec8ccfd78786165fdcd0",
+    "public/simulatte/system-diagram/index.html": "c7fb2839c5b23fc9e6d7c7ffbcb182ca7de34f8928101461e8039166772e8890",
     "public/simulatte/system-diagram/page.js": "2ba6c86be6d3c0bc20fe0aeca5f1e2df6adb7c8e345c18145f8f48ae685b968e",
     "public/data/system-diagram/class-library.json": "9a94169deca0feb1ce0f37d190a9406818dbc6bef4a1a85d422a6490d8269a6d",
     "public/data/system-diagram/classes/replication.json": "0a713347114c4c5347f79f6d6fb6ea7e3d8700ce3a8ff05a1f9492c6e7529fe3",
@@ -59,5 +59,16 @@
   "productionDeployment": {
     "status": "not-authorized-not-attempted"
   },
-  "boundary": "Synthetic model verification and prepared UI audit only; no new desktop/touch proof, production calibration or consensus guarantee."
+  "boundary": "Synthetic model verification and prepared UI audit only; no new desktop/touch proof, production calibration or consensus guarantee.",
+  "integration": {
+    "preservedCanonicalCommit": "f279ae137f711c69f37d3e75dea5b93b469723b4",
+    "localIncrementCommit": "939c137df1de1e1b9e89f4bcdf29ba8b67776100",
+    "conflict": "Entrypoint hosting stamp lines only; preserve canonical build/query versions and add replica script. No model/editor JS or library differences from concurrent main.",
+    "hostingChecks": {
+      "status": "passed",
+      "tests": 4,
+      "evidence": "integrated-hosting.log"
+    },
+    "deployment": "Concurrent canonical commits contain a separate deployment record for 11a03203; this task did not deploy this increment."
+  }
 }
