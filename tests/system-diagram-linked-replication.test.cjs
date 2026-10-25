@@ -98,7 +98,8 @@ test('majority acknowledgements count distinct follower nodes while all-copy pol
 test('unacknowledged replication owns retained payload bytes and survives restoration exactly', () => {
   const d = fixture(); d.nodes[0].params.requestKb = 128; fault(d, { kind: 'edge', id: 'replication' }, 'partition');
   const r = start(d); advance(r, 0.8); const cp = clone(r.s); const a = advance(r, 1.5), restored = { c: r.c, s: cp }; advance(restored, 1.5);
-  assert.deepEqual(restored.s, r.s); assert.equal(a.global.failed, 1); close(a.global.memoryMiB, 1 + 128 / 1024);
+  // Retain the decimal 128 kB payload (128000 bytes) plus the leader's 1 MiB allocation.
+  assert.deepEqual(restored.s, r.s); assert.equal(a.global.failed, 1); close(a.global.memoryMiB, 1 + 128000 / (1024 * 1024));
   assert.equal(E.inspect(r.c, r.s, a.requests[0].id, deps).blockers.filter(b => b.kind === 'replication-outbox').length, 1); assert.ok(O.reconcile(r.s));
 });
 
