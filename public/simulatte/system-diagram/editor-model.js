@@ -57,6 +57,24 @@
   const sameSelection = (a, b) => SELECTION_KEYS.every(key => a[key].length === b[key].length && a[key].every((id, i) => id === b[key][i]));
   const flatSelection = selection => SELECTION_KEYS.flatMap(key => selection[key]);
 
+  // A pending read may replace a document only if it is still the latest request
+  // and no authoring command has changed the document since that request began.
+  function createLoadGuard(model) {
+    let generation = 0, revision = 0, disposed = false;
+    const unsubscribe = model.subscribe(event => { if (!['view', 'selection'].includes(event.kind)) revision++; });
+    const isCurrent = token => !disposed && token.generation === generation;
+    return Object.freeze({
+      begin() { if (disposed) throw Error('Document load guard is disposed'); return Object.freeze({ generation: ++generation, revision }); },
+      isCurrent,
+      commit(token, action) {
+        if (!isCurrent(token)) return 'superseded';
+        if (token.revision !== revision) return 'edited';
+        action(); return 'applied';
+      },
+      dispose() { disposed = true; generation++; unsubscribe(); },
+    });
+  }
+
   function create({ diagram, library, config }) {
     if (!library || !config) throw new Error('SimulatteSystemDiagramEditorModel.create requires library and config');
     const historyLimit = config.editor.historyLimit;
@@ -153,7 +171,8 @@
       },
       connect(draft, cmd) {
         const id = cmd.id || D.newId(draft, 'edge');
-        draft.edges.push({ id, from: { nodeId: cmd.from?.nodeId, portId: cmd.from?.portId }, to: { nodeId: cmd.to?.nodeId, portId: cmd.to?.portId }, params: { ...(cmd.params || {}) } });
+        draft.edges.push({ id, from: { nodeId: cmd.from?.nodeId, portId: cmd.from?.portId }, to: { nodeId: cmd.to?.nodeId, portId: cmd.to?.portId }, params: { ...(cmd.params || {}) }, ...(cmd.label !== undefined ? { label: cmd.label } : {}) });
+        if (cmd.label !== undefined) draft.schema = D.SCHEMA;
         return { kind: 'structure', id, select: [id], after: next => ({ warning: D.issues(next, library, config).find(w => w.kind === 'payload-mismatch' && w.edgeId === id)?.message || null }) };
       },
       reconnect(draft, cmd) {
@@ -161,8 +180,16 @@
         if (cmd.from !== undefined) edge.from = { nodeId: cmd.from?.nodeId, portId: cmd.from?.portId };
         if (cmd.to !== undefined) edge.to = { nodeId: cmd.to?.nodeId, portId: cmd.to?.portId };
         if (cmd.params !== undefined) edge.params = patchParams(edge.params, cmd.params, 'reconnect params');
-        return { kind: cmd.from !== undefined || cmd.to !== undefined ? 'structure' : 'params', id: cmd.id,
+        if (cmd.label !== undefined) { if (cmd.label === '' || cmd.label === null) delete edge.label; else { edge.label = cmd.label; draft.schema = D.SCHEMA; } }
+        return { kind: cmd.from !== undefined || cmd.to !== undefined ? 'structure' : cmd.params !== undefined ? 'params' : 'label', id: cmd.id,
           after: next => ({ warning: D.issues(next, library, config).find(w => w.kind === 'payload-mismatch' && w.edgeId === cmd.id)?.message || null }) };
+      },
+      setEdgeLabel(draft, cmd) {
+        if (cmd.label !== null && typeof cmd.label !== 'string') refuse('setEdgeLabel expects a string or null');
+        const edge = find(draft, 'edges', cmd.id, 'edge');
+        if (cmd.label === null || cmd.label === '') delete edge.label;
+        else { edge.label = cmd.label; draft.schema = D.SCHEMA; }
+        return { kind: 'label', id: cmd.id };
       },
       setEdgeParams(draft, cmd) {
         const edge = find(draft, 'edges', cmd.id, 'edge');
@@ -297,7 +324,7 @@
         }
         for (const e of draft.edges.filter(e => nodeMap.has(e.from.nodeId) && nodeMap.has(e.to.nodeId))) {
           const id = D.newId(draft, 'edge');
-          draft.edges.push({ id, from: { nodeId: nodeMap.get(e.from.nodeId), portId: e.from.portId }, to: { nodeId: nodeMap.get(e.to.nodeId), portId: e.to.portId }, params: { ...e.params } });
+          draft.edges.push({ id, from: { nodeId: nodeMap.get(e.from.nodeId), portId: e.from.portId }, to: { nodeId: nodeMap.get(e.to.nodeId), portId: e.to.portId }, params: { ...e.params }, ...(e.label !== undefined ? { label: e.label } : {}) });
           created.push(id);
         }
         for (const note of draft.notes.filter(n => ids.has(n.id))) { const id = D.newId(draft, 'note'); draft.notes.push({ ...note, id, x: note.x + dx, y: note.y + dy }); created.push(id); }
@@ -408,5 +435,5 @@
     };
   }
 
-  return Object.freeze({ create, KIND_RANK, SELECTION_KEYS });
+  return Object.freeze({ create, createLoadGuard, KIND_RANK, SELECTION_KEYS });
 });

@@ -1,0 +1,742 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "distribution",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "videoViewers",
+      "label": "Video viewer cohorts",
+      "description": "Aggregates up to one million viewers into bounded cohorts downloading named segments. Peer partial delivery falls back to CDN. Startup and rebuffer metrics wait for each cohort member; this conservative synthetic model does not execute media codecs or WebRTC.",
+      "paramSets": [],
+      "params": {
+        "assetId": {
+          "type": "integer",
+          "label": "Asset identity",
+          "min": 0,
+          "max": 1000000,
+          "default": 1,
+          "group": "basic"
+        },
+        "segments": {
+          "type": "integer",
+          "label": "Segments per asset",
+          "min": 1,
+          "max": 200,
+          "default": 8,
+          "group": "basic"
+        },
+        "segmentKiB": {
+          "type": "number",
+          "label": "Segment size",
+          "min": 0.001,
+          "max": 100000,
+          "default": 256,
+          "group": "basic",
+          "unit": "KiB"
+        },
+        "timeoutMs": {
+          "type": "number",
+          "label": "Delivery timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 20000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Delivery retries",
+          "min": 0,
+          "max": 20,
+          "default": 2,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 1,
+          "max": 60000,
+          "default": 500,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "viewers": {
+          "type": "integer",
+          "label": "Total viewers",
+          "min": 1,
+          "max": 1000000,
+          "default": 3000,
+          "group": "basic"
+        },
+        "cohorts": {
+          "type": "integer",
+          "label": "Aggregate cohorts",
+          "min": 1,
+          "max": 128,
+          "default": 12,
+          "group": "basic"
+        },
+        "startSec": {
+          "type": "number",
+          "label": "First viewer start",
+          "min": 0,
+          "max": 3600,
+          "default": 0,
+          "group": "basic",
+          "unit": "s"
+        },
+        "startSpreadSec": {
+          "type": "number",
+          "label": "Spread cohort starts",
+          "min": 0,
+          "max": 3600,
+          "default": 3,
+          "group": "basic",
+          "unit": "s"
+        },
+        "segmentDurationSec": {
+          "type": "number",
+          "label": "Segment playback duration",
+          "min": 0.001,
+          "max": 600,
+          "default": 2,
+          "group": "basic",
+          "unit": "s",
+          "help": "Fixed playback duration for the accepted asset. Edit the draft and restart to change duration; live changes cannot rewrite elapsed playback."
+        },
+        "prefetchSegments": {
+          "type": "integer",
+          "label": "Prefetch segments ahead",
+          "min": 1,
+          "max": 100,
+          "default": 2,
+          "group": "basic"
+        },
+        "peerAssistance": {
+          "type": "boolean",
+          "label": "Try peer assistance",
+          "default": true,
+          "group": "basic"
+        },
+        "peerTimeoutMs": {
+          "type": "number",
+          "label": "Peer attempt timeout",
+          "min": 1,
+          "max": 60000,
+          "default": 300,
+          "group": "basic",
+          "unit": "ms"
+        }
+      },
+      "ports": [
+        {
+          "id": "cdn",
+          "direction": "out",
+          "label": "CDN segments",
+          "emits": [
+            "blob"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "peers",
+          "direction": "out",
+          "label": "Peer segments and seeds",
+          "emits": [
+            "blob"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash"
+      ]
+    },
+    {
+      "id": "videoOrigin",
+      "label": "Video asset origin",
+      "description": "Owns the exact asset ID, segment count and segment sizes. Valid reads return named segment content identities through real graph network transfers. Price is an authored synthetic egress assumption.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "assetId": {
+          "type": "integer",
+          "label": "Asset identity",
+          "min": 0,
+          "max": 1000000,
+          "default": 1,
+          "group": "basic"
+        },
+        "segments": {
+          "type": "integer",
+          "label": "Segments per asset",
+          "min": 1,
+          "max": 200,
+          "default": 8,
+          "group": "basic"
+        },
+        "segmentKiB": {
+          "type": "number",
+          "label": "Segment size",
+          "min": 0.001,
+          "max": 100000,
+          "default": 256,
+          "group": "basic",
+          "unit": "KiB"
+        },
+        "egressUsdPerGiB": {
+          "type": "number",
+          "label": "Origin egress assumption",
+          "min": 0,
+          "max": 100,
+          "default": 0.08,
+          "group": "basic",
+          "unit": "USD/GiB"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Segment reads",
+          "accepts": [
+            "blob"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "videoCdn",
+      "label": "Video CDN cache",
+      "description": "Caches actual segment identities, coalesces concurrent misses, fetches one copy from an origin and sends aggregate unicast bytes to viewers. LRU capacity, TTL, origin transfers, cache hits and crash loss are observable.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "timeoutMs": {
+          "type": "number",
+          "label": "Delivery timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 20000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Delivery retries",
+          "min": 0,
+          "max": 20,
+          "default": 2,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 1,
+          "max": 60000,
+          "default": 500,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "cacheSegments": {
+          "type": "integer",
+          "label": "Cached segment capacity",
+          "min": 1,
+          "max": 10000,
+          "default": 32,
+          "group": "basic"
+        },
+        "cacheTtlSec": {
+          "type": "number",
+          "label": "Cache TTL",
+          "min": 0.001,
+          "max": 86400,
+          "default": 300,
+          "group": "basic",
+          "unit": "s"
+        },
+        "egressUsdPerGiB": {
+          "type": "number",
+          "label": "CDN egress assumption",
+          "min": 0,
+          "max": 100,
+          "default": 0.02,
+          "group": "basic",
+          "unit": "USD/GiB"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Segment reads",
+          "accepts": [
+            "blob"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "origin",
+          "direction": "out",
+          "label": "Origin cache misses",
+          "emits": [
+            "blob"
+          ],
+          "multiple": false,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "videoPeers",
+      "label": "Bounded peer assistance",
+      "description": "Learns downloaded segments from viewer cohort receipts. Available peers share a per-window upload budget across assets, exclude self-assistance, churn, and may use an authored relay fraction. This is not actual WebRTC signaling, ICE, NAT traversal or transport.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "maxCohorts": {
+          "type": "integer",
+          "label": "Known cohort bound",
+          "min": 1,
+          "max": 10000,
+          "default": 128,
+          "group": "basic"
+        },
+        "maxSegments": {
+          "type": "integer",
+          "label": "Known segment bound",
+          "min": 1,
+          "max": 10000,
+          "default": 64,
+          "group": "basic"
+        },
+        "availabilityFraction": {
+          "type": "number",
+          "label": "Initially reachable peers",
+          "min": 0,
+          "max": 1,
+          "default": 0.7,
+          "group": "basic",
+          "unit": "fraction"
+        },
+        "uploadKiBpsPerPeer": {
+          "type": "number",
+          "label": "Upload per reachable peer",
+          "min": 0,
+          "max": 100000,
+          "default": 128,
+          "group": "basic",
+          "unit": "KiB/s"
+        },
+        "uploadWindowSec": {
+          "type": "number",
+          "label": "Upload budget window",
+          "min": 0.001,
+          "max": 3600,
+          "default": 1,
+          "group": "basic",
+          "unit": "s"
+        },
+        "churnFraction": {
+          "type": "number",
+          "label": "Peers leaving each interval",
+          "min": 0,
+          "max": 1,
+          "default": 0.05,
+          "group": "basic",
+          "unit": "fraction"
+        },
+        "churnIntervalSec": {
+          "type": "number",
+          "label": "Churn interval",
+          "min": 0.001,
+          "max": 3600,
+          "default": 2,
+          "group": "basic",
+          "unit": "s"
+        },
+        "relayFraction": {
+          "type": "number",
+          "label": "Relayed peer byte assumption",
+          "min": 0,
+          "max": 1,
+          "default": 0.15,
+          "group": "basic",
+          "unit": "fraction"
+        },
+        "relayUsdPerGiB": {
+          "type": "number",
+          "label": "Relay egress assumption",
+          "min": 0,
+          "max": 100,
+          "default": 0.08,
+          "group": "basic",
+          "unit": "USD/GiB"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Segment reads and receipt seeds",
+          "accepts": [
+            "blob"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "sparkDriver",
+      "label": "Spark-style job driver",
+      "description": "Generates a configurable synthetic URL record input, dispatches named map partitions, waits for their shuffle dependencies, and dispatches keyed reductions to drawn executors. Missing executor-local shuffle blocks trigger bounded lineage recomputation. Outputs real URL counts.",
+      "paramSets": [],
+      "params": {
+        "recordCount": {
+          "type": "integer",
+          "label": "Input URL records",
+          "min": 1,
+          "max": 20000,
+          "default": 1200,
+          "group": "basic"
+        },
+        "keyCount": {
+          "type": "integer",
+          "label": "Distinct URL keys",
+          "min": 1,
+          "max": 512,
+          "default": 12,
+          "group": "basic"
+        },
+        "hotFraction": {
+          "type": "number",
+          "label": "Records assigned to URL zero",
+          "min": 0,
+          "max": 1,
+          "default": 0.65,
+          "group": "basic",
+          "unit": "fraction"
+        },
+        "mapPartitions": {
+          "type": "integer",
+          "label": "Map input partitions",
+          "min": 1,
+          "max": 64,
+          "default": 6,
+          "group": "basic"
+        },
+        "reducePartitions": {
+          "type": "integer",
+          "label": "Keyed reduce partitions",
+          "min": 1,
+          "max": 64,
+          "default": 3,
+          "group": "basic"
+        },
+        "recordKiB": {
+          "type": "number",
+          "label": "Modeled size per input record",
+          "min": 0.001,
+          "max": 1024,
+          "default": 4,
+          "group": "basic",
+          "unit": "KiB"
+        },
+        "parallelTasks": {
+          "type": "integer",
+          "label": "Concurrent scheduled tasks",
+          "min": 1,
+          "max": 128,
+          "default": 6,
+          "group": "basic"
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "label": "Maximum attempts per task",
+          "min": 1,
+          "max": 40,
+          "default": 12,
+          "group": "basic"
+        },
+        "taskTimeoutMs": {
+          "type": "number",
+          "label": "Task timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 20000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Lost executor retry backoff",
+          "min": 1,
+          "max": 60000,
+          "default": 500,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "startSec": {
+          "type": "number",
+          "label": "Job start",
+          "min": 0,
+          "max": 3600,
+          "default": 0,
+          "group": "basic",
+          "unit": "s"
+        }
+      },
+      "ports": [
+        {
+          "id": "executors",
+          "direction": "out",
+          "label": "Map and reduce tasks",
+          "emits": [
+            "task"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "output",
+          "direction": "out",
+          "label": "URL count output",
+          "emits": [
+            "rows"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash"
+      ]
+    },
+    {
+      "id": "sparkExecutor",
+      "label": "Spark-style executor",
+      "description": "Executes actual URL map and reduce operations in shared resource queues. Retains named executor-local shuffle blocks, fetches remote dependencies over explicit shuffle edges, accounts skew and synthetic RAM/disk spill cost, and loses volatile shuffle data on crash.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "mapRecordMs": {
+          "type": "number",
+          "label": "Map CPU per record",
+          "min": 0,
+          "max": 10000,
+          "default": 0.8,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "reduceRecordMs": {
+          "type": "number",
+          "label": "Reduce CPU per record",
+          "min": 0,
+          "max": 10000,
+          "default": 1.5,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "taskBufferMiB": {
+          "type": "number",
+          "label": "Resident task buffer",
+          "min": 0,
+          "max": 1048576,
+          "default": 0.5,
+          "group": "basic",
+          "unit": "MiB"
+        },
+        "shuffleBufferMiB": {
+          "type": "number",
+          "label": "Resident shuffle buffer",
+          "min": 0,
+          "max": 1048576,
+          "default": 1,
+          "group": "basic",
+          "unit": "MiB"
+        },
+        "spillMiBps": {
+          "type": "number",
+          "label": "Synthetic spill disk rate",
+          "min": 0.001,
+          "max": 100000,
+          "default": 8,
+          "group": "basic",
+          "unit": "MiB/s"
+        },
+        "shuffleConcurrency": {
+          "type": "integer",
+          "label": "Concurrent block fetches",
+          "min": 1,
+          "max": 64,
+          "default": 4,
+          "group": "basic"
+        },
+        "shuffleTimeoutMs": {
+          "type": "number",
+          "label": "Shuffle fetch timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 1000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxBlocks": {
+          "type": "integer",
+          "label": "Retained shuffle block bound",
+          "min": 1,
+          "max": 10000,
+          "default": 512,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "tasks",
+          "direction": "in",
+          "label": "Map and reduce tasks",
+          "accepts": [
+            "task"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "blocks",
+          "direction": "in",
+          "label": "Shuffle block reads",
+          "accepts": [
+            "rows"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "shuffle",
+          "direction": "out",
+          "label": "Remote shuffle block fetches",
+          "emits": [
+            "rows"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies",
+        "blackhole"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "video-viewers",
+      "label": "Video viewers",
+      "kernel": "videoViewers",
+      "category": "clients",
+      "glyph": "users",
+      "description": "Aggregates up to one million viewers into bounded cohorts downloading named segments. Peer partial delivery falls back to CDN. Startup and rebuffer metrics wait for each cohort member; this conservative synthetic model does not execute media codecs or WebRTC.",
+      "defaults": {}
+    },
+    {
+      "id": "video-origin",
+      "label": "Video origin",
+      "kernel": "videoOrigin",
+      "category": "storage",
+      "glyph": "warehouse",
+      "description": "Owns the exact asset ID, segment count and segment sizes. Valid reads return named segment content identities through real graph network transfers. Price is an authored synthetic egress assumption.",
+      "defaults": {
+        "serviceMs": 15,
+        "serviceDist": "constant",
+        "memoryPerRequestMiB": 0
+      }
+    },
+    {
+      "id": "video-cdn",
+      "label": "Video CDN",
+      "kernel": "videoCdn",
+      "category": "edge",
+      "glyph": "globe",
+      "description": "Caches actual segment identities, coalesces concurrent misses, fetches one copy from an origin and sends aggregate unicast bytes to viewers. LRU capacity, TTL, origin transfers, cache hits and crash loss are observable.",
+      "defaults": {
+        "serviceMs": 2,
+        "serviceDist": "constant",
+        "memoryPerRequestMiB": 0
+      }
+    },
+    {
+      "id": "video-peers",
+      "label": "Peer assistance",
+      "kernel": "videoPeers",
+      "category": "edge",
+      "glyph": "topic",
+      "description": "Learns downloaded segments from viewer cohort receipts. Available peers share a per-window upload budget across assets, exclude self-assistance, churn, and may use an authored relay fraction. This is not actual WebRTC signaling, ICE, NAT traversal or transport.",
+      "defaults": {
+        "serviceMs": 2,
+        "serviceDist": "constant",
+        "memoryPerRequestMiB": 0
+      }
+    },
+    {
+      "id": "spark-driver",
+      "label": "Spark-style driver",
+      "kernel": "sparkDriver",
+      "category": "data",
+      "glyph": "cog",
+      "description": "Generates a configurable synthetic URL record input, dispatches named map partitions, waits for their shuffle dependencies, and dispatches keyed reductions to drawn executors. Missing executor-local shuffle blocks trigger bounded lineage recomputation. Outputs real URL counts.",
+      "defaults": {}
+    },
+    {
+      "id": "spark-executor",
+      "label": "Spark-style executor",
+      "kernel": "sparkExecutor",
+      "category": "compute",
+      "glyph": "server",
+      "description": "Executes actual URL map and reduce operations in shared resource queues. Retains named executor-local shuffle blocks, fetches remote dependencies over explicit shuffle edges, accounts skew and synthetic RAM/disk spill cost, and loses volatile shuffle data on crash.",
+      "defaults": {
+        "concurrency": 2,
+        "serviceMs": 2,
+        "serviceDist": "constant",
+        "memoryPerRequestMiB": 0
+      }
+    }
+  ]
+}

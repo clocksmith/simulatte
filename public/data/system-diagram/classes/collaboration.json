@@ -1,0 +1,723 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "collaboration",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "agentTask",
+      "label": "Named agent task",
+      "description": "Authored named task, bounded workers, tool calls and explicit dependency joins. Durable task identities reconcile committed effects after worker crash. Observable events are status reports, not private reasoning.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Call timeout",
+          "min": 1,
+          "max": 120000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Transport retries",
+          "min": 0,
+          "max": 10,
+          "default": 2,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry delay",
+          "min": 1,
+          "max": 60000,
+          "default": 150,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "min": 1,
+          "max": 20000,
+          "default": 128,
+          "group": "basic"
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "label": "Task attempt budget",
+          "min": 1,
+          "max": 32,
+          "default": 8,
+          "group": "basic"
+        },
+        "ackDelayMs": {
+          "type": "number",
+          "label": "Effect acknowledgement delay",
+          "min": 0,
+          "max": 30000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxEvents": {
+          "type": "integer",
+          "label": "Status outbox capacity",
+          "min": 1,
+          "max": 20000,
+          "default": 4096,
+          "group": "basic"
+        },
+        "statusAttempts": {
+          "type": "integer",
+          "label": "Status delivery attempts",
+          "min": 1,
+          "max": 32,
+          "default": 8,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Task dependencies",
+          "accepts": [
+            "task"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "next",
+          "direction": "out",
+          "label": "Dependent tasks",
+          "emits": [
+            "task"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "tools",
+          "direction": "out",
+          "label": "Tool calls",
+          "emits": [
+            "inherit"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "status",
+          "direction": "out",
+          "label": "Status events",
+          "emits": [
+            "event"
+          ],
+          "multiple": false,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "taskJournal",
+      "label": "Task status journal",
+      "description": "Durable, deduplicated status events and latest-task projection. Survives simulated crashes; sequence numbers reject stale projection updates.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "min": 1,
+          "max": 20000,
+          "default": 12000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Status events",
+          "accepts": [
+            "event"
+          ],
+          "multiple": true,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "socialSource",
+      "label": "Social workload",
+      "description": "Finite synthetic users issue follow operations, post publications and feed reads. A high-follower author creates inspectable fanout demand.",
+      "paramSets": [
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Call timeout",
+          "min": 1,
+          "max": 120000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Transport retries",
+          "min": 0,
+          "max": 10,
+          "default": 2,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry delay",
+          "min": 1,
+          "max": 60000,
+          "default": 150,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "userCount": {
+          "type": "integer",
+          "label": "Synthetic users",
+          "min": 3,
+          "max": 128,
+          "default": 16,
+          "group": "basic"
+        },
+        "followsPerUser": {
+          "type": "integer",
+          "label": "Ordinary follows per user",
+          "min": 0,
+          "max": 126,
+          "default": 2,
+          "group": "basic"
+        },
+        "celebrityFollowers": {
+          "type": "integer",
+          "label": "High-follower audience",
+          "min": 0,
+          "max": 127,
+          "default": 15,
+          "group": "basic"
+        },
+        "postCount": {
+          "type": "integer",
+          "label": "Posts",
+          "min": 0,
+          "max": 1000,
+          "default": 12,
+          "group": "basic"
+        },
+        "readCount": {
+          "type": "integer",
+          "label": "Feed reads",
+          "min": 0,
+          "max": 2000,
+          "default": 60,
+          "group": "basic"
+        },
+        "celebrityEvery": {
+          "type": "integer",
+          "label": "High-follower post frequency",
+          "min": 1,
+          "max": 1000,
+          "default": 3,
+          "group": "basic"
+        },
+        "startSec": {
+          "type": "number",
+          "label": "Start time",
+          "min": 0,
+          "max": 3600,
+          "default": 0,
+          "group": "basic",
+          "unit": "s"
+        },
+        "postIntervalMs": {
+          "type": "number",
+          "label": "Post interval",
+          "min": 1,
+          "max": 60000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "readStartMs": {
+          "type": "number",
+          "label": "First read delay",
+          "min": 0,
+          "max": 120000,
+          "default": 50,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "readIntervalMs": {
+          "type": "number",
+          "label": "Read interval",
+          "min": 1,
+          "max": 60000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "payloadKb": {
+          "type": "number",
+          "label": "Message size",
+          "min": 0,
+          "max": 100,
+          "default": 1,
+          "group": "basic",
+          "unit": "KB"
+        },
+        "maxOutstanding": {
+          "type": "integer",
+          "label": "Outstanding request limit",
+          "min": 1,
+          "max": 1000,
+          "default": 64,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "write",
+          "direction": "out",
+          "label": "Users, follows and posts",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "read",
+          "direction": "out",
+          "label": "Feed requests",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "socialStore",
+      "label": "Users, follows and post store",
+      "description": "Explicit user records, follow relations and idempotent posts. Push enqueues recipients, pull defers assembly to reads, and hybrid pulls high-follower authors. No ranking, media or production platform internals.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Call timeout",
+          "min": 1,
+          "max": 120000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Transport retries",
+          "min": 0,
+          "max": 10,
+          "default": 2,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry delay",
+          "min": 1,
+          "max": 60000,
+          "default": 150,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "min": 1,
+          "max": 20000,
+          "default": 1000,
+          "group": "basic"
+        },
+        "fanoutMode": {
+          "type": "enum",
+          "label": "Fanout strategy",
+          "default": "push",
+          "options": [
+            "push",
+            "pull",
+            "hybrid"
+          ],
+          "group": "basic"
+        },
+        "highFollowerThreshold": {
+          "type": "integer",
+          "label": "Pull audience threshold",
+          "min": 1,
+          "max": 128,
+          "default": 8,
+          "group": "basic"
+        },
+        "perPostReadMs": {
+          "type": "number",
+          "label": "Pulled post materialization cost",
+          "min": 0,
+          "max": 1000,
+          "default": 2,
+          "unit": "ms/post",
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Writes and feed reads",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "fanout",
+          "direction": "out",
+          "label": "Committed post fanout",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "socialFanout",
+      "label": "Recipient fanout worker",
+      "description": "Queue consumer expands each committed post to explicit follower timeline writes, with bounded concurrent writes and retry-safe recipient/post identities.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Call timeout",
+          "min": 1,
+          "max": 120000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Transport retries",
+          "min": 0,
+          "max": 10,
+          "default": 2,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry delay",
+          "min": 1,
+          "max": 60000,
+          "default": 150,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "batchSize": {
+          "type": "integer",
+          "label": "Concurrent recipient writes",
+          "min": 1,
+          "max": 128,
+          "default": 4,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Queued posts",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "timeline",
+          "direction": "out",
+          "label": "Recipient timeline writes",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "socialTimeline",
+      "label": "Timeline entry store",
+      "description": "Durable per-recipient/per-post deduplication and chronological timeline reads. Delayed writes expose feed staleness; duplicate queue delivery cannot duplicate timeline effects.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "min": 1,
+          "max": 20000,
+          "default": 12000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Timeline writes and reads",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "socialFeed",
+      "label": "Chronological feed reader",
+      "description": "Merges pushed timeline entries and pulled author posts. Missing posts are measured against the post-store read snapshot, exposing delayed consumer staleness independently of successful HTTP-style responses.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Call timeout",
+          "min": 1,
+          "max": 120000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Transport retries",
+          "min": 0,
+          "max": 10,
+          "default": 2,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry delay",
+          "min": 1,
+          "max": 60000,
+          "default": 150,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "min": 1,
+          "max": 20000,
+          "default": 4000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Feed reads",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "posts",
+          "direction": "out",
+          "label": "Follow graph and pulled posts",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "timeline",
+          "direction": "out",
+          "label": "Pushed timeline",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "agent-task",
+      "kernel": "agentTask",
+      "label": "Named agent task",
+      "category": "ai",
+      "glyph": "sparkle",
+      "description": "Authored named task, bounded workers, tool calls and explicit dependency joins. Durable task identities reconcile committed effects after worker crash. Observable events are status reports, not private reasoning.",
+      "defaults": {
+        "serviceDist": "constant",
+        "serviceMs": 40,
+        "concurrency": 2
+      }
+    },
+    {
+      "id": "task-status-journal",
+      "kernel": "taskJournal",
+      "label": "Task status journal",
+      "category": "storage",
+      "glyph": "stream",
+      "description": "Durable, deduplicated status events and latest-task projection. Survives simulated crashes; sequence numbers reject stale projection updates.",
+      "defaults": {
+        "serviceDist": "constant",
+        "serviceMs": 2,
+        "concurrency": 32
+      }
+    },
+    {
+      "id": "social-workload",
+      "kernel": "socialSource",
+      "label": "Social users and posts",
+      "category": "clients",
+      "glyph": "users",
+      "description": "Finite synthetic users issue follow operations, post publications and feed reads. A high-follower author creates inspectable fanout demand.",
+      "defaults": {}
+    },
+    {
+      "id": "social-post-store",
+      "kernel": "socialStore",
+      "label": "Users, follows and posts",
+      "category": "storage",
+      "glyph": "database",
+      "description": "Explicit user records, follow relations and idempotent posts. Push enqueues recipients, pull defers assembly to reads, and hybrid pulls high-follower authors. No ranking, media or production platform internals.",
+      "defaults": {
+        "serviceDist": "constant",
+        "serviceMs": 2,
+        "concurrency": 32
+      }
+    },
+    {
+      "id": "social-fanout-worker",
+      "kernel": "socialFanout",
+      "label": "Recipient fanout worker",
+      "category": "compute",
+      "glyph": "fanout",
+      "description": "Queue consumer expands each committed post to explicit follower timeline writes, with bounded concurrent writes and retry-safe recipient/post identities.",
+      "defaults": {
+        "serviceDist": "constant",
+        "serviceMs": 5,
+        "concurrency": 2
+      }
+    },
+    {
+      "id": "social-timeline-store",
+      "kernel": "socialTimeline",
+      "label": "Follower timelines",
+      "category": "storage",
+      "glyph": "database",
+      "description": "Durable per-recipient/per-post deduplication and chronological timeline reads. Delayed writes expose feed staleness; duplicate queue delivery cannot duplicate timeline effects.",
+      "defaults": {
+        "serviceDist": "constant",
+        "serviceMs": 30,
+        "concurrency": 2
+      }
+    },
+    {
+      "id": "social-feed-reader",
+      "kernel": "socialFeed",
+      "label": "Chronological feed reader",
+      "category": "compute",
+      "glyph": "server",
+      "description": "Merges pushed timeline entries and pulled author posts. Missing posts are measured against the post-store read snapshot, exposing delayed consumer staleness independently of successful HTTP-style responses.",
+      "defaults": {
+        "serviceDist": "constant",
+        "serviceMs": 2,
+        "concurrency": 16
+      }
+    }
+  ]
+}

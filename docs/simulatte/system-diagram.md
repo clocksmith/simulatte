@@ -11,6 +11,24 @@ seeded discrete-event simulation of its distributed compute: requests and messag
 on edges, queueing, service time, concurrency, latency, bandwidth, failures,
 retries, timeouts, replication and recovery.
 
+## Question-first system designs
+
+The [six learning journeys](../../public/data/system-diagram/learning-journeys.json)
+introduce chat, video, agent trajectories, Spark-style jobs, social feeds and
+workspace access. Each opens an editable diagram, names the operations on links,
+explains an outcome and failure experiment, and exposes actual observed records.
+[Scenario contracts](system-design-scenarios.md) define their synthetic boundaries
+and acceptance evidence. `learning.js` presents these records; kernels remain the
+only execution authority. Custom diagrams retain data and activity inspection.
+
+Document `simulatte.systemDiagram.v2` adds optional `edge.label`, bounded by
+`maxLabelLength`. Labels are authoring annotations and do not change compiled
+execution. Legacy v1 documents import without rewriting their identities; adding
+a label explicitly promotes that document to v2. A library/config update changes
+the accepted WorldSpec hash: checkpoints from older libraries refuse restoration
+rather than silently resume under different semantics. Import the drawing and
+start a newly accepted run, or use its original pinned runtime for old replay.
+
 ## Module ownership
 
 All browser files live in `public/simulatte/system-diagram/` and are classic scripts

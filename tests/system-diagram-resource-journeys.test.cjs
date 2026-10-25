@@ -100,7 +100,7 @@ test('generic pending records own real memory and remain inspectable after inges
   const retained = { ...service, onServed(ctx, job) { assert.equal(ctx.retain('pending-event', job.msg, { kind: 'waiting-for-pair', detail: 'Counterpart has not arrived' }), true); ctx.reply(job, { ok: true }); }, onControl(ctx, control) { if (control.kind !== 'redrive') return false; return ctx.releaseRetained('pending-event'); } };
   const custom = { ...deps, kernels: { has: id => kernels.has(id), get: id => id === 'service' ? retained : kernels.get(id) } }, compiled = documentApi.compile(doc, library, config), state = engine.initialize(compiled, custom);
   engine.advance(compiled, state, 2, custom); const view = engine.observe(compiled, state, custom);
-  assert.equal(view.requests[0].status, 'completed'); assert.equal(view.requests[0].backgroundPending, 1); close(view.global.memoryMiB, 125 / 1024); assert.ok(observability.reconcile(state));
+  assert.equal(view.requests[0].status, 'completed'); assert.equal(view.requests[0].backgroundPending, 1); close(view.global.memoryMiB, 125000 / (1024 * 1024)); assert.ok(observability.reconcile(state));
   const info = engine.inspect(compiled, state, view.requests[0].id, custom); assert.equal(info.blocker.kind, 'waiting-for-pair'); assert.equal(info.blocker.nodeId, 'worker');
   const restored = JSON.parse(JSON.stringify(state)), control = { kind: 'redrive', target: { kind: 'node', id: 'worker' } };
   engine.applyControl(compiled, state, control, custom); engine.applyControl(compiled, restored, control, custom); assert.deepEqual(restored, state); close(engine.observe(compiled, state, custom).global.memoryMiB, 0);

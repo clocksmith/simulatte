@@ -1,0 +1,579 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "applications",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "applicationClient",
+      "label": "Application client",
+      "description": "Finite authored chat or workspace commands with concrete identity, received records and stream chunks. These are synthetic users, not real authentication.",
+      "paramSets": [],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Dependency timeout",
+          "min": 1,
+          "max": 60000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Dependency retries",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 10000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "scenario": {
+          "type": "enum",
+          "label": "Application scenario",
+          "options": [
+            "chat",
+            "workspace"
+          ],
+          "default": "chat",
+          "group": "basic"
+        },
+        "startSec": {
+          "type": "number",
+          "label": "First command",
+          "min": 0,
+          "max": 3600,
+          "default": 0,
+          "group": "basic",
+          "unit": "s"
+        },
+        "intervalMs": {
+          "type": "number",
+          "label": "Command spacing",
+          "min": 1,
+          "max": 60000,
+          "default": 500,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Received chunk capacity",
+          "min": 1,
+          "max": 10000,
+          "default": 2048,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "label": "Commands",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Live chunks",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "chatApplication",
+      "label": "Durable chat application",
+      "description": "Checks conversation access, reads history, commits a prompt, forwards incremental chunks and commits actual assistant content. Duplicate IDs and reconnect history use the same records.",
+      "paramSets": [],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Dependency timeout",
+          "min": 1,
+          "max": 60000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Dependency retries",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 10000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxOutstanding": {
+          "type": "integer",
+          "label": "In-flight command limit",
+          "min": 1,
+          "max": 1000,
+          "default": 32,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Chat commands",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "store",
+          "direction": "out",
+          "label": "Access and messages",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "generate",
+          "direction": "out",
+          "label": "Next stream chunk",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "chunks",
+          "direction": "out",
+          "label": "Deliver live chunks",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "conversationStore",
+      "label": "Conversation store",
+      "description": "Concrete tenant-bound users, conversations and ordered user/assistant messages. Writes are duplicate-safe; content survives simulated node crashes and JSON checkpoints, not browser storage. The inherited Response size controls infrastructure station-rejection replies only. Application replies, including denials, use actual UTF-8 JSON body size.",
+      "paramSets": [
+        "station"
+      ],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "min": 1,
+          "max": 10000,
+          "default": 128,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Conversation operations",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "syntheticStream",
+      "label": "Synthetic text stream",
+      "description": "Returns deterministic text in delayed chunks with explicit cursors. This models streaming transport and failure, not real inference or provider performance.",
+      "paramSets": [],
+      "params": {
+        "chunkCharacters": {
+          "type": "integer",
+          "label": "Characters per chunk",
+          "min": 1,
+          "max": 128,
+          "default": 12,
+          "group": "basic",
+          "help": "Fixed for an accepted run so retries retain stable stream cursors. Edit the draft and restart to change chunk size."
+        },
+        "chunkDelayMs": {
+          "type": "number",
+          "label": "Delay per chunk",
+          "min": 1,
+          "max": 10000,
+          "default": 80,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "failAfterChunks": {
+          "type": "integer",
+          "label": "Fail after chunks (0 = off)",
+          "min": 0,
+          "max": 1000,
+          "default": 0,
+          "group": "basic"
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrent chunks",
+          "min": 1,
+          "max": 1000,
+          "default": 8,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queued chunks",
+          "min": 0,
+          "max": 1000,
+          "default": 100,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Generate next chunk",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "workspaceApplication",
+      "label": "Workspace application",
+      "description": "Routes concrete project and task commands through cached permissions and an authoritative workspace store. Both edges must resolve to the same store.",
+      "paramSets": [],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Dependency timeout",
+          "min": 1,
+          "max": 60000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Dependency retries",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 10000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxOutstanding": {
+          "type": "integer",
+          "label": "In-flight command limit",
+          "min": 1,
+          "max": 1000,
+          "default": 32,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Workspace commands",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "permissions",
+          "direction": "out",
+          "label": "Check permission",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "store",
+          "direction": "out",
+          "label": "Read or mutate records",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "permissionCache",
+      "label": "Workspace permission cache",
+      "description": "Caches versioned role decisions by user, workspace, project, task and action. TTL exposes stale grants after revoke; the store decides whether to recheck current authority.",
+      "paramSets": [],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Dependency timeout",
+          "min": 1,
+          "max": 60000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Dependency retries",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 10000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxOutstanding": {
+          "type": "integer",
+          "label": "In-flight command limit",
+          "min": 1,
+          "max": 1000,
+          "default": 32,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "min": 1,
+          "max": 10000,
+          "default": 128,
+          "group": "basic"
+        },
+        "ttlMs": {
+          "type": "number",
+          "label": "Permission cache lifetime",
+          "min": 0,
+          "max": 60000,
+          "default": 10000,
+          "group": "basic",
+          "unit": "ms"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Permission checks",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "store",
+          "direction": "out",
+          "label": "Read current permission",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "workspaceStore",
+      "label": "Workspace record store",
+      "description": "Owns concrete users, tenants, workspaces, memberships, projects and tasks. Current authorization rechecks each operation; cached mode intentionally demonstrates unsafe stale grants. The inherited Response size controls infrastructure station-rejection replies only. Application replies, including denials, use actual UTF-8 JSON body size.",
+      "paramSets": [
+        "station"
+      ],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "min": 1,
+          "max": 10000,
+          "default": 128,
+          "group": "basic"
+        },
+        "authorizationMode": {
+          "type": "enum",
+          "label": "Authorization at operation",
+          "options": [
+            "current",
+            "cached"
+          ],
+          "default": "current",
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Authorize or execute",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "dropReplies",
+        "blackhole"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "application-client",
+      "label": "Application client",
+      "category": "clients",
+      "kernel": "applicationClient",
+      "glyph": "users",
+      "description": "Finite authored chat or workspace commands with concrete identity, received records and stream chunks. These are synthetic users, not real authentication.",
+      "defaults": {}
+    },
+    {
+      "id": "chat-application",
+      "label": "Durable chat application",
+      "category": "compute",
+      "kernel": "chatApplication",
+      "glyph": "server",
+      "description": "Checks conversation access, reads history, commits a prompt, forwards incremental chunks and commits actual assistant content. Duplicate IDs and reconnect history use the same records.",
+      "defaults": {}
+    },
+    {
+      "id": "conversation-store",
+      "label": "Conversation store",
+      "category": "storage",
+      "kernel": "conversationStore",
+      "glyph": "database",
+      "description": "Concrete tenant-bound users, conversations and ordered user/assistant messages. Writes are duplicate-safe; content survives simulated node crashes and JSON checkpoints, not browser storage. The inherited Response size controls infrastructure station-rejection replies only. Application replies, including denials, use actual UTF-8 JSON body size.",
+      "defaults": {
+        "serviceMs": 5,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "synthetic-stream",
+      "label": "Synthetic text stream",
+      "category": "ai",
+      "kernel": "syntheticStream",
+      "glyph": "sparkle",
+      "description": "Returns deterministic text in delayed chunks with explicit cursors. This models streaming transport and failure, not real inference or provider performance.",
+      "defaults": {}
+    },
+    {
+      "id": "workspace-application",
+      "label": "Workspace application",
+      "category": "compute",
+      "kernel": "workspaceApplication",
+      "glyph": "server",
+      "description": "Routes concrete project and task commands through cached permissions and an authoritative workspace store. Both edges must resolve to the same store.",
+      "defaults": {}
+    },
+    {
+      "id": "permission-cache",
+      "label": "Workspace permission cache",
+      "category": "edge",
+      "kernel": "permissionCache",
+      "glyph": "lock",
+      "description": "Caches versioned role decisions by user, workspace, project, task and action. TTL exposes stale grants after revoke; the store decides whether to recheck current authority.",
+      "defaults": {}
+    },
+    {
+      "id": "workspace-store",
+      "label": "Workspace record store",
+      "category": "storage",
+      "kernel": "workspaceStore",
+      "glyph": "database",
+      "description": "Owns concrete users, tenants, workspaces, memberships, projects and tasks. Current authorization rechecks each operation; cached mode intentionally demonstrates unsafe stale grants. The inherited Response size controls infrastructure station-rejection replies only. Application replies, including denials, use actual UTF-8 JSON body size.",
+      "defaults": {
+        "serviceMs": 5,
+        "serviceDist": "constant"
+      }
+    }
+  ]
+}

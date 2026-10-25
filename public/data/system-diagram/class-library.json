@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.systemDiagramClassLibrary.v1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "payloadTypes": [
     {
       "id": "http",
@@ -777,6 +777,9 @@
     "classes/sources.json",
     "classes/streaming.json",
     "classes/pipeline.json",
-    "classes/replication.json"
+    "classes/replication.json",
+    "classes/applications.json",
+    "classes/distribution.json",
+    "classes/collaboration.json"
   ]
 }

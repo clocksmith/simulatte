@@ -2,7 +2,8 @@
   'use strict';
   const ui=globalThis.SimulatteWorldUI, documents=globalThis.SimulatteSystemDiagramDocument, libraryApi=globalThis.SimulatteSystemDiagramLibrary;
   const runners=globalThis.SimulatteSystemDiagramRunner,kernels=globalThis.SimulatteSystemDiagramKernels,journeys=globalThis.SimulatteSystemDiagramJourneys;
-  if(!journeys)throw Error('System Diagram journey contracts are required');
+  const paletteApi=globalThis.SimulatteSystemDiagramPalette,inspectorApi=globalThis.SimulatteSystemDiagramInspector;
+  if(!journeys||!paletteApi||!inspectorApi)throw Error('System Diagram journey and editor helpers are required');
   const $=id=>document.getElementById(id),clone=value=>structuredClone(value);
   const route=globalThis.SimulattePublicRoutes.forPath(location.pathname),routeState=globalThis.SimulatteRouter.parsePath(location.pathname,location.search);
   async function json(path){const r=await fetch(path);if(!r.ok)throw Error(`Required asset unavailable: ${path}`);return r.json();}
@@ -12,14 +13,17 @@
   const seed=routeState.simulation?.seed==null?profile.defaultSeed:Number(routeState.simulation.seed);
   if(!Number.isInteger(seed)||seed<0||seed>4294967295)throw Error('Seed must be an unsigned 32-bit integer');
   for(const e of config.examples){const o=document.createElement('option');o.value=e.id;o.textContent=e.label;$('preset').append(o);}
-  const blankOption=document.createElement('option');blankOption.value='blank';blankOption.textContent='Empty canvas';$('preset').append(blankOption);$('preset').value=config.defaultExampleId;
+  const blankOption=document.createElement('option');blankOption.value='blank';blankOption.textContent='Empty canvas';$('preset').append(blankOption);
+  const customOption=document.createElement('option');customOption.value='custom';customOption.textContent='Imported document';customOption.disabled=true;$('preset').append(customOption);$('preset').value=config.defaultExampleId;
   const initial=await json(config.examples.find(e=>e.id===config.defaultExampleId).path);initial.seed=seed;
   const model=globalThis.SimulatteSystemDiagramEditorModel.create({diagram:initial,library,config});
   let runner=null,accepted=null,acceptedIdentity=null,running=false,busy=false,savedCheckpoint=null,loadedReplay=null,selectedRequest=null,multiSelect=false,scope='instance',operation=0;
   let comparisonBaseline=null,comparisonControls=[],comparisonRecord=null;
+  const loadGuard=globalThis.SimulatteSystemDiagramEditorModel.createLoadGuard(model);
+  let loading=false,activePreset=config.defaultExampleId;
   const requestButtons=new Map(),buttons={};let requestPage=0;const REQUESTS_PER_PAGE=50;
   function message(text,error=false){$('editor-status').textContent=text;$('editor-status').dataset.error=String(error);}
-  async function perform(action){if(busy){message('Wait for the current operation.',true);return;}busy=true;try{await action();}catch(e){running=false;message(e.message,true);}finally{busy=false;document.body.dataset.operationSequence=String(++operation);render();}}
+  async function perform(action){if(busy||loading){message(loading?'A document is loading. Choose another starter to replace that request.':'Wait for the current operation.',true);return;}busy=true;try{await action();}catch(e){running=false;message(e.message,true);}finally{busy=false;document.body.dataset.operationSequence=String(++operation);render();}}
   function button(host,label,action,variant='secondary',ariaLabel=label){const b=ui.SimButton({label,ariaLabel,variant,onAction:()=>perform(action),onError:e=>message(e.message,true)});(typeof host==='string'?$(host):host).append(b.element);return b;}
   function apply(command){
     command=clone(command);
@@ -30,8 +34,9 @@
       const current=(command.type==='setNodeParams'?model.diagram.nodes:model.diagram.edges).find(n=>n.id===command.id)?.params||{};
       command.params={...Object.fromEntries(Object.keys(current).filter(k=>!Object.hasOwn(command.params,k)).map(k=>[k,null])),...command.params};delete command.replace;
     }
-    const result=model.apply(command);if(!result.ok)throw Error(result.error);const warnings=model.issues();message(warnings.length?warnings.map(w=>w.message).join(' · '):'Document updated. Semantic edits stay pending until Accept & run.',warnings.some(w=>w.kind==='payload-mismatch'));return result;}
+    const result=model.apply(command);if(!result.ok)throw Error(result.error);const warnings=model.issues();message(warnings.length?warnings.map(w=>w.message).join(' · '):['label','layout'].includes(result.kind)?'Drawing updated. No execution settings changed.':'Document updated. Semantic edits stay pending until Accept & run.',warnings.some(w=>w.kind==='payload-mismatch'));return result;}
   const canvas=globalThis.SimulatteSystemDiagramCanvas.create({host:$('diagram'),model,library,config,onMessage:message,onView:v=>{$('zoom-status').textContent=`${Math.round(v.zoom*100)}%`;}});
+  const walkthrough=globalThis.SimulatteSystemDiagramWalkthrough.create({host:$('learning-journeys'),model,library,config,canvas,getView:view,isPending:dirty,onMessage:message});
   function dirty(){return !runner||model.executionIdentity()!==acceptedIdentity;}
   function select(){return model.selection;}
   function selectedId(){const s=select();return s.nodes[0]||s.edges[0]||s.groups[0]||s.notes[0]||null;}
@@ -72,11 +77,11 @@
   button('playback','Restore',async()=>{if(!runner||!savedCheckpoint)throw Error('Save a checkpoint first');running=false;await runner.restore(savedCheckpoint);message('Restored the accepted run checkpoint.');});
   async function sessionExport(){return {schema:'simulatte.systemDiagramEditorSession.v1',diagram:clone(model.diagram),accepted:clone(accepted),checkpoint:runner?await runner.checkpoint():null};}
   function validateSession(v){
-    if(v?.schema===documents.SCHEMA)return {diagram:documents.validate(v,library,config),accepted:null,checkpoint:null};
+    if([documents.SCHEMA,documents.LEGACY_SCHEMA].includes(v?.schema))return {diagram:documents.validate(v,library,config),accepted:null,checkpoint:null};
     if(!v||v.schema!=='simulatte.systemDiagramEditorSession.v1'||Object.keys(v).sort().join(',')!=='accepted,checkpoint,diagram,schema')throw Error('Unsupported or undeclared editor session fields');
     return {...clone(v),diagram:documents.validate(v.diagram,library,config),accepted:v.accepted?documents.validate(v.accepted,library,config):null};
   }
-  function loadPending(v){const value=validateSession(v);const loaded=model.replace(value.diagram);if(!loaded.ok)throw Error(loaded.error);running=false;loadedReplay=value;canvas.render();message('Loaded as pending. Run accepts it; Restore loaded replay explicitly restores saved execution.');}
+  function loadPending(v){const value=validateSession(v);const loaded=model.replace(value.diagram);if(!loaded.ok)throw Error(loaded.error);running=false;loadedReplay=value;activePreset=config.examples.some(e=>e.id===value.diagram.id)?value.diagram.id:value.diagram.nodes.length?'custom':'blank';$('preset').value=activePreset;canvas.render();message('Loaded as pending. Run accepts it; Restore loaded replay explicitly restores saved execution.');}
   button('document-actions','Save',async()=>{localStorage.setItem(config.editor.autosaveKey,JSON.stringify(await sessionExport()));message('Saved this document and accepted replay in this browser.');});
   button('document-actions','Load',()=>{const text=localStorage.getItem(config.editor.autosaveKey);if(text)loadPending(JSON.parse(text));else $('load-file').click();});
   button('document-actions','Export',async()=>{const text=JSON.stringify(await sessionExport(),null,2);$('document').value=text;const url=URL.createObjectURL(new Blob([text],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='system-diagram.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),0);message('Exported classes, instances, named ports and accepted replay.');});
@@ -88,8 +93,25 @@
     try{await next.restore(value.checkpoint);}catch(e){await next.dispose();throw e;}
     const previous=runner;runner=next;accepted=value.accepted;acceptedIdentity=semantic(accepted);savedCheckpoint=value.checkpoint;running=false;loadedReplay=null;await previous?.dispose();message('Restored accepted replay; pending edits remain unchanged.');
   });
-  $('load-file').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;if(f.size>5e6){message('File exceeds 5 MB',true);return;}try{const text=await f.text();await perform(()=>loadPending(JSON.parse(text)));}catch(err){message(err.message,true);}e.target.value='';});
-  $('preset').addEventListener('change',()=>perform(async()=>{const value=$('preset').value,doc=value==='blank'?documents.emptyDiagram(config):await json(config.examples.find(e=>e.id===value).path);const loaded=model.replace(doc);if(!loaded.ok)throw Error(loaded.error);running=false;canvas.render();canvas.fit({readable:true});message('Starter loaded as pending with a new edit history. Save or export before replacing a document.');}));
+  async function readDocument(read,accept){
+    if(busy){$('preset').value=activePreset;message('Wait for the current operation before loading a document.',true);return;}
+    const token=loadGuard.begin();loading=true;message('Loading document. Newer edits will be kept.');render();
+    try{
+      const value=await read(),result=loadGuard.commit(token,()=>accept(value));
+      if(result==='edited'){$('preset').value=activePreset;message('Kept your newer diagram edits. Choose the starter or file again to replace them.',true);}
+    }catch(error){if(loadGuard.isCurrent(token)){$('preset').value=activePreset;message(error.message,true);}}
+    finally{if(loadGuard.isCurrent(token)){loading=false;document.body.dataset.operationSequence=String(++operation);render();}}
+  }
+  $('load-file').addEventListener('change',e=>{
+    const f=e.target.files[0];e.target.value='';if(!f)return;
+    readDocument(()=>{if(f.size>5e6)throw Error('File exceeds 5 MB');return f.text();},text=>loadPending(JSON.parse(text)));
+  });
+  $('preset').addEventListener('change',()=>{
+    const value=$('preset').value;
+    readDocument(()=>value==='blank'?documents.emptyDiagram(config):json(config.examples.find(e=>e.id===value).path),doc=>{
+      const loaded=model.replace(doc);if(!loaded.ok)throw Error(loaded.error);activePreset=value;$('preset').value=value;running=false;loadedReplay=null;canvas.render();canvas.fit({readable:true});message('Starter loaded as pending with a new edit history. Save or export before replacing a document.');
+    });
+  });
   document.addEventListener('keydown',e=>{if(e.target.closest('input,select,textarea')||!(e.ctrlKey||e.metaKey))return;if(e.key.toLowerCase()==='z'){e.preventDefault();perform(()=>{if(e.shiftKey)model.redo();else model.undo();});}if(e.key.toLowerCase()==='s'){e.preventDefault();perform(async()=>{localStorage.setItem(config.editor.autosaveKey,JSON.stringify(await sessionExport()));message('Saved locally.');});}});
   function el(tag,className,text){const e=document.createElement(tag);if(className)e.className=className;if(text!==undefined)e.textContent=text;return e;}
   function field(host,label,value,{id,choices,type='text',spec}={}){
@@ -97,46 +119,82 @@
     if(choices)for(const c of choices){const o=el('option','',typeof c==='string'?c:c.label);o.value=typeof c==='string'?c:c.id;input.append(o);}else{input.type=type;if(type==='number'){input.step=spec?.type==='integer'?'1':'any';if(spec?.min!==undefined)input.min=spec.min;if(spec?.max!==undefined)input.max=spec.max;}}
     input.value=value??'';wrap.append(input);host.append(wrap);return input;
   }
+  const paletteCategory=field(document.querySelector('.palette-search').parentElement,'Category','',{id:'palette-category',choices:[{id:'',label:'All components'},...library.categories]});
+  $('capability-count').before(paletteCategory.parentElement);
   let paletteKey='';
   function palette(){
-    const search=$('palette-search').value.toLowerCase(),doc=model.diagram,all=[...library.classOrder,...doc.classes.map(c=>c.id)],available=all.filter(id=>{const c=documents.resolveClass(id,doc,library,config);if(!kernels.has(c.kernel))return false;try{kernels.get(c.kernel).validateParams?.(c.defaults);return true;}catch{return false;}});
-    $('capability-count').textContent=`${available.length} executable classes · ${all.length-available.length} metadata only`;
-    const key=JSON.stringify([search,doc.classes]);if(key===paletteKey)return;paletteKey=key;$('palette').replaceChildren();
-    for(const id of available){const c=documents.resolveClass(id,doc,library,config);if(!`${c.label} ${c.category}`.toLowerCase().includes(search))continue;
-      const b=ui.SimButton({label:c.label,variant:'quiet',onAction:()=>{},ariaLabel:`Add ${c.label}`}).element;b.classList.add('palette-item');b.dataset.classId=id;b.dataset.type=c.kernel;b.replaceChildren(el('span','component-icon',c.label.split(/\s/).map(w=>w[0]).join('').slice(0,2)),el('span','',c.label));
-      let start=null,ghost=null,moved=false;
-      b.addEventListener('pointerdown',e=>{if(e.button!==0)return;start={x:e.clientX,y:e.clientY};moved=false;b.setPointerCapture(e.pointerId);});
-      b.addEventListener('pointermove',e=>{if(!start)return;if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>7)moved=true;if(!moved)return;if(!ghost){ghost=el('div','drop-preview',c.label);document.body.append(ghost);}ghost.style.left=`${e.clientX+12}px`;ghost.style.top=`${e.clientY-16}px`;});
-      b.addEventListener('pointerup',e=>{if(!start)return;const r=$('diagram').getBoundingClientRect();if(!moved)canvas.dropClassAt(id,r.left+r.width/2,r.top+r.height/2);else if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)canvas.dropClassAt(id,e.clientX,e.clientY);else message('Drop inside the canvas.');start=null;ghost?.remove();ghost=null;});
-      b.addEventListener('pointercancel',()=>{start=null;ghost?.remove();ghost=null;});
-      b.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();const r=$('diagram').getBoundingClientRect();canvas.dropClassAt(id,r.left+r.width/2,r.top+r.height/2);}});$('palette').append(b);
+    const search=$('palette-search').value,category=paletteCategory.value,doc=model.diagram,all=[...library.classOrder,...doc.classes.map(c=>c.id)];
+    const key=JSON.stringify([search,category,doc.classes]);if(key===paletteKey)return;paletteKey=key;
+    const available=all.map(id=>documents.resolveClass(id,doc,library,config)).filter(c=>{if(!kernels.has(c.kernel))return false;try{kernels.get(c.kernel).validateParams?.(c.defaults);return true;}catch{return false;}});
+    const labels=new Map(library.categories.map(c=>[c.id,c.label]));
+    const visible=available.filter(c=>(!category||c.category===category)&&paletteApi.matchesClass(c,search,labels.get(c.category)));
+    $('capability-count').textContent=`${visible.length} of ${available.length} executable components${all.length>available.length?` · ${all.length-available.length} metadata only`:''}`;
+    $('palette').replaceChildren();
+    if(!visible.length){$('palette').append(el('p','properties-note','No components match. Try a different term or category.'));return;}
+    for(const cat of library.categories){
+      const classes=visible.filter(c=>c.category===cat.id);if(!classes.length)continue;
+      const section=el('section','palette-category');section.dataset.category=cat.id;section.append(el('h3','palette-category-title',cat.label));$('palette').append(section);
+      for(const c of classes){
+        let start=null,ghost=null,moved=false,suppressClick=false;
+        const id=c.id,b=ui.SimButton({label:c.label,variant:'quiet',onAction:()=>{if(suppressClick){suppressClick=false;return;}const r=$('diagram').getBoundingClientRect();canvas.dropClassAt(id,r.left+r.width/2,r.top+r.height/2);},ariaLabel:`Add ${c.label}`}).element;
+        b.classList.add('palette-item');b.dataset.classId=id;b.dataset.type=c.kernel;b.setAttribute('aria-description',c.description||'');b.title=c.description||c.label;
+        const text=el('span','palette-copy');text.append(el('span','palette-label',c.label),el('span','palette-description',c.description||''));
+        const icon=el('span','component-icon');icon.append(globalThis.SimulatteSystemDiagramGlyphs.create(document,c.glyph,18));b.replaceChildren(icon,text);
+        b.addEventListener('pointerdown',e=>{if(e.button!==0)return;start={x:e.clientX,y:e.clientY};moved=false;b.setPointerCapture(e.pointerId);});
+        b.addEventListener('pointermove',e=>{if(!start)return;if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>7)moved=true;if(!moved)return;if(!ghost){ghost=el('div','drop-preview',c.label);document.body.append(ghost);}ghost.style.left=`${e.clientX+12}px`;ghost.style.top=`${e.clientY-16}px`;});
+        b.addEventListener('pointerup',e=>{if(!start)return;const r=$('diagram').getBoundingClientRect();if(moved){suppressClick=true;if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)canvas.dropClassAt(id,e.clientX,e.clientY);else message('Drop inside the canvas.');setTimeout(()=>{suppressClick=false;},0);}start=null;ghost?.remove();ghost=null;});
+        b.addEventListener('pointercancel',()=>{start=null;ghost?.remove();ghost=null;});
+        section.append(b);
+      }
     }
   }
   $('palette-search').addEventListener('input',palette);
+  $('palette-search').addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();$('palette-search').value='';palette();}});
+  paletteCategory.addEventListener('change',palette);
+  const openProperties=new Set();
+  function disclosure(host,key,title){
+    const details=ui.SimDisclosure({document,title});details.dataset.propertySection=key;details.open=openProperties.has(key);
+    details.addEventListener('toggle',()=>{if(details.open)openProperties.add(key);else openProperties.delete(key);});host.append(details);return details;
+  }
   function paramsForm(host,specs,values,{inherited=null,sources=null,disabled=false}={}){
-    const result={};for(const [key,spec]of Object.entries(specs)){
+    const result={},groups=inspectorApi.paramRows(specs,values,sources||{}, {maxBasic:inspectorApi.BASIC_SETTING_LIMIT});
+    const build=(target,rows)=>{for(const {key,spec}of rows){
       const choices=spec.type==='enum'?[...(inherited?[{id:'__inherit',label:`Inherit · ${inherited[key]}`}]:[]),...spec.options]:spec.type==='boolean'?[...(inherited?[{id:'__inherit',label:`Inherit · ${inherited[key]}`}]:[]),{id:'true',label:'Yes'},{id:'false',label:'No'}]:null;
       const raw=Object.hasOwn(values,key)?values[key]:inherited?'__inherit':spec.default;
-      const input=field(host,`${spec.label}${spec.unit?' · '+spec.unit:''}`,raw==='__inherit'&&!choices?'':String(raw),{id:'property-'+key,choices,type:['number','integer'].includes(spec.type)?'number':'text',spec});
+      const input=field(target,`${spec.label}${spec.unit?' · '+spec.unit:''}`,raw==='__inherit'&&!choices?'':String(raw),{id:'property-'+key,choices,type:['number','integer'].includes(spec.type)?'number':'text',spec});
       if(inherited&&!choices)input.placeholder=`Inherit · ${inherited[key]}`;input.disabled=disabled;result[key]=input;
-      const origin=el('span','override-tag',sources?.[key]==='instance'?'Instance override':sources?.[key]?`From ${sources[key]}`:'');input.parentElement.append(origin);
-    }return result;
+      if(sources?.[key])input.parentElement.append(el('span','override-tag',inspectorApi.sourceLabel(sources[key],model.diagram,library)));
+      if(spec.help)input.parentElement.append(el('span','property-help',spec.help));
+    }};
+    if(groups.basic.length){const basic=el('section','basic-properties');basic.append(el('h3','scope-title','Basic settings'));host.append(basic);build(basic,groups.basic);}
+    if(groups.advanced.length){
+      const overrides=groups.advanced.filter(r=>r.overridden).length;
+      const advanced=disclosure(host,`${selectedId()||'diagram'}:${scope}:advanced`,`Advanced settings (${groups.advanced.length}${overrides?` · ${overrides} overridden`:''})`);advanced.classList.add('advanced-properties');build(advanced,groups.advanced);
+    }
+    return result;
   }
-  function readParams(fields,specs,inherit=false){const values={};for(const [key,input]of Object.entries(fields)){if(inherit&&(input.value===''||input.value==='__inherit'))continue;const spec=specs[key];values[key]=spec.type==='boolean'?input.value==='true':['number','integer'].includes(spec.type)?Number(input.value):input.value;}return values;}
+  function readParams(fields,specs,inherit=false){
+    const values={};for(const [key,input]of Object.entries(fields)){
+      if(inherit&&(input.value===''||input.value==='__inherit'))continue;
+      const spec=specs[key],raw=spec.type==='boolean'?input.value==='true':input.value,parsed=inspectorApi.parseParam(spec,raw);
+      if(!parsed.ok){input.setAttribute('aria-invalid','true');const hidden=input.closest('details');if(hidden)hidden.open=true;input.focus();throw Error(`${spec.label}: ${parsed.error}`);}
+      input.removeAttribute('aria-invalid');values[key]=parsed.value;
+    }return values;
+  }
   function properties(){
     const doc=model.diagram,s=select(),id=selectedId(),host=$('properties');host.replaceChildren();
-    if(s.nodes.length>1){$('selection-kind').textContent=`${s.nodes.length} nodes`;host.append(el('p','properties-note','Create a shared resource cluster, duplicate or delete the selection.'));const a=el('div','properties-actions');host.append(a);button(a,'Create cluster',cluster);return;}
-    const node=doc.nodes.find(n=>n.id===id),edge=doc.edges.find(e=>e.id===id),group=doc.groups.find(g=>g.id===id);
+    if(Object.values(s).flat().length>1){$('selection-kind').textContent=`${Object.values(s).flat().length} items`;host.append(el('p','properties-note','Create a shared resource cluster, duplicate or delete the selection.'));const a=el('div','properties-actions');host.append(a);button(a,'Create cluster',cluster);return;}
+    const node=doc.nodes.find(n=>n.id===id),edge=doc.edges.find(e=>e.id===id),group=doc.groups.find(g=>g.id===id),note=doc.notes.find(n=>n.id===id);
     if(node){
       const resolved=documents.resolveNodeParams(node,doc,library,config),cls=resolved.klass,kernel=library.kernels[cls.kernel],user=doc.classes.find(c=>c.id===node.classId);
-      $('selection-kind').textContent=cls.kernel;const actual=el('p','properties-note');actual.id='node-state';host.append(actual,el('div','wui-status',node.id));const stateDetails=el('details','node-resource-details');stateDetails.append(el('summary','','Accepted node state'));const stateRows=el('dl');stateRows.id='node-detail';stateDetails.append(stateRows);host.append(stateDetails);
+      $('selection-kind').textContent=cls.label;host.append(el('p','properties-note component-description',cls.description),el('p','properties-note component-behavior',kernel.description));const actual=el('p','properties-note');actual.id='node-state';host.append(actual,el('div','wui-status',node.id));const stateDetails=el('details','node-resource-details');stateDetails.append(el('summary','','Accepted node state'));const stateRows=el('dl');stateRows.id='node-detail';stateDetails.append(stateRows);host.append(stateDetails);
       const name=field(host,'Instance name',node.label,{id:'instance-name'});name.addEventListener('change',()=>perform(()=>apply({type:'setNodeLabel',id,label:name.value})));
       const choose=field(host,'Node class',node.classId,{id:'instance-class',choices:[...library.classOrder,...doc.classes.map(c=>c.id)].map(cid=>({id:cid,label:documents.resolveClass(cid,doc,library,config).label}))});choose.addEventListener('change',()=>perform(()=>apply({type:'setNodeClass',id,classId:choose.value})));
       const tabs=el('div','scope-switch');host.append(tabs);for(const [v,label]of[['instance','Instance overrides'],['class','Class defaults']]){const b=button(tabs,label,()=>{scope=v;properties();renderState();},'quiet');b.setState({selected:scope===v});b.element.setAttribute('aria-pressed',String(scope===v));}
       host.append(el('p','properties-note',scope==='instance'?'Empty fields inherit defaults. Overrides apply only to this node.':user?'User class changes affect inheriting instances; explicit instance overrides remain.':'Built-in defaults are governed data. Derive a reusable class to customize them.'));
       let className;if(scope==='class'&&user)className=field(host,'Class name',user.label,{id:'class-name'});
       const classParent=user?documents.resolveClass(user.extends,doc,library,config).defaults:null;
-      const fields=paramsForm(host,kernel.params,scope==='instance'?node.params:user?user.defaults:cls.defaults,{inherited:scope==='instance'?cls.defaults:classParent,sources:scope==='instance'?resolved.sources:cls.sources,disabled:scope==='class'&&!user});
+      const fields=paramsForm(host,kernel.params,scope==='instance'?node.params:user?user.defaults:cls.defaults,{inherited:scope==='instance'?cls.defaults:classParent,sources:scope==='instance'?resolved.sources:Object.fromEntries(Object.entries(cls.sources).map(([key,source])=>[key,source===user?.id?'class':source])),disabled:scope==='class'&&!user});
       const actions=el('div','properties-actions');host.append(actions);
       if(scope==='instance'){
         button(actions,'Apply overrides',()=>apply({type:'setNodeParams',id,params:readParams(fields,kernel.params,true),replace:true}),'primary');
@@ -148,6 +206,9 @@
       const live=el('div','properties-actions');host.append(live);button(live,'Fail node',()=>{if(!runner||!accepted.nodes.some(n=>n.id===id))throw Error('Run this node before injecting a fault');running=false;runner.inject({kind:'fault',target:{kind:'node',id},type:'crash',params:{}});message('Recorded a synthetic node crash.');},'danger');button(live,'Repair node',()=>{if(!runner)throw Error('Run first');runner.inject({kind:'repair',target:{kind:'node',id}});message('Recorded synthetic repair.');});
     }else if(edge){
       $('selection-kind').textContent='Named-port connection';host.append(el('div','wui-status',edge.id));
+      const label=field(host,'What flows here',edge.label||'',{id:'connection-label'});label.maxLength=config.bounds.maxLabelLength;label.placeholder='e.g. Stream chunks or Write events';
+      label.addEventListener('change',()=>perform(()=>apply({type:'setEdgeLabel',id,label:label.value})));
+      host.append(el('p','properties-note','This label describes the connection. Typed ports and settings still determine execution.'));
       const endpoints={};for(const side of['from','to']){
         const direction=side==='from'?'out':'in',choices=[];for(const n of doc.nodes){const c=documents.resolveClass(n.classId,doc,library,config);for(const p of library.kernels[c.kernel].ports.filter(p=>p.direction===direction))choices.push({id:n.id+'|'+p.id,label:`${n.label||n.id} · ${p.id}`});}
         endpoints[side]=field(host,side==='from'?'Output port':'Input port',edge[side].nodeId+'|'+edge[side].portId,{id:'link-'+side,choices});
@@ -162,6 +223,8 @@
       host.append(el('p','properties-note','Resource clusters share worker slots. Boundary groups are visual. Zones and regions model explicit correlated outage targets; they do not share capacity.'));
       const a=el('div','properties-actions');host.append(a);button(a,'Apply group',()=>apply({type:'updateGroup',id,patch:{label:name.value,kind:kind.value,...(kind.value==='resource'?{capacity:Number(slots.value)}:{capacity:undefined})}}),'primary');
       if(['zone','region'].includes(group.kind)){button(a,'Fail domain',()=>{if(!runner)throw Error('Run first');runner.inject({kind:'fault',target:{kind:'group',id},type:'outage',params:{}});},'danger');button(a,'Repair domain',()=>{if(!runner)throw Error('Run first');runner.inject({kind:'repair',target:{kind:'group',id}});});}
+    }else if(note){
+      $('selection-kind').textContent='Note';const text=field(host,'Note text',note.text,{id:'note-text'});text.maxLength=config.bounds.maxNoteLength;text.addEventListener('change',()=>perform(()=>apply({type:'updateNote',id,patch:{text:text.value}})));
     }else{
       $('selection-kind').textContent='Diagram';host.append(el('p','properties-note','Drag components and connect their named ports. Select a node for reusable class defaults and explicit instance overrides.'));
       const name=field(host,'Diagram name',doc.name,{id:'diagram-name'}),seedInput=field(host,'Replay seed',doc.seed,{id:'workload-seed',type:'number',spec:{type:'integer'}}),horizon=field(host,'Horizon · seconds',doc.run.horizonSec,{id:'workload-horizon',type:'number'});
@@ -226,7 +289,7 @@
   const inspector=ui.SimInspector({host:$('inspector'),placement:'inline',onSelect:id=>{selectedRequest=id;renderState();},onAction:()=>{},prominentFields:['status','blocker','attempts','effects']});
   function view(){return runner?.view()||null;}
   function renderState(){
-    const v=view(),m=v?.global||{};const actual=$('node-state'),n=v?.nodes?.[select().nodes[0]];
+    const v=view(),m=v?.global||{};walkthrough.render(v);const actual=$('node-state'),n=v?.nodes?.[select().nodes[0]];
     const detail=$('node-detail');if(detail)detail.replaceChildren(...Object.entries(n?.detail||{}).flatMap(([key,value])=>[el('dt','',key),el('dd','',typeof value==='object'?JSON.stringify(value):String(value))]));
     if(actual)actual.textContent=n?`Accepted run: ${n.health} · ${n.busy} busy · ${n.queue} queued · ${n.heldMiB??'unreported'} MiB retained`:'Not present in an accepted run.';
     const metric=(key)=>!v?'Not running':m[key]===undefined?'Not reported':m[key];
@@ -246,10 +309,10 @@
     $('history').replaceChildren(...(info?.history||[]).map(e=>el('li','',`${Number(e.time??e.t).toFixed(3)} s · ${e.kind} · ${e.nodeId||''}${(e.detail||e.message)?' · '+(typeof(e.detail||e.message)==='string'?(e.detail||e.message):JSON.stringify(e.detail||e.message)):''}${e.causes?.length?' ← '+e.causes.join(', '):''}`)));
     canvas.setState?.(v,{pending:dirty()&&!!runner});
   }
-  function render(){palette();buttons.undo.setState({disabled:!model.canUndo()});buttons.redo.setState({disabled:!model.canRedo()});buttons.pause.element.textContent=running?'Pause':'Resume';buttons.pause.setState({disabled:!runner});buttons.run.element.textContent=runner?(dirty()?'Accept & run':'Restart'):'Run';$('revision').textContent=runner?(dirty()?'Accepted run · edits pending':'Accepted architecture'):'Not running';$('revision').dataset.pending=String(!!runner&&dirty());document.body.dataset.pending=String(dirty());document.body.dataset.running=String(running);document.body.dataset.graphNodes=String(model.diagram.nodes.length);renderState();}
+  function render(){palette();buttons.undo.setState({disabled:!model.canUndo()});buttons.redo.setState({disabled:!model.canRedo()});buttons.pause.element.textContent=running?'Pause':'Resume';buttons.pause.setState({disabled:!runner});buttons.run.element.textContent=runner?(dirty()?'Accept & run':'Restart'):'Run';$('revision').textContent=runner?(dirty()?'Accepted run · edits pending':'Accepted architecture'):'Not running';$('revision').dataset.pending=String(!!runner&&dirty());document.body.dataset.pending=String(dirty());document.body.dataset.running=String(running);document.body.dataset.loading=String(loading);document.body.dataset.graphNodes=String(model.diagram.nodes.length);renderState();}
   model.subscribe(event=>{if(event.kind!=='view'){properties();faultAuthoring(event.kind==='selection');render();}if(!['selection','view'].includes(event.kind)){const issues=model.issues();if(issues.length)message(issues.map(i=>i.message).join(' · '),issues.some(i=>i.kind==='payload-mismatch'));}});
   ui.adoptTree(document.body);properties();faultAuthoring();renderComparison();render();canvas.fit({readable:true});$('assumptions').replaceChildren(el('li','',config.claimBoundary));
   globalThis.SimulatteSystemDiagramEditor=Object.freeze({document:()=>clone(model.diagram),accepted:()=>clone(accepted),snapshot:()=>clone(view()),selection:()=>clone(select()),viewport:()=>canvas.getView(),program:()=>runner?.program()||null,comparison:()=>clone(comparisonRecord),baseline:()=>clone(comparisonBaseline)});
   document.body.dataset.simulationProfile=profile.id;document.body.dataset.editorReady='true';message('Draw the architecture, configure class defaults and instance overrides, then Run.');
-  setInterval(()=>{if(!running||busy||!runner)return;try{runner.advanceTo(Math.min(runner.horizon,runner.time()+.25));const v=view();if(v.done||v.error||runner.time()>=runner.horizon)running=false;render();}catch(e){running=false;message(e.message,true);render();}},180);
+  setInterval(()=>{if(!running||busy||loading||!runner)return;try{runner.advanceTo(Math.min(runner.horizon,runner.time()+.25));const v=view();if(v.done||v.error||runner.time()>=runner.horizon)running=false;render();}catch(e){running=false;message(e.message,true);render();}},180);
 })().catch(e=>{const s=document.getElementById('status');s.textContent=`Unable to open editor: ${e.message}`;s.setAttribute('role','alert');});

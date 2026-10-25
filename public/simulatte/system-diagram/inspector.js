@@ -6,6 +6,7 @@
   'use strict';
   const REBUILD_KINDS_SKIPPED = new Set(['view', 'layout']);
   const FIELD_SELECTOR = 'input,select,textarea';
+  const BASIC_SETTING_LIMIT = 6;
 
   // ---- Pure helpers (exported for tests) ----
 
@@ -36,9 +37,10 @@
     return classLabel(source, doc, library);
   }
 
-  function paramRows(specs, values, sources) {
+  function paramRows(specs, values = {}, sources = {}, { maxBasic = Infinity } = {}) {
     const groups = { basic: [], advanced: [] };
     for (const [key, spec] of Object.entries(specs)) (groups[spec.group] || groups.advanced).push({ key, spec, value: values[key], source: sources[key], overridden: sources[key] === 'instance' || sources[key] === 'edge' || sources[key] === 'class' });
+    if (groups.basic.length > maxBasic) groups.advanced.unshift(...groups.basic.splice(maxBasic));
     return groups;
   }
 
@@ -176,7 +178,7 @@
 
     // Parameter editor shared by instances, edges and user-class defaults.
     function paramEditor(prefix, specs, resolved, onSet, onReset, labelFor) {
-      const groups = paramRows(specs, resolved.values, resolved.sources);
+      const groups = paramRows(specs, resolved.values, resolved.sources, { maxBasic: BASIC_SETTING_LIMIT });
       const build = rows => rows.map(r => {
         let line;
         const input = specInput(r.spec, r.value, raw => {
@@ -413,6 +415,9 @@
         set('faults', 'Faults', v.faults || [], { faulted: String((v.faults || []).length > 0) });
       });
       panel.append(status);
+      const meaning = section('Connection');
+      meaning.append(row({ key: 'edge.label', label: 'What flows here', input: textInput(e.label || '', value => apply({ type: 'setEdgeLabel', id, label: value }), { max: config.bounds.maxLabelLength }) }).wrap, el('p', 'sd-insp-note', 'Annotation only; typed ports and parameters determine execution.'));
+      panel.append(meaning);
       const params = section('Parameters');
       params.append(...paramEditor('edge', library.edgeParams, D.resolveEdgeParams(e, library),
         (key, value) => apply({ type: 'setEdgeParams', id, params: { [key]: value } }),
@@ -645,5 +650,5 @@
     return { element: panel, render, refresh: schedule, dispose() { disposed = true; unsubscribe(); panel.remove(); } };
   }
 
-  return Object.freeze({ create, parseParam, sourceLabel, paramRows, nodeFaultTypes, targetFaultTypes, classUsage, faultSummary, selectionMode, formatLive });
+  return Object.freeze({ BASIC_SETTING_LIMIT, create, parseParam, sourceLabel, paramRows, nodeFaultTypes, targetFaultTypes, classUsage, faultSummary, selectionMode, formatLive });
 });

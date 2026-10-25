@@ -58,6 +58,16 @@ resource and causal records. Require seeded replay, checkpoint equivalence and
 visible rejected/unfinished work. Preserve the earlier lease/redelivery experiment
 as a compatibility path rather than the primary product interface.
 
+Make the editor understandable through six editable system-design questions: chat
+from client through API, streamed generation and saved conversation; video asset
+delivery through CDN and bounded peer assistance; agent task trajectories and
+status recovery; Spark-style stages and executor loss; social posts and follower
+feeds; workspace/project/task relationships and access revocation. Show named
+operations on connections, progressive component settings, actual simulated
+records and causal progress. Examples remain compositions of reusable kernels,
+not a second canned-outcome engine. Separate source/model checks, browser authoring,
+human comprehension and deployed availability.
+
 Develop challenging workloads as composable packs of typed nodes, ports, resource
 policies and synthetic/deidentified traces. Streaming/CDN, multi-agent collection,
 healthcare, finance, operational data graphs and lakehouse jobs are representative

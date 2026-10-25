@@ -5,6 +5,7 @@
 })(globalThis, function () {
   'use strict';
   const clone = value => JSON.parse(JSON.stringify(value));
+  const BYTES_PER_KB = 1000, BYTES_PER_MIB = 1024 * 1024;
   function initialize(s) { s.observability = { sequence: 0, requestCount: 0, requests: {}, attempts: {}, effects: '', effectReceipts: '', latestEffects: {}, backgroundLate: {}, faults: [], jobs: {}, jobHistory: '', allocations: {}, nodeMemory: {}, nodePeak: {}, memoryMiB: 0, peakMemoryMiB: 0, durable: {}, slots: {}, memoryPolicy: {}, garbageSequence: 0, retained: {}, retainedCount: 0, resources: '', latestResource: {} }; return s; }
   function messageOf(value) { return value && (value.msg || value.m || value); }
   function note(R, kind, details = {}) {
@@ -29,7 +30,7 @@
     note(R, `request-${r.status}`, { nodeId: r.sourceId, requestId: trace, detail: err || '' });
   }
   function allocate(R, key, nodeId, msg, p) { const o = R.s.observability; if (o.allocations[key]) return true;
-    const amount = Math.max(0, Number(msg.kb) || 0) / 1024 + (Number(p.memoryPerRequestMiB) || 0), current = o.nodeMemory[nodeId] || 0;
+    const amount = Math.max(0, Number(msg.kb) || 0) * BYTES_PER_KB / BYTES_PER_MIB + (Number(p.memoryPerRequestMiB) || 0), current = o.nodeMemory[nodeId] || 0;
     if (Number.isFinite(p.memoryLimitMiB) && current + amount > p.memoryLimitMiB + 1e-9) { note(R, 'memory-rejected', { nodeId, message: msg, detail: `${amount} MiB allocation exceeds ${p.memoryLimitMiB} MiB admission limit` }); const m = policy(R, nodeId); m.ooms++; if (p.memoryOomPolicy === 'crash' && !m.oomPending) { m.oomPending = true; R.resourceOps.schedule(R.s.t, { k: 'mem', action: 'oom', n: nodeId }); } return false; }
     o.allocations[key] = { key, nodeId, requestId: msg.trace, amount }; o.nodeMemory[nodeId] = current + amount; o.memoryMiB += amount;
     o.nodePeak[nodeId] = Math.max(o.nodePeak[nodeId] || 0, o.nodeMemory[nodeId]); o.peakMemoryMiB = Math.max(o.peakMemoryMiB, o.memoryMiB); memoryChanged(R, nodeId, p); return true;

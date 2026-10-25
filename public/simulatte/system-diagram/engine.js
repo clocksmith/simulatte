@@ -195,6 +195,18 @@
     for (const [key, hist] of Object.entries(ns.hists)) detail[`${key} p95 ms`] = core.percentile(R, hist, 0.95);
     for (const [key, label] of [['lostReplies', 'lost replies'], ['swallowed', 'swallowed'], ['hopLimited', 'hop limited'], ['staleJobs', 'stale job ops'], ['effectEvictions', 'idempotency evictions'], ['bypassed', 'bypassed']]) if (ns[key]) detail[label] = ns[key];
     if (observed && isRecord(observed.detail)) Object.assign(detail, observed.detail);
+    let records;
+    if (observed && observed.records !== undefined) {
+      if (!isRecord(observed.records)) fail(`node ${node.id} observe.records`, 'named arrays of record objects', observed.records);
+      let count = 0;
+      for (const [name, rows] of Object.entries(observed.records)) {
+        if (!Array.isArray(rows)) fail(`node ${node.id} observe.records.${name}`, 'array of record objects', rows);
+        count += rows.length;
+        if (count > R.eng.maxRecords) fail(`node ${node.id} observe.records`, `at most ${R.eng.maxRecords} records`, count);
+        for (let i = 0; i < rows.length; i += 1) if (!Object.hasOwn(rows, i) || !isRecord(rows[i])) fail(`node ${node.id} observe.records.${name}[${i}]`, 'record object', rows[i]);
+      }
+      records = JSON.parse(JSON.stringify(observed.records));
+    }
     const pick = (key, value) => (observed && Number.isFinite(observed[key]) ? observed[key] : value);
     const queue = pick('queue', st ? core.queueLength(st) : 0), busy = pick('busy', st ? st.busy.length : ns.live), capacity = pick('capacity', st ? st.cap : 0);
     let health = observed && observed.health !== undefined ? observed.health : null;
@@ -208,7 +220,7 @@
       utilization: st ? core.utilization(R, node.id) : 0,
       arrivals: ns.arrivals, served: ns.served, errors: ns.errors, rejected: ns.rejected,
       throughput: core.windowSum(ns.win, s.t, 0) / core.windowSpan(s.t),
-      latency: latencySummary(R, ns.lat, ['p50', 'p95']), detail,
+      latency: latencySummary(R, ns.lat, ['p50', 'p95']), detail, ...(records ? { records } : {}),
     };
   }
 

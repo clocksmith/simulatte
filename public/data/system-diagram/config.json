@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.systemDiagramConfig.v1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "model": "system-diagram/v1",
   "classLibraryPath": "/data/system-diagram/class-library.json",
   "engine": {
@@ -58,8 +58,38 @@
     "minZoom": 0.2,
     "maxZoom": 3
   },
-  "defaultExampleId": "web-service",
+  "defaultExampleId": "chat-application",
   "examples": [
+    {
+      "id": "chat-application",
+      "label": "Chat: client, API, streaming and saved history",
+      "path": "/data/system-diagram/examples/chat-application.json"
+    },
+    {
+      "id": "video-distribution",
+      "label": "Video: CDN and peer-assisted delivery",
+      "path": "/data/system-diagram/examples/video-distribution.json"
+    },
+    {
+      "id": "agent-trajectories",
+      "label": "Agents: task trajectories and recovery",
+      "path": "/data/system-diagram/examples/agent-trajectories.json"
+    },
+    {
+      "id": "spark-job",
+      "label": "Spark-style: partitions, shuffle and executors",
+      "path": "/data/system-diagram/examples/spark-job.json"
+    },
+    {
+      "id": "social-feed",
+      "label": "Social: posts, followers and feeds",
+      "path": "/data/system-diagram/examples/social-feed.json"
+    },
+    {
+      "id": "workspace-access",
+      "label": "Workspace: projects, tasks and permissions",
+      "path": "/data/system-diagram/examples/workspace-access.json"
+    },
     {
       "id": "web-service",
       "label": "Web service with cache and replicas",

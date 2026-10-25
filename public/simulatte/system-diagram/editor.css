@@ -132,3 +132,26 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 .sd-pending-label { fill: var(--wui-muted); font: 400 9px var(--wui-mono); }
 
 .sd-port-hit:focus-visible { outline: none; }
+
+/* Authoring annotations never change typed connections or model inputs. */
+.sd-edge-label {
+  font: 400 10px var(--wui-font); fill: var(--wui-ink); cursor: pointer;
+  paint-order: stroke; stroke: var(--wui-paper); stroke-width: 4px; stroke-linejoin: round;
+}
+.sd-edge.is-selected .sd-edge-label { fill: var(--wui-active); }
+.palette-category { min-width: 0; }
+.palette-category-title { color: var(--wui-muted); font-size: 10px; margin: 14px 0 5px; }
+.palette-copy { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.palette-label { white-space: normal; overflow-wrap: anywhere; }
+.palette-description { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; font-size: 10px; line-height: 1.4; color: var(--wui-muted); }
+.palette-panel:has(#palette-category) > label { display: flex; flex-direction: column; gap: 5px; margin: 10px 0; font-size: 11px; color: var(--wui-muted); }
+.advanced-properties { margin-top: 14px; }
+.property-help { font-size: 10px; line-height: 1.5; color: var(--wui-muted); }
+.component-description { color: var(--wui-ink); }
+.component-behavior { margin-top: 6px; }
+@media(max-width:850px) {
+  .palette:has(.palette-category) { display: block; max-height: 200px; overflow: auto; }
+  .palette-category { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; }
+  .palette-category-title { grid-column: 1/-1; }
+  .palette-category .palette-item { width: 100%; min-width: 0; }
+}

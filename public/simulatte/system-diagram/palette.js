@@ -17,6 +17,11 @@
     { tool: 'note', glyph: 'text', label: 'Note', description: 'Free text on the canvas' },
   ]);
 
+  function matchesClass(klass, query, categoryLabel = '') {
+    const haystack = `${klass.label} ${klass.description || ''} ${klass.id} ${klass.category || ''} ${categoryLabel}`.toLowerCase();
+    return String(query).trim().toLowerCase().split(/\s+/).filter(Boolean).every(term => haystack.includes(term));
+  }
+
   function create({ host, library, model, canvas, config, onDragStart, onAdd, sheet = 'auto' }) {
     const doc = host.ownerDocument, win = doc.defaultView, UI = globalThis.SimulatteWorldUI;
     const E = config.editor, GRID = E.grid, uid = ++instances;
@@ -232,5 +237,5 @@
     };
   }
 
-  return Object.freeze({ create });
+  return Object.freeze({ create, matchesClass });
 });

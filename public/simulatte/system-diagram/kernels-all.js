@@ -6,4 +6,7 @@ require('./kernels-ai.js');
 require('./kernels-sources.js');
 require('./kernels-pipeline.js');
 require('./kernels-replication.js');
+require('./kernels-applications.js');
+require('./kernels-distribution.js');
+require('./kernels-collaboration.js');
 module.exports = require('./kernel-registry.js');

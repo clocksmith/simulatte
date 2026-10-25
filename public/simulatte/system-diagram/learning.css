@@ -1,0 +1,20 @@
+#learning-journeys { margin: 0 0 16px; padding: 16px; border: 1px solid var(--wui-border, #8885); border-radius: 12px; min-width: 0; }
+#learning-journeys h2 { font-size: 16px; margin: 0 0 12px; }
+#learning-journeys h3 { font-size: 15px; margin: 12px 0; }
+.learning-choices, .learning-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.learning-body p { font-size: 13px; line-height: 1.5; max-width: 90ch; }
+.learning-steps { display: flex; flex-wrap: wrap; gap: 12px 28px; padding-left: 24px; margin: 14px 0; }
+.learning-steps li { max-width: 32ch; }
+.learning-table-scroll { max-height: 320px; overflow: auto; margin: 10px 0; }
+.learning-records { margin: 12px 0; }
+.learning-records table { border-collapse: collapse; font-size: 12px; min-width: 100%; text-align: left; }
+.learning-records td, .learning-records th { padding: 7px; border-bottom: 1px solid #8884; max-width: 34ch; overflow-wrap: anywhere; vertical-align: top; }
+.learning-records th { position: sticky; top: 0; background: var(--wui-surface, #eee); color: var(--wui-text, #222); }
+.learning-activity { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; }
+.learning-activity li { padding: 4px; font-size: 12px; }
+@media (max-width: 600px) {
+  #learning-journeys { padding: 12px; }
+  .learning-choices { display: grid; grid-template-columns: 1fr 1fr; }
+  .learning-steps { display: block; }
+  .learning-records td { max-width: 24ch; }
+}

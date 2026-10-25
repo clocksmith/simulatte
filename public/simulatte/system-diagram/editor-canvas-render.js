@@ -100,8 +100,9 @@
         klass: el(doc, 'text', { class: 'sd-node-class', x: TEXT_X, y: (H - STATUS_HEIGHT) / 2 + 13 }),
         status: el(doc, 'g', { class: 'sd-node-status', transform: `translate(0 ${H - STATUS_HEIGHT})`, 'data-width': W, 'data-height': STATUS_HEIGHT }),
         ports: el(doc, 'g', { class: 'sd-node-ports' }),
+        title: el(doc, 'title'),
       };
-      g.append(parts.body, parts.rule, parts.glyph, parts.label, parts.klass, parts.status, parts.ports);
+      g.append(parts.title, parts.body, parts.rule, parts.glyph, parts.label, parts.klass, parts.status, parts.ports);
       layers.nodes.append(g);
       return { id, el: g, ...parts, sig: '', pos: '', kernel: '', portEls: new Map() };
     }
@@ -126,13 +127,15 @@
         const item = items.nodes.get(n.id) || createNode(n.id);
         items.nodes.set(n.id, item);
         const info = classInfo(n.classId);
-        const sig = `${n.label}\u0000${info.label}\u0000${info.glyph}`;
+        const sig = `${n.label}\u0000${info.label}\u0000${info.glyph}\u0000${info.description}`;
         if (item.sig !== sig) {
           item.sig = sig;
           Glyphs.fill(item.glyph, info.glyph, GLYPH_SIZE);
           fitText(item.label, n.label || info.label, W - TEXT_X - 10);
           fitText(item.klass, info.label, W - TEXT_X - 10);
           item.el.setAttribute('aria-label', `${n.label || info.label}, ${info.label}`);
+          item.el.setAttribute('aria-description', info.description);
+          item.title.textContent = `${n.label || info.label} · ${info.label}\n${info.description}`;
         }
         if (item.kernel !== info.kernel) { item.kernel = info.kernel; buildPorts(item, info.ports); }
         const pos = `${n.x},${n.y}`;
@@ -148,12 +151,21 @@
         let item = items.edges.get(edge.id);
         if (!item) {
           const g = el(doc, 'g', { class: 'sd-edge', 'data-id': edge.id, 'data-edge-id': edge.id, tabindex: 0, role: 'button', 'aria-label': `Link ${edge.id}: ${edge.from.nodeId}.${edge.from.portId} to ${edge.to.nodeId}.${edge.to.portId}` });
-          item = { el: g, hit: el(doc, 'path', { class: 'sd-edge-hit' }), path: el(doc, 'path', { class: 'sd-edge-line', 'marker-end': `url(#${arrowId})` }), d: '' };
-          g.append(item.hit, item.path); layers.edges.append(g); items.edges.set(edge.id, item);
+          item = { el: g, hit: el(doc, 'path', { class: 'sd-edge-hit' }), path: el(doc, 'path', { class: 'sd-edge-line', 'marker-end': `url(#${arrowId})` }), label: el(doc, 'text', { class: 'sd-edge-label', 'text-anchor': 'middle' }), title: el(doc, 'title'), d: '', labelSig: '' };
+          g.append(item.title, item.hit, item.path, item.label); layers.edges.append(g); items.edges.set(edge.id, item);
         }
-        item.el.setAttribute('aria-label', `Link ${edge.id}: ${edge.from.nodeId}.${edge.from.portId} to ${edge.to.nodeId}.${edge.to.portId}`);
+        const description = `${edge.label ? edge.label + ': ' : ''}${edge.from.nodeId}.${edge.from.portId} to ${edge.to.nodeId}.${edge.to.portId}`;
+        item.el.setAttribute('aria-label', `Link ${edge.id}: ${description}`);
+        item.title.textContent = description;
         const path = edgePath(edge);
         if (item.d !== path) { item.d = path; item.hit.setAttribute('d', path); item.path.setAttribute('d', path); }
+        const a = portPosition(edge.from.nodeId, edge.from.portId), b = portPosition(edge.to.nodeId, edge.to.portId);
+        const labelSig = `${path}\u0000${edge.label || ''}`;
+        if (item.labelSig !== labelSig) {
+          item.labelSig = labelSig;
+          item.label.setAttribute('x', (a.x + b.x) / 2); item.label.setAttribute('y', (a.y + b.y) / 2 - 8);
+          fitText(item.label, edge.label || '', 180);
+        }
         item.el.classList.toggle('is-async', edge.params.mode === 'async');
       }
       for (const [id, item] of items.edges) if (!seen.has(id)) { item.el.remove(); items.edges.delete(id); }
@@ -233,7 +245,7 @@
       syncGroups(d); syncNotes(d); syncNodes(d, used); syncEdges(d); syncSelection();
     }
 
-    function invalidateText() { for (const item of [...items.nodes.values(), ...items.groups.values()]) item.sig = ''; }
+    function invalidateText() { for (const item of [...items.nodes.values(), ...items.groups.values()]) item.sig = ''; for (const item of items.edges.values()) item.labelSig = ''; }
 
     return { items, classInfo, findNode, portLayout, portPosition, nodeBox, noteBox, curve, render, invalidateText };
   }

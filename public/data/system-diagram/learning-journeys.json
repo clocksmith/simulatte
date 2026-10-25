@@ -1,0 +1,201 @@
+{
+  "schema": "simulatte.systemDiagramLearning.v1",
+  "journeys": [
+    {
+      "id": "chat-application",
+      "title": "Chat application",
+      "question": "Where does a streamed answer go after I reload?",
+      "outcome": "The user message is stored before generation; chunks arrive before completion; the final answer is recoverable without duplicate messages.",
+      "failure": "Disconnect the model or lose an acknowledgement, then repair and inspect partial versus completed messages.",
+      "boundary": "Synthetic tokens and explicit conversation ownership. Stored-stream recovery is not resuming interrupted model computation.",
+      "steps": [
+        {
+          "label": "Send a message",
+          "classes": [
+            "application-client"
+          ]
+        },
+        {
+          "label": "Authorize, read history and save prompt",
+          "classes": [
+            "chat-application"
+          ]
+        },
+        {
+          "label": "Generate ordered chunks",
+          "classes": [
+            "synthetic-stream"
+          ]
+        },
+        {
+          "label": "Persist and reload messages",
+          "classes": [
+            "conversation-store"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "video-distribution",
+      "title": "Video distribution",
+      "question": "How can one asset serve thousands of viewers?",
+      "outcome": "Cold requests reach the origin; warm segments come from cache or available peers. Compare delivered bytes and playback delays.",
+      "failure": "Reduce peer availability or upload capacity and watch missing segments fall back to CDN/origin.",
+      "boundary": "Viewer cohorts aggregate thousands of viewers. Peer assistance is a bounded synthetic transport model, not actual WebRTC, ICE, encryption or relay implementation.",
+      "steps": [
+        {
+          "label": "Request video segments",
+          "classes": [
+            "video-viewers"
+          ]
+        },
+        {
+          "label": "Check edge cache",
+          "classes": [
+            "video-cdn"
+          ]
+        },
+        {
+          "label": "Try available peers",
+          "classes": [
+            "video-peers"
+          ]
+        },
+        {
+          "label": "Fetch missing origin segments",
+          "classes": [
+            "video-origin"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "agent-trajectories",
+      "title": "Agent trajectories",
+      "question": "Which task is waiting, and what happens after a worker crashes?",
+      "outcome": "Named tasks execute dependencies and publish status records. Attempt IDs and effects remain distinct during recovery.",
+      "failure": "Crash a worker after an effect, then repair it and inspect retry reconciliation and downstream completion.",
+      "boundary": "Synthetic task workers and tool calls, not live AI or private chain-of-thought. Recorded events explain observable actions.",
+      "steps": [
+        {
+          "label": "Start one workflow",
+          "classes": [
+            "web-client"
+          ]
+        },
+        {
+          "label": "Follow tasks and dependencies",
+          "classes": [
+            "agent-task"
+          ]
+        },
+        {
+          "label": "Execute and reconcile tool effects",
+          "classes": [
+            "idempotent-store"
+          ]
+        },
+        {
+          "label": "Inspect status delivery",
+          "classes": [
+            "task-status-journal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spark-job",
+      "title": "Spark-style data job",
+      "question": "What happens between map, shuffle and reduce?",
+      "outcome": "Inspect task partitions, stage barriers, shuffle/spill costs and actual reduced URL counts.",
+      "failure": "Lose an executor, then observe which task results must be recomputed and whether the final counts still match.",
+      "boundary": "A bounded Spark-style model, not Apache Spark itself or a calibrated Spark performance predictor.",
+      "steps": [
+        {
+          "label": "Submit and schedule partitions",
+          "classes": [
+            "spark-driver"
+          ]
+        },
+        {
+          "label": "Map records on executors",
+          "classes": [
+            "spark-executor"
+          ]
+        },
+        {
+          "label": "Shuffle and reduce results",
+          "classes": [
+            "spark-driver",
+            "spark-executor"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "social-feed",
+      "title": "Social feed",
+      "question": "How does a post reach the right followers?",
+      "outcome": "Persist posts and follow relations, deliver fanout work, inspect deduplicated timeline entries, and read a user feed.",
+      "failure": "Delay fanout or duplicate delivery; compare feed freshness and write amplification for push versus pull.",
+      "boundary": "Generic educational social backend, not Twitter infrastructure or its ranking/recommendation algorithms.",
+      "steps": [
+        {
+          "label": "Publish and read as a user",
+          "classes": [
+            "social-workload"
+          ]
+        },
+        {
+          "label": "Store posts and followers",
+          "classes": [
+            "social-post-store"
+          ]
+        },
+        {
+          "label": "Queue and fan out delivery",
+          "classes": [
+            "task-queue",
+            "social-fanout-worker"
+          ]
+        },
+        {
+          "label": "Materialize and read timelines",
+          "classes": [
+            "social-timeline-store",
+            "social-feed-reader"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "workspace-access",
+      "title": "Workspace permissions",
+      "question": "Who can read or change this project task?",
+      "outcome": "Inspect workspace, user, project, task and membership records. Follow an access decision and its policy version.",
+      "failure": "Revoke membership while a permission cache is warm; compare cached permission with authoritative version checks.",
+      "boundary": "Explicit illustrative role and membership policies, not the complete Asana access model or production authentication.",
+      "steps": [
+        {
+          "label": "Submit workspace actions",
+          "classes": [
+            "application-client"
+          ]
+        },
+        {
+          "label": "Resolve access decisions",
+          "classes": [
+            "workspace-application",
+            "permission-cache"
+          ]
+        },
+        {
+          "label": "Inspect related records",
+          "classes": [
+            "workspace-store"
+          ]
+        }
+      ]
+    }
+  ]
+}

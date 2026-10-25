@@ -4,7 +4,8 @@
   if (node) module.exports = api; else root.SimulatteSystemDiagramDocument = api;
 })(globalThis, function (libraryApi) {
   'use strict';
-  const SCHEMA = 'simulatte.systemDiagram.v1';
+  const SCHEMA = 'simulatte.systemDiagram.v2';
+  const LEGACY_SCHEMA = 'simulatte.systemDiagram.v1';
   const COMPILED_SCHEMA = 'simulatte.systemDiagramCompiled.v1';
   const C = 'system-diagram';
   const NODE_ID = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
@@ -94,7 +95,7 @@
   function validate(input, library, config) {
     const b = config.bounds;
     exactKeys(C, 'diagram', input, ['schema', 'id', 'name', 'seed', 'run', 'classes', 'nodes', 'edges', 'groups', 'notes', 'faults', 'view'], ['description']);
-    if (input.schema !== SCHEMA) fail('diagram.schema', SCHEMA, input.schema);
+    if (![SCHEMA, LEGACY_SCHEMA].includes(input.schema)) fail('diagram.schema', `${SCHEMA} or ${LEGACY_SCHEMA}`, input.schema);
     const doc = clone(input);
     if (typeof doc.id !== 'string' || !NODE_ID.test(doc.id)) fail('diagram.id', 'identifier', doc.id);
     label('diagram.name', doc.name, b.maxLabelLength);
@@ -147,7 +148,8 @@
     const portUse = new Map(), pairs = new Set();
     doc.edges.forEach((edge, i) => {
       const path = `diagram.edges[${i}]`;
-      exactKeys(C, path, edge, ['id', 'from', 'to', 'params']);
+      exactKeys(C, path, edge, ['id', 'from', 'to', 'params'], doc.schema === SCHEMA ? ['label'] : []);
+      if (Object.hasOwn(edge, 'label')) label(`${path}.label`, edge.label, b.maxLabelLength);
       id(`${path}.id`, edge.id, seen);
       exactKeys(C, `${path}.from`, edge.from, ['nodeId', 'portId']); exactKeys(C, `${path}.to`, edge.to, ['nodeId', 'portId']);
       const from = nodes.get(edge.from.nodeId), to = nodes.get(edge.to.nodeId);
@@ -296,5 +298,5 @@
     return value;
   }
 
-  return Object.freeze({ SCHEMA, COMPILED_SCHEMA, GROUP_KINDS, FAILURE_DOMAIN_KINDS, emptyDiagram, validate, issues, compile, resolveClass, resolveNodeParams, resolveEdgeParams, portSpec, emittedPayloads, canConnect, newId, newClassId, deriveClass, changeClass, clone });
+  return Object.freeze({ SCHEMA, LEGACY_SCHEMA, COMPILED_SCHEMA, GROUP_KINDS, FAILURE_DOMAIN_KINDS, emptyDiagram, validate, issues, compile, resolveClass, resolveNodeParams, resolveEdgeParams, portSpec, emittedPayloads, canConnect, newId, newClassId, deriveClass, changeClass, clone });
 });
