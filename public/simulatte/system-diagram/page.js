@@ -42,8 +42,20 @@
   const initial = await json(config.examples.find(e => e.id === config.defaultExampleId).path);
   const model = globalThis.SimulatteSystemDiagramEditorModel.create({ diagram: initial, library, config });
 
+  const files = globalThis.SimulatteSystemDiagramFiles;
+  const fileStore = files ? files.autosave(config) : null;
+
+  function documentSignature(doc) {
+    if (!doc) return '';
+    const { view, ...rest } = doc;
+    return JSON.stringify(rest);
+  }
+
   let busy = false, multiSelect = false, scope = 'instance', operation = 0;
-  let savedSig = JSON.stringify(model.diagram);
+  let initialDocSig = documentSignature(model.diagram);
+  let savedStorageSig = null;
+  let savedDraftSig = null;
+  let pendingReplacement = null;
   const loadGuard = globalThis.SimulatteSystemDiagramEditorModel.createLoadGuard(model);
   let loading = false, activePreset = config.defaultExampleId;
   const buttons = {};
@@ -147,16 +159,84 @@
 
   // Document file actions
   function saveLocal() {
-    localStorage.setItem(config.editor.autosaveKey, JSON.stringify(model.diagram));
-    savedSig = JSON.stringify(model.diagram);
+    const isSubsystem = Boolean(subsystemEditor?.session?.active);
+    const rootDoc = isSubsystem ? subsystemEditor.session.rootDiagram : model.diagram;
+    const draft = isSubsystem ? subsystemEditor.getDraft() : null;
+
+    let ok = false;
+    if (fileStore) {
+      ok = fileStore.save(rootDoc, draft);
+    } else {
+      try {
+        localStorage.setItem(config.editor.autosaveKey, JSON.stringify({
+          schema: 'simulatte.systemDiagramDraft.v1',
+          diagram: rootDoc,
+          ...(draft ? { subsystemDraft: draft } : {})
+        }));
+        ok = true;
+      } catch {
+        ok = false;
+      }
+    }
+
+    if (!ok) {
+      message('Storage write failed: browser storage is full or disabled.', true);
+      return false;
+    }
+
+    savedStorageSig = documentSignature(rootDoc);
+    savedDraftSig = draft ? documentSignature(draft.diagram) : null;
     render();
-    message('Diagram saved locally in browser.');
+    message(isSubsystem ? 'Subsystem draft and root diagram saved locally.' : 'Diagram saved locally in browser.');
+    return true;
   }
 
   function loadLocal() {
-    const text = localStorage.getItem(config.editor.autosaveKey);
-    if (text) loadPending(JSON.parse(text));
-    else $('load-file').click();
+    if (subsystemEditor?.session?.active) {
+      message('Publish or cancel subsystem definition edits before loading another document.', true);
+      return false;
+    }
+    const record = fileStore ? fileStore.loadRecord() : null;
+    if (record) {
+      loadDocumentRecord(record.diagram, record.subsystemDraft);
+      return true;
+    }
+    try {
+      const raw = localStorage.getItem(config.editor.autosaveKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const doc = parsed?.schema === 'simulatte.systemDiagramDraft.v1' ? parsed.diagram : parsed;
+        const draft = parsed?.subsystemDraft || null;
+        loadDocumentRecord(doc, draft);
+        return true;
+      }
+    } catch {}
+    $('load-file').click();
+    return false;
+  }
+
+  function loadDocumentRecord(diagramData, subsystemDraft) {
+    const diagram = documents.validate(diagramData, library, config);
+    const loaded = model.replace(diagram);
+    if (!loaded.ok) throw Error(loaded.error);
+
+    activePreset = config.examples.some(e => e.id === diagram.id) ? diagram.id : diagram.nodes.length ? 'custom' : 'blank';
+    $('preset').value = activePreset;
+
+    initialDocSig = documentSignature(model.diagram);
+    savedStorageSig = documentSignature(model.diagram);
+    savedDraftSig = null;
+
+    if (subsystemDraft) {
+      subsystemEditor.restoreDraft(subsystemDraft);
+      savedDraftSig = documentSignature(subsystemDraft.diagram);
+      message(`Recovered parent diagram and subsystem draft: ${subsystemDraft.label || subsystemDraft.classId}`);
+    } else {
+      canvas.render();
+      canvas.fit({ readable: true });
+      render();
+      message(`Loaded saved diagram: ${diagram.name || diagram.id || 'Custom architecture'}`);
+    }
   }
 
   function exportJson() {
@@ -171,6 +251,98 @@
     message('Exported system diagram JSON.');
   }
 
+  function hasUnsavedChanges() {
+    if (subsystemEditor?.session?.active) {
+      const draft = subsystemEditor.getDraft();
+      if (!draft) return false;
+      return !savedDraftSig || documentSignature(draft.diagram) !== savedDraftSig;
+    }
+    const currentSig = documentSignature(model.diagram);
+    if (savedStorageSig && currentSig === savedStorageSig) return false;
+    return currentSig !== initialDocSig;
+  }
+
+  function promptUnsavedChanges(onProceed, onCancel) {
+    if (subsystemEditor?.session?.active) {
+      message('Publish or cancel subsystem definition edits before replacing the diagram.', true);
+      onCancel?.();
+      return;
+    }
+    if (!hasUnsavedChanges()) {
+      onProceed();
+      return;
+    }
+    // Automatically preserve a recoverable snapshot before replacement
+    try {
+      if (fileStore) fileStore.saveBackup(model.diagram);
+      else {
+        localStorage.setItem(`${config.editor.autosaveKey}.backup`, JSON.stringify({
+          schema: 'simulatte.systemDiagramBackup.v1',
+          timestamp: Date.now(),
+          diagram: model.diagram,
+        }));
+      }
+    } catch {}
+
+    const dialog = $('unsaved-dialog');
+    if (!dialog) {
+      const saveChoice = window.confirm('You have unsaved changes. Save before continuing?');
+      if (saveChoice) {
+        if (!saveLocal()) { onCancel?.(); return; }
+      }
+      onProceed();
+      return;
+    }
+
+    pendingReplacement = { onProceed, onCancel };
+    dialog.hidden = false;
+    if (typeof dialog.showModal === 'function') {
+      try { dialog.showModal(); } catch { dialog.setAttribute('open', ''); }
+    } else {
+      dialog.setAttribute('open', '');
+    }
+  }
+
+  function closeUnsavedDialog() {
+    const dialog = $('unsaved-dialog');
+    if (dialog) {
+      dialog.hidden = true;
+      if (typeof dialog.close === 'function') {
+        try { dialog.close(); } catch {}
+      } else {
+        dialog.removeAttribute('open');
+      }
+    }
+  }
+
+  function respondToUnsavedChanges(action) {
+    if (!pendingReplacement) return false;
+    const { onProceed, onCancel } = pendingReplacement;
+    pendingReplacement = null;
+    closeUnsavedDialog();
+    if (action === 'save') {
+      const ok = saveLocal();
+      if (ok) onProceed();
+      else onCancel?.();
+      return ok;
+    }
+    if (action === 'discard') {
+      message('Discarded unsaved edits (backup preserved).');
+      onProceed();
+      return true;
+    }
+    onCancel?.();
+    message('Cancelled document change; your edits remain.');
+    return true;
+  }
+
+  const unsavedSave = $('unsaved-save');
+  const unsavedDiscard = $('unsaved-discard');
+  const unsavedCancel = $('unsaved-cancel');
+  if (unsavedSave) unsavedSave.addEventListener('click', () => respondToUnsavedChanges('save'));
+  if (unsavedDiscard) unsavedDiscard.addEventListener('click', () => respondToUnsavedChanges('discard'));
+  if (unsavedCancel) unsavedCancel.addEventListener('click', () => respondToUnsavedChanges('cancel'));
+
   button('document-actions', 'Save', saveLocal);
   button('document-actions', 'Load', loadLocal);
   button('document-actions', 'Export', exportJson);
@@ -183,7 +355,12 @@
       $('document').value = JSON.stringify(model.diagram, null, 2);
       message('Showing diagram JSON.');
     });
-    button('import-export', 'Import JSON', () => loadPending(JSON.parse($('document').value)));
+    button('import-export', 'Import JSON', () => {
+      promptUnsavedChanges(
+        () => loadPending(JSON.parse($('document').value)),
+        () => message('JSON import cancelled.')
+      );
+    });
     button('import-export', 'Copy JSON', async () => {
       await navigator.clipboard.writeText(JSON.stringify(model.diagram, null, 2));
       message('Diagram JSON copied to clipboard.');
@@ -191,14 +368,17 @@
   }
 
   function loadPending(v) {
-    if (subsystemEditor.session.active) throw Error('Publish or cancel definition edits before loading another document');
+    if (subsystemEditor?.session?.active) throw Error('Publish or cancel definition edits before loading another document');
     const docData = v?.schema?.startsWith?.('simulatte.systemDiagram') ? (v.diagram || v) : v;
     const diagram = documents.validate(docData, library, config);
     const loaded = model.replace(diagram);
     if (!loaded.ok) throw Error(loaded.error);
     activePreset = config.examples.some(e => e.id === diagram.id) ? diagram.id : diagram.nodes.length ? 'custom' : 'blank';
     $('preset').value = activePreset;
-    savedSig = JSON.stringify(model.diagram);
+    initialDocSig = documentSignature(model.diagram);
+    const stored = fileStore ? fileStore.load() : null;
+    savedStorageSig = (stored && documentSignature(stored) === initialDocSig) ? initialDocSig : null;
+    savedDraftSig = null;
     canvas.render();
     canvas.fit({ readable: true });
     render();
@@ -206,7 +386,7 @@
   }
 
   async function readDocument(read, accept) {
-    if (subsystemEditor.session.active) {
+    if (subsystemEditor?.session?.active) {
       $('preset').value = activePreset;
       message('Publish or cancel definition edits before loading another document.', true);
       return;
@@ -245,24 +425,43 @@
     const f = e.target.files[0];
     e.target.value = '';
     if (!f) return;
-    readDocument(() => {
-      if (f.size > 5e6) throw Error('File exceeds 5 MB');
-      return f.text();
-    }, text => loadPending(JSON.parse(text)));
+    promptUnsavedChanges(
+      () => {
+        readDocument(() => {
+          if (f.size > 5e6) throw Error('File exceeds 5 MB');
+          return f.text();
+        }, text => loadPending(JSON.parse(text)));
+      },
+      () => {
+        message('File import cancelled.');
+      }
+    );
   });
 
   $('preset').addEventListener('change', () => {
     const value = $('preset').value;
-    readDocument(() => value === 'blank' ? documents.emptyDiagram(config) : json(config.examples.find(e => e.id === value).path), doc => {
-      const loaded = model.replace(doc);
-      if (!loaded.ok) throw Error(loaded.error);
-      activePreset = value;
-      $('preset').value = value;
-      savedSig = JSON.stringify(model.diagram);
-      canvas.render();
-      canvas.fit({ readable: true });
-      message(`Preset loaded: ${doc.name || value}`);
-    });
+    if (value === activePreset) return;
+    promptUnsavedChanges(
+      () => {
+        readDocument(() => value === 'blank' ? documents.emptyDiagram(config) : json(config.examples.find(e => e.id === value).path), doc => {
+          const loaded = model.replace(doc);
+          if (!loaded.ok) throw Error(loaded.error);
+          activePreset = value;
+          $('preset').value = value;
+          initialDocSig = documentSignature(model.diagram);
+          const stored = fileStore ? fileStore.load() : null;
+          savedStorageSig = (stored && documentSignature(stored) === initialDocSig) ? initialDocSig : null;
+          savedDraftSig = null;
+          canvas.render();
+          canvas.fit({ readable: true });
+          render();
+          message(`Preset loaded: ${doc.name || value}`);
+        });
+      },
+      () => {
+        $('preset').value = activePreset;
+      }
+    );
   });
 
   document.addEventListener('keydown', e => {
@@ -415,7 +614,8 @@
   const subsystemHost = el('section', 'subsystem-library wui-control-stack');
   $('palette').before(subsystemHost);
   const subsystemEditor = globalThis.SimulatteSystemDiagramSubsystemEditor.create({
-    model, library, config, host: subsystemHost, el, field, button, apply, canvas, message, onOpen: () => {}
+    model, library, config, host: subsystemHost, el, field, button, apply, canvas, message, onOpen: () => {},
+    onSaveDraft: () => saveLocal(),
   });
 
   const openProperties = new Set();
@@ -636,13 +836,38 @@
     palette();
     buttons.undo.setState({ disabled: !model.canUndo() });
     buttons.redo.setState({ disabled: !model.canRedo() });
-    const isClean = JSON.stringify(model.diagram) === savedSig;
+
+    const currentSig = documentSignature(model.diagram);
+    const isSubsystem = Boolean(subsystemEditor?.session?.active);
+
+    let statusText = 'Ready';
+    let isPending = false;
+
+    if (isSubsystem) {
+      const isDraftClean = savedDraftSig && currentSig === savedDraftSig;
+      statusText = isDraftClean ? 'Saved draft' : 'Unsaved subsystem draft';
+      isPending = !isDraftClean;
+    } else {
+      const isSaved = savedStorageSig && currentSig === savedStorageSig;
+      const isUnmodified = currentSig === initialDocSig;
+      if (isSaved) {
+        statusText = 'Saved';
+        isPending = false;
+      } else if (isUnmodified) {
+        statusText = 'Ready';
+        isPending = false;
+      } else {
+        statusText = 'Unsaved changes';
+        isPending = true;
+      }
+    }
+
     const rev = $('revision');
     if (rev) {
-      rev.textContent = isClean ? 'Saved' : 'Unsaved changes';
-      rev.dataset.pending = String(!isClean);
+      rev.textContent = statusText;
+      rev.dataset.pending = String(isPending);
     }
-    document.body.dataset.pending = String(!isClean);
+    document.body.dataset.pending = String(isPending);
     document.body.dataset.loading = String(loading);
     document.body.dataset.graphNodes = String(model.diagram.nodes.length);
     properties();
@@ -663,11 +888,19 @@
   subsystemEditor.render();
   render();
   canvas.fit({ readable: true });
+  initialDocSig = documentSignature(model.diagram);
+  render();
 
   globalThis.SimulatteSystemDiagramEditor = Object.freeze({
     document: () => clone(model.diagram),
     selection: () => clone(select()),
     viewport: () => canvas.getView(),
+    saveLocal,
+    loadLocal,
+    hasUnsavedChanges,
+    respondToUnsavedChanges,
+    subsystemDraft: () => subsystemEditor?.getDraft?.() || null,
+    backup: () => fileStore?.loadBackup?.() || null,
     canvas,
     model,
     subsystemEditor,

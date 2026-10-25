@@ -25,6 +25,8 @@
     return {
       get active() { return stack.at(-1) || null; },
       get depth() { return stack.length; },
+      get rootDiagram() { return stack.length ? D.clone(stack[0].parent) : D.clone(model.diagram); },
+      get stack() { return stack.map(f => ({ definition: D.clone(f.definition), ports: D.clone(f.ports) })); },
       open(classId) {
         const parent = D.clone(model.diagram), definition = D.subsystems.definition(parent, classId);
         if (!definition) throw Error('Select a saved subsystem version');
@@ -33,6 +35,22 @@
         draft.seed = parent.seed; draft.run = parent.run;
         for (const key of GRAPH_KEYS) draft[key] = D.clone(definition[key]);
         const frame = { parent, definition: D.clone(definition), ports: D.clone(definition.ports), resume: model.suspend() };
+        stack.push(frame);
+        const result = model.replace(draft);
+        if (!result.ok) { stack.pop(); throw Error(result.error); }
+      },
+      openDraft(draftState) {
+        if (!draftState) throw Error('Invalid subsystem draft state');
+        const parent = D.clone(model.diagram);
+        const rawClassId = draftState.classId || draftState.definitionId;
+        const classId = String(rawClassId).startsWith('subsystem.')
+          ? rawClassId
+          : `subsystem.${draftState.definitionId || rawClassId}@${draftState.version || 1}`;
+        const definition = D.subsystems.definition(parent, classId);
+        if (!definition) throw Error(`Subsystem ${classId} not found in parent document`);
+        const draft = D.clone(draftState.diagram);
+        const ports = D.clone(draftState.ports || definition.ports);
+        const frame = { parent, definition: D.clone(definition), ports, resume: model.suspend() };
         stack.push(frame);
         const result = model.replace(draft);
         if (!result.ok) { stack.pop(); throw Error(result.error); }
@@ -48,7 +66,7 @@
         const draft = model.diagram, parent = D.clone(frame.parent);
         parent.classes = D.clone(draft.classes); parent.subsystems = D.clone(draft.subsystems);
         const version = Math.max(...parent.subsystems.filter(d => d.id === frame.definition.id).map(d => d.version)) + 1;
-        const definition = { id: frame.definition.id, version, label: draft.name, ports: D.clone(ports) };
+        const definition = { id: frame.definition.id, version, label: draft.name || frame.definition.label, ports: D.clone(ports) };
         for (const key of GRAPH_KEYS) definition[key] = D.clone(draft[key]);
         const result = D.subsystems.publish(parent, definition, library, config);
         result.diagram.classes = D.clone(frame.parent.classes);
@@ -59,12 +77,32 @@
     };
   }
 
-  function create({ model, library, config, host, el, field, button, apply, canvas, message, onOpen }) {
+  function create({ model, library, config, host, el, field, button, apply, canvas, message, onOpen, onSaveDraft }) {
     const session = createSession(model, library, config);
     let portRows = [];
     function open(classId) { onOpen(); session.open(classId); render(); canvas.fit(); message('Editing a detached subsystem definition. Publish creates a new version; Cancel returns without changes.'); }
     function readPorts() {
       return portRows.map(row => { const [nodeId, portId, direction] = row.target.value.split('|'); return { id: row.id.value, label: row.label.value, direction, target: { nodeId, portId } }; });
+    }
+    function getDraft() {
+      if (!session.active) return null;
+      return {
+        classId: session.active.definition.id,
+        definitionId: session.active.definition.id,
+        version: session.active.definition.version,
+        label: model.diagram.name || session.active.definition.label,
+        ports: readPorts(),
+        diagram: D.clone(model.diagram),
+      };
+    }
+    function restoreDraft(draftState) {
+      if (!draftState) return;
+      if (session.active) session.cancel();
+      onOpen?.();
+      session.openDraft(draftState);
+      render();
+      canvas.fit();
+      message(`Restored subsystem draft: ${draftState.label || draftState.classId}`);
     }
     function renderPorts(container) {
       const choices = model.diagram.nodes.flatMap(n => D.portsForNode(n, model.diagram, library, config).map(p => ({ id: `${n.id}|${p.id}|${p.direction}`, label: `${n.label || n.id} · ${p.id} (${p.direction})` })));
@@ -94,6 +132,7 @@
         const ports = el('details', 'subsystem-ports'); ports.append(el('summary', '', 'External ports')); host.append(ports); renderPorts(ports);
         const actions = el('div', 'properties-actions'); host.append(actions);
         button(actions, 'Publish new version', () => { const definition = session.publish(readPorts()); render(); canvas.fit(); message(`Published ${definition.label} v${definition.version}. Upgrade instances explicitly.`); }, 'primary');
+        button(actions, 'Save draft', () => { if (onSaveDraft) onSaveDraft(); else message('Draft saved locally.'); });
         button(actions, 'Cancel definition edits', () => { session.cancel(); render(); canvas.fit(); message('Returned without publishing definition edits.'); });
       }
       const name = field(host, 'Subsystem name', 'New subsystem', { id: 'subsystem-name' });
@@ -131,7 +170,7 @@
       button(actions, 'Apply subsystem overrides', () => apply({ type: 'setSubsystemOverrides', id: node.id, overrides: JSON.parse(overrides.value) }));
       host.append(el('p', 'properties-note', 'Ports: ' + D.portsForNode(node, model.diagram, library, config).map(p => `${p.id} (${p.direction}: ${(p.accepts || p.emits).join(', ')})`).join(' · ')));
     }
-    return { session, render, inspect };
+    return { session, render, inspect, getDraft, restoreDraft, readPorts };
   }
   return Object.freeze({ createSession, create, projectState });
 });

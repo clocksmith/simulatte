@@ -101,3 +101,6 @@ footer{flex-direction:column;gap:3px}
 .node-resource-details dl{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
 .node-resource-details dt{color:var(--wui-muted)}
 .node-resource-details dd{margin:0;text-align:right;overflow-wrap:anywhere;font-family:var(--wui-mono)}
+dialog.unsaved-dialog{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--wui-surface,#fff);color:var(--wui-text,#111);border:1px solid var(--wui-line,#e2e2e2);border-radius:8px;padding:20px;max-width:440px;width:calc(100vw - 32px);box-shadow:0 12px 36px rgba(0,0,0,0.25);z-index:1000}
+dialog.unsaved-dialog::backdrop{background:rgba(0,0,0,0.45)}
+dialog.unsaved-dialog .properties-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap}

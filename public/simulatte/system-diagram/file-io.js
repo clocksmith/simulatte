@@ -5,6 +5,7 @@
 })(globalThis, function () {
   'use strict';
   const DRAFT_SCHEMA = 'simulatte.systemDiagramDraft.v1';
+  const BACKUP_SCHEMA = 'simulatte.systemDiagramBackup.v1';
   const MAX_IMPORT_BYTES = 8 * 1024 * 1024;
   const REVOKE_DELAY_MS = 1000;
 
@@ -42,11 +43,25 @@
   // Storage may be missing, full or blocked (private windows, embedded previews); every access is guarded.
   function autosave(config, storage = defaultStorage()) {
     const key = config.editor.autosaveKey;
+    const backupKey = `${key}.backup`;
     return {
       key,
-      save(doc) {
+      backupKey,
+      save(doc, subsystemDraft = null) {
         if (!storage) return false;
-        try { storage.setItem(key, JSON.stringify({ schema: DRAFT_SCHEMA, diagram: doc })); return true; } catch { return false; }
+        try {
+          const payload = { schema: DRAFT_SCHEMA, diagram: doc };
+          if (subsystemDraft) payload.subsystemDraft = subsystemDraft;
+          storage.setItem(key, JSON.stringify(payload));
+          return true;
+        } catch { return false; }
+      },
+      saveBackup(doc) {
+        if (!storage) return false;
+        try {
+          storage.setItem(backupKey, JSON.stringify({ schema: BACKUP_SCHEMA, timestamp: Date.now(), diagram: doc }));
+          return true;
+        } catch { return false; }
       },
       load() {
         if (!storage) return null;
@@ -57,6 +72,33 @@
           return record?.schema === DRAFT_SCHEMA && record.diagram && typeof record.diagram === 'object' ? record.diagram : null;
         } catch { return null; }
       },
+      loadRecord() {
+        if (!storage) return null;
+        try {
+          const raw = storage.getItem(key);
+          if (!raw) return null;
+          const record = JSON.parse(raw);
+          if (record?.schema === DRAFT_SCHEMA && record.diagram && typeof record.diagram === 'object') {
+            return {
+              diagram: record.diagram,
+              subsystemDraft: record.subsystemDraft || null,
+            };
+          }
+          if (record && typeof record === 'object' && Array.isArray(record.nodes)) {
+            return { diagram: record, subsystemDraft: null };
+          }
+          return null;
+        } catch { return null; }
+      },
+      loadBackup() {
+        if (!storage) return null;
+        try {
+          const raw = storage.getItem(backupKey);
+          if (!raw) return null;
+          const record = JSON.parse(raw);
+          return record?.schema === BACKUP_SCHEMA && record.diagram ? record.diagram : null;
+        } catch { return null; }
+      },
       clear() {
         if (!storage) return false;
         try { storage.removeItem(key); return true; } catch { return false; }
@@ -64,5 +106,5 @@
     };
   }
 
-  return Object.freeze({ DRAFT_SCHEMA, fileName, downloadJson, exportDiagram, importFile, autosave });
+  return Object.freeze({ DRAFT_SCHEMA, BACKUP_SCHEMA, fileName, downloadJson, exportDiagram, importFile, autosave });
 });
