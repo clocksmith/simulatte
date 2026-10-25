@@ -47,10 +47,10 @@
     {"id": "status-persist", "label": "status persist", "from": {"nodeId": "status-retry", "portId": "target"}, "to": {"nodeId": "dashboard", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}}
   ],
   "groups": [
-    {"id": "agent-planning", "label": "Planning and evidence", "kind": "boundary", "x": -40, "y": 0, "w": 880, "h": 660, "collapsed": true},
-    {"id": "agent-review", "label": "Synthesis and review", "kind": "boundary", "x": 900, "y": 0, "w": 880, "h": 660, "collapsed": true},
-    {"id": "agent-tools", "label": "Task tool effects", "kind": "boundary", "x": -40, "y": 740, "w": 1180, "h": 350, "collapsed": true},
-    {"id": "agent-status", "label": "Durable progress delivery", "kind": "boundary", "x": 1200, "y": 740, "w": 580, "h": 350, "collapsed": true}
+    {"id": "agent-planning", "label": "Planning and evidence", "kind": "boundary", "x": -40, "y": 0, "w": 880, "h": 660},
+    {"id": "agent-review", "label": "Synthesis and review", "kind": "boundary", "x": 900, "y": 0, "w": 880, "h": 660},
+    {"id": "agent-tools", "label": "Task tool effects", "kind": "boundary", "x": -40, "y": 740, "w": 1180, "h": 350},
+    {"id": "agent-status", "label": "Durable progress delivery", "kind": "boundary", "x": 1200, "y": 740, "w": 580, "h": 350}
   ],
   "notes": [
     {"id": "agent-trajectories-notes", "text": "The seven named stages execute independent task identities and four idempotent tool effects. Synthesis requires verified research plus inspected constraints; publication follows review. Each stage reports queued/running/waiting/retry/complete events. Crash research after its effect and inspect reconciliation, not imagined hidden model reasoning.", "x": 0, "y": -140, "w": 1000}

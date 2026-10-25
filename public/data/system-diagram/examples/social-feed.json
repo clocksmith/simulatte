@@ -42,10 +42,10 @@
     {"id": "deadletter-post", "label": "deadletter post", "from": {"nodeId": "queue", "portId": "dlq"}, "to": {"nodeId": "deadletters", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}}
   ],
   "groups": [
-    {"id": "social-write", "label": "Publication API and posts", "kind": "boundary", "x": -40, "y": 0, "w": 880, "h": 450, "collapsed": true},
-    {"id": "social-graph", "label": "User and follow authority", "kind": "boundary", "x": 900, "y": 0, "w": 600, "h": 450, "collapsed": true},
-    {"id": "social-fanout", "label": "Leased recipient delivery", "kind": "boundary", "x": -40, "y": 530, "w": 880, "h": 450, "collapsed": true},
-    {"id": "social-read", "label": "Timeline and feed reads", "kind": "boundary", "x": 900, "y": 530, "w": 880, "h": 450, "collapsed": true}
+    {"id": "social-write", "label": "Publication API and posts", "kind": "boundary", "x": -40, "y": 0, "w": 880, "h": 450},
+    {"id": "social-graph", "label": "User and follow authority", "kind": "boundary", "x": 900, "y": 0, "w": 600, "h": 450},
+    {"id": "social-fanout", "label": "Leased recipient delivery", "kind": "boundary", "x": -40, "y": 530, "w": 880, "h": 450},
+    {"id": "social-read", "label": "Timeline and feed reads", "kind": "boundary", "x": 900, "y": 530, "w": 880, "h": 450}
   ],
   "notes": [
     {"id": "social-feed-notes", "text": "Expand publication, graph, fanout and feed subsystems. Graph outages fail lookup, not fabricate empty audiences. Queue retries preserve post identity and timeline writes deduplicate recipient/post pairs. Early successful feed reads can still be stale. Change push/pull/hybrid on the post store to compare actual write amplification.", "x": 0, "y": -140, "w": 1000}

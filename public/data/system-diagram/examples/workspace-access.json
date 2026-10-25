@@ -7,22 +7,22 @@
   "run": {"horizonSec": 15},
   "classes": [],
   "nodes": [
-    {"id": "client", "classId": "application-client", "label": "Workspace users", "x": 0, "y": 90, "params": {"scenario": "workspace", "intervalMs": 450, "callTimeoutMs": 10000, "retries": 1}, "groupId": "workspace-edge"},
-    {"id": "ingress", "classId": "rate-limiter", "label": "Workspace request quota", "x": 280, "y": 90, "params": {"ratePerSec": 1000, "burst": 100, "overflow": "queue", "callTimeoutMs": 8000}, "groupId": "workspace-edge"},
-    {"id": "api", "classId": "api-gateway", "label": "Workspace API routing", "x": 570, "y": 90, "params": {"callTimeoutMs": 10000, "retries": 0}, "groupId": "workspace-edge"},
-    {"id": "workspace", "classId": "workspace-application", "label": "Authorize and execute command", "x": 0, "y": 330, "params": {}},
-    {"id": "permissions", "classId": "permission-cache", "label": "Cached role decisions", "x": 940, "y": 90, "params": {}, "groupId": "workspace-auth"},
-    {"id": "permission-retry", "classId": "retry-policy", "label": "Authoritative permission lookup retry", "x": 1230, "y": 90, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "workspace-auth"},
-    {"id": "records-retry", "classId": "retry-policy", "label": "Atomic mutation retry", "x": 940, "y": 510, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "workspace-data"},
-    {"id": "records", "classId": "workspace-store", "label": "Membership, projects and task authority", "x": 1230, "y": 510, "params": {}, "groupId": "workspace-data"},
-    {"id": "record-admission", "classId": "bulkhead", "label": "Atomic record worker capacity", "x": 1510, "y": 300, "params": {"serviceDist": "constant", "serviceMs": 2, "callTimeoutMs": 8000, "concurrency": 8}},
-    {"id": "activity-queue", "classId": "task-queue", "label": "Committed activity queue", "x": 0, "y": 580, "params": {"prefetch": 4, "maxReceives": 8, "visibilityTimeoutMs": 1000}, "groupId": "workspace-events"},
-    {"id": "activity-worker", "classId": "worker", "label": "Activity delivery workers", "x": 280, "y": 580, "params": {"serviceDist": "constant", "serviceMs": 2, "callTimeoutMs": 8000, "concurrency": 8}, "groupId": "workspace-events"},
-    {"id": "activity-retry", "classId": "retry-policy", "label": "Idempotent journal retry", "x": 570, "y": 580, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "workspace-events"},
-    {"id": "activity", "classId": "workspace-journal", "label": "Durable activity journal", "x": 570, "y": 820, "params": {}, "groupId": "workspace-events"},
-    {"id": "deadletters", "classId": "dead-letter-queue", "label": "Exhausted activity deliveries", "x": 0, "y": 820, "params": {}, "groupId": "workspace-events"},
-    {"id": "journal-admission", "classId": "rate-limiter", "label": "Journal ingestion quota", "x": 280, "y": 820, "params": {"ratePerSec": 1000, "burst": 100, "overflow": "queue", "callTimeoutMs": 8000}, "groupId": "workspace-events"},
-    {"id": "workspace-b", "classId": "workspace-application", "label": "Workspace command replica B", "x": 420, "y": 330, "params": {}}
+    {"id": "client", "classId": "application-client", "label": "Workspace users", "x": 80, "y": 190, "params": {"scenario": "workspace", "intervalMs": 450, "callTimeoutMs": 10000, "retries": 1}, "groupId": "workspace-edge"},
+    {"id": "ingress", "classId": "rate-limiter", "label": "Workspace request quota", "x": 350, "y": 190, "params": {"ratePerSec": 1000, "burst": 100, "overflow": "queue", "callTimeoutMs": 8000}, "groupId": "workspace-edge"},
+    {"id": "api", "classId": "api-gateway", "label": "Workspace API routing", "x": 640, "y": 190, "params": {"callTimeoutMs": 10000, "retries": 0}, "groupId": "workspace-edge"},
+    {"id": "workspace", "classId": "workspace-application", "label": "Authorize and execute command", "x": 80, "y": 350, "params": {}, "groupId": "workspace-edge"},
+    {"id": "workspace-b", "classId": "workspace-application", "label": "Workspace command replica B", "x": 350, "y": 350, "params": {}, "groupId": "workspace-edge"},
+    {"id": "permissions", "classId": "permission-cache", "label": "Cached role decisions", "x": 980, "y": 190, "params": {}, "groupId": "workspace-auth"},
+    {"id": "permission-retry", "classId": "retry-policy", "label": "Authoritative permission lookup retry", "x": 1260, "y": 190, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "workspace-auth"},
+    {"id": "records-retry", "classId": "retry-policy", "label": "Atomic mutation retry", "x": 980, "y": 600, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "workspace-data"},
+    {"id": "records", "classId": "workspace-store", "label": "Membership, projects and task authority", "x": 1260, "y": 600, "params": {}, "groupId": "workspace-data"},
+    {"id": "record-admission", "classId": "bulkhead", "label": "Atomic record worker capacity", "x": 1600, "y": 360, "params": {"serviceDist": "constant", "serviceMs": 2, "callTimeoutMs": 8000, "concurrency": 8}},
+    {"id": "activity-queue", "classId": "task-queue", "label": "Committed activity queue", "x": 80, "y": 600, "params": {"prefetch": 4, "maxReceives": 8, "visibilityTimeoutMs": 1000}, "groupId": "workspace-events"},
+    {"id": "activity-worker", "classId": "worker", "label": "Activity delivery workers", "x": 350, "y": 600, "params": {"serviceDist": "constant", "serviceMs": 2, "callTimeoutMs": 8000, "concurrency": 8}, "groupId": "workspace-events"},
+    {"id": "activity-retry", "classId": "retry-policy", "label": "Idempotent journal retry", "x": 640, "y": 600, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "workspace-events"},
+    {"id": "activity", "classId": "workspace-journal", "label": "Durable activity journal", "x": 640, "y": 800, "params": {}, "groupId": "workspace-events"},
+    {"id": "deadletters", "classId": "dead-letter-queue", "label": "Exhausted activity deliveries", "x": 80, "y": 800, "params": {}, "groupId": "workspace-events"},
+    {"id": "journal-admission", "classId": "rate-limiter", "label": "Journal ingestion quota", "x": 350, "y": 800, "params": {"ratePerSec": 1000, "burst": 100, "overflow": "queue", "callTimeoutMs": 8000}, "groupId": "workspace-events"}
   ],
   "edges": [
     {"id": "workspace-commands", "label": "workspace commands", "from": {"nodeId": "client", "portId": "out"}, "to": {"nodeId": "ingress", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
@@ -46,16 +46,14 @@
     {"id": "replica-activity", "label": "replica activity", "from": {"nodeId": "workspace-b", "portId": "events"}, "to": {"nodeId": "activity-queue", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}}
   ],
   "groups": [
-    {"id": "workspace-edge", "label": "User requests", "kind": "boundary", "x": -40, "y": 0, "w": 880, "h": 350, "collapsed": true},
-    {"id": "workspace-auth", "label": "Permission decisions", "kind": "boundary", "x": 900, "y": 0, "w": 620, "h": 350, "collapsed": true},
-    {"id": "workspace-data", "label": "Atomic workspace records", "kind": "boundary", "x": 900, "y": 420, "w": 620, "h": 350, "collapsed": true},
-    {"id": "workspace-events", "label": "Asynchronous activity", "kind": "boundary", "x": -40, "y": 470, "w": 880, "h": 650, "collapsed": true}
+    {"id": "workspace-edge", "label": "User requests", "kind": "boundary", "x": 40, "y": 110, "w": 860, "h": 360},
+    {"id": "workspace-auth", "label": "Permission decisions", "kind": "boundary", "x": 940, "y": 110, "w": 620, "h": 360},
+    {"id": "workspace-data", "label": "Atomic workspace records", "kind": "boundary", "x": 940, "y": 510, "w": 620, "h": 360},
+    {"id": "workspace-events", "label": "Asynchronous activity", "kind": "boundary", "x": 40, "y": 510, "w": 860, "h": 460}
   ],
   "notes": [
-    {"id": "workspace-access-notes", "text": "Expand decisions, records and activity delivery separately. Current authorization rejects stale cached grants. Changing records Authorization at operation to cached exposes unsafe stale grants without disabling tenant isolation. Crash the activity worker to accumulate leased work; tasks may commit before their journal receipt.", "x": 0, "y": -140, "w": 1000}
+    {"id": "workspace-access-notes", "text": "Current authorization rejects stale cached grants. Changing records Authorization at operation to cached exposes unsafe stale grants without disabling tenant isolation. Crash the activity worker to accumulate leased work; tasks may commit before their journal receipt.", "x": 40, "y": 30, "w": 1000}
   ],
-  "faults": [
-
-  ],
+  "faults": [],
   "view": {"x": 0, "y": 0, "zoom": 1}
 }

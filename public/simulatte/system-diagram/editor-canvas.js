@@ -53,15 +53,16 @@
     const pattern = el(doc, 'pattern', { id: gridId, width: GRID * GRID_STEPS, height: GRID * GRID_STEPS, patternUnits: 'userSpaceOnUse' });
     pattern.append(el(doc, 'circle', { cx: 0.75, cy: 0.75, r: 0.75, class: 'sd-grid-dot' }));
     defs.append(marker(arrowId, 'sd-arrow'), marker(arrowSelectedId, 'sd-arrow is-selected'), pattern);
-    const background = el(doc, 'rect', { class: 'sd-canvas-grid', width: '100%', height: '100%', fill: `url(#${gridId})` });
+    const boardBg = el(doc, 'rect', { class: 'sd-canvas-board-bg' });
+    const boardGrid = el(doc, 'rect', { class: 'sd-canvas-board-grid', fill: `url(#${gridId})` });
     const world = el(doc, 'g', { class: 'sd-world' });
     const layers = Object.freeze({
       groups: el(doc, 'g', { class: 'sd-layer-groups' }), edges: el(doc, 'g', { class: 'sd-layer-edges' }), nodes: el(doc, 'g', { class: 'sd-layer-nodes' }),
       overlay: el(doc, 'g', { class: 'sd-layer-overlay' }), interaction: el(doc, 'g', { class: 'sd-layer-interaction' }),
     });
-    world.append(layers.groups, layers.edges, layers.nodes, layers.overlay, layers.interaction);
+    world.append(boardBg, boardGrid, layers.groups, layers.edges, layers.nodes, layers.overlay, layers.interaction);
     layers.overlay.setAttribute('pointer-events', 'none'); layers.interaction.setAttribute('pointer-events', 'none');
-    svg.append(defs, background, world);
+    svg.append(defs, world);
     const hint = doc.createElement('div');
     hint.className = 'sd-canvas-hint'; hint.setAttribute('role', 'status'); hint.setAttribute('aria-live', 'polite');
     host.append(svg, hint);
@@ -75,6 +76,7 @@
       const hadFocus = host.contains(doc.activeElement);
       renderer.render();
       renderReconnectHandles();
+      paintBoard();
       paintState();
       if (hadFocus && !host.contains(doc.activeElement) && !editing) host.focus({ preventScroll: true });
     }
@@ -89,14 +91,67 @@
       return hits[0]?.id || null;
     }
 
-    // ---- camera ---------------------------------------------------------------------------
+    // ---- camera & bounded canvas -----------------------------------------------------------
+    function contentBounds() {
+      const d = model.diagram;
+      const boxes = [...presentation().nodes.map(n => nodeBox(n.id)), ...d.groups.map(g => groupBox(g.id)), ...d.notes.map(noteBox)].filter(Boolean);
+      if (!boxes.length) return null;
+      const x0 = Math.min(...boxes.map(b => b.x)), y0 = Math.min(...boxes.map(b => b.y));
+      return { x: x0, y: y0, w: Math.max(...boxes.map(b => b.x + b.w)) - x0, h: Math.max(...boxes.map(b => b.y + b.h)) - y0 };
+    }
+    function canvasBounds() {
+      const cb = contentBounds();
+      const padX = 280, padY = 200, minW = 1600, minH = 1000;
+      if (!cb) return { x: 0, y: 0, w: minW, h: minH };
+      const x = snap(Math.min(0, cb.x - padX));
+      const y = snap(Math.min(0, cb.y - padY));
+      const right = snap(Math.max(minW, cb.x + cb.w + padX));
+      const bottom = snap(Math.max(minH, cb.y + cb.h + padY));
+      return { x, y, w: right - x, h: bottom - y };
+    }
+    function paintBoard() {
+      const cb = canvasBounds();
+      boardBg.setAttribute('x', cb.x); boardBg.setAttribute('y', cb.y);
+      boardBg.setAttribute('width', cb.w); boardBg.setAttribute('height', cb.h);
+      boardGrid.setAttribute('x', cb.x); boardGrid.setAttribute('y', cb.y);
+      boardGrid.setAttribute('width', cb.w); boardGrid.setAttribute('height', cb.h);
+      boardGrid.style.opacity = GRID * GRID_STEPS * view.zoom < GRID_MIN_PX ? '0' : '';
+    }
     function clampView(v) {
-      return { x: clamp(v.x, -1e6, 1e6), y: clamp(v.y, -1e6, 1e6), zoom: clamp(v.zoom, E.minZoom, E.maxZoom) };
+      const zoom = clamp(v.zoom, E.minZoom, E.maxZoom);
+      const r = rect();
+      if (!r.width || !r.height) {
+        return { x: clamp(v.x || 0, -2000, 2000), y: clamp(v.y || 0, -2000, 2000), zoom };
+      }
+      const cb = canvasBounds();
+      const vpW = r.width / zoom, vpH = r.height / zoom;
+      const slack = 80;
+
+      let minX, maxX;
+      if (vpW < cb.w) {
+        minX = cb.x - slack; maxX = cb.x + cb.w - vpW + slack;
+      } else {
+        const cx = cb.x + (cb.w - vpW) / 2;
+        minX = cx - slack; maxX = cx + slack;
+      }
+
+      let minY, maxY;
+      if (vpH < cb.h) {
+        minY = cb.y - slack; maxY = cb.y + cb.h - vpH + slack;
+      } else {
+        const cy = cb.y + (cb.h - vpH) / 2;
+        minY = cy - slack; maxY = cy + slack;
+      }
+
+      return {
+        x: clamp(v.x || 0, minX, maxX),
+        y: clamp(v.y || 0, minY, maxY),
+        zoom,
+      };
     }
     function paintView() {
+      paintBoard();
       world.setAttribute('transform', `translate(${-view.x * view.zoom} ${-view.y * view.zoom}) scale(${view.zoom})`);
-      pattern.setAttribute('patternTransform', `translate(${-view.x * view.zoom} ${-view.y * view.zoom}) scale(${view.zoom})`);
-      background.style.opacity = GRID * GRID_STEPS * view.zoom < GRID_MIN_PX ? '0' : '';
       host.style.setProperty('--sd-zoom', String(view.zoom));
       onView({ ...view });
       if (typeof renderer !== 'undefined') renderReconnectHandles();
@@ -112,12 +167,6 @@
       setView({ zoom, x: before.x - (client.x - r.left) / zoom, y: before.y - (client.y - r.top) / zoom });
     }
     function zoomBy(factor) { const r = rect(); zoomAt({ x: r.left + r.width / 2, y: r.top + r.height / 2 }, factor); return { ...view }; }
-    function contentBounds() {
-      const d = model.diagram, boxes = [...presentation().nodes.map(n => nodeBox(n.id)), ...d.groups.map(g => groupBox(g.id)), ...d.notes.map(noteBox)];
-      if (!boxes.length) return null;
-      const x0 = Math.min(...boxes.map(b => b.x)), y0 = Math.min(...boxes.map(b => b.y));
-      return { x: x0, y: y0, w: Math.max(...boxes.map(b => b.x + b.w)) - x0, h: Math.max(...boxes.map(b => b.y + b.h)) - y0 };
-    }
     function fit(options = {}) {
       const r = rect(), b = contentBounds();
       if (!r.width || !r.height) return { ...view };
@@ -686,8 +735,8 @@
 
     // ---- lifecycle ------------------------------------------------------------------------
     const unsubscribe = model.subscribe(event => {
-      if (event.kind === 'view') { if (!ownViewChange) { view = { ...event.diagram.view }; paintView(); } return; }
-      if (event.kind === 'load') { cancelGesture(); cancelPending(); view = { ...event.diagram.view }; paintView(); }
+      if (event.kind === 'view') { if (!ownViewChange) { view = clampView(event.diagram.view || view); paintView(); } return; }
+      if (event.kind === 'load') { cancelGesture(); cancelPending(); view = clampView(event.diagram.view || view); paintView(); }
       if (event.kind !== 'selection' && pending && (!findNode(pending.source.nodeId) || !portPosition(pending.source.nodeId, pending.source.portId))) cancelPending();
       render();
     });

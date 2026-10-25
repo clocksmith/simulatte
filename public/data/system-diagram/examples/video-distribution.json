@@ -41,9 +41,9 @@
     {"id": "origin-read", "label": "origin read", "from": {"nodeId": "origin-admission", "portId": "out"}, "to": {"nodeId": "origin", "portId": "in"}, "params": {"latencyMs": 25, "bandwidthMbps": 500}}
   ],
   "groups": [
-    {"id": "video-west", "label": "West delivery region", "kind": "boundary", "x": -40, "y": 0, "w": 880, "h": 520, "collapsed": true},
-    {"id": "video-east", "label": "East delivery region", "kind": "boundary", "x": -40, "y": 620, "w": 880, "h": 520, "collapsed": true},
-    {"id": "video-origin", "label": "Shared content hierarchy", "kind": "boundary", "x": 930, "y": 0, "w": 890, "h": 620, "collapsed": true}
+    {"id": "video-west", "label": "West delivery region", "kind": "boundary", "x": -40, "y": 0, "w": 880, "h": 520},
+    {"id": "video-east", "label": "East delivery region", "kind": "boundary", "x": -40, "y": 620, "w": 880, "h": 520},
+    {"id": "video-origin", "label": "Shared content hierarchy", "kind": "boundary", "x": 930, "y": 0, "w": 890, "h": 620}
   ],
   "notes": [
     {"id": "video-distribution-notes", "text": "Regional peers only assist cohorts in their own pool. Manifest metadata, regional cache copies and the shared shield are distinct state. Viewer CDN KiB plus peer KiB is end-user delivery; do not sum every network hop as unique delivered content. Crash either peer pool, either cache or the manifest independently. No codec, signaling, ICE or DRM is modeled.", "x": 0, "y": -140, "w": 1000}

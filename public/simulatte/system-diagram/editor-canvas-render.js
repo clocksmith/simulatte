@@ -121,10 +121,20 @@
     function portElement(nodeId, portId) { return items.nodes.get(nodeId)?.portEls.get(portId) || items.groups.get(presentation().hidden.get(nodeId)?.group.id)?.portEls.get(`${nodeId}.${portId}`) || null; }
     function portElements() { return [...items.nodes.values(), ...items.groups.values()].flatMap(item => [...item.portEls.values()]); }
     function noteBox(note) { const w = note.w || NOTE_WIDTH; return { x: note.x, y: note.y, w, h: wrapLines(note.text, w).length * NOTE_LINE + 16 }; }
-    // Backward edges get a bounded handle so long reverse links do not sweep across the drawing.
+    // Forward edges get a clean cubic bezier; backward/looping links route cleanly around rather than cutting through nodes.
     function curve(a, b) {
-      const dx = b.x >= a.x ? Math.max(32, (b.x - a.x) * 0.5) : clamp(48 + Math.abs(b.y - a.y) / 4, 48, 120);
-      return `M${a.x} ${a.y}C${a.x + dx} ${a.y} ${b.x - dx} ${b.y} ${b.x} ${b.y}`;
+      if (b.x >= a.x + 32) {
+        const dx = Math.max(36, (b.x - a.x) * 0.45);
+        return `M${a.x} ${a.y}C${a.x + dx} ${a.y} ${b.x - dx} ${b.y} ${b.x} ${b.y}`;
+      }
+      const exitX = a.x + 40, enterX = b.x - 40, midX = (a.x + b.x) / 2;
+      const targetY = Math.abs(b.y - a.y) < 60 ? Math.max(a.y, b.y) + 56 : (a.y + b.y) / 2;
+      return `M${a.x} ${a.y}C${exitX} ${a.y} ${exitX} ${targetY} ${midX} ${targetY}C${enterX} ${targetY} ${enterX} ${b.y} ${b.x} ${b.y}`;
+    }
+    function curveLabelPos(a, b) {
+      if (b.x >= a.x + 32) return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 8 };
+      const targetY = Math.abs(b.y - a.y) < 60 ? Math.max(a.y, b.y) + 56 : (a.y + b.y) / 2;
+      return { x: (a.x + b.x) / 2, y: targetY - 8 };
     }
     function edgePath(edge) {
       const a = portPosition(edge.from.nodeId, edge.from.portId), b = portPosition(edge.to.nodeId, edge.to.portId);
@@ -204,7 +214,10 @@
         const labelSig = `${path}\u0000${edge.label || ''}`;
         if (item.labelSig !== labelSig) {
           item.labelSig = labelSig;
-          item.label.setAttribute('x', (a.x + b.x) / 2); item.label.setAttribute('y', (a.y + b.y) / 2 - 8);
+          if (a && b) {
+            const pos = curveLabelPos(a, b);
+            item.label.setAttribute('x', pos.x); item.label.setAttribute('y', pos.y);
+          }
           fitText(item.label, edge.label || '', 180);
         }
         item.el.classList.toggle('is-async', edge.params.mode === 'async');

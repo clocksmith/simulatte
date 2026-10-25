@@ -49,11 +49,11 @@
     {"id": "output-commit", "label": "output commit", "from": {"nodeId": "output-admission", "portId": "calls"}, "to": {"nodeId": "results", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}}
   ],
   "groups": [
-    {"id": "spark-input", "label": "Input and scheduling", "kind": "boundary", "x": -40, "y": 0, "w": 600, "h": 650, "collapsed": true},
-    {"id": "spark-map", "label": "Map CPU pool", "kind": "boundary", "x": 620, "y": 0, "w": 310, "h": 820, "collapsed": true},
-    {"id": "spark-shuffle", "label": "Shuffle block storage", "kind": "boundary", "x": 980, "y": 0, "w": 310, "h": 820, "collapsed": true},
-    {"id": "spark-reduce", "label": "Reduce CPU pool", "kind": "boundary", "x": 1340, "y": 0, "w": 310, "h": 820, "collapsed": true},
-    {"id": "spark-output", "label": "Output commit", "kind": "boundary", "x": 1710, "y": 0, "w": 310, "h": 820, "collapsed": true}
+    {"id": "spark-input", "label": "Input and scheduling", "kind": "boundary", "x": -40, "y": 0, "w": 600, "h": 650},
+    {"id": "spark-map", "label": "Map CPU pool", "kind": "boundary", "x": 620, "y": 0, "w": 310, "h": 820},
+    {"id": "spark-shuffle", "label": "Shuffle block storage", "kind": "boundary", "x": 980, "y": 0, "w": 310, "h": 820},
+    {"id": "spark-reduce", "label": "Reduce CPU pool", "kind": "boundary", "x": 1340, "y": 0, "w": 310, "h": 820},
+    {"id": "spark-output", "label": "Output commit", "kind": "boundary", "x": 1710, "y": 0, "w": 310, "h": 820}
   ],
   "notes": [
     {"id": "spark-job-notes", "text": "Expand each stage to fault actual CPU or storage owners. Map CPUs send real keyed row blocks to independent shuffle stores; reducers fetch exact descriptors over all nine drawn block links. Crashing shuffle A loses blocks and causes map recomputation. CPU and shuffle storage are not secretly coupled. URL count output and byte/spill accounting are synthetic but computed from actual bounded input rows.", "x": 0, "y": -140, "w": 1000}
