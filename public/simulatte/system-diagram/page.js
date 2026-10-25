@@ -153,7 +153,7 @@
   $('palette-search').addEventListener('input',palette);
   $('palette-search').addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();$('palette-search').value='';palette();}});
   paletteCategory.addEventListener('change',palette);
-  const subsystemHost=el('section','subsystem-library');$('palette').before(subsystemHost);
+  const subsystemHost=el('section','subsystem-library wui-control-stack');$('palette').before(subsystemHost);
   const subsystemEditor=globalThis.SimulatteSystemDiagramSubsystemEditor.create({model,library,config,host:subsystemHost,el,field,button,apply,canvas,message,onOpen:()=>{running=false;}});
   const openProperties=new Set();
   function disclosure(host,key,title){

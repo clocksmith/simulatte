@@ -24,6 +24,11 @@
 .wui-error { color: var(--wui-danger); font: 400 12px/1.5 var(--wui-font); }
 .wui-error:empty { display: none; }
 .wui-field[data-wui] { max-width: 100%; }
+.wui-field[data-wui][data-layout='fill'] { width: 100%; flex: 1 1 var(--wui-height); }
+.wui-control-stack { min-width: 0; }
+.wui-control-stack .wui-field[data-wui] { width: 100%; }
+.wui-control-stack .wui-button[data-wui] { max-width: 100%; white-space: normal; }
+.wui-field[data-wui][data-format='code'] { width: 100%; font-family: var(--wui-mono) !important; }
 .wui-disclosure { border: 0 !important; border-top: 1px solid var(--wui-line) !important; border-radius: 0 !important; padding: 4px 0 !important; margin: 0 !important; background: transparent !important; box-shadow: none !important; }
 .wui-disclosure > .wui-button { width: 100%; justify-content: space-between; text-align: left; list-style: none; }
 .wui-disclosure > .wui-button::after { content: '+'; margin-left: auto; }

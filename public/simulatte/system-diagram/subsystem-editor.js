@@ -111,7 +111,7 @@
       button(actions, 'Insert subsystem', () => { if (!definitions.length) throw Error('Save or import a subsystem first'); const d = D.subsystems.definition(model.diagram, choose.value), center = canvas.viewportCenter(); apply({ type: 'insertSubsystem', definitionId: d.id, version: d.version, x: center.x, y: center.y }); });
       button(actions, 'Edit saved definition', () => open(choose.value));
       host.append(el('p', 'properties-note', 'Export the document to carry this versioned library into another diagram. Import a subsystem library below to reuse its definitions without replacing your graph.'));
-      const data = el('textarea', 'wui-field'); data.id = 'subsystem-library-json'; data.rows = 4; data.setAttribute('aria-label', 'Subsystem library JSON'); host.append(data);
+      const data = el('textarea', 'wui-field'); data.id = 'subsystem-library-json'; data.rows = 4; data.dataset.format = 'code'; data.setAttribute('aria-label', 'Subsystem library JSON'); host.append(data);
       button(actions, 'Copy library JSON', () => { data.value = JSON.stringify({ classes: model.diagram.classes, subsystems: definitions }, null, 2); });
       button(actions, 'Import library JSON', () => apply({ type: 'importSubsystemLibrary', library: JSON.parse(data.value) }));
     }
@@ -126,7 +126,7 @@
       const versions = model.diagram.subsystems.filter(d => d.id === definition.id);
       const version = field(host, 'Pinned version', definition.version, { id: 'subsystem-version', choices: versions.map(d => ({ id: String(d.version), label: `v${d.version} · ${d.label}` })) });
       button(actions, 'Upgrade instance', () => apply({ type: 'upgradeSubsystem', id: node.id, version: Number(version.value) }));
-      const overrides = el('textarea', 'wui-field'); overrides.id = 'subsystem-overrides'; overrides.rows = 5; overrides.value = JSON.stringify(node.overrides || {}, null, 2); overrides.setAttribute('aria-label', 'Per-instance leaf parameter overrides');
+      const overrides = el('textarea', 'wui-field'); overrides.id = 'subsystem-overrides'; overrides.rows = 5; overrides.dataset.format = 'code'; overrides.value = JSON.stringify(node.overrides || {}, null, 2); overrides.setAttribute('aria-label', 'Per-instance leaf parameter overrides');
       host.append(el('p', 'properties-note', 'Overrides are a JSON map from internal leaf paths to parameter values, for example {"worker": {"concurrency": 4}}. Nested paths use /. Unknown paths and values are rejected.'), overrides);
       button(actions, 'Apply subsystem overrides', () => apply({ type: 'setSubsystemOverrides', id: node.id, overrides: JSON.parse(overrides.value) }));
       host.append(el('p', 'properties-note', 'Ports: ' + D.portsForNode(node, model.diagram, library, config).map(p => `${p.id} (${p.direction}: ${(p.accepts || p.emits).join(', ')})`).join(' · ')));
