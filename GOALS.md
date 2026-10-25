@@ -48,6 +48,23 @@ reconnecting nodes; grouping, pan/zoom, undo/redo and save/load. Reusable node
 classes own defaults; individual instances hold explicit overrides. Keep accepted
 execution immutable until edited architecture validates and restarts explicitly.
 
+Make a subsystem a reusable executable definition, not merely a folded group.
+Save connected components with named typed external ports, insert independent
+instances into multiple diagrams, and nest definitions within other definitions.
+Definitions carry explicit versions. Publishing a revision must not silently
+change pinned instances or accepted runs; upgrading an instance is an explicit,
+validated edit. Per-instance overrides preserve intentional local differences.
+Reject recursive definitions, missing ports and invalid overrides before execution.
+Keep expansion and inspection separate from execution identity.
+
+Use a chat backend as the first concrete session: save and reuse its generation
+capacity inside a larger backend, inspect the internal request path, then compare
+an explicit capacity or service-time edit under the same synthetic workload.
+The useful outcome is explaining which modeled component limits the system and
+why the changed architecture affects that bottleneck, not a production sizing
+recommendation. Exported definitions and dependencies must remain portable without
+a live service or a hidden global registry.
+
 Execute representative compositions of clients, CPU/GPU workers, task queues,
 RPC services with retries and recovery, databases and replica deliveries,
 schedulers, crawlers and RAG/model stages. Declare natural-language, structured

@@ -91,11 +91,11 @@
       return projection;
     }
     function classInfo(classId) {
-      const key = JSON.stringify(model.diagram.classes);
+      const key = JSON.stringify([model.diagram.classes, model.diagram.subsystems]);
       if (key !== classKey) { classCache.clear(); classKey = key; }
       if (!classCache.has(classId)) {
         const klass = D.resolveClass(classId, model.diagram, library, config);
-        classCache.set(classId, { ...klass, ports: library.kernels[klass.kernel].ports });
+        classCache.set(classId, { ...klass, ports: klass.ports || library.kernels[klass.kernel].ports });
       }
       return classCache.get(classId);
     }

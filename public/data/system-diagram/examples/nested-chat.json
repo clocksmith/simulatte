@@ -1,0 +1,705 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "nested-chat",
+  "name": "Nested reusable chat backend",
+  "description": "A client calls a version-pinned chat backend containing a reusable generation-capacity subsystem. Inspect definitions and compare generation delay overrides; all messages and timings are synthetic.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 15
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "client",
+      "classId": "application-client",
+      "label": "Chat client",
+      "x": 0,
+      "y": 100,
+      "params": {
+        "scenario": "chat",
+        "intervalMs": 700,
+        "callTimeoutMs": 10000,
+        "retries": 1
+      }
+    },
+    {
+      "id": "backend",
+      "classId": "subsystem.chat-backend@1",
+      "label": "Reusable chat backend",
+      "x": 380,
+      "y": 100,
+      "params": {},
+      "overrides": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "chat-commands",
+      "label": "chat commands",
+      "from": {
+        "nodeId": "client",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "backend",
+        "portId": "requests"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "deliver-client",
+      "label": "deliver client",
+      "from": {
+        "nodeId": "backend",
+        "portId": "delivery"
+      },
+      "to": {
+        "nodeId": "client",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "nested-chat-notes",
+      "text": "Inspect backend version 1, then its generation-capacity version 1. Override generation-capacity/generation chunkDelayMs on this backend to compare streamed delivery under the same synthetic client. Publish and upgrade explicitly; old versions and accepted runs remain unchanged.",
+      "x": 0,
+      "y": -140,
+      "w": 750
+    }
+  ],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "subsystems": [
+    {
+      "id": "generation-capacity",
+      "version": 1,
+      "label": "Generation capacity",
+      "nodes": [
+        {
+          "id": "model-admission",
+          "classId": "rate-limiter",
+          "label": "Generation request quota",
+          "x": 940,
+          "y": 610,
+          "params": {
+            "ratePerSec": 1000,
+            "burst": 100,
+            "overflow": "queue",
+            "queueCapacity": 100,
+            "callTimeoutMs": 8000
+          },
+          "groupId": "chat-model"
+        },
+        {
+          "id": "model-router",
+          "classId": "load-balancer",
+          "label": "Generation replica routing",
+          "x": 1210,
+          "y": 610,
+          "params": {
+            "strategy": "round-robin",
+            "serviceMs": 0.2,
+            "concurrency": 10000,
+            "queueCapacity": 0,
+            "healthChecks": true,
+            "ejectAfterErrors": 5,
+            "ejectSec": 10,
+            "callTimeoutMs": 5000,
+            "retries": 1,
+            "rateLimitPerSec": 0,
+            "rateBurst": 100
+          },
+          "groupId": "chat-model"
+        },
+        {
+          "id": "generation",
+          "classId": "synthetic-stream",
+          "label": "Generation replica A",
+          "x": 1500,
+          "y": 560,
+          "params": {
+            "chunkCharacters": 12,
+            "chunkDelayMs": 120,
+            "failAfterChunks": 0,
+            "concurrency": 8,
+            "queueCapacity": 100
+          },
+          "groupId": "chat-model"
+        },
+        {
+          "id": "generation-b",
+          "classId": "synthetic-stream",
+          "label": "Generation replica B",
+          "x": 1500,
+          "y": 790,
+          "params": {
+            "chunkCharacters": 12,
+            "chunkDelayMs": 120,
+            "failAfterChunks": 0,
+            "concurrency": 8,
+            "queueCapacity": 100
+          },
+          "groupId": "chat-model"
+        }
+      ],
+      "edges": [
+        {
+          "id": "generation-quota",
+          "label": "generation quota",
+          "from": {
+            "nodeId": "model-admission",
+            "portId": "out"
+          },
+          "to": {
+            "nodeId": "model-router",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "generation-a",
+          "label": "generation a",
+          "from": {
+            "nodeId": "model-router",
+            "portId": "backends"
+          },
+          "to": {
+            "nodeId": "generation",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "generation-b-link",
+          "label": "generation b link",
+          "from": {
+            "nodeId": "model-router",
+            "portId": "backends"
+          },
+          "to": {
+            "nodeId": "generation-b",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        }
+      ],
+      "groups": [
+        {
+          "id": "chat-model",
+          "label": "Generation capacity",
+          "kind": "boundary",
+          "x": 900,
+          "y": 500,
+          "w": 850,
+          "h": 430,
+          "collapsed": true
+        }
+      ],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "requests",
+          "label": "Generation requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "model-admission",
+            "portId": "in"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chat-backend",
+      "version": 1,
+      "label": "Reusable chat backend",
+      "nodes": [
+        {
+          "id": "ingress",
+          "classId": "rate-limiter",
+          "label": "Request admission quota",
+          "x": 280,
+          "y": 100,
+          "params": {
+            "ratePerSec": 1000,
+            "burst": 100,
+            "overflow": "queue",
+            "queueCapacity": 100,
+            "callTimeoutMs": 8000
+          }
+        },
+        {
+          "id": "identity",
+          "classId": "conversation-access",
+          "label": "Users and conversation membership",
+          "x": 640,
+          "y": 280,
+          "params": {
+            "concurrency": 8,
+            "queueCapacity": 1000,
+            "serviceMs": 2,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject"
+          },
+          "groupId": "chat-api"
+        },
+        {
+          "id": "chat",
+          "classId": "chat-application",
+          "label": "Access, history and prompt writes",
+          "x": 920,
+          "y": 100,
+          "params": {
+            "callTimeoutMs": 2000,
+            "retries": 1,
+            "retryBackoffMs": 100,
+            "maxOutstanding": 32
+          },
+          "groupId": "chat-api"
+        },
+        {
+          "id": "history-retry",
+          "classId": "retry-policy",
+          "label": "History and prompt retry",
+          "x": 1190,
+          "y": 100,
+          "params": {
+            "maxAttempts": 3,
+            "attemptTimeoutMs": 5000,
+            "backoffMs": 40,
+            "backoffMultiplier": 2,
+            "retryJitter": false,
+            "retryBudget": 2,
+            "budgetWindowSec": 10
+          },
+          "groupId": "chat-api"
+        },
+        {
+          "id": "store-admission",
+          "classId": "bulkhead",
+          "label": "Durable write concurrency",
+          "x": 1190,
+          "y": 280,
+          "params": {
+            "concurrency": 8,
+            "queueCapacity": 0,
+            "serviceMs": 2,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 8000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          },
+          "groupId": "chat-api"
+        },
+        {
+          "id": "conversations",
+          "classId": "conversation-store",
+          "label": "Durable conversation records",
+          "x": 1510,
+          "y": 180,
+          "params": {
+            "concurrency": 8,
+            "queueCapacity": 1000,
+            "serviceMs": 5,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "maxRecords": 128,
+            "callTimeoutMs": 2000,
+            "retries": 1,
+            "retryBackoffMs": 100,
+            "requireExternalAuthority": true
+          }
+        },
+        {
+          "id": "stream-admission",
+          "classId": "bulkhead",
+          "label": "Active stream slots",
+          "x": 0,
+          "y": 610,
+          "params": {
+            "concurrency": 8,
+            "queueCapacity": 0,
+            "serviceMs": 2,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 8000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          },
+          "groupId": "chat-stream"
+        },
+        {
+          "id": "stream",
+          "classId": "chat-stream-session",
+          "label": "Cursor, delivery and assistant commit",
+          "x": 290,
+          "y": 610,
+          "params": {
+            "callTimeoutMs": 2000,
+            "retries": 1,
+            "retryBackoffMs": 100,
+            "maxOutstanding": 32
+          },
+          "groupId": "chat-stream"
+        },
+        {
+          "id": "stream-store-retry",
+          "classId": "retry-policy",
+          "label": "Assistant commit retry",
+          "x": 570,
+          "y": 780,
+          "params": {
+            "maxAttempts": 3,
+            "attemptTimeoutMs": 5000,
+            "backoffMs": 40,
+            "backoffMultiplier": 2,
+            "retryJitter": false,
+            "retryBudget": 2,
+            "budgetWindowSec": 10
+          },
+          "groupId": "chat-stream"
+        },
+        {
+          "id": "delivery",
+          "classId": "api-gateway",
+          "label": "Client connection delivery",
+          "x": 570,
+          "y": 560,
+          "params": {
+            "strategy": "round-robin",
+            "serviceMs": 1,
+            "concurrency": 10000,
+            "queueCapacity": 0,
+            "healthChecks": true,
+            "ejectAfterErrors": 5,
+            "ejectSec": 10,
+            "callTimeoutMs": 8000,
+            "retries": 0,
+            "rateLimitPerSec": 500,
+            "rateBurst": 200
+          },
+          "groupId": "chat-stream"
+        },
+        {
+          "id": "generation-capacity",
+          "classId": "subsystem.generation-capacity@1",
+          "label": "Generation capacity",
+          "x": 940,
+          "y": 560,
+          "params": {},
+          "overrides": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "admitted-chat",
+          "label": "admitted chat",
+          "from": {
+            "nodeId": "ingress",
+            "portId": "out"
+          },
+          "to": {
+            "nodeId": "chat",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "conversation-operations",
+          "label": "conversation operations",
+          "from": {
+            "nodeId": "chat",
+            "portId": "store"
+          },
+          "to": {
+            "nodeId": "history-retry",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "history-commit-admission",
+          "label": "history commit admission",
+          "from": {
+            "nodeId": "history-retry",
+            "portId": "target"
+          },
+          "to": {
+            "nodeId": "store-admission",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "record-commit",
+          "label": "record commit",
+          "from": {
+            "nodeId": "store-admission",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "conversations",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "start-stream",
+          "label": "start stream",
+          "from": {
+            "nodeId": "chat",
+            "portId": "stream"
+          },
+          "to": {
+            "nodeId": "stream-admission",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "stream-session",
+          "label": "stream session",
+          "from": {
+            "nodeId": "stream-admission",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "stream",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "stream-save",
+          "label": "stream save",
+          "from": {
+            "nodeId": "stream",
+            "portId": "store"
+          },
+          "to": {
+            "nodeId": "stream-store-retry",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "assistant-commit",
+          "label": "assistant commit",
+          "from": {
+            "nodeId": "stream-store-retry",
+            "portId": "target"
+          },
+          "to": {
+            "nodeId": "store-admission",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "generation-chunks",
+          "label": "generation chunks",
+          "from": {
+            "nodeId": "stream",
+            "portId": "generate"
+          },
+          "to": {
+            "nodeId": "generation-capacity",
+            "portId": "requests"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "live-chunks",
+          "label": "live chunks",
+          "from": {
+            "nodeId": "stream",
+            "portId": "chunks"
+          },
+          "to": {
+            "nodeId": "delivery",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "conversation-access-check",
+          "label": "Authoritative membership check",
+          "from": {
+            "nodeId": "chat",
+            "portId": "access"
+          },
+          "to": {
+            "nodeId": "identity",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "storage-access-check",
+          "label": "Authoritative membership check",
+          "from": {
+            "nodeId": "conversations",
+            "portId": "authority"
+          },
+          "to": {
+            "nodeId": "identity",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        }
+      ],
+      "groups": [
+        {
+          "id": "chat-api",
+          "label": "Conversation operations",
+          "kind": "boundary",
+          "x": 600,
+          "y": 0,
+          "w": 860,
+          "h": 400,
+          "collapsed": true
+        },
+        {
+          "id": "chat-stream",
+          "label": "Streaming sessions",
+          "kind": "boundary",
+          "x": -40,
+          "y": 500,
+          "w": 890,
+          "h": 430,
+          "collapsed": true
+        }
+      ],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "requests",
+          "label": "Generation requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "ingress",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "delivery",
+          "label": "Delivered chunks",
+          "direction": "out",
+          "target": {
+            "nodeId": "delivery",
+            "portId": "backends"
+          }
+        }
+      ]
+    }
+  ]
+}

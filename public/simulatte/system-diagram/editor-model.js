@@ -102,9 +102,46 @@
 
     // Each handler mutates a draft clone; the result is validated before it replaces the document.
     const handlers = {
+      importSubsystemLibrary(draft, cmd) {
+        if (!isRecord(cmd.library) || !Array.isArray(cmd.library.classes) || !Array.isArray(cmd.library.subsystems)) refuse('Import requires classes and subsystems arrays');
+        const merge = (old, rows, key) => {
+          for (const row of rows) {
+            const match = old.find(item => key(item) === key(row));
+            if (match && JSON.stringify(match) !== JSON.stringify(row)) refuse(`Import conflicts with immutable ${key(row)}`);
+            if (!match) old.push(D.clone(row));
+          }
+        };
+        draft.schema = D.SCHEMA; draft.subsystems ||= [];
+        merge(draft.classes, cmd.library.classes, row => row.id);
+        merge(draft.subsystems, cmd.library.subsystems, row => `${row.id}@${row.version}`);
+        return { kind: 'structure' };
+      },
+      saveSubsystem(draft, cmd) {
+        const result = D.subsystems.capture(draft, cmd.nodeIds, { id: cmd.definitionId, label: cmd.label }, library, config);
+        return { kind: 'structure', replace: result.diagram, id: result.instanceId, select: [result.instanceId] };
+      },
+      insertSubsystem(draft, cmd) {
+        const result = D.subsystems.insert(draft, cmd.definitionId, cmd.version, { x: cmd.x, y: cmd.y, label: cmd.label }, library, config);
+        return { kind: 'structure', replace: result.diagram, id: result.instanceId, select: [result.instanceId] };
+      },
+      publishSubsystem(draft, cmd) {
+        const result = D.subsystems.publish(draft, cmd.definition, library, config);
+        return { kind: 'structure', replace: result.diagram };
+      },
+      upgradeSubsystem(draft, cmd) {
+        const result = D.subsystems.upgrade(draft, cmd.id, cmd.version, library, config);
+        return { kind: 'structure', replace: result.diagram, id: cmd.id };
+      },
+      setSubsystemOverrides(draft, cmd) {
+        const node = find(draft, 'nodes', cmd.id, 'subsystem instance');
+        if (!D.subsystems.definition(draft, node.classId)) refuse('setSubsystemOverrides requires a subsystem instance');
+        if (!isRecord(cmd.overrides)) refuse('setSubsystemOverrides requires a leaf-path parameter map');
+        node.overrides = D.clone(cmd.overrides);
+        return { kind: 'params', id: cmd.id };
+      },
       addNode(draft, cmd) {
         const klass = D.resolveClass(cmd.classId, draft, library, config);
-        const id = cmd.id || D.newId(draft, String(cmd.classId).replace(/^user\./, ''));
+        const id = cmd.id || D.newId(draft, (klass.kernel === 'subsystem' ? 'subsystem' : String(cmd.classId).replace(/^user\./, '')));
         const node = { id, classId: cmd.classId, label: cmd.label ?? klass.label, x: cmd.x, y: cmd.y, params: { ...(cmd.params || {}) } };
         if (cmd.groupId != null) node.groupId = cmd.groupId;
         draft.nodes.push(node);
@@ -422,6 +459,20 @@
     }
 
     return {
+      suspend() {
+        const saved = { doc, selection, past: [...past], future: [...future], openCoalesce };
+        let resumed = false;
+        return replacement => {
+          if (resumed) refuse('editor session already resumed');
+          const next = replacement ? deepFreeze(D.validate(replacement, library, config)) : saved.doc;
+          resumed = true;
+          doc = saved.doc; selection = saved.selection; past = saved.past; future = saved.future; openCoalesce = saved.openCoalesce;
+          if (next !== doc && JSON.stringify(next) !== JSON.stringify(doc)) {
+            const before = doc; doc = next; pushHistory(before, 'structure', { type: 'publishSubsystem' }); setSelection(selection);
+          }
+          notify('load', { type: 'resumeDefinition' }, { ok: true, kind: 'load' });
+        };
+      },
       get diagram() { return doc; },
       get selection() { return selection; },
       library, config,

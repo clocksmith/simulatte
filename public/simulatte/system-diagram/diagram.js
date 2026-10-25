@@ -1,10 +1,12 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
-  const api = factory(node ? require('./class-library.js') : root.SimulatteSystemDiagramLibrary);
+  const api = factory(node ? require('./class-library.js') : root.SimulatteSystemDiagramLibrary, node ? require('./subsystems.js') : root.SimulatteSystemDiagramSubsystems);
   if (node) module.exports = api; else root.SimulatteSystemDiagramDocument = api;
-})(globalThis, function (libraryApi) {
+})(globalThis, function (libraryApi, S) {
   'use strict';
-  const SCHEMA = 'simulatte.systemDiagram.v3';
+  const SCHEMA = 'simulatte.systemDiagram.v4';
+  const GROUP_SCHEMA = 'simulatte.systemDiagram.v3';
+  let helpers;
   const ANNOTATED_SCHEMA = 'simulatte.systemDiagram.v2';
   const LEGACY_SCHEMA = 'simulatte.systemDiagram.v1';
   const COMPILED_SCHEMA = 'simulatte.systemDiagramCompiled.v1';
@@ -42,6 +44,7 @@
   }
 
   function resolveClass(classId, doc, library, config) {
+    if (S.isComposite(classId)) return S.resolveClass(classId, doc, library, config, helpers);
     const table = classTable(doc, library), chain = [], seen = new Set();
     const maxDepth = config?.bounds?.maxClassDepth ?? 8;
     let current = table.get(classId);
@@ -93,11 +96,12 @@
     return out;
   }
 
-  function validate(input, library, config) {
+  function validate(input, library, config, internal = false) {
     const b = config.bounds;
-    exactKeys(C, 'diagram', input, ['schema', 'id', 'name', 'seed', 'run', 'classes', 'nodes', 'edges', 'groups', 'notes', 'faults', 'view'], ['description']);
-    if (![SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA].includes(input.schema)) fail('diagram.schema', `${SCHEMA}, ${ANNOTATED_SCHEMA} or ${LEGACY_SCHEMA}`, input.schema);
+    exactKeys(C, 'diagram', input, ['schema', 'id', 'name', 'seed', 'run', 'classes', 'nodes', 'edges', 'groups', 'notes', 'faults', 'view'], ['description', ...(input?.schema === SCHEMA ? ['subsystems'] : [])]);
+    if (![SCHEMA, GROUP_SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA].includes(input.schema)) fail('diagram.schema', `${SCHEMA}, ${ANNOTATED_SCHEMA} or ${LEGACY_SCHEMA}`, input.schema);
     const doc = clone(input);
+    if (!internal) S.validateDefinitions(doc, library, config, helpers);
     if (typeof doc.id !== 'string' || !NODE_ID.test(doc.id)) fail('diagram.id', 'identifier', doc.id);
     label('diagram.name', doc.name, b.maxLabelLength);
     if (Object.hasOwn(doc, 'description')) label('diagram.description', doc.description, b.maxNoteLength);
@@ -129,7 +133,7 @@
     const seen = new Set(), nodes = new Map(), groups = new Map();
     doc.groups.forEach((group, i) => {
       const path = `diagram.groups[${i}]`;
-      exactKeys(C, path, group, ['id', 'label', 'kind', 'x', 'y', 'w', 'h'], [...(group.kind === 'resource' ? ['capacity'] : []), ...(doc.schema === SCHEMA ? ['collapsed'] : [])]);
+      exactKeys(C, path, group, ['id', 'label', 'kind', 'x', 'y', 'w', 'h'], [...(group.kind === 'resource' ? ['capacity'] : []), ...([SCHEMA, GROUP_SCHEMA].includes(doc.schema) ? ['collapsed'] : [])]);
       if (Object.hasOwn(group, 'collapsed') && typeof group.collapsed !== 'boolean') fail(`${path}.collapsed`, 'boolean presentation state', group.collapsed);
       if (group.kind === 'resource' && (!Number.isInteger(group.capacity) || group.capacity < 1 || group.capacity > 64)) fail(`${path}.capacity`, 'shared resource capacity integer in [1, 64]', group.capacity);
       id(`${path}.id`, group.id, seen); label(`${path}.label`, group.label, b.maxLabelLength);
@@ -139,13 +143,15 @@
     });
     doc.nodes.forEach((n, i) => {
       const path = `diagram.nodes[${i}]`;
-      exactKeys(C, path, n, ['id', 'classId', 'label', 'x', 'y', 'params'], ['groupId']);
+      exactKeys(C, path, n, ['id', 'classId', 'label', 'x', 'y', 'params'], ['groupId', ...(doc.schema === SCHEMA ? ['overrides'] : [])]);
       id(`${path}.id`, n.id, seen); label(`${path}.label`, n.label, b.maxLabelLength);
       coord(`${path}.x`, n.x); coord(`${path}.y`, n.y);
       const klass = resolveClass(n.classId, doc, library, config);
-      doc.nodes[i].params = validateParams(`${path}.params`, n.params, library.kernels[klass.kernel].params);
+      doc.nodes[i].params = validateParams(`${path}.params`, n.params, klass.kernel === 'subsystem' ? {} : library.kernels[klass.kernel].params);
+      if (klass.kernel === 'subsystem') S.validateOverrides(n, doc, library, config, helpers);
+      else if (Object.hasOwn(n, 'overrides')) fail(`${path}.overrides`, 'overrides only on subsystem instances', n.overrides);
       if (Object.hasOwn(n, 'groupId') && n.groupId !== null && !groups.has(n.groupId)) fail(`${path}.groupId`, 'existing group or null', n.groupId);
-      nodes.set(n.id, { node: n, kernel: klass.kernel });
+      nodes.set(n.id, { node: n, kernel: klass.kernel, ports: klass.ports || library.kernels[klass.kernel].ports });
     });
     const portUse = new Map(), pairs = new Set();
     doc.edges.forEach((edge, i) => {
@@ -158,7 +164,7 @@
       if (!from) fail(`${path}.from.nodeId`, 'existing node', edge.from.nodeId);
       if (!to) fail(`${path}.to.nodeId`, 'existing node', edge.to.nodeId);
       if (edge.from.nodeId === edge.to.nodeId) fail(path, 'edge between two different nodes', edge.from.nodeId);
-      const out = portSpec(library, from.kernel, edge.from.portId), inp = portSpec(library, to.kernel, edge.to.portId);
+      const out = from.ports.find(p => p.id === edge.from.portId), inp = to.ports.find(p => p.id === edge.to.portId);
       if (out?.direction !== 'out') fail(`${path}.from.portId`, `out port of ${from.kernel}`, edge.from.portId);
       if (inp?.direction !== 'in') fail(`${path}.to.portId`, `in port of ${to.kernel}`, edge.to.portId);
       const pair = `${edge.from.nodeId}.${edge.from.portId}>${edge.to.nodeId}.${edge.to.portId}`;
@@ -189,6 +195,7 @@
       if (fault.target.kind === 'node') {
         const target = nodes.get(fault.target.id);
         if (!target) fail(`${path}.target.id`, 'existing node', fault.target.id);
+        if (target.kernel === 'subsystem') fail(`${path}.target.id`, 'primitive node target; author internal subsystem faults in the definition', fault.target.id);
         if (!library.kernels[target.kernel].faults.includes(fault.type)) fail(`${path}.type`, `fault supported by ${target.kernel}`, fault.type);
       } else if (fault.target.kind === 'edge') { if (!edgeIds.has(fault.target.id)) fail(`${path}.target.id`, 'existing edge', fault.target.id); }
       else if (fault.target.kind === 'group') {
@@ -199,11 +206,18 @@
       if (fault.untilSec !== null && (!Number.isFinite(fault.untilSec) || fault.untilSec <= fault.atSec)) fail(`${path}.untilSec`, 'null or seconds after atSec', fault.untilSec);
       doc.faults[i].params = validateParams(`${path}.params`, fault.params, type.params);
     });
+    if (!internal && (doc.subsystems?.length || doc.nodes.some(n => S.isComposite(n.classId)))) validate(S.lower(doc, library, config, helpers), library, config, true);
     return doc;
+  }
+
+  function portsForNode(node, doc, library, config) {
+    const klass = resolveClass(node.classId, doc, library, config);
+    return klass.ports || library.kernels[klass.kernel].ports;
   }
 
   // Warnings describe drawable but suspicious diagrams; errors are thrown by validate().
   function issues(doc, library, config) {
+    if (doc.nodes.some(n => S.isComposite(n.classId))) return issues(S.lower(doc, library, config, helpers), library, config);
     const warnings = [];
     const used = new Map();
     for (const edge of doc.edges) for (const end of [edge.from, edge.to]) used.set(`${end.nodeId}.${end.portId}`, true);
@@ -271,7 +285,8 @@
   }
 
   function compile(input, library, config) {
-    const doc = validate(input, library, config);
+    const authored = validate(input, library, config);
+    const doc = S.lower(authored, library, config, helpers);
     const outByNode = new Map(), inByNode = new Map();
     const edges = doc.edges.map(edge => ({ id: edge.id, from: edge.from.nodeId, fromPort: edge.from.portId, to: edge.to.nodeId, toPort: edge.to.portId, params: resolveEdgeParams(edge, library).values }));
     for (const edge of edges) {
@@ -292,7 +307,7 @@
     const groups = doc.groups.map(group => ({ id: group.id, kind: group.kind, label: group.label, ...(group.kind === 'resource' ? { capacity: group.capacity } : {}), nodeIds: doc.nodes.filter(n => n.groupId === group.id).map(n => n.id) }));
     const faults = doc.faults.map(f => ({ id: f.id, atSec: f.atSec, untilSec: f.untilSec, target: { ...f.target }, type: f.type, params: { ...Object.fromEntries(Object.entries(library.faultTypes.find(t => t.id === f.type).params).map(([k, s]) => [k, s.default])), ...f.params } }))
       .sort((a, b) => a.atSec - b.atSec || a.id.localeCompare(b.id));
-    return deepFreeze({ schema: COMPILED_SCHEMA, diagramId: doc.id, name: doc.name, seed: doc.seed, horizonSec: doc.run.horizonSec, libraryVersion: library.version, nodes, edges, groups, faults });
+    return deepFreeze({ schema: COMPILED_SCHEMA, diagramId: doc.id, name: doc.name, seed: doc.seed, horizonSec: doc.run.horizonSec, libraryVersion: library.version, nodes, edges, groups, faults, ...(doc.composition ? { composition: doc.composition } : {}) });
   }
 
   function deepFreeze(value) {
@@ -300,5 +315,7 @@
     return value;
   }
 
-  return Object.freeze({ SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA, COMPILED_SCHEMA, GROUP_KINDS, FAILURE_DOMAIN_KINDS, emptyDiagram, validate, issues, compile, resolveClass, resolveNodeParams, resolveEdgeParams, portSpec, emittedPayloads, canConnect, newId, newClassId, deriveClass, changeClass, clone });
+  helpers = { validate, resolveClass, resolveNodeParams, portsForNode, validateParams, clone, newId, fail, label };
+  const subsystems = Object.freeze(Object.fromEntries(['capture', 'insert', 'publish', 'upgrade', 'lower'].map(name => [name, (...args) => S[name](...args, helpers)]).concat([['definition', S.definition], ['isComposite', S.isComposite]])));
+  return Object.freeze({ subsystems, portsForNode, GROUP_SCHEMA, SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA, COMPILED_SCHEMA, GROUP_KINDS, FAILURE_DOMAIN_KINDS, emptyDiagram, validate, issues, compile, resolveClass, resolveNodeParams, resolveEdgeParams, portSpec, emittedPayloads, canConnect, newId, newClassId, deriveClass, changeClass, clone });
 });

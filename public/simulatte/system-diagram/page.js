@@ -44,7 +44,7 @@
   function duplicate(){apply({type:'duplicate',selection:select()});}
   function cluster(){
     const ids=select().nodes,ns=model.diagram.nodes.filter(n=>ids.includes(n.id));
-    const shared=ns.length>0&&ns.every(n=>{const k=kernels.get(documents.resolveClass(n.classId,model.diagram,library,config).kernel);return k.station||k.resourceSlots;});
+    const shared=ns.length>0&&ns.every(n=>{const id=documents.resolveClass(n.classId,model.diagram,library,config).kernel;if(!kernels.has(id))return false;const k=kernels.get(id);return k.station||k.resourceSlots;});
     const center=canvas.viewportCenter(),x=ns.length?Math.min(...ns.map(n=>n.x))-24:center.x-160,y=ns.length?Math.min(...ns.map(n=>n.y))-40:center.y-120,w=ns.length?Math.max(...ns.map(n=>n.x))-x+config.editor.nodeWidth+24:320,h=ns.length?Math.max(...ns.map(n=>n.y))-y+120:240;
     const result=apply({type:'addGroup',label:shared?'Resource cluster':'Architecture boundary',kind:shared?'resource':'boundary',...(shared?{capacity:2}:{}),x,y,w,h,nodeIds:ids});
     if(result.id)model.select({groups:[result.id]});
@@ -54,6 +54,7 @@
   button('edit-actions','Duplicate',duplicate);button('edit-actions','Delete',erase);button('edit-actions','Cluster',cluster);
   button('view-actions','−',()=>canvas.zoomBy(.8),'quiet','Zoom out');button('view-actions','+',()=>canvas.zoomBy(1.25),'quiet','Zoom in');button('view-actions','Fit',()=>canvas.fit(),'quiet');
   async function start(){
+    if(subsystemEditor.session.active)throw Error('Publish or cancel definition edits before running the root diagram');
     const candidate=clone(model.diagram),warnings=documents.issues(candidate,library,config);
     if(!candidate.nodes.length)throw Error('Add and connect executable components before Run');
     const mismatch=warnings.find(w=>w.kind==='payload-mismatch');if(mismatch)throw Error(`Resolve incompatible payloads before Run: ${mismatch.message}`);
@@ -75,13 +76,13 @@
   button('playback','Replay',async()=>{if(!runner)throw Error('Run an architecture first');running=false;const proof=await runner.verify();if(proof.status!=='match')throw Error('Replay diverged');message(`Exact replay matched ${proof.rounds??proof.events??0} rounds/events.`);});
   button('playback','Checkpoint',async()=>{if(!runner)throw Error('Run an architecture first');running=false;savedCheckpoint=await runner.checkpoint();message('Checkpoint saved with pending events, controls, resources and RNG state.');});
   button('playback','Restore',async()=>{if(!runner||!savedCheckpoint)throw Error('Save a checkpoint first');running=false;await runner.restore(savedCheckpoint);message('Restored the accepted run checkpoint.');});
-  async function sessionExport(){return {schema:'simulatte.systemDiagramEditorSession.v1',diagram:clone(model.diagram),accepted:clone(accepted),checkpoint:runner?await runner.checkpoint():null};}
+  async function sessionExport(){if(subsystemEditor.session.active)throw Error('Publish or cancel definition edits before saving the root document');return {schema:'simulatte.systemDiagramEditorSession.v1',diagram:clone(model.diagram),accepted:clone(accepted),checkpoint:runner?await runner.checkpoint():null};}
   function validateSession(v){
-    if([documents.SCHEMA,documents.ANNOTATED_SCHEMA,documents.LEGACY_SCHEMA].includes(v?.schema))return {diagram:documents.validate(v,library,config),accepted:null,checkpoint:null};
+    if([documents.SCHEMA,documents.GROUP_SCHEMA,documents.ANNOTATED_SCHEMA,documents.LEGACY_SCHEMA].includes(v?.schema))return {diagram:documents.validate(v,library,config),accepted:null,checkpoint:null};
     if(!v||v.schema!=='simulatte.systemDiagramEditorSession.v1'||Object.keys(v).sort().join(',')!=='accepted,checkpoint,diagram,schema')throw Error('Unsupported or undeclared editor session fields');
     return {...clone(v),diagram:documents.validate(v.diagram,library,config),accepted:v.accepted?documents.validate(v.accepted,library,config):null};
   }
-  function loadPending(v){const value=validateSession(v);const loaded=model.replace(value.diagram);if(!loaded.ok)throw Error(loaded.error);running=false;loadedReplay=value;activePreset=config.examples.some(e=>e.id===value.diagram.id)?value.diagram.id:value.diagram.nodes.length?'custom':'blank';$('preset').value=activePreset;canvas.render();message('Loaded as pending. Run accepts it; Restore loaded replay explicitly restores saved execution.');}
+  function loadPending(v){if(subsystemEditor.session.active)throw Error('Publish or cancel definition edits before loading another document');const value=validateSession(v);const loaded=model.replace(value.diagram);if(!loaded.ok)throw Error(loaded.error);running=false;loadedReplay=value;activePreset=config.examples.some(e=>e.id===value.diagram.id)?value.diagram.id:value.diagram.nodes.length?'custom':'blank';$('preset').value=activePreset;canvas.render();message('Loaded as pending. Run accepts it; Restore loaded replay explicitly restores saved execution.');}
   button('document-actions','Save',async()=>{localStorage.setItem(config.editor.autosaveKey,JSON.stringify(await sessionExport()));message('Saved this document and accepted replay in this browser.');});
   button('document-actions','Load',()=>{const text=localStorage.getItem(config.editor.autosaveKey);if(text)loadPending(JSON.parse(text));else $('load-file').click();});
   button('document-actions','Export',async()=>{const text=JSON.stringify(await sessionExport(),null,2);$('document').value=text;const url=URL.createObjectURL(new Blob([text],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='system-diagram.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),0);message('Exported classes, instances, named ports and accepted replay.');});
@@ -94,6 +95,7 @@
     const previous=runner;runner=next;accepted=value.accepted;acceptedIdentity=semantic(accepted);savedCheckpoint=value.checkpoint;running=false;loadedReplay=null;await previous?.dispose();message('Restored accepted replay; pending edits remain unchanged.');
   });
   async function readDocument(read,accept){
+    if(subsystemEditor.session.active){$('preset').value=activePreset;message('Publish or cancel definition edits before loading another document.',true);return;}
     if(busy){$('preset').value=activePreset;message('Wait for the current operation before loading a document.',true);return;}
     const token=loadGuard.begin();loading=true;message('Loading document. Newer edits will be kept.');render();
     try{
@@ -151,6 +153,8 @@
   $('palette-search').addEventListener('input',palette);
   $('palette-search').addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();$('palette-search').value='';palette();}});
   paletteCategory.addEventListener('change',palette);
+  const subsystemHost=el('section','subsystem-library');$('palette').before(subsystemHost);
+  const subsystemEditor=globalThis.SimulatteSystemDiagramSubsystemEditor.create({model,library,config,host:subsystemHost,el,field,button,apply,canvas,message,onOpen:()=>{running=false;}});
   const openProperties=new Set();
   function disclosure(host,key,title){
     const details=ui.SimDisclosure({document,title});details.dataset.propertySection=key;details.open=openProperties.has(key);
@@ -185,7 +189,9 @@
     const doc=model.diagram,s=select(),id=selectedId(),host=$('properties');host.replaceChildren();
     if(Object.values(s).flat().length>1){$('selection-kind').textContent=`${Object.values(s).flat().length} items`;host.append(el('p','properties-note','Create a shared resource cluster, duplicate or delete the selection.'));const a=el('div','properties-actions');host.append(a);button(a,'Create cluster',cluster);return;}
     const node=doc.nodes.find(n=>n.id===id),edge=doc.edges.find(e=>e.id===id),group=doc.groups.find(g=>g.id===id),note=doc.notes.find(n=>n.id===id);
-    if(node){
+    if(node&&documents.resolveClass(node.classId,doc,library,config).kernel==='subsystem'){
+      $('selection-kind').textContent='Versioned subsystem';subsystemEditor.inspect(host,node);
+    }else if(node){
       const resolved=documents.resolveNodeParams(node,doc,library,config),cls=resolved.klass,kernel=library.kernels[cls.kernel],user=doc.classes.find(c=>c.id===node.classId);
       $('selection-kind').textContent=cls.label;host.append(el('p','properties-note component-description',cls.description),el('p','properties-note component-behavior',kernel.description));const actual=el('p','properties-note');actual.id='node-state';host.append(actual,el('div','wui-status',node.id));const stateDetails=el('details','node-resource-details');stateDetails.append(el('summary','','Accepted node state'));const stateRows=el('dl');stateRows.id='node-detail';stateDetails.append(stateRows);host.append(stateDetails);
       const name=field(host,'Instance name',node.label,{id:'instance-name'});name.addEventListener('change',()=>perform(()=>apply({type:'setNodeLabel',id,label:name.value})));
@@ -210,7 +216,7 @@
       label.addEventListener('change',()=>perform(()=>apply({type:'setEdgeLabel',id,label:label.value})));
       host.append(el('p','properties-note','This label describes the connection. Typed ports and settings still determine execution.'));
       const endpoints={};for(const side of['from','to']){
-        const direction=side==='from'?'out':'in',choices=[];for(const n of doc.nodes){const c=documents.resolveClass(n.classId,doc,library,config);for(const p of library.kernels[c.kernel].ports.filter(p=>p.direction===direction))choices.push({id:n.id+'|'+p.id,label:`${n.label||n.id} · ${p.id}`});}
+        const direction=side==='from'?'out':'in',choices=[];for(const n of doc.nodes){const c=documents.resolveClass(n.classId,doc,library,config);for(const p of (c.ports||library.kernels[c.kernel].ports).filter(p=>p.direction===direction))choices.push({id:n.id+'|'+p.id,label:`${n.label||n.id} · ${p.id}`});}
         endpoints[side]=field(host,side==='from'?'Output port':'Input port',edge[side].nodeId+'|'+edge[side].portId,{id:'link-'+side,choices});
       }
       const resolved=documents.resolveEdgeParams(edge,library),fields=paramsForm(host,library.edgeParams,resolved.values);
@@ -248,7 +254,7 @@
   function targetRecord(){const split=targetField.value.indexOf('|');return {kind:targetField.value.slice(0,split),id:targetField.value.slice(split+1)};}
   function supportedFaults(target){
     let kernel=null;if(target.kind==='node'){const n=model.diagram.nodes.find(n=>n.id===target.id);if(n)kernel=documents.resolveClass(n.classId,model.diagram,library,config).kernel;}
-    return library.faultTypes.filter(f=>f.targets.includes(target.kind)&&(!f.kernels||f.kernels.includes(kernel))&&(!kernel||library.kernels[kernel].faults.includes(f.id)));
+    return library.faultTypes.filter(f=>f.targets.includes(target.kind)&&(!f.kernels||f.kernels.includes(kernel))&&(!kernel||library.kernels[kernel]?.faults.includes(f.id)));
   }
   function faultParams(){faultParamsHost.replaceChildren();faultFields={};const spec=library.faultTypes.find(f=>f.id===faultType.value);for(const[key,value]of Object.entries(spec?.params||{})){faultFields[key]=field(faultParamsHost,`${value.label}${value.unit?' · '+value.unit:''}`,value.default,{id:'fault-param-'+key,choices:value.type==='enum'?value.options:value.type==='boolean'?[{id:'true',label:'Yes'},{id:'false',label:'No'}]:null,type:['number','integer'].includes(value.type)?'number':'text',spec:value});}ui.adoptTree(faultParamsHost);}
   function faultTypes(){setChoices(faultType,supportedFaults(targetRecord()).map(f=>({id:f.id,label:f.label})));faultParams();}
@@ -289,8 +295,10 @@
   const requestCount=el('span','wui-caption');$('request-pages').append(requestCount);
   const inspector=ui.SimInspector({host:$('inspector'),placement:'inline',onSelect:id=>{selectedRequest=id;renderState();},onAction:()=>{},prominentFields:['status','blocker','attempts','effects']});
   function view(){return runner?.view()||null;}
+  let composedAccepted=null,acceptedComposition=null;
   function renderState(){
-    const v=view(),m=v?.global||{};walkthrough.render(v);const actual=$('node-state'),n=v?.nodes?.[select().nodes[0]];
+    if(composedAccepted!==accepted){composedAccepted=accepted;acceptedComposition=accepted?documents.compile(accepted,library,config).composition:null;}
+    const v=view(),projected=globalThis.SimulatteSystemDiagramSubsystemEditor.projectState(v,acceptedComposition),m=v?.global||{};walkthrough.render(v);const actual=$('node-state'),n=projected?.nodes?.[select().nodes[0]];
     const detail=$('node-detail');if(detail)detail.replaceChildren(...Object.entries(n?.detail||{}).flatMap(([key,value])=>[el('dt','',key),el('dd','',typeof value==='object'?JSON.stringify(value):String(value))]));
     if(actual)actual.textContent=n?`Accepted run: ${n.health} · ${n.busy} busy · ${n.queue} queued · ${n.heldMiB??'unreported'} MiB retained`:'Not present in an accepted run.';
     const metric=(key)=>!v?'Not running':m[key]===undefined?'Not reported':m[key];
@@ -308,11 +316,12 @@
       {id:'status',label:'Status',value:info.request.status},{id:'blocker',label:'Blocked by',value:info.blocker?JSON.stringify(info.blocker):'None'},{id:'attempts',label:'Attempts',value:info.attempts.length},{id:'effects',label:'Committed effects',value:info.effects.length},{id:'retained',label:'Retained MiB',value:info.request.retainedMiB??'Not reported'},{id:'deadline',label:'Request deadline missed',value:info.request.deadlineMissed===undefined?'Not reported':String(info.request.deadlineMissed)},{id:'background-deadline',label:'Background deadline missed',value:info.request.backgroundDeadlineMissed===undefined?'Not reported':String(info.request.backgroundDeadlineMissed)},{id:'blockers',label:'All blockers',value:JSON.stringify(info.blockers||[])},{id:'acknowledgements',label:'Commit acknowledgements',value:info.effects.length?info.effects.map(e=>`${e.id}: ${e.acknowledgement??'Not reported'}`).join(' · '):'No committed effects'}
     ]:[],actions:[]});
     $('history').replaceChildren(...(info?.history||[]).map(e=>el('li','',`${Number(e.time??e.t).toFixed(3)} s · ${e.kind} · ${e.nodeId||''}${(e.detail||e.message)?' · '+(typeof(e.detail||e.message)==='string'?(e.detail||e.message):JSON.stringify(e.detail||e.message)):''}${e.causes?.length?' ← '+e.causes.join(', '):''}`)));
-    canvas.setState?.(v,{pending:dirty()&&!!runner});
+    canvas.setState?.(subsystemEditor.session.active?null:projected,{pending:dirty()&&!!runner});
   }
   function render(){palette();buttons.undo.setState({disabled:!model.canUndo()});buttons.redo.setState({disabled:!model.canRedo()});buttons.pause.element.textContent=running?'Pause':'Resume';buttons.pause.setState({disabled:!runner});buttons.run.element.textContent=runner?(dirty()?'Accept & run':'Restart'):'Run';$('revision').textContent=runner?(dirty()?'Accepted run · edits pending':'Accepted architecture'):'Not running';$('revision').dataset.pending=String(!!runner&&dirty());document.body.dataset.pending=String(dirty());document.body.dataset.running=String(running);document.body.dataset.loading=String(loading);document.body.dataset.graphNodes=String(model.diagram.nodes.length);renderState();}
-  model.subscribe(event=>{if(event.kind!=='view'){properties();faultAuthoring(event.kind==='selection');render();}if(!['selection','view'].includes(event.kind)){const issues=model.issues();if(issues.length)message(issues.map(i=>i.message).join(' · '),issues.some(i=>i.kind==='payload-mismatch'));}});
+  model.subscribe(event=>{if(event.kind!=='view'){subsystemEditor.render();properties();faultAuthoring(event.kind==='selection');render();}if(!['selection','view'].includes(event.kind)){const issues=model.issues();if(issues.length)message(issues.map(i=>i.message).join(' · '),issues.some(i=>i.kind==='payload-mismatch'));}});
   ui.adoptTree(document.body);properties();faultAuthoring();renderComparison();render();canvas.fit({readable:true});$('assumptions').replaceChildren(el('li','',config.claimBoundary));
+  subsystemEditor.render();
   globalThis.SimulatteSystemDiagramEditor=Object.freeze({document:()=>clone(model.diagram),accepted:()=>clone(accepted),snapshot:()=>clone(view()),selection:()=>clone(select()),viewport:()=>canvas.getView(),program:()=>runner?.program()||null,comparison:()=>clone(comparisonRecord),baseline:()=>clone(comparisonBaseline)});
   document.body.dataset.simulationProfile=profile.id;document.body.dataset.editorReady='true';message('Draw the architecture, configure class defaults and instance overrides, then Run.');
   setInterval(()=>{if(!running||busy||loading||!runner)return;try{runner.advanceTo(Math.min(runner.horizon,runner.time()+.25));const v=view();if(v.done||v.error||runner.time()>=runner.horizon)running=false;render();}catch(e){running=false;message(e.message,true);render();}},180);

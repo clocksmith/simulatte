@@ -25,8 +25,13 @@ Document `simulatte.systemDiagram.v2` adds optional `edge.label`, bounded by
 `maxLabelLength`. Version v3 adds optional `group.collapsed`. Both are presentation
 state and do not change compiled execution. Legacy v1/v2 documents import without
 rewriting their identities; authoring a new field promotes only the document that
-uses it. Groups have flat explicit node membership, not nested subgraphs. A library/config update changes
-the accepted WorldSpec hash: checkpoints from older libraries refuse restoration
+uses it. Groups still have flat explicit node membership and folding remains
+presentation-only. Version v4 adds a separate reusable subsystem definition model:
+instances bind explicit definition versions, external ports bind internal ports,
+and nested definitions lower into executable primitive graphs. See the subsystem
+contract below; a folded group is not a saved definition.
+
+A library/config update changes the accepted WorldSpec hash: checkpoints from older libraries refuse restoration
 rather than silently resume under different semantics. Import the drawing and
 start a newly accepted run, or use its original pinned runtime for old replay.
 
@@ -37,7 +42,7 @@ with CommonJS exports, matching the rest of World. No file exceeds 999 lines.
 
 | File | Role |
 | --- | --- |
-| `class-library.js`, `diagram.js` | Governed class packs, parameters, named ports, document validation and compilation |
+| `class-library.js`, `diagram.js`, `subsystems.js` | Governed class packs, named ports, versioned composition, validation and deterministic lowering |
 | `kernel-registry.js`, `kernels-*.js` | Explicit behavior registration and capability checks for declared synthetic kernels |
 | `engine-core.js`, `engine.js`, `engine-network.js`, `engine-observability.js` | Ordered events, per-node RNG, calls, resources, faults, causal records and observation |
 | `runner.js` | WorldSpec and shared coordinator binding, exact display state, controls, checkpoints and replay |
@@ -94,7 +99,91 @@ warnings from `issues()`; they never block drawing.
    dropped keys, and removes edges and faults that no longer apply.
 7. A user class that any node or other user class references cannot be deleted.
 8. Edge parameters resolve from `library.edgeParams` defaults, then `edge.params`.
-9. Ports come from the kernel; classes cannot change ports in v1.
+9. Primitive class ports come from their kernel. Subsystem definitions expose named
+   bindings to internal ports; they do not replace primitive kernel behaviour.
+
+## Reusable subsystem contract
+
+Owner: [subsystem composition](../../public/simulatte/system-diagram/subsystems.js)
+and [document validator](../../public/simulatte/system-diagram/diagram.js).
+
+A reusable subsystem owns an internal architecture and a named external interface.
+Its behaviour comes from executing that architecture through the existing kernels,
+not from a synthetic success response on a new opaque node. Two instances share a
+definition but have independent executable state. A definition can itself contain
+instances of other versioned definitions.
+
+| Operation | Contract |
+| --- | --- |
+| Save | Capture selected components and their internal connections; preserve crossing connections through external port bindings. |
+| Reuse | Insert another version-pinned instance with independent runtime state. |
+| Nest | Include a subsystem instance inside another definition, within validation bounds. |
+| Publish | Add an explicit revision while preserving older definitions and pins. |
+| Upgrade | Rebind selected instances explicitly and validate ports and overrides atomically. |
+| Override | Change declared descendant primitive parameters for one instance, without changing its shared definition. |
+| Run | Lower the accepted version-pinned graph deterministically into existing executable nodes and edges. |
+
+Publishing is not live propagation. Existing instances remain on their selected
+version until explicitly upgraded. Accepted runs retain the architecture they
+accepted even after the pending document publishes, upgrades or changes overrides.
+A failed edit must leave both the pending document and accepted execution intact.
+Port bindings carry the mapped endpoint's direction and payload contract; invalid
+references or recursive definition dependencies refuse rather than draw a plausible
+placeholder. Graph message cycles remain distinct from recursive definitions.
+
+Documents retain their definitions so exported architecture does not depend on a
+mutable remote registry. This is portable local composition, not multi-user
+synchronization, automatic cross-file updates or arbitrary user-supplied code.
+
+### Version v4 shape and bounds
+
+A v4 document adds optional `subsystems`. Each definition has
+`{ id, version, label, nodes, edges, groups, notes, faults, ports }`. `version` is a
+positive integer; the definition identity is the pair `(id, version)`. Its internal
+graph uses the same node, edge, group, note and fault contracts as the root graph.
+Nested definitions resolve from the enclosing document. Save and publish snapshot
+resolved primitive parameters and built-in class references, so later user-class
+edits cannot silently mutate pinned behaviour.
+
+A subsystem node keeps ordinary `id`, `label`, `x`, `y` and optional `groupId`, with
+`classId: "subsystem.chat-backend@1"`, empty `params` and optional `overrides`:
+
+```json
+{
+  "generation-capacity/generation": { "chunkDelayMs": 3000 },
+  "generation-capacity/generation-b": { "chunkDelayMs": 3000 }
+}
+```
+
+Override paths use internal node IDs separated by `/` and end at a primitive.
+Pinned primitive parameters resolve first, then nested-instance overrides, then
+the containing instance's explicit descendant overrides. Unknown
+paths, composite endpoints and values outside kernel parameter specs refuse.
+
+Each external port is `{ id, label, direction, target: { nodeId, portId } }`.
+The target is a direct internal node port, possibly another subsystem's external
+port. Direction must agree; payload types, required status and cardinality derive
+from the terminal primitive port. Duplicate aliases for one target refuse.
+Capture exposes existing internal ports, including unused ports for later wiring;
+editing a new definition revision can narrow or rename that interface.
+
+Definitions are bounded to 100 entries and eight nested levels. Expanded instance
+and primitive counts are also bounded. Existing
+`config.bounds` apply both to each definition and the fully expanded graph, not
+just the visible boxes. Expanded nodes receive deterministic collision-free IDs;
+root primitive IDs remain unchanged. Port mappings rewire real endpoint edges
+without inserting a transport hop or service delay. Group membership and scheduled
+internal faults lower with their owning graph. Composite nodes permit visual
+boundary membership only; resource and failure-domain groups belong inside their
+definitions. Direct faults on a composite node
+refuse; author faults on its internal primitives or supported failure domains.
+
+Versions v1-v3 remain importable; composition authoring promotes its document to
+v4. Folding a group still does not create a definition. The compiler returns the
+existing primitive compiled-graph schema with a `composition` receipt containing
+instance paths, pinned references, overrides and `{ id, path, kind }` mappings.
+Kernels and replay keep one execution path. The portable library contains definitions and referenced user classes;
+import conflicts refuse rather than replacing an existing version.
 
 ## Diagram document `simulatte.systemDiagram.v1`
 

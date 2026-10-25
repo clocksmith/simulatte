@@ -134,6 +134,11 @@
       "id": "lakehouse-late-data",
       "label": "Event-time windows, schema evolution and spill",
       "path": "/data/system-diagram/examples/lakehouse-late-data.json"
+    },
+    {
+      "id": "nested-chat",
+      "label": "Chat: reusable nested backend and generation capacity",
+      "path": "/data/system-diagram/examples/nested-chat.json"
     }
   ],
   "claimBoundary": "Synthetic discrete-event model of the drawn architecture. Service times, latencies, failure rates and token costs are user assumptions, not measurements of real systems, providers or hardware."

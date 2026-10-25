@@ -163,3 +163,12 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
   .palette-category-title { grid-column: 1/-1; }
   .palette-category .palette-item { width: 100%; min-width: 0; }
 }
+
+/* Versioned composition uses the existing inspector geometry at narrow widths. */
+.subsystem-library { padding: 12px; border-top: 1px solid var(--wui-line); }
+.subsystem-library label, .subsystem-port-row label { display: grid; gap: 4px; margin-block: 8px; }
+.subsystem-library textarea, #subsystem-overrides { box-sizing: border-box; width: 100%; max-width: 100%; font: 12px monospace; }
+.subsystem-port-row { padding-block: 8px; border-bottom: 1px solid var(--wui-line); }
+.subsystem-library .wui-field { box-sizing: border-box; min-width: 0; width: 100%; }
+.subsystem-library button { max-width: 100%; white-space: normal; }
+.subsystem-library .properties-actions { flex-wrap: wrap; }

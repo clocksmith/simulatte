@@ -4,13 +4,13 @@ Parent: [World](../CATSCAN.md)
 
 ## Target
 
-Expose `/system-diagram` as a system diagram editor whose drawn architecture runs as a deterministic distributed-compute simulation: drag configurable node classes, connect ports, run, inject faults and replay.
+Make `/system-diagram` an architecture editor: connect components, save and nest versioned subsystems, execute deterministic synthetic workloads, inject faults and replay.
 
 ## Authority
 
-- Owns the diagram document, class library packs, kernel behaviour, editor, run controls, overlays and metrics for this route.
-- Shared coordinator owns logical rounds, checkpoints and ledger replay; World UI owns control geometry, menus, sheets, inspectors and metric presentation.
-- Does not own Create compilation, live infrastructure or production capacity claims.
+- Owns documents, subsystem lowering, classes, kernels, editor, controls and observations.
+- Shared coordinator owns rounds, checkpoints and replay; World UI owns controls.
+- Does not own Create compilation or live infrastructure.
 
 ## Scope
 
@@ -23,17 +23,21 @@ Expose `/system-diagram` as a system diagram editor whose drawn architecture run
 
 ## Invariants
 
-- The validated diagram document is the only simulation input; layout never changes results.
-- Parameter values resolve kernel default, built-in class, user classes, instance; unknown or out-of-range values are rejected.
-- Every class names a kernel with registered behaviour; unregistered kernels fail closed.
-- Requests, attempts and effects remain separate records; rejected, timed-out and dead-lettered work stays visible.
-- Diagram, seed and recorded controls reproduce the run exactly; display previews equal the authoritative coordinator state.
+- Validated documents alone determine execution; layout never changes results.
+- Parameters resolve kernel, built-in class, user classes, then instance; unknown or invalid values refuse.
+- Primitive kernels require registered behaviour. Subsystems lower version-pinned internal graphs, never placeholder kernels.
+- Definitions expose typed external ports and bounded nesting. Recursive dependencies, invalid bindings and invalid overrides refuse.
+- Publishing preserves version pins. Explicit upgrades remain pending until acceptance; accepted runs never mutate.
+- Portable documents retain dependencies. Folding remains presentation, not executable composition.
+- Requests, attempts and effects remain separate; rejected, timed-out and dead-lettered work stays visible.
+- Diagram, seed and controls reproduce execution; previews equal coordinator state.
 - Synthetic assumptions cannot establish production capacity, provider behaviour or physical validity.
 
 ## Acceptance
 
 - Evidence: [document tests](../../../tests/system-diagram-document.test.cjs), [session tests](../../../tests/system-diagram-session.test.cjs), [engine tests](../../../tests/system-diagram-engine.test.cjs), [kernel tests](../../../tests/system-diagram-kernels.test.cjs) and [browser journey](../../../tools/simulatte/audit-system-diagram-editor.mjs).
-- Browser journeys cover drawing, connecting, configuring, running, faulting and replay on desktop and a narrow viewport, separately from human comprehension.
+- Desktop and narrow-viewport journeys cover drawing, saving, reuse, nesting, upgrades, running, faulting and replay; human comprehension remains separate.
+- Nested chat-backend tests demonstrate topology-dependent outcomes and deterministic replay.
 
 ## Non-goals
 
