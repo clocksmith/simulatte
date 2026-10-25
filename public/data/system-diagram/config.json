@@ -56,7 +56,8 @@
     "nodeWidth": 176,
     "nodeHeight": 72,
     "minZoom": 0.2,
-    "maxZoom": 3
+    "maxZoom": 3,
+    "fitMinZoom": 1e-05
   },
   "defaultExampleId": "chat-application",
   "examples": [

@@ -44,9 +44,23 @@
   function autosave(config, storage = defaultStorage()) {
     const key = config.editor.autosaveKey;
     const backupKey = `${key}.backup`;
+    function readStatus() {
+      if (!storage) return {state: 'unavailable', error: 'Browser storage is unavailable.'};
+      try {
+        const raw = storage.getItem(key);
+        if (!raw) return {state: 'missing'};
+        const value = JSON.parse(raw);
+        const record = value?.schema === DRAFT_SCHEMA && value.diagram && typeof value.diagram === 'object'
+          ? {diagram: value.diagram, subsystemDraft: value.subsystemDraft || null}
+          : value && Array.isArray(value.nodes) ? {diagram: value, subsystemDraft: null} : null;
+        if (!record) throw Error('Stored value is not a diagram document.');
+        return {state: 'ready', record};
+      } catch (error) {return {state: 'invalid', error: error.message};}
+    }
     return {
       key,
       backupKey,
+      readStatus,
       save(doc, subsystemDraft = null) {
         if (!storage) return false;
         try {
@@ -73,22 +87,7 @@
         } catch { return null; }
       },
       loadRecord() {
-        if (!storage) return null;
-        try {
-          const raw = storage.getItem(key);
-          if (!raw) return null;
-          const record = JSON.parse(raw);
-          if (record?.schema === DRAFT_SCHEMA && record.diagram && typeof record.diagram === 'object') {
-            return {
-              diagram: record.diagram,
-              subsystemDraft: record.subsystemDraft || null,
-            };
-          }
-          if (record && typeof record === 'object' && Array.isArray(record.nodes)) {
-            return { diagram: record, subsystemDraft: null };
-          }
-          return null;
-        } catch { return null; }
+        return readStatus().record || null;
       },
       loadBackup() {
         if (!storage) return null;

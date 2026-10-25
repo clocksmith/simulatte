@@ -110,7 +110,8 @@
     if (!Number.isFinite(doc.run.horizonSec) || doc.run.horizonSec <= 0 || doc.run.horizonSec > b.maxHorizonSec) fail('diagram.run.horizonSec', `seconds in (0, ${b.maxHorizonSec}]`, doc.run.horizonSec);
     exactKeys(C, 'diagram.view', doc.view, ['x', 'y', 'zoom']);
     coord('diagram.view.x', doc.view.x); coord('diagram.view.y', doc.view.y);
-    if (!Number.isFinite(doc.view.zoom) || doc.view.zoom < config.editor.minZoom || doc.view.zoom > config.editor.maxZoom) fail('diagram.view.zoom', `zoom in [${config.editor.minZoom}, ${config.editor.maxZoom}]`, doc.view.zoom);
+    const minZoom = config.editor.fitMinZoom || config.editor.minZoom;
+    if (!Number.isFinite(doc.view.zoom) || doc.view.zoom < minZoom || doc.view.zoom > config.editor.maxZoom) fail('diagram.view.zoom', `zoom in [${minZoom}, ${config.editor.maxZoom}]`, doc.view.zoom);
     for (const [key, max] of [['classes', b.maxUserClasses], ['nodes', b.maxNodes], ['edges', b.maxEdges], ['groups', b.maxGroups], ['notes', b.maxNotes], ['faults', b.maxFaults]]) {
       if (!Array.isArray(doc[key]) || doc[key].length > max) fail(`diagram.${key}`, `array of at most ${max}`, Array.isArray(doc[key]) ? doc[key].length : doc[key]);
     }

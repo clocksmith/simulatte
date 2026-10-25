@@ -41,9 +41,12 @@ Keep the three established featured experiences understandable through interacti
 ## Authorized World system diagram editor
 
 System Diagram Simulator at `/system-diagram` is primarily a system architecture
-creator whose connections execute a synthetic distributed workload. Center a
-readable canvas, draggable component palette, typed ports and a contextual property
-inspector. Support moving, selecting, deleting, duplicating, connecting and
+creator whose connections execute a synthetic distributed workload. Give the
+canvas the full viewport, with floating controls and edge-tab drawers for the
+component palette and contextual property inspector. Keep pan and zoom bounded,
+provide Fit to View, attach typed connections at port boundaries, and restore
+explicitly saved documents and their camera after browser reload. Support moving,
+selecting, deleting, duplicating, connecting and
 reconnecting nodes; grouping, pan/zoom, undo/redo and save/load. Reusable node
 classes own defaults; individual instances hold explicit overrides. Keep accepted
 execution immutable until edited architecture validates and restarts explicitly.

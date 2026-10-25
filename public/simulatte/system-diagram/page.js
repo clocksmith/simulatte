@@ -113,6 +113,8 @@
     onView: v => { const zs = $('zoom-status'); if (zs) zs.textContent = `${Math.round(v.zoom * 100)}%`; }
   });
 
+  const shell = globalThis.SimulatteSystemDiagramShell.create({canvas});
+
   function select() { return model.selection; }
   function selectedId() { const s = select(); return s.nodes[0] || s.edges[0] || s.groups[0] || s.notes[0] || null; }
   function erase() { apply({ type: 'deleteItems', selection: select() }); }
@@ -159,6 +161,7 @@
 
   // Document file actions
   function saveLocal() {
+    canvas.flush();
     const isSubsystem = Boolean(subsystemEditor?.session?.active);
     const rootDoc = isSubsystem ? subsystemEditor.session.rootDiagram : model.diagram;
     const draft = isSubsystem ? subsystemEditor.getDraft() : null;
@@ -233,13 +236,15 @@
       message(`Recovered parent diagram and subsystem draft: ${subsystemDraft.label || subsystemDraft.classId}`);
     } else {
       canvas.render();
-      canvas.fit({ readable: true });
+      canvas.setView(diagram.view);
+      canvas.flush();
       render();
       message(`Loaded saved diagram: ${diagram.name || diagram.id || 'Custom architecture'}`);
     }
   }
 
   function exportJson() {
+    canvas.flush();
     const text = JSON.stringify(model.diagram, null, 2);
     const elDoc = $('document');
     if (elDoc) elDoc.value = text;
@@ -887,7 +892,15 @@
   ui.adoptTree(document.body);
   subsystemEditor.render();
   render();
-  canvas.fit({ readable: true });
+  shell.updateInsets();
+  const stored = fileStore?.readStatus();
+  let recoveryError = stored && !['ready', 'missing'].includes(stored.state) ? `Saved diagram could not be read: ${stored.error} Stored data was retained.` : '';
+  const storedRecord = stored?.record;
+  if (storedRecord) {
+    try { loadDocumentRecord(storedRecord.diagram, storedRecord.subsystemDraft); }
+    catch (error) { recoveryError = `Saved diagram could not be restored: ${error.message}. The stored copy was retained.`; }
+  } else canvas.fit({ readable: true });
+  canvas.flush();
   initialDocSig = documentSignature(model.diagram);
   render();
 
@@ -895,6 +908,7 @@
     document: () => clone(model.diagram),
     selection: () => clone(select()),
     viewport: () => canvas.getView(),
+    shell,
     saveLocal,
     loadLocal,
     hasUnsavedChanges,
@@ -908,7 +922,7 @@
 
   document.body.dataset.simulationProfile = profile.id;
   document.body.dataset.editorReady = 'true';
-  message('System Diagram Editor ready. Drag components, draw connections, and collapse or expand groups.');
+  message(recoveryError || 'System Diagram Editor ready.', Boolean(recoveryError));
 })().catch(e => {
   const s = document.getElementById('editor-status');
   if (s) { s.textContent = `Unable to open editor: ${e.message}`; s.dataset.error = 'true'; }

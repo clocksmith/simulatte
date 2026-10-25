@@ -1,27 +1,67 @@
 {
   "source": {
-    "head": "832f29923a4ca357c5e435faf9e308a77e656e59",
-    "capturedAt": "2026-10-25T19:26:04.266Z",
+    "head": "82856973f3452444e48728a1e774b27528c1d84c",
+    "capturedAt": "2026-10-25T20:24:58.392Z",
     "modifiedSources": {
+      "public/data/system-diagram/config.json": {
+        "sha256": "de68dedbc656b8a4d62008959ad90cca159eb889eb6b38a322b160a54aa68243",
+        "modifiedAt": "2026-10-25T20:13:56.011Z"
+      },
+      "public/index.html": {
+        "sha256": "195379a07b35bed9e7f15a38dc08db97ac8a49f07772fd691681f671032e1b03",
+        "modifiedAt": "2026-10-25T19:48:05.090Z"
+      },
+      "public/simulatte/distributed-repair/index.html": {
+        "sha256": "5a4dad46b8fa104db36a71a640009a4e0d0d4164f941e976e466f8e1db6b8ca9",
+        "modifiedAt": "2026-10-25T19:48:05.090Z"
+      },
+      "public/simulatte/distributed-repair/repair.html": {
+        "sha256": "dd7596aa4c751b227d8e15fd9a0d90daff1ebe643169fcbe018e32c6d3daf2b7",
+        "modifiedAt": "2026-10-25T19:48:05.091Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "37f39ea37d6ec178851130b10efb5fa829384822291626c8f324afb10333b4c5",
+        "modifiedAt": "2026-10-25T19:48:05.090Z"
+      },
+      "public/simulatte/system-diagram/diagram.js": {
+        "sha256": "b7c85359de62412c032ca130d1859bcb85d7b590026bf33ed4034d2cca653aa8",
+        "modifiedAt": "2026-10-25T20:13:56.011Z"
+      },
+      "public/simulatte/system-diagram/editor-canvas-render.js": {
+        "sha256": "19d5a07de49cf35a4a8b455c6e6602751bc2b640a046a4f33fff58a37c1225ab",
+        "modifiedAt": "2026-10-25T20:07:13.402Z"
+      },
+      "public/simulatte/system-diagram/editor-canvas.js": {
+        "sha256": "ba141700fe3c629a7fe4fc56c0669c4b3c92b7aa612f225fad38723376f2ee4c",
+        "modifiedAt": "2026-10-25T20:23:18.361Z"
+      },
+      "public/simulatte/system-diagram/editor-shell.js": {
+        "sha256": "0aa496f9c8fc45e604def7b291a3d936528f2e2229fbd0cff0c7950f7815fad6",
+        "modifiedAt": "2026-10-25T20:10:02.720Z"
+      },
+      "public/simulatte/system-diagram/editor-viewport.js": {
+        "sha256": "1a398bae644d7cda51c3a66d8355be0e0a767627e36635eb98e76783784d740c",
+        "modifiedAt": "2026-10-25T20:23:18.360Z"
+      },
       "public/simulatte/system-diagram/file-io.js": {
-        "sha256": "eb98c418f6b2dedffdb4d4bd9f1ac27cea1a3993081054422a509d44dda0bfb2",
-        "modifiedAt": "2026-10-25T19:10:47.720Z"
+        "sha256": "cb5c8ffb30ea7217b97d5e84335a51b8d19b5acca8490c76cea287648bfb26b7",
+        "modifiedAt": "2026-10-25T20:08:13.706Z"
       },
       "public/simulatte/system-diagram/index.html": {
-        "sha256": "e9d6258f2556ed0eb36f65da342dadda88dccc39a06819eebd3aa874f7525342",
-        "modifiedAt": "2026-10-25T19:13:07.462Z"
+        "sha256": "4332af086c4c96617e763afc802dd1fc4f8323a158054f9a0c4892dfd9892620",
+        "modifiedAt": "2026-10-25T20:10:02.719Z"
       },
       "public/simulatte/system-diagram/page.js": {
-        "sha256": "747f3f550755d61bbf4eb688b11c22df7ca3eb0e49b7b765b9156630f814856f",
-        "modifiedAt": "2026-10-25T19:22:53.656Z"
+        "sha256": "2965c493e2589998e8f1af708ecac5c6ab9eaa6dbce3310caf73d07c7d1bec97",
+        "modifiedAt": "2026-10-25T20:08:13.706Z"
       },
       "public/simulatte/system-diagram/style.css": {
-        "sha256": "b8513e9029cd29ec61cb907d53e5c366b8875cd0961ea27e2a8a588c0391ea31",
-        "modifiedAt": "2026-10-25T19:13:19.004Z"
+        "sha256": "16cdb3d1a61b5ed748e674354b623a52bd13a836c61922dafa0f26a29ff3d879",
+        "modifiedAt": "2026-10-25T20:24:58.085Z"
       },
-      "public/simulatte/system-diagram/subsystem-editor.js": {
-        "sha256": "44f37cbc3783fc148cfe495882367270d762f2394397b23a2b2c812b29e6a5ba",
-        "modifiedAt": "2026-10-25T19:16:45.640Z"
+      "public/version.json": {
+        "sha256": "3d574a37e1ddb87d5f5a9341bf71421e2a0be2b6c738349dce68d9a1db722f44",
+        "modifiedAt": "2026-10-25T19:48:05.091Z"
       }
     },
     "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
@@ -35,11 +75,15 @@
       },
       "checks": {
         "titleAndReady": true,
+        "fullViewport": true,
+        "drawerDismissalAndStableCamera": true,
         "presetLoaded": true,
         "nodeEditAndCoordinates": true,
         "exactConnectionEndpoints": true,
+        "portBoundaryAttachments": true,
         "groupClustered": true,
         "groupCollapsed": true,
+        "foldedPortBoundaryAttachments": true,
         "groupExpandedAndCoordinatesPreserved": true,
         "detachedSubsystemEditorOpened": true,
         "publishedVersionPinned": true,
@@ -64,6 +108,7 @@
         "1440-09-reloaded.png",
         "1440-10-exported.png"
       ],
+      "build": "82856973f3452444e48728a1e774b27528c1d84c-8325d08fe36b",
       "lastAction": {
         "button": "Import JSON"
       },
@@ -76,11 +121,15 @@
       },
       "checks": {
         "titleAndReady": true,
+        "fullViewport": true,
+        "drawerDismissalAndStableCamera": true,
         "presetLoaded": true,
         "nodeEditAndCoordinates": true,
         "exactConnectionEndpoints": true,
+        "portBoundaryAttachments": true,
         "groupClustered": true,
         "groupCollapsed": true,
+        "foldedPortBoundaryAttachments": true,
         "groupExpandedAndCoordinatesPreserved": true,
         "detachedSubsystemEditorOpened": true,
         "publishedVersionPinned": true,
@@ -105,6 +154,7 @@
         "390-09-reloaded.png",
         "390-10-exported.png"
       ],
+      "build": "82856973f3452444e48728a1e774b27528c1d84c-8325d08fe36b",
       "lastAction": {
         "button": "Import JSON"
       },

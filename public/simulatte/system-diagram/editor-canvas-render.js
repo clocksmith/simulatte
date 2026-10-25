@@ -123,6 +123,7 @@
     function noteBox(note) { const w = note.w || NOTE_WIDTH; return { x: note.x, y: note.y, w, h: wrapLines(note.text, w).length * NOTE_LINE + 16 }; }
     // Forward edges get a clean cubic bezier; backward/looping links route cleanly around rather than cutting through nodes.
     function curve(a, b) {
+      a = {x: a.x + PORT_DOT, y: a.y}; b = {x: b.x - PORT_DOT, y: b.y};
       if (b.x >= a.x + 32) {
         const dx = Math.max(36, (b.x - a.x) * 0.45);
         return `M${a.x} ${a.y}C${a.x + dx} ${a.y} ${b.x - dx} ${b.y} ${b.x} ${b.y}`;

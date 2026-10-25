@@ -1,15 +1,13 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
-  const api = factory(node ? require('./diagram.js') : root.SimulatteSystemDiagramDocument, node ? require('./editor-canvas-render.js') : root.SimulatteSystemDiagramCanvasRender);
+  const api = factory(node ? require('./diagram.js') : root.SimulatteSystemDiagramDocument, node ? require('./editor-canvas-render.js') : root.SimulatteSystemDiagramCanvasRender, node ? require('./editor-viewport.js') : root.SimulatteSystemDiagramViewport);
   if (node) module.exports = api; else root.SimulatteSystemDiagramCanvas = api;
-})(globalThis, function (D, R) {
+})(globalThis, function (D, R, V) {
   'use strict';
   const DRAG_THRESHOLD = Object.freeze({ mouse: 4, pen: 6, touch: 9 });
   const LONG_PRESS_MS = 450;
   const DOUBLE_TAP_MS = 350;
   const GROUP_MIN_GRID_STEPS = 6;
-  const FIT_PADDING = 48;
-  const FIT_MAX_ZOOM = 1.25;
   const GRID_STEPS = 4;
   const GRID_MIN_PX = 10;
   const ZOOM_STEP = 1.2;
@@ -31,7 +29,7 @@
     const E = config.editor, W = E.nodeWidth, H = E.nodeHeight, GRID = E.grid;
     const uid = ++instances;
     const touches = new Map();
-    let view = { ...model.diagram.view }, gesture = null, pending = null, editing = null;
+    let insets = {}, view = { ...model.diagram.view }, gesture = null, pending = null, editing = null;
     let explicitMultiSelect = false, overlay = null, runView = null, runPending = false, inputReceipt = null;
     const reconnectHandles = new Map();
     let frame = 0, queuedPositions = null, viewDirty = false, ownViewChange = false, hintTimer = 0, gestureCount = 0, lastTap = null;
@@ -45,7 +43,7 @@
     const svg = el(doc, 'svg', { class: 'sd-canvas-svg', width: '100%', height: '100%' });
     const defs = el(doc, 'defs');
     const marker = (id, cls) => {
-      const m = el(doc, 'marker', { id, viewBox: `0 0 ${ARROW} ${ARROW}`, refX: ARROW + PORT_DOT, refY: ARROW / 2, markerWidth: ARROW, markerHeight: ARROW, markerUnits: 'userSpaceOnUse', orient: 'auto' });
+      const m = el(doc, 'marker', { id, viewBox: `0 0 ${ARROW} ${ARROW}`, refX: ARROW, refY: ARROW / 2, markerWidth: ARROW, markerHeight: ARROW, markerUnits: 'userSpaceOnUse', orient: 'auto' });
       m.append(el(doc, 'path', { d: `M0 1L${ARROW} ${ARROW / 2}L0 ${ARROW - 1}z`, class: cls }));
       return m;
     };
@@ -97,18 +95,9 @@
       const boxes = [...presentation().nodes.map(n => nodeBox(n.id)), ...d.groups.map(g => groupBox(g.id)), ...d.notes.map(noteBox)].filter(Boolean);
       if (!boxes.length) return null;
       const x0 = Math.min(...boxes.map(b => b.x)), y0 = Math.min(...boxes.map(b => b.y));
-      return { x: x0, y: y0, w: Math.max(...boxes.map(b => b.x + b.w)) - x0, h: Math.max(...boxes.map(b => b.y + b.h)) - y0 };
+      return { x: x0, y: y0, w: Math.max(...boxes.map(b => b.x + b.w)) - x0, h: Math.max(...boxes.map(b => b.y + b.h)) - y0, anchors: boxes };
     }
-    function canvasBounds() {
-      const cb = contentBounds();
-      const padX = 280, padY = 200, minW = 1600, minH = 1000;
-      if (!cb) return { x: 0, y: 0, w: minW, h: minH };
-      const x = snap(Math.min(0, cb.x - padX));
-      const y = snap(Math.min(0, cb.y - padY));
-      const right = snap(Math.max(minW, cb.x + cb.w + padX));
-      const bottom = snap(Math.max(minH, cb.y + cb.h + padY));
-      return { x, y, w: right - x, h: bottom - y };
-    }
+    function canvasBounds() { return V.board(contentBounds(), GRID); }
     function paintBoard() {
       const cb = canvasBounds();
       boardBg.setAttribute('x', cb.x); boardBg.setAttribute('y', cb.y);
@@ -117,37 +106,9 @@
       boardGrid.setAttribute('width', cb.w); boardGrid.setAttribute('height', cb.h);
       boardGrid.style.opacity = GRID * GRID_STEPS * view.zoom < GRID_MIN_PX ? '0' : '';
     }
+    const minimumZoom = () => V.minimumZoom(contentBounds(), rect(), E, insets);
     function clampView(v) {
-      const zoom = clamp(v.zoom, E.minZoom, E.maxZoom);
-      const r = rect();
-      if (!r.width || !r.height) {
-        return { x: clamp(v.x || 0, -2000, 2000), y: clamp(v.y || 0, -2000, 2000), zoom };
-      }
-      const cb = canvasBounds();
-      const vpW = r.width / zoom, vpH = r.height / zoom;
-      const slack = 80;
-
-      let minX, maxX;
-      if (vpW < cb.w) {
-        minX = cb.x - slack; maxX = cb.x + cb.w - vpW + slack;
-      } else {
-        const cx = cb.x + (cb.w - vpW) / 2;
-        minX = cx - slack; maxX = cx + slack;
-      }
-
-      let minY, maxY;
-      if (vpH < cb.h) {
-        minY = cb.y - slack; maxY = cb.y + cb.h - vpH + slack;
-      } else {
-        const cy = cb.y + (cb.h - vpH) / 2;
-        minY = cy - slack; maxY = cy + slack;
-      }
-
-      return {
-        x: clamp(v.x || 0, minX, maxX),
-        y: clamp(v.y || 0, minY, maxY),
-        zoom,
-      };
+      return V.constrain(v, rect(), contentBounds(), canvasBounds(), E, insets);
     }
     function paintView() {
       paintBoard();
@@ -163,20 +124,19 @@
       return { ...view };
     }
     function zoomAt(client, factor) {
-      const before = screenToWorld(client), zoom = clamp(view.zoom * factor, E.minZoom, E.maxZoom), r = rect();
+      const before = screenToWorld(client), zoom = clamp(view.zoom * factor, minimumZoom(), E.maxZoom), r = rect();
       setView({ zoom, x: before.x - (client.x - r.left) / zoom, y: before.y - (client.y - r.top) / zoom });
     }
     function zoomBy(factor) { const r = rect(); zoomAt({ x: r.left + r.width / 2, y: r.top + r.height / 2 }, factor); return { ...view }; }
     function fit(options = {}) {
-      const r = rect(), b = contentBounds();
+      const r = rect(), b = contentBounds(), a = V.area(r, insets);
       if (!r.width || !r.height) return { ...view };
-      if (!b) return setView({ x: -r.width / 2, y: -r.height / 2, zoom: 1 });
-      const zoom = clamp(Math.min((r.width - 2 * FIT_PADDING) / b.w, (r.height - 2 * FIT_PADDING) / b.h, FIT_MAX_ZOOM), E.minZoom, E.maxZoom);
-      if (options.readable && r.width < 600 && zoom < .85) {
+      const fitted = V.fit(b, r, E, insets);
+      if (b && options.readable && a.width < 600 && fitted.zoom < .85) {
         const source = presentation().nodes.find(n => { const ports = classInfo(n.classId).ports; return ports.some(p => p.direction === 'out') && !ports.some(p => p.direction === 'in'); }) || presentation().nodes[0] || model.diagram.groups[0];
-        if (source) { const readable = clamp(.85, E.minZoom, E.maxZoom); return setView({ zoom: readable, x: source.x - 24 / readable, y: source.y + H / 2 - r.height / 2 / readable }); }
+        if (source) { const zoom = clamp(.85, minimumZoom(), E.maxZoom); return setView({ zoom, x: source.x - (a.left + 24) / zoom, y: source.y + H / 2 - (a.top + a.height / 2) / zoom }); }
       }
-      return setView({ zoom, x: b.x + b.w / 2 - r.width / 2 / zoom, y: b.y + b.h / 2 - r.height / 2 / zoom });
+      return setView(fitted);
     }
 
     // Pointer moves are batched per animation frame; drags commit through one coalesced history entry.
@@ -613,7 +573,7 @@
       const [a, b] = [...touches.values()];
       if (!a || !b) return;
       const g = gesture, r = rect(), mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-      const zoom = clamp(g.startZoom * Math.hypot(a.x - b.x, a.y - b.y) / g.startDist, E.minZoom, E.maxZoom);
+      const zoom = clamp(g.startZoom * Math.hypot(a.x - b.x, a.y - b.y) / g.startDist, minimumZoom(), E.maxZoom);
       setView({ zoom, x: g.anchor.x - (mid.x - r.left) / zoom, y: g.anchor.y - (mid.y - r.top) / zoom });
     }
 
@@ -740,7 +700,12 @@
       if (event.kind !== 'selection' && pending && (!findNode(pending.source.nodeId) || !portPosition(pending.source.nodeId, pending.source.portId))) cancelPending();
       render();
     });
-    const resize = typeof win.ResizeObserver === 'function' ? new win.ResizeObserver(() => paintView()) : null;
+    let size = rect();
+    const resize = typeof win.ResizeObserver === 'function' ? new win.ResizeObserver(() => {
+      const next = rect();
+      setView({x: view.x + (size.width - next.width) / (2 * view.zoom), y: view.y + (size.height - next.height) / (2 * view.zoom)});
+      size = next;
+    }) : null;
     resize?.observe(host);
     doc.fonts?.ready?.then(() => { if (!events.signal.aborted) { renderer.invalidateText(); render(); } });
     paintView();
@@ -758,6 +723,7 @@
       },
       setMultiSelect(value) { explicitMultiSelect = Boolean(value); host.dataset.multiSelect = String(explicitMultiSelect); },
       setState(value, options = {}) { runView = value; runPending = Boolean(options.pending); paintState(); },
+      flush: flushNow, setInsets(value) { insets = {...value}; view = clampView(view); paintView(); },
       fit, zoomBy, getView: () => ({ ...view }), setView: v => setView(v),
       screenToWorld, worldToScreen, viewportCenter, groupAt, snap,
       startConnect: (nodeId, portId) => { const n = findNode(nodeId), port = n && classInfo(n.classId).ports.find(p => p.id === portId); if (port) startPending({ nodeId, portId, dir: port.direction }); },

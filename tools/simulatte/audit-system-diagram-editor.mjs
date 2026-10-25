@@ -5,21 +5,24 @@ import { sourceReceipt } from './runtime-audit-sources.mjs';
 import { openBrowserAudit } from './browser-session.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const output = root + 'artifacts/system-diagram-editor';
+const liveUrl = process.env.SIMULATTE_AUDIT_URL || '';
+const output = root + 'artifacts/system-diagram-editor' + (liveUrl ? '/live' : '');
 await fs.mkdir(output, { recursive: true });
 
 const report = {
   source: await sourceReceipt(root),
-  boundary: 'Local isolated Chrome browser editing journey verification for System Diagram Editor: Preset -> edit -> connect -> group -> collapse -> expand -> edit subsystem -> publish -> explicitly upgrade instance -> undo/redo -> save -> reload -> export/import.',
+  boundary: `${liveUrl ? 'Live hosted' : 'Local'} isolated Chrome browser editing journey verification for System Diagram Editor: Preset -> edit -> connect -> group -> collapse -> expand -> edit subsystem -> publish -> explicitly upgrade instance -> undo/redo -> save -> reload -> export/import.`,
+  ...(liveUrl ? {url: liveUrl} : {}),
   cases: []
 };
+if (liveUrl) report.source.boundary = 'Local comparison checkout; browser evidence below comes from the named live URL.';
 
 const viewports = [{ width: 1440, height: 1000 }, { width: 390, height: 844 }];
 const requestedWidth = process.env.SIMULATTE_AUDIT_WIDTH ? Number(process.env.SIMULATTE_AUDIT_WIDTH) : null;
 if (requestedWidth !== null && !viewports.some(v => v.width === requestedWidth)) throw Error('Unsupported audit viewport');
 
 for (const viewport of viewports.filter(v => requestedWidth === null || v.width === requestedWidth)) {
-  const browser = await openBrowserAudit({ publicRoot: root + 'public', viewport });
+  const browser = await openBrowserAudit({ publicRoot: root + 'public', url: liveUrl, viewport });
   const client = browser.client, errors = [], networkFailures = [], blockedExternal = [];
   const row = { viewport, checks: {}, errors, networkFailures, blockedExternal, screenshots: [] };
   report.cases.push(row);
@@ -49,11 +52,25 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
   };
   const doc = () => evaluate('SimulatteSystemDiagramEditor.document()');
 
+  async function reveal(selector) {
+    const controls = await evaluate(`(() => {
+      const e = document.querySelector(${JSON.stringify(selector)}); if (!e) return [];
+      const panel = e.closest('.palette-panel,.properties-panel');
+      if (panel?.inert) return [panel.classList.contains('palette-panel') ? '#palette-toggle' : '#properties-toggle'];
+      if (e.closest('#diagram')) return [...document.querySelectorAll('.drawer-toggle[aria-expanded="true"]')].map(b => '#' + b.id);
+      const menu = e.closest('#document-menu,#edit-menu,#document-panel');
+      return menu && !menu.open && e.tagName !== 'SUMMARY' ? ['#' + menu.id + ' > summary'] : [];
+    })()`);
+    for (const control of controls) await tapAt(await point(control));
+    if (controls.length) await evaluate(`Promise.all([...document.querySelectorAll('.palette-panel,.properties-panel')].flatMap(p => p.getAnimations()).map(a => a.finished.catch(() => {})))`);
+  }
+
   async function point(selector, { ratioX = .5, ratioY = .5, scroll = true } = {}) {
+    await reveal(selector);
     return evaluate(`(async () => {
       const e = document.querySelector(${JSON.stringify(selector)});
       if (!e) throw Error('Missing: ' + ${JSON.stringify(selector)});
-      ${scroll ? "e.scrollIntoView({block:'center',inline:'center'}); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));" : ''}
+      ${scroll ? "if (!e.closest('#diagram')) e.scrollIntoView({block:'center',inline:'center'}); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));" : ''}
       const b = e.getBoundingClientRect();
       return { x: b.x + b.width * ${ratioX}, y: b.y + b.height * ${ratioY} };
     })()`);
@@ -83,18 +100,19 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
   async function button(label) {
     const before = await evaluate('Number(document.body.dataset.operationSequence || 0)');
     const selector = await evaluate(`(() => {
-      const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === ${JSON.stringify(label)} && b.getClientRects().length);
+      const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === ${JSON.stringify(label)} && !b.disabled);
       if (!b || b.disabled) throw Error('Missing enabled visible button ' + ${JSON.stringify(label)});
       b.dataset.auditButton = 'active';
       return '[data-audit-button="active"]';
     })()`);
     row.lastAction = { button: label };
     await click(selector);
-    await until(`Number(document.body.dataset.operationSequence || 0) > ${before} || document.body.dataset.editorReady === 'true'`);
+    await until(`Number(document.body.dataset.operationSequence || 0) > ${before}`);
     await evaluate(`document.querySelector('[data-audit-button="active"]')?.removeAttribute('data-audit-button')`);
   }
 
   async function set(id, value, { operation = false } = {}) {
+    await reveal('#' + id);
     const before = await evaluate('Number(document.body.dataset.operationSequence || 0)');
     await evaluate(`(() => {
       const e = document.getElementById(${JSON.stringify(id)});
@@ -147,6 +165,24 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
   }
   async function portPoint(id, portId) { return point(`[data-port-id="${portId}"][data-node-id="${id}"]`, { scroll: false }); }
 
+  async function checkPortAnchors() {
+    const attachments = await evaluate(`(() => {
+      const diagram=SimulatteSystemDiagramEditor.document();
+      return [...document.querySelectorAll('.sd-edge')].map(group => {
+        const edge=diagram.edges.find(e=>e.id===group.dataset.edgeId), path=group.querySelector('.sd-edge-line');
+        return ['from','to'].map((side,i)=>{
+          const end=edge[side], dot=document.querySelector('[data-port-id="'+CSS.escape(end.portId)+'"][data-node-id="'+CSS.escape(end.nodeId)+'"]').parentElement.querySelector('.sd-port-dot');
+          const matrix=dot.getScreenCTM(), radius=Number(dot.getAttribute('r'));
+          const expected=new DOMPoint(i ? -radius : radius,0).matrixTransform(matrix);
+          const actual=path.getPointAtLength(i ? path.getTotalLength() : 0).matrixTransform(path.getScreenCTM());
+          return {edge:edge.id,side,error:Math.hypot(expected.x-actual.x,expected.y-actual.y)};
+        });
+      }).flat();
+    })()`);
+    assert.ok(attachments.length, 'visible edges have port anchors');
+    for (const end of attachments) assert.ok(end.error < .1, `${end.edge}.${end.side} attaches to the port boundary: ${end.error}px`);
+  }
+
   try {
     await client.send('Page.enable'); await client.send('Runtime.enable'); await client.send('Network.enable');
     await client.send('Fetch.enable', { patterns: [{ urlPattern: 'http://*', requestStage: 'Request' }, { urlPattern: 'https://*', requestStage: 'Request' }] });
@@ -154,10 +190,30 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
     await client.send('Emulation.setTouchEmulationEnabled', { enabled: viewport.width < 700 });
 
     // Navigate to editor
-    await client.send('Page.navigate', { url: browser.host.baseUrl + '/simulatte/system-diagram/' });
+    await client.send('Page.navigate', { url: liveUrl ? new URL('/system-diagram', liveUrl).href : browser.host.baseUrl + '/simulatte/system-diagram/' });
     await until(`document.body.dataset.editorReady === 'true'`);
     assert.equal(await evaluate('document.title'), 'System Diagram Editor · Simulatte World');
     row.checks.titleAndReady = true;
+    row.build = await evaluate('document.querySelector(\'meta[name="simulatte-build"]\').content');
+    const surface = await evaluate(`(() => {const r=document.getElementById('diagram').getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};})()`);
+    assert.deepEqual(surface, {x:0,y:0,...viewport}, 'drawing owns the whole viewport');
+    row.checks.fullViewport = true;
+    assert.ok(await evaluate(`document.querySelector('.workspace-toolbar').getBoundingClientRect().bottom < ${viewport.width < 700 ? 160 : 145}`), 'floating HUD stays compact');
+    const beforeDrawer = await evaluate('SimulatteSystemDiagramEditor.viewport()');
+    await click('#palette-toggle');
+    assert.equal(await evaluate('document.getElementById("palette-drawer").inert'), false);
+    await evaluate(`Promise.all(document.getElementById('palette-drawer').getAnimations().map(a=>a.finished))`);
+    await shot('00-components-drawer');
+    await client.send('Input.dispatchKeyEvent', {type:'keyDown',key:'Escape',code:'Escape'});
+    await client.send('Input.dispatchKeyEvent', {type:'keyUp',key:'Escape',code:'Escape'});
+    assert.equal(await evaluate('document.getElementById("palette-drawer").inert'), true);
+    await click('#properties-toggle');
+    await evaluate(`Promise.all(document.getElementById('properties-drawer').getAnimations().map(a=>a.finished))`);
+    await shot('00-properties-drawer');
+    await tapAt({x:2,y:viewport.height*.8});
+    assert.equal(await evaluate('document.getElementById("properties-drawer").inert'), true);
+    assert.deepEqual(await evaluate('SimulatteSystemDiagramEditor.viewport()'), beforeDrawer, 'drawers never move diagram coordinates');
+    row.checks.drawerDismissalAndStableCamera = true;
 
     // 1. PRESET: load starter preset
     await set('preset', 'web-service', { operation: true });
@@ -201,6 +257,8 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
     assert.equal(newEdge.from.portId, 'calls');
     assert.equal(newEdge.to.portId, 'in');
     row.checks.exactConnectionEndpoints = true;
+    await checkPortAnchors();
+    row.checks.portBoundaryAttachments = true;
 
     // 4. GROUP: select multiple nodes and cluster into a group
     await button('Select multiple');
@@ -221,6 +279,8 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
     assert.equal(collapsedDoc.groups.find(g => g.id === createdGroup.id).collapsed, true, 'group collapsed');
     assert.equal(await evaluate(`document.querySelector('.sd-node[data-node-id="${addedId}"]') === null`), true, 'member nodes hidden when collapsed');
     row.checks.groupCollapsed = true;
+    await checkPortAnchors();
+    row.checks.foldedPortBoundaryAttachments = true;
     await shot('04-collapsed');
 
     // 6. EXPAND: expand the group back
@@ -231,6 +291,7 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
     const restoredMember = expandedDoc.nodes.find(n => n.id === addedId);
     assert.equal(restoredMember.x, movedNode.x, 'exact coordinates preserved across collapse/expand');
     row.checks.groupExpandedAndCoordinatesPreserved = true;
+    await checkPortAnchors();
     await shot('05-expanded');
 
     // 7. EDIT SUBSYSTEM: save selection as subsystem, open detached editor
@@ -281,13 +342,17 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
 
     // 11. SAVE: save diagram to local storage
     await button('Save');
+    const savedView = await evaluate('SimulatteSystemDiagramEditor.viewport()');
     assert.equal(await evaluate(`document.getElementById('revision').textContent`), 'Saved');
     row.checks.savedToStorage = true;
     await shot('08-saved');
 
     // 12. RELOAD: verify recovery from storage
-    await client.send('Page.reload');
+    const loaded = client.once('Page.loadEventFired');
+    await client.send('Page.reload'); await loaded;
     await until(`document.body.dataset.editorReady === 'true'`);
+    assert.deepEqual((await doc()).nodes, redoneDoc.nodes, 'browser reload automatically restores the saved architecture');
+    assert.deepEqual(await evaluate('SimulatteSystemDiagramEditor.viewport()'), savedView, 'browser reload restores the saved camera');
     await button('Load');
     const reloadedDoc = await doc();
     assert.equal(reloadedDoc.nodes.length, redoneDoc.nodes.length, 'reloaded document component count matches');
@@ -311,6 +376,7 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
   } catch (error) {
     row.pass = false;
     row.error = error.stack;
+    row.diagnostic = await evaluate(`({view:SimulatteSystemDiagramEditor.viewport(), diagram:SimulatteSystemDiagramEditor.document(), scroll:{x:scrollX,y:scrollY,canvas:document.getElementById('diagram').scrollLeft}, fit:[...document.querySelectorAll('#view-actions button')].map(e=>({label:e.textContent,rect:e.getBoundingClientRect().toJSON()}))})`);
     await shot('failure');
     throw error;
   } finally {

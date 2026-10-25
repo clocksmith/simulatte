@@ -53,6 +53,19 @@ test('instance overrides win over user class defaults, built-in defaults and ker
   assert.equal(compiled.faults[0].params.factor, 5);
 });
 
+test('phone overview camera survives JSON and browser storage without changing execution', () => {
+  const Files = require('../public/simulatte/system-diagram/file-io.js');
+  const initial = doc.validate(sample(), library, config), fitted = structuredClone(initial);
+  fitted.view = {x:-150,y:-200,zoom:.08};
+  const values = new Map(), store = Files.autosave(config,{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)});
+  assert.equal(store.save(fitted),true);
+  const restored=doc.validate(JSON.parse(JSON.stringify(store.loadRecord().diagram)),library,config);
+  assert.deepEqual(restored.view,fitted.view);
+  assert.deepEqual(doc.compile(restored,library,config),doc.compile(initial,library,config));
+  restored.view.zoom=0;
+  assert.throws(()=>doc.validate(restored,library,config),/diagram.view.zoom/);
+});
+
 test('deriving a class moves instance overrides into the new class and keeps resolved values', () => {
   const d = doc.validate(sample(), library, config);
   const before = doc.resolveNodeParams(d.nodes[1], d, library, config).values;
