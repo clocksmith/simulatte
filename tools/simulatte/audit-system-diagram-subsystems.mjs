@@ -71,6 +71,8 @@ for (const width of widths) {
     }
     async function select(id) { await focus(`.sd-node[data-node-id="${id}"]`); await key('Enter', 'Enter', 13); assert.deepEqual(await evaluate('SimulatteSystemDiagramEditor.selection().nodes'), [id]); }
     async function shot(name) {
+      assert.equal(await evaluate('innerWidth'), width, 'Layout viewport must match the requested audit width');
+      assert.ok(await evaluate('document.documentElement.scrollWidth') <= width, 'Document must fit the requested audit width');
       const result = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
       const filename = `${width}-${name}.png`; await fs.writeFile(output + '/' + filename, Buffer.from(result.data, 'base64')); row.screenshots.push(filename);
     }
@@ -78,8 +80,8 @@ for (const width of widths) {
     await client.send('Fetch.enable', { patterns: [{ urlPattern: 'http://*', requestStage: 'Request' }, { urlPattern: 'https://*', requestStage: 'Request' }] });
     await client.send('Emulation.setDeviceMetricsOverride', { ...viewport, deviceScaleFactor: 1, mobile: width === 390 });
     await client.send('Emulation.setTouchEmulationEnabled', { enabled: width === 390 });
-    await client.send('Page.navigate', { url: browser.host.baseUrl + '/system-diagram' });
-    await until(`document.body.dataset.editorReady === 'true'`);
+    await client.send('Page.navigate', { url: new URL('/system-diagram', browser.host.baseUrl).href });
+    await until(`document.body?.dataset.editorReady === 'true'`);
     await set('preset', 'blank'); await until('SimulatteSystemDiagramEditor.document().nodes.length === 0');
     await click('.palette-item[data-class-id="web-client"]');
     const clientId = (await doc()).nodes[0].id;
@@ -138,7 +140,7 @@ for (const width of widths) {
     await set('subsystem-library', 'subsystem.nested-backend@1'); await button('Insert subsystem');
     assert.equal((await doc()).nodes[0].classId, 'subsystem.nested-backend@1'); row.checks.crossDiagramLibraryReuse = true;
     await button('Fit'); await shot('portable-library');
-    assert.equal(await evaluate('document.documentElement.scrollWidth > innerWidth'), false);
+    assert.ok(await evaluate('document.documentElement.scrollWidth') <= width, 'Document must fit the requested audit width');
     assert.deepEqual(row.errors, []); assert.deepEqual(row.networkFailures, []); row.pass = true;
     console.log(`${width}: ${Object.keys(row.checks).length} subsystem browser checks passed`);
   } catch (error) {

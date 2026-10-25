@@ -67,6 +67,8 @@ footer{border-top:1px solid var(--wui-line);display:flex;justify-content:space-b
 .app-header{padding:12px 16px;min-height:72px}
 .workspace-toolbar{flex-wrap:wrap;padding:10px 0}
 .workspace-toolbar>.toolbar:last-child{justify-content:space-between;width:100%}
+.workspace-toolbar .inline-label{min-width:0;max-width:100%;flex:1 1 0}
+.workspace-toolbar .inline-label select{min-width:0;max-width:100%;flex:1 1 0}
 .editor-layout{grid-template-columns:minmax(0,1fr);min-height:0}
 .palette-panel{border-right:0;border-bottom:1px solid var(--wui-line);padding:10px}
 .palette-panel .panel-heading{display:flex;margin-bottom:6px}
