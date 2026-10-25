@@ -3,6 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { ENTRYPOINTS, HOSTING_SURFACES, parseSurfaceArgs, sourceFiles } from './hosting-surface-inputs.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,21 +16,6 @@ function getGitHash() {
     console.warn('Warning: Failed to retrieve git commit hash. Falling back to content-only stamp.', err);
     return 'nogit';
   }
-}
-
-const ENTRYPOINTS = Object.freeze(['index.html', 'blank/index.html', 'simulatte/field-experiments/index.html', 'simulatte/distributed-repair/index.html', 'simulatte/distributed-repair/repair.html', 'simulatte/system-diagram/index.html']);
-
-function publicFiles(dir, baseDir = dir) {
-  const files = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const filePath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...publicFiles(filePath, baseDir));
-      continue;
-    }
-    files.push(path.relative(baseDir, filePath).replaceAll(path.sep, '/'));
-  }
-  return files.sort();
 }
 
 function normalizedDeployContent(relativePath, content) {
@@ -53,7 +39,7 @@ function normalizedDeployContent(relativePath, content) {
 function getDeployContentHash() {
   const publicDir = path.join(rootDir, 'public');
   const hash = crypto.createHash('sha256');
-  for (const relativePath of publicFiles(publicDir)) {
+  for (const relativePath of sourceFiles(publicDir).sort()) {
     const filePath = path.join(publicDir, relativePath);
     const content = ENTRYPOINTS.includes(relativePath)
       ? fs.readFileSync(filePath, 'utf8')
@@ -71,7 +57,8 @@ function getDeployContentHash() {
 function stampEntrypoint(relativePath, buildHash, buildParam) {
   const indexPath = path.join(rootDir, 'public', relativePath);
   if (fs.existsSync(indexPath)) {
-    let indexHtml = fs.readFileSync(indexPath, 'utf8');
+    const original = fs.readFileSync(indexPath, 'utf8');
+    let indexHtml = original;
     const metaRegex = /<meta\s+name="simulatte-build"\s+content="[^"]*"\s*\/?>/i;
     
     if (metaRegex.test(indexHtml)) {
@@ -91,6 +78,10 @@ function stampEntrypoint(relativePath, buildHash, buildParam) {
         stylesheetCount += 1;
         return `${open}${href}?v=${buildParam}${close}`;
       });
+      if (indexHtml === original) {
+        console.log(`Unchanged public/${relativePath}`);
+        return;
+      }
       fs.writeFileSync(indexPath, indexHtml, 'utf8');
       console.log(`Updated public/${relativePath} to build content="${buildHash}"`);
       console.log(`Updated ${scriptCount} deferred script URLs in public/${relativePath}`);
@@ -104,16 +95,31 @@ function stampEntrypoint(relativePath, buildHash, buildParam) {
 }
 
 function main() {
+  const { surfaces } = parseSurfaceArgs(process.argv.slice(2));
+  const entrypoints = surfaces.flatMap(surface => HOSTING_SURFACES[surface].entrypoints);
+  sourceFiles(path.join(rootDir, 'public'), entrypoints);
+  for (const entrypoint of entrypoints) {
+    const source = fs.readFileSync(path.join(rootDir, 'public', entrypoint), 'utf8');
+    if (!/<meta\s+name="simulatte-build"\s+content="[^"]*"\s*\/?>/i.test(source)) {
+      throw new Error(`Could not find <meta name="simulatte-build"> in public/${entrypoint}`);
+    }
+  }
   const buildHash = `${getGitHash()}-${getDeployContentHash()}`;
   const buildParam = encodeURIComponent(buildHash);
   console.log(`Generated build stamp: ${buildHash}`);
 
-  for (const entrypoint of ENTRYPOINTS) stampEntrypoint(entrypoint, buildHash, buildParam);
+  for (const entrypoint of entrypoints) stampEntrypoint(entrypoint, buildHash, buildParam);
 
   const versionPath = path.join(rootDir, 'public', 'version.json');
   const versionData = JSON.stringify({ build: buildHash }, null, 2);
-  fs.writeFileSync(versionPath, versionData, 'utf8');
-  console.log(`Wrote version.json at ${versionPath}`);
+  if (!fs.existsSync(versionPath) || fs.readFileSync(versionPath, 'utf8') !== versionData) {
+    fs.writeFileSync(versionPath, versionData, 'utf8');
+    console.log(`Wrote version.json at ${versionPath}`);
+  } else console.log('Unchanged public/version.json');
+  if (surfaces.length === 1) console.log('Only selected entrypoints were stamped. The other surface is not prepared for this global build; prepare both for shared changes.');
 }
 
-main();
+try { main(); } catch (error) {
+  console.error(error.message);
+  process.exitCode = 1;
+}
