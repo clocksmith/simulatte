@@ -57,9 +57,10 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
       const e = document.querySelector(${JSON.stringify(selector)}); if (!e) return [];
       const panel = e.closest('.palette-panel,.properties-panel');
       if (panel?.inert) return [panel.classList.contains('palette-panel') ? '#palette-toggle' : '#properties-toggle'];
-      if (e.closest('#diagram')) return [...document.querySelectorAll('.drawer-toggle[aria-expanded="true"]')].map(b => '#' + b.id);
+      const controls = !panel && !e.closest('.drawer-toggle') ? [...document.querySelectorAll('.drawer-toggle[aria-expanded="true"]')].map(b => '#' + b.id) : [];
       const menu = e.closest('#document-menu,#edit-menu,#document-panel');
-      return menu && !menu.open && e.tagName !== 'SUMMARY' ? ['#' + menu.id + ' > summary'] : [];
+      if (menu && !menu.open && e.tagName !== 'SUMMARY') controls.push('#' + menu.id + ' > summary');
+      return controls;
     })()`);
     for (const control of controls) await tapAt(await point(control));
     if (controls.length) await evaluate(`Promise.all([...document.querySelectorAll('.palette-panel,.properties-panel')].flatMap(p => p.getAnimations()).map(a => a.finished.catch(() => {})))`);
@@ -203,12 +204,14 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
     await click('#palette-toggle');
     assert.equal(await evaluate('document.getElementById("palette-drawer").inert'), false);
     await evaluate(`Promise.all(document.getElementById('palette-drawer').getAnimations().map(a=>a.finished))`);
+    assert.ok(await evaluate(`(() => {const r=document.querySelector('#palette-drawer .panel-heading').getBoundingClientRect();return Boolean(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('#palette-drawer'));})()`), 'component drawer paints above the HUD');
     await shot('00-components-drawer');
     await client.send('Input.dispatchKeyEvent', {type:'keyDown',key:'Escape',code:'Escape'});
     await client.send('Input.dispatchKeyEvent', {type:'keyUp',key:'Escape',code:'Escape'});
     assert.equal(await evaluate('document.getElementById("palette-drawer").inert'), true);
     await click('#properties-toggle');
     await evaluate(`Promise.all(document.getElementById('properties-drawer').getAnimations().map(a=>a.finished))`);
+    assert.ok(await evaluate(`(() => {const r=document.querySelector('#properties-drawer .panel-heading').getBoundingClientRect();return Boolean(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('#properties-drawer'));})()`), 'properties drawer paints above the HUD');
     await shot('00-properties-drawer');
     await tapAt({x:2,y:viewport.height*.8});
     assert.equal(await evaluate('document.getElementById("properties-drawer").inert'), true);
