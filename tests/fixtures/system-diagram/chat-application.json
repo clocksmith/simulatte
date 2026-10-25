@@ -1,0 +1,134 @@
+{
+  "schema": "simulatte.systemDiagram.v2",
+  "id": "chat-application",
+  "name": "Durable streamed chat",
+  "description": "ChatGPT-like educational architecture: authored users and conversations, access checks, history reads, prompt and assistant persistence, delayed chunk delivery, duplicate-safe writes and reconnect history. No real accounts, model calls or provider measurements.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 15
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "client",
+      "classId": "application-client",
+      "label": "Chat client",
+      "x": 0,
+      "y": 80,
+      "params": {
+        "scenario": "chat",
+        "intervalMs": 600,
+        "callTimeoutMs": 8000,
+        "retries": 1
+      }
+    },
+    {
+      "id": "chat",
+      "classId": "chat-application",
+      "label": "Chat application",
+      "x": 260,
+      "y": 80,
+      "params": {}
+    },
+    {
+      "id": "conversations",
+      "classId": "conversation-store",
+      "label": "Durable conversations",
+      "x": 530,
+      "y": -50,
+      "params": {}
+    },
+    {
+      "id": "generation",
+      "classId": "synthetic-stream",
+      "label": "Synthetic generation",
+      "x": 530,
+      "y": 180,
+      "params": {
+        "chunkDelayMs": 120
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "chat-commands",
+      "from": {
+        "nodeId": "client",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "chat",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      },
+      "label": "Send prompt / fetch history"
+    },
+    {
+      "id": "conversation-operations",
+      "from": {
+        "nodeId": "chat",
+        "portId": "store"
+      },
+      "to": {
+        "nodeId": "conversations",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      },
+      "label": "Check access / read / append"
+    },
+    {
+      "id": "generation-chunks",
+      "from": {
+        "nodeId": "chat",
+        "portId": "generate"
+      },
+      "to": {
+        "nodeId": "generation",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      },
+      "label": "Generate next chunk"
+    },
+    {
+      "id": "live-chunks",
+      "from": {
+        "nodeId": "chat",
+        "portId": "chunks"
+      },
+      "to": {
+        "nodeId": "client",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      },
+      "label": "Deliver incremental chunk"
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "chat-notes",
+      "text": "Inspect the client chunks and results, then conversation messages. History may show a durable prompt while its reply is streaming. Duplicate delivery must not create a second message. Bob cannot read Alice's conversation. Crash the chat node or drop store replies to inspect recovery. Text generation is deterministic synthetic content, not an LLM.",
+      "x": 0,
+      "y": 350,
+      "w": 720
+    }
+  ],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

@@ -174,3 +174,37 @@ test('example choice dispatches the owning document event and metadata rejects i
   }
   f.ui.destroy();
 });
+
+test('walkthrough and activity reveal real members of folded groups before selecting them', async () => {
+  const f = await fixture();
+  f.model.diagram.groups = [{ id: 'backend', collapsed: true }, { id: 'other', collapsed: true }];
+  f.model.diagram.nodes[0].groupId = 'backend';
+  const commands = [];
+  f.model.apply = command => {
+    commands.push(command);
+    assert.equal(command.type, 'setGroupCollapsed');
+    f.model.diagram.groups.find(group => group.id === command.id).collapsed = command.collapsed;
+    f.model.notify();
+    return { ok: true, kind: 'layout' };
+  };
+  action(f.host, 'step', '0').click();
+  assert.equal(commands.length, 1); assert.equal(commands[0].id, 'backend');
+  assert.equal(f.model.diagram.groups[0].collapsed, false);
+  assert.equal(f.model.diagram.groups[1].collapsed, true);
+  assert.deepEqual(Array.from(f.model.selection.nodes), ['node']);
+  f.model.diagram.groups[0].collapsed = true;
+  action(f.host, 'tab', 'activity').click(); action(f.host, 'node', 'node').click();
+  assert.equal(commands.length, 2); assert.equal(f.model.diagram.groups[0].collapsed, false);
+  f.ui.destroy();
+});
+
+test('a refused group expansion reports the error without selecting an invisible node', async () => {
+  const f = await fixture();
+  f.model.diagram.groups = [{ id: 'backend', collapsed: true }];
+  f.model.diagram.nodes[0].groupId = 'backend';
+  f.model.apply = () => ({ ok: false, error: 'Invalid group state' });
+  action(f.host, 'step', '0').click();
+  assert.equal(f.model.selection.nodes.length, 0);
+  assert.equal(f.messages[0][0], 'Invalid group state');
+  f.ui.destroy();
+});

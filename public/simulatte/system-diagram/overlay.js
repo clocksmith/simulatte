@@ -83,6 +83,21 @@
     return [sample.xs[i] + (sample.xs[i + 1] - sample.xs[i]) * r, sample.ys[i] + (sample.ys[i + 1] - sample.ys[i]) * r];
   }
 
+  function groupSummary(members, nodes) {
+    const ids = [...new Set(members)], result = { components: ids.length, missing: 0, unhealthy: 0, queued: 0, busy: 0 };
+    for (const id of ids) {
+      const node = nodes[id];
+      if (!node) { result.missing++; continue; }
+      if (!['ok', 'busy'].includes(node.health) || (node.faults || []).length) result.unhealthy++;
+      if (Number.isFinite(node.queue) && node.queue >= 0) result.queued += node.queue;
+      if (Number.isFinite(node.busy) && node.busy >= 0) result.busy += node.busy;
+    }
+    result.health = result.missing ? 'unknown' : result.unhealthy ? 'degraded' : result.busy ? 'busy' : 'ok';
+    result.text = result.missing ? `${result.missing} unobserved components` : `${compactNumber(result.queued)} queued jobs · ${result.unhealthy} unhealthy`;
+    result.detail = `${result.components} components; ${result.missing} unobserved; ${result.busy} busy slots. Queue totals count component jobs, not unique end-to-end requests.`;
+    return result;
+  }
+
   function create({ canvas, library, config }) {
     if (!canvas?.layers?.overlay) throw Error('Overlay requires canvas.layers.overlay');
     const layer = canvas.layers.overlay;
@@ -102,6 +117,7 @@
     const edgeMarks = new Map(); // edgeId -> { el, key }
     const dots = []; // pooled circles with last-state cache
     const statuses = new Map(); // nodeId -> entry
+    const groupStatuses = new Map();
     let visibleDots = 0;
 
     function ensureGroups() {
@@ -236,6 +252,26 @@
       for (const [id, entry] of statuses) if (!seen.has(id)) { resetStatus(entry); statuses.delete(id); }
     }
 
+    function renderGroups(nodes) {
+      const seen = new Set();
+      for (const group of canvas.foldedGroups?.() || []) {
+        const host = canvas.groupElement(group.id), slot = host?.querySelector('.sd-group-status');
+        if (!slot) continue;
+        seen.add(group.id);
+        let entry = groupStatuses.get(group.id);
+        if (!entry || entry.slot !== slot || !slot.firstChild) {
+          slot.replaceChildren();
+          entry = { host, slot, text: svg('text', { class: 'sd-run-counters', x: 12, y: 12 }, slot), title: svg('title', {}, slot) };
+          groupStatuses.set(group.id, entry);
+        }
+        const summary = groupSummary(group.members, nodes);
+        entry.text.textContent = summary.text;
+        entry.title.textContent = summary.detail;
+        host.setAttribute('data-health', summary.health);
+      }
+      for (const [id, entry] of groupStatuses) if (!seen.has(id)) { resetStatus(entry); groupStatuses.delete(id); }
+    }
+
     function resetStatus(entry) {
       if (entry.slot.isConnected) { entry.slot.replaceChildren(); entry.slot.removeAttribute('data-health'); }
       entry.host?.removeAttribute('data-health');
@@ -248,11 +284,14 @@
       renderEdges(view.edges || {});
       renderTransit(view.t, view.transit || []);
       renderNodes(view.nodes || {});
+      renderGroups(view.nodes || {});
     }
 
     function clear() {
       for (const entry of statuses.values()) resetStatus(entry);
       statuses.clear();
+      for (const entry of groupStatuses.values()) resetStatus(entry);
+      groupStatuses.clear();
       edgeGroup?.remove(); dotGroup?.remove();
       edgeGroup = null; dotGroup = null;
       edgeMarks.clear(); samples.clear(); dots.length = 0; visibleDots = 0;
@@ -261,5 +300,5 @@
     return { render, clear, dispose: clear };
   }
 
-  return Object.freeze({ create, FAMILIES, payloadFamily, transitFraction, edgeActivity, counterText, compactNumber, EDGE_ERROR_RATE });
+  return Object.freeze({ create, groupSummary, FAMILIES, payloadFamily, transitFraction, edgeActivity, counterText, compactNumber, EDGE_ERROR_RATE });
 });

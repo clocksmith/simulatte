@@ -1,0 +1,256 @@
+{
+  "schema": "simulatte.systemDiagram.v2",
+  "id": "spark-job",
+  "name": "Spark-style partitioned URL count and recovery",
+  "description": "A driver dispatches six named input partitions to three distinct executors. Map output blocks are shuffled by URL key before reductions. Key skew and bounded RAM cause measured synthetic spill delay. Lost executor-local blocks are recomputed from their input partitions.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 30
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "driver",
+      "classId": "spark-driver",
+      "label": "URL count job driver",
+      "x": 0,
+      "y": 150,
+      "params": {}
+    },
+    {
+      "id": "executor-a",
+      "classId": "spark-executor",
+      "label": "Executor A",
+      "x": 300,
+      "y": 0,
+      "params": {}
+    },
+    {
+      "id": "executor-b",
+      "classId": "spark-executor",
+      "label": "Executor B",
+      "x": 300,
+      "y": 190,
+      "params": {}
+    },
+    {
+      "id": "executor-c",
+      "classId": "spark-executor",
+      "label": "Executor C",
+      "x": 300,
+      "y": 380,
+      "params": {}
+    },
+    {
+      "id": "results",
+      "classId": "idempotent-store",
+      "label": "Reduced URL counts",
+      "x": 680,
+      "y": 190,
+      "params": {
+        "writeMs": 2,
+        "serviceDist": "constant"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "driver-a",
+      "from": {
+        "nodeId": "driver",
+        "portId": "executors"
+      },
+      "to": {
+        "nodeId": "executor-a",
+        "portId": "tasks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Schedule map and reduce partitions"
+    },
+    {
+      "id": "driver-b",
+      "from": {
+        "nodeId": "driver",
+        "portId": "executors"
+      },
+      "to": {
+        "nodeId": "executor-b",
+        "portId": "tasks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Schedule map and reduce partitions"
+    },
+    {
+      "id": "driver-c",
+      "from": {
+        "nodeId": "driver",
+        "portId": "executors"
+      },
+      "to": {
+        "nodeId": "executor-c",
+        "portId": "tasks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Schedule map and reduce partitions"
+    },
+    {
+      "id": "shuffle-a-b",
+      "from": {
+        "nodeId": "executor-a",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "executor-b",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Fetch remote keyed shuffle blocks"
+    },
+    {
+      "id": "shuffle-a-c",
+      "from": {
+        "nodeId": "executor-a",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "executor-c",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Fetch remote keyed shuffle blocks"
+    },
+    {
+      "id": "shuffle-b-a",
+      "from": {
+        "nodeId": "executor-b",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "executor-a",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Fetch remote keyed shuffle blocks"
+    },
+    {
+      "id": "shuffle-b-c",
+      "from": {
+        "nodeId": "executor-b",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "executor-c",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Fetch remote keyed shuffle blocks"
+    },
+    {
+      "id": "shuffle-c-a",
+      "from": {
+        "nodeId": "executor-c",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "executor-a",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Fetch remote keyed shuffle blocks"
+    },
+    {
+      "id": "shuffle-c-b",
+      "from": {
+        "nodeId": "executor-c",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "executor-b",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Fetch remote keyed shuffle blocks"
+    },
+    {
+      "id": "job-output",
+      "from": {
+        "nodeId": "driver",
+        "portId": "output"
+      },
+      "to": {
+        "nodeId": "results",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Write reduced URL counts"
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "assumptions",
+      "text": "Synthetic Spark-style job, not a live Apache Spark deployment. Generated input URLs are actual records: map partitions produce keyed blocks and reducers retrieve every dependency over the drawn shuffle edges. No map-side combining is assumed for transfer size. Executor-local RAM and synthetic disk blocks are both lost on crash. Full checkpoint/replay is owned by the shared coordinator.",
+      "x": 0,
+      "y": -100,
+      "w": 1050
+    }
+  ],
+  "faults": [
+    {
+      "id": "executor-loss",
+      "atSec": 0.5,
+      "untilSec": 1.5,
+      "target": {
+        "kind": "node",
+        "id": "executor-a"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

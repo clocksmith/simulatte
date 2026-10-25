@@ -58,7 +58,7 @@ for(const viewport of viewports.filter(v=>requestedWidth===null||v.width===reque
   await client.send('Page.navigate',{url:browser.host.baseUrl});await until(`document.querySelector('a[aria-label="Open System Diagram Simulator"]')`);await click('a[aria-label="Open System Diagram Simulator"]');
   await until(`document.body.dataset.editorReady==='true' || document.getElementById('status')?.getAttribute('role')==='alert'`);
   assert.equal(await evaluate(`document.body.dataset.editorReady`),'true',await evaluate(`document.getElementById('status').textContent`));await evaluate('document.fonts.ready.then(()=>true)');
-  assert.equal(await evaluate('location.pathname'),'/system-diagram');row.checks.catalogNavigation=true;assert.ok(['simulatte.systemDiagram.v1','simulatte.systemDiagram.v2'].includes((await doc()).schema));row.checks.canonicalDocument=true;
+  assert.equal(await evaluate('location.pathname'),'/system-diagram');row.checks.catalogNavigation=true;assert.ok(['simulatte.systemDiagram.v1','simulatte.systemDiagram.v2','simulatte.systemDiagram.v3'].includes((await doc()).schema));row.checks.canonicalDocument=true;
   await set('preset','web-service',{operation:true});
   assert.equal(await evaluate('document.documentElement.scrollWidth>innerWidth'),false);row.checks.noPageOverflow=true;
   await evaluate('scrollTo(0,0)');await shot('editor');
@@ -104,6 +104,14 @@ for(const viewport of viewports.filter(v=>requestedWidth===null||v.width===reque
   await selectEdge(edge.id);await set('property-bandwidthMbps',25);await set('property-latencyMs',80);await button('Apply connection');assert.equal((await doc()).edges.find(e=>e.id===edge.id).params.bandwidthMbps,25);assert.equal((await doc()).edges.find(e=>e.id===edge.id).params.latencyMs,80);row.checks.linkProperties=true;
   await button('Delete');await fit();await button('Select multiple');await selectNode('api');await selectNode('worker');assert.equal((await evaluate('SimulatteSystemDiagramEditor.selection().nodes')).length,2);await button('Cluster');current=await doc();assert.equal(current.groups.length,1);assert.equal(current.groups[0].kind,'resource');assert.equal(current.groups[0].capacity,2);assert.equal(current.nodes.filter(n=>n.groupId===current.groups[0].id).length,2);await button('Select multiple');row.checks.resourceCluster=true;
   await button('Run');await button('Pause');assert.ok(await evaluate('SimulatteSystemDiagramEditor.accepted()'));row.checks.runPause=true;
+  const groupId=(await doc()).groups[0].id,foldSnapshot=await snapshot(),foldAccepted=await evaluate('JSON.stringify(SimulatteSystemDiagramEditor.accepted())');
+  await click(`[data-group-id="${groupId}"] .sd-group-toggle`);
+  assert.equal((await doc()).groups[0].collapsed,true);assert.equal(await evaluate(`document.querySelector('.sd-node[data-node-id="worker"]')===null`),true);
+  assert.ok(await evaluate(`document.querySelectorAll('[data-group-id="${groupId}"] .sd-proxy-port').length>0`));
+  assert.deepEqual(await snapshot(),foldSnapshot);assert.equal(await evaluate('document.body.dataset.pending'),'false');
+  assert.equal(await evaluate('JSON.stringify(SimulatteSystemDiagramEditor.accepted())'),foldAccepted);
+  await click(`[data-group-id="${groupId}"] .sd-group-toggle`);assert.equal((await doc()).groups[0].collapsed,false);
+  assert.ok(await evaluate(`document.querySelector('.sd-node[data-node-id="worker"]')!==null`));row.checks.expandCollapseActualComponents=true;
   const annotatedEdge=(await doc()).edges[0].id,acceptedBeforeLabel=await evaluate('JSON.stringify(SimulatteSystemDiagramEditor.accepted())');
   await selectEdge(annotatedEdge);await set('connection-label','Dispatch requests',{operation:true});
   assert.equal((await doc()).edges.find(e=>e.id===annotatedEdge).label,'Dispatch requests');
@@ -115,7 +123,7 @@ for(const viewport of viewports.filter(v=>requestedWidth===null||v.width===reque
   await button('Replay');assert.match(await evaluate(`document.getElementById('editor-status').textContent`),/Exact replay matched/);row.checks.replay=true;
   await button('Save');const savedDoc=await doc();await selectNode('worker');await button('Duplicate');assert.equal((await doc()).nodes.length,savedDoc.nodes.length+1);await button('Load');assert.deepEqual(await doc(),savedDoc);row.checks.saveLoadPending=true;
   await click('#document-panel>summary');await button('Restore loaded replay');assert.deepEqual(await snapshot(),cp);row.checks.loadedReplay=true;
-  await button('Show JSON');const exported=JSON.parse(await evaluate(`document.getElementById('document').value`));assert.equal(exported.diagram.schema,'simulatte.systemDiagram.v2');assert.equal(exported.diagram.edges.find(e=>e.id===annotatedEdge).label,'Dispatch requests');assert.ok(exported.accepted&&exported.checkpoint);await button('Import JSON');await button('Restore loaded replay');row.checks.jsonRoundTrip=true;
+  await button('Show JSON');const exported=JSON.parse(await evaluate(`document.getElementById('document').value`));assert.equal(exported.diagram.schema,'simulatte.systemDiagram.v3');assert.equal(exported.diagram.edges.find(e=>e.id===annotatedEdge).label,'Dispatch requests');assert.ok(exported.accepted&&exported.checkpoint);await button('Import JSON');await button('Restore loaded replay');row.checks.jsonRoundTrip=true;
   await click('#document-panel>summary');await button('Step 1 s');assert.ok((await snapshot()).requests.length);await click('#requests button');assert.ok(await evaluate(`document.querySelectorAll('#history li').length>0`));row.checks.causalInspection=true;await point('#inspector');await shot('causal');
   await selectNode('worker');await button('Fail node');assert.equal((await snapshot()).nodes.worker.health,'down');await button('Step 1 s');await button('Repair node');assert.notEqual((await snapshot()).nodes.worker.health,'down');await button('Replay');assert.match(await evaluate(`document.getElementById('editor-status').textContent`),/Exact replay matched/);row.checks.recordedFaultRepair=true;
   await button('Reset');assert.equal((await snapshot()).t,0);row.checks.reset=true;

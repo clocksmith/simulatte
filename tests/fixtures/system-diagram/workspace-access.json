@@ -1,0 +1,132 @@
+{
+  "schema": "simulatte.systemDiagram.v2",
+  "id": "workspace-access",
+  "name": "Workspaces, projects and permissions",
+  "description": "Asana-like educational architecture with explicit users, workspace membership, project visibility and concrete task records. Grant, revoke, stale cached decisions and tenant/object isolation execute through the drawn edges. Not production authentication.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 15
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "client",
+      "classId": "application-client",
+      "label": "Workspace users",
+      "x": 0,
+      "y": 80,
+      "params": {
+        "scenario": "workspace",
+        "intervalMs": 400,
+        "callTimeoutMs": 8000,
+        "retries": 1
+      }
+    },
+    {
+      "id": "workspace",
+      "classId": "workspace-application",
+      "label": "Workspace application",
+      "x": 260,
+      "y": 80,
+      "params": {}
+    },
+    {
+      "id": "permissions",
+      "classId": "permission-cache",
+      "label": "Cached permissions",
+      "x": 530,
+      "y": -60,
+      "params": {}
+    },
+    {
+      "id": "records",
+      "classId": "workspace-store",
+      "label": "Workspace records",
+      "x": 790,
+      "y": 80,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "workspace-commands",
+      "from": {
+        "nodeId": "client",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "workspace",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      },
+      "label": "Read / create / edit / grant / revoke"
+    },
+    {
+      "id": "permission-checks",
+      "from": {
+        "nodeId": "workspace",
+        "portId": "permissions"
+      },
+      "to": {
+        "nodeId": "permissions",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      },
+      "label": "Read cached role decision"
+    },
+    {
+      "id": "permission-records",
+      "from": {
+        "nodeId": "permissions",
+        "portId": "store"
+      },
+      "to": {
+        "nodeId": "records",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      },
+      "label": "Authorize against membership"
+    },
+    {
+      "id": "workspace-operations",
+      "from": {
+        "nodeId": "workspace",
+        "portId": "store"
+      },
+      "to": {
+        "nodeId": "records",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      },
+      "label": "Execute authorized record operation"
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "workspace-notes",
+      "text": "Alice owns workspace-a; Ben starts as editor; Bob belongs to another tenant. Inspect tasks, memberships and client results. Revoke Ben, grant viewer, then restore editor. Current authorization rejects stale grants. Set record-store Authorization at operation to cached and rerun to expose two unsafe stale permissions; cross-tenant and private-project checks still deny.",
+      "x": 0,
+      "y": 310,
+      "w": 880
+    }
+  ],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

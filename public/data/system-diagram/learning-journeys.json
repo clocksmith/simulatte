@@ -16,21 +16,29 @@
           ]
         },
         {
-          "label": "Authorize, read history and save prompt",
+          "label": "Authorize against the shared identity policy",
           "classes": [
-            "chat-application"
+            "conversation-access"
           ]
         },
         {
-          "label": "Generate ordered chunks",
+          "label": "Read history and commit the prompt",
           "classes": [
+            "chat-application",
+            "conversation-store"
+          ]
+        },
+        {
+          "label": "Route generation to model workers",
+          "classes": [
+            "load-balancer",
             "synthetic-stream"
           ]
         },
         {
-          "label": "Persist and reload messages",
+          "label": "Deliver ordered chunks and commit the assistant reply",
           "classes": [
-            "conversation-store"
+            "chat-stream-session"
           ]
         }
       ]
@@ -44,19 +52,25 @@
       "boundary": "Viewer cohorts aggregate thousands of viewers. Peer assistance is a bounded synthetic transport model, not actual WebRTC, ICE, encryption or relay implementation.",
       "steps": [
         {
-          "label": "Request video segments",
+          "label": "Resolve the asset manifest",
+          "classes": [
+            "video-manifest"
+          ]
+        },
+        {
+          "label": "Request segments from two viewer regions",
           "classes": [
             "video-viewers"
           ]
         },
         {
-          "label": "Check edge cache",
+          "label": "Check regional caches and origin shield",
           "classes": [
             "video-cdn"
           ]
         },
         {
-          "label": "Try available peers",
+          "label": "Try available peer upload capacity",
           "classes": [
             "video-peers"
           ]
@@ -112,22 +126,33 @@
       "boundary": "A bounded Spark-style model, not Apache Spark itself or a calibrated Spark performance predictor.",
       "steps": [
         {
-          "label": "Submit and schedule partitions",
+          "label": "Read the input dataset",
+          "classes": [
+            "spark-input-data"
+          ]
+        },
+        {
+          "label": "Schedule map and reduce partitions",
           "classes": [
             "spark-driver"
           ]
         },
         {
-          "label": "Map records on executors",
+          "label": "Execute map and reduce tasks",
           "classes": [
             "spark-executor"
           ]
         },
         {
-          "label": "Shuffle and reduce results",
+          "label": "Write and fetch independent shuffle blocks",
           "classes": [
-            "spark-driver",
-            "spark-executor"
+            "spark-shuffle-store"
+          ]
+        },
+        {
+          "label": "Commit the aggregated result",
+          "classes": [
+            "idempotent-store"
           ]
         }
       ]
@@ -147,7 +172,13 @@
           ]
         },
         {
-          "label": "Store posts and followers",
+          "label": "Resolve users and follow relationships",
+          "classes": [
+            "social-graph-store"
+          ]
+        },
+        {
+          "label": "Persist posts with their acknowledged audience",
           "classes": [
             "social-post-store"
           ]
@@ -190,9 +221,22 @@
           ]
         },
         {
-          "label": "Inspect related records",
+          "label": "Inspect authoritative related records",
           "classes": [
             "workspace-store"
+          ]
+        },
+        {
+          "label": "Queue committed mutation events",
+          "classes": [
+            "task-queue",
+            "worker"
+          ]
+        },
+        {
+          "label": "Apply the separate activity journal",
+          "classes": [
+            "workspace-journal"
           ]
         }
       ]

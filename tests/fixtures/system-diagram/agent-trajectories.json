@@ -1,0 +1,280 @@
+{
+  "schema": "simulatte.systemDiagram.v2",
+  "id": "agent-trajectories",
+  "name": "Multi-agent task trajectories and recovery",
+  "description": "Named tasks fork into parallel research and inspection, join before publishing, and emit status events to a durable dashboard. A research worker crashes after its effect but before acknowledgement; retries reconcile that identity instead of repeating the effect. No live models, tools or private reasoning.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 12
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "requests",
+      "classId": "web-client",
+      "label": "Workflow requests",
+      "x": 0,
+      "y": 120,
+      "params": {
+        "pattern": "constant",
+        "ratePerSec": 1,
+        "maxRequests": 1,
+        "payload": "task",
+        "startSec": 0.05,
+        "retries": 0,
+        "timeoutMs": 10000,
+        "deadlineMs": 10000
+      }
+    },
+    {
+      "id": "plan",
+      "classId": "agent-task",
+      "label": "Plan the task",
+      "x": 240,
+      "y": 120,
+      "params": {
+        "serviceMs": 20,
+        "ackDelayMs": 0,
+        "callTimeoutMs": 4000,
+        "retries": 5,
+        "retryBackoffMs": 250
+      }
+    },
+    {
+      "id": "research",
+      "classId": "agent-task",
+      "label": "Research evidence",
+      "x": 500,
+      "y": 0,
+      "params": {
+        "serviceMs": 30,
+        "ackDelayMs": 200,
+        "retryBackoffMs": 200,
+        "callTimeoutMs": 1000
+      }
+    },
+    {
+      "id": "inspect",
+      "classId": "agent-task",
+      "label": "Inspect constraints",
+      "x": 500,
+      "y": 240,
+      "params": {
+        "serviceMs": 100,
+        "ackDelayMs": 0,
+        "callTimeoutMs": 4000
+      }
+    },
+    {
+      "id": "publish",
+      "classId": "agent-task",
+      "label": "Join and publish",
+      "x": 780,
+      "y": 120,
+      "params": {
+        "serviceMs": 40,
+        "ackDelayMs": 0
+      }
+    },
+    {
+      "id": "tool",
+      "classId": "idempotent-store",
+      "label": "Idempotent research tool",
+      "x": 500,
+      "y": -150,
+      "params": {
+        "writeMs": 10,
+        "serviceDist": "constant",
+        "idempotentWrites": true
+      }
+    },
+    {
+      "id": "dashboard",
+      "classId": "task-status-journal",
+      "label": "Live durable task dashboard",
+      "x": 1050,
+      "y": 120,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "request-plan",
+      "label": "Start named workflow",
+      "from": {
+        "nodeId": "requests",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "plan",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "plan-research",
+      "label": "Research dependency",
+      "from": {
+        "nodeId": "plan",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "research",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "plan-inspect",
+      "label": "Inspection dependency",
+      "from": {
+        "nodeId": "plan",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "inspect",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "research-publish",
+      "label": "Research completed",
+      "from": {
+        "nodeId": "research",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "publish",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "inspect-publish",
+      "label": "Inspection completed",
+      "from": {
+        "nodeId": "inspect",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "publish",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "research-tool",
+      "label": "Execute idempotent tool",
+      "from": {
+        "nodeId": "research",
+        "portId": "tools"
+      },
+      "to": {
+        "nodeId": "tool",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "plan-status",
+      "label": "Persist task status",
+      "from": {
+        "nodeId": "plan",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "dashboard",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "research-status",
+      "label": "Persist task status",
+      "from": {
+        "nodeId": "research",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "dashboard",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "inspect-status",
+      "label": "Persist task status",
+      "from": {
+        "nodeId": "inspect",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "dashboard",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "publish-status",
+      "label": "Persist task status",
+      "from": {
+        "nodeId": "publish",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "dashboard",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "assumptions",
+      "text": "Observable trajectories are queued/running/waiting/retry/complete status events, not model chain-of-thought. Named task dependencies are drawn edges. The research worker crashes after committing at about 0.12 s; durable identity reconciliation resumes after repair. Select the dashboard to inspect the event journal and latest task state.",
+      "x": 0,
+      "y": -140,
+      "w": 1000
+    }
+  ],
+  "faults": [
+    {
+      "id": "research-crash",
+      "atSec": 0.16,
+      "untilSec": 0.6,
+      "target": {
+        "kind": "node",
+        "id": "research"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

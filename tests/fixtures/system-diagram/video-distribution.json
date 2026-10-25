@@ -1,0 +1,126 @@
+{
+  "schema": "simulatte.systemDiagram.v2",
+  "id": "video-distribution",
+  "name": "Video segments: CDN and bounded peer assistance",
+  "description": "Three thousand viewers share twelve aggregate cohorts. Exact segment identities traverse the CDN cache and origin, or bounded peer assistance. Observe startup, rebuffer, cache hit/miss, origin, peer and relay byte costs. A peer outage falls back to CDN.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 30
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "viewers",
+      "classId": "video-viewers",
+      "label": "3,000 viewers in 12 cohorts",
+      "x": 0,
+      "y": 140,
+      "params": {}
+    },
+    {
+      "id": "cdn",
+      "classId": "video-cdn",
+      "label": "Regional segment CDN",
+      "x": 320,
+      "y": 40,
+      "params": {}
+    },
+    {
+      "id": "origin",
+      "classId": "video-origin",
+      "label": "Asset origin",
+      "x": 640,
+      "y": 40,
+      "params": {}
+    },
+    {
+      "id": "peers",
+      "classId": "video-peers",
+      "label": "Peer availability and upload",
+      "x": 320,
+      "y": 280,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "viewers-cdn",
+      "from": {
+        "nodeId": "viewers",
+        "portId": "cdn"
+      },
+      "to": {
+        "nodeId": "cdn",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 8,
+        "bandwidthMbps": 2000,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Segment delivery and CDN fallback"
+    },
+    {
+      "id": "cdn-origin",
+      "from": {
+        "nodeId": "cdn",
+        "portId": "origin"
+      },
+      "to": {
+        "nodeId": "origin",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 25,
+        "bandwidthMbps": 500,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Fetch missing segment once"
+    },
+    {
+      "id": "viewers-peers",
+      "from": {
+        "nodeId": "viewers",
+        "portId": "peers"
+      },
+      "to": {
+        "nodeId": "peers",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 4,
+        "bandwidthMbps": 2000,
+        "bandwidthSharing": "fair"
+      },
+      "label": "Bounded peer reads and receipt seeds"
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "assumptions",
+      "text": "Synthetic fixed-size segment model, not video playback or a WebRTC protocol implementation. Cohorts preserve aggregate unicast byte counts and conservatively wait for their last member. Peer upload budgets are shared across segment IDs; seeding requires downloaded receipts. Relay fraction and prices are assumptions. Crash peer assistance to observe CDN fallback.",
+      "x": 0,
+      "y": -100,
+      "w": 1050
+    }
+  ],
+  "faults": [
+    {
+      "id": "peer-outage",
+      "atSec": 4,
+      "untilSec": 7,
+      "target": {
+        "kind": "node",
+        "id": "peers"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

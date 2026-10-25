@@ -14,7 +14,7 @@ const config = require('../public/data/system-diagram/config.json');
 const directory = path.resolve(__dirname, '../public/data/system-diagram');
 const library = libraryApi.loadSync(directory);
 const deps = { library, config, kernels };
-const example = id => structuredClone(require('../public/data/system-diagram/examples/' + id + '.json'));
+const example = id => structuredClone(require('./fixtures/system-diagram/' + id + '.json'));
 const params = (d, id, values) => Object.assign(d.nodes.find(n => n.id === id).params, values);
 function run(d, until = d.run.horizonSec, customDeps = deps) {
   const c = documents.compile(d, library, config), s = engine.initialize(c, customDeps); engine.advance(c, s, until, customDeps);

@@ -68,7 +68,9 @@
 
     // ---- geometry and rendering (editor-canvas-render.js) -----------------------------------
     const renderer = R.create({ doc, model, library, config, layers, arrowId, arrowSelectedId });
-    const { items, classInfo, findNode, portPosition, nodeBox, noteBox, curve } = renderer;
+    const { items, classInfo, findNode, portPosition, nodeBox, groupBox, noteBox, visiblePorts, portElement, portElements, presentation, curve } = renderer;
+    const groupElement = id => items.groups.get(id)?.el || null;
+    const foldedGroups = () => [...presentation().groups.values()].filter(entry => entry.group.collapsed).map(entry => ({ id: entry.group.id, members: [...entry.members] }));
     function render() {
       const hadFocus = host.contains(doc.activeElement);
       renderer.render();
@@ -82,7 +84,7 @@
     function viewportCenter() { const r = rect(); return screenToWorld({ x: r.left + r.width / 2, y: r.top + r.height / 2 }); }
     const snap = v => Math.round(v / GRID) * GRID;
     function groupAt(point, exclude = []) {
-      const hits = model.diagram.groups.filter(g => !exclude.includes(g.id) && point.x >= g.x && point.x <= g.x + g.w && point.y >= g.y && point.y <= g.y + g.h);
+      const hits = model.diagram.groups.filter(g => !g.collapsed && !exclude.includes(g.id) && point.x >= g.x && point.x <= g.x + g.w && point.y >= g.y && point.y <= g.y + g.h);
       hits.sort((a, b) => a.w * a.h - b.w * b.h);
       return hits[0]?.id || null;
     }
@@ -111,7 +113,7 @@
     }
     function zoomBy(factor) { const r = rect(); zoomAt({ x: r.left + r.width / 2, y: r.top + r.height / 2 }, factor); return { ...view }; }
     function contentBounds() {
-      const d = model.diagram, boxes = [...d.nodes.map(n => ({ x: n.x, y: n.y, w: W, h: H })), ...d.groups, ...d.notes.map(noteBox)];
+      const d = model.diagram, boxes = [...presentation().nodes.map(n => nodeBox(n.id)), ...d.groups.map(g => groupBox(g.id)), ...d.notes.map(noteBox)];
       if (!boxes.length) return null;
       const x0 = Math.min(...boxes.map(b => b.x)), y0 = Math.min(...boxes.map(b => b.y));
       return { x: x0, y: y0, w: Math.max(...boxes.map(b => b.x + b.w)) - x0, h: Math.max(...boxes.map(b => b.y + b.h)) - y0 };
@@ -122,7 +124,7 @@
       if (!b) return setView({ x: -r.width / 2, y: -r.height / 2, zoom: 1 });
       const zoom = clamp(Math.min((r.width - 2 * FIT_PADDING) / b.w, (r.height - 2 * FIT_PADDING) / b.h, FIT_MAX_ZOOM), E.minZoom, E.maxZoom);
       if (options.readable && r.width < 600 && zoom < .85) {
-        const source = model.diagram.nodes.find(n => { const ports = classInfo(n.classId).ports; return ports.some(p => p.direction === 'out') && !ports.some(p => p.direction === 'in'); }) || model.diagram.nodes[0];
+        const source = presentation().nodes.find(n => { const ports = classInfo(n.classId).ports; return ports.some(p => p.direction === 'out') && !ports.some(p => p.direction === 'in'); }) || presentation().nodes[0] || model.diagram.groups[0];
         if (source) { const readable = clamp(.85, E.minZoom, E.maxZoom); return setView({ zoom: readable, x: source.x - 24 / readable, y: source.y + H / 2 - r.height / 2 / readable }); }
       }
       return setView({ zoom, x: b.x + b.w / 2 - r.width / 2 / zoom, y: b.y + b.h / 2 - r.height / 2 / zoom });
@@ -159,9 +161,10 @@
       const reconnect = t.closest('.sd-reconnect');
       if (reconnect) return { type: 'reconnect', id: reconnect.dataset.reconnect, side: reconnect.dataset.side };
       const port = t.closest('.sd-port'), nodeEl = t.closest('.sd-node');
-      if (port && nodeEl) return { type: 'port', id: nodeEl.dataset.id, portId: port.dataset.port, dir: port.dataset.direction };
+      if (port && (nodeEl || port.dataset.nodeId)) return { type: 'port', id: nodeEl?.dataset.id || port.dataset.nodeId, portId: port.dataset.port, dir: port.dataset.direction };
       if (nodeEl) return { type: 'node', id: nodeEl.dataset.id };
       const groupEl = t.closest('.sd-group');
+      if (groupEl && t.closest('.sd-group-toggle')) return { type: 'groupToggle', id: groupEl.dataset.id };
       if (groupEl && t.closest('.sd-group-handle')) return { type: 'groupHandle', id: groupEl.dataset.id };
       if (groupEl && t.closest('.sd-group-tab, .sd-group-hit')) return { type: 'group', id: groupEl.dataset.id };
       const noteEl = t.closest('.sd-note');
@@ -173,17 +176,18 @@
     function hitAt(client, connecting = false, eventTarget = null) {
       const atPoint = classify(doc.elementFromPoint(client.x, client.y)), native = eventTarget ? classify(eventTarget) : null;
       // A visible wire or reconnect handle must not be stolen by expanded nearby port targets.
-      if (atPoint.type === 'reconnect' || !connecting && atPoint.type === 'edge') return atPoint;
+      if (native?.type === 'groupToggle') return native;
+      if (atPoint.type === 'reconnect' || atPoint.type === 'groupToggle' || !connecting && atPoint.type === 'edge') return atPoint;
       const physical = native?.type === 'port' ? native : atPoint;
       if (physical.type === 'reconnect') return physical;
       const world = screenToWorld(client), touch = win.matchMedia?.('(pointer: coarse)').matches;
       let nearest = null, distance = touch ? 22 : 12;
-      for (const node of model.diagram.nodes) for (const port of classInfo(node.classId).ports) {
-        const p = portPosition(node.id, port.id), d = Math.hypot(p.x - world.x, p.y - world.y) * view.zoom;
-        if (d < distance) { distance = d; nearest = { type: 'port', id: node.id, portId: port.id, dir: port.direction }; }
+      for (const p of visiblePorts()) {
+        const d = Math.hypot(p.x - world.x, p.y - world.y) * view.zoom;
+        if (d < distance) { distance = d; nearest = { type: 'port', id: p.nodeId, portId: p.portId, dir: p.direction }; }
       }
       if (!connecting && physical.type !== 'port') {
-        const body = [...model.diagram.nodes].reverse().find(node => world.x >= node.x && world.x <= node.x + W && world.y >= node.y && world.y <= node.y + H);
+        const body = [...presentation().nodes].reverse().find(node => world.x >= node.x && world.x <= node.x + W && world.y >= node.y && world.y <= node.y + H);
         if (body && (!nearest || distance > Math.max(6, PORT_DOT * view.zoom + 2))) return { type: 'node', id: body.id };
       }
       return nearest || physical;
@@ -200,7 +204,7 @@
       const result = candidates.filter(clear).sort((a, b) => score(a) - score(b) || a.x - b.x || a.y - b.y)[0];
       return result || { x: Math.ceil((Math.max(...nodes.map(n => n.x)) + W + gap) / GRID) * GRID, y: desired.y };
     }
-    const selectionKey = { node: 'nodes', group: 'groups', note: 'notes', edge: 'edges' };
+    const selectionKey = { node: 'nodes', group: 'groups', groupToggle: 'groups', note: 'notes', edge: 'edges' };
     const isSelected = hit => model.selection[selectionKey[hit.type]]?.includes(hit.id);
 
     function reconnectSource(hit) {
@@ -210,7 +214,7 @@
     }
     function renderReconnectHandles() {
       const used = new Set(), touch = win.matchMedia?.('(pointer: coarse)').matches;
-      for (const edge of model.diagram.edges) if (model.selection.edges.includes(edge.id)) for (const side of ['from', 'to']) {
+      for (const edge of presentation().edges) if (model.selection.edges.includes(edge.id)) for (const side of ['from', 'to']) {
         const key = `${edge.id}:${side}`, end = edge[side], p = portPosition(end.nodeId, end.portId); if (!p) continue;
         used.add(key); let item = reconnectHandles.get(key);
         if (!item) {
@@ -235,7 +239,7 @@
       if (!overlay) {
         const api = globalThis.SimulatteSystemDiagramOverlay;
         if (!api?.create) throw Error('System Diagram overlay script is required for execution state');
-        overlay = api.create({ canvas: { host, layers, nodeElement: id => items.nodes.get(id)?.el || null, edgeElement: id => items.edges.get(id)?.path || null, nodeBox, portPosition }, library, config });
+        overlay = api.create({ canvas: { host, layers, nodeElement: id => items.nodes.get(id)?.el || null, edgeElement: id => items.edges.get(id)?.path || null, groupElement, foldedGroups, nodeBox, portPosition }, library, config });
       }
       for (const item of items.nodes.values()) item.status.querySelector('.sd-pending-label')?.remove();
       overlay.render(runView);
@@ -247,31 +251,27 @@
       return source.dir === 'out' ? { from: self, to: other } : { from: other, to: self };
     }
     function beginConnect(source) {
-      const candidates = new Map(), d = model.diagram;
-      const keys = [];
-      for (const n of d.nodes) {
-        if (n.id === source.nodeId) continue;
-        for (const port of classInfo(n.classId).ports) if (port.direction !== source.dir) keys.push([n.id, port.id]);
-      }
+      const candidates = new Map();
+      const keys = visiblePorts().filter(p => p.nodeId !== source.nodeId && p.direction !== source.dir).map(p => [p.nodeId, p.portId]);
       const evaluate = (nodeId, portId) => {
         const key = `${nodeId}.${portId}`;
         if (!candidates.has(key)) { const e = ends(source, nodeId, portId); const trial = source.reconnectId ? { ...model.diagram, edges: model.diagram.edges.filter(edge => edge.id !== source.reconnectId) } : model.diagram; candidates.set(key, D.canConnect(trial, library, config, e.from, e.to)); }
         return candidates.get(key);
       };
       host.classList.add('is-connecting');
-      items.nodes.get(source.nodeId)?.portEls.get(source.portId)?.classList.add('is-source');
+      portElement(source.nodeId, source.portId)?.classList.add('is-source');
       if (keys.length <= EAGER_CANDIDATE_LIMIT) {
         for (const [nodeId, portId] of keys) {
-          const result = evaluate(nodeId, portId), portEl = items.nodes.get(nodeId)?.portEls.get(portId);
+          const result = evaluate(nodeId, portId), portEl = portElement(nodeId, portId);
           portEl?.classList.add(result.ok ? 'is-valid' : 'is-invalid');
           if (result.ok && result.warning) portEl?.classList.add('is-warning');
         }
-      } else for (const [nodeId, portId] of keys) items.nodes.get(nodeId)?.portEls.get(portId)?.classList.add('is-candidate');
+      } else for (const [nodeId, portId] of keys) portElement(nodeId, portId)?.classList.add('is-candidate');
       return { source, evaluate, keys };
     }
     function endConnect() {
       host.classList.remove('is-connecting');
-      for (const item of items.nodes.values()) for (const portEl of item.portEls.values()) portEl.classList.remove('is-source', 'is-valid', 'is-invalid', 'is-warning', 'is-candidate', 'is-target');
+      for (const portEl of portElements()) portEl.classList.remove('is-source', 'is-valid', 'is-invalid', 'is-warning', 'is-candidate', 'is-target');
       layers.interaction.querySelector('.sd-connect-preview')?.remove();
     }
     // A target is a port, or a node body whose first compatible port is chosen (large touch target).
@@ -294,8 +294,8 @@
       else showHint(target.result.warning ? `Connect (payload warning): ${target.result.warning}` : `Connect to ${findNode(target.nodeId)?.label || target.nodeId}`, target.result.warning ? 'warning' : 'info', true);
     }
     function markTarget(target) {
-      for (const item of items.nodes.values()) for (const portEl of item.portEls.values()) portEl.classList.remove('is-target');
-      if (target?.portId) items.nodes.get(target.nodeId)?.portEls.get(target.portId)?.classList.add('is-target');
+      for (const portEl of portElements()) portEl.classList.remove('is-target');
+      if (target?.portId) portElement(target.nodeId, target.portId)?.classList.add('is-target');
     }
     function finishConnect(connect, target) {
       endConnect();
@@ -436,10 +436,10 @@
         g.box.remove();
         if (!g.rect) return;
         const d = model.diagram, r = g.rect;
-        const nodes = d.nodes.filter(n => rectsIntersect(r, { x: n.x, y: n.y, w: W, h: H })).map(n => n.id), picked = new Set(nodes);
+        const nodes = presentation().nodes.filter(n => rectsIntersect(r, nodeBox(n.id))).map(n => n.id), picked = new Set(nodes);
         model.select({
-          nodes, notes: d.notes.filter(n => rectsIntersect(r, noteBox(n))).map(n => n.id), groups: d.groups.filter(gr => contains(r, gr)).map(gr => gr.id),
-          edges: d.edges.filter(e => picked.has(e.from.nodeId) && picked.has(e.to.nodeId)).map(e => e.id),
+          nodes, notes: d.notes.filter(n => rectsIntersect(r, noteBox(n))).map(n => n.id), groups: d.groups.filter(gr => contains(r, groupBox(gr.id))).map(gr => gr.id),
+          edges: presentation().edges.filter(e => picked.has(e.from.nodeId) && picked.has(e.to.nodeId)).map(e => e.id),
         }, { additive: g.additive });
       }
     }
@@ -456,6 +456,7 @@
     }
 
     function tap(hit, e) {
+      if (hit.type === 'groupToggle') { toggleGroup(hit.id); return; }
       const now = e.timeStamp, modifier = e.shiftKey || e.ctrlKey || e.metaKey || explicitMultiSelect;
       const double = lastTap && lastTap.id === hit.id && lastTap.type === hit.type && now - lastTap.at < DOUBLE_TAP_MS;
       lastTap = { id: hit.id, type: hit.type, at: now };
@@ -486,10 +487,10 @@
       const hit = e.button === 1 ? { type: 'empty' } : hitAt({ x: e.clientX, y: e.clientY }, Boolean(pending), e.target);
       if (hit.type === 'reconnect') cancelPending();
       const worldPoint = screenToWorld({ x: e.clientX, y: e.clientY });
-      const nearPorts = model.diagram.nodes.flatMap(node => classInfo(node.classId).ports.map(port => { const p = portPosition(node.id, port.id); return { nodeId: node.id, portId: port.id, ...p, distancePx: Math.hypot(p.x - worldPoint.x, p.y - worldPoint.y) * view.zoom }; })).sort((a, b) => a.distancePx - b.distancePx).slice(0, 8);
+      const nearPorts = visiblePorts().map(p => ({ ...p, distancePx: Math.hypot(p.x - worldPoint.x, p.y - worldPoint.y) * view.zoom })).sort((a, b) => a.distancePx - b.distancePx).slice(0, 8);
       inputReceipt = { schema: 'simulatte.diagramPointerReceipt.v1', phase: 'down', pointerType: e.pointerType, client: { x: e.clientX, y: e.clientY }, world: worldPoint, hit, nativeHit: classify(e.target), view: { ...view }, ports: nearPorts };
       host.dataset.inputReceipt = JSON.stringify(inputReceipt);
-      const focusTarget = hit.type === 'node' || hit.type === 'port' ? items.nodes.get(hit.id)?.el : hit.type === 'note' ? items.notes.get(hit.id)?.el : hit.type === 'group' ? items.groups.get(hit.id)?.tab : host;
+      const focusTarget = hit.type === 'port' ? portElement(hit.id, hit.portId)?.querySelector('.sd-port-hit') : hit.type === 'node' ? items.nodes.get(hit.id)?.el : hit.type === 'note' ? items.notes.get(hit.id)?.el : hit.type === 'groupToggle' ? items.groups.get(hit.id)?.toggle : hit.type === 'group' ? items.groups.get(hit.id)?.tab : host;
       (focusTarget || host).focus({ preventScroll: true });
       const g = { pointerId: e.pointerId, pointerType: e.pointerType, client: { x: e.clientX, y: e.clientY }, hit, active: null, timer: 0, wasSelected: false, longPressed: false, before: model.selection };
       if (['node', 'note', 'group', 'edge'].includes(hit.type) && !pending) {
@@ -580,20 +581,8 @@
 
     // ---- keyboard -------------------------------------------------------------------------
     function focusedHit() {
-      const a = doc.activeElement;
-      if (!a || !host.contains(a)) return null;
-      const reconnect = a.closest?.('.sd-reconnect');
-      if (reconnect) return { type: 'reconnect', id: reconnect.dataset.reconnect, side: reconnect.dataset.side };
-      const port = a.closest?.('.sd-port'), nodeEl = a.closest?.('.sd-node');
-      if (port && nodeEl) return { type: 'port', id: nodeEl.dataset.id, portId: port.dataset.port, dir: port.dataset.direction };
-      if (nodeEl) return { type: 'node', id: nodeEl.dataset.id };
-      const noteEl = a.closest?.('.sd-note');
-      if (noteEl) return { type: 'note', id: noteEl.dataset.id };
-      const groupEl = a.closest?.('.sd-group');
-      if (groupEl) return { type: 'group', id: groupEl.dataset.id };
-      const edgeEl = a.closest?.('.sd-edge');
-      if (edgeEl) return { type: 'edge', id: edgeEl.dataset.id };
-      return null;
+      const hit = classify(doc.activeElement);
+      return hit.type === 'empty' ? null : hit;
     }
     function keyboardConnect(hit) {
       const n = findNode(hit.id), ports = classInfo(n.classId).ports;
@@ -605,7 +594,7 @@
     }
     function selectAll() {
       const d = model.diagram;
-      model.select({ nodes: d.nodes.map(n => n.id), edges: d.edges.map(e => e.id), groups: d.groups.map(g => g.id), notes: d.notes.map(n => n.id) });
+      model.select({ nodes: presentation().nodes.map(n => n.id), edges: presentation().edges.map(e => e.id), groups: d.groups.map(g => g.id), notes: d.notes.map(n => n.id) });
     }
     on(host, 'keydown', e => {
       if (editing || e.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
@@ -618,6 +607,8 @@
       else if (mod) handled = false;
       else if (key === 'Delete' || key === 'Backspace') { if (selected.length) report(model.apply({ type: 'deleteItems', ids: selected })); }
       else if (key === 'Escape') { if (gesture) cancelGesture(); else if (pending) cancelPending(); else model.select(null); }
+      else if ((key === 'Enter' || key === ' ') && focused?.type === 'groupToggle') toggleGroup(focused.id);
+      else if ((key === 'e' || key === 'E') && ['group', 'groupToggle'].includes(focused?.type)) toggleGroup(focused.id);
       else if (key.startsWith('Arrow')) {
         const step = e.shiftKey ? GRID * NUDGE_LARGE_STEPS : GRID;
         const dx = key === 'ArrowLeft' ? -step : key === 'ArrowRight' ? step : 0, dy = key === 'ArrowUp' ? -step : key === 'ArrowDown' ? step : 0;
@@ -643,6 +634,12 @@
       if (handled) { e.preventDefault(); e.stopPropagation(); }
     });
     function report(result) { if (result && !result.ok) showHint(result.error, 'error'); return result; }
+    function toggleGroup(id) {
+      const group = model.diagram.groups.find(g => g.id === id); if (!group) return;
+      cancelPending(); lastTap = null;
+      report(model.apply({ type: 'setGroupCollapsed', id, collapsed: !group.collapsed }));
+      items.groups.get(id)?.toggle.focus({ preventScroll: true });
+    }
 
     // ---- inline editing -------------------------------------------------------------------
     function beginEdit(hit) {
@@ -691,7 +688,7 @@
     const unsubscribe = model.subscribe(event => {
       if (event.kind === 'view') { if (!ownViewChange) { view = { ...event.diagram.view }; paintView(); } return; }
       if (event.kind === 'load') { cancelGesture(); cancelPending(); view = { ...event.diagram.view }; paintView(); }
-      if (event.kind !== 'selection' && pending && !findNode(pending.source.nodeId)) cancelPending();
+      if (event.kind !== 'selection' && pending && (!findNode(pending.source.nodeId) || !portPosition(pending.source.nodeId, pending.source.portId))) cancelPending();
       render();
     });
     const resize = typeof win.ResizeObserver === 'function' ? new win.ResizeObserver(() => paintView()) : null;
@@ -703,7 +700,7 @@
     return {
       host, layers, svg,
       metrics: Object.freeze({ nodeWidth: W, nodeHeight: H, statusHeight: STATUS_HEIGHT, grid: GRID }),
-      nodeBox, portPosition,
+      nodeBox, groupBox, groupElement, foldedGroups, portPosition, toggleGroup,
       edgeElement: id => items.edges.get(id)?.path || null,
       nodeElement: id => items.nodes.get(id)?.el || null,
       dropClassAt(classId, clientX, clientY) {

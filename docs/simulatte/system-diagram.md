@@ -22,9 +22,10 @@ and acceptance evidence. `learning.js` presents these records; kernels remain th
 only execution authority. Custom diagrams retain data and activity inspection.
 
 Document `simulatte.systemDiagram.v2` adds optional `edge.label`, bounded by
-`maxLabelLength`. Labels are authoring annotations and do not change compiled
-execution. Legacy v1 documents import without rewriting their identities; adding
-a label explicitly promotes that document to v2. A library/config update changes
+`maxLabelLength`. Version v3 adds optional `group.collapsed`. Both are presentation
+state and do not change compiled execution. Legacy v1/v2 documents import without
+rewriting their identities; authoring a new field promotes only the document that
+uses it. Groups have flat explicit node membership, not nested subgraphs. A library/config update changes
 the accepted WorldSpec hash: checkpoints from older libraries refuse restoration
 rather than silently resume under different semantics. Import the drawing and
 start a newly accepted run, or use its original pinned runtime for old replay.
@@ -307,7 +308,7 @@ Change kinds tell the page what to do:
 | `faults` | addFault, updateFault, removeFault | Restart |
 | `meta` | setMeta seed or horizon | Restart |
 | `label` | setNodeLabel, setMeta name or description, notes | No restart |
-| `layout` | moveItems, setPositions, group geometry | No restart |
+| `layout` | moveItems, setPositions, group geometry, setGroupCollapsed | No restart |
 | `view` | setView (no history) | No restart |
 | `selection` | select (no history) | No restart |
 | `load` | replace | Restart |
@@ -320,6 +321,15 @@ for run overlays, `fit()`, `zoomBy(f)`, `getView()`, `setView(v)`,
 `screenToWorld(p)`, `layers`, `render()` and `dispose()`. Pointer drag moves nodes,
 dragging from a port connects, empty-canvas drag pans, shift-drag selects,
 Ctrl or pinch zooms; touch and keyboard paths exist for each.
+
+Collapsed groups hide their real members and internal wires only in the drawing.
+Crossing wires keep their actual node/port identities and attach to visible boundary
+ports. Expanding exposes the same editable, executable components; no replacement
+kernel runs when folded. Moving a group moves its members together. Fold state is
+undoable and saved with the diagram; folded bounds determine fit-to-view. The
+walkthrough expands a containing group before selecting one of its members.
+A displayed member count is not an end-to-end request count: summing node
+completions would count the same request at several hops.
 
 ## Page lifecycle and inspection
 

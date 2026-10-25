@@ -61,6 +61,14 @@
 .sd-group.is-selected .sd-group-body, .sd-group.is-drop-target .sd-group-body, .sd-group.is-selected .sd-group-tab-bg, .sd-group.is-selected .sd-group-handle { stroke: var(--wui-active); }
 .sd-group.is-drop-target .sd-group-body { fill: var(--wui-active); fill-opacity: .06; }
 .sd-group-tab:focus-visible .sd-group-tab-bg { stroke: var(--wui-active); stroke-width: 2px; }
+.sd-group-toggle { cursor: pointer; outline: none; }
+.sd-group-toggle-bg { fill: var(--wui-paper); stroke: var(--wui-line); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.sd-group-toggle-label { font: 600 17px var(--wui-font); fill: var(--wui-ink); pointer-events: none; }
+.sd-group-toggle:hover .sd-group-toggle-bg, .sd-group-toggle:focus-visible .sd-group-toggle-bg { stroke: var(--wui-active); stroke-width: 2px; }
+.sd-group-summary { font: 400 12px var(--wui-font); fill: var(--wui-ink); pointer-events: none; }
+.sd-group.is-collapsed .sd-group-body { fill: var(--wui-paper); fill-opacity: 1; stroke-dasharray: none; }
+.sd-group.is-collapsed .sd-group-hit { fill: transparent; pointer-events: all; }
+.sd-proxy-port:hover .sd-port-label { opacity: 1; }
 
 .sd-note { cursor: grab; outline: none; }
 .sd-note-body { fill: var(--wui-hover); stroke: var(--wui-line); stroke-width: 1px; vector-effect: non-scaling-stroke; }

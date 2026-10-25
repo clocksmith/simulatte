@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagramClassPack.v1",
   "id": "applications",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "kernels": [
     {
       "id": "applicationClient",
@@ -170,7 +170,7 @@
             "json"
           ],
           "multiple": false,
-          "required": true
+          "required": false
         },
         {
           "id": "chunks",
@@ -180,7 +180,27 @@
             "json"
           ],
           "multiple": false,
-          "required": true
+          "required": false
+        },
+        {
+          "id": "stream",
+          "direction": "out",
+          "label": "Durable stream session",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": false
+        },
+        {
+          "id": "access",
+          "direction": "out",
+          "label": "Conversation access authority",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": false
         }
       ],
       "faults": [
@@ -204,6 +224,39 @@
           "max": 10000,
           "default": 128,
           "group": "basic"
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Dependency timeout",
+          "min": 1,
+          "max": 60000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Dependency retries",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 10000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "requireExternalAuthority": {
+          "type": "boolean",
+          "label": "Require linked conversation authority",
+          "default": false,
+          "group": "basic",
+          "help": "Reject missing authority routes instead of creating the legacy combined identity policy. Fixed for an accepted run."
         }
       },
       "ports": [
@@ -215,6 +268,16 @@
             "json"
           ],
           "multiple": true,
+          "required": false
+        },
+        {
+          "id": "authority",
+          "direction": "out",
+          "label": "Recheck conversation access",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
           "required": false
         }
       ],
@@ -364,6 +427,16 @@
           ],
           "multiple": false,
           "required": true
+        },
+        {
+          "id": "events",
+          "direction": "out",
+          "label": "Committed activity events",
+          "emits": [
+            "event"
+          ],
+          "multiple": false,
+          "required": false
         }
       ],
       "faults": [
@@ -503,6 +576,162 @@
         "dropReplies",
         "blackhole"
       ]
+    },
+    {
+      "id": "chatStreamSession",
+      "label": "Chat stream session",
+      "description": "Owns generation cursor, incremental client delivery and completed assistant persistence, separate from prompt access and history orchestration.",
+      "paramSets": [],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Dependency timeout",
+          "min": 1,
+          "max": 60000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Dependency retries",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 10000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxOutstanding": {
+          "type": "integer",
+          "label": "In-flight command limit",
+          "min": 1,
+          "max": 1000,
+          "default": 32,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Chat commands",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "store",
+          "direction": "out",
+          "label": "Access and messages",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "generate",
+          "direction": "out",
+          "label": "Next stream chunk",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "chunks",
+          "direction": "out",
+          "label": "Deliver live chunks",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "workspaceJournal",
+      "label": "Workspace activity journal",
+      "description": "Persists concrete committed workspace activity identities and deduplicates retry delivery. Queue enqueue acknowledgement is not journal completion.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Activity record capacity",
+          "min": 1,
+          "max": 20000,
+          "default": 128,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Committed activity events",
+          "accepts": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "conversationAccess",
+      "label": "Conversation access authority",
+      "description": "Owns authored user and conversation membership. Stream and message storage must obtain permission from this independent service rather than trusting stale upstream access.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {},
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Conversation access checks",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
     }
   ],
   "classes": [
@@ -573,6 +802,39 @@
       "defaults": {
         "serviceMs": 5,
         "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "chat-stream-session",
+      "label": "Chat stream session",
+      "kernel": "chatStreamSession",
+      "category": "compute",
+      "glyph": "server",
+      "description": "Owns generation cursor, incremental client delivery and completed assistant persistence, separate from prompt access and history orchestration.",
+      "defaults": {}
+    },
+    {
+      "id": "workspace-journal",
+      "label": "Workspace activity journal",
+      "kernel": "workspaceJournal",
+      "category": "storage",
+      "glyph": "database",
+      "description": "Persists concrete committed workspace activity identities and deduplicates retry delivery. Queue enqueue acknowledgement is not journal completion.",
+      "defaults": {
+        "serviceDist": "constant",
+        "serviceMs": 2
+      }
+    },
+    {
+      "id": "conversation-access",
+      "label": "Conversation access authority",
+      "kernel": "conversationAccess",
+      "category": "compute",
+      "glyph": "lock",
+      "description": "Owns authored user and conversation membership. Stream and message storage must obtain permission from this independent service rather than trusting stale upstream access.",
+      "defaults": {
+        "serviceDist": "constant",
+        "serviceMs": 2
       }
     }
   ]

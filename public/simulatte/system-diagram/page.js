@@ -77,7 +77,7 @@
   button('playback','Restore',async()=>{if(!runner||!savedCheckpoint)throw Error('Save a checkpoint first');running=false;await runner.restore(savedCheckpoint);message('Restored the accepted run checkpoint.');});
   async function sessionExport(){return {schema:'simulatte.systemDiagramEditorSession.v1',diagram:clone(model.diagram),accepted:clone(accepted),checkpoint:runner?await runner.checkpoint():null};}
   function validateSession(v){
-    if([documents.SCHEMA,documents.LEGACY_SCHEMA].includes(v?.schema))return {diagram:documents.validate(v,library,config),accepted:null,checkpoint:null};
+    if([documents.SCHEMA,documents.ANNOTATED_SCHEMA,documents.LEGACY_SCHEMA].includes(v?.schema))return {diagram:documents.validate(v,library,config),accepted:null,checkpoint:null};
     if(!v||v.schema!=='simulatte.systemDiagramEditorSession.v1'||Object.keys(v).sort().join(',')!=='accepted,checkpoint,diagram,schema')throw Error('Unsupported or undeclared editor session fields');
     return {...clone(v),diagram:documents.validate(v.diagram,library,config),accepted:v.accepted?documents.validate(v.accepted,library,config):null};
   }
@@ -222,6 +222,7 @@
       const slots=field(host,'Shared concurrent slots',group.capacity??2,{id:'cluster-capacity',type:'number',spec:{type:'integer',min:1,max:64}});slots.disabled=group.kind!=='resource';kind.addEventListener('change',()=>{slots.disabled=kind.value!=='resource';});
       host.append(el('p','properties-note','Resource clusters share worker slots. Boundary groups are visual. Zones and regions model explicit correlated outage targets; they do not share capacity.'));
       const a=el('div','properties-actions');host.append(a);button(a,'Apply group',()=>apply({type:'updateGroup',id,patch:{label:name.value,kind:kind.value,...(kind.value==='resource'?{capacity:Number(slots.value)}:{capacity:undefined})}}),'primary');
+      button(a,group.collapsed?'Expand components':'Collapse components',()=>apply({type:'setGroupCollapsed',id,collapsed:!group.collapsed}));
       if(['zone','region'].includes(group.kind)){button(a,'Fail domain',()=>{if(!runner)throw Error('Run first');runner.inject({kind:'fault',target:{kind:'group',id},type:'outage',params:{}});},'danger');button(a,'Repair domain',()=>{if(!runner)throw Error('Run first');runner.inject({kind:'repair',target:{kind:'group',id}});});}
     }else if(note){
       $('selection-kind').textContent='Note';const text=field(host,'Note text',note.text,{id:'note-text'});text.maxLength=config.bounds.maxNoteLength;text.addEventListener('change',()=>perform(()=>apply({type:'updateNote',id,patch:{text:text.value}})));

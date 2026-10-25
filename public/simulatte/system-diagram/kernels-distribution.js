@@ -1,9 +1,9 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
   const registry = node ? require('./kernel-registry.js') : root.SimulatteSystemDiagramKernels;
-  factory(registry);
+  factory(registry, node ? require('./protocol-routing.js') : root.SimulatteSystemDiagramProtocolRouting);
   if (node) module.exports = registry;
-})(globalThis, function (registry) {
+})(globalThis, function (registry, routing) {
   'use strict';
   const MS = 1000, KIB_PER_MIB = 1024, KIB_PER_GIB = 1048576, REQUEST_KIB = 0.25;
   const BYTES_PER_KIB = 1024, BYTES_PER_KB = 1000;
@@ -30,7 +30,7 @@
   // by viewers; playback waits for the cohort's last delivery, a conservative aggregation assumption.
   function viewerFetch(ctx, cohort) {
     const p = ctx.p, k = ctx.k;
-    if (cohort.done || cohort.active || ctx.fault.down) return;
+    if (cohort.done || cohort.active || ctx.fault.down || !ctx.k.manifestReady) return;
     const v = { assetId: p.assetId, segment: cohort.segment, segmentKiB: p.segmentKiB, viewers: cohort.viewers, cohortId: cohort.id };
     const msg = ctx.message({ ptype: 'blob', kb: toKB(REQUEST_KIB), op: 'read', key: segmentKey(v), fields: { video: v, synthetic: true } });
     ctx.beginRequest(msg); const job = ctx.newJob(msg); cohort.active = job.id; k.requests[job.id] = { cohort: cohort.index, remaining: cohort.viewers };
@@ -60,15 +60,27 @@
     const nextAt = c.playAt + Math.max(0, c.segment - p.prefetchSegments) * p.segmentDurationSec + c.rebufferSec;
     ctx.wake(Math.max(0, nextAt - ctx.t), { kind: 'segment', index: c.index, epoch: k.epoch });
   }
-  registry.register({ id: 'videoViewers', station: null, immutableParams: ['viewers', 'cohorts', 'assetId', 'segments', 'segmentKiB', 'segmentDurationSec', 'startSec', 'startSpreadSec'],
-    validateTopology(node, compiled) { synchronous(node, compiled, ['cdn', 'peers']); },
+  registry.register({ id: 'videoViewers', station: null, immutableParams: ['viewers', 'cohorts', 'assetId', 'segments', 'segmentKiB', 'segmentDurationSec', 'startSec', 'startSpreadSec', 'requiresManifest'],
+    validateTopology(node, compiled) { synchronous(node, compiled, ['cdn', 'peers', 'manifest']); if (node.params.requiresManifest && !node.out.manifest.length) throw Error(`${node.id}: required manifest authority is not connected`); if (node.out.manifest?.length) routing.resolveTargets(node, compiled, 'manifest', { kernels: ['videoManifest'], targetPort: 'in' }); },
     init(ctx) {
       const count = Math.min(ctx.p.cohorts, ctx.p.viewers);
-      return { epoch: 0, requests: {}, cohorts: Array.from({ length: count }, (_, i) => ({ id: `${ctx.nodeId}:cohort-${i}`, index: i, viewers: Math.floor(ctx.p.viewers / count) + (i < ctx.p.viewers % count ? 1 : 0), segment: 0, active: null, done: false, failed: false, startedAt: ctx.p.startSec + i * ctx.p.startSpreadSec / Math.max(1, count - 1), playAt: null, startupSec: null, rebufferSec: 0 })), deliveredSegments: 0, startedViewers: 0, completedViewers: 0, failedViewers: 0, startupViewerSec: 0, rebufferViewerSec: 0, peerKiB: 0, cdnKiB: 0, cdnRequested: 0, peerFallbackViewers: 0 };
+      return { manifestReady: !ctx.edges('manifest').length, manifestJob: null, epoch: 0, requests: {}, cohorts: Array.from({ length: count }, (_, i) => ({ id: `${ctx.nodeId}:cohort-${i}`, index: i, viewers: Math.floor(ctx.p.viewers / count) + (i < ctx.p.viewers % count ? 1 : 0), segment: 0, active: null, done: false, failed: false, startedAt: ctx.p.startSec + i * ctx.p.startSpreadSec / Math.max(1, count - 1), playAt: null, startupSec: null, rebufferSec: 0 })), deliveredSegments: 0, startedViewers: 0, completedViewers: 0, failedViewers: 0, startupViewerSec: 0, rebufferViewerSec: 0, peerKiB: 0, cdnKiB: 0, cdnRequested: 0, peerFallbackViewers: 0 };
     },
-    start(ctx) { for (const c of ctx.k.cohorts) ctx.wake(c.startedAt, { kind: 'segment', index: c.index, epoch: ctx.k.epoch }); },
+    start(ctx) {
+      const edge = firstEdge(ctx, 'manifest');
+      if (edge) { const msg = ctx.message({ ptype: 'json', kb: toKB(REQUEST_KIB), op: 'read', fields: { videoManifest: { assetId: ctx.p.assetId } } }); const job = ctx.newJob(msg); ctx.k.manifestJob = job.id; ctx.call(job, edge.id, {}, { timeoutMs: ctx.p.timeoutMs, retries: ctx.p.retries, backoffMs: ctx.p.retryBackoffMs, slot: 'manifest' }); }
+      else for (const c of ctx.k.cohorts) ctx.wake(c.startedAt, { kind: 'segment', index: c.index, epoch: ctx.k.epoch });
+    },
     onWake(ctx, w) { if (w.kind === 'segment' && w.epoch === ctx.k.epoch) viewerFetch(ctx, ctx.k.cohorts[w.index]); },
     onResult(ctx, job, slot, result) {
+      if (slot === 'manifest') {
+        const m = result.msg?.fields?.videoManifest;
+        const valid = result.ok && m?.assetId === ctx.p.assetId && m.segments >= ctx.p.segments && m.segmentKiB === ctx.p.segmentKiB && m.segmentDurationSec === ctx.p.segmentDurationSec;
+        ctx.k.manifestReady = Boolean(valid); ctx.k.manifestJob = null; ctx.reply(job, { ok: Boolean(valid), ...(valid ? {} : { err: result.err || 'invalid' }) });
+        if (valid) for (const c of ctx.k.cohorts) ctx.wake(Math.max(0, c.startedAt - ctx.t), { kind: 'segment', index: c.index, epoch: ctx.k.epoch });
+        else { ctx.k.failedViewers = ctx.p.viewers; for (const c of ctx.k.cohorts) { c.failed = true; c.done = true; } }
+        return;
+      }
       const r = ctx.k.requests[job.id]; if (!r) return; const v = job.msg.fields.video, fields = result.msg?.fields;
       const served = result.ok && delivered(v, fields) && Number.isInteger(fields.servedViewers) && fields.servedViewers >= 0 && fields.servedViewers <= r.remaining && result.msg.kb === toKB(fields.servedViewers * v.segmentKiB) ? fields.servedViewers : 0;
       if (slot === 'peer') {
@@ -82,9 +94,15 @@
     onFault(ctx, f, active) {
       if (f.type !== 'crash') return;
       if (active) { ctx.k.epoch++; for (const c of ctx.k.cohorts) c.active = null; ctx.k.requests = {}; }
-      else if (!ctx.fault.down) for (const c of ctx.k.cohorts) if (!c.done) ctx.wake(Math.max(0, c.startedAt - ctx.t), { kind: 'segment', index: c.index, epoch: ctx.k.epoch });
+      else if (!ctx.fault.down) {
+        if (!ctx.k.manifestReady) {
+          const edge = firstEdge(ctx, 'manifest'); if (!edge) return;
+          const msg = ctx.message({ ptype: 'json', kb: toKB(REQUEST_KIB), op: 'read', fields: { videoManifest: { assetId: ctx.p.assetId } } }); const job = ctx.newJob(msg); ctx.k.manifestJob = job.id;
+          ctx.call(job, edge.id, {}, { timeoutMs: ctx.p.timeoutMs, retries: ctx.p.retries, backoffMs: ctx.p.retryBackoffMs, slot: 'manifest' });
+        } else for (const c of ctx.k.cohorts) if (!c.done) ctx.wake(Math.max(0, c.startedAt - ctx.t), { kind: 'segment', index: c.index, epoch: ctx.k.epoch });
+      }
     },
-    observe(ctx) { const k = ctx.k; return { detail: { viewers: ctx.p.viewers, cohorts: k.cohorts.length, 'completed viewers': k.completedViewers, 'failed viewers': k.failedViewers, 'segment deliveries': k.deliveredSegments, 'mean startup s': k.startedViewers ? k.startupViewerSec / k.startedViewers : 0, 'rebuffer viewer s': k.rebufferViewerSec, 'CDN KiB': k.cdnKiB, 'peer KiB': k.peerKiB, 'peer fallback viewers': k.peerFallbackViewers, model: 'Synthetic aggregate cohorts; playback waits for every member, not actual video or WebRTC' }, records: { cohorts: clone(k.cohorts) } }; }
+    observe(ctx) { const k = ctx.k; return { detail: { viewers: ctx.p.viewers, cohorts: k.cohorts.length, 'completed viewers': k.completedViewers, 'failed viewers': k.failedViewers, 'segment deliveries': k.deliveredSegments, 'manifest ready': k.manifestReady, 'mean startup s': k.startedViewers ? k.startupViewerSec / k.startedViewers : 0, 'rebuffer viewer s': k.rebufferViewerSec, 'CDN KiB': k.cdnKiB, 'peer KiB': k.peerKiB, 'peer fallback viewers': k.peerFallbackViewers, model: 'Synthetic aggregate cohorts; playback waits for every member, not actual video or WebRTC' }, records: { cohorts: clone(k.cohorts) } }; }
   });
 
   registry.register({ id: 'videoOrigin', station: STATION, immutableParams: ['assetId', 'segments', 'segmentKiB'], init: () => ({ segments: 0, originKiB: 0 }),
@@ -168,14 +186,14 @@
   // Spark-style records are generated inputs, not precomputed outcomes. Executors map real URL
   // strings into partitioned counts; reducers must retrieve every shuffle block via drawn edges.
   function blockKey(jobId, map, partition) { return `${jobId}:map-${map}:reduce-${partition}`; }
-  function blockValid(b) { return b && typeof b.jobId === 'string' && b.jobId.length <= 90 && Number.isInteger(b.map) && b.map >= 0 && b.map < 64 && Number.isInteger(b.partition) && b.partition >= 0 && b.partition < 64 && b.id === blockKey(b.jobId, b.map, b.partition) && typeof b.executor === 'string' && Number.isInteger(b.epoch) && b.epoch >= 0 && Number.isFinite(b.kb) && b.kb >= 0 && Number.isInteger(b.records) && b.records >= 0 && b.records <= 20000; }
+  function blockValid(b) { return b && typeof b.jobId === 'string' && b.jobId.length <= 90 && Number.isInteger(b.map) && b.map >= 0 && b.map < 64 && Number.isInteger(b.partition) && b.partition >= 0 && b.partition < 64 && b.id === blockKey(b.jobId, b.map, b.partition) && typeof b.executor === 'string' && (b.storage === undefined || typeof b.storage === 'string') && Number.isInteger(b.epoch) && b.epoch >= 0 && Number.isFinite(b.kb) && b.kb >= 0 && Number.isInteger(b.records) && b.records >= 0 && b.records <= 20000; }
   function countsRows(counts) { return Object.keys(counts).sort().map(url => ({ url, count: counts[url] })); }
   function rowsValid(rows) { return Array.isArray(rows) && rows.length <= 20000 && rows.every(r => r && typeof r.url === 'string' && /^\/url-\d+$/.test(r.url) && Number.isInteger(r.count) && r.count > 0); }
   function recordCount(rows) { return rows.reduce((n, r) => n + r.count, 0); }
   function driverInit(ctx) {
-    const p = ctx.p, inputs = Array.from({ length: p.mapPartitions }, (_, i) => ({ id: `map-${i}`, index: i, records: [] }));
+    const p = ctx.p, inputs = ctx.node.out.input?.length ? [] : Array.from({ length: p.mapPartitions }, (_, i) => ({ id: `map-${i}`, index: i, records: [] }));
     const hot = Math.floor(p.recordCount * p.hotFraction);
-    for (let i = 0; i < p.recordCount; i++) { const key = p.keyCount === 1 || i < hot ? 0 : 1 + (i - hot) % (p.keyCount - 1); inputs[i % p.mapPartitions].records.push(`/url-${key}`); }
+    for (let i = 0; inputs.length && i < p.recordCount; i++) { const key = p.keyCount === 1 || i < hot ? 0 : 1 + (i - hot) % (p.keyCount - 1); inputs[i % p.mapPartitions].records.push(`/url-${key}`); }
     return { inputs, jobId: `${ctx.nodeId}:job-1`, job: null, phase: 'waiting', epoch: 0, cursor: 0, maps: {}, reduces: {}, active: 0, retries: 0, recomputed: 0, fetchFailures: 0, shuffleKiB: 0, spillKiB: 0, startedAt: null, completedAt: null, output: [], blockedUntil: {}, tasks: {}, stages: [{ id: 'map', dependsOn: [], state: 'waiting' }, { id: 'shuffle', dependsOn: ['map'], state: 'waiting' }, { id: 'reduce', dependsOn: ['shuffle'], dependencyScope: 'per-reduce-partition', state: 'waiting' }] };
   }
   function driverDone(ctx, ok, err) {
@@ -203,7 +221,7 @@
       const id = `${map ? 'map' : 'reduce'}-${i}`, task = own(k.tasks, id) || (k.tasks[id] = { id, kind: map ? 'map' : 'reduce', index: i, attempts: 0, state: 'waiting', executor: null, records: map ? k.inputs[i].records.length : null });
       if (own(done, String(i)) || task.state === 'running') continue;
       if (task.attempts >= p.maxAttempts) { driverDone(ctx, false, 'unavailable'); return; }
-      const edges = ctx.edges('executors'); let edge = null;
+      const stageEdges = ctx.edges(map ? 'maps' : 'reduces'), edges = stageEdges.length ? stageEdges : ctx.edges('executors'); let edge = null;
       for (let j = 0; j < edges.length; j++) { const e = edges[(k.cursor + j) % edges.length]; if (ctx.edgeUsable(e.id) && (own(k.blockedUntil, e.to) || 0) <= ctx.t) { edge = e; k.cursor = (k.cursor + j + 1) % edges.length; break; } }
       if (!edge) { ctx.wake(p.retryBackoffMs / MS, { kind: 'pump', epoch: k.epoch }); return; }
       task.attempts++; if (task.attempts > 1) k.retries++; task.state = 'running'; task.executor = edge.to; task.startedAt = ctx.t; k.active++;
@@ -211,21 +229,31 @@
       ctx.call(ctx.job(k.job), edge.id, { ptype: 'task', kb: toKB(map ? spark.records.length * p.recordKiB : REQUEST_KIB), fields: { spark } }, { timeoutMs: p.taskTimeoutMs, retries: 0, retryOf: task.attempts - 1, slot: { kind: map ? 'map' : 'reduce', index: i, epoch: k.epoch, executor: edge.to } });
     }
   }
-  registry.register({ id: 'sparkDriver', station: null, immutableParams: ['recordCount', 'keyCount', 'hotFraction', 'mapPartitions', 'reducePartitions', 'recordKiB', 'startSec'],
+  registry.register({ id: 'sparkDriver', station: null, immutableParams: ['recordCount', 'keyCount', 'hotFraction', 'mapPartitions', 'reducePartitions', 'recordKiB', 'startSec', 'inputMode'],
     validateTopology(node, compiled) {
-      synchronous(node, compiled, ['executors', 'output']);
+      synchronous(node, compiled, ['executors', 'maps', 'reduces', 'input', 'output']);
       const nodes = new Map(compiled.nodes.map(n => [n.id, n]));
-      for (const e of compiled.edges.filter(e => e.from === node.id && e.fromPort === 'executors')) if (nodes.get(e.to)?.kernel !== 'sparkExecutor' || e.toPort !== 'tasks') throw Error(`${node.id}: executor edges must target a Spark executor tasks port`);
+      for (const e of compiled.edges.filter(e => e.from === node.id && ['executors', 'maps', 'reduces'].includes(e.fromPort))) if (nodes.get(e.to)?.kernel !== 'sparkExecutor' || e.toPort !== 'tasks') throw Error(`${node.id}: executor edges must target a Spark executor tasks port`);
+      if (!node.out.executors.length && (!node.out.maps.length || !node.out.reduces.length)) throw Error(`${node.id}: connect map and reduce CPU pools or shared executors`);
+      if (node.params.inputMode === 'external' && !node.out.input.length) throw Error(`${node.id}: external input authority is not connected`);
+      if (node.out.input.length) routing.resolveTargets(node, compiled, 'input', { kernels: ['sparkInput'], targetPort: 'in' });
     },
     init: driverInit,
     start(ctx) { ctx.wake(ctx.p.startSec, { kind: 'start', epoch: ctx.k.epoch }); },
     onWake(ctx, w) {
       const k = ctx.k; if (w.epoch !== k.epoch) return;
-      if (w.kind === 'start' && k.phase === 'waiting') { const msg = ctx.message({ ptype: 'task', kb: toKB(REQUEST_KIB), fields: { sparkJob: k.jobId, synthetic: true } }); ctx.beginRequest(msg); k.job = ctx.newJob(msg).id; k.phase = 'map'; k.startedAt = ctx.t; k.stages[0].state = 'running'; k.stages[0].startedAt = ctx.t; }
+      if (w.kind === 'start' && k.phase === 'waiting') { const msg = ctx.message({ ptype: 'task', kb: toKB(REQUEST_KIB), fields: { sparkJob: k.jobId, synthetic: true } }); ctx.beginRequest(msg); k.job = ctx.newJob(msg).id; k.phase = 'map'; k.startedAt = ctx.t; k.stages[0].state = 'running'; k.stages[0].startedAt = ctx.t;
+        const input = firstEdge(ctx, 'input'); if (input) { k.phase = 'input'; ctx.call(ctx.job(k.job), input.id, { ptype: 'task', fields: { spark: { kind: 'input', mapPartitions: ctx.p.mapPartitions } } }, { timeoutMs: ctx.p.taskTimeoutMs, retries: 0, slot: { kind: 'input' } }); }
+      }
       driverPump(ctx);
     },
     onResult(ctx, job, slot, result) {
       const k = ctx.k; if (['failed', 'completed'].includes(k.phase)) return;
+      if (slot.kind === 'input') {
+        const rows = result.msg?.fields?.sparkInput;
+        if (!result.ok || !Array.isArray(rows) || rows.length !== ctx.p.mapPartitions || rows.some((r, i) => !r || typeof r !== 'object' || r.index !== i || !Array.isArray(r.records) || r.records.some(url => !/^\/url-\d+$/.test(url))) || rows.reduce((n, r) => n + r.records.length, 0) !== ctx.p.recordCount) { driverDone(ctx, false, result.err || 'invalid'); return; }
+        k.inputs = clone(rows); k.phase = 'map'; driverPump(ctx); return;
+      }
       if (slot.kind === 'output') { if (!result.ok) driverDone(ctx, false, result.err); else if (--k.outputPending === 0) driverDone(ctx, true); return; }
       if (slot.epoch !== k.epoch) return;
       const id = `${slot.kind}-${slot.index}`, task = k.tasks[id]; task.state = result.ok ? 'completed' : 'waiting'; task.completedAt = ctx.t; k.active--;
@@ -248,7 +276,7 @@
       driverPump(ctx);
     },
     onFault(ctx, f, active) { if (f.type === 'crash' && active && !['completed', 'failed'].includes(ctx.k.phase)) { ctx.k.epoch++; driverDone(ctx, false, 'down'); } },
-    observe(ctx) { const k = ctx.k; return { detail: { state: k.phase, 'input records': ctx.p.recordCount, 'completed map partitions': Object.keys(k.maps).length, 'completed reduce partitions': Object.keys(k.reduces).length, 'task retries': k.retries, 'recomputed map partitions': k.recomputed, 'shuffle fetch failures': k.fetchFailures, 'shuffle KiB': k.shuffleKiB, 'reduce spill KiB': k.spillKiB, 'output records counted': recordCount(k.output), model: 'Synthetic Spark-style URL count stages, executor-local shuffle and recomputation; not Apache Spark execution' }, records: { stages: clone(k.stages), tasks: clone(Object.values(k.tasks)), output: clone(k.output), partitions: k.inputs.map(i => ({ id: i.id, records: i.records.length })) } }; }
+    observe(ctx) { const k = ctx.k; return { detail: { state: k.phase, 'input records': ctx.p.recordCount, 'completed map partitions': Object.keys(k.maps).length, 'completed reduce partitions': Object.keys(k.reduces).length, 'task retries': k.retries, 'recomputed map partitions': k.recomputed, 'shuffle fetch failures': k.fetchFailures, 'shuffle KiB': k.shuffleKiB, 'reduce spill KiB': k.spillKiB, 'output records counted': recordCount(k.output), model: 'Synthetic Spark-style URL count stages, receipt-bound shuffle and lineage recomputation; not Apache Spark execution' }, records: { stages: clone(k.stages), tasks: clone(Object.values(k.tasks)), output: clone(k.output), partitions: k.inputs.map(i => ({ id: i.id, records: i.records.length })) } }; }
   });
 
   function executorSpill(ctx, job, kb) {
@@ -257,9 +285,18 @@
     ctx.k.spillKiB += spill; return spill;
   }
   function executorRemoveBlock(ctx, key) { const old = own(ctx.k.blocks, key); if (old) { ctx.releaseRetained(key); ctx.k.residentKiB -= old.residentKiB; delete ctx.k.blocks[key]; } }
+  function executorExternalMap(ctx, job, task, buckets, edge) {
+    const row = ctx.k.writing[job.id] = { pending: buckets.length, result: { kind: 'map', jobId: task.jobId, index: task.map, executor: ctx.nodeId, blocks: [] } };
+    ctx.release(job); scheduleCleanup(ctx);
+    buckets.forEach((counts, partition) => {
+      const rows = countsRows(counts), records = recordCount(rows), descriptor = { id: blockKey(task.jobId, task.map, partition), jobId: task.jobId, map: task.map, partition, executor: ctx.nodeId, epoch: ctx.k.epoch, kb: toKB(records * task.recordKiB), records };
+      ctx.call(job, edge.id, { ptype: 'rows', kb: descriptor.kb, fields: { spark: { kind: 'store', block: { ...descriptor, rows } } } }, { timeoutMs: ctx.p.shuffleTimeoutMs, retries: 0, slot: { kind: 'store', partition } });
+    });
+  }
   function executorMap(ctx, job, task) {
     const k = ctx.k, buckets = Array.from({ length: task.reducePartitions }, () => ({}));
     for (const url of task.records) { const b = buckets[hash(url) % task.reducePartitions]; b[url] = (own(b, url) || 0) + 1; }
+    const store = firstEdge(ctx, 'storage'); if (store) { executorExternalMap(ctx, job, task, buckets, store); return; }
     const descriptors = []; let shuffleSpillKiB = 0;
     for (let i = 0; i < buckets.length; i++) {
       const key = blockKey(task.jobId, task.map, i); executorRemoveBlock(ctx, key);
@@ -273,15 +310,15 @@
     if (shuffleSpillKiB > 0) { k.pendingMaps[job.id] = result; scheduleCleanup(ctx); k.spillKiB += shuffleSpillKiB; ctx.admit(job, ctx.serviceMs(shuffleSpillKiB / (ctx.p.spillMiBps * KIB_PER_MIB) * MS, 'constant', 0)); }
     else { k.maps++; ctx.reply(job, { ok: true, kb: toKB(REQUEST_KIB), fields: { sparkResult: result } }); }
   }
-  function fetchBlock(ctx, descriptor) { if (!blockValid(descriptor)) return null; const b = own(ctx.k.blocks, descriptor.id); return b && b.kb === descriptor.kb && b.records === descriptor.records && b.epoch === descriptor.epoch && b.jobId === descriptor.jobId && b.map === descriptor.map && b.partition === descriptor.partition ? b : null; }
+  function fetchBlock(ctx, descriptor) { if (!blockValid(descriptor)) return null; const b = own(ctx.k.blocks, descriptor.id); return b && b.ready !== false && b.kb === descriptor.kb && b.records === descriptor.records && b.epoch === descriptor.epoch && b.jobId === descriptor.jobId && b.map === descriptor.map && b.partition === descriptor.partition && b.executor === descriptor.executor && b.storage === descriptor.storage ? b : null; }
   function reducerFail(ctx, job, missing) { delete ctx.k.reducing[job.id]; fail(ctx, job, 'unavailable', { missingMaps: missing }); }
   function reducerAccept(ctx, row, block) { for (const r of block.rows) row.counts[r.url] = (own(row.counts, r.url) || 0) + r.count; row.records += recordCount(block.rows); row.received++; }
   function reducerPump(ctx, job) {
     const row = ctx.k.reducing[job.id]; if (!row) return;
     while (row.next < row.blocks.length && row.active < ctx.p.shuffleConcurrency) {
       const block = row.blocks[row.next++];
-      if (block.executor === ctx.nodeId) { const local = fetchBlock(ctx, block); if (!local) { reducerFail(ctx, job, [block.map]); return; } reducerAccept(ctx, row, local); row.localReadKiB += local.spilledKiB; continue; }
-      const edge = ctx.edges('shuffle').find(e => e.to === block.executor);
+      if (!block.storage && block.executor === ctx.nodeId) { const local = fetchBlock(ctx, block); if (!local) { reducerFail(ctx, job, [block.map]); return; } reducerAccept(ctx, row, local); row.localReadKiB += local.spilledKiB; continue; }
+      const edge = ctx.edges('shuffle').find(e => e.to === (block.storage || block.executor));
       if (!edge) { reducerFail(ctx, job, [block.map]); return; }
       row.active++;
       ctx.call(job, edge.id, { ptype: 'rows', kb: toKB(REQUEST_KIB), fields: { spark: { kind: 'fetch', block } } }, { timeoutMs: ctx.p.shuffleTimeoutMs, retries: 0, slot: { kind: 'fetch', id: block.id, map: block.map } });
@@ -296,16 +333,17 @@
     if (!service(ctx, job, ctx.serviceMs(ms, 'constant', 0))) delete ctx.k.reducing[job.id];
   }
   function sweepExecutor(ctx) {
-    for (const map of [ctx.k.pendingMaps, ctx.k.reducing]) for (const id of Object.keys(map)) if (!ctx.job(id)) delete map[id];
+    for (const map of [ctx.k.pendingMaps, ctx.k.reducing, ctx.k.writing]) for (const id of Object.keys(map)) if (!ctx.job(id)) delete map[id];
     ctx.k.cleanupScheduled = false;
-    if (Object.keys(ctx.k.pendingMaps).length || Object.keys(ctx.k.reducing).length) { ctx.k.cleanupScheduled = true; ctx.wake(ctx.p.shuffleTimeoutMs / MS, { kind: 'cleanup', epoch: ctx.k.epoch }); }
+    if (Object.keys(ctx.k.pendingMaps).length || Object.keys(ctx.k.reducing).length || Object.keys(ctx.k.writing).length) { ctx.k.cleanupScheduled = true; ctx.wake(ctx.p.shuffleTimeoutMs / MS, { kind: 'cleanup', epoch: ctx.k.epoch }); }
   }
   function scheduleCleanup(ctx) { if (!ctx.k.cleanupScheduled) { ctx.k.cleanupScheduled = true; ctx.wake(ctx.p.shuffleTimeoutMs / MS, { kind: 'cleanup', epoch: ctx.k.epoch }); } }
-  registry.register({ id: 'sparkExecutor', station: STATION,
-    validateTopology(node, compiled) { synchronous(node, compiled, ['shuffle']); const nodes = new Map(compiled.nodes.map(n => [n.id, n])); for (const e of compiled.edges.filter(e => e.from === node.id && e.fromPort === 'shuffle')) if (nodes.get(e.to)?.kernel !== 'sparkExecutor' || e.toPort !== 'blocks') throw Error(`${node.id}: shuffle links must target executor blocks ports`); },
-    init: () => ({ epoch: 0, blocks: {}, reducing: {}, pendingMaps: {}, cleanupScheduled: false, residentKiB: 0, maps: 0, reduces: 0, fetches: 0, shuffleKiB: 0, spillKiB: 0, lostBlocks: 0 }),
+  registry.register({ id: 'sparkExecutor', station: STATION, immutableParams: ['taskRole', 'shuffleMode'],
+    validateTopology(node, compiled) { synchronous(node, compiled, ['shuffle', 'storage']); const nodes = new Map(compiled.nodes.map(n => [n.id, n])); for (const e of compiled.edges.filter(e => e.from === node.id && e.fromPort === 'shuffle')) if (!['sparkExecutor', 'sparkBlockStore'].includes(nodes.get(e.to)?.kernel) || e.toPort !== 'blocks') throw Error(`${node.id}: shuffle links must target executor or shuffle storage blocks ports`); if (node.params.shuffleMode === 'external' && !node.out.storage.length) throw Error(`${node.id}: external shuffle storage is not connected`); if (node.out.storage.length) routing.resolveTargets(node, compiled, 'storage', { kernels: ['sparkBlockStore'], targetPort: 'blocks' }); },
+    init: () => ({ epoch: 0, blocks: {}, reducing: {}, pendingMaps: {}, writing: {}, cleanupScheduled: false, residentKiB: 0, maps: 0, reduces: 0, fetches: 0, shuffleKiB: 0, spillKiB: 0, lostBlocks: 0 }),
     onRequest(ctx, job) {
       const t = job.msg.fields?.spark, port = job.from ? ctx.edge(job.from.edgeId).toPort : null;
+      if (t && ['map', 'reduce'].includes(t.kind) && ctx.p.taskRole !== 'shared' && ctx.p.taskRole !== t.kind) { fail(ctx, job); return; }
       if (!t || (t.kind === 'fetch' ? port !== 'blocks' : port !== 'tasks')) { fail(ctx, job); return; }
       let ms = ctx.p.serviceMs;
       if (t.kind === 'map') {
@@ -337,13 +375,65 @@
       scheduleCleanup(ctx); ctx.release(job); reducerPump(ctx, job);
     },
     onResult(ctx, job, slot, result) {
+      if (slot.kind === 'store') {
+        const pending = ctx.k.writing[job.id]; if (!pending) return;
+        const block = result.msg?.fields?.sparkBlock;
+        if (!result.ok || !blockValid(block) || block.executor !== ctx.nodeId || block.partition !== slot.partition || typeof block.storage !== 'string') { delete ctx.k.writing[job.id]; fail(ctx, job, result.err || 'invalid'); return; }
+        pending.result.blocks[slot.partition] = clone(block);
+        if (!--pending.pending) { delete ctx.k.writing[job.id]; ctx.k.maps++; ctx.reply(job, { ok: true, kb: toKB(REQUEST_KIB), fields: { sparkResult: pending.result } }); }
+        return;
+      }
       const row = ctx.k.reducing[job.id]; if (!row || slot.kind !== 'fetch') return; row.active--;
       const b = result.msg?.fields?.sparkBlock, expected = row.blocks.find(block => block.id === slot.id);
-      if (!result.ok || !blockValid(b) || !expected || ['id', 'jobId', 'map', 'partition', 'executor', 'epoch', 'records', 'kb'].some(key => b[key] !== expected[key]) || !rowsValid(b.rows) || recordCount(b.rows) !== b.records || result.msg.kb !== expected.kb) { reducerFail(ctx, job, [slot.map]); return; }
+      if (!result.ok || !blockValid(b) || !expected || ['id', 'jobId', 'map', 'partition', 'executor', 'storage', 'epoch', 'records', 'kb'].some(key => b[key] !== expected[key]) || !rowsValid(b.rows) || recordCount(b.rows) !== b.records || result.msg.kb !== expected.kb) { reducerFail(ctx, job, [slot.map]); return; }
       reducerAccept(ctx, row, b); row.shuffleKiB += toKiB(b.kb); reducerPump(ctx, job);
     },
     onWake(ctx, w) { if (w.kind === 'cleanup' && w.epoch === ctx.k.epoch) sweepExecutor(ctx); },
-    onFault(ctx, f, active) { if (f.type === 'crash' && active) { ctx.k.cleanupScheduled = false; ctx.k.epoch++; ctx.k.lostBlocks += Object.keys(ctx.k.blocks).length; for (const key of Object.keys(ctx.k.blocks)) executorRemoveBlock(ctx, key); ctx.k.reducing = {}; ctx.k.pendingMaps = {}; } },
-    observe(ctx) { const k = ctx.k; return { detail: { 'map tasks': k.maps, 'reduce tasks': k.reduces, 'shuffle fetches': k.fetches, 'shuffle KiB served': k.shuffleKiB, 'task spill KiB': k.spillKiB, 'shuffle resident KiB': k.residentKiB, 'shuffle disk KiB': Object.values(k.blocks).reduce((n, b) => n + b.spilledKiB, 0), 'lost shuffle blocks': k.lostBlocks, model: 'Executor-local synthetic RAM/disk shuffle; crashes lose blocks and trigger lineage recomputation' }, records: { blocks: clone(Object.values(k.blocks).map(({ rows, ...b }) => b)), reductions: clone(Object.entries(k.reducing).map(([id, r]) => ({ id, phase: r.phase, received: r.received, required: r.blocks.length, records: r.records }))) } }; }
+    onFault(ctx, f, active) { if (f.type === 'crash' && active) { ctx.k.cleanupScheduled = false; ctx.k.epoch++; ctx.k.lostBlocks += Object.keys(ctx.k.blocks).length; for (const key of Object.keys(ctx.k.blocks)) executorRemoveBlock(ctx, key); ctx.k.reducing = {}; ctx.k.pendingMaps = {}; ctx.k.writing = {}; } },
+    observe(ctx) { const k = ctx.k; return { detail: { 'map tasks': k.maps, 'reduce tasks': k.reduces, 'shuffle fetches': k.fetches, 'shuffle KiB served': k.shuffleKiB, 'task spill KiB': k.spillKiB, 'shuffle resident KiB': k.residentKiB, 'shuffle disk KiB': Object.values(k.blocks).reduce((n, b) => n + b.spilledKiB, 0), 'lost shuffle blocks': k.lostBlocks, model: ctx.edges('storage').length ? 'Stage CPU with independent drawn shuffle storage; CPU crash does not erase remote blocks' : 'Executor-local synthetic RAM/disk shuffle; crashes lose blocks and trigger lineage recomputation' }, records: { blocks: clone(Object.values(k.blocks).map(({ rows, ...b }) => b)), reductions: clone(Object.entries(k.reducing).map(([id, r]) => ({ id, phase: r.phase, received: r.received, required: r.blocks.length, records: r.records }))) } }; }
   });
+  registry.register({ id: 'videoManifest', station: STATION, immutableParams: ['assetId', 'segments', 'segmentKiB', 'segmentDurationSec'],
+    init: () => ({ reads: 0 }), onRequest(ctx, job) { if (job.msg.fields?.videoManifest?.assetId !== ctx.p.assetId) { fail(ctx, job); return; } service(ctx, job); },
+    onServed(ctx, job) { ctx.k.reads++; const { assetId, segments, segmentKiB, segmentDurationSec } = ctx.p; ctx.reply(job, { ok: true, ptype: 'json', kb: 0.5, fields: { videoManifest: { assetId, segments, segmentKiB, segmentDurationSec } } }); },
+    observe: ctx => ({ detail: { 'manifest reads': ctx.k.reads, 'asset ID': ctx.p.assetId, segments: ctx.p.segments, model: 'Authored playback manifest, not encoding or DRM' } })
+  });
+  registry.register({ id: 'sparkInput', station: STATION, immutableParams: ['recordCount', 'keyCount', 'hotFraction', 'mapPartitions'],
+    init: ctx => ({ inputs: driverInit(ctx).inputs, reads: 0 }), onRequest(ctx, job) { const t = job.msg.fields?.spark; if (t?.kind !== 'input' || t.mapPartitions !== ctx.p.mapPartitions) { fail(ctx, job); return; } service(ctx, job); },
+    onServed(ctx, job) { ctx.k.reads++; ctx.reply(job, { ok: true, ptype: 'rows', kb: toKB(ctx.p.recordCount * ctx.p.recordKiB), fields: { sparkInput: clone(ctx.k.inputs) } }); },
+    observe: ctx => ({ detail: { 'dataset reads': ctx.k.reads, records: ctx.p.recordCount, 'input partitions': ctx.k.inputs.length }, records: { partitions: ctx.k.inputs.map(r => ({ id: r.id, records: r.records.length })) } })
+  });
+  registry.register({ id: 'sparkBlockStore', station: STATION,
+    init: () => ({ epoch: 0, blocks: {}, pendingStores: {}, residentKiB: 0, writes: 0, fetches: 0, lostBlocks: 0, spillKiB: 0 }),
+    onRequest(ctx, job) {
+      const t = job.msg.fields?.spark, b = t?.block;
+      if (!['store', 'fetch'].includes(t?.kind) || !blockValid(b)) { fail(ctx, job); return; }
+      if (t.kind === 'store' && (!rowsValid(b.rows) || recordCount(b.rows) !== b.records)) { fail(ctx, job); return; }
+      if (t.kind === 'fetch' && (!fetchBlock(ctx, b) || b.storage !== ctx.nodeId)) { fail(ctx, job, 'unavailable', { missingMaps: [b.map] }); return; }
+      const spill = t.kind === 'store' ? 0 : fetchBlock(ctx, b).spilledKiB;
+      service(ctx, job, ctx.serviceMs(ctx.p.serviceMs + spill / (ctx.p.spillMiBps * KIB_PER_MIB) * MS, 'constant', 0));
+    },
+    onServed(ctx, job) {
+      const t = job.msg.fields.spark, b = t.block, k = ctx.k;
+      if (t.kind === 'fetch') { const stored = fetchBlock(ctx, b); if (!stored) { fail(ctx, job, 'unavailable', { missingMaps: [b.map] }); return; } k.fetches++; ctx.reply(job, { ok: true, ptype: 'rows', kb: b.kb, fields: { sparkBlock: { ...b, rows: clone(stored.rows) } } }); return; }
+      if (own(k.pendingStores, job.id)) {
+        delete k.pendingStores[job.id]; const stored = own(k.blocks, b.id);
+        if (!stored || stored.writeJob !== job.id) { fail(ctx, job, 'unavailable'); return; }
+        stored.ready = true; k.writes++; const { rows, residentKiB, spilledKiB, ready, writeJob, ...descriptor } = stored;
+        ctx.reply(job, { ok: true, ptype: 'rows', kb: toKB(REQUEST_KIB), fields: { sparkBlock: descriptor } }); return;
+      }
+      if (own(k.blocks, b.id)?.ready === false) { fail(ctx, job, 'rejected'); return; }
+      executorRemoveBlock(ctx, b.id);
+      if (Object.keys(k.blocks).length >= ctx.p.maxBlocks) { fail(ctx, job, 'rejected'); return; }
+      const residentKiB = Math.min(toKiB(b.kb), Math.max(0, ctx.p.shuffleBufferMiB * KIB_PER_MIB - k.residentKiB));
+      const stored = { ...clone(b), storage: ctx.nodeId, epoch: k.epoch, residentKiB, spilledKiB: toKiB(b.kb) - residentKiB, ready: false, writeJob: job.id };
+      if (!ctx.retain(b.id, ctx.derive(job.msg, { kb: toKB(residentKiB) }), { kind: 'spark-shuffle-block', detail: `${b.id}: independent shuffle storage` })) { fail(ctx, job, 'rejected'); return; }
+      k.blocks[b.id] = stored; k.residentKiB += residentKiB; k.spillKiB += stored.spilledKiB;
+      if (stored.spilledKiB > 0) { k.pendingStores[job.id] = b.id; if (!ctx.admit(job, ctx.serviceMs(stored.spilledKiB / (ctx.p.spillMiBps * KIB_PER_MIB) * MS, 'constant', 0))) { delete k.pendingStores[job.id]; executorRemoveBlock(ctx, b.id); } return; }
+      stored.ready = true; k.writes++;
+      const { rows, residentKiB: memory, spilledKiB, ready, writeJob, ...descriptor } = stored; ctx.reply(job, { ok: true, ptype: 'rows', kb: toKB(REQUEST_KIB), fields: { sparkBlock: descriptor } });
+    },
+    onFault(ctx, f, active) { if (['crash', 'outage'].includes(f.type) && active) { ctx.k.epoch++; ctx.k.pendingStores = {}; ctx.k.lostBlocks += Object.keys(ctx.k.blocks).length; for (const key of Object.keys(ctx.k.blocks)) executorRemoveBlock(ctx, key); } },
+    observe: ctx => ({ detail: { 'stored blocks': Object.keys(ctx.k.blocks).length, 'block writes': ctx.k.writes, 'block fetches': ctx.k.fetches, 'lost shuffle blocks': ctx.k.lostBlocks, 'shuffle resident KiB': ctx.k.residentKiB, 'spill KiB': ctx.k.spillKiB }, records: { blocks: Object.values(ctx.k.blocks).map(({ rows, ...b }) => clone(b)) } })
+  });
+
 });

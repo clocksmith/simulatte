@@ -229,6 +229,17 @@
         }
         return { kind, id: cmd.id, ...(removedFaults.length ? { extras: { removedFaults } } : {}) };
       },
+      setGroupCollapsed(draft, cmd) {
+        const group = find(draft, 'groups', cmd.id, 'group');
+        if (typeof cmd.collapsed !== 'boolean') refuse('setGroupCollapsed needs a boolean collapsed state');
+        if (Boolean(group.collapsed) === cmd.collapsed) return { kind: 'layout', id: cmd.id };
+        group.collapsed = cmd.collapsed;
+        draft.schema = D.SCHEMA;
+        const members = new Set(draft.nodes.filter(n => n.groupId === group.id).map(n => n.id));
+        const hidden = new Set([...members, ...draft.edges.filter(e => members.has(e.from.nodeId) && members.has(e.to.nodeId)).map(e => e.id)]);
+        const selected = flatSelection(selection), concealedSelection = cmd.collapsed && selected.some(id => hidden.has(id));
+        return { kind: 'layout', id: cmd.id, ...(concealedSelection ? { select: [...selected.filter(id => !hidden.has(id)), group.id] } : {}) };
+      },
       addNote(draft, cmd) {
         const id = cmd.id || D.newId(draft, 'note');
         const note = { id, text: cmd.text ?? '', x: cmd.x, y: cmd.y };

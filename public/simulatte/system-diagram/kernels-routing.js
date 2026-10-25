@@ -1,9 +1,9 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
   const registry = node ? require('./kernel-registry.js') : root.SimulatteSystemDiagramKernels;
-  factory(registry);
+  factory(registry, node ? require('./protocol-routing.js') : root.SimulatteSystemDiagramProtocolRouting);
   if (node) module.exports = registry;
-})(globalThis, function (registry) {
+})(globalThis, function (registry, protocol) {
   'use strict';
   // Routing and recovery kernels: loadBalancer, rateLimiter, circuitBreaker, retry, fallback.
   // Every kernel reads parameters through ctx.p on each use and keeps JSON-safe state in ctx.k.
@@ -24,17 +24,7 @@
   }
 
   // Reply to the caller with the downstream outcome, preserving payload shape and kernel fields.
-  function passThrough(ctx, job, result, extraFields) {
-    const msg = result.msg || {};
-    const fields = { ...(msg.fields || {}), ...(extraFields || {}) };
-    if (result.ok) {
-      const out = { ok: true, fields };
-      if (Number.isFinite(msg.kb)) out.kb = msg.kb;
-      if (msg.ptype) out.ptype = msg.ptype;
-      if (Number.isFinite(msg.tokens)) out.tokens = msg.tokens;
-      ctx.reply(job, out);
-    } else ctx.reply(job, { ok: false, err: result.err || 'error', fields });
-  }
+  const passThrough = protocol.passThrough;
 
   function firstEdge(ctx, portId) { const list = ctx.edges(portId); return list.length ? list[0] : null; }
 
@@ -120,11 +110,12 @@
     }
     return { edge: fresh[0] };
   }
-  function lbDispatch(ctx, job, tried, attempt, lastErr) {
+  function lbDispatch(ctx, job, tried, attempt, lastResult) {
     const choice = lbPick(ctx, job.msg, tried);
     if (!choice.edge) {
       if (choice.reason === 'none') ctx.k.unavailable += 1;
-      ctx.reply(job, { ok: false, err: lastErr || 'unavailable' });
+      if (lastResult) passThrough(ctx, job, lastResult);
+      else ctx.reply(job, { ok: false, err: 'unavailable' });
       return;
     }
     const b = lbBackend(ctx.k, choice.edge.id);
@@ -171,7 +162,7 @@
       b.errs += 1;
       b.failed += 1;
       if (p.healthChecks && b.errs >= p.ejectAfterErrors && (b.ejectedUntil === null || ctx.t >= b.ejectedUntil)) lbEject(ctx, slot.b, b);
-      if (slot.n <= p.retries) lbDispatch(ctx, job, slot.tried, slot.n + 1, result.err);
+      if (slot.n <= p.retries) lbDispatch(ctx, job, slot.tried, slot.n + 1, result);
       else passThrough(ctx, job, result);
     },
     onWake(ctx, payload) {

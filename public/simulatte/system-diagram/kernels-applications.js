@@ -1,9 +1,9 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
   const registry = node ? require('./kernel-registry.js') : root.SimulatteSystemDiagramKernels;
-  factory(registry);
+  factory(registry, node ? require('./protocol-routing.js') : root.SimulatteSystemDiagramProtocolRouting);
   if (node) module.exports = registry;
-})(globalThis, function (registry) {
+})(globalThis, function (registry, protocol) {
   'use strict';
   // Educational, finite application records. Identity is authored simulation input, not login.
   // All transport, service, failure and replay behavior belongs to the existing engine ctx.
@@ -32,19 +32,31 @@
     return c && typeof c === 'object' && !Array.isArray(c) && isId(c.commandId) && isId(c.userId) && typeof c.action === 'string' ? c : null;
   }
   function service(ctx, job) { if (ctx.p.errorRate > 0 && ctx.rand() < ctx.p.errorRate) { deny(ctx, job, 'Injected application service failure', 'error'); return; } ctx.admit(job); }
+  const targets = (node, compiled, port, kernels, extra = {}) => protocol.resolveTargets(node, compiled, port, { kernels, targetPort: 'in', ...extra });
   function topology(node, compiled, ports) {
-    for (const [port, kernels] of Object.entries(ports)) {
-      const edges = compiled.edges.filter(e => e.from === node.id && e.fromPort === port);
-      if (edges.length !== 1) throw Error(`${node.id}.${port} requires exactly one linked application peer`);
-      const edge = edges[0], peer = compiled.nodes.find(n => n.id === edge.to);
-      if (edge.params.mode !== 'sync' || !kernels.includes(peer.kernel)) throw Error(`${node.id}.${port} requires a synchronous ${kernels.join('|')} link`);
-    }
+    for (const [port, kernels] of Object.entries(ports)) targets(node, compiled, port, kernels);
   }
-  function call(ctx, job, port, c, slot) {
+  const hasPort = (node, compiled, port) => compiled.edges.some(e => e.from === node.id && e.fromPort === port);
+  const readActions = new Set(['check', 'history', 'authorize', 'readTask', 'readProject', 'listProjects', 'generate']);
+  const operation = c => readActions.has(c.action) ? 'read' : 'write';
+  function storeTarget(node, compiled, kernel) { return targets(node, compiled, 'store', [kernel], { singleTarget: true })[0]; }
+  function chatStreams(node, compiled) { return hasPort(node, compiled, 'stream') ? targets(node, compiled, 'stream', ['chatStreamSession']) : [node]; }
+  function validateChat(node, compiled) {
+    const store = storeTarget(node, compiled, 'conversationStore');
+    if (hasPort(node, compiled, 'access')) {
+      const access = targets(node, compiled, 'access', ['conversationAccess'], { singleTarget: true })[0];
+      const authority = targets(store, compiled, 'authority', ['conversationAccess'], { singleTarget: true })[0];
+      if (access.id !== authority.id) throw Error(`${node.id} access checks and message storage must use the same conversation authority`);
+    }
+    if (!hasPort(node, compiled, 'stream')) { topology(node, compiled, { generate: ['syntheticStream'], chunks: ['applicationClient'] }); return; }
+    if (hasPort(node, compiled, 'generate') || hasPort(node, compiled, 'chunks')) throw Error(`${node.id} delegates streaming or owns it, never both`);
+    for (const stream of chatStreams(node, compiled)) if (storeTarget(stream, compiled, 'conversationStore').id !== store.id) throw Error(`${node.id} and stream ${stream.id} must use the same conversation store`);
+  }
+  function call(ctx, job, port, c, slot, op = operation(c)) {
     const edge = ctx.edges(port)[0];
     if (!edge) { deny(ctx, job, `Missing ${port} peer`, 'unavailable'); return false; }
     const body = { ...job.msg.fields, application: clone(c) };
-    ctx.call(job, edge.id, { ptype: 'json', kb: bodyKb(body), fields: body }, { timeoutMs: ctx.p.callTimeoutMs, retries: ctx.p.retries, backoffMs: ctx.p.retryBackoffMs, slot });
+    ctx.call(job, edge.id, { ptype: 'json', op, kb: bodyKb(body), fields: body }, { timeoutMs: ctx.p.callTimeoutMs, retries: ctx.p.retries, backoffMs: ctx.p.retryBackoffMs, slot });
     return true;
   }
   function failRoute(ctx, job, result) { delete ctx.k.routes[job.id]; respond(ctx, job, result.msg?.fields.applicationResult || { reason: 'Application dependency failed' }, result.err || 'error'); }
@@ -79,12 +91,16 @@
   }
   registry.register({ id: 'applicationClient', station: null, immutableParams: ['scenario'],
     validateTopology(node, compiled) {
-      topology(node, compiled, { out: node.params.scenario === 'chat' ? ['chatApplication'] : ['workspaceApplication'] });
-      if (node.params.scenario === 'chat') {
-        const outgoing = compiled.edges.find(e => e.from === node.id && e.fromPort === 'out');
-        const chunks = compiled.edges.find(e => e.from === outgoing.to && e.fromPort === 'chunks');
-        if (!chunks || chunks.to !== node.id) throw Error(`${node.id} requires chat chunks to return to the requesting client`);
+      const peers = targets(node, compiled, 'out', node.params.scenario === 'chat' ? ['chatApplication'] : ['workspaceApplication']);
+      const storeKernel = node.params.scenario === 'chat' ? 'conversationStore' : 'workspaceStore';
+      if (new Set(peers.map(peer => storeTarget(peer, compiled, storeKernel).id)).size !== 1) throw Error(`${node.id} application replicas must use the same authoritative store`);
+      const framing = new Set();
+      if (node.params.scenario === 'chat') for (const peer of peers) for (const stream of chatStreams(peer, compiled)) {
+        for (const generator of targets(stream, compiled, 'generate', ['syntheticStream'])) framing.add(generator.params.chunkCharacters);
+        const clients = targets(stream, compiled, 'chunks', ['applicationClient']);
+        if (clients.some(client => client.id !== node.id)) throw Error(`${node.id} requires chat chunks to return to the requesting client`);
       }
+      if (framing.size > 1) throw Error(`${node.id} requires stable chunk framing across generation replicas`);
     },
     init: ctx => ({ script: ctx.p.scenario === 'chat' ? chatTrace() : workspaceTrace(), generated: 0, completed: 0, failed: 0, outstanding: {}, results: [], chunks: [], chunkKeys: {}, epoch: 0 }),
     start: ctx => ctx.wake(ctx.p.startSec, { epoch: 0 }),
@@ -93,7 +109,7 @@
       if (wake.epoch !== k.epoch || ctx.fault.down || k.generated >= k.script.length) return;
       const c = clone(k.script[k.generated++]);
       const body = { application: c, synthetic: true };
-      const msg = ctx.message({ ptype: 'json', kb: bodyKb(body), key: c.conversationId || c.workspaceId, op: 'write', fields: body });
+      const msg = ctx.message({ ptype: 'json', kb: bodyKb(body), key: c.conversationId || c.workspaceId, idem: JSON.stringify([c.userId, c.conversationId || c.workspaceId, c.commandId]), op: operation(c), fields: body });
       ctx.beginRequest(msg); const job = ctx.newJob(msg); k.outstanding[job.id] = c;
       call(ctx, job, 'out', c, 'application');
       if (k.generated < k.script.length) ctx.wake(ctx.p.intervalMs / MS, { epoch: k.epoch });
@@ -122,17 +138,29 @@
     observe: ctx => recordView({ generated: ctx.k.generated, completed: ctx.k.completed, failed: ctx.k.failed, chunks: ctx.k.chunks.length, model: 'Authored identities and finite application commands; no real login or API calls' }, { script: ctx.k.script, results: ctx.k.results, chunks: ctx.k.chunks })
   });
 
-  // Conversation writes persist actual content and fixed message identity, not just byte counts.
-  registry.register({ id: 'conversationStore', station: STATION, onRequest: service,
-    init: () => ({ users: [{ id: 'alice', tenantId: 'tenant-a' }, { id: 'bob', tenantId: 'tenant-b' }],
-      conversations: [{ id: 'conversation-a', tenantId: 'tenant-a', ownerId: 'alice' }, { id: 'conversation-b', tenantId: 'tenant-b', ownerId: 'bob' }], messages: [], audit: [], writes: 0, duplicates: 0 }),
+  const conversationPolicy = () => ({ users: [{ id: 'alice', tenantId: 'tenant-a' }, { id: 'bob', tenantId: 'tenant-b' }],
+    conversations: [{ id: 'conversation-a', tenantId: 'tenant-a', ownerId: 'alice' }, { id: 'conversation-b', tenantId: 'tenant-b', ownerId: 'bob' }] });
+  function conversationDecision(k, c) {
+    const user = c && k.users.find(u => u.id === c.userId), conversation = c && k.conversations.find(row => row.id === c.conversationId);
+    return { allowed: Boolean(user && conversation && user.tenantId === conversation.tenantId && conversation.ownerId === user.id), user, conversation };
+  }
+  registry.register({ id: 'conversationAccess', station: STATION, onRequest: service,
+    init: () => ({ ...conversationPolicy(), audit: [], allowed: 0, denied: 0 }),
     onServed(ctx, job) {
-      const c = command(job), k = ctx.k;
-      const user = c && k.users.find(u => u.id === c.userId), conversation = c && k.conversations.find(row => row.id === c.conversationId);
-      const allowed = Boolean(user && conversation && user.tenantId === conversation.tenantId && conversation.ownerId === user.id);
-      audit(ctx, { action: c?.action || 'invalid', userId: c?.userId || null, conversationId: c?.conversationId || null, allowed });
-      if (!allowed) { deny(ctx, job, 'Conversation access denied'); return; }
-      if (c.action === 'check') { reply(ctx, job, { allowed, conversation: clone(conversation) }); return; }
+      const c = command(job), value = conversationDecision(ctx.k, c);
+      audit(ctx, { action: c?.action || 'invalid', userId: c?.userId || null, conversationId: c?.conversationId || null, allowed: value.allowed });
+      if (!c || c.action !== 'check' || !value.allowed) { ctx.k.denied++; deny(ctx, job, 'Conversation access denied'); return; }
+      ctx.k.allowed++; reply(ctx, job, value);
+    },
+    observe: ctx => recordView({ allowed: ctx.k.allowed, denied: ctx.k.denied, authority: 'Canonical synthetic user and conversation ownership policy' }, { users: ctx.k.users, conversations: ctx.k.conversations, audit: ctx.k.audit })
+  });
+
+  function conversationOperation(ctx, job, value) {
+    const c = command(job), k = ctx.k, user = value?.user, conversation = value?.conversation;
+    const allowed = Boolean(c && value?.allowed && user?.id === c.userId && conversation?.id === c.conversationId && user.tenantId === conversation.tenantId && conversation.ownerId === user.id);
+    audit(ctx, { action: c?.action || 'invalid', userId: c?.userId || null, conversationId: c?.conversationId || null, allowed });
+    if (!allowed) { deny(ctx, job, 'Conversation access denied'); return; }
+      if (c.action === 'check') { reply(ctx, job, { allowed: true, conversation: clone(conversation) }); return; }
       if (c.action === 'history') { reply(ctx, job, { conversationId: conversation.id, messages: k.messages.filter(m => m.conversationId === conversation.id).map(clone) }); return; }
       if (c.action !== 'append' || !isId(c.messageId) || !['user', 'assistant'].includes(c.role) || !isText(c.content) || !c.content.length) { deny(ctx, job, 'Malformed conversation write'); return; }
       const recordId = `${c.role}:${c.messageId}`;
@@ -146,8 +174,28 @@
       if (k.messages.length >= ctx.p.maxRecords) { deny(ctx, job, 'Conversation record capacity exhausted', 'rejected'); return; }
       const message = { id: recordId, messageId: c.messageId, replyToMessageId: c.role === 'assistant' ? c.messageId : null, conversationId: conversation.id, tenantId: conversation.tenantId, authorId: c.role === 'user' ? user.id : 'synthetic-assistant', role: c.role, content: c.content, sequence: k.messages.filter(m => m.conversationId === conversation.id).length + 1, committedAtSec: ctx.t };
       k.messages.push(message); k.writes++; ctx.effect(`${conversation.id}:${message.id}`, { idempotent: true }); reply(ctx, job, { duplicate: false, message });
+
+  }
+  // The split store owns messages only. Its authority dependency checks every actual read and
+  // write, so a gateway's previous access decision cannot bypass current storage authorization.
+  // Legacy diagrams can retain the combined model. Split templates require their authority
+  // explicitly, so deleting an edge cannot silently reconstruct legacy policy on a new run.
+  registry.register({ id: 'conversationStore', station: STATION, onRequest: service, immutableParams: ['requireExternalAuthority'],
+    validateTopology(node, compiled) { if (node.params.requireExternalAuthority || hasPort(node, compiled, 'authority')) targets(node, compiled, 'authority', ['conversationAccess'], { singleTarget: true }); },
+    init: ctx => ({ ...((ctx.p.requireExternalAuthority || ctx.node.out.authority?.length) ? { users: [], conversations: [] } : conversationPolicy()), messages: [], audit: [], writes: 0, duplicates: 0 }),
+    onServed(ctx, job) {
+      if (!ctx.node.out.authority?.length) {
+        if (ctx.p.requireExternalAuthority) { deny(ctx, job, 'Required conversation authority is missing', 'unavailable'); return; }
+        conversationOperation(ctx, job, conversationDecision(ctx.k, command(job))); return;
+      }
+      const c = command(job); if (!c) { deny(ctx, job, 'Malformed conversation operation'); return; }
+      call(ctx, job, 'authority', { ...c, action: 'check' }, 'access');
     },
-    observe: ctx => recordView({ messages: ctx.k.messages.length, writes: ctx.k.writes, duplicates: ctx.k.duplicates, durability: 'Simulation state survives node crash and JSON checkpoints; no external database' }, { users: ctx.k.users, conversations: ctx.k.conversations, messages: ctx.k.messages, audit: ctx.k.audit })
+    onResult(ctx, job, slot, result) {
+      if (!result.ok) { audit(ctx, { action: command(job)?.action || 'invalid', userId: command(job)?.userId || null, allowed: false }); respond(ctx, job, result.msg?.fields.applicationResult || { reason: 'Conversation authority unavailable' }, result.err || 'error'); return; }
+      conversationOperation(ctx, job, result.msg?.fields.applicationResult);
+    },
+    observe: ctx => recordView({ messages: ctx.k.messages.length, writes: ctx.k.writes, duplicates: ctx.k.duplicates, authorization: ctx.k.users.length ? 'Combined legacy ownership policy' : 'Linked conversation authority checked on every operation', durability: 'Simulation state survives node crash and JSON checkpoints; no external database' }, { users: ctx.k.users, conversations: ctx.k.conversations, messages: ctx.k.messages, audit: ctx.k.audit })
   });
 
   registry.register({ id: 'syntheticStream', station: STATION, immutableParams: ['chunkCharacters'],
@@ -173,6 +221,7 @@
     const r = ctx.k.routes[job.id], c = r.command;
     if (slot === 'check') { call(ctx, job, 'store', { ...c, action: 'history' }, 'history'); return; }
     if (slot === 'history') {
+      if (!value || !Array.isArray(value.messages)) { delete ctx.k.routes[job.id]; deny(ctx, job, 'Invalid conversation history reply'); return; }
       if (c.action === 'history') { delete ctx.k.routes[job.id]; reply(ctx, job, value); return; }
       const prompt = value.messages.find(m => m.id === `user:${c.messageId}`), assistant = value.messages.find(m => m.id === `assistant:${c.messageId}`);
       if (prompt && (prompt.role !== 'user' || prompt.messageId !== c.messageId || prompt.content !== c.content)) { delete ctx.k.routes[job.id]; deny(ctx, job, 'Prompt identity conflicts with stored content'); return; }
@@ -186,7 +235,11 @@
       call(ctx, job, 'store', { ...c, action: 'append', role: 'user' }, 'prompt'); return;
     }
     if (slot === 'prompt' || slot === 'chunkDelivered') {
-      if (slot === 'prompt') r.historyCount = value.message.sequence - 1;
+      if (slot === 'prompt') {
+        if (!value?.message || !Number.isInteger(value.message.sequence) || value.message.sequence < 1) { delete ctx.k.routes[job.id]; deny(ctx, job, 'Invalid committed prompt reply'); return; }
+        r.historyCount = value.message.sequence - 1;
+        if (ctx.node.out.stream?.length) { call(ctx, job, 'stream', { ...c, action: 'stream', historyCount: r.historyCount }, 'streamed'); return; }
+      }
       if (r.done) { call(ctx, job, 'store', { ...c, action: 'append', messageId: c.messageId, role: 'assistant', content: r.content }, 'assistant'); return; }
       call(ctx, job, 'generate', { ...c, action: 'generate', cursor: r.cursor, historyCount: r.historyCount }, 'generated'); return;
     }
@@ -195,19 +248,54 @@
       r.content += value.content; r.cursor = value.nextCursor; r.done = value.done; ctx.k.chunks++;
       call(ctx, job, 'chunks', { ...c, action: 'chunk', messageId: `assistant:${c.messageId}`, cursor: value.cursor, content: value.content }, 'chunkDelivered'); return;
     }
-    if (slot === 'assistant') { ctx.k.completed++; delete ctx.k.routes[job.id]; reply(ctx, job, value); }
+    if (slot === 'assistant' || slot === 'streamed') { ctx.k.completed++; delete ctx.k.routes[job.id]; reply(ctx, job, value); }
   }
   registry.register({ id: 'chatApplication', station: null,
-    validateTopology: (node, compiled) => topology(node, compiled, { store: ['conversationStore'], generate: ['syntheticStream'], chunks: ['applicationClient'] }),
+    validateTopology: validateChat,
     init: () => ({ routes: {}, completed: 0, chunks: 0 }),
     onRequest(ctx, job) {
       const c = command(job);
       if (!c || !['send', 'history'].includes(c.action) || !isId(c.conversationId) || (c.action === 'send' && (!isId(c.messageId) || c.messageId.length > 80 || !isText(c.content) || !c.content.length || c.content.length > 512))) { deny(ctx, job, 'Malformed chat command'); return; }
       if (Object.keys(ctx.k.routes).length >= ctx.p.maxOutstanding) { deny(ctx, job, 'Chat in-flight capacity exhausted', 'rejected'); return; }
       ctx.k.routes[job.id] = { command: clone(c), content: '', cursor: 0, done: false, historyCount: 0 };
-      call(ctx, job, 'store', { ...c, action: 'check' }, 'check');
+      call(ctx, job, ctx.node.out.access?.length ? 'access' : 'store', { ...c, action: 'check' }, 'check');
     },
     onResult(ctx, job, slot, result) { if (!own(ctx.k.routes, job.id)) return; if (!result.ok) failRoute(ctx, job, result); else chatNext(ctx, job, slot, result.msg.fields.applicationResult); },
+    onFault: clearRoutes,
+    observe: ctx => recordView({ pending: Object.keys(ctx.k.routes).length, completed: ctx.k.completed, chunks: ctx.k.chunks }, { pending: Object.values(ctx.k.routes) })
+  });
+
+  // A separately faultable stream session owns cursor progression and delivery, then commits
+  // the assistant only after every real client chunk acknowledgement. It reconstructs context
+  // from the committed prompt, not from an untrusted caller's history count.
+  registry.register({ id: 'chatStreamSession', station: null,
+    validateTopology(node, compiled) { storeTarget(node, compiled, 'conversationStore'); topology(node, compiled, { generate: ['syntheticStream'], chunks: ['applicationClient'] }); },
+    init: () => ({ routes: {}, completed: 0, chunks: 0 }),
+    onRequest(ctx, job) {
+      const c = command(job);
+      if (!c || c.action !== 'stream' || !isId(c.conversationId) || !isId(c.messageId) || !isText(c.content) || !c.content.length || c.content.length > 512) { deny(ctx, job, 'Malformed stream session'); return; }
+      if (Object.keys(ctx.k.routes).length >= ctx.p.maxOutstanding) { deny(ctx, job, 'Stream in-flight capacity exhausted', 'rejected'); return; }
+      ctx.k.routes[job.id] = { command: { ...clone(c), action: 'send' }, content: '', cursor: 0, done: false, historyCount: 0 };
+      call(ctx, job, 'store', { ...c, action: 'history' }, 'sessionHistory');
+    },
+    onResult(ctx, job, slot, result) {
+      const r = own(ctx.k.routes, job.id); if (!r) return;
+      if (!result.ok) { failRoute(ctx, job, result); return; }
+      const value = result.msg?.fields.applicationResult;
+      if (slot === 'sessionHistory') {
+        const prompt = value?.messages?.find(m => m.id === `user:${r.command.messageId}`);
+        if (!prompt || prompt.role !== 'user' || prompt.content !== r.command.content || !Number.isInteger(prompt.sequence)) { delete ctx.k.routes[job.id]; deny(ctx, job, 'Stream requires its committed prompt'); return; }
+        const assistant = value.messages.find(m => m.id === `assistant:${r.command.messageId}`);
+        if (assistant) {
+          delete ctx.k.routes[job.id];
+          if (assistant.role !== 'assistant' || assistant.replyToMessageId !== prompt.messageId) { deny(ctx, job, 'Assistant identity is not bound to its committed prompt'); return; }
+          reply(ctx, job, { duplicate: true, message: assistant }); return;
+        }
+        r.historyCount = prompt.sequence - 1;
+        chatNext(ctx, job, 'chunkDelivered', null); return;
+      }
+      chatNext(ctx, job, slot, value);
+    },
     onFault: clearRoutes,
     observe: ctx => recordView({ pending: Object.keys(ctx.k.routes).length, completed: ctx.k.completed, chunks: ctx.k.chunks }, { pending: Object.values(ctx.k.routes) })
   });
@@ -289,7 +377,7 @@
   });
 
   registry.register({ id: 'permissionCache', station: null,
-    validateTopology: (node, compiled) => topology(node, compiled, { store: ['workspaceStore'] }),
+    validateTopology: (node, compiled) => storeTarget(node, compiled, 'workspaceStore'),
     init: () => ({ entries: {}, routes: {}, hits: 0, misses: 0 }),
     onRequest(ctx, job) {
       const c = command(job);
@@ -313,22 +401,58 @@
     onFault(ctx, fault, active) { if (fault.type === 'crash' && active) { ctx.k.routes = {}; ctx.k.entries = {}; } },
     observe: ctx => recordView({ hits: ctx.k.hits, misses: ctx.k.misses, entries: Object.keys(ctx.k.entries).length }, { cachedDecisions: Object.values(ctx.k.entries) })
   });
+  const mutations = new Set(['createTask', 'updateTask', 'grant', 'revoke']);
+  function publishActivity(ctx, job, command, value) {
+    const edge = ctx.node.out.events?.length ? ctx.edges('events')[0] : null;
+    if (!edge || !mutations.has(command.action)) return false;
+    const result = clone(value); delete result.duplicate;
+    const event = { id: JSON.stringify([command.workspaceId, command.commandId]), commandId: command.commandId,
+      action: command.action, userId: command.userId, workspaceId: command.workspaceId, result };
+    for (const key of ['projectId', 'taskId', 'targetUserId']) if (command[key]) event[key] = command[key];
+    ctx.k.publications[job.id] = { eventId: event.id, value: clone(value) };
+    const body = { workspaceEvent: event, synthetic: true };
+    // This call acknowledges a durable simulation queue enqueue, not delivery/application.
+    ctx.call(job, edge.id, { ptype: 'event', op: 'write', idem: event.id, fields: body, kb: bodyKb({ ...job.msg.fields, ...body }) },
+      { timeoutMs: ctx.p.callTimeoutMs, retries: ctx.p.retries, backoffMs: ctx.p.retryBackoffMs, slot: 'activity' });
+    return true;
+  }
+  function finishActivity(ctx, job, result) {
+    const publication = own(ctx.k.publications, job.id); if (!publication) return;
+    delete ctx.k.publications[job.id]; delete ctx.k.routes[job.id];
+    ctx.k[result.ok ? 'activityQueued' : 'activityFailed']++;
+    reply(ctx, job, { ...publication.value, activity: { eventId: publication.eventId, state: result.ok ? 'queued' : 'failed', ...(result.ok ? {} : { error: result.err || 'error' }) } });
+  }
+  registry.register({ id: 'workspaceJournal', station: STATION, onRequest: service,
+    init: () => ({ events: [], duplicates: 0, conflicts: 0 }),
+    onServed(ctx, job) {
+      const event = job.msg.fields.workspaceEvent;
+      if (!event || !isId(event.commandId) || !isId(event.userId) || !isId(event.workspaceId) || !mutations.has(event.action) || event.id !== JSON.stringify([event.workspaceId, event.commandId]) || !event.result || typeof event.result !== 'object') { deny(ctx, job, 'Malformed workspace activity'); return; }
+      const fingerprint = JSON.stringify(event), previous = ctx.k.events.find(e => e.event.id === event.id);
+      if (previous) {
+        if (previous.fingerprint !== fingerprint) { ctx.k.conflicts++; deny(ctx, job, 'Activity identity conflicts with committed event'); return; }
+        ctx.k.duplicates++; reply(ctx, job, { recorded: true, duplicate: true, eventId: event.id }); return;
+      }
+      if (ctx.k.events.length >= ctx.p.maxRecords) { deny(ctx, job, 'Activity journal capacity exhausted', 'rejected'); return; }
+      ctx.k.events.push({ atSec: ctx.t, event: clone(event), fingerprint }); ctx.effect(event.id, { idempotent: true });
+      reply(ctx, job, { recorded: true, eventId: event.id });
+    },
+    observe: ctx => recordView({ applied: ctx.k.events.length, duplicates: ctx.k.duplicates, conflicts: ctx.k.conflicts, delivery: 'Applied events, not queue enqueue acknowledgements' }, { events: ctx.k.events.map(e => ({ atSec: e.atSec, ...e.event })) })
+  });
   registry.register({ id: 'workspaceApplication', station: null,
     validateTopology(node, compiled) {
-      topology(node, compiled, { permissions: ['permissionCache'], store: ['workspaceStore'] });
-      const direct = compiled.edges.find(e => e.from === node.id && e.fromPort === 'store');
-      const cache = compiled.edges.find(e => e.from === node.id && e.fromPort === 'permissions');
-      const backing = compiled.edges.find(e => e.from === cache.to && e.fromPort === 'store');
-      if (!backing || backing.to !== direct.to) throw Error(`${node.id} permissions and operations must use the same workspace store`);
+      const store = storeTarget(node, compiled, 'workspaceStore');
+      for (const cache of targets(node, compiled, 'permissions', ['permissionCache'])) if (storeTarget(cache, compiled, 'workspaceStore').id !== store.id) throw Error(`${node.id} permissions and operations must use the same workspace store`);
+      if (hasPort(node, compiled, 'events')) for (const queue of targets(node, compiled, 'events', ['queue'])) targets(queue, compiled, 'consumers', ['workspaceJournal'], { max: Infinity });
     },
-    init: () => ({ routes: {}, allowed: 0, denied: 0 }),
+    init: () => ({ routes: {}, publications: {}, allowed: 0, denied: 0, activityQueued: 0, activityFailed: 0 }),
     onRequest(ctx, job) {
       const c = command(job);
       if (!workspaceCommand(c)) { deny(ctx, job, 'Malformed workspace request'); return; }
       if (Object.keys(ctx.k.routes).length >= ctx.p.maxOutstanding) { deny(ctx, job, 'Workspace in-flight capacity exhausted', 'rejected'); return; }
-      ctx.k.routes[job.id] = clone(c); call(ctx, job, 'permissions', c, 'permission');
+      ctx.k.routes[job.id] = clone(c); call(ctx, job, 'permissions', c, 'permission', 'read');
     },
     onResult(ctx, job, slot, result) {
+      if (slot === 'activity') { finishActivity(ctx, job, result); return; }
       const c = own(ctx.k.routes, job.id); if (!c) return;
       if (!result.ok) { ctx.k.denied++; failRoute(ctx, job, result); return; }
       const value = result.msg.fields.applicationResult;
@@ -336,9 +460,11 @@
         if (!value.allowed) { ctx.k.denied++; delete ctx.k.routes[job.id]; deny(ctx, job, value.reason || 'Permission denied'); return; }
         call(ctx, job, 'store', { ...c, authorization: value }, 'operation'); return;
       }
-      ctx.k.allowed++; delete ctx.k.routes[job.id]; reply(ctx, job, value);
+      ctx.k.allowed++;
+      if (publishActivity(ctx, job, c, value)) return;
+      delete ctx.k.routes[job.id]; reply(ctx, job, value);
     },
-    onFault: clearRoutes,
-    observe: ctx => recordView({ allowed: ctx.k.allowed, denied: ctx.k.denied, pending: Object.keys(ctx.k.routes).length }, { pending: Object.values(ctx.k.routes) })
+    onFault(ctx, fault, active) { clearRoutes(ctx, fault, active); if (fault.type === 'crash' && active) ctx.k.publications = {}; },
+    observe: ctx => recordView({ 'activity queued': ctx.k.activityQueued, 'activity enqueue failures': ctx.k.activityFailed, 'activity pending': Object.keys(ctx.k.publications).length, allowed: ctx.k.allowed, denied: ctx.k.denied, pending: Object.keys(ctx.k.routes).length }, { pending: Object.values(ctx.k.routes) })
   });
 });

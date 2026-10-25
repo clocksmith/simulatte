@@ -75,6 +75,15 @@
       const EventType = doc.defaultView?.Event || Event;
       preset.dispatchEvent(new EventType('change', { bubbles: true }));
     }
+    function revealNodes(ids) {
+      const selected = new Set(ids);
+      for (const group of model.diagram.groups || []) {
+        if (!group.collapsed || !model.diagram.nodes.some(node => selected.has(node.id) && node.groupId === group.id)) continue;
+        const result = model.apply({ type: 'setGroupCollapsed', id: group.id, collapsed: false });
+        if (!result.ok) { onMessage(result.error, true); return; }
+      }
+      model.select({ nodes: ids });
+    }
     // One delegated listener owns controls across all ticks, pages and diagram changes.
     host.addEventListener('click', event => {
       const target = event.target.closest?.('button[data-learning-action]');
@@ -84,8 +93,8 @@
       else if (action === 'tab') { activeTab = value; render(getView()); }
       else if (action === 'step') {
         const step = currentJourney()?.steps[Number(value)];
-        if (step) model.select({ nodes: matchingNodes(model.diagram, step).map(node => node.id) });
-      } else if (action === 'node') model.select({ nodes: [value] });
+        if (step) revealNodes(matchingNodes(model.diagram, step).map(node => node.id));
+      } else if (action === 'node') revealNodes([value]);
       else if (action === 'page') {
         const item = recordItems.get(value);
         if (item) { item.page += Number(target.dataset.direction); render(lastView); }

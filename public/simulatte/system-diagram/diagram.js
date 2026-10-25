@@ -4,7 +4,8 @@
   if (node) module.exports = api; else root.SimulatteSystemDiagramDocument = api;
 })(globalThis, function (libraryApi) {
   'use strict';
-  const SCHEMA = 'simulatte.systemDiagram.v2';
+  const SCHEMA = 'simulatte.systemDiagram.v3';
+  const ANNOTATED_SCHEMA = 'simulatte.systemDiagram.v2';
   const LEGACY_SCHEMA = 'simulatte.systemDiagram.v1';
   const COMPILED_SCHEMA = 'simulatte.systemDiagramCompiled.v1';
   const C = 'system-diagram';
@@ -95,7 +96,7 @@
   function validate(input, library, config) {
     const b = config.bounds;
     exactKeys(C, 'diagram', input, ['schema', 'id', 'name', 'seed', 'run', 'classes', 'nodes', 'edges', 'groups', 'notes', 'faults', 'view'], ['description']);
-    if (![SCHEMA, LEGACY_SCHEMA].includes(input.schema)) fail('diagram.schema', `${SCHEMA} or ${LEGACY_SCHEMA}`, input.schema);
+    if (![SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA].includes(input.schema)) fail('diagram.schema', `${SCHEMA}, ${ANNOTATED_SCHEMA} or ${LEGACY_SCHEMA}`, input.schema);
     const doc = clone(input);
     if (typeof doc.id !== 'string' || !NODE_ID.test(doc.id)) fail('diagram.id', 'identifier', doc.id);
     label('diagram.name', doc.name, b.maxLabelLength);
@@ -128,7 +129,8 @@
     const seen = new Set(), nodes = new Map(), groups = new Map();
     doc.groups.forEach((group, i) => {
       const path = `diagram.groups[${i}]`;
-      exactKeys(C, path, group, ['id', 'label', 'kind', 'x', 'y', 'w', 'h'], group.kind === 'resource' ? ['capacity'] : []);
+      exactKeys(C, path, group, ['id', 'label', 'kind', 'x', 'y', 'w', 'h'], [...(group.kind === 'resource' ? ['capacity'] : []), ...(doc.schema === SCHEMA ? ['collapsed'] : [])]);
+      if (Object.hasOwn(group, 'collapsed') && typeof group.collapsed !== 'boolean') fail(`${path}.collapsed`, 'boolean presentation state', group.collapsed);
       if (group.kind === 'resource' && (!Number.isInteger(group.capacity) || group.capacity < 1 || group.capacity > 64)) fail(`${path}.capacity`, 'shared resource capacity integer in [1, 64]', group.capacity);
       id(`${path}.id`, group.id, seen); label(`${path}.label`, group.label, b.maxLabelLength);
       if (!GROUP_KINDS.includes(group.kind)) fail(`${path}.kind`, GROUP_KINDS.join('|'), group.kind);
@@ -148,7 +150,7 @@
     const portUse = new Map(), pairs = new Set();
     doc.edges.forEach((edge, i) => {
       const path = `diagram.edges[${i}]`;
-      exactKeys(C, path, edge, ['id', 'from', 'to', 'params'], doc.schema === SCHEMA ? ['label'] : []);
+      exactKeys(C, path, edge, ['id', 'from', 'to', 'params'], doc.schema !== LEGACY_SCHEMA ? ['label'] : []);
       if (Object.hasOwn(edge, 'label')) label(`${path}.label`, edge.label, b.maxLabelLength);
       id(`${path}.id`, edge.id, seen);
       exactKeys(C, `${path}.from`, edge.from, ['nodeId', 'portId']); exactKeys(C, `${path}.to`, edge.to, ['nodeId', 'portId']);
@@ -298,5 +300,5 @@
     return value;
   }
 
-  return Object.freeze({ SCHEMA, LEGACY_SCHEMA, COMPILED_SCHEMA, GROUP_KINDS, FAILURE_DOMAIN_KINDS, emptyDiagram, validate, issues, compile, resolveClass, resolveNodeParams, resolveEdgeParams, portSpec, emittedPayloads, canConnect, newId, newClassId, deriveClass, changeClass, clone });
+  return Object.freeze({ SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA, COMPILED_SCHEMA, GROUP_KINDS, FAILURE_DOMAIN_KINDS, emptyDiagram, validate, issues, compile, resolveClass, resolveNodeParams, resolveEdgeParams, portSpec, emittedPayloads, canConnect, newId, newClassId, deriveClass, changeClass, clone });
 });

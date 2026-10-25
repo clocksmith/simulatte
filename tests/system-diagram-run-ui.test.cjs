@@ -188,3 +188,17 @@ test('selection mode and fault summaries describe what the inspector shows', () 
   assert.equal(inspector.faultSummary({ type: 'partition', atSec: 5, untilSec: null, target: { kind: 'edge', id: 'e1' } }, doc, library), 'Partition link on e1, from 5 s');
   assert.deepEqual(inspector.classUsage({ nodes: [{ classId: 'user.a' }], classes: [{ id: 'user.b', extends: 'user.a' }] }, 'user.a'), { nodes: 1, children: 1 });
 });
+
+test('folded component summaries count jobs and health without double-counting logical requests', () => {
+  const summary = overlay.groupSummary(['a', 'b', 'a'], {
+    a: { health: 'busy', queue: 2, busy: 1, completed: 100, faults: [] },
+    b: { health: 'ok', queue: 3, busy: 0, completed: 100, faults: ['dropReplies'] }
+  });
+  assert.equal(summary.components, 2); assert.equal(summary.queued, 5);
+  assert.equal(summary.unhealthy, 1); assert.equal(summary.busy, 1);
+  assert.equal(summary.health, 'degraded'); assert.equal(summary.completed, undefined);
+  assert.match(summary.detail, /not unique end-to-end requests/);
+  const incomplete = overlay.groupSummary(['missing', 'a'], { a: { health: 'ok', queue: NaN, busy: -1 } });
+  assert.equal(incomplete.health, 'unknown'); assert.equal(incomplete.missing, 1);
+  assert.equal(incomplete.queued, 0); assert.equal(incomplete.busy, 0);
+});

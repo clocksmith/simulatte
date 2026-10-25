@@ -1,0 +1,239 @@
+{
+  "schema": "simulatte.systemDiagram.v2",
+  "id": "social-feed",
+  "name": "Social posts, followers and feed fanout",
+  "description": "Synthetic users follow authors, publish posts and read chronological feeds. High-follower posts enqueue explicit recipient writes. A delayed fanout consumer makes successful but stale reads visible; switch the post store to pull or hybrid to compare write amplification and read-time work.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 12
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "users",
+      "classId": "social-workload",
+      "label": "Users, follows and posts",
+      "x": 0,
+      "y": 100,
+      "params": {
+        "userCount": 16,
+        "celebrityFollowers": 15,
+        "followsPerUser": 2,
+        "postCount": 12,
+        "readCount": 90,
+        "readIntervalMs": 100,
+        "readStartMs": 50
+      }
+    },
+    {
+      "id": "posts",
+      "classId": "social-post-store",
+      "label": "Users, follows and post store",
+      "x": 270,
+      "y": 0,
+      "params": {
+        "fanoutMode": "push"
+      }
+    },
+    {
+      "id": "queue",
+      "classId": "task-queue",
+      "label": "Durable fanout queue",
+      "x": 540,
+      "y": 0,
+      "params": {
+        "prefetch": 2,
+        "visibilityTimeoutMs": 1000,
+        "retryDelayMs": 150,
+        "maxReceives": 12
+      }
+    },
+    {
+      "id": "fanout",
+      "classId": "social-fanout-worker",
+      "label": "Recipient fanout workers",
+      "x": 810,
+      "y": 0,
+      "params": {
+        "batchSize": 4
+      }
+    },
+    {
+      "id": "timelines",
+      "classId": "social-timeline-store",
+      "label": "Follower timeline entries",
+      "x": 1080,
+      "y": 0,
+      "params": {
+        "serviceMs": 30,
+        "concurrency": 2
+      }
+    },
+    {
+      "id": "feed",
+      "classId": "social-feed-reader",
+      "label": "Read chronological feed",
+      "x": 540,
+      "y": 260,
+      "params": {}
+    },
+    {
+      "id": "deadletters",
+      "classId": "dead-letter-queue",
+      "label": "Exhausted fanout work",
+      "x": 810,
+      "y": 260,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "publish-post",
+      "label": "Create user / follow / publish",
+      "from": {
+        "nodeId": "users",
+        "portId": "write"
+      },
+      "to": {
+        "nodeId": "posts",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "enqueue-post",
+      "label": "Enqueue follower fanout",
+      "from": {
+        "nodeId": "posts",
+        "portId": "fanout"
+      },
+      "to": {
+        "nodeId": "queue",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "consume-post",
+      "label": "Lease committed post",
+      "from": {
+        "nodeId": "queue",
+        "portId": "consumers"
+      },
+      "to": {
+        "nodeId": "fanout",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "write-timeline",
+      "label": "Write recipient + post",
+      "from": {
+        "nodeId": "fanout",
+        "portId": "timeline"
+      },
+      "to": {
+        "nodeId": "timelines",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "read-feed",
+      "label": "Read follower feed",
+      "from": {
+        "nodeId": "users",
+        "portId": "read"
+      },
+      "to": {
+        "nodeId": "feed",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "load-followed-posts",
+      "label": "Read follows + pull posts",
+      "from": {
+        "nodeId": "feed",
+        "portId": "posts"
+      },
+      "to": {
+        "nodeId": "posts",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "load-timeline",
+      "label": "Read pushed timeline",
+      "from": {
+        "nodeId": "feed",
+        "portId": "timeline"
+      },
+      "to": {
+        "nodeId": "timelines",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    },
+    {
+      "id": "deadletter-post",
+      "label": "Retain exhausted delivery",
+      "from": {
+        "nodeId": "queue",
+        "portId": "dlq"
+      },
+      "to": {
+        "nodeId": "deadletters",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [
+    {
+      "id": "assumptions",
+      "text": "Synthetic bounded social model, not a vendor implementation. Explicit users and follows determine recipients. Queue retries preserve post identity; timeline writes deduplicate recipient + post. Feed staleness compares returned entries with the authoritative post-store snapshot. Change fanout strategy on the post store and restart to compare push, pull and hybrid under the same authored demand.",
+      "x": 0,
+      "y": -140,
+      "w": 1000
+    }
+  ],
+  "faults": [
+    {
+      "id": "consumer-delay",
+      "atSec": 0,
+      "untilSec": 1.8,
+      "target": {
+        "kind": "node",
+        "id": "fanout"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

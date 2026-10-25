@@ -1,9 +1,9 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
   const registry = node ? require('./kernel-registry.js') : root.SimulatteSystemDiagramKernels;
-  factory(registry);
+  factory(registry, node ? require('./protocol-routing.js') : root.SimulatteSystemDiagramProtocolRouting);
   if (node) module.exports = registry;
-})(globalThis, function (registry) {
+})(globalThis, function (registry, protocol) {
   'use strict';
   // Core kernels: source, service, endpoint, queue, deadLetter, database. They use ctx only.
   const MS = 1000;
@@ -114,6 +114,7 @@
   function forwardPatch(p) { return p.outputPayload === 'inherit' ? {} : { ptype: p.outputPayload }; }
   function finishService(ctx, job, rec) {
     delete ctx.k.jobs[job.id];
+    if (rec.protocol && rec.result) { protocol.passThrough(ctx, job, rec.result); return; }
     ctx.reply(job, rec.err ? { ok: false, err: rec.err } : { ok: true, kb: ctx.p.responseKb });
   }
   function nextSequential(ctx, job, rec) {
@@ -137,9 +138,10 @@
         if (edge.params.probability < 1 && ctx.rand() >= edge.params.probability) continue;
         for (let i = 0; i < edge.params.callsPerRequest; i++) plan.push({ e: edge.id, a: edge.params.mode === 'async' });
       }
+      const semantic = protocol.hasProtocol(job.msg) && plan.length === 1 && !plan[0].a && p.outputPayload === 'inherit';
       if (!plan.length) { ctx.reply(job, { ok: true, kb: p.responseKb }); return; }
       if (!p.blockingCalls) ctx.release(job);
-      const rec = { plan, i: 0, pending: 0, err: null, parallel: p.callMode === 'parallel' };
+      const rec = { plan, i: 0, pending: 0, err: null, parallel: p.callMode === 'parallel', protocol: semantic, result: null };
       ctx.k.jobs[job.id] = rec;
       if (!rec.parallel) { nextSequential(ctx, job, rec); return; }
       plan.forEach((step, i) => {
@@ -151,6 +153,7 @@
     onResult(ctx, job, slot, result) {
       const rec = ctx.k.jobs[job.id];
       if (!rec) return;
+      if (rec.protocol) rec.result = result;
       if (!result.ok && !rec.err) rec.err = result.err;
       if (rec.parallel) { rec.pending--; if (!rec.pending) finishService(ctx, job, rec); return; }
       if (!result.ok) { finishService(ctx, job, rec); return; }

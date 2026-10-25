@@ -1,12 +1,12 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
   const registry = node ? require('./kernel-registry.js') : root.SimulatteSystemDiagramKernels;
-  factory(registry);
+  factory(registry, node ? require('./protocol-routing.js') : root.SimulatteSystemDiagramProtocolRouting);
   if (node) module.exports = registry;
-})(globalThis, function (registry) {
+})(globalThis, function (registry, routing) {
   'use strict';
   // Bounded educational records, never live agents, private reasoning, or a vendor's backend.
-  const MS = 1000, BYTES_PER_KIB = 1024, MAX_USERS = 128, MAX_DEPENDENCIES = 32;
+  const MS = 1000, BYTES_PER_KB = 1000, MAX_USERS = 128, MAX_DEPENDENCIES = 32;
   const STATION = Object.freeze({ concurrency: 'concurrency', queueCapacity: 'queueCapacity' });
   const clone = value => JSON.parse(JSON.stringify(value));
   const own = (map, key) => Object.hasOwn(map, key) ? map[key] : null;
@@ -20,8 +20,10 @@
   }
   function bounded(ctx, size) { if (size < ctx.p.maxRecords) return true; ctx.count('record capacity rejections'); return false; }
   function syncPort(node, compiled, port, kernel, targetPort) {
+    const edges = compiled.edges.filter(e => e.from === node.id && e.fromPort === port);
+    if (kernel && port !== 'next') return routing.resolveTargets(node, compiled, port, { kernels: [kernel], targetPort, min: 0, max: port === 'status' || port === 'graph' ? 1 : 64, singleTarget: port === 'graph' && edges.length > 0 });
     const nodes = new Map(compiled.nodes.map(n => [n.id, n]));
-    for (const e of compiled.edges.filter(e => e.from === node.id && e.fromPort === port)) {
+    for (const e of edges) {
       if (e.params.mode !== 'sync') throw Error(`${node.id}.${port} requires acknowledged sync links`);
       if (kernel && (nodes.get(e.to)?.kernel !== kernel || e.toPort !== targetPort)) throw Error(`${node.id}.${port} requires ${kernel}.${targetPort}`);
     }
@@ -171,7 +173,7 @@
   function socialReply(ctx, job, value) {
     // Expected IDs are diagnostic oracle metadata, not modeled user-visible bytes.
     const wire = { ...value }; delete wire.expected; delete wire.snapshotAt;
-    const kb = ctx.p.responseKb + new TextEncoder().encode(JSON.stringify(wire)).length / BYTES_PER_KIB;
+    const kb = ctx.p.responseKb + new TextEncoder().encode(JSON.stringify(wire)).length / BYTES_PER_KB;
     ctx.reply(job, { ok: true, ptype: 'json', kb, fields: { social: value } });
   }
   function socialMessage(ctx, envelope) { return ctx.message({ ptype: 'json', kb: ctx.p.payloadKb, op: envelope.kind === 'feed' ? 'read' : 'write', fields: { social: envelope, synthetic: true } }); }
@@ -233,25 +235,70 @@
     const edge = ctx.edges('fanout')[0]; if (!edge) { reject(ctx, job, 'unavailable'); return; }
     ctx.call(job, edge.id, { ptype: 'json', fields: { social: { kind: 'fanout', post: row.post, recipients: row.recipients } } }, options(ctx, { postId: row.post.id }));
   }
+  function storeGraphCall(ctx, job, social, kind) {
+    const edge = ctx.edges('graph')[0];
+    if (!edge) { ctx.k.graphFailures++; reject(ctx, job, 'unavailable'); return; }
+    ctx.k.graphRequests++;
+    ctx.call(job, edge.id, { ptype: 'json', op: ['recipients', 'following'].includes(social.kind) ? 'read' : 'write', fields: { social } }, options(ctx, { kind }));
+  }
+  function storeRead(ctx, job, authorIds, graph) {
+    const k = ctx.k, authors = new Set(authorIds), rows = Object.values(k.posts).filter(r => authors.has(r.post.authorId)), posts = rows.filter(r => r.mode === 'pull').map(r => clone(r.post)).sort(postOrder);
+    k.oracleChecks += Object.keys(k.posts).length; k.pullScans += posts.length;
+    k.readJobs[job.id] = { posts, expected: rows.map(r => r.post.id).sort(), snapshotAt: ctx.t, ...(graph ? { graphRevision: graph.revision, graphSnapshotAt: graph.snapshotAt } : {}) };
+    ctx.wake(ctx.p.callTimeoutMs / MS, { kind: 'readCleanup', jobId: job.id });
+    const ms = ctx.serviceMs(ctx.p.serviceMs + ctx.p.perPostReadMs * posts.length, ctx.p.serviceDist, ctx.p.serviceCv);
+    if (!ctx.admit(job, ms)) delete k.readJobs[job.id];
+  }
+  function storePost(ctx, job, post, recipients, graph) {
+    const k = ctx.k; let row = own(k.posts, keyOf(post.id));
+    if (row) { if (JSON.stringify(row.post) !== JSON.stringify(post)) { reject(ctx, job); return; } k.duplicates++; ctx.effect(keyOf('post', post.id), { idempotent: true }); }
+    else {
+      if (!bounded(ctx, Object.keys(k.posts).length)) { reject(ctx, job, 'rejected'); return; }
+      const mode = ctx.p.fanoutMode === 'hybrid' ? (recipients.length >= ctx.p.highFollowerThreshold ? 'pull' : 'push') : ctx.p.fanoutMode;
+      row = k.posts[keyOf(post.id)] = { post: clone(post), recipients: [...recipients], mode, enqueued: false, ...(graph ? { graphRevision: graph.revision, graphSnapshotAt: graph.snapshotAt } : {}) };
+      ctx.effect(keyOf('post', post.id), { idempotent: true });
+    }
+    storeSend(ctx, row, job);
+  }
+  function validGraphList(ids, excluded) {
+    return Array.isArray(ids) && ids.length <= MAX_USERS && new Set(ids).size === ids.length && ids.every(id => typeof id === 'string' && id.length <= 128 && /^user-\d+$/.test(id) && id !== excluded);
+  }
+  function storeGraphResult(ctx, job, slot, result) {
+    const value = result.msg?.fields?.social, e = socialEnvelope(job);
+    const fail = err => { ctx.k.graphFailures++; reject(ctx, job, err); };
+    if (!result.ok) { fail(result.err || 'error'); return; }
+    if (!value || !Number.isInteger(value.revision) || value.revision < 1 || !Number.isFinite(value.snapshotAt) || value.snapshotAt < 0 || value.snapshotAt > ctx.t) { fail('invalid'); return; }
+    if (slot.kind === 'graphMutation') {
+      const valid = value.kind === e.kind && (e.kind === 'bootstrap'
+        ? Number.isInteger(value.users) && value.users === e.users?.length && Number.isInteger(value.follows) && value.follows >= 0 && value.follows < MAX_USERS * MAX_USERS
+        : value.followerId === e.followerId && value.authorId === e.authorId && value.following === (e.kind === 'follow'));
+      if (!valid) { fail('invalid'); return; } socialReply(ctx, job, clone(value)); return;
+    }
+    if (slot.kind === 'graphPost' && value.kind === 'recipients' && value.authorId === e.post.authorId && validGraphList(value.recipients, e.post.authorId)) { storePost(ctx, job, e.post, value.recipients, value); return; }
+    if (slot.kind === 'graphRead' && value.kind === 'following' && value.userId === e.userId && validGraphList(value.authorIds, e.userId)) { storeRead(ctx, job, value.authorIds, value); return; }
+    fail('invalid');
+  }
   registry.register({ id: 'socialStore', station: STATION,
-    immutableParams: ['fanoutMode', 'highFollowerThreshold'],
-    validateTopology(node, compiled) { syncPort(node, compiled, 'fanout'); },
-    init: () => ({ users: [], follows: [], posts: {}, readJobs: {}, duplicates: 0, reads: 0, pullScans: 0, oracleChecks: 0, bootstrapSignature: null }),
+    immutableParams: ['fanoutMode', 'highFollowerThreshold', 'graphMode'],
+    validateTopology(node, compiled) {
+      if (node.params.graphMode === 'external' && !node.out.graph.length) throw Error(`${node.id}.graph requires a connected external socialGraph.in authority; legacy bundled state is disabled`);
+      syncPort(node, compiled, 'fanout'); syncPort(node, compiled, 'graph', 'socialGraph', 'in');
+    },
+    init(ctx) {
+      const graphBacked = ctx.p.graphMode === 'external' || ctx.edges('graph').length > 0;
+      return { graphBacked, posts: {}, readJobs: {}, duplicates: 0, reads: 0, pullScans: 0, oracleChecks: 0, graphRequests: 0, graphFailures: 0, ...(graphBacked ? {} : { users: [], follows: [], bootstrapSignature: null }) };
+    },
     onRequest(ctx, job) {
       const e = socialEnvelope(job), k = ctx.k;
-      if (e?.kind !== 'feed' || !k.users.includes(e.userId)) { admit(ctx, job); return; }
+      if (e?.kind !== 'feed' || (!k.graphBacked && !k.users.includes(e.userId))) { admit(ctx, job); return; }
       if (ctx.p.errorRate > 0 && ctx.rand() < ctx.p.errorRate) { reject(ctx, job, 'error'); return; }
-      const authors = new Set(k.follows.filter(f => f.followerId === e.userId).map(f => f.authorId));
-      const rows = Object.values(k.posts).filter(r => authors.has(r.post.authorId)), posts = rows.filter(r => r.mode === 'pull').map(r => clone(r.post)).sort(postOrder);
-      k.oracleChecks += Object.keys(k.posts).length; k.pullScans += posts.length;
-      k.readJobs[job.id] = { posts, expected: rows.map(r => r.post.id).sort(), snapshotAt: ctx.t };
-      ctx.wake(ctx.p.callTimeoutMs / MS, { kind: 'readCleanup', jobId: job.id });
-      const ms = ctx.serviceMs(ctx.p.serviceMs + ctx.p.perPostReadMs * posts.length, ctx.p.serviceDist, ctx.p.serviceCv);
-      if (!ctx.admit(job, ms)) delete k.readJobs[job.id];
+      if (k.graphBacked) { storeGraphCall(ctx, job, { kind: 'following', userId: e.userId }, 'graphRead'); return; }
+      storeRead(ctx, job, k.follows.filter(f => f.followerId === e.userId).map(f => f.authorId));
     },
     onServed(ctx, job) {
       ctx.release(job); const e = socialEnvelope(job), k = ctx.k;
       if (!e) { reject(ctx, job); return; }
+      if (k.graphBacked && ['bootstrap', 'follow', 'unfollow'].includes(e.kind)) { storeGraphCall(ctx, job, e, 'graphMutation'); return; }
       if (e.kind === 'bootstrap') {
         if (!Array.isArray(e.users) || !e.users.length || e.users.length > MAX_USERS || new Set(e.users).size !== e.users.length || e.users.some(u => typeof u !== 'string' || !/^user-\d+$/.test(u)) || !Array.isArray(e.follows) || e.follows.length > MAX_USERS * MAX_USERS || e.follows.some(f => !e.users.includes(f.followerId) || !e.users.includes(f.authorId) || f.followerId === f.authorId)) { reject(ctx, job); return; }
         const signature = JSON.stringify([e.users, e.follows]); if (k.bootstrapSignature && k.bootstrapSignature !== signature) { reject(ctx, job); return; }
@@ -268,18 +315,11 @@
       }
       if (e.kind === 'post') {
         const post = e.post;
-        if (!validPost(post) || !k.users.includes(post.authorId)) { reject(ctx, job); return; }
-        let row = own(k.posts, keyOf(post.id));
-        if (row) { if (JSON.stringify(row.post) !== JSON.stringify(post)) { reject(ctx, job); return; } k.duplicates++; ctx.effect(keyOf('post', post.id), { idempotent: true }); }
-        else {
-          if (!bounded(ctx, Object.keys(k.posts).length)) { reject(ctx, job, 'rejected'); return; }
-          const recipients = k.follows.filter(f => f.authorId === post.authorId).map(f => f.followerId).sort();
-          const mode = ctx.p.fanoutMode === 'hybrid' ? (recipients.length >= ctx.p.highFollowerThreshold ? 'pull' : 'push') : ctx.p.fanoutMode;
-          row = k.posts[keyOf(post.id)] = { post: clone(post), recipients, mode, enqueued: false }; ctx.effect(keyOf('post', post.id), { idempotent: true });
-        }
-        storeSend(ctx, row, job); return;
+        if (!validPost(post) || (!k.graphBacked && !k.users.includes(post.authorId))) { reject(ctx, job); return; }
+        if (k.graphBacked) { storeGraphCall(ctx, job, { kind: 'recipients', authorId: post.authorId }, 'graphPost'); return; }
+        storePost(ctx, job, post, k.follows.filter(f => f.authorId === post.authorId).map(f => f.followerId).sort()); return;
       }
-      if (e.kind === 'feed' && k.users.includes(e.userId)) {
+      if (e.kind === 'feed' && (k.graphBacked || k.users.includes(e.userId))) {
         k.reads++; const snapshot = own(k.readJobs, job.id); delete k.readJobs[job.id];
         if (!snapshot) { reject(ctx, job); return; } socialReply(ctx, job, snapshot); return;
       }
@@ -288,10 +328,14 @@
     onWake(ctx, wake) { if (wake.kind !== 'readCleanup' || !own(ctx.k.readJobs, wake.jobId)) return; if (!ctx.job(wake.jobId)) delete ctx.k.readJobs[wake.jobId]; else ctx.wake(ctx.p.callTimeoutMs / MS, wake); },
     onFault(ctx, fault, active) { if (down(ctx, fault, active)) ctx.k.readJobs = {}; },
     onResult(ctx, job, slot, result) {
+      if (['graphMutation', 'graphPost', 'graphRead'].includes(slot.kind)) { storeGraphResult(ctx, job, slot, result); return; }
       const row = own(ctx.k.posts, keyOf(slot.postId)); if (!row) { reject(ctx, job); return; }
       if (result.ok) { row.enqueued = true; socialReply(ctx, job, { postId: row.post.id, committed: true, mode: row.mode }); } else reject(ctx, job, result.err || 'error');
     },
-    observe(ctx) { const rows = Object.values(ctx.k.posts); return { detail: { Users: ctx.k.users.length, Follows: ctx.k.follows.length, Posts: rows.length, 'Push posts': rows.filter(r => r.mode === 'push').length, 'Pull posts': rows.filter(r => r.mode === 'pull').length, 'Duplicate posts': ctx.k.duplicates, 'Pulled post rows': ctx.k.pullScans, 'Oracle post checks': ctx.k.oracleChecks, 'Fanout pending': rows.filter(r => r.mode === 'push' && r.recipients.length && !r.enqueued).length }, records: { users: ctx.k.users.map(userId => ({ userId })), follows: clone(ctx.k.follows), posts: rows.map(r => ({ ...clone(r.post), mode: r.mode, followers: r.recipients.length, enqueued: r.enqueued })) } }; }
+    observe(ctx) {
+      const k = ctx.k, rows = Object.values(k.posts), graph = k.graphBacked;
+      return { detail: { ...(graph ? { 'Graph authority': 'Separate users and follows service', 'Graph requests': k.graphRequests, 'Graph failures': k.graphFailures } : { Users: k.users.length, Follows: k.follows.length, 'Graph authority': 'Legacy bundled graph' }), Posts: rows.length, 'Push posts': rows.filter(r => r.mode === 'push').length, 'Pull posts': rows.filter(r => r.mode === 'pull').length, 'Duplicate posts': k.duplicates, 'Pulled post rows': k.pullScans, 'Oracle post checks': k.oracleChecks, 'Fanout pending': rows.filter(r => r.mode === 'push' && r.recipients.length && !r.enqueued).length }, records: { ...(graph ? {} : { users: k.users.map(userId => ({ userId })), follows: clone(k.follows) }), posts: rows.map(r => ({ ...clone(r.post), mode: r.mode, followers: r.recipients.length, enqueued: r.enqueued, ...(graph ? { graphRevision: r.graphRevision, graphSnapshotAt: r.graphSnapshotAt } : {}) })) } };
+    }
   });
   function fanoutPump(ctx, job, row) {
     const edge = ctx.edges('timeline')[0]; if (!edge) { reject(ctx, job, 'unavailable'); delete ctx.k.jobs[job.id]; return; }

@@ -589,8 +589,7 @@
     else s.calls[callId].bypass = true;
   }
   function relayResult(R, rec, ok, err, msg) {
-    if (!ok) { doReply(R, rec, { ok: false, err }); return; }
-    doReply(R, rec, { ok: true, kb: msg ? msg.kb : 0, ptype: msg ? msg.ptype : undefined, tokens: msg ? msg.tokens : undefined, fields: msg ? msg.fields : undefined });
+    doReply(R, rec, { ok, ...(ok ? {} : { err }), kb: msg ? msg.kb : 0, ptype: msg ? msg.ptype : undefined, tokens: msg ? msg.tokens : undefined, fields: msg ? msg.fields : undefined });
   }
   // ---- Stations: FCFS queue, workers, utilization and generation-fenced completions ----
   function stationSpec(R, id) { return kernelOf(R, id).station || null; }

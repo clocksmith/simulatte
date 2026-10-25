@@ -16,7 +16,36 @@
   const NOTE_WIDTH = 200;
   const NOTE_LINE = 16;
   const NOTE_CHAR = 6.6;
+  const FOLDED_WIDTH = 240;
+  const FOLDED_HEADER = 96;
+  const PROXY_SPACING = 22;
+  const FOLD_BUTTON = 28;
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+  // A bounded projection of authored nodes/edges, never a substitute executable graph.
+  function groupPresentation(diagram) {
+    const groups = new Map(diagram.groups.map(group => [group.id, { group, members: [], ports: [], box: { x: group.x, y: group.y, w: group.w, h: group.h } }]));
+    const hidden = new Map(), proxies = new Map();
+    for (const node of diagram.nodes) {
+      const entry = groups.get(node.groupId);
+      if (entry) { entry.members.push(node.id); if (entry.group.collapsed) hidden.set(node.id, entry); }
+    }
+    const edges = diagram.edges.filter(edge => !hidden.has(edge.from.nodeId) || hidden.get(edge.from.nodeId) !== hidden.get(edge.to.nodeId));
+    for (const edge of edges) for (const side of ['from', 'to']) {
+      const end = edge[side], entry = hidden.get(end.nodeId), key = `${end.nodeId}.${end.portId}`;
+      if (!entry || proxies.has(key)) continue;
+      const port = { ...end, groupId: entry.group.id, direction: side === 'from' ? 'out' : 'in' };
+      entry.ports.push(port); proxies.set(key, port);
+    }
+    for (const entry of groups.values()) if (entry.group.collapsed) {
+      const ins = entry.ports.filter(p => p.direction === 'in'), outs = entry.ports.filter(p => p.direction === 'out');
+      const order = (a, b) => `${a.nodeId}.${a.portId}`.localeCompare(`${b.nodeId}.${b.portId}`);
+      const rows = Math.max(ins.length, outs.length, 1);
+      entry.box = { x: entry.group.x, y: entry.group.y, w: FOLDED_WIDTH, h: FOLDED_HEADER + rows * PROXY_SPACING + 12 };
+      for (const [list, x] of [[ins, 0], [outs, FOLDED_WIDTH]]) list.sort(order).forEach((port, i) => { port.x = entry.box.x + x; port.y = entry.box.y + FOLDED_HEADER + (i + .5) * PROXY_SPACING; });
+    }
+    return { groups, hidden, proxies, nodes: diagram.nodes.filter(n => !hidden.has(n.id)), edges, edgeIds: new Set(edges.map(e => e.id)) };
+  }
 
   function el(doc, tag, attrs = {}, text) {
     const node = doc.createElementNS(SVG_NS, tag);
@@ -56,7 +85,11 @@
     const E = config.editor, W = E.nodeWidth, H = E.nodeHeight;
     const items = { nodes: new Map(), edges: new Map(), groups: new Map(), notes: new Map() };
     const classCache = new Map();
-    let classKey = '';
+    let classKey = '', presentationDoc = null, projection = null;
+    function presentation() {
+      if (presentationDoc !== model.diagram) { presentationDoc = model.diagram; projection = groupPresentation(presentationDoc); }
+      return projection;
+    }
     function classInfo(classId) {
       const key = JSON.stringify(model.diagram.classes);
       if (key !== classKey) { classCache.clear(); classKey = key; }
@@ -75,10 +108,18 @@
     function portPosition(nodeId, portId) {
       const n = findNode(nodeId);
       if (!n) return null;
+      const visible = presentation();
+      if (visible.hidden.has(nodeId)) { const p = visible.proxies.get(`${nodeId}.${portId}`); return p ? { x: p.x, y: p.y } : null; }
       const slot = portLayout(classInfo(n.classId).ports).find(s => s.port.id === portId);
       return slot ? { x: n.x + slot.x, y: n.y + slot.y } : null;
     }
-    function nodeBox(id) { const n = findNode(id); return n ? { x: n.x, y: n.y, w: W, h: H } : null; }
+    function nodeBox(id) { const n = findNode(id); return n && !presentation().hidden.has(id) ? { x: n.x, y: n.y, w: W, h: H } : null; }
+    function groupBox(id) { return presentation().groups.get(id)?.box || null; }
+    function visiblePorts() {
+      return [...presentation().nodes.flatMap(n => portLayout(classInfo(n.classId).ports).map(s => ({ nodeId: n.id, portId: s.port.id, direction: s.port.direction, x: n.x + s.x, y: n.y + s.y }))), ...presentation().proxies.values()];
+    }
+    function portElement(nodeId, portId) { return items.nodes.get(nodeId)?.portEls.get(portId) || items.groups.get(presentation().hidden.get(nodeId)?.group.id)?.portEls.get(`${nodeId}.${portId}`) || null; }
+    function portElements() { return [...items.nodes.values(), ...items.groups.values()].flatMap(item => [...item.portEls.values()]); }
     function noteBox(note) { const w = note.w || NOTE_WIDTH; return { x: note.x, y: note.y, w, h: wrapLines(note.text, w).length * NOTE_LINE + 16 }; }
     // Backward edges get a bounded handle so long reverse links do not sweep across the drawing.
     function curve(a, b) {
@@ -122,7 +163,7 @@
     }
     function syncNodes(d, usedPorts) {
       const seen = new Set();
-      for (const n of d.nodes) {
+      for (const n of presentation().nodes) {
         seen.add(n.id);
         const item = items.nodes.get(n.id) || createNode(n.id);
         items.nodes.set(n.id, item);
@@ -146,7 +187,7 @@
     }
     function syncEdges(d) {
       const seen = new Set();
-      for (const edge of d.edges) {
+      for (const edge of presentation().edges) {
         seen.add(edge.id);
         let item = items.edges.get(edge.id);
         if (!item) {
@@ -181,28 +222,53 @@
             el: g, body: el(doc, 'rect', { class: 'sd-group-body', rx: 4 }), hit: el(doc, 'rect', { class: 'sd-group-hit', rx: 4 }),
             tab: el(doc, 'g', { class: 'sd-group-tab', tabindex: 0, role: 'button' }), tabBg: el(doc, 'rect', { class: 'sd-group-tab-bg', height: GROUP_TAB_HEIGHT, rx: 4 }),
             label: el(doc, 'text', { class: 'sd-group-label', x: 8, y: 15 }), kind: el(doc, 'text', { class: 'sd-group-kind', y: 15 }),
-            handle: el(doc, 'rect', { class: 'sd-group-handle', width: GROUP_HANDLE, height: GROUP_HANDLE, rx: 2 }), sig: '',
+            handle: el(doc, 'rect', { class: 'sd-group-handle', width: GROUP_HANDLE, height: GROUP_HANDLE, rx: 2 }),
+            toggle: el(doc, 'g', { class: 'sd-group-toggle', tabindex: 0, role: 'button' }),
+            toggleText: el(doc, 'text', { class: 'sd-group-toggle-label', x: FOLD_BUTTON / 2, y: 18, 'text-anchor': 'middle' }),
+            summary: el(doc, 'text', { class: 'sd-group-summary', x: 12, y: 45 }),
+            status: el(doc, 'g', { class: 'sd-group-status', transform: 'translate(0 72)', 'data-width': FOLDED_WIDTH, 'data-height': 20, 'pointer-events': 'none' }),
+            ports: el(doc, 'g', { class: 'sd-group-ports' }), portEls: new Map(), sig: '',
           };
           item.tab.append(item.tabBg, item.label, item.kind);
-          g.append(item.body, item.hit, item.tab, item.handle); layers.groups.append(g); items.groups.set(group.id, item);
+          item.toggle.append(el(doc, 'rect', { class: 'sd-group-toggle-bg', width: FOLD_BUTTON, height: FOLD_BUTTON, rx: 3 }), item.toggleText);
+          g.append(item.body, item.hit, item.tab, item.summary, item.status, item.handle, item.toggle, item.ports); layers.groups.append(g); items.groups.set(group.id, item);
         }
-        const sig = JSON.stringify(group);
+        const entry = presentation().groups.get(group.id), box = entry.box, collapsed = Boolean(group.collapsed);
+        const sig = JSON.stringify([group, entry.members, entry.ports, entry.members.map(id => [findNode(id).label, findNode(id).classId])]);
         if (item.sig === sig) continue;
         item.sig = sig;
         item.el.dataset.kind = group.kind;
+        item.el.classList.toggle('is-collapsed', collapsed);
+        item.el.dataset.collapsed = String(collapsed);
         item.el.setAttribute('transform', `translate(${group.x} ${group.y})`);
-        for (const r of [item.body, item.hit]) { r.setAttribute('width', group.w); r.setAttribute('height', group.h); }
-        fitText(item.label, group.label || group.kind, Math.max(40, group.w - 90));
+        for (const r of [item.body, item.hit]) { r.setAttribute('width', box.w); r.setAttribute('height', box.h); }
+        fitText(item.label, group.label || group.kind, Math.max(16, box.w - (collapsed ? 44 : 116)));
         const kindLabel = group.kind === 'resource' ? `${group.capacity} shared slots` : group.kind === 'boundary' ? 'visual boundary' : `${group.kind} failure domain`;
         item.kind.textContent = kindLabel;
         let labelWidth = 0;
         try { labelWidth = item.label.getComputedTextLength(); } catch { labelWidth = 0; }
         if (!labelWidth) labelWidth = (group.label || group.kind).length * 7;
-        item.kind.setAttribute('x', 8 + labelWidth + 8);
-        fitText(item.kind, kindLabel, Math.max(24, group.w - labelWidth - 28));
-        item.tabBg.setAttribute('width', Math.min(group.w, labelWidth + kindLabel.length * 6 + 28));
+        item.kind.setAttribute('x', collapsed ? 12 : 8 + labelWidth + 8); item.kind.setAttribute('y', collapsed ? 62 : 15);
+        fitText(item.kind, kindLabel, Math.max(16, box.w - (collapsed ? 24 : labelWidth + 56)));
+        item.tabBg.setAttribute('width', Math.max(1, box.w - FOLD_BUTTON));
         item.tab.setAttribute('aria-label', `${group.label || group.kind}, ${kindLabel}`);
-        item.handle.setAttribute('x', group.w - GROUP_HANDLE); item.handle.setAttribute('y', group.h - GROUP_HANDLE);
+        item.handle.setAttribute('x', box.w - GROUP_HANDLE); item.handle.setAttribute('y', box.h - GROUP_HANDLE);
+        item.handle.setAttribute('display', collapsed ? 'none' : '');
+        item.status.setAttribute('display', collapsed ? '' : 'none');
+        item.summary.textContent = collapsed ? `${entry.members.length} component${entry.members.length === 1 ? '' : 's'} inside` : '';
+        item.toggle.setAttribute('transform', `translate(${box.w - FOLD_BUTTON} 0)`);
+        item.toggle.setAttribute('aria-expanded', String(!collapsed));
+        item.toggle.setAttribute('aria-label', `${collapsed ? 'Expand' : 'Collapse'} ${group.label || group.id}: ${entry.members.length} components`);
+        item.toggleText.textContent = collapsed ? '+' : '−';
+        item.ports.replaceChildren(); item.portEls.clear();
+        for (const proxy of entry.ports) {
+          const n = findNode(proxy.nodeId), port = classInfo(n.classId).ports.find(p => p.id === proxy.portId), out = proxy.direction === 'out';
+          const label = `${n.label || n.id} · ${port.label}`, description = `${label}, ${proxy.nodeId}.${proxy.portId}, ${proxy.direction}`;
+          const g = el(doc, 'g', { class: 'sd-port sd-proxy-port', 'data-node-id': proxy.nodeId, 'data-port': proxy.portId, 'data-direction': proxy.direction, transform: `translate(${proxy.x - box.x} ${proxy.y - box.y})` });
+          g.append(el(doc, 'title', {}, description), el(doc, 'circle', { class: 'sd-port-hit', r: 10, tabindex: 0, role: 'button', 'aria-label': description, 'data-node-id': proxy.nodeId, 'data-port-id': proxy.portId }),
+            el(doc, 'circle', { class: 'sd-port-dot', r: PORT_DOT }), el(doc, 'text', { class: 'sd-port-label', x: out ? 10 : -10, y: 4, 'text-anchor': out ? 'start' : 'end' }, label));
+          item.ports.append(g); item.portEls.set(`${proxy.nodeId}.${proxy.portId}`, g);
+        }
       }
       for (const [id, item] of items.groups) if (!seen.has(id)) { item.el.remove(); items.groups.delete(id); }
     }
@@ -247,8 +313,8 @@
 
     function invalidateText() { for (const item of [...items.nodes.values(), ...items.groups.values()]) item.sig = ''; for (const item of items.edges.values()) item.labelSig = ''; }
 
-    return { items, classInfo, findNode, portLayout, portPosition, nodeBox, noteBox, curve, render, invalidateText };
+    return { items, classInfo, findNode, portLayout, portPosition, nodeBox, groupBox, noteBox, visiblePorts, portElement, portElements, presentation, curve, render, invalidateText };
   }
 
-  return Object.freeze({ create, el, STATUS_HEIGHT, PORT_DOT });
+  return Object.freeze({ create, groupPresentation, el, STATUS_HEIGHT, PORT_DOT });
 });

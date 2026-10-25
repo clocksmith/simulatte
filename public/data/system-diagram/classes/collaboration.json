@@ -334,8 +334,8 @@
     },
     {
       "id": "socialStore",
-      "label": "Users, follows and post store",
-      "description": "Explicit user records, follow relations and idempotent posts. Push enqueues recipients, pull defers assembly to reads, and hybrid pulls high-follower authors. No ranking, media or production platform internals.",
+      "label": "Social post store",
+      "description": "Idempotent posts, graph-backed audience lookup and push/pull/hybrid fanout. External graph mode requires its dependency; only legacy-compatible diagrams without a graph link retain bundled users and follows. No ranking or media.",
       "paramSets": [
         "station",
         "memory"
@@ -402,6 +402,14 @@
           "default": 2,
           "unit": "ms/post",
           "group": "basic"
+        },
+        "graphMode": {
+          "type": "enum",
+          "label": "Graph authority",
+          "default": "legacy-compatible",
+          "options": ["legacy-compatible", "external"],
+          "group": "basic",
+          "help": "External requires a connected users and follows graph and never seeds bundled state. Legacy-compatible preserves older unconnected diagrams; an attached graph is always authoritative."
         }
       },
       "ports": [
@@ -414,6 +422,14 @@
           ],
           "multiple": true,
           "required": true
+        },
+        {
+          "id": "graph",
+          "direction": "out",
+          "label": "Users, follows and audience lookup",
+          "emits": ["json"],
+          "multiple": false,
+          "required": false
         },
         {
           "id": "fanout",
@@ -670,10 +686,10 @@
     {
       "id": "social-post-store",
       "kernel": "socialStore",
-      "label": "Users, follows and posts",
+      "label": "Social post store",
       "category": "storage",
       "glyph": "database",
-      "description": "Explicit user records, follow relations and idempotent posts. Push enqueues recipients, pull defers assembly to reads, and hybrid pulls high-follower authors. No ranking, media or production platform internals.",
+      "description": "Idempotent posts with explicit graph-backed author and recipient lookups. Push, pull and hybrid strategies retain actual recipient snapshots; graph failure cannot fabricate posts or feeds.",
       "defaults": {
         "serviceDist": "constant",
         "serviceMs": 2,

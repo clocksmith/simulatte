@@ -12,7 +12,7 @@ const runnerApi = require('../public/simulatte/system-diagram/runner.js');
 const kernels = require('../public/simulatte/system-diagram/kernels-all.js');
 const config = require('../public/data/system-diagram/config.json');
 const baseDeps = { library, config, kernels }, clone = value => structuredClone(value);
-const example = id => JSON.parse(fs.readFileSync(path.join(directory, 'examples', id + '.json')));
+const example = id => JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/system-diagram', id + '.json')));
 const params = (d, id, patch) => Object.assign(d.nodes.find(n => n.id === id).params, patch);
 function initialize(d, script = null) {
   const original = kernels.get('applicationClient');

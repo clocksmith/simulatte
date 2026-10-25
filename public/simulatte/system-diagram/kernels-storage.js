@@ -1,9 +1,9 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
   const registry = node ? require('./kernel-registry.js') : root.SimulatteSystemDiagramKernels;
-  factory(registry);
+  factory(registry, node ? require('./protocol-routing.js') : root.SimulatteSystemDiagramProtocolRouting);
   if (node) module.exports = registry;
-})(globalThis, function (registry) {
+})(globalThis, function (registry, protocol) {
   'use strict';
   // Storage kernels: replicatedDb, cache, objectStore. Parameters are read through ctx.p on
   // every use; kernel state in ctx.k is JSON-safe and all randomness comes from the node stream.
@@ -18,8 +18,6 @@
   const sampleMs = (ctx, meanMs) => (meanMs > 0 ? ctx.exp(meanMs) : 0);
   const keyOf = msg => String(msg.key === undefined || msg.key === null ? '' : msg.key);
   const isWrite = msg => msg.op === 'write';
-
-  function passFields(result, extra) { return { ...((result.msg && result.msg.fields) || {}), ...(extra || {}) }; }
 
   // ---------------------------------------------------------------- replicatedDb
   // One node holds a leader and followers in replica slots 0..replicas-1; slot 0 starts as leader.
@@ -393,23 +391,23 @@
     ctx.k.originCalls += 1;
     ctx.call(job, origin.id, {}, { timeoutMs: ctx.p.callTimeoutMs, retries: 0, slot: { ...slot, epoch: ctx.k.epoch } });
   }
-  function cacheReplyResult(ctx, job, result, extra) {
-    if (result.ok) {
-      const out = { ok: true, fields: passFields(result, extra) };
-      if (result.msg && Number.isFinite(result.msg.kb)) out.kb = result.msg.kb;
-      if (result.msg && result.msg.ptype) out.ptype = result.msg.ptype;
-      ctx.reply(job, out);
-    } else ctx.reply(job, { ok: false, err: result.err || 'error', fields: passFields(result) });
-  }
+  const cacheReplyResult = (ctx, job, result, extra) => protocol.passThrough(ctx, job, result, result.ok ? extra : undefined);
 
   registry.register({
     id: 'cache',
     station: { concurrency: 'concurrency', queueCapacity: 'queueCapacity' },
     bypass: { port: 'origin', param: 'failOpen' },
-    init: () => ({ entries: {}, keys: [], index: {}, inflight: {}, epoch: 0, hits: 0, misses: 0, evictions: 0, expirations: 0, coalesced: 0, originCalls: 0, flushes: 0, writes: 0 }),
+    init: () => ({ entries: {}, keys: [], index: {}, inflight: {}, epoch: 0, hits: 0, misses: 0, evictions: 0, expirations: 0, coalesced: 0, originCalls: 0, flushes: 0, writes: 0, protocolBypasses: 0 }),
     onRequest(ctx, job) { ctx.admit(job, ctx.serviceMs(ctx.p.hitMs, 'constant', 0)); },
     onServed(ctx, job) {
       const k = ctx.k, p = ctx.p, key = keyOf(job.msg), hasOrigin = ctx.edges('origin').length > 0;
+      if (protocol.hasProtocol(job.msg)) {
+        k.protocolBypasses++;
+        if (isWrite(job.msg)) k.writes++;
+        if (!hasOrigin) { ctx.reply(job, { ok: false, err: 'unavailable' }); return; }
+        cacheOriginCall(ctx, job, { kind: 'protocol' });
+        return;
+      }
       if (isWrite(job.msg)) {
         k.writes += 1;
         if (!hasOrigin) { cacheFill(ctx, key, job.msg.kb); ctx.reply(job, { ok: true, kb: ACK_KB }); return; }
@@ -439,6 +437,7 @@
     onResult(ctx, job, slot, result) {
       const k = ctx.k;
       if (slot.epoch !== k.epoch) return;
+      if (slot.kind === 'protocol') { cacheReplyResult(ctx, job, result); return; }
       if (slot.kind === 'write') {
         if (result.ok && ctx.p.writePolicy === 'write-through') cacheFill(ctx, slot.key, job.msg.kb);
         cacheReplyResult(ctx, job, result);
@@ -465,7 +464,7 @@
     },
     observe(ctx) {
       const k = ctx.k, lookups = k.hits + k.misses;
-      return { detail: { 'Hit ratio': lookups ? Number((k.hits / lookups).toFixed(3)) : 0, Size: `${k.keys.length}/${ctx.p.capacityKeys}`, Hits: k.hits, Misses: k.misses, Evictions: k.evictions, Expirations: k.expirations, Coalesced: k.coalesced, 'Origin calls': k.originCalls, Flushes: k.flushes } };
+      return { detail: { 'Hit ratio': lookups ? Number((k.hits / lookups).toFixed(3)) : 0, Size: `${k.keys.length}/${ctx.p.capacityKeys}`, Hits: k.hits, Misses: k.misses, Evictions: k.evictions, Expirations: k.expirations, Coalesced: k.coalesced, 'Origin calls': k.originCalls, 'Protocol bypasses': k.protocolBypasses, Flushes: k.flushes } };
     },
   });
 

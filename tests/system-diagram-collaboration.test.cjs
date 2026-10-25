@@ -7,7 +7,7 @@ const library = require(base + 'class-library.js').loadSync(directory);
 const D = require(base + 'diagram.js'), E = require(base + 'engine.js'), kernels = require(base + 'kernels-all.js');
 const O = require(base + 'engine-observability.js'), config = require('../public/data/system-diagram/config.json');
 const deps = { library, config, kernels }, clone = value => JSON.parse(JSON.stringify(value));
-const fixture = id => JSON.parse(fs.readFileSync(path.join(directory, 'examples', id + '.json'), 'utf8'));
+const fixture = id => JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/system-diagram', id + '.json'), 'utf8'));
 function run(doc, until = doc.run.horizonSec) { const c = D.compile(doc, library, config), s = E.initialize(c, deps); E.advance(c, s, until, deps); assert.equal(s.error, null); const v = E.observe(c, s, deps); assert.ok(O.reconcile(s)); return { c, s, v }; }
 function resume(doc, split) {
   const { c, s } = run(doc, split), restored = clone(s); E.advance(c, s, doc.run.horizonSec, deps); E.advance(c, restored, doc.run.horizonSec, deps);

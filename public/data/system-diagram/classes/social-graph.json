@@ -1,0 +1,45 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "social-graph",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "socialGraph",
+      "label": "Social users and follows",
+      "description": "Separate durable user and follow graph. Acknowledged bootstrap, follow and unfollow mutations determine explicit recipient and followed-author lookups. Graph failures never fabricate audiences.",
+      "paramSets": ["station", "memory"],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "User and relation capacity",
+          "min": 1,
+          "max": 16384,
+          "default": 16384,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Users, follows and graph queries",
+          "accepts": ["json"],
+          "multiple": true,
+          "required": true
+        }
+      ],
+      "faults": ["crash", "slow", "errors", "blackhole", "dropReplies"]
+    }
+  ],
+  "classes": [
+    {
+      "id": "social-graph-store",
+      "kernel": "socialGraph",
+      "label": "Users and follows graph",
+      "category": "storage",
+      "glyph": "database",
+      "description": "Owns bounded user identities and follow relationships separately from posts. Publishing and reading through an attached graph require its acknowledged lookup.",
+      "defaults": {"serviceDist": "constant", "serviceMs": 2, "concurrency": 32}
+    }
+  ]
+}
