@@ -19,7 +19,8 @@ module and worker paths without duplicating source files in the repository.
 | [`firebase.json`](../firebase.json) | Hosting targets, redirects, and cache headers. |
 | [`.firebaserc`](../.firebaserc) | Firebase project plus World and Create deploy-target bindings. |
 | [`package.json`](../package.json) | Account checks, packaging, previews, production deploys, and model-lock commands. |
-| [`tools/package-hosting-surfaces.mjs`](../tools/package-hosting-surfaces.mjs) | Builds isolated Hosting collections from canonical `public/` sources. |
+| [`tools/hosting-surface-inputs.mjs`](../tools/hosting-surface-inputs.mjs) | Owns surface input allowlists, exclusions, and stamped entrypoints. |
+| [`tools/package-hosting-surfaces.mjs`](../tools/package-hosting-surfaces.mjs) | Incrementally synchronizes isolated Hosting snapshots from canonical `public/` sources. |
 | [model-runtime lock](../public/data/simulatte-embedder/model-runtime-lock.json) | Doppler package, model artifacts, hashes, URLs, and integrity values. |
 
 ## Hosting site and custom domain
@@ -64,23 +65,28 @@ The compact-classifier check reproduces its generated data; the Python selected
 by `PATH` must have those versions installed.
 
 ```bash
-npm run check:deploy
-npm run package:hosting
+npm run prepare:hosting
+# Or prepare just the surface being deployed:
+npm run prepare:hosting:world
+npm run prepare:hosting:create
 npm run firebase:whoami
 npm run firebase:check
 ```
 
 `check:deploy` validates the model lock, synced references, vendored Doppler
-runtime, governed data, Hosting target contracts, and isolated surface
-inventories. `package:hosting` creates ignored deployment collections under
+runtime, governed data, Hosting target/input contracts, and inventory
+regressions. `package:hosting` creates ignored deployment collections under
 `.firebase-hosting/` and writes a `hosting-surface.json` inventory receipt into
 each collection. Create receives only its compiler data: the classifier,
 construction substrate, language lexicon, model indexes, and universe indexes.
 World-only autonomy datasets are excluded.
 
-Every `deploy:hosting*` and `deploy:preview*` command runs `prepare:hosting`
-once before calling Firebase. It checks the pinned Doppler package, stamps the
-build, runs the deploy checks, and packages the stamped files. `firebase.json`
+All-target `deploy:hosting*` and `deploy:preview*` commands run
+`prepare:hosting` once before calling Firebase. Targeted World and Create commands
+run `prepare:hosting:world` or `prepare:hosting:create`; the Create preview also
+uses Create-only preparation. Each preparation stamps the selected entrypoints,
+runs the unchanged full `check:deploy` gate, then packages only its selected
+surfaces. It never deploys the omitted output implicitly. `firebase.json`
 declares no `predeploy` hook because Firebase runs a hook once per selected
 Hosting target, so an all-target deploy would prepare twice. A bare
 `firebase deploy` uploads whatever `.firebase-hosting/` already holds; use the
@@ -91,6 +97,62 @@ The original Doppler archive is retained under `artifacts/pinned-packages/` so a
 fresh checkout does not depend on one operator's npm cache. Restoration still
 requires both pinned archive hashes and identical uncompressed tar bytes from
 the pinned source revision. A different gzip implementation cannot loosen the pin.
+
+## Incremental output and release identity
+
+```bash
+# Packaging only; these commands do not stamp, validate a release, or deploy.
+npm run package:hosting -- --surface=world
+npm run package:hosting -- --surface=create
+```
+
+Packaging compares exact source and destination bytes, writes only changed files,
+and removes stale files only inside the selected generated surface directory.
+It does not reset `.firebase-hosting`, touch an omitted target, or replace
+unchanged receipts. Files remain independent snapshots, not hard links to source.
+Source and output symlinks are rejected. A failed mutation invalidates that
+surface's inventory receipt; rerun preparation before deploying it. Output reports
+changed, unchanged, and removed file counts. The receipts retain their v1
+content-hash contract and are independent of timestamps.
+
+The build identity remains `SOURCE_SHA-CONTENT_HASH`, with one normalized hash of
+all public inputs. It is not a timestamp. Selected preparation changes only that
+surface's source HTML and the shared `public/version.json`; it explicitly reports
+the omitted surface as not prepared. Packaging rejects selected entrypoints whose
+build metadata differs from `version.json`. Do not combine an old omitted snapshot
+with a newly prepared snapshot and call them one release. Shared runtime or data input changes
+require `prepare:hosting` and deployment of both surfaces. Run preparations
+serially; they share `public/version.json` and the source worktree.
+
+The full preparation path still stamps both surfaces to the same exact build.
+Repeated stamping of unchanged inputs leaves source bytes and modification times
+untouched. Global URL cache keys remain unchanged in design: deferred script and
+stylesheet keys still use the exact global build required by the live verifier.
+Per-asset URL identities are not implemented; that requires coordinated changes to
+the verifier and a complete transitive module, worker, CSS, and fetched-data
+invalidation contract, not a direct-file hash substituted into HTML.
+
+## Remaining validation and payload cost
+
+The surface input manifest is a packaging boundary, not a validator dependency
+closure. No validation results are cached or checks skipped. A Create-only prepare
+still runs all existing deploy checks, and those checks include isolated packaging
+fixtures plus real-source input-boundary validation. Production staging directories are not used as test scratch space.
+
+A sound validation receipt needs every validator and transitive helper, dataset,
+manifest, schema, configuration, and runtime dependency. Existing checks also use
+the sibling Doppler Git object/archive, retained pinned gzip archive or npm cache,
+Node/npm/tar behavior, and exact Python package versions. Hashing only `public/`
+or a list of direct validator files would incorrectly reuse results when those
+inputs change. Full checks remain active until that external and runtime closure
+is explicit and testable.
+
+Incremental packaging still reads selected bytes to detect same-size edits and
+corruption; it does not trust mtimes or an old receipt. World still ships its
+governed offline datasets, and shared assets remain in both surface snapshots.
+This change reduces unnecessary writes and unselected staging work, not the
+required World payload or guaranteed Firebase upload volume. No datasets move to
+another service and no cloud settings, credentials, or cache headers change.
 
 ## Select an account
 

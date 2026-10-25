@@ -185,10 +185,13 @@ execution lane is claimed.
 Firebase Hosting project: `simulatte-world`.
 
 ```bash
-npm run check:deploy
-npm run stamp:build
-npm run deploy:hosting
+npm run prepare:hosting:world  # local preparation only; full deploy checks
+npm run deploy:hosting:world   # prepare, deploy, and verify World
+# Use :create for Create, or deploy:hosting for both targets.
 ```
+
+See [deployment instructions](docs/deployment.md) for incremental packaging,
+shared-input release rules, account selection, and verification scope.
 
 ## License
 
