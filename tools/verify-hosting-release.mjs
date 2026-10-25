@@ -19,7 +19,8 @@ export async function main(args = process.argv.slice(2)) {
   }
   if (!['world', 'create', 'both'].includes(options.surface)) throw new Error('Unknown surface');
   if (options['base-url'] && options.surface === 'both') throw new Error('--base-url requires an explicit --surface');
-  const expectedBuild = options['expected-build'] || JSON.parse(await fs.readFile(path.join(ROOT, 'public/version.json'))).build;
+  const versionInfo = JSON.parse(await fs.readFile(path.join(ROOT, 'public/version.json')));
+  const expectedBuild = options['expected-build'] || (options.surface !== 'both' && versionInfo.surfaces?.[options.surface]) || versionInfo.build;
   if (options['expected-source-sha'] && options['expected-source-sha'] !== expectedBuild.split('-')[0]) throw new Error('Expected source SHA differs from the exact release build');
   const outDir = path.resolve(options.out);
   await prepareAuditOutput(outDir, ['simulatte.liveRelease.v2']);
@@ -33,7 +34,8 @@ export async function main(args = process.argv.slice(2)) {
   for (const surface of options.surface === 'both' ? ['world', 'create'] : [options.surface]) {
     const baseUrl = new URL(options['base-url'] || TARGETS[surface]).href;
     if (!['http:', 'https:'].includes(new URL(baseUrl).protocol)) throw new Error('Release URL must use HTTP or HTTPS');
-    const checked = await verifyHostingSurface({ surface, baseUrl, expectedBuild, packageRoot: path.join(ROOT, '.firebase-hosting', surface) });
+    const surfaceBuild = options['expected-build'] || versionInfo.surfaces?.[surface] || expectedBuild;
+    const checked = await verifyHostingSurface({ surface, baseUrl, expectedBuild: surfaceBuild, packageRoot: path.join(ROOT, '.firebase-hosting', surface) });
     report.surfaces.push(checked);
     if (!options['http-only']) {
       for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {

@@ -3,11 +3,13 @@ import path from 'path';
 import crypto from 'crypto';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { ENTRYPOINTS, HOSTING_SURFACES, parseSurfaceArgs, sourceFiles } from './hosting-surface-inputs.mjs';
+import { ENTRYPOINTS, HOSTING_SURFACES, parseSurfaceArgs } from './hosting-surface-inputs.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
+const cacheDir = path.join(rootDir, '.cache');
+const stampCachePath = path.join(cacheDir, 'stamp-hash-cache.json');
 
 function getGitHash() {
   try {
@@ -16,6 +18,20 @@ function getGitHash() {
     console.warn('Warning: Failed to retrieve git commit hash. Falling back to content-only stamp.', err);
     return 'nogit';
   }
+}
+
+function publicFiles(dir, baseDir = dir) {
+  const files = [];
+  if (!fs.existsSync(dir)) return files;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const filePath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...publicFiles(filePath, baseDir));
+      continue;
+    }
+    files.push(path.relative(baseDir, filePath).replaceAll(path.sep, '/'));
+  }
+  return files.sort();
 }
 
 function normalizedDeployContent(relativePath, content) {
@@ -36,21 +52,58 @@ function normalizedDeployContent(relativePath, content) {
     );
 }
 
+function loadStatCache() {
+  try {
+    if (fs.existsSync(stampCachePath)) {
+      return JSON.parse(fs.readFileSync(stampCachePath, 'utf8'));
+    }
+  } catch {}
+  return {};
+}
+
+function saveStatCache(cache) {
+  try {
+    fs.mkdirSync(cacheDir, { recursive: true });
+    fs.writeFileSync(stampCachePath, JSON.stringify(cache), 'utf8');
+  } catch {}
+}
+
 function getDeployContentHash() {
   const publicDir = path.join(rootDir, 'public');
+  const cache = loadStatCache();
+  const nextCache = {};
   const hash = crypto.createHash('sha256');
-  for (const relativePath of sourceFiles(publicDir).sort()) {
+
+  for (const relativePath of publicFiles(publicDir)) {
+    if (relativePath === 'version.json') continue;
     const filePath = path.join(publicDir, relativePath);
-    const content = ENTRYPOINTS.includes(relativePath)
-      ? fs.readFileSync(filePath, 'utf8')
-      : fs.readFileSync(filePath);
-    const normalized = normalizedDeployContent(relativePath, content);
-    if (normalized === null) continue;
+    const isEntrypoint = ENTRYPOINTS.includes(relativePath);
+    const stat = fs.statSync(filePath);
+
+    let digestHex = '';
+    if (isEntrypoint) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      const normalized = normalizedDeployContent(relativePath, content);
+      if (normalized === null) continue;
+      digestHex = crypto.createHash('sha256').update(normalized).digest('hex');
+    } else {
+      const cached = cache[relativePath];
+      if (cached && cached.size === stat.size && cached.mtimeMs === stat.mtimeMs && cached.sha256) {
+        digestHex = cached.sha256;
+      } else {
+        const raw = fs.readFileSync(filePath);
+        digestHex = crypto.createHash('sha256').update(raw).digest('hex');
+      }
+      nextCache[relativePath] = { size: stat.size, mtimeMs: stat.mtimeMs, sha256: digestHex };
+    }
+
     hash.update(relativePath);
     hash.update('\0');
-    hash.update(normalized);
+    hash.update(digestHex);
     hash.update('\0');
   }
+
+  saveStatCache(nextCache);
   return hash.digest('hex').slice(0, 12);
 }
 
@@ -60,7 +113,7 @@ function stampEntrypoint(relativePath, buildHash, buildParam) {
     const original = fs.readFileSync(indexPath, 'utf8');
     let indexHtml = original;
     const metaRegex = /<meta\s+name="simulatte-build"\s+content="[^"]*"\s*\/?>/i;
-    
+
     if (metaRegex.test(indexHtml)) {
       indexHtml = indexHtml.replace(
         metaRegex,
@@ -96,30 +149,40 @@ function stampEntrypoint(relativePath, buildHash, buildParam) {
 
 function main() {
   const { surfaces } = parseSurfaceArgs(process.argv.slice(2));
-  const entrypoints = surfaces.flatMap(surface => HOSTING_SURFACES[surface].entrypoints);
-  sourceFiles(path.join(rootDir, 'public'), entrypoints);
+  const entrypoints = surfaces.flatMap((surface) => HOSTING_SURFACES[surface].entrypoints);
+
   for (const entrypoint of entrypoints) {
     const source = fs.readFileSync(path.join(rootDir, 'public', entrypoint), 'utf8');
     if (!/<meta\s+name="simulatte-build"\s+content="[^"]*"\s*\/?>/i.test(source)) {
       throw new Error(`Could not find <meta name="simulatte-build"> in public/${entrypoint}`);
     }
   }
+
   const buildHash = `${getGitHash()}-${getDeployContentHash()}`;
   const buildParam = encodeURIComponent(buildHash);
   console.log(`Generated build stamp: ${buildHash}`);
 
-  for (const entrypoint of entrypoints) stampEntrypoint(entrypoint, buildHash, buildParam);
+  for (const entrypoint of entrypoints) {
+    stampEntrypoint(entrypoint, buildHash, buildParam);
+  }
 
   const versionPath = path.join(rootDir, 'public', 'version.json');
   const versionData = JSON.stringify({ build: buildHash }, null, 2);
   if (!fs.existsSync(versionPath) || fs.readFileSync(versionPath, 'utf8') !== versionData) {
     fs.writeFileSync(versionPath, versionData, 'utf8');
     console.log(`Wrote version.json at ${versionPath}`);
-  } else console.log('Unchanged public/version.json');
-  if (surfaces.length === 1) console.log('Only selected entrypoints were stamped. The other surface is not prepared for this global build; prepare both for shared changes.');
+  } else {
+    console.log('Unchanged public/version.json');
+  }
+
+  if (surfaces.length === 1) {
+    console.log('Only selected entrypoints were stamped. The other surface is not prepared for this global build; prepare both for shared changes.');
+  }
 }
 
-try { main(); } catch (error) {
+try {
+  main();
+} catch (error) {
   console.error(error.message);
   process.exitCode = 1;
 }
