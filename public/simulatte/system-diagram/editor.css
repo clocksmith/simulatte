@@ -189,3 +189,223 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 .private-exercises details, .private-notes { padding: 12px; }
 .private-collection p { overflow-wrap: anywhere; line-height: 1.6; }
 .private-notes h2, .private-notes h3, .private-notes h4 { margin-top: 24px; }
+
+/* Interactive System Design Interview Stepper */
+.interview-stepper {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: min(920px, calc(100% - 32px));
+  max-height: calc(100% - 48px);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background: var(--wui-paper);
+  border: 1px solid var(--wui-line);
+  border-radius: var(--wui-radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  z-index: 25;
+  font-family: var(--wui-font);
+  color: var(--wui-ink);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+.interview-stepper[data-visible='false'] {
+  display: none;
+}
+.interview-stepper-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 14px;
+  background: var(--wui-hover);
+  border-bottom: 1px solid var(--wui-line);
+}
+.interview-stepper-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+.interview-stepper-badge {
+  font: 600 9.5px var(--wui-mono);
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--wui-active-bg);
+  color: var(--wui-active);
+  flex-shrink: 0;
+}
+.interview-stepper-title {
+  font: 600 13px var(--wui-font);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.interview-stepper-subtitle {
+  font: 400 11px var(--wui-font);
+  color: var(--wui-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.interview-stepper-notes-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--wui-paper);
+  border: 1px solid var(--wui-line);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font: 500 11px var(--wui-font);
+  color: var(--wui-ink);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.interview-stepper-notes-btn:hover {
+  border-color: var(--wui-ink);
+}
+.interview-stepper-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  overflow-x: auto;
+}
+.interview-stepper-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  background: var(--wui-paper);
+  border: 1px solid var(--wui-line);
+  border-radius: 4px;
+  font: 600 12px var(--wui-font);
+  color: var(--wui-ink);
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.interview-stepper-nav-btn:hover:not(:disabled) {
+  border-color: var(--wui-active);
+  color: var(--wui-active);
+}
+.interview-stepper-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.interview-stepper-nav-btn.is-full.is-active {
+  background: var(--wui-active-bg);
+  border-color: var(--wui-active);
+  color: var(--wui-active);
+}
+.interview-stepper-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+.interview-stepper-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--wui-hover);
+  border: 1px solid var(--wui-line);
+  border-radius: 20px;
+  font: 500 12px var(--wui-font);
+  color: var(--wui-ink);
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.interview-stepper-pill:hover {
+  border-color: var(--wui-ink);
+}
+.interview-stepper-pill.is-active {
+  background: var(--wui-active);
+  color: var(--wui-paper);
+  border-color: var(--wui-active);
+}
+.interview-stepper-pill .pill-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.08);
+  font: 600 10.5px var(--wui-mono);
+}
+.interview-stepper-pill.is-active .pill-number {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+.interview-stepper-drawer {
+  border-top: 1px solid var(--wui-line);
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--wui-paper);
+  overscroll-behavior: contain;
+}
+.interview-stepper-drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.interview-step-card {
+  border: 1px solid var(--wui-line);
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: var(--wui-paper);
+}
+.interview-step-card.is-prompt {
+  background: var(--wui-hover);
+  border-left: 3px solid var(--wui-active);
+}
+.interview-step-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 680px) {
+  .interview-step-columns {
+    grid-template-columns: 1fr;
+  }
+}
+.card-eyebrow {
+  font: 600 10.5px var(--wui-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--wui-muted);
+  margin-bottom: 4px;
+}
+.card-stage {
+  color: var(--wui-active);
+}
+.card-quote {
+  margin: 0;
+  font: 500 13px/1.45 var(--wui-font);
+  color: var(--wui-ink);
+}
+.card-text {
+  margin: 0;
+  font: 400 12.5px/1.45 var(--wui-font);
+  color: var(--wui-ink);
+}
+.card-list {
+  margin: 0;
+  padding-left: 18px;
+  font: 400 12px/1.45 var(--wui-font);
+  color: var(--wui-ink);
+}
+.card-list li {
+  margin-bottom: 3px;
+}

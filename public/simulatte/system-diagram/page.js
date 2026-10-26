@@ -115,6 +115,18 @@
   });
 
   const shell = globalThis.SimulatteSystemDiagramShell.create({canvas});
+  const interviewStepper = globalThis.SimulatteSystemDiagramInterviewStepper?.create({
+    host: document.querySelector('.canvas-panel') || document.body,
+    model,
+    canvas,
+    library,
+    config,
+    onStepChange: () => {
+      initialDocSig = documentSignature(model.diagram);
+      render();
+    },
+    onMessage: message,
+  });
 
   function select() { return model.selection; }
   function selectedId() { const s = select(); return s.nodes[0] || s.edges[0] || s.groups[0] || s.notes[0] || null; }
@@ -244,6 +256,7 @@
       canvas.setView(diagram.view);
       canvas.flush();
       render();
+      interviewStepper?.onDocumentLoaded(diagram);
       message(`Loaded saved diagram: ${diagram.name || diagram.id || 'Custom architecture'}`);
     }
   }
@@ -397,6 +410,7 @@
     canvas.render();
     canvas.fit({ readable: true });
     render();
+    interviewStepper?.onDocumentLoaded(diagram);
     message(`Loaded: ${diagram.name || diagram.id || 'Custom architecture'}`);
   }
 
@@ -472,6 +486,7 @@
           canvas.render();
           canvas.fit({ readable: true });
           render();
+          interviewStepper?.onDocumentLoaded(doc);
           message(`Preset loaded: ${doc.name || value}`);
         });
       },
@@ -915,6 +930,7 @@
   canvas.flush();
   initialDocSig = documentSignature(model.diagram);
   render();
+  interviewStepper?.onDocumentLoaded(model.diagram);
 
   privateCollection = globalThis.SimulattePrivateCollection.create({
     document, sourcePath: config.privateCollectionPath,
@@ -943,6 +959,7 @@
     canvas,
     model,
     subsystemEditor,
+    interviewStepper,
   });
 
   document.body.dataset.simulationProfile = profile.id;

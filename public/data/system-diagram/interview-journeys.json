@@ -1,0 +1,264 @@
+{
+  "schema": "simulatte.systemDiagramInterview.v1",
+  "scenarios": {
+    "web-service": {
+      "id": "web-service",
+      "title": "Scaling a Modern Web Application",
+      "subtitle": "System Design Interview: From Simple Monolith to Distributed Async Architecture",
+      "targetQps": "100 QPS to 50,000 QPS",
+      "steps": [
+        {
+          "stepNumber": 1,
+          "name": "Single-Server MVP",
+          "stage": "Functional Baseline",
+          "interviewerPrompt": "Let's start with the basics: Design a service where clients can query data and perform updates with low latency.",
+          "solution": "Establish the synchronous request path: Client sends HTTP requests to a stateless CPU API server, which reads and writes directly to the primary database.",
+          "tradeoffs": [
+            "Single point of failure (SPOF) at the database layer",
+            "Read queries compete with write transactions for locks and disk I/O",
+            "Zero caching: repeated identical reads hit disk every time"
+          ],
+          "activeNodes": ["clients", "api", "replicas"],
+          "customEdges": [
+            { "id": "requests", "from": { "nodeId": "clients", "portId": "out" }, "to": { "nodeId": "api", "portId": "in" }, "params": { "latencyMs": 2, "bandwidthMbps": 1000 } },
+            { "id": "direct-db", "from": { "nodeId": "api", "portId": "calls" }, "to": { "nodeId": "replicas", "portId": "in" }, "params": { "latencyMs": 5, "bandwidthMbps": 1000 } }
+          ],
+          "highlightNodes": ["api", "replicas"]
+        },
+        {
+          "stepNumber": 2,
+          "name": "Caching & Read Replicas",
+          "stage": "Read Scalability",
+          "interviewerPrompt": "Our read traffic just surged 10x (90% reads, 10% writes). Database CPU is spiking at 95% and queries are timing out. How do we scale reads?",
+          "solution": "Introduce an in-memory TTL cache (e.g. Redis) using the Cache-Aside pattern, and split database traffic with asynchronous read replicas.",
+          "tradeoffs": [
+            "Cache invalidation challenges (TTL expiration vs. explicit invalidation)",
+            "Replication lag: eventual consistency means clients might read slightly stale data immediately after a write",
+            "Cache stampede (dogpiling) when hot keys expire concurrently"
+          ],
+          "activeNodes": ["clients", "api", "cache", "replicas"],
+          "customEdges": [
+            { "id": "requests", "from": { "nodeId": "clients", "portId": "out" }, "to": { "nodeId": "api", "portId": "in" }, "params": { "latencyMs": 2, "bandwidthMbps": 1000 } },
+            { "id": "lookup", "from": { "nodeId": "api", "portId": "calls" }, "to": { "nodeId": "cache", "portId": "in" }, "params": { "latencyMs": 1, "bandwidthMbps": 1000 } },
+            { "id": "origin", "from": { "nodeId": "cache", "portId": "origin" }, "to": { "nodeId": "replicas", "portId": "in" }, "params": { "latencyMs": 5, "bandwidthMbps": 1000 } }
+          ],
+          "highlightNodes": ["cache"]
+        },
+        {
+          "stepNumber": 3,
+          "name": "Asynchronous Task Queue & Workers",
+          "stage": "Decoupling Long-Running Jobs",
+          "interviewerPrompt": "Users are triggering heavy background tasks (PDF generation, webhook dispatches, data processing) that take 5 to 30 seconds. API connection pools are exhausting. How do we decouple?",
+          "solution": "Add an asynchronous leased task queue (e.g. SQS/RabbitMQ) with a dedicated pool of background workers writing to an idempotent results store, plus a dead-letter queue (DLQ) for failed retries.",
+          "tradeoffs": [
+            "Asynchronous response model: clients must poll or subscribe via WebSockets for job completion",
+            "Idempotency: workers must handle duplicate delivery safely using unique idempotency keys",
+            "Backpressure and poison-pill messages: unhandled tasks must route to DLQ after N retries"
+          ],
+          "activeNodes": ["clients", "api", "cache", "replicas", "queue", "worker", "results", "deadletters"],
+          "highlightNodes": ["queue", "worker", "results", "deadletters"]
+        }
+      ]
+    },
+    "chat-application": {
+      "id": "chat-application",
+      "title": "Real-Time Streaming Chat System",
+      "subtitle": "System Design Interview: Persistent Conversations, Inference Pool, and Token Streaming",
+      "targetQps": "1,000 active streams",
+      "steps": [
+        {
+          "stepNumber": 1,
+          "name": "Conversation Persistence",
+          "stage": "Core Data Store",
+          "interviewerPrompt": "Design the core chat service: User submits prompts, authenticates, and conversation history is reliably saved.",
+          "solution": "Client connects through an Ingress gateway that validates identity policies, then forwards to the Chat service which persists prompts and history with retry bounds.",
+          "tradeoffs": [
+            "Strict authorization checks on every operation prevent unauthorized access across tenants",
+            "Retry policies with bounded attempts avoid cascading failures against database locks",
+            "Synchronous HTTP responses are too slow for LLM generation"
+          ],
+          "activeNodes": ["client", "ingress", "identity", "chat", "history-retry", "store-admission", "conversations"],
+          "highlightNodes": ["chat", "conversations"]
+        },
+        {
+          "stepNumber": 2,
+          "name": "Model Router & Inference Pool",
+          "stage": "LLM Compute Routing",
+          "interviewerPrompt": "We need to connect LLM workers to generate replies, but different models have different latencies and GPU capacity limits.",
+          "solution": "Introduce an Admission Controller and Model Router that dispatches generation tasks across worker pools based on availability and quotas.",
+          "tradeoffs": [
+            "GPU capacity is finite; quota admission prevents memory exhaustion on model nodes",
+            "Load balancing across diverse model checkpoints with speculative fallback",
+            "Need to ensure tokens don't block other waiting users"
+          ],
+          "activeNodes": ["client", "ingress", "identity", "chat", "history-retry", "store-admission", "conversations", "model-admission", "model-router", "generation", "generation-b"],
+          "highlightNodes": ["model-router", "generation", "generation-b"]
+        },
+        {
+          "stepNumber": 3,
+          "name": "Real-Time Token Streaming",
+          "stage": "Interactive Stream Session",
+          "interviewerPrompt": "Waiting for full generation takes 10+ seconds. How do we deliver tokens incrementally as they generate, and survive sudden disconnects?",
+          "solution": "Add a dedicated Streaming Session manager and Delivery pipeline that pushes tokens to clients via WebSockets/SSE while asynchronously committing the completed reply to the conversation store.",
+          "tradeoffs": [
+            "Client reconnection requires stream resumption tokens to avoid missing or duplicated tokens",
+            "Decoupled delivery: slow network connections on client side don't stall the GPU worker",
+            "Atomic commit of assistant message once generation finishes"
+          ],
+          "activeNodes": ["client", "ingress", "identity", "chat", "history-retry", "store-admission", "conversations", "stream-admission", "stream", "stream-store-retry", "delivery", "model-admission", "model-router", "generation", "generation-b"],
+          "highlightNodes": ["stream-admission", "stream", "delivery"]
+        }
+      ]
+    },
+    "rag-assistant": {
+      "id": "rag-assistant",
+      "title": "Retrieval-Augmented Generation (RAG) System",
+      "subtitle": "System Design Interview: From Baseline Model to Vector Retrieval & Reranking Ingestion",
+      "targetQps": "Sub-200ms retrieval",
+      "steps": [
+        {
+          "stepNumber": 1,
+          "name": "Baseline LLM Pipeline",
+          "stage": "Baseline Generation",
+          "interviewerPrompt": "Let's build an AI assistant that answers user questions with structured schema validation.",
+          "solution": "Client questions route through API server to GPU worker pool, then through structured output validation before returning to user.",
+          "tradeoffs": [
+            "Severe hallucinations on private or recent knowledge without external context",
+            "Context window limitations if large documents are stuffed into prompt",
+            "Model weights are static and cannot reflect daily updates"
+          ],
+          "activeNodes": ["questions", "api", "gpu", "rag", "validation", "generator"],
+          "highlightNodes": ["generator", "validation"]
+        },
+        {
+          "stepNumber": 2,
+          "name": "Vector Retrieval (Dense RAG)",
+          "stage": "Semantic Search",
+          "interviewerPrompt": "We need the assistant to cite internal documents accurately. How do we retrieve the right context?",
+          "solution": "Introduce a RAG Coordinator that embeds queries via Embedding Model, queries a Vector Candidates Index (e.g. Milvus/Pinecone), and injects top chunks into the LLM prompt.",
+          "tradeoffs": [
+            "Dense embeddings miss exact keyword matches (e.g. error codes, product SKUs)",
+            "Chunk size trade-off: large chunks dilute signal; small chunks lose context",
+            "Vector search latency adds to overall time-to-first-token (TTFT)"
+          ],
+          "activeNodes": ["questions", "api", "gpu", "rag", "embed-timing", "candidates", "validation", "generator"],
+          "highlightNodes": ["rag", "embed-timing", "candidates"]
+        },
+        {
+          "stepNumber": 3,
+          "name": "Ingestion Pipeline & Cross-Encoder Reranking",
+          "stage": "Production Scale & Quality",
+          "interviewerPrompt": "How do we continuously ingest thousands of changing documents, and filter out irrelevant vector search results?",
+          "solution": "Build an asynchronous document chunking and indexing pipeline, plus a Cross-Encoder Reranker before final prompt assembly.",
+          "tradeoffs": [
+            "Two-stage retrieval: fast bi-encoder candidate selection + accurate cross-encoder reranking",
+            "Background ingestion indexing decoupled from query path",
+            "Output validation layer catches schema mismatches before sending to client"
+          ],
+          "activeNodes": ["questions", "api", "gpu", "rag", "embed-timing", "candidates", "generator", "validation", "ranker", "documents", "chunks"],
+          "highlightNodes": ["documents", "chunks", "ranker"]
+        }
+      ]
+    },
+    "video-distribution": {
+      "id": "video-distribution",
+      "title": "Global Video Streaming & CDN Architecture",
+      "subtitle": "System Design Interview: Regional CDN POPs, Global Distribution, and Peer-Assisted Delivery",
+      "targetQps": "100,000 concurrent viewers",
+      "steps": [
+        {
+          "stepNumber": 1,
+          "name": "Edge CDN POP & Origin Shield",
+          "stage": "Single Region CDN",
+          "interviewerPrompt": "Design a video streaming service where viewers stream HLS/DASH video chunks without overwhelming the storage origin.",
+          "solution": "Viewers fetch manifests, and video segments are routed through regional CDN POPs backed by an Origin Shield and storage cluster.",
+          "tradeoffs": [
+            "Cache miss penalty: initial request for fresh chunks incurs high origin latency",
+            "Origin Shield protects primary database and S3 buckets from thundering herds",
+            "Bandwidth egress from single region remains costly for international viewers"
+          ],
+          "activeNodes": ["viewers", "quota", "cdn", "manifest", "shield-retry", "shield", "origin-admission", "origin"],
+          "highlightNodes": ["cdn", "shield", "origin"]
+        },
+        {
+          "stepNumber": 2,
+          "name": "Multi-Region Global CDN",
+          "stage": "Multi-Region Distribution",
+          "interviewerPrompt": "Traffic is scaling globally with spikes in East and West regions. How do we reduce cross-continent latency?",
+          "solution": "Deploy multi-region CDN edge POPs with geo-routed ingress and regional quotas, keeping 95%+ of traffic within local regional edges.",
+          "tradeoffs": [
+            "Cache hit ratio depends on regional viewer density and content popularity",
+            "Quota limiting isolates regional traffic spikes and prevents rogue scrapers",
+            "Origin shield consolidates cross-region revalidations into single requests"
+          ],
+          "activeNodes": ["viewers", "quota", "cdn", "viewers-east", "quota-east", "cdn-east", "manifest", "shield-retry", "shield", "origin-admission", "origin"],
+          "highlightNodes": ["cdn-east", "quota-east", "viewers-east"]
+        },
+        {
+          "stepNumber": 3,
+          "name": "Peer-Assisted Hybrid Delivery",
+          "stage": "Bandwidth Offload & Mesh Swarming",
+          "interviewerPrompt": "CDN egress costs are unsustainable during viral streams. Can viewers in the same region share segments directly without hurting buffering?",
+          "solution": "Introduce WebRTC peer-to-peer swarm mesh sharing for hot segments, with circuit breakers that fall back to CDN if peer transfer misses playback deadlines.",
+          "tradeoffs": [
+            "Peer availability fluctuates dynamically; circuit breaker must detect stalls instantly",
+            "Slight CPU and upload bandwidth overhead on viewer devices",
+            "Offloads up to 60-80% of edge CDN egress bandwidth on popular live content"
+          ],
+          "activeNodes": ["viewers", "quota", "cdn", "peer-breaker", "peers", "viewers-east", "quota-east", "cdn-east", "peer-breaker-east", "peers-east", "manifest", "shield-retry", "shield", "origin-admission", "origin"],
+          "highlightNodes": ["peer-breaker", "peers", "peer-breaker-east", "peers-east"]
+        }
+      ]
+    },
+    "social-feed": {
+      "id": "social-feed",
+      "title": "Scalable Social Media News Feed",
+      "subtitle": "System Design Interview: Fan-out on Read vs Write, Timeline Caching & Graph Traversal",
+      "targetQps": "50,000 timeline reads/sec",
+      "steps": [
+        {
+          "stepNumber": 1,
+          "name": "Fan-out on Read (Naive MVP)",
+          "stage": "Simple Post Storage",
+          "interviewerPrompt": "Design a basic social feed where users publish posts and read recent posts from people they follow.",
+          "solution": "Users publish posts to an admitted Posts DB. Feed generation queries the database on the fly by looking up followees and sorting their recent posts.",
+          "tradeoffs": [
+            "Reading feeds requires joining users, follows, and posts on every page refresh",
+            "Read latency scales linearly with the number of followed users (O(N) queries)",
+            "Completely unfeasible for users following hundreds of people"
+          ],
+          "activeNodes": ["users", "write-admission", "posts", "read-admission", "feed", "post-read-retry"],
+          "highlightNodes": ["posts", "feed"]
+        },
+        {
+          "stepNumber": 2,
+          "name": "Fan-out on Write with Asynchronous Queues",
+          "stage": "Push-Based Timeline Delivery",
+          "interviewerPrompt": "How do we make feed loading instant (<20ms) for millions of readers?",
+          "solution": "Shift to Fan-out on Write: When a post is published, enqueue a background task. Fanout workers lookup followers and push the post ID into each follower's pre-computed in-memory Timeline.",
+          "tradeoffs": [
+            "Timeline reads become instantaneous O(1) cache lookups",
+            "Celebrity problem: an account with 50M followers causes 50M writes on a single post",
+            "Hybrid approach needed: push for normal users, pull for high-follower celebrities"
+          ],
+          "activeNodes": ["users", "write-admission", "posts", "queue", "fanout", "timeline-retry", "timeline-admission", "timelines", "read-admission", "feed", "timeline-read-retry"],
+          "highlightNodes": ["queue", "fanout", "timelines"]
+        },
+        {
+          "stepNumber": 3,
+          "name": "Social Graph Service & Deadletter Handling",
+          "stage": "Graph Authority & Fault Isolation",
+          "interviewerPrompt": "How do we handle billions of follow relationships with fast traversals, and what happens when timeline fanout workers crash?",
+          "solution": "Add a dedicated Graph Authority service for follower queries with retry protection, plus Dead-Letter Queues (DLQ) to isolate failing writes.",
+          "tradeoffs": [
+            "Graph databases / distributed adjacency lists optimize follower lookups",
+            "DLQ prevents queue blockage from unprocessable fanout jobs",
+            "Hydration layer combines timeline post IDs with full post content in parallel"
+          ],
+          "activeNodes": ["users", "write-admission", "posts", "graph-retry", "graph", "queue", "fanout", "timeline-retry", "deadletters", "timelines", "timeline-admission", "feed", "read-admission", "post-read-retry", "timeline-read-retry"],
+          "highlightNodes": ["graph", "graph-retry", "deadletters", "post-read-retry"]
+        }
+      ]
+    }
+  }
+}
