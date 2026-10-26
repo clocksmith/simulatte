@@ -44,6 +44,7 @@
 
   const files = globalThis.SimulatteSystemDiagramFiles;
   const fileStore = files ? files.autosave(config) : null;
+  let privateCollection = null;
 
   function documentSignature(doc) {
     if (!doc) return '';
@@ -160,14 +161,16 @@
   button('view-actions', 'Fit', () => canvas.fit(), 'quiet');
 
   // Document file actions
-  function saveLocal() {
+  async function saveLocal() {
     canvas.flush();
     const isSubsystem = Boolean(subsystemEditor?.session?.active);
     const rootDoc = isSubsystem ? subsystemEditor.session.rootDiagram : model.diagram;
     const draft = isSubsystem ? subsystemEditor.getDraft() : null;
 
     let ok = false;
-    if (fileStore) {
+    if (privateCollection?.active) {
+      try { ok = await privateCollection.saveRecord({diagram: rootDoc, subsystemDraft: draft}); } catch { ok = false; }
+    } else if (fileStore) {
       ok = fileStore.save(rootDoc, draft);
     } else {
       try {
@@ -190,11 +193,12 @@
     savedStorageSig = documentSignature(rootDoc);
     savedDraftSig = draft ? documentSignature(draft.diagram) : null;
     render();
-    message(isSubsystem ? 'Subsystem draft and root diagram saved locally.' : 'Diagram saved locally in browser.');
+    message(privateCollection?.active ? 'Private diagram saved encrypted in this browser.' : isSubsystem ? 'Subsystem draft and root diagram saved locally.' : 'Diagram saved locally in browser.');
     return true;
   }
 
   function loadLocal() {
+    if (privateCollection?.active) return privateCollection.restoreSaved();
     if (subsystemEditor?.session?.active) {
       message('Publish or cancel subsystem definition edits before loading another document.', true);
       return false;
@@ -218,10 +222,11 @@
     return false;
   }
 
-  function loadDocumentRecord(diagramData, subsystemDraft) {
+  function loadDocumentRecord(diagramData, subsystemDraft, privateDocument = false) {
     const diagram = documents.validate(diagramData, library, config);
     const loaded = model.replace(diagram);
     if (!loaded.ok) throw Error(loaded.error);
+    privateCollection?.setActive(privateDocument);
 
     activePreset = config.examples.some(e => e.id === diagram.id) ? diagram.id : diagram.nodes.length ? 'custom' : 'blank';
     $('preset').value = activePreset;
@@ -243,7 +248,8 @@
     }
   }
 
-  function exportJson() {
+  async function exportJson() {
+    if (privateCollection?.active) return privateCollection.exportRecord({diagram: model.diagram});
     canvas.flush();
     const text = JSON.stringify(model.diagram, null, 2);
     const elDoc = $('document');
@@ -267,7 +273,7 @@
     return currentSig !== initialDocSig;
   }
 
-  function promptUnsavedChanges(onProceed, onCancel) {
+  async function promptUnsavedChanges(onProceed, onCancel) {
     if (subsystemEditor?.session?.active) {
       message('Publish or cancel subsystem definition edits before replacing the diagram.', true);
       onCancel?.();
@@ -279,7 +285,8 @@
     }
     // Automatically preserve a recoverable snapshot before replacement
     try {
-      if (fileStore) fileStore.saveBackup(model.diagram);
+      if (privateCollection?.active) await privateCollection.saveRecord({diagram: model.diagram}, true);
+      else if (fileStore) fileStore.saveBackup(model.diagram);
       else {
         localStorage.setItem(`${config.editor.autosaveKey}.backup`, JSON.stringify({
           schema: 'simulatte.systemDiagramBackup.v1',
@@ -293,7 +300,7 @@
     if (!dialog) {
       const saveChoice = window.confirm('You have unsaved changes. Save before continuing?');
       if (saveChoice) {
-        if (!saveLocal()) { onCancel?.(); return; }
+        if (!await saveLocal()) { onCancel?.(); return; }
       }
       onProceed();
       return;
@@ -320,13 +327,13 @@
     }
   }
 
-  function respondToUnsavedChanges(action) {
+  async function respondToUnsavedChanges(action) {
     if (!pendingReplacement) return false;
     const { onProceed, onCancel } = pendingReplacement;
     pendingReplacement = null;
     closeUnsavedDialog();
     if (action === 'save') {
-      const ok = saveLocal();
+      const ok = await saveLocal();
       if (ok) onProceed();
       else onCancel?.();
       return ok;
@@ -357,6 +364,7 @@
   const impExp = $('import-export');
   if (impExp) {
     button('import-export', 'Show JSON', () => {
+      if (privateCollection?.active) throw Error('Use Export to download the encrypted private diagram.');
       $('document').value = JSON.stringify(model.diagram, null, 2);
       message('Showing diagram JSON.');
     });
@@ -367,17 +375,19 @@
       );
     });
     button('import-export', 'Copy JSON', async () => {
+      if (privateCollection?.active) throw Error('Use Export to download the encrypted private diagram.');
       await navigator.clipboard.writeText(JSON.stringify(model.diagram, null, 2));
       message('Diagram JSON copied to clipboard.');
     });
   }
 
-  function loadPending(v) {
+  function loadPending(v, privateDocument = false) {
     if (subsystemEditor?.session?.active) throw Error('Publish or cancel definition edits before loading another document');
     const docData = v?.schema?.startsWith?.('simulatte.systemDiagram') ? (v.diagram || v) : v;
     const diagram = documents.validate(docData, library, config);
     const loaded = model.replace(diagram);
     if (!loaded.ok) throw Error(loaded.error);
+    privateCollection?.setActive(privateDocument);
     activePreset = config.examples.some(e => e.id === diagram.id) ? diagram.id : diagram.nodes.length ? 'custom' : 'blank';
     $('preset').value = activePreset;
     initialDocSig = documentSignature(model.diagram);
@@ -432,10 +442,11 @@
     if (!f) return;
     promptUnsavedChanges(
       () => {
-        readDocument(() => {
+        readDocument(async () => {
           if (f.size > 5e6) throw Error('File exceeds 5 MB');
-          return f.text();
-        }, text => loadPending(JSON.parse(text)));
+          const value = JSON.parse(await f.text());
+          return value.schema === globalThis.SimulattePrivateCrypto.SCHEMA ? {privateRecord: await privateCollection.decodeFile(value)} : value;
+        }, value => value.privateRecord ? loadDocumentRecord(value.privateRecord.diagram, value.privateRecord.subsystemDraft, true) : loadPending(value));
       },
       () => {
         message('File import cancelled.');
@@ -451,6 +462,7 @@
         readDocument(() => value === 'blank' ? documents.emptyDiagram(config) : json(config.examples.find(e => e.id === value).path), doc => {
           const loaded = model.replace(doc);
           if (!loaded.ok) throw Error(loaded.error);
+          privateCollection?.setActive(false);
           activePreset = value;
           $('preset').value = value;
           initialDocSig = documentSignature(model.diagram);
@@ -903,6 +915,19 @@
   canvas.flush();
   initialDocSig = documentSignature(model.diagram);
   render();
+
+  privateCollection = globalThis.SimulattePrivateCollection.create({
+    document, sourcePath: config.privateCollectionPath,
+    onLoad: (record, isPrivate) => loadDocumentRecord(record.diagram, record.subsystemDraft, isPrivate),
+    requestLoad: action => new Promise(resolve => promptUnsavedChanges(() => { action(); resolve(true); }, () => resolve(false))),
+    getRecord: () => ({diagram: subsystemEditor?.session?.active ? subsystemEditor.session.rootDiagram : model.diagram, subsystemDraft: subsystemEditor?.getDraft?.() || null}),
+    onClear: () => {
+      while (subsystemEditor?.session?.active) subsystemEditor.session.cancel();
+      loadPending(documents.emptyDiagram(config)); $('document').value = '';
+    },
+    onMessage: message,
+  });
+  button('document-actions', 'Private collection', () => privateCollection.open());
 
   globalThis.SimulatteSystemDiagramEditor = Object.freeze({
     document: () => clone(model.diagram),

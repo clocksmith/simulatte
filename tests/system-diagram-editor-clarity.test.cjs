@@ -104,6 +104,14 @@ class SvgNode {
   append(...items) { for (const item of items) { item.parent = this; this.children.push(item); } }
   replaceChildren(...items) { this.children = []; this.append(...items); }
   remove() { if (this.parent) this.parent.children = this.parent.children.filter(n => n !== this); }
+  querySelector(selector) {
+    for (const child of this.children) {
+      const matches = selector.startsWith('.') ? String(child.attributes.class || '').split(/\s+/).includes(selector.slice(1)) : child.tagName === selector;
+      if (matches) return child;
+      const nested = child.querySelector(selector); if (nested) return nested;
+    }
+    return null;
+  }
   get firstChild() { return this.children[0]; }
   getComputedTextLength() { return this.textContent.length * 6; }
 }
@@ -122,7 +130,21 @@ test('SVG renderer updates edge annotations, accessible full text and midpoint w
   const x = Number(edge.label.getAttribute('x'));
   const to = m.diagram.edges[0].to.nodeId;
   m.apply({ type: 'moveItems', ids: [to], dx: 80, dy: 16 }); render.render();
-  assert.equal(Number(edge.label.getAttribute('x')), x + 40);
+  // Rounded orthogonal routes place labels halfway along the actual route,
+  // which differs from averaging the two endpoint coordinates.
+  const points = JSON.parse(edge.el.dataset.routePoints);
+  const lengths = points.slice(1).map((p, i) => Math.hypot(p.x - points[i].x, p.y - points[i].y));
+  let remaining = lengths.reduce((sum, value) => sum + value, 0) / 2;
+  let expected;
+  for (let i = 0; i < lengths.length; i++) {
+    if (remaining <= lengths[i]) {
+      const t = lengths[i] ? remaining / lengths[i] : 0;
+      expected = points[i].x + (points[i + 1].x - points[i].x) * t; break;
+    }
+    remaining -= lengths[i];
+  }
+  assert.equal(Number(edge.label.getAttribute('x')), expected);
+  assert.notEqual(Number(edge.label.getAttribute('x')), x);
   m.apply({ type: 'setEdgeLabel', id, label: 'Task events' }); render.render();
   assert.equal(edge.label.textContent, 'Task events');
   m.apply({ type: 'setEdgeLabel', id, label: null }); render.render(); assert.equal(edge.label.textContent, '');

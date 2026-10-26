@@ -180,3 +180,12 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 .subsystem-library label, .subsystem-port-row label { display: grid; gap: 4px; margin-block: 8px; }
 .subsystem-port-row { padding-block: 8px; border-bottom: 1px solid var(--wui-line); }
 .subsystem-library .properties-actions { flex-wrap: wrap; }
+
+/* The private reader stays separate from the full-screen architecture canvas. */
+.private-collection { width: min(900px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); margin: auto; padding: 20px; overflow: auto; }
+.private-collection form { display: grid; gap: 12px; max-width: 420px; }
+.private-collection form input { width: 100%; }
+.private-exercises { display: grid; gap: 12px; }
+.private-exercises details, .private-notes { padding: 12px; }
+.private-collection p { overflow-wrap: anywhere; line-height: 1.6; }
+.private-notes h2, .private-notes h3, .private-notes h4 { margin-top: 24px; }

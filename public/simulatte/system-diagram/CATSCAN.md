@@ -4,12 +4,13 @@ Parent: [World](../CATSCAN.md)
 
 ## Target
 
-Make `/system-diagram` an architecture editor: connect components, save and nest versioned subsystems, execute deterministic synthetic workloads, inject faults and replay.
+Edit architectures, nest versioned subsystems, execute deterministic synthetic workloads, inject faults and replay at `/system-diagram`.
 
 ## Authority
 
-- Owns documents, subsystem lowering, classes, kernels, editor, controls and observations.
+- Owns documents, lowering, classes, kernels, editing and observations.
 - Shared coordinator owns rounds, checkpoints and replay; World UI owns controls.
+- Owns encrypted notes and practice diagrams; 256one retains career source records.
 - Does not own Create compilation or live infrastructure.
 
 ## Scope
@@ -26,18 +27,20 @@ Make `/system-diagram` an architecture editor: connect components, save and nest
 - Validated documents alone determine execution; layout never changes results.
 - Parameters resolve kernel, built-in class, user classes, then instance; unknown or invalid values refuse.
 - Primitive kernels require registered behaviour. Subsystems lower version-pinned internal graphs, never placeholder kernels.
-- Definitions expose typed external ports and bounded nesting. Recursive dependencies, invalid bindings and invalid overrides refuse.
+- Typed external ports and bounded nesting required; recursion, invalid bindings and overrides refuse.
 - Publishing preserves version pins. Explicit upgrades remain pending until acceptance; accepted runs never mutate.
-- Portable documents retain dependencies. Folding remains presentation, not executable composition.
-- Requests, attempts and effects remain separate; rejected, timed-out and dead-lettered work stays visible.
+- Portable dependencies persist; folding changes presentation only.
+- Separate requests, attempts and effects; keep rejected, timed-out and dead-lettered work visible.
 - Diagram, seed and controls reproduce execution; previews equal coordinator state.
 - Synthetic assumptions cannot establish production capacity, provider behaviour or physical validity.
+- Deploy authenticated ciphertext only. Never publish keys/passwords. Encrypt saves, backups and exports; locking clears plaintext and editor history.
+- Starters certify neither interviews nor production designs.
 
 ## Acceptance
 
 - Evidence: [document tests](../../../tests/system-diagram-document.test.cjs), [session tests](../../../tests/system-diagram-session.test.cjs), [engine tests](../../../tests/system-diagram-engine.test.cjs), [kernel tests](../../../tests/system-diagram-kernels.test.cjs) and [browser journey](../../../tools/simulatte/audit-system-diagram-editor.mjs).
-- Desktop and narrow-viewport journeys cover drawing, saving, reuse, nesting, upgrades, running, faulting and replay; human comprehension remains separate.
-- Nested chat-backend tests demonstrate topology-dependent outcomes and deterministic replay.
+- Desktop/mobile journeys cover authoring, persistence, nesting, upgrades and execution; human comprehension stays separate.
+- Nested chat tests verify topology-dependent outcomes and replay.
 
 ## Non-goals
 
