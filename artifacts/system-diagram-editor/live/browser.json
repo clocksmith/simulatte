@@ -1,0 +1,145 @@
+{
+  "source": {
+    "head": "675f6ce17450e57e02cd753b84b6bd5c325f9ee8",
+    "capturedAt": "2026-10-26T11:25:49.907Z",
+    "modifiedSources": {
+      "public/index.html": {
+        "sha256": "a1ae19d8be58f6e4b2ca8640b38b29bd864e1616ca97c90714ad7baeca0ea6c1",
+        "modifiedAt": "2026-10-26T11:24:59.928Z"
+      },
+      "public/simulatte/distributed-repair/index.html": {
+        "sha256": "760340e4d42c8dd5110980f40ccb9a0d58f7d19e53eb2bc8a55caf10177f419c",
+        "modifiedAt": "2026-10-26T11:24:59.928Z"
+      },
+      "public/simulatte/distributed-repair/repair.html": {
+        "sha256": "991f108a51cf0eb13c31b1ddc8d2f310342725e75c1c5acd4d7b69b83bfbcdf8",
+        "modifiedAt": "2026-10-26T11:24:59.928Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "7f8c33ce22c1189c7004881aa8e1c54fe77def07a83b94fdff78f9582e5df6b0",
+        "modifiedAt": "2026-10-26T11:24:59.928Z"
+      },
+      "public/simulatte/system-diagram/index.html": {
+        "sha256": "954a1afeb84d87a260effc442a27013b6cf0ad072e2936b4cd1200f331d5b739",
+        "modifiedAt": "2026-10-26T11:24:59.929Z"
+      },
+      "public/version.json": {
+        "sha256": "0f2c7f67e963fba85ded89b23c6cbfe06e54788262e4285eec3311962951220f",
+        "modifiedAt": "2026-10-26T11:24:59.929Z"
+      }
+    },
+    "boundary": "Local comparison checkout; browser evidence below comes from the named live URL."
+  },
+  "boundary": "Live hosted isolated Chrome browser editing journey verification for System Diagram Editor: Preset -> edit -> connect -> group -> collapse -> expand -> edit subsystem -> publish -> explicitly upgrade instance -> undo/redo -> save -> reload -> export/import.",
+  "url": "https://simulatte.world",
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": {
+        "titleAndReady": true,
+        "fullViewport": true,
+        "minimalCanvasControls": true,
+        "drawerDismissalAndStableCamera": true,
+        "presetLoaded": true,
+        "obstacleAwareRouting": {
+          "edges": 7,
+          "blocked": 0,
+          "intersections": 0
+        },
+        "nodeEditAndCoordinates": true,
+        "exactConnectionEndpoints": true,
+        "portBoundaryAttachments": true,
+        "groupClustered": true,
+        "groupCollapsed": true,
+        "foldedPortBoundaryAttachments": true,
+        "groupExpandedAndCoordinatesPreserved": true,
+        "detachedSubsystemEditorOpened": true,
+        "publishedVersionPinned": true,
+        "explicitInstanceUpgrade": true,
+        "undoRedoIntegrity": true,
+        "savedToStorage": true,
+        "reloadRecovery": true,
+        "jsonExportImport": true
+      },
+      "errors": [],
+      "networkFailures": [],
+      "blockedExternal": [],
+      "screenshots": [
+        "1440-00-components-drawer.png",
+        "1440-00-properties-drawer.png",
+        "1440-01-preset.png",
+        "1440-02-edited.png",
+        "1440-03-grouped.png",
+        "1440-04-collapsed.png",
+        "1440-05-expanded.png",
+        "1440-06-subsystem-draft.png",
+        "1440-07-upgraded.png",
+        "1440-08-saved.png",
+        "1440-09-reloaded.png",
+        "1440-10-exported.png"
+      ],
+      "build": "675f6ce17450e57e02cd753b84b6bd5c325f9ee8-f60c766e2862",
+      "lastAction": {
+        "button": "Import JSON"
+      },
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": {
+        "titleAndReady": true,
+        "fullViewport": true,
+        "minimalCanvasControls": true,
+        "drawerDismissalAndStableCamera": true,
+        "presetLoaded": true,
+        "obstacleAwareRouting": {
+          "edges": 7,
+          "blocked": 0,
+          "intersections": 0
+        },
+        "nodeEditAndCoordinates": true,
+        "exactConnectionEndpoints": true,
+        "portBoundaryAttachments": true,
+        "groupClustered": true,
+        "groupCollapsed": true,
+        "foldedPortBoundaryAttachments": true,
+        "groupExpandedAndCoordinatesPreserved": true,
+        "detachedSubsystemEditorOpened": true,
+        "publishedVersionPinned": true,
+        "explicitInstanceUpgrade": true,
+        "undoRedoIntegrity": true,
+        "savedToStorage": true,
+        "reloadRecovery": true,
+        "jsonExportImport": true
+      },
+      "errors": [],
+      "networkFailures": [],
+      "blockedExternal": [],
+      "screenshots": [
+        "390-00-components-drawer.png",
+        "390-00-properties-drawer.png",
+        "390-01-preset.png",
+        "390-02-edited.png",
+        "390-03-grouped.png",
+        "390-04-collapsed.png",
+        "390-05-expanded.png",
+        "390-06-subsystem-draft.png",
+        "390-07-upgraded.png",
+        "390-08-saved.png",
+        "390-09-reloaded.png",
+        "390-10-exported.png"
+      ],
+      "build": "675f6ce17450e57e02cd753b84b6bd5c325f9ee8-f60c766e2862",
+      "lastAction": {
+        "button": "Import JSON"
+      },
+      "pass": true
+    }
+  ]
+}

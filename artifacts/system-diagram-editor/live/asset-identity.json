@@ -1,0 +1,43 @@
+{
+  "build": "675f6ce17450e57e02cd753b84b6bd5c325f9ee8-f60c766e2862",
+  "recordedAt": "2026-10-26T11:25:51.221Z",
+  "checks": [
+    {
+      "file": "public/simulatte/system-diagram/index.html",
+      "status": 200,
+      "sha256": "954a1afeb84d87a260effc442a27013b6cf0ad072e2936b4cd1200f331d5b739",
+      "match": true
+    },
+    {
+      "file": "public/simulatte/system-diagram/edge-routing.js",
+      "status": 200,
+      "sha256": "f338cbed5f7bf00939168c6b9c0eb9347d2ca0666aa2f191f4196401b595fc8b",
+      "match": true
+    },
+    {
+      "file": "public/simulatte/system-diagram/editor-canvas.js",
+      "status": 200,
+      "sha256": "9a04159fe277c922f3252a6f6272a15f50781e1908b2b091965444401f0a2fea",
+      "match": true
+    },
+    {
+      "file": "public/simulatte/system-diagram/editor-canvas-render.js",
+      "status": 200,
+      "sha256": "db5c451c9366c13495328faa22cdeca505d51e74f892f0cd085a33f3fee2ec51",
+      "match": true
+    },
+    {
+      "file": "public/simulatte/system-diagram/editor-shell.js",
+      "status": 200,
+      "sha256": "ab317448b3d76908ff4f36ff8399bb2410ccf277e4152143da21741d71cfd270",
+      "match": true
+    },
+    {
+      "file": "public/simulatte/system-diagram/style.css",
+      "status": 200,
+      "sha256": "295a242c001a48f8e80b84d5280aab0ca0a868a2d5e0f51c474f1c2e06b8ff20",
+      "match": true
+    }
+  ],
+  "pass": true
+}
