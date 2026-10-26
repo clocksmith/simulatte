@@ -20,12 +20,18 @@
         : Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'bottom' : 'top');
       sides.get(side).push(port);
     }
-    return [...sides].flatMap(([side, entries]) => entries.sort((a, b) => key(a).localeCompare(key(b))).map((port, i) => {
+    return [...sides].flatMap(([side, entries]) => {
+      const horizontalSide = side === 'top' || side === 'bottom';
+      const target = port => {const neighbors = peers.get(key(port)) || []; return neighbors.length
+        ? neighbors.reduce((sum, peer) => sum + (horizontalSide ? peer.x : peer.y), 0) / neighbors.length
+        : horizontalSide ? box.x + box.w / 2 : box.y + box.h / 2;};
+      return entries.sort((a, b) => target(a) - target(b) || key(a).localeCompare(key(b))).map((port, i) => {
       const [nx, ny] = NORMALS[side], fraction = (i + 1) / (entries.length + 1);
       return {port, side, nx, ny, x: box.x + (nx ? (nx > 0 ? box.w : 0) : box.w * fraction),
         y: box.y + (ny ? (ny > 0 ? box.h : 0) : box.h * fraction),
         hit: Math.min(12, (nx ? box.h : box.w) / (entries.length + 1) / 2 + 2)};
-    }));
+      });
+    });
   }
   function clearSegment(a, b, obstacles) {
     return !obstacles.some(r => a.y === b.y

@@ -54,3 +54,9 @@ test('close facing components connect directly instead of looping around interse
   const a=box(0,0),b=box(208,0),ports=connected(a,b),route=Routing.route(...ports,[a,b]);
   assertClear(route,[a,b]);assert.equal(route.points.length,2);
 });
+test('ports on the same side follow neighbor order instead of introducing crossings from their names',()=>{
+  const ports=[{id:'a',nodeId:'n',direction:'out'},{id:'z',nodeId:'n',direction:'out'}];
+  const peers=new Map([['n.a',[{x:500,y:60}]],['n.z',[{x:500,y:10}]]]);
+  const placed=Routing.layoutPorts(box(0,0),ports,peers);
+  assert.deepEqual(placed.map(p=>p.port.id),['z','a']);assert.ok(placed[0].y<placed[1].y);
+});
