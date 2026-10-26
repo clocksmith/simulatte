@@ -47,7 +47,7 @@ property drawer on the right; the canvas fills the remaining viewport. Show only
 the current interview question, with details and example architectures available
 on request. Previous and Next retain editable stage snapshots; selecting a task
 never fills in its solution. Attribute published interview exercises, firsthand
-candidate reports and synthetic practice scenarios distinctly. Choose connection sides
+candidate reports and synthetic practice scenarios distinctly. Keep Databricks interview preparation exclusively in the password-protected collection. Choose connection sides
 from component geometry and route rounded orthogonal links around node bodies,
 minimizing distance and unnecessary bends. Keep pan and zoom bounded,
 provide Fit to View, attach typed connections at port boundaries, and restore

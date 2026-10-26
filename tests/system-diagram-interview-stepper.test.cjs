@@ -128,3 +128,14 @@ test('interview stages preserve user architecture and keep independent stage edi
   progress.move(1); assert.deepEqual(model.diagram, second);
   progress.clear(); progress.select('pagination'); assert.equal(model.diagram.nodes.length, 0, 'Lock/reset must erase interview snapshots');
 });
+
+
+test('Databricks preparation remains encrypted and absent from public problem catalogs', () => {
+  for (const name of ['interview-problems.json', 'interview-journeys.json']) {
+    const publicData = fs.readFileSync(path.join(root, 'public/data/system-diagram', name), 'utf8');
+    assert.doesNotMatch(publicData, /databricks/i, 'Owner requires this preparation to stay password-protected');
+  }
+  const crypto = require('../public/simulatte/system-diagram/private-crypto.js');
+  const envelope = JSON.parse(fs.readFileSync(path.join(root, 'public', config.privateCollectionPath), 'utf8'));
+  assert.doesNotThrow(() => crypto.validate(envelope));
+});
