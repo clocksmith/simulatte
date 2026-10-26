@@ -65,12 +65,12 @@
     root.className = 'interview-stepper';
     root.dataset.visible = 'false';
     root.dataset.expanded = 'false';
-    root.setAttribute('aria-label', 'System design interview journey');
+    root.setAttribute('aria-label', 'Lucyd system design interview journey');
 
     root.innerHTML = `
       <div class="interview-stepper-header">
         <div class="interview-stepper-meta">
-          <span class="interview-stepper-badge">INTERVIEW MODE</span>
+          <span class="interview-stepper-badge">LUCYD INTERVIEW MODE</span>
           <span class="interview-stepper-title"></span>
           <span class="interview-stepper-subtitle"></span>
         </div>

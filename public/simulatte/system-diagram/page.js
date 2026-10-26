@@ -964,7 +964,7 @@
 
   document.body.dataset.simulationProfile = profile.id;
   document.body.dataset.editorReady = 'true';
-  message(recoveryError || 'System Diagram Editor ready.', Boolean(recoveryError));
+  message(recoveryError || 'Lucyd ready.', Boolean(recoveryError));
 })().catch(e => {
   const s = document.getElementById('editor-status');
   if (s) { s.textContent = `Unable to open editor: ${e.message}`; s.dataset.error = 'true'; }
